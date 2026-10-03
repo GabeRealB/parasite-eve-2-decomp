@@ -117229,11 +117229,11 @@ merged the two loads into a single `lhu` and `combine` turned the surviving test
 into `and` + `sltu` + `beqz` - so the target's second load, a *word*-wide
 `lw 0x514($v1)`, and the `li v0,1` shared by both branch delay slots had nowhere
 to come from.  Two widths on one address means two views in the source, and this
-overlay's `Actor206100Flags` union already carried that (`half` / `word`):
+overlay's `Actor206100AnimationStatus` union already carried that (`fields.flags` / `word`):
 
 ```c
 next = (Actor206100Work*)task->work;
-if ((next->flags_514.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (next->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+if ((next->flags_514.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (next->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
     cond = 1;
 } else {
     cond = 0;
@@ -117567,7 +117567,7 @@ sibling `func_actor_206100_8014FA08` writes its own two reads:
 
 ```c
     work = (Actor206100Work*)task->work;
-    if ((work->flags_514.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
+    if ((work->flags_514.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
     ...
     work = (Actor206100Work*)task->work;
     work->field_520 = 2;

@@ -86,24 +86,22 @@ STATIC_ASSERT_SIZEOF(Actor206100VecScratch, 0x20);
 
 extern TaskDesc D_actor_206100_80158B0C[];
 
-/// Status flags `func_actor_206100_8014F970` reads through two widths: bit 0
-/// as a halfword, then bits 0x102 as a word.  The same pair of reads other
-/// actors make of `AnimationSlot::status` -- two widths on one address means two views
-/// of the field in the original source, and declaring it a single `u16` makes
-/// the second test `lhu` too.
-typedef union Actor206100Flags {
-    /* 0x0 */ u32 word;
-    /* 0x0 */ u16 half;
-    /// The two halfwords `word` spans: the status flags, and the per-frame
-    /// counter `func_actor_206100_8014DA28` bumps alongside `field_518`.  The
-    /// counter sitting inside the word is why the 0x102 test reaches its own
-    /// bit 0 as well.
+/// Animation slot 1's tick results as the Sea Diver's states see them, and the
+/// halfword sharing their word.
+///
+/// Each per-frame handler copies `AnimationSlot.status.fields.flags` here after
+/// it has run the current state, and the states test this copy rather than the
+/// slot to learn that their clip has ended. The two halfwords are unrelated,
+/// but that test reads the jump and settled bits through one word load, which
+/// `word` is for; its mask keeps the counter out of the result.
+typedef union {
     struct {
-        /* 0x0 */ u16 half;
-        /* 0x2 */ u16 field_516;
-    } parts;
-} Actor206100Flags;
-STATIC_ASSERT_SIZEOF(Actor206100Flags, 0x4);
+        u16 flags;      // Slot 1's ANIMATION_SLOT_* results from the latest frame's ticks
+        u16 frameCount; // Frames the actor has run, wrapping; only ever incremented, nothing in this package reads it
+    } fields;
+    u32 word;           // Both halfwords, `flags` in the low half
+} Actor206100AnimationStatus;
+STATIC_ASSERT_SIZEOF(Actor206100AnimationStatus, 0x4);
 
 /// The four handlers `func_actor_206100_8014E7D4` picks between as the effect
 /// mode `gSceneCombatState.actorControl` changes -- the retirement `func_actor_206100_8014FBE4`,
@@ -308,13 +306,13 @@ typedef struct Actor206100Work {
     /// with 0x1000 (1.0 in the 4.12 fixed point the overlay's scales use) on
     /// the same frame it builds the block.  Nothing in this overlay reads
     /// either one back.
-    /* 0x508 */ s16              field_508;
-    /* 0x50A */ s16              field_50A;
-    /* 0x50C */ s16              animRequest; // animation request kind
-    /* 0x50E */ s16              animPlaying; // clip the request plays, latched from animClip
-    /* 0x510 */ s16              animClip;    // animation clip id
-    /* 0x512 */ s16              field_512;
-    /* 0x514 */ Actor206100Flags flags_514;
+    /* 0x508 */ s16                        field_508;
+    /* 0x50A */ s16                        field_50A;
+    /* 0x50C */ s16                        animRequest; // animation request kind
+    /* 0x50E */ s16                        animPlaying; // clip the request plays, latched from animClip
+    /* 0x510 */ s16                        animClip;    // animation clip id
+    /* 0x512 */ s16                        field_512;
+    /* 0x514 */ Actor206100AnimationStatus flags_514;
     /// Second half of the per-frame counter pair the state dispatcher
     /// `func_actor_206100_8014DA28` and the spawn state `func_actor_206100_8014C458`
     /// both bump: the two advance together, ahead of the sub-state handler.
@@ -2011,8 +2009,8 @@ static void func_actor_206100_8014C458(Task* task)
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            work->flags_514.parts.field_516 = work->flags_514.parts.field_516 + 1;
-            work->field_518                 = work->field_518 + 1;
+            work->flags_514.fields.frameCount = work->flags_514.fields.frameCount + 1;
+            work->field_518                   = work->field_518 + 1;
             func_actor_206100_8014B698(task);
             states.funcs[(s16)work->field_520](task);
             sub = (Actor206100Work*)task->work;
@@ -2053,7 +2051,7 @@ static void func_actor_206100_8014C458(Task* task)
             for (i = 1; i < 0xF; i++) {
                 animationTickSlot(&anim->anim, i);
             }
-            work->flags_514.parts.half = work->slots[1].status.fields.flags;
+            work->flags_514.fields.flags = work->slots[1].status.fields.flags;
             func_actor_206100_8014B0AC(task, work->field_54D);
             func_actor_206100_8014E0C0(task);
             func_actor_206100_8014EC54(task);
@@ -2493,7 +2491,7 @@ static void func_actor_206100_8014D14C(Task* task)
         sub->field_555 = 1;
     }
     next = (Actor206100Work*)task->work;
-    if ((next->flags_514.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((next->flags_514.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (next->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
@@ -2831,8 +2829,8 @@ static void func_actor_206100_8014DA28(Task* task)
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            work->flags_514.parts.field_516 = work->flags_514.parts.field_516 + 1;
-            work->field_518                 = work->field_518 + 1;
+            work->flags_514.fields.frameCount = work->flags_514.fields.frameCount + 1;
+            work->field_518                   = work->field_518 + 1;
             funcs[(s16)work->field_520](task);
             next  = (Actor206100Work*)task->work;
             state = next->animRequest;
@@ -2854,7 +2852,7 @@ static void func_actor_206100_8014DA28(Task* task)
             for (i = 1; i < 0xF; i++) {
                 animationTickSlot(&next->anim, i);
             }
-            work->flags_514.parts.half = work->slots[1].status.fields.flags;
+            work->flags_514.fields.flags = work->slots[1].status.fields.flags;
             func_actor_206100_8014B0AC(task, work->field_54D);
             coord                       = task->extra.tmd->coords;
             sub                         = (Actor206100Work*)task->work;
@@ -3289,9 +3287,9 @@ static void func_actor_206100_8014E7D4(Task* task)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             states.funcs[(s16)work->field_520](task, &states);
-            work->flags_514.half = work->slots[1].status.fields.flags;
-            coord->coord.t[0]    = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
-            coord->coord.t[2]    = coord->coord.t[2] + (-coord->coord.t[2] >> 4);
+            work->flags_514.fields.flags = work->slots[1].status.fields.flags;
+            coord->coord.t[0]            = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
+            coord->coord.t[2]            = coord->coord.t[2] + (-coord->coord.t[2] >> 4);
             coord->coord.t[1] =
                 coord->coord.t[1] + (((s16)work->field_526 - coord->coord.t[1]) >> 4);
             /* fallthrough */
@@ -3778,7 +3776,7 @@ static void func_actor_206100_8014F970(Task* task)
     s32              cond;
 
     work = (Actor206100Work*)task->work;
-    if ((work->flags_514.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((work->flags_514.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
@@ -3818,7 +3816,7 @@ static void func_actor_206100_8014FA08(Task* task)
         work->field_557 = 1;
     }
     next = (Actor206100Work*)task->work;
-    if ((next->flags_514.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((next->flags_514.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (next->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
