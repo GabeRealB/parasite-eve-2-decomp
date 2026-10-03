@@ -162,22 +162,35 @@ typedef struct AcropolisBridgeQuadScratch {
 } AcropolisBridgeQuadScratch;
 STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadScratch, 0x2C);
 
-/// 0x18-byte scratch block the bridge's axis-aligned debris billboard
-/// (`effectSpriteDrawBillboard`) takes from the scratch stack. Same
-/// projection as `EffectBillboardScratch` - `vec` is the piece's world
-/// position out of `workm.t`, `sx` / `sy` the projected centre, `flag` the
-/// `gte_stflg` gate and `otz` the `gte_stszotz` depth biased by 1 - but the
-/// quad is never turned, so one `d` (`size * 55 / otz`) sizes it instead of a
-/// pair of rotated half-diagonals.
-typedef struct AcropolisBridgeDebrisScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     d;
-    /* 0x08 */ s32     flag;
-    /* 0x0C */ SVECTOR vec;
-    /* 0x14 */ u16     sx;
-    /* 0x16 */ u16     sy;
-} AcropolisBridgeDebrisScratch;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeDebrisScratch, 0x18);
+/// Scratch-stack workspace for one upright debris billboard.
+///
+/// `effectSpriteDrawBillboard` reserves one block and copies the piece's
+/// world translation into `worldPoint`, narrowed to 16 bits. One perspective
+/// transform through `GsWSMATRIX` supplies the screen centre, the GTE flag
+/// word and SZ3 / 4. A negative flag word drops the piece. Otherwise `depth`
+/// is incremented by one and used both as the divisor for `screenExtent` and
+/// as the ordering-table depth.
+///
+/// `screenX` and `screenY` keep the raw 16-bit encodings of the signed GTE
+/// pixel coordinates. They are adjacent so one screen-XY store fills both.
+/// `screenExtent` is the quad's half-side in pixels: the caller's size times
+/// 55, divided by `depth`. The quad is a square of twice that side, shifted
+/// up so the projected point sits three quarters of the way down it. The
+/// piece stays axis-aligned, so one extent takes the place of the
+/// corner-offset pair in `EffectBillboardScratch`. `EffectCentreScratch`
+/// holds the same words in a different order.
+///
+/// Reserve one complete block and release it before any pointer into it is
+/// used again.
+typedef struct {
+    s32     depth;           // SZ3 / 4 plus one; divisor for the half-side and ordering-table depth
+    s32     screenExtent;    // Half-side of the upright quad, in pixels
+    s32     projectionFlags; // GTE FLAG word; a negative value rejects the projection
+    SVECTOR worldPoint;      // World position at projection, each component narrowed to 16 bits
+    u16     screenX;         // Raw projected centre X; first half of the GTE screen-position word
+    u16     screenY;         // Raw projected centre Y; second half of the same GTE word
+} _AcropolisBridgeBillboardScratch;
+STATIC_ASSERT_SIZEOF(_AcropolisBridgeBillboardScratch, 0x18);
 
 extern ActionPromptHotspot D_acropolis_bridge_8018983C[];
 
@@ -4554,54 +4567,59 @@ void effectSpriteDrawChip(GfxCoord* coord, u16 frame, s16 size, s16 angle)
 }
 
 /// Draws one piece of the bridge's blown debris as an upright screen-facing
-/// quad - the unrotated counterpart of `effectSpriteDrawChip`. The
-/// piece's world position is copied out of `coord->workm.t` and projected
-/// through `GsWSMATRIX` with a single `RTPS`; a GTE error (`gte_stflg` sign
-/// bit) drops the piece rather than drawing it. The `POLY_FT4` is centred on
-/// the projected point and is `size * 55 / otz` wide, half that tall above the
-/// centre and half below, so it shrinks with distance without ever spinning.
-/// `frame` picks the animation cell out of a 4x2 grid of 0x38x0x38 cells on
-/// tpage 0x2B: bits 0-1 pick the column and bit 2 the row. The primitive is
-/// semi-transparent with texture blending off (`code |= 3`) and links into the
-/// OT at the projected depth.
+/// quad, the unrotated counterpart of `effectSpriteDrawChip`. The piece's
+/// world position is copied out of `coord->workm.t` and projected through
+/// `GsWSMATRIX` with one perspective transform. A negative GTE flag word
+/// drops the piece. The `POLY_FT4` is a square whose half-side is
+/// `size * 55 / depth`, shifted up so the projected point sits three quarters
+/// of the way down it. The quad stays axis-aligned and shrinks with distance.
+///
+/// `frame` picks the animation cell from a 4-by-2 grid of 0x38 by 0x38 cells
+/// on tpage 0x2B: bits 0-1 pick the column and bit 2 the row, and the cell's
+/// texture V is that row plus 0x70. The primitive is semi-transparent with
+/// texture blending off (`code |= 3`) and links into the ordering table at
+/// the projected depth.
 void effectSpriteDrawBillboard(GfxCoord* coord, u16 frame, s16 size)
 {
-    void**                        scratch;
-    u8*                           head;
-    AcropolisBridgeDebrisScratch* block;
-    POLY_FT4*                     prim;
-    AcropolisBridgeDebrisScratch* depth;
-    u32                           cell;
-    s32                           u;
-    s32                           v;
-    s8                            vTop;
-    s8                            vBot;
+    void**                            scratch;
+    u8*                               head;
+    _AcropolisBridgeBillboardScratch* block;
+    POLY_FT4*                         prim;
+    _AcropolisBridgeBillboardScratch* depthOut;
+    u32                               cell;
+    s32                               u;
+    s32                               v;
+    s8                                vTop;
+    s8                                vBot;
 
-    scratch = SCRATCH_STACK_CURSOR_SLOT;
-    head    = *scratch;
-    block   = (AcropolisBridgeDebrisScratch*)(head - sizeof(AcropolisBridgeDebrisScratch));
-    depth   = block;
+    scratch  = SCRATCH_STACK_CURSOR_SLOT;
+    head     = *scratch;
+    block    = (_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch));
+    depthOut = block;
 
-    block->vec.vx = (u16)coord->workm.t[0];
-    block->vec.vy = (u16)coord->workm.t[1];
-    block->vec.vz = (u16)coord->workm.t[2];
-    *scratch      = block;
+    block->worldPoint.vx = (u16)coord->workm.t[0];
+    block->worldPoint.vy = (u16)coord->workm.t[1];
+    block->worldPoint.vz = (u16)coord->workm.t[2];
+    *scratch             = block;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((AcropolisBridgeDebrisScratch*)(head - 0x18))->vec);
+    // The vector, screen position and flag word are addressed from the cursor
+    // saved in `head`, as are the depth increment and the ordering-table read.
+    // The depth store goes through `depthOut`.
+    gte_ldv0(&((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->worldPoint);
     gte_rtps();
 
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((AcropolisBridgeDebrisScratch*)(head - 0x18))->sx);
-    gte_stflg(&((AcropolisBridgeDebrisScratch*)(head - 0x18))->flag);
+    gte_stsxy(&((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->screenX);
+    gte_stflg(&((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->projectionFlags);
 
-    if (block->flag >= 0) {
-        gte_stszotz(&depth->otz);
-        ((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz++;
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&depthOut->depth);
+        ((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->depth++;
         prim->tpage = 0x2B;
         prim->clut  = 0x43D2;
         cell        = frame;
@@ -4612,17 +4630,17 @@ void effectSpriteDrawBillboard(GfxCoord* coord, u16 frame, s16 size)
         setUV4(prim, u, vTop, u + 0x37, vTop, u, vBot, u + 0x37, vBot);
         setcode(prim, getcode(prim) | 3);
 
-        block->d = size * 55 / ((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz;
+        block->screenExtent = size * 55 / ((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->depth;
 
-        prim->x0 = prim->x2 = block->sx - (u16)block->d;
-        prim->x1 = prim->x3 = block->sx + (u16)block->d;
-        prim->y0 = prim->y1 = block->sy - (u16)block->d - (block->d >> 1);
-        prim->y2 = prim->y3 = block->sy + (block->d >> 1);
+        prim->x0 = prim->x2 = block->screenX - (u16)block->screenExtent;
+        prim->x1 = prim->x3 = block->screenX + (u16)block->screenExtent;
+        prim->y0 = prim->y1 = block->screenY - (u16)block->screenExtent - (block->screenExtent >> 1);
+        prim->y2 = prim->y3 = block->screenY + (block->screenExtent >> 1);
 
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((AcropolisBridgeDebrisScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((_AcropolisBridgeBillboardScratch*)(head - sizeof(_AcropolisBridgeBillboardScratch)))->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(AcropolisBridgeDebrisScratch));
+    SCRATCH_POP_BYTES_AT(scratch, sizeof(_AcropolisBridgeBillboardScratch));
 }
 
 /// Debug message the walker's route search prints when no candidate beat its
