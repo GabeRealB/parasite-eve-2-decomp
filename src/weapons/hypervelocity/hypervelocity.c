@@ -101,16 +101,32 @@ STATIC_ASSERT_SIZEOF(_HypervelocityDischargeConeScratch, 0x58);
 // The drawer stages one mouth and one collar vertex per unit-quad corner.
 STATIC_ASSERT(ARRAY_SIZE(D_80111E38) == HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT, hypervelocity_discharge_cone_square_vertex_count);
 
-/// 0x38 block the round's spawn state allocates with `memCalloc` and parks in
-/// `Task::work`. It leads with the `WorldCollisionBody` list node `func_hypervelocity_8011F11C`
-/// hands back to `Gp_UnlinkObj` on teardown; `rec` is the single-entry
-/// `WorldCollisionContact` collision table `obj.context.contacts` points at, and its `flags` is set
-/// to 2 (the last-element bit) instead of going through `Gp_InitRec18Table`.
-typedef struct HyperBeam {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact rec[1];
-} HyperBeam;
-STATIC_ASSERT_SIZEOF(HyperBeam, 0x38);
+/// Packed collision key of the round in flight.
+///
+/// The high halfword is contact category 2, the category of the player's
+/// weapon bodies. The identity follows the packing of the player's weapon
+/// capsule key: the Hypervelocity's weapon index 0x16 in bits 8..15 and 0x1A
+/// in the byte where that key carries the weapon-slot item. What 0x1A selects
+/// for the bodies the round touches is unproven.
+#define HYPERVELOCITY_ROUND_COLLISION_KEY 0x2161A
+
+/// Collision block of one hypervelocity round in flight, allocated zeroed on
+/// its first tick and kept at `Task::work`.
+///
+/// The sphere is linked on collision list 1 for as long as the round flies.
+/// Its radius is a fixed 0x800 game-coordinate units, its packed key is
+/// `HYPERVELOCITY_ROUND_COLLISION_KEY`, and its centre stays the origin of the
+/// coordinate the round flies on. The sphere takes pair tests only, so it is
+/// what the bodies it passes through record as a contact. The round itself
+/// never reads `contacts`: a contact does not stop it, and its flight ends
+/// only on room geometry, a separate segment test along each step, or on age.
+/// The task's exit callback unlinks `Task::work` as a `WorldCollisionBody`,
+/// which addresses this block while `body` remains its first member.
+typedef struct {
+    WorldCollisionBody    body;        // Sphere linked on list 1; pair tests are enabled after the link
+    WorldCollisionContact contacts[1]; // One-entry table `body` borrows. The entry is marked LAST; occupied contacts are cleared each flight frame and never read
+} _HypervelocityRoundBody;
+STATIC_ASSERT_SIZEOF(_HypervelocityRoundBody, 0x38);
 
 /// Translation of the round's own coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x240, 0x80)`.
@@ -320,16 +336,18 @@ void func_hypervelocity_8011D1E8(Task* task)
 /// (`gRoomEffectState->effectControl`) winds the age back down instead of advancing, and
 /// tears the round down at the cancellation threshold of 4.
 ///
-/// - State 0 allocates the `HyperBeam` list node, copies the player's rotation
-///   onto the round's own frame, rotates the fixed `(0, 0, 0x400)` muzzle
-///   velocity through it, re-rolls the 16 trail jitters and the ring angle,
-///   links the node, spawns the launch effect as a child task and claims room
-///   -light slot 0.
+/// - State 0 allocates the `_HypervelocityRoundBody`, copies the player's
+///   rotation onto the round's own frame, rotates the fixed `(0, 0, 0x400)`
+///   muzzle velocity through it, re-rolls the 16 trail jitters and the ring
+///   angle, links the body, spawns the launch effect as a child task and
+///   claims room-light slot 0.
 /// - State 1 flies the round, draws the ring plus both trail halves, traces the
 ///   ground under it for a splash, and until frame 0x15 keeps spawning sparks.
 ///   It then re-aims the room light and asks `func_800DE7CC` whether the step
-///   crossed geometry: a hit unlinks the node and switches to state 2, and
-///   living past frame 0x15 releases the pool block.
+///   crossed geometry: a hit unlinks the body and switches to state 2, and
+///   living past frame 0x15 unlinks it and releases the pool block. Otherwise
+///   the body's occupied contacts are cleared unread, so the round is not
+///   stopped by what it touches.
 /// - State 2 shrinks the ring by 0x40 a frame, spawning one more spark burst
 ///   per frame until the ring falls under 0x80.
 void func_hypervelocity_8011D830(Task* task)
@@ -345,13 +363,13 @@ void func_hypervelocity_8011D830(Task* task)
     WorldCoordPointLight*          slot;
     EffectWork*                    work;
     EffectWork*                    eff;
-    HyperBeam*                     beam;
+    _HypervelocityRoundBody*       roundBody;
     GfxRotationWords*              destinationRotation;
     GfxRotationWords*              sourceRotation;
     u32                            ang;
     s32                            i;
 
-    beam      = (HyperBeam*)task->work;
+    roundBody = task->work;
     work      = task->spawnArg2.pointer;
     coord     = task->extra.coordBody->coord;
     lightSlot = &gWorldCoordTransientPointLights[0];
@@ -362,7 +380,7 @@ void func_hypervelocity_8011D830(Task* task)
         work->age = work->age - 1;
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state != 0) {
-                Gp_UnlinkObj(&beam->obj);
+                Gp_UnlinkObj(&roundBody->body);
             }
             effectKillTask(work, task);
         }
@@ -372,8 +390,8 @@ void func_hypervelocity_8011D830(Task* task)
     work->age = work->age + 1;
     switch (task->state) {
         case 0:
-            beam = memCalloc(sizeof(HyperBeam), 0);
-            if (beam == NULL) {
+            roundBody = memCalloc(sizeof(_HypervelocityRoundBody), 0);
+            if (roundBody == NULL) {
                 work->age = 0;
                 return;
             }
@@ -400,20 +418,21 @@ void func_hypervelocity_8011D830(Task* task)
                 gRandomLcgState             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 D_hypervelocity_8012EF0C[i] = (gRandomLcgState >> 16) & 0xFF;
             }
-            work->scale                = 0xC0;
-            work->angle                = 0x500;
-            gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period               = (gRandomLcgState >> 16) & 0xFFF;
-            task->work                 = beam;
-            beam->obj.context.contacts = beam->rec;
-            beam->obj.radius           = 0x800;
-            beam->obj.coord            = coord;
-            beam->obj.key              = 0x2161A;
-            beam->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(1, &beam->obj);
-            beam->rec[0].flags = 2;
-            beam->obj.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            eff                = Gp_SpawnEff(EFFECT_HYPERVELOCITY_SHOCK_RING, coord, 0, NULL);
+            work->scale                      = 0xC0;
+            work->angle                      = 0x500;
+            gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->period                     = (gRandomLcgState >> 16) & 0xFFF;
+            task->work                       = roundBody;
+            roundBody->body.context.contacts = roundBody->contacts;
+            roundBody->body.radius           = 0x800;
+            roundBody->body.coord            = coord;
+            roundBody->body.key              = HYPERVELOCITY_ROUND_COLLISION_KEY;
+            roundBody->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+            Gp_LinkObj(1, &roundBody->body);
+            // The allocation already zeroed the entry; LAST terminates the table.
+            roundBody->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
+            roundBody->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            eff                          = Gp_SpawnEff(EFFECT_HYPERVELOCITY_SHOCK_RING, coord, 0, NULL);
             if (eff != NULL) {
                 taskReparent(task, eff->task);
             }
@@ -477,16 +496,16 @@ void func_hypervelocity_8011D830(Task* task)
             lightSlot->framesLeft = 4;
             slot->head.color.g    = slot->head.color.b >> 1;
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
-                Gp_UnlinkObj(&beam->obj);
+                Gp_UnlinkObj(&roundBody->body);
                 task->state = 2;
                 return;
             }
             if (work->age >= 0x15) {
-                Gp_UnlinkObj(&beam->obj);
+                Gp_UnlinkObj(&roundBody->body);
                 effectKillTask(work, task);
                 return;
             }
-            Gp_ClearRec18Occupied(beam->rec);
+            Gp_ClearRec18Occupied(roundBody->contacts);
             return;
         case 2:
             Gp_UpdateCoord(coord);
@@ -652,9 +671,10 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
     SCRATCH_STACK_RELEASE_BLOCK(_HypervelocityDischargeConeScratch);
 }
 
-/// Exit callback: unlinks the collision node leading `Task::work`, if one was
-/// linked, and releases the `EffectWork` in `Task::spawnArg2`. M4A1 Pyke
-/// carries an identical copy.
+/// Exit callback: unlinks the `_HypervelocityRoundBody` at `Task::work`, if
+/// one was allocated, and releases the `EffectWork` in `Task::spawnArg2`.
+/// `body` is the block's first member, so the pointer is that
+/// `WorldCollisionBody`. M4A1 Pyke carries an identical copy.
 static void func_hypervelocity_8011F11C(Task* task)
 {
     WorldCollisionBody* obj = task->work;
