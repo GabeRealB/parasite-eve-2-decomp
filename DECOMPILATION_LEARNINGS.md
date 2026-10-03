@@ -53619,7 +53619,7 @@ s16* p;
 s32  sv;   /* signed, drives the test    */
 u16  uv;   /* unsigned, drives the store */
 
-p  = &Table[work->step];
+p  = &Table[work->followUpIndex];
 sv = *p;
 uv = *p;
 if (sv >= 0) {
