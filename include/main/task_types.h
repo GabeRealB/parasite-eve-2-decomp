@@ -129,9 +129,20 @@ typedef struct {
     TaskFunc funcs[10];
 } TaskFuncTable10;
 
+/// Eleven task handlers stored as a value for whole-table copies.
+///
+/// Each table defines its slots' roles: the selector may be a task state,
+/// a work state, mode or substate, or a variant passed in the task's spawn
+/// argument. Dispatch requires an index in 0..10 and a non-NULL entry, which
+/// receives the live task as its only argument. There is no terminator or
+/// bounds check in the table, so a selector that is only masked to a wider
+/// range relies on its writers staying within the eleven slots.
+/// Copying it copies callback pointers, not task or work storage; the callback
+/// code must remain loaded for the call. A handler may release the task.
 typedef struct {
-    TaskFunc funcs[11];
+    TaskFunc funcs[11]; // Handlers in selector order; slot meanings belong to each table
 } TaskFuncTable11;
+STATIC_ASSERT_SIZEOF(TaskFuncTable11, 0x2C);
 
 typedef struct {
     TaskFunc funcs[12];
