@@ -77,19 +77,6 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/gas_station_sounds.h"
 
-/// The block the room's effect task carries as its `spawnArg2`.
-/// `func_dryfield_night_gas_station_80180E9C` keeps the spawn offset it hands
-/// `Gp_SpawnEff` in `pos`, sets `active` once game flag nibble 0x63 has been
-/// seen clear, and stores the per-anchor effect roll in `kind`. The bytes
-/// around those fields are not reached here.
-typedef struct DryfieldNightGasStationEffWork {
-    byte    pad_0[0x10];
-    SVECTOR pos;
-    byte    pad_18[0xC];
-    s16     active;
-    s16     kind;
-} DryfieldNightGasStationEffWork;
-
 /// The room's task descriptor table; its spawners pick an entry by index.
 extern TaskDesc D_dryfield_night_gas_station_801888A0[];
 
@@ -3364,11 +3351,15 @@ static void func_dryfield_night_gas_station_80180DC8(s16 arg0)
 /// before, the anchors keep spawning 0x60070 alone on a 1-in-3.
 void func_dryfield_night_gas_station_80180E9C(Task* task)
 {
-    DryfieldNightGasStationEffWork* work;
-    GfxCoord*                       coord;
-    s32                             mask;
-    s32                             i;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         mask;
+    s32         i;
 
+    // The room task animates nothing with its own effect block and reuses
+    // three members as storage: `move` is the scratch offset each spawn below
+    // is given, `scale` latches that the gas station sequence was seen not yet
+    // started, and `angle` holds the 0..2 roll choosing an anchor's effect.
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     mask  = 1 << Gp_GetViewIndex();
@@ -3393,38 +3384,38 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
         }
     }
     if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
-        work->active = 1;
+        work->scale = 1;
         if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
             for (i = 19; i < 21; i++) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->kind      = (gRandomLcgState >> 16) % 3;
+                work->angle     = (gRandomLcgState >> 16) % 3;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->pos.vx    = D_dryfield_night_gas_station_80189C8C[i].vx - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
-                work->pos.vy    = D_dryfield_night_gas_station_80189C8C[i].vy;
+                work->move.vx   = D_dryfield_night_gas_station_80189C8C[i].vx - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
+                work->move.vy   = D_dryfield_night_gas_station_80189C8C[i].vy;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->pos.vz    = D_dryfield_night_gas_station_80189C8C[i].vz - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
-                if (work->kind == 0) {
-                    Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x10300, &work->pos);
-                } else if (work->kind == 1) {
-                    Gp_SpawnEff(EFFECT_FIRE_BURST, coord, 0x300, &work->pos);
+                work->move.vz   = D_dryfield_night_gas_station_80189C8C[i].vz - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
+                if (work->angle == 0) {
+                    Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x10300, &work->move);
+                } else if (work->angle == 1) {
+                    Gp_SpawnEff(EFFECT_FIRE_BURST, coord, 0x300, &work->move);
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0013500, &work->pos);
+                        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0013500, &work->move);
                     }
                 }
             }
         }
-    } else if (work->active != 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+    } else if (work->scale != 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         for (i = 19; i < 21; i++) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->pos.vx    = D_dryfield_night_gas_station_80189C8C[i].vx - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
+                work->move.vx   = D_dryfield_night_gas_station_80189C8C[i].vx - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->pos.vy    = D_dryfield_night_gas_station_80189C8C[i].vy;
-                work->pos.vz    = D_dryfield_night_gas_station_80189C8C[i].vz - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0013500, &work->pos);
+                work->move.vy   = D_dryfield_night_gas_station_80189C8C[i].vy;
+                work->move.vz   = D_dryfield_night_gas_station_80189C8C[i].vz - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0013500, &work->move);
             }
         }
     }
