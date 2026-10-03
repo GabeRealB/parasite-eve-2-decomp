@@ -16,6 +16,7 @@
 #ifndef SRC_SHARED_CAP_CAPTIONS_H
 #define SRC_SHARED_CAP_CAPTIONS_H
 
+#include "common.h"
 #include "types.h"
 
 // Schedule states, the terminating upper bound, and the window-to-frame scale.
@@ -25,6 +26,26 @@ enum {
     CAP_CAPTION_SCHEDULE_END             = -1,
     CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT = 30
 };
+
+/// One window of a caption schedule: the caption to show while the session's
+/// scene clock lies inside it.
+///
+/// Bounds count `CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT` clock frames each, so
+/// the window holds the clock values above `lower` units and up to `upper`
+/// units. The clock is signed and counts down past zero, so a bound may be
+/// negative. A schedule is scanned from its first entry every frame and the
+/// first window holding the clock is the one played; an entry whose `upper` is
+/// `CAP_CAPTION_SCHEDULE_END` ends the table, so no window can use that bound.
+/// `commandIndex` picks a sequence out of the loaded caption file and `key`
+/// the line within it; the sequence's own command record is not consulted. A
+/// window with command index 0 plays nothing.
+typedef struct {
+    s32 upper;        // Last clock value inside the window, in schedule units (inclusive).
+    s32 lower;        // Clock value just below the window, in schedule units (exclusive).
+    s32 commandIndex; // Entry of the caption file's `CapCommandTable` whose sequence is played (0 none).
+    s32 key;          // Variant key of the line shown, matched against `CapSequenceRecord.key`.
+} CapCaptionScheduleWindow;
+STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
 
 static inline void CapCaption_ShowTimed(s16 arg0, s16 arg1, s16 arg2);
 static inline void CapCaption_LoadResource(s16 arg0, s16 arg1, s16 arg2);

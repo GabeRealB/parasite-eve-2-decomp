@@ -169,9 +169,9 @@ static u16                CapCaption_Data_8015E66A;
 static s16                CapCaption_Data_801544EC;
 static s16                CapCaption_Data_801544EE;
 extern Actor215100CharRec D_actor_215100_8015E678;
-/// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by a -1
-/// `field_0`.
-static OverlayCapWindow CapCaption_Data_80154514[];
+/// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by an
+/// `upper` of `CAP_CAPTION_SCHEDULE_END`.
+static CapCaptionScheduleWindow CapCaption_Data_80154514[];
 
 static TmdSource _gActor215100PierceCarradineBody;
 static TmdSource _gActor215100Actor113100Model07960;

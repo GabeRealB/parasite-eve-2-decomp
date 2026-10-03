@@ -61,7 +61,7 @@ static void CapCaption_RunSchedule(Task* task)
                 time = gGameSession->sceneClock;
                 if ((CapCaption_Data_80154514[i].upper * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT >= time) &&
                     (CapCaption_Data_80154514[i].lower * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT < time)) {
-                    script = CapCaption_Data_80154514[i].script;
+                    script = CapCaption_Data_80154514[i].commandIndex;
                     key    = CapCaption_Data_80154514[i].key;
                     break;
                 }

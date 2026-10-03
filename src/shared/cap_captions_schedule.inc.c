@@ -9,7 +9,7 @@ static TaskDesc CapCaption_Data_801544FC = { { { TASK_BODY_NONE, 32 } }, CapCapt
 
 static TaskDesc CapCaption_Data_80154508 = { { { TASK_BODY_NONE, 32 } }, CapCaption_CancelableTask, { .value = 0 } };
 
-static OverlayCapWindow CapCaption_Data_80154514[13] = {
+static CapCaptionScheduleWindow CapCaption_Data_80154514[13] = {
     { 300, 295, 16, 5 },
     { 240, 235, 16, 4 },
     { 180, 175, 16, 3 },

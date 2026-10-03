@@ -174,7 +174,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0);
 /// id, whose alternate range `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects when it is 1.
 
 /// Caption schedule scanned by `func_shelter_b3_garbage_incinerator_8017FA58`.
-static OverlayCapWindow CapCaption_Data_80154514[];
+static CapCaptionScheduleWindow CapCaption_Data_80154514[];
 
 static TaskDesc CapCaption_Data_801544FC;
 

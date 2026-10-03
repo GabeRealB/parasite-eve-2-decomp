@@ -654,18 +654,6 @@ typedef struct OverlayDeltaFlag {
 } OverlayDeltaFlag;
 STATIC_ASSERT_SIZEOF(OverlayDeltaFlag, 0x14);
 
-/// One window of a caption schedule, a table ordered by descending `upper`
-/// and ended by an `upper` of -1. While the session's scene clock lies in
-/// (`lower * 30`, `upper * 30`], the first matching window starts caption
-/// script `script` at line key `key`.
-typedef struct OverlayCapWindow {
-    s32 upper;
-    s32 lower;
-    s32 script;
-    s32 key;
-} OverlayCapWindow;
-STATIC_ASSERT_SIZEOF(OverlayCapWindow, 0x10);
-
 /// The spawn argument of a screen-capture task: `duration` seeds the task's
 /// kill countdown, and `done` is cleared when the task starts, set when the
 /// countdown runs out or the owner cancels the capture, and ends the task once
