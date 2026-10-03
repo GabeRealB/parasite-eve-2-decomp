@@ -139,26 +139,17 @@ extern TaskDesc gRoomCutsceneTaskDescs[];
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_acropolis_square_801837C4[];
 
-extern TaskDesc   D_acropolis_square_80183808[];
-extern s32        D_acropolis_square_8018382C;
-extern s32        D_acropolis_square_80183830;
-extern EvsCommand D_acropolis_square_80183834[];
-extern EvsCommand D_acropolis_square_8018399C[];
-extern EvsCommand D_acropolis_square_801838DC[];
-extern EvsCommand D_acropolis_square_80183A5C[];
-extern s32        D_acropolis_square_80183B34[];
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(s32, s32, s32);
-    } handler;
-} AcropolisSquareMessageEntry;
-STATIC_ASSERT_SIZEOF(AcropolisSquareMessageEntry, 8);
-
-extern AcropolisSquareMessageEntry D_acropolis_square_80183B58[2];
-extern s16                         D_acropolis_square_80183B68[];
-extern s32                         D_acropolis_square_80183B98;
+extern TaskDesc         D_acropolis_square_80183808[];
+extern s32              D_acropolis_square_8018382C;
+extern s32              D_acropolis_square_80183830;
+extern EvsCommand       D_acropolis_square_80183834[];
+extern EvsCommand       D_acropolis_square_8018399C[];
+extern EvsCommand       D_acropolis_square_801838DC[];
+extern EvsCommand       D_acropolis_square_80183A5C[];
+extern s32              D_acropolis_square_80183B34[];
+extern TaskMessageEntry D_acropolis_square_80183B58[2];
+extern s16              D_acropolis_square_80183B68[];
+extern s32              D_acropolis_square_80183B98;
 
 /// The area records applied when a scene ends with game-flag nibble 0x7A at 1,
 /// nibble 0 at 2 and the save's location at 0x0101 in its upper half.
@@ -310,11 +301,11 @@ s32 D_acropolis_square_80183B34[9] = {
     0x51010008,
 };
 
-s32 func_acropolis_square_8018344C(s32, s32, s32);
+s32 func_acropolis_square_8018344C(Task*, s32, s32, s32);
 
-AcropolisSquareMessageEntry D_acropolis_square_80183B58[2] = {
-    { 3103, { .call0 = func_acropolis_square_8018344C } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_acropolis_square_80183B58[2] = {
+    { 3103, func_acropolis_square_8018344C },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s16 D_acropolis_square_80183B68[24] = {
@@ -2036,7 +2027,7 @@ void func_acropolis_square_801825DC(Task* task)
     effectKillTask(mem, task);
 }
 
-s32 func_acropolis_square_8018344C(s32 arg0, s32 arg1, s32 arg2)
+s32 func_acropolis_square_8018344C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     D_acropolis_square_80183B98 = arg2;
     return 0;
