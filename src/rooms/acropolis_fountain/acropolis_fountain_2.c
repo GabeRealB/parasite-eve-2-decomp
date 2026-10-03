@@ -18,6 +18,7 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/effects.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -50,18 +51,6 @@
 #include "rooms/room_common.h"
 
 extern WorldCollisionTrigger D_acropolis_fountain_8017F9C0[9];
-
-/// Work block the fountain's splash task keeps at `Task::spawnArg2`.
-/// `func_acropolis_fountain_8017E014` latches the camera the splash effect was
-/// spawned under in `viewIndex` and compares it against `Gp_GetViewIndex()`
-/// every frame, so a camera cut spawns entry 1 of
-/// `D_acropolis_fountain_8017E7FC` (tearing the old view's splash down) and
-/// then entry 0 (building the new one). Only views whose bit is set in
-/// `0x100FE` - 2..8 and 17 - see the fountain, the rest skip the spawn.
-typedef struct AcropolisFountainSplash {
-    /* 0x00 */ byte pad_0[0x24];
-    /* 0x24 */ s16  viewIndex;
-} AcropolisFountainSplash;
 
 /// Phases of `_AcropolisFountainWaterLoop`.
 ///
@@ -1554,26 +1543,29 @@ void func_acropolis_fountain_8017DD44(Task* task)
 
 void func_acropolis_fountain_8017E014(Task* task)
 {
-    AcropolisFountainSplash* splash;
-    GfxCoord*                coord;
-    s32                      view;
-    s32                      one;
-    s32                      mask;
-    s32                      bit;
-    s16                      id;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         view;
+    s32         one;
+    s32         mask;
+    s32         bit;
+    s16         id;
 
-    coord  = task->extra.coordBody->coord;
-    splash = task->spawnArg2.pointer;
-    view   = Gp_GetViewIndex();
+    // This task draws nothing itself, so its effect work is free storage:
+    // `scale` latches the view index the movie task was last spawned under,
+    // and a camera cut replaces that task.
+    coord = task->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    view  = Gp_GetViewIndex();
     switch (task->state) {
         case 0:
             Gp_SpawnEff(EFFECT_ACROPOLIS_FOUNTAIN_SPRAY, coord, 0, &D_acropolis_fountain_8017E7F0);
-            splash->viewIndex = view & 0xFF;
-            task->state       = 1;
+            work->scale = view & 0xFF;
+            task->state = 1;
             /* fallthrough */
         case 1:
             mask = 0x100FE;
-            bit  = 1 << (splash->viewIndex - 1);
+            bit  = 1 << (work->scale - 1);
             if (bit & mask) {
                 Task_SpawnFromTable(D_acropolis_fountain_8017E7FC, 0, 0, 0);
             }
@@ -1581,14 +1573,14 @@ void func_acropolis_fountain_8017E014(Task* task)
             break;
         case 2:
             one = 1;
-            id  = splash->viewIndex;
+            id  = work->scale;
             bit = one << (id - 1);
             if (id != (view & 0xFF)) {
                 if (bit & 0x100FE) {
                     Task_SpawnFromTable(D_acropolis_fountain_8017E7FC, 1, 0, 0);
                 }
-                splash->viewIndex = (u8)view;
-                task->state       = 1;
+                work->scale = (u8)view;
+                task->state = 1;
             }
             break;
     }
