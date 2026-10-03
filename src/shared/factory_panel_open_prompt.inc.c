@@ -6,10 +6,10 @@
 void factoryPanelOpenPrompt(Task* task)
 {
     ActionPrompt*     prompt = D_80114D28;
-    FactoryPanelWork* work   = (FactoryPanelWork*)task->work;
+    FactoryPanelWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->field_E);
+    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }

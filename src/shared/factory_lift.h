@@ -152,24 +152,28 @@ typedef struct {
 } FactoryLiftWork;
 STATIC_ASSERT_SIZEOF(FactoryLiftWork, 0x58);
 
-/// Work block the room's script task allocates (memCalloc(0x10)) and hangs off
-/// `Task::work`. Reach it with
-/// `(FactoryPanelWork*)task->work`.
+/// Value `FactoryPanelWork::scanDelay` is armed with: the frames the operator
+/// panel keeps its cursor hidden after a choice has been dealt with.
+#define FACTORY_PANEL_SCAN_DELAY_FRAMES 10
+
+/// Work block of the operator panel task: the hotspot the player confirmed and
+/// the two waits that keep the panel from taking another choice too early.
 ///
-/// `field_8` is the countdown the prompt states arm with 0xA and the idle state
-/// runs down before it will scan the hotspots again. `field_A` is the one-shot
-/// trigger a script message raises and the cursor state consumes. `field_C` and
-/// `field_E` are the hotspot `id` and `promptKind` the idle state copies in
-/// when the cursor confirms one: `field_C` is the cap step the script then
-/// runs, and `field_E` the display mode the prompt is spawned with, read
-/// signed.
-typedef struct FactoryPanelWork {
-    /* 0x0 */ byte pad_0[0x8];
-    /* 0x8 */ u16  field_8;
-    /* 0xA */ s16  field_A;
-    /* 0xC */ s16  field_C;
-    /* 0xE */ s8   field_E;
-    /* 0xF */ byte pad_F[0x1];
+/// The task's set-up state allocates it zeroed and parks it at `Task::work`.
+/// The idle state tests the cursor against the panel's hotspot table and
+/// latches a confirmed entry in `choice` and `promptKind`; the states after it
+/// open the command prompt for that entry and, when the player accepts it,
+/// carry the choice out. A choice that moves the lift leaves the panel waiting
+/// for `moveSettled`. Whichever way a choice ends, `scanDelay` is armed, and
+/// the idle state hides the cursor until it has run out and no caption is
+/// playing.
+typedef struct {
+    u8  unknown_0[8]; // Never read or written by the room; role unproven
+    u16 scanDelay;    // Frames left before the idle state tests the hotspots again; armed with FACTORY_PANEL_SCAN_DELAY_FRAMES
+    s16 moveSettled;  // Whether the lift has reported the end of its movement (0 not yet, 1 reported); cleared when the panel resumes
+    s16 choice;       // `ActionPromptHotspot::id` of the confirmed hotspot (0 raise, 1 lower, 2 turn, 3 and 4 the two caption-only spots)
+    s8  promptKind;   // `ActionPromptHotspot::promptKind` of that hotspot, forwarded when its command prompt opens
+    u8  unknown_F;    // Never read or written by the room; role unproven
 } FactoryPanelWork;
 STATIC_ASSERT_SIZEOF(FactoryPanelWork, 0x10);
 

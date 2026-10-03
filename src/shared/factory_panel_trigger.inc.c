@@ -1,8 +1,10 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Script message handler: raises the one-shot trigger the cursor state
-/// consumes.
+/// Script message handler: raises `FactoryPanelWork::moveSettled`, which the
+/// state waiting for the lift consumes.
 void factoryPanelTrigger(Task* task)
 {
-    ((FactoryPanelWork*)task->work)->field_A = 1;
+    FactoryPanelWork* work = task->work;
+
+    work->moveSettled = 1;
 }

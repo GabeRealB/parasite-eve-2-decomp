@@ -9,7 +9,7 @@ void factoryPanelInit(Task* task)
     FactoryPanelWork*    work;
     ActionPromptHotspot* hs;
 
-    work = memCalloc(0x10, 0);
+    work = memCalloc(sizeof(FactoryPanelWork), 0);
     if (work == NULL) {
         taskKill(task);
         return;
@@ -30,5 +30,5 @@ void factoryPanelInit(Task* task)
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
-    work->field_8              = 0;
+    work->scanDelay            = 0;
 }
