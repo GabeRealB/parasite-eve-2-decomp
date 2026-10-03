@@ -140640,6 +140640,12 @@ if ((work->previousAnimationFlags & ANIMATION_SLOT_FOLLOWED_JUMP) ||
 The same rewrite matched on `AnimationSlot`'s `status.fields.flags` in this
 overlay, in place of `status.word & (A | B)`.
 
+Two adjacent `u8` fields tested for zero merge the same way:
+`work->part4PitchPhase == 0 && work->part3PitchPhase == 0`, on the bytes at
+0x665 and 0x666, is the target's `lw v0,0x664(a1)` / `and` with `0xFFFF00`.
+The mask names the bytes that were compared; the unmasked byte in the same
+word is not part of the test, so a `word` view over all four is not needed.
+
 ## A scratch target can come from another overlay's same-named `.s` (RoomsShared8017eb5cIdList, 2026-09-24)
 
 **Symptom.** The first build compiles all 412 instructions yet scores 0% with

@@ -117,21 +117,18 @@ STATIC_ASSERT_SIZEOF(Actor403100Entry, 0xF0);
 extern s16              D_actor_403100_80155810;
 extern Actor403100Entry D_actor_403100_80155814[28];
 
-/// The word at `Actor403100Work::field_664`, which the overlay reads both as a
-/// whole word and as four separate bytes: `func_actor_403100_8013D2A0` gates a
-/// new request on `word & 0xFFFF00` (the two bytes at 0x665 / 0x666) being
-/// clear, then sets those two bytes, while `func_actor_403100_8013CDC0`
-/// switches on the byte at 0x666 alone. Both views are modelled explicitly.
-typedef union Actor403100Req {
-    /* 0x0 */ s32 word;
-    struct {
-        /* 0x0 */ s8 field_664;
-        /* 0x1 */ s8 field_665;
-        /* 0x2 */ u8 field_666; // 4-state machine ticked by func_actor_403100_8013CDC0
-        /* 0x3 */ s8 field_667;
-    } b;
-} Actor403100Req;
-STATIC_ASSERT_SIZEOF(Actor403100Req, 0x4);
+/// Values of `Actor403100Work::part4PitchPhase` and `part3PitchPhase`.
+///
+/// Each byte runs one kick of a model part's pitch: a quick eased swing away
+/// from the animated pose followed by a slower linear return. The two parts
+/// are kicked together, and a new kick is accepted only while both are at
+/// rest.
+enum {
+    ACTOR_403100_PITCH_PHASE_REST   = 0, // No kick: any leftover offset eases back to zero
+    ACTOR_403100_PITCH_PHASE_START  = 1, // A kick was requested; taken up on the next update
+    ACTOR_403100_PITCH_PHASE_SWING  = 2, // Easing out to the kick's extreme
+    ACTOR_403100_PITCH_PHASE_RETURN = 3, // Stepping back to zero at a fixed rate
+};
 
 /// Per-actor work block for the `actor_403100` overlay.
 ///
@@ -252,17 +249,20 @@ typedef struct Actor403100Work {
             byte pad_640[0xE];
         } fields;
     } regions;
-    /* 0x64E */ byte           pad_64E[6];
-    /* 0x654 */ s16            field_654;
-    /* 0x656 */ u16            field_656;
-    /* 0x658 */ s16            field_658;
-    /* 0x65A */ s16            field_65A;
-    /* 0x65C */ u8             field_65C;
-    /* 0x65D */ s8             field_65D;
-    /* 0x65E */ byte           pad_65E[0x1];
-    /* 0x65F */ s8             field_65F;
-    /* 0x660 */ byte           pad_660[0x4];
-    /* 0x664 */ Actor403100Req field_664;
+    /* 0x64E */ byte pad_64E[6];
+    /* 0x654 */ s16  field_654;
+    /* 0x656 */ u16  field_656;
+    /* 0x658 */ s16  field_658;
+    /* 0x65A */ s16  field_65A;
+    /* 0x65C */ u8   field_65C;
+    /* 0x65D */ s8   field_65D;
+    /* 0x65E */ byte pad_65E[0x1];
+    /* 0x65F */ s8   field_65F;
+    /* 0x660 */ byte pad_660[0x4];
+    /* 0x664 */ byte pad_664[0x1];
+    /* 0x665 */ u8   part4PitchPhase; // ACTOR_403100_PITCH_PHASE_* of the kick added to model part 4's pitch
+    /* 0x666 */ u8   part3PitchPhase; // ACTOR_403100_PITCH_PHASE_* of the kick added to model part 3's pitch
+    /* 0x667 */ u8   part6StrokeDone; // 1 once model part 6 has slid to the end of its current stroke; 0 from the stroke's start
     /* 0x668 */ union {
         u16 flags;
         struct {
@@ -5634,8 +5634,8 @@ static void func_actor_403100_801375B8(Task* task)
     D_actor_403100_80155808->field_668.b.field_668 = 0;
     D_actor_403100_80155808->field_668.b.field_669 = 0;
     D_actor_403100_80155808->field_5FA            += 1;
-    D_actor_403100_80155808->field_664.b.field_665 = 0;
-    D_actor_403100_80155808->field_664.b.field_666 = 0;
+    D_actor_403100_80155808->part4PitchPhase       = ACTOR_403100_PITCH_PHASE_REST;
+    D_actor_403100_80155808->part3PitchPhase       = ACTOR_403100_PITCH_PHASE_REST;
     D_actor_403100_80155808->pad_66A[4]            = 0;
 }
 static void func_actor_403100_801376D8(Task* arg0)
@@ -5879,8 +5879,8 @@ static void func_actor_403100_80138048(Task* arg0)
     state                               = (s8)D_actor_403100_80155808->pad_66A[2];
     D_actor_403100_80155808->field_5EC += 1;
     if (state == 1) {
-        if (D_actor_403100_80155808->field_664.b.field_666 == 0) {
-            D_actor_403100_80155808->field_664.b.field_666 = (u8)state;
+        if (D_actor_403100_80155808->part3PitchPhase == ACTOR_403100_PITCH_PHASE_REST) {
+            D_actor_403100_80155808->part3PitchPhase = state;
         }
     }
     if ((s16)D_actor_403100_80155808->field_5EC < 0x33) {
@@ -5970,8 +5970,8 @@ static void func_actor_403100_8013842C(Task* arg0)
         pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
         Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->field_5FE             = 0x12;
-        D_actor_403100_80155808->field_664.b.field_666 = 1;
+        D_actor_403100_80155808->field_5FE       = 0x12;
+        D_actor_403100_80155808->part3PitchPhase = ACTOR_403100_PITCH_PHASE_START;
     }
     if ((u32)(D_actor_403100_80155808->field_5EC - 0x32) < 0xBU) {
         effectCoord = &arg0->extra.tmd->coords[3];
@@ -6283,10 +6283,10 @@ static void func_actor_403100_80138F88(Task* arg0)
         part->coord.t[0]       = -0x1120;
         work->field_47C.radius = 0x500;
         func_actor_403100_8013D74C(arg0);
-        D_actor_403100_80155808->field_664.b.field_667 = 0;
-        D_actor_403100_80155808->field_65F             = 0;
-        D_actor_403100_80155808->pad_660[0]            = 0;
-        D_actor_403100_80155808->field_5E8             = 0;
+        D_actor_403100_80155808->part6StrokeDone = 0;
+        D_actor_403100_80155808->field_65F       = 0;
+        D_actor_403100_80155808->pad_660[0]      = 0;
+        D_actor_403100_80155808->field_5E8       = 0;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
@@ -6316,7 +6316,7 @@ static void func_actor_403100_8013922C(Task* arg0)
     D_actor_403100_80155808->field_84 = 0;
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
         request = (u8)D_actor_403100_80155808->field_65F;
-        if ((request == 1) && ((u8)D_actor_403100_80155808->field_664.b.field_667 == request)) {
+        if ((request == 1) && (D_actor_403100_80155808->part6StrokeDone == request)) {
             random                             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState                    = random;
             D_actor_403100_80155808->field_638 = (((random >> 0x10) & 0x1F) + 0x3C) * 3;
@@ -6342,9 +6342,9 @@ static void func_actor_403100_8013922C(Task* arg0)
             D_actor_403100_80155808->field_5DE = 0xD;
             D_actor_403100_80155808->field_5E2 = 0x10;
             D_actor_403100_80155808->field_5DA = 2;
-            if ((u8)D_actor_403100_80155808->field_664.b.field_665 == 0) {
-                D_actor_403100_80155808->field_66F             = 1;
-                D_actor_403100_80155808->field_664.b.field_665 = 1;
+            if (D_actor_403100_80155808->part4PitchPhase == ACTOR_403100_PITCH_PHASE_REST) {
+                D_actor_403100_80155808->field_66F       = 1;
+                D_actor_403100_80155808->part4PitchPhase = ACTOR_403100_PITCH_PHASE_START;
             }
         }
     } else {
@@ -6362,7 +6362,7 @@ static void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->pad_65E[0] = (u8)D_actor_403100_80155808->pad_65E[0] + 1;
     }
     if (((u8)D_actor_403100_80155808->pad_65E[0] != 0) ||
-        (((u8)D_actor_403100_80155808->field_664.b.field_667 == 1) &&
+        ((D_actor_403100_80155808->part6StrokeDone == 1) &&
          ((s16)D_actor_403100_80155808->field_5EC >= 0x1C2) &&
          ((u8)D_actor_403100_80155808->pad_670[0] == 0)) ||
         (D_actor_403100_8015580C->hp <= 0)) {
@@ -6877,7 +6877,7 @@ static void func_actor_403100_8013A81C(Task* arg0)
         sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
         pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
-        D_actor_403100_80155808->field_664.b.field_666 = 1;
+        D_actor_403100_80155808->part3PitchPhase = ACTOR_403100_PITCH_PHASE_START;
         Gp_SpawnPadLerp(0x12, 0xFFU, 8U);
         D_actor_403100_80155808->field_5FE = 0x12;
     }
@@ -7617,58 +7617,58 @@ static void func_actor_403100_8013C214(Task* arg0)
             }
             phase = ((u16)D_actor_403100_80155808->field_5EE >> 5) & 3;
             if (phase == 0) {
-                D_actor_403100_80155808->field_664.b.field_667 = 0;
-                D_actor_403100_80155808->field_604             = (u16)D_actor_403100_80155808->field_604 + ((s32)(0xD0 - D_actor_403100_80155808->field_604) >> 1);
-                D_actor_403100_80155808->field_608             = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0x350 - D_actor_403100_80155808->field_608) >> 1);
-                D_actor_403100_80155808->field_A0              = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x110 - D_actor_403100_80155808->field_A0) >> 1);
-                D_actor_403100_80155808->field_A2              = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x290 - D_actor_403100_80155808->field_A2) >> 1);
-                D_actor_403100_80155808->field_A4              = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x60 - D_actor_403100_80155808->field_A4) >> 1);
-                x1                                             = coords->coord.t[0];
-                nextX1                                         = x1 + ((s32)(-0xB80 - x1) >> 3);
-                coords->coord.t[0]                             = nextX1;
+                D_actor_403100_80155808->part6StrokeDone = 0;
+                D_actor_403100_80155808->field_604       = (u16)D_actor_403100_80155808->field_604 + ((s32)(0xD0 - D_actor_403100_80155808->field_604) >> 1);
+                D_actor_403100_80155808->field_608       = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0x350 - D_actor_403100_80155808->field_608) >> 1);
+                D_actor_403100_80155808->field_A0        = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x110 - D_actor_403100_80155808->field_A0) >> 1);
+                D_actor_403100_80155808->field_A2        = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x290 - D_actor_403100_80155808->field_A2) >> 1);
+                D_actor_403100_80155808->field_A4        = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x60 - D_actor_403100_80155808->field_A4) >> 1);
+                x1                                       = coords->coord.t[0];
+                nextX1                                   = x1 + ((s32)(-0xB80 - x1) >> 3);
+                coords->coord.t[0]                       = nextX1;
                 if (nextX1 >= -0xBD0) {
-                    D_actor_403100_80155808->field_664.b.field_667 = 1;
+                    D_actor_403100_80155808->part6StrokeDone = 1;
                     return;
                 }
             } else if (phase == 1) {
-                D_actor_403100_80155808->field_664.b.field_667 = 0;
-                D_actor_403100_80155808->field_604             = (u16)D_actor_403100_80155808->field_604 + ((s32)(0x30 - D_actor_403100_80155808->field_604) >> 2);
-                D_actor_403100_80155808->field_608             = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0xD0 - D_actor_403100_80155808->field_608) >> 2);
-                D_actor_403100_80155808->field_A0              = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 2);
-                D_actor_403100_80155808->field_A2              = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x270 - D_actor_403100_80155808->field_A2) >> 2);
-                D_actor_403100_80155808->field_A4              = (u16)D_actor_403100_80155808->field_A4 + ((s32)(-0xA0 - D_actor_403100_80155808->field_A4) >> 2);
-                x2                                             = coords->coord.t[0];
-                nextX2                                         = x2 + ((s32)(-0x1180 - x2) >> 2);
-                coords->coord.t[0]                             = nextX2;
+                D_actor_403100_80155808->part6StrokeDone = 0;
+                D_actor_403100_80155808->field_604       = (u16)D_actor_403100_80155808->field_604 + ((s32)(0x30 - D_actor_403100_80155808->field_604) >> 2);
+                D_actor_403100_80155808->field_608       = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0xD0 - D_actor_403100_80155808->field_608) >> 2);
+                D_actor_403100_80155808->field_A0        = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 2);
+                D_actor_403100_80155808->field_A2        = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x270 - D_actor_403100_80155808->field_A2) >> 2);
+                D_actor_403100_80155808->field_A4        = (u16)D_actor_403100_80155808->field_A4 + ((s32)(-0xA0 - D_actor_403100_80155808->field_A4) >> 2);
+                x2                                       = coords->coord.t[0];
+                nextX2                                   = x2 + ((s32)(-0x1180 - x2) >> 2);
+                coords->coord.t[0]                       = nextX2;
                 if (nextX2 < -0x111F) {
-                    D_actor_403100_80155808->field_664.b.field_667 = 1;
+                    D_actor_403100_80155808->part6StrokeDone = 1;
                 }
             } else if (phase == 2) {
-                D_actor_403100_80155808->field_664.b.field_667 = 0;
-                D_actor_403100_80155808->field_604             = (u16)D_actor_403100_80155808->field_604 + ((s32)(0xD0 - D_actor_403100_80155808->field_604) >> 2);
-                D_actor_403100_80155808->field_608             = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0x350 - D_actor_403100_80155808->field_608) >> 2);
-                D_actor_403100_80155808->field_A0              = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x110 - D_actor_403100_80155808->field_A0) >> 2);
-                D_actor_403100_80155808->field_A2              = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x290 - D_actor_403100_80155808->field_A2) >> 2);
-                D_actor_403100_80155808->field_A4              = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x60 - D_actor_403100_80155808->field_A4) >> 2);
-                x3                                             = coords->coord.t[0];
-                nextX3                                         = x3 + ((s32)(-0xB80 - x3) >> 2);
-                coords->coord.t[0]                             = nextX3;
+                D_actor_403100_80155808->part6StrokeDone = 0;
+                D_actor_403100_80155808->field_604       = (u16)D_actor_403100_80155808->field_604 + ((s32)(0xD0 - D_actor_403100_80155808->field_604) >> 2);
+                D_actor_403100_80155808->field_608       = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0x350 - D_actor_403100_80155808->field_608) >> 2);
+                D_actor_403100_80155808->field_A0        = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x110 - D_actor_403100_80155808->field_A0) >> 2);
+                D_actor_403100_80155808->field_A2        = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x290 - D_actor_403100_80155808->field_A2) >> 2);
+                D_actor_403100_80155808->field_A4        = (u16)D_actor_403100_80155808->field_A4 + ((s32)(0x60 - D_actor_403100_80155808->field_A4) >> 2);
+                x3                                       = coords->coord.t[0];
+                nextX3                                   = x3 + ((s32)(-0xB80 - x3) >> 2);
+                coords->coord.t[0]                       = nextX3;
                 if (nextX3 >= -0xBD0) {
-                    D_actor_403100_80155808->field_664.b.field_667 = 1;
+                    D_actor_403100_80155808->part6StrokeDone = 1;
                     return;
                 }
             } else if (phase == 3) {
-                D_actor_403100_80155808->field_664.b.field_667 = 0;
-                D_actor_403100_80155808->field_604             = (u16)D_actor_403100_80155808->field_604 + ((s32)(0x30 - D_actor_403100_80155808->field_604) >> 1);
-                D_actor_403100_80155808->field_608             = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0xD0 - D_actor_403100_80155808->field_608) >> 1);
-                D_actor_403100_80155808->field_A0              = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 1);
-                D_actor_403100_80155808->field_A2              = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x270 - D_actor_403100_80155808->field_A2) >> 1);
-                D_actor_403100_80155808->field_A4              = (u16)D_actor_403100_80155808->field_A4 + ((s32)(-0xA0 - D_actor_403100_80155808->field_A4) >> 1);
-                x4                                             = coords->coord.t[0];
-                nextX4                                         = x4 + ((s32)(-0x1180 - x4) >> 2);
-                coords->coord.t[0]                             = nextX4;
+                D_actor_403100_80155808->part6StrokeDone = 0;
+                D_actor_403100_80155808->field_604       = (u16)D_actor_403100_80155808->field_604 + ((s32)(0x30 - D_actor_403100_80155808->field_604) >> 1);
+                D_actor_403100_80155808->field_608       = (u16)D_actor_403100_80155808->field_608 + ((s32)(-0xD0 - D_actor_403100_80155808->field_608) >> 1);
+                D_actor_403100_80155808->field_A0        = (u16)D_actor_403100_80155808->field_A0 + ((s32)(-0x150 - D_actor_403100_80155808->field_A0) >> 1);
+                D_actor_403100_80155808->field_A2        = (u16)D_actor_403100_80155808->field_A2 + ((s32)(0x270 - D_actor_403100_80155808->field_A2) >> 1);
+                D_actor_403100_80155808->field_A4        = (u16)D_actor_403100_80155808->field_A4 + ((s32)(-0xA0 - D_actor_403100_80155808->field_A4) >> 1);
+                x4                                       = coords->coord.t[0];
+                nextX4                                   = x4 + ((s32)(-0x1180 - x4) >> 2);
+                coords->coord.t[0]                       = nextX4;
                 if (nextX4 < -0x111F) {
-                    D_actor_403100_80155808->field_664.b.field_667 = 1;
+                    D_actor_403100_80155808->part6StrokeDone = 1;
                 }
             }
         }
@@ -7781,12 +7781,12 @@ static void func_actor_403100_8013CBE0(Task* task)
     u8           request;
     u8           state;
 
-    state = D_actor_403100_80155808->field_664.b.field_665;
+    state = D_actor_403100_80155808->part4PitchPhase;
     switch (state) {
-        case 0:
+        case ACTOR_403100_PITCH_PHASE_REST:
             D_actor_403100_80155808->field_5E8 = (s16)((u16)D_actor_403100_80155808->field_5E8 + ((s32) - (D_actor_403100_80155808->field_5E8 * 0x10) >> 7));
             return;
-        case 1:
+        case ACTOR_403100_PITCH_PHASE_START:
             request = D_actor_403100_80155808->field_66F;
             if (request == state) {
                 soundId = 0x401F0009;
@@ -7809,22 +7809,22 @@ static void func_actor_403100_8013CBE0(Task* task)
                 depth = worldCoordGetOriginAudioDepth(task->extra.tmd->coords + 4);
                 SndEvt_EnqueueType6(sound, pan, (s8)(depth / 2));
             }
-            D_actor_403100_80155808->field_66F             = 0U;
-            D_actor_403100_80155808->field_664.b.field_665 = (u8)(D_actor_403100_80155808->field_664.b.field_665 + 1);
+            D_actor_403100_80155808->field_66F       = 0U;
+            D_actor_403100_80155808->part4PitchPhase = D_actor_403100_80155808->part4PitchPhase + 1;
             return;
-        case 2:
+        case ACTOR_403100_PITCH_PHASE_SWING:
             next                               = (u16)D_actor_403100_80155808->field_5E8 + ((s32)(-0x2200 - (D_actor_403100_80155808->field_5E8 * 0x10)) >> 7);
             D_actor_403100_80155808->field_5E8 = next;
             if (next < -0x1FF) {
-                D_actor_403100_80155808->field_664.b.field_665 = (u8)(D_actor_403100_80155808->field_664.b.field_665 + 1);
+                D_actor_403100_80155808->part4PitchPhase = D_actor_403100_80155808->part4PitchPhase + 1;
                 return;
             }
             return;
-        case 3:
+        case ACTOR_403100_PITCH_PHASE_RETURN:
             next2                              = (u16)D_actor_403100_80155808->field_5E8 + 0xC;
             D_actor_403100_80155808->field_5E8 = next2;
             if ((next2 << 16) >= 0) {
-                D_actor_403100_80155808->field_664.b.field_665 = 0U;
+                D_actor_403100_80155808->part4PitchPhase = ACTOR_403100_PITCH_PHASE_REST;
             }
             break;
     }
@@ -7835,31 +7835,31 @@ static void func_actor_403100_8013CDC0(void)
     s16 next2;
     u8  state;
 
-    state = D_actor_403100_80155808->field_664.b.field_666;
+    state = D_actor_403100_80155808->part3PitchPhase;
     switch (state) { /* irregular */
-        case 0:
+        case ACTOR_403100_PITCH_PHASE_REST:
             D_actor_403100_80155808->field_5EA =
                 (u16)D_actor_403100_80155808->field_5EA +
                 ((s32) - (D_actor_403100_80155808->field_5EA * 0x10) >> 7);
             return;
-        case 1:
-            D_actor_403100_80155808->field_664.b.field_666 = 2;
+        case ACTOR_403100_PITCH_PHASE_START:
+            D_actor_403100_80155808->part3PitchPhase = ACTOR_403100_PITCH_PHASE_SWING;
             return;
-        case 2:
+        case ACTOR_403100_PITCH_PHASE_SWING:
             next = (u16)D_actor_403100_80155808->field_5EA +
                    ((s32)(0x1E00 - (D_actor_403100_80155808->field_5EA * 0x10)) >> 7);
             D_actor_403100_80155808->field_5EA = next;
             if (next >= 0x1C0) {
-                D_actor_403100_80155808->field_664.b.field_666 =
-                    D_actor_403100_80155808->field_664.b.field_666 + 1;
+                D_actor_403100_80155808->part3PitchPhase =
+                    D_actor_403100_80155808->part3PitchPhase + 1;
                 return;
             }
             return;
-        case 3:
+        case ACTOR_403100_PITCH_PHASE_RETURN:
             next2                              = (u16)D_actor_403100_80155808->field_5EA - 0xC;
             D_actor_403100_80155808->field_5EA = next2;
             if ((next2 << 0x10) <= 0) {
-                D_actor_403100_80155808->field_664.b.field_666 = 0;
+                D_actor_403100_80155808->part3PitchPhase = ACTOR_403100_PITCH_PHASE_REST;
             }
             break;
     }
@@ -8007,20 +8007,20 @@ static void func_actor_403100_8013D24C(void)
     s32 state;
 
     state = (s8)D_actor_403100_80155808->pad_66A[2];
-    if ((state == 1) && !(D_actor_403100_80155808->field_664.word & 0xFFFF00)) {
-        D_actor_403100_80155808->field_664.b.field_665 = state;
-        D_actor_403100_80155808->field_664.b.field_666 = (u8)state;
-        D_actor_403100_80155808->field_66F             = state;
+    if ((state == 1) && (D_actor_403100_80155808->part4PitchPhase == ACTOR_403100_PITCH_PHASE_REST) && (D_actor_403100_80155808->part3PitchPhase == ACTOR_403100_PITCH_PHASE_REST)) {
+        D_actor_403100_80155808->part4PitchPhase = state;
+        D_actor_403100_80155808->part3PitchPhase = state;
+        D_actor_403100_80155808->field_66F       = state;
     }
 }
 static void func_actor_403100_8013D2A0(s16 arg0)
 {
-    if (!(D_actor_403100_80155808->field_664.word & 0xFFFF00)) {
+    if ((D_actor_403100_80155808->part4PitchPhase == ACTOR_403100_PITCH_PHASE_REST) && (D_actor_403100_80155808->part3PitchPhase == ACTOR_403100_PITCH_PHASE_REST)) {
         if (arg0 == 1) {
             D_actor_403100_80155808->field_66F = 2;
         }
-        D_actor_403100_80155808->field_664.b.field_665 = 1;
-        D_actor_403100_80155808->field_664.b.field_666 = 1;
+        D_actor_403100_80155808->part4PitchPhase = ACTOR_403100_PITCH_PHASE_START;
+        D_actor_403100_80155808->part3PitchPhase = ACTOR_403100_PITCH_PHASE_START;
     }
 }
 
@@ -8134,10 +8134,10 @@ static void func_actor_403100_8013D700(Task* arg0)
 }
 static void func_actor_403100_8013D74C(Task* arg0)
 {
-    D_actor_403100_80155808->field_5EE             = 0;
-    D_actor_403100_80155808->field_664.b.field_667 = 0;
-    D_actor_403100_80155808->field_638             = 0;
-    D_actor_403100_80155808->field_63A             = 0;
+    D_actor_403100_80155808->field_5EE       = 0;
+    D_actor_403100_80155808->part6StrokeDone = 0;
+    D_actor_403100_80155808->field_638       = 0;
+    D_actor_403100_80155808->field_63A       = 0;
 }
 static void func_actor_403100_8013D770(Task* arg0)
 {
