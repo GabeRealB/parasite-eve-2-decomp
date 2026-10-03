@@ -125,16 +125,21 @@ extern EvsCommand       D_shelter_b4_reservoir_80184DC8[];
 extern u8               D_shelter_b4_reservoir_80184F78;
 extern u8               D_shelter_b4_reservoir_80184F79;
 extern u8               D_shelter_b4_reservoir_80184F7A;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// Half-extent of a water-drift sprite, plus two trailing bytes.
+///
+/// Each frame the room task ORs `halfExtent` into the low half of a spawn
+/// argument and fills the other fields from the three bytes that precede this
+/// object. `waterDriftTask` reads that layout: bits 0..11 are this half-extent,
+/// bits 12..15 the frame period, bits 16..23 the velocity level and bits 24..31
+/// the velocity kind. The initial half-extent is 640, so it occupies only the
+/// low 12 bits. The trailing bytes are zero; their role is unproven.
 typedef struct {
-    s16 value;
-    u8  retained[2];
-} ShelterB4ReservoirStorage4F7C;
-STATIC_ASSERT_SIZEOF(ShelterB4ReservoirStorage4F7C, 4);
+    s16 halfExtent; // Sprite half-extent in world units, bits 0..11 of the spawn argument
+    u8  field_2[2]; // Zero bytes with no accesses; role unproven
+} _ShelterB4ReservoirWaterDriftHalfExtent;
+STATIC_ASSERT_SIZEOF(_ShelterB4ReservoirWaterDriftHalfExtent, 4);
 
-extern ShelterB4ReservoirStorage4F7C D_shelter_b4_reservoir_80184F7C;
+extern _ShelterB4ReservoirWaterDriftHalfExtent D_shelter_b4_reservoir_80184F7C;
 
 extern s16                      D_shelter_b4_reservoir_80184F82;
 extern TaskDesc                 D_shelter_b4_reservoir_80184F84[];
@@ -339,7 +344,7 @@ u8 D_shelter_b4_reservoir_80184F79 = 8;
 
 u8 D_shelter_b4_reservoir_80184F7A = 3;
 
-ShelterB4ReservoirStorage4F7C D_shelter_b4_reservoir_80184F7C = { 640, { 0, 0 } };
+_ShelterB4ReservoirWaterDriftHalfExtent D_shelter_b4_reservoir_80184F7C = { 640, { 0, 0 } };
 
 s16 D_shelter_b4_reservoir_80184F80 = -2000;
 
@@ -1032,7 +1037,8 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
 
 static void func_shelter_b4_reservoir_8017E068(void)
 {
-    D_shelter_b4_reservoir_80187510 = (D_shelter_b4_reservoir_80184F78 << 0x18) | (D_shelter_b4_reservoir_80184F7A << 0xC) | (D_shelter_b4_reservoir_80184F79 << 0x10) | D_shelter_b4_reservoir_80184F7C.value;
+    // Water-drift spawn argument: half-extent, then period, velocity level and kind.
+    D_shelter_b4_reservoir_80187510 = (D_shelter_b4_reservoir_80184F78 << 0x18) | (D_shelter_b4_reservoir_80184F7A << 0xC) | (D_shelter_b4_reservoir_80184F79 << 0x10) | D_shelter_b4_reservoir_80184F7C.halfExtent;
 }
 
 void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
