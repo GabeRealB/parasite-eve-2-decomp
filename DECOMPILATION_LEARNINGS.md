@@ -144449,7 +144449,7 @@ without them loop.c strength-reduced `vec4`'s field addresses into a second
 pointer and hoisted `&block[5]`/`&block[6]`/`&block[7]`. The target's
 pointers (`a0` over the corners, `t3` over the edge table, `off` added to the
 object) are loop.c's own reductions of `for (i = 1; i < N; i++)` loops over
-`&other->vertices[i]`, `&block->quad.corners[i]` and `Gp_FaceEdgePairs[i]`. Written that
+`&other->vertices[i]`, `&scratch->corners[i]` and `Gp_FaceEdgePairs[i]`. Written that
 way, and with the scratch block as a struct, the body matched outright. The
 preceding function in the unit ran the same quad test hack-free, and its body
 was the template: check neighbours for the same algorithm before steering loops.
