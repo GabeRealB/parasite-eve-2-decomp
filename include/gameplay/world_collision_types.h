@@ -23,6 +23,21 @@ enum {
 /// Mask selecting a packed contact key's high halfword; keeps unsigned word arithmetic.
 #define WORLD_COLLISION_CONTACT_KIND_MASK 0xFFFF0000
 
+/// Response half of a collision contact: a direction, or the contacted body's address.
+///
+/// `normal` is the usual reading, and is zero where a contact has no direction.
+/// `node` applies only to a pair contact held by a capsule with
+/// `WORLD_COLLISION_BODY_SINGLE_CONTACT`: it splits the contacted body's
+/// address across two halfwords and leaves the remaining halfwords zero.
+typedef union {
+    SVECTOR normal; // Grid normal or capsule-axis direction, with 4096 representing one unit
+    struct {
+        u16 low;    // Low halfword of the contacted body's address
+        s16 high;   // High halfword, retained signed for the address reconstruction
+    } node;
+} WorldCollisionContactResponse;
+STATIC_ASSERT_SIZEOF(WorldCollisionContactResponse, 8);
+
 /// One result in a body's collision-contact table.
 ///
 /// The body owner supplies and initializes the storage before linking the body.
@@ -47,14 +62,8 @@ typedef struct {
             u16 kind; // Contact category (body/interaction category, or 0x10 room grid)
         } parts;
     } key;
-    SVECTOR point;      // World contact position or other body's centre; zero for normal-only grid overlaps
-    union {
-        SVECTOR normal; // Grid normal or capsule-axis direction, with 4096 representing one unit
-        struct {
-            u16 low;    // Low halfword of the contacted body's address
-            s16 high;   // High halfword, retained signed for the address reconstruction
-        } node;
-    } response;
+    SVECTOR                       point;    // World contact position or other body's centre; zero for normal-only grid overlaps
+    WorldCollisionContactResponse response; // Direction or encoded body address; see the type
 } WorldCollisionContact;
 STATIC_ASSERT_SIZEOF(WorldCollisionContact, 0x18);
 

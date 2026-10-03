@@ -80,12 +80,29 @@
         }                                                                                                                                 \
     } while (0)
 
-/// Position, response vector and distance passed from pair tests to their contact writer.
+/// What one body of a colliding pair learns about the other, as a pair test hands it to the contact writer.
+///
+/// These are the fields of a `WorldCollisionContact` that depend on the shapes
+/// tested. The writer copies them unchanged into the entry it claims and takes
+/// the key and flags from the two bodies. A test fills this once per body,
+/// because the two sides of one contact are described differently:
+///
+/// - Sphere against sphere, either body: `point` is the other sphere's centre,
+///   `response` is zero and `distance` is the sum of both radii.
+/// - Sphere against capsule, for the sphere: `point` is the capsule's second
+///   endpoint and `response.normal` its unit axis towards the first endpoint.
+/// - Sphere against capsule, for the capsule: `point` is the axis point nearest
+///   the sphere, or the sphere's centre when the capsule tapers. `response.node`
+///   is the sphere body's address under `WORLD_COLLISION_BODY_SINGLE_CONTACT`,
+///   and zero otherwise.
+///
+/// The capsule's first endpoint is its earlier clip contact when it has one.
 typedef struct {
-    SVECTOR point;    // Other centre or capsule intersection, in world units
-    SVECTOR response; // Capsule axis, encoded body address, or zero for spheres
-    s16     distance; // Summed sphere radii, or zero for capsule hits
+    SVECTOR                       point;    // World position, truncated to signed halfwords
+    WorldCollisionContactResponse response; // Axis direction (4096 per unit), encoded body address, or zero
+    s16                           distance; // Summed sphere radii in world units; 0 for capsule pairs
 } _WorldCollisionPairContact;
+STATIC_ASSERT_SIZEOF(_WorldCollisionPairContact, 0x12);
 
 /// Scratch storage for sphere-pair intersection and its contact result.
 typedef struct {
@@ -288,10 +305,10 @@ static void _worldCollisionRecordPairContact(WorldCollisionBody* receivingBody, 
 
     WORLD_COLLISION_CLAIM_CONTACT(rec, receivingBody);
 
-    rec->key.value       = contactedBody->key;
-    rec->distance        = contact->distance;
-    rec->point           = contact->point;
-    rec->response.normal = contact->response;
+    rec->key.value = contactedBody->key;
+    rec->distance  = contact->distance;
+    rec->point     = contact->point;
+    rec->response  = contact->response;
 }
 
 s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind)
@@ -317,23 +334,23 @@ s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
 
     block->rsum32 = arg0->radius + arg1->radius;
     if (block->delta.vx * block->delta.vx + block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz < block->rsum32 * block->rsum32) {
-        block->contact.point.vx    = block->pos1.vx;
-        block->contact.point.vy    = block->pos1.vy;
-        block->contact.point.vz    = block->pos1.vz;
-        block->contact.response.vx = 0;
-        block->contact.response.vy = 0;
-        block->contact.response.vz = 0;
-        block->contact.distance    = block->rsum32;
+        block->contact.point.vx           = block->pos1.vx;
+        block->contact.point.vy           = block->pos1.vy;
+        block->contact.point.vz           = block->pos1.vz;
+        block->contact.response.normal.vx = 0;
+        block->contact.response.normal.vy = 0;
+        block->contact.response.normal.vz = 0;
+        block->contact.distance           = block->rsum32;
         _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
         ret = 1;
 
-        block->contact.point.vx    = block->pos0.vx;
-        block->contact.point.vy    = block->pos0.vy;
-        block->contact.point.vz    = block->pos0.vz;
-        block->contact.response.vx = 0;
-        block->contact.response.vy = 0;
-        block->contact.response.vz = 0;
-        block->contact.distance    = block->rsum32;
+        block->contact.point.vx           = block->pos0.vx;
+        block->contact.point.vy           = block->pos0.vy;
+        block->contact.point.vz           = block->pos0.vz;
+        block->contact.response.normal.vx = 0;
+        block->contact.response.normal.vy = 0;
+        block->contact.response.normal.vz = 0;
+        block->contact.distance           = block->rsum32;
         _worldCollisionRecordPairContact(arg1, arg0, &block->contact);
     }
 
@@ -475,13 +492,13 @@ check:
     dz4              = block->scaled.vz * block->scaled.vz;
     radiusSquared    = proj * proj;
     if (dx4 + dy4 + dz4 < radiusSquared) {
-        block->contact.distance    = 0;
-        block->contact.point.vx    = (u16)block->end1.vx;
-        block->contact.point.vy    = (u16)block->end1.vy;
-        block->contact.point.vz    = (u16)block->end1.vz;
-        block->contact.response.vx = (u16)block->normal.vx;
-        block->contact.response.vy = (u16)block->normal.vy;
-        block->contact.response.vz = (u16)block->normal.vz;
+        block->contact.distance           = 0;
+        block->contact.point.vx           = (u16)block->end1.vx;
+        block->contact.point.vy           = (u16)block->end1.vy;
+        block->contact.point.vz           = (u16)block->end1.vz;
+        block->contact.response.normal.vx = (u16)block->normal.vx;
+        block->contact.response.normal.vy = (u16)block->normal.vy;
+        block->contact.response.normal.vz = (u16)block->normal.vz;
         _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
         if (!tapered) {
             block->contact.point = block->hit;
@@ -491,15 +508,15 @@ check:
             block->contact.point.vz = (u16)block->sphere.vz;
         }
         if (arg1->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
-            sourceAddress.object       = arg0;
-            block->contact.response.vx = sourceAddress.address;
-            block->contact.response.vy = sourceAddress.address >> 16;
+            sourceAddress.object              = arg0;
+            block->contact.response.node.low  = sourceAddress.address;
+            block->contact.response.node.high = sourceAddress.address >> 16;
         } else {
-            block->contact.response.vx = 0;
-            block->contact.response.vy = 0;
+            block->contact.response.normal.vx = 0;
+            block->contact.response.normal.vy = 0;
         }
-        block->contact.response.vz = 0;
-        block->contact.distance    = 0;
+        block->contact.response.normal.vz = 0;
+        block->contact.distance           = 0;
         _worldCollisionRecordPairContact(arg1, arg0, &block->contact);
         ret = 1;
     }
