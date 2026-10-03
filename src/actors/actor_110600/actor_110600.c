@@ -135,34 +135,30 @@ typedef struct Actor110600Work {
     /// The two hit-sphere radii the aiming stage measures the player
     /// delta against in the XZ plane: `field_C` only while the target is
     /// within 0x3E8 angle units of the model's heading, `field_E` always.
-    /* 0x00C */ u16  field_C;
-    /* 0x00E */ u16  field_E;
-    /* 0x010 */ byte pad_10[0x3E];
-    /// Pose the model has reached, the same `& 0x3FF` frame index
-    /// `func_actor_110600_80137DB0` tests for 4 before it advances the
-    /// `field_BE2` stage from 0 to 1.
-    /* 0x04E */ u16  field_4E;
-    /* 0x050 */ byte pad_50[0xC];
-    /// Flag halfword the state handlers test on entry: bit 0 moves the actor
-    /// on (`field_0 = 3`), bit 1 is the timer gate
-    /// `func_actor_110600_80136888` retimes on.
-    /* 0x05C */ u16  field_5C;
-    /* 0x05E */ byte pad_5E[0x82A];
-    /* 0x888 */ s32  field_888;
-    /* 0x88C */ s16  field_88C;
-    /* 0x88E */ s16  field_88E;
-    /* 0x890 */ byte pad_890[2];
-    /* 0x892 */ s16  field_892;
-    /* 0x894 */ s16  field_894;
-    /* 0x896 */ s16  field_896;
-    /* 0x898 */ s16  field_898;
-    /* 0x89A */ s16  field_89A;
-    /* 0x89C */ s16  field_89C;
-    /* 0x89E */ byte pad_89E[4];
-    /* 0x8A2 */ s16  field_8A2;
-    /* 0x8A4 */ s16  field_8A4;
-    /* 0x8A6 */ u16  field_8A6;
-    /* 0x8A8 */ byte pad_8A8[2];
+    /* 0x00C */ u16              field_C;
+    /* 0x00E */ u16              field_E;
+    /* 0x010 */ AnimationContext anim;
+    /* 0x024 */ AnimationSlot    slots[24];
+    /* 0x3E4 */ byte             pad_3E4[0x68];
+    /* 0x44C */ AnimationContext blendAnim;
+    /* 0x460 */ AnimationSlot    blendSlots[24];
+    /* 0x820 */ byte             pad_820[0x68];
+    /* 0x888 */ s32              field_888;
+    /* 0x88C */ s16              field_88C;
+    /* 0x88E */ s16              field_88E;
+    /* 0x890 */ s16              field_890;
+    /* 0x892 */ s16              field_892;
+    /* 0x894 */ s16              field_894;
+    /* 0x896 */ s16              field_896;
+    /* 0x898 */ s16              field_898;
+    /* 0x89A */ s16              field_89A;
+    /* 0x89C */ s16              field_89C;
+    /* 0x89E */ s16              field_89E;
+    /* 0x8A0 */ s16              field_8A0;
+    /* 0x8A2 */ s16              field_8A2;
+    /* 0x8A4 */ s16              field_8A4;
+    /* 0x8A6 */ u16              field_8A6;
+    /* 0x8A8 */ byte             pad_8A8[2];
     /// Timer `func_actor_110600_80137F2C` counts down once the actor is live,
     /// handing off to `func_actor_110600_80136210` on the frame it reaches
     /// zero; the same slot the `Actor01900Work` dispatcher keeps at 0xC10.
@@ -226,52 +222,6 @@ typedef struct Actor110600Work {
     /* 0xBEA */ byte pad_BEA[2];
 } Actor110600Work;
 STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
-
-/// Animation view of the same block `Actor110600Work` describes: a primary
-/// `AnimationContext` at 0x10 and a blend context at 0x44C, each followed by its own
-/// 24-entry `AnimationSlot` array (0x24 / 0x460). `func_actor_110600_80134438`
-/// drives both for clip ids 1..0x12: the blend weight is the halfword at 0x8A0,
-/// the two clip ids the bytes at 0x896 / 0x89E. Same view as
-/// `Actor403000AnimWork`, which is the same body one overlay over; the two
-/// views overlap `Actor110600Work` because the overlay reads the block through
-/// whichever shape a function needs.
-///
-/// `func_actor_110600_80134728` drives this view's slots and contexts and reads
-/// the state words below it through the same pointer, so the view carries the
-/// state halfwords `Actor110600Work` names too: `field_88C` is the stage it
-/// dispatches on, `field_890` / `field_892` the clip pair `animationSeekSlotWithBlend` is
-/// armed with, `field_894` the frame counter it bumps, and `field_8AC` the
-/// word its stage setup clears.
-typedef struct Actor110600AnimWork {
-    /* 0x000 */ byte             pad_0[0x10];
-    /* 0x010 */ AnimationContext anim;
-    /* 0x024 */ AnimationSlot    slots[24];
-    /* 0x3E4 */ byte             pad_3E4[0x68];
-    /* 0x44C */ AnimationContext blendAnim;
-    /* 0x460 */ AnimationSlot    blendSlots[24];
-    /* 0x820 */ byte             pad_820[0x6C];
-    /* 0x88C */ s16              field_88C;
-    /* 0x88E */ s16              field_88E;
-    /* 0x890 */ s16              field_890;
-    /// Clip id the slots are armed with; read as an unsigned halfword into the
-    /// clamped halfword `field_890` is assigned from.
-    /* 0x892 */ s16 field_892;
-    /* 0x894 */ u16 field_894;
-    /// Clip id written into every slot's `field_9`, read as a byte.
-    /* 0x896 */ s16  field_896;
-    /* 0x898 */ byte pad_898[2];
-    /* 0x89A */ s16  field_89A;
-    /// Blend-animation clip id, which the `field_89A == 2` stage arms the blend
-    /// slots with.
-    /* 0x89C */ s16  field_89C;
-    /* 0x89E */ s16  field_89E;
-    /* 0x8A0 */ s16  field_8A0;
-    /* 0x8A2 */ s16  field_8A2;
-    /* 0x8A4 */ s16  field_8A4;
-    /* 0x8A6 */ byte pad_8A6[6];
-    /* 0x8AC */ s32  field_8AC;
-} Actor110600AnimWork;
-STATIC_ASSERT_SIZEOF(Actor110600AnimWork, 0x8B0);
 
 /// Damage and hit-direction values in the 0x30-byte scratchpad frame used by
 /// func_actor_110600_80136210.
@@ -354,7 +304,7 @@ static void func_actor_110600_80134728(Task* arg0);
 /// which `func_actor_110600_80134728` queues as the id's low byte. Watches the
 /// pose of the animation slot the `field_892` state selects, reporting the cue
 /// once per pose and remembering it in `field_8AC`.
-static s32 func_actor_110600_80134564(Actor110600AnimWork* anim);
+static s32 func_actor_110600_80134564(Actor110600Work* anim);
 
 /// Aiming stage: wraps the yaw from the model's root coordinate to the camera
 /// target `gPlayerStatus.coordMtx` against the coordinate's own yaw into `field_8A2`, ticks
@@ -1370,14 +1320,14 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2, s32
 /// `func_actor_403000_801336B4`, which walks 24 slots instead of 19.
 static void func_actor_110600_80134438(Task* arg0)
 {
-    AnimationPose        pose;
-    AnimationPose        blendPose;
-    AnimationContext*    anim;
-    s16                  weight;
-    s16                  i;
-    Actor110600AnimWork* work;
+    AnimationPose     pose;
+    AnimationPose     blendPose;
+    AnimationContext* anim;
+    s16               weight;
+    s16               i;
+    Actor110600Work*  work;
 
-    work   = (Actor110600AnimWork*)((Actor110600Work*)arg0->work);
+    work   = (Actor110600Work*)((Actor110600Work*)arg0->work);
     weight = work->field_8A0;
     anim   = &work->anim;
     for (i = 1; i < 0x13; i++) {
@@ -1402,7 +1352,7 @@ static void func_actor_110600_80134438(Task* arg0)
 /// states 2, 21, 4 and 5 read slot 1, with state 2 the only one watching two
 /// ids (cues 2 and 1) and clearing the memory when neither is held. Every other
 /// way out re-reads the slot-1 pose into `field_8AC`.
-static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
+static s32 func_actor_110600_80134564(Actor110600Work* anim)
 {
     s32 id14;
     s32 id18;
@@ -1505,33 +1455,33 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
 /// of the enemy's `field_8` are appended to it.
 static void func_actor_110600_80134728(Task* arg0)
 {
-    Actor110600AnimWork* work;
-    Actor110600AnimWork* seekWork;
-    Actor110600AnimWork* resetWork;
-    Actor110600AnimWork* warmWork;
-    Actor110600AnimWork* blendWork;
-    Actor110600AnimWork* tickWork;
-    Enemy*               enemy;
-    u32                  table;
-    s32                  index;
-    s32                  animation;
-    s32                  seekIndex;
-    s32                  resetIndex;
-    s32                  warmIndex;
-    s32                  blendIndex;
-    s32                  tickIndex;
-    s32                  targetAngle;
-    s32                  currentAngle;
-    s32                  targetAngleBits;
-    s32                  currentAngleBits;
-    s32                  turn;
-    s16                  turnNow;
-    s32                  sound;
-    s32                  soundId;
-    s32                  pan;
-    s16                  state;
+    Actor110600Work* work;
+    Actor110600Work* seekWork;
+    Actor110600Work* resetWork;
+    Actor110600Work* warmWork;
+    Actor110600Work* blendWork;
+    Actor110600Work* tickWork;
+    Enemy*           enemy;
+    u32              table;
+    s32              index;
+    s32              animation;
+    s32              seekIndex;
+    s32              resetIndex;
+    s32              warmIndex;
+    s32              blendIndex;
+    s32              tickIndex;
+    s32              targetAngle;
+    s32              currentAngle;
+    s32              targetAngleBits;
+    s32              currentAngleBits;
+    s32              turn;
+    s16              turnNow;
+    s32              sound;
+    s32              soundId;
+    s32              pan;
+    s16              state;
 
-    work  = (Actor110600AnimWork*)((Actor110600Work*)arg0->work);
+    work  = (Actor110600Work*)((Actor110600Work*)arg0->work);
     state = work->field_88C;
     enemy = arg0->spawnArg2.pointer;
     if (state == 1) {
@@ -1572,7 +1522,7 @@ static void func_actor_110600_80134728(Task* arg0)
         warmWork->field_890 = (u16)warmWork->field_892;
         warmIndex           = 1;
         do {
-            tickWork  = (Actor110600AnimWork*)((Actor110600Work*)arg0->work);
+            tickWork  = (Actor110600Work*)((Actor110600Work*)arg0->work);
             tickIndex = 1;
             do {
                 tickWork->slots[tickIndex].rate = tickWork->field_896;
@@ -1586,7 +1536,7 @@ static void func_actor_110600_80134728(Task* arg0)
         work->field_8AC = 0;
     }
     if (work->field_89A == 2) {
-        blendWork            = (Actor110600AnimWork*)((Actor110600Work*)arg0->work);
+        blendWork            = (Actor110600Work*)((Actor110600Work*)arg0->work);
         blendIndex           = 1;
         blendWork->field_89E = 0x30;
         blendWork->field_8A0 = 0xB78;
@@ -1599,7 +1549,7 @@ static void func_actor_110600_80134728(Task* arg0)
     }
     work->field_894 = (u16)(work->field_894 + 1);
     if (work->field_88E == 0) {
-        tickWork  = (Actor110600AnimWork*)((Actor110600Work*)arg0->work);
+        tickWork  = (Actor110600Work*)((Actor110600Work*)arg0->work);
         tickIndex = 1;
         do {
             tickWork->slots[tickIndex].rate = tickWork->field_896;
@@ -1725,12 +1675,12 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     enemy->hpMax = enemy->hp = D_actor_110600_80138F14.hpMax;
     contactRecs              = work->recs_8D8;
     enemy->recs              = contactRecs;
-    animationInitContext(&((Actor110600AnimWork*)work)->anim, D_actor_110600_8014850C, model,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor110600AnimWork*)work)->slots[19],
-                         ((Actor110600AnimWork*)work)->slots);
-    animationInitContext(&((Actor110600AnimWork*)work)->blendAnim, D_actor_110600_8014850C, model,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor110600AnimWork*)work)->blendSlots[19],
-                         ((Actor110600AnimWork*)work)->blendSlots);
+    animationInitContext(&((Actor110600Work*)work)->anim, D_actor_110600_8014850C, model,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor110600Work*)work)->slots[19],
+                         ((Actor110600Work*)work)->slots);
+    animationInitContext(&((Actor110600Work*)work)->blendAnim, D_actor_110600_8014850C, model,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor110600Work*)work)->blendSlots[19],
+                         ((Actor110600Work*)work)->blendSlots);
     work->field_88C = 2;
     work->field_88E = 0;
     work->field_892 = 2;
@@ -2074,15 +2024,15 @@ static void func_actor_110600_80135454(Task* arg0)
         work->field_0 = 5;
     work->field_8A2 = angle;
     func_actor_110600_80134728(arg0);
-    pose = work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK;
+    pose = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if ((pose == 0x33) && (work->field_888 != pose)) {
         work->field_BE8 = 1;
     }
-    nextPose = work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK;
+    nextPose = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if ((nextPose == 0x26) && (work->field_888 != nextPose)) {
         work->field_BE8 = 2;
     }
-    work->field_888 = (s32)(work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK);
+    work->field_888 = (s32)(work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK);
     if (work->field_BE8 != 0) {
         if (Actor110600_TickShake() != 0)
             work->field_BE8 = 0;
@@ -2145,7 +2095,7 @@ static void func_actor_110600_80135A18(Task* arg0)
     }
     work->field_8A2 = angle;
     func_actor_110600_80134728(arg0);
-    if (work->field_5C & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         work->field_0 = 3;
     }
 }
@@ -2226,7 +2176,7 @@ static void func_actor_110600_80135B84(Task* arg0)
     }
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 4) {
-        switch (work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK) {
+        switch (work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
             case 0xF:
                 work->field_A90.flags = (u16)(work->field_A90.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 break;
@@ -2236,7 +2186,7 @@ static void func_actor_110600_80135B84(Task* arg0)
         }
     }
     if (work->field_892 == 5) {
-        switch (work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK) {
+        switch (work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
             case 0x10:
                 work->field_A90.flags = (u16)(work->field_A90.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 break;
@@ -2245,7 +2195,7 @@ static void func_actor_110600_80135B84(Task* arg0)
                 break;
         }
     }
-    if (work->field_5C & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         work->field_0 = 3;
     }
     if (Actor110600_HasRec10000(work->recs)) {
@@ -2514,7 +2464,7 @@ static void func_actor_110600_80136888(Task* arg0)
     bossStrangerTick(&work->walker);
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 0x18) {
-        if (work->field_5C & 2) {
+        if (work->slots[1].status.fields.flags & 2) {
             rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState = rng;
             if (!((rng >> 16) & 7)) {
@@ -2524,7 +2474,7 @@ static void func_actor_110600_80136888(Task* arg0)
             }
         }
     }
-    if ((work->field_892 == 0xE) && (work->field_5C & 1)) {
+    if ((work->field_892 == 0xE) && (work->slots[1].status.fields.flags & 1)) {
         work->field_892 = 0x18;
         work->field_88C = 1;
         func_actor_110600_80134728(arg0);
@@ -2575,7 +2525,7 @@ static void func_actor_110600_801369D8(Task* arg0)
     bossStrangerTick(walker2);
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 0x1D) {
-        if (work->field_5C & 1) {
+        if (work->slots[1].status.fields.flags & 1) {
             ramp2                = work->walker.speed;
             work->field_892      = 0x1E;
             work->field_88C      = 2;
@@ -2585,7 +2535,7 @@ static void func_actor_110600_801369D8(Task* arg0)
             return;
         }
     }
-    if ((work->field_892 == 0x1E) && (work->field_5C & 1)) {
+    if ((work->field_892 == 0x1E) && (work->slots[1].status.fields.flags & 1)) {
         if (enemy->hp > 0) {
             work->field_0 = 0xB;
         } else {
@@ -2951,13 +2901,13 @@ static void func_actor_110600_801372CC(Task* arg0)
     Actor110600_RescaleRoot(arg0, work->walker.scale);
 
     if (((work->field_BDC.raw & 0xFFFFFF) == 0x30401) && (work->field_892 != 0x1E)) {
-        if ((work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK) == 0xB) {
+        if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xB) {
             D_actor_110600_80147D20[0x24][0x1E] = 6;
             work->field_892                     = 0x1E;
             work->field_88C                     = 1;
         }
         if (work->field_892 != 0x1E) {
-            if (((work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK) == 4) && (work->field_8AC != (work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK))) {
+            if (((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 4) && (work->field_8AC != (work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
                 vec                    = D_actor_110600_80131F1C;
                 tailEffect             = &D_actor_110600_80148698;
                 effectCoord3           = arg0->extra.tmd->coords;
@@ -3019,7 +2969,7 @@ static void func_actor_110600_80137684(Task* arg0)
             work->field_892 = 0x21;
         }
     }
-    if ((work->field_892 == 0x21) && (work->field_5C & 1)) {
+    if ((work->field_892 == 0x21) && (work->slots[1].status.fields.flags & 1)) {
         work->field_0 = 0xC;
     }
 }
@@ -3049,7 +2999,7 @@ static void func_actor_110600_801377FC(Task* arg0)
         work->field_8A2               = 0;
     }
     func_actor_110600_80134728(arg0);
-    work->field_8AC = work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK;
+    work->field_8AC = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     coord           = arg0->extra.tmd->coords;
     d               = &delta;
     delta.vx        = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
@@ -3116,7 +3066,7 @@ static void func_actor_110600_80137980(Task* arg0)
     }
     work->field_8A2 = angle;
     func_actor_110600_80134728(arg0);
-    if (work->field_5C & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         work->field_0 = 3;
     }
 }
@@ -3232,7 +3182,7 @@ static void func_actor_110600_80137DB0(Task* arg0)
     switch (state) {
         case 0:
             func_actor_110600_80134728(arg0);
-            if ((work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK) == 4) {
+            if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 4) {
                 work->field_896 = -0x10;
                 work->field_BE2 = (s16)((u16)work->field_BE2 + 1);
                 return;
@@ -3675,7 +3625,7 @@ static void func_actor_110600_80138980(Task* arg0)
     }
     bossStrangerTick(&work->walker);
     func_actor_110600_80134728(arg0);
-    if (work->field_5C & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         if (enemy->hp > 0) {
             work->field_0 = 0xB;
         } else {
@@ -3739,7 +3689,7 @@ static void func_actor_110600_80138AFC(Task* arg0)
     }
     bossStrangerTick(&work->walker);
     func_actor_110600_80134728(arg0);
-    if (work->field_5C & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         work->field_0 = 3;
     }
 }
@@ -3773,7 +3723,7 @@ static void func_actor_110600_80138BD0(Task* arg0)
     }
     bossStrangerTick(&work->walker);
     func_actor_110600_80134728(arg0);
-    if (work->field_5C & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         work->field_0 = 3;
     }
 }
