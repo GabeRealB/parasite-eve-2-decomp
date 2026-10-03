@@ -3,7 +3,6 @@
 #include "common.h"
 
 #include "pad_script.h"
-#include "scene.h"
 #include "gameplay/scene_combat.h"
 
 #include "main/mem.h"
@@ -30,6 +29,32 @@ typedef struct _GpState0C {
     /* 0xA */ byte pad_A[2];
 } GpState0C;
 STATIC_ASSERT_SIZEOF(GpState0C, 0xC);
+
+/// Work block of one controller-vibration script task, owned through `Task::work`.
+///
+/// A script runs two lanes over one borrowed step array: the hold lane drives
+/// the controller's on/off motor and the lerp lane its variable-intensity
+/// motor. Each lane keeps its own step index, wait, segment index and loop
+/// counter, and saves the command word it last loaded; that word's opcode
+/// selects what the lane does on each script frame, and the script ends once
+/// both lanes hold `PAD_SCRIPT_STOP`. The block is allocated zeroed, so both
+/// lanes start at step 0 with no loop pending.
+typedef struct {
+    PadScriptCmd*              commands;       // Borrowed step array both lanes walk
+    PadScriptVibrationSegment* segments;       // Borrowed segment table indexed by `PAD_SCRIPT_PLAY` operands
+    s16                        sourceDepth;    // Signed view depth of the vibration's source; an eighth of it, or 1 when that is 0, divides the lerp lane's intensities
+    PadScriptLane              holdCommand;    // Command word the hold lane last loaded
+    PadScriptLane              lerpCommand;    // Command word the lerp lane last loaded
+    u8                         holdStep;       // Index in `commands` of the hold lane's next step
+    u8                         lerpStep;       // Index in `commands` of the lerp lane's next step
+    u8                         holdWaitFrames; // Script frames before the hold lane steps again (a stored 0 waits 256)
+    u8                         lerpWaitFrames; // Script frames before the lerp lane steps again (a stored 0 waits 256)
+    u8                         holdSegment;    // Index in `segments` of the hold lane's last played segment
+    u8                         lerpSegment;    // Index in `segments` of the lerp lane's last played segment
+    u8                         holdLoopCount;  // Hold lane's loop counter: loaded when 0, else decremented, by `PAD_SCRIPT_LOOP`; `PAD_SCRIPT_JUMP` branches while it is nonzero
+    u8                         lerpLoopCount;  // Lerp lane's loop counter, used the same way
+} _PadScriptWork;
+STATIC_ASSERT_SIZEOF(_PadScriptWork, 0x18);
 
 u8 Gp_PadScriptHalt;
 
@@ -77,46 +102,46 @@ static const TaskFuncTable5 Gp_ScriptBStates;
 
 static void Gp_StepScriptA(Task* task)
 {
-    GpState18*                 state;
+    _PadScriptWork*            state;
     PadScriptCmd*              table;
     PadScriptVibrationSegment* segments;
     u16                        cmd;
     s32                        opcode;
     u8                         tmp;
 
-    state    = (GpState18*)task->work;
-    table    = state->field_0;
-    segments = state->field_4;
-    cmd      = table[state->field_E].holdCommand.command;
+    state    = task->work;
+    table    = state->commands;
+    segments = state->segments;
+    cmd      = table[state->holdStep].holdCommand.command;
     opcode   = cmd & 0xFF;
     // The saved word's opcode is this lane's state until the next step.
-    state->field_A.command = cmd;
+    state->holdCommand.command = cmd;
 
     if (opcode != PAD_SCRIPT_STOP) {
         if (opcode == PAD_SCRIPT_PLAY) {
-            state->field_12 = cmd >> 8;
-            state->field_10 = segments[state->field_12].durationFrames;
-            Gp_SpawnPadHold(state->field_10);
-            state->field_E++;
+            state->holdSegment    = cmd >> 8;
+            state->holdWaitFrames = segments[state->holdSegment].durationFrames;
+            Gp_SpawnPadHold(state->holdWaitFrames);
+            state->holdStep++;
         } else if (opcode == PAD_SCRIPT_WAIT) {
-            state->field_10 = cmd >> 8;
-            state->field_E++;
+            state->holdWaitFrames = cmd >> 8;
+            state->holdStep++;
         } else if (opcode == PAD_SCRIPT_LOOP) {
-            tmp = state->field_14;
+            tmp = state->holdLoopCount;
             if (tmp == 0) {
-                tmp             = cmd >> 8;
-                state->field_14 = tmp;
-                state->field_E++;
+                tmp                  = cmd >> 8;
+                state->holdLoopCount = tmp;
+                state->holdStep++;
             } else {
                 tmp--;
-                state->field_14 = tmp;
-                state->field_E++;
+                state->holdLoopCount = tmp;
+                state->holdStep++;
             }
         } else if (opcode == PAD_SCRIPT_JUMP) {
-            if (state->field_14 == 0) {
-                state->field_E++;
+            if (state->holdLoopCount == 0) {
+                state->holdStep++;
             } else {
-                state->field_E = table[state->field_E].holdCommand.command >> 8;
+                state->holdStep = table[state->holdStep].holdCommand.command >> 8;
             }
             Gp_StepScriptA(task);
         }
@@ -125,46 +150,46 @@ static void Gp_StepScriptA(Task* task)
 
 static void Gp_StepScriptB(Task* task)
 {
-    GpState18*                 state;
+    _PadScriptWork*            state;
     PadScriptCmd*              table;
     PadScriptVibrationSegment* segments;
     u16                        cmd;
     s32                        opcode;
     u8                         tmp;
 
-    state    = (GpState18*)task->work;
-    table    = state->field_0;
-    segments = state->field_4;
-    cmd      = table[state->field_F].lerpCommand.command;
+    state    = task->work;
+    table    = state->commands;
+    segments = state->segments;
+    cmd      = table[state->lerpStep].lerpCommand.command;
     opcode   = cmd & 0xFF;
     // The saved word's opcode is this lane's state until the next step.
-    state->field_C.command = cmd;
+    state->lerpCommand.command = cmd;
 
     if (opcode != PAD_SCRIPT_STOP) {
         if (opcode == PAD_SCRIPT_PLAY) {
-            state->field_13 = cmd >> 8;
-            state->field_11 = segments[state->field_13].durationFrames;
-            Gp_SpawnPadLerpScaled(state->field_11, segments[state->field_13].startIntensity, segments[state->field_13].endIntensity, state->field_8);
-            state->field_F++;
+            state->lerpSegment    = cmd >> 8;
+            state->lerpWaitFrames = segments[state->lerpSegment].durationFrames;
+            Gp_SpawnPadLerpScaled(state->lerpWaitFrames, segments[state->lerpSegment].startIntensity, segments[state->lerpSegment].endIntensity, state->sourceDepth);
+            state->lerpStep++;
         } else if (opcode == PAD_SCRIPT_WAIT) {
-            state->field_11 = cmd >> 8;
-            state->field_F++;
+            state->lerpWaitFrames = cmd >> 8;
+            state->lerpStep++;
         } else if (opcode == PAD_SCRIPT_LOOP) {
-            tmp = state->field_15;
+            tmp = state->lerpLoopCount;
             if (tmp == 0) {
-                tmp             = cmd >> 8;
-                state->field_15 = tmp;
-                state->field_F++;
+                tmp                  = cmd >> 8;
+                state->lerpLoopCount = tmp;
+                state->lerpStep++;
             } else {
                 tmp--;
-                state->field_15 = tmp;
-                state->field_F++;
+                state->lerpLoopCount = tmp;
+                state->lerpStep++;
             }
         } else if (opcode == PAD_SCRIPT_JUMP) {
-            if (state->field_15 == 0) {
-                state->field_F++;
+            if (state->lerpLoopCount == 0) {
+                state->lerpStep++;
             } else {
-                state->field_F = table[state->field_F].lerpCommand.command >> 8;
+                state->lerpStep = table[state->lerpStep].lerpCommand.command >> 8;
             }
             Gp_StepScriptB(task);
         }
@@ -249,17 +274,17 @@ void Gp_HaltPadScripts(void)
 
 Task* Gp_SpawnScript18(GpScriptCmdAddress arg0, GpScriptRecAddress arg1)
 {
-    Task*      task;
-    GpState18* mem;
+    Task*           task;
+    _PadScriptWork* mem;
 
-    mem = memCalloc(0x18, 0);
+    mem = memCalloc(sizeof(*mem), 0);
     if (mem != NULL) {
         task = Task_Spawn(2, 0xD, 0, 0);
         if (task != NULL) {
-            task->work   = mem;
-            mem->field_8 = 0;
-            mem->field_0 = arg0.commands;
-            mem->field_4 = arg1.records;
+            task->work       = mem;
+            mem->sourceDepth = 0;
+            mem->commands    = arg0.commands;
+            mem->segments    = arg1.records;
             return task;
         }
         memFree(mem);
@@ -276,16 +301,16 @@ static void Gp_KickScriptAB(Task* task)
 
 static void Gp_DispatchScript18(Task* task)
 {
-    TaskFuncTable5 tableA;
-    TaskFuncTable5 tableB;
-    GpState18*     state;
+    TaskFuncTable5  tableA;
+    TaskFuncTable5  tableB;
+    _PadScriptWork* state;
 
-    state  = (GpState18*)task->work;
+    state  = task->work;
     tableA = Gp_ScriptAStates;
     tableB = Gp_ScriptBStates;
-    tableA.funcs[state->field_A.bytes.opcode](task);
-    tableB.funcs[state->field_C.bytes.opcode](task);
-    if (state->field_A.bytes.opcode == PAD_SCRIPT_STOP && state->field_C.bytes.opcode == PAD_SCRIPT_STOP) {
+    tableA.funcs[state->holdCommand.bytes.opcode](task);
+    tableB.funcs[state->lerpCommand.bytes.opcode](task);
+    if (state->holdCommand.bytes.opcode == PAD_SCRIPT_STOP && state->lerpCommand.bytes.opcode == PAD_SCRIPT_STOP) {
         task->state++;
     }
 }
@@ -299,17 +324,17 @@ void Gp_ClearPadHalt(void)
 
 Task* Gp_SpawnScript18Ex(GpScriptCmdAddress arg0, GpScriptRecAddress arg1, s32 arg2)
 {
-    Task*      task;
-    GpState18* mem;
+    Task*           task;
+    _PadScriptWork* mem;
 
-    mem = memCalloc(0x18, 0);
+    mem = memCalloc(sizeof(*mem), 0);
     if (mem != NULL) {
         task = Task_Spawn(2, 0xD, 0, 0);
         if (task != NULL) {
-            task->work   = mem;
-            mem->field_8 = arg2;
-            mem->field_0 = arg0.commands;
-            mem->field_4 = arg1.records;
+            task->work       = mem;
+            mem->sourceDepth = arg2;
+            mem->commands    = arg0.commands;
+            mem->segments    = arg1.records;
             return task;
         }
         memFree(mem);
@@ -336,10 +361,10 @@ static void Gp_ScriptAState0(Task* task)
 
 static void Gp_TickScriptADelay(Task* task)
 {
-    GpState18* state;
+    _PadScriptWork* state;
 
-    state = (GpState18*)task->work;
-    if (--state->field_10 == 0) {
+    state = task->work;
+    if (--state->holdWaitFrames == 0) {
         Gp_StepScriptA(task);
     }
 }
@@ -360,10 +385,10 @@ static void Gp_ScriptBState0(Task* task)
 
 static void Gp_TickScriptBDelay(Task* task)
 {
-    GpState18* state;
+    _PadScriptWork* state;
 
-    state = (GpState18*)task->work;
-    if (--state->field_11 == 0) {
+    state = task->work;
+    if (--state->lerpWaitFrames == 0) {
         Gp_StepScriptB(task);
     }
 }
