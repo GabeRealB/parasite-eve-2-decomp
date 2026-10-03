@@ -25,21 +25,6 @@
 struct Actor503500Work;
 struct Task;
 
-/// Bytes 0x40..0x60 of an `actor_503500` work block, which the two enemies
-/// that reach them disagree about. The 0x160 block parks its collision body
-/// there -- `func_actor_503500_801372C8` links `obj` and
-/// `func_actor_503500_80138288` hands it back to `Gp_UnlinkObj`. The boss
-/// links its node at `field_5D4` instead and uses the run for state flags;
-/// `func_actor_503500_80136014` tests bits 0x102 of the halfword at 0x4C.
-typedef union Actor503500Slot40 {
-    WorldCollisionBody obj;
-    struct {
-        /* 0x00 */ byte pad_0[0xC];
-        /* 0x0C */ u16  flags_4C;
-    } boss;
-} Actor503500Slot40;
-STATIC_ASSERT_SIZEOF(Actor503500Slot40, 0x20);
-
 /// One weighted entry of a boss attack list: `func_actor_503500_801338E8`
 /// walks the list summing `weight` until it passes a random byte, then runs
 /// `fn` every frame until it returns non-zero. A NULL `fn` ends the list.
@@ -68,21 +53,10 @@ typedef union {
 STATIC_ASSERT_SIZEOF(Actor503500FixedVector, 0x10);
 
 typedef struct Actor503500Work {
-    /* 0x000 */ WorldCollisionBody    obj; // the collision body Gp_UnlinkObj takes
-    /* 0x020 */ WorldCollisionContact rec; // collision table; 0xF0 enemies pass count 8
-    /* 0x038 */ byte                  pad_38[0x8];
-    /// Collision body of the 0x160 block, which puts its own node here rather
-    /// than at 0x0: `func_actor_503500_801372C8` links it (and runs
-    /// `Gp_InitRec18Table` over the record area right behind it, at 0x60) and
-    /// `func_actor_503500_80138288` hands it back to `Gp_UnlinkObj`.
-    /* 0x040 */ Actor503500Slot40 slot40;
-    /// Record table of `slot40`'s node, passed with count 8 by
-    /// `func_actor_503500_801382FC`, so the 0x160 block's table really runs to
-    /// 0x120. Only the first record is named here; the 0x224 block already
-    /// names `field_7E` inside that run.
-    /* 0x060 */ WorldCollisionContact rec60[1];
-    /* 0x078 */ byte                  pad_78[0x6];
-    /* 0x07E */ u16                   field_7E; // WorldCollisionBody::flags of obj[3] in the 0x224 block
+    /* 0x000 */ WorldCollisionBody    obj;          // the collision body Gp_UnlinkObj takes
+    /* 0x020 */ WorldCollisionContact rec;          // collision table; 0xF0 enemies pass count 8
+    /* 0x038 */ byte                  pad_38[0x46]; // unreached through this view; animation slots in the boss block
+    /* 0x07E */ u16                   field_7E;     // WorldCollisionBody::flags of obj[3] in the 0x224 block
     /* 0x080 */ byte                  pad_80[0x60];
     /// Coordinate the 0xF4 block at `D_actor_503500_80177A6C` republishes
     /// alongside its collision body: `func_actor_503500_8013ECBC` stores the

@@ -64,7 +64,7 @@
 typedef struct Actor503500Work160 {
     MATRIX                 light;
     MATRIX                 color;
-    Actor503500Slot40      slot40;
+    WorldCollisionBody     body;
     WorldCollisionContact  rec60[8];
     EffectSpawnArg         field_120;
     Actor503500FixedVector rot;
@@ -1832,16 +1832,20 @@ void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
     func_actor_503500_80135950(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAC0[arg1], 0);
 }
 
-/// Reports whether the boss is in sub-state `arg1` and, if so, whether either
-/// of the 0x102 bits of its state flag halfword is set. Returns -1 for any
-/// other sub-state. `arg0` is loaded by every caller but the body ignores it,
-/// the same way `func_actor_503500_80135E04` does.
+/// Reports whether the boss's animation `arg1` has run out: 1 once the latest
+/// tick of its first driven slot settled on the clip's boundary pose or followed
+/// a jump, 0 while it is still playing. Returns -1 when `arg1` is not the
+/// animation the boss was last asked to play. `arg0` is loaded by every caller
+/// but the body ignores it, the same way `func_actor_503500_80135E04` does.
 s32 func_actor_503500_80136014(Task* arg0, s32 arg1)
 {
+    // The boss work block opens with its rig.
+    ActorAnimRig20* rig = (ActorAnimRig20*)&D_actor_503500_80176574.value;
+
     if (arg1 != D_actor_503500_80176574.value.field_7D5) {
         return -1;
     }
-    return (D_actor_503500_80176574.value.slot40.boss.flags_4C & 0x102) != 0;
+    return (rig->slots[1].status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) != 0;
 }
 
 /// Puts the boss into state 2: clears the state's step counters and the two
@@ -2347,26 +2351,28 @@ static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
 }
 
 /// Per-frame animation tick of the boss block. While the slot array is seeded
-/// (`field_7D4`), a clear 0x100 bit in the animation flags means the clip is
-/// still running, so every slot 1..0x13 is ticked; once the bit is set the clip
+/// (`field_7D4`), every slot 1..0x13 is ticked until the first of them reports
+/// `ANIMATION_SLOT_SETTLED`; once it holds the clip's boundary pose the clip
 /// has finished, and in state 0 the boss resets the slot rates and re-applies
-/// preset `D_actor_503500_8016EAD4`. `animationTickSlot` uses the animation
-/// context at the start of the boss block.
+/// preset `D_actor_503500_8016EAD4`.
 static void func_actor_503500_80136D30(Task* arg0)
 {
     Actor503500Work* work;
+    ActorAnimRig20*  rig;
     s32              i;
 
+    // The boss work block opens with its rig.
     work = arg0->work;
+    rig  = arg0->work;
     if (work->field_7D4 != 0) {
-        if (work->slot40.boss.flags_4C & 0x100) {
+        if (rig->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
             if (work->field_7B0 == 0) {
                 func_actor_503500_80137048(arg0, 0);
                 func_actor_503500_80135950(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAD4, 0);
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                animationTickSlot((AnimationContext*)work, i);
+                animationTickSlot(&rig->anim, i);
             }
         }
     }
@@ -2590,8 +2596,8 @@ static const TaskFuncTable3 D_actor_503500_80131F4C = {
 /// State-0 init of the 0x160 enemy at `D_actor_503500_80176D88`, built like
 /// `func_actor_503500_8013BEE4`: clears the block, hangs the task's coordinate
 /// off part 8 of the parent's model, republishes the parent's light and colour
-/// matrices, links the enemy node and the display node parked at `slot40`, and
-/// starts the block in sub-state 0.
+/// matrices, links the enemy node and the block's collision body, and starts
+/// the block in sub-state 0.
 static void func_actor_503500_801372C8(Task* arg0)
 {
     Enemy*                 enemy;
@@ -2632,20 +2638,20 @@ static void func_actor_503500_801372C8(Task* arg0)
     enemy->recs                   = rec;
     enemy->hp                     = enemy->param->hpMax;
 
-    D_actor_503500_80176D88.slot40.obj.coord            = coord;
-    D_actor_503500_80176D88.slot40.obj.context.contacts = rec;
-    D_actor_503500_80176D88.slot40.obj.key              = 0x30023;
-    D_actor_503500_80176D88.slot40.obj.radius           = 0x320;
-    D_actor_503500_80176D88.slot40.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    D_actor_503500_80176D88.slot40.obj.pos.vx           = D_actor_503500_8016F068.vx;
-    D_actor_503500_80176D88.slot40.obj.pos.vy           = D_actor_503500_8016F068.vy;
-    D_actor_503500_80176D88.slot40.obj.pos.vz           = D_actor_503500_8016F068.vz;
-    Gp_LinkObj(2, &D_actor_503500_80176D88.slot40.obj);
-    Gp_InitRec18Table(rec, 8, 0);
+    D_actor_503500_80176D88.body.coord            = coord;
+    D_actor_503500_80176D88.body.context.contacts = rec;
+    D_actor_503500_80176D88.body.key              = 0x30023;
+    D_actor_503500_80176D88.body.radius           = 0x320;
+    D_actor_503500_80176D88.body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    D_actor_503500_80176D88.body.pos.vx           = D_actor_503500_8016F068.vx;
+    D_actor_503500_80176D88.body.pos.vy           = D_actor_503500_8016F068.vy;
+    D_actor_503500_80176D88.body.pos.vz           = D_actor_503500_8016F068.vz;
+    Gp_LinkObj(2, &D_actor_503500_80176D88.body);
+    Gp_InitRec18Table(rec, ARRAY_SIZE(D_actor_503500_80176D88.rec60), 0);
     D_actor_503500_80176D88.field_120.spawnArgLo = 0x400;
     D_actor_503500_80176D88.field_120.coord      = coord;
     D_actor_503500_80176D88.field_120.spawnArgHi = 3;
-    D_actor_503500_80176D88.slot40.obj.flags    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    D_actor_503500_80176D88.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     func_actor_503500_80138490(arg0, 0);
     arg0->exitCallback = func_actor_503500_80138288;
     arg0->state       += 1;
@@ -2717,23 +2723,23 @@ static void func_actor_503500_801374BC(Task* arg0)
 /// `D_actor_503500_8016F078`.
 static void func_actor_503500_80137678(Task* arg0)
 {
-    SVECTOR           rot;
-    GfxMatrix         m;
-    GfxRotationWords* ident;
-    Actor503500Work*  work;
-    Enemy*            enemy;
-    GfxCoord*         coord;
-    s32*              src;
-    s32*              out;
-    s32               i;
+    SVECTOR             rot;
+    GfxMatrix           m;
+    GfxRotationWords*   ident;
+    Actor503500Work160* work;
+    Enemy*              enemy;
+    GfxCoord*           coord;
+    s32*                src;
+    s32*                out;
+    s32                 i;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
     switch (work->field_15D) {
         case 0:
-            work->slot40.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            enemy->recs             = 0;
+            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->field_158 = 0;
@@ -3014,7 +3020,7 @@ static void func_actor_503500_80138288(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_8013611C(arg0->spawnArg1.value);
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500Work*)arg0->work)->slot40.obj);
+    Gp_UnlinkObj(&((Actor503500Work160*)arg0->work)->body);
     enemy->recs = 0;
     arg0->work  = NULL;
     enemyDestroy(enemy, arg0);
@@ -3025,12 +3031,12 @@ static void func_actor_503500_801382F4(Task* arg0)
 }
 
 /// Steps the 0x160 block's countdown at 0x158 down to zero, then, unless the
-/// global freeze is on, runs the block's display node through its record table
+/// global freeze is on, applies the hits in the collision body's contact table
 /// before releasing the table.
 static void func_actor_503500_801382FC(Task* arg0)
 {
-    Actor503500Work* work;
-    s16              timer;
+    Actor503500Work160* work;
+    s16                 timer;
 
     work = arg0->work;
     if (work->field_158 != 0) {
@@ -3041,7 +3047,7 @@ static void func_actor_503500_801382FC(Task* arg0)
         }
     }
     if (func_actor_503500_80136208() == 0) {
-        func_actor_503500_80137C90(arg0, &work->slot40.obj, work->rec60, 8);
+        func_actor_503500_80137C90(arg0, &work->body, work->rec60, ARRAY_SIZE(work->rec60));
     }
     Gp_ClearRec18Occupied(work->rec60);
 }
