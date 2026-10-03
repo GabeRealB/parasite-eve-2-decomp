@@ -45,14 +45,6 @@
 #include "../../shared/water_effects.h"
 #include "../../shared/glow_draw.h"
 
-/// The block the garden's ambience task reaches through `Task::spawnArg2`.
-/// Only `soundDelay` is read here; what precedes it belongs to whoever owns the
-/// block, and the type's true size is not known.
-typedef struct NeoArkGardenAmbience {
-    u8  pad_0[0x24];
-    s16 soundDelay; // Frames left before the view's loops are re-enqueued; set to 4 on every view change
-} NeoArkGardenAmbience;
-
 extern SVECTOR D_neo_ark_garden_801813D8;
 
 static void func_neo_ark_garden_8017F42C(SVECTOR* arg0);
@@ -400,20 +392,23 @@ WorldCollisionTrigger D_neo_ark_garden_801828D4[7] = {
 
 /// Garden ambience task tick. On its first tick it installs three effect ids
 /// and moves `state` to 1. `spawnArg1` holds the view seen on the previous
-/// tick; whenever `Gp_GetViewIndex()` differs from it, `soundDelay` restarts at
-/// 4, and once it has run down the current view's pair of 0x550F0003 /
-/// 0x550F0004 loops is enqueued every tick. In views 2, 4 and 5 the first such
-/// tick with `state` still 1 also plays them once through
-/// `SndEvt_EnqueueType6` and moves `state` to 2. Views 2 and 4 additionally
-/// roll two 1-in-4 chances per tick, while no event is running, to spawn
-/// effect 0x60070 at the first two points of `D_neo_ark_garden_801813E0`;
-/// view 4 also updates the last two points, and view 3 draws the marker at
-/// `D_neo_ark_garden_801813D8`.
+/// tick; whenever `Gp_GetViewIndex()` differs from it, the sound delay held in
+/// `EffectWork::scale` restarts at 4, and once it has run down the current
+/// view's pair of 0x550F0003 / 0x550F0004 loops is enqueued every tick. In
+/// views 2, 4 and 5 the first such tick with `state` still 1 also plays them
+/// once through `SndEvt_EnqueueType6` and moves `state` to 2. Views 2 and 4
+/// additionally roll two 1-in-4 chances per tick, while no event is running,
+/// to spawn effect 0x60070 at the first two points of
+/// `D_neo_ark_garden_801813E0`; view 4 also updates the last two points, and
+/// view 3 draws the marker at `D_neo_ark_garden_801813D8`.
 void func_neo_ark_garden_8017EA9C(Task* task)
 {
-    NeoArkGardenAmbience* work;
-    u32                   rnd;
+    EffectWork* work;
+    u32         rnd;
 
+    // The room task animates nothing with its own effect block and reuses one
+    // member as storage: `scale` counts down the frames left before the
+    // current view's ambience loops are enqueued again. Spawn leaves it zero.
     work = task->spawnArg2.pointer;
     if (task->state == 0) {
         task->state               = 1;
@@ -422,11 +417,11 @@ void func_neo_ark_garden_8017EA9C(Task* task)
         gRoomEffectOrangeBurst2Id = EFFECT_NEO_ARK_GARDEN_ORANGE_BURST_2;
     }
     if (task->spawnArg1.value != (Gp_GetViewIndex() & 0xFF)) {
-        work->soundDelay = 4;
+        work->scale = 4;
     }
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2:
-            if (work->soundDelay == 0) {
+            if (work->scale == 0) {
                 if (task->state == 1) {
                     task->state = 2;
                     SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
@@ -435,7 +430,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
             } else {
-                work->soundDelay--;
+                work->scale--;
             }
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -455,16 +450,16 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             }
             break;
         case 3:
-            if (work->soundDelay == 0) {
+            if (work->scale == 0) {
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xF, 0x4C);
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xE, 0x4C);
             } else {
-                work->soundDelay--;
+                work->scale--;
             }
             glowDrawPulsingStar(&D_neo_ark_garden_801813D8, 0x600, 0xC0);
             break;
         case 4:
-            if (work->soundDelay == 0) {
+            if (work->scale == 0) {
                 if (task->state == 1) {
                     task->state = 2;
                     SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
@@ -473,7 +468,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
             } else {
-                work->soundDelay--;
+                work->scale--;
             }
             func_neo_ark_garden_8017F42C(&D_neo_ark_garden_801813E0[2]);
             func_neo_ark_garden_8017F42C(&D_neo_ark_garden_801813E0[3]);
@@ -495,7 +490,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             }
             break;
         case 5:
-            if (work->soundDelay == 0) {
+            if (work->scale == 0) {
                 if (task->state == 1) {
                     task->state = 2;
                     SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
@@ -504,23 +499,23 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);
             } else {
-                work->soundDelay--;
+                work->scale--;
             }
             break;
         case 6:
-            if (work->soundDelay == 0) {
+            if (work->scale == 0) {
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, 0xD, 0x4C);
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xF, 0x4C);
             } else {
-                work->soundDelay--;
+                work->scale--;
             }
             break;
         case 7:
-            if (work->soundDelay == 0) {
+            if (work->scale == 0) {
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xC, 0);
             } else {
-                work->soundDelay--;
+                work->scale--;
             }
             break;
     }
