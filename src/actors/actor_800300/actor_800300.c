@@ -1644,8 +1644,8 @@ static void func_actor_800300_80161E80(Task* arg0)
 static void func_actor_800300_80162064(Task* arg0)
 {
     void**                scratch;
-    CompanionMoveScratch* head;
-    CompanionMoveScratch* sc;
+    CompanionMoveScratch* frameEnd;
+    CompanionMoveScratch* frame;
     GameActor*            actor;
     TmdObject*            obj;
     TmdObject*            extra;
@@ -1656,11 +1656,11 @@ static void func_actor_800300_80162064(Task* arg0)
     s8                    bits;
 
     scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, CompanionMoveScratch);
+    frameEnd                                       = SCRATCH_HEAD_AT(scratch, CompanionMoveScratch);
     obj                                            = arg0->extra.tmd;
-    SCRATCH_HEAD_AT(scratch, CompanionMoveScratch) = head - 1;
+    SCRATCH_HEAD_AT(scratch, CompanionMoveScratch) = frameEnd - 1;
     extra                                          = obj;
-    sc                                             = head - 1;
+    frame                                          = frameEnd - 1;
     actor                                          = arg0->work;
     coord                                          = extra->coords;
     if (actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
@@ -1707,26 +1707,26 @@ static void func_actor_800300_80162064(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     if ((s8)actor->usesPushbackDirection != 0) {
-        sc->motionDirection.vx = actor->pushbackDirection.vx;
-        sc->motionDirection.vy = actor->pushbackDirection.vy;
-        sc->motionDirection.vz = actor->pushbackDirection.vz;
+        frame->motionDirection.vx = actor->pushbackDirection.vx;
+        frame->motionDirection.vy = actor->pushbackDirection.vy;
+        frame->motionDirection.vz = actor->pushbackDirection.vz;
     } else {
-        sc->motionDirection.vx = (u16)coord->workm.m[0][2] * (s8) * (volatile u8*)&actor->movementSign;
-        sc->motionDirection.vy = (u16)coord->workm.m[1][2] * (s8) * (volatile u8*)&actor->movementSign;
-        sc->motionDirection.vz = (u16)coord->workm.m[2][2] * (s8) * (volatile u8*)&actor->movementSign;
+        frame->motionDirection.vx = (u16)coord->workm.m[0][2] * (s8) * (volatile u8*)&actor->movementSign;
+        frame->motionDirection.vy = (u16)coord->workm.m[1][2] * (s8) * (volatile u8*)&actor->movementSign;
+        frame->motionDirection.vz = (u16)coord->workm.m[2][2] * (s8) * (volatile u8*)&actor->movementSign;
     }
-    actor->collisionMotionContexts[0].motionDirection.vx = sc->motionDirection.vx;
-    actor->collisionMotionContexts[0].motionDirection.vy = sc->motionDirection.vy;
-    actor->collisionMotionContexts[0].motionDirection.vz = sc->motionDirection.vz;
-    actor->collisionMotionContexts[1].motionDirection.vx = sc->motionDirection.vx;
-    actor->collisionMotionContexts[1].motionDirection.vy = sc->motionDirection.vy;
-    actor->collisionMotionContexts[1].motionDirection.vz = sc->motionDirection.vz;
-    actor->collisionMotionContexts[2].motionDirection.vx = sc->motionDirection.vx;
-    actor->collisionMotionContexts[2].motionDirection.vy = sc->motionDirection.vy;
-    actor->collisionMotionContexts[2].motionDirection.vz = sc->motionDirection.vz;
+    actor->collisionMotionContexts[0].motionDirection.vx = frame->motionDirection.vx;
+    actor->collisionMotionContexts[0].motionDirection.vy = frame->motionDirection.vy;
+    actor->collisionMotionContexts[0].motionDirection.vz = frame->motionDirection.vz;
+    actor->collisionMotionContexts[1].motionDirection.vx = frame->motionDirection.vx;
+    actor->collisionMotionContexts[1].motionDirection.vy = frame->motionDirection.vy;
+    actor->collisionMotionContexts[1].motionDirection.vz = frame->motionDirection.vz;
+    actor->collisionMotionContexts[2].motionDirection.vx = frame->motionDirection.vx;
+    actor->collisionMotionContexts[2].motionDirection.vy = frame->motionDirection.vy;
+    actor->collisionMotionContexts[2].motionDirection.vz = frame->motionDirection.vz;
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (func_800EA1A8(MATRIX_TRANS(&coord->workm), &sc->shadowCentre) != 0) {
-            Gp_DrawEffGroundQuad(&sc->shadowCentre, 0x200, gRoomEffectState->groundShadowShade);
+        if (func_800EA1A8(MATRIX_TRANS(&coord->workm), &frame->shadowCentre) != 0) {
+            Gp_DrawEffGroundQuad(&frame->shadowCentre, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);
