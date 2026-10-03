@@ -300,15 +300,26 @@ typedef struct {
     u16       gravity; // Added to the shard's downward velocity every frame
 } _ShelterB3DumpingHoleShardSpawn;
 
-/// Work block of a falling shard: its current rotation and spin, its velocity,
-/// the three corners of the triangle it draws, and the per-frame fall speed.
+/// Work block of a shard task: one flat triangular splinter shed by the collapse
+/// event's model, which tumbles and falls ever faster until its origin leaves
+/// the screen or the event stops the shards.
+///
+/// The shard fills the block once, on its first frame, from the
+/// `_ShelterB3DumpingHoleShardSpawn` record it was spawned with and its own
+/// random draws; afterwards only `rot` and `vel.vy` change. The allocation is
+/// `SHELTER_B3_DUMPING_HOLE_SHARD_WORK_BYTES`; the bytes past `gravity` are
+/// never accessed and their role is unproven.
 typedef struct {
-    SVECTOR rot;
-    SVECTOR rotSpeed;
-    SVECTOR vel;
-    SVECTOR verts[3];
-    u16     fall;
-} DumpingHoleShard;
+    SVECTOR rot;      // Tumble angles (4096 = one turn), rebuilt into the shard's rotation each frame as Y, then X, then Z
+    SVECTOR spin;     // Per-frame step of `rot`, 100 to 227 either way per axis
+    SVECTOR vel;      // Per-frame translation in world axes: the spawn record's velocity plus up to 31 either way per axis, with `gravity` added to its `vy` each frame
+    SVECTOR verts[3]; // The triangle's corners in the shard's own XY plane: equilateral about the origin at the spawn record's radius, each nonzero coordinate randomly pushed a tenth of the radius further out
+    u16     gravity;  // Downward acceleration, added to `vel.vy` every frame; copied from the spawn record
+} _ShelterB3DumpingHoleShardWork;
+
+/// Allocation and clear size of a `_ShelterB3DumpingHoleShardWork`, which
+/// extends 2 bytes past its last accessed field.
+enum { SHELTER_B3_DUMPING_HOLE_SHARD_WORK_BYTES = 0x34 };
 
 /// Work block of the collapse event's director task, which carries the event's
 /// own model - three cylindrical sections chained below its root - and stays
@@ -3081,7 +3092,7 @@ void func_shelter_b3_dumping_hole_80180034(void)
 /// draws itself as a shaded triangle.
 void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
 {
-    DumpingHoleShard*                work;
+    _ShelterB3DumpingHoleShardWork*  work;
     GfxCoord*                        coord;
     _ShelterB3DumpingHoleShardSpawn* spawn;
     POLY_G3*                         prim;
@@ -3095,7 +3106,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
     s16                              sx;
     s16                              sy;
 
-    work  = (DumpingHoleShard*)arg0->work;
+    work  = arg0->work;
     coord = arg0->extra.coordBody->coord;
     spawn = arg0->spawnArg2.pointer;
     if (D_shelter_b3_dumping_hole_8018F4B0_value == 0) {
@@ -3104,13 +3115,13 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            arg0->work = memCalloc(0x34, 0);
+            arg0->work = memCalloc(SHELTER_B3_DUMPING_HOLE_SHARD_WORK_BYTES, 0);
             if (arg0->work == NULL) {
                 goto kill;
             }
-            work          = (DumpingHoleShard*)arg0->work;
+            work          = arg0->work;
             coord->parent = &gGfxViewCoord;
-            memFillBytes(arg0->work, 0, 0x34);
+            memFillBytes(arg0->work, 0, SHELTER_B3_DUMPING_HOLE_SHARD_WORK_BYTES);
             Gp_ComposeParentWorld(spawn->emitter, &coord->coord, &ofs);
             coord->coord.t[0] = ofs.vx + spawn->offset.vx;
             coord->coord.t[1] = ofs.vy + spawn->offset.vy;
@@ -3118,24 +3129,24 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             work->vel.vx      = spawn->vel.vx + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
             work->vel.vy      = spawn->vel.vy + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
             work->vel.vz      = spawn->vel.vz + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
-            work->fall        = spawn->gravity;
-            work->rotSpeed.vx = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
-            work->rotSpeed.vy = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
-            work->rotSpeed.vz = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
-            if (work->rotSpeed.vx > 0) {
-                work->rotSpeed.vx += 100;
+            work->gravity     = spawn->gravity;
+            work->spin.vx     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
+            work->spin.vy     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
+            work->spin.vz     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
+            if (work->spin.vx > 0) {
+                work->spin.vx += 100;
             } else {
-                work->rotSpeed.vx -= 100;
+                work->spin.vx -= 100;
             }
-            if (work->rotSpeed.vy > 0) {
-                work->rotSpeed.vy += 100;
+            if (work->spin.vy > 0) {
+                work->spin.vy += 100;
             } else {
-                work->rotSpeed.vy -= 100;
+                work->spin.vy -= 100;
             }
-            if (work->rotSpeed.vz > 0) {
-                work->rotSpeed.vz += 100;
+            if (work->spin.vz > 0) {
+                work->spin.vz += 100;
             } else {
-                work->rotSpeed.vz -= 100;
+                work->spin.vz -= 100;
             }
             work->verts[0].vx = 0;
             work->verts[0].vy = spawn->radius + ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
@@ -3149,7 +3160,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            work->vel.vy      += work->fall;
+            work->vel.vy      += work->gravity;
             coord->coord.t[0] += work->vel.vx;
             coord->coord.t[1] += work->vel.vy;
             coord->coord.t[2] += work->vel.vz;
@@ -3194,9 +3205,9 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             prim->x2 = x[2];
             prim->y2 = y[2];
             addPrim(&gGpuCurrentOt[otz >> 4], prim);
-            work->rot.vx += work->rotSpeed.vx;
-            work->rot.vy += work->rotSpeed.vy;
-            work->rot.vz += work->rotSpeed.vz;
+            work->rot.vx += work->spin.vx;
+            work->rot.vy += work->spin.vy;
+            work->rot.vz += work->spin.vz;
             gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
             gfxRotMatrixX(&coord->coord, work->rot.vx, GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixZ(&coord->coord, work->rot.vz, GRAPHICS_ROTATION_COMPOSE);
