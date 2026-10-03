@@ -6344,11 +6344,11 @@ forces the order with no extra insn:
 
 ```c
 register Task* keep asm("a0");
-keep      = arg0;
-color     = 0x5D7;
-session   = gGameSession;
-banks     = Gp_FlagBanks;
-markTable = (keep, Gp_MapMarkTables);
+keep        = arg0;
+color       = 0x5D7;
+session     = gGameSession;
+banks       = Gp_FlagBanks;
+shapeTables = (keep, Gp_MapMarkTables);
 ```
 
 `volatile` asm barriers also order the `lui`s but split the block and

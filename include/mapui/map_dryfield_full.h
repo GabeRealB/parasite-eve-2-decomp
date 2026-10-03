@@ -29,9 +29,8 @@ extern u8 D_map_dryfield_full_80179ADC[];
 /// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
 extern MenuMapArea D_map_dryfield_full_80179AE0[];
 
-/// This stage's `Gp_MapMarkTables` entry: the room markers, each a model in the
-/// map picture its map room id selects.
-extern GpMapMark D_map_dryfield_full_80179D10[];
+/// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
+extern MenuMapAreaShape D_map_dryfield_full_80179D10[];
 
 /// This stage's `D_8010F0E0` entry, ended by a page of 0.
 extern MenuMapMarker D_map_dryfield_full_80179E48[];

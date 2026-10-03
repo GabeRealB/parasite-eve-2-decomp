@@ -328,7 +328,7 @@ u8* Gp_MapFlagIds[5] = {
     D_map_neo_ark_80179F1C,
 };
 
-GpMapMark* Gp_MapMarkTables[5] = {
+MenuMapAreaShape* Gp_MapMarkTables[5] = {
     D_map_akropolis_8017A288,
     D_map_dryfield_80179E00,
     D_map_dryfield_full_80179D10,

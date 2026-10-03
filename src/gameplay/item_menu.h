@@ -58,8 +58,8 @@ extern MenuMapArea* Gp_MapRecTables[];
 /// A NULL entry skips the name draw (`Gp_DrawMapName`).
 extern MenuMapAreaName* Gp_MapNameTables[];
 
-/// Per-stage table of `GpMapMark` arrays. Index is `GameSession.location.loc.stage - 1`.
-extern GpMapMark* Gp_MapMarkTables[];
+/// Per-stage table of `MenuMapAreaShape` arrays. Index is `GameSession.location.loc.stage - 1`.
+extern MenuMapAreaShape* Gp_MapMarkTables[];
 
 /// Per-stage table of `MenuMapIcon` arrays. Index is `GameSession.location.loc.stage - 1`.
 extern MenuMapIcon* D_8010F0CC[];
@@ -77,7 +77,7 @@ extern u8 D_8010F130[];
 /// Map-screen child prompt spawned by `Gp_MapTaskState2`.
 extern UiObjectDesc D_8010F15C;
 
-/// Per-stage `GpMapMark` counts. Index is `GameSession.location.loc.stage - 1`.
+/// Per-stage `MenuMapAreaShape` counts. Index is `GameSession.location.loc.stage - 1`.
 extern u8 Gp_MapMarkCounts[];
 
 /// Current room id copied from `MenuMapArea.page` by `Gp_GetMapRoomId`.

@@ -31,9 +31,8 @@ extern u8 D_map_neo_ark_80179F1C[];
 /// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
 extern MenuMapArea D_map_neo_ark_80179F24[];
 
-/// This stage's `Gp_MapMarkTables` entry: the room markers, each a model in the
-/// map picture its map room id selects.
-extern GpMapMark D_map_neo_ark_8017A110[];
+/// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
+extern MenuMapAreaShape D_map_neo_ark_8017A110[];
 
 /// This stage's `D_8010F0E0` entry, ended by a page of 0.
 extern MenuMapMarker D_map_neo_ark_8017A230[];

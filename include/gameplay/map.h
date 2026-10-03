@@ -41,17 +41,34 @@ typedef struct {
 } MenuMapAreaName;
 STATIC_ASSERT_SIZEOF(MenuMapAreaName, 0x20);
 
-/// 8-byte map marker in tables pointed to by `Gp_MapMarkTables`.
-/// Indexed by loop `i` in `Gp_DrawMapMarks`. `field_0` is the marker's model,
-/// a flat outline in the map picture package loaded for its room; `field_4` is
-/// the room id (`Gp_MapRoomId`); `field_5` is an extra bit id (`0xFF` = none).
-typedef struct _GpMapMark {
-    /* 0x0 */ TmdSource* field_0;
-    /* 0x4 */ u8         field_4;
-    /* 0x5 */ u8         field_5;
-    /* 0x6 */ byte       pad_6[2];
-} GpMapMark;
-STATIC_ASSERT_SIZEOF(GpMapMark, 8);
+/// `MenuMapAreaShape.page` of an area index the map screen draws no shape for.
+#define MENU_MAP_AREA_SHAPE_PAGE_NONE 0xFF
+
+/// `MenuMapAreaShape.pairedArea` of an area that shares its place with no other.
+#define MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE 0xFF
+
+/// The shape one area takes on its page of the map screen.
+///
+/// Each stage has a table of these, indexed by `GameSession.location.loc.area`.
+/// A page's picture shows every area on it, and the map screen draws an area's
+/// shape over the picture to change how that area reads: covered with a
+/// pattern while the area is unvisited and unknown, dimmed while it is
+/// unvisited but known, and tinted while it is visited and marked. The model
+/// is flat, in its X/Z plane, and is scaled onto the page by a factor the stage
+/// sets.
+///
+/// An area with a page but no model has no shape of its own, and only its
+/// icons are drawn. Two areas that stand at the same place on the map name
+/// each other in `pairedArea`, and the shape then counts as visited, or as
+/// marked, when either area is. Both are looked up in the 32-area word that
+/// holds the record's own area, so a pair works only within areas 1..32 or
+/// within areas 33..64.
+typedef struct {
+    TmdSource* model;      // Shape in the map picture package of `page`, or NULL for an area drawn without one
+    u8         page;       // Map page the area is on, counted from 1, or `MENU_MAP_AREA_SHAPE_PAGE_NONE`
+    u8         pairedArea; // Area sharing this one's place, as `GameSession.location.loc.area`, or `MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE`
+} MenuMapAreaShape;
+STATIC_ASSERT_SIZEOF(MenuMapAreaShape, 8);
 
 /// `MenuMapIcon.kind` of a telephone.
 #define MENU_MAP_ICON_KIND_TELEPHONE 1

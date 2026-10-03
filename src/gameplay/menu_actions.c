@@ -1205,8 +1205,8 @@ static void Gp_DrawMapMarks(Task* arg0)
     GameFlagStageHeader*  bank;
     s32                   flags[2];
     u8*                   flagTbl;
-    GpMapMark*            recs;
-    GpMapMark**           markTable;
+    MenuMapAreaShape*     shapes;
+    MenuMapAreaShape**    shapeTables;
     UiObject*             obj;
     s32                   color;
     s32                   i;
@@ -1217,17 +1217,17 @@ static void Gp_DrawMapMarks(Task* arg0)
     u8                    stage;
     s32                   stageM1;
 
-    keep      = arg0;
-    color     = 0x5D7;
-    session   = gGameSession;
-    banks     = Gp_FlagBanks;
-    markTable = (keep, Gp_MapMarkTables);
-    stage     = session->location.loc.stage;
-    obj       = arg0->spawnArg2.pointer;
-    stageM1   = stage - 1;
-    bank      = banks[stage];
-    recs      = markTable[stageM1];
-    flagTbl   = Gp_MapFlagIds[stageM1];
+    keep        = arg0;
+    color       = 0x5D7;
+    session     = gGameSession;
+    banks       = Gp_FlagBanks;
+    shapeTables = (keep, Gp_MapMarkTables);
+    stage       = session->location.loc.stage;
+    obj         = arg0->spawnArg2.pointer;
+    stageM1     = stage - 1;
+    bank        = banks[stage];
+    shapes      = shapeTables[stageM1];
+    flagTbl     = Gp_MapFlagIds[stageM1];
     if (stage == 1) {
         color = 0x83B;
     }
@@ -1242,8 +1242,8 @@ static void Gp_DrawMapMarks(Task* arg0)
     if (Gp_MapMarkCounts[session->location.loc.stage - 1] != 0) {
         one = 1;
         do {
-            if (recs[(u8)i].field_4 == (s8)Gp_MapRoomId) {
-                if (recs[(u8)i].field_0 == NULL) {
+            if (shapes[(u8)i].page == (s8)Gp_MapRoomId) {
+                if (shapes[(u8)i].model == NULL) {
                     Gp_DrawMapIcons(arg0, (u8)i, 0);
                 } else {
                     which = 0;
@@ -1253,11 +1253,11 @@ static void Gp_DrawMapMarks(Task* arg0)
                     } else {
                         bit = one << ((u8)i - 1);
                     }
-                    if (recs[(u8)i].field_5 != 0xFF) {
-                        if (recs[(u8)i].field_5 >= 0x21U) {
-                            bit |= one << (recs[(u8)i].field_5 - 0x21);
+                    if (shapes[(u8)i].pairedArea != MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE) {
+                        if (shapes[(u8)i].pairedArea >= 0x21U) {
+                            bit |= one << (shapes[(u8)i].pairedArea - 0x21);
                         } else {
-                            bit |= one << (recs[(u8)i].field_5 - 1);
+                            bit |= one << (shapes[(u8)i].pairedArea - 1);
                         }
                     }
                     idx = i;
@@ -1272,21 +1272,21 @@ static void Gp_DrawMapMarks(Task* arg0)
                     if (GameFlag_GetNibble(flagTbl[Gp_MapRoomId]) == 0) {
                         if ((bit & flags[which]) == 0) {
                             if (Gp_DrawMapIcons(arg0, (u8)i, 1) != 0) {
-                                func_800D4270(obj, recs[(u8)idx].field_0, 1, (u16)color);
+                                func_800D4270(obj, shapes[(u8)idx].model, 1, (u16)color);
                             } else {
-                                func_800D4270(obj, recs[(u8)idx].field_0, 0, (u16)color);
+                                func_800D4270(obj, shapes[(u8)idx].model, 0, (u16)color);
                             }
                         } else if ((bit & Gp_AreaIdBits[which]) != 0) {
-                            func_800D4270(obj, recs[(u8)idx].field_0, 3, (u16)color);
+                            func_800D4270(obj, shapes[(u8)idx].model, 3, (u16)color);
                             Gp_DrawMapIcons(arg0, (u8)i, 0);
                         } else {
                             Gp_DrawMapIcons(arg0, (u8)i, 0);
                         }
                     } else if ((bit & flags[which]) == 0) {
-                        func_800D4270(obj, recs[(u8)idx].field_0, 1, (u16)color);
+                        func_800D4270(obj, shapes[(u8)idx].model, 1, (u16)color);
                         Gp_DrawMapIcons(arg0, (u8)i, 1);
                     } else if ((bit & Gp_AreaIdBits[which]) != 0) {
-                        func_800D4270(obj, recs[(u8)idx].field_0, 3, (u16)color);
+                        func_800D4270(obj, shapes[(u8)idx].model, 3, (u16)color);
                         Gp_DrawMapIcons(arg0, (u8)i, 0);
                     } else {
                         Gp_DrawMapIcons(arg0, (u8)i, 0);

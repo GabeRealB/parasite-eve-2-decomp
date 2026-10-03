@@ -28,9 +28,8 @@ extern u8 D_map_shelter_80179CD0[];
 /// This stage's `Gp_MapRecTables` entry: where each room sits on the map, by room.
 extern MenuMapArea D_map_shelter_80179CD8[];
 
-/// This stage's `Gp_MapMarkTables` entry: the room markers, each a model in the
-/// map picture its map room id selects.
-extern GpMapMark D_map_shelter_80179FA4[];
+/// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
+extern MenuMapAreaShape D_map_shelter_80179FA4[];
 
 /// This stage's `D_8010F0E0` entry, ended by a page of 0.
 extern MenuMapMarker D_map_shelter_8017A134[];
