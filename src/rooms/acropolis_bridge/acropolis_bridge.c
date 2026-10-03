@@ -208,15 +208,24 @@ extern EnemyParams D_acropolis_bridge_80190C5C;
 
 static void func_acropolis_bridge_8017DC68(Task* arg0);
 
-// Message-table callbacks use the argument views required by this TU.
+/// One row of the bridge enemy's task-message table.
+///
+/// The enemy publishes the table in `Task::msgTable` during its setup. Each
+/// row is a message id and the callback that handles it. The table ends with
+/// `TASK_MESSAGE_TABLE_END` and a null callback. The command callback borrows
+/// an `ActorCommand`. The draw-mode callback reads its mode from the first
+/// payload word and always returns 1: 0 stores `TMD_OBJECT_SKIP_ACTIVE_DRAW`,
+/// a mode with bit 0 set stores zero, and any other mode with bit 1 set adds
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`. Any remaining mode leaves the flags as they
+/// are. A row is eight bytes.
 typedef struct {
-    s32 id;
+    s32 messageId;                                                             // Receiver-specific id, or TASK_MESSAGE_TABLE_END
     union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, s32);
-    } handler;
-} AcropolisBridgeMessageEntry;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeMessageEntry, 8);
+        s32 (*applyCommand)(Task* task, s32 messageId, ActorCommand* command); // ACTOR_COMMAND_MESSAGE_APPLY; borrowed command
+        s32 (*setModelDraw)(Task* task, s32 messageId, s32 mode);              // ACTOR_MESSAGE_SET_MODEL_DRAW
+    } handler;                                                                 // Callback for `messageId`; NULL only on the end marker
+} _AcropolisBridgeMessageEntry;
+STATIC_ASSERT_SIZEOF(_AcropolisBridgeMessageEntry, 8);
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -2653,10 +2662,10 @@ u8* D_acropolis_bridge_80191720[9] = {
     D_acropolis_bridge_80191718,
 };
 
-AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_acropolis_bridge_801856E0 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_acropolis_bridge_80187BD0 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+_AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .applyCommand = func_acropolis_bridge_801856E0 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .setModelDraw = func_acropolis_bridge_80187BD0 } },
+    { TASK_MESSAGE_TABLE_END, { .applyCommand = NULL } },
 };
 
 void (*D_acropolis_bridge_8019175C[9])(Task*) = {
@@ -2697,8 +2706,6 @@ extern BossStrangerNode D_acropolis_bridge_8019162C[];
 extern u8 D_acropolis_bridge_801916CC[];
 
 extern u8* D_acropolis_bridge_80191720[];
-
-extern AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3];
 
 static void            func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy);
 static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickScratch* head,
