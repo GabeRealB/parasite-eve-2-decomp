@@ -38,23 +38,31 @@ typedef struct {
 } _Actor503500SliderWork;
 STATIC_ASSERT_SIZEOF(_Actor503500SliderWork, 0x48);
 
-/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `func_actor_503500_80132430`; terminator id `TASK_MESSAGE_TABLE_END`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
+/// One message binding for the slab sliders in the actor's intro sequence.
+///
+/// `messageId` selects the callback view: placement borrows an `ActorTransform`,
+/// draw control takes a mode (0 hide, 1 show, 2 hide and defer buffer release,
+/// 3 show without allocating buffers), and commands borrow an
+/// `ActorCommand` (0 stop, 1 first path, 2 second path, 3 sustained shaking).
+/// Payload records need only remain live through synchronous dispatch.
+///
+/// The table and callback code are borrowed by `Task::msgTable` and must remain
+/// loaded while the slider can receive messages. `taskMessageDispatch` searches
+/// eight-byte entries in order and passes the task, ID and two word arguments;
+/// these callbacks ignore the second payload. End the table with
+/// `TASK_MESSAGE_TABLE_END` and a null callback; never dispatch that reserved ID.
 typedef struct {
-    s32 id;
+    s32 messageId;                                                                              // ACTOR_MESSAGE_PLACE, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_COMMAND_MESSAGE_APPLY, or TASK_MESSAGE_TABLE_END
     union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32);
-    } handler;
-} Actor503500MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor503500MsgEntry, 8);
+        s32 (*applyCommand)(Task* task, s32 messageId, ActorCommand* command);                  // Command action; returns 0, including for an unrecognized command
+        s32 (*placeModel)(Task* task, s32 messageId, ActorTransform* placement, s32 secondArg); // Position and Euler rotation; returns 0
+        s32 (*setModelDraw)(Task* task, s32 messageId, s32 mode);                               // Draw/buffer mode; returns 1 for an invalid mode, otherwise 0
+    } handler;                                                                                  // Callback view selected by messageId; NULL only in the terminal entry
+} _Actor503500SliderMessageEntry;
+STATIC_ASSERT_SIZEOF(_Actor503500SliderMessageEntry, 8);
 
-extern Actor503500MsgEntry D_actor_503500_80146888[];
-static void                func_actor_503500_801324C4(Task* task);
-static void                func_actor_503500_801324EC(Task* arg0);
+static void func_actor_503500_801324C4(Task* task);
+static void func_actor_503500_801324EC(Task* arg0);
 /// Script pair handed to `Gp_SpawnScript18` on every odd pulse frame.
 extern PadScriptCmd              D_actor_503500_801468A8[2];
 extern PadScriptVibrationSegment D_actor_503500_801468B0[2];
@@ -71,11 +79,11 @@ static u32     _gActor503500Model15820Stream[459];
 s32 func_actor_503500_80132584(Task*, s32, s32);
 s32 func_actor_503500_80132664(Task*, s32, ActorCommand* msg);
 
-Actor503500MsgEntry D_actor_503500_80146888[4] = {
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceEuler } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_actor_503500_80132584 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_503500_80132664 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+_Actor503500SliderMessageEntry D_actor_503500_80146888[4] = {
+    { ACTOR_MESSAGE_PLACE, { .placeModel = actorMsgPlaceEuler } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .setModelDraw = func_actor_503500_80132584 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .applyCommand = func_actor_503500_80132664 } },
+    { TASK_MESSAGE_TABLE_END, { .applyCommand = NULL } },
 };
 
 PadScriptCmd D_actor_503500_801468A8[2] = {
