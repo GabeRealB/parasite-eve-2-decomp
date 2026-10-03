@@ -24,7 +24,6 @@
 #include "item_use.h"
 #include "gameplay/items.h"
 #include "items.h"
-#include "lighting_work.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/scene.h"
 #include "gameplay/world_collision.h"
@@ -55,6 +54,21 @@ typedef struct {
     byte    unused18[32]; // Reserved with the block but never accessed; role unproven
 } _WorldTargetLockScanScratch;
 STATIC_ASSERT_SIZEOF(_WorldTargetLockScanScratch, 0x38);
+
+/// Scratch-stack block for projecting one target's body point to the screen.
+///
+/// The point is projected through the working matrix of the target's
+/// coordinate node. The screen pixels are stored outside the block, in a word
+/// the caller supplies; the block holds only the input point and the
+/// projection's other results. Reserve the complete record on the scratch
+/// stack; none of its members survive the matching release.
+typedef struct {
+    SVECTOR point;           // Target body point, local to its coordinate node
+    s32     depthCue;        // GTE IR0 depth-cue coefficient, with 12 fractional bits
+    s32     projectionFlags; // GTE FLAG bits; negative when the summary error bit is set
+    s32     orderingDepth;   // Quarter camera-space depth from SZ3 (0..16383)
+} _WorldTargetProjectionScratch;
+STATIC_ASSERT_SIZEOF(_WorldTargetProjectionScratch, 0x14);
 
 /// Projected screen position of a target bound to a readout.
 ///
@@ -152,25 +166,25 @@ static __inline__ void _worldTargetReleaseActorLocks(const WorldTargetNode* node
 
 static __inline__ void project_slot(s32* sxy, WorldTargetReadout* slot)
 {
-    WorldTargetNode* src;
-    GpPerspScratch*  block;
+    WorldTargetNode*               src;
+    _WorldTargetProjectionScratch* projection;
 
     // The caller has matched this binding to a target still on the tracked list.
     src = slot->binding.node;
-    SCRATCH_STACK_RESERVE_BLOCK(GpPerspScratch);
-    block         = SCRATCH_STACK_CURSOR(GpPerspScratch);
-    block->vec.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
-    block->vec.vy = GP_NODE_ENEMY(src)->bodyPos.vy;
-    block->vec.vz = GP_NODE_ENEMY(src)->bodyPos.vz;
+    SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetProjectionScratch);
+    projection           = SCRATCH_STACK_CURSOR(_WorldTargetProjectionScratch);
+    projection->point.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
+    projection->point.vy = GP_NODE_ENEMY(src)->bodyPos.vy;
+    projection->point.vz = GP_NODE_ENEMY(src)->bodyPos.vz;
     gte_SetRotMatrix(&GP_NODE_ENEMY(src)->coord->workm);
     gte_SetTransMatrix(&GP_NODE_ENEMY(src)->coord->workm);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&projection->point);
     gte_rtps();
     gte_stsxy(sxy);
-    gte_stdp(&block->p);
-    gte_stflg(&block->flag);
-    gte_stszotz(&block->otz);
-    SCRATCH_STACK_RELEASE_BLOCK(GpPerspScratch);
+    gte_stdp(&projection->depthCue);
+    gte_stflg(&projection->projectionFlags);
+    gte_stszotz(&projection->orderingDepth);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetProjectionScratch);
 }
 
 void Gp_DrawTargetCursor(void)
@@ -798,23 +812,23 @@ void Gp_ResetLinkState(void)
 
 static s32 Gp_ProjectToSxy(WorldTargetNode* arg0, s32* sxy)
 {
-    GpPerspScratch* block;
-    s32             ret;
+    _WorldTargetProjectionScratch* projection;
+    s32                            ret;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpPerspScratch);
-    block->vec.vx = GP_NODE_ENEMY(arg0)->bodyPos.vx;
-    block->vec.vy = GP_NODE_ENEMY(arg0)->bodyPos.vy;
-    block->vec.vz = GP_NODE_ENEMY(arg0)->bodyPos.vz;
+    projection           = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetProjectionScratch);
+    projection->point.vx = GP_NODE_ENEMY(arg0)->bodyPos.vx;
+    projection->point.vy = GP_NODE_ENEMY(arg0)->bodyPos.vy;
+    projection->point.vz = GP_NODE_ENEMY(arg0)->bodyPos.vz;
     gte_SetRotMatrix(&GP_NODE_ENEMY(arg0)->coord->workm);
     gte_SetTransMatrix(&GP_NODE_ENEMY(arg0)->coord->workm);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&projection->point);
     gte_rtps();
     gte_stsxy(sxy);
-    gte_stdp(&block->p);
-    gte_stflg(&block->flag);
-    gte_stszotz(&block->otz);
-    ret = block->otz;
-    SCRATCH_STACK_RELEASE_BLOCK(GpPerspScratch);
+    gte_stdp(&projection->depthCue);
+    gte_stflg(&projection->projectionFlags);
+    gte_stszotz(&projection->orderingDepth);
+    ret = projection->orderingDepth;
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetProjectionScratch);
     return ret;
 }
 
