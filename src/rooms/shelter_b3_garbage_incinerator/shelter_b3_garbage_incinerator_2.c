@@ -129,32 +129,38 @@ void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0);
 void func_shelter_b3_garbage_incinerator_8017F968(void);
 #include "../../shared/cap_captions.h"
 
-/// Work block of the task in `D_shelter_b3_garbage_incinerator_8018FC3C`.
-/// `wave` is the ramp context handed to the screen-wave task, which the fade
-/// task ends by raising its ramp state. `field_2C` is the task animation
-/// messages are dispatched to, `child` the task spawned from the room's table,
-/// `field_34` the task started from spawn entry 2 when the encounter is armed,
-/// `field_38` the last animation set selected, and `field_3A` the arming state.
-/// actor_342100 carries the same encounter with a larger block that holds
-/// one more task and places the child task and the animation fields
-/// differently, so the two stay separate types.
+/// Progress of the burn scene, held in `_ShelterB3GarbageIncineratorBlazeWork::sceneState`.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_START   = 0, // Not started; the next update installs the clips and the event script
+    SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_RUNNING = 1, // Event script playing; the scene ends when the session's event state clears
+};
+
+/// Work block of the room's blaze controller, the task that burns the player
+/// once the scene clock has run out with the player still in the incinerator.
+///
+/// The controller allocates the block zeroed on its first frame and publishes
+/// itself, so the event script's callbacks reach the block through the task.
+/// It opens with the head the shared blaze tasks expect of their spawner.
+/// `actor_342100` stages the same scene with a larger block that keeps one
+/// more task and places the later members differently, so the two stay
+/// separate types.
 typedef struct {
-    byte          pad_0[0x20];
-    ScreenWaveCtx wave;
-    Task*         field_2C;
-    Task*         child;
-    Task*         field_34;
-    s16           field_38;
-    s16           field_3A;
-    byte          pad_3C[0x4];
-} GarbageIncineratorWork;
-STATIC_ASSERT_SIZEOF(GarbageIncineratorWork, 0x40);
+    BlazeParentWork blaze;           // Head the fade task reaches through the controller: the heat-haze screen wave's ramp context
+    Task*           playerTask;      // Player task, the receiver of the scene's animation messages
+    Task*           bodyFireTask;    // Task spawning fire on the player's model; its spawn argument is set to 1 to spread the fire over the whole body
+    Task*           fadeTask;        // Screen fade task, sent the state of each colour ramp by message
+    s16             animationId;     // Bank index of the scene clip last played on the player (ANIMATION_BANK_BASE_SET_COUNT + clip)
+    s16             sceneState;      // Burn scene progress (SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_START or _RUNNING)
+    byte            unknown_3C[0x4]; // Never accessed; role unproven
+} _ShelterB3GarbageIncineratorBlazeWork;
+STATIC_ASSERT_SIZEOF(_ShelterB3GarbageIncineratorBlazeWork, 0x40);
 
 /// Null-terminated table counted and sent with message 0x3F7 on arming.
 extern AnimationSet* D_shelter_b3_garbage_incinerator_80186F78[4];
 
-/// Table indexed by `field_38 - 0x2F`: each entry is the following animation
-/// set less 0x2F, and a negative entry means there is none.
+/// Table indexed by `animationId - ANIMATION_BANK_BASE_SET_COUNT`: each entry
+/// is the following clip less that base, and a negative entry means there is
+/// none.
 extern s16 D_shelter_b3_garbage_incinerator_80186F88[];
 
 /// Model/animation set installed with `func_800E8614` on arming.
@@ -957,51 +963,51 @@ void func_shelter_b3_garbage_incinerator_8017E7A4(Task* arg0)
 
 #include "../../shared/incinerator_blaze_fade.inc.c"
 
-/// Step `field_2C` to the next animation set in the table. Returns 0 when
-/// message 0x3ED to it returns nonzero, and 1 otherwise: with no `field_2C`,
-/// with `field_38` below 0x2F, or with a negative table entry nothing is sent;
-/// else the entry plus 0x2F is recorded in `field_38` and sent with message
-/// 0x3E8. The set's block is `gPlayerStatus.weapon + 1` when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` is 1 and
+/// Step `playerTask` to the next clip in the table. Returns 0 when
+/// message 0x3ED to it returns nonzero, and 1 otherwise: with no `playerTask`,
+/// with `animationId` below `ANIMATION_BANK_BASE_SET_COUNT`, or with a negative
+/// table entry nothing is sent; else the entry plus that base is recorded in
+/// `animationId` and sent with message 0x3E8. The set's block is `gPlayerStatus.weapon + 1` when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` is 1 and
 /// `gPlayerStatus.weapon + 0x22` otherwise.
 static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
 {
-    GarbageIncineratorWork* work = (GarbageIncineratorWork*)arg0->work;
-    GarbageIncineratorWork* msgWork;
-    AnimationPlayRequest    msg;
-    s16                     anim;
-    s32                     weaponId;
-    s32                     setId;
+    _ShelterB3GarbageIncineratorBlazeWork* work = arg0->work;
+    _ShelterB3GarbageIncineratorBlazeWork* msgWork;
+    AnimationPlayRequest                   msg;
+    s16                                    anim;
+    s32                                    weaponId;
+    s32                                    setId;
 
-    if (work->field_2C == NULL) {
+    if (work->playerTask == NULL) {
     ret1:
         return 1;
     }
-    if (taskMessageDispatch(work->field_2C, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
+    if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
         return 0;
     }
-    if (work->field_38 < 0x2F) {
+    if (work->animationId < ANIMATION_BANK_BASE_SET_COUNT) {
         goto ret1;
     }
-    if (D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] < 0) {
+    if (D_shelter_b3_garbage_incinerator_80186F88[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] < 0) {
         goto ret1;
     }
-    anim                     = D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
-    msgWork                  = (GarbageIncineratorWork*)arg0->work;
+    anim                     = D_shelter_b3_garbage_incinerator_80186F88[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
+    msgWork                  = arg0->work;
     weaponId                 = gPlayerStatus.weapon;
     setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = setId;
-    msgWork->field_38        = anim;
+    msgWork->animationId     = anim;
     msg.animationId          = anim;
     msg.blend                = ANIMATION_BLEND_INTERPOLATE;
     msg.blendFrames          = 0xA;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &msg, 0);
     goto ret1;
 }
 
 #include "../../shared/incinerator_blaze_body_fire.inc.c"
 
-/// Arms the encounter on state 0: sends `field_2C` message 0x3F7 with the
+/// Arms the encounter on state 0: sends `playerTask` message 0x3F7 with the
 /// table and its live-entry count, raises `Gp_StateC08.flags` bit 0,
 /// installs the model set, hands slot 6 message 0xFA4, starts spawn entry 2
 /// with the task itself and steps to state 1. State 1 returns 1 while
@@ -1009,13 +1015,13 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
 /// `func_shelter_b3_garbage_incinerator_8017F318` with the task and returns 0.
 static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
 {
-    GarbageIncineratorWork*  work = (GarbageIncineratorWork*)arg0->work;
-    GarbageIncineratorWork*  msgWork;
-    AnimationBankCopyRequest msg;
-    s32                      n;
+    _ShelterB3GarbageIncineratorBlazeWork* work = arg0->work;
+    _ShelterB3GarbageIncineratorBlazeWork* msgWork;
+    AnimationBankCopyRequest               msg;
+    s32                                    n;
 
-    switch (work->field_3A) {
-        case 0:
+    switch (work->sceneState) {
+        case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_START:
             msgWork = work;
             n       = 0;
             while (D_shelter_b3_garbage_incinerator_80186F78[n & 0xFFFF] != 0) {
@@ -1023,15 +1029,15 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             }
             msg.source.sets = &D_shelter_b3_garbage_incinerator_80186F78[0];
             msg.wordCount   = n & 0xFFFF;
-            TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_800E8614(D_shelter_b3_garbage_incinerator_80186FB8, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            work->field_34 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
-            work->field_3A = work->field_3A + 1;
+            work->fadeTask   = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
+            work->sceneState = work->sceneState + 1;
             break;
-        case 1:
+        case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_RUNNING:
             if (gGameSession->eventState != 0) {
                 break;
             }
@@ -1043,7 +1049,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
 
 /// Does nothing while `gGameSession->sceneUpdatesPaused`, `Gp_StateC08.menuOpen`,
 /// `gSceneCombatState.actorControl` or `D_80114CF8` is set. State 0 allocates and clears the work block (killing the task if that
-/// fails), records `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` in `field_2C` and the task in
+/// fails), records `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` in `playerTask` and the task in
 /// `D_shelter_b3_garbage_incinerator_8018FC3C`, spawns the table entry and,
 /// with `spawnArg1` zero, queues sound event 0x54280005. State 1 advances once
 /// the scene clock has run out while the player is alive, unless
@@ -1051,10 +1057,10 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
 /// `func_shelter_b3_garbage_incinerator_8017F588` returns nonzero.
 void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
 {
-    GameSession*            session = gGameSession;
-    GarbageIncineratorWork* work;
-    s32                     ok;
-    PlayerStatus*           ps;
+    GameSession*                           session = gGameSession;
+    _ShelterB3GarbageIncineratorBlazeWork* work;
+    s32                                    ok;
+    PlayerStatus*                          ps;
 
     if (session->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
         return;
@@ -1070,7 +1076,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
                 taskKill(arg0);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->field_2C                            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                work->playerTask                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_garbage_incinerator_8018FC3C = arg0;
             }
             Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187184, 0, 0xD0, 0);
@@ -1109,60 +1115,60 @@ void func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, s32 arg2
     arg0->state = arg2;
 }
 
-/// Select animation set `arg0 + 0x2F`, record it in the work block, and send
-/// it to `field_2C` with message 0x3E8. The set's block is `gPlayerStatus.weapon + 1`
+/// Select clip `arg0 + ANIMATION_BANK_BASE_SET_COUNT`, record it in the work
+/// block's `animationId`, and send it to `playerTask` with message 0x3E8. The set's block is `gPlayerStatus.weapon + 1`
 /// when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` is 1 and `gPlayerStatus.weapon + 0x22` otherwise.
 void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
 {
-    GarbageIncineratorWork* work;
-    AnimationPlayRequest    msg;
-    s16                     anim;
-    s32                     weaponId;
-    s32                     setId;
+    _ShelterB3GarbageIncineratorBlazeWork* work;
+    AnimationPlayRequest                   msg;
+    s16                                    anim;
+    s32                                    weaponId;
+    s32                                    setId;
 
     work                     = D_shelter_b3_garbage_incinerator_8018FC3C->work;
-    anim                     = arg0 + 0x2F;
+    anim                     = arg0 + ANIMATION_BANK_BASE_SET_COUNT;
     weaponId                 = gPlayerStatus.weapon;
     setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = setId;
-    work->field_38           = anim;
+    work->animationId        = anim;
     msg.animationId          = anim;
     msg.blend                = ANIMATION_BLEND_INTERPOLATE;
     msg.blendFrames          = 0xF;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &msg, 0);
 }
 
 void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0)
 {
-    GarbageIncineratorWork* work = (GarbageIncineratorWork*)D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    _ShelterB3GarbageIncineratorBlazeWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
 
-    taskMessageDispatch(work->field_34, 0x7DB, arg0, 0);
+    taskMessageDispatch(work->fadeTask, 0x7DB, arg0, 0);
 }
 
 /// Seed the spawn entry's two parameters and start the task that consumes
 /// them, passing the block itself as `Task::spawnArg2`.
 void func_shelter_b3_garbage_incinerator_8017F968(void)
 {
-    GarbageIncineratorWork* work = (GarbageIncineratorWork*)D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    _ShelterB3GarbageIncineratorBlazeWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
 
-    work->wave.span  = 0x258;
-    work->wave.scale = 0x100;
-    Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, &work->wave);
+    work->blaze.wave.span  = 0x258;
+    work->blaze.wave.scale = 0x100;
+    Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, &work->blaze.wave);
 }
 
 void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
 {
-    GarbageIncineratorWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    _ShelterB3GarbageIncineratorBlazeWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
 
     if (arg0 == 0) {
         SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_BLAZE, 0, 0);
         Gp_PulseState1C();
         gGameSession->enemyCullZone = 0x10;
-        work->child                 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 3, 0, 0);
+        work->bodyFireTask          = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 3, 0, 0);
         return;
     }
-    work->child->spawnArg1.value = 1;
+    work->bodyFireTask->spawnArg1.value = 1;
 }
 
 void func_shelter_b3_garbage_incinerator_8017FA3C(void)
