@@ -185,21 +185,13 @@ typedef struct Actor403100Work {
     /* 0x0B2 */ s16     field_B2; // target angle
     /* 0x0B4 */ s16     field_B4; // angle offset, decayed towards 0
     /* 0x0B6 */ byte    pad_B6[2];
-    /* 0x0B8 */ union {
-        struct {
-            AnimationContext anim;
-            AnimationSlot    slots[15];
-        } animation;
-        struct {
-            byte             pad_B8[0x4C];
-            Actor403100Flags flags_104;
-            byte             pad_108[0x24];
-            u16              flags_12C;
-            byte             pad_12E[0x2E6];
-        } legacy;
+    /* 0x0B8 */ struct {
+        AnimationContext anim;
+        AnimationSlot    slots[15];
+        u8               poses[15][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose for the slot at the same index
     } field_B8;
-    /* 0x414 */ WorldCollisionBody    field_414;              // collision bodies unlinked on death
-    /* 0x434 */ WorldCollisionContact initializedContacts[3]; // Three initialized results; the body binding is unproven
+    /* 0x414 */ WorldCollisionBody    field_414;                 // collision bodies unlinked on death
+    /* 0x434 */ WorldCollisionContact initializedContacts[3];    // Three initialized results; the body binding is unproven
     /* 0x47C */ WorldCollisionBody    field_47C;
     /// Contact records the actor's own body collects, under `field_414`:
     /// `func_actor_403100_8013335C` walks all eight for kind-2 hits and
@@ -3509,10 +3501,10 @@ static __inline__ s16 Actor403100_TestFlags(void)
 
 static __inline__ s16 Actor403100_TestFlags104(void)
 {
-    if (D_actor_403100_80155808->field_B8.legacy.flags_104.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (D_actor_403100_80155808->field_B8.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
     }
-    if (D_actor_403100_80155808->field_B8.legacy.flags_104.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
+    if (D_actor_403100_80155808->field_B8.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
         return 1;
     }
     return 0;
@@ -3520,7 +3512,7 @@ static __inline__ s16 Actor403100_TestFlags104(void)
 
 static __inline__ s16 Actor403100_TestFlags12C(void)
 {
-    if (D_actor_403100_80155808->field_B8.legacy.flags_12C & 0x100) {
+    if (D_actor_403100_80155808->field_B8.slots[2].status.fields.flags & 0x100) {
         return 1;
     }
     return 0;
@@ -3712,12 +3704,12 @@ static void func_actor_403100_801326DC(Actor403100Work* work)
 
     if ((s16)D_actor_403100_80155808->field_5DC == D_actor_403100_80155808->field_5DE) {
         for (i = 1; i < 15; i++) {
-            D_actor_403100_80155808->field_B8.animation.slots[i].rate = D_actor_403100_80155808->field_5E2;
+            D_actor_403100_80155808->field_B8.slots[i].rate = D_actor_403100_80155808->field_5E2;
         }
     } else {
         for (i = 1; i < 15; i++) {
-            D_actor_403100_80155808->field_B8.animation.slots[i].rate = D_actor_403100_80155808->field_5E2;
-            animationSeekSlotWithBlend(&D_actor_403100_80155808->field_B8.animation.anim, i, D_actor_403100_80155808->field_5DE, 0, D_actor_403100_80155808->field_5FC);
+            D_actor_403100_80155808->field_B8.slots[i].rate = D_actor_403100_80155808->field_5E2;
+            animationSeekSlotWithBlend(&D_actor_403100_80155808->field_B8.anim, i, D_actor_403100_80155808->field_5DE, 0, D_actor_403100_80155808->field_5FC);
         }
         D_actor_403100_80155808->field_5FC = 0;
     }
@@ -3732,8 +3724,8 @@ static void func_actor_403100_801327CC()
         D_actor_403100_80155808->field_5E0 = 0;
     } else if (D_actor_403100_80155808->field_5DA == 2) {
         for (i = 1; i < 15; i++) {
-            animationResetSlot(&D_actor_403100_80155808->field_B8.animation.anim, i, D_actor_403100_80155808->field_5DE);
-            D_actor_403100_80155808->field_B8.animation.slots[i].rate = D_actor_403100_80155808->field_5E2;
+            animationResetSlot(&D_actor_403100_80155808->field_B8.anim, i, D_actor_403100_80155808->field_5DE);
+            D_actor_403100_80155808->field_B8.slots[i].rate = D_actor_403100_80155808->field_5E2;
         }
         D_actor_403100_80155808->field_5DA = 3;
         D_actor_403100_80155808->field_5E0 = 0;
@@ -3742,7 +3734,7 @@ static void func_actor_403100_801327CC()
         D_actor_403100_80155808->field_5E0 += 1;
     }
     for (i = 1; i < 15; i++) {
-        animationTickSlot(&D_actor_403100_80155808->field_B8.animation.anim, i);
+        animationTickSlot(&D_actor_403100_80155808->field_B8.anim, i);
     }
 }
 static void func_actor_403100_801328DC(Task* arg0)
@@ -5140,7 +5132,7 @@ static void func_actor_403100_80136610(Task* arg0)
     flags                                           = &obj->flags;
     *flags                                          = 0;
     D_actor_403100_80155808->field_658              = -1;
-    animationInitContext(&D_actor_403100_80155808->field_B8.animation.anim, D_actor_403100_8015572C, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & D_actor_403100_80155808->field_B8.legacy.pad_12E[0x1F6], D_actor_403100_80155808->field_B8.animation.slots);
+    animationInitContext(&D_actor_403100_80155808->field_B8.anim, D_actor_403100_8015572C, obj, D_actor_403100_80155808->field_B8.poses, D_actor_403100_80155808->field_B8.slots);
     D_actor_403100_80155808->field_5E2 = 0x10;
     D_actor_403100_80155808->field_5DE = 1;
     D_actor_403100_80155808->field_5DA = 2;
@@ -5409,7 +5401,7 @@ static void func_actor_403100_80136830(Task* arg0)
             func_actor_403100_8013BA64(arg0);
             func_actor_403100_801327CC(arg0);
             flashTimer                              = D_actor_403100_80155808->field_5FE;
-            D_actor_403100_80155808->flags_634.half = (u16)D_actor_403100_80155808->field_B8.legacy.flags_104.half;
+            D_actor_403100_80155808->flags_634.half = (u16)D_actor_403100_80155808->field_B8.slots[1].status.fields.flags;
             if (flashTimer != 0) {
                 if (flashTimer >= 0x10) {
                     flash = rsin(gDisplayState.animFrame << 9) << 0xD;
