@@ -428,11 +428,11 @@ The blocks of the two nearest-node scans are
 `BossStrangerNodeNearestSelfScratch`, measured from the walker, and
 `BossStrangerNodeNearestPlayerScratch`, measured from a player. The block of
 the re-plan along the node order is `BossStrangerPlanTowardScratch`, whose
-list capacity and sentinels use `BOSS_STRANGER_PLAN_`. All three are
-private to that interface. The other
-scratch frames the step opens stay with the walker family under their
-`OverlayWalker` names until their own review. The arrival test has none of its
-own: the offset it stages is a plain `SVECTOR`.
+list capacity and sentinels use `BOSS_STRANGER_PLAN_`. The frame the tick
+opens around the whole step is `BossStrangerTickScratch`, which holds the
+position the walker turns towards. All of these are private to that
+interface. The arrival test has no block type of its own: the offset it
+stages is a plain `SVECTOR`.
 
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,

@@ -137,6 +137,21 @@ typedef struct {
 } BossStrangerTurnTowardScratch;
 STATIC_ASSERT_SIZEOF(BossStrangerTurnTowardScratch, 0x1C);
 
+/// Scratch-pad frame of the walker's tick.
+///
+/// The frame carries one value: the world position the walker turns towards
+/// this frame. The chase state stores the low 16 bits of each axis of the
+/// selected player's translation there and the patrol state the position of
+/// the route's current nav node. The idle and close-in states store nothing,
+/// and nothing clears the frame when it is reserved, so in those states the
+/// turn step reads whatever the scratch pad last held there.
+typedef struct {
+    byte     pad_0[0x4];  // Never accessed
+    SVECTOR3 goal;        // World position the turn step faces. Written by the chase and patrol states only
+    byte     pad_A[0x1E]; // Never accessed
+} BossStrangerTickScratch;
+STATIC_ASSERT_SIZEOF(BossStrangerTickScratch, 0x28);
+
 s16  bossStrangerArrived(BossStrangerWalker* walker);
 void bossStrangerFollowRoute(BossStrangerWalker* work, SVECTOR3* pos);
 u8   bossStrangerNodeNearestActor(BossStrangerWalker* work, s32 actor);
@@ -147,6 +162,7 @@ void bossStrangerAvoidContacts(BossStrangerWalker* work);
 void bossStrangerTurnToward(BossStrangerWalker* work, SVECTOR3* pos);
 void bossStrangerTick(BossStrangerWalker* walker);
 
-static inline void bossStrangerStep(BossStrangerWalker* walker, u8* head, OverlayWalkerTickScratch* block);
+static inline void bossStrangerStep(BossStrangerWalker* walker, BossStrangerTickScratch* head,
+                                    BossStrangerTickScratch* block);
 
 #endif /* SRC_SHARED_BOSS_STRANGER_H */

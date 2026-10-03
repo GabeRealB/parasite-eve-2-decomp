@@ -6,13 +6,13 @@
 /// acropolis bridge room's `func_acropolis_bridge_8018532C`.
 void bossStrangerTick(BossStrangerWalker* walker)
 {
-    u8*                       head;
-    OverlayWalkerTickScratch* block;
+    BossStrangerTickScratch* head;
+    BossStrangerTickScratch* block;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x28;
-    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerTickScratch);
+    head                                          = SCRATCH_STACK_CURSOR(BossStrangerTickScratch);
+    SCRATCH_STACK_CURSOR(BossStrangerTickScratch) = head - 1;
+    block                                         = SCRATCH_STACK_CURSOR(BossStrangerTickScratch);
     bossStrangerStep(walker, head, block);
     walker->coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BLOCK(BossStrangerTickScratch);
 }

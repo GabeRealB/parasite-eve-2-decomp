@@ -2653,8 +2653,8 @@ extern u8* D_acropolis_bridge_80191720[];
 extern AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3];
 
 static void            func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy);
-static __inline__ void walkerStep(BossStrangerWalker* walker, u8* head,
-                                  OverlayWalkerTickScratch* block);
+static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickScratch* head,
+                                  BossStrangerTickScratch* block);
 static __inline__ void bridge_set_obj_pos(WorldCollisionBody* obj, SVECTOR3* pos);
 static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker);
 static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord);
@@ -4616,10 +4616,10 @@ static const EnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 
 #include "../../shared/boss_stranger_turn_toward.inc.c"
 
-/// Runs the walker's per-frame step inside the 0x28-byte scratch frame
-/// `bossStrangerTick` opened for it. `head` is the scratch head
-/// as it was before the frame was carved off, so the `SVECTOR3` the states
-/// steer towards is `head - 0x24` == `&block->pos`.
+/// Runs the walker's per-frame step inside the `BossStrangerTickScratch` frame
+/// `bossStrangerTick` opened for it. `head` is the scratch cursor as it was
+/// before the frame was reserved, one frame past `block`, so the position the
+/// states steer towards is `head[-1].goal`, the same object as `block->goal`.
 ///
 /// State 1 heads straight for the selected player's matrix translation.
 /// State 2 walks `nav`'s `nodeOrder` and re-plans when the state or a node
@@ -4629,8 +4629,8 @@ static const EnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 /// per-frame world step, which is added to the coordinate's translation and
 /// kept in `moveStep`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`
 /// zeroes the step instead.
-static __inline__ void walkerStep(BossStrangerWalker* walker, u8* head,
-                                  OverlayWalkerTickScratch* block)
+static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickScratch* head,
+                                  BossStrangerTickScratch* block)
 {
     u8*           head2;
     SVECTOR3*     pos;
@@ -4650,11 +4650,11 @@ static __inline__ void walkerStep(BossStrangerWalker* walker, u8* head,
         case BOSS_STRANGER_WALKER_IDLE:
             break;
         case BOSS_STRANGER_WALKER_CHASE:
-            cfg                            = &gPlayerStatus + (walker->playerId - 1);
-            pos                            = (SVECTOR3*)(head - 0x24);
-            ((SVECTOR3*)(head - 0x24))->vx = (u16)cfg->coordMtx->t[0];
-            pos->vy                        = (u16)cfg->coordMtx->t[1];
-            pos->vz                        = (u16)cfg->coordMtx->t[2];
+            cfg              = &gPlayerStatus + (walker->playerId - 1);
+            pos              = &head[-1].goal;
+            head[-1].goal.vx = (u16)cfg->coordMtx->t[0];
+            pos->vy          = (u16)cfg->coordMtx->t[1];
+            pos->vz          = (u16)cfg->coordMtx->t[2];
             break;
         case BOSS_STRANGER_WALKER_CLOSE:
             SCRATCH_STACK_RESERVE_BYTES(4);
@@ -4675,10 +4675,10 @@ static __inline__ void walkerStep(BossStrangerWalker* walker, u8* head,
             }
             break;
         case BOSS_STRANGER_WALKER_PATROL:
-            bossStrangerFollowRoute(walker, (SVECTOR3*)(head - 0x24));
+            bossStrangerFollowRoute(walker, &head[-1].goal);
             break;
     }
-    bossStrangerTurnToward(walker, &block->pos);
+    bossStrangerTurnToward(walker, &block->goal);
 
     cur    = walker->speedTarget;
     target = walker->speed;

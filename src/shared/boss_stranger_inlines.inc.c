@@ -12,8 +12,8 @@
 /// zeroes the step instead. Written as an inline so the two scratch-head
 /// accesses inside one frame stay absolute; see
 /// `func_acropolis_bridge_8018532C` in `acropolis_bridge_12.c`, the same body.
-static __inline__ void bossStrangerStep(BossStrangerWalker* walker, u8* head,
-                                        OverlayWalkerTickScratch* block)
+static __inline__ void bossStrangerStep(BossStrangerWalker* walker, BossStrangerTickScratch* head,
+                                        BossStrangerTickScratch* block)
 {
     u8*           head2;
     SVECTOR3*     pos;
@@ -33,11 +33,11 @@ static __inline__ void bossStrangerStep(BossStrangerWalker* walker, u8* head,
         case BOSS_STRANGER_WALKER_IDLE:
             break;
         case BOSS_STRANGER_WALKER_CHASE:
-            cfg                            = &gPlayerStatus + (walker->playerId - 1);
-            pos                            = (SVECTOR3*)(head - 0x24);
-            ((SVECTOR3*)(head - 0x24))->vx = (u16)cfg->coordMtx->t[0];
-            pos->vy                        = (u16)cfg->coordMtx->t[1];
-            pos->vz                        = (u16)cfg->coordMtx->t[2];
+            cfg              = &gPlayerStatus + (walker->playerId - 1);
+            pos              = &head[-1].goal;
+            head[-1].goal.vx = (u16)cfg->coordMtx->t[0];
+            pos->vy          = (u16)cfg->coordMtx->t[1];
+            pos->vz          = (u16)cfg->coordMtx->t[2];
             break;
         case BOSS_STRANGER_WALKER_CLOSE:
             SCRATCH_STACK_RESERVE_BYTES(4);
@@ -58,10 +58,10 @@ static __inline__ void bossStrangerStep(BossStrangerWalker* walker, u8* head,
             }
             break;
         case BOSS_STRANGER_WALKER_PATROL:
-            bossStrangerFollowRoute(walker, (SVECTOR3*)(head - 0x24));
+            bossStrangerFollowRoute(walker, &head[-1].goal);
             break;
     }
-    bossStrangerTurnToward(walker, &block->pos);
+    bossStrangerTurnToward(walker, &block->goal);
 
     cur    = walker->speedTarget;
     target = walker->speed;

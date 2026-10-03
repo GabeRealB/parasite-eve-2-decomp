@@ -591,15 +591,6 @@ typedef struct {
 } BossStrangerWalker;
 STATIC_ASSERT_SIZEOF(BossStrangerWalker, 0x94);
 
-/// The scratch-pad frame a patrol walker's tick opens: `pos` is the position
-/// the walker steers for this frame. Nothing else in the frame is read.
-typedef struct OverlayWalkerTickScratch {
-    s32      field_0;
-    SVECTOR3 pos;
-    byte     pad_A[0x1E];
-} OverlayWalkerTickScratch;
-STATIC_ASSERT_SIZEOF(OverlayWalkerTickScratch, 0x28);
-
 /// Whether the XZ offset staged in `d` is at least `r` long, squaring both
 /// sides in a scratch block of its own.
 static __inline__ s32 overlayWalkerOutOfRange(SVECTOR* d, s16 r)
