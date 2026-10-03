@@ -15,7 +15,7 @@
 #include "main/ui_types.h"
 
 /// Number of target kinds the gallery scores: the low nibble of a target's
-/// spawn id, indexing both `MistShootingGalleryWork::kills` and the RESULT
+/// spawn argument, indexing both `MistShootingGalleryWork::kills` and the RESULT
 /// panel's point table.
 #define MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT 13
 

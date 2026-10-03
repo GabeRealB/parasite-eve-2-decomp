@@ -50633,7 +50633,7 @@ func_mist_shooting_gallery_80184CD0(arg0, spawn);
 work->field_08++;
 ```
 
-With `extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900;` the
+With `extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900;` the
 `lw %lo(...)` is a fixed-address scalar MEM, so `true_dependence` clears every
 edge between it and the `work->` traffic. The address chain (`lh`, two `sll`,
 two `addu`, the `lw`) then has the longest path to the `jal` and sched1 hoists
@@ -50648,7 +50648,7 @@ Declaring the global as the array it is restores the dependence and the source
 order, and 100% follows with no other change:
 
 ```c
-extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
+extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 spawn = &D_mist_shooting_gallery_80186900[0][work->field_08];
 ```
 
