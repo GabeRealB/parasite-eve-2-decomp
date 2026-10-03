@@ -4,6 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
+#include "common.h"
 #include "types.h"
 
 #include "gameplay/item_menu.h"
@@ -22,7 +23,28 @@
 #include "main/ui.h"
 #include "main/ui_types.h"
 
-#include "rooms/room_common.h"
+/// Rows a usage panel has room for. The weapon list can fill every one, since
+/// the save keeps this many weapon use counters; the Parasite Energy list has
+/// at most twelve.
+#define TELEPHONE_USAGE_ROW_CAPACITY 0x20
+
+/// Work block of the usage-panel task: the rows of the "Weapon Data" or
+/// "PE Data" list, most used first.
+///
+/// The task allocates it zeroed on its first frame and parks it in
+/// `Task::work`, so the task's default teardown frees it. One of the two
+/// builders fills the first `UiList::itemCount` entries of each array, and the
+/// list's row callback reads them by the row it is drawing. Both lists hold
+/// item ids: a weapon row its weapon (0x80-0x9F), a Parasite Energy row the
+/// level of that ability the player holds (three consecutive ids per ability,
+/// from 0xF).
+typedef struct {
+    s16  itemIds[TELEPHONE_USAGE_ROW_CAPACITY];        // Item each row names, previews and opens in the detail window
+    s16  usageShares[TELEPHONE_USAGE_ROW_CAPACITY];    // Row's share of all recorded uses, rounded, in hundredths of a percent (0..10000)
+    s16  gaugeFractions[TELEPHONE_USAGE_ROW_CAPACITY]; // Row's use count over the top row's, as a 12-bit fraction (4096 fills the gauge)
+    byte unknown_C0[4];                                // Allocated and zeroed, never accessed; role unproven
+} _TelephoneUsageWork;
+STATIC_ASSERT_SIZEOF(_TelephoneUsageWork, 0xC4);
 
 static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1);
 static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1);
@@ -304,46 +326,46 @@ static const char Telephone_Data_8017D610[] = "Play Data";
 
 static const u8 Telephone_Data_8017D61C[] = "100.0%";
 
-/// Draws one row of an item-usage panel from the `RoomItemUsage` block in the
+/// Draws one row of a usage panel from the `_TelephoneUsageWork` block in the
 /// owning task's work area: the item's name, its share of all recorded uses as
 /// a percentage with two decimals, and a gauge scaled by the row's
-/// `barWidths` entry. Highlighting the row previews the item; pressing the
+/// `gaugeFractions` entry. Highlighting the row previews the item; pressing the
 /// detail button on the selected row opens the item's detail window.
 static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
 {
-    u8             buf[0x20];
-    TextDrawReq    req;
-    TextDrawReq*   request;
-    RoomItemUsage* work;
-    POLY_G4*       prim;
-    u8*            p;
-    u8*            q;
-    s32            item;
-    s32            value;
-    s32            x;
-    s32            y;
-    s32            color;
-    s32            textY;
-    s32            limit;
-    s32            n;
-    s32            len;
-    s32            i;
-    s32            avail;
-    s32            base;
-    s32            barW;
-    s32            barX;
-    s32            rowY;
-    s32            one;
-    s32            tx;
-    s32            ty;
+    u8                   buf[0x20];
+    TextDrawReq          req;
+    TextDrawReq*         request;
+    _TelephoneUsageWork* work;
+    POLY_G4*             prim;
+    u8*                  p;
+    u8*                  q;
+    s32                  item;
+    s32                  value;
+    s32                  x;
+    s32                  y;
+    s32                  color;
+    s32                  textY;
+    s32                  limit;
+    s32                  n;
+    s32                  len;
+    s32                  i;
+    s32                  avail;
+    s32                  base;
+    s32                  barW;
+    s32                  barX;
+    s32                  rowY;
+    s32                  one;
+    s32                  tx;
+    s32                  ty;
 
     p       = buf;
     request = &req;
     x       = arg0->rowTextX.signedValue;
     y       = arg0->rowTextY.signedValue;
-    work    = (RoomItemUsage*)arg1->owner->work;
+    work    = arg1->owner->work;
     item    = work->itemIds[arg0->currentItemIndex];
-    value   = work->percents[arg0->currentItemIndex];
+    value   = work->usageShares[arg0->currentItemIndex];
     color   = arg0->colorRgb;
     if (arg1->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
         req.x             = arg1->panel.contentOriginX.unsignedValue + 0x11 + x;
@@ -392,7 +414,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     base  = arg1->panel.contentLeft.signedValue + 0x80;
     avail = arg1->panel.contentRight.signedValue - 0x4A;
     barW  = avail - base;
-    barW  = (barW * work->barWidths[arg0->currentItemIndex]) >> 12;
+    barW  = (barW * work->gaugeFractions[arg0->currentItemIndex]) >> 12;
     rowY  = arg0->rowTextY.signedValue - 0xC;
     barW  = barW + 2;
     barX  = avail - barW;
@@ -444,31 +466,31 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
 /// Every id whose name is non-empty (a leading 0 or 0xA marks an unused row)
 /// and whose counter is non-zero is marked seen and appended to `itemIds`,
 /// while the counters are summed. The ids are then insertion-sorted by use
-/// count, most-used first. Finally each row gets `percents` - its share of all
-/// recorded uses in hundredths of a percent, rounded - and `barWidths`, its
-/// counter as a 12-bit fraction of the top row's. Both are scaled down by
-/// halving until the top counter fits in 17 bits, so the multiply and the
-/// shift cannot overflow.
+/// count, most-used first. Finally each row gets `usageShares` - its share of
+/// all recorded uses in hundredths of a percent, rounded - and
+/// `gaugeFractions`, its counter as a 12-bit fraction of the top row's. Both
+/// are scaled down by halving until the top counter fits in 17 bits, so the
+/// multiply and the shift cannot overflow.
 static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
 {
-    RoomItemUsage* work;
-    s32            count;
-    s32            total;
-    s32            i;
-    s32            j;
-    s32            k;
-    s32            id;
-    s32            tmp;
-    s32            uses;
-    s32            scale;
-    s32            top;
-    s32            shift;
-    s16*           p;
-    u8             c;
+    _TelephoneUsageWork* work;
+    s32                  count;
+    s32                  total;
+    s32                  i;
+    s32                  j;
+    s32                  k;
+    s32                  id;
+    s32                  tmp;
+    s32                  uses;
+    s32                  scale;
+    s32                  top;
+    s32                  shift;
+    s16*                 p;
+    u8                   c;
 
     count = 0;
     total = 0;
-    work  = (RoomItemUsage*)obj->owner->work;
+    work  = obj->owner->work;
     p     = work->itemIds;
 
     for (i = 0; i < 0x20; i++) {
@@ -509,9 +531,9 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
             shift--;
         }
         for (i = 0; i < count; i++) {
-            work->percents[i] =
+            work->usageShares[i] =
                 (u32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
-            work->barWidths[i] =
+            work->gaugeFractions[i] =
                 (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
         }
     }
@@ -522,7 +544,7 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
 }
 
 /// Parasite Energy counterpart of `Telephone_BuildWeaponUsage`: fills
-/// the "Play Data" PE-usage panel's `RoomPeUsage` block from the save's
+/// the "Play Data" PE-usage panel's `_TelephoneUsageWork` block from the save's
 /// per-slot use counters.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
@@ -532,32 +554,32 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts` is appended and its counter summed. Levels
 /// are addressed by page and column, with three slots per page. The ids are
 /// then insertion-sorted by use count, most-used first, and each row gets
-/// `percents`, its share of all recorded uses in hundredths of a percent, and
-/// `barWidths`, its counter as a 12-bit fraction of the top row's. Both are
+/// `usageShares`, its share of all recorded uses in hundredths of a percent, and
+/// `gaugeFractions`, its counter as a 12-bit fraction of the top row's. Both are
 /// scaled down by halving until the top counter fits in 17 bits, so the
 /// multiply and the shift cannot overflow.
 static void Telephone_BuildPeUsage(UiList* list, UiObject* obj)
 {
-    RoomPeUsage* work;
-    s16*         p;
-    s32          count;
-    s32          total;
-    s32          i;
-    s32          j;
-    s32          k;
-    s32          id;
-    s32          slot;
-    s32          uses;
-    s32          scale;
-    s32          shift;
-    s32          top;
-    s32          tmp;
+    _TelephoneUsageWork* work;
+    s16*                 p;
+    s32                  count;
+    s32                  total;
+    s32                  i;
+    s32                  j;
+    s32                  k;
+    s32                  id;
+    s32                  slot;
+    s32                  uses;
+    s32                  scale;
+    s32                  shift;
+    s32                  top;
+    s32                  tmp;
 
     count = 0;
     total = 0;
     i     = 0;
-    work  = (RoomPeUsage*)obj->owner->work;
-    p     = work->peIds;
+    work  = obj->owner->work;
+    p     = work->itemIds;
 
     for (; i < 12; i++) {
         s32 useCount;
@@ -582,16 +604,16 @@ static void Telephone_BuildPeUsage(UiList* list, UiObject* obj)
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
-            slot = (work->peIds[i] - 0xF) / 3;
+            slot = (work->itemIds[i] - 0xF) / 3;
             uses = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot];
             for (j = 0; j < i; j++) {
-                slot = (work->peIds[j] - 0xF) / 3;
+                slot = (work->itemIds[j] - 0xF) / 3;
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot] < uses) {
-                    tmp = work->peIds[i];
+                    tmp = work->itemIds[i];
                     for (k = i - 1; k >= j; k--) {
-                        work->peIds[k + 1] = work->peIds[k];
+                        work->itemIds[k + 1] = work->itemIds[k];
                     }
-                    work->peIds[j] = tmp;
+                    work->itemIds[j] = tmp;
                     break;
                 }
             }
@@ -600,7 +622,7 @@ static void Telephone_BuildPeUsage(UiList* list, UiObject* obj)
 
     if (count > 0) {
         scale = 0x4E20;
-        slot  = (work->peIds[0] - 0xF) / 3;
+        slot  = (work->itemIds[0] - 0xF) / 3;
         top   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot];
         shift = 0xC;
         while (top > 0x1869F) {
@@ -610,10 +632,10 @@ static void Telephone_BuildPeUsage(UiList* list, UiObject* obj)
             shift--;
         }
         for (i = 0; i < count; i++) {
-            slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
-            slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot] << shift) / top;
+            slot                    = (work->itemIds[i] - 0xF) / 3;
+            work->usageShares[i]    = (u32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
+            slot                    = (work->itemIds[i] - 0xF) / 3;
+            work->gaugeFractions[i] = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot] << shift) / top;
         }
     }
 
@@ -632,12 +654,12 @@ static const char Telephone_Data_8017D630[] = "PE Data";
 /// on cancel, and tears down any child window that has finished.
 static void Telephone_UsageTask(Task* task)
 {
-    UiObject* obj;
-    UiList*   list;
-    Task*     child;
-    Task*     next;
-    UiObject* childObj;
-    void*     work;
+    UiObject*            obj;
+    UiList*              list;
+    Task*                child;
+    Task*                next;
+    UiObject*            childObj;
+    _TelephoneUsageWork* work;
 
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
@@ -648,7 +670,7 @@ static void Telephone_UsageTask(Task* task)
         Ui_DrawText(&(obj)->panel, Telephone_Data_8017D630);
     }
     if (task->state == 0) {
-        work = memCalloc(0xC4, 0);
+        work = memCalloc(sizeof(_TelephoneUsageWork), 0);
         if (work == NULL) {
             return;
         }

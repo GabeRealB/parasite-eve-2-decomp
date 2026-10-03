@@ -47,37 +47,6 @@ typedef struct {
 } RoomOptionDialog;
 STATIC_ASSERT_SIZEOF(RoomOptionDialog, 0x20);
 
-/// 0xC4 work block the "Play Data" item-usage panel allocates and parks in
-/// `Task::work`. The builder walks item ids 0x80-0x9F, keeps the ones the save
-/// has a non-zero use count for, and fills three parallel arrays indexed by the
-/// row the list is drawing: the item id, the share of all recorded uses in
-/// hundredths of a percent (0-10000, printed as `NN.NN%`), and the width of the
-/// row's gauge as a 12-bit fraction of the panel's inner width. The tail of the
-/// allocation is unused.
-typedef struct RoomItemUsage {
-    /* 0x00 */ s16  itemIds[0x20];
-    /* 0x40 */ s16  percents[0x20];
-    /* 0x80 */ s16  barWidths[0x20];
-    /* 0xC0 */ byte pad_C0[0x4];
-} RoomItemUsage;
-STATIC_ASSERT_SIZEOF(RoomItemUsage, 0xC4);
-
-/// 0xC4 work block the "Play Data" PE-usage panel allocates and parks in
-/// `Task::work`, laid out exactly like `RoomItemUsage`. The builder walks the
-/// twelve Parasite Energy slots, keeps the ones the save has a non-zero use
-/// count for, and fills three parallel arrays indexed by the row the list is
-/// drawing: the id of the slot's known level, that slot's share of all recorded
-/// uses in hundredths of a percent (0-10000, printed as `NN.NN%`), and the
-/// width of the row's gauge as a 12-bit fraction of the panel's inner width.
-/// The tail of the allocation is unused.
-typedef struct RoomPeUsage {
-    /* 0x00 */ s16  peIds[0x20];
-    /* 0x40 */ s16  percents[0x20];
-    /* 0x80 */ s16  barWidths[0x20];
-    /* 0xC0 */ byte pad_C0[0x4];
-} RoomPeUsage;
-STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
-
 /// 0xAC work block a room's planar-reflection task parks in `Task::work`.
 ///
 /// The task draws another copy of the player's model, parented to `coord`.
