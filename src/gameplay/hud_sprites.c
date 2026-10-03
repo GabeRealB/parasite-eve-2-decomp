@@ -94,17 +94,25 @@ typedef struct {
 } _ViewRotation;
 STATIC_ASSERT_SIZEOF(_ViewRotation, 0x12);
 
-/// 0x1C-byte scratch from the scratch stack used by `Gp_HudTrackEnemy`.
-/// `field_14` / `field_16` are the current screen X/Y; `field_18` /
-/// `field_1A` hold the signed deltas before and after `>> 3`.
-typedef struct _GpHudScratch {
-    /* 0x00 */ byte pad_0[0x14];
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ s16  field_16;
-    /* 0x18 */ s16  field_18;
-    /* 0x1A */ s16  field_1A;
-} GpHudScratch;
-STATIC_ASSERT_SIZEOF(GpHudScratch, 0x1C);
+/// Scratch-stack block in which the locked-on enemy's HP readout is placed for one frame.
+///
+/// The position starts as the anchor the readout is heading for. For a newly
+/// locked enemy it stays there; otherwise it is replaced by the position kept
+/// in `HudTargetHpReadout` advanced by one step toward the anchor. The readout
+/// is drawn at the result, which is then stored back for the next frame.
+/// Coordinates are pixels from the screen center, Y increasing downward.
+///
+/// Reserve the complete record on the scratch stack; none of its members
+/// survive the matching release. The leading bytes are reserved with the block
+/// and left untouched, so what the block was laid out to hold there is unproven.
+typedef struct {
+    byte unknown_0[0x14]; // Reserved with the block and never accessed; role unproven
+    s16  x;               // Horizontal position: the anchor, then where the readout is drawn
+    s16  y;               // Vertical position: the anchor, then where the readout is drawn
+    s16  stepX;           // Horizontal distance left to the anchor, then an eighth of it, rounded down
+    s16  stepY;           // Vertical distance left to the anchor, then an eighth of it, rounded down
+} _HudTargetHpReadoutScratch;
+STATIC_ASSERT_SIZEOF(_HudTargetHpReadoutScratch, 0x1C);
 
 /// Stack workspace for one HUD hit-point readout.
 ///
@@ -563,41 +571,43 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
 
 static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout)
 {
-    GpHudScratch* block;
-    s32           val;
+    _HudTargetHpReadoutScratch* scratch;
+    s32                         val;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpHudScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_HudTargetHpReadoutScratch);
     if (func_800B9D80(0x100000) != 0) {
-        block->field_14 = 0x6A;
-        block->field_16 = -0x35;
+        scratch->x = 0x6A;
+        scratch->y = -0x35;
     } else {
-        block->field_14 = 0x6A;
-        block->field_16 = -0x64;
+        scratch->x = 0x6A;
+        scratch->y = -0x64;
     }
     if (readout->enemy != arg0) {
         // A new target starts at the anchor. The second store also lands in
         // `x`; both members are rewritten after the draw.
         readout->enemy = arg0;
-        readout->x     = block->field_14;
-        readout->x     = block->field_16;
+        readout->x     = scratch->x;
+        readout->x     = scratch->y;
     } else {
-        block->field_18   = block->field_14 - readout->x;
-        block->field_1A   = block->field_16 - readout->y;
-        block->field_18 >>= 3;
-        block->field_1A >>= 3;
-        block->field_14   = readout->x + block->field_18;
-        block->field_16   = readout->y + block->field_1A;
+        // The same target eases an eighth of the way from where it was last
+        // drawn toward the anchor.
+        scratch->stepX   = scratch->x - readout->x;
+        scratch->stepY   = scratch->y - readout->y;
+        scratch->stepX >>= 3;
+        scratch->stepY >>= 3;
+        scratch->x       = readout->x + scratch->stepX;
+        scratch->y       = readout->y + scratch->stepY;
     }
     if (arg0->param != NULL) {
         val = arg0->param->hpMax;
         if (arg0->node.state.parts.flags & WORLD_TARGET_HIDE_HP) {
             val = -1;
         }
-        Gp_DrawHudNumbers(block->field_14 - 8, block->field_16, arg0->hp, val, 1);
+        Gp_DrawHudNumbers(scratch->x - 8, scratch->y, arg0->hp, val, 1);
     }
-    readout->x = block->field_14;
-    readout->y = block->field_16;
-    SCRATCH_STACK_RELEASE_BLOCK(GpHudScratch);
+    readout->x = scratch->x;
+    readout->y = scratch->y;
+    SCRATCH_STACK_RELEASE_BLOCK(_HudTargetHpReadoutScratch);
 }
 
 /// Rotates `v` in place by `m` on the GTE, reading it through a copy.
