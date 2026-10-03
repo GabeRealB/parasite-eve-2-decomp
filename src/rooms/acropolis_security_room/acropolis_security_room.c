@@ -71,28 +71,69 @@
 #include "../../shared/action_prompt.h"
 #include "../../shared/actor_contacts.h"
 
-/// 0xA work block of the security-monitor task, hung off the `Task::work`
-/// slot (0x1C): the
-/// `memCalloc(0xA)` block `func_acropolis_security_room_8017D9DC` allocates.
-/// Reach it with `(AsrMonitorWork*)task->work`.
+/// Hotspot ids of the buttons that step the monitor's grey wash.
 ///
-/// `cameraId` is the camera the monitor is currently showing, seeded from the
-/// `GameFlag_GetNibble(0x2A)` lookup table and offset by 0x7F before being
-/// handed to the panel drawer `func_acropolis_security_room_8017E0C4`.
-/// `blinkTimer` is the cursor blink counter the overlay drawer
-/// `func_acropolis_security_room_8017E37C` advances, `selection` the row the
-/// player has highlighted, and `promptKind` the display mode forwarded to
-/// `func_800D4E78` when the action prompt is spawned.
-typedef struct AsrMonitorWork {
-    /* 0x00 */ u16  cameraId;
-    /* 0x02 */ s16  blinkTimer;
-    /* 0x04 */ s16  selection;
-    /* 0x06 */ s8   promptKind;
-    /* 0x07 */ s8   field_7;
-    /* 0x08 */ s8   field_8;
-    /* 0x09 */ byte pad_9[0x1];
-} AsrMonitorWork;
-STATIC_ASSERT_SIZEOF(AsrMonitorWork, 0xA);
+/// Brighter adds one detent to `screenLevel` and darker subtracts one. Both
+/// are negative as signed hotspot ids, so confirming one does not change the
+/// saved camera view. The handler compares these same bits as unsigned.
+enum {
+    ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_BRIGHTER = 0x8000,
+    ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_DARKER   = 0x8001,
+};
+
+/// Encoding of `_AcropolisSecurityRoomMonitorWork::screenLevel`.
+///
+/// The five detents in `D_acropolis_security_room_801826B4` are the darkest
+/// level plus a multiple of the step. The panel drawer subtracts the bias; a
+/// negative result is a subtractive blend and a non-negative one an additive
+/// blend. A step brighter is taken only when the prospective level is below
+/// the next-step limit, which admits the brightest detent and rejects one
+/// step past it. Scripted captions stay quiet on the darkest detent.
+enum {
+    ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS       = 0x7F,
+    ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP       = 0x3E,
+    ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST    = 4,
+    ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_NEXT_LIMIT = 0xFE,
+};
+
+/// Camera view of the enemy seen on the monitor.
+///
+/// Selecting it while bit 1 of `GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN` is
+/// clear arms `enemySceneArmed`. The caption starts only once the wash has
+/// left the darkest detent.
+enum {
+    ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY = 0xA,
+};
+
+/// Frames in one pass of the monitor's overlay bar. The timer wraps to 0.
+enum {
+    ACROPOLIS_SECURITY_ROOM_MONITOR_SWEEP_PERIOD = 0x97,
+};
+
+/// CAP slot started once for the enemy's camera view.
+enum {
+    ACROPOLIS_SECURITY_ROOM_MONITOR_ENEMY_CAP_SLOT = 0xC,
+};
+
+/// Work block of the security-monitor task, held in `Task::work`.
+///
+/// The task allocates the block zeroed when it starts. `screenLevel` is the
+/// grey wash on the monitor picture, one of five detents restored from
+/// `GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA`. `sweepTimer` counts the frames of
+/// the overlay bar. `hotspotId` is the hotspot the player confirmed, a camera
+/// view or a wash button, and `promptKind` is the first row of the prompt
+/// opened for it. `enemySceneArmed` and `enemyCaptionStarted` latch the
+/// one-shot caption on the enemy's camera view. The block is 0xA bytes; the
+/// byte after `enemyCaptionStarted` is the alignment tail and is never accessed.
+typedef struct {
+    u16 screenLevel;         // Wash detent: grey level plus ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS, stored unsigned
+    s16 sweepTimer;          // Frames into the overlay bar's current pass
+    s16 hotspotId;           // Confirmed hotspot (a camera view, or ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_*)
+    s8  promptKind;          // First row of the prompt opened for that hotspot (0 "Examine", 1 "Push")
+    s8  enemySceneArmed;     // 1 once the enemy's view was selected while its scene had not played
+    s8  enemyCaptionStarted; // 1 once that visit's enemy caption has been started
+} _AcropolisSecurityRoomMonitorWork;
+STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomMonitorWork, 0xA);
 
 /// `_AcropolisSecurityRoomPowerSupplyWork::usedKey` values.
 enum {
@@ -206,8 +247,9 @@ extern TaskDesc                      D_acropolis_security_room_8018263C;
 /// `actionPromptHitTest`.
 extern ActionPromptHotspot D_acropolis_security_room_80182648[];
 
-/// The five camera ids the security monitor can display, in the order the
-/// `GameFlag_GetNibble(0x2A)` nibble indexes them.
+/// The monitor's grey-wash detents, darkest first. The first five are the
+/// levels `GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA` indexes. The sixth value
+/// is part of this symbol and is never read; its role is unproven.
 extern s16 D_acropolis_security_room_801826B4[];
 
 /// The single-entry `TaskDesc` table the script spawns its child task from:
@@ -348,12 +390,12 @@ TaskDesc D_acropolis_security_room_8018263C = { { { TASK_BODY_NONE, 192 } }, fun
 ActionPromptHotspot D_acropolis_security_room_80182648[9] = {
     { -30, 81, 12, 11, 8, 1, 0 },
     { -7, 81, 12, 11, 9, 1, 0 },
-    { 16, 81, 12, 11, 10, 1, 0 },
+    { 16, 81, 12, 11, ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY, 1, 0 },
     { 39, 81, 12, 11, 11, 1, 0 },
     { 61, 81, 12, 11, 12, 1, 0 },
     { 82, 81, 12, 11, 13, 1, 0 },
-    { -141, -76, 12, 11, -0x8000, 1, 0 },
-    { -141, -58, 12, 11, -0x7FFF, 1, 0 },
+    { -141, -76, 12, 11, (s16)ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_BRIGHTER, 1, 0 },
+    { -141, -58, 12, 11, (s16)ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_DARKER, 1, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
@@ -2084,34 +2126,36 @@ void func_acropolis_security_room_8017D984(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Entry state of the security-monitor task: allocates the `AsrMonitorWork`
-/// block into the `Task::work` slot, spawns the monitor's companion task,
-/// seeds `cameraId` from the `GameFlag_GetNibble(0x2A)` camera table, and picks
-/// the next state from the `GameFlag_GetNibble(1)` progress nibble (state+1 and
-/// prompt kind 8 before chapter 3, state 6 and prompt kind 5 after). Finally it
-/// clears every hotspot's `hit` flag so the first hit test starts clean.
+/// Entry state of the security-monitor task: allocates the
+/// `_AcropolisSecurityRoomMonitorWork` block into `Task::work`, spawns the
+/// monitor's companion task, and seeds `screenLevel` from
+/// `GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA` (the darkest detent when that
+/// index is not one of the five). While observatory-route progress is below 3
+/// the saved view becomes 8 and the task continues into the camera list; from
+/// 3 on the view becomes 5 and the task goes to the idle hotspot state. Every
+/// hotspot's `hit` flag is cleared so the first test starts clean.
 static void func_acropolis_security_room_8017D9DC(Task* task)
 {
-    AsrMonitorWork*      work;
-    ActionPromptHotspot* hs;
-    s16                  flag;
-    s32                  state;
-    s16                  stateElse;
+    _AcropolisSecurityRoomMonitorWork* work;
+    ActionPromptHotspot*               hs;
+    s16                                flag;
+    s32                                state;
+    s16                                stateElse;
 
-    work = memCalloc(sizeof(AsrMonitorWork), 0);
+    work = memCalloc(sizeof(_AcropolisSecurityRoomMonitorWork), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
     task->spawnArg2.pointer = Task_SpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);
     task->work              = work;
-    work->blinkTimer        = 0;
+    work->sweepTimer        = 0;
     stateElse               = 6;
     flag                    = GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA);
     if ((u16)flag < 5) {
-        work->cameraId = D_acropolis_security_room_801826B4[flag];
+        work->screenLevel = D_acropolis_security_room_801826B4[flag];
     } else {
-        work->cameraId = D_acropolis_security_room_801826B4[0];
+        work->screenLevel = D_acropolis_security_room_801826B4[0];
     }
     if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < 3) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
@@ -2138,21 +2182,21 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
 }
 
 /// Runs the hotspot-hit state of the security monitor: redraws the panel and
-/// cursor, then hit-tests the action cursor against the room's hotspot table.
+/// its overlay bar, then hit-tests the action cursor against the room's hotspot table.
 /// A miss leaves the prompt's idle cursor; a hit with the prompt
 /// confirmed (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) scans the table for the raised entry and hands its
 /// `id` / `promptKind` to the work block, advancing to state 3. Otherwise the
 /// task advances to state 5 once the prompt has been dismissed.
 static void func_acropolis_security_room_8017DB30(Task* task)
 {
-    AsrMonitorWork*      work;
-    ActionPromptHotspot* hs;
-    ActionPrompt*        prompt;
+    _AcropolisSecurityRoomMonitorWork* work;
+    ActionPromptHotspot*               hs;
+    ActionPrompt*                      prompt;
 
     hs     = D_acropolis_security_room_80182648;
     prompt = D_80114D28;
-    work   = (AsrMonitorWork*)task->work;
-    func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
+    work   = (_AcropolisSecurityRoomMonitorWork*)task->work;
+    func_acropolis_security_room_8017E0C4(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
     func_acropolis_security_room_8017E37C(task);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -2169,7 +2213,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    work->selection     = hs->id;
+                    work->hotspotId     = hs->id;
                     work->promptKind    = hs->promptKind;
                     task->state         = 3;
                     return;
@@ -2185,60 +2229,66 @@ static void func_acropolis_security_room_8017DB30(Task* task)
     }
 }
 
-/// Runs the camera-list state of the security monitor: mirrors the highlighted
-/// row into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` (with a click), scrolls the panel by a page
-/// when the row is one of the two 0x8000/0x8001 scroll commands, and fires the
-/// two one-shot cap sequences the room gates on the `0xA` game-flag nibble.
-/// Then redraws the panel plus cursor overlay and advances to state 2.
+/// Applies a confirmed monitor hotspot. A non-negative id is a camera view:
+/// it replaces the saved view, with a click, and arms the enemy caption when
+/// the enemy's view is selected while that scene has not played. The brighter
+/// and darker ids step the grey wash by one detent. When the wash is not on
+/// its darkest detent, two one-shot captions can start: view 0xB's, and the
+/// enemy view's once this visit armed it and the caption has not already been
+/// started. What view 0xB shows is not established in this task. The panel
+/// and its overlay bar are redrawn and the task returns to the hotspot scan.
 static void func_acropolis_security_room_8017DC7C(Task* task)
 {
-    AsrMonitorWork* work;
-    McSaveData*     save;
-    s32             sfx;
-    s16             sel;
-    u16             usel;
+    _AcropolisSecurityRoomMonitorWork* work;
+    McSaveData*                        save;
+    s32                                sfx;
+    s16                                confirmedId;
+    u16                                confirmedBits;
 
-    work                      = (AsrMonitorWork*)task->work;
+    work                      = (_AcropolisSecurityRoomMonitorWork*)task->work;
     D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
     D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
-        sel = work->selection;
-        if (sel >= 0) {
+        confirmedId = work->hotspotId;
+        if (confirmedId >= 0) {
             save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-            if (save->state.location.loc.view != sel) {
-                save->state.location.loc.view = work->selection;
+            if (save->state.location.loc.view != confirmedId) {
+                save->state.location.loc.view = work->hotspotId;
                 SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_SELECT, 0, 0);
-                if ((work->selection == 0xA) && !(GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 2)) {
-                    work->field_7 = 1;
+                // Arm the enemy caption when this confirm is what first shows that view.
+                if ((work->hotspotId == ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY) && !(GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 2)) {
+                    work->enemySceneArmed = 1;
                 }
             }
         }
-        usel = work->selection;
-        if (usel == 0x8000) {
-            if (((s16)work->cameraId + 0x3E) < 0xFE) {
-                work->cameraId += 0x3E;
-                sfx             = 0x51060006;
+        confirmedBits = work->hotspotId;
+        if (confirmedBits == ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_BRIGHTER) {
+            if (((s16)work->screenLevel + ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP) < ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_NEXT_LIMIT) {
+                work->screenLevel += ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP;
+                sfx                = SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_BRIGHTER;
                 goto play;
             }
-        } else if (usel == 0x8001) {
-            if (((s16)work->cameraId - 0x3E) > 0) {
-                work->cameraId -= 0x3E;
-                sfx             = 0x51060007;
+        } else if (confirmedBits == ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_DARKER) {
+            if (((s16)work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP) > 0) {
+                work->screenLevel -= ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP;
+                sfx                = SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_DARKER;
             play:
                 SndEvt_EnqueueType6(sfx, 0, 0);
             }
         }
-        if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0xB) && ((s16)work->cameraId != 4) && !(GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 1)) {
+        if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0xB) &&
+            ((s16)work->screenLevel != ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST) && !(GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 1)) {
             Gp_StartCapSlot(0xD, 0, 0);
             GameFlag_SetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | 1);
         }
-        if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0xA) && ((s16)work->cameraId != 4) && (work->field_7 != 0) &&
-            (work->field_8 == 0) && (GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE) == 0)) {
-            Gp_StartCapSlot(0xC, 0, 0);
-            work->field_8 = 1;
+        if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY) &&
+            ((s16)work->screenLevel != ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST) && (work->enemySceneArmed != 0) &&
+            (work->enemyCaptionStarted == 0) && (GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE) == 0)) {
+            Gp_StartCapSlot(ACROPOLIS_SECURITY_ROOM_MONITOR_ENEMY_CAP_SLOT, 0, 0);
+            work->enemyCaptionStarted = 1;
         }
     }
-    func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
+    func_acropolis_security_room_8017E0C4(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
     func_acropolis_security_room_8017E37C(task);
     task->state = 2;
 }
@@ -2301,13 +2351,13 @@ static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8
     addPrim(gGpuCurrentOt + 3, line);
 }
 
-/// Washes the security-monitor panel with the grey level `id` -- the work
-/// block's `cameraId` biased by -0x7F -- as a semi-transparent `POLY_F4`
-/// covering (-0x66, -0x5F) to (0x6C, 0x3C) in `gGpuCurrentOt[0xC]`, followed by
-/// the drawing-mode packet that restores the panel's texture page. A negative
-/// `id` selects `GPU_BLEND_SUBTRACT`, darkening the "no signal" panel.
-/// The strip below the panel (y 0x3C to 0x38)
-/// is then blacked out with an opaque quad in `gGpuCurrentOt[0xB]`.
+/// Washes the security-monitor panel with the grey level `id`, which is
+/// `screenLevel` minus `ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS`, as a
+/// semi-transparent `POLY_F4` covering (-0x66, -0x5F) to (0x6C, 0x3C) in
+/// `gGpuCurrentOt[0xC]`, followed by the drawing-mode packet that restores the
+/// panel's texture page. A negative `id` selects `GPU_BLEND_SUBTRACT`,
+/// darkening the panel. The strip below the panel (y 0x3C to 0x38) is then
+/// blacked out with an opaque quad in `gGpuCurrentOt[0xB]`.
 static void func_acropolis_security_room_8017E0C4(s16 id)
 {
     POLY_F4* poly;
@@ -2388,19 +2438,20 @@ static void func_acropolis_security_room_8017E0C4(s16 id)
     addPrim(gGpuCurrentOt + 0xB, dr);
 }
 
-/// Draws the blinking cursor overlay on top of the monitor panel: a 0x6C-wide
-/// grey `TILE` whose top edge and height both track `AsrMonitorWork::blinkTimer`,
-/// followed by the drawing-mode packet that restores the panel's texture page.
-/// The timer wraps at 0x97, which is what makes the bar sweep and restart.
+/// Draws the overlay bar on the monitor panel: a 0x6C-wide grey `TILE` whose
+/// top and height are both `sweepTimer` minus the panel top (0x5F), followed
+/// by the drawing-mode packet that restores the panel's texture page. The
+/// timer wraps at `ACROPOLIS_SECURITY_ROOM_MONITOR_SWEEP_PERIOD`, which
+/// restarts the bar.
 static void func_acropolis_security_room_8017E37C(Task* task)
 {
-    AsrMonitorWork* work;
-    TILE*           tile;
-    DR_MODE*        dr;
-    s16             y;
+    _AcropolisSecurityRoomMonitorWork* work;
+    TILE*                              tile;
+    DR_MODE*                           dr;
+    s16                                y;
 
     tile           = gGpuPrimCursor;
-    work           = (AsrMonitorWork*)task->work;
+    work           = (_AcropolisSecurityRoomMonitorWork*)task->work;
     gGpuPrimCursor = tile + 1;
     setlen(tile, 3);
     setcode(tile, 0x42);
@@ -2409,7 +2460,7 @@ static void func_acropolis_security_room_8017E37C(Task* task)
     tile->b0 = 0x60;
     tile->x0 = -0x66;
     tile->w  = 0x6C;
-    y        = work->blinkTimer - 0x5F;
+    y        = work->sweepTimer - 0x5F;
     tile->h  = y;
     tile->y0 = y;
     addPrim(gGpuCurrentOt + 0xE, tile);
@@ -2418,9 +2469,9 @@ static void func_acropolis_security_room_8017E37C(Task* task)
     setlen(dr, 1);
     dr->code[0] = 0xE100000A;
     addPrim(gGpuCurrentOt + 0xE, dr);
-    work->blinkTimer++;
-    if (work->blinkTimer >= 0x97) {
-        work->blinkTimer = 0;
+    work->sweepTimer++;
+    if (work->sweepTimer >= ACROPOLIS_SECURITY_ROOM_MONITOR_SWEEP_PERIOD) {
+        work->sweepTimer = 0;
     }
 }
 
@@ -2457,42 +2508,42 @@ static void func_acropolis_security_room_8017EA28(Task* task)
     task->state         = task->state + 1;
 }
 
-/// Confirms the camera the player picked on the security monitor: clears the
-/// action prompt, redraws the panel for the selected camera plus its cursor
-/// overlay, spawns the prompt at the panel's coordinates and advances the task.
+/// Confirms the hotspot the player picked: clears the action prompt, redraws
+/// the panel for the current wash plus its overlay bar, spawns the prompt at
+/// the panel's coordinates with that hotspot's `promptKind` and advances.
 static void func_acropolis_security_room_8017EA5C(Task* task)
 {
-    ActionPrompt*   prompt = D_80114D28;
-    AsrMonitorWork* work   = (AsrMonitorWork*)task->work;
+    ActionPrompt*                      prompt = D_80114D28;
+    _AcropolisSecurityRoomMonitorWork* work   = (_AcropolisSecurityRoomMonitorWork*)task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_acropolis_security_room_8017E0C4(work->cameraId - 0x7F);
+    func_acropolis_security_room_8017E0C4(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
     func_acropolis_security_room_8017E37C(task);
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
-/// Leaves the security monitor: records which camera was on screen as the
-/// `0x2A` nibble (index into `D_acropolis_security_room_801826B4`, 0 if the id
-/// is not in the table), restores the room's normal display state and kills the
-/// monitor task along with the child task it spawned.
+/// Leaves the security monitor: records the current wash detent as
+/// `GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA` (its index among the first five
+/// table entries, or 0 when it is not one of them), restores the room's normal
+/// display state and kills the monitor task along with the child it spawned.
 static void func_acropolis_security_room_8017EADC(Task* task)
 {
-    AsrMonitorWork* work;
-    s16*            camera;
-    s32             index;
-    s32             cameraId;
+    _AcropolisSecurityRoomMonitorWork* work;
+    s16*                               level;
+    s32                                index;
+    s32                                screenLevel;
 
-    index      = 0;
-    camera     = D_acropolis_security_room_801826B4;
-    work       = (AsrMonitorWork*)task->work;
-    D_80114D08 = 0xA;
-    cameraId   = (s16)work->cameraId;
+    index       = 0;
+    level       = D_acropolis_security_room_801826B4;
+    work        = (_AcropolisSecurityRoomMonitorWork*)task->work;
+    D_80114D08  = 0xA;
+    screenLevel = (s16)work->screenLevel;
 loop:
-    if (cameraId != *camera) {
-        index  += 1;
-        camera += 1;
+    if (screenLevel != *level) {
+        index += 1;
+        level += 1;
         if (index >= 5) {
             GameFlag_SetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA, 0);
             goto done;

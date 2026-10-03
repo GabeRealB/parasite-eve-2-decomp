@@ -51595,13 +51595,13 @@ destination is word-sized. Assigning the cast to an `s16` local keeps the
 truncation visible and `combine` gives up:
 
 ```c
-s16 cam = (s16)work->cameraId;   /* lhu; nop; sll 16; sra 16  */
-s32 cam = (s16)work->cameraId;   /* lh                        */
+s16 cam = (s16)work->screenLevel;   /* lhu; nop; sll 16; sra 16  */
+s32 cam = (s16)work->screenLevel;   /* lh                        */
 ```
 
 Both spellings compare identically afterwards, so the leftover `sll`/`sra` pair
 is the only signal. Widen the local before reaching for a struct-field type
-change — `AsrMonitorWork::cameraId` has to stay `u16` for the `lhu` in
+change — `_AcropolisSecurityRoomMonitorWork::screenLevel` has to stay `u16` for the `lhu` in
 `func_acropolis_security_room_8017EA5C`.
 
 ### A stack-copied dispatch table whose `.rodata` is longer than the copy

@@ -169,6 +169,10 @@ enum {
     /// Click when the highlighted row of the security monitor's camera list changes the
     /// displayed camera view.
     SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_SELECT = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 3),
+    /// Click when the security monitor's grey wash steps one detent brighter.
+    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_BRIGHTER = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 6),
+    /// Click when the security monitor's grey wash steps one detent darker.
+    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_DARKER = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 7),
     /// Loop started with the security room's streamed cutscene and faded out (0x14) at
     /// movie frame 0x46 or when the player skips.
     SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 8),
