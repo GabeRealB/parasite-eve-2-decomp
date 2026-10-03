@@ -43,20 +43,28 @@ typedef struct _GpVolFade {
 } GpVolFade;
 STATIC_ASSERT_SIZEOF(GpVolFade, 4);
 
-/// 0xC-byte Type-A sound-param fade at `Task::spawnArg2` for `Gp_SndFadeTask`
-/// (bank 9 type 0xE; live instance `D_801156E0`). `field_0` is the sound id
-/// passed to `SndEvt_EnqueueTypeA`. `field_4` is the start/current param
-/// (snapshotted into `D_801156C4`); `field_6` is the target; `field_8` is
-/// the duration in frames (`0` applies `field_6` immediately). Completing
-/// or instant-applying the fade clears `D_8010FBE8`.
-typedef struct _GpSndFade {
-    /* 0x0 */ s32  field_0; // sound id
-    /* 0x4 */ u16  field_4; // start / current param
-    /* 0x6 */ u16  field_6; // target param
-    /* 0x8 */ u16  field_8; // duration
-    /* 0xA */ byte pad_A[2];
-} GpSndFade;
-STATIC_ASSERT_SIZEOF(GpSndFade, 0xC);
+/// Request and running level of the event-script fade of one sound's attenuation.
+///
+/// `EVENT_SCRIPT_OPCODE_FADE_SOUND_ATTENUATION` fills the sound, target and
+/// duration, then hands the record to the fade task as `Task::spawnArg2`. The
+/// task steps `attenuation` linearly from its value when the fade begins to
+/// `targetAttenuation`, re-sending the sound's attenuation with an unchanged pan
+/// on every update; a zero duration sends the target once.
+///
+/// The interpreter has a single record. `attenuation` is therefore the level of
+/// whichever sound a script most recently started or faded, not of `soundId`:
+/// the two sound-start opcodes store their attenuation operand in it, so a fade
+/// continues from the level the sound was started at only when no other sound
+/// start came between. Levels are kept and interpolated as unsigned halfwords,
+/// and each update sends the low byte as the signed attenuation the sound
+/// events take (0 full, magnitude 127 silent).
+typedef struct {
+    s32 soundId;           // Sound-script request id whose attenuation is faded
+    u16 attenuation;       // Level last sent by a script sound start or fade step; the next fade starts here
+    u16 targetAttenuation; // Level the fade ends on
+    u16 durationFrames;    // Task updates the fade lasts (0 applies the target immediately)
+} _EvsSoundAttenuationFade;
+STATIC_ASSERT_SIZEOF(_EvsSoundAttenuationFade, 0xC);
 
 /// 0x34-byte event-script interpreter state stored at `Task::work` for the
 /// script task. `pc` is the current command, `wait` the frame countdown set by
@@ -113,7 +121,7 @@ ScreenFade D_801156D8;
 
 GpVolFade D_801156DC;
 
-GpSndFade D_801156E0;
+_EvsSoundAttenuationFade D_801156E0;
 
 s32 D_801156EC;
 
@@ -362,7 +370,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_START_SOUND:
                 SndEvt_EnqueueType6(st->pc->operand0.value, (s8)st->pc->operand1.value, (s8)st->pc->operand2.value);
-                D_801156E0.field_4 = (u16)st->pc->operand2.value;
+                D_801156E0.attenuation = st->pc->operand2.value;
                 break;
 
             case EVENT_SCRIPT_OPCODE_STOP_SOUND:
@@ -463,10 +471,10 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (D_8010FBE8 != NULL) {
                     taskKill(D_8010FBE8);
                 }
-                D_801156E0.field_0 = st->pc->operand0.value;
-                D_801156E0.field_6 = (u16)st->pc->operand1.value;
-                D_801156E0.field_8 = (u16)st->pc->operand2.value;
-                D_8010FBE8         = Task_SpawnPtr(9, 0xE, 0, &D_801156E0);
+                D_801156E0.soundId           = st->pc->operand0.value;
+                D_801156E0.targetAttenuation = st->pc->operand1.value;
+                D_801156E0.durationFrames    = st->pc->operand2.value;
+                D_8010FBE8                   = Task_SpawnPtr(9, 0xE, 0, &D_801156E0);
                 break;
 
             case EVENT_SCRIPT_OPCODE_REBUILD_TMD_BUFFERS:
@@ -579,7 +587,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_START_STAGE_SOUND:
                 Gp_EnqueueStageSnd6(st->pc->operand0.value, (s8)st->pc->operand1.value, (s8)st->pc->operand2.value);
-                D_801156E0.field_4 = (u16)st->pc->operand2.value;
+                D_801156E0.attenuation = st->pc->operand2.value;
                 break;
 
             // Each control transfer compensates for the common advance below.
@@ -647,29 +655,29 @@ void Gp_VolFadeTask(Task* arg0)
 
 void Gp_SndFadeTask(Task* arg0)
 {
-    GpSndFade* fade;
-    s32        volume;
+    _EvsSoundAttenuationFade* fade;
+    s32                       volume;
 
     fade = arg0->spawnArg2.pointer;
     switch (arg0->state) {
         case 0:
-            if (fade->field_8 == 0) {
-                SndEvt_EnqueueTypeA(fade->field_0, 0, (s8)fade->field_6);
-                fade->field_4 = fade->field_6;
+            if (fade->durationFrames == 0) {
+                SndEvt_EnqueueTypeA(fade->soundId, 0, (s8)fade->targetAttenuation);
+                fade->attenuation = fade->targetAttenuation;
                 taskKill(arg0);
                 D_8010FBE8 = 0;
             } else {
                 D_801156C6 = 0;
-                D_801156C4 = fade->field_4;
+                D_801156C4 = fade->attenuation;
             }
             arg0->state++;
             break;
         case 1:
             D_801156C6++;
-            volume = (D_801156C4 * (fade->field_8 - D_801156C6) + fade->field_6 * D_801156C6) / fade->field_8;
-            SndEvt_EnqueueTypeA(fade->field_0, 0, (s8)volume);
-            fade->field_4 = volume;
-            if (D_801156C6 == fade->field_8) {
+            volume = (D_801156C4 * (fade->durationFrames - D_801156C6) + fade->targetAttenuation * D_801156C6) / fade->durationFrames;
+            SndEvt_EnqueueTypeA(fade->soundId, 0, (s8)volume);
+            fade->attenuation = volume;
+            if (D_801156C6 == fade->durationFrames) {
                 taskKill(arg0);
                 D_8010FBE8 = 0;
             }
