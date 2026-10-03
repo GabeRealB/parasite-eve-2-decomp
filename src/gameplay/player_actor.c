@@ -110,21 +110,22 @@ typedef struct {
 } _PlayerActorShortestTurnScratch;
 STATIC_ASSERT_SIZEOF(_PlayerActorShortestTurnScratch, 0xC);
 
-/// 0x40-byte scratch from the scratch stack used by `Gp_StepPlayerMove`.
-/// `scale` is `D_80112E10[movementMode]` (signed, stored as a word). `angle`
-/// holds `0x640000` then the yaw passed to `gfxRotMatrixY`. `saved` is a
-/// copy of `GfxCoord.coord` around that rotate. `vec` is the matrix
-/// column from `gfxReadMatrixZAxis` / `VectorNormalSS`, later the Manhattan
-/// `|dx|+|dz|` to the lock point. `lock` is `Gp_GetLockPos` output.
-typedef struct _GpMoveScratch {
-    /* 0x00 */ s32     scale;
-    /* 0x04 */ s32     angle;
-    /* 0x08 */ MATRIX  saved;
-    /* 0x28 */ SVECTOR vec;
-    /* 0x30 */ VECTOR3 lock;
-    /* 0x3C */ s32     pad;
-} GpMoveScratch;
-STATIC_ASSERT_SIZEOF(GpMoveScratch, 0x40);
+/// Scratch-stack block for turning an actor's movement mode into its velocity for the frame.
+///
+/// A moving actor travels along its model's forward axis at one unit vector
+/// (4096) divided by the mode's speed divisor. The circling mode also strafes
+/// around the lock target: the model matrix is set aside, yawed to the strafe
+/// heading to read that direction, and put back. One block is reserved per
+/// call and released before returning. Angles use 4096 units per turn.
+typedef struct {
+    s32     speedDivisor;   // Movement mode's divisor: a unit direction divided by it is the distance covered per frame
+    s32     strafeYaw;      // Circling only: the constant divided by the target distance, then the yaw from the forward axis to the strafe heading
+    MATRIX  savedMatrix;    // Circling only: the model's local matrix, restored once the strafe heading has been read from it
+    SVECTOR direction;      // Model's forward axis, then the strafe heading; while circling, `vx` first holds the |dx| + |dz| distance to the target
+    VECTOR3 targetPosition; // Circling only: the lock target's position
+    byte    field_3C[4];    // Never accessed; role unproven
+} _PlayerActorMoveStepScratch;
+STATIC_ASSERT_SIZEOF(_PlayerActorMoveStepScratch, 0x40);
 
 /// Scratch-pad block for turning an actor's yaw toward its lock target.
 /// `coord` is the aiming origin, placed by `rot` (the equipped weapon's row of
@@ -4910,11 +4911,11 @@ void Gp_TickActorAnimState(Task* arg0)
 
 void Gp_StepPlayerMove(Task* arg0)
 {
-    GameActor*     actor;
-    GfxCoord*      coord;
-    GpMoveScratch* s;
+    GameActor*                   actor;
+    GfxCoord*                    coord;
+    _PlayerActorMoveStepScratch* block;
 
-    s     = SCRATCH_STACK_RESERVE_BLOCK(GpMoveScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorMoveStepScratch);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch ((u16)actor->movementMode) {
@@ -4935,43 +4936,43 @@ void Gp_StepPlayerMove(Task* arg0)
                 actor->velocity.vy = 0;
                 actor->velocity.vz = 0;
             } else {
-                s->scale = D_80112E10[(u16)actor->movementMode];
-                gfxReadMatrixZAxis(&coord->coord, &s->vec);
-                VectorNormalSS(&s->vec, &s->vec);
-                actor->velocity.vx = s->vec.vx * actor->movementSign / s->scale;
+                block->speedDivisor = D_80112E10[(u16)actor->movementMode];
+                gfxReadMatrixZAxis(&coord->coord, &block->direction);
+                VectorNormalSS(&block->direction, &block->direction);
+                actor->velocity.vx = block->direction.vx * actor->movementSign / block->speedDivisor;
                 actor->velocity.vy = 0;
-                actor->velocity.vz = s->vec.vz * actor->movementSign / s->scale;
+                actor->velocity.vz = block->direction.vz * actor->movementSign / block->speedDivisor;
             }
             break;
         case 4:
-            s->scale = D_80112E10[(u16)actor->movementMode];
-            gfxReadMatrixZAxis(&coord->coord, &s->vec);
-            VectorNormalSS(&s->vec, &s->vec);
-            actor->velocity.vx = s->vec.vx * actor->movementSign / s->scale;
+            block->speedDivisor = D_80112E10[(u16)actor->movementMode];
+            gfxReadMatrixZAxis(&coord->coord, &block->direction);
+            VectorNormalSS(&block->direction, &block->direction);
+            actor->velocity.vx  = block->direction.vx * actor->movementSign / block->speedDivisor;
+            actor->velocity.vy  = 0;
+            actor->velocity.vz  = block->direction.vz * actor->movementSign / block->speedDivisor;
+            coord->coord.t[0]  += actor->velocity.vx;
+            coord->coord.t[1]  += actor->velocity.vy;
+            coord->coord.t[2]  += actor->velocity.vz;
+            block->savedMatrix  = coord->coord;
+            block->speedDivisor = D_80112E10[(u16)actor->movementMode];
+            Gp_GetLockPos(actor->targetNode, &block->targetPosition);
+            block->direction.vx  = abs(coord->coord.t[0] - block->targetPosition.vx);
+            block->direction.vx += abs(coord->coord.t[2] - block->targetPosition.vz);
+            block->strafeYaw     = 0x640000;
+            block->strafeYaw     = (0x800 - block->strafeYaw / (block->direction.vx * 0x274)) >> 1;
+            gfxRotMatrixY(&coord->coord, block->strafeYaw, 0);
+            gfxReadMatrixZAxis(&coord->coord, &block->direction);
+            actor->velocity.vx = block->direction.vx * actor->turnSign / block->speedDivisor;
             actor->velocity.vy = 0;
-            actor->velocity.vz = s->vec.vz * actor->movementSign / s->scale;
-            coord->coord.t[0] += actor->velocity.vx;
-            coord->coord.t[1] += actor->velocity.vy;
-            coord->coord.t[2] += actor->velocity.vz;
-            s->saved           = coord->coord;
-            s->scale           = D_80112E10[(u16)actor->movementMode];
-            Gp_GetLockPos(actor->targetNode, &s->lock);
-            s->vec.vx  = abs(coord->coord.t[0] - s->lock.vx);
-            s->vec.vx += abs(coord->coord.t[2] - s->lock.vz);
-            s->angle   = 0x640000;
-            s->angle   = (0x800 - s->angle / (s->vec.vx * 0x274)) >> 1;
-            gfxRotMatrixY(&coord->coord, s->angle, 0);
-            gfxReadMatrixZAxis(&coord->coord, &s->vec);
-            actor->velocity.vx = s->vec.vx * actor->turnSign / s->scale;
-            actor->velocity.vy = 0;
-            actor->velocity.vz = s->vec.vz * actor->turnSign / s->scale;
-            coord->coord       = s->saved;
+            actor->velocity.vz = block->direction.vz * actor->turnSign / block->speedDivisor;
+            coord->coord       = block->savedMatrix;
             break;
     }
     coord->coord.t[0] += actor->velocity.vx;
     coord->coord.t[1] += actor->velocity.vy;
     coord->coord.t[2] += actor->velocity.vz;
-    SCRATCH_STACK_RELEASE_BLOCK(GpMoveScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorMoveStepScratch);
 }
 
 /// Eases `angle` back toward zero by an eighth of itself, at least 0x20 per
