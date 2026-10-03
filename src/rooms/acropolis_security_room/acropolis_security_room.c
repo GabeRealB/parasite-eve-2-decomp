@@ -125,13 +125,19 @@ typedef struct {
 } _AcropolisSecurityRoomPowerSupplyWork;
 STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomPowerSupplyWork, 0x10);
 
-/// Scratch state of the security-room ambience task, stored at `Task::work`.
-/// `func_acropolis_security_room_80180368` allocates it with `memCalloc(4, 0)`,
-/// so the size below is the allocation and not a guess.
+/// Work block of the task that sounds the movie loop over one of the
+/// power-supply panel's two unlock scenes, held in `Task::work`.
+///
+/// The task starts `SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP` and fades it out
+/// once: when the scene's movie reaches the cue frame, or, if it has not got
+/// that far, when the player skips the scene. The block holds the latch that
+/// keeps the fade from being queued twice. The task allocates the block zeroed
+/// when it starts; the allocation and its clear are both four bytes long.
 typedef struct {
-    /* 0x0 */ u16  fadeStarted; // the looping ambience has already been faded out
-    /* 0x2 */ byte pad_2[0x2];
-} AsrAmbienceState;
+    u16  fadeStarted; // Whether the loop's fade-out was queued at the cue frame (0 no, 1 yes)
+    byte field_2[2];  // Allocated and cleared with the block but never accessed; role unproven
+} _AcropolisSecurityRoomMovieLoopWork;
+STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomMovieLoopWork, 0x4);
 
 /// One frame of the 128x128 textured quad `func_acropolis_security_room_80180E34`
 /// draws: the sprite is centred on (`x`, `y`) with texture page 0xAB, the CLUT
@@ -3052,14 +3058,14 @@ void func_acropolis_security_room_80180294(Task* task)
 /// the task system to kill itself.
 void func_acropolis_security_room_80180368(Task* task)
 {
-    CdCmdQueue*       queue;
-    s32               state;
-    AsrAmbienceState* st;
-    AsrAmbienceState* alloc;
+    CdCmdQueue*                          queue;
+    s32                                  state;
+    _AcropolisSecurityRoomMovieLoopWork* work;
+    _AcropolisSecurityRoomMovieLoopWork* alloc;
 
     queue = &gCdCmdQueue;
     state = task->state;
-    st    = (AsrAmbienceState*)task->work;
+    work  = task->work;
 
     switch (state) {
         case 0:
@@ -3072,20 +3078,20 @@ void func_acropolis_security_room_80180368(Task* task)
     return;
 
 L_case0:
-    alloc      = memCalloc(sizeof(AsrAmbienceState), 0);
+    alloc      = memCalloc(sizeof(_AcropolisSecurityRoomMovieLoopWork), 0);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
         return;
     }
-    memFillBytes(alloc, 0, sizeof(AsrAmbienceState));
+    memFillBytes(alloc, 0, sizeof(_AcropolisSecurityRoomMovieLoopWork));
     SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0, 0);
     goto advance;
 
 L_case1:
-    if (queue->movieFrame >= 0x46 && st->fadeStarted == 0) {
+    if (queue->movieFrame >= 0x46 && work->fadeStarted == 0) {
         SndEvt_EnqueueType7(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
-        st->fadeStarted = state;
+        work->fadeStarted = 1;
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
         task->state = task->state + 1;
@@ -3093,7 +3099,7 @@ L_case1:
     if (Pad_CheckFlag800() == 0) {
         return;
     }
-    if (st->fadeStarted == 0) {
+    if (work->fadeStarted == 0) {
         SndEvt_EnqueueType7(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
     }
 advance:
