@@ -58,9 +58,12 @@ def _code_key() -> str:
 
 
 def _flags_key(root: str) -> str:
+    """The compile flags, independent of where the tree is checked out: the
+    database holds absolute paths, and a copy into a worker must stay valid."""
     path = os.path.join(root, "compile_commands.json")
     with open(path, "rb") as fh:
-        return hashlib.sha1(fh.read()).hexdigest()
+        text = fh.read().replace(os.path.abspath(root).encode(), b"<root>")
+    return hashlib.sha1(text).hexdigest()
 
 
 def _tracked(rel: str) -> bool:
