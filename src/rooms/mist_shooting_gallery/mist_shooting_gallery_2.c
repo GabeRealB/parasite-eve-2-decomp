@@ -92,7 +92,7 @@ enum {
 ///   turned half a revolution and runs the alternate path state, 2 is the
 ///   uncounted demonstration target, which no script requests)
 /// - bits 16-23: movement path the mount follows
-/// - bits 24-27: seconds the mount holds at a waypoint that has no step
+/// - bits 24-27: seconds the mount holds on a path whose first waypoint has no speed
 /// - bit 28: the mount keeps rotating
 /// - bit 29: forwarded to the target itself
 /// - bit 30: spawn even when the player is within 0x400 of the position

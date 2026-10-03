@@ -135,13 +135,28 @@ typedef struct Actor107600HitPos {
     /* 0x8 */ s32 vz;
 } Actor107600HitPos;
 
-/// One waypoint of the paths in `D_actor_107600_80135624`: the X/Z target the
-/// model root steps towards at `step` units per frame; an `x` of -1 ends the path.
-typedef struct Actor107600Waypoint {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-    /* 0x4 */ s16 step;
-} Actor107600Waypoint;
+/// `_Actor107600Waypoint::x` of the record that closes a path.
+enum { ACTOR_107600_PATH_END = -1 };
+
+/// One stop on a movement path of the gallery target's mount.
+///
+/// A path is an array of these closed by a record whose `x` is
+/// `ACTOR_107600_PATH_END`; a target's spawn argument selects the path. The
+/// mount closes on the current stop along X and Z independently, `speed` units
+/// a frame on each, and moves on to the next record whenever either axis
+/// arrives. A leg that changes both coordinates therefore lists its stop
+/// twice, one record per arrival. Coordinates are in the space the mount is
+/// spawned in.
+///
+/// A path whose first record has no speed is stationary: the mount stays where
+/// it was spawned for the hold time in its spawn argument, and that record's
+/// coordinates are not read.
+typedef struct {
+    s16 x;     // Stop position, or `ACTOR_107600_PATH_END`
+    s16 z;
+    s16 speed; // Distance per frame on each axis towards this stop; 0 in a path's first record holds the mount in place
+} _Actor107600Waypoint;
+STATIC_ASSERT_SIZEOF(_Actor107600Waypoint, 6);
 
 /// Entry of the effect-offset table `func_actor_107600_80133024` copies into
 /// an `SVECTOR`'s `vx`/`vy`.
@@ -203,7 +218,7 @@ static void func_actor_107600_80134EF4(Task* arg0);
 
 /* Per-variant waypoint paths `func_actor_107600_80132160` walks, indexed by
  * `Actor107600Work.field_146`; trailing-blob data. */
-extern Actor107600Waypoint* D_actor_107600_80135624[];
+extern _Actor107600Waypoint* D_actor_107600_80135624[];
 
 /* Eight effect offsets `func_actor_107600_80133024` cycles through from
  * `Actor107600Work.field_16A`. */
@@ -277,220 +292,220 @@ TaskDesc D_actor_107600_80134F94[19] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_107600_801348A0, { .model = &gMistShootingGalleryModel0AF5C } },
 };
 
-Actor107600Waypoint D_actor_107600_80135078[2] = {
+_Actor107600Waypoint D_actor_107600_80135078[2] = {
     { 0, 3000, 0 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135084[3] = {
+_Actor107600Waypoint D_actor_107600_80135084[3] = {
     { 1500, 6000, 40 },
     { -1500, 6000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135098[3] = {
+_Actor107600Waypoint D_actor_107600_80135098[3] = {
     { 1500, 4500, 40 },
     { -1500, 4500, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801350AC[3] = {
+_Actor107600Waypoint D_actor_107600_801350AC[3] = {
     { 1500, 3000, 40 },
     { -1500, 3000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801350C0[3] = {
+_Actor107600Waypoint D_actor_107600_801350C0[3] = {
     { 1500, 1500, 40 },
     { -1500, 1500, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801350D4[3] = {
+_Actor107600Waypoint D_actor_107600_801350D4[3] = {
     { 1500, 0, 40 },
     { -1500, 0, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801350E8[2] = {
+_Actor107600Waypoint D_actor_107600_801350E8[2] = {
     { -1400, 5800, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801350F4[2] = {
+_Actor107600Waypoint D_actor_107600_801350F4[2] = {
     { -1400, 3000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135100[2] = {
+_Actor107600Waypoint D_actor_107600_80135100[2] = {
     { -1400, 200, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_8013510C[3] = {
+_Actor107600Waypoint D_actor_107600_8013510C[3] = {
     { 1500, 6000, 40 },
     { 4500, 6000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135120[3] = {
+_Actor107600Waypoint D_actor_107600_80135120[3] = {
     { 1500, 4500, 40 },
     { 6000, 4500, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135134[3] = {
+_Actor107600Waypoint D_actor_107600_80135134[3] = {
     { 1500, 3000, 40 },
     { 6000, 3000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135148[3] = {
+_Actor107600Waypoint D_actor_107600_80135148[3] = {
     { 1500, 1500, 40 },
     { 6000, 1500, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_8013515C[3] = {
+_Actor107600Waypoint D_actor_107600_8013515C[3] = {
     { 1500, 0, 40 },
     { 4500, 0, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135170[2] = {
+_Actor107600Waypoint D_actor_107600_80135170[2] = {
     { 4600, 5800, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_8013517C[2] = {
+_Actor107600Waypoint D_actor_107600_8013517C[2] = {
     { 4600, 3000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135188[2] = {
+_Actor107600Waypoint D_actor_107600_80135188[2] = {
     { 4600, 200, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135194[3] = {
+_Actor107600Waypoint D_actor_107600_80135194[3] = {
     { 6000, 3000, 40 },
     { 6000, 0, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801351A8[3] = {
+_Actor107600Waypoint D_actor_107600_801351A8[3] = {
     { 4500, 3000, 40 },
     { 4500, 0, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801351BC[3] = {
+_Actor107600Waypoint D_actor_107600_801351BC[3] = {
     { 3000, 3000, 40 },
     { 3000, 0, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801351D0[3] = {
+_Actor107600Waypoint D_actor_107600_801351D0[3] = {
     { 1500, 3000, 40 },
     { 1500, 0, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801351E4[3] = {
+_Actor107600Waypoint D_actor_107600_801351E4[3] = {
     { 0, 3000, 40 },
     { 0, 0, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801351F8[3] = {
+_Actor107600Waypoint D_actor_107600_801351F8[3] = {
     { -1500, 3000, 40 },
     { -1500, 0, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_8013520C[2] = {
+_Actor107600Waypoint D_actor_107600_8013520C[2] = {
     { 4600, 200, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135218[2] = {
+_Actor107600Waypoint D_actor_107600_80135218[2] = {
     { 1600, 200, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135224[2] = {
+_Actor107600Waypoint D_actor_107600_80135224[2] = {
     { -1400, 200, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135230[3] = {
+_Actor107600Waypoint D_actor_107600_80135230[3] = {
     { 6000, 3000, 40 },
     { 6000, 6000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135244[3] = {
+_Actor107600Waypoint D_actor_107600_80135244[3] = {
     { 4500, 3000, 40 },
     { 4500, 6000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135258[3] = {
+_Actor107600Waypoint D_actor_107600_80135258[3] = {
     { 3000, 3000, 40 },
     { 3000, 6000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_8013526C[3] = {
+_Actor107600Waypoint D_actor_107600_8013526C[3] = {
     { 1500, 3000, 40 },
     { 1500, 6000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135280[3] = {
+_Actor107600Waypoint D_actor_107600_80135280[3] = {
     { 0, 3000, 40 },
     { 0, 6000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135294[3] = {
+_Actor107600Waypoint D_actor_107600_80135294[3] = {
     { -1500, 3000, 40 },
     { -1500, 6000, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801352A8[2] = {
+_Actor107600Waypoint D_actor_107600_801352A8[2] = {
     { 4600, 5800, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801352B4[2] = {
+_Actor107600Waypoint D_actor_107600_801352B4[2] = {
     { 1600, 5800, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801352C0[2] = {
+_Actor107600Waypoint D_actor_107600_801352C0[2] = {
     { -1400, 5800, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801352CC[5] = {
+_Actor107600Waypoint D_actor_107600_801352CC[5] = {
     { 1500, 6000, 50 },
     { 1500, 3000, 50 },
     { 4500, 3000, 50 },
     { 4500, 0, 50 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801352EC[5] = {
+_Actor107600Waypoint D_actor_107600_801352EC[5] = {
     { 1500, 0, 50 },
     { 1500, 3000, 50 },
     { 4500, 3000, 50 },
     { 4500, 6000, 50 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_8013530C[8] = {
+_Actor107600Waypoint D_actor_107600_8013530C[8] = {
     { 0, 6000, 30 },
     { 0, 4500, 30 },
     { 1500, 4500, 40 },
@@ -498,10 +513,10 @@ Actor107600Waypoint D_actor_107600_8013530C[8] = {
     { 4500, 6000, 50 },
     { 4500, 4500, 50 },
     { 6000, 4500, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_8013533C[8] = {
+_Actor107600Waypoint D_actor_107600_8013533C[8] = {
     { 0, 0, 30 },
     { 0, 1500, 30 },
     { 1500, 1500, 40 },
@@ -509,10 +524,10 @@ Actor107600Waypoint D_actor_107600_8013533C[8] = {
     { 4500, 0, 50 },
     { 4500, 1500, 50 },
     { 6000, 1500, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_8013536C[10] = {
+_Actor107600Waypoint D_actor_107600_8013536C[10] = {
     { -1500, 0, 40 },
     { 0, 0, 40 },
     { 0, 6000, 50 },
@@ -522,55 +537,55 @@ Actor107600Waypoint D_actor_107600_8013536C[10] = {
     { 3000, 6000, 100 },
     { 4500, 6000, 100 },
     { 4500, 0, 100 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801353A8[7] = {
+_Actor107600Waypoint D_actor_107600_801353A8[7] = {
     { 9000, 6000, 40 },
     { 9000, 4500, 40 },
     { 6000, 4500, 50 },
     { 3000, 4500, 50 },
     { 3000, 6000, 50 },
     { -3000, 6000, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801353D4[7] = {
+_Actor107600Waypoint D_actor_107600_801353D4[7] = {
     { 9000, 0, 40 },
     { 9000, 1500, 40 },
     { 6000, 1500, 50 },
     { 3000, 1500, 50 },
     { 3000, 0, 50 },
     { -3000, 0, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135400[6] = {
+_Actor107600Waypoint D_actor_107600_80135400[6] = {
     { 9000, 6000, 40 },
     { 9000, 3000, 40 },
     { 9000, 0, 40 },
-    { 0x2EE0, 0, 40 },
-    { 0x2EE0, 3000, 40 },
-    { -1, 0, 0 },
+    { 12000, 0, 40 },
+    { 12000, 3000, 40 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135424[5] = {
+_Actor107600Waypoint D_actor_107600_80135424[5] = {
     { 7500, 4500, 40 },
     { 7500, 6000, 70 },
-    { 0x2EE0, 6000, 70 },
-    { 0x2EE0, 4500, 70 },
-    { -1, 0, 0 },
+    { 12000, 6000, 70 },
+    { 12000, 4500, 70 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135444[5] = {
+_Actor107600Waypoint D_actor_107600_80135444[5] = {
     { 7500, 1500, 40 },
     { 7500, 0, 70 },
-    { 0x2EE0, 0, 70 },
-    { 0x2EE0, 1500, 70 },
-    { -1, 0, 0 },
+    { 12000, 0, 70 },
+    { 12000, 1500, 70 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135464[11] = {
+_Actor107600Waypoint D_actor_107600_80135464[11] = {
     { 4500, 6000, 140 },
     { 4500, 4500, 140 },
     { 7500, 4500, 140 },
@@ -581,116 +596,116 @@ Actor107600Waypoint D_actor_107600_80135464[11] = {
     { -3000, 3000, 140 },
     { 4500, 3000, 140 },
     { 7500, 3000, 140 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801354A8[7] = {
+_Actor107600Waypoint D_actor_107600_801354A8[7] = {
     { -3000, 1500, 50 },
     { 0, 1500, 50 },
     { 0, 4500, 50 },
     { 3000, 4500, 50 },
     { 3000, 1500, 50 },
     { 7500, 1500, 50 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801354D4[5] = {
+_Actor107600Waypoint D_actor_107600_801354D4[5] = {
     { 1500, 6000, 40 },
     { 4500, 6000, 40 },
     { 4500, 4500, 40 },
     { 7500, 4500, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801354F4[5] = {
+_Actor107600Waypoint D_actor_107600_801354F4[5] = {
     { 1500, 0, 40 },
     { 4500, 1500, 40 },
     { 4500, 1500, 40 },
     { 7500, 1500, 40 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135514[5] = {
-    { 0x2EE0, 0, 40 },
-    { 0x2EE0, 6000, 40 },
-    { 0x2EE0, 0, 40 },
-    { 0x2EE0, 6000, 40 },
-    { -1, 0, 0 },
+_Actor107600Waypoint D_actor_107600_80135514[5] = {
+    { 12000, 0, 40 },
+    { 12000, 6000, 40 },
+    { 12000, 0, 40 },
+    { 12000, 6000, 40 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135534[3] = {
+_Actor107600Waypoint D_actor_107600_80135534[3] = {
     { 6000, 3000, 70 },
     { 6000, 0, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135548[3] = {
+_Actor107600Waypoint D_actor_107600_80135548[3] = {
     { 4500, 3000, 70 },
     { 4500, 0, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_8013555C[3] = {
+_Actor107600Waypoint D_actor_107600_8013555C[3] = {
     { 3000, 3000, 70 },
     { 3000, 0, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135570[3] = {
+_Actor107600Waypoint D_actor_107600_80135570[3] = {
     { 1500, 3000, 70 },
     { 1500, 0, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135584[3] = {
+_Actor107600Waypoint D_actor_107600_80135584[3] = {
     { 0, 3000, 70 },
     { 0, 0, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135598[3] = {
+_Actor107600Waypoint D_actor_107600_80135598[3] = {
     { -1500, 3000, 70 },
     { -1500, 0, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801355AC[3] = {
+_Actor107600Waypoint D_actor_107600_801355AC[3] = {
     { 6000, 3000, 70 },
     { 6000, 6000, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801355C0[3] = {
+_Actor107600Waypoint D_actor_107600_801355C0[3] = {
     { 4500, 3000, 70 },
     { 4500, 6000, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801355D4[3] = {
+_Actor107600Waypoint D_actor_107600_801355D4[3] = {
     { 3000, 3000, 70 },
     { 3000, 6000, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801355E8[3] = {
+_Actor107600Waypoint D_actor_107600_801355E8[3] = {
     { 1500, 3000, 70 },
     { 1500, 6000, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_801355FC[3] = {
+_Actor107600Waypoint D_actor_107600_801355FC[3] = {
     { 0, 3000, 70 },
     { 0, 6000, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint D_actor_107600_80135610[3] = {
+_Actor107600Waypoint D_actor_107600_80135610[3] = {
     { -1500, 3000, 70 },
     { -1500, 6000, 70 },
-    { -1, 0, 0 },
+    { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-Actor107600Waypoint* D_actor_107600_80135624[62] = {
+_Actor107600Waypoint* D_actor_107600_80135624[62] = {
     D_actor_107600_80135078,
     D_actor_107600_80135084,
     D_actor_107600_80135098,
@@ -846,20 +861,18 @@ static void func_actor_107600_80131F10(Task* arg0)
 /// Path-following phase: grows the
 /// `field_14B` scale to 100, bobs the model root for four frames, then once the
 /// first child raises bit 0x20 steps the root along the `field_146` path of
-/// `D_actor_107600_80135624` one waypoint at a time. A waypoint with no step
-/// holds for `30 *` the spawn nibble instead; the -1 terminator, the countdown
-/// or the child's bit 0x40 stops the path, and bit 0x80 then shrinks the scale
-/// back to 0 and advances the task state.
+/// `D_actor_107600_80135624` one waypoint at a time. A path whose first waypoint
+/// has no speed holds for `30 *` the spawn nibble instead; the
+/// `ACTOR_107600_PATH_END` record, the countdown or the child's bit 0x40 stops
+/// the path, and bit 0x80 then shrinks the scale back to 0 and advances the
+/// task state.
 static void func_actor_107600_80132160(Task* arg0)
 {
-    Actor107600Work*     work  = (Actor107600Work*)arg0->work;
-    Enemy*               enemy = arg0->spawnArg2.pointer;
-    GfxCoord*            coord = arg0->extra.tmd->coords;
-    Actor107600Waypoint* wp;
-    s32                  d;
-    s16                  x;
-    u16                  z;
-    s32                  step;
+    Actor107600Work*      work  = (Actor107600Work*)arg0->work;
+    Enemy*                enemy = arg0->spawnArg2.pointer;
+    GfxCoord*             coord = arg0->extra.tmd->coords;
+    _Actor107600Waypoint* wp;
+    s32                   d;
 
     switch (work->field_140.step) {
         case 0:
@@ -890,7 +903,7 @@ static void func_actor_107600_80132160(Task* arg0)
             if (arg0->spawnArg1.value & 0x10000000) {
                 work->field_14A = 1;
             }
-            if (wp->step == 0) {
+            if (wp->speed == 0) {
                 work->field_140.step = 4;
                 work->field_13A      = (((u32)arg0->spawnArg1.value >> 24) & 0xF) * 30;
                 return;
@@ -899,43 +912,39 @@ static void func_actor_107600_80132160(Task* arg0)
         case 3:
             wp  = D_actor_107600_80135624[work->field_146];
             wp += work->field_148;
-            x   = wp->x;
-            if (x == -1) {
+            if (wp->x == ACTOR_107600_PATH_END) {
             stop:
                 work->field_140.step                      = 5;
                 work->field_14A                           = 0;
                 enemy->task->firstChild->spawnArg1.value |= 0x40;
                 return;
             }
-            d = (s16)(coord->coord.t[0] - x);
+            d = (s16)(coord->coord.t[0] - wp->x);
             if (d != 0) {
-                step = wp->step;
-                if (step >= abs(d)) {
+                if (wp->speed >= abs(d)) {
                     if (enemy->task->firstChild->spawnArg1.value & 0x40) {
                         goto stop;
                     }
-                    coord->coord.t[0] = x;
+                    coord->coord.t[0] = wp->x;
                     work->field_148++;
                 } else if (d < 0) {
-                    coord->coord.t[0] += step;
+                    coord->coord.t[0] += wp->speed;
                 } else {
-                    coord->coord.t[0] -= step;
+                    coord->coord.t[0] -= wp->speed;
                 }
             }
-            d = (s16)(coord->coord.t[2] - (u16)wp->z);
-            z = wp->z;
+            d = (s16)(coord->coord.t[2] - wp->z);
             if (d != 0) {
-                step = wp->step;
-                if (step >= abs(d)) {
+                if (wp->speed >= abs(d)) {
                     if (enemy->task->firstChild->spawnArg1.value & 0x40) {
                         goto stop;
                     }
-                    coord->coord.t[2] = (s16)z;
+                    coord->coord.t[2] = wp->z;
                     work->field_148++;
                 } else if (d < 0) {
-                    coord->coord.t[2] += step;
+                    coord->coord.t[2] += wp->speed;
                 } else {
-                    coord->coord.t[2] -= step;
+                    coord->coord.t[2] -= wp->speed;
                 }
             }
             return;
@@ -960,14 +969,11 @@ static void func_actor_107600_80132160(Task* arg0)
 /// -0xF4C and -0xF3C instead of -0x10 and 0.
 static void func_actor_107600_80132514(Task* arg0)
 {
-    Actor107600Work*     work  = (Actor107600Work*)arg0->work;
-    Enemy*               enemy = arg0->spawnArg2.pointer;
-    GfxCoord*            coord = arg0->extra.tmd->coords;
-    Actor107600Waypoint* wp;
-    s32                  d;
-    s16                  x;
-    u16                  z;
-    s32                  step;
+    Actor107600Work*      work  = (Actor107600Work*)arg0->work;
+    Enemy*                enemy = arg0->spawnArg2.pointer;
+    GfxCoord*             coord = arg0->extra.tmd->coords;
+    _Actor107600Waypoint* wp;
+    s32                   d;
 
     switch (work->field_140.step) {
         case 0:
@@ -998,7 +1004,7 @@ static void func_actor_107600_80132514(Task* arg0)
             if (arg0->spawnArg1.value & 0x10000000) {
                 work->field_14A = 1;
             }
-            if (wp->step == 0) {
+            if (wp->speed == 0) {
                 work->field_140.step = 4;
                 work->field_13A      = (((u32)arg0->spawnArg1.value >> 24) & 0xF) * 30;
                 return;
@@ -1007,43 +1013,39 @@ static void func_actor_107600_80132514(Task* arg0)
         case 3:
             wp  = D_actor_107600_80135624[work->field_146];
             wp += work->field_148;
-            x   = wp->x;
-            if (x == -1) {
+            if (wp->x == ACTOR_107600_PATH_END) {
             stop:
                 work->field_140.step                      = 5;
                 work->field_14A                           = 0;
                 enemy->task->firstChild->spawnArg1.value |= 0x40;
                 return;
             }
-            d = (s16)(coord->coord.t[0] - x);
+            d = (s16)(coord->coord.t[0] - wp->x);
             if (d != 0) {
-                step = wp->step;
-                if (step >= abs(d)) {
+                if (wp->speed >= abs(d)) {
                     if (enemy->task->firstChild->spawnArg1.value & 0x40) {
                         goto stop;
                     }
-                    coord->coord.t[0] = x;
+                    coord->coord.t[0] = wp->x;
                     work->field_148++;
                 } else if (d < 0) {
-                    coord->coord.t[0] += step;
+                    coord->coord.t[0] += wp->speed;
                 } else {
-                    coord->coord.t[0] -= step;
+                    coord->coord.t[0] -= wp->speed;
                 }
             }
-            d = (s16)(coord->coord.t[2] - (u16)wp->z);
-            z = wp->z;
+            d = (s16)(coord->coord.t[2] - wp->z);
             if (d != 0) {
-                step = wp->step;
-                if (step >= abs(d)) {
+                if (wp->speed >= abs(d)) {
                     if (enemy->task->firstChild->spawnArg1.value & 0x40) {
                         goto stop;
                     }
-                    coord->coord.t[2] = (s16)z;
+                    coord->coord.t[2] = wp->z;
                     work->field_148++;
                 } else if (d < 0) {
-                    coord->coord.t[2] += step;
+                    coord->coord.t[2] += wp->speed;
                 } else {
-                    coord->coord.t[2] -= step;
+                    coord->coord.t[2] -= wp->speed;
                 }
             }
             return;
