@@ -7,7 +7,7 @@
 Task* gRoomCutsceneSoundTask;
 
 /// The cutscene task `func_dryfield_gas_station_801807E0` publishes once its
-/// `DgsWork` block is set up, so the room's script helpers can reach it.
+/// `_DryfieldGasStationCutsceneWork` block is set up, so the room's script helpers can reach it.
 Task* D_dryfield_gas_station_80184BD4;
 
 #include "rooms/dryfield_gas_station.h"
@@ -68,26 +68,50 @@ Task* D_dryfield_gas_station_80184BD4;
 #define D_dryfield_gas_station_80182E5C (D_dryfield_gas_station_80182E44[1])
 #define D_dryfield_gas_station_80182E74 (D_dryfield_gas_station_80182E44[2])
 
-/// Work block for the gas-station cutscene task, allocated as 0x10 zeroed bytes
-/// by `func_dryfield_gas_station_801807E0` and hung off `Task::work` (0x1C).
+/// Commands the gas-station cutscene script leaves for the cutscene task.
 ///
-/// `owner` is the slot-3 game pointer (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`) the task dispatches
-/// its messages to, and `playerEffActive` is the flag guarding
-/// `Gp_KillPlayerEffs` / `Gp_SpawnWeaponEff`. `field_4` is the script command
-/// `func_dryfield_gas_station_801803C0` carries out and clears once it is done,
-/// `field_6` the step within a multi-frame command (both written together by
-/// `func_dryfield_gas_station_80180B2C`), and `field_8` the frame counter of the
-/// command that walks the owner across the forecourt.
-typedef struct DgsWork {
-    /* 0x00 */ void* owner;
-    /* 0x04 */ u16   field_4;
-    /* 0x06 */ u16   field_6;
-    /* 0x08 */ u16   field_8;
-    /* 0x0A */ byte  pad_A[0x2];
-    /* 0x0C */ u16   playerEffActive;
-    /* 0x0E */ byte  pad_E[0x2];
-} DgsWork;
-STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
+/// Each one is stored over the previous command and restarts `commandStep`.
+/// The task carries it out on later updates and then clears it. A command
+/// that takes several updates advances `commandStep` and returns until its
+/// last step.
+enum {
+    /// Nothing pending.
+    DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_NONE = 0,
+    /// Places the player at the first entry of `D_dryfield_gas_station_80182E44`
+    /// and starts the cutscene loop plus area sound 0x12.
+    DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_START_AUDIO = 1,
+    /// Plays animation 1 of `D_dryfield_gas_station_80182E30` from its start
+    /// and sets the playback rate to 8.
+    DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLAY_ANIMATION = 2,
+    /// Plays area sound 0x13, places the player at the second entry, and
+    /// blends into animation 2 over 30 frames.
+    DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_BLEND = 3,
+    /// Plays animation 3 and selects player movement mode 1, then sends one
+    /// thirtieth of the first-to-third placement delta each update. After 31
+    /// steps, blends into animation 0 over 15 frames.
+    DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_WALK_PLACEMENTS = 4,
+    /// Restores suppressed player effects, places the player at the third
+    /// entry, plays animation 0 from its start, stops the cutscene loop and
+    /// enables the display.
+    DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_RESTORE_AND_SHOW = 5,
+    /// Spawns the fade-in task, waits one frame, and enables the display.
+    DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_SPAWN_FADE_IN = 6,
+};
+
+/// Work block of the gas-station cutscene task.
+///
+/// The task allocates and zeroes the whole block when the cutscene starts,
+/// then publishes itself so the room's script callbacks can reach it.
+typedef struct {
+    Task* player;                  // Player task captured when the cutscene starts. Animation installs test NULL; placement, rate and movement sends do not
+    u16   command;                 // Pending `DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_*`, cleared once carried out
+    u16   commandStep;             // Step within a command that takes several updates; zeroed with each new command
+    u16   walkFrames;              // Placement-walk steps already sent. Other commands leave it unread
+    byte  field_A[2];              // Allocated and cleared with the block; no access. Role and width unproven
+    u16   playerEffectsSuppressed; // 0 none pending; 1 player effects were killed and still need to be spawned back
+    byte  field_E[2];              // Trailing bytes of the 0x10 block; no access. Role and width unproven
+} _DryfieldGasStationCutsceneWork;
+STATIC_ASSERT_SIZEOF(_DryfieldGasStationCutsceneWork, 0x10);
 
 extern AnimationSet* D_dryfield_gas_station_80182E30[5];
 extern EvsCommand    D_dryfield_gas_station_80182E8C[];
@@ -220,18 +244,18 @@ ActorTransform D_dryfield_gas_station_80182E44[3] = {
 EvsCommand D_dryfield_gas_station_80182E8C[18] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_gas_station_80180944 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_START_AUDIO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_SPAWN_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_WALK_PLACEMENTS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLAY_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_BLEND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_RESTORE_AND_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -596,21 +620,15 @@ RoomCutsceneRec D_dryfield_gas_station_80184BD8;
 
 static void func_dryfield_gas_station_801803C0(Task* task);
 
-/// Carries out the script command in `DgsWork::field_4`, then clears it (the
-/// multi-frame commands return early until they finish). 1 places the owner at
-/// the first of three 0x3E9 placements and plays two sounds; 2 and 3 hand the
-/// owner a `D_dryfield_gas_station_80182E30` script record as msg 0x3F4, 2 also
-/// sending msg 0x3FD and 3 placing the owner at the second placement first.
-/// 4 walks the owner from the first placement to the third over 30 frames with
-/// `GAME_ACTOR_MESSAGE_MOVE_BY` before its closing 0x3F4; 5 is `func_dryfield_gas_station_80180A60`
-/// written out again; 6 spawns entry 1 of `D_dryfield_gas_station_8018312C`,
-/// waits a frame and turns the display back on.
+/// Carries out `_DryfieldGasStationCutsceneWork::command`, then clears it.
+/// A command that takes several updates advances `commandStep` and returns
+/// until its last step.
 static void func_dryfield_gas_station_801803C0(Task* task)
 {
-    DgsWork* work;
-    DgsWork* cur;
-    DgsWork* eff;
-    Task*    shared;
+    _DryfieldGasStationCutsceneWork* work;
+    _DryfieldGasStationCutsceneWork* cur;
+    _DryfieldGasStationCutsceneWork* sharedWork;
+    Task*                            shared;
     union {
         AnimationPlayRequest rec;
         GameActorMoveBy      move;
@@ -619,113 +637,115 @@ static void func_dryfield_gas_station_801803C0(Task* task)
     AnimationPlayRequest* rec;
     u16                   step;
 
-    work = (DgsWork*)task->work;
-    switch (work->field_4) {
-        case 0:
+    work = task->work;
+    switch (work->command) {
+        case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_NONE:
             break;
-        case 1:
-            TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E44[0], 0);
+        case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_START_AUDIO:
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[0], 0);
             SndEvt_EnqueueType6(SOUND_GAS_STATION_CUTSCENE_LOOP, 0, 0);
             SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x12), 0, 0);
             break;
-        case 2:
-            cur = (DgsWork*)task->work;
-            if (cur->owner != NULL) {
+        case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLAY_ANIMATION:
+            cur = task->work;
+            if (cur->player != NULL) {
                 msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
                 msg.rec.animationId          = 1;
                 msg.rec.blend                = ANIMATION_BLEND_RESET;
                 msg.rec.blendFrames          = 0;
                 msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
-            taskMessageDispatch((Task*)work->owner, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
             break;
-        case 3:
+        case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_BLEND:
             SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x13), 0, 0);
-            TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E5C, 0);
-            cur = (DgsWork*)task->work;
-            if (cur->owner != NULL) {
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E5C, 0);
+            cur = task->work;
+            if (cur->player != NULL) {
                 msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
                 msg.rec.animationId          = 2;
                 msg.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
                 msg.rec.blendFrames          = 0x1E;
                 msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
             break;
-        case 4:
-            step = work->field_6;
+        case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_WALK_PLACEMENTS:
+            step = work->commandStep;
             switch (step) {
                 case 0:
-                    cur = (DgsWork*)task->work;
-                    if (cur->owner != NULL) {
+                    cur = task->work;
+                    if (cur->player != NULL) {
                         msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
                         msg.rec.animationId          = 3;
                         msg.rec.blend                = ANIMATION_BLEND_RESET;
                         msg.rec.blendFrames          = 0;
                         msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
-                    taskMessageDispatch((Task*)work->owner, ANIMATION_MESSAGE_SET_RATE, 8, 0);
-                    taskMessageDispatch((Task*)work->owner, 0x3FC, 0, 0);
-                    work->field_8 = 0;
-                    work->field_6++;
+                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+                    // Message 0x3FC sets the player's movement mode to 1.
+                    taskMessageDispatch(work->player, 0x3FC, 0, 0);
+                    work->walkFrames = 0;
+                    work->commandStep++;
                     return;
                 case 1:
                     msg.move.displacement.vx   = (D_dryfield_gas_station_80182E44[2].pos.vx - D_dryfield_gas_station_80182E44[0].pos.vx) / 30;
                     msg.move.displacement.vy   = 0;
                     msg.move.displacement.vz   = (D_dryfield_gas_station_80182E44[2].pos.vz - D_dryfield_gas_station_80182E44[0].pos.vz) / 30;
                     msg.move.collisionRequests = 0;
-                    TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, GAME_ACTOR_MESSAGE_MOVE_BY, &msg.move, 0);
-                    work->field_8++;
-                    if (work->field_8 < 31) {
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_MOVE_BY, &msg.move, 0);
+                    work->walkFrames++;
+                    if (work->walkFrames < 31) {
                         return;
                     }
-                    // Taken before the owner check, the record's address is in
+                    // Taken before the player check, the record's address is in
                     // $a2 early enough that the two register-valued fields are
                     // stored through it; the constant ones still go off $sp.
                     rec = &script;
-                    cur = (DgsWork*)task->work;
-                    if (cur->owner != NULL) {
+                    cur = task->work;
+                    if (cur->player != NULL) {
                         script.source.sets          = D_dryfield_gas_station_80182E30;
                         script.animationId          = 0;
                         rec->blend                  = step;
                         rec->blendFrames            = 0xF;
                         script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, rec, 0);
                     }
                     break;
                 default:
                     return;
             }
             break;
-        case 5:
-            shared = D_dryfield_gas_station_80184BD4;
-            eff    = (DgsWork*)shared->work;
-            if (eff->playerEffActive != 0) {
+        case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_RESTORE_AND_SHOW:
+            shared     = D_dryfield_gas_station_80184BD4;
+            sharedWork = shared->work;
+            if (sharedWork->playerEffectsSuppressed != 0) {
                 Gp_SpawnWeaponEff();
-                eff->playerEffActive = 0;
+                sharedWork->playerEffectsSuppressed = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            TASK_MESSAGE_DISPATCH_POINTER((Task*)eff->owner, 0x3E9, &D_dryfield_gas_station_80182E74, 0);
-            cur = (DgsWork*)shared->work;
-            if (cur->owner != NULL) {
+            TASK_MESSAGE_DISPATCH_POINTER(sharedWork->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E74, 0);
+            cur = shared->work;
+            if (cur->player != NULL) {
                 msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
                 msg.rec.animationId          = 0;
                 msg.rec.blend                = ANIMATION_BLEND_RESET;
                 msg.rec.blendFrames          = 0;
                 msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
             SndEvt_EnqueueType7(SOUND_GAS_STATION_CUTSCENE_LOOP, 0x3C);
             SetDispMask(1);
             break;
-        case 6:
-            switch (work->field_6) {
+        case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_SPAWN_FADE_IN:
+            switch (work->commandStep) {
                 case 0:
                     Task_SpawnFromTable(D_dryfield_gas_station_8018312C, 1, 0x1E, 0);
+                    // The spawn and the one-frame wait share this update.
                 case 1:
-                    work->field_6++;
+                    work->commandStep++;
                     return;
                 case 2:
                     SetDispMask(1);
@@ -733,24 +753,22 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             }
             break;
     }
-    work->field_4 = 0;
+    work->command = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_NONE;
 }
 
-/// Spawns the gas station's cutscene owner. State 0 refuses to run twice (a
-/// the attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is
-/// live), otherwise it parks the freshly zeroed 0x10-byte `DgsWork` block in
-/// `Task::work`, fills `owner` from pointer slot 3 and republishes this task as
-/// `D_dryfield_gas_station_80184BD4` so the room's script helpers can reach that block.
-/// Two kills: a failed `memMalloc` kills the task outright, and state 1 kills
-/// it once the session has torn down (`gGameSession->eventState`). Between the two
-/// it hands slot 3 the `D_dryfield_gas_station_80182E30` script record as msg
-/// 0x3F4 -- only when a previous state 0 already found an owner, since the
-/// reloaded `work` is dereferenced unconditionally.
+/// Cutscene task. State 0 returns while the attachment wheel is open or a
+/// display transition is pending. Otherwise it allocates and zeroes this
+/// task's `_DryfieldGasStationCutsceneWork`, records the player task and
+/// publishes itself as `D_dryfield_gas_station_80184BD4`. A failed allocation
+/// kills the task without returning, so the reload of `Task::work` below
+/// still runs. When that block has a player, state 0 installs animation 0,
+/// starts the room's two event scripts and advances. State 1 asks to be
+/// killed once `eventState` is idle, and otherwise carries out `command`.
 void func_dryfield_gas_station_801807E0(Task* task)
 {
-    DgsWork*             work;
-    DgsWork*             work2;
-    AnimationPlayRequest script;
+    _DryfieldGasStationCutsceneWork* work;
+    _DryfieldGasStationCutsceneWork* work2;
+    AnimationPlayRequest             script;
 
     switch (task->state) {
         case 0:
@@ -761,17 +779,17 @@ void func_dryfield_gas_station_801807E0(Task* task)
                     taskKill(task);
                 } else {
                     memFillBytes(work, 0, sizeof(*work));
-                    work->owner                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    work->player                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_dryfield_gas_station_80184BD4 = task;
                 }
-                work2 = (DgsWork*)task->work;
-                if (work2->owner != 0) {
+                work2 = task->work;
+                if (work2->player != NULL) {
                     script.source.sets          = D_dryfield_gas_station_80182E30;
                     script.animationId          = 0;
                     script.blend                = ANIMATION_BLEND_RESET;
                     script.blendFrames          = 0;
                     script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                    TASK_MESSAGE_DISPATCH_POINTER((Task*)work2->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work2->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
                 }
                 func_800E3FAC(0xA2, 9);
                 func_800E8634(D_dryfield_gas_station_80182E8C, 0,
@@ -791,13 +809,13 @@ void func_dryfield_gas_station_801807E0(Task* task)
     }
 }
 
-/// Latches the player-effect flag and kills the effects once. The 1 is loaded
-/// before the branch and stored in the `jal` delay slot.
+/// Kills the player's effects once. The latch is stored before the call, which
+/// leaves that store in the call's delay slot.
 void func_dryfield_gas_station_80180944(void)
 {
-    DgsWork* work = (DgsWork*)D_dryfield_gas_station_80184BD4->work;
-    if (work->playerEffActive == 0) {
-        work->playerEffActive = 1;
+    _DryfieldGasStationCutsceneWork* work = D_dryfield_gas_station_80184BD4->work;
+    if (work->playerEffectsSuppressed == 0) {
+        work->playerEffectsSuppressed = 1;
         Gp_KillPlayerEffs();
     }
 }
@@ -807,48 +825,48 @@ void func_dryfield_gas_station_80180944(void)
 #include "../../shared/screen_fade_in.inc.c"
 #undef screenFadeInTask
 
-/// Tells slot 3 that the cutscene is opening: it ends the weapon effect the
-/// player may still be carrying (flag at `DgsWork::playerEffActive`), echoes the
-/// equipped weapon back with msg 0x3E9 and, once the cutscene task has an owner,
-/// hands that owner the `D_dryfield_gas_station_80182E30` script record as msg
-/// 0x3F4. The record is a `AnimationPlayRequest` built on the stack, only its first field
-/// (the script pointer) set.
+/// Opens the cutscene's view of the player: restores effects when
+/// `playerEffectsSuppressed` is set, places the player at the third placement
+/// and, when the cutscene task has a player, installs animation 0. Stops the
+/// cutscene loop and enables the display. This is
+/// `DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_RESTORE_AND_SHOW` written out for
+/// the second script.
 void func_dryfield_gas_station_80180A60(void)
 {
-    Task*                task;
-    DgsWork*             work;
-    DgsWork*             work2;
-    AnimationPlayRequest script;
+    Task*                            task;
+    _DryfieldGasStationCutsceneWork* work;
+    _DryfieldGasStationCutsceneWork* work2;
+    AnimationPlayRequest             script;
 
     task = D_dryfield_gas_station_80184BD4;
-    work = (DgsWork*)task->work;
-    if (work->playerEffActive != 0) {
+    work = task->work;
+    if (work->playerEffectsSuppressed != 0) {
         Gp_SpawnWeaponEff();
-        work->playerEffActive = 0;
+        work->playerEffectsSuppressed = 0;
         Gp_MsgPlayerWeapon(0);
     }
-    TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E74, 0);
-    work2 = (DgsWork*)task->work;
-    if (work2->owner != 0) {
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E74, 0);
+    work2 = task->work;
+    if (work2->player != NULL) {
         script.source.sets          = D_dryfield_gas_station_80182E30;
         script.animationId          = 0;
         script.blend                = ANIMATION_BLEND_RESET;
         script.blendFrames          = 0;
         script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        TASK_MESSAGE_DISPATCH_POINTER((Task*)work2->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(work2->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
     }
     SndEvt_EnqueueType7(SOUND_GAS_STATION_CUTSCENE_LOOP, 0x3C);
     SetDispMask(1);
 }
 
-/// Hands the cutscene task the script command `arg0` to carry out, starting
-/// it from its first step.
+/// Stores `arg0` as the cutscene command and restarts its step. The block is
+/// the work of the task published in `D_dryfield_gas_station_80184BD4`.
 void func_dryfield_gas_station_80180B2C(s16 arg0)
 {
-    DgsWork* work = (DgsWork*)D_dryfield_gas_station_80184BD4->work;
+    _DryfieldGasStationCutsceneWork* work = D_dryfield_gas_station_80184BD4->work;
 
-    work->field_4 = arg0;
-    work->field_6 = 0;
+    work->command     = arg0;
+    work->commandStep = 0;
 }
 
 #include "../../shared/glow_draw_star_local.inc.c"
