@@ -736,7 +736,7 @@ static const TaskFuncTable3 _gFactoryHatchTaskStates = {
 
 /// The cutscene sequence's handlers: the flag watcher of state 0 and the two
 /// movements it arms.
-static const FactoryHatchStates _gFactoryHatchStates = {
+static const FactoryHatchStateFuncTable _gFactoryHatchStates = {
     { factoryHatchWatch, factoryHatchOpen, factoryHatchClose },
 };
 

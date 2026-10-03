@@ -43,6 +43,7 @@ enum {
     FACTORY_HATCH_STATE_WATCH, // Idle, waiting for the hatch-open flag to change
     FACTORY_HATCH_STATE_OPEN,  // Swinging open
     FACTORY_HATCH_STATE_CLOSE, // Swinging shut
+    FACTORY_HATCH_STATE_COUNT, // Number of handler slots; not a state
 };
 
 /// Work block of the hatch task: the swing of the hatch model about X and the
@@ -77,12 +78,18 @@ STATIC_ASSERT_SIZEOF(FactoryHatchWork, 0xC);
 /// answering zero, arms a movement itself.
 typedef s32 (*FactoryHatchStateFunc)(Task* task);
 
-/// The cutscene sequence's three handler slots, which the dispatcher copies
-/// onto the stack before calling through them.
-typedef struct FactoryHatchStates {
-    /* 0x0 */ FactoryHatchStateFunc funcs[3];
-} FactoryHatchStates;
-STATIC_ASSERT_SIZEOF(FactoryHatchStates, 0xC);
+/// The hatch's state handlers stored as a value, so that a dispatcher can take
+/// the whole table by assignment.
+///
+/// Each build defines one constant table of this type. The hatch task's
+/// per-frame state copies it onto its stack every frame and calls the slot
+/// `FactoryHatchWork::state` selects, so every slot must hold a handler. The
+/// call is made without a range check: a selector outside the
+/// `FACTORY_HATCH_STATE_` values reads past the copy.
+typedef struct {
+    FactoryHatchStateFunc funcs[FACTORY_HATCH_STATE_COUNT]; // Handlers in `FACTORY_HATCH_STATE_` order: watch, open, close
+} FactoryHatchStateFuncTable;
+STATIC_ASSERT_SIZEOF(FactoryHatchStateFuncTable, 0xC);
 
 /// Work block the room's factory task allocates as 0x58 zeroed bytes in its
 /// state 0 and parks at `Task::work`.
