@@ -300,30 +300,47 @@ typedef struct {
     u16     fall;
 } DumpingHoleShard;
 
+/// Work block of the collapse event's director task, which carries the event's
+/// own model - three cylindrical sections chained below its root - and stays
+/// reachable to the event script's callbacks through the director task global.
+///
+/// The script posts one command at a time; the director handles it on its next
+/// frame and clears it, a multi-frame command only after its last step. The
+/// collapse itself shakes the model while part 2 sheds shards, then lets part 2
+/// drop away and part 1 tip over.
 typedef struct {
-    MATRIX         lightMtx;
-    MATRIX         colorMtx;
-    ActorTransform pose;     // Sent to the task itself with message 0x7D4
-    SVECTOR        field_58; // Spawn parameters handed by address to the table spawns
-    SVECTOR        field_60;
-    GfxCoord*      field_68;
-    s16            field_6C;
-    s16            field_6E;
-    VECTOR         scale; // Per-axis scale applied to the rotation of model part 3
-    Task*          field_80;
-    Task*          field_84;
-    Task*          field_88;
-    u16            state; // One-shot command, cleared once handled
-    u16            step;  // Progress through the sequence the command started
-    u16            timer; // Frames spent in the current step
-    u8             pad_92[0x2];
-    s16            field_94;
-    s16            field_96;
-    s16            field_98; // X rotation of model part 1 once the sequence reaches step 2
-    s16            field_9A;
-    u16            field_9C; // Latch: set once the state-F0 release has been issued
-    u8             pad_9E[0x2];
-} DumpingHoleEntity4;
+    MATRIX              lightMtx;         // Storage for the model's light matrix
+    MATRIX              colorMtx;         // Storage for the model's colour matrix
+    ActorTransform      pose;             // The model's placement, sent to the director itself with `ACTOR_MESSAGE_PLACE`
+    DumpingHoleShardCfg shardSpawn;       // Spawn record lent to every shard task, which reads it on its first frame: shards start at part 2's coordinate
+    VECTOR              part3Scale;       // Per-axis scale of model part 3 (`ONE` = 1.0), shrunk in X and Z while part 2 sinks
+    Task*               player;           // Player task
+    Task*               placement0Actor;  // Task of the area's placement-0 actor (key: area, stage, index 0)
+    Task*               framebufferBlend; // Framebuffer-blend effect task while one runs, else NULL
+    u16                 command;          // Pending command (`SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_*`), cleared once handled
+    u16                 step;             // Progress through a multi-frame command
+    u16                 timer;            // Frames spent in the current step
+    u8                  pad_92[0x2];
+    s16                 savedView;        // The session's view slot when the event started, written back to the saved location on finish
+    s16                 field_96;         // Set to 1 where a command or the skip ends the collapse, but never read; role unproven
+    s16                 part1Pitch;       // Angle about X: follows the model's pitch while it shakes, then restarts at 0 as part 1's tipping angle
+    s16                 field_9A;         // Set to 0x80 as part 2 starts to drop, but never read; role unproven
+    u16                 battleReleased;   // 1 once the event has dropped its battle reference, so the release runs once
+    u8                  pad_9E[0x2];
+} _ShelterB3DumpingHoleCollapseEventWork;
+STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHoleCollapseEventWork, 0xA0);
+
+/// `_ShelterB3DumpingHoleCollapseEventWork::command` values, posted by the
+/// event script and its skip script.
+enum {
+    SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE         = 0,
+    SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_PREPARE      = 1, // Cancel the room effects, lock attachments and pose the player
+    SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_COLLAPSE     = 2, // Multi-frame: show the model in place of the player and actor and run the collapse
+    SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_END_COLLAPSE = 3, // Hide the model, show the player and actor again and stop the shards
+    SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_HIDE_ACTOR   = 4, // Hide the placement-0 actor
+    SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FINISH       = 5, // Restore the view, show the player and actor and end the framebuffer blend
+    SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FLICKER      = 6, // Multi-frame: flicker the view's sprites, then start the framebuffer blend
+};
 
 typedef struct {
     /* 0x00 */ u32 tag;
@@ -803,7 +820,7 @@ EvsSceneKey D_shelter_b3_dumping_hole_80189684 = { 4, 18, 11 };
 
 EvsCommand D_shelter_b3_dumping_hole_8018968C[33] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_PREPARE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_shelter_b3_dumping_hole_80189684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801819B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -811,25 +828,25 @@ EvsCommand D_shelter_b3_dumping_hole_8018968C[33] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801819D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_COLLAPSE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_END_COLLAPSE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_HIDE_ACTOR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_80181958 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FLICKER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801819F0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FINISH }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_80181958 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801818E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -840,7 +857,7 @@ EvsCommand D_shelter_b3_dumping_hole_8018968C[33] = {
 EvsCommand D_shelter_b3_dumping_hole_801899A4[13] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_80181430 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -3161,37 +3178,39 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
     }
 }
 
-/// Per-frame handler of the event task: runs the command in `state`, which is
-/// cleared once handled unless it is a multi-frame sequence.
+/// Per-frame handler of the collapse event's director task: runs the pending
+/// `_ShelterB3DumpingHoleCollapseEventWork::command`, which is cleared once
+/// handled unless it is a multi-frame sequence.
 ///
-/// - 1 sends the slot-3 task its animation and the slot-4 task message 0x7DA
-///   for the current stage and area.
-/// - 2 is a sequence stepped by `step`. Step 0 sends the opening messages,
-///   overrides the view vector and places the task at its starting pose.
-///   Step 1 spawns a burst of table tasks every 16 frames and moves model
+/// - `PREPARE` sends the slot-3 task its animation and the slot-4 task message
+///   0x7DA for the current stage and area.
+/// - `COLLAPSE` is a sequence stepped by `step`. Step 0 sends the opening
+///   messages, overrides the view vector and places the task at its starting
+///   pose. Step 1 spawns a burst of shard tasks every 16 frames and moves model
 ///   part 2; from frame 0x3D it also shrinks part 3 along X and Z, rebuilding
 ///   its rotation from identity each frame, and at frame 0x5B it spawns the
 ///   closing effects and advances. Until then the pose rotation alternates
 ///   either side of its starting value each frame. Step 2 keeps moving part 2
 ///   and, after six frames, tips part 1 about X. Every frame of the sequence
 ///   also shakes the screen by one unit.
-/// - 3 and 5 undo the sequence's overrides and send the slot-4 task message
-///   0x7DA; 5 also restores the saved view, resets the slot-3 animation and
-///   ends the task in `field_88`.
-/// - 4 sends the task in `field_84` message 0x7D5.
-/// - 6 is a second sequence that alternates `func_shelter_b3_dumping_hole_80183218`
-///   calls, then spawns the task kept in `field_88`.
+/// - `END_COLLAPSE` and `FINISH` undo the sequence's overrides and send the
+///   slot-4 task message 0x7DA; `FINISH` also restores the saved view, resets
+///   the slot-3 animation and ends the framebuffer-blend task.
+/// - `HIDE_ACTOR` sends the placement-0 actor message 0x7D5.
+/// - `FLICKER` is a second sequence that alternates
+///   `func_shelter_b3_dumping_hole_80183218` calls, then spawns the
+///   framebuffer-blend task.
 ///
 /// The message buffers are unions because the cases share their stack slots.
 static void func_shelter_b3_dumping_hole_8018098C(Task* task)
 {
-    DumpingHoleEntity4* work;
-    GfxMatrix*          ident;
-    GfxMatrix*          ident2;
-    u16                 i;
-    ActorCommand*       command3;
-    ActorCommand*       command5;
-    s32*                p;
+    _ShelterB3DumpingHoleCollapseEventWork* work;
+    GfxMatrix*                              ident;
+    GfxMatrix*                              ident2;
+    u16                                     i;
+    ActorCommand*                           command3;
+    ActorCommand*                           command5;
+    s32*                                    p;
     union {
         s32          words[5];
         ActorCommand loc;
@@ -3204,8 +3223,8 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
     s32 words[5];
 
     work = task->work;
-    switch (work->state) {
-        case 1:
+    switch (work->command) {
+        case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_PREPARE:
             Gp_PulseState1C();
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             buf.words[0]       = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
@@ -3218,17 +3237,17 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             buf.loc.context.loc.area  = gGameSession->location.loc.area;
             buf.loc.command           = 0xA;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.loc, ACTOR_COMMAND_MESSAGE_APPLY);
-            work->state = 0;
+            work->command = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE;
             return;
-        case 2:
+        case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_COLLAPSE:
             switch (work->step) {
                 case 0:
-                    taskMessageDispatch(work->field_80, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+                    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                     buf.vec[0].vx = 0x800;
                     buf.vec[0].vy = 0x800;
                     buf.vec[0].vz = 0x800;
                     Gp_SetOverrideVec(&buf.vec[0]);
-                    taskMessageDispatch(work->field_84, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+                    taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                     taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     work->pose.pos.vx = D_shelter_b3_dumping_hole_8018966C.pos.vx;
                     work->pose.pos.vy = D_shelter_b3_dumping_hole_8018966C.pos.vy;
@@ -3236,28 +3255,28 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx;
                     work->pose.rot.vy = D_shelter_b3_dumping_hole_8018966C.rot.vy;
                     work->pose.rot.vz = D_shelter_b3_dumping_hole_8018966C.rot.vz;
-                    TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &work->pose, 0);
-                    work->field_58.vx                        = 0;
-                    work->field_58.vy                        = 0;
-                    work->field_58.vz                        = 0;
+                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &work->pose, 0);
+                    work->shardSpawn.pos.vx                  = 0;
+                    work->shardSpawn.pos.vy                  = 0;
+                    work->shardSpawn.pos.vz                  = 0;
                     D_shelter_b3_dumping_hole_8018F4B0_value = 1;
-                    work->field_68                           = &task->extra.tmd->coords[2];
-                    work->field_6C                           = 0x14;
-                    work->scale.vx                           = 0x1000;
-                    work->scale.vy                           = 0x1000;
-                    work->scale.vz                           = 0x1000;
+                    work->shardSpawn.parent                  = &task->extra.tmd->coords[2];
+                    work->shardSpawn.size                    = 0x14;
+                    work->part3Scale.vx                      = 0x1000;
+                    work->part3Scale.vy                      = 0x1000;
+                    work->part3Scale.vz                      = 0x1000;
                     work->timer                              = 0;
                     work->step++;
                     break;
                 case 1:
                     work->timer++;
                     if (!(gDisplayState.animFrame & 0xF)) {
-                        work->field_60.vx = 0;
-                        work->field_60.vy = 0;
-                        work->field_60.vz = 0;
-                        work->field_6E    = 4;
+                        work->shardSpawn.vel.vx = 0;
+                        work->shardSpawn.vel.vy = 0;
+                        work->shardSpawn.vel.vz = 0;
+                        work->shardSpawn.fall   = 4;
                         for (i = 0; i < 10; i++) {
-                            Task_SpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 1, 0, &work->field_58);
+                            Task_SpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 1, 0, &work->shardSpawn);
                         }
                     }
                     if (work->timer >= 0x5B) {
@@ -3271,17 +3290,17 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         buf.vec[2].vz = -0x320;
                         ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[2], &buf.vec[3]);
                         Gp_SpawnEff(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, 0x608, &buf.vec[3]);
-                        work->timer    = 0;
-                        work->field_98 = 0;
-                        work->field_9A = 0x80;
+                        work->timer      = 0;
+                        work->part1Pitch = 0;
+                        work->field_9A   = 0x80;
                         work->step++;
                         break;
                     }
                     if (work->timer >= 0x1F) {
                         if (work->timer >= 0x3D) {
                             task->extra.tmd->coords[2].coord.t[1] += 8;
-                            work->scale.vx                        -= 10;
-                            work->scale.vz                        -= 10;
+                            work->part3Scale.vx                   -= 10;
+                            work->part3Scale.vz                   -= 10;
                             ident                                  = (GfxMatrix*)&task->extra.tmd->coords[3].coord;
 
                             ident->rotationWords.m00M01 = ONE;
@@ -3290,7 +3309,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             ident->rotationWords.m20M21 = 0;
                             ident->rotationWords.m22    = ONE;
 
-                            gfxScaleMatrixColumns(&task->extra.tmd->coords[3].coord, &work->scale);
+                            gfxScaleMatrixColumns(&task->extra.tmd->coords[3].coord, &work->part3Scale);
                         } else if (work->timer < 0x20) {
                             task->extra.tmd->coords[2].coord.t[1] += 0x20;
                             ident2                                 = (GfxMatrix*)&task->extra.tmd->coords[3].coord;
@@ -3315,11 +3334,11 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         }
                     }
                     if (gDisplayState.animFrame & 1) {
-                        work->field_98 = work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx + 0x10;
+                        work->part1Pitch = work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx + 0x10;
                     } else {
-                        work->field_98 = work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx - 0x10;
+                        work->part1Pitch = work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx - 0x10;
                     }
-                    TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &work->pose, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &work->pose, 0);
                     break;
                 case 2:
                     if (!(gDisplayState.animFrame & 0xF)) {
@@ -3329,15 +3348,15 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                         Gp_SpawnEff(EFFECT_FLASH_BURST, &task->extra.tmd->coords[1], 0x200, &buf2.vec);
                     }
                     if (++work->timer >= 6) {
-                        if (work->field_98 < -0x154) {
-                            work->field_98 -= 1;
+                        if (work->part1Pitch < -0x154) {
+                            work->part1Pitch -= 1;
                         } else {
-                            work->field_98 -= 8;
+                            work->part1Pitch -= 8;
                         }
-                        gfxRotMatrixX(&task->extra.tmd->coords[1].coord, work->field_98, GRAPHICS_ROTATION_REPLACE);
+                        gfxRotMatrixX(&task->extra.tmd->coords[1].coord, work->part1Pitch, GRAPHICS_ROTATION_REPLACE);
                     }
                     task->extra.tmd->coords[2].coord.t[1] += 0x190;
-                    TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &work->pose, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &work->pose, 0);
                     break;
             }
             if (gDisplayState.animFrame & 1) {
@@ -3346,10 +3365,10 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                 displaySetShakeY(-1);
             }
             return;
-        case 3:
+        case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_END_COLLAPSE:
             Gp_SetOverrideVec(NULL);
-            taskMessageDispatch(work->field_80, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(work->field_84, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             D_shelter_b3_dumping_hole_8018F4B0_value = 0;
             work->field_96                           = 1;
@@ -3360,15 +3379,15 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             command3->command          = 0xB;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, command3, ACTOR_COMMAND_MESSAGE_APPLY);
             displaySetShakeY(0);
-            work->state = 0;
+            work->command = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE;
             return;
-        case 4:
-            taskMessageDispatch(work->field_84, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+        case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_HIDE_ACTOR:
+            taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
-        case 5:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->field_94;
-            taskMessageDispatch(work->field_80, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(work->field_84, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FINISH:
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             work->field_96 = 1;
             Gp_PulseState1C();
             buf2.loc.context.loc.stage = gGameSession->location.loc.stage;
@@ -3383,14 +3402,14 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             p[3]     = 0xA;
             words[4] = 0;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, words, 0);
-            if (work->field_88 != NULL) {
-                Task_CallExit(work->field_88);
-                work->field_88 = NULL;
+            if (work->framebufferBlend != NULL) {
+                Task_CallExit(work->framebufferBlend);
+                work->framebufferBlend = NULL;
             }
             break;
-        case 0:
+        case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE:
             break;
-        case 6:
+        case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FLICKER:
             switch (work->step) {
                 case 1:
                 case 3:
@@ -3408,8 +3427,8 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     return;
                 case 6:
                     if (++work->timer >= 0xB) {
-                        work->field_88 = Task_Spawn(1, 0x2D, 0x10, 0);
-                        work->timer    = 0;
+                        work->framebufferBlend = Task_Spawn(1, 0x2D, 0x10, 0);
+                        work->timer            = 0;
                         work->step++;
                     }
                     return;
@@ -3425,23 +3444,23 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             }
             break;
     }
-    work->state = 0;
+    work->command = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE;
 }
 
 void func_shelter_b3_dumping_hole_80181430(void)
 {
-    DumpingHoleEntity4* ent;
-    ActorCommand        request;
-    s32                 desc3[5];
-    s32*                p3;
+    _ShelterB3DumpingHoleCollapseEventWork* work;
+    ActorCommand                            request;
+    s32                                     desc3[5];
+    s32*                                    p3;
 
-    ent = D_shelter_b3_dumping_hole_8018F4AC->work;
+    work = D_shelter_b3_dumping_hole_8018F4AC->work;
     Gp_SetOverrideVec(NULL);
-    if (ent->field_88 != NULL) {
-        Task_CallExit(ent->field_88);
-        ent->field_88 = NULL;
+    if (work->framebufferBlend != NULL) {
+        Task_CallExit(work->framebufferBlend);
+        work->framebufferBlend = NULL;
     }
-    ent->field_96 = 1;
+    work->field_96 = 1;
     Gp_PulseState1C();
 
     D_shelter_b3_dumping_hole_8018F4B0_value = 0;
@@ -3451,8 +3470,8 @@ void func_shelter_b3_dumping_hole_80181430(void)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 
     displaySetShakeY(0);
-    taskMessageDispatch(ent->field_84, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    taskMessageDispatch(ent->field_80, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
 
     p3       = desc3;
     desc3[0] = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
@@ -3466,10 +3485,10 @@ void func_shelter_b3_dumping_hole_80181430(void)
 
 void func_shelter_b3_dumping_hole_80181560(Task* task)
 {
-    s32                 desc[5];
-    TmdObject*          obj;
-    TmdObject*          tail;
-    DumpingHoleEntity4* work;
+    s32                                     desc[5];
+    TmdObject*                              obj;
+    TmdObject*                              tail;
+    _ShelterB3DumpingHoleCollapseEventWork* work;
 
     switch (task->state) {
         case 0:
@@ -3477,23 +3496,23 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
                 return;
             }
             obj        = task->extra.tmd;
-            task->work = memCalloc(0xA0, false);
+            task->work = memCalloc(sizeof(_ShelterB3DumpingHoleCollapseEventWork), false);
             if (task->work == NULL) {
                 taskKill(task);
             } else {
                 task->extra.tmd->coords->parent = &gGfxViewCoord;
                 work                            = task->work;
                 memFillBytes(work, 0, sizeof(*work));
-                work->field_80                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                work->player                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_dumping_hole_8018F4AC = task;
-                work->field_84                     = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
+                work->placement0Actor              = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
                 obj->lightMtx                      = &work->lightMtx;
                 obj->colorMtx                      = &work->colorMtx;
                 task->msgTable                     = D_shelter_b3_dumping_hole_8018965C;
                 func_shelter_b3_dumping_hole_80183218(0);
             }
-            D_shelter_b3_dumping_hole_8018F4D8          = 0;
-            ((DumpingHoleEntity4*)task->work)->field_94 = gGameSession->location.loc.view;
+            D_shelter_b3_dumping_hole_8018F4D8                               = 0;
+            ((_ShelterB3DumpingHoleCollapseEventWork*)task->work)->savedView = gGameSession->location.loc.view;
             Gp_MsgPlayerWeapon(0);
             desc[0] = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
             desc[1] = 9;
@@ -3530,26 +3549,26 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
 
 void func_shelter_b3_dumping_hole_801818E0(void)
 {
-    DumpingHoleEntity4* p = D_shelter_b3_dumping_hole_8018F4AC->work;
-    if (p->field_9C == 0) {
+    _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
+    if (work->battleReleased == 0) {
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x20);
         gSceneCombatState.battleRefs = 0;
         gGameSession->flowFlags     |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        p->field_9C                  = 1;
+        work->battleReleased         = 1;
     }
 }
 
 void func_shelter_b3_dumping_hole_80181958(s32 arg0)
 {
-    DumpingHoleEntity4* p = D_shelter_b3_dumping_hole_8018F4AC->work;
-    taskMessageDispatch(p->field_80, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
 void func_shelter_b3_dumping_hole_80181990(s16 arg0)
 {
-    DumpingHoleEntity4* p = D_shelter_b3_dumping_hole_8018F4AC->work;
-    p->state              = arg0;
-    p->step               = 0;
+    _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
+    work->command                                = arg0;
+    work->step                                   = 0;
 }
 
 void func_shelter_b3_dumping_hole_801819B0(void)

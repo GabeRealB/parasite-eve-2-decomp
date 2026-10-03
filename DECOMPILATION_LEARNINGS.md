@@ -140459,8 +140459,8 @@ Three more from the same function:
   expression statement, so in practice it survives to the enclosing switch
   body. A frame where several cases' buffers overlap is still a union at
   function scope.
-* `case 4: call(...); break;` into the switch's shared `work->state = 0;` is
-  not the same block as `call(...); work->state = 0; return;` - the inline
+* `case 4: call(...); break;` into the switch's shared `work->command = 0;` is
+  not the same block as `call(...); work->command = 0; return;` - the inline
   store changes sched1's picture and the argument load moved from first to last.
 
 ## A signed `/ 4096` whose `sra` sits *after* a following RNG draw is split rounding, and `c ? a - b : a` loses its else-arm when `c` has no side effects (func_shelter_b3_dumping_hole_8018005C, 2026-09-24)
