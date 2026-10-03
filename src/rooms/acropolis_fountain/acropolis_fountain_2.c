@@ -1453,7 +1453,7 @@ void func_acropolis_fountain_8017DCD4(Task* arg0)
 
 /// Draws the fountain's water-spray sprite for the current frame. The task's
 /// coordinate is refreshed and projected through `GsWSMATRIX` into a
-/// scratch stack block; the resulting screen point becomes the centre of a
+/// `RoomGlowSpriteScratch` block; the resulting screen point becomes the centre of a
 /// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x4382, the 0x28x0x27 cell at
 /// u 0x50) whose half-extent is `0x4E00 / otz`, so the spray shrinks with
 /// distance and is dropped entirely inside `otz` 0x11. The grey level
@@ -1463,75 +1463,66 @@ void func_acropolis_fountain_8017DCD4(Task* arg0)
 /// reaches 4 (the room is fading out).
 void func_acropolis_fountain_8017DD44(Task* task)
 {
-    void**            scratch;
-    u8*               head;
-    RoomShaftScratch* blk;
-    s32*              otzp;
-    GfxCoord*         coord;
-    POLY_FT4*         prim;
-    s16               x;
-    s16               y;
-    u16               vz;
-    s32               level;
+    RoomGlowSpriteScratch* blk;
+    GfxCoord*              coord;
+    POLY_FT4*              prim;
+    s16                    x;
+    s16                    y;
+    s32                    level;
 
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((0x1040C0 >> (gGameSession->location.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
-        scratch     = SCRATCH_STACK_CURSOR_SLOT;
-        head        = *scratch;
-        blk         = (RoomShaftScratch*)(head - 0x14);
-        otzp        = &blk->otz;
-        blk->vec.vx = (u16)coord->workm.t[0];
-        blk->vec.vy = (u16)coord->workm.t[1];
-        vz          = (u16)coord->workm.t[2];
-        *scratch    = blk;
-        blk->vec.vz = vz;
+        blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+        blk->worldPos.vx = coord->workm.t[0];
+        blk->worldPos.vy = coord->workm.t[1];
+        blk->worldPos.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
+        gte_ldv0(&blk->worldPos);
         gte_rtps();
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
-        gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
-        gte_stszotz(otzp);
-        if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
-            level          = (((u8)gDisplayState.animFrame & 1) << 4) + 0x40;
-            prim->tpage    = 0x2B;
-            prim->clut     = 0x4382;
-            prim->u0       = 0x50;
-            prim->v0       = 0;
-            prim->u1       = 0x77;
-            prim->v1       = 0;
-            prim->u2       = 0x50;
-            prim->v2       = 0x27;
-            prim->u3       = 0x77;
-            prim->v3       = 0x27;
-            prim->r0       = level;
-            prim->g0       = level;
-            prim->b0       = level;
-            prim->code    |= 2;
-            blk->halfWidth = 0x4E00 / ((RoomShaftScratch*)(head - 0x14))->otz;
-            x              = blk->sx - (u16)blk->halfWidth;
-            prim->x2       = x;
-            prim->x0       = x;
-            x              = blk->sx + (u16)blk->halfWidth;
-            prim->x3       = x;
-            prim->x1       = x;
-            y              = blk->sy - (u16)blk->halfWidth;
-            prim->y1       = y;
-            prim->y0       = y;
-            y              = blk->sy + (u16)blk->halfWidth;
-            prim->y3       = y;
-            prim->y2       = y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomShaftScratch*)(head - 0x14))->otz
+        gte_stsxy(&blk->screenPos);
+        gte_stszotz(&blk->otz);
+        if (blk->otz >= 0x11) {
+            level           = (((u8)gDisplayState.animFrame & 1) << 4) + 0x40;
+            prim->tpage     = 0x2B;
+            prim->clut      = 0x4382;
+            prim->u0        = 0x50;
+            prim->v0        = 0;
+            prim->u1        = 0x77;
+            prim->v1        = 0;
+            prim->u2        = 0x50;
+            prim->v2        = 0x27;
+            prim->u3        = 0x77;
+            prim->v3        = 0x27;
+            prim->r0        = level;
+            prim->g0        = level;
+            prim->b0        = level;
+            prim->code     |= 2;
+            blk->halfExtent = 0x4E00 / blk->otz;
+            x               = blk->screenPos.vx - blk->halfExtent;
+            prim->x2        = x;
+            prim->x0        = x;
+            x               = blk->screenPos.vx + blk->halfExtent;
+            prim->x3        = x;
+            prim->x1        = x;
+            y               = blk->screenPos.vy - blk->halfExtent;
+            prim->y1        = y;
+            prim->y0        = y;
+            y               = blk->screenPos.vy + blk->halfExtent;
+            prim->y3        = y;
+            prim->y2        = y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz
                                                                << gDisplayState.otDepthShift) >>
                                                               2) &
                                                              GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     }
 }
 

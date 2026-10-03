@@ -2155,28 +2155,25 @@ void func_acropolis_patio_8017E100(Task* task)
 /// are clear), its animation column from bits 8-9, and that column's grey level
 /// from `D_acropolis_patio_8017D5E8` - and keeps only the anchor index. Every
 /// frame it projects the coordinate's translation through `GsWSMATRIX` into a
-/// 0x14-byte scratch stack block and, at `otz` 0x11 or further, queues one
+/// `RoomGlowSpriteScratch` block and, at `otz` 0x11 or further, queues one
 /// semi-transparent `POLY_FT4` on tpage 0x2B whose half extent is
 /// `width * 39 / otz`, so the sprite shrinks with distance. The grey steps by
 /// 0x10 on the parity of `DisplayState::animFrame`, which is the flicker.
 void func_acropolis_patio_8017E324(Task* task)
 {
-    void**            scratch;
-    RoomShaftScratch* block;
-    EffectWork*       work;
-    GfxCoord*         coord;
-    POLY_FT4*         prim;
-    u8                rgb;
-    s16               xy;
+    RoomGlowSpriteScratch* block;
+    EffectWork*            work;
+    GfxCoord*              coord;
+    POLY_FT4*              prim;
+    u8                     rgb;
+    s16                    xy;
 
     work  = (EffectWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
-        block = (RoomShaftScratch*)*scratch;
+        block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (task->state == 0) {
             ApGreyLevels levels = D_acropolis_patio_8017D5E8;
 
@@ -2190,18 +2187,18 @@ void func_acropolis_patio_8017E324(Task* task)
             work->period          = levels.level[work->angle];
             task->state           = task->state + 1;
         }
-        block->vec.vx = (u16)coord->workm.t[0];
-        block->vec.vy = (u16)coord->workm.t[1];
-        block->vec.vz = (u16)coord->workm.t[2];
+        block->worldPos.vx = coord->workm.t[0];
+        block->worldPos.vy = coord->workm.t[1];
+        block->worldPos.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->vec);
+        gte_ldv0(&block->worldPos);
         gte_rtps();
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
-        gte_stsxy(&block->sx);
+        gte_stsxy(&block->screenPos);
         gte_stszotz(&block->otz);
         if (block->otz >= 0x11) {
             rgb         = work->period + (((u8)gDisplayState.animFrame & 1) << 4);
@@ -2220,22 +2217,22 @@ void func_acropolis_patio_8017E324(Task* task)
             prim->u3 = work->angle * 0x28 + 0x27;
             prim->v3 = 0x27;
 
-            block->halfWidth = (work->scale * 0x27) / block->otz;
-            xy               = block->sx - (u16)block->halfWidth;
-            prim->x2         = xy;
-            prim->x0         = xy;
-            xy               = block->sx + (u16)block->halfWidth;
-            prim->x3         = xy;
-            prim->x1         = xy;
-            xy               = block->sy - (u16)block->halfWidth;
-            prim->y1         = xy;
-            prim->y0         = xy;
-            xy               = block->sy + (u16)block->halfWidth;
-            prim->y3         = xy;
-            prim->y2         = xy;
+            block->halfExtent = (work->scale * 0x27) / block->otz;
+            xy                = block->screenPos.vx - block->halfExtent;
+            prim->x2          = xy;
+            prim->x0          = xy;
+            xy                = block->screenPos.vx + block->halfExtent;
+            prim->x3          = xy;
+            prim->x1          = xy;
+            xy                = block->screenPos.vy - block->halfExtent;
+            prim->y1          = xy;
+            prim->y0          = xy;
+            xy                = block->screenPos.vy + block->halfExtent;
+            prim->y3          = xy;
+            prim->y2          = xy;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     }
 }
 

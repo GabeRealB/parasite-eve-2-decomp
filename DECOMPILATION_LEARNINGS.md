@@ -53196,7 +53196,7 @@ temporary and both instructions come back:
 ```c
 raw = head - 0x14;
 SOFT_TOUCH_REG(raw);            /* addiu v0, a0, -0x14 */
-block = (RoomShaftScratch*)raw; /* move  s1, v0        */
+block = (RoomGlowSpriteScratch*)raw; /* move  s1, v0        */
 ```
 
 So: `insert`/`delete` of exactly one `move` next to an `addiu` or a load is a
@@ -145877,6 +145877,14 @@ SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 The object is byte-identical to the pinned version. Before pinning a
 scratch-block copy, rewrite the open-coded `head - N` push as `SCRATCH_STACK_RESERVE_BLOCK`
 and score that first.
+
+The same held across every `RoomGlowSpriteScratch` drawer once the type was
+merged: re-casting the block at each use (`((T*)(head - 0x14))->otz`), an
+`otzp = &blk->otz` local, a `vz` temporary with the cursor store moved between
+the coordinate stores, and `(u16)` casts on the half-extent and on the stored
+coordinates all came out without changing a byte. Scaffolding of this kind
+accreted around a block type is worth stripping in one pass and checking with
+the full build before assuming any piece of it is load-bearing.
 ## Duplicated early-exit bodies count as references until jump2 merges them (func_pyrokinesis_8012EF48, 2026-09-27)
 
 A state machine's cases each start with "release if the player is dying or the

@@ -248,19 +248,6 @@ typedef struct RoomBeamScratch {
 } RoomBeamScratch;
 STATIC_ASSERT_SIZEOF(RoomBeamScratch, 0x2C);
 
-/// The scratch block a room's glow-sprite drawer takes from the scratch stack:
-/// `pos` is the task coordinate's translation, projected through `GsWSMATRIX`
-/// into `sxy`; `otz` is the resulting depth and `half` the half extent the
-/// camera-facing quad is drawn at, divided by `otz` so the sprite shrinks with
-/// distance.
-typedef struct RoomGlowSpriteScratch {
-    s32     otz;
-    s32     half;
-    SVECTOR pos;
-    DVECTOR sxy;
-} RoomGlowSpriteScratch;
-STATIC_ASSERT_SIZEOF(RoomGlowSpriteScratch, 0x14);
-
 /// The scratch block a room's disc drawer takes from the scratch stack: the
 /// depth of the projected centre, the two on-screen radii derived from it, the
 /// GTE flag word and the projected centre.

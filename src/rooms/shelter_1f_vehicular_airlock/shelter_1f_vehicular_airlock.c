@@ -513,48 +513,39 @@ void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
 /// in bits 0-1.
 static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    u8*               head;
-    RoomShaftScratch* block;
-    POLY_G4*          prim;
-    LINE_G3*          line;
-    s32               sine;
-    u8                pulse;
-    s32               r;
-    s32               g;
-    s32               b;
-    s32               radius;
-    s32               i;
-    s32               t1;
-    s32               t2;
-    s32               twice;
-    u16               sx;
-    u16               sy;
+    RoomGlowSpriteScratch* block;
+    POLY_G4*               prim;
+    LINE_G3*               line;
+    s32                    sine;
+    u8                     pulse;
+    s32                    r;
+    s32                    g;
+    s32                    b;
+    s32                    radius;
+    s32                    i;
+    s32                    t1;
+    s32                    t2;
+    s32                    twice;
+    u16                    sx;
+    u16                    sy;
 
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - 0x14);
-        block   = (RoomShaftScratch*)tmp;
-    }
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
+    gte_stsxy(&block->screenPos);
     gte_stszotz(&block->otz);
-    if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
-        sine             = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius           = ((s16)arg2 * 32) / ((RoomShaftScratch*)(head - 0x14))->otz;
-        pulse            = sine / 68 + 0x3C;
-        r                = pulse * ((s16)arg3 >> 8);
-        g                = pulse * (((s16)arg3 >> 4) & 3);
-        b                = pulse * (arg3 & 3);
-        i                = 0;
-        block->halfWidth = radius;
+    if (block->otz >= 0x11) {
+        sine              = rsin(gDisplayState.animFrame * (s16)arg1);
+        radius            = ((s16)arg2 * 32) / block->otz;
+        pulse             = sine / 68 + 0x3C;
+        r                 = pulse * ((s16)arg3 >> 8);
+        g                 = pulse * (((s16)arg3 >> 4) & 3);
+        b                 = pulse * (arg3 & 3);
+        i                 = 0;
+        block->halfExtent = radius;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -563,17 +554,17 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, r, g, b);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - (u16)block->halfWidth;
-            sx       = block->sx;
+            prim->x0 = block->screenPos.vx - block->halfExtent;
+            sx       = block->screenPos.vx;
             prim->x2 = sx;
             prim->x1 = sx;
-            prim->x3 = block->sx + (u16)block->halfWidth;
-            sy       = block->sy;
+            prim->x3 = block->screenPos.vx + block->halfExtent;
+            sy       = block->screenPos.vy;
             prim->y3 = sy;
             prim->y2 = sy;
             prim->y0 = sy;
             twice    = i * 2;
-            prim->y1 = (block->sy - (u16)block->halfWidth) + (block->halfWidth * twice);
+            prim->y1 = (block->screenPos.vy - block->halfExtent) + (block->halfExtent * twice);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
@@ -590,19 +581,19 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
             setRGB2(line, 0, 0, 0);
             t1       = i * 3 - 1;
             t2       = i + 1;
-            line->x0 = block->sx + (block->halfWidth * t1);
-            line->y0 = block->sy - (block->halfWidth * t2);
-            line->x1 = block->sx;
-            line->y1 = block->sy;
-            line->x2 = block->sx - (block->halfWidth * t1);
-            line->y2 = block->sy + (block->halfWidth * t2);
+            line->x0 = block->screenPos.vx + (block->halfExtent * t1);
+            line->y0 = block->screenPos.vy - (block->halfExtent * t2);
+            line->x1 = block->screenPos.vx;
+            line->y1 = block->screenPos.vy;
+            line->x2 = block->screenPos.vx - (block->halfExtent * t1);
+            line->y2 = block->screenPos.vy + (block->halfExtent * t2);
             addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 }
 
 #include "../../shared/room_visual_effects.inc.c"

@@ -2519,7 +2519,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 }
 
 /// Draws one frame of the sanctuary's flame sprite. The task's coordinate is
-/// refreshed and projected through `GsWSMATRIX` into an `RoomShaftScratch` block
+/// refreshed and projected through `GsWSMATRIX` into a `RoomGlowSpriteScratch` block
 /// taken from the scratch stack; the projected point becomes the centre of a
 /// semi-transparent `POLY_FT4` on tpage 0x2B whose half-extent is
 /// `field_24 * 0x27 / otz`, so the flame shrinks with distance and is dropped
@@ -2532,27 +2532,22 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 /// level plus its flicker amplitude on odd frames.
 void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    void**            scratch;
-    u8*               head;
-    RoomShaftScratch* blk;
-    POLY_FT4*         prim;
-    AcsSpriteLevels   base;
-    AcsSpriteLevels   step;
-    s32               param;
-    s32               lvl;
-    s16               x;
-    s16               y;
+    EffectWork*            mem;
+    GfxCoord*              coord;
+    RoomGlowSpriteScratch* blk;
+    POLY_FT4*              prim;
+    AcsSpriteLevels        base;
+    AcsSpriteLevels        step;
+    s32                    param;
+    s32                    lvl;
+    s16                    x;
+    s16                    y;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1) {
         Gp_UpdateCoord(coord);
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        *scratch = head - 0x14;
-        blk      = (RoomShaftScratch*)(head - 0x14);
+        blk = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (arg0->state == 0) {
             base                  = D_acropolis_sanctuary_8017D5D8;
             step                  = D_acropolis_sanctuary_8017D5DC;
@@ -2564,50 +2559,50 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
             mem->step             = step.v[mem->angle];
             arg0->state++;
         }
-        blk->vec.vx = (u16)coord->workm.t[0];
-        blk->vec.vy = (u16)coord->workm.t[1];
-        blk->vec.vz = (u16)coord->workm.t[2];
+        blk->worldPos.vx = coord->workm.t[0];
+        blk->worldPos.vy = coord->workm.t[1];
+        blk->worldPos.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->vec);
+        gte_ldv0(&blk->worldPos);
         gte_rtps();
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
-        gte_stsxy(&blk->sx);
+        gte_stsxy(&blk->screenPos);
         gte_stszotz(&blk->otz);
         if (blk->otz >= 0x11) {
             lvl         = (u8)mem->period + (gDisplayState.animFrame & 1) * mem->step;
             prim->tpage = 0x2B;
             prim->code |= 2;
             setRGB0(prim, lvl, lvl, lvl);
-            prim->clut     = getClut(mem->angle * 0x10, 0x10E);
-            prim->u0       = mem->angle * 0x28;
-            prim->v0       = 0;
-            prim->u1       = mem->angle * 0x28 + 0x27;
-            prim->v1       = 0;
-            prim->u2       = mem->angle * 0x28;
-            prim->v2       = 0x27;
-            prim->u3       = mem->angle * 0x28 + 0x27;
-            prim->v3       = 0x27;
-            blk->halfWidth = (mem->scale * 0x27) / blk->otz;
-            x              = blk->sx - (u16)blk->halfWidth;
-            prim->x2       = x;
-            prim->x0       = x;
-            x              = blk->sx + (u16)blk->halfWidth;
-            prim->x3       = x;
-            prim->x1       = x;
-            y              = blk->sy - (u16)blk->halfWidth;
-            prim->y1       = y;
-            prim->y0       = y;
-            y              = blk->sy + (u16)blk->halfWidth;
-            prim->y3       = y;
-            prim->y2       = y;
+            prim->clut      = getClut(mem->angle * 0x10, 0x10E);
+            prim->u0        = mem->angle * 0x28;
+            prim->v0        = 0;
+            prim->u1        = mem->angle * 0x28 + 0x27;
+            prim->v1        = 0;
+            prim->u2        = mem->angle * 0x28;
+            prim->v2        = 0x27;
+            prim->u3        = mem->angle * 0x28 + 0x27;
+            prim->v3        = 0x27;
+            blk->halfExtent = (mem->scale * 0x27) / blk->otz;
+            x               = blk->screenPos.vx - blk->halfExtent;
+            prim->x2        = x;
+            prim->x0        = x;
+            x               = blk->screenPos.vx + blk->halfExtent;
+            prim->x3        = x;
+            prim->x1        = x;
+            y               = blk->screenPos.vy - blk->halfExtent;
+            prim->y1        = y;
+            prim->y0        = y;
+            y               = blk->screenPos.vy + blk->halfExtent;
+            prim->y3        = y;
+            prim->y2        = y;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x14);
+        SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     }
 }
 

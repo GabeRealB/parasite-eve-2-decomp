@@ -65,19 +65,8 @@
 #include "mapui/map_akropolis.h"
 
 #include "overlay.h"
+#include "rooms/room_common.h"
 #include "../../shared/screen_fade.h"
-
-/// Scratch block for the plaza's eight-quad glow. `vec` holds the coordinate
-/// origin, `sx` / `sy` its projected screen position, and `half` the radius
-/// scaled by inverse depth. The draw task takes 0x14 bytes from the scratch stack.
-typedef struct AcropolisPlazaGlowScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     half;
-    /* 0x08 */ SVECTOR vec;
-    /* 0x10 */ s16     sx;
-    /* 0x12 */ s16     sy;
-} AcropolisPlazaGlowScratch;
-STATIC_ASSERT_SIZEOF(AcropolisPlazaGlowScratch, 0x14);
 
 /// Projected beam vertices and glow parameters in a 0x60-byte scratch block.
 typedef struct AcropolisPlazaBeamScratch {
@@ -5119,29 +5108,28 @@ void func_acropolis_plaza_801811D0(Task* task)
 
 void func_acropolis_plaza_80182054(Task* task)
 {
-    GfxCoord*                  coord;
-    AcropolisPlazaGlowScratch* blk;
-    POLY_G4*                   prim;
-    s32                        i, pulse;
-    s16                        level;
-    s32                        brightness, shade0, shade1;
-    s16                        red, green, blue;
+    GfxCoord*              coord;
+    RoomGlowSpriteScratch* blk;
+    POLY_G4*               prim;
+    s32                    i, pulse;
+    s16                    level;
+    s32                    brightness, shade0, shade1;
+    s16                    red, green, blue;
 
     coord = task->extra.coordBody->coord;
     Gp_UpdateCoord(coord);
-    SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaGlowScratch);
-    blk         = SCRATCH_STACK_CURSOR(AcropolisPlazaGlowScratch);
-    blk->vec.vx = coord->workm.t[0];
-    blk->vec.vy = coord->workm.t[1];
-    blk->vec.vz = coord->workm.t[2];
+    blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+    blk->worldPos.vx = coord->workm.t[0];
+    blk->worldPos.vy = coord->workm.t[1];
+    blk->worldPos.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->vec);
+    gte_ldv0(&blk->worldPos);
     gte_rtps();
-    gte_stsxy(&blk->sx);
+    gte_stsxy(&blk->screenPos);
     gte_stszotz(&blk->otz);
     if (blk->otz >= 0x11) {
-        if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
+        if (__builtin_abs(blk->screenPos.vx) < 0xC0 && __builtin_abs(blk->screenPos.vy) < 0x98) {
             if (task->spawnArg1.value < 0x10) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 brightness      = (((gRandomLcgState >> 16) & 0x3F) + 0x80) << 16;
@@ -5149,7 +5137,7 @@ void func_acropolis_plaza_80182054(Task* task)
                 red             = shade0;
                 green           = shade0;
                 blue            = (u32)brightness >> 18;
-                blk->half       = 0xC000 / blk->otz;
+                blk->halfExtent = 0xC000 / blk->otz;
             } else {
                 pulse = gDisplayState.animFrame * 6;
                 if (pulse & 0x80) {
@@ -5157,11 +5145,11 @@ void func_acropolis_plaza_80182054(Task* task)
                 } else {
                     level = pulse & 0x7E;
                 }
-                red       = level;
-                shade1    = (s32)(red << 16) >> 18;
-                green     = shade1;
-                blue      = shade1;
-                blk->half = 0x8000 / blk->otz;
+                red             = level;
+                shade1          = (s32)(red << 16) >> 18;
+                green           = shade1;
+                blue            = shade1;
+                blk->halfExtent = 0x8000 / blk->otz;
             }
             for (i = 0; i < 0x10; i += 2) {
                 prim           = gGpuPrimCursor;
@@ -5171,20 +5159,20 @@ void func_acropolis_plaza_80182054(Task* task)
                 setRGB1(prim, 0, 0, 0);
                 setRGB2(prim, red, green, blue);
                 setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 4]) >> 12);
-                prim->y0 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i]) >> 12);
-                prim->x1 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 5]) >> 12);
-                prim->y1 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 1]) >> 12);
-                prim->x2 = blk->sx;
-                prim->y2 = blk->sy;
-                prim->x3 = blk->sx + ((blk->half * D_acropolis_plaza_801987E0[i + 6]) >> 12);
-                prim->y3 = blk->sy + ((blk->half * D_acropolis_plaza_801987E0[i + 2]) >> 12);
+                prim->x0 = blk->screenPos.vx + ((blk->halfExtent * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+                prim->y0 = blk->screenPos.vy + ((blk->halfExtent * D_acropolis_plaza_801987E0[i]) >> 12);
+                prim->x1 = blk->screenPos.vx + ((blk->halfExtent * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+                prim->y1 = blk->screenPos.vy + ((blk->halfExtent * D_acropolis_plaza_801987E0[i + 1]) >> 12);
+                prim->x2 = blk->screenPos.vx;
+                prim->y2 = blk->screenPos.vy;
+                prim->x3 = blk->screenPos.vx + ((blk->halfExtent * D_acropolis_plaza_801987E0[i + 6]) >> 12);
+                prim->y3 = blk->screenPos.vy + ((blk->halfExtent * D_acropolis_plaza_801987E0[i + 2]) >> 12);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
                 gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(AcropolisPlazaGlowScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 }
 
 /// Plaza ambient-effect spawner. On its first frame only, it fires three bursts

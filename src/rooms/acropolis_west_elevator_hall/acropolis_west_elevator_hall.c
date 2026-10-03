@@ -1491,58 +1491,49 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
 /// depth test but only filled in and linked afterwards.
 void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
 {
-    void**            scratch;
-    u8*               head;
-    RoomShaftScratch* block;
-    s32*              otzp;
-    GfxCoord*         coord;
-    void*             mem;
-    POLY_FT4*         prim;
-    u16               vz;
+    RoomGlowSpriteScratch* block;
+    GfxCoord*              coord;
+    void*                  mem;
+    POLY_FT4*              prim;
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    scratch       = SCRATCH_STACK_CURSOR_SLOT;
-    head          = *scratch;
-    block         = (RoomShaftScratch*)(head - 0x14);
-    otzp          = &block->otz;
-    block->vec.vx = (u16)coord->workm.t[0];
-    block->vec.vy = (u16)coord->workm.t[1];
-    vz            = (u16)coord->workm.t[2];
-    *scratch      = block;
-    block->vec.vz = vz;
+    block              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+    block->worldPos.vx = coord->workm.t[0];
+    block->worldPos.vy = coord->workm.t[1];
+    block->worldPos.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
+    gte_ldv0(&block->worldPos);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
-    gte_stszotz(otzp);
-    if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
-        prim->tpage      = 0xAB;
-        prim->clut       = 0x4380;
-        prim->u0         = 0;
-        prim->v0         = 0;
-        prim->u1         = 0x67;
-        prim->v1         = 0;
-        prim->u2         = 0;
-        prim->v2         = 0x67;
-        prim->u3         = 0x67;
-        prim->v3         = 0x67;
-        prim->code      |= 3;
-        block->halfWidth = 0x6700 / ((RoomShaftScratch*)(head - 0x14))->otz;
-        prim->x0 = prim->x2 = block->sx - (u16)block->halfWidth;
-        prim->x1 = prim->x3 = block->sx + (u16)block->halfWidth;
-        prim->y0 = prim->y1 = block->sy - (u16)block->halfWidth;
-        prim->y2 = prim->y3 = block->sy + (u16)block->halfWidth;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomShaftScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+    gte_stsxy(&block->screenPos);
+    gte_stszotz(&block->otz);
+    if (block->otz >= 0x11) {
+        prim->tpage       = 0xAB;
+        prim->clut        = 0x4380;
+        prim->u0          = 0;
+        prim->v0          = 0;
+        prim->u1          = 0x67;
+        prim->v1          = 0;
+        prim->u2          = 0;
+        prim->v2          = 0x67;
+        prim->u3          = 0x67;
+        prim->v3          = 0x67;
+        prim->code       |= 3;
+        block->halfExtent = 0x6700 / block->otz;
+        prim->x0 = prim->x2 = block->screenPos.vx - block->halfExtent;
+        prim->x1 = prim->x3 = block->screenPos.vx + block->halfExtent;
+        prim->y0 = prim->y1 = block->screenPos.vy - block->halfExtent;
+        prim->y2 = prim->y3 = block->screenPos.vy + block->halfExtent;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     effectKillTask(mem, arg0);
 }
 

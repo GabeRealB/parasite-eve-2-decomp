@@ -152,16 +152,6 @@ typedef struct AsrBeamScratch {
 } AsrBeamScratch;
 STATIC_ASSERT_SIZEOF(AsrBeamScratch, 0x14);
 
-/// Projection and radius scratch for the security-room flash effect.
-typedef struct AsrFlashScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     step;
-    /* 0x08 */ SVECTOR v;
-    /* 0x10 */ s16     x;
-    /* 0x12 */ s16     y;
-} AsrFlashScratch;
-STATIC_ASSERT_SIZEOF(AsrFlashScratch, 0x14);
-
 /// The tasks `func_acropolis_security_room_8017D77C` and
 /// `func_acropolis_security_room_8017D834` spawn and poll until they end;
 /// message 0x13F1 is forwarded to the second while it is alive.
@@ -3515,35 +3505,35 @@ void func_acropolis_security_room_80181108(Task* arg0)
 /// the green one, both at one random brightness.
 void func_acropolis_security_room_801817A4(Task* task)
 {
-    GfxCoord*        coord;
-    void*            mem;
-    AsrFlashScratch* scratch;
-    POLY_G4*         quad;
-    LINE_G3*         line;
-    s16              lum;
-    s16              red;
-    s16              green;
-    s32              i;
+    GfxCoord*              coord;
+    void*                  mem;
+    RoomGlowSpriteScratch* scratch;
+    POLY_G4*               quad;
+    LINE_G3*               line;
+    s16                    lum;
+    s16                    red;
+    s16                    green;
+    s32                    i;
 
     coord = task->extra.coordBody->coord;
     mem   = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    scratch       = SCRATCH_STACK_RESERVE_BLOCK(AsrFlashScratch);
-    scratch->v.vx = coord->workm.t[0];
-    scratch->v.vy = coord->workm.t[1];
-    scratch->v.vz = coord->workm.t[2];
+    scratch              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+    scratch->worldPos.vx = coord->workm.t[0];
+    scratch->worldPos.vy = coord->workm.t[1];
+    scratch->worldPos.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&scratch->v);
+    gte_ldv0(&scratch->worldPos);
     gte_rtps();
-    gte_stsxy(&scratch->x);
+    gte_stsxy(&scratch->screenPos);
     gte_stszotz(&scratch->otz);
     if (scratch->otz >= 0x11) {
-        red             = (task->spawnArg1.value >> 1) & 1;
-        green           = task->spawnArg1.value & 1;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        lum             = ((gRandomLcgState >> 16) & 0x70) + 0x40;
-        scratch->step   = 0xC00 / scratch->otz;
+        red                 = (task->spawnArg1.value >> 1) & 1;
+        green               = task->spawnArg1.value & 1;
+        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        lum                 = ((gRandomLcgState >> 16) & 0x70) + 0x40;
+        scratch->halfExtent = 0xC00 / scratch->otz;
         for (i = 0; i < 2; i++) {
             quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
@@ -3552,11 +3542,11 @@ void func_acropolis_security_room_801817A4(Task* task)
             setRGB1(quad, 0, 0, 0);
             setRGB2(quad, lum * red, green * lum, 0);
             setRGB3(quad, 0, 0, 0);
-            quad->x0 = scratch->x - scratch->step;
-            quad->x1 = quad->x2 = scratch->x;
-            quad->x3            = scratch->x + scratch->step;
-            quad->y0 = quad->y2 = quad->y3 = scratch->y;
-            quad->y1                       = (scratch->y - scratch->step) + scratch->step * (i + i);
+            quad->x0 = scratch->screenPos.vx - scratch->halfExtent;
+            quad->x1 = quad->x2 = scratch->screenPos.vx;
+            quad->x3            = scratch->screenPos.vx + scratch->halfExtent;
+            quad->y0 = quad->y2 = quad->y3 = scratch->screenPos.vy;
+            quad->y1                       = (scratch->screenPos.vy - scratch->halfExtent) + scratch->halfExtent * (i + i);
             addPrim(&gGpuCurrentOt[((u32)scratch->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
         }
@@ -3567,17 +3557,17 @@ void func_acropolis_security_room_801817A4(Task* task)
             setRGB0(line, 0, 0, 0);
             setRGB1(line, lum * red, green * lum, 0);
             setRGB2(line, 0, 0, 0);
-            line->x0 = scratch->x + scratch->step * (i * 2 - 1);
-            line->y0 = scratch->y - scratch->step * (i + 1);
-            line->x1 = scratch->x;
-            line->y1 = scratch->y;
-            line->x2 = scratch->x - scratch->step * (i * 2 - 1);
-            line->y2 = scratch->y + scratch->step * (i + 1);
+            line->x0 = scratch->screenPos.vx + scratch->halfExtent * (i * 2 - 1);
+            line->y0 = scratch->screenPos.vy - scratch->halfExtent * (i + 1);
+            line->x1 = scratch->screenPos.vx;
+            line->y1 = scratch->screenPos.vy;
+            line->x2 = scratch->screenPos.vx - scratch->halfExtent * (i * 2 - 1);
+            line->y2 = scratch->screenPos.vy + scratch->halfExtent * (i + 1);
             addPrim(&gGpuCurrentOt[((u32)scratch->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, scratch->otz);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(AsrFlashScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     effectKillTask(mem, task);
 }
 

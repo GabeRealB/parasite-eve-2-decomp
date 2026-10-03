@@ -1450,49 +1450,44 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
 
 /// Draws a red light shaft at a point. `data` is rotated by
 /// `coord`'s `workm` and offset by its translation, then projected through
-/// `GsWSMATRIX` into a 0x14-byte scratch stack block; nothing is drawn when
+/// `GsWSMATRIX` into a `RoomGlowSpriteScratch` block; nothing is drawn when
 /// `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
 /// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
 /// point, whose vertex pulses red as `rsin(animFrame * arg2) / 34 + 0x78`.
 static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
 {
-    void**            scratch;
-    u8*               head;
-    RoomShaftScratch* block;
-    POLY_G4*          prim;
-    LINE_G3*          line;
-    s32               i;
-    s32               color;
-    s32               pulse;
-    s32               twice;
-    s32               t;
-    s32               t2;
+    RoomGlowSpriteScratch* block;
+    POLY_G4*               prim;
+    LINE_G3*               line;
+    s32                    i;
+    s32                    color;
+    s32                    pulse;
+    s32                    twice;
+    s32                    t;
+    s32                    t2;
 
     Gp_UpdateCoord(coord);
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    *scratch = head - 0x14;
-    block    = (RoomShaftScratch*)(head - 0x14);
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
 
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(data);
     gte_rtv0();
-    gte_stsv(&((RoomShaftScratch*)(head - 0x14))->vec);
-    block->vec.vx = (u16)block->vec.vx + (u16)coord->workm.t[0];
-    block->vec.vy = (u16)block->vec.vy + (u16)coord->workm.t[1];
-    block->vec.vz = (u16)block->vec.vz + (u16)coord->workm.t[2];
+    gte_stsv(&block->worldPos);
+    block->worldPos.vx += coord->workm.t[0];
+    block->worldPos.vy += coord->workm.t[1];
+    block->worldPos.vz += coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
+    gte_ldv0(&block->worldPos);
     gte_rtps();
-    gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
+    gte_stsxy(&block->screenPos);
     gte_stszotz(&block->otz);
-    if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
-        pulse            = rsin(gDisplayState.animFrame * (s16)arg2);
-        i                = 0;
-        block->halfWidth = ((s16)arg3 << 5) / ((RoomShaftScratch*)(head - 0x14))->otz;
-        color            = pulse / 34 + 0x78;
+    if (block->otz >= 0x11) {
+        pulse             = rsin(gDisplayState.animFrame * (s16)arg2);
+        i                 = 0;
+        block->halfExtent = ((s16)arg3 << 5) / block->otz;
+        color             = pulse / 34 + 0x78;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -1501,12 +1496,12 @@ static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, color, 0, 0);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - (u16)block->halfWidth;
-            prim->x1 = prim->x2 = block->sx;
-            prim->x3            = block->sx + (u16)block->halfWidth;
-            prim->y0 = prim->y2 = prim->y3 = block->sy;
+            prim->x0 = block->screenPos.vx - block->halfExtent;
+            prim->x1 = prim->x2 = block->screenPos.vx;
+            prim->x3            = block->screenPos.vx + block->halfExtent;
+            prim->y0 = prim->y2 = prim->y3 = block->screenPos.vy;
             twice                          = i << 1;
-            prim->y1                       = (block->sy - (u16)block->halfWidth) + block->halfWidth * twice;
+            prim->y1                       = (block->screenPos.vy - block->halfExtent) + block->halfExtent * twice;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
@@ -1523,19 +1518,19 @@ static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32
             setRGB2(line, 0, 0, 0);
             t        = i * 3 - 1;
             t2       = i + 1;
-            line->x0 = block->sx + (block->halfWidth * t);
-            line->y0 = block->sy - (block->halfWidth * t2);
-            line->x1 = block->sx;
-            line->y1 = block->sy;
-            line->x2 = block->sx - (block->halfWidth * t);
-            line->y2 = block->sy + (block->halfWidth * t2);
+            line->x0 = block->screenPos.vx + (block->halfExtent * t);
+            line->y0 = block->screenPos.vy - (block->halfExtent * t2);
+            line->x1 = block->screenPos.vx;
+            line->y1 = block->screenPos.vy;
+            line->x2 = block->screenPos.vx - (block->halfExtent * t);
+            line->y2 = block->screenPos.vy + (block->halfExtent * t2);
             addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 }
 
 #define GLOW_DRAW_RAY_STAR_OUTER(p, c, h) setRGB2(p, h, 0, 0)

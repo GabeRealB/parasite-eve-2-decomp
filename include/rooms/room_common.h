@@ -171,20 +171,20 @@ typedef struct {
 } RoomEventReqStorage;
 STATIC_ASSERT_SIZEOF(RoomEventReqStorage, 0x20);
 
-/// The scratch block a room's sprite or light-shaft drawer takes from
-/// the scratch stack for one projected point: `vec` is the point in world
-/// space, pushed through `GsWSMATRIX` with a single `RTPS`; `sx` / `sy` are the
-/// projected centre and `otz` its depth. `halfWidth` is a size divided by
-/// `otz`, the on-screen half extent the primitive's corners are offset by, so
-/// it narrows with distance.
+/// Scratch-stack block for drawing one glow sprite centred on a projected point.
+///
+/// Room glow drawers - lamps, flares, stars, beacons and flashes - fill
+/// `worldPos`, project it through `GsWSMATRIX` with one `RTPS`, and draw only
+/// when `otz` exceeds 0x10. The sprite's world size divided by `otz` gives
+/// `halfExtent`, so the sprite shrinks with distance. Reserve the complete
+/// block and release it in scratch-stack order after drawing.
 typedef struct {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     halfWidth;
-    /* 0x08 */ SVECTOR vec;
-    /* 0x10 */ u16     sx;
-    /* 0x12 */ u16     sy;
-} RoomShaftScratch;
-STATIC_ASSERT_SIZEOF(RoomShaftScratch, 0x14);
+    s32     otz;        // Projected depth (SZ3 / 4); also the ordering-table depth and blend depth
+    s32     halfExtent; // On-screen half size or radius scale in pixels: a world size divided by `otz`
+    SVECTOR worldPos;   // Sprite centre in world coordinates, the input to the projection
+    DVECTOR screenPos;  // Projected centre in screen pixels, stored as one GTE word
+} RoomGlowSpriteScratch;
+STATIC_ASSERT_SIZEOF(RoomGlowSpriteScratch, 0x14);
 
 /// Overlay of `Task::spawnArg1` for that task: `phase` steps the shaft's
 /// pulsing red channel off the global frame counter, `height` is the length
