@@ -52,11 +52,16 @@
 
 #include "rooms/shelter_r47.h"
 
-/// A consumable stack row's address, viewable as an integer for byte-offset arithmetic.
+/// Address of one `InventoryConsumableStack`, as a pointer or the same four bytes.
+///
+/// Adding a byte count to `address` advances that many bytes from `row`.
+/// Callers scale an element index by `sizeof(InventoryConsumableStack)`. The
+/// value borrows the table that pointer already names and owns no rows of its own.
 typedef union {
     InventoryConsumableStack* row;     // Row this address names.
     u32                       address; // Same storage as `row`, used when adding a byte offset.
 } _InventoryConsumableStackAddress;
+STATIC_ASSERT_SIZEOF(_InventoryConsumableStackAddress, 4);
 
 /// Row `index` elements after `rows`.
 ///
