@@ -211,14 +211,22 @@ typedef struct {
     u16 field_20;
 } DumpingHoleAnimWork;
 
+/// One frame of the rising billboard-sprite animation the debris event spawns:
+/// where the frame's 4-bit texture cell lies in VRAM and within its texture page.
+///
+/// A frame table is indexed by frame number and ends at an entry whose `vramX`
+/// is `SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END`.
 typedef struct {
-    s16 field_0;
-    s16 field_2;
-    s16 field_4;
-    s16 field_6;
-    s16 field_8;
-    s16 field_A;
-} DumpingHoleAnimFrame;
+    u16 vramX; // VRAM x of the cell in 16-bit words; only its 64-word page base selects the texture page
+    s16 u;     // Texture u of the cell's left edge within the page
+    s16 vramY; // VRAM y of the cell; only its 256-line page base selects the texture page
+    s16 v;     // Texture v of the cell's top edge within the page
+    s16 w;     // Cell width in texels, also the on-screen width at unit scale
+    s16 h;     // Cell height in texels, also the on-screen height at unit scale
+} _ShelterB3DumpingHoleSpriteFrame;
+
+/// `_ShelterB3DumpingHoleSpriteFrame::vramX` of the entry closing a frame table.
+enum { SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END = 0xFFFF };
 
 typedef struct {
     MATRIX field_0;
@@ -351,17 +359,17 @@ extern OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[];
 extern TaskDesc D_shelter_b3_dumping_hole_80188C04[];
 extern TaskDesc D_shelter_b3_dumping_hole_80188BC8[];
 
-extern Task*                  D_shelter_b3_dumping_hole_8018F4A8;
-extern s16                    D_shelter_b3_dumping_hole_80188154[];
-extern DumpingHoleAnimFrame   D_shelter_b3_dumping_hole_801880B8[];
-extern s16                    D_shelter_b3_dumping_hole_8018816C[];
-extern s16                    D_shelter_b3_dumping_hole_80188184[];
-extern s32                    D_shelter_b3_dumping_hole_8018819C[];
-extern ActorTransform         D_shelter_b3_dumping_hole_801881CC;
-extern ActorTransform         D_shelter_b3_dumping_hole_801881E4;
-extern ActorTransform         D_shelter_b3_dumping_hole_801881FC[];
-extern ActorTransform         D_shelter_b3_dumping_hole_80188304[];
-extern DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[];
+extern Task*                            D_shelter_b3_dumping_hole_8018F4A8;
+extern s16                              D_shelter_b3_dumping_hole_80188154[];
+extern _ShelterB3DumpingHoleSpriteFrame D_shelter_b3_dumping_hole_801880B8[];
+extern s16                              D_shelter_b3_dumping_hole_8018816C[];
+extern s16                              D_shelter_b3_dumping_hole_80188184[];
+extern s32                              D_shelter_b3_dumping_hole_8018819C[];
+extern ActorTransform                   D_shelter_b3_dumping_hole_801881CC;
+extern ActorTransform                   D_shelter_b3_dumping_hole_801881E4;
+extern ActorTransform                   D_shelter_b3_dumping_hole_801881FC[];
+extern ActorTransform                   D_shelter_b3_dumping_hole_80188304[];
+extern DumpingHoleDebrisEntry           D_shelter_b3_dumping_hole_801884CC[];
 
 extern EvsCommand            D_shelter_b3_dumping_hole_80188640[];
 extern EvsCommand            D_shelter_b3_dumping_hole_80188A78[];
@@ -544,7 +552,7 @@ extern TaskDesc       D_80164B78;
 extern TaskDesc       D_80174D58;
 extern TaskDesc       D_shelter_b3_dumping_hole_80188BC8[5];
 
-DumpingHoleAnimFrame D_shelter_b3_dumping_hole_801880B8[13] = {
+_ShelterB3DumpingHoleSpriteFrame D_shelter_b3_dumping_hole_801880B8[13] = {
     { 704, 0, 112, 112, 48, 48 },
     { 716, 48, 112, 112, 48, 48 },
     { 728, 96, 112, 112, 48, 48 },
@@ -557,7 +565,7 @@ DumpingHoleAnimFrame D_shelter_b3_dumping_hole_801880B8[13] = {
     { 752, 192, 160, 160, 48, 48 },
     { 704, 0, 208, 208, 48, 48 },
     { 716, 48, 208, 208, 48, 48 },
-    { -1, 0, 0, 0, 0, 0 },
+    { SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END, 0, 0, 0, 0, 0 },
 };
 
 s16 D_shelter_b3_dumping_hole_80188154[12] = {
@@ -2154,7 +2162,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
             if (D_shelter_b3_dumping_hole_80188154[W->field_1C] < (s16)t1e) {
                 (u16) W->field_1C = (u16)W->field_1C + 1;
                 W->field_1E       = 0;
-                if ((u16)D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0 == 0xFFFF) {
+                if (D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
                     taskKill(arg0);
                     return;
                 }
@@ -2168,12 +2176,12 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
     coord->coord.t[1] += W->field_16;
     if (func_shelter_b3_dumping_hole_8017DA00(
             coord,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_8,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_A,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_2,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_6,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0,
-            D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_4,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].w,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].h,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].u,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].v,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramX,
+            D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramY,
             W->field_8, 0x43C0, 0) != 0) {
         taskKill(arg0);
         return;
@@ -2238,7 +2246,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
             if (D_shelter_b3_dumping_hole_8018816C[W->field_1C] < (s16)t1e) {
                 (u16) W->field_1C = (u16)W->field_1C + 1;
                 W->field_1E       = 0;
-                if ((u16)D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0 == 0xFFFF) {
+                if (D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
                     taskKill(arg0);
                     return;
                 }
@@ -2250,12 +2258,12 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
     }
 
     coord->coord.t[1] += W->field_16;
-    w                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_8;
-    h                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_A;
-    u                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_2;
-    v                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_6;
-    tx                 = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_0;
-    ty                 = D_shelter_b3_dumping_hole_801880B8[W->field_1C].field_4;
+    w                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].w;
+    h                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].h;
+    u                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].u;
+    v                  = D_shelter_b3_dumping_hole_801880B8[W->field_1C].v;
+    tx                 = D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramX;
+    ty                 = D_shelter_b3_dumping_hole_801880B8[W->field_1C].vramY;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&coord->workm);
     gte_SetRotMatrix(&coord->workm);
@@ -2366,7 +2374,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             if (D_shelter_b3_dumping_hole_80188184[work->field_1C] < (s16)t1e) {
                 (u16) work->field_1C = (u16)work->field_1C + 1;
                 work->field_1E       = 0;
-                if ((u16)D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_0 == 0xFFFF) {
+                if (D_shelter_b3_dumping_hole_801880B8[work->field_1C].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
                     taskKill(arg0);
                     return;
                 }
@@ -2375,12 +2383,12 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             coord->coord.t[2] += work->field_18;
             func_shelter_b3_dumping_hole_8017DA00(
                 coord,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_8,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_A,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_2,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_6,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_0,
-                D_shelter_b3_dumping_hole_801880B8[work->field_1C].field_4,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].w,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].h,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].u,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].v,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].vramX,
+                D_shelter_b3_dumping_hole_801880B8[work->field_1C].vramY,
                 work->field_8, 0x43C0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
