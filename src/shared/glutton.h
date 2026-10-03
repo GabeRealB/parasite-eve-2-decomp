@@ -102,14 +102,17 @@ typedef union {
 } GluttonCoord;
 STATIC_ASSERT_SIZEOF(GluttonCoord, 0x50);
 
-/// One of the nine back-to-back collision groups in `GluttonWork` at
-/// 0x7F4. `obj` is the `WorldCollisionBody` the gameplay collision list carries and `recs`
-/// is the `WorldCollisionContact` table it fills in for that part, which is why the stride is
-/// 0x98. `obj.field_8` is the part's own coordinate -- what the hit handler
-/// spawns the hit effect on. The same shape as `GluttonHitGroup`.
-typedef struct GluttonHitGroup {
-    WorldCollisionBody    obj;
-    WorldCollisionContact recs[5];
+/// One hit sphere of the Glutton: a collision body and the contact table it
+/// records into.
+///
+/// The body is a pair-tested sphere riding one model part's coordinate, of the
+/// host or of an escort, and `contacts` is the table that body alone fills. A
+/// hit handler scans a group's table for an attack contact and spawns the hit
+/// effect on the body's coordinate. The boss enables and disables the bodies
+/// with its state and resets every table's occupied entries each frame.
+typedef struct {
+    WorldCollisionBody    body;        // Sphere linked into the world's body list; `coord` is the part it rides
+    WorldCollisionContact contacts[5]; // The body's own contact table
 } GluttonHitGroup;
 STATIC_ASSERT_SIZEOF(GluttonHitGroup, 0x98);
 
@@ -379,9 +382,10 @@ typedef struct GluttonWork {
     /* 0x7F2 */ s8 field_7F2;
     /// Cleared by the state-change reset to mark the work block as re-armed.
     /* 0x7F3 */ u8 field_7F3;
-    /// The nine back-to-back collision groups, one per model part: each is the
-    /// `WorldCollisionBody` the gameplay collision list carries plus the `WorldCollisionContact` table it
-    /// fills in.
+    /// The nine hit groups. 0 and 1 ride the host's part 4 and 2 its part 1;
+    /// 3 to 5 ride parts 1 to 3 of escort 0, and 6 to 8 those of escort 1.
+    /// Groups 0, 1, 3 and 6 also supply the contact records of the host,
+    /// escort 3, escort 0 and escort 1.
     /* 0x7F4 */ GluttonHitGroup hits[9];
     /// The tenth collision object, the one the swipe tick raises `flags` bit
     /// 0x8000 on while the swipe is live.

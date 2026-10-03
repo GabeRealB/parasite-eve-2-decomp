@@ -73778,7 +73778,7 @@ than once:
 
 ```c
     pos  = &sc->pos;          /* addiu a2,v1,-0x18 in the prologue */
-    recs = work->hits[0].recs;
+    recs = work->hits[0].contacts;
     i    = 0;
     mask = 0xFFFF0000;
     kind = 0x20000;
@@ -73906,7 +73906,7 @@ pointer arithmetic cannot express the other order - `build_binary_op` routes
 both `p + i` and `i + p` through `pointer_int_sum (PLUS_EXPR, ptrop, intop)` -
 so casting to an integer is the only alternative, and it is not needed.
 
-This also explains why `&work->hits[0].recs[i]` written out in full does not
+This also explains why `&work->hits[0].contacts[i]` written out in full does not
 hoist `work + 0x814`: `fold` reassociates `(work + 0x814) + i * 0x18` into
 `work + (i * 0x18 + 0x814)`, and the constant lands on the index
 (`addiu v0,v0,0x814` / `addu v1,s3,v0`) rather than on an invariant base.

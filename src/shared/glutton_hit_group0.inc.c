@@ -57,7 +57,7 @@ void gluttonHitGroup0(Task* arg0)
     work  = (GluttonWork*)arg0->work;
     sc    = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos   = &sc->pos;
-    recs  = work->hits[0].recs;
+    recs  = work->hits[0].contacts;
     i     = 0;
     mask  = 0xFFFF0000;
     kind  = 0x20000;
@@ -73,7 +73,7 @@ scan:
         goto found;
     }
     i++;
-    if (i < 5) {
+    if (i < ARRAY_SIZE(work->hits[0].contacts)) {
         goto scan;
     }
 missed:
@@ -82,7 +82,7 @@ found:
     sc->id = id;
 
     if (id != 0) {
-        gluttonHitEffect(work->hits[0].obj.coord, id);
+        gluttonHitEffect(work->hits[0].body.coord, id);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         param           = Gp_GetIdParam2(sc->id);
         work->field_E90 = param;

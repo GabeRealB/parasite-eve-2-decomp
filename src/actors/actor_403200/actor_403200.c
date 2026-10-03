@@ -3998,7 +3998,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     enemy->reactionFlags = 0;
     enemy->hp            = D_actor_403200_80141C00.hpMax;
     enemy->param         = &D_actor_403200_80141C00;
-    enemy->recs          = work->hits[0].recs;
+    enemy->recs          = work->hits[0].contacts;
 
     animationInitContext(&work->anim0, D_actor_403200_8015E484, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux0, work->slots0);
     animationInitContext(&work->anim1, D_actor_403200_8015E484, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux1, work->slots1);
@@ -4010,16 +4010,16 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->field_7C4 = work->field_7C8 = 0;
     work->field_7B6 = work->field_7B8 = 0x10;
 
-    func_8010C980(&task->extra.tmd->coords[4], &work->hits[1].obj, work->hits[1].recs, 5, 0x20, 0x300);
-    func_8010C980(&task->extra.tmd->coords[4], &work->hits[0].obj, work->hits[0].recs, 5, 0x20, 0x300);
-    func_8010C980(&task->extra.tmd->coords[1], &work->hits[2].obj, work->hits[2].recs, 5, 0x20, 0xBB8);
+    func_8010C980(&task->extra.tmd->coords[4], &work->hits[1].body, work->hits[1].contacts, ARRAY_SIZE(work->hits[1].contacts), 0x20, 0x300);
+    func_8010C980(&task->extra.tmd->coords[4], &work->hits[0].body, work->hits[0].contacts, ARRAY_SIZE(work->hits[0].contacts), 0x20, 0x300);
+    func_8010C980(&task->extra.tmd->coords[1], &work->hits[2].body, work->hits[2].contacts, ARRAY_SIZE(work->hits[2].contacts), 0x20, 0xBB8);
 
-    work->hits[1].obj.pos.vz = -0x100;
-    work->hits[2].obj.pos.vy = 0x400;
-    work->hits[1].obj.pos.vx = 0;
-    work->hits[1].obj.pos.vy = 0;
-    work->hits[2].obj.pos.vx = 0;
-    work->hits[2].obj.pos.vz = -0x400;
+    work->hits[1].body.pos.vz = -0x100;
+    work->hits[2].body.pos.vy = 0x400;
+    work->hits[1].body.pos.vx = 0;
+    work->hits[1].body.pos.vy = 0;
+    work->hits[2].body.pos.vx = 0;
+    work->hits[2].body.pos.vz = -0x400;
 
     gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
@@ -4074,12 +4074,12 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->field_ECC[0]->hp            = D_actor_403200_80141C00.hpMax;
     work->field_F0A                   = D_actor_403200_80141C20.hpMax;
     work->field_ECC[0]->param         = &D_actor_403200_80141C20;
-    work->field_ECC[0]->recs          = work->hits[3].recs;
-    func_8010C980(&work->field_ECC[0]->task->extra.tmd->coords[1], &work->hits[3].obj, work->hits[3].recs, 5,
+    work->field_ECC[0]->recs          = work->hits[3].contacts;
+    func_8010C980(&work->field_ECC[0]->task->extra.tmd->coords[1], &work->hits[3].body, work->hits[3].contacts, ARRAY_SIZE(work->hits[3].contacts),
                   0x20, 0x300);
-    func_8010C980(&work->field_ECC[0]->task->extra.tmd->coords[2], &work->hits[4].obj, work->hits[4].recs, 5,
+    func_8010C980(&work->field_ECC[0]->task->extra.tmd->coords[2], &work->hits[4].body, work->hits[4].contacts, ARRAY_SIZE(work->hits[4].contacts),
                   0x20, 0x300);
-    func_8010C980(&work->field_ECC[0]->task->extra.tmd->coords[3], &work->hits[5].obj, work->hits[5].recs, 5,
+    func_8010C980(&work->field_ECC[0]->task->extra.tmd->coords[3], &work->hits[5].body, work->hits[5].contacts, ARRAY_SIZE(work->hits[5].contacts),
                   0x20, 0x300);
 
     esc                                                     = Gp_SpawnEnemyFromTable(D_actor_403200_8015E72C, 1, 0, task->spawnArg2.pointer);
@@ -4104,12 +4104,12 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->field_ECC[1]->hp            = D_actor_403200_80141C00.hpMax;
     work->field_F0C                   = D_actor_403200_80141C30.hpMax;
     work->field_ECC[1]->param         = &D_actor_403200_80141C30;
-    work->field_ECC[1]->recs          = work->hits[6].recs;
-    func_8010C980(&work->field_ECC[1]->task->extra.tmd->coords[1], &work->hits[6].obj, work->hits[6].recs, 5,
+    work->field_ECC[1]->recs          = work->hits[6].contacts;
+    func_8010C980(&work->field_ECC[1]->task->extra.tmd->coords[1], &work->hits[6].body, work->hits[6].contacts, ARRAY_SIZE(work->hits[6].contacts),
                   0x20, 0x300);
-    func_8010C980(&work->field_ECC[1]->task->extra.tmd->coords[2], &work->hits[7].obj, work->hits[7].recs, 5,
+    func_8010C980(&work->field_ECC[1]->task->extra.tmd->coords[2], &work->hits[7].body, work->hits[7].contacts, ARRAY_SIZE(work->hits[7].contacts),
                   0x20, 0x300);
-    func_8010C980(&work->field_ECC[1]->task->extra.tmd->coords[3], &work->hits[8].obj, work->hits[8].recs, 5,
+    func_8010C980(&work->field_ECC[1]->task->extra.tmd->coords[3], &work->hits[8].body, work->hits[8].contacts, ARRAY_SIZE(work->hits[8].contacts),
                   0x20, 0x300);
 
     esc                = Gp_SpawnEnemyFromTable(D_actor_403200_8015E72C, 2, 0, task->spawnArg2.pointer);
@@ -4141,7 +4141,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
         work->field_ECC[3]->hp            = D_actor_403200_80141C00.hpMax;
         work->field_F0E                   = D_actor_403200_80141C40.hpMax;
         work->field_ECC[3]->param         = &D_actor_403200_80141C40;
-        work->field_ECC[3]->recs          = work->hits[1].recs;
+        work->field_ECC[3]->recs          = work->hits[1].contacts;
     }
 
     esc                = Gp_SpawnEnemyFromTable(D_actor_403200_8015E72C, 4, 0, task->spawnArg2.pointer);
@@ -4307,8 +4307,8 @@ static void func_actor_403200_8013A4A0(Task* arg0)
     work = (GluttonWork*)arg0->work;
     sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos  = &sc->pos;
-    recs = work->hits[3].recs;
-    for (i = 0; i < 5; i++) {
+    recs = work->hits[3].contacts;
+    for (i = 0; i < ARRAY_SIZE(work->hits[3].contacts); i++) {
         if (recs[i].key.value == 0) {
             goto missed1;
         }
@@ -4325,15 +4325,15 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        gluttonHitEffect(work->hits[3].obj.coord, id);
+        gluttonHitEffect(work->hits[3].body.coord, id);
         if (sc->id != 0) {
             goto body;
         }
     }
 
     pos2  = &sc->pos;
-    recs2 = work->hits[4].recs;
-    for (i2 = 0; i2 < 5; i2++) {
+    recs2 = work->hits[4].contacts;
+    for (i2 = 0; i2 < ARRAY_SIZE(work->hits[4].contacts); i2++) {
         if (recs2[i2].key.value == 0) {
             goto missed2;
         }
@@ -4350,15 +4350,15 @@ missed2:
 found2:
     sc->id = id;
     if (id != 0) {
-        gluttonHitEffect(work->hits[4].obj.coord, id);
+        gluttonHitEffect(work->hits[4].body.coord, id);
         if (sc->id != 0) {
             goto body;
         }
     }
 
     pos3  = &sc->pos;
-    recs3 = work->hits[5].recs;
-    for (i3 = 0; i3 < 5; i3++) {
+    recs3 = work->hits[5].contacts;
+    for (i3 = 0; i3 < ARRAY_SIZE(work->hits[5].contacts); i3++) {
         if (recs3[i3].key.value == 0) {
             goto missed3;
         }
@@ -4377,7 +4377,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    gluttonHitEffect(work->hits[5].obj.coord, id);
+    gluttonHitEffect(work->hits[5].body.coord, id);
     if (sc->id == 0) {
         goto out;
     }
@@ -6463,15 +6463,15 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
         goto after_mode;
     }
 clear_and_return:
-    Gp_ClearRec18Occupied(work->hits[0].recs);
-    Gp_ClearRec18Occupied(work->hits[1].recs);
-    Gp_ClearRec18Occupied(work->hits[2].recs);
-    Gp_ClearRec18Occupied(work->hits[3].recs);
-    Gp_ClearRec18Occupied(work->hits[4].recs);
-    Gp_ClearRec18Occupied(work->hits[5].recs);
-    Gp_ClearRec18Occupied(work->hits[6].recs);
-    Gp_ClearRec18Occupied(work->hits[7].recs);
-    Gp_ClearRec18Occupied(work->hits[8].recs);
+    Gp_ClearRec18Occupied(work->hits[0].contacts);
+    Gp_ClearRec18Occupied(work->hits[1].contacts);
+    Gp_ClearRec18Occupied(work->hits[2].contacts);
+    Gp_ClearRec18Occupied(work->hits[3].contacts);
+    Gp_ClearRec18Occupied(work->hits[4].contacts);
+    Gp_ClearRec18Occupied(work->hits[5].contacts);
+    Gp_ClearRec18Occupied(work->hits[6].contacts);
+    Gp_ClearRec18Occupied(work->hits[7].contacts);
+    Gp_ClearRec18Occupied(work->hits[8].contacts);
     Gp_ClearRec18Occupied(work->recs2);
     return;
 after_mode:
@@ -6605,45 +6605,45 @@ after_mode:
     }
 
     if (work->field_0 != 0 && work->field_EFA == 1) {
-        work->hits[0].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hits[0].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else {
-        work->hits[0].obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->hits[0].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     if (work->field_0 != 0 && work->field_EFA != 1) {
-        work->hits[1].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->hits[2].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hits[1].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hits[2].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else {
-        work->hits[1].obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->hits[2].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hits[1].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->hits[2].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
     if (work->field_0 != 0) {
-        work->hits[3].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->hits[4].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->hits[5].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hits[3].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hits[4].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hits[5].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else {
-        work->hits[3].obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->hits[4].obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->hits[5].obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->hits[3].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->hits[4].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->hits[5].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     if (work->field_0 != 0) {
-        work->hits[6].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->hits[7].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->hits[8].obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hits[6].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hits[7].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hits[8].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else {
-        work->hits[6].obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->hits[7].obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->hits[8].obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->hits[6].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->hits[7].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->hits[8].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 
-    Gp_ClearRec18Occupied(work->hits[0].recs);
-    Gp_ClearRec18Occupied(work->hits[1].recs);
-    Gp_ClearRec18Occupied(work->hits[2].recs);
-    Gp_ClearRec18Occupied(work->hits[3].recs);
-    Gp_ClearRec18Occupied(work->hits[4].recs);
-    Gp_ClearRec18Occupied(work->hits[5].recs);
-    Gp_ClearRec18Occupied(work->hits[6].recs);
-    Gp_ClearRec18Occupied(work->hits[7].recs);
-    Gp_ClearRec18Occupied(work->hits[8].recs);
+    Gp_ClearRec18Occupied(work->hits[0].contacts);
+    Gp_ClearRec18Occupied(work->hits[1].contacts);
+    Gp_ClearRec18Occupied(work->hits[2].contacts);
+    Gp_ClearRec18Occupied(work->hits[3].contacts);
+    Gp_ClearRec18Occupied(work->hits[4].contacts);
+    Gp_ClearRec18Occupied(work->hits[5].contacts);
+    Gp_ClearRec18Occupied(work->hits[6].contacts);
+    Gp_ClearRec18Occupied(work->hits[7].contacts);
+    Gp_ClearRec18Occupied(work->hits[8].contacts);
     Gp_ClearRec18Occupied(work->recs2);
     gluttonShakeTick(arg1);
 

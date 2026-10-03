@@ -54,8 +54,8 @@ void gluttonHitGroups6To8(Task* arg0)
     work = (GluttonWork*)arg0->work;
     sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos  = &sc->pos;
-    recs = work->hits[6].recs;
-    for (i = 0; i < 5; i++) {
+    recs = work->hits[6].contacts;
+    for (i = 0; i < ARRAY_SIZE(work->hits[6].contacts); i++) {
         if (recs[i].key.value == 0) {
             goto missed1;
         }
@@ -72,13 +72,13 @@ missed1:
 found1:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[6].obj.coord;
+        coord = work->hits[6].body.coord;
         goto hit;
     }
 
     pos2  = &sc->pos;
-    recs2 = work->hits[7].recs;
-    for (i2 = 0; i2 < 5; i2++) {
+    recs2 = work->hits[7].contacts;
+    for (i2 = 0; i2 < ARRAY_SIZE(work->hits[7].contacts); i2++) {
         if (recs2[i2].key.value == 0) {
             goto missed2;
         }
@@ -95,7 +95,7 @@ missed2:
 found2:
     sc->id = id;
     if (id != 0) {
-        coord = work->hits[7].obj.coord;
+        coord = work->hits[7].body.coord;
     hit:
         gluttonHitEffect(coord, id);
         if (sc->id != 0) {
@@ -104,8 +104,8 @@ found2:
     }
 
     pos3  = &sc->pos;
-    recs3 = work->hits[8].recs;
-    for (i3 = 0; i3 < 5; i3++) {
+    recs3 = work->hits[8].contacts;
+    for (i3 = 0; i3 < ARRAY_SIZE(work->hits[8].contacts); i3++) {
         if (recs3[i3].key.value == 0) {
             goto missed3;
         }
@@ -124,7 +124,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    gluttonHitEffect(work->hits[8].obj.coord, id);
+    gluttonHitEffect(work->hits[8].body.coord, id);
     if (sc->id == 0) {
         goto out;
     }

@@ -17,14 +17,14 @@ void gluttonExit(Task* arg0)
                 work->field_ECC[i]->task->state = 2;
             }
         }
-        Gp_UnlinkObj(&work->hits[0].obj);
-        Gp_UnlinkObj(&work->hits[1].obj);
-        Gp_UnlinkObj(&work->hits[3].obj);
-        Gp_UnlinkObj(&work->hits[4].obj);
-        Gp_UnlinkObj(&work->hits[5].obj);
-        Gp_UnlinkObj(&work->hits[6].obj);
-        Gp_UnlinkObj(&work->hits[7].obj);
-        Gp_UnlinkObj(&work->hits[8].obj);
+        Gp_UnlinkObj(&work->hits[0].body);
+        Gp_UnlinkObj(&work->hits[1].body);
+        Gp_UnlinkObj(&work->hits[3].body);
+        Gp_UnlinkObj(&work->hits[4].body);
+        Gp_UnlinkObj(&work->hits[5].body);
+        Gp_UnlinkObj(&work->hits[6].body);
+        Gp_UnlinkObj(&work->hits[7].body);
+        Gp_UnlinkObj(&work->hits[8].body);
         enemy->recs = 0;
     }
     enemyDestroy(enemy, arg0);
