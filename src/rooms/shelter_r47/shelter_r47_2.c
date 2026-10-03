@@ -562,16 +562,16 @@ static void func_shelter_r47_80181F14(Task* task, s16 y)
 
 static void func_shelter_r47_801820C0(s16 arg0)
 {
-    GpTpageSprt* p;
-    SPRT*        sprt;
+    SpriteDrawModePacket* p;
+    SPRT*                 sprt;
 
     p              = gGpuPrimCursor;
-    sprt           = &p->sprt;
+    sprt           = &p->sprite.sprt;
     gGpuPrimCursor = p + 1;
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    p->tpage.code[0] = 0xE1000096;
-    setcode(&p->sprt, 0x64);
+    setlen(&p->drawMode, 1);
+    setlen(&p->sprite.sprt, 4);
+    p->drawMode.code[0] = 0xE1000096;
+    setcode(&p->sprite.sprt, 0x64);
     MargePrim(p, sprt);
     sprt->clut  = 0x4000;
     sprt->x0    = -0xA0 - arg0;
@@ -584,12 +584,12 @@ static void func_shelter_r47_801820C0(s16 arg0)
     addPrim(&gGpuCurrentOt[12], p);
 
     p              = gGpuPrimCursor;
-    sprt           = &p->sprt;
+    sprt           = &p->sprite.sprt;
     gGpuPrimCursor = p + 1;
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    p->tpage.code[0] = 0xE1000098;
-    setcode(&p->sprt, 0x64);
+    setlen(&p->drawMode, 1);
+    setlen(&p->sprite.sprt, 4);
+    p->drawMode.code[0] = 0xE1000098;
+    setcode(&p->sprite.sprt, 0x64);
     MargePrim(p, sprt);
     sprt->x0    = 0x60 - arg0;
     sprt->clut  = 0x4000;
@@ -602,12 +602,12 @@ static void func_shelter_r47_801820C0(s16 arg0)
     addPrim(&gGpuCurrentOt[12], p);
 
     p              = gGpuPrimCursor;
-    sprt           = &p->sprt;
+    sprt           = &p->sprite.sprt;
     gGpuPrimCursor = p + 1;
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    p->tpage.code[0] = 0xE100008E;
-    setcode(&p->sprt, 0x64);
+    setlen(&p->drawMode, 1);
+    setlen(&p->sprite.sprt, 4);
+    p->drawMode.code[0] = 0xE100008E;
+    setcode(&p->sprite.sprt, 0x64);
     MargePrim(p, sprt);
     sprt->clut  = 0x4040;
     sprt->x0    = 0xE0 - arg0;
@@ -1227,16 +1227,16 @@ void func_shelter_r47_80183B84(Task* task)
 
 void func_shelter_r47_80183E24(void)
 {
-    GpTpageSprt* p;
-    SPRT*        sprt;
+    SpriteDrawModePacket* p;
+    SPRT*                 sprt;
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    p->tpage.code[0] = 0xE100002F;
-    setcode(&p->sprt, 0x64);
-    sprt = &p->sprt;
+    setlen(&p->drawMode, 1);
+    setlen(&p->sprite.sprt, 4);
+    p->drawMode.code[0] = 0xE100002F;
+    setcode(&p->sprite.sprt, 0x64);
+    sprt = &p->sprite.sprt;
     MargePrim(p, sprt);
     sprt->clut  = 0x3FC4;
     sprt->x0    = -0x96;
@@ -1251,16 +1251,16 @@ void func_shelter_r47_80183E24(void)
 
 void func_shelter_r47_80183F0C(void)
 {
-    GpTpageSprt* p;
-    SPRT*        sprt;
+    SpriteDrawModePacket* p;
+    SPRT*                 sprt;
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    p->tpage.code[0] = 0xE100002F;
-    setcode(&p->sprt, 0x64);
-    sprt = &p->sprt;
+    setlen(&p->drawMode, 1);
+    setlen(&p->sprite.sprt, 4);
+    p->drawMode.code[0] = 0xE100002F;
+    setcode(&p->sprite.sprt, 0x64);
+    sprt = &p->sprite.sprt;
     MargePrim(p, sprt);
     sprt->clut  = 0x3FC5;
     sprt->x0    = -0x90;
@@ -1275,19 +1275,19 @@ void func_shelter_r47_80183F0C(void)
 
 void func_shelter_r47_80183FF4(Task* task, s16 arg1)
 {
-    GpTpageSprt*      p;
-    SPRT*             sprt;
-    ShelterR47State2* state;
+    SpriteDrawModePacket* p;
+    SPRT*                 sprt;
+    ShelterR47State2*     state;
 
     p                = gGpuPrimCursor;
     state            = (ShelterR47State2*)task->work;
-    sprt             = &p->sprt;
+    sprt             = &p->sprite.sprt;
     gGpuPrimCursor   = p + 1;
     state->field_20 += (state->field_1E - state->field_20) >> 2;
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    p->tpage.code[0] = 0xE100002F;
-    setcode(&p->sprt, 0x64);
+    setlen(&p->drawMode, 1);
+    setlen(&p->sprite.sprt, 4);
+    p->drawMode.code[0] = 0xE100002F;
+    setcode(&p->sprite.sprt, 0x64);
     MargePrim(p, sprt);
     sprt->clut  = 0x3FC2;
     sprt->code |= 3;
@@ -1302,18 +1302,18 @@ void func_shelter_r47_80183FF4(Task* task, s16 arg1)
 
 void func_shelter_r47_80184124(Task* task, s16 arg1)
 {
-    GpTpageSprt*      p;
-    SPRT*             sprt;
-    ShelterR47State2* state;
+    SpriteDrawModePacket* p;
+    SPRT*                 sprt;
+    ShelterR47State2*     state;
 
     p              = gGpuPrimCursor;
     state          = (ShelterR47State2*)task->work;
-    sprt           = &p->sprt;
+    sprt           = &p->sprite.sprt;
     gGpuPrimCursor = p + 1;
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    p->tpage.code[0] = 0xE100002F;
-    setcode(&p->sprt, 0x64);
+    setlen(&p->drawMode, 1);
+    setlen(&p->sprite.sprt, 4);
+    p->drawMode.code[0] = 0xE100002F;
+    setcode(&p->sprite.sprt, 0x64);
     MargePrim(p, sprt);
     sprt->clut  = 0x3FC3;
     sprt->code |= 3;
@@ -1325,13 +1325,13 @@ void func_shelter_r47_80184124(Task* task, s16 arg1)
     sprt->h     = 8;
     addPrim(&gGpuCurrentOt[11], p);
 
-    p                = gGpuPrimCursor;
-    sprt             = &p->sprt;
-    gGpuPrimCursor   = p + 1;
-    p->tpage.code[0] = 0xE100002F;
-    setlen(&p->tpage, 1);
-    setlen(&p->sprt, 4);
-    setcode(&p->sprt, 0x64);
+    p                   = gGpuPrimCursor;
+    sprt                = &p->sprite.sprt;
+    gGpuPrimCursor      = p + 1;
+    p->drawMode.code[0] = 0xE100002F;
+    setlen(&p->drawMode, 1);
+    setlen(&p->sprite.sprt, 4);
+    setcode(&p->sprite.sprt, 0x64);
     MargePrim(p, sprt);
     sprt->clut  = 0x3FC3;
     sprt->code |= 3;

@@ -158,8 +158,8 @@ STATIC_ASSERT_SIZEOF(SpriteAreaTable, 4);
 
 /// Variable-size GPU sprite primitive, as an SDK `SPRT` and as transfer words.
 ///
-/// Room-sprite emission stores this 20-byte primitive in a merged texture-page
-/// packet and in the cached sprite lists. `sprt` is the SDK primitive: GPU
+/// Room-sprite emission stores this 20-byte primitive as the sprite half of a
+/// `SpriteDrawModePacket`, per frame and in the cached sprite lists. `sprt` is the SDK primitive: GPU
 /// macros take its address, and the command byte and CLUT are updated through
 /// it. `packed` groups the same bytes into the copies taken from a
 /// `SpriteSource`. Colour, the upper-left position and the size move as words;
@@ -181,13 +181,20 @@ typedef union {
 } SpritePacket;
 STATIC_ASSERT_SIZEOF(SpritePacket, 0x14);
 
-/// Merged `DR_TPAGE` + `SPRT` (0x1C) written into `gGpuPrimCursor` by
-/// `Gp_EmitSprts`. `MargePrim` concatenates the tpage packet onto the
-/// sprite so they share one OT entry.
-typedef struct _GpTpageSprt {
-    /* 0x00 */ DR_TPAGE     tpage;
-    /* 0x08 */ SpritePacket sprt;
-} GpTpageSprt;
-STATIC_ASSERT_SIZEOF(GpTpageSprt, 0x1C);
+/// A textured sprite preceded by the draw-mode command it is drawn with.
+///
+/// Writers give `drawMode` one word and `sprite` four, then `MargePrim` the
+/// sprite onto the draw-mode packet, so both travel as one 6-word GPU packet
+/// behind `drawMode`'s tag: one ordering-table link sets the texture page and
+/// blending, then draws the sprite. The merge only adds the lengths and does
+/// not check adjacency; it is valid because the sprite follows the draw-mode
+/// word directly, and the sprite's zeroed tag is sent as a no-op. The packets are
+/// built per frame in the `gGpuPrimCursor` arena, or once into the cached
+/// dual-buffer room sprite lists and relinked each frame.
+typedef struct {
+    DR_TPAGE     drawMode; // Packet tag, then the GPU draw-mode word (0xE1000000 | texture page and blend bits)
+    SpritePacket sprite;   // Sprite primitive; the merge zeroes its tag word
+} SpriteDrawModePacket;
+STATIC_ASSERT_SIZEOF(SpriteDrawModePacket, 0x1C);
 
 #endif // GAMEPLAY_SPRITES_H

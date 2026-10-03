@@ -25,15 +25,12 @@
 /// Texture-page bits retained from a source when building the GPU draw-mode word.
 enum { SPRITE_SOURCE_TEXTURE_PAGE_MASK = 0x9FF };
 
-/// Each allocated primitive has the same packet layout as an emitted sprite.
-typedef GpTpageSprt GpSprtPrim;
-
-GpSprtPrim* Gp_SprtCursor;
+SpriteDrawModePacket* Gp_SprtCursor;
 
 /// Dual-buffer primitive list heads, indexed by `gDisplayState.drawBuffer`.
 /// Allocated by `Gp_AllocSprtLists`; `Gp_SprtLists[1]` is the second half of
 /// the same block.
-extern GpSprtPrim* Gp_SprtLists[];
+extern SpriteDrawModePacket* Gp_SprtLists[];
 
 static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch);
 
@@ -51,21 +48,21 @@ static void func_800AD620(Task* task);
 
 static void func_800AD65C(Task* task);
 
-GpSprtPrim* Gp_SprtLists[2] = {
+SpriteDrawModePacket* Gp_SprtLists[2] = {
     NULL,
     NULL,
 };
 
 void Gp_LinkViewSprts(void)
 {
-    GameLocationKey* sess;
-    s32              view;
-    DisplayState*    ds;
-    GpSprtPrim**     table;
-    SpriteAreaTable* tbl;
-    SpriteView*      recs;
-    SpriteBatch*     batch;
-    SpriteSource*    sources;
+    GameLocationKey*       sess;
+    s32                    view;
+    DisplayState*          ds;
+    SpriteDrawModePacket** table;
+    SpriteAreaTable*       tbl;
+    SpriteView*            recs;
+    SpriteBatch*           batch;
+    SpriteSource*          sources;
 
     sess          = &gGameSession->location.loc;
     view          = Gp_GetViewIndex();
@@ -94,15 +91,15 @@ void Gp_LinkViewSprts(void)
 
 static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch)
 {
-    u32           i;
-    GpTpageSprt*  dest;
-    SpriteSource* texturePageSource;
-    SpriteSource* source;
-    DisplayState* ds;
-    u32           maskHi;
-    u32           mask;
-    SpritePacket* packet;
-    u32           tpage;
+    u32                   i;
+    SpriteDrawModePacket* dest;
+    SpriteSource*         texturePageSource;
+    SpriteSource*         source;
+    DisplayState*         ds;
+    u32                   maskHi;
+    u32                   mask;
+    SpritePacket*         packet;
+    u32                   tpage;
 
     i                 = 0;
     dest              = gGpuPrimCursor;
@@ -114,16 +111,16 @@ static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch)
         maskHi = 0xFF000000;
         source = texturePageSource;
         do {
-            packet = &dest->sprt;
+            packet = &dest->sprite;
             // Copy source geometry and texture state, then link the merged packet by depth.
             if ((source->codeFlags & SPRITE_SOURCE_RAW_TEXTURE) == 0) {
                 packet->packed.color = GPU_PRIMITIVE_COLOR_WORD(source, 0);
             }
             tpage = texturePageSource->tpage;
-            setlen(&dest->tpage, 1);
+            setlen(&dest->drawMode, 1);
             setlen(&packet->sprt, 4);
             setcode(&packet->sprt, 0x64);
-            dest->tpage.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
+            dest->drawMode.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
             MargePrim(dest, &packet->sprt);
             packet->sprt.code      |= source->codeFlags;
             packet->packed.uv       = source->uv.packed;
@@ -132,7 +129,7 @@ static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch)
             i++;
             packet->packed.size = source->size.packed;
             texturePageSource++;
-            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & mask);
+            dest->drawMode.tag = (dest->drawMode.tag & maskHi) | (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & mask);
             *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) =
                 (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & maskHi) | ((u32)dest & mask);
             dest++;
@@ -143,13 +140,13 @@ static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch)
 
 static void Gp_SetSprtShadeBits(s32 arg0)
 {
-    GameLocationKey* sess;
-    s32              view;
-    GpSprtPrim*      prim;
-    SpriteAreaTable* tbl;
-    SpriteView*      recs;
-    SpriteBatch*     batch;
-    u32              i;
+    GameLocationKey*      sess;
+    s32                   view;
+    SpriteDrawModePacket* prim;
+    SpriteAreaTable*      tbl;
+    SpriteView*           recs;
+    SpriteBatch*          batch;
+    u32                   i;
 
     sess          = &gGameSession->location.loc;
     view          = Gp_GetViewIndex();
@@ -164,9 +161,9 @@ static void Gp_SetSprtShadeBits(s32 arg0)
                 if (Gp_SprtLists[0] != NULL) {
                     for (i = 0; i < batch->spriteCount; i++) {
                         if (arg0 != 0) {
-                            prim->sprt.sprt.code |= 1;
+                            prim->sprite.sprt.code |= 1;
                         } else {
-                            prim->sprt.sprt.code &= ~1;
+                            prim->sprite.sprt.code &= ~1;
                         }
                         prim++;
                     }
@@ -182,19 +179,19 @@ void Gp_AllocSprtLists(void)
     GameLocationKey* sess;
     u8               view;
     union {
-        u32         address;
-        GpSprtPrim* records;
+        u32                   address;
+        SpriteDrawModePacket* records;
     } count;
-    s32           i;
-    SpriteView*   recs;
-    SpriteBatch*  batch;
-    SpriteSource* sources;
-    SpriteSource* source;
-    s32           bufIdx;
-    GpTpageSprt*  buf[2];
-    GpTpageSprt*  dest;
-    SpritePacket* packet;
-    u32           tpage;
+    s32                   i;
+    SpriteView*           recs;
+    SpriteBatch*          batch;
+    SpriteSource*         sources;
+    SpriteSource*         source;
+    s32                   bufIdx;
+    SpriteDrawModePacket* buf[2];
+    SpriteDrawModePacket* dest;
+    SpritePacket*         packet;
+    u32                   tpage;
 
     sess          = &gGameSession->location.loc;
     count.address = 0;
@@ -206,7 +203,7 @@ void Gp_AllocSprtLists(void)
         count.address += batch->spriteCount;
         batch++;
     }
-    count.address *= 0x38;
+    count.address *= 2 * sizeof(SpriteDrawModePacket); // one packet per sprite in each of the two lists
     if (count.address == 0) {
         Gp_SprtLists[0] = NULL;
         return;
@@ -219,8 +216,8 @@ void Gp_AllocSprtLists(void)
     /* The byte count becomes the PS1 address of the second packet buffer. */
     {
         union {
-            GpSprtPrim* records;
-            u32         address;
+            SpriteDrawModePacket* records;
+            u32                   address;
         } half;
         half.records    = Gp_SprtLists[0];
         count.address  += half.address;
@@ -237,13 +234,13 @@ void Gp_AllocSprtLists(void)
             source = sources + batch->firstSprite;
             for (i = 0; i < batch->spriteCount; i++) {
                 dest                 = buf[bufIdx];
-                packet               = &dest->sprt;
+                packet               = &dest->sprite;
                 packet->packed.color = GPU_PACK_COLOR_WORD(0, 0x80, 0, 0);
-                setlen(&dest->tpage, 1);
+                setlen(&dest->drawMode, 1);
                 tpage = source->tpage;
-                setlen(&dest->sprt.sprt, 4);
-                setcode(&dest->sprt.sprt, 0x64 | SPRITE_SOURCE_RAW_TEXTURE);
-                dest->tpage.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
+                setlen(&dest->sprite.sprt, 4);
+                setcode(&dest->sprite.sprt, 0x64 | SPRITE_SOURCE_RAW_TEXTURE);
+                dest->drawMode.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
                 MargePrim(dest, &packet->sprt);
                 packet->sprt.code      |= source->codeFlags;
                 packet->packed.uv       = source->uv.packed;
@@ -486,9 +483,9 @@ void Gp_RoomObjState1(Task* task)
 
 static void Gp_LinkSprtCmd(SpriteSource* sources, SpriteBatch* batch)
 {
-    u32           i;
-    GpSprtPrim*   prim;
-    SpriteSource* source;
+    u32                   i;
+    SpriteDrawModePacket* prim;
+    SpriteSource*         source;
 
     if (Gp_SprtLists[0] == NULL) {
         return;
