@@ -67,15 +67,22 @@ typedef struct {
 } _WorldCollisionGridProbeScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionGridProbeScratch, 0x40);
 
-/// 0x18-byte scratch from the scratch stack used by `func_800DEC80`.
-/// `local` is `WorldCollisionBody.context.capsule` as `SVECTOR[2]` plus `WorldCollisionBody.pos`,
-/// rotated by `coord->workm` into `vec` then added to `workm.t`.
-/// `vec` is reused as `arg1[0] - arg1[1]` for `VectorNormalS`.
-typedef struct _GpNormScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR local;
-} GpNormScratch;
-STATIC_ASSERT_SIZEOF(GpNormScratch, 0x18);
+/// Temporary vectors for placing a capsule body's segment and finding its axis.
+///
+/// Each local endpoint is the capsule's end offset plus the body's position,
+/// truncated to signed 16 bits, in game units. The body's cached transform
+/// rotates it; the caller's endpoint is that result plus the translation.
+/// The same vector then holds endpoint 0 minus endpoint 1 for normalization.
+/// The block lives on the scratch stack for one segment calculation. The SDK
+/// vectors' fourth components are unused and left uninitialized.
+typedef struct {
+    union {
+        VECTOR rotatedEndpoint; // Local endpoint after the body's rotation, before its translation
+        VECTOR segmentDelta;    // Placed endpoint 0 minus endpoint 1; the axis before normalization
+    } work;
+    SVECTOR localEndpoint;      // Capsule end offset plus the body's position, in the body's frame
+} _WorldCollisionCapsuleSegmentScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionCapsuleSegmentScratch, 0x18);
 
 /// 0x98-byte scratch from the scratch stack used by `func_800DEF80`.
 /// Transformed quad corners and normal are tested against `nodePos`;
@@ -587,16 +594,16 @@ static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
 
 void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
-    GpNormScratch*         block;
-    WorldCollisionCapsule* rec;
-    SVECTOR*               src;
-    WorldCollisionContact* slot;
-    s32                    flags;
-    s32                    i;
+    _WorldCollisionCapsuleSegmentScratch* scratch;
+    WorldCollisionCapsule*                rec;
+    SVECTOR*                              src;
+    WorldCollisionContact*                slot;
+    s32                                   flags;
+    s32                                   i;
 
-    rec   = arg0->context.capsule;
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpNormScratch);
-    i     = 0;
+    rec     = arg0->context.capsule;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionCapsuleSegmentScratch);
+    i       = 0;
 
     if (arg3 == 0) {
         if (arg0->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
@@ -655,24 +662,24 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
 done_search:
     gte_SetRotMatrix(&arg0->coord->workm);
     for (; i < 2; i++) {
-        src             = &rec->ends[i];
-        block->local.vx = src->vx + arg0->pos.vx;
-        block->local.vy = src->vy + arg0->pos.vy;
-        block->local.vz = src->vz + arg0->pos.vz;
-        gte_ldv0(&block->local);
+        src                       = &rec->ends[i];
+        scratch->localEndpoint.vx = src->vx + arg0->pos.vx;
+        scratch->localEndpoint.vy = src->vy + arg0->pos.vy;
+        scratch->localEndpoint.vz = src->vz + arg0->pos.vz;
+        gte_ldv0(&scratch->localEndpoint);
         gte_rtv0();
-        gte_stlvnl(&block->vec);
-        arg1[i].vx = block->vec.vx + (arg0->coord)->workm.t[0];
-        arg1[i].vy = block->vec.vy + (arg0->coord)->workm.t[1];
-        arg1[i].vz = block->vec.vz + (arg0->coord)->workm.t[2];
+        gte_stlvnl(&scratch->work.rotatedEndpoint);
+        arg1[i].vx = scratch->work.rotatedEndpoint.vx + (arg0->coord)->workm.t[0];
+        arg1[i].vy = scratch->work.rotatedEndpoint.vy + (arg0->coord)->workm.t[1];
+        arg1[i].vz = scratch->work.rotatedEndpoint.vz + (arg0->coord)->workm.t[2];
     }
 
-    block->vec.vx = arg1[0].vx - arg1[1].vx;
-    block->vec.vy = arg1[0].vy - arg1[1].vy;
-    block->vec.vz = arg1[0].vz - arg1[1].vz;
-    VectorNormalS(&block->vec, arg2);
+    scratch->work.segmentDelta.vx = arg1[0].vx - arg1[1].vx;
+    scratch->work.segmentDelta.vy = arg1[0].vy - arg1[1].vy;
+    scratch->work.segmentDelta.vz = arg1[0].vz - arg1[1].vz;
+    VectorNormalS(&scratch->work.segmentDelta, arg2);
 
-    SCRATCH_STACK_RELEASE_BLOCK(GpNormScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleSegmentScratch);
 }
 
 void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other)
