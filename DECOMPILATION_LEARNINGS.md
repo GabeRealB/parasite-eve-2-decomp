@@ -58562,7 +58562,7 @@ delay slot:
 
 ```
 beqz  $v0, .Lend
- addu $a3, $a1, $zero    /* $a1 still holds the value stored to block->cfg */
+ addu $a3, $a1, $zero    /* $a1 still holds the value stored to scan->player */
 .Lloop:
 lw    $a0, 0x4($a3)
 ```
@@ -58572,21 +58572,21 @@ does not produce it:
 
 ```c
 cfg        = &D_80073B08[(s16)actor];   /* wrong: no copy survives */
-block->cfg = cfg;
+scan->player = cfg;
 for (...) { ... cfg->field_4 ... }
 ```
 
 The local and the stored value are one pseudo, so the copy coalesces away, and
 the hoist slot it would have occupied is taken by some other invariant instead
-(here `li $t1, -1` for the `best == -1` test, which the target rematerialises
-inside the loop). Adding `cfg = block->cfg;` after the store does not help
+(here `li $t1, -1` for the `bestDistSq` sentinel test, which the target rematerialises
+inside the loop). Adding `cfg = scan->player;` after the store does not help
 either: CSE folds the load straight back to the same pseudo.
 
 Drop the local and read the field inside the loop:
 
 ```c
-block->cfg = &D_80073B08[(s16)actor];
-for (...) { ... block->cfg->field_4 ... }
+scan->player = &D_80073B08[(s16)actor];
+for (...) { ... scan->player->field_4 ... }
 ```
 
 `loop.c`'s `invariant_p` accepts the `MEM` because `true_dependence` clears it
@@ -114257,8 +114257,8 @@ Two things the port has to carry that a `sed` of the type names does not:
 
 - The twin's scratch/helper structs are declared in the twin's own source or
   header, so this overlay needs its own copy — here a 0x18-byte
-  `OverlayWalkerNearCfgScratch` (`dx`/`dy`/`dz`, the config pointer, `best`,
-  `dist`, `node`, `nearest`) alongside the 0x14-byte `OverlayWalkerNearScratch`
+  `BossStrangerNodeNearestPlayerScratch` (`dx`/`dy`/`dz`, the `player` pointer,
+  `bestDistSq`, `distSq`, `node`, `nearest`) alongside the 0x14-byte `OverlayWalkerNearScratch`
   the same scan uses without a config. Same layout, different name; the twin's
   type is not reachable from here.
 - That struct names `PlayerStatus`, so this overlay's header must

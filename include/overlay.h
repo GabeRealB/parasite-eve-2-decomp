@@ -15,7 +15,6 @@
 #include "main/scratch.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
-#include "main/wipsys_types.h"
 
 /*
  * Types that more than one overlay family carries.
@@ -608,23 +607,6 @@ typedef struct OverlayWalkerNearScratch {
     byte pad_12[0x2];
 } OverlayWalkerNearScratch;
 STATIC_ASSERT_SIZEOF(OverlayWalkerNearScratch, 0x14);
-
-/// The same nearest-node scan measured from the coordinate of the actor
-/// configuration `cfg` instead of the walker's own; `dy` is staged but never
-/// enters the distance.
-typedef struct OverlayWalkerNearCfgScratch {
-    s16           dx;
-    s16           dy;
-    s16           dz;
-    byte          pad_6[0x2];
-    PlayerStatus* cfg;
-    u32           best;
-    u32           dist;
-    u8            node;
-    u8            nearest;
-    byte          pad_16[0x2];
-} OverlayWalkerNearCfgScratch;
-STATIC_ASSERT_SIZEOF(OverlayWalkerNearCfgScratch, 0x18);
 
 /// The scratch-pad block of a patrol walker's re-plan along `nodeOrder`.
 /// `nodeA` is the node nearest the actor the walker reacts to and `nodeB` the

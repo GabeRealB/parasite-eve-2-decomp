@@ -18,6 +18,33 @@
 
 #include "overlay.h"
 
+#include "main/wipsys_types.h"
+
+/// Value of `BossStrangerNodeNearestPlayerScratch::bestDistSq` before the
+/// scan has taken a node. A real squared distance equal to it still replaces
+/// it, so the first node tested always wins.
+#define BOSS_STRANGER_NODE_DISTANCE_NONE 0xFFFFFFFF
+
+/// Scratch-pad block of the scan for the nav node nearest a player.
+///
+/// Each node of the walker's table is measured against the root coordinate of
+/// one player status record, using the low 16 bits of each axis. The distance
+/// is taken on the XZ plane, so the height offset is staged and never read.
+/// `nearest` has no value when the node table is empty.
+typedef struct {
+    s16           dx;          // Player X minus the node's
+    s16           dy;          // Player Y minus the node's. Stored, never read
+    s16           dz;          // Player Z minus the node's
+    byte          pad_6[0x2];  // Unread. Aligns player
+    PlayerStatus* player;      // Status record whose root coordinate the scan measures from
+    u32           bestDistSq;  // Smallest distSq taken so far, or BOSS_STRANGER_NODE_DISTANCE_NONE
+    u32           distSq;      // Squared XZ distance from the node under test to the player
+    u8            node;        // Index of the node under test
+    u8            nearest;     // Index of the node bestDistSq was measured at. The scan's result
+    byte          pad_16[0x2]; // Unread. Rounds the block up to a whole word
+} BossStrangerNodeNearestPlayerScratch;
+STATIC_ASSERT_SIZEOF(BossStrangerNodeNearestPlayerScratch, 0x18);
+
 s16  bossStrangerArrived(BossStrangerWalker* walker);
 void bossStrangerFollowRoute(BossStrangerWalker* work, SVECTOR3* pos);
 u8   bossStrangerNodeNearestActor(BossStrangerWalker* work, s32 actor);

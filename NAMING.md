@@ -418,7 +418,9 @@ values are separate from runtime stage numbers.
 `src/shared/boss_stranger.h`. The movement record is `BossStrangerWalker` in
 `include/overlay.h`, with `BossStrangerNode`, `BossStrangerNav` and
 `BossStrangerRoute` beside it. State values use `BOSS_STRANGER_WALKER_`.
-The scratch frames the step opens stay with the walker family under their
+The block of the nearest-node scan from a player is
+`BossStrangerNodeNearestPlayerScratch`, private to that interface. The other
+scratch frames the step opens stay with the walker family under their
 `OverlayWalker` names until their own review. The arrival test has none of its
 own: the offset it stages is a plain `SVECTOR`.
 
