@@ -418,8 +418,8 @@ void Spu_TickVoices(void)
             arg = base->field_16c[i];
             if (arg != 0) {
                 callback(arg);
-                base->field_10c[i] = 0;
-                base->field_16c[i] = 0;
+                base->field_10c[i] = NULL;
+                base->field_16c[i] = NULL;
             }
         }
         if (((s32)base->field_1cc >> i) & 1) {
@@ -507,20 +507,20 @@ void Spu_FlushVoiceUpdates(void)
     }
 }
 
-void Spu_SetVoiceCallbacks(u32 voiceIdx, SpuVoiceCallback arg1, void* arg2)
+void Spu_SetVoiceCallbacks(u32 voiceIdx, SpuVoiceCallback callback, void* context)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 
-    Spu_VoiceState.field_10c[sVoiceIdx] = arg1;
-    Spu_VoiceState.field_16c[sVoiceIdx] = arg2;
+    Spu_VoiceState.field_10c[sVoiceIdx] = callback;
+    Spu_VoiceState.field_16c[sVoiceIdx] = context;
 }
 
 void Spu_ClearVoiceCallbacks(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 
-    Spu_VoiceState.field_10c[sVoiceIdx] = 0;
-    Spu_VoiceState.field_16c[sVoiceIdx] = 0;
+    Spu_VoiceState.field_10c[sVoiceIdx] = NULL;
+    Spu_VoiceState.field_16c[sVoiceIdx] = NULL;
 }
 
 s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)

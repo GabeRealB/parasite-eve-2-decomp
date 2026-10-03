@@ -1033,7 +1033,7 @@ void CdAudio_CopyVoiceData(s8 arg0, const SpuVoiceAttr* attr)
     const s32*  arg1;
     u32         i;
 
-    Spu_SetVoiceCallbacks(arg0, 0, 0);
+    Spu_SetVoiceCallbacks(arg0, NULL, NULL);
     Spu_GetVoiceRef(arg0, &sp10);
     dest = (s32*)sp10.field_4;
     arg1 = (const s32*)attr;

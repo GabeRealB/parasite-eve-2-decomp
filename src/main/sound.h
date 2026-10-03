@@ -110,7 +110,7 @@ s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks);
 
 s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2);
 
-void Spu_SetVoiceCallbacks(u32 voiceIdx, SpuVoiceCallback arg1, void* arg2);
+void Spu_SetVoiceCallbacks(u32 voiceIdx, SpuVoiceCallback callback, void* context);
 
 s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2);
 

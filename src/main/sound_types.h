@@ -13,7 +13,17 @@ typedef s32 (*AudioTickPoll)(s32* arg);
 
 typedef void (*AudioTickOnRemove)(void);
 
-/// Per-voice SPU runtime (Spu_VoiceState). 24 voices.
+/// Tells the owner of an SPU voice that the voice is no longer its own.
+///
+/// Each of the 24 hardware voices holds at most one handler together with the
+/// `context` pointer it is called with: the owner's own record of that voice,
+/// which the handler frees or unlinks. The handler runs when the voice has
+/// finished sounding and is returned to the pool, which also drops the
+/// registration, and when allocation hands a voice that is still in use to
+/// another request, which leaves the registration for the new owner to
+/// replace. A registration whose `context` is NULL is never called. An owner
+/// that gives a voice up itself removes the registration first and is not
+/// told.
 typedef void (*SpuVoiceCallback)(void* context);
 
 /// A sound-bank program's layer count and shared volume and pan controls.
