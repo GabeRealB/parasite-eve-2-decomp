@@ -1224,7 +1224,9 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
         for (; i < 2; i++) {
             part = &ctl->extra.tmd->coords[14 + i * 3];
             Gp_UpdateCoord(part);
-            // This task keeps its spawn odds, out of 0x200, in its work block's `angle`.
+            // The work block's `angle` holds the splash strength, this task's spawn odds
+            // out of 0x200: the part's movement since last frame, raised by 0x20 for the
+            // ripple roll only.
             work->angle = ABS(D_shelter_b4_water_supply_801826E0[i].vx - part->workm.t[0]) +
                           ABS(D_shelter_b4_water_supply_801826E0[i].vy - part->workm.t[1]) +
                           ABS(D_shelter_b4_water_supply_801826E0[i].vz - part->workm.t[2]) + 0x20;
