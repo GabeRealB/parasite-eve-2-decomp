@@ -81,6 +81,14 @@ STATIC_ASSERT_SIZEOF(ActorTransform, 0x18);
 
 struct ActorCommand;
 struct AnimationSet;
+struct AnimationPlayRequest;
+struct AnimationBankCopyRequest;
+struct GameActorButtonPressHold;
+struct GameActorWalkSteps;
+struct GameActorMoveBy;
+struct GameActorStairClimb;
+struct GameActorMoveAnim;
+struct GfxCoord;
 
 /// One integer or object address passed to a task's message handler.
 ///
@@ -93,15 +101,26 @@ struct AnimationSet;
 ///
 /// `pointer` transports arbitrary object addresses without changing their bits;
 /// its const qualification does not describe the receiver's write permission.
-/// The typed views identify command records in event-script operands and room
-/// transition requests/replies. This union is one four-byte PS1 argument word,
-/// not the payload record itself. Keep `value` first: the transparent union
-/// accepts integer and pointer arguments using the integer calling convention.
+/// The typed views identify command, room-transition, animation and actor-motion
+/// payloads. Keep the exact pointer types used by installed callbacks here:
+/// GCC's transparent-union function compatibility requires a matching member
+/// type, even when `pointer` can transport the same address. This union is one
+/// four-byte PS1 argument word, not the payload record itself. Keep `value`
+/// first to use the integer calling convention for every argument view.
 typedef union {
-    s32                  value;     // Integer argument or the complete transported address bits
-    const void*          pointer;   // Generic borrowed object address for transport
-    struct ActorCommand* command;   // ACTOR_COMMAND_MESSAGE_APPLY: borrowed actor command
-    RoomEventMsg*        roomEvent; // ROOM_EVENT_MESSAGE_RESOLVE: borrowed request or writable reply
+    s32                                    value;             // Integer argument or the complete transported address bits
+    const void*                            pointer;           // Generic borrowed object address for transport
+    struct ActorCommand*                   command;           // ACTOR_COMMAND_MESSAGE_APPLY: borrowed actor command
+    RoomEventMsg*                          roomEvent;         // ROOM_EVENT_MESSAGE_RESOLVE: borrowed request or writable reply
+    struct AnimationPlayRequest*           animation;         // Animation playback or bank installation request
+    const struct AnimationBankCopyRequest* animationBankCopy; // Borrowed source words for the animation-bank extension
+    ActorTransform*                        transform;         // Borrowed placement, target yaw or movement destination
+    struct GameActorButtonPressHold*       buttonPressHold;   // Borrowed button-press count and animation fallback
+    struct GameActorWalkSteps*             walkSteps;         // Borrowed footstep-count request
+    struct GameActorMoveBy*                displacement;      // Borrowed per-frame displacement and collision requests
+    struct GameActorStairClimb*            stairClimb;        // Borrowed stair direction and step count
+    struct GameActorMoveAnim*              moveAnimation;     // Optional borrowed approach and arrival clips
+    struct GfxCoord*                       parentCoord;       // Borrowed model-parent coordinate
 } TaskMessageArg __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(TaskMessageArg, 4);
 
@@ -136,9 +155,18 @@ enum {
 /// Tables installed in `Task::msgTable` are borrowed and read only during
 /// dispatch. Keep the table and its callbacks live while the task can receive
 /// messages. Entries are searched in order, and the first matching ID wins.
-/// End the table with `{ TASK_MESSAGE_TABLE_END, NULL }` so unsupported IDs
-/// return zero. Never send the reserved end ID: equality is tested before the
+/// A final `{ TASK_MESSAGE_TABLE_END, NULL }` makes unsupported IDs return zero.
+/// A table without that marker may receive only installed IDs with non-null
+/// callbacks. Never send the reserved end ID: equality is tested before the
 /// end marker, so it would select the null callback.
+///
+/// The companion tables have no end marker: actors 800100 and 800300 accept
+/// IDs 1000..1025, and actor 800200 accepts 1000..1019. The player table accepts
+/// 1000..1026; its final `{ -1, NULL }` is not an end marker. Other IDs would
+/// search beyond these tables. Companions may bind an unsupported command to
+/// animation playback, so the receiving table selects the required payload.
+/// Handlers retain both argument words even when a command leaves them unread;
+/// payloads follow their request types' borrowing and lifetime contracts.
 ///
 /// Every other entry requires a non-null `TaskMessageHandler`. The message ID
 /// and receiver select the argument interpretations and signed result; the
@@ -299,7 +327,7 @@ STATIC_ASSERT_SIZEOF(AnimationPlayRequest, 0x14);
 /// The request and source span are borrowed through synchronous dispatch;
 /// copied clip pointers and their data must remain live while playback uses them.
 /// The record occupies eight bytes with four-byte alignment.
-typedef struct {
+typedef struct AnimationBankCopyRequest {
     union {
         const s32*                  words; // Read-only word span, possibly including data after the set pointers
         struct AnimationSet* const* sets;  // Read-only set-pointer table; the descriptors remain borrowed
@@ -324,7 +352,7 @@ STATIC_ASSERT_SIZEOF(AnimationBankCopyRequest, 8);
 /// that only addresses an implementing receiver may leave `animation`
 /// uninitialized. The record is borrowed through synchronous dispatch and
 /// occupies 24 bytes with four-byte alignment.
-typedef struct {
+typedef struct GameActorButtonPressHold {
     AnimationPlayRequest animation;  // Read by the generic animation handler; the hold handlers ignore it
     s32                  pressCount; // Direction-pad and face-button presses before the hold completes; 0 completes on the first tick
 } GameActorButtonPressHold;
@@ -346,7 +374,7 @@ STATIC_ASSERT_SIZEOF(GameActorButtonPressHold, 0x18);
 ///
 /// The record is borrowed through synchronous dispatch and is not copied. It
 /// occupies eight bytes with four-byte alignment.
-typedef struct {
+typedef struct GameActorWalkSteps {
     u16 stepCount; // Sounded footsteps to walk before the motion ends
     s32 field_4;   // Role unproven: the receiver keeps the word, and the one choice its zero test makes has no effect
 } GameActorWalkSteps;
@@ -439,9 +467,10 @@ STATIC_ASSERT_SIZEOF(ActorCommand, 4);
 /// The player, and a companion whose table binds the message, adds
 /// `displacement` to its root position during dispatch, so a sender moving
 /// the receiver over several frames dispatches the record once a frame.
-/// The player answers 1 while its contact list holds a grid contact other
-/// than the floor, and 0 otherwise; senders treat 1 as blocked and zero the
-/// displacement. The companion handlers have no result of their own.
+/// The player and implementing companions answer 1 while their contact list
+/// holds a grid contact other than the floor, and 0 otherwise; movement
+/// senders treat 1 as blocked and zero the displacement. The companion
+/// wrapper preserves the player's interaction state while forwarding that result.
 ///
 /// `collisionRequests` replaces the receiver's pending collision update
 /// requests and is applied by its next collision update. With
@@ -451,7 +480,7 @@ STATIC_ASSERT_SIZEOF(ActorCommand, 4);
 ///
 /// The record is borrowed through synchronous dispatch and is not copied. It
 /// occupies 20 bytes with four-byte alignment.
-typedef struct {
+typedef struct GameActorMoveBy {
     VECTOR displacement;      // World-coordinate offset added to the receiver's position; the fourth component is unused
     s16    collisionRequests; // Collision update requests (0 none, 1 enable the first body, 7 enable all, 0x38 disable all); the receiver keeps the low byte
     u8     keepControl;       // Control taken by the move (0 enters scripted control and its moving state first, nonzero leaves the receiver's mode and state unchanged)
@@ -470,7 +499,7 @@ STATIC_ASSERT_SIZEOF(GameActorMoveBy, 0x14);
 ///
 /// The receiver copies both words through synchronous dispatch and does not
 /// keep the record, which occupies eight bytes with four-byte alignment.
-typedef struct {
+typedef struct GameActorStairClimb {
     s32 descend;   // Direction (0 climbs, nonzero descends); the receiver keeps the low halfword
     s32 stepCount; // Steps in the flight, one per sounded footstep; the receiver keeps the low halfword
 } GameActorStairClimb;
@@ -493,7 +522,7 @@ STATIC_ASSERT_SIZEOF(GameActorStairClimb, 8);
 ///
 /// The record is borrowed through synchronous dispatch and is not copied.
 /// It occupies eight bytes with four-byte alignment.
-typedef struct {
+typedef struct GameActorMoveAnim {
     s32 approachAnimId; // Approach clip; 0 selects the move's default
     s32 arrivalAnimId;  // Arrival clip; 0 selects clip 1
 } GameActorMoveAnim;
