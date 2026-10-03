@@ -109,34 +109,72 @@ typedef struct AcropolisPlazaSceneArg {
     /* 0x2 */ u16 noStream;
 } AcropolisPlazaSceneArg;
 
-/// Work block the plaza's scene task (`func_acropolis_plaza_8017DFE0`) keeps at
-/// `Task::work`; it is a 0x34 allocation, distinct from the sequence task's
-/// `AcropolisPlazaWork`. `pos` is the world position
-/// `func_acropolis_plaza_8017DD90` centres its vertex box on; it is refreshed
-/// every frame from the plaza's per-view position table, and `distX` is how far
-/// that point sits ahead of the camera in X. `fwd` / `back` are the two "the
-/// player has walked past the edge of this shot" flags the task recomputes each
-/// frame from `distX`, `prev*` their values from the previous frame, and
-/// `field_2E` selects the 10- or 40-frame stream step used when re-seeking.
-typedef struct AcropolisPlazaSceneWork {
-    /* 0x00 */ MATRIX*    mtx;
-    /* 0x04 */ Task*      slot3;
-    /* 0x08 */ GameActor* actor;
-    /* 0x0C */ VECTOR3    pos;
-    /* 0x18 */ s32        distX;
-    /* 0x1C */ byte       pad_1C[0x2];
-    /* 0x1E */ s16        prevSide;
-    /* 0x20 */ s16        streamLen;
-    /* 0x22 */ s16        fwd;
-    /* 0x24 */ s16        back;
-    /* 0x26 */ u16        baseView;
-    /* 0x28 */ byte       pad_28[0x2];
-    /* 0x2A */ s16        prevFwd;
-    /* 0x2C */ s16        prevBack;
-    /* 0x2E */ s16        field_2E;
-    /* 0x30 */ byte       pad_30[0x4];
-} AcropolisPlazaSceneWork;
-STATIC_ASSERT_SIZEOF(AcropolisPlazaSceneWork, 0x34);
+/// `GameActor.movementMode` value this plaza treats as running.
+enum { ACROPOLIS_PLAZA_MOVEMENT_RUNNING = 3 };
+
+/// Edge flag on the streamed-scene work.
+///
+/// Zero means the player is still inside the shot. A walk across the edge
+/// stores 1 and a run (`ACROPOLIS_PLAZA_MOVEMENT_RUNNING`) stores 2. The new
+/// seek offset is computed only for a walk; a run still changes direction
+/// and enqueues.
+enum {
+    ACROPOLIS_PLAZA_EDGE_NONE = 0,
+    ACROPOLIS_PLAZA_EDGE_WALK = 1,
+    ACROPOLIS_PLAZA_EDGE_RUN  = 2
+};
+
+/// `relX` margins, in world units, and the scene frame with no earlier shot.
+///
+/// `relX` is the shot position's X minus the player root X. Later frames of
+/// this plaza move toward -X, so a large positive value is the forward edge.
+/// The back test is strict: the margin itself does not fire.
+enum {
+    ACROPOLIS_PLAZA_FORWARD_EDGE      = 0xC9,
+    ACROPOLIS_PLAZA_BACK_EDGE         = -0x14,
+    ACROPOLIS_PLAZA_FIRST_SCENE_FRAME = 1
+};
+
+/// Seek scale stored in `frameStep`, and the stream frames one movie frame spans.
+///
+/// The scene task initialises the scale to the fine step and stores that same
+/// value after every seek it computes. Nothing in this overlay stores the
+/// coarse step, so the 40-frame arm is present and unreachable.
+enum {
+    ACROPOLIS_PLAZA_FRAME_STEP_FINE    = 1,
+    ACROPOLIS_PLAZA_FRAME_STEP_COARSE  = 2,
+    ACROPOLIS_PLAZA_SEEK_FRAMES_FINE   = 10,
+    ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE = 40
+};
+
+/// Work block for the plaza's streamed-scene task, kept in `Task::work`.
+///
+/// The task allocates and zeroes one block of this size. While stream sub-id
+/// 0..3 is selected it copies that scene frame's row from the 400-entry
+/// shot-position table into `shotPos` and sets `relX` from the player's root
+/// matrix. Crossing an edge re-seeks the movie: forward selects
+/// `forwardSubId`, reverse selects the next sub-id, and the target is counted
+/// in `ACROPOLIS_PLAZA_SEEK_FRAMES_FINE` or `ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE`
+/// units. This block is distinct from the sequence task's `AcropolisPlazaWork`.
+typedef struct {
+    MATRIX*    playerMtx;    // Borrowed player root matrix; valid while the player actor is live
+    Task*      playerTask;   // Borrowed player task, cached once the CD is idle
+    GameActor* player;       // That task's actor; running is `ACROPOLIS_PLAZA_MOVEMENT_RUNNING`
+    VECTOR3    shotPos;      // Shot position for this scene frame (table row sceneFrame-1; the read is not clamped)
+    s32        relX;         // Shot X minus the player root X; compared with the plaza edge margins
+    byte       field_1C[2];  // No access established; role unproven
+    s16        prevReverse;  // Previous traversal direction (0 forward, 1 reverse), latched when an edge fires
+    s16        frameLimit;   // Current stream's playback stop frame, numbered from 1
+    s16        fwd;          // Forward-edge flag (0 none, 1 walking, 2 running)
+    s16        back;         // Back-edge flag (0 none, 1 walking, 2 running); stays clear on scene frame 1
+    u16        forwardSubId; // Sub-id a forward crossing selects; reverse selects the next. Zeroed, then never stored
+    byte       field_28[2];  // No access established; role unproven
+    s16        prevFwd;      // `fwd` from the previous frame
+    s16        prevBack;     // `back` from the previous frame
+    s16        frameStep;    // Seek scale (1 = 10 stream frames, 2 = 40). This task only stores 1
+    byte       field_30[4];  // No access established; role unproven
+} _AcropolisPlazaSceneWork;
+STATIC_ASSERT_SIZEOF(_AcropolisPlazaSceneWork, 0x34);
 
 /// Work block the plaza's sequence task (`func_acropolis_plaza_80180054`)
 /// allocates with `memMalloc(0x28, 0)` and parks in `Task::work`. State 0
@@ -3200,7 +3238,7 @@ WorldCollisionSurfaceProperties* D_acropolis_plaza_80199F28[8] = {
 
 static void            func_acropolis_plaza_8017DD90(Task* arg0);
 static void            func_acropolis_plaza_8017DE24(s32 arg0);
-static __inline__ void plaza_updateEdgeFlags(AcropolisPlazaSceneWork* w);
+static __inline__ void plaza_updateEdgeFlags(_AcropolisPlazaSceneWork* work);
 static void            func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16* state, s32 sndId, u16 mode);
 static void            func_acropolis_plaza_8017F9EC(Task* task);
 static u16             func_acropolis_plaza_8017FB50(Task* task);
@@ -3400,19 +3438,19 @@ void func_acropolis_plaza_8017DBFC(Task* task)
     }
 }
 
-/// Rebuilds the eight box vertices in `_gAcropolisPlazaCollision1BBC0Verts` around the
-/// scene work's world position.
+/// Rebuilds the eight box vertices in `_gAcropolisPlazaCollision1BBC0Verts` around
+/// the scene work's `shotPos`.
 static void func_acropolis_plaza_8017DD90(Task* arg0)
 {
-    AcropolisPlazaSceneWork* work = (AcropolisPlazaSceneWork*)arg0->work;
-    s32                      x    = work->pos.vx;
-    s32                      y    = work->pos.vy;
-    s32                      z    = work->pos.vz;
-    s16                      near = x - 0xBB8;
-    s16                      top;
-    s16                      left;
-    s16                      right;
-    s16                      far;
+    _AcropolisPlazaSceneWork* work = (_AcropolisPlazaSceneWork*)arg0->work;
+    s32                       x    = work->shotPos.vx;
+    s32                       y    = work->shotPos.vy;
+    s32                       z    = work->shotPos.vz;
+    s16                       near = x - 0xBB8;
+    s16                       top;
+    s16                       left;
+    s16                       right;
+    s16                       far;
 
     _gAcropolisPlazaCollision1BBC0Verts[0].vx = near;
     _gAcropolisPlazaCollision1BBC0Verts[1].vx = near;
@@ -3514,31 +3552,31 @@ static void func_acropolis_plaza_8017DE24(s32 arg0)
     Gp_ApplyView(view);
 }
 
-/// Recomputes the scene's two "the player has walked off this shot" flags from
-/// how far the shot's anchor sits ahead of the camera. Past 0xC8 the player has
-/// gone forward, before -0x14 they have gone back, and the first view has no
-/// shot behind it so the backwards flag never fires there. A `field_958` of 3
-/// (the player running) picks the 2 variant of either flag; anything else
-/// picks 1.
-static __inline__ void plaza_updateEdgeFlags(AcropolisPlazaSceneWork* w)
+/// Recomputes `fwd` and `back` from `relX`.
+///
+/// At or beyond the forward edge the player has walked toward later frames;
+/// below the back edge, toward earlier ones. Scene frame 1 has no earlier
+/// shot, so the back flag stays clear there. Running stores the run variant
+/// of whichever flag fired.
+static __inline__ void plaza_updateEdgeFlags(_AcropolisPlazaSceneWork* work)
 {
     CdCmdQueue* cq   = &gCdCmdQueue;
-    s32         dist = w->distX;
+    s32         dist = work->relX;
 
-    w->fwd  = 0;
-    w->back = 0;
-    if (dist >= 0xC9) {
-        if ((u16)w->actor->movementMode == 3) {
-            w->fwd = 2;
+    work->fwd  = ACROPOLIS_PLAZA_EDGE_NONE;
+    work->back = ACROPOLIS_PLAZA_EDGE_NONE;
+    if (dist >= ACROPOLIS_PLAZA_FORWARD_EDGE) {
+        if ((u16)work->player->movementMode == ACROPOLIS_PLAZA_MOVEMENT_RUNNING) {
+            work->fwd = ACROPOLIS_PLAZA_EDGE_RUN;
         } else {
-            w->fwd = 1;
+            work->fwd = ACROPOLIS_PLAZA_EDGE_WALK;
         }
-    } else if (dist < -0x14) {
-        if (cq->sceneFrame != 1) {
-            if ((u16)w->actor->movementMode == 3) {
-                w->back = 2;
+    } else if (dist < ACROPOLIS_PLAZA_BACK_EDGE) {
+        if (cq->sceneFrame != ACROPOLIS_PLAZA_FIRST_SCENE_FRAME) {
+            if ((u16)work->player->movementMode == ACROPOLIS_PLAZA_MOVEMENT_RUNNING) {
+                work->back = ACROPOLIS_PLAZA_EDGE_RUN;
             } else {
-                w->back = 1;
+                work->back = ACROPOLIS_PLAZA_EDGE_WALK;
             }
         }
     }
@@ -3548,47 +3586,48 @@ static __inline__ void plaza_updateEdgeFlags(AcropolisPlazaSceneWork* w)
 /// re-seeks it whenever the player walks past the end of the current shot.
 ///
 /// State 0 allocates the work block, seeds `gCdCmdQueue` from the spawn
-/// argument and (unless the argument suppresses it) asks for the opening
-/// stream; state 1 caches the slot-3 task once the CD is idle and turns the
-/// display on. State 2 is the running state: it refreshes the edge flags, and
-/// when one fires it enqueues a 0x71 seek to the neighbouring view -- forwards
-/// from `baseView`, backwards from `baseView + 1` -- with the target frame
-/// packed into the request's last two bytes. States 3..5 wait for that seek to
-/// land and return to state 2, and state 6 is the parked state the task sits in
-/// while `movieAtEnd` blocks seeking, leaving on the first flag that matches the
-/// current view.
+/// argument and, unless the argument suppresses it, asks for the opening
+/// stream at the fine frame step. State 1 caches the player task once the CD
+/// is idle and turns the display on. State 2 refreshes the edge flags, and
+/// when one fires it enqueues a play-at-offset seek: forward selects
+/// `forwardSubId` and reverse selects the next sub-id. Continuing counts from
+/// the movie frame and reversing counts back from the frame limit, in fine or
+/// coarse stream frames. States 3..5 wait for that seek to land and return to
+/// state 2. State 6 parks while `movieAtEnd` is set, and leaves when the edge
+/// flag opposite the current sub-id fires.
 ///
 /// `loMask` holds 0xFF in a local on purpose: masking with a literal lets GCC
 /// fold the `andi` into the byte store, and the original build keeps it.
 void func_acropolis_plaza_8017DFE0(Task* task)
 {
-    u8                       slot[4];
-    s32                      frameOfs;
-    u32                      seekFrame;
-    u32                      openFrame;
-    s32                      loMask = 0xFF;
-    s32                      side;
-    AcropolisPlazaSceneWork* block;
-    CdCmdQueue*              q;
-    AcropolisPlazaSceneWork* work;
-    AcropolisPlazaSceneArg*  arg;
-    Task*                    slot3;
-    u16                      view;
-    u16                      startView;
+    u8                        slot[4];
+    s32                       frameOfs;
+    u32                       seekFrame;
+    u32                       openFrame;
+    s32                       loMask = 0xFF;
+    s32                       side;
+    _AcropolisPlazaSceneWork* block;
+    CdCmdQueue*               q;
+    _AcropolisPlazaSceneWork* work;
+    AcropolisPlazaSceneArg*   arg;
+    Task*                     playerTask;
+    u16                       view;
+    u16                       startView;
 
     q    = &gCdCmdQueue;
-    work = (AcropolisPlazaSceneWork*)task->work;
+    work = (_AcropolisPlazaSceneWork*)task->work;
 
     if (task->state != 0) {
+        // Sub-ids 0..3 share the shot-position table, one row per scene frame.
         switch (q->plazaStreamSubId) {
             case 0:
             case 1:
             case 2:
             case 3:
-                work->pos.vx = D_acropolis_plaza_801907C4[q->sceneFrame - 1].vx;
-                work->pos.vy = D_acropolis_plaza_801907C4[q->sceneFrame - 1].vy;
-                work->pos.vz = D_acropolis_plaza_801907C4[q->sceneFrame - 1].vz;
-                work->distX  = work->pos.vx - work->mtx->t[0];
+                work->shotPos.vx = D_acropolis_plaza_801907C4[q->sceneFrame - 1].vx;
+                work->shotPos.vy = D_acropolis_plaza_801907C4[q->sceneFrame - 1].vy;
+                work->shotPos.vz = D_acropolis_plaza_801907C4[q->sceneFrame - 1].vz;
+                work->relX       = work->shotPos.vx - work->playerMtx->t[0];
                 break;
         }
     }
@@ -3620,18 +3659,18 @@ L_case0:
     }
     memFillBytes(block, 0, sizeof(*block));
     arg                   = (AcropolisPlazaSceneArg*)task->spawnArg2.pointer;
-    work                  = (AcropolisPlazaSceneWork*)task->work;
+    work                  = (_AcropolisPlazaSceneWork*)task->work;
     startView             = arg->view;
     q->plazaStreamSubId   = 0;
     q->sceneFrame         = startView;
     q->movieFrame         = startView;
-    work->prevSide        = 0;
+    work->prevReverse     = 0;
     q->reverseSceneFrames = 0;
     q->movieReady         = 0;
     q->continueMovie      = 0;
     if (((AcropolisPlazaSceneArg*)task->spawnArg2.pointer)->noStream == 0) {
         slot[0]   = Stream_FindSlot((u8*)&gGameSession->location.loc, q->plazaStreamSubId, 0);
-        frameOfs  = (q->movieFrame - 1) * 10;
+        frameOfs  = (q->movieFrame - 1) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
         openFrame = frameOfs & 0xFFFF;
         slot[1]   = openFrame >> 8;
         slot[2]   = openFrame & loMask;
@@ -3639,52 +3678,53 @@ L_case0:
     } else {
         q->movieAtEnd = 0;
     }
-    ((AcropolisPlazaSceneWork*)task->work)->mtx = gPlayerStatus.coordMtx;
-    work->field_2E                              = 1;
-    task->state                                 = task->state + 1;
+    ((_AcropolisPlazaSceneWork*)task->work)->playerMtx = gPlayerStatus.coordMtx;
+    work->frameStep                                    = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
+    task->state                                        = task->state + 1;
     goto L_tail;
 
 L_case1:
     if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
         goto L_tail;
     }
-    slot3       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    work->slot3 = slot3;
-    work->actor = (GameActor*)slot3->work;
+    playerTask       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work->playerTask = playerTask;
+    work->player     = (GameActor*)playerTask->work;
     SetDispMask(1);
     task->state = task->state + 1;
     goto L_tail;
 
 L_case2:
-    work->streamLen = Stream_GetSlotField1A(q->plazaStreamSubId);
+    work->frameLimit = Stream_GetSlotField1A(q->plazaStreamSubId);
     if (q->movieAtEnd != 0) {
         task->state = 6;
         goto L_tail;
     }
-    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
-    if (work->fwd != 0) {
-        work->prevSide        = q->reverseSceneFrames;
+    plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
+    if (work->fwd != ACROPOLIS_PLAZA_EDGE_NONE) {
+        work->prevReverse     = q->reverseSceneFrames;
         q->reverseSceneFrames = 0;
     }
-    if (work->back != 0) {
-        work->prevSide        = q->reverseSceneFrames;
+    if (work->back != ACROPOLIS_PLAZA_EDGE_NONE) {
+        work->prevReverse     = q->reverseSceneFrames;
         q->reverseSceneFrames = 1;
     }
-    if (work->fwd == 0 && work->back == 0) {
+    if (work->fwd == ACROPOLIS_PLAZA_EDGE_NONE && work->back == ACROPOLIS_PLAZA_EDGE_NONE) {
         goto L_tail;
     }
+    // Continuing counts from the movie frame; reversing counts back from the frame limit.
     q->continueMovie = 1;
     side             = q->reverseSceneFrames;
-    if (side == work->prevSide) {
+    if (side == work->prevReverse) {
         if (side == 0) {
-            if (work->fwd != 1) {
+            if (work->fwd != ACROPOLIS_PLAZA_EDGE_WALK) {
                 goto L_enqueue;
             }
-            view = work->baseView;
+            view = work->forwardSubId;
         L_eqShared:
             q->plazaStreamSubId = view;
-            if (work->field_2E == 2) {
-                frameOfs = q->movieFrame * 40;
+            if (work->frameStep == ACROPOLIS_PLAZA_FRAME_STEP_COARSE) {
+                frameOfs = q->movieFrame * ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
                 goto L_eqSetFlag;
             }
         } else {
@@ -3694,35 +3734,35 @@ L_case2:
             if (work->back != side) {
                 goto L_enqueue;
             }
-            view = work->baseView + 1;
+            view = work->forwardSubId + 1;
             goto L_eqShared;
         }
-        frameOfs = q->movieFrame * 10;
+        frameOfs = q->movieFrame * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
     L_eqSetFlag:
-        work->field_2E = 1;
+        work->frameStep = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
     } else {
         if (side == 0) {
-            if (work->fwd != 1) {
+            if (work->fwd != ACROPOLIS_PLAZA_EDGE_WALK) {
                 goto L_enqueue;
             }
-            q->plazaStreamSubId = work->baseView;
-            if (work->field_2E == 2) {
-                frameOfs = (work->streamLen - q->movieFrame) * 40;
+            q->plazaStreamSubId = work->forwardSubId;
+            if (work->frameStep == ACROPOLIS_PLAZA_FRAME_STEP_COARSE) {
+                frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
             } else {
-                frameOfs = (work->streamLen - q->movieFrame) * 10;
+                frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
             }
-            work->field_2E = 1;
+            work->frameStep = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
         } else if (side == 1) {
             if (work->back != side) {
                 goto L_enqueue;
             }
-            q->plazaStreamSubId = work->baseView + 1;
-            if (work->field_2E == 2) {
-                frameOfs = (work->streamLen - q->movieFrame) * 40;
+            q->plazaStreamSubId = work->forwardSubId + 1;
+            if (work->frameStep == ACROPOLIS_PLAZA_FRAME_STEP_COARSE) {
+                frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
             } else {
-                frameOfs = (work->streamLen - q->movieFrame) * 10;
+                frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
             }
-            work->field_2E = 1;
+            work->frameStep = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
         }
     }
 L_enqueue:
@@ -3742,12 +3782,13 @@ L_case3:
     goto L_tail;
 
 L_case4:
-    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
+    plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
     if (q->movieAtEnd != 0) {
         task->state = 6;
         goto L_tail;
     }
-    if ((work->fwd == 0 && q->reverseSceneFrames == 0) || (work->back == 0 && q->reverseSceneFrames == 1) ||
+    if ((work->fwd == ACROPOLIS_PLAZA_EDGE_NONE && q->reverseSceneFrames == 0) ||
+        (work->back == ACROPOLIS_PLAZA_EDGE_NONE && q->reverseSceneFrames == 1) ||
         work->fwd != work->prevFwd || work->back != work->prevBack) {
         q->continueMovie = 0;
         task->state      = task->state + 1;
@@ -3755,7 +3796,7 @@ L_case4:
     goto L_tail;
 
 L_case5:
-    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
+    plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
     if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
         goto L_tail;
     }
@@ -3763,17 +3804,17 @@ L_case5:
     goto L_case2;
 
 L_case6:
-    plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
+    plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
     switch (q->plazaStreamSubId) {
         case 0:
         case 2:
-            if (work->back == 0) {
+            if (work->back == ACROPOLIS_PLAZA_EDGE_NONE) {
                 goto L_tail;
             }
             break;
         case 1:
         case 3:
-            if (work->fwd == 0) {
+            if (work->fwd == ACROPOLIS_PLAZA_EDGE_NONE) {
                 goto L_tail;
             }
             break;
