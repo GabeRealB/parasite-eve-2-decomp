@@ -351,18 +351,17 @@ typedef struct {
 } _AcropolisBridgeEnemyWork;
 STATIC_ASSERT_SIZEOF(_AcropolisBridgeEnemyWork, 0x294);
 
-/// 0xC-byte scratchpad block the per-frame tick carves off the scratch stack to
-/// stage the collision record it hands to the damage path: the record's three
-/// packed coordinates followed by its `field_4` attack id, which is also the
-/// "was there a hit" flag.
-typedef struct AcropolisBridgeHitScratch {
-    /* 0x0 */ s16  x;
-    /* 0x2 */ s16  y;
-    /* 0x4 */ s16  z;
-    /* 0x6 */ byte pad_6[0x2];
-    /* 0x8 */ s32  hit;
-} AcropolisBridgeHitScratch;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeHitScratch, 0xC);
+/// Scratch-stack block holding the attack contact the enemy's per-frame tick
+/// found on its body.
+///
+/// The tick reserves one before scanning `_AcropolisBridgeEnemyWork::bodyContacts`
+/// and releases it when the frame's state handler has run. Nothing reads the
+/// block back: the tick passes the key on to the damage step by value.
+typedef struct {
+    SVECTOR point; // the contact's world position; only vx/vy/vz are written, and only when an attack contact was found
+    s32     key;   // the contact's packed key, handed to the damage step as the attack id (0 no attack contact this frame)
+} _AcropolisBridgeHitScratch;
+STATIC_ASSERT_SIZEOF(_AcropolisBridgeHitScratch, 0xC);
 
 /// Ticks the walker task: steps its patrol route and drives its animation.
 
@@ -5917,7 +5916,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
 /// the mesh, and mode 0 keeps the model's visibility in step with the camera
 /// -- re-allocating or releasing the TMD's aux buffers when the view changes,
 /// and remembering the view it last synced to in `syncedView`. Outside the
-/// death and cleanup states it then borrows a 0xC-byte scratch block, scans
+/// death and cleanup states it then borrows an `_AcropolisBridgeHitScratch`, scans
 /// the body's three collision records for a hit (high halfword 0x2), applies
 /// it through `func_acropolis_bridge_801876A8`, raises `stateEntered` on the frame
 /// the behaviour state changes, runs the state's handler from
@@ -5926,17 +5925,17 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
 /// to 0.
 static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
 {
-    _AcropolisBridgeEnemyWork* work;
-    _AcropolisBridgeEnemyWork* cur;
-    AcropolisBridgeHitScratch* block;
-    TmdObject*                 extra;
-    WorldCollisionContact*     recs;
-    VECTOR                     pos;
-    s32                        mode;
-    s32                        view;
-    s32                        hit;
-    u16                        state;
-    s16                        i;
+    _AcropolisBridgeEnemyWork*  work;
+    _AcropolisBridgeEnemyWork*  cur;
+    _AcropolisBridgeHitScratch* block;
+    TmdObject*                  extra;
+    WorldCollisionContact*      recs;
+    VECTOR                      pos;
+    s32                         mode;
+    s32                         view;
+    s32                         hit;
+    u16                         state;
+    s16                         i;
 
     work                                  = (_AcropolisBridgeEnemyWork*)task->work;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -6013,8 +6012,7 @@ hidden:
     return;
 
 body:
-    SCRATCH_STACK_RESERVE_BYTES(0xC);
-    block = SCRATCH_STACK_CURSOR(AcropolisBridgeHitScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisBridgeHitScratch);
     recs  = work->bodyContacts;
     i     = 0;
     do {
@@ -6022,10 +6020,10 @@ body:
             goto missed;
         }
         if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
-            block->x = recs[i].point.vx;
-            block->y = recs[i].point.vy;
-            block->z = recs[i].point.vz;
-            hit      = recs[i].key.value;
+            block->point.vx = recs[i].point.vx;
+            block->point.vy = recs[i].point.vy;
+            block->point.vz = recs[i].point.vz;
+            hit             = recs[i].key.value;
             goto hitTaken;
         }
         i++;
@@ -6033,7 +6031,7 @@ body:
 missed:
     hit = 0;
 hitTaken:
-    block->hit = hit;
+    block->key = hit;
     if (hit != 0) {
         func_acropolis_bridge_801876A8(task, hit);
     }
@@ -6053,7 +6051,7 @@ hitTaken:
             work->state = 0;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BLOCK(_AcropolisBridgeHitScratch);
 }
 
 /// Applies a visibility request to the bridge task's model flags: no request
