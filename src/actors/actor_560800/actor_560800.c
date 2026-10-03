@@ -6488,7 +6488,7 @@ void func_actor_560800_80137820(Task* arg0)
             break;
         case 4:
             child = Task_SpawnFromTable(D_actor_560800_8017575C, 3,
-                                        D_actor_560800_801757AC->extra.tmd->coords->coord.t[1],
+                                        (s32)D_actor_560800_801757AC->extra.tmd->coords->coord.t[1],
                                         arg0->spawnArg2.pointer);
             if (child == NULL) {
                 arg0->state = 1;

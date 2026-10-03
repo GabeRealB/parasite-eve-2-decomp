@@ -235,15 +235,13 @@ STATIC_ASSERT_SIZEOF(TaskArgHalves, 4);
 /// callback determines its lifetime and whether it must be released; the task
 /// scheduler only copies the argument word. The transparent union accepts the
 /// scalar and pointer forms at calls while retaining the one-register ABI.
-/// Keep `value` first for that ABI, and the distinct `long` members to accept
-/// SDK word types even though they are also 32 bits.
+/// Keep `value` first for that ABI. Both integer members are needed: callers
+/// pass signed values and unsigned ones, and GCC accepts an argument only
+/// through a member of its own type.
 typedef union {
     s32           value;          // Signed value or packed argument bits
     u32           unsignedValue;  // Unsigned view of the same bits
-    long          signedWord;     // Accepts signed long arguments at calls
-    unsigned long unsignedWord;   // Accepts unsigned long arguments at calls
     void*         pointer;        // Object pointer, interpreted by the receiving callback
-    const void*   constPointer;   // Accepts pointers to const objects at calls
     TaskArgHalves halves;         // Unsigned low half and signed high half
     s8            signedBytes[4]; // Signed byte view of the complete argument word
 } TaskSpawnArg __attribute__((transparent_union));
