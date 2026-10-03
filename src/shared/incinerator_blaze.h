@@ -14,6 +14,8 @@
 
 #include "types.h"
 
+#include "gameplay/message.h"
+
 #include "main/task_types.h"
 
 #include "overlay.h"
@@ -30,6 +32,23 @@ typedef struct {
     ScreenWaveCtx wave;            // Heat-haze ramp the spawner seeds and the fade finishes
 } BlazeParentWork;
 STATIC_ASSERT_SIZEOF(BlazeParentWork, 0x2C);
+
+/// Sets the fade task's state from the first integer payload; the second is ignored.
+///
+/// Senders discard the unspecified result. This receiver uses the actor-command
+/// message ID with an integer state instead of an `ActorCommand` address.
+enum {
+    BLAZE_FADE_MESSAGE_SET_STATE = ACTOR_COMMAND_MESSAGE_APPLY,
+};
+
+/// Per-instance task-message table controlling the incinerator fade's phases.
+///
+/// Each carrier supplies one record and its callback, borrowed for the fade
+/// task's lifetime. There is no end marker: send only `BLAZE_FADE_MESSAGE_SET_STATE`.
+/// The first payload is stored as the full signed state word. Scene scripts
+/// select 2 (fast red ramp), 3 (slow red ramp), then 4 (wash to white).
+/// The second payload is ignored and the callback has no defined result.
+extern TaskMessageEntry gBlazeFadeMessages[1];
 
 void blazeFadeTask(Task* arg0);
 void blazeBodyFireTask(Task* arg0);

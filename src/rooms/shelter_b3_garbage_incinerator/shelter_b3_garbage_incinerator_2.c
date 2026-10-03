@@ -107,17 +107,7 @@ extern s32 gScreenWaveRamp;
 
 /* Shared in source with actors 342100 (the encounter's fade and spawn) and
    215100 (the caption drawing): their data here. */
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*, s32, s32);
-    } handler;
-} ShelterB3GarbageIncinerator2MessageEntry;
-STATIC_ASSERT_SIZEOF(ShelterB3GarbageIncinerator2MessageEntry, 8);
-
-extern ShelterB3GarbageIncinerator2MessageEntry gBlazeFadeMessages[1];
-extern TaskDesc                                 D_shelter_b3_garbage_incinerator_80185BAC[];
+extern TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[];
 
 static s16 CapCaption_Data_801544EC;
 static s16 CapCaption_Data_801544EE;
@@ -190,7 +180,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task*);
 void func_shelter_b3_garbage_incinerator_8017E158(Task*);
 void func_shelter_b3_garbage_incinerator_8017E7A4(Task*);
 void func_shelter_b3_garbage_incinerator_8017F6D8(Task*);
-void func_shelter_b3_garbage_incinerator_8017F8A4(Task*, s32, s32);
+s32  func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3);
 void func_shelter_b3_garbage_incinerator_8017F8AC(s32);
 void func_shelter_b3_garbage_incinerator_8017F930(s32);
 void func_shelter_b3_garbage_incinerator_8017F968(void);
@@ -319,8 +309,8 @@ static AnimationSet _gShelterB3GarbageIncineratorAnimation09988 = {
     { NULL, _gShelterB3GarbageIncineratorAnimation09988Bank1, NULL, NULL, _gShelterB3GarbageIncineratorAnimation09988Bank4, NULL, NULL, NULL },
 };
 
-ShelterB3GarbageIncinerator2MessageEntry gBlazeFadeMessages[1] = {
-    { 2011, { .call0 = func_shelter_b3_garbage_incinerator_8017F8A4 } },
+TaskMessageEntry gBlazeFadeMessages[1] = {
+    { BLAZE_FADE_MESSAGE_SET_STATE, func_shelter_b3_garbage_incinerator_8017F8A4 },
 };
 
 AnimationSet* D_shelter_b3_garbage_incinerator_80186F78[4] = {
@@ -1110,9 +1100,10 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
     arg0->state++;
 }
 
-void func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, s32 arg2)
+s32 func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
 {
-    arg0->state = arg2;
+    arg0->state = arg2.value;
+    // Senders discard the result; this callback leaves the return word unspecified.
 }
 
 /// Select clip `arg0 + ANIMATION_BANK_BASE_SET_COUNT`, record it in the work
@@ -1143,7 +1134,7 @@ void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0)
 {
     _ShelterB3GarbageIncineratorBlazeWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
 
-    taskMessageDispatch(work->fadeTask, 0x7DB, arg0, 0);
+    taskMessageDispatch(work->fadeTask, BLAZE_FADE_MESSAGE_SET_STATE, arg0, 0);
 }
 
 /// Seed the spawn entry's two parameters and start the task that consumes
