@@ -112,8 +112,8 @@ extern s32 gScreenWaveRamp;
 extern ScreenWaveCtx* gScreenWaveCtx;
 
 /// Phase records of the wave's 11 column edges and 30 row edges.
-extern OverlayWaveRec6 gScreenWaveColumns[13];
-extern OverlayWaveRec6 gScreenWaveRows[32];
+extern ScreenWaveOscillator gScreenWaveColumns[13];
+extern ScreenWaveOscillator gScreenWaveRows[32];
 
 extern TaskMessageEntry D_shelter_b4_reservoir_801848BC[];
 extern TaskDesc         D_shelter_b4_reservoir_801848EC[];
@@ -959,9 +959,9 @@ RoomEventMsg D_shelter_b4_reservoir_80187508 = { 0 };
 
 s32 D_shelter_b4_reservoir_80187510 = 0;
 
-OverlayWaveRec6 gScreenWaveColumns[13] = { 0 };
+ScreenWaveOscillator gScreenWaveColumns[13] = { 0 };
 
-OverlayWaveRec6 gScreenWaveRows[32] = { 0 };
+ScreenWaveOscillator gScreenWaveRows[32] = { 0 };
 
 ScreenWaveCtx gScreenWaveSpawnCtx = { 0 };
 

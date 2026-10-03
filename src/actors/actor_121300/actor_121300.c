@@ -209,9 +209,9 @@ extern u16 D_actor_121300_8013D41C;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
-extern OverlayWaveRec6 gScreenWaveColumns[13];
+extern ScreenWaveOscillator gScreenWaveColumns[13];
 
-extern OverlayWaveRec6 gScreenWaveRows[30];
+extern ScreenWaveOscillator gScreenWaveRows[30];
 
 void func_actor_121300_80134224(s32, s32, s32);
 
@@ -1722,9 +1722,9 @@ Task* D_actor_121300_8013D418;
 
 u16 D_actor_121300_8013D41C;
 
-OverlayWaveRec6 gScreenWaveColumns[13];
+ScreenWaveOscillator gScreenWaveColumns[13];
 
-OverlayWaveRec6 gScreenWaveRows[30];
+ScreenWaveOscillator gScreenWaveRows[30];
 
 static s32         func_actor_121300_80132818(Task* arg0);
 static void        func_actor_121300_8013343C(Task* arg0, s16 arg1);

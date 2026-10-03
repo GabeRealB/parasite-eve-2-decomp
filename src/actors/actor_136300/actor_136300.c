@@ -90,8 +90,8 @@ extern ScreenWaveCtx* gScreenWaveCtx;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
-extern OverlayWaveRec6 gScreenWaveColumns[13];
-extern OverlayWaveRec6 gScreenWaveRows[32];
+extern ScreenWaveOscillator gScreenWaveColumns[13];
+extern ScreenWaveOscillator gScreenWaveRows[32];
 
 /// The ramp context the message handler seeds and hands to the screen-wave
 /// task.
@@ -1386,9 +1386,9 @@ EvsCommand D_actor_136300_8013C780[11] = {
 
 ScreenWaveCtx* gScreenWaveCtx = NULL;
 
-OverlayWaveRec6 gScreenWaveColumns[13] = { 0 };
+ScreenWaveOscillator gScreenWaveColumns[13] = { 0 };
 
-OverlayWaveRec6 gScreenWaveRows[32] = { 0 };
+ScreenWaveOscillator gScreenWaveRows[32] = { 0 };
 
 ScreenWaveCtx D_actor_136300_8013C99C = { 0 };
 

@@ -9,9 +9,9 @@ extern u8 D_neo_ark_submarine_tunnel_80181DF0;
 
 extern ScreenWaveCtx* gScreenWaveCtx;
 
-extern OverlayWaveRec6 gScreenWaveColumns[13];
+extern ScreenWaveOscillator gScreenWaveColumns[13];
 
-extern OverlayWaveRec6 gScreenWaveRows[32];
+extern ScreenWaveOscillator gScreenWaveRows[32];
 
 extern ScreenWaveCtx gScreenWaveSpawnCtx;
 

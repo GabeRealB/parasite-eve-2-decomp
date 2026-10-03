@@ -159,8 +159,8 @@ extern s32 gScreenWaveRamp;
 extern ScreenWaveCtx* gScreenWaveCtx;
 
 /// Phase records of the wave's 11 column edges and 30 row edges.
-extern OverlayWaveRec6 gScreenWaveColumns[13];
-extern OverlayWaveRec6 gScreenWaveRows[32];
+extern ScreenWaveOscillator gScreenWaveColumns[13];
+extern ScreenWaveOscillator gScreenWaveRows[32];
 
 extern s32          D_dryfield_dilapidated_house_80189B70;
 extern s32          D_dryfield_dilapidated_house_80189B6C;
@@ -2567,9 +2567,9 @@ Task* D_dryfield_dilapidated_house_80189B7C = NULL;
 
 DryfieldDilapidatedHouseSpawnState D_dryfield_dilapidated_house_80189B80 = { 0, 0 };
 
-OverlayWaveRec6 gScreenWaveColumns[13] = { 0 };
+ScreenWaveOscillator gScreenWaveColumns[13] = { 0 };
 
-OverlayWaveRec6 gScreenWaveRows[32] = { 0 };
+ScreenWaveOscillator gScreenWaveRows[32] = { 0 };
 
 ScreenWaveCtx D_dryfield_dilapidated_house_80189C94 = { 0 };
 

@@ -12,16 +12,16 @@
  * names - declaring it here would move it, since bss is laid out in
  * first-declaration order:
  *
- *   s32              gScreenWaveRamp       the strength's ramp towards the peak
- *   ScreenWaveCtx*   gScreenWaveCtx        the context the task was spawned with
- *   OverlayWaveRec6  gScreenWaveColumns[]  per-column phase, offset and speed
- *   OverlayWaveRec6  gScreenWaveRows[]     per-row phase, offset and speed
- *   POLY_FT4         gScreenWaveGrid[2][30][8]  the prebuilt grids (grid task)
- *   ScreenWaveCtx    gScreenWaveSpawnCtx   the context screenWaveRun fills
- *   TaskDesc         gScreenWaveTaskDesc[] the wave task screenWaveRun spawns
+ *   s32                   gScreenWaveRamp            the strength's ramp towards the peak
+ *   ScreenWaveCtx*        gScreenWaveCtx             the context the task was spawned with
+ *   ScreenWaveOscillator  gScreenWaveColumns[]       per-column phase, offset and speed
+ *   ScreenWaveOscillator  gScreenWaveRows[]          per-row phase, offset and speed
+ *   POLY_FT4              gScreenWaveGrid[2][30][8]  the prebuilt grids (grid task)
+ *   ScreenWaveCtx         gScreenWaveSpawnCtx        the context screenWaveRun fills
+ *   TaskDesc              gScreenWaveTaskDesc[]      the wave task screenWaveRun spawns
  *
  * The grid task's records are the eight-byte ScreenWaveGridOscillator rather
- * than OverlayWaveRec6.
+ * than ScreenWaveOscillator.
  * `SCREEN_WAVE_GRID` is the quad array the grid task indexes, as
  * `[buffer][row][column]`: two frame buffers, 30 rows and 8 columns of 40 by 8
  * quads. It defaults to `gScreenWaveGrid`. A package whose object is larger

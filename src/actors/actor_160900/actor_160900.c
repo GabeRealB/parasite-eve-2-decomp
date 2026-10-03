@@ -158,9 +158,9 @@ extern Task* D_actor_160900_8013FBB4;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed every frame.
-extern OverlayWaveRec6 gScreenWaveColumns[13];
+extern ScreenWaveOscillator gScreenWaveColumns[13];
 
-extern OverlayWaveRec6 gScreenWaveRows[30];
+extern ScreenWaveOscillator gScreenWaveRows[30];
 
 static TmdSource _gActor160900KyleMadiganBody;
 static TmdSource _gActor160900KyleMadiganGun;
@@ -950,9 +950,9 @@ ScreenWaveCtx* gScreenWaveCtx;
 
 Task* D_actor_160900_8013FBB4;
 
-OverlayWaveRec6 gScreenWaveColumns[13];
+ScreenWaveOscillator gScreenWaveColumns[13];
 
-OverlayWaveRec6 gScreenWaveRows[30];
+ScreenWaveOscillator gScreenWaveRows[30];
 
 extern u8 D_actor_160900_8013F240[];
 

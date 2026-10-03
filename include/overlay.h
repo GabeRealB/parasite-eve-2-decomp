@@ -91,7 +91,7 @@ STATIC_ASSERT_SIZEOF(ScreenWaveCtx, 0xC);
 /// `gScreenWaveRows`. Each frame `phase` advances by `speed`, and a quad
 /// corner on the line is pushed by the sine of its position along the line
 /// plus `phase` and `offset`. Angles use the `rsin` scale, 4096 to a turn.
-/// The 10x30 task's records are the six-byte `OverlayWaveRec6`.
+/// The 10x30 task's records are the six-byte `ScreenWaveOscillator`.
 typedef struct {
     s16 phase;   // Current phase, advanced by `speed` each frame while actors run; starts at 0
     s16 offset;  // Fixed random phase offset, 0 to 4095, set when the task starts
@@ -100,14 +100,21 @@ typedef struct {
 } ScreenWaveGridOscillator;
 STATIC_ASSERT_SIZEOF(ScreenWaveGridOscillator, 0x8);
 
-/// The same wave record in the meshes whose phase tables are packed six bytes
-/// apart.
-typedef struct OverlayWaveRec6 {
-    s16 phase;
-    s16 offset;
-    s16 speed;
-} OverlayWaveRec6;
-STATIC_ASSERT_SIZEOF(OverlayWaveRec6, 0x6);
+/// One grid line's sine wave in `screenWaveTask`'s 10x30 screen ripple.
+///
+/// The task keeps one per vertical grid edge (11 columns) and one per
+/// horizontal edge (30 rows), in the arrays their packages own as
+/// `gScreenWaveColumns` and `gScreenWaveRows`. A column wave pushes the x of
+/// the corners on its edge, a row wave their y; each corner is displaced by
+/// the sine of its position along the line plus `phase` and `offset`, scaled
+/// by the ramp. Angles use the `rsin` scale, 4096 to a turn. The grid task's
+/// records are the eight-byte `ScreenWaveGridOscillator`.
+typedef struct {
+    s16 phase;  // Current phase, advanced by `speed` each frame; starts at 0
+    s16 offset; // Fixed random phase offset, 0 to 4095, set when the task starts
+    s16 speed;  // Phase step per frame, 0 to 99, set when the task starts
+} ScreenWaveOscillator;
+STATIC_ASSERT_SIZEOF(ScreenWaveOscillator, 0x6);
 
 /// The scratch-pad block the padded screen-wave mesh takes from
 /// the scratch stack for one frame: a copy of the row and column wave records
