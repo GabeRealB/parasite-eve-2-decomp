@@ -180,22 +180,23 @@ typedef struct {
 } _AcropolisSecurityRoomMovieLoopWork;
 STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomMovieLoopWork, 0x4);
 
-/// One frame of the 128x128 textured quad `func_acropolis_security_room_80180E34`
-/// draws: the sprite is centred on (`x`, `y`) with texture page 0xAB, the CLUT
-/// `clut << 6` and its top-left texel at (`u`, `v`), the other three corners
-/// being that texel plus 0x7F on each axis. The table
-/// (`D_acropolis_security_room_80183970`) has four entries and is indexed by
-/// the low two bits of the drawing task's `Task::spawnArg1`.
-typedef struct AsrSpriteFrame {
-    /* 0x0 */ u16  clut;
-    /* 0x2 */ u8   u;
-    /* 0x3 */ byte pad_3[1];
-    /* 0x4 */ u8   v;
-    /* 0x5 */ byte pad_5[1];
-    /* 0x6 */ u16  x;
-    /* 0x8 */ u16  y;
-} AsrSpriteFrame;
-STATIC_ASSERT_SIZEOF(AsrSpriteFrame, 0xA);
+/// Where one camera feed's picture sits, in the texture page and on screen,
+/// in the one camera view that draws the feeds as pictures.
+///
+/// The four pictures share one 8-bit texture page, a 128x128 quadrant each,
+/// and differ in palette: each is drawn with its own feed's blended CLUT, which
+/// is what brightens a feed as it comes on. A picture is a 128x128 quad, 0x40
+/// to the left of and above its centre and 0x3F to the right and below. Only
+/// the low byte of `u` and of `v` is ever read, so their signedness is
+/// unproven; the high bytes are zero in every entry.
+typedef struct {
+    u16 clutY;   // VRAM row of the feed's 256-colour CLUT, which starts at X 0
+    u16 u;       // Left texel column of the feed's quadrant of the page (0 or 128)
+    u16 v;       // Top texel row of that quadrant (0 or 128)
+    s16 centreX; // Centre of the picture on screen, in primitive coordinates
+    s16 centreY;
+} _AcropolisSecurityRoomMonitorFeedQuad;
+STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomMonitorFeedQuad, 0xA);
 
 /// 0x14-byte scratch block `func_acropolis_security_room_80180A78` takes from
 /// the scratch stack while it draws the security laser. `a` and `b` are the two
@@ -289,8 +290,8 @@ extern GpuImageUpload D_acropolis_security_room_80183918[];
 /// while feed N is showing something.
 extern u16 D_acropolis_security_room_80183968[];
 
-/// The four sprite frames `func_acropolis_security_room_80180E34` picks from.
-extern AsrSpriteFrame D_acropolis_security_room_80183970[];
+/// The picture placement of each of the four camera feeds, indexed by feed.
+extern _AcropolisSecurityRoomMonitorFeedQuad D_acropolis_security_room_80183970[];
 
 /// Spawn position and effect id of the flash each newly lit feed plays,
 /// indexed by feed.
@@ -1489,11 +1490,11 @@ u16 D_acropolis_security_room_80183968[4] = {
     10,
 };
 
-AsrSpriteFrame D_acropolis_security_room_80183970[4] = {
-    { 270, 0, { 0 }, 0, { 0 }, 0xFFA7, 0xFFF2 },
-    { 271, 0, { 0 }, 128, { 0 }, 0xFFEB, 0xFFF3 },
-    { 263, 128, { 0 }, 0, { 0 }, 29, 0xFFF3 },
-    { 264, 128, { 0 }, 128, { 0 }, 100, 0xFFF1 },
+_AcropolisSecurityRoomMonitorFeedQuad D_acropolis_security_room_80183970[4] = {
+    { 270, 0, 0, -89, -14 },
+    { 271, 0, 128, -21, -13 },
+    { 263, 128, 0, 29, -13 },
+    { 264, 128, 128, 100, -15 },
 };
 
 SVECTOR D_acropolis_security_room_80183998[4] = {
@@ -3393,9 +3394,9 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     mem->scale  = arg0->spawnArg1.value & 3;
     prim->tpage = 0xAB;
     prim->code |= 3;
-    prim->clut  = D_acropolis_security_room_80183970[mem->scale].clut << 6;
-    cx          = D_acropolis_security_room_80183970[mem->scale].x;
-    cy          = D_acropolis_security_room_80183970[mem->scale].y;
+    prim->clut  = D_acropolis_security_room_80183970[mem->scale].clutY << 6;
+    cx          = D_acropolis_security_room_80183970[mem->scale].centreX;
+    cy          = D_acropolis_security_room_80183970[mem->scale].centreY;
     prim->u0    = D_acropolis_security_room_80183970[mem->scale].u;
     prim->v0    = D_acropolis_security_room_80183970[mem->scale].v;
     prim->u1    = D_acropolis_security_room_80183970[mem->scale].u + 0x7F;
