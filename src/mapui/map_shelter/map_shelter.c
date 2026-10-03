@@ -131,7 +131,7 @@
  */
 
 /// The overlay's own flagged item and enemy placement lists, which the
-/// `GpBit2List` table names before they are defined.
+/// `AreaObjectRoom` table names before they are defined.
 static AreaObjectPlace D_map_shelter_8017B6D8[2];
 static AreaObjectPlace D_map_shelter_8017B6F8[3];
 static AreaObjectPlace D_map_shelter_8017B728[5];
@@ -468,7 +468,7 @@ static AreaObjectSpawn D_map_shelter_8017A978[2] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-GpBit2List D_map_shelter_8017A998[51] = {
+AreaObjectRoom D_map_shelter_8017A998[51] = {
     { { NULL }, NULL },
     { { D_map_shelter_8017B6D8 }, D_map_shelter_8017A888 },
     { { D_map_shelter_8017B6F8 }, D_map_shelter_8017A888 },
@@ -519,7 +519,7 @@ GpBit2List D_map_shelter_8017A998[51] = {
     { { D_map_shelter_8017BAE8 }, D_map_shelter_8017A888 },
     { { D_map_shelter_8017BB28 }, D_map_shelter_8017A938 },
     { { NULL }, NULL },
-    { { .sentinel = -1 }, NULL },
+    { { .sentinel = AREA_OBJECT_ROOM_END }, NULL },
 };
 
 TaskDesc D_map_shelter_8017AB30[] = {

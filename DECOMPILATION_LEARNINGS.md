@@ -27906,7 +27906,7 @@ dest = bank->field_4;
 if (arg0 == tmp) {
     return;
 }
-table = (GpBit2List*)val; /* delay-slot move a3, a1 */
+table = (AreaObjectRoom*)val; /* delay-slot move a3, a1 */
 ```
 
 `Gp_ApplyBit2Bank` is the example. `bank = &Gp_Bit2Banks[index]; tmp = 3`

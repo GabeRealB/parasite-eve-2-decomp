@@ -549,7 +549,7 @@ static AreaObjectSpawn D_map_akropolis_8017A7CC[3] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-GpBit2List D_map_akropolis_8017A7FC[22] = {
+AreaObjectRoom D_map_akropolis_8017A7FC[22] = {
     { { NULL }, NULL },
     { { D_map_akropolis_8017BE1C }, D_map_akropolis_8017A65C },
     { { D_map_akropolis_8017BE7C }, D_map_akropolis_8017A66C },
@@ -571,7 +571,7 @@ GpBit2List D_map_akropolis_8017A7FC[22] = {
     { { NULL }, NULL },
     { { D_map_akropolis_8017C03C }, D_map_akropolis_8017A79C },
     { { NULL }, NULL },
-    { { .sentinel = -1 }, NULL },
+    { { .sentinel = AREA_OBJECT_ROOM_END }, NULL },
 };
 
 TaskDesc D_map_akropolis_8017A8AC[] = {

@@ -6,13 +6,13 @@
 #include "gameplay/area_flags.h"
 
 /// 8-byte entry in `Gp_Bit2Banks`, indexed by session field_7 /
-/// `GameLocationKey.stage` / `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage`. field_0 is a
-/// `GpBit2List` table applied by `Gp_ApplyBit2Bank` / `Gp_ApplyBit2List`.
+/// `GameLocationKey.stage` / `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage`. field_0 is an
+/// `AreaObjectRoom` table applied by `Gp_ApplyBit2Bank` / `Gp_ApplyBit2List`.
 /// field_4 is packed 2-bit flags (`Gp_GetBit2Flag` / `Gp_SetBit2Flag` /
 /// `Gp_GetCurBit2Flag` / `Gp_SetCurBit2Flag` / `Gp_SpawnPlaceById`).
 typedef struct _GpBit2Bank {
-    /* 0x00 */ GpBit2List* field_0;
-    /* 0x04 */ u32*        field_4;
+    /* 0x00 */ AreaObjectRoom* field_0;
+    /* 0x04 */ u32*            field_4;
 } GpBit2Bank;
 STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
 

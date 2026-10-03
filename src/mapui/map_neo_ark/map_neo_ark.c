@@ -421,7 +421,7 @@ static AreaObjectSpawn D_map_neo_ark_8017A6DC[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-GpBit2List D_map_neo_ark_8017A6EC[35] = {
+AreaObjectRoom D_map_neo_ark_8017A6EC[35] = {
     { { NULL }, NULL },
     { { NULL }, NULL },
     { { D_map_neo_ark_8017C790 }, D_map_neo_ark_8017A6BC },
@@ -456,7 +456,7 @@ GpBit2List D_map_neo_ark_8017A6EC[35] = {
     { { NULL }, NULL },
     { { NULL }, NULL },
     { { D_map_neo_ark_8017C990 }, D_map_neo_ark_8017A6AC },
-    { { .sentinel = -1 }, NULL },
+    { { .sentinel = AREA_OBJECT_ROOM_END }, NULL },
 };
 
 TaskDesc D_map_neo_ark_8017A804[] = {

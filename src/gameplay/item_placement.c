@@ -217,16 +217,16 @@ AreaObjectPlace D_801149B8[] = {
 static void Gp_SpawnPlaceById(u16 arg0)
 {
     GameLocationKey* sess;
-    GpBit2List*      lists;
+    AreaObjectRoom*  rooms;
     AreaObjectPlace* place;
     u16              id;
 
     sess  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-    lists = Gp_Bit2Banks[sess->stage].field_0;
-    if (lists == NULL) {
+    rooms = Gp_Bit2Banks[sess->stage].field_0;
+    if (rooms == NULL) {
         return;
     }
-    place = lists[sess->area].field_0.records;
+    place = rooms[sess->area].places.list;
     if (place == NULL) {
         return;
     }
@@ -234,7 +234,7 @@ static void Gp_SpawnPlaceById(u16 arg0)
     while (id != AREA_OBJECT_PLACE_END) {
         if (id == arg0) {
             if (_gpGetCurBit2Flag(id) != 0) {
-                _gpSpawnPlace(lists[sess->area].field_4, place);
+                _gpSpawnPlace(rooms[sess->area].spawns, place);
             }
             return;
         }
@@ -245,7 +245,7 @@ static void Gp_SpawnPlaceById(u16 arg0)
 
 void Gp_SpawnPlaces(GameLocationKey* arg0)
 {
-    GpBit2List*      lists;
+    AreaObjectRoom*  rooms;
     AreaObjectPlace* place;
     AreaObjectSpawn* spawn;
     Enemy*           enemy;
@@ -255,11 +255,11 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
     u16              term;
     u16              id;
 
-    lists = Gp_Bit2Banks[arg0->stage].field_0;
-    if (lists == NULL) {
+    rooms = Gp_Bit2Banks[arg0->stage].field_0;
+    if (rooms == NULL) {
         return;
     }
-    place = lists[arg0->area].field_0.records;
+    place = rooms[arg0->area].places.list;
     if (place == NULL) {
         return;
     }
@@ -268,7 +268,7 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
         return;
     }
     do {
-        spawn = lists[arg0->area].field_4;
+        spawn = rooms[arg0->area].spawns;
         id    = spawn->kind;
         if (id != term) {
             do {

@@ -43,8 +43,8 @@ extern MenuMapIcon D_map_neo_ark_8017A26C[];
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
 extern MenuMapAreaName D_map_neo_ark_8017A28C[];
 
-/// This stage's `Gp_Bit2Banks` list table, by room, ended by a -1 list.
-extern GpBit2List D_map_neo_ark_8017A6EC[];
+/// This stage's `Gp_Bit2Banks` room table, ended by `AREA_OBJECT_ROOM_END`.
+extern AreaObjectRoom D_map_neo_ark_8017A6EC[];
 
 /// This stage's `D_8010FABC` entry: the task each room starts, keyed by
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.

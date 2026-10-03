@@ -337,7 +337,7 @@ static AreaObjectSpawn D_map_dryfield_full_8017A44C[2] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-GpBit2List D_map_dryfield_full_8017A46C[40] = {
+AreaObjectRoom D_map_dryfield_full_8017A46C[40] = {
     { { NULL }, NULL },
     { { D_80114588 }, D_map_dryfield_full_8017A41C },
     { { D_801145F8 }, D_map_dryfield_full_8017A40C },
@@ -377,7 +377,7 @@ GpBit2List D_map_dryfield_full_8017A46C[40] = {
     { { NULL }, NULL },
     { { NULL }, NULL },
     { { NULL }, NULL },
-    { { .sentinel = -1 }, NULL },
+    { { .sentinel = AREA_OBJECT_ROOM_END }, NULL },
 };
 
 TaskDesc D_map_dryfield_full_8017A5AC[] = {

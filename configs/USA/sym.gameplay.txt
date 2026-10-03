@@ -1268,7 +1268,7 @@ gPlayerActorTasks               = 0x80115760; // size:0x8 defined:True
 // Gameplay naming pass 4 (inventory, obj lists, view-count)
 Gp_ViewCountTables = 0x8010CB40; // size:0x14 defined:True
 Gp_Bit2Banks = 0x8010D230; // size:0x30 defined:True
-// The per-room lists the Dryfield stage's GpBit2List table (map_dryfield)
+// The per-room lists the Dryfield stage's AreaObjectRoom table (map_dryfield)
 // points at.
 D_80114588                  = 0x80114588; // defined:True
 D_801145F8                  = 0x801145F8; // defined:True

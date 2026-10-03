@@ -109,7 +109,7 @@ InventoryConsumableStack Gp_StackLimits[32] = {
 
 s32 Gp_LookupBit2Item(s32 arg0)
 {
-    GpBit2List*               lists;
+    AreaObjectRoom*           rooms;
     AreaObjectPlace*          rec;
     u16*                      tail;
     InventoryConsumableStack* stacks;
@@ -121,13 +121,13 @@ s32 Gp_LookupBit2Item(s32 arg0)
     s32                       found;
 
     idx   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
-    lists = Gp_Bit2Banks[idx].field_0;
+    rooms = Gp_Bit2Banks[idx].field_0;
     found = 0;
-    if (lists != NULL) {
-        if (lists->field_0.sentinel != 0x7FFFFFFF) {
+    if (rooms != NULL) {
+        if (rooms->places.sentinel != AREA_OBJECT_ROOM_LOOKUP_END) {
             term = AREA_OBJECT_PLACE_END;
             do {
-                rec     = lists->field_0.records;
+                rec     = rooms->places.list;
                 matched = 0;
                 if (rec != NULL) {
                     if (rec->flagIndex != term) {
@@ -175,8 +175,8 @@ s32 Gp_LookupBit2Item(s32 arg0)
                 if (matched == 1) {
                     break;
                 }
-                lists++;
-            } while (lists->field_0.sentinel != 0x7FFFFFFF);
+                rooms++;
+            } while (rooms->places.sentinel != AREA_OBJECT_ROOM_LOOKUP_END);
         }
     }
     return found;

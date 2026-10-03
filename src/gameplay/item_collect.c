@@ -36,13 +36,13 @@ extern u16 D_80114B32;
 
 static inline s32 _gpGetModLevel(s32 item);
 
-static inline void _gpApplyBit2List(GpBit2List* table, u32* dest);
+static inline void _gpApplyBit2List(AreaObjectRoom* table, u32* dest);
 
 static inline s32 _gpReadBit2Flag(u32* p, s32 index);
 
 static void func_800BB7B4(Task* arg0);
 
-static void Gp_ApplyBit2List(GpBit2List* table, u32* dest);
+static void Gp_ApplyBit2List(AreaObjectRoom* table, u32* dest);
 
 static s32 Gp_GetBit2Flag(GameLocationKey* arg0, s32 arg1);
 
@@ -78,7 +78,7 @@ static inline s32 _gpGetModLevel(s32 item)
     }
     return ret;
 }
-static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
+static inline void _gpApplyBit2List(AreaObjectRoom* table, u32* dest)
 {
     AreaObjectPlace* rec;
     u32*             p;
@@ -87,8 +87,8 @@ static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
     if (table == NULL) {
         return;
     }
-    rec = table->field_0.records;
-    if (table->field_0.sentinel == -1) {
+    rec = table->places.list;
+    if (table->places.sentinel == AREA_OBJECT_ROOM_END) {
         return;
     }
     do {
@@ -102,8 +102,8 @@ static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
             }
         }
         table++;
-        rec = table->field_0.records;
-    } while (table->field_0.sentinel != -1);
+        rec = table->places.list;
+    } while (table->places.sentinel != AREA_OBJECT_ROOM_END);
 }
 static inline s32 _gpReadBit2Flag(u32* p, s32 index)
 {
@@ -297,7 +297,7 @@ void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
     p->state.itemSeenBits[word] |= bit;
 }
 
-static void Gp_ApplyBit2List(GpBit2List* table, u32* dest)
+static void Gp_ApplyBit2List(AreaObjectRoom* table, u32* dest)
 {
     _gpApplyBit2List(table, dest);
 }

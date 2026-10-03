@@ -62,21 +62,35 @@ typedef struct {
 } AreaObjectSpawn;
 STATIC_ASSERT_SIZEOF(AreaObjectSpawn, 0x10);
 
-/// 8-byte list node walked by `Gp_ApplyBit2List` / `Gp_ApplyBit2Bank` /
-/// `Gp_LookupBit2Item`. The first word holds either an `AreaObjectPlace` list
-/// (NULL skips) or an integer sentinel: -1 for `Gp_ApplyBit2List` /
-/// `Gp_ApplyBit2Bank`, 0x7FFFFFFF for `Gp_LookupBit2Item`.
-/// `Gp_SpawnPlaces` / `Gp_SpawnPlaceById` read field_4 as the room's
-/// `AREA_OBJECT_SPAWN_END`-terminated `AreaObjectSpawn` table.
-/// `Gp_Bit2Banks[i].field_0` points at a table of these.
-typedef struct _GpBit2List {
-    /* 0x00 */ union {
-        AreaObjectPlace* records;
-        s32              sentinel;
-    } field_0;
-    /* 0x04 */ AreaObjectSpawn* field_4;
-} GpBit2List;
-STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
+/// Value of `AreaObjectRoom.places.sentinel` that ends a stage's room table.
+///
+/// Walks that seed an area's 2-bit flags stop on this entry and do not read
+/// it. Every stored table ends with it, and `spawns` is NULL there.
+enum { AREA_OBJECT_ROOM_END = -1 };
+
+/// Value of `AreaObjectRoom.places.sentinel` that ends a search for one flag
+/// index across a stage's rooms.
+///
+/// Stored tables end with `AREA_OBJECT_ROOM_END`. A search that misses every
+/// room continues past that entry until this value.
+enum { AREA_OBJECT_ROOM_LOOKUP_END = 0x7FFFFFFF };
+
+/// One area's placed objects: its place list and the spawns those places use.
+///
+/// Spawning reads the entry at `GameLocationKey.area`. Flag seeding and a
+/// search for one flag index walk from the first entry. `places.list` is that
+/// area's `AreaObjectPlace` list, or NULL when the area has none. `spawns` is
+/// the `AreaObjectSpawn` table those places are created from, or NULL. The
+/// last entry stores `AREA_OBJECT_ROOM_END`. A flag-index search stops when
+/// the same word equals `AREA_OBJECT_ROOM_LOOKUP_END`.
+typedef struct {
+    union {
+        AreaObjectPlace* list;     // This area's place list. NULL when the area has none
+        s32              sentinel; // AREA_OBJECT_ROOM_END ends flag seeding. AREA_OBJECT_ROOM_LOOKUP_END ends a flag-index search
+    } places;
+    AreaObjectSpawn* spawns;       // This area's spawn table, or NULL
+} AreaObjectRoom;
+STATIC_ASSERT_SIZEOF(AreaObjectRoom, 0x8);
 
 /// `stage` value that ends an `AreaApplyRec` list.
 ///

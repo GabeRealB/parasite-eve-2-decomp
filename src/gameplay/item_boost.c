@@ -50,7 +50,7 @@ static inline void _gpRecalcMaxHp(void);
 
 static inline void _gpSetPlayerScan(s32 count);
 
-static inline void _gpApplyBit2List(GpBit2List* table, u32* dest);
+static inline void _gpApplyBit2List(AreaObjectRoom* table, u32* dest);
 
 static s32 Gp_GetScanItemId(InventoryItemRange* arg0, s32 arg1);
 
@@ -296,7 +296,7 @@ static inline void _gpSetPlayerScan(s32 count)
     p->state.carriedItems.rowCount = count;
     p->state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;
 }
-static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
+static inline void _gpApplyBit2List(AreaObjectRoom* table, u32* dest)
 {
     AreaObjectPlace* rec;
     u32*             p;
@@ -305,8 +305,8 @@ static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
     if (table == NULL) {
         return;
     }
-    rec = table->field_0.records;
-    if (table->field_0.sentinel == -1) {
+    rec = table->places.list;
+    if (table->places.sentinel == AREA_OBJECT_ROOM_END) {
         return;
     }
     do {
@@ -320,8 +320,8 @@ static inline void _gpApplyBit2List(GpBit2List* table, u32* dest)
             }
         }
         table++;
-        rec = table->field_0.records;
-    } while (table->field_0.sentinel != -1);
+        rec = table->places.list;
+    } while (table->places.sentinel != AREA_OBJECT_ROOM_END);
 }
 void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
 {
@@ -697,8 +697,8 @@ void Gp_InitModeEquip(void)
 
 void Gp_ApplyBit2Bank(s32 arg0)
 {
-    GpBit2List* table;
-    u32*        dest;
+    AreaObjectRoom* table;
+    u32*            dest;
 
     table = Gp_Bit2Banks[arg0].field_0;
     dest  = Gp_Bit2Banks[arg0].field_4;

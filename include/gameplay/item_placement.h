@@ -3,7 +3,7 @@
 
 #include "gameplay/area_flags.h"
 
-/// The per-room lists the Dryfield stage's `GpBit2List` table points at, one
+/// The per-room lists the Dryfield stage's `AreaObjectRoom` table points at, one
 /// for each room that has any.
 extern AreaObjectPlace D_80114588[];
 
