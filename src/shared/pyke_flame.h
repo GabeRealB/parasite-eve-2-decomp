@@ -35,26 +35,6 @@ typedef struct PykeFlameBody {
 } PykeFlameBody;
 STATIC_ASSERT_SIZEOF(PykeFlameBody, 0x38);
 
-/// Scratch-stack workspace for the flying flame's ground splash.
-///
-/// `vertices` stages each corner of the flat quad and is reused for that
-/// corner after the view rotation and the move onto the ground point, narrowed
-/// to signed 16-bit coordinate units. Corners and screen positions share
-/// indices 0..3 in GPU quad strip order.
-///
-/// One RTPS projects corner 0 and one RTPT projects corners 1..3, the same
-/// corner projection as `EffectQuadScratch`. Ordering depth and the GTE FLAG
-/// word stay on the call stack. A negative FLAG rejects the quad before the
-/// screen positions are copied to the textured primitive.
-///
-/// Reserve the whole block and release it before the drawer returns. Pointers
-/// into the block must not survive release.
-typedef struct {
-    SVECTOR vertices[4];      // Local corner workspace, then world positions supplied to the projection
-    DVECTOR screenCorners[4]; // Signed screen X/Y pixels, written together as one GTE word per corner
-} PykeFlameSplashScratch;
-STATIC_ASSERT_SIZEOF(PykeFlameSplashScratch, 0x30);
-
 static void pykeFlameDrawSplash(VECTOR3* pos, s32 width);
 static void pykeFlameRelease(Task* task);
 

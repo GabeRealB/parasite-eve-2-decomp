@@ -243,6 +243,29 @@ typedef struct {
 } EffectQuadScratch;
 STATIC_ASSERT_SIZEOF(EffectQuadScratch, 0x38);
 
+/// Scratch-stack workspace for one flat ground quad.
+///
+/// `vertices` stages each corner, scaled in the ground plane from the caller's
+/// half-size, and is reused for that corner's world position after the view
+/// rotation and the move onto the ground point, narrowed to signed 16-bit
+/// coordinate units. Corners and screen positions share indices 0..3 in GPU
+/// quad strip order.
+///
+/// One RTPS projects corner 0 and one RTPT projects corners 1..3, the same
+/// corner projection as `EffectQuadScratch`. Ordering depth and the GTE FLAG
+/// word stay on the call stack, so this block does not carry them. A negative
+/// FLAG rejects the quad before its screen positions are copied onto the
+/// textured primitive.
+///
+/// The ground-glow, fireball floor and flame-splash drawers share this block.
+/// Reserve the whole block and release it before the drawer returns. Pointers
+/// into the block must not survive release.
+typedef struct {
+    SVECTOR vertices[4];      // Local corner workspace, then world positions supplied to the projection
+    DVECTOR screenCorners[4]; // Signed screen X/Y pixels, written together as one GTE word per corner
+} EffectGroundQuadScratch;
+STATIC_ASSERT_SIZEOF(EffectGroundQuadScratch, 0x30);
+
 /// Scratch-stack workspace for projecting one four-corner quad straight into its packet.
 ///
 /// `vertices` stages each corner and is reused for its rotated, translated

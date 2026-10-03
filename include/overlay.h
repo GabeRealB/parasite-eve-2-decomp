@@ -365,17 +365,6 @@ typedef struct {
 } ActorContactSteerScratch;
 STATIC_ASSERT_SIZEOF(ActorContactSteerScratch, 0x54);
 
-/// The scratch-pad block of a flat quad on the ground: its four corners in
-/// world space and their projected screen positions.
-typedef struct OverlayGroundScratch {
-    SVECTOR vec[4];
-    DVECTOR sxy0;
-    DVECTOR sxy1;
-    DVECTOR sxy2;
-    DVECTOR sxy3;
-} OverlayGroundScratch;
-STATIC_ASSERT_SIZEOF(OverlayGroundScratch, 0x30);
-
 /// Scratch-stack block for drawing one camera-facing quad around a projected
 /// point.
 ///

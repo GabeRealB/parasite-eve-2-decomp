@@ -6,35 +6,35 @@
 /// ROM does not do.
 static void groundGlowDraw(GfxCoord* ground, s32 size)
 {
-    OverlayGroundScratch* sc;
-    POLY_FT4*             prim;
-    s32                   i;
-    s32                   otz;
-    s32                   flag;
-    s32                   u;
+    EffectGroundQuadScratch* quadScratch;
+    POLY_FT4*                prim;
+    s32                      i;
+    s32                      otz;
+    s32                      flag;
+    s32                      u;
 
-    sc = SCRATCH_STACK_RESERVE_BLOCK(OverlayGroundScratch);
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectGroundQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        sc->vec[i].vx = (u16)D_80111E38[i].axis0Sign * size;
-        sc->vec[i].vy = 0;
-        sc->vec[i].vz = (u16)D_80111E38[i].axis1Sign * size;
+        quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * size;
+        quadScratch->vertices[i].vy = 0;
+        quadScratch->vertices[i].vz = (u16)D_80111E38[i].axis1Sign * size;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&sc->vec[i]);
+        gte_ldv0(&quadScratch->vertices[i]);
         gte_rtv0();
-        gte_stsv(&sc->vec[i]);
-        sc->vec[i].vx += ground->workm.t[0];
-        sc->vec[i].vy += ground->workm.t[1];
-        sc->vec[i].vz += ground->workm.t[2];
+        gte_stsv(&quadScratch->vertices[i]);
+        quadScratch->vertices[i].vx += ground->workm.t[0];
+        quadScratch->vertices[i].vy += ground->workm.t[1];
+        quadScratch->vertices[i].vz += ground->workm.t[2];
     }
 
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec[0]);
+    gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
-    gte_stsxy(&sc->sxy0);
-    gte_ldv3(&sc->vec[1], &sc->vec[2], &sc->vec[3]);
+    gte_stsxy(&quadScratch->screenCorners[0]);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
-    gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
+    gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
     gte_stflg(&flag);
     if (flag >= 0) {
         gte_stszotz(&otz);
@@ -60,17 +60,17 @@ static void groundGlowDraw(GfxCoord* ground, s32 size)
         u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
         prim->v3    = 0x57;
         prim->u3    = u;
-        prim->x0    = sc->sxy0.vx;
-        prim->y0    = sc->sxy0.vy;
-        prim->x1    = sc->sxy1.vx;
-        prim->y1    = sc->sxy1.vy;
-        prim->x2    = sc->sxy2.vx;
-        prim->y2    = sc->sxy2.vy;
-        prim->x3    = sc->sxy3.vx;
-        prim->y3    = sc->sxy3.vy;
+        prim->x0    = quadScratch->screenCorners[0].vx;
+        prim->y0    = quadScratch->screenCorners[0].vy;
+        prim->x1    = quadScratch->screenCorners[1].vx;
+        prim->y1    = quadScratch->screenCorners[1].vy;
+        prim->x2    = quadScratch->screenCorners[2].vx;
+        prim->y2    = quadScratch->screenCorners[2].vy;
+        prim->x3    = quadScratch->screenCorners[3].vx;
+        prim->y3    = quadScratch->screenCorners[3].vy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayGroundScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectGroundQuadScratch);
 }
 
 #undef GROUND_GLOW_R

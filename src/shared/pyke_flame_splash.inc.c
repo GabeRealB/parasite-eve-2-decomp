@@ -6,25 +6,25 @@
 
 /// Draws the flame's ground splash: the unit quad `D_80111E38` scaled to
 /// `width` half-size, laid flat by `gGfxViewCoord.workm` and moved to the traced
-/// ground point `pos`, then projected through `GsWSMATRIX` into a
-/// `PykeFlameSplashScratch`. The first corner goes through `rtps` and the other
+/// ground point `pos`, then projected through `GsWSMATRIX` into an
+/// `EffectGroundQuadScratch`. The first corner goes through `rtps` and the other
 /// three through one `rtpt`; a negative `gte_stflg` drops the quad.
 static void pykeFlameDrawSplash(VECTOR3* pos, s32 width)
 {
-    u8*                     head;
-    PykeFlameSplashScratch* block;
-    POLY_FT4*               prim;
-    EffectUnitQuadCorner*   corners;
-    s32                     i;
-    s32                     flag;
-    s32                     otz;
+    u8*                      head;
+    EffectGroundQuadScratch* block;
+    POLY_FT4*                prim;
+    EffectUnitQuadCorner*    corners;
+    s32                      i;
+    s32                      flag;
+    s32                      otz;
 
-    head = SCRATCH_STACK_CURSOR(u8) - sizeof(PykeFlameSplashScratch);
+    head = SCRATCH_STACK_CURSOR(u8) - sizeof(EffectGroundQuadScratch);
     /* The ROM stores the freshly computed head and keeps a *copy* of it in the
        register the rest of the function walks; without the barrier GCC folds
        the two together and stores the copy instead. */
     SCRATCH_STACK_CURSOR(u8) = head;
-    block                    = (PykeFlameSplashScratch*)head;
+    block                    = (EffectGroundQuadScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i       = 0;
     corners = D_80111E38;
@@ -80,7 +80,7 @@ static void pykeFlameDrawSplash(VECTOR3* pos, s32 width)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(PykeFlameSplashScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(EffectGroundQuadScratch));
 }
 
 #undef PYKE_FLAME_SPLASH_DEAD_BIAS
