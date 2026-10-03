@@ -44,17 +44,27 @@
 #include "../../shared/sprite_quad.h"
 #include "../../shared/jet_cone.h"
 
-/// Collision pair allocated by `func_pyrokinesis_8012EF48` (`memCalloc(0x58)`)
-/// and stored in `Task::work`. `obj` is linked on list 1 and carries the
-/// packed combo id, `obj2` on list 7 with the 0x4400 flags the cone uses to
-/// probe for a wall; both point `field_C` at the one-element `rec` table
-/// (terminator `field_0 = 2`).
-typedef struct PyroWork {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionBody    obj2;
-    /* 0x40 */ WorldCollisionContact rec;
-} PyroWork;
-STATIC_ASSERT_SIZEOF(PyroWork, 0x58);
+/// Collision block of the travelling pyrokinesis flame, allocated zeroed on the
+/// cast's first running frame and kept at `Task::work`, whose teardown frees it.
+///
+/// Both bodies are spheres centred on the origin of the coordinate the flame
+/// travels on, and both borrow the one contact entry. The damage sphere is what
+/// the flame burns with: it takes pair tests only, and its key is the damage id
+/// of the spell being cast - contact category 2 with bit 0x8000 plus that spell
+/// and level's row number. A pair contact of category 3 on it bursts the flame
+/// into its closing rings and unlinks it. The grid sphere is what stops the
+/// flame: collision list 7 is walked only by the room-grid pass, and a contact
+/// with a class-0 room surface (`WORLD_COLLISION_CONTACT_GRID` alone) unlinks
+/// that sphere and leaves the flame shrinking where it stands, the damage
+/// sphere shrinking with it. Running out of range unlinks both. Unlinking a
+/// body that is no longer linked does nothing, which the cast relies on when it
+/// ends from a state that has already dropped one of them.
+typedef struct {
+    WorldCollisionBody    damageBody;  // Sphere linked on list 1; pair tests are enabled after the link. Its radius follows the flame's: 0x500 on the launch frame, the level's size while it travels, 0x40 less each frame once it is stopped
+    WorldCollisionBody    gridBody;    // Sphere linked on list 7 with a zero key and one eighth of the launch radius; grid tests are enabled after the link, together with `WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT`
+    WorldCollisionContact contacts[1]; // One-entry table both bodies borrow. The entry is marked LAST; an occupied contact that neither bursts nor stops the flame is cleared the frame it is found
+} _PyrokinesisWork;
+STATIC_ASSERT_SIZEOF(_PyrokinesisWork, 0x58);
 
 static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1);
 
@@ -80,13 +90,14 @@ static s16 D_pyrokinesis_80131DFC[16] = { 0 };
 /// `Task::state`. State 0 copies the player rotation onto the effect
 /// coordinate, rotates the combo-scaled launch offset into that frame, rolls
 /// the 16 per-flame jitters, plays the roar picked by combo level and cast
-/// variant, and links a `PyroWork` collision pair (list 1 + list 7) whose
-/// packed id is the combo digits plus `0x28000`. State 1 walks the coordinate
-/// by that offset each frame, redraws the cone and ring, parks the room light
-/// slot on it and burns until the `Gp_AttachParams` extent for the combo level runs
-/// out. A `0x30000` hit on `obj` bursts into three `0x600F6` flames and moves
-/// to state 3 (or 4 for cast variant 2); a `0x100000` hit on `obj2` means a
-/// wall, which drops to state 2 and fades the cone out. States 3 and 4 grow
+/// variant, and links the two spheres of a `_PyrokinesisWork` (list 1 + list
+/// 7), the damage sphere keyed with the combo digits plus `0x28000`. State 1
+/// walks the coordinate by that offset each frame, redraws the cone and ring,
+/// parks the room light slot on it and burns until the `Gp_AttachParams` extent
+/// for the combo level runs out. A `0x30000` hit on `damageBody` bursts into
+/// three `0x600F6` flames and moves to state 3 (or 4 for cast variant 2); a
+/// `WORLD_COLLISION_CONTACT_GRID` contact on `gridBody` means a wall, which
+/// drops to state 2 and fades the cone out. States 3 and 4 grow
 /// the two rings until they pass the combo radius, state 4 first stepping the
 /// brightness down by 8 a frame. Any state releases if the player is dying
 /// (`Gp_StateC08.effectPhase` / `Gp_StateC08.effectPhase`) or parasite-energy effects are
@@ -95,7 +106,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
 {
     EffectWork*                    mem;
     GfxCoord*                      coord;
-    PyroWork*                      work;
+    _PyrokinesisWork*              work;
     ModelObjectCoordBody*          body;
     GfxCoord*                      player;
     WorldCoordTransientPointLight* lightSlot;
@@ -114,7 +125,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     s32                            next;
     s16                            amp;
 
-    work       = (PyroWork*)arg0->work;
+    work       = arg0->work;
     mem        = arg0->spawnArg2.pointer;
     body       = arg0->extra.coordBody;
     coord      = body->coord;
@@ -132,7 +143,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 mem->age = mem->age - 1;
                 return;
             }
-            work = memCalloc(0x58, 0);
+            work = memCalloc(sizeof(_PyrokinesisWork), 0);
             if (work == NULL) {
                 mem->age = 0;
                 return;
@@ -172,24 +183,24 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             } else if (arg0->spawnArg1.value == 1) {
                 arg0->spawnArg1.value = 0;
             }
-            arg0->work                 = work;
-            work->obj.coord            = coord;
-            work->obj.context.contacts = &work->rec;
-            work->obj.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
-                            ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
-                            (u16)(Gp_StateC08.attachId % 10) + 0x28000;
-            work->obj.radius = mem->angle;
-            work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(1, &work->obj);
-            work->rec.flags             = 2;
-            work->obj2.coord            = coord;
-            work->obj2.context.contacts = &work->rec;
-            work->obj2.key              = 0;
-            work->obj.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->obj2.radius           = (s16)((u16)mem->angle << 16 >> 19);
-            work->obj2.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(7, &work->obj2);
-            work->obj2.flags = (work->obj2.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
+            arg0->work                        = work;
+            work->damageBody.coord            = coord;
+            work->damageBody.context.contacts = work->contacts;
+            work->damageBody.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
+                                   ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
+                                   (u16)(Gp_StateC08.attachId % 10) + 0x28000;
+            work->damageBody.radius = mem->angle;
+            work->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
+            Gp_LinkObj(1, &work->damageBody);
+            work->contacts[0].flags         = WORLD_COLLISION_CONTACT_LAST;
+            work->gridBody.coord            = coord;
+            work->gridBody.context.contacts = work->contacts;
+            work->gridBody.key              = 0;
+            work->damageBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            work->gridBody.radius           = (s16)((u16)mem->angle << 16 >> 19);
+            work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            Gp_LinkObj(7, &work->gridBody);
+            work->gridBody.flags = (work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             Gp_SpawnEff(EFFECT_PYROKINESIS_LAUNCH_CONE, coord, 0, NULL);
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
@@ -198,8 +209,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             arg0->state = 1;
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
-                Gp_UnlinkObj(&work->obj);
+            if (Gp_CountRec18Hi(work->damageBody.context.contacts, 0x30000) != 0) {
+                Gp_UnlinkObj(&work->damageBody);
                 radius     = (mem->index << 9) + 0x380;
                 mem->angle = radius;
                 for (i = 0; i < 0x556; i += 0x2AA) {
@@ -215,17 +226,17 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->state = next;
                 return;
             }
-            if (Gp_FindRec18(work->obj2.context.contacts, 0x100000) != 0) {
-                Gp_UnlinkObj(&work->obj2);
+            if (Gp_FindRec18(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+                Gp_UnlinkObj(&work->gridBody);
                 arg0->state = 2;
                 return;
             }
-            Gp_ClearRec18Occupied(&work->rec);
+            Gp_ClearRec18Occupied(work->contacts);
             return;
         case 1:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_UnlinkObj(&work->obj);
-                Gp_UnlinkObj(&work->obj2);
+                Gp_UnlinkObj(&work->damageBody);
+                Gp_UnlinkObj(&work->gridBody);
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -233,13 +244,13 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 mem->age = mem->age - 1;
                 return;
             }
-            radius              = (mem->index << 9) + 0x380;
-            mem->angle          = radius;
-            work->obj.radius    = radius;
-            coord->coord.t[0]  += mem->move.vx;
-            coord->coord.t[1]  += mem->move.vy;
-            coord->coord.t[2]  += mem->move.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            radius                  = (mem->index << 9) + 0x380;
+            mem->angle              = radius;
+            work->damageBody.radius = radius;
+            coord->coord.t[0]      += mem->move.vx;
+            coord->coord.t[1]      += mem->move.vy;
+            coord->coord.t[2]      += mem->move.vz;
+            coord->composeStamp     = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
@@ -270,8 +281,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
-                Gp_UnlinkObj(&work->obj);
+            if (Gp_CountRec18Hi(work->damageBody.context.contacts, 0x30000) != 0) {
+                Gp_UnlinkObj(&work->damageBody);
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
                     if (spawned != NULL) {
@@ -285,29 +296,29 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 arg0->state = next;
                 return;
             }
-            if (Gp_FindRec18(work->obj2.context.contacts, 0x100000) != 0) {
-                Gp_UnlinkObj(&work->obj2);
+            if (Gp_FindRec18(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+                Gp_UnlinkObj(&work->gridBody);
                 arg0->state = 2;
                 return;
             }
             tick = mem->age;
             if (tick * 6 > Gp_AttachParams[ATTACHMENT_INDEX_PYROKINESIS][mem->index].area.extent) {
-                Gp_UnlinkObj(&work->obj);
-                Gp_UnlinkObj(&work->obj2);
+                Gp_UnlinkObj(&work->damageBody);
+                Gp_UnlinkObj(&work->gridBody);
                 arg0->state = 2;
                 return;
             }
             if (tick < 0x1F) {
-                Gp_ClearRec18Occupied(&work->rec);
+                Gp_ClearRec18Occupied(work->contacts);
                 return;
             }
-            Gp_UnlinkObj(&work->obj);
-            Gp_UnlinkObj(&work->obj2);
+            Gp_UnlinkObj(&work->damageBody);
+            Gp_UnlinkObj(&work->gridBody);
             effectKillTask(mem, arg0);
             return;
         case 2:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_UnlinkObj(&work->obj);
+                Gp_UnlinkObj(&work->damageBody);
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -316,9 +327,9 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             Gp_UpdateCoord(coord);
-            radius           = (u16)mem->angle - 0x40;
-            mem->angle       = radius;
-            work->obj.radius = radius;
+            radius                  = (u16)mem->angle - 0x40;
+            mem->angle              = radius;
+            work->damageBody.radius = radius;
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (mem->angle >= 0x81) {
@@ -327,8 +338,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     taskReparent(arg0, spawned->task);
                 }
             }
-            if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
-                Gp_UnlinkObj(&work->obj);
+            if (Gp_CountRec18Hi(work->damageBody.context.contacts, 0x30000) != 0) {
+                Gp_UnlinkObj(&work->damageBody);
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
                     if (spawned != NULL) {
@@ -343,15 +354,15 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             if (mem->angle < 0x80) {
-                Gp_UnlinkObj(&work->obj);
+                Gp_UnlinkObj(&work->damageBody);
                 effectKillTask(mem, arg0);
                 return;
             }
-            Gp_ClearRec18Occupied(&work->rec);
+            Gp_ClearRec18Occupied(work->contacts);
             return;
         case 3:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_UnlinkObj(&work->obj2);
+                Gp_UnlinkObj(&work->gridBody);
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -366,14 +377,14 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                               (s16)((u16)mem->scale << 16 >> 17));
             mem->angle = mem->angle + 0x40;
             if (mem->angle > ((mem->index << 9) + 0x580)) {
-                Gp_UnlinkObj(&work->obj2);
+                Gp_UnlinkObj(&work->gridBody);
                 effectKillTask(mem, arg0);
                 return;
             }
             return;
         case 4:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_UnlinkObj(&work->obj2);
+                Gp_UnlinkObj(&work->gridBody);
                 effectKillTask(mem, arg0);
                 return;
             }
@@ -392,7 +403,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     mem->scale = mem->scale - 8;
                     return;
                 }
-                Gp_UnlinkObj(&work->obj2);
+                Gp_UnlinkObj(&work->gridBody);
                 effectKillTask(mem, arg0);
             }
             return;
