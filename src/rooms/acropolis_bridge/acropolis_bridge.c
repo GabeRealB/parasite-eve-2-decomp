@@ -97,21 +97,56 @@
 #include "../../shared/bridge_model.h"
 #include "../../shared/acropolis_glows.h"
 
-/// Work block this room's script tasks keep at `Task::work`
-/// (`memCalloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is
-/// the script step handed to `func_acropolis_bridge_8017E60C` and
-/// `promptKind` the display mode forwarded to `func_800D4E78`.
-typedef struct AcropolisBridgePromptWork {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s16 field_4;
-    /* 0x06 */ u8  field_6;
-    /* 0x07 */ u8  retryCount;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ s16 field_A;
-    /* 0x0C */ s16 field_C;
-    /* 0x0E */ s8  promptKind;
-    /* 0x0F */ s8  promptBusy;
-} AcropolisBridgePromptWork;
+/// `ActionPromptHotspot::id` of the keypad's clear key. The ten digit keys
+/// carry their own digit, 0..9, as their id.
+#define ACROPOLIS_BRIDGE_KEYPAD_KEY_CLEAR 0xA
+
+/// Digits in a complete bridge code; the keypad checks the entry once this
+/// many have been typed.
+#define ACROPOLIS_BRIDGE_KEYPAD_CODE_DIGITS 3
+
+/// `_AcropolisBridgeKeypadWork::code` with nothing entered. A nibble above 9
+/// draws as an empty digit, so this value blanks all three.
+#define ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK 0xFFF
+
+/// The code the keypad accepts, one digit per nibble in the order typed.
+#define ACROPOLIS_BRIDGE_KEYPAD_CODE_CORRECT 0x561
+
+/// Frames a complete entry stays on the display before it is checked.
+#define ACROPOLIS_BRIDGE_KEYPAD_CHECK_DELAY_FRAMES 10
+
+/// Frames in each half of one blink of the keypad's result display. A blink
+/// cycle is two halves, and the frame after them counts the cycle.
+#define ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES 10
+
+/// Blink cycles the result display runs after a code is checked.
+#define ACROPOLIS_BRIDGE_KEYPAD_BLINK_COUNT 3
+
+/// Wrong codes after which the keypad closes instead of taking another entry.
+#define ACROPOLIS_BRIDGE_KEYPAD_REJECTED_LIMIT 3
+
+/// Work block of the task that runs the bridge's code keypad screen, allocated
+/// by its first state and kept at `Task::work`.
+///
+/// The keypad's entry state acts on the key the player confirms. Until the
+/// player has accepted the Examine command on the keypad, a confirmed key is
+/// latched and opens that command at the cursor; afterwards a digit key shifts
+/// its digit into `code` and the clear key blanks it. A complete entry is held
+/// for a moment and checked: the right code blinks on the display and ends the
+/// task, a wrong one blinks the error display and returns to entry, and the
+/// keypad closes once the limit of wrong codes is reached.
+typedef struct {
+    s32 field_0;        // Set to 0x14 when the task starts and never read; role unproven
+    s16 code;           // Digits entered so far, one per nibble with the newest lowest; ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK when none
+    u8  digitCount;     // Digits typed into `code` since it was last blank
+    u8  rejectedCount;  // Wrong codes entered since the keypad opened
+    s16 blinkCount;     // Blink cycles the result display has completed
+    s16 timer;          // Frames the current timed step has run: the hold before a complete entry is checked, then the position inside a blink cycle
+    s16 selectedKey;    // `ActionPromptHotspot::id` of the key confirmed before the keypad was examined; stored and never read
+    s8  promptKind;     // `ActionPromptHotspot::promptKind` of that key, forwarded when its command prompt opens
+    s8  keypadExamined; // Whether the Examine command was accepted on the keypad (0 a key confirm offers Examine, 1 it types the key)
+} _AcropolisBridgeKeypadWork;
+STATIC_ASSERT_SIZEOF(_AcropolisBridgeKeypadWork, 0x10);
 
 /// 0x2C-byte scratch block the bridge's dust-cloud task takes from
 /// the scratch stack. `vec` holds the four billboard corners, projected with
@@ -2709,7 +2744,7 @@ s32 func_acropolis_bridge_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
             Gp_StartCapSlot(7, 1, 2);
             return 0;
         }
-        func_acropolis_bridge_8017E60C(0xFFF, 1);
+        func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 1);
         Task_SpawnFromTable(D_acropolis_bridge_80188E7C, 1, 0, 0);
     }
     return 0;
@@ -2973,19 +3008,19 @@ static s16 func_acropolis_bridge_8017E024(void)
 }
 
 /// Brings the bridge's action-prompt script online: allocates its
-/// `AcropolisBridgePromptWork` block, spawns the prompt task it drives, arms
-/// the script at step 0xFFF, raises the "bridge is up" sprite command of the
+/// `_AcropolisBridgeKeypadWork` block, spawns the prompt task it drives,
+/// blanks the entered code, raises the "bridge is up" sprite command of the
 /// camera the player is on, and clears every hotspot's hit flag so the first
 /// hit test starts clean. A failed allocation kills the task instead.
 static void func_acropolis_bridge_8017E04C(Task* task)
 {
-    AcropolisBridgePromptWork* work;
-    GameLocationKey*           sess;
-    ActionPromptHotspot*       hs;
-    SpriteView*                rec;
-    s32                        view;
+    _AcropolisBridgeKeypadWork* work;
+    GameLocationKey*            sess;
+    ActionPromptHotspot*        hs;
+    SpriteView*                 rec;
+    s32                         view;
 
-    work = memCalloc(0x10, 0);
+    work = memCalloc(sizeof(_AcropolisBridgeKeypadWork), 0);
     if (work == NULL) {
         Task_RequestKill(task, 0);
         return;
@@ -2993,7 +3028,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     task->spawnArg2.pointer = Task_SpawnFromTable(&D_acropolis_bridge_80189830, 0, 1, 0);
     task->work              = work;
     work->field_0           = 0x14;
-    work->field_4           = 0xFFF;
+    work->code              = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
     sess                    = &gGameSession->location.loc;
     task->state++;
     view                                 = Gp_GetViewIndex();
@@ -3008,21 +3043,21 @@ static void func_acropolis_bridge_8017E04C(Task* task)
         hs->hit = 0;
     }
     D_acropolis_bridge_801917A8 = 0;
-    func_acropolis_bridge_8017E60C(work->field_4, 0);
+    func_acropolis_bridge_8017E60C(work->code, 0);
 }
 
 /// Runs one frame of the bridge's action prompt while the player is entering a
 /// code: the cursor is hit-tested against the room's hotspot table, and a
-/// confirm press on a hit hotspot either latches that hotspot for the caller
-/// (when the prompt is idle) or shifts its id into `field_4`'s low nibble and
-/// beeps. Hotspot id 0xA is the "clear" key, which re-arms the script at step
-/// 0xFFF. Three entered digits end the script in state 5, a cancel press ends
-/// it in state 8, and a busy cap suspends the whole scan for that frame.
+/// confirm press on a hit hotspot either latches that hotspot in `selectedKey`
+/// and `promptKind` and goes to state 3 (while `keypadExamined` is clear) or
+/// shifts its id into `code`'s low nibble and beeps. The clear key blanks
+/// `code` instead. A complete entry ends the script in state 5, a cancel press
+/// ends it in state 8, and a busy cap suspends the whole scan for that frame.
 static void func_acropolis_bridge_8017E1D0(Task* task)
 {
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
-    ActionPromptHotspot*       hs     = D_acropolis_bridge_8018983C;
-    ActionPrompt*              prompt = D_80114D28;
+    _AcropolisBridgeKeypadWork* work   = task->work;
+    ActionPromptHotspot*        hs     = D_acropolis_bridge_8018983C;
+    ActionPrompt*               prompt = D_80114D28;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -3036,21 +3071,21 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
             if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
                 while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
                     if (hs->hit != 0) {
-                        if (work->promptBusy == 0) {
+                        if (work->keypadExamined == 0) {
                             prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                             prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                            work->field_C       = hs->id;
+                            work->selectedKey   = hs->id;
                             work->promptKind    = hs->promptKind;
                             task->state         = 3;
                             return;
                         }
-                        if (hs->id == 0xA) {
-                            work->field_4 = 0xFFF;
-                            work->field_6 = 0;
+                        if (hs->id == ACROPOLIS_BRIDGE_KEYPAD_KEY_CLEAR) {
+                            work->code       = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
+                            work->digitCount = 0;
                         } else {
-                            work->field_4 <<= 4;
-                            work->field_4   = (work->field_4 & 0xFF0) | hs->id;
-                            work->field_6++;
+                            work->code <<= 4;
+                            work->code   = (work->code & 0xFF0) | hs->id;
+                            work->digitCount++;
                         }
                         SndEvt_EnqueueType6(SOUND_ACROPOLIS_BRIDGE_KEYPAD_BEEP, 0, 0);
                         break;
@@ -3061,57 +3096,57 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
         } else {
             prompt->mode = ACTION_PROMPT_MODE_IDLE;
         }
-        if (work->field_6 == 3) {
-            task->state   = 5;
-            work->field_A = 0;
+        if (work->digitCount == ACROPOLIS_BRIDGE_KEYPAD_CODE_DIGITS) {
+            task->state = 5;
+            work->timer = 0;
         }
         if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
             task->state                 = 8;
             D_acropolis_bridge_801917A8 = 0;
         }
     }
-    func_acropolis_bridge_8017E60C(work->field_4, 0);
+    func_acropolis_bridge_8017E60C(work->code, 0);
 }
 
 /// Winds the bridge prompt back down, the mirror of
 /// `func_acropolis_bridge_8017E04C`: it clears the "bridge is up" sprite
 /// command of the camera the player is on, then runs the same twenty-frame
-/// pass as `func_acropolis_bridge_8017E4FC` - the first ten frames re-arm the
-/// script at step 0xFFF, the next ten replay the step the work block holds,
-/// and the twentieth resets the frame counter and counts one completed pass.
+/// pass as `func_acropolis_bridge_8017E4FC` - the first ten frames blank the
+/// code display, the next ten show the entered `code`, and the frame after
+/// them resets `timer` and counts one blink in `blinkCount`.
 /// The cursor is hit-tested against the room's hotspot table either way so
-/// `mode` reports whether it sits over one, and the third pass ends the script
+/// `mode` reports whether it sits over one, and the third blink ends the script
 /// in state 8 with `D_acropolis_bridge_801917A8` raised.
 static void func_acropolis_bridge_8017E3A0(Task* task)
 {
-    ActionPrompt*              prompt = D_80114D28;
-    ActionPromptHotspot*       hs     = D_acropolis_bridge_8018983C;
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
-    GameLocationKey*           sess   = &gGameSession->location.loc;
-    SpriteView*                rec;
-    s32                        view;
-    s16                        tick;
-    s32                        step;
+    ActionPrompt*               prompt = D_80114D28;
+    ActionPromptHotspot*        hs     = D_acropolis_bridge_8018983C;
+    _AcropolisBridgeKeypadWork* work   = task->work;
+    GameLocationKey*            sess   = &gGameSession->location.loc;
+    SpriteView*                 rec;
+    s32                         view;
+    s16                         tick;
+    s32                         step;
 
     view                                 = Gp_GetViewIndex();
     rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
     rec[(u8)view - 1].batches[35].hidden = 0;
 
-    tick = work->field_A;
-    step = 0xFFF;
-    if (tick >= 0xA) {
-        if (tick >= 0x14) {
+    tick = work->timer;
+    step = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
+    if (tick >= ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
+        if (tick >= 2 * ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
             goto reset;
         }
-        step = work->field_4;
+        step = work->code;
     }
     func_acropolis_bridge_8017E60C(step, 0);
-    work->field_A++;
+    work->timer++;
     goto after;
 
 reset:
-    work->field_A = 0;
-    work->field_8++;
+    work->timer = 0;
+    work->blinkCount++;
 
 after:
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
@@ -3120,7 +3155,7 @@ after:
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
 
-    if (work->field_8 == 3) {
+    if (work->blinkCount == ACROPOLIS_BRIDGE_KEYPAD_BLINK_COUNT) {
         task->state                 = 8;
         D_acropolis_bridge_801917A8 = 1;
     }
@@ -3128,30 +3163,30 @@ after:
 
 /// Idles the bridge prompt for twenty frames per pass: the first ten frames
 /// keep the prompt task ticking through `func_acropolis_bridge_8017E81C`, the
-/// next ten hold it closed, and the twentieth counts one completed pass in
-/// `field_8`. Either way the cursor is re-hit-tested against the room's
+/// next ten blank the code display, and the frame after them counts one blink
+/// in `blinkCount`. Either way the cursor is re-hit-tested against the room's
 /// hotspot table so `mode` reports whether it sits over one. After three
-/// passes the script rewinds to state 2 for another attempt, and once three
-/// attempts have been spent it gives up into state 8.
+/// blinks the script rewinds to state 2 with `code` blank for another entry,
+/// and once `rejectedCount` reaches its limit it gives up into state 8.
 static void func_acropolis_bridge_8017E4FC(Task* task)
 {
-    ActionPrompt*              prompt = D_80114D28;
-    ActionPromptHotspot*       hs     = D_acropolis_bridge_8018983C;
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
-    s16                        tick;
-    u8                         retry;
+    ActionPrompt*               prompt = D_80114D28;
+    ActionPromptHotspot*        hs     = D_acropolis_bridge_8018983C;
+    _AcropolisBridgeKeypadWork* work   = task->work;
+    s16                         tick;
+    u8                          retry;
 
     Gp_GetViewIndex();
-    tick = work->field_A;
-    if (tick < 0xA) {
+    tick = work->timer;
+    if (tick < ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
         func_acropolis_bridge_8017E81C();
-        work->field_A++;
-    } else if (tick < 0x14) {
-        func_acropolis_bridge_8017E60C(0xFFF, 0);
-        work->field_A++;
+        work->timer++;
+    } else if (tick < 2 * ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
+        func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
+        work->timer++;
     } else {
-        work->field_A = 0;
-        work->field_8++;
+        work->timer = 0;
+        work->blinkCount++;
     }
 
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
@@ -3160,13 +3195,13 @@ static void func_acropolis_bridge_8017E4FC(Task* task)
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
 
-    if (work->field_8 == 3) {
-        task->state      = 2;
-        work->field_6    = 0;
-        work->field_4    = 0xFFF;
-        retry            = work->retryCount + 1;
-        work->retryCount = retry;
-        if (retry >= 3) {
+    if (work->blinkCount == ACROPOLIS_BRIDGE_KEYPAD_BLINK_COUNT) {
+        task->state         = 2;
+        work->digitCount    = 0;
+        work->code          = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
+        retry               = work->rejectedCount + 1;
+        work->rejectedCount = retry;
+        if (retry >= ACROPOLIS_BRIDGE_KEYPAD_REJECTED_LIMIT) {
             task->state                 = 8;
             D_acropolis_bridge_801917A8 = 0;
         }
@@ -3427,68 +3462,69 @@ static void func_acropolis_bridge_8017F404(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
-    func_acropolis_bridge_8017E60C(0xFFF, 0);
+    func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
     task->state++;
 }
 
-/// Spawns the action prompt for the script's current step: closes the previous
-/// prompt, clears the highlight state, then re-spawns the prompt at the
-/// coordinates the gameplay side left in `D_80114D28` with this step's display
-/// mode, and advances the task to state 4.
+/// Opens the command prompt for the key latched in the work block: redraws the
+/// entered `code`, hides the cursor, then spawns the prompt at the coordinates
+/// the gameplay side left in `D_80114D28` with the key's `promptKind` as its
+/// display mode, and advances the task to state 4.
 static void func_acropolis_bridge_8017F460(Task* task)
 {
-    ActionPrompt*              prompt = D_80114D28;
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
+    ActionPrompt*               prompt = D_80114D28;
+    _AcropolisBridgeKeypadWork* work   = task->work;
 
-    func_acropolis_bridge_8017E60C(work->field_4, 0);
+    func_acropolis_bridge_8017E60C(work->code, 0);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
-/// Closes the prompt the script's current step put up, clears the highlight
-/// state, and advances the task to state 2. If `func_800D4EC0` still reports a
-/// prompt on screen, the step is flagged busy in `promptBusy` (which the
-/// hotspot scan in `func_acropolis_bridge_8017E1D0` gates on) and cap slot 9 is
-/// started.
+/// Collects the answer to the command prompt opened for the latched key:
+/// redraws the entered `code`, keeps the cursor hidden, and advances the task
+/// to state 2. If `func_800D4EC0` reports the command was confirmed,
+/// `keypadExamined` is raised (which the hotspot scan in
+/// `func_acropolis_bridge_8017E1D0` gates on, so keys type from then on) and
+/// cap slot 9 is started.
 static void func_acropolis_bridge_8017F4CC(Task* task)
 {
-    ActionPrompt*              prompt = D_80114D28;
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
+    ActionPrompt*               prompt = D_80114D28;
+    _AcropolisBridgeKeypadWork* work   = task->work;
 
-    func_acropolis_bridge_8017E60C(work->field_4, 0);
+    func_acropolis_bridge_8017E60C(work->code, 0);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
-        work->promptBusy = 1;
+        work->keypadExamined = 1;
         Gp_StartCapSlot(9, 0, 0);
     }
     task->state = 2;
 }
 
-/// Waits ten frames on the prompt the script's current step put up, then closes
-/// it. Step 0x561 is the one the room answers with message 0x7DA before its
-/// confirmation sound and state 6; every other step just clears the step's
-/// counters, plays the cancel sound and goes to state 7. Either way the prompt
-/// is torn down and the cursor is re-hit-tested against the room's hotspot
-/// table, so `mode` reports whether it ended up over one.
+/// Holds a complete entry on the display for ten frames, then checks it. The
+/// correct code is the one the room answers with message 0x7DA before its
+/// confirmation sound and state 6; every other entry just clears `blinkCount`
+/// and `timer`, plays the rejection sound and goes to state 7. Either way the
+/// entered `code` is redrawn and the cursor is re-hit-tested against the
+/// room's hotspot table, so `mode` reports whether it ended up over one.
 static void func_acropolis_bridge_8017F544(Task* task)
 {
-    ActionPrompt*              prompt = D_80114D28;
-    AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
-    ActionPromptHotspot*       hs     = D_acropolis_bridge_8018983C;
+    ActionPrompt*               prompt = D_80114D28;
+    _AcropolisBridgeKeypadWork* work   = task->work;
+    ActionPromptHotspot*        hs     = D_acropolis_bridge_8018983C;
 
-    if (work->field_A < 0xA) {
-        work->field_A++;
+    if (work->timer < ACROPOLIS_BRIDGE_KEYPAD_CHECK_DELAY_FRAMES) {
+        work->timer++;
         return;
     }
 
-    if (work->field_4 != 0x561) {
+    if (work->code != ACROPOLIS_BRIDGE_KEYPAD_CODE_CORRECT) {
         SndEvt_EnqueueType6(SOUND_ACROPOLIS_BRIDGE_CODE_REJECTED, 0, 0);
-        work->field_8 = 0;
-        work->field_A = 0;
-        task->state   = 7;
+        work->blinkCount = 0;
+        work->timer      = 0;
+        task->state      = 7;
     } else {
         ActorCommand msg = { { { 1, 0xE } }, 2 };
 
@@ -3496,7 +3532,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
         SndEvt_EnqueueType6(SOUND_ACROPOLIS_BRIDGE_CODE_ACCEPTED, 0, 0);
         task->state = 6;
     }
-    func_acropolis_bridge_8017E60C(work->field_4, 0);
+    func_acropolis_bridge_8017E60C(work->code, 0);
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
@@ -3507,7 +3543,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
 static void func_acropolis_bridge_8017F658(Task* task)
 {
     Display_ReleaseRef();
-    func_acropolis_bridge_8017E60C(0xFFF, 0);
+    func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
     taskKill(task->spawnArg2.pointer);
     Task_RequestKill(task, D_acropolis_bridge_801917A8);
     gGameSession->eventState   = 0;
