@@ -58420,7 +58420,7 @@ target's `srl` needs `((u32)arg & 0xF00) >> 8`.
 ## Pass the scratch block, not its fields, when the target reloads with `lh`
 
 An inline helper's arguments are evaluated *before* its body, so the choice
-between passing `helper(d->x, d->z, r)` and `helper(d, r)` decides whether the
+between passing `helper(d->vx, d->vz, r)` and `helper(d, r)` decides whether the
 field loads sit above or below the helper's own prologue. When the helper opens
 a nested scratch block, that prologue contains a store — and stores are what
 invalidate CSE's record of the value a field already holds.
@@ -58429,12 +58429,12 @@ invalidate CSE's record of the value a field already holds.
 block and then hands it to a range test that carves off 0xC more bytes:
 
 ```c
-d->z = d->z - *(u16*)&work->coord->coord.t[2];
+d->vz = d->vz - work->coord->coord.t[2];
 ...
 overlayWalkerOutOfRange(d, work->field_5C * 4)
 ```
 
-Passing `d->x`/`d->z` by value, the loads happen while CSE still knows
+Passing `d->vx`/`d->vz` by value, the loads happen while CSE still knows
 `mem:HI(4+d)` equals the `subu` result it stored one statement earlier, so it
 sign-extends that live register instead of reloading:
 
@@ -58465,9 +58465,12 @@ window to be hoisted into the delta computation's load-delay slots.
 
 Two smaller pieces of the same function, both about where a widening happens:
 
-- A field read once as `lhu` and once as `lh` is a signed/unsigned cast in the
-  source, not noise. Here the block's fields are `u16` — `d->x - t[0]` is the
-  `lhu` — and the helper casts, `(s16)d->x`, for the `lh`.
+- A field read once as `lhu` and once as `lh` does not by itself call for a
+  signed/unsigned cast in the source. Here the block is an `SVECTOR`:
+  `d->vx = d->vx - t[0]` is narrowed to the halfword it stores, so the signed
+  cell loads with `lhu`, and the helper widening it into an `s32` cell,
+  `b->dx = d->vx`, is the `lh`. `u16` cells read through `(s16)d->x` compile
+  the same, so a match through them does not show the cells are unsigned.
 - `lhu` + `sll 18` + `sra 16` is a 16-bit *parameter*, not a 16-bit field:
   `s16 r` fed `work->field_5C * 4`. Give the same helper an `s16` parameter for
   a value that is already a field and the conversion stops folding into the
@@ -98124,16 +98127,19 @@ entry above.
 The ported body's scratch blocks travel with it too, and the receiving overlay's
 own close-but-different helper must not be substituted for them. The third body
 of this pair, the walker arrival test `func_actor_110600_80132470` =
-`func_acropolis_bridge_80184024`, stages its XZ delta in an 8-byte block of `u16`
-cells and squares it through a `(s16)` cast — which is what the target's
-`lhu -0x8($t0)` reads are. `include/actors/actor_110600.h` already carried
-`actorOutsideRadius(SVECTOR* pos, s16 radius)`, the same algorithm over an
-`SVECTOR`'s signed `vx`/`vz` cells, written for the aiming stage; re-expressing
-the ported body through it flips those loads to `lh` and misses. Take the
-sibling's source shape verbatim — its scratch structs and helper included, named
-for the receiving overlay — and leave the local one to the function it was
-written for. Naming the delta block `SVECTOR`-shaped is the tempting mistake
-here, because at these offsets the two are byte-for-byte the same block.
+`func_acropolis_bridge_80184024`, stages its XZ delta in an 8-byte block and
+squares it through a range helper. `include/actors/actor_110600.h` already
+carried `actorOutsideRadius(SVECTOR* pos, s16 radius)`, the same algorithm over
+an `SVECTOR`'s signed `vx`/`vz` cells, written for the aiming stage;
+re-expressing the half-ported body through it missed, and the sibling's shape
+was taken verbatim instead, its helper and a struct of `u16` cells included.
+Take the sibling's source shape verbatim to get the match — and then test what
+it brought along against the types already here. The `u16` struct was read as
+required by the target's `lhu -0x8($t0)`, and it was not: the block is an
+`SVECTOR`, whose signed cells load with `lhu` in `d->vx = d->vx - t[0]` just
+the same, and with it typed that way `actorOutsideRadius` compiles the actor's
+copy to the target too. A miss through the local helper is evidence about the
+body's shape at that moment, not that the block is a different type.
 
 Two shortcuts on that confirmation step. First, the sibling's `nm -S` size is a
 one-line pre-check: `func_actor_110600_80133A94` is `func_acropolis_bridge_8018532C`

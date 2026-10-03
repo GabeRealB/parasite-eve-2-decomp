@@ -592,18 +592,6 @@ typedef struct {
 } BossStrangerWalker;
 STATIC_ASSERT_SIZEOF(BossStrangerWalker, 0x94);
 
-/// The scratch-pad block a patrol walker's arrival test stages the offset
-/// from the walker to its node in. The node's coordinates are copied over and
-/// the walker's translation subtracted in place; `y` is flattened to zero
-/// because the test only measures in the XZ plane.
-typedef struct OverlayWalkerArrivalDelta {
-    u16  x;
-    u16  y;
-    u16  z;
-    byte pad_6[0x2];
-} OverlayWalkerArrivalDelta;
-STATIC_ASSERT_SIZEOF(OverlayWalkerArrivalDelta, 0x8);
-
 /// The scratch-pad block of a patrol walker's nearest-node scan from its own
 /// coordinate: `dx` and `dz` are the offsets to the node under test and
 /// `dist` their squared sum, compared with the running `best`, which starts
@@ -691,7 +679,7 @@ STATIC_ASSERT_SIZEOF(OverlayWalkerTurnScratch, 0x1C);
 
 /// Whether the XZ offset staged in `d` is at least `r` long, squaring both
 /// sides in a scratch block of its own.
-static __inline__ s32 overlayWalkerOutOfRange(OverlayWalkerArrivalDelta* d, s16 r)
+static __inline__ s32 overlayWalkerOutOfRange(SVECTOR* d, s16 r)
 {
     OverlayRangeScratch* b;
     u8*                  head;
@@ -700,8 +688,8 @@ static __inline__ s32 overlayWalkerOutOfRange(OverlayWalkerArrivalDelta* d, s16 
     SCRATCH_STACK_CURSOR(u8) = head - 0xC;
     b                = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
 
-    b->dx            = (s16)d->x;
-    b->dz            = (s16)d->z;
+    b->dx            = d->vx;
+    b->dz            = d->vz;
     b->r             = r;
     b->dx            = b->dx * b->dx;
     b->dz            = b->dz * b->dz;

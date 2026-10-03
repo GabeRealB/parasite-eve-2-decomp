@@ -419,7 +419,8 @@ values are separate from runtime stage numbers.
 `include/overlay.h`, with `BossStrangerNode`, `BossStrangerNav` and
 `BossStrangerRoute` beside it. State values use `BOSS_STRANGER_WALKER_`.
 The scratch frames the step opens stay with the walker family under their
-`OverlayWalker` names until their own review.
+`OverlayWalker` names until their own review. The arrival test has none of its
+own: the offset it stages is a plain `SVECTOR`.
 
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
