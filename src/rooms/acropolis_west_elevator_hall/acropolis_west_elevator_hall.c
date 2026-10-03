@@ -55,12 +55,26 @@
 
 #include "rooms/room_common.h"
 
-/// Scratch state of an elevator-car task, stored at `Task::work`.
-/// `func_acropolis_west_elevator_hall_8017F64C` allocates it with
-/// `memCalloc(4, 0)`, so the size below is the allocation and not a guess.
+/// World X of both elevator-door leaves when the door is shut: the line the
+/// two leaves meet on.
+#define ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_CLOSED_X (-1000)
+
+/// World units a door leaf slides per frame while the door opens or closes.
+#define ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_SPEED 20
+
+/// Travel of a fully retracted door leaf, in world units; a leaf is 710 wide,
+/// so this clears the opening.
+#define ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_TRAVEL_MAX 720
+
+/// Work block of one leaf of the elevator's sliding door, held in `Task::work`.
+///
+/// The door is two mirrored leaves, each its own task with its own block. The
+/// task's `spawnArg1` selects opening (1), closing (-1) or rest (0), and its
+/// `spawnArg2` the side the leaf retracts to (-1 or 1 along X).
 typedef struct {
-    /* 0x0 */ s32 field_0;
-} AwehElevatorState;
+    s32 travel; // World units slid from the shut position, 0 to `ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_TRAVEL_MAX`
+} _AcropolisWestElevatorHallDoorLeafWork;
+STATIC_ASSERT_SIZEOF(_AcropolisWestElevatorHallDoorLeafWork, 4);
 
 extern TaskDesc         D_acropolis_west_elevator_hall_80184568[];
 extern EvsCommand       D_acropolis_west_elevator_hall_80184620[];
@@ -1292,22 +1306,22 @@ void func_acropolis_west_elevator_hall_8017F5F4(Task* task)
 /// coordinate system.
 static void func_acropolis_west_elevator_hall_8017F64C(Task* task)
 {
-    TmdObject*         extra;
-    GfxCoord*          coord;
-    AwehElevatorState* work;
+    TmdObject*                              extra;
+    GfxCoord*                               coord;
+    _AcropolisWestElevatorHallDoorLeafWork* work;
 
     extra = task->extra.tmd;
     coord = extra->coords;
-    work  = memCalloc(sizeof(AwehElevatorState), 0);
+    work  = memCalloc(sizeof(_AcropolisWestElevatorHallDoorLeafWork), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
     task->work          = work;
-    work->field_0       = 0;
+    work->travel        = 0;
     extra->flags        = 0;
     coord->parent       = &gGfxViewCoord;
-    coord->coord.t[0]   = -1000;
+    coord->coord.t[0]   = ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_CLOSED_X;
     coord->coord.t[1]   = -20;
     coord->coord.t[2]   = 0x974;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1319,23 +1333,23 @@ static void func_acropolis_west_elevator_hall_8017F64C(Task* task)
 /// model's world matrix and lighting from the resulting position.
 static void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
 {
-    VECTOR             pos;
-    TmdObject*         extra;
-    GfxCoord*          coord;
-    AwehElevatorState* work;
+    VECTOR                                  pos;
+    TmdObject*                              extra;
+    GfxCoord*                               coord;
+    _AcropolisWestElevatorHallDoorLeafWork* work;
 
-    work  = (AwehElevatorState*)task->work;
+    work  = task->work;
     extra = task->extra.tmd;
     coord = extra->coords;
 
-    work->field_0 += task->spawnArg1.value * 0x14;
-    if (work->field_0 < 0) {
-        work->field_0 = 0;
+    work->travel += task->spawnArg1.value * ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_SPEED;
+    if (work->travel < 0) {
+        work->travel = 0;
     }
-    if (work->field_0 >= 0x2D1) {
-        work->field_0 = 0x2D0;
+    if (work->travel > ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_TRAVEL_MAX) {
+        work->travel = ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_TRAVEL_MAX;
     }
-    coord->coord.t[0] = (work->field_0 * task->spawnArg2.value) - 1000;
+    coord->coord.t[0] = (work->travel * task->spawnArg2.value) + ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_CLOSED_X;
     if (gGameSession->location.loc.view == 5) {
         extra->flags = 0;
     } else {

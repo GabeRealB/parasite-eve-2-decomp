@@ -48131,7 +48131,7 @@ shared span's end.
 splat writes an `INCLUDE_ASM` for each one and the matched bodies get pasted
 back over them. Nothing else survives: a `static __inline__` helper
 (`Asr_LocalToWorld` in `acropolis_security_room_3`), a file-local `#define`
-or `#include` (such as `gte.h`), a `typedef` used only by that unit (`AwehElevatorState`) have no
+or `#include` (such as `gte.h`), a `typedef` used only by that unit (`_AcropolisWestElevatorHallDoorLeafWork`) have no
 symbol for splat to emit, so they simply vanish and the next build fails on an
 undefined reference or an unknown type. Carry them back with the functions, and
 take each declaration from *its own* unit: `D_acropolis_helicopter_landing_pad_80184DA0`
