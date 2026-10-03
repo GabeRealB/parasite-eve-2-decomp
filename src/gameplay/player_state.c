@@ -72,12 +72,16 @@ typedef struct _GpPushBackScratch {
 } GpPushBackScratch;
 STATIC_ASSERT_SIZEOF(GpPushBackScratch, 0x40);
 
-/// Temporary origin and target delta for adjusting an actor's aim yaw.
+/// Scratch-stack block for turning a player actor's aim yaw toward a point.
+///
+/// Holds a temporary coordinate node standing at model part 4, the part the
+/// aim yaw rotates, and the target's displacement from it, whose X and Z give
+/// the heading to turn toward. The block lives only for the one call.
 typedef struct {
-    VECTOR3  vec;        // Target minus the aim origin, in game coordinates
-    byte     field_C[4]; // Unused by this helper; purpose unproven
-    SVECTOR  offset;     // Local position offset from model part 4; zero for this helper
-    GfxCoord coord;      // Aim origin, parented to the view node
+    VECTOR3  targetDelta;  // Target point minus the origin node's translation, in the view node's space
+    byte     field_C[4];   // Never accessed; role unproven
+    SVECTOR  originOffset; // Displacement of the origin node in model part 4's frame; always zero
+    GfxCoord originCoord;  // Aim origin: model part 4's world transform re-expressed beneath the view node
 } _PlayerActorAimScratch;
 STATIC_ASSERT_SIZEOF(_PlayerActorAimScratch, 0x68);
 
@@ -1485,18 +1489,18 @@ void func_8010BE5C(Task* task, VECTOR3* targetPoint)
     head   = SCRATCH_STACK_CURSOR(_PlayerActorAimScratch);
     extra  = task->extra.tmd;
     actor  = task->work;
-    coord  = &head[-1].coord;
-    offset = &head[-1].offset;
+    coord  = &head[-1].originCoord;
+    offset = &head[-1].originOffset;
     // Retain the array pointer's register without treating it as a model object.
     parts = extra->coords;
     block = SCRATCH_STACK_CURSOR(_PlayerActorAimScratch) = head - 1;
-    block->offset.vx                                     = 0;
-    block->offset.vy                                     = 0;
-    block->offset.vz                                     = 0;
+    block->originOffset.vx                               = 0;
+    block->originOffset.vy                               = 0;
+    block->originOffset.vz                               = 0;
     Gp_PlaceCoordOffset(parts + 4, coord, offset);
-    func_80103C74(coord, targetPoint, &block->vec);
+    func_80103C74(coord, targetPoint, &block->targetDelta);
     // Turn toward the target relative to body facing, preserving the strict aim limit.
-    yawStep = ratan2(head[-1].vec.vx, block->vec.vz) - actor->rotation.vy;
+    yawStep = ratan2(head[-1].targetDelta.vx, block->targetDelta.vz) - actor->rotation.vy;
     yawStep = func_80103E7C(actor->aimYaw, yawStep);
     if (yawStep > PLAYER_ACTOR_AIM_YAW_STEP) {
         yawStep = PLAYER_ACTOR_AIM_YAW_STEP;
