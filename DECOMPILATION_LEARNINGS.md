@@ -58349,23 +58349,24 @@ extra assignment with no later use is coalesced away as usual.
 
 ## `addiu $a0, $giv, 0xC` vs `addu $v0, $base, $offgiv`: the address expression's association
 
-When a loop touches `block->vec[i]` both through memory *and* through an
+When a loop touches `block->vertices[i]` both through memory *and* through an
 inline-asm `"r"` operand, GCC 2.8.1 can reduce the same address two different
 ways in the same loop, and which one you get is decided by how the C
 expression associates the constant field offset — not by register pressure.
 
-`&block->vec[i]` (with `vec` at 0x0C) is `block + (8*i + 12)`: loop.c strength
-reduces the *inner* `8*i + 12`, so the giv is a bare byte offset initialised
-with `li $a3, 0xC` and every use pays an `addu` against the block pointer:
+`&block->vertices[i]` (with `vertices` at 0x0C) is `block + (8*i + 12)`: loop.c
+strength reduces the *inner* `8*i + 12`, so the giv is a bare byte offset
+initialised with `li $a3, 0xC` and every use pays an `addu` against the block
+pointer:
 
 ```
-addu   $v0, $t1, $a3        # &block->vec[i] for gte_ldv0 / gte_stsv
+addu   $v0, $t1, $a3        # &block->vertices[i] for gte_ldv0 / gte_stsv
 ```
 
 Spelling the same address so the field offset is added *last* —
 `(block + 8*i) + 12` — makes the giv's `add_val` a `plus(block, 12)`, which
-`combine_givs` can express from the giv the `block->vec[i].vx` stores already
-use, so it becomes a one-instruction derivation inside the loop:
+`combine_givs` can express from the `block + 8*i` giv the `vx` stores are
+addressed from, so it becomes a one-instruction derivation inside the loop:
 
 ```
 addiu  $a0, $a1, 0xC        # $a1 is the `block + 8*i` giv, disp 0xC
@@ -58374,18 +58375,31 @@ addiu  $a0, $a1, 0xC        # $a1 is the `block + 8*i` giv, disp 0xC
 `func_acropolis_bridge_801819C8` needs *both* in one loop — `2($a0)`/`4($a0)`
 for the `vy`/`vz` stores and `addu $v0, $t1, $a3` for the GTE operands — which
 only happens if the two occurrences are separate expressions that CSE cannot
-merge. The associated form gives the first, plain `&block->vec[i]` the second:
+merge. The associated form gives the first, plain `&block->vertices[i]` the
+second:
 
 ```c
-v                = ((AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vec;
-block->vec[i].vx = corners[i].axis0Sign * 0x300;
-v->vy            = 0;
-v->vz            = corners[i].axis1Sign * 0x300;
+v     = ((_AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vertices;
+v->vx = corners[i].axis0Sign * 0x300;
+v->vy = 0;
+v->vz = corners[i].axis1Sign * 0x300;
 gte_SetRotMatrix(m);
-gte_ldv0(&block->vec[i]);      /* separate giv: addu $v0, $t1, $a3 */
+gte_ldv0(&block->vertices[i]);  /* separate giv: addu $v0, $t1, $a3 */
 gte_rtv0();
-gte_stsv(&block->vec[i]);
+gte_stsv(&block->vertices[i]);
 ```
+
+The `vx` store does not need the member spelling to stay on that base giv:
+`v->vx` still comes out `sh $v0, 0xC($a1)`, while `v->vy` / `v->vz` go
+through the derived register. So all three stores can be written through `v`,
+and the loop's increment can then sit at its end.
+
+No typed spelling of the element address was found for `v`. `block->vertices +
+i`, `&block->vertices[0] + i` and `&*(block->vertices + i)` all compile as
+`&block->vertices[i]` does and share the GTE operands' register; a local alias
+`vecs = block->vertices; v = &vecs[i]` becomes a pointer giv initialised in the
+preheader (`addiu $a1, $v1, -0x20`). The constant ends up last only when it is
+the offset of a member of an object the index has already located.
 
 A walking `v++` is a third, distinct shape: GCC rebases the biv onto the last
 field it stores (`-0x2($a0)` / `0($a0)`) and gives it its own increment, so it

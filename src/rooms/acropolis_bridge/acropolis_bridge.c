@@ -148,19 +148,30 @@ typedef struct {
 } _AcropolisBridgeKeypadWork;
 STATIC_ASSERT_SIZEOF(_AcropolisBridgeKeypadWork, 0x10);
 
-/// 0x2C-byte scratch block the bridge's dust-cloud task takes from
-/// the scratch stack. `vec` holds the four billboard corners, projected with
-/// one `RTPS` plus one `RTPT` straight into the `POLY_FT4`; `otz` is the
-/// `gte_stszotz` depth the primitive is linked into the OT at. `flag` and
-/// `sxy` are projection outputs that `EffectQuadScratch` retains; this task
-/// leaves its slots for those outputs unused.
-typedef struct AcropolisBridgeQuadScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ s32     flag;
-    /* 0x08 */ DVECTOR sxy;
-    /* 0x0C */ SVECTOR vec[4];
-} AcropolisBridgeQuadScratch;
-STATIC_ASSERT_SIZEOF(AcropolisBridgeQuadScratch, 0x2C);
+/// Scratch-stack workspace for the four-corner quad one of the bridge's effect
+/// tasks projects straight into its packet.
+///
+/// `vertices` stages each corner in the effect's own frame and then holds the
+/// world position that corner is projected from. One perspective transform
+/// projects corner 0 and a triple transform projects corners 1..3; the screen
+/// positions are stored directly in the primitive, so the block keeps none of
+/// them. `otz` receives the depth after the triple transform; with the
+/// drawer's bias added it decides whether the quad is drawn and selects its
+/// ordering-table entry.
+///
+/// The block is one word longer than `OverlayFlaggedQuadScratch`, which the
+/// room's other packet-projected quad uses and whose word after the depth is
+/// the GTE flag word. This drawer stores no flag word and touches nothing
+/// between `otz` and `vertices`, so what those eight bytes are for is unproven.
+///
+/// Reserve the complete block and release it in scratch-stack order after
+/// drawing; no pointer into it survives release.
+typedef struct {
+    s32     otz;         // Last projected corner's SZ3 / 4, then with the drawer's ordering bias added
+    u8      field_4[8];  // Reserved with the block but never read or written; role unproven
+    SVECTOR vertices[4]; // Local corner workspace, then the world positions supplied to the projection
+} _AcropolisBridgeQuadScratch;
+STATIC_ASSERT_SIZEOF(_AcropolisBridgeQuadScratch, 0x2C);
 
 /// Scratch-stack workspace for one upright debris billboard.
 ///
@@ -4213,17 +4224,17 @@ void func_acropolis_bridge_80180FF0(Task* task)
 /// releases its work block on every tick, so the puff lasts one frame.
 void func_acropolis_bridge_801819C8(Task* task)
 {
-    void**                      scratch;
-    u8*                         head;
-    AcropolisBridgeQuadScratch* block;
-    EffectUnitQuadCorner*       corners;
-    POLY_FT4*                   prim;
-    GfxCoord*                   coord;
-    EffectWork*                 work;
-    MATRIX*                     m;
-    SVECTOR*                    v;
-    s32                         i;
-    u8                          col;
+    void**                       scratch;
+    _AcropolisBridgeQuadScratch* head;
+    _AcropolisBridgeQuadScratch* block;
+    EffectUnitQuadCorner*        corners;
+    POLY_FT4*                    prim;
+    GfxCoord*                    coord;
+    EffectWork*                  work;
+    MATRIX*                      m;
+    SVECTOR*                     v;
+    s32                          i;
+    u8                           col;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
@@ -4233,23 +4244,24 @@ void func_acropolis_bridge_801819C8(Task* task)
     i         = 0;
     m         = &coord->workm;
     corners   = D_acropolis_bridge_8018990C;
-    head      = SCRATCH_HEAD_AT(scratch, u8) - sizeof(AcropolisBridgeQuadScratch);
+    head      = SCRATCH_HEAD_AT(scratch, _AcropolisBridgeQuadScratch) - 1;
     work->age = task->spawnArg1.halves.low;
     *scratch  = head;
-    block     = (AcropolisBridgeQuadScratch*)*scratch;
+    block     = *scratch;
     do {
-        /* Spelled as a shifted block rather than `&block->vec[i]`, which is the same
-           address: the member form lets CSE share one register with the GTE
-           macros' `&block->vec[i]`, and the original keeps two. */
-        v                = ((AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vec;
-        block->vec[i].vx = corners[i].axis0Sign * 0x300;
-        v->vy            = 0;
-        v->vz            = corners[i].axis1Sign * 0x300;
+        // `v` is `&block->vertices[i]`, reached as the member of a block shifted
+        // by `i` vectors. Every typed spelling adds the member offset before the
+        // index, which is the GTE operands' address, and the two then share one
+        // register; the original keeps a second one for the stores through `v`.
+        v     = ((_AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vertices;
+        v->vx = corners[i].axis0Sign * 0x300;
+        v->vy = 0;
+        v->vz = corners[i].axis1Sign * 0x300;
         gte_SetRotMatrix(m);
-        gte_ldv0(&block->vec[i]);
+        gte_ldv0(&block->vertices[i]);
         gte_rtv0();
-        gte_stsv(&block->vec[i]);
-        (u16) block->vec[i].vx = (u16)coord->workm.t[0];
+        gte_stsv(&block->vertices[i]);
+        (u16) v->vx = (u16)coord->workm.t[0];
         i++;
         (u16) v->vy = (u16)coord->workm.t[1];
         (u16) v->vz = (u16)coord->workm.t[2];
@@ -4257,14 +4269,14 @@ void func_acropolis_bridge_801819C8(Task* task)
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec[0]);
+    gte_ldv0(&block->vertices[0]);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);
-    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+    gte_ldv3(&block->vertices[1], &block->vertices[2], &block->vertices[3]);
     gte_rtpt();
     setUV4(prim, 0, 0x10, 0x27, 0x10, 0, 0x37, 0x27, 0x37);
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
@@ -4280,7 +4292,7 @@ void func_acropolis_bridge_801819C8(Task* task)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(AcropolisBridgeQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_AcropolisBridgeQuadScratch);
     effectKillTask(work, task);
 }
 
