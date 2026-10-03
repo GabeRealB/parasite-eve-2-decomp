@@ -32,28 +32,29 @@
 #include "main/tmd_types.h"
 #include "../../shared/glow_draw.h"
 
-/// One 8-byte row of `D_apobiosis_80130B5C`, indexed by the effect's
-/// `EffectWork.index` / `step` (`Gp_StateC08.attachId % 10 - 1`, so the
-/// burst scales with the combo counter). `field_0` is half the number of ring
-/// points the cast lays out, `field_2` the ring radius it draws them at and
-/// `field_4` the per-frame growth added to the cast's `EffectWork.scale`.
-/// `field_6` is the shard radius `func_apobiosis_8012FE10` hands to
-/// `func_apobiosis_8013017C` / `func_apobiosis_80130630` - doubled while the
-/// shard is still parented to the cast (state 1), plain once it flies free
-/// (state 2).
-typedef struct ApobiosisStep {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ u16 field_6;
-} ApobiosisStep;
-STATIC_ASSERT_SIZEOF(ApobiosisStep, 0x8);
+/// Size and pace of the apobiosis effect at one Parasite Energy level.
+///
+/// The cast and every shard it spawns select a row by the level digit of the
+/// spell being cast (`AttachmentState::attachId % 10 - 1`), so a higher level
+/// radiates more strips, faster and larger. A strip is a textured quad laid
+/// between two projected points; a sprite is a camera-facing animated quad.
+///
+/// A scale sizes its primitive before the perspective divide: the on-screen
+/// half-extent in pixels is the scale times the texture's extent in texels,
+/// over the view depth.
+typedef struct {
+    s16 stripCount;        // Strips the cast radiates each frame; it seeds two angles for each
+    s16 playerSpriteScale; // Scale of the sprite the cast draws on the player
+    s16 radiusStep;        // Added each frame to the cast's radius, which is its halo's size and its strips' length. Also the distance from a strip's first angle to its second in the angle table
+    u16 stripScale;        // Scale of every strip, and of a shard's own sprite; a shard pinned to its coordinate doubles it
+} _ApobiosisLevelParams;
+STATIC_ASSERT_SIZEOF(_ApobiosisLevelParams, 0x8);
 
 static void func_apobiosis_8012F808(s16 bright);
 
 /// Per-level tuning for the apobiosis pulse, one row per PE level 1-3,
 /// weakest first.
-static ApobiosisStep D_apobiosis_80130B5C[] = {
+static _ApobiosisLevelParams D_apobiosis_80130B5C[] = {
     { 0x0004, 0x0400, 0x00C0, 0x0280 },
     { 0x0006, 0x0500, 0x0100, 0x0300 },
     { 0x0008, 0x0600, 0x0140, 0x0400 },
@@ -67,9 +68,9 @@ static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3
 static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16 arg3);
 
 /// Ring azimuths, two rows of up to eight. `func_apobiosis_8012EF4C` lays out
-/// `ApobiosisStep::field_0 * 2` of them at `(i << 10) + rand()` in state 0 and
+/// `_ApobiosisLevelParams::stripCount * 2` of them at `(i << 10) + rand()` in state 0 and
 /// then jitters each by +-0x80 a frame; the first row is the shard's own angle
-/// and the row `ApobiosisStep::field_4` entries later is its elevation.
+/// and the row `_ApobiosisLevelParams::radiusStep` entries later is its elevation.
 static s16 D_apobiosis_80130B80[16];
 
 /// The running cast task, cached by `func_apobiosis_8012EF4C` so each shard
@@ -82,9 +83,9 @@ static Task* D_apobiosis_80130BA0;
 /// coordinate on `EffectWork.parent` at the origin, publishes the task in
 /// `D_apobiosis_80130BA0` so every shard can reparent onto it, plays the row's
 /// `SndEvt_EnqueueType6` id panned at the coordinate, and seeds
-/// `D_apobiosis_80130B80` with `field_0 * 2` angles - the ring's two rows of
+/// `D_apobiosis_80130B80` with `stripCount * 2` angles - the ring's two rows of
 /// azimuths. State 1 flashes at `step`, drags the coordinate down 0x400,
-/// grows `scale` by the row's `field_4` each frame and redraws both the
+/// grows `scale` by the row's `radiusStep` each frame and redraws both the
 /// player's ring and the shard ring, jittering every angle by +-0x80 per frame.
 /// States 2..4 fade the flash out at 0x10 / 0xC / 8 a frame while spawning
 /// 0x600F7 sparks on random polar offsets - one in four frames in state 2, one
@@ -128,7 +129,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 mem->scale  = 0x200;
                 mem->period = 0x80;
                 mem->step   = 0xF0;
-                for (i = 0; i < D_apobiosis_80130B5C[mem->index].field_0 * 2; i++) {
+                for (i = 0; i < D_apobiosis_80130B5C[mem->index].stripCount * 2; i++) {
                     gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     D_apobiosis_80130B80[i] = (i << 10) + ((gRandomLcgState >> 16) & 0x3FF);
                 }
@@ -143,18 +144,18 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 rgb[0] = rgb[1]    = mem->step >> 2;
                 rgb[2]             = mem->step >> 1;
                 coord->workm.t[1] -= 0x400;
-                mem->scale         = mem->scale + D_apobiosis_80130B5C[mem->index].field_4;
+                mem->scale         = mem->scale + D_apobiosis_80130B5C[mem->index].radiusStep;
                 func_apobiosis_8013017C(
                     &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1], mem->age,
-                    D_apobiosis_80130B5C[mem->index].field_2, 0);
+                    D_apobiosis_80130B5C[mem->index].playerSpriteScale, 0);
                 glowDrawHalo(coord, mem->scale, 0x80, rgb);
                 if (mem->age & 1) {
                     glowDrawHalo(coord, 0x80, mem->scale, rgb);
                 }
-                for (i = 0; i < D_apobiosis_80130B5C[mem->index].field_0; i++) {
+                for (i = 0; i < D_apobiosis_80130B5C[mem->index].stripCount; i++) {
                     gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     D_apobiosis_80130B80[i] -= ((gRandomLcgState >> 16) & 0xFF) - 0x80;
-                    n                        = i + D_apobiosis_80130B5C[mem->index].field_4;
+                    n                        = i + D_apobiosis_80130B5C[mem->index].radiusStep;
                     gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     D_apobiosis_80130B80[n] -= ((gRandomLcgState >> 16) & 0xFF) - 0x80;
                     mem->pos.vx              = mem->scale * rsin(D_apobiosis_80130B80[i]) >> 12;
@@ -162,10 +163,10 @@ void func_apobiosis_8012EF4C(Task* arg0)
                     mem->pos.vz =
                         mem->pos.vx *
                             rcos(D_apobiosis_80130B80
-                                     [i + D_apobiosis_80130B5C[mem->index].field_4]) >>
+                                     [i + D_apobiosis_80130B5C[mem->index].radiusStep]) >>
                         12;
                     func_apobiosis_80130630(coord, &mem->pos, mem->age,
-                                            D_apobiosis_80130B5C[mem->index].field_6);
+                                            D_apobiosis_80130B5C[mem->index].stripScale);
                 }
                 coord->workm.t[1] += 0x400;
                 if (mem->step >= 0x19) {
@@ -337,10 +338,10 @@ void func_apobiosis_8012FE10(Task* arg0)
                 if (mem->age & 1) {
                     mem->index = mem->index + 1;
                     func_apobiosis_8013017C(coord, mem->index,
-                                            D_apobiosis_80130B5C[mem->step].field_6 * 2,
+                                            D_apobiosis_80130B5C[mem->step].stripScale * 2,
                                             mem->angle);
                     func_apobiosis_80130630(coord, &mem->pos, mem->index,
-                                            D_apobiosis_80130B5C[mem->step].field_6 * 2);
+                                            D_apobiosis_80130B5C[mem->step].stripScale * 2);
                 }
                 if (mem->age < 0x19) {
                     return;
@@ -355,10 +356,10 @@ void func_apobiosis_8012FE10(Task* arg0)
                 if (mem->age & 1) {
                     mem->index = mem->index + 1;
                     func_apobiosis_8013017C(coord, mem->index,
-                                            D_apobiosis_80130B5C[mem->step].field_6,
+                                            D_apobiosis_80130B5C[mem->step].stripScale,
                                             mem->angle);
                     func_apobiosis_80130630(coord, &mem->pos, mem->index,
-                                            D_apobiosis_80130B5C[mem->step].field_6);
+                                            D_apobiosis_80130B5C[mem->step].stripScale);
                 }
                 if (mem->age < 0x11) {
                     return;

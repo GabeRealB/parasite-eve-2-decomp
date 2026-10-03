@@ -62301,7 +62301,7 @@ twice), so the only lever is the span. Hoisting the *second* element's index out
 of its subscript, into a plain local computed before the second LCG step,
 
 ```c
-n           = i + D_apobiosis_80130B5C[mem->field_20].field_4;
+n           = i + D_apobiosis_80130B5C[mem->field_20].radiusStep;
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
 D_apobiosis_80130B80[n] -= (((u32)gRandomLcgState >> 16) & 0xFF) - 0x80;
 ```
