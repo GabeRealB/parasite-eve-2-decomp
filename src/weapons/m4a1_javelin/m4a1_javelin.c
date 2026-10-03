@@ -50,15 +50,6 @@
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 
-/// Low halves of a `VECTOR3` (typically `GfxCoord.workm.t`).
-typedef struct M4a1JavelinVecLo {
-    /* 0x0 */ u16  vx;
-    /* 0x2 */ byte pad_2[2];
-    /* 0x4 */ u16  vy;
-    /* 0x6 */ byte pad_6[2];
-    /* 0x8 */ u16  vz;
-} M4a1JavelinVecLo;
-
 /// Scratch-stack block for projecting the two ends of one flare line.
 ///
 /// The ends are world points, transformed one after the other through
@@ -99,7 +90,7 @@ static u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
 /// The four RGB444 beam colours `EffectWork::step` fades through.
 static u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 
-static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0);
+static void func_m4a1_javelin_8011F4A4(const long* arg0);
 static void func_m4a1_javelin_8011F5D4(Task* arg0);
 
 /// Per-frame task for the javelin's guide beam. `Task::spawnArg2` is the
@@ -204,9 +195,9 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 work->angle  = work->angle + 0xC0;
                 work->period = work->period - 0xF0;
             }
-            pa.vx = ((M4a1JavelinVecLo*)coord->workm.t)->vx;
-            pa.vy = ((M4a1JavelinVecLo*)coord->workm.t)->vy;
-            pa.vz = ((M4a1JavelinVecLo*)coord->workm.t)->vz;
+            pa.vx = coord->workm.t[0];
+            pa.vy = coord->workm.t[1];
+            pa.vz = coord->workm.t[2];
             for (i = 0; i < 0x1000; i += 0x200) {
                 pb.vx = (work->period * rsin(i)) >> 12;
                 pb.vy = work->angle;
@@ -236,9 +227,9 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             light->composeStamp     = GRAPHICS_COORD_DIRTY;
             D_m4a1_javelin_8012EB66 = 0;
             if (D_m4a1_javelin_8012EB70 != 0) {
-                pa.vx = ((M4a1JavelinVecLo*)coord->workm.t)->vx;
-                pa.vy = ((M4a1JavelinVecLo*)coord->workm.t)->vy;
-                pa.vz = ((M4a1JavelinVecLo*)coord->workm.t)->vz;
+                pa.vx = coord->workm.t[0];
+                pa.vy = coord->workm.t[1];
+                pa.vz = coord->workm.t[2];
                 pb.vx = D_m4a1_javelin_8012EB68.vx;
                 pb.vy = D_m4a1_javelin_8012EB68.vy;
                 pb.vz = D_m4a1_javelin_8012EB68.vz;
@@ -247,9 +238,9 @@ void func_m4a1_javelin_8011D1E4(Task* task)
                 gte_ldv0(&work->move);
                 gte_rtv0();
                 gte_stsv(&pb);
-                pa.vx = ((M4a1JavelinVecLo*)coord->workm.t)->vx;
-                pa.vy = ((M4a1JavelinVecLo*)coord->workm.t)->vy;
-                pa.vz = ((M4a1JavelinVecLo*)coord->workm.t)->vz;
+                pa.vx = coord->workm.t[0];
+                pa.vy = coord->workm.t[1];
+                pa.vz = coord->workm.t[2];
                 pb.vx = (u16)pb.vx + (u16)pa.vx;
                 pb.vy = (u16)pb.vy + (u16)pa.vy;
                 pb.vz = (u16)pb.vz + (u16)pa.vz;
@@ -695,16 +686,16 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
-static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
+static void func_m4a1_javelin_8011F4A4(const long* arg0)
 {
     if (arg0 == NULL) {
         D_m4a1_javelin_8012EB70 = 0;
         return;
     }
-    D_m4a1_javelin_8012EB68.vx = arg0->vx;
-    D_m4a1_javelin_8012EB68.vy = arg0->vy;
+    D_m4a1_javelin_8012EB68.vx = arg0[0];
+    D_m4a1_javelin_8012EB68.vy = arg0[1];
     D_m4a1_javelin_8012EB70    = 1;
-    D_m4a1_javelin_8012EB68.vz = arg0->vz;
+    D_m4a1_javelin_8012EB68.vz = arg0[2];
 }
 
 void func_m4a1_javelin_8011F4E8(Task* arg0)
@@ -880,7 +871,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
                 }
             }
             if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                func_m4a1_javelin_8011F4A4((M4a1JavelinVecLo*)spot->workm.t);
+                func_m4a1_javelin_8011F4A4(spot->workm.t);
                 eff = Gp_SpawnEff(EFFECT_M4A1_JAVELIN_CONTACT_FLASH, spot, 0, NULL);
                 if (eff != NULL) {
                     taskReparent(actor->equipmentTasks[1], eff->task);
