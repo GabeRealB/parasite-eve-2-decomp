@@ -132,41 +132,30 @@ void func_actor_310100_801632B0(Task* task);
 /// task from `D_actor_310100_801798E4`. The display task is handed `arg2` as its
 /// `spawnArg1` and this task as its parent (`spawnArg2`); it spawns the model
 /// task in turn, handing it `bodyAnimationId` as its `spawnArg1`.
-void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform* placement);
+s32 func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform* placement);
 
 /// Message 0x7D7 handler: parks the display task's work block at state 2 and
 /// returns when handed mode 3, otherwise tears the display task down and spawns
 /// a fresh one from `D_actor_310100_801798F0`.
-void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2);
+s32 func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2, s32 arg3);
 
 /// Message 0x7D4 handler: drops the payload's translation into the display
 /// task's root coordinate frame, yaws that frame to the payload's `rot.vy` and
 /// marks it dirty.
-void func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement);
+s32 func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
 
 /// Teardown handler: kills the display task hanging off the work block and
 /// parks this task in state 3.
-void func_actor_310100_80162F34(Task* task);
+s32 func_actor_310100_80162F34(Task* task, s32 msgId, s32 arg2, s32 arg3);
 
 extern TaskDesc D_actor_310100_801798E4;
 extern TaskDesc D_actor_310100_801798F0;
 
 extern AnimationSet* D_actor_310100_80179754[16];
 extern AnimationSet* D_actor_310100_80179794[26];
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*);
-        void (*call1)(Task*, s32, ActorTransform*);
-        void (*call2)(Task*, s32, s32);
-        void (*call3)(Task*, s32, s32, ActorTransform*);
-    } handler;
-} Actor310100MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor310100MessageEntry, 8);
 
-extern Actor310100MessageEntry D_actor_310100_801798B4[6];
-extern s16*                    D_actor_310100_8017989C[];
+extern TaskMessageEntry D_actor_310100_801798B4[6];
+extern s16*             D_actor_310100_8017989C[];
 
 extern s16 D_actor_310100_80179830[12];
 extern s16 D_actor_310100_80179848[16];
@@ -650,19 +639,17 @@ s32 D_actor_310100_801798A8[3] = {
     0x5105000A,
 };
 
-void func_actor_310100_80162C64(Task*, s32, s32, ActorTransform* placement);
-void func_actor_310100_80162CDC(Task*, s32, s32);
-void func_actor_310100_80162D50(Task*, s32, ActorTransform* placement);
-void func_actor_310100_80162EC8(Task*, s32, ActorTransform* placement);
-void func_actor_310100_80162F34(Task*);
+s32 func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
 
-Actor310100MessageEntry D_actor_310100_801798B4[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .call1 = func_actor_310100_80162D50 } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = func_actor_310100_80162EC8 } },
-    { 2007, { .call2 = func_actor_310100_80162CDC } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call3 = func_actor_310100_80162C64 } },
-    { 2002, { .call0 = func_actor_310100_80162F34 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+// The callbacks installed here take the `TaskMessageHandler` argument positions
+// and leave the result word unset: the event scripts sending these ids discard it.
+TaskMessageEntry D_actor_310100_801798B4[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_310100_80162D50 },
+    { ACTOR_MESSAGE_PLACE, func_actor_310100_80162EC8 },
+    { 2007, func_actor_310100_80162CDC },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_310100_80162C64 },
+    { 2002, func_actor_310100_80162F34 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_310100_801798E4 = { { { TASK_BODY_NONE, 192 } }, func_actor_310100_801620FC, { .value = 0 } };
@@ -1178,7 +1165,7 @@ void func_actor_310100_801629FC(Task* task)
     }
 }
 
-void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform* placement)
+s32 func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform* placement)
 {
     _Actor310100PoliceOfficerWork* work;
 
@@ -1193,7 +1180,7 @@ void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform*
 /// Message 0x7D7 handler: parks the display task's work block at state 2 and
 /// returns when handed mode 3, otherwise tears the display task down and spawns
 /// a fresh one from `D_actor_310100_801798F0`.
-void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
+s32 func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     _Actor310100PoliceOfficerWork* work;
     _Actor310100PoliceOfficerWork* display;
@@ -1217,7 +1204,7 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
 /// animation slots (`pos.vz` zero resets them through `animationResetSlot`,
 /// otherwise `animationSeekSlotWithBlend` blends them) and records the new base in
 /// `followUpTable` / `animationId`.
-void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement)
+s32 func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement, s32 arg3)
 {
     AnimationPlayRequest           request;
     _Actor310100PoliceOfficerWork* work;
@@ -1273,7 +1260,7 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement
 /// Message 0x7D4 handler: drops the payload's translation into the display
 /// task's root coordinate frame, yaws that frame to the payload's `rot.vy` and
 /// marks it dirty.
-void func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement)
+s32 func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement, s32 arg3)
 {
     _Actor310100PoliceOfficerWork* work;
     GfxCoord*                      coord;
@@ -1289,7 +1276,7 @@ void func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement
 
 /// Teardown handler: kills the display task hanging off the work block and
 /// parks this task in state 3.
-void func_actor_310100_80162F34(Task* task)
+s32 func_actor_310100_80162F34(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     _Actor310100PoliceOfficerWork* work;
 
