@@ -33,14 +33,24 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-/// 4-byte volume-fade payload at `Task::spawnArg2` for `Gp_VolFadeTask`.
-/// `field_0` is the target volume passed to `Snd_ApplyVolumeTable`.
-/// `field_2` is the fade duration in frames (`0` applies immediately).
-typedef struct _GpVolFade {
-    /* 0x0 */ u16 field_0; // target volume
-    /* 0x2 */ u16 field_2; // duration
-} GpVolFade;
-STATIC_ASSERT_SIZEOF(GpVolFade, 4);
+/// Request of the event-script fade of the music volume.
+///
+/// `EVENT_SCRIPT_OPCODE_FADE_VOLUME` fills the record and hands it to the fade
+/// task as `Task::spawnArg2`. The task steps the music level linearly from the
+/// level in force when the fade begins to `targetVolume`, re-applying it on
+/// every update; a zero duration applies the target once.
+///
+/// Levels are sequence gains as the music volume command takes them (127 full).
+/// Zero is not silence: applying a level of zero selects the level of the
+/// options menu's music-volume setting instead, so a zero target restores the
+/// player's setting, and a fade towards it jumps there on the first step that
+/// rounds down to zero. The interpreter has a single record, and a new fade
+/// replaces the one still running.
+typedef struct {
+    u16 targetVolume;   // Music level the fade ends on (0 restores the options-menu level)
+    u16 durationFrames; // Task updates the fade lasts (0 applies the target immediately)
+} _EvsMusicVolumeFade;
+STATIC_ASSERT_SIZEOF(_EvsMusicVolumeFade, 4);
 
 /// Request and running level of the event-script fade of one sound's attenuation.
 ///
@@ -119,7 +129,7 @@ ScreenFade D_801156D4;
 
 ScreenFade D_801156D8;
 
-GpVolFade D_801156DC;
+_EvsMusicVolumeFade D_801156DC;
 
 _EvsSoundAttenuationFade D_801156E0;
 
@@ -462,9 +472,9 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (D_8010FBE4 != NULL) {
                     taskKill(D_8010FBE4);
                 }
-                D_801156DC.field_0 = (u16)st->pc->operand0.value;
-                D_801156DC.field_2 = (u16)st->pc->operand1.value;
-                D_8010FBE4         = Task_SpawnPtr(9, 0xD, 0, &D_801156DC);
+                D_801156DC.targetVolume   = st->pc->operand0.value;
+                D_801156DC.durationFrames = st->pc->operand1.value;
+                D_8010FBE4                = Task_SpawnPtr(9, 0xD, 0, &D_801156DC);
                 break;
 
             case EVENT_SCRIPT_OPCODE_FADE_SOUND_ATTENUATION:
@@ -625,14 +635,14 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
 void Gp_VolFadeTask(Task* arg0)
 {
-    GpVolFade* fade;
-    s32        volume;
+    _EvsMusicVolumeFade* fade;
+    s32                  volume;
 
     fade = arg0->spawnArg2.pointer;
     switch (arg0->state) {
         case 0:
-            if (fade->field_2 == 0) {
-                Snd_ApplyVolumeTable(fade->field_0);
+            if (fade->durationFrames == 0) {
+                Snd_ApplyVolumeTable(fade->targetVolume);
                 taskKill(arg0);
                 D_8010FBE4 = 0;
             } else {
@@ -643,9 +653,9 @@ void Gp_VolFadeTask(Task* arg0)
             break;
         case 1:
             D_801156C2++;
-            volume = (D_801156C0 * (fade->field_2 - D_801156C2) + fade->field_0 * D_801156C2) / fade->field_2;
+            volume = (D_801156C0 * (fade->durationFrames - D_801156C2) + fade->targetVolume * D_801156C2) / fade->durationFrames;
             Snd_ApplyVolumeTable(volume & 0xFFFF);
-            if (D_801156C2 == fade->field_2) {
+            if (D_801156C2 == fade->durationFrames) {
                 taskKill(arg0);
                 D_8010FBE4 = 0;
             }
