@@ -209,24 +209,27 @@ typedef struct {
 /// `_ShelterB3DumpingHoleSpriteFrame::vramX` of the entry closing a frame table.
 enum { SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END = 0xFFFF };
 
+/// Work block of a debris-model task: one piece of rubble the debris event
+/// places, which waits there until the event signals the launch and is then
+/// thrown along +X, spreading outwards from the screen centre, while it tumbles
+/// and falls ever faster.
+///
+/// The two matrices are the storage the piece's model borrows for its
+/// lighting. The motion fields are chosen once, at launch, and are zero until
+/// then.
 typedef struct {
-    MATRIX field_0;
-    MATRIX field_20;
-    u16    rotX; // Accumulated rotation about X, advanced by `spinX` each frame
-    u16    rotY; // Accumulated rotation about Y, advanced by `spinY` each frame
-    u16    rotZ; // Accumulated rotation about Z; advanced but never applied
-    u8     pad_46[0x2];
-    s16    velX; // Per-frame translation added to the coordinate
-    s16    velY;
-    s16    velZ;
-    u8     pad_4E[0x2];
-    s16    spinX; // Per-frame rotation step, chosen at random at launch
-    s16    spinY;
-    s16    spinZ;
-    u8     pad_56[0x2];
-    u16    fall; // Downward speed added to `velY`, growing by 5 each frame
-    u8     pad_5A[0x2];
-} DumpingHoleCoordWork;
+    MATRIX  lightMtx; // Storage for the model's light matrix
+    MATRIX  colorMtx; // Storage for the model's colour matrix
+    SVECTOR rot;      // Tumble angles, rebuilt into the piece's rotation each frame as Y then X; `vz` is advanced but never applied
+    SVECTOR vel;      // Per-frame translation in world axes, before `fall` is added to its `vy`
+    SVECTOR spin;     // Per-frame step of `rot`, up to 127 either way per axis
+    u16     fall;     // Extra downward speed, growing by `SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_GRAVITY` each frame
+} _ShelterB3DumpingHoleDebrisModelWork;
+STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHoleDebrisModelWork, 0x5C);
+
+/// Added to `_ShelterB3DumpingHoleDebrisModelWork::fall` every frame a launched
+/// piece is in flight.
+enum { SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_GRAVITY = 5 };
 
 /// Stack block for projecting a point through `GsWSMATRIX`: the point, then
 /// the screen position and depth the projection writes back.
@@ -2427,12 +2430,12 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
 {
-    DumpingHoleCoordWork* work;
-    TmdObject*            extra;
-    GfxCoord*             coord;
-    ActorTransform*       placement;
-    VECTOR                v;
-    TmdObject*            e2;
+    _ShelterB3DumpingHoleDebrisModelWork* work;
+    TmdObject*                            extra;
+    GfxCoord*                             coord;
+    ActorTransform*                       placement;
+    VECTOR                                v;
+    TmdObject*                            e2;
 
     extra      = arg0->extra.tmd;
     placement  = arg0->spawnArg2.pointer;
@@ -2447,8 +2450,8 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     coord->parent          = &gGfxViewCoord;
     arg0->extra.tmd->flags = 0;
     Tmd_AllocBuffers(extra);
-    extra->lightMtx   = &work->field_0;
-    extra->colorMtx   = &work->field_20;
+    extra->lightMtx   = &work->lightMtx;
+    extra->colorMtx   = &work->colorMtx;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
@@ -2471,17 +2474,17 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
 /// then falls under a growing downward speed.
 void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
 {
-    DumpingHoleCoordWork* work   = (DumpingHoleCoordWork*)arg0->work;
-    u16                   signal = ((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->debrisModelSignal;
-    GfxCoord*             coord  = arg0->extra.tmd->coords;
-    GfxCoord*             c2;
-    DumpingHoleProjection p;
-    s32                   sx;
-    s32                   sy;
-    s16                   angle;
-    s32                   x;
-    s32                   y;
-    s32                   z;
+    _ShelterB3DumpingHoleDebrisModelWork* work   = arg0->work;
+    u16                                   signal = ((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->debrisModelSignal;
+    GfxCoord*                             coord  = arg0->extra.tmd->coords;
+    GfxCoord*                             c2;
+    DumpingHoleProjection                 p;
+    s32                                   sx;
+    s32                                   sy;
+    s16                                   angle;
+    s32                                   x;
+    s32                                   y;
+    s32                                   z;
 
     if (signal == SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_REMOVE) {
         taskKill(arg0);
@@ -2529,50 +2532,50 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            angle      = ratan2(sy, sx);
-            work->velZ = rcos(angle) * ((DUMPING_HOLE_RAND() & 7) + 0x11) / 4096;
-            work->velY = rsin(angle) * ((DUMPING_HOLE_RAND() & 7) + 5) / 4096;
+            angle        = ratan2(sy, sx);
+            work->vel.vz = rcos(angle) * ((DUMPING_HOLE_RAND() & 7) + 0x11) / 4096;
+            work->vel.vy = rsin(angle) * ((DUMPING_HOLE_RAND() & 7) + 5) / 4096;
             switch (arg0->spawnArg1.value) {
                 case 0:
-                    work->velX = (DUMPING_HOLE_RAND() & 0x1F) + 0x32;
+                    work->vel.vx = (DUMPING_HOLE_RAND() & 0x1F) + 0x32;
                     break;
                 case 1:
-                    work->velX = (DUMPING_HOLE_RAND() & 0x1F) + 0x28;
+                    work->vel.vx = (DUMPING_HOLE_RAND() & 0x1F) + 0x28;
                     break;
                 case 2:
-                    work->velX = (DUMPING_HOLE_RAND() & 0x1F) + 0x1E;
+                    work->vel.vx = (DUMPING_HOLE_RAND() & 0x1F) + 0x1E;
                     break;
             }
             x = DUMPING_HOLE_RAND() & 0x7F;
             if (DUMPING_HOLE_RAND() & 0x8000) {
                 x = -x;
             }
-            work->spinX = x;
-            y           = DUMPING_HOLE_RAND() & 0x7F;
+            work->spin.vx = x;
+            y             = DUMPING_HOLE_RAND() & 0x7F;
             if (DUMPING_HOLE_RAND() & 0x8000) {
                 y = -y;
             }
-            work->spinY = y;
-            z           = DUMPING_HOLE_RAND() & 0x7F;
+            work->spin.vy = y;
+            z             = DUMPING_HOLE_RAND() & 0x7F;
             if (DUMPING_HOLE_RAND() & 0x8000) {
                 z = -z;
             }
-            work->spinZ = z;
-            work->fall  = 0;
+            work->spin.vz = z;
+            work->fall    = 0;
             arg0->state++;
             return;
         case 3:
-            work->rotX     += work->spinX;
-            work->rotY     += work->spinY;
-            work->rotZ     += work->spinZ;
-            work->fall     += 5;
+            work->rot.vx   += work->spin.vx;
+            work->rot.vy   += work->spin.vy;
+            work->rot.vz   += work->spin.vz;
+            work->fall     += SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_GRAVITY;
             c2              = arg0->extra.tmd->coords;
             c2->parent      = &gGfxViewCoord;
-            c2->coord.t[0] += work->velX;
-            c2->coord.t[1] += work->velY + work->fall;
-            c2->coord.t[2] += work->velZ;
-            gfxRotMatrixY(&c2->coord, (s16)work->rotY, 1);
-            gfxRotMatrixX(&c2->coord, (s16)work->rotX, GRAPHICS_ROTATION_COMPOSE);
+            c2->coord.t[0] += work->vel.vx;
+            c2->coord.t[1] += work->vel.vy + work->fall;
+            c2->coord.t[2] += work->vel.vz;
+            gfxRotMatrixY(&c2->coord, work->rot.vy, 1);
+            gfxRotMatrixX(&c2->coord, work->rot.vx, GRAPHICS_ROTATION_COMPOSE);
             c2->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
     }
