@@ -27,24 +27,26 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-/// 8-byte record in `D_80114198` / `D_801141F0` / `D_80114248`. Indexed by
-/// `GameFlag_GetNibble(0x4B / 0x4C / 0x4D)`. `field_0` is a per-room byte
-/// list, 1-based by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area`; `field_4` is the stage id
-/// (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage`). `Gp_ApplyNpcRoomSnd` tests the room byte (second
-/// table with `& 0xF`) to choose the `Snd_SetModeFlag` argument.
-/// `Gp_PickCompanion` uses the same tables to pick `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`.
-typedef struct _GpNpcRoomRec {
-    /* 0x0 */ u8*  field_0;
-    /* 0x4 */ u8   field_4;
-    /* 0x5 */ byte pad_5[3];
-} GpNpcRoomRec;
-STATIC_ASSERT_SIZEOF(GpNpcRoomRec, 8);
+/// One schedule of a companion: the stage it appears in, and in which of that
+/// stage's areas.
+///
+/// Each companion family has a table of these, and the family's
+/// `GAME_FLAG_COMPANION_1_SCHEDULE` / `_2_` / `_3_` nibble selects the schedule
+/// in force. Schedule 0 places the companion nowhere.
+///
+/// Families 2 and 3 treat a presence byte as a whole. Family 1 keeps presence
+/// in the low nibble and the `companionVariant` that appears in the high one.
+typedef struct {
+    u8* areaPresence; // One byte per area of `stage`, indexed by area ID - 1 (0 absent); `NULL` when the companion appears nowhere
+    u8  stage;        // `GAME_STAGE_*` whose areas `areaPresence` lists
+} _CompanionSchedule;
+STATIC_ASSERT_SIZEOF(_CompanionSchedule, 8);
 
-extern GpNpcRoomRec D_80114198[];
+extern _CompanionSchedule D_80114198[];
 
-extern GpNpcRoomRec D_801141F0[];
+extern _CompanionSchedule D_801141F0[];
 
-extern GpNpcRoomRec D_80114248[];
+extern _CompanionSchedule D_80114248[];
 
 extern u8 D_80114258[38];
 
@@ -90,35 +92,35 @@ static void Gp_ClearFlagBank(s32 arg0);
 
 void func_80724E2C(void);
 
-GpNpcRoomRec D_80114198[11] = {
-    { NULL, 0, { 0, 0, 0 } },
-    { D_80114360, 2, { 0, 0, 0 } },
-    { D_80114388, 2, { 0, 0, 0 } },
-    { D_801143B0, 2, { 0, 0, 0 } },
-    { D_80114388, 2, { 0, 0, 0 } },
-    { D_801143D8, 3, { 0, 0, 0 } },
-    { D_80114388, 3, { 0, 0, 0 } },
-    { D_80114400, 3, { 0, 0, 0 } },
-    { D_80114428, 5, { 0, 0, 0 } },
-    { D_8011444C, 5, { 0, 0, 0 } },
-    { D_80114470, 4, { 0, 0, 0 } },
+_CompanionSchedule D_80114198[11] = {
+    { NULL, GAME_STAGE_NONE },
+    { D_80114360, GAME_STAGE_DRYFIELD },
+    { D_80114388, GAME_STAGE_DRYFIELD },
+    { D_801143B0, GAME_STAGE_DRYFIELD },
+    { D_80114388, GAME_STAGE_DRYFIELD },
+    { D_801143D8, GAME_STAGE_DRYFIELD_NIGHT },
+    { D_80114388, GAME_STAGE_DRYFIELD_NIGHT },
+    { D_80114400, GAME_STAGE_DRYFIELD_NIGHT },
+    { D_80114428, GAME_STAGE_SHELTER_NEO_ARK },
+    { D_8011444C, GAME_STAGE_SHELTER_NEO_ARK },
+    { D_80114470, GAME_STAGE_MINE_SHELTER },
 };
-GpNpcRoomRec D_801141F0[11] = {
-    { NULL, 0, { 0, 0, 0 } },
-    { D_80114258, 3, { 0, 0, 0 } },
-    { D_80114280, 3, { 0, 0, 0 } },
-    { D_801142A8, 3, { 0, 0, 0 } },
-    { D_801142D0, 4, { 0, 0, 0 } },
-    { D_80114304, 4, { 0, 0, 0 } },
-    { D_80114338, 3, { 0, 0, 0 } },
-    { D_801144A4, 4, { 0, 0, 0 } },
-    { D_801144D8, 4, { 0, 0, 0 } },
-    { D_8011450C, 5, { 0, 0, 0 } },
-    { D_80114530, 4, { 0, 0, 0 } },
+_CompanionSchedule D_801141F0[11] = {
+    { NULL, GAME_STAGE_NONE },
+    { D_80114258, GAME_STAGE_DRYFIELD_NIGHT },
+    { D_80114280, GAME_STAGE_DRYFIELD_NIGHT },
+    { D_801142A8, GAME_STAGE_DRYFIELD_NIGHT },
+    { D_801142D0, GAME_STAGE_MINE_SHELTER },
+    { D_80114304, GAME_STAGE_MINE_SHELTER },
+    { D_80114338, GAME_STAGE_DRYFIELD_NIGHT },
+    { D_801144A4, GAME_STAGE_MINE_SHELTER },
+    { D_801144D8, GAME_STAGE_MINE_SHELTER },
+    { D_8011450C, GAME_STAGE_SHELTER_NEO_ARK },
+    { D_80114530, GAME_STAGE_MINE_SHELTER },
 };
-GpNpcRoomRec D_80114248[2] = {
-    { NULL, 0, { 0, 0, 0 } },
-    { D_80114564, 5, { 0, 0, 0 } },
+_CompanionSchedule D_80114248[2] = {
+    { NULL, GAME_STAGE_NONE },
+    { D_80114564, GAME_STAGE_SHELTER_NEO_ARK },
 };
 u8 D_80114258[38] = { 17, 0, 17, 0, 17, 17, 17, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 u8 D_80114280[38] = { 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -145,14 +147,14 @@ u8 D_80114564[36] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 s32 Gp_PickCompanion(void)
 {
     McSaveData* save;
-    u8*         bytes;
+    u8*         areaPresence;
     s32         stage;
     u8          variant;
 
-    save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    stage = save->state.location.loc.stage;
-    bytes = D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].field_0;
-    if (bytes != NULL && D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].field_4 == stage && bytes[save->state.location.loc.area - 1] != 0) {
+    save         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    stage        = save->state.location.loc.stage;
+    areaPresence = D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].areaPresence;
+    if (areaPresence != NULL && D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].stage == stage && areaPresence[save->state.location.loc.area - 1] != 0) {
         GameSession* sess = gGameSession;
 
         save->state.companionType    = 2;
@@ -160,25 +162,25 @@ s32 Gp_PickCompanion(void)
         return (sess->companionType != 2) * 2;
     }
 
-    bytes = D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].field_0;
-    if (bytes != NULL && D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].field_4 == stage && (bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF)) {
+    areaPresence = D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].areaPresence;
+    if (areaPresence != NULL && D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].stage == stage && (areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF)) {
         GameSession* sess = gGameSession;
 
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 1;
         if (sess->companionType == 1) {
-            variant = bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
+            variant = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
             if (sess->companionVariant == variant) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = variant;
                 return 0;
             }
         }
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
-        gGameSession->companionVariant                            = bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
+        gGameSession->companionVariant                            = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
         return 1;
     }
 
-    bytes = D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].field_0;
-    if (bytes != NULL && D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].field_4 == stage && bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
+    areaPresence = D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].areaPresence;
+    if (areaPresence != NULL && D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].stage == stage && areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
         GameSession* sess = gGameSession;
 
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = 3;
@@ -199,35 +201,35 @@ s32 Gp_PickCompanion(void)
 void Gp_ApplyNpcRoomSnd(void)
 {
     McSaveData* save;
-    u8*         bytes;
+    u8*         areaPresence;
     s32         stage;
     s32         flag;
 
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     stage = save->state.location.loc.stage;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(3, 32, 0, 0)) {
-        bytes = D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].field_0;
-        if (bytes != NULL) {
-            if (D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].field_4 == stage) {
-                if (bytes[save->state.location.loc.area - 1] != 0) {
+        areaPresence = D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].areaPresence;
+        if (areaPresence != NULL) {
+            if (D_80114198[GameFlag_GetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].stage == stage) {
+                if (areaPresence[save->state.location.loc.area - 1] != 0) {
                     flag = 1;
                     goto done;
                 }
             }
         }
-        bytes = D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].field_0;
-        if (bytes != NULL) {
-            if (D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].field_4 == stage) {
-                if (bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF) {
+        areaPresence = D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].areaPresence;
+        if (areaPresence != NULL) {
+            if (D_801141F0[GameFlag_GetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].stage == stage) {
+                if (areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF) {
                     flag = 1;
                     goto done;
                 }
             }
         }
-        bytes = D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].field_0;
-        if (bytes != NULL) {
-            if (D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].field_4 == stage) {
-                if (bytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
+        areaPresence = D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].areaPresence;
+        if (areaPresence != NULL) {
+            if (D_80114248[GameFlag_GetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].stage == stage) {
+                if (areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
                     flag = 1;
                     goto done;
                 }
