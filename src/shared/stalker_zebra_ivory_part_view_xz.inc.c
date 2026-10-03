@@ -1,9 +1,9 @@
 /* Part of the Zebra and Ivory Stalker library; see stalker_zebra_ivory.h. */
 
 /// Refreshes the view coordinate and coordinate `index` of the actor's model,
-/// then stores that coordinate's view-space X and Z translation to `out`; `y`
+/// then stores that coordinate's view-space X and Z translation to `out`; `vy`
 /// is left untouched. Every caller passes the work block's `field_88`.
-void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, ActorPartViewPos* out)
+void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, SVECTOR3* out)
 {
     MATRIX    local;
     GfxCoord* coord;
@@ -16,7 +16,7 @@ void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, ActorPartViewPos* ou
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
-    out->x              = local.t[0];
-    out->z              = local.t[2];
+    out->vx             = local.t[0];
+    out->vz             = local.t[2];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

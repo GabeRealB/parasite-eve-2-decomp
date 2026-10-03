@@ -114,7 +114,7 @@ typedef struct Actor400500Work {
     /* 0x95C */ MATRIX                colorMtx;  // TmdObject::colorMtx
     /* 0x97C */ MATRIX                lightMtx;  // TmdObject::lightMtx
     /* 0x99C */ byte                  pad_99C[4];
-    /* 0x9A0 */ ActorPartViewPos      field_9A0;
+    /* 0x9A0 */ SVECTOR3              field_9A0;
     /* 0x9A6 */ byte                  pad_9A6[0x16];
     /* 0x9BC */ s16                   field_9BC;
     /* 0x9BE */ byte                  pad_9BE[2];
@@ -320,7 +320,7 @@ static void func_actor_400500_8013DA68(Task* arg0);
 static void func_actor_400500_8013DACC(Task* arg0);
 static void func_actor_400500_8013DB64(Task* arg0, s16 arg1);
 static s32  func_actor_400500_8013DB78(Task* arg0);
-static void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, ActorPartViewPos* arg2);
+static void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, SVECTOR3* arg2);
 static void func_actor_400500_8013DC4C(Task* arg0);
 static void func_actor_400500_8013DCBC(Task* arg0, s16 arg1, s16 arg2);
 static void func_actor_400500_8013DCD4(Task* arg0);
@@ -1508,8 +1508,8 @@ static inline void        _actor400500SetAnim(Task* task, s16 id, s16 rate);
 static inline void        _actor400500SetState(Task* task, s32 state, s32 subState);
 static inline void        _actor400500TickAnim(Task* task);
 static inline s32         _actor400500HitFlagged(Task* task);
-static inline void        _actor400500SampleView(Task* task, s16 part, ActorPartViewPos* pos);
-static inline void        _actor400500AnchorPart(Task* task, s16 part, ActorPartViewPos* pos);
+static inline void        _actor400500SampleView(Task* task, s16 part, SVECTOR3* pos);
+static inline void        _actor400500AnchorPart(Task* task, s16 part, SVECTOR3* pos);
 static inline void        _actor400500EnqueueSound(Task* task, s32 sound);
 static inline void        _actor400500PlaySound(Task* task, s32 id);
 static void               func_actor_400500_801348D8(Task* arg0, s32 arg1);
@@ -2286,7 +2286,7 @@ static inline s32 _actor400500HitFlagged(Task* task)
 }
 
 /// Records in `pos` the view-space X and Z of the actor's node `part`.
-static inline void _actor400500SampleView(Task* task, s16 part, ActorPartViewPos* pos)
+static inline void _actor400500SampleView(Task* task, s16 part, SVECTOR3* pos)
 {
     MATRIX    local;
     GfxCoord* coord;
@@ -2294,14 +2294,14 @@ static inline void _actor400500SampleView(Task* task, s16 part, ActorPartViewPos
     coord = &task->extra.tmd->coords[part];
     Gp_UpdateCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
-    pos->x              = local.t[0];
-    pos->z              = local.t[2];
+    pos->vx             = local.t[0];
+    pos->vz             = local.t[2];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Moves the root node in X and Z so that node `part` stays at the view-space
 /// position `pos` recorded by `_actor400500SampleView`.
-static inline void _actor400500AnchorPart(Task* task, s16 part, ActorPartViewPos* pos)
+static inline void _actor400500AnchorPart(Task* task, s16 part, SVECTOR3* pos)
 {
     MATRIX    root;
     MATRIX    local;
@@ -2313,8 +2313,8 @@ static inline void _actor400500AnchorPart(Task* task, s16 part, ActorPartViewPos
     Gp_UpdateCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
-    coords[0].coord.t[0]   = pos->x - (local.t[0] - root.t[0]);
-    coords[0].coord.t[2]   = pos->z - (local.t[2] - root.t[2]);
+    coords[0].coord.t[0]   = pos->vx - (local.t[0] - root.t[0]);
+    coords[0].coord.t[2]   = pos->vz - (local.t[2] - root.t[2]);
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     coord->composeStamp    = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
@@ -3265,28 +3265,28 @@ static void func_actor_400500_80135EBC(Task* arg0)
 
 static void func_actor_400500_801361EC(Task* arg0)
 {
-    GfxMatrix         rot;
-    MATRIX            local;
-    GfxMatrix*        src;
-    MATRIX*           dst;
-    Actor400500Work*  work;
-    Actor400500Work*  workA;
-    Actor400500Work*  work2;
-    Actor400500Work*  work3;
-    Actor400500Work*  work4;
-    GfxCoord*         coord;
-    GfxCoord*         coords;
-    GfxCoord*         coords2;
-    ActorPartViewPos* pos;
-    ActorPartViewPos* pos2;
-    ActorPartViewPos* pos3;
-    ActorPartViewPos* pos4;
-    s32               flag;
-    s32               flag2;
-    s32               heading;
-    s32               i;
-    s32               tx;
-    s32               a1c;
+    GfxMatrix        rot;
+    MATRIX           local;
+    GfxMatrix*       src;
+    MATRIX*          dst;
+    Actor400500Work* work;
+    Actor400500Work* workA;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    Actor400500Work* work4;
+    GfxCoord*        coord;
+    GfxCoord*        coords;
+    GfxCoord*        coords2;
+    SVECTOR3*        pos;
+    SVECTOR3*        pos2;
+    SVECTOR3*        pos3;
+    SVECTOR3*        pos4;
+    s32              flag;
+    s32              flag2;
+    s32              heading;
+    s32              i;
+    s32              tx;
+    s32              a1c;
 
     work    = (Actor400500Work*)arg0->work;
     heading = (u16)work->field_94A & 0xFFF;
@@ -3434,8 +3434,8 @@ static void func_actor_400500_801361EC(Task* arg0)
                     Gp_UpdateCoord(&coords[11]);
                     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[11].workm, &local);
                     pos                     = pos2;
-                    pos->x                  = local.t[0];
-                    pos->z                  = local.t[2];
+                    pos->vx                 = local.t[0];
+                    pos->vz                 = local.t[2];
                     coords[11].composeStamp = GRAPHICS_COORD_DIRTY;
                     work->field_A08         = 1;
                     break;
@@ -3445,8 +3445,8 @@ static void func_actor_400500_801361EC(Task* arg0)
             Gp_UpdateCoord(&coords2[11]);
             gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords2[11].workm, &local);
             pos3                     = pos4;
-            pos3->x                  = local.t[0];
-            pos3->z                  = local.t[2];
+            pos3->vx                 = local.t[0];
+            pos3->vz                 = local.t[2];
             coords2[11].composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
@@ -5014,37 +5014,37 @@ static void func_actor_400500_801395D0(Task* arg0)
 
 static void func_actor_400500_8013973C(Task* arg0)
 {
-    GfxMatrix         rot;
-    MATRIX            local0;
-    MATRIX            local3;
-    GfxMatrix*        src;
-    MATRIX*           view;
-    Actor400500Work*  work;
-    Actor400500Work*  workRot;
-    Actor400500Work*  workAnim;
-    Actor400500Work*  work3;
-    GfxCoord*         coordsEarly;
-    GfxCoord*         coordsMain;
-    GfxCoord*         coordsRot;
-    GfxCoord*         part3;
-    GfxCoord*         root;
-    ActorPartViewPos* pos;
-    ActorPartViewPos* pos2;
-    ActorPartViewPos* posMain;
-    ActorPartViewPos* posMain2;
-    s32               i;
-    s32               three;
-    s32               curX;
-    s32               curZ;
-    s32               tgtX;
-    s32               tgtZ;
-    s32               dx;
-    s32               dz;
-    u16               step;
-    u16               accum;
-    u16               pitch;
-    s32               y;
-    s32               viewZ;
+    GfxMatrix        rot;
+    MATRIX           local0;
+    MATRIX           local3;
+    GfxMatrix*       src;
+    MATRIX*          view;
+    Actor400500Work* work;
+    Actor400500Work* workRot;
+    Actor400500Work* workAnim;
+    Actor400500Work* work3;
+    GfxCoord*        coordsEarly;
+    GfxCoord*        coordsMain;
+    GfxCoord*        coordsRot;
+    GfxCoord*        part3;
+    GfxCoord*        root;
+    SVECTOR3*        pos;
+    SVECTOR3*        pos2;
+    SVECTOR3*        posMain;
+    SVECTOR3*        posMain2;
+    s32              i;
+    s32              three;
+    s32              curX;
+    s32              curZ;
+    s32              tgtX;
+    s32              tgtZ;
+    s32              dx;
+    s32              dz;
+    u16              step;
+    u16              accum;
+    u16              pitch;
+    s32              y;
+    s32              viewZ;
 
     work = (Actor400500Work*)arg0->work;
     root = arg0->extra.tmd->coords;
@@ -5054,28 +5054,28 @@ static void func_actor_400500_8013973C(Task* arg0)
         Gp_UpdateCoord(&coordsEarly[3]);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordsEarly[3].workm, &rot.mat);
         pos                         = pos2;
-        pos->x                      = rot.mat.t[0];
-        pos->z                      = rot.mat.t[2];
+        pos->vx                     = rot.mat.t[0];
+        pos->vz                     = rot.mat.t[2];
         coordsEarly[3].composeStamp = GRAPHICS_COORD_DIRTY;
         return;
     }
-    tgtX              = (s16)work->field_950;
-    curX              = work->field_9A0.x;
-    tgtZ              = (s16)work->field_954;
-    curZ              = work->field_9A0.z;
-    work->field_9A0.x = (u16)work->field_9A0.x + ((tgtX - curX) >> 2);
-    work->field_9A0.z = (u16)work->field_9A0.z + ((tgtZ - curZ) >> 2);
-    posMain2          = &work->field_9A0;
-    coordsMain        = arg0->extra.tmd->coords;
-    part3             = &coordsMain[3];
+    tgtX               = (s16)work->field_950;
+    curX               = work->field_9A0.vx;
+    tgtZ               = (s16)work->field_954;
+    curZ               = work->field_9A0.vz;
+    work->field_9A0.vx = (u16)work->field_9A0.vx + ((tgtX - curX) >> 2);
+    work->field_9A0.vz = (u16)work->field_9A0.vz + ((tgtZ - curZ) >> 2);
+    posMain2           = &work->field_9A0;
+    coordsMain         = arg0->extra.tmd->coords;
+    part3              = &coordsMain[3];
     Gp_UpdateCoord(part3);
     view = &gGfxViewCoord.workm;
     gfxMakeRelativeTransform(view, &coordsMain->workm, &local0);
     gfxMakeRelativeTransform(view, &coordsMain[3].workm, &local3);
     posMain                    = posMain2;
     dx                         = local3.t[0] - local0.t[0];
-    coordsMain->coord.t[0]     = posMain->x - dx;
-    viewZ                      = posMain->z;
+    coordsMain->coord.t[0]     = posMain->vx - dx;
+    viewZ                      = posMain->vz;
     dz                         = local3.t[2] - local0.t[2];
     coordsMain->coord.t[2]     = viewZ - dz;
     coordsMain->composeStamp   = GRAPHICS_COORD_DIRTY;
@@ -5348,31 +5348,31 @@ static void func_actor_400500_80139F6C(Task* arg0)
 
 static void func_actor_400500_8013A0B8(Task* arg0)
 {
-    GfxMatrix         rot;
-    MATRIX            local2;
-    GfxMatrix*        src;
-    Actor400500Work*  work;
-    Actor400500Work*  ang;
-    Actor400500Work*  work3;
-    Actor400500Work*  nextWork;
-    Actor400500Work*  anim;
-    Actor400500Work*  hit;
-    ActorPartViewPos* pos;
-    GfxCoord*         coords;
-    GfxCoord*         coord;
-    GfxCoord*         coord14;
-    Enemy*            enemy;
-    MATRIX*           view;
-    ActorPartViewPos* pos2;
-    s32               z;
-    s32               cond;
-    s32               flag;
-    s32               i;
-    s32               dx;
-    s32               dz;
-    s32               delta;
-    s32               neg;
-    u32               rnd;
+    GfxMatrix        rot;
+    MATRIX           local2;
+    GfxMatrix*       src;
+    Actor400500Work* work;
+    Actor400500Work* ang;
+    Actor400500Work* work3;
+    Actor400500Work* nextWork;
+    Actor400500Work* anim;
+    Actor400500Work* hit;
+    SVECTOR3*        pos;
+    GfxCoord*        coords;
+    GfxCoord*        coord;
+    GfxCoord*        coord14;
+    Enemy*           enemy;
+    MATRIX*          view;
+    SVECTOR3*        pos2;
+    s32              z;
+    s32              cond;
+    s32              flag;
+    s32              i;
+    s32              dx;
+    s32              dz;
+    s32              delta;
+    s32              neg;
+    u32              rnd;
 
     neg    = -1;
     coords = arg0->extra.tmd->coords;
@@ -5386,9 +5386,9 @@ static void func_actor_400500_8013A0B8(Task* arg0)
         gfxMakeRelativeTransform(view, &coords->workm, &rot.mat);
         gfxMakeRelativeTransform(view, &coord14->workm, &local2);
         dx                    = local2.t[0] - rot.mat.t[0];
-        coords->coord.t[0]    = work->field_9A0.x - dx;
+        coords->coord.t[0]    = work->field_9A0.vx - dx;
         pos                   = pos2;
-        z                     = pos->z;
+        z                     = pos->vz;
         delta                 = local2.t[2] - rot.mat.t[2];
         coords->composeStamp  = GRAPHICS_COORD_DIRTY;
         coord14->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5854,18 +5854,18 @@ static void func_actor_400500_8013AD60(Task* arg0)
 
 static void func_actor_400500_8013AF44(Task* arg0)
 {
-    MATRIX            local;
-    Actor400500Work*  work;
-    Actor400500Work*  work2;
-    Actor400500Work*  work3;
-    GfxCoord*         coord;
-    GfxCoord*         coords;
-    ActorPartViewPos* pos;
-    ActorPartViewPos* pos2;
-    s32               flag;
-    s32               heading;
-    s32               i;
-    u16               a1c;
+    MATRIX           local;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    Actor400500Work* work3;
+    GfxCoord*        coord;
+    GfxCoord*        coords;
+    SVECTOR3*        pos;
+    SVECTOR3*        pos2;
+    s32              flag;
+    s32              heading;
+    s32              i;
+    u16              a1c;
 
     work    = (Actor400500Work*)arg0->work;
     heading = (u16)work->field_94A & 0xFFF;
@@ -5962,8 +5962,8 @@ static void func_actor_400500_8013AF44(Task* arg0)
         Gp_UpdateCoord(&coords[8]);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[8].workm, &local);
         pos                    = pos2;
-        pos->x                 = local.t[0];
-        pos->z                 = local.t[2];
+        pos->vx                = local.t[0];
+        pos->vz                = local.t[2];
         coords[8].composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }
@@ -6864,15 +6864,15 @@ static void func_actor_400500_8013C9D4(Task* arg0)
 
 static void func_actor_400500_8013CA38(Task* arg0)
 {
-    MATRIX            local;
-    Actor400500Work*  work;
-    Actor400500Work*  work2;
-    GfxCoord*         coords;
-    ActorPartViewPos* pos;
-    ActorPartViewPos* pos2;
-    s32               heading;
-    s32               masked;
-    s32               neg;
+    MATRIX           local;
+    Actor400500Work* work;
+    Actor400500Work* work2;
+    GfxCoord*        coords;
+    SVECTOR3*        pos;
+    SVECTOR3*        pos2;
+    s32              heading;
+    s32              masked;
+    s32              neg;
 
     work             = (Actor400500Work*)arg0->work;
     heading          = (u16)work->field_94A;
@@ -6890,8 +6890,8 @@ static void func_actor_400500_8013CA38(Task* arg0)
         Gp_UpdateCoord(&coords[0xE]);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0xE].workm, &local);
         pos                      = pos2;
-        pos->x                   = local.t[0];
-        pos->z                   = local.t[2];
+        pos->vx                  = local.t[0];
+        pos->vz                  = local.t[2];
         coords[0xE].composeStamp = GRAPHICS_COORD_DIRTY;
     }
     work->field_A08 = work->field_A08 + 1;
@@ -7589,7 +7589,7 @@ static s32 func_actor_400500_8013DB78(Task* arg0)
     return 0;
 }
 
-static void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, ActorPartViewPos* arg2)
+static void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, SVECTOR3* arg2)
 {
     MATRIX    local;
     GfxCoord* coord;
@@ -7597,8 +7597,8 @@ static void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, ActorPartViewPos* a
     coord = &arg0->extra.tmd->coords[arg1];
     Gp_UpdateCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
-    arg2->x             = local.t[0];
-    arg2->z             = local.t[2];
+    arg2->vx            = local.t[0];
+    arg2->vz            = local.t[2];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 

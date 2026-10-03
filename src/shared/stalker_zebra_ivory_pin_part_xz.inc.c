@@ -2,7 +2,7 @@
 
 /// Moves the root so that part `arg1` lands on the view-space X/Z position
 /// `arg2`, measuring both through the view coordinate.
-void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 arg1, ActorPartViewPos* arg2)
+void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 arg1, SVECTOR3* arg2)
 {
     MATRIX    root;
     MATRIX    local;
@@ -20,8 +20,8 @@ void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 arg1, ActorPartViewPos* arg2)
     Gp_UpdateCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
-    coords[0].coord.t[0]   = arg2->x - (local.t[0] - root.t[0]);
-    coords[0].coord.t[2]   = arg2->z - (local.t[2] - root.t[2]);
+    coords[0].coord.t[0]   = arg2->vx - (local.t[0] - root.t[0]);
+    coords[0].coord.t[2]   = arg2->vz - (local.t[2] - root.t[2]);
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     coord->composeStamp    = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);

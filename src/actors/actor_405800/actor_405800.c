@@ -111,7 +111,7 @@ typedef struct Actor405800Work {
     /* 0x082 */ u16                   yaw;       // yaw, see stalkerZebraIvoryApplyRotation
     /* 0x084 */ u16                   roll;      // roll, see stalkerZebraIvoryApplyRotation
     /* 0x086 */ byte                  pad_86[2];
-    /* 0x088 */ ActorPartViewPos      field_88;
+    /* 0x088 */ SVECTOR3              field_88;
     /* 0x08E */ byte                  pad_8E[2];
     /* 0x090 */ u16                   field_90; // spawn position X (low half)
     /* 0x092 */ u16                   field_92; // copied into field_86A on state entry
@@ -2459,10 +2459,10 @@ static void func_actor_405800_801351BC(Task* arg0)
         stalkerZebraIvoryReadPartViewXZ(arg0, 3, &work->field_88);
         return;
     }
-    work->field_866   = (u16)work->field_866 + ((0xFF - work->field_866) >> 1);
-    work->field_86A   = work->field_92;
-    work->field_88.x += ((s16)work->field_98 - work->field_88.x) >> 2;
-    work->field_88.z += ((s16)work->field_9C - work->field_88.z) >> 2;
+    work->field_866    = (u16)work->field_866 + ((0xFF - work->field_866) >> 1);
+    work->field_86A    = work->field_92;
+    work->field_88.vx += ((s16)work->field_98 - work->field_88.vx) >> 2;
+    work->field_88.vz += ((s16)work->field_9C - work->field_88.vz) >> 2;
     stalkerZebraIvoryPinPartXZ(arg0, 3, &work->field_88);
     work->field_84C   += 2;
     work->field_84E   += work->field_84C;
@@ -2949,8 +2949,8 @@ static void func_actor_405800_80136388(Task* arg0)
         work->field_876 = 0;
     }
     if (blocked == 0) {
-        work->field_88.x   += actorPickStep(stepX, maxX >> 3);
-        work->field_88.z   += actorPickStep(stepZ, maxZ >> 3);
+        work->field_88.vx  += actorPickStep(stepX, maxX >> 3);
+        work->field_88.vz  += actorPickStep(stepZ, maxZ >> 3);
         coord->coord.t[0]  += actorPickStep(stepX, (u16)maxX >> 3);
         coord->coord.t[2]  += actorPickStep(stepZ, (u16)maxZ >> 3);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;

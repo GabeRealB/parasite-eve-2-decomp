@@ -1465,14 +1465,4 @@ static __inline__ s16 actorWrapAngle(s16 angle)
     return overlayWrapAngle(angle);
 }
 
-/// A model part's view-space position as the pose helpers hand it back, taken
-/// by `gfxMakeRelativeTransform` relative to `gGfxViewCoord.workm`. Only `x`
-/// and `z` are ever written; the middle halfword keeps the layout.
-typedef struct ActorPartViewPos {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 z;
-} ActorPartViewPos;
-STATIC_ASSERT_SIZEOF(ActorPartViewPos, 0x6);
-
 #endif // INCLUDE_ACTORS_ACTOR_H

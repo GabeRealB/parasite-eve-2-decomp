@@ -100,7 +100,7 @@ typedef struct Actor400600Work {
     /* 0x082 */ u16                   yaw;       // yaw, see stalkerZebraIvoryApplyRotation
     /* 0x084 */ u16                   roll;      // roll, see stalkerZebraIvoryApplyRotation
     /* 0x086 */ byte                  pad_86[0x2];
-    /* 0x088 */ ActorPartViewPos      field_88;
+    /* 0x088 */ SVECTOR3              field_88;
     /* 0x08E */ byte                  pad_8E[0x2];
     /* 0x090 */ u16                   field_90; // spawn position X (low half)
     /* 0x092 */ u16                   field_92; // seeds field_73E on state entry
@@ -110,8 +110,7 @@ typedef struct Actor400600Work {
     /* 0x09A */ u16                   field_9A; // copy of field_92
     /* 0x09C */ u16                   field_9C; // low half of the root coordinate's world Z
     /* 0x09E */ byte                  pad_9E[0xA];
-    /* 0x0A8 */ ActorPartViewPos      field_A8; // copied to the stack for stalkerZebraIvoryTurnToward
-    /* 0x0AE */ byte                  pad_AE[0x2];
+    /* 0x0A8 */ SVECTOR               field_A8; // copied to the stack for stalkerZebraIvoryTurnToward
     /* 0x0B0 */ AnimationContext      anim;     // slots 1..0x11 reset by stalkerZebraIvoryRestartClip
     /* 0x0C4 */ AnimationSlot         slots[0x12];
     /* 0x394 */ byte                  pad_394[0x120];
@@ -316,8 +315,8 @@ static void func_actor_400600_80139764(Task* arg0);
 static void func_actor_400600_80139878(Task* arg0);
 static void func_actor_400600_801398E0(Task* arg0);
 static void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, ActorPartViewPos* arg2);
-static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, ActorPartViewPos* arg2);
+static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, SVECTOR3* arg2);
+static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, SVECTOR3* arg2);
 void        func_actor_400600_8013A0F0(Task* arg0);
 static void func_actor_400600_8013A170(Task* arg0);
 static void func_actor_400600_8013A26C(Task* arg0);
@@ -2768,8 +2767,8 @@ static void func_actor_400600_801350F4(Task* arg0)
         stalkerZebraIvoryReadPartViewXZ(arg0, 3, &work->field_88);
         return;
     }
-    work->field_88.x += ((s16)work->field_98 - work->field_88.x) >> 2;
-    work->field_88.z += ((s16)work->field_9C - work->field_88.z) >> 2;
+    work->field_88.vx += ((s16)work->field_98 - work->field_88.vx) >> 2;
+    work->field_88.vz += ((s16)work->field_9C - work->field_88.vz) >> 2;
     stalkerZebraIvoryPinPartXZ(arg0, 3, &work->field_88);
     work->field_722   += 2;
     work->field_724   += work->field_722;
@@ -3228,42 +3227,42 @@ static void func_actor_400600_80136670(Task* arg0)
         a = func_actor_400600_8013886C(arg0);
         b = func_actor_400600_8013886C(slot);
         if (a == 2 && (b == 1 || b == 6)) {
-            work->field_A8.x = 0x1194;
-            work->field_A8.y = 0;
-            work->field_A8.z = 0;
+            work->field_A8.vx = 0x1194;
+            work->field_A8.vy = 0;
+            work->field_A8.vz = 0;
         } else if (a == 3 && ((b >= 1 && b <= 2) || b == 6)) {
-            work->field_A8.x = 0x1194;
-            work->field_A8.y = 0;
-            work->field_A8.z = -0x1194;
+            work->field_A8.vx = 0x1194;
+            work->field_A8.vy = 0;
+            work->field_A8.vz = -0x1194;
         } else if (a == 4 && ((b >= 1 && b <= 3) || b == 6)) {
-            work->field_A8.x = -0x125C;
-            work->field_A8.y = 0;
-            work->field_A8.z = -0x1194;
+            work->field_A8.vx = -0x125C;
+            work->field_A8.vy = 0;
+            work->field_A8.vz = -0x1194;
         } else if (a == 5 && ((b >= 1 && b <= 4) || b == 6)) {
-            work->field_A8.x = -0x1194;
-            work->field_A8.y = 0;
-            work->field_A8.z = 0x1194;
+            work->field_A8.vx = -0x1194;
+            work->field_A8.vy = 0;
+            work->field_A8.vz = 0x1194;
         } else if (b == 1 && a == 6) {
-            work->field_A8.x = 0;
-            work->field_A8.y = 0;
-            work->field_A8.z = 0;
+            work->field_A8.vx = 0;
+            work->field_A8.vy = 0;
+            work->field_A8.vz = 0;
         } else if (b != 1 && a == 1) {
-            work->field_A8.x = 0x1194;
-            work->field_A8.y = 0;
-            work->field_A8.z = 0;
+            work->field_A8.vx = 0x1194;
+            work->field_A8.vy = 0;
+            work->field_A8.vz = 0;
         } else {
-            work->field_A8.x = player->coord.t[0];
-            work->field_A8.y = player->coord.t[1];
-            work->field_A8.z = player->coord.t[2];
+            work->field_A8.vx = player->coord.t[0];
+            work->field_A8.vy = player->coord.t[1];
+            work->field_A8.vz = player->coord.t[2];
         }
     } else {
-        work->field_A8.x = player->coord.t[0];
-        work->field_A8.y = player->coord.t[1];
-        work->field_A8.z = player->coord.t[2];
+        work->field_A8.vx = player->coord.t[0];
+        work->field_A8.vy = player->coord.t[1];
+        work->field_A8.vz = player->coord.t[2];
     }
-    v.vx                 = work->field_A8.x - coord->coord.t[0];
-    v.vy                 = work->field_A8.y - coord->coord.t[1];
-    v.vz                 = work->field_A8.z - coord->coord.t[2];
+    v.vx                 = work->field_A8.vx - coord->coord.t[0];
+    v.vy                 = work->field_A8.vy - coord->coord.t[1];
+    v.vz                 = work->field_A8.vz - coord->coord.t[2];
     work->playerDistance = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
     VectorNormalSS(&v, &v);
     work->field_72C = (ratan2(v.vx, v.vz) - work->yaw) & 0xFFF;
@@ -3495,8 +3494,8 @@ static void func_actor_400600_80136968(Task* arg0)
         work->field_74A = 0;
     }
     if (blocked == 0) {
-        work->field_88.x   += (s16)func_actor_400600_8013C7E8(stepX, maxX);
-        work->field_88.z   += (s16)func_actor_400600_8013C7E8(stepZ, maxZ);
+        work->field_88.vx  += (s16)func_actor_400600_8013C7E8(stepX, maxX);
+        work->field_88.vz  += (s16)func_actor_400600_8013C7E8(stepZ, maxZ);
         coord->coord.t[0]  += (s16)func_actor_400600_8013C7E8(stepX, maxX);
         coord->coord.t[2]  += (s16)func_actor_400600_8013C7E8(stepZ, maxZ);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3673,9 +3672,9 @@ static void func_actor_400600_80137498(Task* arg0, s16 arg1)
             if (work->onCeiling == 0) {
                 GfxMatrix* m = &rot;
 
-                v.vx                     = work->field_A8.x - arg0->extra.tmd->coords->coord.t[0];
-                v.vy                     = work->field_A8.y - arg0->extra.tmd->coords->coord.t[1] - 0x384;
-                v.vz                     = work->field_A8.z - arg0->extra.tmd->coords->coord.t[2];
+                v.vx                     = work->field_A8.vx - arg0->extra.tmd->coords->coord.t[0];
+                v.vy                     = work->field_A8.vy - arg0->extra.tmd->coords->coord.t[1] - 0x384;
+                v.vz                     = work->field_A8.vz - arg0->extra.tmd->coords->coord.t[2];
                 rot.rotationWords.m00M01 = ONE;
                 rot.rotationWords.m02M10 = 0;
                 m->rotationWords.m11M12  = ONE;
@@ -3689,9 +3688,9 @@ static void func_actor_400600_80137498(Task* arg0, s16 arg1)
             } else {
                 GfxMatrix* m = &rot;
 
-                v.vx                     = work->field_A8.x - arg0->extra.tmd->coords->coord.t[0];
-                v.vy                     = work->field_A8.y - arg0->extra.tmd->coords->coord.t[1] - 0x640;
-                v.vz                     = work->field_A8.z - arg0->extra.tmd->coords->coord.t[2];
+                v.vx                     = work->field_A8.vx - arg0->extra.tmd->coords->coord.t[0];
+                v.vy                     = work->field_A8.vy - arg0->extra.tmd->coords->coord.t[1] - 0x640;
+                v.vz                     = work->field_A8.vz - arg0->extra.tmd->coords->coord.t[2];
                 rot.rotationWords.m00M01 = ONE;
                 rot.rotationWords.m02M10 = 0;
                 m->rotationWords.m11M12  = ONE;
@@ -4415,9 +4414,9 @@ static void func_actor_400600_80139560(Task* arg0)
             work2->subState = 0;
             return;
         }
-        pos.vx = work->field_A8.x;
-        pos.vy = work->field_A8.y;
-        pos.vz = work->field_A8.z;
+        pos.vx = work->field_A8.vx;
+        pos.vy = work->field_A8.vy;
+        pos.vz = work->field_A8.vz;
         stalkerZebraIvoryTurnToward(arg0, &pos, 0x18);
         stalkerZebraIvoryStepClip4(arg0);
     }
@@ -4507,7 +4506,7 @@ static void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3)
 
 #include "../../shared/stalker_zebra_ivory_pin_part_xz.inc.c"
 
-static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, ActorPartViewPos* arg2)
+static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, SVECTOR3* arg2)
 {
     MATRIX    local;
     GfxCoord* coord;
@@ -4517,13 +4516,13 @@ static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, ActorPartViewPos* a
     coord  = &coords[arg1];
     Gp_UpdateCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
-    arg2->x             = local.t[0];
-    arg2->y             = local.t[1];
-    arg2->z             = coords[0].coord.t[2];
+    arg2->vx            = local.t[0];
+    arg2->vy            = local.t[1];
+    arg2->vz            = coords[0].coord.t[2];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, ActorPartViewPos* arg2)
+static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, SVECTOR3* arg2)
 {
     MATRIX    root;
     MATRIX    local;
@@ -4535,8 +4534,8 @@ static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, ActorPartViewPos* a
     Gp_UpdateCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
-    coords[0].coord.t[0]   = arg2->x - (local.t[0] - root.t[0]);
-    coords[0].coord.t[1]   = arg2->y - (local.t[1] - root.t[1]);
+    coords[0].coord.t[0]   = arg2->vx - (local.t[0] - root.t[0]);
+    coords[0].coord.t[1]   = arg2->vy - (local.t[1] - root.t[1]);
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     coord->composeStamp    = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
@@ -5247,9 +5246,9 @@ static void func_actor_400600_8013B740(Task* arg0)
     if (work->field_752 < min) {
         work->field_752 = min;
     }
-    pos.vx = work->field_A8.x;
-    pos.vy = work->field_A8.y;
-    pos.vz = work->field_A8.z;
+    pos.vx = work->field_A8.vx;
+    pos.vy = work->field_A8.vy;
+    pos.vz = work->field_A8.vz;
     stalkerZebraIvoryTurnToward(arg0, &pos, work->field_754);
     func_actor_400600_80135998(arg0, work->field_752);
 }

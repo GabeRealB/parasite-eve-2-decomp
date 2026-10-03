@@ -64,14 +64,14 @@
 #include "main/task_types.h"
 
 void stalkerZebraIvoryTurnToward(Task* arg0, SVECTOR* target, s32 step);
-void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, ActorPartViewPos* out);
+void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, SVECTOR3* out);
 void stalkerZebraIvoryUpdateColor(Task* task);
 void stalkerZebraIvoryApplyRotation(Task* arg0);
 void stalkerZebraIvoryStepClip4(Task* arg0);
 void stalkerZebraIvoryRightItself(Task* arg0);
 s32  stalkerZebraIvoryTakePending(Task* arg0);
 s32  stalkerZebraIvoryWallDistance(Task* arg0);
-void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 index, ActorPartViewPos* pos);
+void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 index, SVECTOR3* pos);
 void stalkerZebraIvoryWaitClipThenRest(Task* arg0);
 void stalkerZebraIvoryReleaseHold(Task* arg0);
 void stalkerZebraIvoryRunSubStates(Task* arg0);
