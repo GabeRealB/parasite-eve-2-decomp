@@ -101,7 +101,7 @@ GameFlagDryfieldBank GameFlag_DryfieldBanks[2];
 
 GameFlagDryfieldNightBank GameFlag_DryfieldFullBanks[2];
 
-GameFlagShelterBank GameFlag_ShelterBanks[2];
+GameFlagMineShelterBank GameFlag_ShelterBanks[2];
 
 GameFlagNeoArkBank GameFlag_NeoArkBanks[2];
 
@@ -130,6 +130,9 @@ enum { GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS = 3 };
 
 /// 128-byte card sectors holding both `GameFlagDryfieldNightBank` copies.
 enum { GAME_FLAG_DRYFIELD_NIGHT_BANK_CARD_SECTORS = 1 };
+
+/// 128-byte card sectors holding both `GameFlagMineShelterBank` copies.
+enum { GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS = 4 };
 
 /// 128-byte card sectors holding both `GameFlagNeoArkBank` copies.
 enum { GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS = 3 };
@@ -656,7 +659,7 @@ McBufferSlot Mc_BufferSlots[9] = {
     { (McChecksumBlock*)GameFlag_AcropolisBanks, GAME_FLAG_ACROPOLIS_BANK_BYTES, GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS },
     { (McChecksumBlock*)GameFlag_DryfieldBanks, GAME_FLAG_DRYFIELD_BANK_BYTES, GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
     { (McChecksumBlock*)GameFlag_DryfieldFullBanks, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES, GAME_FLAG_DRYFIELD_NIGHT_BANK_CARD_SECTORS },
-    { (McChecksumBlock*)GameFlag_ShelterBanks, 0xE4, 4 },
+    { (McChecksumBlock*)GameFlag_ShelterBanks, GAME_FLAG_MINE_SHELTER_BANK_BYTES, GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS },
     { (McChecksumBlock*)GameFlag_NeoArkBanks, GAME_FLAG_NEO_ARK_BANK_BYTES, GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS },
     { (McChecksumBlock*)&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]), GAME_FLAG_NIBBLE_BANK_CARD_SECTORS },
 };
@@ -707,7 +710,7 @@ static void Mc_InitDualBankBuffers(void)
     GameFlagAcropolisBank*     acropolisBanks;
     GameFlagDryfieldBank*      b;
     GameFlagDryfieldNightBank* dryfieldNightBanks;
-    GameFlagShelterBank*       d;
+    GameFlagMineShelterBank*   d;
     GameFlagNeoArkBank*        neoArkBanks;
     McSaveData*                p;
     s32                        one;
@@ -2711,7 +2714,7 @@ static void Mc_ClearWorkBuffers(void)
     GameFlagAcropolisBank*     acropolisBanks;
     GameFlagDryfieldBank*      b;
     GameFlagDryfieldNightBank* dryfieldNightBanks;
-    GameFlagShelterBank*       d;
+    GameFlagMineShelterBank*   d;
     GameFlagNeoArkBank*        neoArkBanks;
 
     acropolisBanks = GameFlag_AcropolisBanks;

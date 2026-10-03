@@ -368,11 +368,12 @@ void Title_RestoreDemoCard(void)
     memcpy(GameFlag_DryfieldFullBanks, src, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES);
     src += GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES;
 
-    /* bank * 0xE4, split so GCC interleaves lui of GameFlag_ShelterBanks after first sll */
+    // &GameFlag_ShelterBanks[bank], with bank * 0xE4 spelled out: the typed
+    // index loads the array address before the first shift, the target after.
     t    = bank * 8;
     base = (u8*)GameFlag_ShelterBanks;
-    memcpy(base + ((t - bank) * 8 + bank) * 4, src, 0xE4);
-    src += 0xE4;
+    memcpy(base + ((t - bank) * 8 + bank) * 4, src, GAME_FLAG_MINE_SHELTER_BANK_BYTES);
+    src += GAME_FLAG_MINE_SHELTER_BANK_BYTES;
 
     memcpy(GameFlag_NeoArkBanks, src, GAME_FLAG_NEO_ARK_BANK_BYTES);
     src += GAME_FLAG_NEO_ARK_BANK_BYTES;

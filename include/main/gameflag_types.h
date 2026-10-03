@@ -164,12 +164,29 @@ typedef struct {
 } GameFlagDryfieldNightBank;
 STATIC_ASSERT_SIZEOF(GameFlagDryfieldNightBank, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES);
 
+/// Bytes in one mine and Shelter stage-bank copy, checksum prefix included.
+///
+/// `GameFlag_ShelterBanks` stores the live copy followed by its memory-card
+/// backup. The pair occupies four 128-byte card sectors.
+enum { GAME_FLAG_MINE_SHELTER_BANK_BYTES = 0xE4 };
+
+/// Checksummed save bank for `GAME_STAGE_MINE_SHELTER`.
+///
+/// That stage is the mine together with the Shelter from B1 to B4; the
+/// Shelter's 1F and B6 belong to `GameFlagNeoArkBank`. The live header is the
+/// `Gp_FlagBanks` entry for the stage, and the Shelter map reads this bank's
+/// object-state words. The stage area table addresses `areas`: a slot's index
+/// is the area id minus one, except `GAME_AREA_SHELTER_R49`, which shares the
+/// refuge's slot 5. `GAME_AREA_SHELTER_R37` and
+/// `GAME_AREA_SHELTER_1F_HELIPORT_S4` have empty table rows, so slots 36 and
+/// 37 are stored with the bank and covered by its checksum but not addressed.
+/// The highest addressed slot is 47.
 typedef struct {
-    GameFlagStageHeader header;
-    GameFlagAreaSlot    areas[48];
-    u8                  unknown_E0[4];
-} GameFlagShelterBank;
-STATIC_ASSERT_SIZEOF(GameFlagShelterBank, 0xE4);
+    GameFlagStageHeader header;        // Visited-area bits and object states for the mine and the Shelter's B1 to B4
+    GameFlagAreaSlot    areas[48];     // Placement records. Slots 36 and 37 have no table entry; slot 5 is shared by the refuge and area 49
+    u8                  unknown_E0[4]; // Stored with the bank and covered by its checksum. No field-level access found; role unproven
+} GameFlagMineShelterBank;
+STATIC_ASSERT_SIZEOF(GameFlagMineShelterBank, GAME_FLAG_MINE_SHELTER_BANK_BYTES);
 
 /// Bytes in one Shelter and Neo Ark stage-bank copy, checksum prefix included.
 ///

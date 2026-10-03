@@ -21,7 +21,7 @@ extern GameFlagNibbleBank gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_COUNT];
 extern GameFlagAcropolisBank     GameFlag_AcropolisBanks[2];
 extern GameFlagDryfieldBank      GameFlag_DryfieldBanks[2];
 extern GameFlagDryfieldNightBank GameFlag_DryfieldFullBanks[2];
-extern GameFlagShelterBank       GameFlag_ShelterBanks[2];
+extern GameFlagMineShelterBank   GameFlag_ShelterBanks[2];
 extern GameFlagNeoArkBank        GameFlag_NeoArkBanks[2];
 
 /// Live stage headers, indexed by GameLocationKey.stage (1..5; slot 0 is NULL).
