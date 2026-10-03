@@ -87,37 +87,85 @@ typedef struct {
     _ShelterB1ControlRoomMirrorConfig cfg;
 } _MirrorWork;
 
-/// Scratchpad block the mirror takes for one frame. `refAxis` is the
-/// coordinate axis least aligned with the plane normal (found through
-/// `leastAbs` / `axisAbs`, with the axis index in `flag`), `basis` the
-/// orthonormal frame built from the two and `reflect` the reflection matrix
-/// derived from it, and `offset` the plane offset rotated into that frame.
-/// The rest locates the reflection on screen: two points on the reflected body
-/// are projected through `pos` into `sxyHead` / `otzHead` and `sxyFoot` /
-/// `otzFoot`, `left` .. `bottom` is the rectangle the quads cover and `texX`
-/// the x of the texture page they sample the off-screen strip from.
+/// Which axis `_ShelterB1ControlRoomMirrorScratch::leastAxis` names while a
+/// plane mirror builds its reflected frame. Each projection then overwrites
+/// that word with the GTE flag, which is never tested.
+enum {
+    SHELTER_B1_CONTROL_ROOM_MIRROR_AXIS_X = 0, // The normal's X component is the smallest
+    SHELTER_B1_CONTROL_ROOM_MIRROR_AXIS_Y = 1, // The normal's Y component is the smallest
+    SHELTER_B1_CONTROL_ROOM_MIRROR_AXIS_Z = 2, // The normal's Z component is the smallest
+};
+
+/// Distances and screen limits for the control-room mirror's overlay quad.
+///
+/// Sample offsets are game coordinates in model space, which is Y-down.
+/// Screen values are pixels from the centre of the 320 by 240 frame.
+enum {
+    SHELTER_B1_CONTROL_ROOM_MIRROR_EVENT_HEAD_OFFSET    = -0x3E8, // Local Y of the head sample on part 1 during a scripted event
+    SHELTER_B1_CONTROL_ROOM_MIRROR_EVENT_FOOT_OFFSET    = 0x3E8,  // Local Y of the foot sample on part 1; the opposite side of the head
+    SHELTER_B1_CONTROL_ROOM_MIRROR_ROOT_HEAD_OFFSET     = -0x7D0, // Local Y of the root part's head sample; the foot sample is the origin
+    SHELTER_B1_CONTROL_ROOM_MIRROR_SCREEN_EDGE_PAD      = 0x10,   // Pixels added beyond each ordered screen edge before the quad is measured
+    SHELTER_B1_CONTROL_ROOM_MIRROR_QUAD_HALF_SPAN_LIMIT = 0x60,   // Half-width is kept to one pixel below this span
+    SHELTER_B1_CONTROL_ROOM_MIRROR_QUAD_HALF_WIDTH_MAX  = 0x5F,   // Largest half-width of the overlay quad, in pixels
+    SHELTER_B1_CONTROL_ROOM_MIRROR_TEXTURE_PAGE_MASK    = 0xFFC0, // 64-pixel alignment a 16-bit texture page requires
+    SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_WIDTH     = 0xA0,   // Half of the 320-pixel frame
+    SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_HEIGHT    = 0x78,   // Half of the 240-pixel frame
+    SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_LEFT           = -SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_WIDTH,
+    SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_RIGHT          = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_WIDTH,
+    SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_TOP            = -SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_HEIGHT,
+    SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_BOTTOM         = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_HEIGHT,
+};
+
+/// Scratchpad block the control-room mirror reserves for one frame.
+///
+/// A plane mirror first builds its reflected frame here. `refAxis` is the
+/// coordinate axis least aligned with the plane normal, chosen by comparing
+/// absolute components in `leastAbs` and `axisAbs` and recording the axis in
+/// `leastAxis`. `basis` is the orthonormal frame from the normal and that
+/// axis, `reflect` the reflection matrix derived from it, and `offset` the
+/// plane point rotated into that frame and subtracted from the clone's
+/// translation. That frame is copied onto the clone, after which `basis` is
+/// only a temporary for the clone's light matrix.
+///
+/// The same block then places the overlay quads. Those fields have the same
+/// roles as `_PlanarReflectionExtentScratch` — a local sample, an unread depth
+/// cue and GTE flag, head and foot screen points and quarter-depths, the
+/// texture-page X and the screen rectangle — packed after the plane basis in
+/// a different order, so the two types stay separate. The GTE flag reuses
+/// `leastAxis` once the axis has been consumed. During a scripted event the
+/// samples are on part 1, 1000 game units either side of its origin; otherwise
+/// they are on the root, 2000 units along negative local Y and at the origin.
+/// Model space is Y-down, so the negative-Y sample is the upper end and is
+/// stored as the head. Screen Y is ordered so `screenFoot` is the upper edge
+/// and `screenHead` the lower, and each edge is padded by 16 pixels. The swap
+/// uses `screenHead.vx` as its temporary. The quad is centred on the foot
+/// sample's screen X. Its half-width is half the padded vertical span, clamped
+/// to 95 pixels, and the rectangle is clamped to the frame.
+///
+/// `unknown_5A` and `unknown_5E` have no recovered access.
 typedef struct {
-    SVECTOR pos;
-    SVECTOR refAxis;
-    MATRIX  basis;
-    MATRIX  reflect;
-    SVECTOR offset;
-    s16     leastAbs;
-    byte    unknown_5A[2];
-    s16     axisAbs;
-    byte    unknown_5E[2];
-    DVECTOR sxyFoot;
-    DVECTOR sxyHead;
-    u16     texX;
-    s32     dp;
-    s32     flag;
-    s32     otzFoot;
-    s32     otzHead;
-    s32     left;
-    s32     right;
-    s32     top;
-    s32     bottom;
-} _MirrorScratch;
+    SVECTOR point;             // Sample in the part's local space; X and Z stay 0, and the unused halfword is left unchanged
+    SVECTOR refAxis;           // Unit axis least aligned with the plane normal, 4096 = 1; the hint for the orthonormal frame
+    MATRIX  basis;             // Orthonormal frame from the normal and `refAxis`; afterwards a temporary for the clone's light
+    MATRIX  reflect;           // Reflection of the view through the plane; copied into the clone's coordinate frame
+    SVECTOR offset;            // Plane point rotated into `reflect`, then subtracted from the frame's translation
+    s16     leastAbs;          // Smallest absolute normal component seen so far, 4096 = 1
+    byte    unknown_5A[2];     // No recovered access; role unproven
+    s16     axisAbs;           // Absolute value of the normal component being compared, 4096 = 1
+    byte    unknown_5E[2];     // No recovered access; role unproven
+    DVECTOR screenFoot;        // Foot sample's screen pixels; vy is ordered to the upper edge, vx centres the quad
+    DVECTOR screenHead;        // Head sample's screen pixels; vy is ordered to the lower edge, vx is the swap temporary
+    u16     texturePageX;      // 64-pixel-aligned VRAM X of the 16-bit page the quads sample. Two alignment bytes follow
+    s32     depthCue;          // GTE IR0 of the latest projection, with 12 fractional bits; written and never read
+    s32     leastAxis;         // 0 X, 1 Y, 2 Z while the frame is built; then the unread GTE flag of the latest projection
+    s32     orderingDepthFoot; // Foot sample's quarter-depth; the depth the overlay quads are ordered at
+    s32     orderingDepthHead; // Head sample's quarter-depth; written and never read
+    s32     left;              // Quad left edge, pixels from screen centre, clamped to -160
+    s32     right;             // Quad right edge, pixels from screen centre, clamped to 160
+    s32     top;               // Quad top edge, pixels from screen centre, clamped to -120
+    s32     bottom;            // Quad bottom edge, pixels from screen centre, clamped to 120
+} _ShelterB1ControlRoomMirrorScratch;
+STATIC_ASSERT_SIZEOF(_ShelterB1ControlRoomMirrorScratch, 0x8C);
 
 extern void             func_80131FB8(void);
 extern TaskMessageEntry D_shelter_b1_control_room_80181B94[];
@@ -253,31 +301,31 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _ShelterB1ControlR
 /// that overlaps the clip rectangle, draws quads sampling the strip.
 void func_shelter_b1_control_room_8017D7B8(Task* task)
 {
-    _MirrorWork*                       work;
-    _ShelterB1ControlRoomMirrorConfig* cfg;
-    _MirrorScratch*                    scratch;
-    TmdObject*                         model;
-    TmdObject*                         src;
-    TmdObject*                         body;
-    GfxCoord*                          parts;
-    GfxCoord*                          refPart;
-    GfxCoord*                          from;
-    GfxCoord*                          to;
-    DR_AREA*                           drArea;
-    DR_STP*                            drStp;
-    DR_OFFSET*                         drOffset;
-    SPRT*                              sprt;
-    DR_TPAGE*                          tpage;
-    TILE*                              tile;
-    POLY_FT4*                          poly;
-    s32                                copyPending;
-    s32                                halfWidth;
-    s32                                texX;
-    s32                                texBase;
-    GfxCoord*                          sub;
-    s32                                layer;
-    u16                                ofs[2];
-    RECT                               rect;
+    _MirrorWork*                        work;
+    _ShelterB1ControlRoomMirrorConfig*  cfg;
+    _ShelterB1ControlRoomMirrorScratch* scratch;
+    TmdObject*                          model;
+    TmdObject*                          src;
+    TmdObject*                          body;
+    GfxCoord*                           parts;
+    GfxCoord*                           refPart;
+    GfxCoord*                           from;
+    GfxCoord*                           to;
+    DR_AREA*                            drArea;
+    DR_STP*                             drStp;
+    DR_OFFSET*                          drOffset;
+    SPRT*                               sprt;
+    DR_TPAGE*                           tpage;
+    TILE*                               tile;
+    POLY_FT4*                           poly;
+    s32                                 copyPending;
+    s32                                 halfWidth;
+    s32                                 texX;
+    s32                                 texBase;
+    GfxCoord*                           sub;
+    s32                                 layer;
+    u16                                 ofs[2];
+    RECT                                rect;
 
     if (task->state == 0) {
         work = memCalloc(0xD0, 0);
@@ -313,7 +361,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         task->state++;
     }
 
-    scratch = (_MirrorScratch*)SCRATCH_STACK_RESERVE_BYTES(0x8C);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_ShelterB1ControlRoomMirrorScratch);
     model   = task->extra.tmd;
     work    = task->work;
     parts   = model->coords;
@@ -323,11 +371,11 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         func_shelter_b1_control_room_8017D600(task, cfg);
         if (work->cfg.active == 1) {
             sub                      = gGfxViewCoord.parent;
-            work->clip[0]            = -0xA0;
-            work->clip[1]            = 0xA0;
-            work->clip[2]            = -0x78;
+            work->clip[0]            = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_LEFT;
+            work->clip[1]            = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_RIGHT;
+            work->clip[2]            = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_TOP;
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            work->clip[3]            = 0x78;
+            work->clip[3]            = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_BOTTOM;
             work->coord.parent       = sub;
             if (cfg->mode == SHELTER_B1_CONTROL_ROOM_MIRROR_MODE_FLOOR) {
                 work->coord.coord          = gGfxViewCoord.coord;
@@ -336,38 +384,39 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                 work->coord.coord.m[1][2] *= -1;
                 work->coord.coord.t[1]    += cfg->normal.vy;
             } else {
+                // Select the coordinate axis least aligned with the plane normal.
                 scratch->leastAbs = cfg->normal.vx;
                 if (scratch->leastAbs < 0) {
                     scratch->leastAbs = -scratch->leastAbs;
                 }
-                scratch->flag    = 0;
-                scratch->axisAbs = cfg->normal.vy;
+                scratch->leastAxis = SHELTER_B1_CONTROL_ROOM_MIRROR_AXIS_X;
+                scratch->axisAbs   = cfg->normal.vy;
                 if (scratch->axisAbs < 0) {
                     scratch->axisAbs = -scratch->axisAbs;
                 }
                 if (scratch->leastAbs > scratch->axisAbs) {
-                    scratch->leastAbs = scratch->axisAbs;
-                    scratch->flag     = 1;
+                    scratch->leastAbs  = scratch->axisAbs;
+                    scratch->leastAxis = SHELTER_B1_CONTROL_ROOM_MIRROR_AXIS_Y;
                 }
                 scratch->axisAbs = cfg->normal.vz;
                 if (scratch->axisAbs < 0) {
                     scratch->axisAbs = -scratch->axisAbs;
                 }
                 if (scratch->leastAbs > scratch->axisAbs) {
-                    scratch->leastAbs = scratch->axisAbs;
-                    scratch->flag     = 2;
+                    scratch->leastAbs  = scratch->axisAbs;
+                    scratch->leastAxis = SHELTER_B1_CONTROL_ROOM_MIRROR_AXIS_Z;
                 }
                 scratch->refAxis.vx = 0;
-                if (scratch->flag == 0) {
-                    scratch->refAxis.vx = 0x1000;
+                if (scratch->leastAxis == SHELTER_B1_CONTROL_ROOM_MIRROR_AXIS_X) {
+                    scratch->refAxis.vx = ONE;
                 }
                 scratch->refAxis.vy = 0;
-                if (scratch->flag == 1) {
-                    scratch->refAxis.vy = 0x1000;
+                if (scratch->leastAxis == SHELTER_B1_CONTROL_ROOM_MIRROR_AXIS_Y) {
+                    scratch->refAxis.vy = ONE;
                 }
                 scratch->refAxis.vz = 0;
-                if (scratch->flag == 2) {
-                    scratch->refAxis.vz = 0x1000;
+                if (scratch->leastAxis == SHELTER_B1_CONTROL_ROOM_MIRROR_AXIS_Z) {
+                    scratch->refAxis.vz = ONE;
                 }
                 Gfx_OrthonormalBasis(&scratch->basis, &cfg->normal, &scratch->refAxis);
                 gte_TransposeMatrix(&scratch->basis, &scratch->reflect);
@@ -487,6 +536,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->light   = *src->lightMtx;
         work->color   = *src->colorMtx;
+        // basis is scratch from here: the reflected frame, when one was built, already sits on the clone.
         Gp_UpdateCoord(parts);
         gte_TransposeMatrix(&parts->workm, &scratch->basis);
         gte_MulMatrix0(&from->workm, &scratch->basis, &scratch->basis);
@@ -499,69 +549,75 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
             from++;
         }
         if (cfg->firstBlendMode >= 0) {
+            // Project a head sample and a foot sample. depthCue, and the GTE flag written over leastAxis, are not read.
             if (gGameSession->eventState != 0) {
                 Gp_UpdateCoord(refPart);
                 gte_SetTransMatrix(&refPart->workm);
                 gte_SetRotMatrix(&refPart->workm);
-                scratch->pos.vx = 0;
-                scratch->pos.vy = -0x3E8;
-                scratch->pos.vz = 0;
-                gte_RotTransPers(&scratch->pos, &scratch->sxyHead, &scratch->dp, &scratch->flag, &scratch->otzHead);
-                scratch->pos.vx = 0;
-                scratch->pos.vy = 0x3E8;
-                scratch->pos.vz = 0;
-                gte_RotTransPers(&scratch->pos, &scratch->sxyFoot, &scratch->dp, &scratch->flag, &scratch->otzFoot);
+                scratch->point.vx = 0;
+                scratch->point.vy = SHELTER_B1_CONTROL_ROOM_MIRROR_EVENT_HEAD_OFFSET;
+                scratch->point.vz = 0;
+                gte_RotTransPers(&scratch->point, &scratch->screenHead, &scratch->depthCue, &scratch->leastAxis,
+                                 &scratch->orderingDepthHead);
+                scratch->point.vx = 0;
+                scratch->point.vy = SHELTER_B1_CONTROL_ROOM_MIRROR_EVENT_FOOT_OFFSET;
+                scratch->point.vz = 0;
+                gte_RotTransPers(&scratch->point, &scratch->screenFoot, &scratch->depthCue, &scratch->leastAxis,
+                                 &scratch->orderingDepthFoot);
             } else {
                 Gp_UpdateCoord(parts);
                 gte_SetTransMatrix(&parts->workm);
                 gte_SetRotMatrix(&parts->workm);
-                scratch->pos.vx = 0;
-                scratch->pos.vy = -0x7D0;
-                scratch->pos.vz = 0;
-                gte_RotTransPers(&scratch->pos, &scratch->sxyHead, &scratch->dp, &scratch->flag, &scratch->otzHead);
-                scratch->pos.vx = 0;
-                scratch->pos.vy = 0;
-                scratch->pos.vz = 0;
-                gte_RotTransPers(&scratch->pos, &scratch->sxyFoot, &scratch->dp, &scratch->flag, &scratch->otzFoot);
+                scratch->point.vx = 0;
+                scratch->point.vy = SHELTER_B1_CONTROL_ROOM_MIRROR_ROOT_HEAD_OFFSET;
+                scratch->point.vz = 0;
+                gte_RotTransPers(&scratch->point, &scratch->screenHead, &scratch->depthCue, &scratch->leastAxis,
+                                 &scratch->orderingDepthHead);
+                scratch->point.vx = 0;
+                scratch->point.vy = 0;
+                scratch->point.vz = 0;
+                gte_RotTransPers(&scratch->point, &scratch->screenFoot, &scratch->depthCue, &scratch->leastAxis,
+                                 &scratch->orderingDepthFoot);
             }
-            if (scratch->sxyFoot.vy > scratch->sxyHead.vy) {
-                scratch->sxyHead.vx = scratch->sxyFoot.vy;
-                scratch->sxyFoot.vy = scratch->sxyHead.vy;
-                scratch->sxyHead.vy = scratch->sxyHead.vx;
+            // Order screen Y so the foot slot is the upper edge. screenHead.vx holds the swap.
+            if (scratch->screenFoot.vy > scratch->screenHead.vy) {
+                scratch->screenHead.vx = scratch->screenFoot.vy;
+                scratch->screenFoot.vy = scratch->screenHead.vy;
+                scratch->screenHead.vy = scratch->screenHead.vx;
             }
-            scratch->sxyFoot.vy -= 0x10;
-            scratch->sxyHead.vy += 0x10;
-            halfWidth            = (scratch->sxyHead.vy - scratch->sxyFoot.vy) >> 1;
-            if (halfWidth >= 0x60) {
-                halfWidth = 0x5F;
+            scratch->screenFoot.vy -= SHELTER_B1_CONTROL_ROOM_MIRROR_SCREEN_EDGE_PAD;
+            scratch->screenHead.vy += SHELTER_B1_CONTROL_ROOM_MIRROR_SCREEN_EDGE_PAD;
+            halfWidth               = (scratch->screenHead.vy - scratch->screenFoot.vy) >> 1;
+            if (halfWidth >= SHELTER_B1_CONTROL_ROOM_MIRROR_QUAD_HALF_SPAN_LIMIT) {
+                halfWidth = SHELTER_B1_CONTROL_ROOM_MIRROR_QUAD_HALF_WIDTH_MAX;
             }
-            scratch->left = scratch->sxyFoot.vx - halfWidth;
-            if (scratch->left < -0xA0) {
-                scratch->left = -0xA0;
+            scratch->left = scratch->screenFoot.vx - halfWidth;
+            if (scratch->left < SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_LEFT) {
+                scratch->left = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_LEFT;
             }
-            scratch->right = scratch->sxyFoot.vx + halfWidth;
-            if (scratch->right > 0xA0) {
-                scratch->right = 0xA0;
+            scratch->right = scratch->screenFoot.vx + halfWidth;
+            if (scratch->right > SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_RIGHT) {
+                scratch->right = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_RIGHT;
             }
-            scratch->top = scratch->sxyFoot.vy;
-            if (scratch->top < -0x78) {
-                scratch->top = -0x78;
+            scratch->top = scratch->screenFoot.vy;
+            if (scratch->top < SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_TOP) {
+                scratch->top = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_TOP;
             }
-            scratch->bottom = scratch->sxyHead.vy;
-            if (scratch->bottom > 0x78) {
-                scratch->bottom = 0x78;
+            scratch->bottom = scratch->screenHead.vy;
+            if (scratch->bottom > SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_BOTTOM) {
+                scratch->bottom = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_BOTTOM;
             }
             if (scratch->top < work->clip[3] && work->clip[2] < scratch->bottom && scratch->left < work->clip[1] &&
                 work->clip[0] < scratch->right) {
                 DR_TPAGE* mode;
 
-                mode           = gGpuPrimCursor;
-                texBase        = cfg->stripX + 0xA0;
-                texX           = scratch->left + texBase;
-                scratch->texX  = texX & 0xFFC0;
-                gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
+                mode                  = gGpuPrimCursor;
+                texBase               = cfg->stripX + SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_WIDTH;
+                texX                  = scratch->left + texBase;
+                scratch->texturePageX = texX & SHELTER_B1_CONTROL_ROOM_MIRROR_TEXTURE_PAGE_MASK;
+                gGpuPrimCursor        = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
                 setDrawTPage(mode, 0, 1, 0);
-                addPrim(&gGpuCurrentOt[(((scratch->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
+                addPrim(&gGpuCurrentOt[(((scratch->orderingDepthFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
                         mode);
                 for (layer = cfg->firstBlendMode; layer <= GPU_BLEND_SUBTRACT; layer++) {
                     poly           = gGpuPrimCursor;
@@ -578,25 +634,25 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                     poly->x1 = poly->x3 = scratch->right;
                     poly->y0 = poly->y1 = scratch->top;
                     poly->y2 = poly->y3 = scratch->bottom;
-                    poly->tpage         = getTPage(2, layer, scratch->texX, 0x100);
-                    poly->u0 = poly->u2 = poly->x0 + 0xA0 + cfg->stripX - scratch->texX;
-                    poly->u1 = poly->u3 = poly->x1 + 0xA0 + cfg->stripX - scratch->texX;
-                    poly->v0 = poly->v1 = poly->y0 + 0x78;
-                    poly->v2 = poly->v3 = poly->y2 + 0x78;
-                    addPrim(&gGpuCurrentOt[(((scratch->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
+                    poly->tpage         = getTPage(2, layer, scratch->texturePageX, 0x100);
+                    poly->u0 = poly->u2 = poly->x0 + SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_WIDTH + cfg->stripX - scratch->texturePageX;
+                    poly->u1 = poly->u3 = poly->x1 + SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_WIDTH + cfg->stripX - scratch->texturePageX;
+                    poly->v0 = poly->v1 = poly->y0 + SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_HEIGHT;
+                    poly->v2 = poly->v3 = poly->y2 + SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_HEIGHT;
+                    addPrim(&gGpuCurrentOt[(((scratch->orderingDepthFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
                             poly);
                 }
                 mode           = gGpuPrimCursor;
                 gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_TPAGE);
                 setDrawTPage(mode, 0, 0, 0);
-                addPrim(&gGpuCurrentOt[(((scratch->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
+                addPrim(&gGpuCurrentOt[(((scratch->orderingDepthFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
                         mode);
             }
         }
     } else {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x8C);
+    SCRATCH_STACK_RELEASE_BLOCK(_ShelterB1ControlRoomMirrorScratch);
 }
 
 s32 func_shelter_b1_control_room_8017ECCC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
