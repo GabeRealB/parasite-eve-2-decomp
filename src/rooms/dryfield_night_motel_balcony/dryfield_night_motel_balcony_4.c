@@ -61,18 +61,20 @@ extern SVECTOR D_dryfield_night_motel_balcony_80182D38;
 extern s32     D_dryfield_night_motel_balcony_80182D40[2][20];
 extern SVECTOR D_dryfield_night_motel_balcony_80182D20;
 
-/// One row of the sprite table `func_dryfield_night_motel_balcony_8017FF78`
-/// indexes by `Task::spawnArg1`: `tpageX` selects the texture page, `w` is the
-/// frame width (the u step between frames and the billboard scale) and `v` the
-/// frame row.
+/// A horizontal row of eight square texture frames for the room's tumbling debris.
+///
+/// Frames start at U=0 and advance by `frameSize` texels. Their inclusive UV
+/// span, `frameSize - 1`, also scales the projected billboard. Textures are
+/// 4-bit, on VRAM page Y=0, with additive semitransparency when tinted.
+/// The room's three rows are selected by the initialized debris task's
+/// `spawnArg1.value` (0..2), which also selects its 16-colour palette.
 typedef struct {
-    u16 tpageX;
-    s16 w;
-    u8  v;
-    u8  pad5;
-} _SpriteFrame;
-
-extern _SpriteFrame D_dryfield_night_motel_balcony_80182DE0[];
+    u16 vramX;     // Texture-page X in 16-bit VRAM words, aligned to 64 words
+    s16 frameSize; // Square frame side and horizontal frame step in texels (16 or 32)
+    u8  v;         // Top texture row within the page, in texels (0..255)
+    u8  field_5;   // Unread byte, zero in all three rows; role unproven
+} _DryfieldNightMotelBalconyDebrisTextureRow;
+STATIC_ASSERT_SIZEOF(_DryfieldNightMotelBalconyDebrisTextureRow, 6);
 
 /// VRAM position of the first 16-colour CLUT in an animation row.
 ///
@@ -152,7 +154,7 @@ s32 D_dryfield_night_motel_balcony_80182D40[2][20] = {
     { 0, 0, 128, 128, 129, 128, 24, 0, 128, 0, 0, 0, 129, 128, 25, 105, 109, 72, 2, 0 },
 };
 
-_SpriteFrame D_dryfield_night_motel_balcony_80182DE0[3] = {
+_DryfieldNightMotelBalconyDebrisTextureRow D_dryfield_night_motel_balcony_80182DE0[3] = {
     { 704, 16, 240, 0 },
     { 768, 32, 0, 0 },
     { 768, 32, 32, 0 },
@@ -3528,20 +3530,25 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 }
 
 /// Draws the task's coordinate-body position as a rotated billboard `POLY_FT4`, taking
-/// its texture frame from row `Task::spawnArg1` of the sprite table and column
-/// `index & 7`. The quad's half-extent is the frame width times `pos.vx`
+/// its texture frame from texture row `Task::spawnArg1` and column
+/// `index & 7`. The quad's half-extent is the inclusive frame UV span times `pos.vx`
 /// divided by the projected depth, rotated by `pos.vz`. A non-NULL `color`
 /// tints the quad and makes it semi-transparent; NULL draws it raw. `arg` is
 /// unused.
 static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
 {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW = 8,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_WORDS     = 16,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_Y         = 271,
+    };
     EffectWork*         work  = task->spawnArg2.pointer;
     GfxCoord*           coord = task->extra.coordBody->coord;
     EffectShapeScratch* block;
     POLY_FT4*           prim;
-    s16                 size;
+    s16                 uvSpan;
 
-    size = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w - 1;
+    uvSpan = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize - 1;
     SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
     block                = SCRATCH_STACK_CURSOR(EffectShapeScratch);
     block->worldPoint.vx = coord->workm.t[0];
@@ -3567,24 +3574,24 @@ static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s3
         } else {
             setcode(prim, 0x2D);
         }
-        prim->tpage            = ((D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].tpageX & 0x3FF) >> 6) | 0x20;
-        prim->clut             = getClut(task->spawnArg1.value * 16, 0x10F);
-        prim->u0               = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w;
+        prim->tpage            = getTPage(0, GPU_BLEND_ADD, D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].vramX, 0);
+        prim->clut             = getClut(task->spawnArg1.value * DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_WORDS, DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_Y);
+        prim->u0               = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize;
         prim->v0               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v;
-        prim->u1               = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w + size;
+        prim->u1               = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize + uvSpan;
         prim->v1               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v;
-        prim->u2               = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w;
-        prim->v2               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + size;
-        prim->u3               = (work->index & 7) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w + size;
-        prim->v3               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + size;
-        block->extent.corner.x = (((size * work->pos.vx) / block->depth) * rsin(work->pos.vz)) >> 12;
-        block->extent.corner.y = (((size * work->pos.vx) / block->depth) * rcos(work->pos.vz)) >> 12;
+        prim->u2               = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize;
+        prim->v2               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + uvSpan;
+        prim->u3               = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize + uvSpan;
+        prim->v3               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + uvSpan;
+        block->extent.corner.x = (((uvSpan * work->pos.vx) / block->depth) * rsin(work->pos.vz)) >> 12;
+        block->extent.corner.y = (((uvSpan * work->pos.vx) / block->depth) * rcos(work->pos.vz)) >> 12;
         prim->x0               = block->screenX + block->extent.corner.x;
         prim->x3               = block->screenX - block->extent.corner.x;
         prim->y0               = block->screenY - block->extent.corner.y;
         prim->y3               = block->screenY + block->extent.corner.y;
-        block->extent.corner.x = (((size * work->pos.vx) / block->depth) * rsin(work->pos.vz + 0x400)) >> 12;
-        block->extent.corner.y = (((size * work->pos.vx) / block->depth) * rcos(work->pos.vz + 0x400)) >> 12;
+        block->extent.corner.x = (((uvSpan * work->pos.vx) / block->depth) * rsin(work->pos.vz + 0x400)) >> 12;
+        block->extent.corner.y = (((uvSpan * work->pos.vx) / block->depth) * rcos(work->pos.vz + 0x400)) >> 12;
         prim->x1               = block->screenX + block->extent.corner.x;
         prim->x2               = block->screenX - block->extent.corner.x;
         prim->y1               = block->screenY - block->extent.corner.y;
