@@ -65,19 +65,27 @@
 
 #include "rooms/shelter_b1_underground_parking.h"
 
-/// 0x10-byte scratch block `func_800D4270` carves off the scratch stack for the
-/// GTE round trip: `vx`/`vy`/`vz` receive the scaled vertex (`gte_stsv`) and
-/// `offX`/`offY` are the screen-space offsets added to it.
-typedef struct _GpMapMarkScratch {
-    /* 0x0 */ u16 vx;
-    /* 0x2 */ u16 vy;
-    /* 0x4 */ u16 vz;
-    /* 0x6 */ u16 pad_6;
-    /* 0x8 */ u16 offX;
-    /* 0xA */ u16 offY;
-    /* 0xC */ u16 pad_C[2];
-} GpMapMarkScratch;
-STATIC_ASSERT_SIZEOF(GpMapMarkScratch, 0x10);
+/// Workspace in which the map screen's area-shape pass scales one model vertex onto the map.
+///
+/// A `MenuMapAreaShape` model lies flat in its X/Z plane, in units the stage's
+/// scale factor turns into map-screen pixels. The pass reserves this block on
+/// the scratch stack, has the GTE store each scaled vertex in `scaled`, and
+/// forms the primitive's corner from it and the origin: right of the origin by
+/// the scaled X, above it by the scaled Z. The scaled Y, the height off the map
+/// plane, is stored with the rest and not used. Nothing keeps a pointer into
+/// the block past its release.
+///
+/// Every shape is placed at the map-screen origin, the centre of the map
+/// picture, so the origin is always (0, 0). The bytes after it are reserved
+/// with the block and left untouched, so what they were laid out to hold is
+/// unproven.
+typedef struct {
+    SVECTOR scaled;       // Vertex scaled to map-screen pixels, in the model's axes
+    s16     originX;      // Map-screen X the model's origin is placed at, in pixels from the map picture's centre
+    s16     originY;      // Map-screen Y the model's origin is placed at, measured the same way
+    byte    unknown_C[4]; // Reserved with the block and never accessed; role unproven
+} _MenuMapAreaShapeScratch;
+STATIC_ASSERT_SIZEOF(_MenuMapAreaShapeScratch, 0x10);
 
 /// Workspace in which the map screen's icon pass stages the centre of one icon.
 ///
@@ -2869,34 +2877,35 @@ void Gp_MapScreenTask(Task* arg0)
 
 static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
 {
-    RECT              tw;
-    DR_MODE*          dr;
-    s32               otz;
-    u8*               verts;
-    GpMapMarkScratch* scratch;
-    u32*              cur;
-    s32               type;
-    u32               word;
-    s32               count;
-    s32               stride;
-    u16               vz;
-    s32               minX;
-    s32               minY;
+    RECT                      tw;
+    DR_MODE*                  dr;
+    s32                       otz;
+    u8*                       verts;
+    _MenuMapAreaShapeScratch* scratch;
+    u32*                      cur;
+    s32                       type;
+    u32                       word;
+    s32                       count;
+    s32                       stride;
+    s16                       vz;
+    s32                       minX;
+    s32                       minY;
 
     otz            = obj->panel.otIndex.signedValue;
     verts          = (u8*)mesh->verts;
     cur            = mesh->stream;
     tw.y           = 0;
     tw.x           = 0;
-    scratch        = SCRATCH_STACK_RESERVE_BLOCK(GpMapMarkScratch);
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapAreaShapeScratch);
     dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     tw.h           = 0xFF;
     tw.w           = 0xFF;
     setTexWindow(dr, &tw);
     addPrim(&gGpuCurrentOt[otz], dr);
-    scratch->offX = 0;
-    scratch->offY = 0;
+    // Every shape is placed at the centre of the map picture.
+    scratch->originX = 0;
+    scratch->originY = 0;
     while (*cur != TMD_STREAM_GROUP_END) {
         type   = *cur;
         cur   += 2;
@@ -2916,37 +2925,37 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
                     gte_lddp(dp);
                     gte_ldsv(vert);
                     gte_gpf12();
-                    gte_stsv(scratch);
-                    p4->x0 = scratch->vx + scratch->offX;
-                    vz     = scratch->vz;
-                    p4->y0 = scratch->offY - vz;
+                    gte_stsv(&scratch->scaled);
+                    p4->x0 = scratch->scaled.vx + scratch->originX;
+                    vz     = scratch->scaled.vz;
+                    p4->y0 = scratch->originY - vz;
 
                     vert = (SVECTOR*)(verts + (((u16*)cur)[1] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
                     gte_gpf12();
-                    gte_stsv(scratch);
-                    p4->x1 = scratch->vx + scratch->offX;
-                    vz     = scratch->vz;
-                    p4->y1 = scratch->offY - vz;
+                    gte_stsv(&scratch->scaled);
+                    p4->x1 = scratch->scaled.vx + scratch->originX;
+                    vz     = scratch->scaled.vz;
+                    p4->y1 = scratch->originY - vz;
 
                     vert = (SVECTOR*)(verts + (((u16*)cur)[2] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
                     gte_gpf12();
-                    gte_stsv(scratch);
-                    p4->x2 = scratch->vx + scratch->offX;
-                    vz     = scratch->vz;
-                    p4->y2 = scratch->offY - vz;
+                    gte_stsv(&scratch->scaled);
+                    p4->x2 = scratch->scaled.vx + scratch->originX;
+                    vz     = scratch->scaled.vz;
+                    p4->y2 = scratch->originY - vz;
 
                     vert = (SVECTOR*)(verts + (((u16*)cur)[3] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
                     gte_gpf12();
-                    gte_stsv(scratch);
-                    p4->x3 = scratch->vx + scratch->offX;
-                    vz     = scratch->vz;
-                    p4->y3 = scratch->offY - vz;
+                    gte_stsv(&scratch->scaled);
+                    p4->x3 = scratch->scaled.vx + scratch->originX;
+                    vz     = scratch->scaled.vz;
+                    p4->y3 = scratch->originY - vz;
                     if (mode == 0) {
                         minX = p4->x0;
                         if (p4->x1 < minX) {
@@ -3020,34 +3029,34 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
                     gte_lddp(dp);
                     gte_ldsv(vert);
                     gte_gpf12();
-                    gte_stsv(scratch);
+                    gte_stsv(&scratch->scaled);
 
                     vert = (SVECTOR*)(verts + (((u16*)cur)[0] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
                     gte_gpf12();
-                    gte_stsv(scratch);
-                    p3->x0 = scratch->vx + scratch->offX;
-                    vz     = scratch->vz;
-                    p3->y0 = scratch->offY - vz;
+                    gte_stsv(&scratch->scaled);
+                    p3->x0 = scratch->scaled.vx + scratch->originX;
+                    vz     = scratch->scaled.vz;
+                    p3->y0 = scratch->originY - vz;
 
                     vert = (SVECTOR*)(verts + (((u16*)cur)[1] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
                     gte_gpf12();
-                    gte_stsv(scratch);
-                    p3->x1 = scratch->vx + scratch->offX;
-                    vz     = scratch->vz;
-                    p3->y1 = scratch->offY - vz;
+                    gte_stsv(&scratch->scaled);
+                    p3->x1 = scratch->scaled.vx + scratch->originX;
+                    vz     = scratch->scaled.vz;
+                    p3->y1 = scratch->originY - vz;
 
                     vert = (SVECTOR*)(verts + (((u16*)cur)[2] & 0xFFF8));
                     gte_lddp(dp);
                     gte_ldsv(vert);
                     gte_gpf12();
-                    gte_stsv(scratch);
-                    p3->x2 = scratch->vx + scratch->offX;
-                    vz     = scratch->vz;
-                    p3->y2 = scratch->offY - vz;
+                    gte_stsv(&scratch->scaled);
+                    p3->x2 = scratch->scaled.vx + scratch->originX;
+                    vz     = scratch->scaled.vz;
+                    p3->y2 = scratch->originY - vz;
                     if (mode == 0) {
                         minX = p3->x0;
                         if (p3->x1 < minX) {
@@ -3109,7 +3118,7 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
     tw.h           = 0x20;
     setTexWindow(dr, &tw);
     addPrim(&gGpuCurrentOt[otz], dr);
-    SCRATCH_STACK_RELEASE_BLOCK(GpMapMarkScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_MenuMapAreaShapeScratch);
 }
 
 s32 func_800D4D2C(s32 arg0)
