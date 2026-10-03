@@ -79,21 +79,10 @@ extern s32          D_acropolis_promenade_80181144;
 extern RoomEventMsg D_acropolis_promenade_801862D0;
 extern Task*        D_acropolis_promenade_801862D8;
 
-/// The room's message table, installed on the room task by its setup state.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        TaskMessageHandler call0;
-        TaskMessageHandler call1;
-        TaskMessageHandler call2;
-        void               (*call3)(void);
-    } handler;
-} AcropolisPromenadeMsgEntry;
-STATIC_ASSERT_SIZEOF(AcropolisPromenadeMsgEntry, 8);
-
-extern AcropolisPromenadeMsgEntry D_acropolis_promenade_80180E74[];
+/// The room task's message table, installed by its setup state: it answers
+/// room-transition requests, room commands, room actions, key-item use and
+/// room sound commands, and returns zero for every other message.
+extern TaskMessageEntry D_acropolis_promenade_80180E74[];
 /// Spawn table holding the prop task, terminated by an all-ones `flags`.
 extern TaskDesc D_acropolis_promenade_80180EA4[];
 /// The room's task table: the streamed-scene task is entry 2, and entries 3
@@ -152,7 +141,7 @@ s32                 func_acropolis_promenade_8017D70C(Task*, s32, RoomEventMsg*,
 s32                 func_acropolis_promenade_8017D8D8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                 func_acropolis_promenade_8017D8E0(Task*, s32, s32, TaskMessageArg);
 s32                 func_acropolis_promenade_8017D938(Task*, s32, s32, TaskMessageArg);
-void                func_acropolis_promenade_8017D930(void);
+s32                 func_acropolis_promenade_8017D930(Task*, s32, TaskMessageArg, TaskMessageArg);
 void                func_acropolis_promenade_8017D988(Task*);
 
 static TmdBone _gAcropolisPromenadeAcropolisBridgeModel0AD9CSkeleton[1] = {
@@ -183,13 +172,13 @@ static TmdSource _gAcropolisPromenadeAcropolisBridgeModel0AD9C = {
     _gAcropolisPromenadeAcropolisBridgeModel0AD9CStream,
 };
 
-AcropolisPromenadeMsgEntry D_acropolis_promenade_80180E74[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call0 = func_acropolis_promenade_8017D70C } },
-    { ROOM_MESSAGE_COMMAND, { .call0 = func_acropolis_promenade_8017D8E0 } },
-    { 5103, { .call3 = func_acropolis_promenade_8017D930 } },
-    { 5105, { .call0 = func_acropolis_promenade_8017D8D8 } },
-    { ROOM_MESSAGE_SOUND, { .call0 = func_acropolis_promenade_8017D938 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_acropolis_promenade_80180E74[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_promenade_8017D70C },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_promenade_8017D8E0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_promenade_8017D930 },
+    { 5105, func_acropolis_promenade_8017D8D8 },
+    { ROOM_MESSAGE_SOUND, func_acropolis_promenade_8017D938 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_acropolis_promenade_80180EA4[2] = {
@@ -1927,7 +1916,12 @@ s32 func_acropolis_promenade_8017D8E0(Task* arg0, s32 arg1, s32 arg2, TaskMessag
     return 0;
 }
 
-void func_acropolis_promenade_8017D930(void)
+/// The room's `DIRECTION_MESSAGE_ROOM_ACTION` handler: the promenade has no
+/// room actions, so it ignores the request.
+///
+/// It leaves the result unset. The message's sender discards the result, so
+/// nothing reads the indeterminate value the dispatcher forwards.
+s32 func_acropolis_promenade_8017D930(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
 {
 }
 
