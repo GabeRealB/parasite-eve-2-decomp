@@ -101,12 +101,16 @@ typedef struct {
 } McStateFuncTable44;
 STATIC_ASSERT_SIZEOF(McStateFuncTable44, 0xB0);
 
-/// Fixed-size table of _McStateFunc callbacks. Copied onto the stack by
-/// Mc_DispatchStateTable26 so the call uses a local jump table (26 entries, 0x68 bytes).
+/// Handlers of the file-select dialog, indexed by `Task.state`.
+///
+/// The dialog calls the handler for its current state with the task and the
+/// shared memory-card work area. A handler advances the dialog by storing the
+/// next state. Dispatch requires an index in 0..25. The table has no
+/// terminator and the caller does not range-check the index.
 typedef struct {
-    _McStateFunc funcs[26];
-} McStateFuncTable26;
-STATIC_ASSERT_SIZEOF(McStateFuncTable26, 0x68);
+    _McStateFunc funcs[26]; // One handler per state, in `Task.state` order
+} _McFileSelectStateTable;
+STATIC_ASSERT_SIZEOF(_McFileSelectStateTable, 0x68);
 
 /* Define BSS before API headers to preserve first-declaration order. */
 /// Work area of the memory-card dialogs, passed to every state handler.
@@ -262,7 +266,7 @@ static const char McText_CloseParen[];
 static const McStateFuncTable44 Mc_PromptStates;
 
 /// Jump table of 26 _McStateFunc handlers used by Mc_DispatchStateTable26.
-static const McStateFuncTable26 Mc_FileSelectStates;
+static const _McFileSelectStateTable Mc_FileSelectStates;
 
 static void Mc_BuildFileName(u8* arg0, s32 arg1);
 
@@ -2039,7 +2043,7 @@ static void Mc_StateSyncFileSelect(Task* task, McWork* work)
 }
 
 /// Jump table of 26 _McStateFunc handlers used by Mc_DispatchStateTable26.
-static const McStateFuncTable26 Mc_FileSelectStates = { {
+static const _McFileSelectStateTable Mc_FileSelectStates = { {
     Mc_StateInitWorkDefaults,
     Mc_StateSetOpenDefaults,
     Mc_StateCountdownPrompt,
@@ -4096,12 +4100,12 @@ static void Mc_StateEnterPrompt17(Task* task, McWork* work)
 
 void Mc_DispatchStateTable26(Task* task)
 {
-    McStateFuncTable26 sp;
-    McWork*            work;
+    _McFileSelectStateTable states;
+    McWork*                 work;
 
-    sp   = Mc_FileSelectStates;
-    work = &Mc_MenuWork;
-    sp.funcs[task->state](task, work);
+    states = Mc_FileSelectStates;
+    work   = &Mc_MenuWork;
+    states.funcs[task->state](task, work);
     if (work->cardTimer >= MEMORY_CARD_IO_ABORT_FRAMES) {
         task->state = 6;
     }
