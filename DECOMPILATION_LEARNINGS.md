@@ -32507,21 +32507,21 @@ actor    = arg0->actor;
 tmp      = head - 0x84;
 *scratch = tmp;
 if (actor->targetNode != NULL) {
-    block = (GpPitchScratch*)tmp;
+    block = (_PlayerActorAimPitchScratch*)tmp;
     __asm__ volatile("" : "+r"(block));
 ```
 
 Without the asm, GCC copies `tmp` into `$a1` (the upcoming
 `Gp_PlaceCoordOffset` dest) and only then into `$s1`. Independent
-`block->rot = 0` stores written *before* the field walk emit first and
+`block->originOffset = 0` stores written *before* the field walk emit first and
 leave `addiu a2, head, -0x14` in the jal delay. Name the first call
 argument so those loads exist, then write the zeros after that load:
 
 ```c
 src = actor->equipmentTasks[1]->extra.tmd->coords;
-block->rot.vx = 0;
-block->rot.vy = 0;
-block->rot.vz = 0;
+block->originOffset.vx = 0;
+block->originOffset.vy = 0;
+block->originOffset.vz = 0;
 Gp_PlaceCoordOffset(src, (GfxCoord*)block, (SVECTOR*)(head - 0x14));
 ```
 
@@ -36567,7 +36567,7 @@ dst = q;
 keeps the add in `$v1`: `addu v1, v1, v0`. Split
 `gPlayerStatus.weapon` / table / `equipmentTasks[1]` with `+r` barriers so
 the `lbu` fills the preceding `beqz` delay and `lw 0x91C` sits between
-`addiu table` and `sll`. A `u16` temp for the first `rot.vx` load lets
+`addiu table` and `sll`. A `u16` temp for the first `originOffset.vx` load lets
 `field_8` sit between `lhu` and `sh`. `Gp_AimPitchToLockAlt` is the example.
 
 ## Copy the loop index before a call so a later `(u8)i` is not CSE'd into `$s0`
