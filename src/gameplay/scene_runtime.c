@@ -274,25 +274,30 @@ typedef struct _GpDirScratch {
 } GpDirScratch;
 STATIC_ASSERT_SIZEOF(GpDirScratch, 0x28);
 
-/// 0x40-byte scratch from the scratch stack used by `Gp_DrawFloorQuad`.
-/// `vec[]` holds the four corners of an axis-aligned XZ square of side
-/// `size` anchored at the caller's origin; each is projected with a
-/// separate RTPS. `dp` / `flag` / `otz` receive `gte_stdp` / `gte_stflg` /
-/// `gte_stszotz` of the current corner, `sxy0`..`sxy3` the projected screen
-/// positions copied into the `POLY_FT4`, and `maxotz` the running maximum
-/// `otz` used as the OT bucket.
-typedef struct _GpFloorQuadScratch {
-    /* 0x00 */ SVECTOR vec[4];
-    /* 0x20 */ s32     otz;
-    /* 0x24 */ s32     dp;
-    /* 0x28 */ s32     flag;
-    /* 0x2C */ DVECTOR sxy0;
-    /* 0x30 */ DVECTOR sxy1;
-    /* 0x34 */ DVECTOR sxy2;
-    /* 0x38 */ DVECTOR sxy3;
-    /* 0x3C */ s32     maxotz;
-} GpFloorQuadScratch;
-STATIC_ASSERT_SIZEOF(GpFloorQuadScratch, 0x40);
+/// Scratch-stack workspace for projecting the ground shadow of one model.
+///
+/// The shadow is a square in the XZ plane of a model coordinate's own frame,
+/// so `vertices` are local positions and the GTE, loaded with that
+/// coordinate's composed matrix, projects them as they stand. Corners and
+/// screen positions share indices 0..3 in GPU quad strip order.
+///
+/// Each corner takes its own RTPS, and `depth`, `depthCue` and
+/// `projectionFlags` are overwritten by every one of them. Only the last
+/// corner's FLAG word is therefore tested, and a negative one rejects the
+/// whole shadow. `farthestDepth` starts at zero and keeps the largest
+/// `depth` seen, which orders the primitive behind all four corners.
+///
+/// Reserve the complete, word-aligned block and release it before the drawer
+/// returns. Pointers into the block must not survive release.
+typedef struct {
+    SVECTOR vertices[4];     // Square's corners in the coordinate's own frame, all at one height
+    s32     depth;           // Latest corner's SZ3 / 4
+    s32     depthCue;        // GTE IR0 depth-cue coefficient of the latest corner, with 12 fractional bits; stored, never read
+    s32     projectionFlags; // GTE FLAG word of the latest corner; bit 31 makes it negative and rejects the shadow
+    u32     screenXy[4];     // Projected corners, one GTE screen word each (X in bits 0..15, Y in bits 16..31)
+    s32     farthestDepth;   // Largest corner depth so far, never below zero; selects the ordering-table entry
+} _ActorRenderGroundShadowScratch;
+STATIC_ASSERT_SIZEOF(_ActorRenderGroundShadowScratch, 0x40);
 
 u8* D_80114D10;
 
@@ -3334,87 +3339,87 @@ void Gp_SpawnArea(GameLocationKey* location)
 
 void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2)
 {
-    GpFloorQuadScratch* block;
-    POLY_FT4*           prim;
+    _ActorRenderGroundShadowScratch* scratch;
+    POLY_FT4*                        prim;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpFloorQuadScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_ActorRenderGroundShadowScratch);
     if (arg2 == NULL) {
-        block->vec[0].vx = -(arg1 >> 1);
-        block->vec[0].vy = 0;
-        block->vec[0].vz = -(arg1 >> 1);
+        scratch->vertices[0].vx = -(arg1 >> 1);
+        scratch->vertices[0].vy = 0;
+        scratch->vertices[0].vz = -(arg1 >> 1);
     } else {
-        block->vec[0].vx = arg2->vx - (arg1 >> 1);
-        block->vec[0].vy = arg2->vy;
-        block->vec[0].vz = arg2->vz - (arg1 >> 1);
+        scratch->vertices[0].vx = arg2->vx - (arg1 >> 1);
+        scratch->vertices[0].vy = arg2->vy;
+        scratch->vertices[0].vz = arg2->vz - (arg1 >> 1);
     }
-    block->vec[3].vy = block->vec[2].vy = block->vec[1].vy = block->vec[0].vy;
-    block->vec[1].vx = block->vec[3].vx = block->vec[0].vx + arg1;
-    block->vec[2].vx                    = block->vec[0].vx;
-    block->vec[2].vz = block->vec[3].vz = block->vec[0].vz + arg1;
-    block->vec[1].vz                    = block->vec[0].vz;
+    scratch->vertices[3].vy = scratch->vertices[2].vy = scratch->vertices[1].vy = scratch->vertices[0].vy;
+    scratch->vertices[1].vx = scratch->vertices[3].vx = scratch->vertices[0].vx + arg1;
+    scratch->vertices[2].vx                           = scratch->vertices[0].vx;
+    scratch->vertices[2].vz = scratch->vertices[3].vz = scratch->vertices[0].vz + arg1;
+    scratch->vertices[1].vz                           = scratch->vertices[0].vz;
     Gp_UpdateCoord(arg0);
     gte_SetRotMatrix(&arg0->workm);
     gte_SetTransMatrix(&arg0->workm);
-    block->maxotz = 0;
+    scratch->farthestDepth = 0;
 
-    gte_ldv0(&block->vec[0]);
+    gte_ldv0(&scratch->vertices[0]);
     gte_rtps();
-    gte_stsxy(&block->sxy0);
-    gte_stdp(&block->dp);
-    gte_stflg(&block->flag);
-    gte_stszotz(&block->otz);
-    if (block->otz > block->maxotz) {
-        block->maxotz = block->otz;
+    gte_stsxy(&scratch->screenXy[0]);
+    gte_stdp(&scratch->depthCue);
+    gte_stflg(&scratch->projectionFlags);
+    gte_stszotz(&scratch->depth);
+    if (scratch->depth > scratch->farthestDepth) {
+        scratch->farthestDepth = scratch->depth;
     }
 
-    gte_ldv0(&block->vec[1]);
+    gte_ldv0(&scratch->vertices[1]);
     gte_rtps();
-    gte_stsxy(&block->sxy1);
-    gte_stdp(&block->dp);
-    gte_stflg(&block->flag);
-    gte_stszotz(&block->otz);
-    if (block->otz > block->maxotz) {
-        block->maxotz = block->otz;
+    gte_stsxy(&scratch->screenXy[1]);
+    gte_stdp(&scratch->depthCue);
+    gte_stflg(&scratch->projectionFlags);
+    gte_stszotz(&scratch->depth);
+    if (scratch->depth > scratch->farthestDepth) {
+        scratch->farthestDepth = scratch->depth;
     }
 
-    gte_ldv0(&block->vec[2]);
+    gte_ldv0(&scratch->vertices[2]);
     gte_rtps();
-    gte_stsxy(&block->sxy2);
-    gte_stdp(&block->dp);
-    gte_stflg(&block->flag);
-    gte_stszotz(&block->otz);
-    if (block->otz > block->maxotz) {
-        block->maxotz = block->otz;
+    gte_stsxy(&scratch->screenXy[2]);
+    gte_stdp(&scratch->depthCue);
+    gte_stflg(&scratch->projectionFlags);
+    gte_stszotz(&scratch->depth);
+    if (scratch->depth > scratch->farthestDepth) {
+        scratch->farthestDepth = scratch->depth;
     }
 
-    gte_ldv0(&block->vec[3]);
+    gte_ldv0(&scratch->vertices[3]);
     gte_rtps();
-    gte_stsxy(&block->sxy3);
-    gte_stdp(&block->dp);
-    gte_stflg(&block->flag);
-    gte_stszotz(&block->otz);
-    if (block->otz > block->maxotz) {
-        block->maxotz = block->otz;
+    gte_stsxy(&scratch->screenXy[3]);
+    gte_stdp(&scratch->depthCue);
+    gte_stflg(&scratch->projectionFlags);
+    gte_stszotz(&scratch->depth);
+    if (scratch->depth > scratch->farthestDepth) {
+        scratch->farthestDepth = scratch->depth;
     }
 
-    if (block->flag >= 0) {
+    if (scratch->projectionFlags >= 0) {
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
-        GPU_PRIMITIVE_XY_WORD(prim, 0) = *(u32*)&block->sxy0;
-        GPU_PRIMITIVE_XY_WORD(prim, 1) = *(u32*)&block->sxy1;
-        GPU_PRIMITIVE_XY_WORD(prim, 2) = *(u32*)&block->sxy2;
-        GPU_PRIMITIVE_XY_WORD(prim, 3) = *(u32*)&block->sxy3;
+        GPU_PRIMITIVE_XY_WORD(prim, 0) = scratch->screenXy[0];
+        GPU_PRIMITIVE_XY_WORD(prim, 1) = scratch->screenXy[1];
+        GPU_PRIMITIVE_XY_WORD(prim, 2) = scratch->screenXy[2];
+        GPU_PRIMITIVE_XY_WORD(prim, 3) = scratch->screenXy[3];
         setUV4(prim, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
         prim->tpage = 0x48;
         prim->g0    = 0xC0;
         prim->b0    = 0xC0;
         prim->r0    = 0xC0;
         prim->clut  = 0x4283;
-        addPrim(&gGpuCurrentOt[block->maxotz >> 4], prim);
+        addPrim(&gGpuCurrentOt[scratch->farthestDepth >> 4], prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpFloorQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_ActorRenderGroundShadowScratch);
 }
 
 static void func_800B51F4(Task* task)

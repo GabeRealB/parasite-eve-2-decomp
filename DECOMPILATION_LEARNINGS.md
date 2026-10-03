@@ -38803,7 +38803,7 @@ li   v0,0xc0            <- emitted immediately before `sb v0,0xc(a0)`
 ```
 
 The target instead spends `li a1,0xf7` and `li v1,0xc0` on two of the five
-`lw`/`sw` load-delay slots in the `sxy` copies, and defers `lui a1,0xff00` to
+`lw`/`sw` load-delay slots in the `screenXy` copies, and defers `lui a1,0xff00` to
 the end. The pre-reload scheduler ranks by longest path to the end of the
 block, so the `addPrim` masks (which feed the `and`/`or`/`sw` chain) always
 outrank a constant that only feeds `sb`s — no statement order fixes that,
@@ -38831,9 +38831,9 @@ the `li`*, which is why picking the target's own registers (`v1`, `a1`) matters
 Same function, fanning one `SVECTOR` corner out to four:
 
 ```c
-s32 tmp = *(u16*)&block->vec[0].vx;      /* lhu v1 ; addu v0,v1,a1 — no `move` */
-block->vec[1].vx = block->vec[3].vx = tmp + arg1;
-block->vec[2].vx = tmp;
+s32 tmp = *(u16*)&scratch->vertices[0].vx;      /* lhu v1 ; addu v0,v1,a1 — no `move` */
+scratch->vertices[1].vx = scratch->vertices[3].vx = tmp + arg1;
+scratch->vertices[2].vx = tmp;
 ```
 
 A single `s32` local collapses to one pseudo, so the load lands directly in the
@@ -38843,8 +38843,8 @@ the copy — makes CSE forward the zero-extended load into the `s16` read and
 emit the target's `lhu v0` / `move v1,v0` / `addu v0,v0,a1`:
 
 ```c
-block->vec[1].vx = block->vec[3].vx = *(u16*)&block->vec[0].vx + arg1;
-block->vec[2].vx = block->vec[0].vx;
+scratch->vertices[1].vx = scratch->vertices[3].vx = *(u16*)&scratch->vertices[0].vx + arg1;
+scratch->vertices[2].vx = scratch->vertices[0].vx;
 ```
 
 That one change was worth 94.8% -> 96.9%. Reusing a *single* named temp across
