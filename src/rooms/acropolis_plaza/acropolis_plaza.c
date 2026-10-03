@@ -268,18 +268,6 @@ typedef struct AcropolisPlazaWork {
 } AcropolisPlazaWork;
 STATIC_ASSERT_SIZEOF(AcropolisPlazaWork, 0x28);
 
-/// Work block the plaza's opening sequence (`func_acropolis_plaza_8017ECF8`)
-/// allocates with `memMalloc(8, 0)` and parks in `Task::work`. `slot3` caches
-/// the slot-3 task every message in the
-/// sequence is addressed to; `timer` is the frame counter the waiting states
-/// step (0x3D frames in state 7, 0xB in state 11, 2 in state 12).
-typedef struct AcropolisPlazaOpeningWork {
-    /* 0x0 */ Task* slot3;
-    /* 0x4 */ s16   timer;
-    /* 0x6 */ byte  pad_6[0x2];
-} AcropolisPlazaOpeningWork;
-STATIC_ASSERT_SIZEOF(AcropolisPlazaOpeningWork, 0x8);
-
 /// The one scratch buffer the plaza's opening sequence shares between its area
 /// lookup and its last stream request. `key` is the location key states 6 and 8
 /// build from `gGameSession` before walking the nested area records for the
@@ -290,15 +278,19 @@ typedef union AcropolisPlazaOpeningBuf {
     /* 0x0 */ u8              slot[4];
 } AcropolisPlazaOpeningBuf;
 
-/// Work block the plaza's warp task (`func_acropolis_plaza_8017E7E4`) allocates
-/// with `memMalloc(8, 0)` and parks in `Task::work`. It only caches the slot-3
-/// task every message in the
-/// sequence (0x3F2 place, 0x3EE warp, 0x3F0 poll) is addressed to; the
-/// trailing four bytes are zeroed by `memFillBytes` and never read.
-typedef struct AcropolisPlazaWarpWork {
-    /* 0x0 */ Task* slot3;
-    /* 0x4 */ byte  pad_4[0x4];
-} AcropolisPlazaWarpWork;
+/// Work block of the plaza's player-scripting event tasks, kept in `Task::work`.
+///
+/// The sequence task answers a collision-trigger event of kind 0, 1 or 2 by
+/// spawning one of three tasks that take scripted control of the player: each
+/// walks the player to a mark, turns them to a heading and then runs its
+/// streamed scene. Each allocates and zeroes one block on its first frame, and
+/// kills itself when the allocation fails. Only the kind-2 task has timed
+/// waits; the other two leave `elapsedFrames` zero.
+typedef struct {
+    Task* playerTask;    // Borrowed player task the scripted-control messages are sent to; set once on the first frame
+    s16   elapsedFrames; // Frames counted in the current timed wait; restarted from 0 when one begins
+} _AcropolisPlazaEventWork;
+STATIC_ASSERT_SIZEOF(_AcropolisPlazaEventWork, 0x8);
 
 /// Work block the plaza's cutscene tasks reach through `Task::spawnArg2`.
 /// Every one of them (`func_acropolis_plaza_8017E7E4`, `..._8017E9A8`,
@@ -3876,11 +3868,11 @@ L_tail:
 /// once the session is out of its transition.
 void func_acropolis_plaza_8017E7E4(Task* task)
 {
-    ActorTransform          place;
-    ActorTransform          warp;
-    CdCmdQueue*             q    = &gCdCmdQueue;
-    AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
-    AcropolisPlazaWarpWork* newWork;
+    ActorTransform            place;
+    ActorTransform            warp;
+    CdCmdQueue*               q    = &gCdCmdQueue;
+    _AcropolisPlazaEventWork* work = (_AcropolisPlazaEventWork*)task->work;
+    _AcropolisPlazaEventWork* newWork;
 
     switch (task->state) {
         case 0:
@@ -3891,23 +3883,23 @@ void func_acropolis_plaza_8017E7E4(Task* task)
                 return;
             }
             memFillBytes(newWork, 0, sizeof(*newWork));
-            ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            place.pos.vx                                 = 0x3804;
-            place.pos.vy                                 = 0;
-            place.pos.vz                                 = 0xFC8;
-            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, &place, 0);
+            ((_AcropolisPlazaEventWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            place.pos.vx                                        = 0x3804;
+            place.pos.vy                                        = 0;
+            place.pos.vz                                        = 0xFC8;
+            TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &place, 0);
             task->state = task->state + 1;
             return;
         case 1:
-            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             warp.rot.vy = 0xD55;
-            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, &warp, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
-            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
@@ -3967,21 +3959,21 @@ static inline void _acropolisPlazaPlayPlayerAnimation(u16 animationId, u16 blend
 /// Re-places the player where its model's root transform currently stands,
 /// upright and facing `yaw` (4096 units per turn).
 ///
-/// `task` is the sequence task whose `AcropolisPlazaWarpWork` caches the
+/// `task` is the event task whose `_AcropolisPlazaEventWork` holds the
 /// player. The transform is consumed by the dispatch.
 static inline void _acropolisPlazaPlacePlayerAtModelRoot(Task* task, s32 yaw)
 {
     ActorTransform place;
     GfxCoord*      root;
 
-    root         = ((AcropolisPlazaWarpWork*)task->work)->slot3->extra.tmd->coords;
+    root         = ((_AcropolisPlazaEventWork*)task->work)->playerTask->extra.tmd->coords;
     place.pos.vx = root->coord.t[0];
     place.pos.vy = root->coord.t[1];
     place.pos.vz = root->coord.t[2];
     place.rot.vz = 0;
     place.rot.vx = 0;
     place.rot.vy = yaw;
-    TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, GAME_ACTOR_MESSAGE_PLACE, &place, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &place, 0);
 }
 
 /// Seven-state opening sequence for the plaza's streamed scene. State 0 allocates
@@ -3999,12 +3991,12 @@ static inline void _acropolisPlazaPlacePlayerAtModelRoot(Task* task, s32 yaw)
 /// (`func_acropolis_plaza_8017DE24(4)`), which the earlier states skip.
 void func_acropolis_plaza_8017E9A8(Task* task)
 {
-    ActorTransform          place;
-    ActorTransform          warp;
-    AnimationPlayRequest    script;
-    CdCmdQueue*             q    = &gCdCmdQueue;
-    AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
-    AcropolisPlazaWarpWork* newWork;
+    ActorTransform            place;
+    ActorTransform            warp;
+    AnimationPlayRequest      script;
+    CdCmdQueue*               q    = &gCdCmdQueue;
+    _AcropolisPlazaEventWork* work = (_AcropolisPlazaEventWork*)task->work;
+    _AcropolisPlazaEventWork* newWork;
 
     switch (task->state) {
         case 0:
@@ -4015,23 +4007,23 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 return;
             }
             memFillBytes(newWork, 0, sizeof(*newWork));
-            ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            place.pos.vx                                 = 0xF6E;
-            place.pos.vy                                 = 0;
-            place.pos.vz                                 = 0x2328;
-            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, &place, 0);
+            ((_AcropolisPlazaEventWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            place.pos.vx                                        = 0xF6E;
+            place.pos.vy                                        = 0;
+            place.pos.vz                                        = 0x2328;
+            TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &place, 0);
             task->state = task->state + 1;
             return;
         case 1:
-            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             warp.rot.vy = 0xD55;
-            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, &warp, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
-            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             script.source.sets          = D_actor_310100_801797FC;
@@ -4039,7 +4031,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             script.blend                = ANIMATION_BLEND_RESET;
             script.blendFrames          = 0;
             script.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(work->slot3, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
             task->state = task->state + 1;
             return;
         case 3:
@@ -4071,7 +4063,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             break;
         case 6:
             if (CdCmd_IsIdle() != 0) {
-                taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+                taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 Task_RequestKill(task, 0);
             }
             break;
@@ -4110,18 +4102,18 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// task. Every state from 7 on also steps the room's per-frame work.
 void func_acropolis_plaza_8017ECF8(Task* task)
 {
-    ActorTransform             place;
-    ActorTransform             warp;
-    u8                         slot[4];
-    ActorTransform             placeBack;
-    AnimationPlayRequest       roomRec;
-    AcropolisPlazaOpeningBuf   buf;
-    CdCmdQueue*                q    = &gCdCmdQueue;
-    AcropolisPlazaOpeningWork* work = (AcropolisPlazaOpeningWork*)task->work;
-    AcropolisPlazaOpeningWork* newWork;
-    GameLocationKey*           sessionKey;
-    AreaPlacement*             entry;
-    s32                        idx;
+    ActorTransform            place;
+    ActorTransform            warp;
+    u8                        slot[4];
+    ActorTransform            placeBack;
+    AnimationPlayRequest      roomRec;
+    AcropolisPlazaOpeningBuf  buf;
+    CdCmdQueue*               q    = &gCdCmdQueue;
+    _AcropolisPlazaEventWork* work = (_AcropolisPlazaEventWork*)task->work;
+    _AcropolisPlazaEventWork* newWork;
+    GameLocationKey*          sessionKey;
+    AreaPlacement*            entry;
+    s32                       idx;
 
     switch (task->state) {
         case 0:
@@ -4132,23 +4124,23 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 return;
             }
             memFillBytes(newWork, 0, sizeof(*newWork));
-            ((AcropolisPlazaOpeningWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            place.pos.vx                                    = 0x3DE;
-            place.pos.vy                                    = 0;
-            place.pos.vz                                    = 0x33FE;
-            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, &place, 0);
+            ((_AcropolisPlazaEventWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            place.pos.vx                                        = 0x3DE;
+            place.pos.vy                                        = 0;
+            place.pos.vz                                        = 0x33FE;
+            TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &place, 0);
             task->state = task->state + 1;
             return;
         case 1:
-            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             warp.rot.vy = 0x1000;
-            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3EE, &warp, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
-            if (taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
+            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
@@ -4199,12 +4191,12 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (q->movieReady == 0) {
                 return;
             }
-            taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
             placeBack.pos.vx = 0x3DE;
             placeBack.pos.vy = 0;
             placeBack.pos.vz = 0x439E;
             TASK_MESSAGE_DISPATCH_POINTER(
-                ((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, &placeBack, 0);
+                ((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &placeBack, 0);
             roomRec.source.index         = 1;
             roomRec.animationId          = 8;
             roomRec.blend                = ANIMATION_BLEND_RESET;
@@ -4239,15 +4231,15 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                                 sessionKey->area)
                     ->task,
                 0x7D3, &roomRec, 0);
-            task->state = task->state + 1;
-            work->timer = 0;
+            task->state         = task->state + 1;
+            work->elapsedFrames = 0;
             return;
         case 7:
-            if (work->timer == 0x1E) {
+            if (work->elapsedFrames == 0x1E) {
                 SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 3), 0, 0);
             }
-            work->timer = work->timer + 1;
-            if (work->timer >= 0x3D) {
+            work->elapsedFrames = work->elapsedFrames + 1;
+            if (work->elapsedFrames >= 0x3D) {
                 Task_SpawnFromTable(D_acropolis_plaza_80183824, 7, 9, 0);
                 task->state = task->state + 1;
             }
@@ -4281,7 +4273,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                                     sessionKey->area)
                         ->task,
                     0x7D7, 1, 0);
-                taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+                taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                 Gpu_ResetGraphAndOt();
                 Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 Mem_SetActiveAuxHeap(1);
@@ -4308,21 +4300,21 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 return;
             }
             func_800E8614(D_acropolis_plaza_801830DC, 1);
-            work->timer = 0;
-            task->state = task->state + 1;
+            work->elapsedFrames = 0;
+            task->state         = task->state + 1;
             return;
         case 11:
-            work->timer = work->timer + 1;
-            if (work->timer >= 0xB) {
+            work->elapsedFrames = work->elapsedFrames + 1;
+            if (work->elapsedFrames >= 0xB) {
                 SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0x0B), 0, 0);
                 Task_SpawnFromTable(D_acropolis_plaza_80183824, 8, 8, 0);
-                work->timer = 0;
-                task->state = task->state + 1;
+                work->elapsedFrames = 0;
+                task->state         = task->state + 1;
             }
             return;
         case 12:
-            work->timer = work->timer + 1;
-            if (work->timer >= 2) {
+            work->elapsedFrames = work->elapsedFrames + 1;
+            if (work->elapsedFrames >= 2) {
                 SetDispMask(1);
                 task->state = task->state + 1;
             }
@@ -4356,7 +4348,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
         case 15:
             if (CdCmd_IsIdle() != 0) {
                 SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 2), 0xB4);
-                taskMessageDispatch(work->slot3, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
+                taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
                 Task_RequestKill(task, 0);
             }
             func_acropolis_plaza_8017DE24(5);
