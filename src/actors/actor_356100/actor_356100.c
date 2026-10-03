@@ -86,7 +86,7 @@ typedef struct Actor356100Work {
     /// Countdown `func_actor_356100_8016A668` decrements every frame and
     /// tests with `(s16)` — the 0x0F / 0x10 state it picks when the counter
     /// wraps is the transition into the state 0xB / 0xC clip it is running.
-    /// Signed, like `Actor01900Work.field_6` / `Actor401300Work.field_6`;
+    /// Signed, like `Actor01900Work.field_6` / `_Actor401300Work.stateTimer`;
     /// `func_actor_356100_80167584` reads the same slot as a `u16` when it
     /// increments it, so it casts there.
     /* 0x006 */ s16 field_6;
@@ -156,7 +156,7 @@ typedef struct Actor356100Work {
     /// Color matrix bound to the model's `TmdObject::colorMtx`.
     /* 0xAF8 */ MATRIX field_AF8;
     /// Copy `func_actor_356100_80167584` saves `field_AF8` into when it enters
-    /// its state; same role as `Actor401300Work.field_C68` has for `field_C48`.
+    /// its state; same role as `_Actor401300Work.savedColorMtx` has for `colorMtx`.
     /* 0xB18 */ MATRIX field_B18;
     /* 0xB38 */ byte   pad_B38[2];
     /// Threshold `func_actor_356100_8016A834` tests once the enemy is still
@@ -178,7 +178,7 @@ typedef struct Actor356100Work {
     /* 0xB4A */ s16 field_B4A;
     /// Push distance `func_actor_356100_8016804C` normalises the root's own
     /// colour-matrix column by and walks down by 0xA per frame until the
-    /// state moves on; same role as `Actor401300Work.field_C98`.
+    /// state moves on; same role as `_Actor401300Work.slideStep`.
     /* 0xB4C */ s16 field_B4C;
     /// Clip-phase `func_actor_356100_80164ACC` walks 8 -> -1 -> 0 against
     /// `field_982` (at 0x18 and 0x12); same slot as `Actor01900Work.field_C26`.
@@ -204,10 +204,10 @@ typedef struct Actor356100Work {
     /* 0xB60 */ Task* field_B60;
     /// Halfword `func_actor_356100_80166CF0` clears after its state entry has
     /// run, next to the `field_B66` / `field_B68` latch pair the state-4 tick
-    /// clears; same slot as `Actor401300Work.field_D1C`.
+    /// clears; same slot as `_Actor401300Work.field_D1C`.
     /* 0xB64 */ s16 field_B64;
     /// Cleared next to `field_B68` on the state-4 entry; same slot as
-    /// `Actor401300Work.field_D1E`.
+    /// `_Actor401300Work.sidestepCount`.
     /* 0xB66 */ s16 field_B66;
     /// Latch `func_actor_356100_801668FC` and `func_actor_356100_80166018`
     /// clear after dispatching message 0x3F1, and set so that the next tick
@@ -762,7 +762,7 @@ static SVECTOR ActorContact_ScratchPosition;
 
 /// Effect record `func_actor_356100_80167818` fills for `func_800FDB18`:
 /// coordinate index 5 of the model, scale 0x100 and count 2. Same shape and
-/// roles as `Actor401300Work.field_910`.
+/// roles as `_Actor401300Work.effectArg`.
 extern EffectSpawnArg D_actor_356100_801732A8;
 
 /// Animation-set table bound to both work-block contexts by `animationInitContext`.

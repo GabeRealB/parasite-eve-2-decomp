@@ -103,7 +103,7 @@ extern ActorHeightClamp D_actor_401000_80154FD0[];
 /// Message 0x3E9 payload of `oddStrangerGrab`: the player task's
 /// world position, then the yaw from the actor to it, handed straight to the
 /// slot-3 handler. The 401000 twin of the block `func_actor_401300_80138800`
-/// keeps inline at `Actor401300Work.field_CD4` / `.field_CE4`.
+/// keeps inline at `_Actor401300Work.playerPlacement`.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).

@@ -85474,10 +85474,10 @@ follows, so the block schedules stall-free in the target's exact order and the
 allocation falls out (`work`→`$v1`, `enemy`→`$a1`, sentinel→`$a2`) at 100.000%:
 
 ```c
-    Actor401300Work* work  = (Actor401300Work*)task->work;
-    Enemy*         enemy = task->spawnArg2;
+    _Actor401300Work* work  = task->work;
+    Enemy*            enemy = task->spawnArg2;
 
-    if (enemy->hp != -0x3E7 && work->field_C8A == 0) {
+    if (enemy->hp != -0x3E7 && work->deathPending == 0) {
         enemy->hp = -0x3E7;
     }
 ```
@@ -85513,17 +85513,17 @@ The fix is the ordinary one - name the work block's fields at their absolute
 offsets and take their addresses:
 
 ```c
-typedef struct Actor401300Work {
+typedef struct {
     /* 0x000 */ byte  pad_0[0x970];
-    /* 0x970 */ WorldCollisionBody field_970;
+    /* 0x970 */ WorldCollisionBody hitBody;
     /* 0x990 */ byte  pad_990[0x120];
-    /* 0xAB0 */ WorldCollisionBody field_AB0;
+    /* 0xAB0 */ WorldCollisionBody gridBody;
     /* 0xAD0 */ byte  pad_AD0[0x120];
-    /* 0xBF0 */ WorldCollisionBody field_BF0;
+    /* 0xBF0 */ WorldCollisionBody attackBody;
     ...
-} Actor401300Work;
+} _Actor401300Work;
 
-Gp_UnlinkObj(&work->field_BF0);
+Gp_UnlinkObj(&work->attackBody);
 ```
 
 The BRIEF's "similar matched bodies" list is the shortcut: the same-shaped
@@ -102279,10 +102279,10 @@ needed `s16` parameters, not `s32` with casts: `(s16)arg` casts left the
 
 ## A local that outlives a CSE restart flips which register a jump-equality store uses; re-read the expression instead (func_actor_401300_8013346C, 2026-09-16)
 
-Shape: per switch case, a chain of `if (frame == K) { if (work->field_8BC != frame) { work->field_8BC = frame; return SE; } work->field_8BC = frame; break; }`.
+Shape: per switch case, a chain of `if (frame == K) { if (work->lastCueFrame != frame) { work->lastCueFrame = frame; return SE; } work->lastCueFrame = frame; break; }`.
 On the equal path both registers hold the same value, and CSE picks one for the
 store. Target: `sw $v1` (the frame) after every test *but the last* in a case,
-`sw $v0` (the loaded `field_8BC`) after the last one. That choice decides which
+`sw $v0` (the loaded `lastCueFrame`) after the last one. That choice decides which
 shared `j end; sw` tail each block cross-jumps into, so a wrong pick shows up as
 `branch`/`insert` noise far from the store.
 
@@ -107877,7 +107877,7 @@ lhu v0,0x6(s2)      /* candidate */
 ```
 
 `Actor401800Work.field_6` was declared `u16` (copied from the 401800 header). Declaring it
-`s16` — as both twins do (`Actor401300Work.field_6`, `Actor01900Work.field_6`) — made the
+`s16` — as both twins do (`_Actor401300Work.stateTimer`, `Actor01900Work.field_6`) — made the
 build 100.000%, and the overlay's own checksum still passed with no change to the other
 matched reader of that field.
 
@@ -108727,7 +108727,7 @@ evidence the original kept the payload in a work block.
 
 The twin here does. This body is `func_actor_401300_80138800` of
 `USA/actors/actor_401300` with the work-block offsets renamed, and the twin keeps
-the payload *inline* at `Actor401300Work.field_CD4` / `.field_CE4` — the only
+the payload *inline* at `_Actor401300Work.playerPlacement` — the only
 structural divergence between the two. Since the offsets differ,
 `overlay_dup_index.py find` reports this body as its own only copy (`1 copies`,
 and that one is itself), so a twin has to come from BRIEF's similarity classes;
@@ -109028,7 +109028,7 @@ the same call.
 
 The registry pair `func_actor_401300_80141DF4` (body in
 `src/actors/actor_401300/actor_401300_4.c`, ROM in its `matchings/` `.s`) is the
-oracle here: the two read together show that sibling's `switch (work->field_8A2)`
+oracle here: the two read together show that sibling's `switch (work->animId)`
 over its own `addiu $v0,$v0,-0xB` / `sltiu $v0,$v1,0x18` (cases 11/12/23/24/34),
 and the same single `sh $v0,0($s0)` shared by its two arm groups. A matched body
 beside its target assembly is the fastest way to recover a family's source shape.
@@ -112783,7 +112783,7 @@ reached the same destination homes (`radius` `$v1`, `scratch` `$a0`) from the
 routes agree and either can be the 100% move.
 
 Also needed, and each was observable on its own: `Actor356100Work::field_6` is
-`s16` (family convention — `Actor01900Work` / `Actor401300Work` both are), not the
+`s16` (family convention — `Actor01900Work` / `_Actor401300Work` both are), not the
 `u16` the header had, or the `== 0` test emits `lhu` where the target has `lh`;
 and filling the `D_actor_356100_801732A8` record with `field_0` first rather than
 last lets the model coordinate load schedule ahead of the two `sh` stores and the
@@ -134017,7 +134017,7 @@ include their load and mask pseudos; per-pseudo ratios omit this grouping.
 The target needs each flag chain in v0, with constant 3 and speed reusing v1.
 
 A controlled base_4 inserted `SOFT_BARRIER()` after radius/state setup and
-after the BF0 flag update, preloading `u16 speed = work->field_8A8` before the
+after the BF0 flag update, preloading `u16 speed = work->chaseRate` before the
 second boundary and storing it afterward. It reached 100%, all penalties zero;
 base_5 preserved 100% after porting to the real headers. Basic empty asm creates
 scheduler dependencies even without a memory clobber (sched.c:sched_analyze_2).
