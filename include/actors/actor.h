@@ -57,6 +57,22 @@ typedef struct ActorRepelScratch {
 } ActorRepelScratch;
 STATIC_ASSERT_SIZEOF(ActorRepelScratch, 0x88);
 
+/// Scratch-stack block of an actor's push out of its world contacts.
+///
+/// A push reserves one block, has its contact records resolved into `delta`,
+/// moves the actor's coordinate frame by the whole units of that correction
+/// and releases the block before returning. X and Z then take one more unit
+/// away from zero wherever the correction leaves a fraction, rounding the
+/// applied step outward. Nothing clears the block when it is reserved;
+/// `moved` is set explicitly and `delta` is the resolver's to write. The
+/// pushes that report `moved` read it after the release, while the bytes are
+/// still intact.
+typedef struct {
+    WorldCollisionDelta delta; // Correction resolved from the contact records, in signed 16.16 units
+    s32                 moved; // 1 when the X or Z correction is nonzero, so the push displaced the actor horizontally; 0 otherwise
+} ActorContactPushScratch;
+STATIC_ASSERT_SIZEOF(ActorContactPushScratch, 0x14);
+
 /// A step resolved against the contact records: the 16.16 deltas
 /// `func_800E0C10` resolves, their integer part (its XZ part capped in
 /// length), that part's XZ length, and whether the X or Z delta was nonzero.

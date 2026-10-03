@@ -883,6 +883,79 @@ static void func_actor_356100_80165B30(Task* arg0);
 static void func_actor_356100_80166018(Task* arg0);
 
 /// Tick that hands `func_800E0C10` the `field_A58` collision record.
+/// `actorMoveForwardNonzero` testing the freeze flag through a
+/// `McSaveData*` rather than `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`, and without its zero-amount guard.
+/// Reads the X component back through `vec`, as `Actor01900_StepForward` does —
+/// the `head[-1]` spelling gives the scratch release value a register of its
+/// own and costs three instructions here. Same body as
+/// `Actor401300_MoveForwardSave`.
+static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GfxCoord* coord, s16 amount)
+{
+    SVECTOR* head;
+    SVECTOR* vec;
+
+    if (save->state.actorsFrozen != 1) {
+        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+        vec                           = head - 1;
+        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
+        gfxReadMatrixZAxis(&coord->coord, vec);
+        VectorNormalSS(vec, vec);
+        gte_lddp(amount);
+        gte_ldsv(vec);
+        gte_gpf12();
+        gte_stsv(vec);
+        coord->coord.t[0]  += vec->vx;
+        coord->coord.t[1]  += vec->vy;
+        coord->coord.t[2]  += vec->vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
+    }
+}
+
+/// `Actor356100_PushRecords` testing the freeze flag through a `McSaveData*`,
+/// and giving the block back through the scratch stack itself rather than a
+/// saved `void**` — the saved pointer keeps the 0x1F8003FC constant live in a
+/// register across the release.
+static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height)
+{
+    ActorContactPushScratch* head;
+    ActorContactPushScratch* block;
+    s32                      val;
+
+    if (save->state.actorsFrozen != 1) {
+        head = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
+        SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
+        block        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
+        block->moved = 0;
+        if (func_800E0C10(rec, &block->delta, count, NULL) != 0) {
+            coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
+            coord->coord.t[1] += block->delta.fixed.vy.halves.integer;
+            coord->coord.t[2] += block->delta.fixed.vz.halves.integer;
+            val                = head[-1].delta.fixed.vx.word;
+            if ((val & 0xFFFF) != 0) {
+                if (val > 0) {
+                    coord->coord.t[0]++;
+                } else {
+                    coord->coord.t[0]--;
+                }
+            }
+            val = block->delta.fixed.vz.word;
+            if ((val & 0xFFFF) != 0) {
+                if (val > 0) {
+                    coord->coord.t[2]++;
+                } else {
+                    coord->coord.t[2]--;
+                }
+            }
+        }
+        coord->coord.t[1] += height;
+        if (block->delta.fixed.vx.word != 0 || block->delta.fixed.vz.word != 0) {
+            block->moved = 1;
+        }
+        SCRATCH_STACK_RELEASE_BLOCK(ActorContactPushScratch);
+    }
+}
+
 static void func_actor_356100_801668FC(Task* actor);
 
 /// Tick that dispatches message 0x3F1 and clears the `field_B68` latch.
@@ -1351,30 +1424,29 @@ static __inline__ void Actor356100_StepForward(GfxCoord* coord, s16 amount)
 }
 
 /// Pushes `coord` out of the `WorldCollisionContact` records `rec` by `func_800E0C10`'s
-/// averaged 16.16 delta, then lifts it by `height`. `head` is read before the
-/// 0x14-byte `OverlayDeltaFlag` block is reserved off the scratch stack, so
-/// the two spellings of the block in the body reach it the same way the
-/// original does — the negative offsets off `head` for the X component and the
-/// flag, `s` for the rest. Same body as `Actor01900_Fn00E00`'s push without
-/// its mask argument.
+/// averaged 16.16 delta, then lifts it by `height`. `head` is the scratch
+/// cursor read before the `ActorContactPushScratch` block is reserved, the
+/// block's end, so the body reaches the block two ways as the original does:
+/// back from `head` for the X correction, through `block` for the rest. Same
+/// body as `Actor01900_Fn00E00`'s push without its mask argument.
 static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height)
 {
-    void**            scratch;
-    u8*               head;
-    OverlayDeltaFlag* s;
-    s32               val;
+    void**                   scratch;
+    ActorContactPushScratch* head;
+    ActorContactPushScratch* block;
+    s32                      val;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         scratch = SCRATCH_HEAD_ADDR;
-        head    = SCRATCH_HEAD_AT(scratch, void);
-        SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-        s        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
-        s->moved = 0;
-        if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-            coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.fixed.vx.halves.integer;
-            coord->coord.t[1] += s->delta.fixed.vy.halves.integer;
-            coord->coord.t[2] += s->delta.fixed.vz.halves.integer;
-            val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.fixed.vx.word;
+        head    = SCRATCH_HEAD_AT(scratch, ActorContactPushScratch);
+        SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
+        block        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
+        block->moved = 0;
+        if (func_800E0C10(rec, &block->delta, count, NULL) != 0) {
+            coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
+            coord->coord.t[1] += block->delta.fixed.vy.halves.integer;
+            coord->coord.t[2] += block->delta.fixed.vz.halves.integer;
+            val                = head[-1].delta.fixed.vx.word;
             if ((val & 0xFFFF) != 0) {
                 if (val > 0) {
                     coord->coord.t[0]++;
@@ -1382,7 +1454,7 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionCo
                     coord->coord.t[0]--;
                 }
             }
-            val = s->delta.fixed.vz.word;
+            val = block->delta.fixed.vz.word;
             if ((val & 0xFFFF) != 0) {
                 if (val > 0) {
                     coord->coord.t[2]++;
@@ -1392,33 +1464,33 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionCo
             }
         }
         coord->coord.t[1] += height;
-        if (s->delta.fixed.vx.word != 0 || s->delta.fixed.vz.word != 0) {
-            s->moved = 1;
+        if (block->delta.fixed.vx.word != 0 || block->delta.fixed.vz.word != 0) {
+            block->moved = 1;
         }
-        SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorContactPushScratch);
     }
 }
 
-/// `Actor356100_PushRecords` without the freeze guard, returning `field_10`
-/// after the scratch is given back. The caller names `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` first so the
+/// `Actor356100_PushRecords` without the freeze guard, returning the block's
+/// `moved` after the scratch is given back. The caller names `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` first so the
 /// compare interleaves with the coordinate load.
 static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height)
 {
-    void**            scratch;
-    u8*               head;
-    OverlayDeltaFlag* s;
-    s32               val;
+    void**                   scratch;
+    ActorContactPushScratch* head;
+    ActorContactPushScratch* block;
+    s32                      val;
 
     scratch = SCRATCH_HEAD_ADDR;
-    head    = SCRATCH_HEAD_AT(scratch, void);
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-        coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.fixed.vx.halves.integer;
-        coord->coord.t[1] += s->delta.fixed.vy.halves.integer;
-        coord->coord.t[2] += s->delta.fixed.vz.halves.integer;
-        val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.fixed.vx.word;
+    head    = SCRATCH_HEAD_AT(scratch, ActorContactPushScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
+    block        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
+    block->moved = 0;
+    if (func_800E0C10(rec, &block->delta, count, NULL) != 0) {
+        coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
+        coord->coord.t[1] += block->delta.fixed.vy.halves.integer;
+        coord->coord.t[2] += block->delta.fixed.vz.halves.integer;
+        val                = head[-1].delta.fixed.vx.word;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[0]++;
@@ -1426,7 +1498,7 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollis
                 coord->coord.t[0]--;
             }
         }
-        val = s->delta.fixed.vz.word;
+        val = block->delta.fixed.vz.word;
         if ((val & 0xFFFF) != 0) {
             if (val > 0) {
                 coord->coord.t[2]++;
@@ -1436,11 +1508,11 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollis
         }
     }
     coord->coord.t[1] += height;
-    if (s->delta.fixed.vx.word != 0 || s->delta.fixed.vz.word != 0) {
-        s->moved = 1;
+    if (block->delta.fixed.vx.word != 0 || block->delta.fixed.vz.word != 0) {
+        block->moved = 1;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactPushScratch);
+    return block->moved;
 }
 
 static void func_actor_356100_80164158(Task* arg0)
@@ -1992,24 +2064,12 @@ static void func_actor_356100_801666B4(Task* arg0)
 
 static void func_actor_356100_801668FC(Task* actor)
 {
-    enum { FIXED_16_FRACTION_MASK = 0xFFFF };
-
-    Actor356100Work*  work;
-    Enemy*            enemy;
-    PlayerStatus*     playerStatus;
-    McSaveData*       saveData;
-    GfxCoord*         coord;
-    GfxCoord*         root;
-    u8*               scratchBase;
-    u8*               collisionScratchBase;
-    u8*               savedVectorHead;
-    u8*               savedCollisionHead;
-    SVECTOR*          movementDirection;
-    SVECTOR*          releasedVectorHead;
-    OverlayDeltaFlag* releasedCollisionHead;
-    OverlayDeltaFlag* collisionScratch;
-    OverlayDeltaFlag* resolvedStep;
-    s32               deltaWord;
+    Actor356100Work* work;
+    Enemy*           enemy;
+    PlayerStatus*    playerStatus;
+    McSaveData*      saveData;
+    GfxCoord*        coord;
+    GfxCoord*        root;
     // Matching constraint: preserve the state-selection register across the byte load.
     register s32 nextState asm("v0");
 
@@ -2035,76 +2095,11 @@ static void func_actor_356100_801668FC(Task* actor)
         saveData = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         coord    = actor->extra.tmd->coords;
         if (saveData->state.actorsFrozen != 1) {
-            // Move back along the local Z axis using a temporary direction.
-            // Reassign the address temporary to retain per-access absolute addressing.
-            scratchBase                                                = PLAYSTATION_SCRATCHPAD_BASE;
-            savedVectorHead                                            = *(u8**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET);
-            scratchBase                                                = savedVectorHead;
-            movementDirection                                          = (SVECTOR*)(savedVectorHead - sizeof(SVECTOR));
-            scratchBase                                                = PLAYSTATION_SCRATCHPAD_BASE;
-            *(SVECTOR**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = movementDirection;
-            scratchBase                                                = savedVectorHead;
-            gfxReadMatrixZAxis(&coord->coord, movementDirection);
-            VectorNormalSS(movementDirection, movementDirection);
-            gte_lddp(-0x78);
-            gte_ldsv(movementDirection);
-            gte_gpf12();
-            gte_stsv(movementDirection);
-            coord->coord.t[0]                                         += movementDirection->vx;
-            coord->coord.t[1]                                         += movementDirection->vy;
-            coord->coord.t[2]                                         += movementDirection->vz;
-            coord->composeStamp                                        = GRAPHICS_COORD_DIRTY;
-            scratchBase                                                = PLAYSTATION_SCRATCHPAD_BASE;
-            releasedVectorHead                                         = (*(SVECTOR**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1);
-            scratchBase                                                = savedVectorHead;
-            scratchBase                                                = PLAYSTATION_SCRATCHPAD_BASE;
-            *(SVECTOR**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = releasedVectorHead;
-            scratchBase                                                = savedVectorHead;
+            Actor356100_StepForwardSave(saveData, coord, -0x78);
         }
         root = actor->extra.tmd->coords;
         if (saveData->state.actorsFrozen != 1) {
-            // Apply the 16.16 integer halves, then a signed X/Z step for fractions.
-            collisionScratchBase                                                         = PLAYSTATION_SCRATCHPAD_BASE;
-            savedCollisionHead                                                           = *(u8**)(collisionScratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET);
-            collisionScratchBase                                                         = savedCollisionHead;
-            collisionScratch                                                             = (OverlayDeltaFlag*)(savedCollisionHead - sizeof(OverlayDeltaFlag));
-            collisionScratchBase                                                         = PLAYSTATION_SCRATCHPAD_BASE;
-            *(OverlayDeltaFlag**)(collisionScratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = collisionScratch;
-            collisionScratchBase                                                         = savedCollisionHead;
-
-            resolvedStep            = collisionScratch;
-            collisionScratch->moved = 0;
-            if (func_800E0C10(&work->field_A58, &collisionScratch->delta, 3, NULL) != 0) {
-                root->coord.t[0] += ((OverlayDeltaFlag*)savedCollisionHead)[-1].delta.fixed.vx.halves.integer;
-                root->coord.t[1] += collisionScratch->delta.fixed.vy.halves.integer;
-                root->coord.t[2] += collisionScratch->delta.fixed.vz.halves.integer;
-                deltaWord         = collisionScratch->delta.fixed.vx.word;
-                if ((deltaWord & FIXED_16_FRACTION_MASK) != 0) {
-                    if (deltaWord > 0) {
-                        root->coord.t[0]++;
-                    } else {
-                        root->coord.t[0]--;
-                    }
-                }
-                deltaWord = resolvedStep->delta.fixed.vz.word;
-                if ((deltaWord & FIXED_16_FRACTION_MASK) != 0) {
-                    if (deltaWord > 0) {
-                        root->coord.t[2]++;
-                    } else {
-                        root->coord.t[2]--;
-                    }
-                }
-            }
-            root->coord.t[1] += 0x10;
-            if (resolvedStep->delta.fixed.vx.word != 0 || resolvedStep->delta.fixed.vz.word != 0) {
-                resolvedStep->moved = 1;
-            }
-            collisionScratchBase                                                         = PLAYSTATION_SCRATCHPAD_BASE;
-            releasedCollisionHead                                                        = (*(OverlayDeltaFlag**)(collisionScratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1);
-            collisionScratchBase                                                         = savedCollisionHead;
-            collisionScratchBase                                                         = PLAYSTATION_SCRATCHPAD_BASE;
-            *(OverlayDeltaFlag**)(collisionScratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = releasedCollisionHead;
-            collisionScratchBase                                                         = savedCollisionHead;
+            Actor356100_PushRecordsSave(saveData, root, &work->field_A58, 3, 0x10);
         }
         actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
@@ -2492,79 +2487,6 @@ static void func_actor_356100_8016804C(Task* arg0)
         work->field_0 = 9;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
-}
-
-/// `actorMoveForwardNonzero` testing the freeze flag through a
-/// `McSaveData*` rather than `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`, and without its zero-amount guard.
-/// Reads the X component back through `vec`, as `Actor01900_StepForward` does —
-/// the `head[-1]` spelling gives the scratch release value a register of its
-/// own and costs three instructions here. Same body as
-/// `Actor401300_MoveForwardSave`.
-static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GfxCoord* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (save->state.actorsFrozen != 1) {
-        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-        vec                           = head - 1;
-        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        gfxReadMatrixZAxis(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        gte_gpf12();
-        gte_stsv(vec);
-        coord->coord.t[0]  += vec->vx;
-        coord->coord.t[1]  += vec->vy;
-        coord->coord.t[2]  += vec->vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
-    }
-}
-
-/// `Actor356100_PushRecords` testing the freeze flag through a `McSaveData*`,
-/// and giving the 0x14 bytes back through the scratch stack itself rather than a
-/// saved `void**` — the saved pointer keeps the 0x1F8003FC constant live in a
-/// register across the release.
-static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* coord, WorldCollisionContact* rec, s32 count, s16 height)
-{
-    u8*               head;
-    OverlayDeltaFlag* s;
-    s32               val;
-
-    if (save->state.actorsFrozen != 1) {
-        head = SCRATCH_STACK_CURSOR(u8);
-        SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-        s        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
-        s->moved = 0;
-        if (func_800E0C10(rec, &s->delta, count, NULL) != 0) {
-            coord->coord.t[0] += ((OverlayDeltaFlag*)(head - 0x14))->delta.fixed.vx.halves.integer;
-            coord->coord.t[1] += s->delta.fixed.vy.halves.integer;
-            coord->coord.t[2] += s->delta.fixed.vz.halves.integer;
-            val                = ((OverlayDeltaFlag*)(head - 0x14))->delta.fixed.vx.word;
-            if ((val & 0xFFFF) != 0) {
-                if (val > 0) {
-                    coord->coord.t[0]++;
-                } else {
-                    coord->coord.t[0]--;
-                }
-            }
-            val = s->delta.fixed.vz.word;
-            if ((val & 0xFFFF) != 0) {
-                if (val > 0) {
-                    coord->coord.t[2]++;
-                } else {
-                    coord->coord.t[2]--;
-                }
-            }
-        }
-        coord->coord.t[1] += height;
-        if (s->delta.fixed.vx.word != 0 || s->delta.fixed.vz.word != 0) {
-            s->moved = 1;
-        }
-        SCRATCH_STACK_RELEASE_BYTES(0x14);
-    }
 }
 
 /// Turn-and-rescale tick, the sibling of `func_actor_356100_8016804C` above it

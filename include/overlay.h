@@ -630,15 +630,6 @@ static __inline__ s32 overlayCoordBearingXZ(SVECTOR3* pos, GfxCoord* coord)
     return ratan2(d->vx, d->vz);
 }
 
-/// The scratch-pad block of a step resolved against contact records: the
-/// 16.16 deltas `func_800E0C10` resolves, then whether the X or Z delta was
-/// nonzero.
-typedef struct OverlayDeltaFlag {
-    WorldCollisionDelta delta;
-    s32            moved;
-} OverlayDeltaFlag;
-STATIC_ASSERT_SIZEOF(OverlayDeltaFlag, 0x14);
-
 /// One morph of a TMD model: what the included `modelMorph` code needs to
 /// snapshot the model's rest shape and to deform it by a 0..`ONE` ramp.
 ///

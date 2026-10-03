@@ -113086,6 +113086,13 @@ Scratch `nonmatchings/func_actor_356100_8016382C-vacuum`.
 
 ## `SCRATCH_STACK_CURSOR_SLOT` wants the address expanded at every use, not cached in a register (func_actor_356100_801668FC, 2026-09-16)
 
+**Superseded for this function (2026-10-04).** `func_actor_356100_801668FC`
+no longer carries the per-access copies described below: its two scratch
+blocks are `Actor356100_StepForwardSave` and `Actor356100_PushRecordsSave`,
+which expand to the same instructions once they are defined above it. See "A
+hand-expanded scratch walk can be an inline helper defined below its caller".
+The mechanism recorded here is still how the per-use address form arises.
+
 **Problem.** Every function in this overlay family that walks a scratch block
 starts from `SCRATCH_STACK_CURSOR_SLOT` (`0x1F8003FC`). Written the obvious way — the
 `SCRATCH_STACK_CURSOR_SLOT` macro, or the literal `*(u8**)0x1F8003FC` — `cse` hoists the
@@ -113342,10 +113349,37 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
 `nonmatchings/func_actor_356100_80166018-vacuum`; matching candidate `base_2.c`.
 
+## A hand-expanded scratch walk can be an inline helper defined below its caller (func_actor_356100_801668FC, 2026-10-04)
+
+**Problem.** `func_actor_356100_801668FC` was matched with both of its scratch
+blocks written out by hand: short-lived `scratchBase = PLAYSTATION_SCRATCHPAD_BASE;`
+copies killed after each access, a separate set of head/block locals per block,
+and a `collisionScratch`/`resolvedStep` pointer pair. Its sibling tick further
+down the file does the same two steps as
+`Actor356100_StepForwardSave(save, coord, n)` and
+`Actor356100_PushRecordsSave(save, root, recs, 3, 0x10)` with no scaffolding.
+
+**Cause.** Both helpers were *defined* after `func_actor_356100_801668FC`,
+with only prototypes above it. GCC 2.8.1 expands a `static __inline__` only
+where the definition precedes the call, so calling them there emitted two
+`jal`s and the checksum failed, which is what makes the hand expansion look
+necessary.
+
+**Fix.** Move the helper definitions above the first caller and call them.
+An inline whose every call is expanded emits no text, so moving it shifts
+nothing. The function matched at once, with the per-access copies, the split
+locals, the pointer pair and five casts of the cursor slot gone.
+
+**Check first.** Before building per-access scaffolding for a scratch block,
+look for an inline in the same file with the same body and try it defined
+above the caller. The related entry "A `static __inline__` called above its
+definition is a `jal`, not an expansion" covers the same ordering rule from
+the caller's side.
+
 ## A scratch reserve written as `*(T**)SCRATCH_STACK_CURSOR_SLOT -= 1` is what produces the `addiu`/`move` temp-and-copy pair (func_actor_356100_8016804C, 2026-09-16)
 
 **Problem.** This tick takes a 0xC-byte turn block and, inside it, a 0x14-byte
-`OverlayDeltaFlag`. The turn block matched immediately; the delta block was
+`ActorContactPushScratch`. The turn block matched immediately; the delta block was
 off by exactly one instruction, an `addiu` into a temporary followed by a copy:
 
 ```
@@ -113360,7 +113394,7 @@ gives one instruction fewer, because `cse` folds the temp away:
 
 ```
 /* 99.599% — no pair */
-s = (OverlayDeltaFlag*)(head - 0x14);
+s = (ActorContactPushScratch*)(head - 0x14);
 *scratch = s;
 
 /* v0/s1 shape, but the copies run the wrong way: move a1,v0 / move s1,a1 /
@@ -113373,8 +113407,8 @@ s = p;
 /* 100.000% — the reserve as the overlay writes it everywhere else */
 scratch = SCRATCH_STACK_CURSOR_SLOT;
 head    = *scratch;
-*(OverlayDeltaFlag**)SCRATCH_STACK_CURSOR_SLOT -= 1;
-s       = *(OverlayDeltaFlag**)SCRATCH_STACK_CURSOR_SLOT;
+*(ActorContactPushScratch**)SCRATCH_STACK_CURSOR_SLOT -= 1;
+s       = *(ActorContactPushScratch**)SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 **Mechanism.** The compound assignment leaves the decremented pointer in a

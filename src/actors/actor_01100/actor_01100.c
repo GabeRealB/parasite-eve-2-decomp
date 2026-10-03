@@ -1313,20 +1313,20 @@ static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, WorldCollisionC
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` is 1.
 static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact* contacts)
 {
-    OverlayDeltaFlag* head;
-    OverlayDeltaFlag* blk;
+    ActorContactPushScratch* head;
+    ActorContactPushScratch* block;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return 0;
     }
-    head = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    blk        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
-    blk->moved = 0;
-    if (func_800E0C10(contacts, &blk->delta, 3, NULL) != 0) {
+    head = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
+    block        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
+    block->moved = 0;
+    if (func_800E0C10(contacts, &block->delta, 3, NULL) != 0) {
         coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
-        coord->coord.t[1] += blk->delta.fixed.vy.halves.integer;
-        coord->coord.t[2] += blk->delta.fixed.vz.halves.integer;
+        coord->coord.t[1] += block->delta.fixed.vy.halves.integer;
+        coord->coord.t[2] += block->delta.fixed.vz.halves.integer;
         if (head[-1].delta.fixed.vx.word & 0xFFFF) {
             if (head[-1].delta.fixed.vx.word > 0) {
                 coord->coord.t[0] += 1;
@@ -1334,8 +1334,8 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact*
                 coord->coord.t[0] -= 1;
             }
         }
-        if (blk->delta.fixed.vz.word & 0xFFFF) {
-            if (blk->delta.fixed.vz.word > 0) {
+        if (block->delta.fixed.vz.word & 0xFFFF) {
+            if (block->delta.fixed.vz.word > 0) {
                 coord->coord.t[2] += 1;
             } else {
                 coord->coord.t[2] -= 1;
@@ -1343,11 +1343,11 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact*
         }
     }
     coord->coord.t[1] += 0x80;
-    if ((blk->delta.fixed.vx.word != 0) || (blk->delta.fixed.vz.word != 0)) {
-        blk->moved = 1;
+    if ((block->delta.fixed.vx.word != 0) || (block->delta.fixed.vz.word != 0)) {
+        block->moved = 1;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return blk->moved;
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactPushScratch);
+    return block->moved;
 }
 
 /// Disables grid and pair tests on both collision objects, retaining their links.
