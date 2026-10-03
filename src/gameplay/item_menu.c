@@ -37,13 +37,26 @@
 /// Prevents a cancel press from also activating the discard row it selected.
 enum { ITEM_MENU_LIST_ACTION_CANCEL_HANDLED = 0x21 };
 
-/// 4 prompt strings copied onto the stack by `Gp_ItemMenuPrompt` and indexed
-/// by `UiList::currentItemIndex`: All / Select / Discard / End
-/// (`Gp_StrAll` / `Gp_StrSelect` / `Gp_StrDiscard` / `Gp_StrEnd`).
+/// Row of the item-move command list.
+///
+/// The list counts three items, so End is stored and not dispatched. All is
+/// not selectable when the destination cannot take every source row.
+enum {
+    ITEM_MENU_PROMPT_ALL     = 0, // Move every source row across, then leave.
+    ITEM_MENU_PROMPT_SELECT  = 1, // Close the prompt and return to the inventory panes.
+    ITEM_MENU_PROMPT_DISCARD = 2, // Clear ammunition whose item is no longer carried, then leave.
+    ITEM_MENU_PROMPT_END     = 3, // Stored label; this row is not dispatched.
+    ITEM_MENU_PROMPT_COUNT   = 4
+};
+
+/// Command labels for the item-move list, copied whole and indexed by the
+/// list's current item.
+///
+/// Stored in row order: All, Select, Discard, End.
 typedef struct {
-    u8* texts[4];
-} GpPromptTexts;
-STATIC_ASSERT_SIZEOF(GpPromptTexts, 0x10);
+    u8* label[ITEM_MENU_PROMPT_COUNT]; // Row text (0 All, 1 Select, 2 Discard, 3 End).
+} _ItemMenuPromptTexts;
+STATIC_ASSERT_SIZEOF(_ItemMenuPromptTexts, 0x10);
 
 /// 0x1C work block allocated by `Gp_ItemMoveTask` (`memCalloc(0x1C, 0)`)
 /// and stored at `Task::work` / `Gp_ItemMoveWork`. `objs` holds the first two
@@ -112,7 +125,7 @@ static const char Gp_StrPlayerItem[];
 static const char Gp_StrBullet[];
 
 /* After Gp_StrBullet from func_800BDF6C so the overlay .rodata stays packed. */
-static const GpPromptTexts Gp_ItemPromptTexts;
+static const _ItemMenuPromptTexts Gp_ItemPromptTexts;
 
 /// Fullscreen-fade vector template used by `Gp_FadeTileTask` / `Gp_ItemPickupTilt`.
 static const VECTOR D_80093DB0;
@@ -146,8 +159,8 @@ void Gp_ItemActionListTask(Task* arg0);
 /// stack limit, reserves equipped rounds, and applies the transfer on confirm.
 void func_800BDF6C(Task* task);
 
-/// List-item callback for All / Select / Discard / End. Draws
-/// `Gp_ItemPromptTexts[field_8]`. Confirm: All → `result = 0x26`, Select → confirm,
+/// List-item callback for the item-move commands. Draws the
+/// `Gp_ItemPromptTexts` label for the current item. Confirm: All → `result = 0x26`, Select → confirm,
 /// Discard zeroes loaded ammunition quantities whose item is absent from
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems` and sets `result = 0x27`. Cancel once sets
 /// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
@@ -1189,7 +1202,7 @@ void func_800BDF6C(Task* task)
 }
 
 /* After Gp_StrBullet from func_800BDF6C so the overlay .rodata stays packed. */
-static const GpPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_StrDiscard, Gp_StrEnd };
+static const _ItemMenuPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_StrDiscard, Gp_StrEnd };
 /// Fullscreen-fade vector template used by `Gp_FadeTileTask` / `Gp_ItemPickupTilt`.
 static const VECTOR D_80093DB0 = { 0, -100, 0, 0 };
 
@@ -1235,11 +1248,11 @@ static inline void _gpDropOrphanedWeaponLoads(void)
 
 void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
 {
-    GpPromptTexts texts;
-    s32           mode;
+    _ItemMenuPromptTexts labels;
+    s32                  row;
 
-    texts = Gp_ItemPromptTexts;
-    if (arg0->currentItemIndex == 0) {
+    labels = Gp_ItemPromptTexts;
+    if (arg0->currentItemIndex == ITEM_MENU_PROMPT_ALL) {
         if (arg1->owner->spawnArg1.value == 0) {
             arg0->colorRgb = Ui_LookupTable(arg1, 2);
             if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
@@ -1249,11 +1262,11 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    mode = arg0->currentItemIndex;
-    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, texts.texts[mode], arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    row = arg0->currentItemIndex;
+    Text_DrawPrompt(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, labels.label[row], arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (arg0->currentItemIndex == 2) {
+        if (arg0->currentItemIndex == ITEM_MENU_PROMPT_DISCARD) {
             if (arg0->actionResult == ITEM_MENU_LIST_ACTION_CANCEL_HANDLED) {
                 arg0->actionResult = USER_INTERFACE_RESULT_NONE;
                 return;
@@ -1261,15 +1274,15 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             switch (arg0->currentItemIndex) {
-                case 0:
+                case ITEM_MENU_PROMPT_ALL:
                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                     arg1->result = 0x26;
                     break;
-                case 1:
+                case ITEM_MENU_PROMPT_SELECT:
                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                     arg1->result = USER_INTERFACE_RESULT_CONFIRM;
                     break;
-                case 2:
+                case ITEM_MENU_PROMPT_DISCARD:
                     SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                     _gpDropOrphanedWeaponLoads();
                     arg1->result = 0x27;
@@ -1277,12 +1290,12 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
-            if (arg0->selectedItemIndex == 2) {
+            if (arg0->selectedItemIndex == ITEM_MENU_PROMPT_DISCARD) {
                 _gpDropOrphanedWeaponLoads();
                 arg1->result = 0x27;
             } else {
                 arg0->actionResult      = ITEM_MENU_LIST_ACTION_CANCEL_HANDLED;
-                arg0->selectedItemIndex = 2;
+                arg0->selectedItemIndex = ITEM_MENU_PROMPT_DISCARD;
             }
         }
     }
@@ -1573,9 +1586,9 @@ void Gp_ItemMenuListTask(Task* arg0)
     if (arg0->state == 0) {
         Ui_LayoutListPanel(menu, &(obj)->panel);
         if (arg0->spawnArg1.value == 0) {
-            menu->selectedItemIndex = 1;
+            menu->selectedItemIndex = ITEM_MENU_PROMPT_SELECT;
         } else {
-            menu->selectedItemIndex = 0;
+            menu->selectedItemIndex = ITEM_MENU_PROMPT_ALL;
         }
         menu->flags  = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         arg0->state += 1;
