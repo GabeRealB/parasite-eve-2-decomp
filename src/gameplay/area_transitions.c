@@ -57,14 +57,12 @@ STATIC_ASSERT_SIZEOF(_AreaMapMarkRec, 2);
 /// Tables of no-arg callbacks copied onto the stack by the sibling
 /// dispatchers. `Gp_DirAction0` copies the 6-entry `Gp_WarpPhaseFns`;
 /// `Gp_DirAction1` copies the 5-entry `D_80093990`.
-typedef void (*GpVoidFunc)(void);
-
 typedef struct {
-    GpVoidFunc funcs[5];
+    DirectionActionHandler funcs[5];
 } GpVoidFuncTable5;
 
 typedef struct {
-    GpVoidFunc funcs[6];
+    DirectionActionHandler funcs[6];
 } GpVoidFuncTable6;
 
 /// `Gp_AreaTables[1]`, `[2]`, `[4]`, `[5]`. Splat labels the later slots as
