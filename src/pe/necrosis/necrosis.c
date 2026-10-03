@@ -55,16 +55,25 @@ typedef struct {
 } _NecrosisLevelTuning;
 STATIC_ASSERT_SIZEOF(_NecrosisLevelTuning, 4);
 
-/// Collision pair allocated by `func_necrosis_8012EF34` (`memCalloc(0x58)`)
-/// and stored in `Task::work`. `obj` is linked on list 1, `obj2` on list 7;
-/// both point `context.contacts` at the one-element `rec` table (terminator `field_0
-/// = 2`).
-typedef struct NecrosisWork {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionBody    obj2;
-    /* 0x40 */ WorldCollisionContact rec;
-} NecrosisWork;
-STATIC_ASSERT_SIZEOF(NecrosisWork, 0x58);
+/// Collision block of the travelling necrosis cloud, allocated zeroed on the
+/// cast's first running frame and kept at `Task::work`.
+///
+/// Both bodies are spheres centred on the origin of the coordinate the cloud
+/// travels on, and both borrow the one contact entry. The damage sphere is what
+/// the cloud hurts with: it takes pair tests only, and its key is the damage id
+/// of the spell being cast - contact category 2 with bit 0x8000, which selects
+/// the attachment level table, plus that spell and level's row number. The
+/// grid sphere is what stops the cloud: collision list 7 is walked only by the
+/// room-grid pass, and a contact with a class-0 room surface
+/// (`WORLD_COLLISION_CONTACT_GRID` alone) zeroes the cloud's velocity and
+/// unlinks that sphere, leaving the damage sphere growing in place. Both are
+/// unlinked when the travel time runs out or the cast ends early.
+typedef struct {
+    WorldCollisionBody    damageBody;  // Sphere linked on list 1; pair tests are enabled after the link. Launched with the level's `startRadius` and gains 0x20 each travelling frame
+    WorldCollisionBody    gridBody;    // Sphere of radius 0x80 linked on list 7 with a zero key; grid tests are enabled after the link, together with `WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT`, which sphere tests do not read
+    WorldCollisionContact contacts[1]; // One-entry table both bodies borrow. The entry is marked LAST; occupied contacts are cleared each travelling frame, and only a grid contact is ever looked for
+} _NecrosisWork;
+STATIC_ASSERT_SIZEOF(_NecrosisWork, 0x58);
 
 /// Per-level tuning for the necrosis cloud, one row per PE level 1-3, weakest
 /// first.
@@ -82,29 +91,29 @@ static void func_necrosis_80130288(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 
 /// Runs one frame of the necrosis cast. State 0 copies the player rotation onto
 /// the effect coordinate, rotates a (0, 0, 0x90) offset into that frame, and
-/// links a `NecrosisWork` collision pair (list 1 + list 7) whose packed id is
+/// links a `_NecrosisWork` collision pair (list 1 + list 7) whose packed id is
 /// the combo digits plus `0x28000`. State 1 GPF-scales that offset by 0x1100
 /// each frame, walks the coordinate, and spawns `0x80060019`; a `0x100000` hit
-/// on `obj2` zeros the offset and unlinks the list-7 object. State 2 waits
+/// on `gridBody` zeros the offset and unlinks the list-7 object. State 2 waits
 /// `travelFrames + 0x10` ticks. Any state releases if the player is dying
 /// (`Gp_StateC08.effectPhase` / `Gp_StateC08.effectPhase`) or parasite-energy effects are
 /// cancelled (`gRoomEffectState->peEffectControl`).
 void func_necrosis_8012EF34(Task* arg0)
 {
-    NecrosisWork*          work;
+    _NecrosisWork*         work;
     EffectWork*            mem;
     GfxCoord*              coord;
     GfxCoord*              player;
     GfxRotationWords*      destinationRotation;
     GfxRotationWords*      sourceRotation;
-    WorldCollisionContact* rec;
+    WorldCollisionContact* contacts;
     EffectWork*            spawned;
     s32                    pan;
     u16                    old;
     s32                    tick;
     s16                    peEffectControl;
 
-    work     = (NecrosisWork*)arg0->work;
+    work     = arg0->work;
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;
     old      = mem->age;
@@ -123,7 +132,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 mem->age = old;
                 return;
             }
-            work = memCalloc(0x58, 0);
+            work = memCalloc(sizeof(_NecrosisWork), 0);
             if (work == NULL) {
                 mem->age = 0;
                 return;
@@ -145,26 +154,26 @@ void func_necrosis_8012EF34(Task* arg0)
             gte_ldv0(&mem->move);
             gte_rtv0();
             gte_stsv(&mem->move);
-            rec                        = &work->rec;
-            mem->index                 = (Gp_StateC08.attachId % 10) - 1;
-            arg0->work                 = work;
-            work->obj.coord            = coord;
-            work->obj.context.contacts = rec;
-            work->obj.key =
+            contacts                          = work->contacts;
+            mem->index                        = (Gp_StateC08.attachId % 10) - 1;
+            arg0->work                        = work;
+            work->damageBody.coord            = coord;
+            work->damageBody.context.contacts = contacts;
+            work->damageBody.key =
                 ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.attachId % 10) + 0x28000;
-            work->obj.radius = D_necrosis_801306BC[mem->index].startRadius;
-            work->obj.flags  = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(1, &work->obj);
-            rec->flags                  = 2;
-            work->obj2.coord            = coord;
-            work->obj2.context.contacts = rec;
-            work->obj2.key              = 0;
-            work->obj2.radius           = 0x80;
-            work->obj2.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->obj.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_LinkObj(7, &work->obj2);
-            work->obj2.flags = (work->obj2.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
-            pan              = (s8)worldCoordGetOriginAudioPan(coord);
+            work->damageBody.radius = D_necrosis_801306BC[mem->index].startRadius;
+            work->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
+            Gp_LinkObj(1, &work->damageBody);
+            contacts->flags                 = WORLD_COLLISION_CONTACT_LAST;
+            work->gridBody.coord            = coord;
+            work->gridBody.context.contacts = contacts;
+            work->gridBody.key              = 0;
+            work->gridBody.radius           = 0x80;
+            work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->damageBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            Gp_LinkObj(7, &work->gridBody);
+            work->gridBody.flags = (work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
+            pan                  = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_necrosis_801306C8[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                 (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_SpawnPadLerp(D_necrosis_801306BC[mem->index].travelFrames + 0xC, 0xFF, 8);
@@ -187,28 +196,28 @@ void func_necrosis_8012EF34(Task* arg0)
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
-                work->obj.radius = work->obj.radius + 0x20;
+                work->damageBody.radius = work->damageBody.radius + 0x20;
             } else {
                 mem->age = mem->age - 1;
             }
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_UnlinkObj(&work->obj);
-                Gp_UnlinkObj(&work->obj2);
+                Gp_UnlinkObj(&work->damageBody);
+                Gp_UnlinkObj(&work->gridBody);
                 goto release;
             }
             if (mem->age > D_necrosis_801306BC[mem->index].travelFrames) {
-                Gp_UnlinkObj(&work->obj);
-                Gp_UnlinkObj(&work->obj2);
+                Gp_UnlinkObj(&work->damageBody);
+                Gp_UnlinkObj(&work->gridBody);
                 arg0->state = 2;
                 return;
             }
-            if (Gp_FindRec18(work->obj2.context.contacts, 0x100000) != 0) {
+            if (Gp_FindRec18(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
                 mem->move.vx = 0;
                 mem->move.vy = 0;
                 mem->move.vz = 0;
-                Gp_UnlinkObj(&work->obj2);
+                Gp_UnlinkObj(&work->gridBody);
             }
-            Gp_ClearRec18Occupied(&work->rec);
+            Gp_ClearRec18Occupied(work->contacts);
             return;
         case 2:
             if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
