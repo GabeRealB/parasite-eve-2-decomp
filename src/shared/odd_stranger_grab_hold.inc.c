@@ -21,7 +21,7 @@ void oddStrangerGrabHold(Task* arg0)
         taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 0), 0);
         Gp_SpawnPadLerp(5, 0xFF, 8);
     }
-    if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
 #if ODD_STRANGER_VARIANT == 2
         work->field_0 = 0xE;
 #endif
@@ -33,7 +33,7 @@ void oddStrangerGrabHold(Task* arg0)
         work->field_0 = 0xE;
 #endif
     }
-    work->field_894 = work->field_5A & 0x3FF;
+    work->field_894 = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
     oddStrangerDrive(arg0);
     gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;

@@ -21,7 +21,7 @@ void oddStrangerScriptPose8(Task* arg0)
         work->field_8A2               = work->field_8A4;
     }
     oddStrangerDrive(arg0);
-    if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 7;
     }
 }

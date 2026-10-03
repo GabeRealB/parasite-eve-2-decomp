@@ -9,7 +9,7 @@
 /// 0xB once the 0x44C range check fails inside 0x200 and re-arms at 0x1B past
 /// 0x5B frames, while the settled arm draws a turn direction from `gRandomLcgState`
 /// and flips it every 0xF1 frames. The tail takes one forward step off the
-/// 0x12C probe, or re-arms the clip on the `flags_68` bit. `field_C1B` counts
+/// 0x12C probe, or re-arms the clip on the `rig.slots[1].status` bit. `field_C1B` counts
 /// down once per entry.
 void oddStrangerStalk(Task* arg0)
 {
@@ -131,7 +131,7 @@ void oddStrangerStalk(Task* arg0)
                 actorMoveForward(arg0->extra.tmd->coords, 5);
             }
         }
-    } else if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    } else if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_89E = 2;
         work->field_898 = 1;
     }

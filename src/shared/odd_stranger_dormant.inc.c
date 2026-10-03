@@ -36,13 +36,13 @@ void oddStrangerDormant(Task* arg0)
         work->field_6 = 1;
     }
     oddStrangerDrive(arg0);
-    if ((work->field_5A & 0x3FF) == 4 && work->field_8B4 != (work->field_5A & 0x3FF)) {
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 4 && work->field_8B4 != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
         work->field_8B8.coord      = arg0->extra.tmd->coords + 1;
         work->field_8B8.spawnArgLo = ODD_STRANGER_PART1_FX_SCALE;
         work->field_8B8.spawnArgHi = 2;
         func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->field_8B8);
     }
-    work->field_8B4 = work->field_5A & 0x3FF;
+    work->field_8B4 = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
     coord           = arg0->extra.tmd->coords;
     d               = &delta;
     delta.vx        = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];

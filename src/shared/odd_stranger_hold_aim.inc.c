@@ -38,7 +38,7 @@ void oddStrangerHoldAim(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 7;
     }
     aim->turn       = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);

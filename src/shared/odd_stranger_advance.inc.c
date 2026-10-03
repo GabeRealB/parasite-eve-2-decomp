@@ -9,7 +9,7 @@
 /// `field_8F0` to `oddStrangerPushContacts` when it reports a hit, the
 /// `detectPlayerOutOfReach` probe takes one forward step out of
 /// `field_C04`, and that same countdown then runs down by 0xA a frame. The
-/// tail drops the actor to state 9 on the `flags_68` bit or once the
+/// tail drops the actor to state 9 on the `rig.slots[1].status` bit or once the
 /// countdown is spent.
 void oddStrangerAdvance(Task* arg0)
 {
@@ -60,7 +60,7 @@ void oddStrangerAdvance(Task* arg0)
         }
     }
     oddStrangerDrive(arg0);
-    if ((work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) || work->field_C04 == 0) {
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || work->field_C04 == 0) {
         work->field_0 = 9;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);

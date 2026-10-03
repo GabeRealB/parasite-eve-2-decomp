@@ -31,7 +31,7 @@ void oddStrangerGrabRelease(Task* arg0)
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         work->field_C28 = 0;
     }
-    if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7U) {
+    if ((u32)((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) - 0x10) < 7U) {
         if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C0C) != 0) {
             actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->field_C0C);
         }
@@ -41,7 +41,7 @@ void oddStrangerGrabRelease(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     oddStrangerDrive(arg0);
-    if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         kind = enemy->node.state.parts.targeted;
         if (kind == 1) {
             if (detectSightBlocked(arg0) == kind) {

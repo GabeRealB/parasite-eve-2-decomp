@@ -12,10 +12,10 @@
 /// `func_actor_401300_8013BB30` and `Actor01900_Fn0892C`. On the live-actor flag
 /// it arms the effect node, seeds the 0x8C0 spawn offset and the animation
 /// slots, and spawns clip 0x60030. `field_6` then counts up under `field_89E`:
-/// the state-2 arm waits 0x10 frames on `flags_68` bit 2 before switching to
+/// the state-2 arm waits 0x10 frames on `rig.slots[1].status` bit 2 before switching to
 /// 0x1A, runs the `0x12C`/0xA range probe and the `field_A30` obstacle slide,
 /// and spawns the three tinted key-frame effects at counts 3, 5 and 6; the
-/// state-0x1A arm gates on `flags_68` bit 0x100, dispatches the one-shot actions
+/// state-0x1A arm gates on `rig.slots[1].status` bit 0x100, dispatches the one-shot actions
 /// off `field_6 - 0x19`, and from 0x1A on rebuilds the root coordinate through
 /// `ratan2` at scale `0x1194 - (field_6 - 0x14) * 0xB`. Both arms end in
 /// `oddStrangerDrive` and `actorResetYaw` on nodes 2..10.
@@ -50,7 +50,7 @@ void oddStrangerWalkingDeath(Task* arg0)
     work->field_6 = next;
     switch (work->field_89E) {
         case 2:
-            if ((s16)next >= 0x10 && (work->flags_68.half & 2)) {
+            if ((s16)next >= 0x10 && (work->rig.slots[1].status.fields.flags & 2)) {
                 work->field_89E = 0x1A;
                 work->field_898 = 2;
                 work->field_8A2 = 0x10;
@@ -77,7 +77,7 @@ void oddStrangerWalkingDeath(Task* arg0)
             }
             break;
         case 0x1A:
-            if (!(work->flags_68.half & ANIMATION_SLOT_SETTLED)) {
+            if (!(work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
                 work->field_6 = 0;
             }
             switch ((s16)(work->field_6 - 0x19)) {

@@ -55,18 +55,6 @@
 #define ODD_STRANGER_VARIANT 1
 #include "../../shared/odd_stranger.h"
 
-/// Animation view of `OddStrangerWork`'s prefix. `animationInitContext` is handed the
-/// context, the pose buffer just past its slot array, and the array itself;
-/// the work block's own fields at 0x898 and up are not repeated here. Same
-/// shape as `Actor401300AnimWork`, 4 bytes earlier.
-typedef struct Actor401000AnimWork {
-    /* 0x000 */ byte           pad_0[0x1C];
-    /* 0x01C */ ActorAnimRig19 rig;
-    /* 0x458 */ ActorAnimRig19 blend;
-    /* 0x894 */ byte           pad_894[0x4];
-} Actor401000AnimWork;
-STATIC_ASSERT_SIZEOF(Actor401000AnimWork, 0x898);
-
 /// Animation bank `func_actor_401000_80133274` hands to both `animationInitContext`
 /// calls; the same `s32` the 401300 sibling keeps in `D_actor_401300_80158838`.
 extern AnimationSet* gOddStrangerAnimSets[46];
@@ -1173,11 +1161,11 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_401000_8013E09C.hpMax;
     enemy->param                  = &D_actor_401000_8013E09C;
     enemy->recs                   = work->field_8F0;
-    animationInitContext(&((Actor401000AnimWork*)work)->rig.anim, gOddStrangerAnimSets, obj,
-                         ((Actor401000AnimWork*)work)->rig.poses, ((Actor401000AnimWork*)work)->rig.slots);
-    animationInitContext(&((Actor401000AnimWork*)work)->blend.anim, gOddStrangerAnimSets,
-                         obj, ((Actor401000AnimWork*)work)->blend.poses,
-                         ((Actor401000AnimWork*)work)->blend.slots);
+    animationInitContext(&((OddStrangerWork*)work)->rig.anim, gOddStrangerAnimSets, obj,
+                         ((OddStrangerWork*)work)->rig.poses, ((OddStrangerWork*)work)->rig.slots);
+    animationInitContext(&((OddStrangerWork*)work)->blend.anim, gOddStrangerAnimSets,
+                         obj, ((OddStrangerWork*)work)->blend.poses,
+                         ((OddStrangerWork*)work)->blend.slots);
     work->field_898 = 2;
     work->field_89E = 2;
     work->field_89A = 0;
@@ -1613,7 +1601,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
                 actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->field_8A4 + 2) * 0x78) / 0x12 >> 2);
             }
         }
-    } else if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    } else if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_89E = 3;
         work->field_898 = 1;
     }
@@ -1692,7 +1680,7 @@ static void func_actor_401000_801378DC(Task* arg0)
         work->field_C1B                       = 0xA;
     }
     oddStrangerDrive(arg0);
-    if ((work->field_5A & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
         angle = actorMatrixPositionYaw(arg0, &delta, gPlayerStatus.coordMtx);
         if (abs(angle) < 0x10 && !oddStrangerOutOfRange(&delta, 0x44C)) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
@@ -1709,10 +1697,10 @@ static void func_actor_401000_801378DC(Task* arg0)
             }
         }
     }
-    if (work->field_89E == 4 && (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if (work->field_89E == 4 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->field_0 = 7;
     }
-    if ((u32)(work->field_5A & 0x3FF) >= 0x11) {
+    if ((u32)(work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x11) {
         p        = &delta;
         delta.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         delta.vy = 0;
@@ -1778,13 +1766,13 @@ static void func_actor_401000_801388F4(Task* arg0)
         actorMoveForward(arg0->extra.tmd->coords, -0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         if (work->field_89E == 0xA) {
             work->field_89E = 0xB;
             work->field_898 = 2;
             oddStrangerDrive(arg0);
         }
-        if ((work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) && work->field_89E == 0xB) {
+        if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->field_89E == 0xB) {
             work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             if (enemy->hp > 0) {
                 if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
@@ -1832,7 +1820,7 @@ static void func_actor_401000_80138BB4(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -1854,7 +1842,7 @@ static void func_actor_401000_80138BB4(Task* arg0)
 /// offset to `gPlayerStatus.coordMtx` is probed against `field_C16`, and an armed
 /// `gSceneCombatState` bit 0x50000, each dropping the actor to state 6. The tail runs
 /// `oddStrangerDrive` and swaps `field_89E` between 0xE and 0xF on
-/// `flags_68` bits 1 and 2, re-running the tick after each swap.
+/// `rig.slots[1].status` bits 1 and 2, re-running the tick after each swap.
 /// Same body as `func_actor_401300_80139520`, with the pose matrix in place of
 /// that one's `field_C48` / `field_C68` pair and a `field_C16` radius in place
 /// of its literal 3000.
@@ -1904,7 +1892,7 @@ static void func_actor_401000_80138F50(Task* arg0)
         work->field_0 = 6;
     }
     oddStrangerDrive(arg0);
-    if (work->field_89E == 0xE && (work->flags_68.half & 2)) {
+    if (work->field_89E == 0xE && (work->rig.slots[1].status.fields.flags & 2)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
             work->field_89E = 0xF;
@@ -1912,7 +1900,7 @@ static void func_actor_401000_80138F50(Task* arg0)
             oddStrangerDrive(arg0);
         }
     }
-    if (work->field_89E == 0xF && (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if (work->field_89E == 0xF && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->field_89E = 0xE;
         work->field_898 = 1;
         oddStrangerDrive(arg0);
@@ -2129,7 +2117,7 @@ static void func_actor_401000_8013CD9C(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->flags_68.half & ANIMATION_SLOT_SETTLED) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -2174,7 +2162,7 @@ static void func_actor_401000_8013CEF0(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->flags_68.half & ANIMATION_SLOT_SETTLED) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -2301,7 +2289,7 @@ static void func_actor_401000_8013DEC8(Task* arg0)
         work->field_8A2               = work->field_8A4;
     }
     oddStrangerDrive(arg0);
-    if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 7;
     }
 }

@@ -25,7 +25,7 @@ void oddStrangerScriptPoseD(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     oddStrangerDrive(arg0);
-    if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 7;
     }
 }

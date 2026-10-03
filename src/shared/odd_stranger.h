@@ -82,17 +82,6 @@ typedef struct OddStrangerWaypoint {
     /* 0x2 */ s16 z;
 } OddStrangerWaypoint;
 
-/// Status flags at `OddStrangerWork` + 0x68, read through two widths: the
-/// guards in this overlay test bit 0 or bit 0x100 as a halfword, while
-/// `oddStrangerStunned` tests bits 0x102 as a word, so both views are
-/// modelled explicitly rather than casting at the use site. The same shape as
-/// `MadChaserSlotFlags` / `Actor400500HitFlags`.
-typedef union OddStrangerSlotFlags {
-    /* 0x0 */ u32 word;
-    /* 0x0 */ u16 half;
-} OddStrangerSlotFlags;
-STATIC_ASSERT_SIZEOF(OddStrangerSlotFlags, 0x4);
-
 /// The Odd Stranger's work block, hanging off `Task::work` in both packages.
 ///
 /// Only the fields the decompiled code touches are named: among them the three
@@ -120,17 +109,16 @@ typedef struct OddStrangerWork {
     /* 0x014 */ s16                 field_14;
     /// Heading `actorMsgPlaceRecordYaw` takes from the root coordinate's
     /// Z axis once a placement record has been applied to it.
-    /* 0x016 */ s16                  yaw;
-    /* 0x018 */ byte                 pad_18[0x42];
-    /* 0x05A */ u16                  field_5A;
-    /* 0x05C */ byte                 pad_5C[0xC];
-    /* 0x068 */ OddStrangerSlotFlags flags_68;
-    /* 0x06C */ byte                 pad_6C[0x438];
-    /* 0x4A4 */ u16                  field_4A4; // the blend context's second slot flags, as actor_401800 reads them
-    /* 0x4A6 */ byte                 pad_4A6[0x3EE];
-    /* 0x894 */ s32                  field_894;
-    /* 0x898 */ s16                  field_898;
-    /* 0x89A */ s16                  field_89A;
+    /* 0x016 */ s16  yaw;
+    /* 0x018 */ byte pad_18[0x4];
+    /// The animation rig and its blend twin. Guards test the second slot's
+    /// status (`rig.slots[1].status`), and its record index is the keyframe
+    /// the stun and grab states compare against.
+    /* 0x01C */ ActorAnimRig19 rig;
+    /* 0x458 */ ActorAnimRig19 blend;
+    /* 0x894 */ s32            field_894;
+    /* 0x898 */ s16            field_898;
+    /* 0x89A */ s16            field_89A;
     /// Clip the body slots are playing; `oddStrangerDrive` moves it
     /// to the requested `field_89E` when it applies a clip change.
     /* 0x89C */ s16 field_89C;
@@ -323,24 +311,6 @@ typedef struct OddStrangerRigWork {
     /* 0x8B4 */ s32            field_8B4; // Last animation event index
 } OddStrangerRigWork;
 STATIC_ASSERT_SIZEOF(OddStrangerRigWork, 0x8B8);
-
-/// Animation view of the same task work block: the pose context at 0x1C and
-/// its slot array, then the blend context the actor keeps beside it. The
-/// arrays cover the slot indices the blended tick `oddStrangerTickBlended`
-/// walks; the offsets all match `Actor01900AnimWork`, and the tail overlays
-/// the work block's `field_8A2` / `field_8A4` (the state the slot writes step
-/// down by 3).
-typedef struct OddStrangerAnimWork {
-    /* 0x000 */ byte           pad_0[0x1C];
-    /* 0x01C */ ActorAnimRig19 rig;
-    /* 0x458 */ ActorAnimRig19 blend;
-    /* 0x894 */ byte           pad_894[0xE];
-    /* 0x8A2 */ s16            field_8A2;
-    /* 0x8A4 */ s16            field_8A4;
-    /* 0x8A6 */ byte           pad_8A6[4];
-    /* 0x8AA */ s16            field_8AA;
-    /* 0x8AC */ s16            field_8AC;
-} OddStrangerAnimWork;
 
 #include "main/task_types.h"
 

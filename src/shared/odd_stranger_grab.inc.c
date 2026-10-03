@@ -52,7 +52,7 @@ void oddStrangerGrab(Task* arg0)
     gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
-    if (work->field_89E == 5 && (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if (work->field_89E == 5 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
 #if ODD_STRANGER_VARIANT == 2
         work->field_0 = 0xD;
 #endif

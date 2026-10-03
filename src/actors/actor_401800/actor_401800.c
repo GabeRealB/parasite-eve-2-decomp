@@ -1183,10 +1183,10 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_401800_8013E6F0.hpMax;
     enemy->param                  = &D_actor_401800_8013E6F0;
     enemy->recs                   = work->field_8F0;
-    animationInitContext(&((OddStrangerAnimWork*)work)->rig.anim, gOddStrangerAnimSets, obj,
-                         ((OddStrangerAnimWork*)work)->rig.poses, ((OddStrangerAnimWork*)work)->rig.slots);
-    animationInitContext(&((OddStrangerAnimWork*)work)->blend.anim, gOddStrangerAnimSets, obj,
-                         ((OddStrangerAnimWork*)work)->blend.poses, ((OddStrangerAnimWork*)work)->blend.slots);
+    animationInitContext(&((OddStrangerWork*)work)->rig.anim, gOddStrangerAnimSets, obj,
+                         ((OddStrangerWork*)work)->rig.poses, ((OddStrangerWork*)work)->rig.slots);
+    animationInitContext(&((OddStrangerWork*)work)->blend.anim, gOddStrangerAnimSets, obj,
+                         ((OddStrangerWork*)work)->blend.poses, ((OddStrangerWork*)work)->blend.slots);
     work->field_898 = 2;
     work->field_89E = 2;
     work->field_89A = 0;
@@ -1491,7 +1491,7 @@ static void func_actor_401800_80136560(Task* arg0)
         } else if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, (((work->field_8A4 + 2) * 0x42) / 18) >> 2) != 0) {
             actorMoveForwardNonzero(arg0->extra.tmd->coords, (((work->field_8A4 + 2) * 0x42) / 18) >> 2);
         }
-    } else if (work->flags_68.half & 1) {
+    } else if (work->rig.slots[1].status.fields.flags & 1) {
         work->field_89E = 3;
         work->field_898 = 1;
     }
@@ -1627,7 +1627,7 @@ static void func_actor_401800_801381E4(Task* arg0)
         work->field_8CA                       = 0xA;
     }
     oddStrangerDrive(arg0);
-    if ((work->field_5A & 0x3FF) == 0x10 && gactor->mode != GAME_ACTOR_MODE_SCRIPTED) {
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && gactor->mode != GAME_ACTOR_MODE_SCRIPTED) {
         Actor401800_ViewWalk(arg0->extra.tmd->coords, &sv, &dir);
         ang = actorViewYaw(arg0->extra.tmd->coords, &dir);
         if (ang < 0) {
@@ -1648,10 +1648,10 @@ static void func_actor_401800_801381E4(Task* arg0)
             }
         }
     }
-    if (work->field_89E == 4 && (work->flags_68.half & 1)) {
+    if (work->field_89E == 4 && (work->rig.slots[1].status.fields.flags & 1)) {
         work->field_0 = 7;
     }
-    if ((u32)(work->field_5A & 0x3FF) >= 0x11U) {
+    if ((u32)(work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x11U) {
         dir.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         dir.vy = 0;
         dir.vz = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
@@ -1713,7 +1713,7 @@ static void func_actor_401800_8013945C(Task* arg0)
         actorStepForward(arg0->extra.tmd->coords, -0x57);
     }
     oddStrangerDrive(arg0);
-    if ((work->flags_68.half & 1) && (work->field_89E == 0xA)) {
+    if ((work->rig.slots[1].status.fields.flags & 1) && (work->field_89E == 0xA)) {
         work->field_89E = 0xB;
         work->field_898 = 2;
         oddStrangerDrive(arg0);
@@ -1721,7 +1721,7 @@ static void func_actor_401800_8013945C(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if ((work->flags_68.half & 1) && (work->field_89E == 0xB)) {
+    if ((work->rig.slots[1].status.fields.flags & 1) && (work->field_89E == 0xB)) {
         work->field_8D0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -1764,7 +1764,7 @@ static void func_actor_401800_8013971C(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->flags_68.half & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_8D0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -1806,7 +1806,7 @@ static void func_actor_401800_80139870(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->flags_68.half & 0x100) {
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->field_8D0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -1849,7 +1849,7 @@ static void func_actor_401800_801399C4(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->flags_68.half & 1) {
+    if (work->rig.slots[1].status.fields.flags & 1) {
         work->field_8D0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
             work->field_0 = 0x15;
@@ -1870,7 +1870,7 @@ static void func_actor_401800_801399C4(Task* arg0)
 /// frames re-test the squared XZ offset to the player against
 /// `field_C16` and arm `gSceneCombatState` state 6 on a miss — bit 0x50000 there arms
 /// it the same way. After the shared per-frame tick the body flips between
-/// states 0xE and 0xF, one LCG draw per attempt, on the two `flags_68` mask
+/// states 0xE and 0xF, one LCG draw per attempt, on the two `rig.slots[1].status` mask
 /// bits. Same shape as `oddStrangerDormant`.
 static void func_actor_401800_80139D60(Task* arg0)
 {
@@ -1922,7 +1922,7 @@ static void func_actor_401800_80139D60(Task* arg0)
     }
     oddStrangerDrive(arg0);
     if (work->field_89E == 0xE) {
-        if (work->flags_68.half & 2) {
+        if (work->rig.slots[1].status.fields.flags & 2) {
             lcg             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState = lcg;
             if ((lcg >> 16) & 1) {
@@ -1932,7 +1932,7 @@ static void func_actor_401800_80139D60(Task* arg0)
             }
         }
     }
-    if (work->field_89E == 0xF && (work->flags_68.half & 1)) {
+    if (work->field_89E == 0xF && (work->rig.slots[1].status.fields.flags & 1)) {
         work->field_89E = 0xE;
         work->field_898 = 1;
         oddStrangerDrive(arg0);
@@ -2182,7 +2182,7 @@ static void func_actor_401800_8013E4F0(Task* arg0)
     }
     work->field_6 = (u16)(work->field_6 + 1);
     oddStrangerDrive(arg0);
-    if (work->flags_68.half & 1) {
+    if (work->rig.slots[1].status.fields.flags & 1) {
         work->field_0 = 7;
     }
 }

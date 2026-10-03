@@ -3,11 +3,11 @@
 /// Enter the live-actor state: reinstate the model buffers, seed the
 /// `field_898` / `field_8A2` animation pair, fold the current `field_89E`
 /// state onto the 0x17/0x18 pair, then hold in `oddStrangerDrive`
-/// until the clip's `field_5A` frame count passes 6 (state 0x17) or 9 (state
-/// 0x18), or the `flags_68` word reports the actor gone. The un-flagged path
+/// until the clip's record index (`rig.slots[1].currentPose.indices.recordIndex`) passes 6 (state 0x17) or 9 (state
+/// 0x18), or the `rig.slots[1].status` word reports the actor gone. The un-flagged path
 /// halves `field_8A2` down to the +-0x10 turntable step and retires the actor
 /// once the enemy is spent. Same body as `func_actor_401300_80135DDC`, which
-/// drops the frame-count loop's `flags_68` guard and its own 0x36 test.
+/// drops the frame-count loop's `rig.slots[1].status` guard and its own 0x36 test.
 void oddStrangerStunned(Task* arg0)
 {
     OddStrangerWork* work;
@@ -42,14 +42,14 @@ void oddStrangerStunned(Task* arg0)
         }
         do {
             oddStrangerDrive(arg0);
-            if (work->field_89E == 0x17 && (work->field_5A & 0x3FF) >= 6) {
+            if (work->field_89E == 0x17 && (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 6) {
                 break;
             }
-            if (work->field_89E == 0x18 && (work->field_5A & 0x3FF) >= 9) {
+            if (work->field_89E == 0x18 && (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 9) {
                 break;
             }
 #if ODD_STRANGER_VARIANT == 1
-        } while (!(work->flags_68.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)));
+        } while (!(work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)));
 #else
         } while (1);
 #endif

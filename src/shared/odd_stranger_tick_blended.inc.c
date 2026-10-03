@@ -7,14 +7,14 @@
 /// and up only take the pose rate and are advanced unblended.
 void oddStrangerTickBlended(Task* arg0)
 {
-    AnimationPose        pose;
-    AnimationPose        blendPose;
-    AnimationContext*    anim;
-    s16                  weight;
-    s16                  i;
-    OddStrangerAnimWork* work;
+    AnimationPose     pose;
+    AnimationPose     blendPose;
+    AnimationContext* anim;
+    s16               weight;
+    s16               i;
+    OddStrangerWork*  work;
 
-    work   = (OddStrangerAnimWork*)arg0->work;
+    work   = (OddStrangerWork*)arg0->work;
     weight = work->field_8AC;
     anim   = &work->rig.anim;
     for (i = 1; i < 0x13; i++) {
