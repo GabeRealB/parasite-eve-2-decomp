@@ -142325,7 +142325,7 @@ sched1 re-sorts the stores and all orders compile identically.
 
 **Symptom.** The target reads the payload through `addiu a0,s2,4` but stores
 the checksum after the loop through `a3`, a copy of `s2` made in the loop
-guard's delay slot. Inlining a helper typed `(McChecksumBlock* block, s32 size)`
+guard's delay slot. Inlining a helper typed `(_McChecksumBlock* block, s32 size)`
 maps `block` straight onto the caller's pseudo, so the stores go through `s2`,
 and the register pressure change also swaps two callee-saved values elsewhere.
 
@@ -143093,7 +143093,7 @@ overlays write them; check the siblings' spelling before steering.
 
 **Symptom.** The Mc checksum body (`sum += (s8)*p` over `size - 4` bytes past a
 4-byte header) wants the walking pointer allocated before the count and the
-counter. Written with a local pointer (`ptr = block->field_4`), it loses: inlined
+counter. Written with a local pointer (`ptr = block->payload`), it loses: inlined
 into `Mc_InitBufferSlots` the count and the pointer swap `$a0`/`$v1`, standalone
 (`Mc_WriteBlockChecksum`, `Mc_VerifyBlockChecksum`) the pointer and `i` swap.
 Every earlier match carried a `register u8* ptr asm(...)` pin for it, and one
@@ -143112,13 +143112,13 @@ folded copy leaves stale refs on the walker too, lifting it above the count:
 ```c
 static inline void _mcWriteBlockChecksum(u8* data, s32 size)
 {
-    McChecksumBlock* block;
-    s16              sum;
-    u32              i;
+    _McChecksumBlock* block;
+    s16               sum;
+    u32               i;
 
-    block = (McChecksumBlock*)data;
+    block = (_McChecksumBlock*)data;
     sum   = 0;
-    data  = block->field_4;
+    data  = block->payload;
     size -= 4;
     i     = 0;
     if (size != 0) {
@@ -143128,14 +143128,14 @@ static inline void _mcWriteBlockChecksum(u8* data, s32 size)
             data += 1;
         } while (i < size);
     }
-    block->field_0 = sum;
-    block->field_2 = ~sum;
+    block->checksum           = sum;
+    block->checksumComplement = ~sum;
 }
 ```
 
 The same body, with no pin, matches the helper inlined into both
 `Mc_InitBufferSlots` and `Mc_StateBackupBuffers`, and the two standalone
-functions. A local `u8* ptr`, a `McChecksumBlock*` parameter with a local
+functions. A local `u8* ptr`, a `_McChecksumBlock*` parameter with a local
 walker, `count = size - 4`, `*ptr++`, `for`/`while` forms and statement order
 all keep the swap. When a pinned walker is the only thing left in a loop over a
 buffer argument, try walking the parameter before keeping the pin.

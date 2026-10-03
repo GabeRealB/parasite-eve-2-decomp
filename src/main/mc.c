@@ -55,20 +55,28 @@ typedef union {
 } McPromptChild;
 STATIC_ASSERT_SIZEOF(McPromptChild, 4);
 
-/// Checksummed buffer header (sum / ones-complement at 0x0 / 0x2, payload at 0x4).
-typedef struct _McChecksumBlock {
-    /* 0x0 */ s16 checksum;
-    /* 0x2 */ s16 checksumComplement;
-    /* 0x4 */ u8  payload[0]; // Variable payload; length comes from McBufferSlot.
-} McChecksumBlock;
+/// Generic view of a checksummed save record: a four-byte checksum header
+/// followed by the payload it covers.
+///
+/// Every record the memory-card slots 1..8 save opens with this header (the
+/// save image, the player status and the game-flag banks); the record's own
+/// type spells the same two fields. The checksum is the low 16 bits of the sum
+/// of the payload bytes read as `s8`. Saving stores both halves; verification
+/// compares only `checksum`.
+typedef struct {
+    u16 checksum;           // Sum of the payload bytes as signed bytes, modulo 65536
+    u16 checksumComplement; // Ones' complement of `checksum`
+    u8  payload[0];         // Record body; its length is the slot's `bytesPerCopy` minus this header
+} _McChecksumBlock;
+STATIC_ASSERT_SIZEOF(_McChecksumBlock, 4);
 
 /// 0xC descriptor for a memcard/save buffer slot in Mc_BufferSlots[9].
 /// buffer holds two checksummed copies, each bytesPerCopy bytes long.
 /// Iterated from index 1..8 by Mc_VerifyFirstByteChecksum and related helpers in mc.c.
 typedef struct _McBufferSlot {
-    /* 0x0 */ McChecksumBlock* buffer;
-    /* 0x4 */ s32              bytesPerCopy;
-    /* 0x8 */ s32              cardSectors;
+    /* 0x0 */ _McChecksumBlock* buffer;
+    /* 0x4 */ s32               bytesPerCopy;
+    /* 0x8 */ s32               cardSectors;
 } McBufferSlot;
 STATIC_ASSERT_SIZEOF(McBufferSlot, 0xC);
 
@@ -243,8 +251,9 @@ static void Mc_BuildFileName(u8* arg0, s32 arg1);
 
 static void Mc_InitDualBankBuffers(void);
 
-/// Store the checksum of a buffer's payload (the `size - 4` bytes after its
-/// header) in the header: the signed byte sum and its complement.
+/// Store the checksum of a `size`-byte record's payload (everything after its
+/// `_McChecksumBlock` header) in the header: the signed byte sum and its
+/// complement.
 static inline void _mcWriteBlockChecksum(u8* data, s32 size);
 
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).
@@ -653,15 +662,15 @@ static u8 Mc_DefaultChecksumSrc[] = {
 };
 
 McBufferSlot Mc_BufferSlots[9] = {
-    { (McChecksumBlock*)Mc_DefaultChecksumSrc, 0x100, 4 },
-    { (McChecksumBlock*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE], sizeof(McSaveData), MEMORY_CARD_SAVE_CARD_SECTORS },
-    { (McChecksumBlock*)&gPlayerStatus, PLAYER_STATUS_SAVE_RECORD_BYTES, 1 },
-    { (McChecksumBlock*)GameFlag_AcropolisBanks, GAME_FLAG_ACROPOLIS_BANK_BYTES, GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS },
-    { (McChecksumBlock*)GameFlag_DryfieldBanks, GAME_FLAG_DRYFIELD_BANK_BYTES, GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
-    { (McChecksumBlock*)GameFlag_DryfieldFullBanks, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES, GAME_FLAG_DRYFIELD_NIGHT_BANK_CARD_SECTORS },
-    { (McChecksumBlock*)GameFlag_ShelterBanks, GAME_FLAG_MINE_SHELTER_BANK_BYTES, GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS },
-    { (McChecksumBlock*)GameFlag_NeoArkBanks, GAME_FLAG_NEO_ARK_BANK_BYTES, GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS },
-    { (McChecksumBlock*)&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]), GAME_FLAG_NIBBLE_BANK_CARD_SECTORS },
+    { (_McChecksumBlock*)Mc_DefaultChecksumSrc, 0x100, 4 },
+    { (_McChecksumBlock*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE], sizeof(McSaveData), MEMORY_CARD_SAVE_CARD_SECTORS },
+    { (_McChecksumBlock*)&gPlayerStatus, PLAYER_STATUS_SAVE_RECORD_BYTES, 1 },
+    { (_McChecksumBlock*)GameFlag_AcropolisBanks, GAME_FLAG_ACROPOLIS_BANK_BYTES, GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS },
+    { (_McChecksumBlock*)GameFlag_DryfieldBanks, GAME_FLAG_DRYFIELD_BANK_BYTES, GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
+    { (_McChecksumBlock*)GameFlag_DryfieldFullBanks, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES, GAME_FLAG_DRYFIELD_NIGHT_BANK_CARD_SECTORS },
+    { (_McChecksumBlock*)GameFlag_ShelterBanks, GAME_FLAG_MINE_SHELTER_BANK_BYTES, GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS },
+    { (_McChecksumBlock*)GameFlag_NeoArkBanks, GAME_FLAG_NEO_ARK_BANK_BYTES, GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS },
+    { (_McChecksumBlock*)&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]), GAME_FLAG_NIBBLE_BANK_CARD_SECTORS },
 };
 
 static UiListRowCallback Mc_SaveSlotCallbacks[] = { Mc_StateSaveSlotUi };
@@ -756,18 +765,19 @@ static void Mc_InitDualBankBuffers(void)
     (&gPlayerStatus)[idx].weapon = two;
 }
 
-/// Store the checksum of a buffer's payload (the `size - 4` bytes after its
-/// header) in the header: the signed byte sum and its complement.
+/// Store the checksum of a `size`-byte record's payload (everything after its
+/// `_McChecksumBlock` header) in the header: the signed byte sum and its
+/// complement.
 static inline void _mcWriteBlockChecksum(u8* data, s32 size)
 {
-    McChecksumBlock* block;
-    s16              sum;
-    u32              i;
+    _McChecksumBlock* block;
+    s16               sum;
+    u32               i;
 
-    block = (McChecksumBlock*)data;
+    block = (_McChecksumBlock*)data;
     sum   = 0;
     data  = block->payload;
-    size -= 4;
+    size -= sizeof(_McChecksumBlock);
     i     = 0;
     if (size != 0) {
         do {
@@ -1068,16 +1078,16 @@ static inline u8* Mc_CopyTitleBytes(u8* src, u8* dst)
 
 static inline void Mc_UpdateTitleDataChecksum(void)
 {
-    u16              sum;
-    s32              count;
-    u8*              src;
-    McChecksumBlock* dst;
-    s32              i;
+    u16               sum;
+    s32               count;
+    u8*               src;
+    _McChecksumBlock* dst;
+    s32               i;
 
     sum                     = 0;
     count                   = 0x200;
     src                     = Mc_DefaultChecksumSrc;
-    dst                     = (McChecksumBlock*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.titleChecksum;
+    dst                     = (_McChecksumBlock*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.titleChecksum;
     i                       = 0;
     dst->checksum           = sum;
     dst->checksumComplement = 0xFFFF - (u32)sum;
@@ -1790,23 +1800,23 @@ static inline void _mcCopyBufferHalves(void)
 /// Inline form of Mc_WriteFirstByteChecksum.
 static inline void _mcWriteFirstByteChecksum(void)
 {
-    McChecksumBlock* temp;
-    McBufferSlot*    p;
-    McBufferSlot*    base;
-    s16              next;
-    s16              sum;
-    u32              i;
+    _McChecksumBlock* block;
+    McBufferSlot*     p;
+    McBufferSlot*     base;
+    s16               next;
+    s16               sum;
+    u32               i;
 
     sum  = 0;
     i    = 1;
     base = Mc_BufferSlots;
     p    = base + 1;
     do {
-        temp = p->buffer;
-        p   += 1;
-        i   += 1;
-        next = sum + *(u8*)temp;
-        sum  = next;
+        block = p->buffer;
+        p    += 1;
+        i    += 1;
+        next  = sum + (u8)block->checksum;
+        sum   = next;
     } while (i < 9U);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum           = next;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = ~next;
@@ -1814,9 +1824,9 @@ static inline void _mcWriteFirstByteChecksum(void)
 
 static void Mc_StateBackupBuffers(Task* task, McWork* work)
 {
-    McChecksumBlock* buf;
-    s32              size;
-    void*            mem;
+    _McChecksumBlock* buf;
+    s32               size;
+    void*             mem;
 
     if (work->slotsRemaining == 0) {
         _mcCopyBufferHalves();
@@ -2148,15 +2158,15 @@ static void Mc_StateSyncOpen(Task* task, McWork* work)
 /// Inline form of Mc_VerifySlotChecksums.
 static inline s32 _mcVerifySlotChecksums(void)
 {
-    McChecksumBlock* block;
-    McBufferSlot*    p;
-    McBufferSlot*    base;
-    s16              sum;
-    u32              count;
-    u32              i;
-    u32              j;
-    u8*              ptr;
-    s32              ok;
+    _McChecksumBlock* block;
+    McBufferSlot*     p;
+    McBufferSlot*     base;
+    s16               sum;
+    u32               count;
+    u32               i;
+    u32               j;
+    u8*               ptr;
+    s32               ok;
 
     ok   = 1;
     i    = 1;
@@ -2167,13 +2177,13 @@ static inline s32 _mcVerifySlotChecksums(void)
         block = p->buffer;
         count = p->bytesPerCopy;
         ptr   = block->payload;
-        count = count - 4;
+        count = count - sizeof(_McChecksumBlock);
         j     = 0;
         while (j < count) {
             j   += 1;
             sum += (s8)*ptr++;
         }
-        if ((u16)block->checksum != (sum & 0xFFFF)) {
+        if (block->checksum != (sum & 0xFFFF)) {
             ok = 0;
         }
         i += 1;
@@ -2186,15 +2196,15 @@ static inline s32 _mcVerifySlotChecksums(void)
 /// buffer slot 1..8's payload, and its complement, in the buffer's header.
 static inline void _mcWriteSlotChecksums(void)
 {
-    McChecksumBlock* block;
-    McBufferSlot*    p;
-    McBufferSlot*    base;
-    s16              sum;
-    s32              inv;
-    u32              count;
-    u32              i;
-    u32              j;
-    u8*              ptr;
+    _McChecksumBlock* block;
+    McBufferSlot*     p;
+    McBufferSlot*     base;
+    s16               sum;
+    s32               inv;
+    u32               count;
+    u32               i;
+    u32               j;
+    u8*               ptr;
 
     i    = 1;
     inv  = 0xFFFF;
@@ -2206,7 +2216,7 @@ static inline void _mcWriteSlotChecksums(void)
         block = p->buffer;
         count = p->bytesPerCopy;
         ptr   = block->payload;
-        count = count - 4;
+        count = count - sizeof(_McChecksumBlock);
         while (j < count) {
             j   += 1;
             sum += (s8)*ptr++;
@@ -2231,7 +2241,7 @@ static inline s32 _mcVerifyFirstByteChecksum(void)
     base = Mc_BufferSlots;
     p    = base + 1;
     do {
-        sum += *(u8*)p->buffer;
+        sum += (u8)p->buffer->checksum;
         p   += 1;
         i   += 1;
     } while (i < 9);
@@ -2674,14 +2684,14 @@ static s32 Mc_VerifySaveHdrChecksum(McSaveData* save)
 /// Out-of-line form of `_mcWriteBlockChecksum`. Nothing calls it.
 static void Mc_WriteBlockChecksum(u8* data, s32 size)
 {
-    McChecksumBlock* block;
-    s16              sum;
-    u32              i;
+    _McChecksumBlock* block;
+    s16               sum;
+    u32               i;
 
-    block = (McChecksumBlock*)data;
+    block = (_McChecksumBlock*)data;
     sum   = 0;
     data  = block->payload;
-    size -= 4;
+    size -= sizeof(_McChecksumBlock);
     i     = 0;
     if (size != 0) {
         do {
@@ -2747,14 +2757,14 @@ void Mc_InitLib(void)
 /// complement. Nothing calls it.
 static s32 Mc_VerifyBlockChecksum(u8* data, s32 size)
 {
-    McChecksumBlock* block;
-    s16              sum;
-    u32              i;
+    _McChecksumBlock* block;
+    s16               sum;
+    u32               i;
 
-    block = (McChecksumBlock*)data;
+    block = (_McChecksumBlock*)data;
     sum   = 0;
     data  = block->payload;
-    size -= 4;
+    size -= sizeof(_McChecksumBlock);
     i     = 0;
     if (size != 0) {
         do {
@@ -2763,7 +2773,7 @@ static s32 Mc_VerifyBlockChecksum(u8* data, s32 size)
             data += 1;
         } while (i < size);
     }
-    return ((u16)block->checksum ^ (sum & 0xFFFF)) == 0;
+    return (block->checksum ^ (sum & 0xFFFF)) == 0;
 }
 
 static void Mc_UnusedStub(void)
