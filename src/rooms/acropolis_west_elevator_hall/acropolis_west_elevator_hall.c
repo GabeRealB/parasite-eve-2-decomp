@@ -92,19 +92,17 @@ static u8 Reflection_Data_8017FC8C[];
 static TaskDesc D_acropolis_west_elevator_hall_801802A8[];
 
 /// The lift bay's two 256-entry RGB555 CLUTs and the blend destination:
-/// `...80184A04` is the unlit base palette, `...80184C04` the lit one and
-/// `...80184E04` the blended result that `...80185004` uploads to VRAM.
-extern u16 D_acropolis_west_elevator_hall_80184A04[];
-extern u16 D_acropolis_west_elevator_hall_80184C04[];
-// Color/byte updates and the GPU upload share the same backing storage.
-typedef union {
-    u16    colors[256];
-    u_long words[128];
-} AcropolisWestElevatorHallPalette;
-STATIC_ASSERT_SIZEOF(AcropolisWestElevatorHallPalette, 512);
-
-extern AcropolisWestElevatorHallPalette D_acropolis_west_elevator_hall_80184E04;
-extern GpuImageUpload                   D_acropolis_west_elevator_hall_80185004[];
+/// `D_acropolis_west_elevator_hall_80184A04` is the unlit base palette,
+/// `D_acropolis_west_elevator_hall_80184C04` the lit one and
+/// `D_acropolis_west_elevator_hall_80184E04` the blended result.
+///
+/// The blend result is written only as colours.
+/// `D_acropolis_west_elevator_hall_80185004` borrows it as packed words
+/// because that is the form the GPU upload takes.
+extern u16            D_acropolis_west_elevator_hall_80184A04[];
+extern u16            D_acropolis_west_elevator_hall_80184C04[];
+extern u16            D_acropolis_west_elevator_hall_80184E04[256];
+extern GpuImageUpload D_acropolis_west_elevator_hall_80185004[];
 
 /// The hall's two elevator-car tasks, spawned by the room task.
 extern Task* D_acropolis_west_elevator_hall_80186AE4[];
@@ -159,11 +157,10 @@ static TmdSource    _gAcropolisWestElevatorHallModel02DE8;
 static TmdSource    _gAcropolisWestElevatorHallModel03058;
 void                func_acropolis_west_elevator_hall_8017F418(Task*);
 
-extern AcropolisWestElevatorHallPalette D_acropolis_west_elevator_hall_80184E04;
-extern WorldCollisionGrid               D_acropolis_west_elevator_hall_801852FC[1];
-extern WorldCollisionTrigger            D_acropolis_west_elevator_hall_80185320[4];
-extern WorldCollisionTrigger            D_acropolis_west_elevator_hall_80185450[5];
-extern WorldCoordRoomLights             D_acropolis_west_elevator_hall_801869E4[1];
+extern WorldCollisionGrid    D_acropolis_west_elevator_hall_801852FC[1];
+extern WorldCollisionTrigger D_acropolis_west_elevator_hall_80185320[4];
+extern WorldCollisionTrigger D_acropolis_west_elevator_hall_80185450[5];
+extern WorldCoordRoomLights  D_acropolis_west_elevator_hall_801869E4[1];
 
 #include "../../shared/planar_reflection_data.inc.c"
 
@@ -601,10 +598,10 @@ u16 D_acropolis_west_elevator_hall_80184C04[256] = {
     0x8000,
 };
 
-AcropolisWestElevatorHallPalette D_acropolis_west_elevator_hall_80184E04 = { 0 };
+u16 D_acropolis_west_elevator_hall_80184E04[256] = { 0 };
 
 GpuImageUpload D_acropolis_west_elevator_hall_80185004[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 270, 256, 1 }, D_acropolis_west_elevator_hall_80184E04.words },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 270, 256, 1 }, (u_long*)D_acropolis_west_elevator_hall_80184E04 },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -1427,7 +1424,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
         for (i = 0; i < 0x100; i += 0x10) {
             Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
                                &D_acropolis_west_elevator_hall_80184A04[i], work->scale,
-                               &D_acropolis_west_elevator_hall_80184E04.colors[i]);
+                               &D_acropolis_west_elevator_hall_80184E04[i]);
         }
         Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
     }
@@ -1436,7 +1433,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
         for (i = 0; i < 0x100; i += 0x10) {
             Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
                                &D_acropolis_west_elevator_hall_80184A04[i], 0,
-                               &D_acropolis_west_elevator_hall_80184E04.colors[i]);
+                               &D_acropolis_west_elevator_hall_80184E04[i]);
         }
         Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
         effectKillTask(work, task);
