@@ -52,23 +52,56 @@
 #include "../../shared/screen_fade.h"
 #include "../../shared/glow_draw.h"
 
-/// Work block of the warehouse's cutscene task, allocated as 0x10 zeroed bytes
-/// by `func_dryfield_warehouse_8017E090` and parked in `Task::work`. `owner` is
-/// the slot-3 game pointer the task dispatches its messages to; `field_4` is
-/// the script step `func_dryfield_warehouse_8017DBB0` runs and `field_6` its
-/// sub-step, both set by `func_dryfield_warehouse_8017E3F4`; `field_8` and
-/// `field_E` are per-step frame counters; `playerEffActive` records that the
-/// script has hidden the player's effects and they are to be restored.
-typedef struct DwhWork {
-    /* 0x00 */ Task* owner;
-    /* 0x04 */ u16   field_4;
-    /* 0x06 */ u16   field_6;
-    /* 0x08 */ u16   field_8;
-    /* 0x0A */ byte  pad_A[0x2];
-    /* 0x0C */ u16   playerEffActive;
-    /* 0x0E */ u16   field_E;
-} DwhWork;
-STATIC_ASSERT_SIZEOF(DwhWork, 0x10);
+/// Commands the warehouse cutscene script leaves for the cutscene task.
+///
+/// Each one is stored over the previous command and restarts `commandStep`.
+/// The task carries it out on its later updates. Only the fade-out and the
+/// restore clear themselves; the others keep running until the script stores
+/// the next command.
+enum {
+    /// Nothing pending.
+    DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_NONE = 0,
+    /// Enables the display, spawns the fade-in task, suppresses the player's
+    /// effects, installs the room's animation set on the player and plays its
+    /// animation 1, and places the player at the cutscene placement. Then
+    /// keeps the looping area sound going.
+    DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_PLACE_AND_FADE_IN = 1,
+    /// Spawns the fade-out task and records it as the room's fade task.
+    DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_SPAWN_FADE_OUT = 2,
+    /// Restores suppressed player effects, plays the equipped weapon's
+    /// animation 1 and places the player at the closing placement on every
+    /// update. Spawns the fade-in task first, then raises staggered dust
+    /// puffs for `DRYFIELD_WAREHOUSE_CUTSCENE_DUST_FRAMES` updates.
+    DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_RESTORE_AND_FADE_IN = 3,
+    /// Holds the screen black, selects room 2 in the saved and live location
+    /// and, one update later, marks the view and room objects dirty. Plays
+    /// area sound 4 on its eleventh update.
+    DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_SWITCH_ROOM = 4,
+    /// Holds the screen black and keeps the looping area sound going,
+    /// restarting its interval.
+    DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_LOOP_SOUND = 5,
+};
+
+/// Updates between two plays of the cutscene's looping area sound.
+#define DRYFIELD_WAREHOUSE_CUTSCENE_SOUND_LOOP_FRAMES 60
+
+/// Updates the restore command spends raising dust before it clears itself.
+#define DRYFIELD_WAREHOUSE_CUTSCENE_DUST_FRAMES 36
+
+/// Work block of the warehouse cutscene task.
+///
+/// The task allocates and zeroes the whole block when the cutscene starts,
+/// then publishes itself so the room's script callbacks can reach it.
+typedef struct {
+    Task* player;                  // Player task captured when the cutscene starts. The animation install tests NULL; the other sends do not
+    u16   command;                 // Pending `DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_*`
+    u16   commandStep;             // Step within the command; zeroed with each new command
+    u16   commandFrames;           // Updates the restore and room-switch commands have run since their first step. The placement command zeroes it and never reads it
+    byte  field_A[2];              // Allocated and cleared with the block; no access. Role and width unproven
+    u16   playerEffectsSuppressed; // 0 none pending; 1 player effects were killed and still need to be spawned back
+    u16   soundLoopFrames;         // Updates counted towards the looping area sound, played each time the count divides by its interval
+} _DryfieldWarehouseCutsceneWork;
+STATIC_ASSERT_SIZEOF(_DryfieldWarehouseCutsceneWork, 0x10);
 
 extern AnimationSet*  D_dryfield_warehouse_8017F848[2];
 extern ActorTransform D_dryfield_warehouse_8017F850;
@@ -139,15 +172,15 @@ ActorTransform D_dryfield_warehouse_8017F868 = { { 4654, 0, -1968, 0 }, { 0, 512
 EvsCommand D_dryfield_warehouse_8017F880[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_LOOP_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_PLACE_AND_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_SPAWN_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_SWITCH_ROOM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_RESTORE_AND_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -446,9 +479,10 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
 
 /// Message handler of the warehouse's cutscene task. Message 0 re-opens the
 /// room: it kills the screen-fade task still on `D_dryfield_warehouse_801821C0`,
-/// turns the display back on and, while `DwhWork::playerEffActive` is up, ends
-/// the weapon effect and re-sends the player-weapon record. The owner is then
-/// handed an equipped-weapon bank request with animation 1, blending disabled
+/// turns the display back on and, while
+/// `_DryfieldWarehouseCutsceneWork::playerEffectsSuppressed` is set, spawns the
+/// weapon effect back, clears the latch and re-sends the player-weapon record.
+/// The player is then handed an equipped-weapon bank request with animation 1, blending disabled
 /// and world collision enabled, followed by the room's placement message.
 ///
 /// The session's weapon id is synced to 2 once, and `D_dryfield_warehouse_801821C4`
@@ -457,10 +491,10 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
 /// flag is one callee-saved value because both outlive the dispatches.
 void func_dryfield_warehouse_8017DA58(s32 arg0)
 {
-    DwhWork*             work;
-    AnimationPlayRequest rec;
-    s32                  weaponId;
-    s32                  anim;
+    _DryfieldWarehouseCutsceneWork* work;
+    AnimationPlayRequest            rec;
+    s32                             weaponId;
+    s32                             anim;
 
     switch (arg0) {
         case 0:
@@ -468,10 +502,10 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
                 taskKill(D_dryfield_warehouse_801821C0);
             }
             SetDispMask(1);
-            work = (DwhWork*)D_dryfield_warehouse_801821BC->work;
-            if (work->playerEffActive != 0) {
+            work = D_dryfield_warehouse_801821BC->work;
+            if (work->playerEffectsSuppressed != 0) {
                 Gp_SpawnWeaponEff();
-                work->playerEffActive = 0;
+                work->playerEffectsSuppressed = 0;
                 Gp_MsgPlayerWeapon(0);
             }
             weaponId                 = gPlayerStatus.weapon;
@@ -481,8 +515,8 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(work->owner, ANIMATION_MESSAGE_PLAY, &rec, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room != 2) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
                 gGameSession->location.loc.room                            = 2;
@@ -500,18 +534,16 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
     }
 }
 
-/// Per-frame script step of the warehouse's cutscene task, dispatched on
-/// `DwhWork::field_4` with `field_6` as the sub-step. States 1 and 5 advance a
-/// frame counter in `field_E` and play a sound every 60 frames; 3 re-sends the
-/// weapon record and spawns five staggered effects until `field_8` reaches 36;
-/// 4 and 5 draw a white fade. State 2 spawns entry 1 of the room task table into
-/// `D_dryfield_warehouse_801821C0`; it, state 0 and any unknown state reset
-/// `field_4` to 0, as does state 3 once its timer runs out.
+/// Carries out `_DryfieldWarehouseCutsceneWork::command` for one update.
+///
+/// The fade-out command, an unknown command and a restore command whose dust
+/// has run out leave the command cleared. The others return with it still
+/// pending, so they run again until the script stores the next one.
 static void func_dryfield_warehouse_8017DBB0(Task* arg0)
 {
-    DwhWork* work;
-    DwhWork* shared;
-    DwhWork* cur;
+    _DryfieldWarehouseCutsceneWork* work;
+    _DryfieldWarehouseCutsceneWork* sharedWork;
+    _DryfieldWarehouseCutsceneWork* cur;
     union {
         AnimationPlayRequest rec;
         SVECTOR              pos;
@@ -520,46 +552,47 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
     s32 weaponId;
     s32 anim;
 
-    work = (DwhWork*)arg0->work;
-    switch (work->field_4) {
-        case 0:
+    work = arg0->work;
+    switch (work->command) {
+        case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_NONE:
             break;
-        case 1:
-            switch (work->field_6) {
+        case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_PLACE_AND_FADE_IN:
+            switch (work->commandStep) {
                 case 0:
                     SetDispMask(1);
                     Task_SpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
                     Gp_KillPlayerEffs();
-                    work->playerEffActive = 1;
-                    cur                   = (DwhWork*)arg0->work;
-                    if (cur->owner != NULL) {
+                    work->playerEffectsSuppressed = 1;
+                    cur                           = arg0->work;
+                    if (cur->player != NULL) {
                         msg.rec.source.sets          = D_dryfield_warehouse_8017F848;
                         msg.rec.animationId          = 1;
                         msg.rec.blend                = ANIMATION_BLEND_RESET;
                         msg.rec.blendFrames          = 0;
                         msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
-                    TASK_MESSAGE_DISPATCH_POINTER(work->owner, 0x3E9, &D_dryfield_warehouse_8017F850, 0);
-                    work->field_8 = 0;
-                    work->field_6++;
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3E9, &D_dryfield_warehouse_8017F850, 0);
+                    work->commandFrames = 0;
+                    work->commandStep++;
                     break;
                 case 1:
-                    if ((work->field_E % 60) == 0) {
+                    if ((work->soundLoopFrames % DRYFIELD_WAREHOUSE_CUTSCENE_SOUND_LOOP_FRAMES) == 0) {
                         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 3), 0, 0);
                     }
                     break;
             }
-            work->field_E++;
+            work->soundLoopFrames++;
             return;
-        case 2:
+        case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_SPAWN_FADE_OUT:
             D_dryfield_warehouse_801821C0 = Task_SpawnFromTable(D_dryfield_warehouse_8017FB08, 1, 8, 0);
             break;
-        case 3:
-            shared = (DwhWork*)D_dryfield_warehouse_801821BC->work;
-            if (shared->playerEffActive != 0) {
+        case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_RESTORE_AND_FADE_IN:
+            // The restore goes through the published cutscene task's block.
+            sharedWork = D_dryfield_warehouse_801821BC->work;
+            if (sharedWork->playerEffectsSuppressed != 0) {
                 Gp_SpawnWeaponEff();
-                shared->playerEffActive = 0;
+                sharedWork->playerEffectsSuppressed = 0;
                 Gp_MsgPlayerWeapon(0);
             }
             weaponId                     = gPlayerStatus.weapon;
@@ -570,94 +603,97 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             msg.rec.blendFrames          = 0;
             msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
-            TASK_MESSAGE_DISPATCH_POINTER(shared->owner, ANIMATION_MESSAGE_PLAY, &msg.rec, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(shared->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
-            switch (work->field_6) {
+            TASK_MESSAGE_DISPATCH_POINTER(sharedWork->player, ANIMATION_MESSAGE_PLAY, &msg.rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sharedWork->player, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
+            switch (work->commandStep) {
                 case 0:
                     Task_SpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
-                    work->field_8 = 0;
-                    work->field_6++;
+                    work->commandFrames = 0;
+                    work->commandStep++;
                     return;
                 case 1:
-                    work->field_8++;
-                    shared     = (DwhWork*)arg0->work;
+                    // Five puffs along the Z axis, one per update in turn, each
+                    // repeating every eighth update. The block is fetched again
+                    // from the task for the phase tests.
+                    work->commandFrames++;
+                    sharedWork = arg0->work;
                     msg.pos.vx = 0x1644;
                     msg.pos.vy = 0;
-                    if (!(shared->field_8 & 7)) {
+                    if (!(sharedWork->commandFrames & 7)) {
                         msg.pos.vz = -500;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
-                    if (!((shared->field_8 + 1) & 7)) {
+                    if (!((sharedWork->commandFrames + 1) & 7)) {
                         msg.pos.vz = -700;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
-                    if (!((shared->field_8 + 2) & 7)) {
+                    if (!((sharedWork->commandFrames + 2) & 7)) {
                         msg.pos.vz = -900;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
-                    if (!((shared->field_8 + 3) & 7)) {
+                    if (!((sharedWork->commandFrames + 3) & 7)) {
                         msg.pos.vz = -1100;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
-                    if (!((shared->field_8 + 4) & 7)) {
+                    if (!((sharedWork->commandFrames + 4) & 7)) {
                         msg.pos.vz = -1300;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
-                    if (work->field_8 >= 36) {
-                        work->field_4 = 0;
+                    if (work->commandFrames >= DRYFIELD_WAREHOUSE_CUTSCENE_DUST_FRAMES) {
+                        work->command = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_NONE;
                     }
                     SetDispMask(1);
                     return;
             }
             break;
-        case 4:
+        case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_SWITCH_ROOM:
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
-            switch (work->field_6) {
+            switch (work->commandStep) {
                 case 0:
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
                     gGameSession->location.loc.room                            = 2;
-                    work->field_8                                              = 0;
-                    work->field_6++;
+                    work->commandFrames                                        = 0;
+                    work->commandStep++;
                     break;
                 case 1:
                     gGameSession->viewDirty     = 1;
                     gGameSession->roomObjsDirty = 1;
-                    work->field_6++;
+                    work->commandStep++;
                     break;
                 case 2:
                     break;
             }
-            if (work->field_8 == 10) {
+            if (work->commandFrames == 10) {
                 SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 4), 0, 0);
             }
-            work->field_8++;
+            work->commandFrames++;
             return;
-        case 5:
+        case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_LOOP_SOUND:
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
-            switch (work->field_6) {
+            switch (work->commandStep) {
                 case 0:
-                    D_80115768    = 0;
-                    work->field_E = 0;
-                    work->field_6++;
+                    D_80115768            = 0;
+                    work->soundLoopFrames = 0;
+                    work->commandStep++;
                     break;
                 case 1:
-                    if ((work->field_E % 60) == 0) {
+                    if ((work->soundLoopFrames % DRYFIELD_WAREHOUSE_CUTSCENE_SOUND_LOOP_FRAMES) == 0) {
                         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 3), 0, 0);
                     }
                     break;
             }
-            work->field_E++;
+            work->soundLoopFrames++;
             return;
     }
-    work->field_4 = 0;
+    work->command = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_NONE;
 }
 
-/// Main loop of the warehouse's cutscene task, the owner of the 0x10-byte
-/// `DwhWork` block. State 0 arms the script once: it waits while the attachment wheel
+/// Main loop of the warehouse's cutscene task, the owner of the
+/// `_DryfieldWarehouseCutsceneWork` block. State 0 arms the script once: it waits while the attachment wheel
 /// is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is live, so it does nothing.
 /// Otherwise it parks the zeroed work block in `Task::work` -- a failed
 /// `memMalloc` kills the task, but the record below is dispatched either way --
-/// fills `owner` from pointer slot 3 and republishes this task as
+/// fills `player` from pointer slot 3 and republishes this task as
 /// `D_dryfield_warehouse_801821BC` so the room's script helpers reach that block.
 ///
 /// The initial equipped-weapon request selects animation 1 without blending
@@ -668,10 +704,10 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
 /// has torn down (`gGameSession->eventState`), otherwise runs the script.
 void func_dryfield_warehouse_8017E090(Task* arg0)
 {
-    DwhWork*             work;
-    AnimationPlayRequest rec;
-    s32                  weaponId;
-    s32                  anim;
+    _DryfieldWarehouseCutsceneWork* work;
+    AnimationPlayRequest            rec;
+    s32                             weaponId;
+    s32                             anim;
 
     switch (arg0->state) {
         case 0:
@@ -682,7 +718,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     taskKill(arg0);
                 } else {
                     memFillBytes(work, 0, sizeof(*work));
-                    work->owner                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    work->player                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_dryfield_warehouse_801821BC = arg0;
                 }
                 weaponId                 = gPlayerStatus.weapon;
@@ -756,14 +792,14 @@ void func_dryfield_warehouse_8017E308(Task* arg0)
     }
 }
 
-/// Hands the warehouse's cutscene task the script step `arg0` to run,
-/// starting from its first sub-step.
+/// Leaves the `DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_*` value `arg0` for the
+/// warehouse's cutscene task, to be carried out from its first step.
 void func_dryfield_warehouse_8017E3F4(s16 arg0)
 {
-    DwhWork* work = (DwhWork*)D_dryfield_warehouse_801821BC->work;
+    _DryfieldWarehouseCutsceneWork* work = D_dryfield_warehouse_801821BC->work;
 
-    work->field_4 = arg0;
-    work->field_6 = 0;
+    work->command     = arg0;
+    work->commandStep = 0;
 }
 
 #include "../../shared/glow_draw_grey_prism.inc.c"
