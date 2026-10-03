@@ -324,7 +324,7 @@ s8 Gp_FindViewIndex(s32 arg0)
 
     idx       = 0;
     sess      = &gGameSession->location.loc;
-    viewCount = Gp_ViewCountTables[sess->stage - 1]->field_0[sess->area - 1][sess->room - 1];
+    viewCount = Gp_ViewCountTables[sess->stage - 1]->viewCounts[sess->area - 1][sess->room - 1];
     viewMap   = Gp_ViewIndexTables[sess->stage - 1]->viewMaps[sess->area - 1][sess->room - 1];
     if (viewCount > 0) {
         do {

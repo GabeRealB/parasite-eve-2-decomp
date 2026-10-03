@@ -60,7 +60,7 @@ extern WorldCoordRoomLighting* D_map_dryfield_full_8017A774[];
 
 extern DirectionWarpEntry* D_map_dryfield_full_8017A80C[];
 
-extern GpViewCountTbl D_map_dryfield_full_8017A93C;
+extern ViewCountTable D_map_dryfield_full_8017A93C;
 
 extern GpRoomObjTbl D_map_dryfield_full_8017A9D8;
 

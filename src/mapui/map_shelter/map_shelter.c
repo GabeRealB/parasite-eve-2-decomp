@@ -886,7 +886,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_r49_8017DA2C,
 };
 
-GpViewCountTbl D_map_shelter_8017B110 = { D_map_shelter_8017B04C };
+ViewCountTable D_map_shelter_8017B110 = { D_map_shelter_8017B04C };
 
 static WorldCollisionRoomResources D_map_shelter_8017B114[1] = {
     { &D_shelter_b1_north_maintenance_walkway_80184F40, D_shelter_b1_north_maintenance_walkway_801855EC, D_shelter_b1_north_maintenance_walkway_80185A98, D_shelter_b1_north_maintenance_walkway_801857B4 },

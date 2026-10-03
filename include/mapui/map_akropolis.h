@@ -68,7 +68,7 @@ extern SpriteAreaTable D_map_akropolis_8017AB1C;
 
 extern DirectionWarpEntry* D_map_akropolis_8017AB20[];
 
-extern GpViewCountTbl D_map_akropolis_8017ABC0;
+extern ViewCountTable D_map_akropolis_8017ABC0;
 
 extern GpViewTbl D_map_akropolis_8017AC14;
 

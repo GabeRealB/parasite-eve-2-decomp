@@ -87,7 +87,7 @@ static inline u16 _gpAdvanceAreaCd(void)
     }
 }
 
-GpViewCountTbl*                    Gp_ViewCountTables[5] = { &D_map_akropolis_8017ABC0, &D_map_dryfield_8017AA28, &D_map_dryfield_full_8017A93C, &D_map_shelter_8017B110, &D_map_neo_ark_8017AB88 };
+ViewCountTable*                    Gp_ViewCountTables[5] = { &D_map_akropolis_8017ABC0, &D_map_dryfield_8017AA28, &D_map_dryfield_full_8017A93C, &D_map_shelter_8017B110, &D_map_neo_ark_8017AB88 };
 ViewIndexTable*                    Gp_ViewIndexTables[5] = { &D_map_akropolis_8017AC68, &D_map_dryfield_8017ABFC, &D_map_dryfield_full_8017AB10, &D_map_shelter_8017B548, &D_map_neo_ark_8017ADB0 };
 SpriteAreaTable*                   Gp_SprtTables[5]      = { &D_map_akropolis_8017AB1C, &D_map_dryfield_8017AC98, &D_map_dryfield_full_8017ABAC, &D_map_shelter_8017B610, &D_map_neo_ark_8017AE38 };
 GpRoomObjTbl*                      Gp_RoomObjTables[5]   = { &D_map_akropolis_8017AAC8, &D_map_dryfield_8017AAC4, &D_map_dryfield_full_8017A9D8, &D_map_shelter_8017B3B8, &D_map_neo_ark_8017ACA0 };

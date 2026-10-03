@@ -63,7 +63,7 @@ extern WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[];
 
 extern DirectionWarpEntry* D_map_neo_ark_8017AA80[];
 
-extern GpViewCountTbl D_map_neo_ark_8017AB88;
+extern ViewCountTable D_map_neo_ark_8017AB88;
 
 extern GpRoomObjTbl D_map_neo_ark_8017ACA0;
 

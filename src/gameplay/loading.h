@@ -62,7 +62,7 @@ void Gp_EnqueueStageCd(void);
 void Gp_EnqueueCompanionCd(u8 type, u8 variant);
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-extern GpViewCountTbl* Gp_ViewCountTables[];
+extern ViewCountTable* Gp_ViewCountTables[];
 
 /// Per-stage pointer table. Index is `GameLocationKey.stage - 1`.
 /// Each entry is an array of `WorldCoordRoomLighting*`, indexed by `field_2 - 1`.

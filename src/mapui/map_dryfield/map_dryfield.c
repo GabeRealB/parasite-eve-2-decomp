@@ -617,7 +617,7 @@ static ViewCount* D_map_dryfield_8017A990[38] = {
     D_dryfield_underpass_8017EBD4,
 };
 
-GpViewCountTbl D_map_dryfield_8017AA28 = { D_map_dryfield_8017A990 };
+ViewCountTable D_map_dryfield_8017AA28 = { D_map_dryfield_8017A990 };
 
 static WorldCollisionRoomResources* D_map_dryfield_8017AA2C[38] = {
     D_dryfield_gas_station_8018314C,

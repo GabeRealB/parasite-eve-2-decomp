@@ -656,7 +656,7 @@ static ViewCount* D_map_neo_ark_8017AB04[33] = {
     D_neo_ark_substation_8017E40C,
 };
 
-GpViewCountTbl D_map_neo_ark_8017AB88 = { D_map_neo_ark_8017AB04 };
+ViewCountTable D_map_neo_ark_8017AB88 = { D_map_neo_ark_8017AB04 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017AB8C[1] = {
     { &D_shelter_b6_nursery_801858A0, D_shelter_b6_nursery_801872AC, D_shelter_b6_nursery_8018750C, NULL },

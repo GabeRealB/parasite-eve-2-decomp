@@ -783,7 +783,7 @@ static ViewCount* D_map_akropolis_8017AB70[20] = {
     D_mist_shooting_gallery_801853BC,
 };
 
-GpViewCountTbl D_map_akropolis_8017ABC0 = { D_map_akropolis_8017AB70 };
+ViewCountTable D_map_akropolis_8017ABC0 = { D_map_akropolis_8017AB70 };
 
 static ViewCamera* D_map_akropolis_8017ABC4[20] = {
     D_acropolis_square_80188630,

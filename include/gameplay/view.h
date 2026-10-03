@@ -36,11 +36,20 @@ extern u8 gViewIdentityMap[VIEW_IDENTITY_MAP_LENGTH];
 typedef s16 ViewCount;
 STATIC_ASSERT_SIZEOF(ViewCount, 2);
 
-/// Per-stage wrapper. `field_0` is an array of `ViewCount*`, indexed by
-/// `GameSession.location.loc.area - 1`.
-typedef struct _GpViewCountTbl {
-    /* 0x0 */ ViewCount** field_0;
-} GpViewCountTbl;
+/// A stage's directory of per-room view counts.
+///
+/// `viewCounts[area - 1][room - 1]` is the number of logical views searched in
+/// that room's `ViewIndexTable` map (see `ViewCount`). Areas without views have
+/// NULL entries; there is no count or terminator at either level, so lookups
+/// require a populated area and valid 1-based area and room IDs.
+///
+/// The stage map overlay owns the area directory and borrows each room
+/// overlay's count array, which stays valid only while that room is loaded.
+/// Consumers only read the tables; this record allocates and releases nothing.
+typedef struct {
+    ViewCount** viewCounts; // Borrowed per-area room view-count arrays, indexed by area - 1; NULL when that area has none
+} ViewCountTable;
+STATIC_ASSERT_SIZEOF(ViewCountTable, 4);
 
 /// A stage's directory mapping room-local logical views to camera/image indices.
 ///

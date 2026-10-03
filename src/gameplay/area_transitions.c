@@ -541,11 +541,11 @@ void func_800AEE8C(Task* arg0)
 static u8 Gp_GetViewCountLo(void)
 {
     GameSession*    session;
-    GpViewCountTbl* tbl;
+    ViewCountTable* tbl;
 
     session = gGameSession;
     tbl     = Gp_ViewCountTables[session->location.loc.stage - 1];
-    return (u8)tbl->field_0[session->location.loc.area - 1][session->location.loc.room - 1];
+    return (u8)tbl->viewCounts[session->location.loc.area - 1][session->location.loc.room - 1];
 }
 
 static void Gp_DirAction0(void)
