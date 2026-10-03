@@ -108,9 +108,21 @@ typedef struct {
 } TaskFuncTable5;
 STATIC_ASSERT_SIZEOF(TaskFuncTable5, 0x14);
 
+/// Six task handlers stored as a value for whole-table copies.
+///
+/// Each table defines its slots' roles: the selector may be a task state,
+/// or a state, substate or step index kept in the task's work. Dispatch
+/// requires an index in 0..5 and a non-NULL entry, which receives the live
+/// task as its only argument. There is no terminator or bounds check in the
+/// table, so a dispatcher whose selector also takes out-of-range sentinels,
+/// such as a negative task state marking a finished wait, must test for them
+/// before indexing.
+/// Copying it copies callback pointers, not task or work storage; the callback
+/// code must remain loaded for the call. A handler may release the task.
 typedef struct {
-    TaskFunc funcs[6];
+    TaskFunc funcs[6]; // Handlers in selector order; slot meanings belong to each table
 } TaskFuncTable6;
+STATIC_ASSERT_SIZEOF(TaskFuncTable6, 0x18);
 
 /// Seven task handlers stored as a value for whole-table copies.
 ///

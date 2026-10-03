@@ -57382,7 +57382,7 @@ forces the next input section down to alignment 4, and the image ends up 4
 bytes short. A gap between two rodata subsegments is therefore a sign the split
 is wrong, not something to pad around.
 
-The `TaskFuncTableN` family in `include/main/task.h` exists for the global
+The `TaskFuncTableN` family in `include/main/task_types.h` exists for the global
 shape; add the missing arity there rather than declaring a bare array.
 
 ## A pointer used only by stores in both `if` arms must be its own local
