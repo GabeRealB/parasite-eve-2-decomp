@@ -70,15 +70,21 @@ typedef struct {
 } _McChecksumBlock;
 STATIC_ASSERT_SIZEOF(_McChecksumBlock, 4);
 
-/// 0xC descriptor for a memcard/save buffer slot in Mc_BufferSlots[9].
-/// buffer holds two checksummed copies, each bytesPerCopy bytes long.
-/// Iterated from index 1..8 by Mc_VerifyFirstByteChecksum and related helpers in mc.c.
-typedef struct _McBufferSlot {
-    /* 0x0 */ _McChecksumBlock* buffer;
-    /* 0x4 */ s32               bytesPerCopy;
-    /* 0x8 */ s32               cardSectors;
-} McBufferSlot;
-STATIC_ASSERT_SIZEOF(McBufferSlot, 0xC);
+/// One section of the save file: a resident record that saving writes to the
+/// card twice, back to back, and that loading reads back the same way.
+///
+/// The sections are stored in table order, each starting on a 128-byte card
+/// sector. Section 0 is the card file header (title, CLUT and icon frames),
+/// whose 0x200 bytes the walk treats as two 0x100-byte halves; it carries no
+/// checksum. Sections 1..8 are the save image, the player status and the
+/// game-flag banks: each opens with a `_McChecksumBlock` header, and its
+/// resident storage holds the live copy followed by the backup copy.
+typedef struct {
+    void* buffer;       // Resident storage: the live copy followed by the backup, `bytesPerCopy` bytes each
+    s32   bytesPerCopy; // Length of one copy in bytes
+    s32   cardSectors;  // 128-byte card sectors the section occupies: both copies, rounded up
+} _McSaveSection;
+STATIC_ASSERT_SIZEOF(_McSaveSection, 0xC);
 
 /// Memcard state-machine handler: (Task*, McWork*).
 typedef void (*McStateFunc)(Task* task, McWork* work);
@@ -130,6 +136,12 @@ static s32 Mc_LastRandomValue;
 /// Number of 128-byte card sectors holding the complete game-flag bank pair.
 enum { GAME_FLAG_NIBBLE_BANK_CARD_SECTORS = 4 };
 
+/// 128-byte card sectors holding the card file header.
+enum { MEMORY_CARD_FILE_HEADER_CARD_SECTORS = 4 };
+
+/// 128-byte card sectors holding both player-status save record copies.
+enum { PLAYER_STATUS_CARD_SECTORS = 1 };
+
 /// 128-byte card sectors holding both `GameFlagAcropolisBank` copies.
 enum { GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS = 2 };
 
@@ -145,7 +157,7 @@ enum { GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS = 4 };
 /// 128-byte card sectors holding both `GameFlagNeoArkBank` copies.
 enum { GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS = 3 };
 
-extern McBufferSlot Mc_BufferSlots[9];
+extern _McSaveSection Mc_BufferSlots[9];
 
 static const char Mc_StrMemoryCard[];
 
@@ -661,16 +673,16 @@ static u8 Mc_DefaultChecksumSrc[] = {
 #include "assets/mc_save_header.inc"
 };
 
-McBufferSlot Mc_BufferSlots[9] = {
-    { (_McChecksumBlock*)Mc_DefaultChecksumSrc, 0x100, 4 },
-    { (_McChecksumBlock*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE], sizeof(McSaveData), MEMORY_CARD_SAVE_CARD_SECTORS },
-    { (_McChecksumBlock*)&gPlayerStatus, PLAYER_STATUS_SAVE_RECORD_BYTES, 1 },
-    { (_McChecksumBlock*)GameFlag_AcropolisBanks, GAME_FLAG_ACROPOLIS_BANK_BYTES, GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS },
-    { (_McChecksumBlock*)GameFlag_DryfieldBanks, GAME_FLAG_DRYFIELD_BANK_BYTES, GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
-    { (_McChecksumBlock*)GameFlag_DryfieldFullBanks, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES, GAME_FLAG_DRYFIELD_NIGHT_BANK_CARD_SECTORS },
-    { (_McChecksumBlock*)GameFlag_ShelterBanks, GAME_FLAG_MINE_SHELTER_BANK_BYTES, GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS },
-    { (_McChecksumBlock*)GameFlag_NeoArkBanks, GAME_FLAG_NEO_ARK_BANK_BYTES, GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS },
-    { (_McChecksumBlock*)&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]), GAME_FLAG_NIBBLE_BANK_CARD_SECTORS },
+_McSaveSection Mc_BufferSlots[9] = {
+    { Mc_DefaultChecksumSrc, sizeof(Mc_DefaultChecksumSrc) / 2, MEMORY_CARD_FILE_HEADER_CARD_SECTORS },
+    { &gMcSaveData[MEMORY_CARD_SAVE_LIVE], sizeof(McSaveData), MEMORY_CARD_SAVE_CARD_SECTORS },
+    { &gPlayerStatus, PLAYER_STATUS_SAVE_RECORD_BYTES, PLAYER_STATUS_CARD_SECTORS },
+    { GameFlag_AcropolisBanks, GAME_FLAG_ACROPOLIS_BANK_BYTES, GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS },
+    { GameFlag_DryfieldBanks, GAME_FLAG_DRYFIELD_BANK_BYTES, GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
+    { GameFlag_DryfieldFullBanks, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES, GAME_FLAG_DRYFIELD_NIGHT_BANK_CARD_SECTORS },
+    { GameFlag_ShelterBanks, GAME_FLAG_MINE_SHELTER_BANK_BYTES, GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS },
+    { GameFlag_NeoArkBanks, GAME_FLAG_NEO_ARK_BANK_BYTES, GAME_FLAG_NEO_ARK_BANK_CARD_SECTORS },
+    { &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]), GAME_FLAG_NIBBLE_BANK_CARD_SECTORS },
 };
 
 static UiListRowCallback Mc_SaveSlotCallbacks[] = { Mc_StateSaveSlotUi };
@@ -792,26 +804,26 @@ static inline void _mcWriteBlockChecksum(u8* data, s32 size)
 
 void Mc_InitBufferSlots(void)
 {
-    McBufferSlot* base;
-    McBufferSlot* slot;
-    u8*           ptr;
-    u32           size;
-    u32           i;
-    s32           fill;
+    _McSaveSection* base;
+    _McSaveSection* slot;
+    u8*             ptr;
+    u32             size;
+    u32             i;
+    s32             fill;
 
     fill = -1;
     base = Mc_BufferSlots;
     slot = base + 1;
     do {
         size = slot->bytesPerCopy;
-        ptr  = (u8*)slot->buffer;
+        ptr  = slot->buffer;
         for (i = 0; i < size; i++) {
             *ptr++ = 0;
         }
         for (i = 0; i < size; i++) {
             *ptr++ = fill;
         }
-        _mcWriteBlockChecksum((u8*)slot->buffer, size);
+        _mcWriteBlockChecksum(slot->buffer, size);
         slot++;
     } while (slot < base + 9);
 
@@ -1471,19 +1483,19 @@ static void Mc_StateFileSelect(Task* task, McWork* work)
 /// two halves differ, and always for slots 0, 1 and 8.
 static inline s32 _mcCompareBufferHalves(void)
 {
-    McBufferSlot* base;
-    u8*           src;
-    u8*           dest;
-    u32           count;
-    u32           i;
-    u32           j;
-    s32           flags;
+    _McSaveSection* base;
+    u8*             src;
+    u8*             dest;
+    u32             count;
+    u32             i;
+    u32             j;
+    s32             flags;
 
     flags = 0;
     i     = 0;
     base  = Mc_BufferSlots;
     do {
-        src   = (u8*)base[8 - i].buffer;
+        src   = base[8 - i].buffer;
         count = base[8 - i].bytesPerCopy;
         j     = 0;
         dest  = src + count;
@@ -1772,19 +1784,19 @@ static void Mc_StateNameEntry(Task* task, McWork* work)
 /// Copy the first half of each of Mc_BufferSlots[1..8] over its second half.
 static inline void _mcCopyBufferHalves(void)
 {
-    McBufferSlot* p;
-    McBufferSlot* base;
-    u8*           src;
-    u8*           dest;
-    u32           count;
-    u32           i;
-    u32           j;
+    _McSaveSection* p;
+    _McSaveSection* base;
+    u8*             src;
+    u8*             dest;
+    u32             count;
+    u32             i;
+    u32             j;
 
     i    = 1;
     base = Mc_BufferSlots;
     p    = base + 1;
     do {
-        src   = (u8*)p->buffer;
+        src   = p->buffer;
         count = p->bytesPerCopy;
         j     = 0;
         dest  = src + count;
@@ -1801,8 +1813,8 @@ static inline void _mcCopyBufferHalves(void)
 static inline void _mcWriteFirstByteChecksum(void)
 {
     _McChecksumBlock* block;
-    McBufferSlot*     p;
-    McBufferSlot*     base;
+    _McSaveSection*   p;
+    _McSaveSection*   base;
     s16               next;
     s16               sum;
     u32               i;
@@ -1824,9 +1836,9 @@ static inline void _mcWriteFirstByteChecksum(void)
 
 static void Mc_StateBackupBuffers(Task* task, McWork* work)
 {
-    _McChecksumBlock* buf;
-    s32               size;
-    void*             mem;
+    u8*   buf;
+    s32   size;
+    void* mem;
 
     if (work->slotsRemaining == 0) {
         _mcCopyBufferHalves();
@@ -1844,7 +1856,7 @@ static void Mc_StateBackupBuffers(Task* task, McWork* work)
                 Mc_BuildSaveTitle(work);
                 memcpy(mem, buf, size * 2);
             } else {
-                _mcWriteBlockChecksum((u8*)buf, size);
+                _mcWriteBlockChecksum(buf, size);
                 if (work->slotsRemaining == MEMORY_CARD_BUFFER_SLOT_COUNT - 1) {
                     _mcWriteFirstByteChecksum();
                 }
@@ -2159,8 +2171,8 @@ static void Mc_StateSyncOpen(Task* task, McWork* work)
 static inline s32 _mcVerifySlotChecksums(void)
 {
     _McChecksumBlock* block;
-    McBufferSlot*     p;
-    McBufferSlot*     base;
+    _McSaveSection*   p;
+    _McSaveSection*   base;
     s16               sum;
     u32               count;
     u32               i;
@@ -2197,8 +2209,8 @@ static inline s32 _mcVerifySlotChecksums(void)
 static inline void _mcWriteSlotChecksums(void)
 {
     _McChecksumBlock* block;
-    McBufferSlot*     p;
-    McBufferSlot*     base;
+    _McSaveSection*   p;
+    _McSaveSection*   base;
     s16               sum;
     s32               inv;
     u32               count;
@@ -2231,17 +2243,17 @@ static inline void _mcWriteSlotChecksums(void)
 /// Inline form of Mc_VerifyFirstByteChecksum.
 static inline s32 _mcVerifyFirstByteChecksum(void)
 {
-    s32           sum;
-    u32           i;
-    McBufferSlot* p;
-    McBufferSlot* base;
+    s32             sum;
+    u32             i;
+    _McSaveSection* p;
+    _McSaveSection* base;
 
     sum  = 0;
     i    = 1;
     base = Mc_BufferSlots;
     p    = base + 1;
     do {
-        sum += (u8)p->buffer->checksum;
+        sum += (u8)((_McChecksumBlock*)p->buffer)->checksum;
         p   += 1;
         i   += 1;
     } while (i < 9);
@@ -2807,19 +2819,19 @@ static s32 Mc_VerifySlotChecksums(void)
 
 static void Mc_DuplicateBuffers(void)
 {
-    u32           i;
-    u32           j;
-    McBufferSlot* p;
-    McBufferSlot* base;
-    u8*           src;
-    s32           size;
-    u8*           dest;
+    u32             i;
+    u32             j;
+    _McSaveSection* p;
+    _McSaveSection* base;
+    u8*             src;
+    s32             size;
+    u8*             dest;
 
     i    = 1;
     base = Mc_BufferSlots;
     p    = base + 1;
     do {
-        src  = (u8*)p->buffer;
+        src  = p->buffer;
         size = p->bytesPerCopy;
         j    = 0;
         dest = src + size;

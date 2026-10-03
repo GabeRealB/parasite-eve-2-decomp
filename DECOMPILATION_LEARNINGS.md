@@ -12659,7 +12659,7 @@ after `lbu` — mismatch. Put the pointer step first:
 
 ```c
 do {
-    sum += *(u8*)p->field_0;
+    sum += (u8)((_McChecksumBlock*)p->buffer)->checksum;
     p += 1;   /* scheduled into the branch delay */
     i += 1;   /* fills the lbu delay, leaves nop after lw */
 } while (i < 9);
@@ -12699,10 +12699,10 @@ s16 next;
 s16 sum;
 ...
 do {
-    temp = p->field_0;
+    block = p->buffer;
     p += 1;
     i += 1;
-    next = sum + *(u8*)temp;
+    next = sum + (u8)block->checksum;
     sum = next;
 } while (i < 9U);
 gMcSaveData.bufferChecksum = next;
@@ -14545,12 +14545,12 @@ For the per-slot size path that does `lw a1, 4(p); addiu a1, a1, -4`, split
 the subtract and interleave the payload pointer setup:
 
 ```c
-count = p->field_4;
+count = p->bytesPerCopy;
 ptr   = temp->field_4;
 count = count - 4;
 ```
 
-`count = p->field_4 - 4` alone often routes through `$v0` and swaps the sum /
+`count = p->bytesPerCopy - 4` alone often routes through `$v0` and swaps the sum /
 count registers. If sum ends up correct in `$a2` but the loop index and count
 are swapped (`$a1`/`$a0`), pin the index: `register u32 j asm("a0")`.
 
@@ -14655,12 +14655,12 @@ the operands to `addu v0, base, v0`:
 ```c
 /* BAD near-match — addu v0, t3, v0 (base first) */
 p = base + idx;
-src = (u8*)p->field_0;
-size = p->field_4;
+src = p->buffer;
+size = p->bytesPerCopy;
 
 /* GOOD — addu v0, v0, t3 (offset first); CSE still loads address once */
-src = (u8*)base[idx].field_0;
-size = base[idx].field_4;
+src = base[idx].buffer;
+size = base[idx].bytesPerCopy;
 ```
 
 Pair with `base = Mc_BufferSlots` kept live (not `Mc_BufferSlots[idx]` alone) so the
@@ -20864,13 +20864,13 @@ often loads dest first. Pin the registers:
 
 ```c
 {
-    register McBufferSlot* slots asm("v0");
-    register s32           size asm("a2");
-    register void*         dest asm("a0");
+    register _McSaveSection* slots asm("v0");
+    register s32             size asm("a2");
+    register void*           dest asm("a0");
 
     slots = Mc_BufferSlots;
-    size  = slots[idx].field_4;
-    dest  = slots[idx].field_0;
+    size  = slots[idx].bytesPerCopy;
+    dest  = slots[idx].buffer;
     memcpy(dest, src, size << 1);
 }
 ```
