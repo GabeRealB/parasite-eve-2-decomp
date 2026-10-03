@@ -140211,7 +140211,7 @@ insns.
 `.vx`/`.vy`. Each `y` is then a word load and a shift, which combine narrows
 back to `lhu 2(...)`. That adds four insns at loop time (140), and the emitted
 loads stay the same. Use `u32`: an `s32` word narrows to `lh`. The matched
-`pe/inferno` fan (`InfernoFanScratch`) uses the same packed form. A `s16`
+`pe/inferno` fan (`_InfernoFanScratch`) uses the same packed form. A `s16`
 local for the UV base also adds insns (138), but its sign extension survives
 and changes the scheduling.
 

@@ -39,22 +39,38 @@ typedef struct InfernoIdMap {
 } InfernoIdMap;
 STATIC_ASSERT_SIZEOF(InfernoIdMap, 0xC);
 
-/// 0x70-byte scratch `func_inferno_8012FF34` carves off the scratch stack for
-/// one ring. `inner` and `outer` are the six rim points of each edge of the
-/// ring, built by `rsin` / `rcos`, rotated by the effect coordinate's `workm`
-/// and offset by its translation. `sxy0` is where `inner[i]` projects to
-/// through a single `RTPS`; `sxy1`..`sxy3` are the other three corners of the
-/// segment quad through one `RTPT`. The four hold packed `SXY2` words, so the
-/// screen X of each is the low half and the screen Y the arithmetic shift.
-typedef struct InfernoFanScratch {
-    /* 0x00 */ SVECTOR inner[6];
-    /* 0x30 */ SVECTOR outer[6];
-    /* 0x60 */ s32     sxy0;
-    /* 0x64 */ s32     sxy1;
-    /* 0x68 */ s32     sxy2;
-    /* 0x6C */ s32     sxy3;
-} InfernoFanScratch;
-STATIC_ASSERT_SIZEOF(InfernoFanScratch, 0x70);
+/// Vertices on each rim of one inferno fan band.
+///
+/// The texture row has one cell per vertex, so a segment index and its frame
+/// wrap with this count. `INFERNO_FAN_SEGMENT_YAW` is the angle between
+/// adjacent vertices, in the frame's 4096-per-turn units. Six steps close the
+/// band four units short of a full turn.
+#define INFERNO_FAN_SEGMENT_COUNT 6
+#define INFERNO_FAN_SEGMENT_YAW   0x2AA
+
+/// Scratch-stack workspace for one band of the inferno ground fan.
+///
+/// A drawer places one vertex of each rim at every `INFERNO_FAN_SEGMENT_YAW`
+/// in the effect coordinate's local frame, rotates it by that coordinate's
+/// `workm` and adds its translation. `topRing` is the wider rim, displaced by
+/// the band's lift along local -Y. `bottomRing` is the narrower rim and stays
+/// in the local XZ plane. Quad `i` takes vertices 0 and 1 from `topRing[i]`
+/// and `topRing[i + 1]`, and vertices 2 and 3 from `bottomRing[i]` and
+/// `bottomRing[i + 1]`.
+///
+/// `sxy0`..`sxy3` are those vertices' screen positions as packed words. X is
+/// the low half and Y is the arithmetic shift of the high half, so the words
+/// stay signed. Ordering depth and the GTE flag are the drawer's locals, and
+/// pointers into the block end at its release.
+typedef struct {
+    SVECTOR topRing[INFERNO_FAN_SEGMENT_COUNT];    // Wider rim, lifted along local -Y; quad vertices 0 and 1
+    SVECTOR bottomRing[INFERNO_FAN_SEGMENT_COUNT]; // Narrower rim in the local XZ plane; quad vertices 2 and 3
+    s32     sxy0;                                  // Packed screen position of the current quad's vertex 0
+    s32     sxy1;                                  // Packed screen position of vertex 1
+    s32     sxy2;                                  // Packed screen position of vertex 2
+    s32     sxy3;                                  // Packed screen position of vertex 3
+} _InfernoFanScratch;
+STATIC_ASSERT_SIZEOF(_InfernoFanScratch, 0x70);
 
 /// The two fan shapes the inferno wall sweeps through.
 static EffectBandShape D_inferno_801304E4[] = {
@@ -360,71 +376,72 @@ release:
     effectKillTask(mem, arg0);
 }
 
-/// Draws the lifted ring of the inferno's ground fan, the twin of
-/// `func_inferno_8012FF34`: identical geometry and prim setup, except the
-/// inner rim is lifted `EffectWork::period + lift` along local Y instead
-/// of `lift` alone, so the ring rises as the caster's `period` winds up.
-/// `kind` picks the row of `D_inferno_801304E4` that sizes it.
+/// Draws the raised band of the inferno's ground fan, the twin of
+/// `func_inferno_8012FF34`. The rims and the primitives match. This band's
+/// top rim is lifted by `EffectWork::period + lift` along local -Y instead
+/// of `lift` alone, so it rises as `period` winds up. `kind` picks the row
+/// of `D_inferno_801304E4` that sizes it.
 static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
 {
-    u8*                head;
-    InfernoFanScratch* block;
-    EffectBandShape*   row;
-    EffectBandShape*   tbl;
-    SVECTOR*           op;
-    POLY_FT4*          prim;
-    s32                flag;
-    s32                otz;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s32                u;
-    s16                inner;
-    s16                outer;
-    u16                h;
-    u16                frame;
+    u8*                 head;
+    _InfernoFanScratch* block;
+    EffectBandShape*    row;
+    EffectBandShape*    tbl;
+    SVECTOR*            op;
+    POLY_FT4*           prim;
+    s32                 flag;
+    s32                 otz;
+    s32                 i;
+    s32                 next;
+    s32                 ang;
+    s32                 u;
+    s16                 inner;
+    s16                 outer;
+    u16                 height;
+    u16                 frame;
 
     tbl                        = D_inferno_801304E4;
     row                        = &tbl[kind];
-    h                          = mem->period + row->lift;
+    height                     = mem->period + row->lift;
     inner                      = mem->angle + row->baseRadius;
     outer                      = row->spread + (inner + mem->step);
     head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - 0x70;
-    block                      = (InfernoFanScratch*)(head - 0x70);
+    SCRATCH_STACK_CURSOR(void) = head - sizeof(_InfernoFanScratch);
+    block                      = (_InfernoFanScratch*)(head - sizeof(_InfernoFanScratch));
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 6; i++) {
-        ang                = i * 0x2AA;
-        block->inner[i].vx = (rsin(ang) * outer) >> 12;
-        block->inner[i].vy = -h;
-        block->inner[i].vz = (rcos(ang) * outer) >> 12;
+    // Wider lifted rim, then the narrower rim in the local XZ plane.
+    for (i = 0; i < INFERNO_FAN_SEGMENT_COUNT; i++) {
+        ang                  = i * INFERNO_FAN_SEGMENT_YAW;
+        block->topRing[i].vx = (rsin(ang) * outer) >> 12;
+        block->topRing[i].vy = -height;
+        block->topRing[i].vz = (rcos(ang) * outer) >> 12;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->inner[i]);
+        gte_ldv0(&block->topRing[i]);
         gte_rtv0();
-        gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + (u16)coord->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + (u16)coord->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + (u16)coord->workm.t[2];
-        block->outer[i].vx = (rsin(ang) * inner) >> 12;
-        op                 = &block->inner[i] + 6;
-        op->vy             = 0;
-        op->vz             = (rcos(ang) * inner) >> 12;
+        gte_stsv(&block->topRing[i]);
+        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)coord->workm.t[0];
+        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)coord->workm.t[1];
+        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)coord->workm.t[2];
+        block->bottomRing[i].vx = (rsin(ang) * inner) >> 12;
+        op                      = &block->topRing[i] + INFERNO_FAN_SEGMENT_COUNT;
+        op->vy                  = 0;
+        op->vz                  = (rcos(ang) * inner) >> 12;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->outer[i]);
+        gte_ldv0(&block->bottomRing[i]);
         gte_rtv0();
-        gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + (u16)coord->workm.t[0];
-        op->vy             = (u16)op->vy + (u16)coord->workm.t[1];
-        op->vz             = (u16)op->vz + (u16)coord->workm.t[2];
+        gte_stsv(&block->bottomRing[i]);
+        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)coord->workm.t[0];
+        op->vy                  = (u16)op->vy + (u16)coord->workm.t[1];
+        op->vz                  = (u16)op->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 6; i++) {
-        gte_ldv0(&block->inner[i]);
+    for (i = 0; i < INFERNO_FAN_SEGMENT_COUNT; i++) {
+        gte_ldv0(&block->topRing[i]);
         gte_rtps();
-        frame = (map->field_0[kind][i] + mem->age) % 6;
+        frame = (map->field_0[kind][i] + mem->age) % INFERNO_FAN_SEGMENT_COUNT;
         gte_stsxy(&block->sxy0);
         next = i + 1;
-        gte_ldv3(&block->inner[next % 6], &block->outer[i], &block->outer[next % 6]);
+        gte_ldv3(&block->topRing[next % INFERNO_FAN_SEGMENT_COUNT], &block->bottomRing[i], &block->bottomRing[next % INFERNO_FAN_SEGMENT_COUNT]);
         gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&flag);
@@ -452,78 +469,80 @@ static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, In
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x70);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(_InfernoFanScratch));
 }
 
-/// Draws one ring of the inferno's ground fan. `kind` picks the row of
-/// `D_inferno_801304E4` that sizes it: six inner rim points of radius
-/// `angle + baseRadius` lifted `lift` along local Y and six outer rim
-/// points of radius `angle + baseRadius + step + spread` in the local XY
-/// plane are built by `rsin` / `rcos` a sixth of a turn apart, rotated by
-/// `coord`'s `workm` and offset by its translation. Each of the six segments
-/// is then projected through `GsWSMATRIX` and linked as one semi-transparent
-/// `POLY_FT4`; `map` and `EffectWork::age` pick which of the six 0x28-wide
-/// texture frames it uses, and a negative `gte_stflg` drops the segment.
+/// Draws one band of the inferno's ground fan. `kind` picks the row of
+/// `D_inferno_801304E4` that sizes it. The top rim has radius
+/// `angle + baseRadius + step + spread` and is lifted `lift` along local -Y;
+/// the bottom rim has radius `angle + baseRadius` and stays in the local XZ
+/// plane. Both are built by `rsin` / `rcos` a sixth of a turn apart, rotated
+/// by `coord`'s `workm` and offset by its translation. Each segment is then
+/// projected through `GsWSMATRIX` and linked as one semi-transparent
+/// `POLY_FT4`. `map` and `EffectWork::age` pick which of the
+/// `INFERNO_FAN_SEGMENT_COUNT` texture cells it uses, and a negative
+/// `gte_stflg` drops the segment.
 static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
 {
-    u8*                head;
-    InfernoFanScratch* block;
-    EffectBandShape*   row;
-    EffectBandShape*   tbl;
-    SVECTOR*           op;
-    POLY_FT4*          prim;
-    s32                flag;
-    s32                otz;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s32                u;
-    s16                inner;
-    s16                outer;
-    u16                h;
-    u16                frame;
+    u8*                 head;
+    _InfernoFanScratch* block;
+    EffectBandShape*    row;
+    EffectBandShape*    tbl;
+    SVECTOR*            op;
+    POLY_FT4*           prim;
+    s32                 flag;
+    s32                 otz;
+    s32                 i;
+    s32                 next;
+    s32                 ang;
+    s32                 u;
+    s16                 inner;
+    s16                 outer;
+    u16                 height;
+    u16                 frame;
 
     tbl                        = D_inferno_801304E4;
     row                        = &tbl[kind];
     inner                      = mem->angle + row->baseRadius;
     outer                      = row->spread + (inner + mem->step);
-    h                          = row->lift;
+    height                     = row->lift;
     head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - 0x70;
-    block                      = (InfernoFanScratch*)(head - 0x70);
+    SCRATCH_STACK_CURSOR(void) = head - sizeof(_InfernoFanScratch);
+    block                      = (_InfernoFanScratch*)(head - sizeof(_InfernoFanScratch));
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 6; i++) {
-        ang                = i * 0x2AA;
-        block->inner[i].vx = (rsin(ang) * outer) >> 12;
-        block->inner[i].vy = -h;
-        block->inner[i].vz = (rcos(ang) * outer) >> 12;
+    // Wider lifted rim, then the narrower rim in the local XZ plane.
+    for (i = 0; i < INFERNO_FAN_SEGMENT_COUNT; i++) {
+        ang                  = i * INFERNO_FAN_SEGMENT_YAW;
+        block->topRing[i].vx = (rsin(ang) * outer) >> 12;
+        block->topRing[i].vy = -height;
+        block->topRing[i].vz = (rcos(ang) * outer) >> 12;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->inner[i]);
+        gte_ldv0(&block->topRing[i]);
         gte_rtv0();
-        gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + (u16)coord->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + (u16)coord->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + (u16)coord->workm.t[2];
-        block->outer[i].vx = (rsin(ang) * inner) >> 12;
-        op                 = &block->inner[i] + 6;
-        op->vy             = 0;
-        op->vz             = (rcos(ang) * inner) >> 12;
+        gte_stsv(&block->topRing[i]);
+        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)coord->workm.t[0];
+        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)coord->workm.t[1];
+        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)coord->workm.t[2];
+        block->bottomRing[i].vx = (rsin(ang) * inner) >> 12;
+        op                      = &block->topRing[i] + INFERNO_FAN_SEGMENT_COUNT;
+        op->vy                  = 0;
+        op->vz                  = (rcos(ang) * inner) >> 12;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->outer[i]);
+        gte_ldv0(&block->bottomRing[i]);
         gte_rtv0();
-        gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + (u16)coord->workm.t[0];
-        op->vy             = (u16)op->vy + (u16)coord->workm.t[1];
-        op->vz             = (u16)op->vz + (u16)coord->workm.t[2];
+        gte_stsv(&block->bottomRing[i]);
+        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)coord->workm.t[0];
+        op->vy                  = (u16)op->vy + (u16)coord->workm.t[1];
+        op->vz                  = (u16)op->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 6; i++) {
-        gte_ldv0(&block->inner[i]);
+    for (i = 0; i < INFERNO_FAN_SEGMENT_COUNT; i++) {
+        gte_ldv0(&block->topRing[i]);
         gte_rtps();
-        frame = (map->field_0[kind][i] + mem->age) % 6;
+        frame = (map->field_0[kind][i] + mem->age) % INFERNO_FAN_SEGMENT_COUNT;
         gte_stsxy(&block->sxy0);
         next = i + 1;
-        gte_ldv3(&block->inner[next % 6], &block->outer[i], &block->outer[next % 6]);
+        gte_ldv3(&block->topRing[next % INFERNO_FAN_SEGMENT_COUNT], &block->bottomRing[i], &block->bottomRing[next % INFERNO_FAN_SEGMENT_COUNT]);
         gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
         gte_stflg(&flag);
@@ -551,5 +570,5 @@ static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, In
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x70);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(_InfernoFanScratch));
 }
