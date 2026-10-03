@@ -59,20 +59,29 @@ typedef struct {
 } _ItemMenuPromptTexts;
 STATIC_ASSERT_SIZEOF(_ItemMenuPromptTexts, 0x10);
 
-/// 0x1C work block allocated by `Gp_ItemMoveTask` (`memCalloc(0x1C, 0)`)
-/// and stored at `Task::work` / `Gp_ItemMoveWork`. `objs` holds the first two
-/// `Ui_SpawnFromDesc` results (the source / dest inventory panes); `field_8` is
-/// the index of the pane that currently has focus and is used to index `objs`
-/// (`Gp_ItemMoveChild` toggles it with `^ 1`).
-typedef struct _GpItemMoveState {
-    /* 0x00 */ UiObject* objs[2];
-    /* 0x08 */ s32       field_8;
-    /* 0x0C */ s32       field_C;
-    /* 0x10 */ s32       field_10;
-    /* 0x14 */ s32       field_14;
-    /* 0x18 */ s32       field_18;
-} GpItemMoveState;
-STATIC_ASSERT_SIZEOF(GpItemMoveState, 0x1C);
+/// Work block of the item-move screen, which exchanges items between a
+/// container and the items the player carries.
+///
+/// The screen shows two inventory panes side by side and gives input to one of
+/// them at a time. A pane is identified throughout by its index, which is also
+/// the index of the item range it lists: 0 is the container (the Item Box or
+/// Battle Field pane), 1 the carried items (the Player Item pane).
+///
+/// The swap fields carry a row's Switch command across the two steps it takes:
+/// choosing the command records the row and hands input to the other pane, and
+/// confirming a second row there, or back in the first pane, exchanges the two.
+/// They are meaningful only while that second row is being chosen.
+///
+/// Allocated on the screen task's first run and held in its `Task::work`.
+typedef struct {
+    UiObject* panes[2];       // The two inventory panes (0 container, 1 carried items).
+    s32       focusedPane;    // Index in `panes` of the pane taking input.
+    s32       field_C;        // Cleared when the screen opens and never read; role unproven.
+    s32       swapPane;       // Pane holding the row Switch was chosen on.
+    s32       swapRow;        // That row's item index in its pane's list.
+    s32       swapPartnerRow; // Item index of the row confirmed to exchange with it.
+} _ItemMenuMoveWork;
+STATIC_ASSERT_SIZEOF(_ItemMenuMoveWork, 0x1C);
 
 /// Work block of the ammunition quantity panel in the item-move screen.
 ///
@@ -94,7 +103,7 @@ typedef struct {
 } _ItemMenuAmmoSplitWork;
 STATIC_ASSERT_SIZEOF(_ItemMenuAmmoSplitWork, 0x18);
 
-GpItemMoveState* Gp_ItemMoveWork;
+_ItemMenuMoveWork* Gp_ItemMoveWork;
 
 u16 Gp_MoveItemKey;
 
@@ -234,7 +243,7 @@ GpItemReplyEntry D_8010D828[2] = { { CAP_ACTION_MESSAGE_REQUEST, Gp_BindItemObj2
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.
 static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
 {
-    GpItemMoveState*    mem;
+    _ItemMenuMoveWork*  work;
     UiObject*           obj;
     InventoryItemRow*   tbl;
     InventoryItemRange* scanSrc;
@@ -264,8 +273,8 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
     s32                 attachmentSlotA;
     s32                 attachmentSlotB;
 
-    obj = arg1->parent->spawnArg2.pointer;
-    mem = (GpItemMoveState*)arg1->parent->work;
+    obj  = arg1->parent->spawnArg2.pointer;
+    work = arg1->parent->work;
     switch (arg0->result) {
         case 0x26:
             scanSrc = &Gp_MoveScanSrc;
@@ -286,16 +295,16 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             /* fallthrough */
         case USER_INTERFACE_RESULT_CANCEL:
             flag = 0;
-            if (mem->objs[0]->owner->status != 0) {
+            if (work->panes[0]->owner->status != 0) {
                 flag = Gp_CountScanItems(&Gp_MoveScanSrc) > 0;
             }
-            mem->objs[mem->field_8]->owner->state     = 1;
-            mem->objs[mem->field_8 ^ 1]->owner->state = 1;
+            work->panes[work->focusedPane]->owner->state     = 1;
+            work->panes[work->focusedPane ^ 1]->owner->state = 1;
             if ((arg0->result != 0x26) && flag) {
                 val = Gp_CanMoveItems();
                 SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
-                mem->field_8 = 0;
-                Ui_SpawnFromDesc(&D_8010D7F0, val, 1, 1, mem->objs[0]);
+                work->focusedPane = 0;
+                Ui_SpawnFromDesc(&D_8010D7F0, val, 1, 1, work->panes[0]);
                 break;
             }
             /* fallthrough */
@@ -305,30 +314,30 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             break;
         case USER_INTERFACE_RESULT_CONFIRM:
             Ui_TeardownTree(arg0, arg1);
-            mem->objs[mem->field_8]->owner->state       = 1;
-            mem->objs[mem->field_8 ^ 1]->owner->state   = 1;
-            mem->field_8                                = mem->field_8 ^ 1;
-            mem->objs[mem->field_8]->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            mem->field_8                                = mem->field_8 ^ 1;
-            mem->objs[mem->field_8]->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+            work->panes[work->focusedPane]->owner->state       = 1;
+            work->panes[work->focusedPane ^ 1]->owner->state   = 1;
+            work->focusedPane                                  = work->focusedPane ^ 1;
+            work->panes[work->focusedPane]->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            work->focusedPane                                  = work->focusedPane ^ 1;
+            work->panes[work->focusedPane]->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             break;
         case 0x23:
-            mem->field_10                               = mem->field_8;
-            mem->field_14                               = Gp_InvLists[mem->field_8].selectedItemIndex;
-            mem->objs[mem->field_8]->owner->state       = 2;
-            mem->objs[mem->field_8 ^ 1]->owner->state   = 2;
-            mem->objs[mem->field_8]->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            mem->field_8                                = mem->field_8 ^ 1;
-            mem->objs[mem->field_8]->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+            work->swapPane                                     = work->focusedPane;
+            work->swapRow                                      = Gp_InvLists[work->focusedPane].selectedItemIndex;
+            work->panes[work->focusedPane]->owner->state       = 2;
+            work->panes[work->focusedPane ^ 1]->owner->state   = 2;
+            work->panes[work->focusedPane]->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            work->focusedPane                                  = work->focusedPane ^ 1;
+            work->panes[work->focusedPane]->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             break;
         case 0x25:
-            if (mem->field_10 != mem->field_8) {
-                if (mem->field_8 == 0) {
-                    rowSrc = mem->field_18;
-                    rowDst = mem->field_14;
+            if (work->swapPane != work->focusedPane) {
+                if (work->focusedPane == 0) {
+                    rowSrc = work->swapPartnerRow;
+                    rowDst = work->swapRow;
                 } else {
-                    rowSrc = mem->field_14;
-                    rowDst = mem->field_18;
+                    rowSrc = work->swapRow;
+                    rowDst = work->swapPartnerRow;
                 }
                 dst    = &Gp_MoveScanDst;
                 recDst = Gp_GetScanSlot(dst, rowDst, 0);
@@ -346,10 +355,10 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                     Gp_ClearEquipSlot(recDst->itemId);
                 }
             } else {
-                rowA = mem->field_14;
-                rowB = mem->field_18;
+                rowA = work->swapRow;
+                rowB = work->swapPartnerRow;
                 if (rowA != rowB) {
-                    scan            = &Gp_MoveScanSrc + mem->field_10;
+                    scan            = &Gp_MoveScanSrc + work->swapPane;
                     recA            = Gp_GetScanSlot(scan, rowA, 0);
                     qtyA            = recA->qty;
                     idA             = recA->itemId;
@@ -364,22 +373,22 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                     Gp_SetScanItem(scan, rowB, idA, qtyA)->attachSlot = attachmentSlotA;
                 }
             }
-            mem->objs[mem->field_8]->owner->state     = 1;
-            mem->objs[mem->field_8 ^ 1]->owner->state = 1;
+            work->panes[work->focusedPane]->owner->state     = 1;
+            work->panes[work->focusedPane ^ 1]->owner->state = 1;
             break;
         case 0x24:
-            mem->objs[mem->field_8]->owner->state     = 1;
-            mem->objs[mem->field_8 ^ 1]->owner->state = 1;
-            if (mem->field_10 != mem->field_8) {
-                mem->objs[mem->field_8]->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                mem->field_8                                = mem->field_8 ^ 1;
-                mem->objs[mem->field_8]->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+            work->panes[work->focusedPane]->owner->state     = 1;
+            work->panes[work->focusedPane ^ 1]->owner->state = 1;
+            if (work->swapPane != work->focusedPane) {
+                work->panes[work->focusedPane]->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                work->focusedPane                                  = work->focusedPane ^ 1;
+                work->panes[work->focusedPane]->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             }
             break;
         case 0xA:
-            mem->objs[mem->field_8]->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            mem->field_8                                = mem->field_8 ^ 1;
-            mem->objs[mem->field_8]->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+            work->panes[work->focusedPane]->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            work->focusedPane                                  = work->focusedPane ^ 1;
+            work->panes[work->focusedPane]->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             break;
     }
 }
@@ -393,7 +402,7 @@ static const char Gp_StrPlayerItem[]  = "Player Item";
 void Gp_ItemMoveTask(Task* arg0)
 {
     UiObject*            obj;
-    GpItemMoveState*     mem;
+    _ItemMenuMoveWork*   work;
     s32                  i;
     InventoryItemRange*  src;
     InventoryItemRange** scans;
@@ -412,9 +421,9 @@ void Gp_ItemMoveTask(Task* arg0)
         Wip_UiHolder = NULL;
         D_80067634   = NULL;
         Gp_ClearPreviewItems();
-        mem = memCalloc(0x1C, 0);
-        i   = 0;
-        if (mem == NULL) {
+        work = memCalloc(sizeof(*work), 0);
+        i    = 0;
+        if (work == NULL) {
             code                    = USER_INTERFACE_RESULT_CANCEL;
             obj->result             = code;
             code                    = 0x34;
@@ -422,9 +431,9 @@ void Gp_ItemMoveTask(Task* arg0)
             goto end;
         }
         scans           = Gp_ScanPtrs;
-        arg0->work      = mem;
-        Gp_ItemMoveWork = mem;
-        mem->field_C    = 0;
+        arg0->work      = work;
+        Gp_ItemMoveWork = work;
+        work->field_C   = 0;
         do {
             if (i == 0) {
                 item           = Gp_PubItemLoc;
@@ -438,15 +447,15 @@ void Gp_ItemMoveTask(Task* arg0)
         } while (i < 2);
         Gp_SortItems(&Gp_MoveScanSrc, 0);
         if (arg0->spawnArg1.value == 1) {
-            val          = Gp_CanMoveItems();
-            mem->field_8 = 0;
-            mem->objs[0] = Ui_SpawnFromDesc(D_8010D6F4, 0x100, 0, 1, obj);
-            mem->objs[1] = Ui_SpawnFromDesc(D_8010D6F4 + 1, 0x101, 0, 1, obj);
-            Ui_SpawnFromDesc(D_8010D6F4 + 9, val, 1, 1, mem->objs[0]);
+            val               = Gp_CanMoveItems();
+            work->focusedPane = 0;
+            work->panes[0]    = Ui_SpawnFromDesc(D_8010D6F4, 0x100, 0, 1, obj);
+            work->panes[1]    = Ui_SpawnFromDesc(D_8010D6F4 + 1, 0x101, 0, 1, obj);
+            Ui_SpawnFromDesc(D_8010D6F4 + 9, val, 1, 1, work->panes[0]);
         } else {
-            mem->field_8            = 0;
-            mem->objs[0]            = Ui_SpawnFromDesc(D_8010D6F4, 0, 1, 1, obj);
-            mem->objs[1]            = Ui_SpawnFromDesc(D_8010D6F4 + 1, 1, 0, 1, obj);
+            work->focusedPane       = 0;
+            work->panes[0]          = Ui_SpawnFromDesc(D_8010D6F4, 0, 1, 1, obj);
+            work->panes[1]          = Ui_SpawnFromDesc(D_8010D6F4 + 1, 1, 0, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
         Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 1, obj);
@@ -487,8 +496,8 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
     rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1.value, arg0->currentItemIndex, 0);
     item = rec->itemId;
     if (arg0->rowInputEnabled != USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if ((arg1->owner->state != 1) && (arg0->currentItemIndex == Gp_ItemMoveWork->field_14) &&
-            (arg1->owner->spawnArg1.value == Gp_ItemMoveWork->field_10)) {
+        if ((arg1->owner->state != 1) && (arg0->currentItemIndex == Gp_ItemMoveWork->swapRow) &&
+            (arg1->owner->spawnArg1.value == Gp_ItemMoveWork->swapPane)) {
             arg0->colorRgb = 0x37A78;
         }
     }
@@ -530,7 +539,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
             item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0)->itemId;
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             item = -1;
-            if (Gp_ItemMoveWork->field_10 != arg1->owner->spawnArg1.value) {
+            if (Gp_ItemMoveWork->swapPane != arg1->owner->spawnArg1.value) {
                 flags = arg1->owner->status;
                 flag  = 0;
                 if (Gp_ItemDescs[item2].flags & ITEM_FLAG_NO_DISCARD) {
@@ -553,8 +562,8 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 Gp_SpawnItemPrompt(arg1, item, 0, 1);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                Gp_ItemMoveWork->field_18 = arg0->currentItemIndex;
-                arg1->result              = 0x25;
+                Gp_ItemMoveWork->swapPartnerRow = arg0->currentItemIndex;
+                arg1->result                    = 0x25;
             }
         }
     }
