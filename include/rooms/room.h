@@ -191,17 +191,6 @@ typedef struct RoomStreamWork {
 } RoomStreamWork;
 STATIC_ASSERT_SIZEOF(RoomStreamWork, 0x14);
 
-/// The scratch block a room's mote or mist-puff drawer takes from
-/// the scratch stack for one projection: `vec` is the point's world position,
-/// projected with a single `RTPS` through `GsWSMATRIX`, and `otz` the depth
-/// the resulting tile is linked into the ordering table at; a depth below
-/// 0x11 drops it.
-typedef struct RoomMoteScratch {
-    s32     otz;
-    SVECTOR vec;
-} RoomMoteScratch;
-STATIC_ASSERT_SIZEOF(RoomMoteScratch, 0xC);
-
 /// Scratch-stack block of a room's own glow-beam drawer: the beam's two end
 /// points in world space, followed by the block their projection fills.
 ///

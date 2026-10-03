@@ -4342,21 +4342,14 @@ s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, TaskMessageArg arg2, T
 /// ticks or once it has fallen past y = -0x1D.
 void func_acropolis_bridge_80182394(Task* task)
 {
-    void**           scratch;
-    u8*              head;
-    RoomMoteScratch* block;
-    RoomMoteScratch* depth;
-    TILE_1*          prim;
-    GfxCoord*        coord;
-    EffectWork*      work;
+    EffectPointTileScratch* tileScratch;
+    TILE_1*                 prim;
+    GfxCoord*               coord;
+    EffectWork*             work;
 
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    coord    = task->extra.coordBody->coord;
-    head     = *scratch;
-    block    = (RoomMoteScratch*)(head - 0xC);
-    *scratch = block;
-    depth    = block;
-    work     = task->spawnArg2.pointer;
+    coord       = task->extra.coordBody->coord;
+    tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
+    work        = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
 
     if (work->age == 0) {
@@ -4373,27 +4366,28 @@ void func_acropolis_bridge_80182394(Task* task)
     coord->coord.t[1]  += work->move.vy;
     coord->coord.t[2]  += work->move.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    block->vec.vx       = (u16)coord->workm.t[0];
-    block->vec.vy       = (u16)coord->workm.t[1];
-    block->vec.vz       = (u16)coord->workm.t[2];
+    // Project the cached view position; screen coordinates go straight into the tile.
+    tileScratch->viewPoint.vx = coord->workm.t[0];
+    tileScratch->viewPoint.vy = coord->workm.t[1];
+    tileScratch->viewPoint.vz = coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomMoteScratch*)(head - 0xC))->vec);
+    gte_ldv0(&tileScratch->viewPoint);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setTile1(prim);
     gte_stsxy(&prim->x0);
-    gte_stszotz(&depth->otz);
-    if (((RoomMoteScratch*)(head - 0xC))->otz >= 0x11) {
+    gte_stszotz(&tileScratch->depth);
+    if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
         setRGB0(prim, work->scale >> 1, work->scale, work->scale);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, ((RoomMoteScratch*)(head - 0xC))->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, tileScratch->depth);
         work->move.vy += 6;
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0xC);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectPointTileScratch);
     work->age++;
     if (work->age >= 0x1F || coord->coord.t[1] >= -0x1D) {
         effectKillTask(work, task);

@@ -11,6 +11,27 @@
 struct GfxCoord;
 struct Task;
 
+/// Minimum SZ3 / 4 depth at which a projected point effect queues its one-pixel tile.
+enum { EFFECT_POINT_TILE_MIN_DEPTH = 0x11 };
+
+/// Scratch-stack workspace for drawing a view-space point as a one-pixel tile.
+///
+/// `viewPoint` stages a coordinate's cached view-space translation narrowed
+/// to signed 16-bit game coordinate units. One perspective transform supplies
+/// SZ3 / 4 as `depth`; the screen position is stored directly in the GPU tile.
+/// Drawers queue the tile only at `EFFECT_POINT_TILE_MIN_DEPTH` or further,
+/// using that same depth for ordering-table placement and blend setup.
+///
+/// Reserve one complete, word-aligned block on the scratch stack and release
+/// it in reverse order after drawing. The block is not cleared; the SVECTOR's
+/// unused fourth halfword has no established value. No pointer into this
+/// workspace may survive its release.
+typedef struct {
+    s32     depth;     // SZ3 / 4 (0..16383), used for visibility, ordering and blend setup
+    SVECTOR viewPoint; // View-space position in signed 16-bit game coordinate units
+} EffectPointTileScratch;
+STATIC_ASSERT_SIZEOF(EffectPointTileScratch, 0xC);
+
 /// Scratch-stack workspace for drawing an effect around one projected centre.
 ///
 /// `worldPoint` optionally stages a world position narrowed to signed 16-bit

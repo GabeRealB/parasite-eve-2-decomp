@@ -53117,7 +53117,7 @@ order before reshaping the ranges.
 
 ## `local_alloc` and `global_alloc` rank by the same formula, in the same direction
 
-`func_acropolis_east_elevator_hall_8017FAAC` projects one world point through
+`func_acropolis_east_elevator_hall_8017FAAC` projects one view-space point through
 `GsWSMATRIX` into a 0xC-byte `SCRATCH_STACK_CURSOR_SLOT` block and links a `TILE_1` into
 the OT. The unpinned C scored 99.6% with `regs=9`, and the whole diff was two
 block-local pointers trading registers: the scratch pointer wanted `$v1` and got
@@ -53150,7 +53150,7 @@ Applying the ranking by hand explained the entire allocation, including why the
 scratch pointer could not have won: its birth and death are both fixed by the
 target's own instruction order, and its reference count is fixed by the six
 accesses the target makes, so no rearrangement of the C changes the ratio. That
-is the case the pin exists for - `register AeehMoteScratch* block asm("v1")`
+is the case the pin exists for - `register EffectPointTileScratch* block asm("v1")`
 matched on the next build. Compute the two ratios from `.lreg` before reaching
 for a pin: if the losing range can be shortened or given more references, do
 that instead; if both ends are pinned down by the target, stop and pin.
@@ -58271,17 +58271,17 @@ source held the same value in two variables that are *both* live afterwards.
 
 `func_acropolis_bridge_80182394` takes a 0xC-byte block off the scratchpad and
 uses it twice: the `SVECTOR` stores go through one pointer and
-`gte_stszotz(&block->otz)` through another. One local scores 96.9% with
+`gte_stszotz(&block->depth)` through another. One local scores 96.9% with
 `regs=26`; adding the second, assigned right where the copy appears, is 100%:
 
 ```c
-block    = (AcropolisBridgeMoteScratch*)(head - 0xC);
+block    = (EffectPointTileScratch*)(head - 0xC);
 *scratch = block;
 depth    = block;          /* second live pointer -> the extra $sX + move */
 …
-block->vec.vx = *(u16*)&coord->workm.t[0];
+block->viewPoint.vx = *(u16*)&coord->workm.t[0];
 …
-gte_stszotz(&depth->otz);
+gte_stszotz(&depth->depth);
 ```
 
 The same block's *reads* still spell the address out as `(head - 0xC)`, which

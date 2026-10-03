@@ -19,6 +19,7 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -856,41 +857,35 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 
 static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
 {
-    void**           scratch;
-    u8*              head;
-    RoomMoteScratch* block;
-    RoomMoteScratch* depth;
-    TILE_1*          prim;
-    GfxCoord*        coord;
-    void*            mem;
+    EffectPointTileScratch* tileScratch;
+    TILE_1*                 prim;
+    GfxCoord*               coord;
+    void*                   mem;
 
-    scratch = SCRATCH_STACK_CURSOR_SLOT;
-    coord   = arg0->extra.tmd->coords;
-    mem     = arg0->spawnArg2.pointer;
+    coord = arg0->extra.tmd->coords;
+    mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    head          = *scratch;
-    block         = (RoomMoteScratch*)(head - 0xC);
-    *scratch      = block;
-    depth         = block;
-    block->vec.vx = (u16)coord->workm.t[0];
-    block->vec.vy = (u16)coord->workm.t[1];
-    block->vec.vz = (u16)coord->workm.t[2];
+    tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
+    // Project the cached view position; screen coordinates go straight into the tile.
+    tileScratch->viewPoint.vx = coord->workm.t[0];
+    tileScratch->viewPoint.vy = coord->workm.t[1];
+    tileScratch->viewPoint.vz = coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomMoteScratch*)(head - 0xC))->vec);
+    gte_ldv0(&tileScratch->viewPoint);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setTile1(prim);
     gte_stsxy(&prim->x0);
-    gte_stszotz(&depth->otz);
-    if (((RoomMoteScratch*)(head - 0xC))->otz >= 0x11) {
+    gte_stszotz(&tileScratch->depth);
+    if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
         setRGB0(prim, 0x80, 0x80, 0x80);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, ((RoomMoteScratch*)(head - 0xC))->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, tileScratch->depth);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0xC);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectPointTileScratch);
     effectKillTask(mem, arg0);
 }

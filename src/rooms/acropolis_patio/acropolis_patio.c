@@ -2252,24 +2252,24 @@ void func_acropolis_patio_8017E324(Task* task)
 /// `+/-8` per axis every frame, with a 1-in-120 draw returning it to drift.
 /// The velocity is then added to the effect coordinate's translation.
 ///
-/// The result is projected through `GsWSMATRIX` into a 0xC-byte scratch frame
+/// The result is projected through `GsWSMATRIX` using `EffectPointTileScratch`
 /// and drawn as a single grey `TILE_1` whose level is a fresh `rand[0,0xC0)`,
-/// so the mist shimmers; the tile is dropped entirely inside `otz` 0x11.
+/// so the mist shimmers; depths below `EFFECT_POINT_TILE_MIN_DEPTH` draw nothing.
 void func_acropolis_patio_8017E730(Task* task)
 {
-    EffectWork*      work;
-    GfxCoord*        coord;
-    RoomMoteScratch* sc;
-    SVECTOR*         dir;
-    SVECTOR*         anchors;
-    TILE_1*          prim;
-    u32              level;
+    EffectWork*             work;
+    GfxCoord*               coord;
+    EffectPointTileScratch* tileScratch;
+    SVECTOR*                dir;
+    SVECTOR*                anchors;
+    TILE_1*                 prim;
+    u32                     level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> (gGameSession->location.loc.view - 1)) & 1)) {
-        sc = (RoomMoteScratch*)SCRATCH_STACK_RESERVE_BYTES(0xC);
+        tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2323,29 +2323,30 @@ void func_acropolis_patio_8017E730(Task* task)
         coord->coord.t[1]  += work->move.vy;
         coord->coord.t[2]  += work->move.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        sc->vec.vx          = (u16)coord->workm.t[0];
-        sc->vec.vy          = (u16)coord->workm.t[1];
-        sc->vec.vz          = (u16)coord->workm.t[2];
+        // Project the cached view position; screen coordinates go straight into the tile.
+        tileScratch->viewPoint.vx = coord->workm.t[0];
+        tileScratch->viewPoint.vy = coord->workm.t[1];
+        tileScratch->viewPoint.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&sc->vec);
+        gte_ldv0(&tileScratch->viewPoint);
         gte_rtps();
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setTile1(prim);
         gte_stsxy(&prim->x0);
-        gte_stszotz(&sc->otz);
-        if (sc->otz >= 0x11) {
+        gte_stszotz(&tileScratch->depth);
+        if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             level           = gRandomLcgState >> 16;
             level          %= 0xC0;
             prim->r0        = level;
             prim->g0        = level;
             prim->b0        = level;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, sc->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, tileScratch->depth);
         }
-        SCRATCH_STACK_RELEASE_BYTES(0xC);
+        SCRATCH_STACK_RELEASE_BLOCK(EffectPointTileScratch);
     }
 }
