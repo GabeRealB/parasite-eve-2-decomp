@@ -147,99 +147,107 @@ typedef union Actor100400Mat {
 } Actor100400Mat;
 STATIC_ASSERT_SIZEOF(Actor100400Mat, 0x20);
 
-typedef union Actor100400Flags {
-    u32 word;
-    u16 half;
+/// Animation slot 1's tick results as the Bog Diver's states see them, and the
+/// halfword sharing their word.
+///
+/// Each per-frame handler copies `AnimationSlot.status.fields.flags` here after
+/// it has run the current state, and the states test this copy rather than the
+/// slot to learn that their clip has ended. The two halfwords are unrelated,
+/// but that test reads the jump and settled bits through one word load, which
+/// `word` is for; its mask keeps the phase out of the result.
+typedef union {
     struct {
-        u16 lo;
-        s16 field_62E;
-    } hi;
-} Actor100400Flags;
+        u16 flags;    // Slot 1's ANIMATION_SLOT_* results from the latest frame's ticks
+        s16 bobPhase; // Frame counter driving the root coordinate's vertical bob (64 frames a cycle, 16 units either way)
+    } fields;
+    u32 word;         // Both halfwords, `flags` in the low half
+} Actor100400AnimationStatus;
+STATIC_ASSERT_SIZEOF(Actor100400AnimationStatus, 4);
 
 typedef struct Actor100400Work {
-    /* 0x000 */ AnimationContext      anim;
-    /* 0x014 */ AnimationSlot         slots[15];
-    /* 0x26C */ byte                  poses[0xF0];
-    /* 0x35C */ WorldCollisionBody    obj_35C;
-    /* 0x37C */ WorldCollisionBody    obj_37C;
-    /* 0x39C */ WorldCollisionContact field_39C[6];
-    /* 0x42C */ WorldCollisionBody    obj_42C;
-    /* 0x44C */ WorldCollisionContact field_44C[6];
-    /* 0x4DC */ WorldCollisionBody    obj_4DC;
-    /* 0x4FC */ WorldCollisionContact rec_4FC[3];
-    /* 0x544 */ byte                  pad_544[2];
-    /* 0x546 */ u16                   field_546;
-    /* 0x548 */ byte                  pad_548[4];
-    /* 0x54C */ s16                   field_54C;
-    /* 0x54E */ s16                   field_54E;
-    /* 0x550 */ s16                   field_550;
-    /* 0x552 */ byte                  pad_552[2];
-    /* 0x554 */ s16                   field_554;
-    /* 0x556 */ s16                   field_556;
-    /* 0x558 */ s16                   field_558;
-    /* 0x55A */ byte                  pad_55A[0xA];
-    /* 0x564 */ s16                   field_564;
-    /* 0x566 */ byte                  pad_566[2];
-    /* 0x568 */ s16                   field_568;
-    /* 0x56A */ byte                  pad_56A[2];
-    /* 0x56C */ SVECTOR               field_56C;
-    /* 0x574 */ SVECTOR               field_574;
-    /* 0x57C */ MATRIX                field_57C;
-    /* 0x59C */ MATRIX                field_59C;
-    /* 0x5BC */ MATRIX                field_5BC;
-    /* 0x5DC */ EffectSpawnArg        field_5DC;
-    /* 0x5E4 */ SVECTOR               field_5E4;
-    /* 0x5EC */ SVECTOR               field_5EC;
-    /* 0x5F4 */ SVECTOR               field_5F4;
-    /* 0x5FC */ byte                  pad_5FC[0xC];
-    /* 0x608 */ SVECTOR*              field_608;
-    /* 0x60C */ SVECTOR*              field_60C;
-    /* 0x610 */ s32                   field_610;
-    /* 0x614 */ s16                   field_614[3];
-    /* 0x61A */ byte                  pad_61A[2];
-    /* 0x61C */ s16                   field_61C;
-    /* 0x61E */ s16                   field_61E;
-    /* 0x620 */ s16                   field_620;
-    /* 0x622 */ s16                   field_622;
-    /* 0x624 */ s16                   animRequest;
-    /* 0x626 */ s16                   animPlaying;
-    /* 0x628 */ s16                   animClip;
-    /* 0x62A */ s16                   field_62A;
-    /* 0x62C */ Actor100400Flags      flags_62C;
-    /* 0x630 */ s16                   field_630;
-    /* 0x632 */ s16                   animStep;
-    /* 0x634 */ u16                   field_634;
-    /* 0x636 */ s16                   field_636;
-    /* 0x638 */ s16                   field_638;
-    /* 0x63A */ u16                   subState;
-    /* 0x63C */ s16                   animBlend;
-    /* 0x63E */ s16                   field_63E;
-    /* 0x640 */ s16                   field_640;
-    /* 0x642 */ s16                   field_642;
-    /* 0x644 */ s16                   field_644;
-    /* 0x646 */ s16                   field_646;
-    /* 0x648 */ s16                   field_648;
-    /* 0x64A */ s16                   field_64A;
-    /* 0x64C */ s16                   field_64C;
-    /* 0x64E */ s16                   field_64E;
-    /* 0x650 */ s16                   field_650;
-    /* 0x652 */ s16                   field_652;
-    /* 0x654 */ s16                   field_654;
-    /* 0x656 */ byte                  pad_656[2];
-    /* 0x658 */ u16                   field_658;
-    /* 0x65A */ u8                    field_65A;
-    /* 0x65B */ u8                    field_65B;
-    /* 0x65C */ byte                  pad_65C[1];
-    /* 0x65D */ u8                    field_65D;
-    /* 0x65E */ u8                    field_65E;
-    /* 0x65F */ u8                    field_65F;
-    /* 0x660 */ u8                    field_660;
-    /* 0x661 */ u8                    field_661;
-    /* 0x662 */ byte                  pad_662[1];
-    /* 0x663 */ u8                    field_663;
-    /* 0x664 */ u8                    field_664;
-    /* 0x665 */ s8                    field_665;
-    /* 0x666 */ u8                    field_666;
+    /* 0x000 */ AnimationContext           anim;
+    /* 0x014 */ AnimationSlot              slots[15];
+    /* 0x26C */ byte                       poses[0xF0];
+    /* 0x35C */ WorldCollisionBody         obj_35C;
+    /* 0x37C */ WorldCollisionBody         obj_37C;
+    /* 0x39C */ WorldCollisionContact      field_39C[6];
+    /* 0x42C */ WorldCollisionBody         obj_42C;
+    /* 0x44C */ WorldCollisionContact      field_44C[6];
+    /* 0x4DC */ WorldCollisionBody         obj_4DC;
+    /* 0x4FC */ WorldCollisionContact      rec_4FC[3];
+    /* 0x544 */ byte                       pad_544[2];
+    /* 0x546 */ u16                        field_546;
+    /* 0x548 */ byte                       pad_548[4];
+    /* 0x54C */ s16                        field_54C;
+    /* 0x54E */ s16                        field_54E;
+    /* 0x550 */ s16                        field_550;
+    /* 0x552 */ byte                       pad_552[2];
+    /* 0x554 */ s16                        field_554;
+    /* 0x556 */ s16                        field_556;
+    /* 0x558 */ s16                        field_558;
+    /* 0x55A */ byte                       pad_55A[0xA];
+    /* 0x564 */ s16                        field_564;
+    /* 0x566 */ byte                       pad_566[2];
+    /* 0x568 */ s16                        field_568;
+    /* 0x56A */ byte                       pad_56A[2];
+    /* 0x56C */ SVECTOR                    field_56C;
+    /* 0x574 */ SVECTOR                    field_574;
+    /* 0x57C */ MATRIX                     field_57C;
+    /* 0x59C */ MATRIX                     field_59C;
+    /* 0x5BC */ MATRIX                     field_5BC;
+    /* 0x5DC */ EffectSpawnArg             field_5DC;
+    /* 0x5E4 */ SVECTOR                    field_5E4;
+    /* 0x5EC */ SVECTOR                    field_5EC;
+    /* 0x5F4 */ SVECTOR                    field_5F4;
+    /* 0x5FC */ byte                       pad_5FC[0xC];
+    /* 0x608 */ SVECTOR*                   field_608;
+    /* 0x60C */ SVECTOR*                   field_60C;
+    /* 0x610 */ s32                        field_610;
+    /* 0x614 */ s16                        field_614[3];
+    /* 0x61A */ byte                       pad_61A[2];
+    /* 0x61C */ s16                        field_61C;
+    /* 0x61E */ s16                        field_61E;
+    /* 0x620 */ s16                        field_620;
+    /* 0x622 */ s16                        field_622;
+    /* 0x624 */ s16                        animRequest;
+    /* 0x626 */ s16                        animPlaying;
+    /* 0x628 */ s16                        animClip;
+    /* 0x62A */ s16                        field_62A;
+    /* 0x62C */ Actor100400AnimationStatus flags_62C;
+    /* 0x630 */ s16                        field_630;
+    /* 0x632 */ s16                        animStep;
+    /* 0x634 */ u16                        field_634;
+    /* 0x636 */ s16                        field_636;
+    /* 0x638 */ s16                        field_638;
+    /* 0x63A */ u16                        subState;
+    /* 0x63C */ s16                        animBlend;
+    /* 0x63E */ s16                        field_63E;
+    /* 0x640 */ s16                        field_640;
+    /* 0x642 */ s16                        field_642;
+    /* 0x644 */ s16                        field_644;
+    /* 0x646 */ s16                        field_646;
+    /* 0x648 */ s16                        field_648;
+    /* 0x64A */ s16                        field_64A;
+    /* 0x64C */ s16                        field_64C;
+    /* 0x64E */ s16                        field_64E;
+    /* 0x650 */ s16                        field_650;
+    /* 0x652 */ s16                        field_652;
+    /* 0x654 */ s16                        field_654;
+    /* 0x656 */ byte                       pad_656[2];
+    /* 0x658 */ u16                        field_658;
+    /* 0x65A */ u8                         field_65A;
+    /* 0x65B */ u8                         field_65B;
+    /* 0x65C */ byte                       pad_65C[1];
+    /* 0x65D */ u8                         field_65D;
+    /* 0x65E */ u8                         field_65E;
+    /* 0x65F */ u8                         field_65F;
+    /* 0x660 */ u8                         field_660;
+    /* 0x661 */ u8                         field_661;
+    /* 0x662 */ byte                       pad_662[1];
+    /* 0x663 */ u8                         field_663;
+    /* 0x664 */ u8                         field_664;
+    /* 0x665 */ s8                         field_665;
+    /* 0x666 */ u8                         field_666;
 } Actor100400Work;
 
 /// The Diver library's name for this package's work block (see diver.h).
@@ -2770,7 +2778,7 @@ static void Actor00400_Fn040DC(Task* arg0)
                 break;
             }
             fns.funcs[work->field_638](arg0);
-            work->flags_62C.half = work->slots[1].status.fields.flags;
+            work->flags_62C.fields.flags = work->slots[1].status.fields.flags;
             if (work->field_644 != 4) {
                 work->field_660 = 1;
                 Actor00400_Fn02648(arg0, 1);
@@ -2857,7 +2865,7 @@ static void Actor00400_Fn04414(Task* arg0)
     } while (i < 0xF);
     if (arg0->spawnArg1.value != 7) {
         w2 = arg0->work;
-        if ((w2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        if ((w2->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
             (w2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
@@ -2915,7 +2923,7 @@ static void Actor00400_Fn04580(Task* arg0)
             if (work->field_663 != 0) {
                 break;
             }
-            work->flags_62C.hi.field_62E++;
+            work->flags_62C.fields.bobPhase++;
             work->field_630++;
             Actor00400_Fn01454(arg0);
             fns.funcs[work->field_638](arg0);
@@ -2941,7 +2949,7 @@ static void Actor00400_Fn04580(Task* arg0)
                 animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half = work->slots[1].status.fields.flags;
+            work->flags_62C.fields.flags = work->slots[1].status.fields.flags;
             Actor00400_Fn016A4(arg0, (u8)work->field_665);
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
@@ -3001,7 +3009,7 @@ static void Actor00400_Fn04900(Task* arg0)
     }
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
         work2 = arg0->work;
-        if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        if ((work2->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
             (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
@@ -3036,7 +3044,7 @@ static void Actor00400_Fn04A1C(Task* arg0)
     }
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
         work2 = arg0->work;
-        if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        if ((work2->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
             (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
@@ -3088,7 +3096,7 @@ static void Actor00400_Fn04B48(Task* arg0)
                 break;
             }
             fns.funcs[work->field_638](arg0);
-            work->flags_62C.half = work->slots[1].status.fields.flags;
+            work->flags_62C.fields.flags = work->slots[1].status.fields.flags;
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
             ctx2  = arg0->extra.tmd;
@@ -3193,7 +3201,7 @@ static void Actor00400_Fn04E18(Task* arg0)
             if (work->field_663 != 0) {
                 return;
             }
-            work->flags_62C.hi.field_62E++;
+            work->flags_62C.fields.bobPhase++;
             work->field_630++;
             Actor00400_Fn01454(arg0);
             fns.funcs[work->field_638](arg0);
@@ -3223,7 +3231,7 @@ static void Actor00400_Fn04E18(Task* arg0)
                 animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half = work->slots[1].status.fields.flags;
+            work->flags_62C.fields.flags = work->slots[1].status.fields.flags;
             Actor00400_Fn02648(arg0, work->field_660);
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
@@ -3255,7 +3263,7 @@ static void Actor00400_Fn04E18(Task* arg0)
             }
             coord0->coord.t[1] += (work->field_63E - coord0->coord.t[1]) >> 4;
             if (work->field_638 < 0xB) {
-                coord0->coord.t[1] += (rsin(work->flags_62C.hi.field_62E << 6) * 0x10) >> 12;
+                coord0->coord.t[1] += (rsin(work->flags_62C.fields.bobPhase << 6) * 0x10) >> 12;
             }
             if (work->field_650 != 0) {
                 work->field_650--;
@@ -3390,7 +3398,7 @@ static void Actor00400_Fn05320(Task* arg0)
         SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     w4 = arg0->work;
-    if ((w4->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((w4->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (w4->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
@@ -3652,7 +3660,7 @@ static void Actor00400_Fn060CC(Task* arg0)
     }
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
         work2 = arg0->work;
-        if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        if ((work2->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
             (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
@@ -3803,7 +3811,7 @@ static void Actor00400_Fn064B0(Task* arg0)
         Actor00400_SpawnMarker(arg0);
     }
     work2 = arg0->work;
-    if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((work2->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
@@ -3927,7 +3935,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
             ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            work->flags_62C.hi.field_62E++;
+            work->flags_62C.fields.bobPhase++;
             work->field_630++;
             Actor00400_Fn01454(arg0);
             fns[work->field_638](arg0);
@@ -3952,7 +3960,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
                 animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half          = work->slots[1].status.fields.flags;
+            work->flags_62C.fields.flags  = work->slots[1].status.fields.flags;
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
             ia                            = &m.matrix.rotationWords;
@@ -4032,7 +4040,7 @@ static void Actor00400_Fn06EA4(Task* arg0)
     work = arg0->work;
     if (Actor00400_ConsumeStateRequest(work) == 0) {
         work = arg0->work;
-        if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
             (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
@@ -4068,7 +4076,7 @@ static void Actor00400_Fn06F64(Task* arg0)
     }
     if (Actor00400_ConsumeStateRequest(work) == 0) {
         work = arg0->work;
-        if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
             (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
@@ -4109,7 +4117,7 @@ static void Actor00400_Fn070C0(Task* arg0)
             ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            work->flags_62C.hi.field_62E++;
+            work->flags_62C.fields.bobPhase++;
             work->field_630++;
             Actor00400_Fn01454(arg0);
             fns[work->field_638](arg0);
@@ -4134,7 +4142,7 @@ static void Actor00400_Fn070C0(Task* arg0)
                 animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half          = work->slots[1].status.fields.flags;
+            work->flags_62C.fields.flags  = work->slots[1].status.fields.flags;
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
             ia                            = &m.matrix.rotationWords;
@@ -4188,7 +4196,7 @@ static void Actor00400_Fn07400(Task* arg0)
         work->field_636 = phase;
         work->field_63E = work->field_658 + ((u16)work->field_64E + ((rsin(phase << 16 >> 10) * 0x10) >> 10));
         work2           = arg0->work;
-        if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        if ((work2->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
             (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
@@ -4242,7 +4250,7 @@ void Actor00400_Fn076E8(Task* task)
     funcs[task->state](task);
 }
 
-/// Draws two LCG values into the work's `field_62E`/`field_630`, resets the
+/// Draws two LCG values into the work's bob phase and `field_630`, resets the
 /// state counters and copies the root coordinate's `t[1]` into `field_63E`.
 static void Actor00400_Fn07738(Task* arg0)
 {
@@ -4254,18 +4262,18 @@ static void Actor00400_Fn07738(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     Gp_IncStateF0Ref(0);
-    gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->flags_62C.hi.field_62E = gRandomLcgState >> 16;
-    gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->field_630              = gRandomLcgState >> 16;
-    state                        = arg0->work;
-    state->animStep              = 0x10;
-    state->animClip              = 1;
-    state->animRequest           = 2;
-    state2                       = arg0->work;
-    state2->field_638            = 1;
-    state2->subState             = 0;
-    work->field_63E              = coord->coord.t[1];
+    gRandomLcgState                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->flags_62C.fields.bobPhase = gRandomLcgState >> 16;
+    gRandomLcgState                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_630                 = gRandomLcgState >> 16;
+    state                           = arg0->work;
+    state->animStep                 = 0x10;
+    state->animClip                 = 1;
+    state->animRequest              = 2;
+    state2                          = arg0->work;
+    state2->field_638               = 1;
+    state2->subState                = 0;
+    work->field_63E                 = coord->coord.t[1];
 }
 
 /// States `Actor00400_Fn077F4` dispatches on `Actor100400Work.subState`.
@@ -4894,7 +4902,7 @@ static s16 Actor00400_Fn08908(Task* arg0)
 {
     Actor100400Work* work = arg0->work;
 
-    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
@@ -5161,15 +5169,15 @@ static void Actor00400_Fn090B4(Task* arg0)
     work                                                      = arg0->work;
     ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
     Gp_IncStateF0Ref(0);
-    work->flags_62C.hi.field_62E = 0;
-    work->field_630              = 0x174B;
-    state                        = arg0->work;
-    state->animStep              = 0x10;
-    state->animClip              = 2;
-    state->animRequest           = 2;
-    state2                       = arg0->work;
-    state2->field_638            = 1;
-    state2->subState             = 0;
+    work->flags_62C.fields.bobPhase = 0;
+    work->field_630                 = 0x174B;
+    state                           = arg0->work;
+    state->animStep                 = 0x10;
+    state->animClip                 = 2;
+    state->animRequest              = 2;
+    state2                          = arg0->work;
+    state2->field_638               = 1;
+    state2->subState                = 0;
 }
 
 /// Every path out of the range test funnels through `set`, where the arm flag
@@ -5350,7 +5358,7 @@ static void Actor00400_Fn095D8(Task* arg0)
     work            = arg0->work;
     work->field_660 = 1;
     work2           = arg0->work;
-    if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((work2->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
@@ -5389,7 +5397,7 @@ static void Actor00400_Fn096C0(Task* arg0)
     Actor100400Work* work;
 
     work = arg0->work;
-    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
@@ -5417,7 +5425,7 @@ static void Actor00400_Fn097C8(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     state = arg0->work;
-    if ((state->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((state->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (state->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
@@ -5465,7 +5473,7 @@ static void Actor00400_Fn09924(Task* arg0)
         state->animRequest = mode;
     } else {
         state = arg0->work;
-        if ((state->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        if ((state->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
             (state->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
@@ -5956,7 +5964,7 @@ static void Actor00400_Fn0A6B0(Task* arg0)
     s32              cond;
 
     work = arg0->work;
-    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
@@ -5996,7 +6004,7 @@ static void Actor00400_Fn0A760(Task* arg0)
     }
     Actor00400_Fn00C84(arg0);
     work = arg0->work;
-    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
@@ -6028,7 +6036,7 @@ static void Actor00400_Fn0A82C(Task* arg0)
     s32              cond;
 
     work = arg0->work;
-    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
@@ -6103,7 +6111,7 @@ static void Actor00400_Fn0AA40(Task* arg0)
     work = arg0->work;
     work->field_636++;
     state = arg0->work;
-    if ((state->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+    if ((state->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (state->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {

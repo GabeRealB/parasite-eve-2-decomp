@@ -3855,17 +3855,17 @@ with `lh` - three overlays agreeing beats one ambiguous store.
 
 ## Two views of one union field are two loads; CSE will not merge `lhu` with `lw`
 
-`Actor100400Work::flags_62C` is a union with a `u32 word` and a `u16 half` over
-the same storage. Naming the narrow view for both tests leaves both reads in
+`Actor100400Work::flags_62C` is a union with a `u32 word` and a `u16 fields.flags`
+over the same storage. Naming the narrow view for both tests leaves both reads in
 HImode, and CSE does merge those - one `lhu`, two `andi`s:
 
-    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.half & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
+    if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.fields.flags & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
 
 The target held a *second* load at 0x62C and it was a word load, `andi
 $v0,$v0,0x102` after `lw $v0,0x62C($v1)`, because the second test is on the wide
 view and a `lw` has no common subexpression with the `lhu`:
 
-    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
+    if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
 
 The symptom is small - the object is short two instructions (`lw`/`nop`) and the
 block addresses shift, so `branch` is non-zero - and it reads like an allocation
@@ -104029,7 +104029,7 @@ at all. Two matched siblings in the same TU pin both forms down:
 
 ```c
 /* Actor00400_Fn08908: direct branches, no materialization (matched) */
-if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
     return 1;
 }
 return 0;
@@ -104039,7 +104039,7 @@ return 0;
 /* Actor00400_Fn095D8: the phi form, condition sequence byte-identical
    to the already-matched Actor00400_Fn04414 */
 w2 = arg0->field_1C;
-if ((w2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (w2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+if ((w2->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (w2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
 ## A naming pass makes twins invisible to `overlay_dup_index.py find` — the wildcard is name-shaped
 
 `Actor04400_Fn06C70` (USA/actors/lib) came back as `same body: 1 copies` — itself
@@ -104244,11 +104244,11 @@ Two further details this shape pins down:
 
 * **Two access widths at one address.** The first read is `lhu` and the second
   `lw`, both at `0x62C`, because the source goes through the union
-  `Actor100400Flags`: `.half` for the `& 1`, `.word` for the `& 0x102`. CSE does
-  not equate a `lhu` with a `lw` of the same address, so the two loads stay
-  separate. Reading `.half` twice is the natural thing to write and is the wrong
-  answer: CSE merges the loads into one register and the `andi` pair becomes
-  `and` + `sltu` (43.65%, `branch=2 regs=5 insert=3 delete=8`).
+  `Actor100400AnimationStatus`: `.fields.flags` for the `& 1`, `.word` for the
+  `& 0x102`. CSE does not equate a `lhu` with a `lw` of the same address, so the
+  two loads stay separate. Reading `.fields.flags` twice is the natural thing to
+  write and is the wrong answer: CSE merges the loads into one register and the
+  `andi` pair becomes `and` + `sltu` (43.65%, `branch=2 regs=5 insert=3 delete=8`).
 * **The work pointer is loaded twice on purpose.** `work = arg0->field_1C;
   work->field_660 = 1;` invalidates the cached `index->field_1C`, so the
   condition needs its own `work2 = index->field_1C;`. That is what puts the
