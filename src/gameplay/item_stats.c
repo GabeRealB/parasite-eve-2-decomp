@@ -29,11 +29,13 @@
 #include "main/text.h"
 #include "main/ui.h"
 
+/// Pixel size of the item preview picture, laid out as a GTE short vector so
+/// `gte_gpf12` can scale both dimensions in one pass.
 typedef struct {
-    u16 vx;
-    u16 vy;
-    u16 vz;
-} SizeVec;
+    u16 width;  // on-screen width in pixels
+    u16 height; // on-screen height in pixels
+    u16 depth;  // third GTE lane; always 0, so scaling leaves it 0
+} _ItemMenuPreviewSize;
 
 #define D_8010EF68 D_8010EAB4[43]
 
@@ -918,13 +920,13 @@ void Gp_KeyItemMenuTask(Task* arg0)
 
 void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    POLY_FT4* p;
-    SizeVec   vec;
-    s32       w;
-    s32       h;
-    s32       x;
-    s32       y;
-    s32       scale;
+    POLY_FT4*            p;
+    _ItemMenuPreviewSize size;
+    s32                  w;
+    s32                  h;
+    s32                  x;
+    s32                  y;
+    s32                  scale;
 
     w = 0x80;
     h = 0x60;
@@ -934,21 +936,22 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
     } else if (arg3 & 0x400) {
         h = 0x7F;
     }
-    vec.vx = w;
-    vec.vy = h;
-    vec.vz = 0;
+    size.width  = w;
+    size.height = h;
+    size.depth  = 0;
+    // Shrink the preview by a 4.12 factor on the GTE.
     if ((arg3 & 0xF0) == 0x10) {
         scale = 0xA00;
         gte_lddp(scale);
-        gte_ldsv(&vec);
+        gte_ldsv(&size);
         gte_gpf12();
-        gte_stsv(&vec);
+        gte_stsv(&size);
     } else if ((arg3 & 0xF0) == 0x20) {
         scale = 0xAA0;
         gte_lddp(scale);
-        gte_ldsv(&vec);
+        gte_ldsv(&size);
         gte_gpf12();
-        gte_stsv(&vec);
+        gte_stsv(&size);
     }
     if (!(arg3 & 0x100)) {
         p              = gGpuPrimCursor;
@@ -958,13 +961,13 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         x     = arg0->panel.contentOriginX.unsignedValue + arg1;
         p->x2 = x;
         p->x0 = x;
-        x     = x + vec.vx;
+        x     = x + size.width;
         p->x3 = x;
         p->x1 = x;
         y     = arg0->panel.contentOriginY.unsignedValue + arg2;
         p->y1 = y;
         p->y0 = y;
-        y     = y + vec.vy;
+        y     = y + size.height;
         p->y3 = y;
         p->y2 = y;
         switch (arg3 & 0xF) {
@@ -1007,8 +1010,8 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         }
         addPrim(gGpuCurrentOt + arg0->panel.otIndex.signedValue + 1, p);
     }
-    Ui_LayoutWithMode0(arg0, (arg1 - 1), (arg2 - 1), ((s16)vec.vx + 1),
-                       ((s16)vec.vy + 1), 0x81008);
+    Ui_LayoutWithMode0(arg0, (arg1 - 1), (arg2 - 1), ((s16)size.width + 1),
+                       ((s16)size.height + 1), 0x81008);
 }
 
 /// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the
