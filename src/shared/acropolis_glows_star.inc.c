@@ -2,16 +2,16 @@
 
 // Select the core quad's half-height storage for this included instance.
 #if defined(GLOW_STAR_STORE_HALF_HEIGHT) && GLOW_STAR_STORE_HALF_HEIGHT
-#define ACROPOLIS_GLOWS_STAR_HALF_HEIGHT blk->dy
+#define ACROPOLIS_GLOWS_STAR_HALF_HEIGHT blk->cornerDy
 #else
-#define ACROPOLIS_GLOWS_STAR_HALF_HEIGHT blk->dx
+#define ACROPOLIS_GLOWS_STAR_HALF_HEIGHT blk->cornerDx
 #endif
 
 /// One frame of the promenade's twinkling star: two semi-transparent
 /// `POLY_FT4`s stacked on the same screen point, centred on the task's own
 /// coordinate frame. The frame's translation is projected through `GsWSMATRIX`
-/// into a 0x18-byte scratch stack block, and both quads are dropped
-/// entirely inside `otz` 0x11.
+/// into an `OverlaySpriteScratch` block on the scratch stack, and both quads
+/// are dropped entirely inside `otz` 0x11.
 ///
 /// The lower quad is upright, of half-extent `0x1680 / otz`, and animates
 /// through six 0x10x0x10 cells at v = 0 on tpage 0x2B by stepping `u` with
@@ -30,7 +30,7 @@ void ACROPOLIS_GLOWS_STAR_TASK(Task* task)
     GfxCoord*             coord;
     EffectWork*           work;
     void**                scratch;
-    u8*                   head;
+    OverlaySpriteScratch* head;
     OverlaySpriteScratch* blk;
     s32*                  otzp;
     POLY_FT4*             prim;
@@ -39,45 +39,45 @@ void ACROPOLIS_GLOWS_STAR_TASK(Task* task)
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    work->age   = task->spawnArg1.value;
-    scratch     = SCRATCH_STACK_CURSOR_SLOT;
-    head        = *scratch;
-    blk         = (OverlaySpriteScratch*)(head - 0x18);
-    otzp        = &blk->otz;
-    blk->vec.vx = coord->workm.t[0];
-    blk->vec.vy = coord->workm.t[1];
-    *scratch    = blk;
-    blk->vec.vz = coord->workm.t[2];
+    work->age        = task->spawnArg1.value;
+    scratch          = SCRATCH_STACK_CURSOR_SLOT;
+    head             = *scratch;
+    blk              = head - 1;
+    otzp             = &blk->otz;
+    blk->worldPos.vx = coord->workm.t[0];
+    blk->worldPos.vy = coord->workm.t[1];
+    *scratch         = blk;
+    blk->worldPos.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->vec);
+    gte_ldv0(&blk->worldPos);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&blk->sxy);
+    gte_stsxy(&blk->screenPos);
     gte_stszotz(otzp);
     if (blk->otz >= 0x11) {
-        prim->tpage = 0x2B;
-        prim->clut  = 0x4380;
-        prim->code |= 3;
-        prim->u0    = (work->age % 6) * 16;
-        prim->v0    = 0;
-        prim->u1    = (work->age % 6) * 16 + 0xF;
-        prim->v1    = 0;
-        prim->u2    = (work->age % 6) * 16;
-        prim->v2    = 0xF;
-        prim->u3    = (work->age % 6) * 16 + 0xF;
-        prim->v3    = 0xF;
-        blk->dx     = 0x1680 / blk->otz;
+        prim->tpage   = 0x2B;
+        prim->clut    = 0x4380;
+        prim->code   |= 3;
+        prim->u0      = (work->age % 6) * 16;
+        prim->v0      = 0;
+        prim->u1      = (work->age % 6) * 16 + 0xF;
+        prim->v1      = 0;
+        prim->u2      = (work->age % 6) * 16;
+        prim->v2      = 0xF;
+        prim->u3      = (work->age % 6) * 16 + 0xF;
+        prim->v3      = 0xF;
+        blk->cornerDx = 0x1680 / blk->otz;
 #if defined(GLOW_STAR_STORE_HALF_HEIGHT) && GLOW_STAR_STORE_HALF_HEIGHT
-        blk->dy = 0x1680 / blk->otz;
+        blk->cornerDy = 0x1680 / blk->otz;
 #endif
-        prim->x0 = prim->x2 = blk->sxy.vx - blk->dx;
-        prim->x1 = prim->x3 = blk->sxy.vx + blk->dx;
-        prim->y0 = prim->y1 = blk->sxy.vy - ACROPOLIS_GLOWS_STAR_HALF_HEIGHT;
-        prim->y2 = prim->y3 = blk->sxy.vy + ACROPOLIS_GLOWS_STAR_HALF_HEIGHT;
+        prim->x0 = prim->x2 = blk->screenPos.vx - blk->cornerDx;
+        prim->x1 = prim->x3 = blk->screenPos.vx + blk->cornerDx;
+        prim->y0 = prim->y1 = blk->screenPos.vy - ACROPOLIS_GLOWS_STAR_HALF_HEIGHT;
+        prim->y2 = prim->y3 = blk->screenPos.vy + ACROPOLIS_GLOWS_STAR_HALF_HEIGHT;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
 
@@ -102,23 +102,23 @@ void ACROPOLIS_GLOWS_STAR_TASK(Task* task)
         prim->g0        = grey;
         prim->b0        = grey;
 
-        work->scale = gDisplayState.animFrame + work->age;
-        blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale)) >> 12;
-        blk->dy     = ((0x3A80 / blk->otz) * rcos(work->scale)) >> 12;
-        prim->x0    = blk->sxy.vx + blk->dx;
-        prim->x3    = blk->sxy.vx - blk->dx;
-        prim->y0    = blk->sxy.vy - blk->dy;
-        prim->y3    = blk->sxy.vy + blk->dy;
-        blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale + 0x400)) >> 12;
-        blk->dy     = ((0x3A80 / blk->otz) * rcos(work->scale + 0x400)) >> 12;
-        prim->x1    = blk->sxy.vx + blk->dx;
-        prim->x2    = blk->sxy.vx - blk->dx;
-        prim->y1    = blk->sxy.vy - blk->dy;
-        prim->y2    = blk->sxy.vy + blk->dy;
+        work->scale   = gDisplayState.animFrame + work->age;
+        blk->cornerDx = ((0x3A80 / blk->otz) * rsin(work->scale)) >> 12;
+        blk->cornerDy = ((0x3A80 / blk->otz) * rcos(work->scale)) >> 12;
+        prim->x0      = blk->screenPos.vx + blk->cornerDx;
+        prim->x3      = blk->screenPos.vx - blk->cornerDx;
+        prim->y0      = blk->screenPos.vy - blk->cornerDy;
+        prim->y3      = blk->screenPos.vy + blk->cornerDy;
+        blk->cornerDx = ((0x3A80 / blk->otz) * rsin(work->scale + 0x400)) >> 12;
+        blk->cornerDy = ((0x3A80 / blk->otz) * rcos(work->scale + 0x400)) >> 12;
+        prim->x1      = blk->screenPos.vx + blk->cornerDx;
+        prim->x2      = blk->screenPos.vx - blk->cornerDx;
+        prim->y1      = blk->screenPos.vy - blk->cornerDy;
+        prim->y2      = blk->screenPos.vy + blk->cornerDy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
     effectKillTask(work, task);
 }
 

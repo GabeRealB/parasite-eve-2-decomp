@@ -371,16 +371,23 @@ typedef struct OverlayGroundScratch {
 } OverlayGroundScratch;
 STATIC_ASSERT_SIZEOF(OverlayGroundScratch, 0x30);
 
-/// The scratch-pad block of a sprite drawer projecting and sizing one
-/// camera-facing quad: `vec` is the point it projects, `sxy` and `otz` the
-/// resulting screen point and depth, and `dx`, `dy` the offsets from `sxy` to
-/// the quad's corners, derived from `otz` so the sprite shrinks with distance.
-typedef struct OverlaySpriteScratch {
-    s32     otz;
-    s32     dx;
-    s32     dy;
-    SVECTOR vec;
-    DVECTOR sxy;
+/// Scratch-stack block for drawing one camera-facing quad around a projected
+/// point.
+///
+/// A sprite drawer stores the quad's centre in `worldPos`, projects it through
+/// `GsWSMATRIX` with one perspective transform, and treats an `otz` above 0x10
+/// as in front of the camera. A world size divided by `otz` gives the corner
+/// offsets, so the sprite shrinks with distance. A spinning quad scales that
+/// quotient by the sine and cosine of its angle to place one pair of opposite
+/// corners, then recomputes both offsets a quarter turn on for the other pair;
+/// an upright quad stores its half-width and half-height instead. Reserve the
+/// complete block and release it in scratch-stack order after drawing.
+typedef struct {
+    s32     otz;       // Projected depth (SZ3 / 4); the ordering-table depth and the divisor for the corner offsets
+    s32     cornerDx;  // Pixels from the centre to the current corner pair along X; an upright quad's half-width
+    s32     cornerDy;  // Pixels from the centre to the current corner pair along Y; an upright quad's half-height
+    SVECTOR worldPos;  // Quad centre in world coordinates, the input to the projection
+    DVECTOR screenPos; // Projected centre in screen pixels, stored as one GTE word
 } OverlaySpriteScratch;
 STATIC_ASSERT_SIZEOF(OverlaySpriteScratch, 0x18);
 

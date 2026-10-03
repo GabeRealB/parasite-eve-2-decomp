@@ -2570,19 +2570,19 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     head = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
     vx   = coord->workm.t[0];
     SCRATCH_STACK_RESERVE_BLOCK(OverlaySpriteScratch);
-    block         = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
-    block->vec.vx = vx;
-    block->vec.vy = coord->workm.t[1];
-    block->vec.vz = coord->workm.t[2];
+    block              = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
+    block->worldPos.vx = vx;
+    block->worldPos.vy = coord->workm.t[1];
+    block->worldPos.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&(head - 1)->vec);
+    gte_ldv0(&(head - 1)->worldPos);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
-    gte_stsxy(&(head - 1)->sxy);
+    gte_stsxy(&(head - 1)->screenPos);
     gte_stszotz(&block->otz);
     if ((head - 1)->otz >= 0x11) {
         if (arg0->state == 0) {
@@ -2617,29 +2617,29 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
                 arg0->state = 2;
             }
         }
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43C0;
-        prim->code |= 3;
-        prim->u0    = (mem->age / mem->period) << 5;
-        prim->v0    = 0x40;
-        prim->u1    = ((mem->age / mem->period) << 5) + 0x1F;
-        prim->v1    = 0x40;
-        prim->u2    = (mem->age / mem->period) << 5;
-        prim->v2    = 0x5F;
-        prim->u3    = ((mem->age / mem->period) << 5) + 0x1F;
-        prim->v3    = 0x5F;
-        block->dx   = (((mem->scale * 31) / block->otz) * rsin(mem->angle)) >> 12;
-        block->dy   = (((mem->scale * 31) / block->otz) * rcos(mem->angle)) >> 12;
-        prim->x0    = block->sxy.vx + block->dx;
-        prim->x3    = block->sxy.vx - block->dx;
-        prim->y0    = block->sxy.vy - block->dy;
-        prim->y3    = block->sxy.vy + block->dy;
-        block->dx   = (((mem->scale * 31) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
-        block->dy   = (((mem->scale * 31) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-        prim->x1    = block->sxy.vx + block->dx;
-        prim->x2    = block->sxy.vx - block->dx;
-        prim->y1    = block->sxy.vy - block->dy;
-        prim->y2    = block->sxy.vy + block->dy;
+        prim->tpage     = 0x2B;
+        prim->clut      = 0x43C0;
+        prim->code     |= 3;
+        prim->u0        = (mem->age / mem->period) << 5;
+        prim->v0        = 0x40;
+        prim->u1        = ((mem->age / mem->period) << 5) + 0x1F;
+        prim->v1        = 0x40;
+        prim->u2        = (mem->age / mem->period) << 5;
+        prim->v2        = 0x5F;
+        prim->u3        = ((mem->age / mem->period) << 5) + 0x1F;
+        prim->v3        = 0x5F;
+        block->cornerDx = (((mem->scale * 31) / block->otz) * rsin(mem->angle)) >> 12;
+        block->cornerDy = (((mem->scale * 31) / block->otz) * rcos(mem->angle)) >> 12;
+        prim->x0        = block->screenPos.vx + block->cornerDx;
+        prim->x3        = block->screenPos.vx - block->cornerDx;
+        prim->y0        = block->screenPos.vy - block->cornerDy;
+        prim->y3        = block->screenPos.vy + block->cornerDy;
+        block->cornerDx = (((mem->scale * 31) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
+        block->cornerDy = (((mem->scale * 31) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
+        prim->x1        = block->screenPos.vx + block->cornerDx;
+        prim->x2        = block->screenPos.vx - block->cornerDx;
+        prim->y1        = block->screenPos.vy - block->cornerDy;
+        prim->y2        = block->screenPos.vy + block->cornerDy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }

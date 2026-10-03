@@ -2273,8 +2273,8 @@ void func_acropolis_promenade_8017E394(Task* task)
 /// Stores the star core's pixel half-height separately from its equal half-width.
 ///
 /// Numeric configuration for `acropolis_glows_star.inc.c`: nonzero stores
-/// `0x1680 / otz` in `OverlaySpriteScratch::dy` and uses it for the core's Y
-/// extent; zero or omission reuses `dx` for both axes. The Promenade enables
+/// `0x1680 / otz` in `OverlaySpriteScratch::cornerDy` and uses it for the core's
+/// Y extent; zero or omission reuses `cornerDx` for both axes. The Promenade enables
 /// the separate storage; the Bridge omits it. The fragment undefines the
 /// switch after compiling this instance.
 #define GLOW_STAR_STORE_HALF_HEIGHT 1
