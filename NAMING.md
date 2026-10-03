@@ -448,6 +448,15 @@ their own tables, so the record stays in `include/rooms/rooms_shared_8018055c.h`
 beside `JukeboxTrackLists`, the ten-list table whose stack copy the row callback
 also uses for its text request.
 
+`pykeFlame` owns the included nozzle sprite and flying flame of the M4A1 Pyke
+attachment, also carried by `actor_800100`. Its interface is
+`src/shared/pyke_flame.h`. Each package names the effect-table task itself and
+includes the shared body; `PYKE_FLAME_` bindings select the collision key, the
+paused-flame redraw and the splash depth bias. `PykeFlameBody` is the flame's
+collision body. `PykeFlameSplashScratch` is the ground-splash quad's scratch
+block: the flat quad's corners and their projected screen positions, with
+ordering depth and the GTE FLAG word left on the call stack.
+
 ## Documentation
 
 [`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before
