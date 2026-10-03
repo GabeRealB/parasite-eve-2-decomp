@@ -33240,10 +33240,10 @@ anonymous temp allocation for the rest of the function. Three
 Compute the three squares into named dests first (`dx` in `$v0` as the
 common source so each is `lw v0; mult v0,v0; mflo dest`), then write
 the compare as `sum < (b = rsum * rsum)` so the last `mflo` reuses the
-pin. A memory barrier after `delta.vx = dx` keeps that store *before*
+pin. A memory barrier after `centreDelta.vx = dx` keeps that store *before*
 `bgez` (not in the delay slot). On a hit, replay the call-arg and
-field setup in target order (`a0`/`a1`, truncated `pos1`, `a2 = block`,
-`rsum32`, `ret = 1`, zeros) so `li s5, 1` sits after `lhu a3`.
+field setup in target order (`a0`/`a1`, truncated `centre1`, `a2 = block`,
+`radiusSum`, `ret = 1`, zeros) so `li s5, 1` sits after `lhu a3`.
 `Gp_PairHandler1` is the example.
 
 ## Split `done` / `ret` so fill jumps to `move $v0` and found jumps to `jr ra`

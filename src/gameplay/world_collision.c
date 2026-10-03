@@ -104,14 +104,23 @@ typedef struct {
 } _WorldCollisionPairContact;
 STATIC_ASSERT_SIZEOF(_WorldCollisionPairContact, 0x12);
 
-/// Scratch storage for sphere-pair intersection and its contact result.
+/// Scratch for one sphere-against-sphere pair test.
+///
+/// The scratch stack reserves this block for the test and releases it on
+/// every exit. `centre0` and `centre1` are the two bodies' world centres in
+/// game units, in argument order. Each SDK vector's fourth component is
+/// unused and left uninitialized; placing a centre writes only the first
+/// three. `centreDelta` is `centre0` minus `centre1`. A pair whose X or Z
+/// separation exceeds a signed halfword is rejected before the squared
+/// separation is compared with the square of `radiusSum`. `contact` is
+/// filled once for each body: `point` is the other centre, `response` is
+/// zero and `distance` is the radius sum, truncated to a signed halfword.
 typedef struct {
-    _WorldCollisionPairContact contact;
-    byte                       field_12[2]; // Role unproven
-    VECTOR                     pos0;
-    VECTOR                     pos1;
-    VECTOR                     delta;
-    s32                        rsum32;
+    _WorldCollisionPairContact contact;     // Per-body result copied into the contact table
+    VECTOR                     centre0;     // First body's world centre
+    VECTOR                     centre1;     // Second body's world centre
+    VECTOR                     centreDelta; // centre0 minus centre1, in game units
+    s32                        radiusSum;   // Sum of both radii, in game units
 } _WorldCollisionSphereScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionSphereScratch, 0x48);
 
@@ -333,40 +342,43 @@ s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     _WorldCollisionSphereScratch* block;
     s32                           ret;
 
+    // Reserve the scratch and place both centres in world space.
     head                                               = SCRATCH_STACK_CURSOR(u8);
     block                                              = (_WorldCollisionSphereScratch*)(head - sizeof(_WorldCollisionSphereScratch));
     SCRATCH_STACK_CURSOR(_WorldCollisionSphereScratch) = block;
-    Gp_ObjWorldPos(arg0, (VECTOR3*)&block->pos0);
-    Gp_ObjWorldPos(arg1, (VECTOR3*)&block->pos1);
+    Gp_ObjWorldPos(arg0, (VECTOR3*)&block->centre0);
+    Gp_ObjWorldPos(arg1, (VECTOR3*)&block->centre1);
 
-    ret             = 0;
-    block->delta.vx = block->pos0.vx - block->pos1.vx;
-    block->delta.vy = block->pos0.vy - block->pos1.vy;
-    block->delta.vz = block->pos0.vz - block->pos1.vz;
-    if ((ABS(block->delta.vx) > 0x7FFF) || (ABS(block->delta.vz) > 0x7FFF)) {
+    ret                   = 0;
+    block->centreDelta.vx = block->centre0.vx - block->centre1.vx;
+    block->centreDelta.vy = block->centre0.vy - block->centre1.vy;
+    block->centreDelta.vz = block->centre0.vz - block->centre1.vz;
+    // Reject an X or Z separation beyond a signed halfword.
+    if ((ABS(block->centreDelta.vx) > 0x7FFF) || (ABS(block->centreDelta.vz) > 0x7FFF)) {
         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionSphereScratch);
         return 0;
     }
 
-    block->rsum32 = arg0->radius + arg1->radius;
-    if (block->delta.vx * block->delta.vx + block->delta.vy * block->delta.vy + block->delta.vz * block->delta.vz < block->rsum32 * block->rsum32) {
-        block->contact.point.vx              = block->pos1.vx;
-        block->contact.point.vy              = block->pos1.vy;
-        block->contact.point.vz              = block->pos1.vz;
+    block->radiusSum = arg0->radius + arg1->radius;
+    if (block->centreDelta.vx * block->centreDelta.vx + block->centreDelta.vy * block->centreDelta.vy + block->centreDelta.vz * block->centreDelta.vz < block->radiusSum * block->radiusSum) {
+        // Each body records the other centre, a zero response and the radius sum.
+        block->contact.point.vx              = block->centre1.vx;
+        block->contact.point.vy              = block->centre1.vy;
+        block->contact.point.vz              = block->centre1.vz;
         block->contact.response.direction.vx = 0;
         block->contact.response.direction.vy = 0;
         block->contact.response.direction.vz = 0;
-        block->contact.distance              = block->rsum32;
+        block->contact.distance              = block->radiusSum;
         _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
         ret = 1;
 
-        block->contact.point.vx              = block->pos0.vx;
-        block->contact.point.vy              = block->pos0.vy;
-        block->contact.point.vz              = block->pos0.vz;
+        block->contact.point.vx              = block->centre0.vx;
+        block->contact.point.vy              = block->centre0.vy;
+        block->contact.point.vz              = block->centre0.vz;
         block->contact.response.direction.vx = 0;
         block->contact.response.direction.vy = 0;
         block->contact.response.direction.vz = 0;
-        block->contact.distance              = block->rsum32;
+        block->contact.distance              = block->radiusSum;
         _worldCollisionRecordPairContact(arg1, arg0, &block->contact);
     }
 
