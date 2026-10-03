@@ -59,22 +59,26 @@ typedef struct M4a1JavelinVecLo {
     /* 0x8 */ u16  vz;
 } M4a1JavelinVecLo;
 
-/// 0x14-byte scratch from the scratch stack used by
-/// `func_m4a1_javelin_8011EE78` for one projected tracer line. Each endpoint is
-/// pushed through `GsWSMATRIX` with a single `RTPS`; `flag` is the shared
-/// `gte_stflg` of whichever projection just ran, `otz0` / `otz1` are the two
-/// `gte_stszotz` results (each biased by 1) and `sx*` / `sy*` are the two
-/// packed `SXY2` screen coordinates the `LINE_G2` is built from.
-typedef struct M4a1JavelinLineScratch {
-    /* 0x00 */ s32 otz0;
-    /* 0x04 */ s32 otz1;
-    /* 0x08 */ s32 flag;
-    /* 0x0C */ u16 sx0;
-    /* 0x0E */ u16 sy0;
-    /* 0x10 */ u16 sx1;
-    /* 0x12 */ u16 sy1;
-} M4a1JavelinLineScratch;
-STATIC_ASSERT_SIZEOF(M4a1JavelinLineScratch, 0x14);
+/// Scratch-stack block for projecting the two ends of one flare line.
+///
+/// The ends are world points, transformed one after the other through
+/// `GsWSMATRIX` with one perspective transform each. Every transform writes
+/// that end's screen position as one screen-XY word and replaces `flag` with
+/// the GTE flag word; a negative flag word means that transform reported an
+/// error, and the line is dropped. Otherwise that end's depth, SZ3 / 4, is
+/// stored and raised by one. The line is sorted and blended at the first
+/// end's depth alone; the second end's depth is stored but not read back.
+///
+/// Reserve one complete block and release it in scratch-stack order after
+/// drawing; no pointer into it survives release.
+typedef struct {
+    s32     otz0; // Ordering-table depth of the first end, plus one; where the line is sorted and blended
+    s32     otz1; // Ordering-table depth of the second end, plus one; never read back
+    s32     flag; // GTE flag word of the latest transform; negative means that transform failed
+    DVECTOR sxy0; // Projected screen position of the first end, in pixels; one GTE screen-XY word
+    DVECTOR sxy1; // Projected screen position of the second end, in pixels; one GTE screen-XY word
+} _M4a1JavelinLineScratch;
+STATIC_ASSERT_SIZEOF(_M4a1JavelinLineScratch, 0x14);
 
 static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color);
 static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color);
@@ -634,28 +638,28 @@ done:
 /// blue-white head to black.
 static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
 {
-    u8*                     head;
-    M4a1JavelinLineScratch* sc;
-    LINE_G2*                line;
-    s32*                    otz0;
+    u8*                      head;
+    _M4a1JavelinLineScratch* sc;
+    LINE_G2*                 line;
+    s32*                     otz0;
 
-    head                                         = SCRATCH_STACK_CURSOR(u8);
-    sc                                           = (M4a1JavelinLineScratch*)(head - sizeof(M4a1JavelinLineScratch));
-    SCRATCH_STACK_CURSOR(M4a1JavelinLineScratch) = sc;
-    otz0                                         = &sc->otz0;
+    head                                          = SCRATCH_STACK_CURSOR(u8);
+    sc                                            = (_M4a1JavelinLineScratch*)(head - sizeof(_M4a1JavelinLineScratch));
+    SCRATCH_STACK_CURSOR(_M4a1JavelinLineScratch) = sc;
+    otz0                                          = &sc->otz0;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(p0);
     gte_rtps();
-    gte_stsxy(&sc->sx0);
+    gte_stsxy(&sc->sxy0);
     gte_stflg(&sc->flag);
     if (sc->flag >= 0) {
         gte_stszotz(otz0);
         sc->otz0++;
         gte_ldv0(p1);
         gte_rtps();
-        gte_stsxy(&sc->sx1);
+        gte_stsxy(&sc->sxy1);
         gte_stflg(&sc->flag);
         if (sc->flag >= 0) {
             gte_stszotz(&sc->otz1);
@@ -665,15 +669,15 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
             setLineG2(line);
             setRGB0(line, brightness >> 2, brightness >> 1, brightness);
             setRGB1(line, 0, 0, 0);
-            line->x0 = sc->sx0;
-            line->y0 = sc->sy0;
-            line->x1 = sc->sx1;
-            line->y1 = sc->sy1;
+            line->x0 = sc->sxy0.vx;
+            line->y0 = sc->sxy0.vy;
+            line->x1 = sc->sxy1.vx;
+            line->y1 = sc->sxy1.vy;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, sc->otz0);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1JavelinLineScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_M4a1JavelinLineScratch);
 }
 
 /// Contact-flash palette: VRAM X=48 words, Y=267 scanlines.

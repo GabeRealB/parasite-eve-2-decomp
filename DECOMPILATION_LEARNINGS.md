@@ -47649,8 +47649,8 @@ Taking the address at its use site — `gte_stszotz(&sc->otz0)` inside the
 above the first GTE call keeps it:
 
 ```c
-sc   = (M4a1JavelinLineScratch*)(head - sizeof(M4a1JavelinLineScratch));
-*(M4a1JavelinLineScratch**)SCRATCH_STACK_CURSOR_SLOT = sc;
+sc   = (_M4a1JavelinLineScratch*)(head - sizeof(_M4a1JavelinLineScratch));
+*(_M4a1JavelinLineScratch**)SCRATCH_STACK_CURSOR_SLOT = sc;
 otz0 = &sc->otz0;                 /* becomes `move t0, a3` */
 gte_SetTransMatrix(&GsWSMATRIX);
 ...
