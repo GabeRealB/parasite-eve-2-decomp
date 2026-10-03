@@ -354,6 +354,10 @@ Use \`outcome: complete\` with an empty unresolved list, or \`outcome: followup\
 with issues of the form:
 \`{ "kind": "rematching|runtime|semantics|unrelated", "location": "source:symbol", "reason": "...", "next_step": "...", "id": "existing audit ID when available" }\`.
 Choose one kind per issue. Keep existing audit IDs and explain attempted fixes.
+If the item should not exist - a duplicate merged into another type, a
+scaffold replaced by real declarations - delete it, set \`"removed": true\` on its
+entry in place of a \`current_name\`, and say in \`changes\` what replaced it;
+the name must then be gone from \`src/\` and \`include/\`.
 A reviewed item needing no code change still requires evidence. Outstanding work
 must remain in the report even when its rename and other cleanup are successful.
 $( (( WORKERS > 1 )) && echo "

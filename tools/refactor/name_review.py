@@ -121,7 +121,28 @@ def nonempty(value):
     return isinstance(value, str) and bool(value.strip())
 
 
-def validate(path, names):
+def still_written(root, name):
+    """Files under src/ and include/ that still spell a name reported removed.
+
+    A qualified macro (`path/NAME`) is one definition among same-named ones, so
+    only its own file is checked."""
+    spelling = name.rsplit("/", 1)[-1]
+    word = re.compile(r"\b" + re.escape(spelling) + r"\b")
+    if "/" in name:
+        files = [root / name.rsplit("/", 1)[0]]
+    else:
+        files = [f for top in ("src", "include") for f in (root / top).rglob("*.[ch]")]
+    hits = []
+    for f in files:
+        try:
+            if word.search(f.read_text(errors="replace")):
+                hits.append(str(f.relative_to(root)))
+        except OSError:
+            pass
+    return sorted(hits)
+
+
+def validate(path, names, root):
     report = json.loads(path.read_text())
     require(isinstance(report, dict), "report must be an object")
     items = report.get("items")
@@ -130,9 +151,20 @@ def validate(path, names):
     require(sorted(item.get("name", "") for item in items) == sorted(names), "assigned item names changed")
     for item in items:
         name = item["name"]
-        for field in ("current_name", "meaning"):
-            require(nonempty(item.get(field)), f"{name}: missing {field}")
-        require(re.fullmatch(r"[A-Za-z_]\w*", item["current_name"]), f"{name}: invalid current name")
+        require(nonempty(item.get("meaning")), f"{name}: missing meaning")
+        if item.get("removed") is True:
+            # The review concluded the item should not exist - a duplicate
+            # merged into another type, a scaffold replaced by real locals -
+            # so there is no current name; what can be checked is that it is gone.
+            left = still_written(root, name)
+            require(not left, f"{name}: reported removed but still written in "
+                              + ", ".join(left[:5]) + (" ..." if len(left) > 5 else ""))
+            require(item.get("changes"), f"{name}: a removal has to say what replaced the item")
+        else:
+            require(nonempty(item.get("current_name")), f"{name}: missing current_name")
+            require(re.fullmatch(r"[A-Za-z_]\w*", item["current_name"]),
+                    f"{name}: invalid current name (an item that no longer exists is "
+                    f'reported with "removed": true)')
         for field in ("evidence", "changes"):
             values = item.get(field)
             require(isinstance(values, list) and all(nonempty(v) for v in values), f"{name}: invalid {field}")
@@ -166,7 +198,7 @@ def main():
             if args.command == "init":
                 initialize(args.report, args.names)
             else:
-                outcome = validate(args.report, args.names)
+                outcome = validate(args.report, args.names, args.root)
                 if args.command == "land":
                     require(nonempty(args.commit), "--commit is required")
                     report = json.loads(args.report.read_text())
