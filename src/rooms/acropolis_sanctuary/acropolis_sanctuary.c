@@ -131,16 +131,6 @@ typedef struct AcsTile {
 } AcsTile;
 STATIC_ASSERT_SIZEOF(AcsTile, 0xE);
 
-/// The offset `func_acropolis_sanctuary_8017DD78` adds to every corner of the
-/// blocker cage once it has been copied. Both variants are positive, and the
-/// components are read back unsigned because only the low 16 bits of the sum
-/// reach the `s16` corner they are added to.
-typedef struct AcsBlockerShift {
-    /* 0x0 */ u16 vx;
-    /* 0x2 */ u16 vy;
-    /* 0x4 */ u16 vz;
-} AcsBlockerShift;
-
 /// Per-frame scratch the sanctuary's mosaic-shard task builds at
 /// the scratch stack: `v` holds the three corners of the shard's triangle,
 /// first scaled by `EffectWork::angle` through the GTE's `gpf` interpolator
@@ -2033,7 +2023,7 @@ static void func_acropolis_sanctuary_8017DD78(void)
 {
     WorldCollisionGrid* dst = &D_acropolis_sanctuary_80183568;
     WorldCollisionGrid* src = &D_acropolis_sanctuary_801822EC;
-    AcsBlockerShift     shift;
+    SVECTOR             shift;
     s32                 i;
 
     for (i = 0; i < 4; i++) {
