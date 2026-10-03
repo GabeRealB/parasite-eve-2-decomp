@@ -90,21 +90,23 @@ extern SVECTOR D_mine_forked_tunnel_801819C4[54];
 /// child enemy from; `Task_SpawnFromTable` picks entry 1.
 extern TaskDesc D_mine_forked_tunnel_80181B74[];
 
-/// The `{id, TaskFunc}` pairs the tunnel's enemy restores through
-/// `Task::msgTable` - `0x7D5` maps to `func_mine_forked_tunnel_8017DD08` and
-/// `0x7DB` to `func_mine_forked_tunnel_8017D8EC`, the two ids
-/// `func_mine_forked_tunnel_8017D5E8` registers.
-// Message-table callbacks use the argument views required by this TU.
+/// One row of the tunnel enemy's task-message table.
+///
+/// The enemy publishes the table in `Task::msgTable`. Each row is a message
+/// id and the callback that handles it. The table ends with
+/// `TASK_MESSAGE_TABLE_END` and a null callback. The draw-mode callback and
+/// the actor-command callback take different payloads, so `handler` stores
+/// one view for each.
 typedef struct {
-    s32 id;
+    s32 messageId;                                                               // Receiver-specific id, or TASK_MESSAGE_TABLE_END
     union {
-        s32                (*call0)(Task*, s32, ActorCommand* request);
-        TaskMessageHandler call1;
-    } handler;
-} MineForkedTunnelMessageEntry;
-STATIC_ASSERT_SIZEOF(MineForkedTunnelMessageEntry, 8);
+        s32 (*applyCommand)(Task* task, s32 messageId, ActorCommand* command);   // ACTOR_COMMAND_MESSAGE_APPLY
+        s32 (*setModelDraw)(Task* task, s32 messageId, s32 mode, s32 secondArg); // ACTOR_MESSAGE_SET_MODEL_DRAW; secondArg is unread
+    } handler;                                                                   // Callback for messageId; null only on the end marker
+} _MineForkedTunnelMessageEntry;
+STATIC_ASSERT_SIZEOF(_MineForkedTunnelMessageEntry, 8);
 
-extern MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3];
+extern _MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3];
 
 /// Work block of the room's area object, the model the switch event sends
 /// rolling down the tunnel slope; allocated zeroed and kept at `Task::work`.
@@ -804,10 +806,10 @@ TaskDesc D_mine_forked_tunnel_80181B74[2] = {
 s32 func_mine_forked_tunnel_8017D8EC(Task*, s32, ActorCommand* msg);
 s32 func_mine_forked_tunnel_8017DD08(Task*, s32, s32, s32);
 
-MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call1 = func_mine_forked_tunnel_8017DD08 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_mine_forked_tunnel_8017D8EC } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+_MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .setModelDraw = func_mine_forked_tunnel_8017DD08 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .applyCommand = func_mine_forked_tunnel_8017D8EC } },
+    { TASK_MESSAGE_TABLE_END, { .applyCommand = NULL } },
 };
 
 ActorTransform D_mine_forked_tunnel_80181BA4 = { { 180, -235, -780, 0 }, { 0, 0, 0, 0 } };
