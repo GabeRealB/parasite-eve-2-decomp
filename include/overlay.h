@@ -348,31 +348,27 @@ typedef struct OverlayRippleScratch {
 } OverlayRippleScratch;
 STATIC_ASSERT_SIZEOF(OverlayRippleScratch, 0x4C);
 
-/// Working state of the steering walk that nudges a coordinate away from the
-/// obstacles among its contact records. `dir` is first the coordinate's
-/// normalised facing column and later the push applied; `eye` is its world
-/// position and `face` its heading. `angle` and `ok` hold the bearings of up
-/// to `count` obstacles and whether each survived the pairwise spread check,
-/// `kind` is the high half of the record being read, `diff` the wrapped
-/// difference between two bearings, `i` and `j` the loop cursors, and
-/// `blocked` is set when a record is of the blocking kind. `m` is the working
-/// rotation.
-typedef struct OverlayAvoidScratch {
-    MATRIX   m;
-    SVECTOR  dir;
-    SVECTOR3 eye;
-    byte     pad_2E[0x2];
-    s32      kind;
-    s16      angle[8];
-    s8       ok[8];
-    s16      face;
-    s16      diff;
-    u8       i;
-    u8       j;
-    u8       count;
-    u8       blocked;
-} OverlayAvoidScratch;
-STATIC_ASSERT_SIZEOF(OverlayAvoidScratch, 0x54);
+/// Scratch-stack block of the contact steering walk, which nudges a coordinate
+/// away from the obstacles among its contact records.
+///
+/// The walk collects the bearing of each obstacle record from `origin`, drops
+/// every pair of bearings more than 0x400 apart, and steps the coordinate a
+/// short way away from each bearing that survives.
+typedef struct {
+    MATRIX   rot;        // Yaw rotation built for the current push, whose Z axis gives its direction
+    SVECTOR  dir;        // First the coordinate's normalised Y-axis column, then each push step
+    SVECTOR3 origin;     // Coordinate's world translation, the point bearings are taken from
+    s32      kind;       // High half of the current record's key (0x10000 also sets `blocked`)
+    s16      bearing[8]; // Bearings of the collected obstacle records
+    s8       kept[8];    // Per bearing: 1 until it falls more than 0x400 from another bearing
+    s16      heading;    // Coordinate's heading in the plane the bearings are measured in
+    s16      diff;       // Wrapped difference between two bearings, then the push's yaw
+    u8       i;          // Outer cursor over records, then over bearings
+    u8       j;          // Inner cursor over the bearings paired with `i`
+    u8       count;      // Number of bearings collected
+    u8       blocked;    // Set when a record of the blocking kind 0x10000 was seen
+} ActorContactSteerScratch;
+STATIC_ASSERT_SIZEOF(ActorContactSteerScratch, 0x54);
 
 /// The scratch-pad block of a flat quad on the ground: its four corners in
 /// world space and their projected screen positions.

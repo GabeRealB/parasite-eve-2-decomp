@@ -6,9 +6,8 @@
 /// push.
 void bossStrangerAvoidContacts(BossStrangerWalker* work)
 {
-    u8*                  head;
-    OverlayAvoidScratch* s;
-    s16                  diff;
+    ActorContactSteerScratch* s;
+    s16                       diff;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return;
@@ -19,23 +18,21 @@ void bossStrangerAvoidContacts(BossStrangerWalker* work)
     work->push.vy = 0;
     work->push.vx = 0;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
-    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
+    s = SCRATCH_STACK_RESERVE_BLOCK(ActorContactSteerScratch);
 
-    Gfx_MatrixCol1(&work->coord->workm, (SVECTOR*)(head - 0x34));
-    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
+    Gfx_MatrixCol1(&work->coord->workm, &s->dir);
+    VectorNormalSS(&s->dir, &s->dir);
 
     if (ABS(s->dir.vz) < 0x818) {
-        s->face = ratan2(-work->coord->workm.m[2][0], work->coord->workm.m[2][2]);
+        s->heading = ratan2(-work->coord->workm.m[2][0], work->coord->workm.m[2][2]);
     } else {
-        s->face = -ratan2(-work->coord->workm.m[0][2], work->coord->workm.m[1][2]);
+        s->heading = -ratan2(-work->coord->workm.m[0][2], work->coord->workm.m[1][2]);
     }
 
-    s->eye.vx = (u16)work->coord->workm.t[0];
-    s->eye.vy = (u16)work->coord->workm.t[1];
-    s->eye.vz = (u16)work->coord->workm.t[2];
-    s->count  = 0;
+    s->origin.vx = (u16)work->coord->workm.t[0];
+    s->origin.vy = (u16)work->coord->workm.t[1];
+    s->origin.vz = (u16)work->coord->workm.t[2];
+    s->count     = 0;
 
     for (s->i = 0; s->i < work->avoidCount; s->i++) {
         if (work->avoidRecs[s->i].key.value == 0) {
@@ -51,33 +48,33 @@ void bossStrangerAvoidContacts(BossStrangerWalker* work)
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] =
-                overlayBearingXZ((SVECTOR3*)&work->avoidRecs[s->i].point, &s->eye);
+            s->bearing[s->count] =
+                overlayBearingXZ((SVECTOR3*)&work->avoidRecs[s->i].point, &s->origin);
         } else {
-            s->angle[s->count] =
-                overlayBearingXY((SVECTOR3*)&work->avoidRecs[s->i].point, &s->eye);
+            s->bearing[s->count] =
+                overlayBearingXY((SVECTOR3*)&work->avoidRecs[s->i].point, &s->origin);
         }
-        s->ok[s->count] = 1;
+        s->kept[s->count] = 1;
         s->count++;
-        if (s->count >= 8) {
+        if (s->count >= ARRAY_SIZE(s->bearing)) {
             break;
         }
     }
 
     for (s->i = 0; s->i < s->count; s->i++) {
         for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = overlayWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
+            s->diff = overlayWrapAngle((u16)s->bearing[s->i] - (u16)s->bearing[s->j]);
             if (abs(s->diff) > 0x400) {
-                s->ok[s->i] = 0;
-                s->ok[s->j] = 0;
+                s->kept[s->i] = 0;
+                s->kept[s->j] = 0;
             }
         }
-        if (s->ok[s->i] != 0) {
-            diff = ((u16)s->angle[s->i] - (u16)s->face) +
+        if (s->kept[s->i] != 0) {
+            diff = ((u16)s->bearing[s->i] - (u16)s->heading) +
                    ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
             s->diff = diff;
-            gfxRotMatrixY(&s->m, diff, 1);
-            gfxReadMatrixZAxis(&s->m, &s->dir);
+            gfxRotMatrixY(&s->rot, diff, 1);
+            gfxReadMatrixZAxis(&s->rot, &s->dir);
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
             gte_ldsv(&s->dir);
@@ -90,6 +87,5 @@ void bossStrangerAvoidContacts(BossStrangerWalker* work)
         }
     }
 
-    SCRATCH_STACK_CURSOR(u8) =
-        SCRATCH_STACK_CURSOR(u8) + sizeof(OverlayAvoidScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactSteerScratch);
 }
