@@ -143,16 +143,6 @@ extern RoamerSpawnPoint D_neo_ark_woodland_path_80184A14[5];
 /// that it can tell the reference count was non-zero before the frame began.
 extern s16 gRoamerPrevBattleRefs;
 
-/// The object `Task::spawnArg2` holds for the task that runs
-/// `func_neo_ark_woodland_path_8017EA08`. Only the halfword at 0x26 is known:
-/// the chance, out of 0x200, of spawning an effect this frame. It is recomputed
-/// from how far the tracked model parts moved. Nothing yet shows whether this
-/// is the same object as `Enemy`.
-typedef struct NeoArkWoodlandPathTrailObj {
-    /* 0x00 */ byte pad_0[0x26];
-    /* 0x26 */ s16  chance;
-} NeoArkWoodlandPathTrailObj;
-
 s32 func_neo_ark_woodland_path_80181474(Task*, s32, s32, s32);
 s32 func_neo_ark_woodland_path_8018154C(Task*, s32, s32, s32);
 s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, const void* firstArg, s32 arg3);
@@ -290,14 +280,14 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task);
 /// stores the two effect ids and the starting part positions.
 void func_neo_ark_woodland_path_8017EA08(Task* task)
 {
-    NeoArkWoodlandPathTrailObj* obj;
-    Task*                       owner;
-    GfxCoord*                   root;
-    GfxCoord*                   part;
-    GfxCoord                    coord;
-    s32                         i;
+    EffectWork* work;
+    Task*       owner;
+    GfxCoord*   root;
+    GfxCoord*   part;
+    GfxCoord    coord;
+    s32         i;
 
-    obj   = task->spawnArg2.pointer;
+    work  = task->spawnArg2.pointer;
     owner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     root  = owner->extra.tmd->coords;
     if (task->state == 0) {
@@ -314,8 +304,9 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
     gRoomEffectState->roomEffectMode = (root->coord.t[1] < 0x11) * ROOM_EFFECT_VIEW_ENABLED;
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && root->coord.t[1] >= 0x12C) {
         for (i = 0; i < 2; i++) {
+            // This task keeps its spawn odds, out of 0x200, in its work block's `angle`.
             part               = &owner->extra.tmd->coords[i * 3 + 15];
-            obj->chance        = ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vx, part->workm.t[0]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vy, part->workm.t[1]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vz, part->workm.t[2]) + 0x20;
+            work->angle        = ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vx, part->workm.t[0]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vy, part->workm.t[1]) + ABS_DIFF(D_neo_ark_woodland_path_80181684[i].vz, part->workm.t[2]) + 0x20;
             coord.parent       = root->parent;
             coord.coord        = root->coord;
             coord.coord.t[0]   = root->coord.t[0];
@@ -324,12 +315,12 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
             coord.composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(&coord);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((s32)((gRandomLcgState >> 16) & 0x1FF) < obj->chance) {
+            if ((s32)((gRandomLcgState >> 16) & 0x1FF) < work->angle) {
                 Gp_SpawnEff(gRoomEffectWaterRippleId, &coord, 0x40, 0);
             }
-            obj->chance    -= 0x20;
+            work->angle    -= 0x20;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((s32)((gRandomLcgState >> 16) & 0x1FF) < obj->chance) {
+            if ((s32)((gRandomLcgState >> 16) & 0x1FF) < work->angle) {
                 Gp_SpawnEff(gRoomEffectWaterSprayId, &coord, 0x1202180, 0);
             }
             D_neo_ark_woodland_path_80181684[i].vx = part->workm.t[0];

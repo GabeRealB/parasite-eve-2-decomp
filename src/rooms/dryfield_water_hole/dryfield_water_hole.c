@@ -1414,20 +1414,20 @@ void waterHoleWaterStart(Task* arg0)
 /// current view selects.
 void func_dryfield_water_hole_8017E040(Task* arg0)
 {
-    Task*                 ctl;
-    s32                   mask;
-    RoomWaterSplashBlock* splash;
-    GfxCoord*             coord;
-    GfxCoord*             ctlCoords;
-    GfxCoord*             part;
-    GfxCoord*             view;
-    GfxCoord              surface;
-    s32                   i;
-    u32                   rnd;
+    Task*       ctl;
+    s32         mask;
+    EffectWork* work;
+    GfxCoord*   coord;
+    GfxCoord*   ctlCoords;
+    GfxCoord*   part;
+    GfxCoord*   view;
+    GfxCoord    surface;
+    s32         i;
+    u32         rnd;
 
     ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     mask      = 1 << gGameSession->location.loc.view;
-    splash    = arg0->spawnArg2.pointer;
+    work      = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;
     ctlCoords = ctl->extra.tmd->coords;
     switch (arg0->state) {
@@ -1448,21 +1448,22 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
                 for (i = 0; i < 2; i++) {
                     part = &ctl->extra.tmd->coords[14 + i * 3];
                     Gp_UpdateCoord(part);
-                    splash->strength = ABS(D_dryfield_water_hole_8017FD1C[i].vx - part->workm.t[0]) +
-                                       ABS(D_dryfield_water_hole_8017FD1C[i].vy - part->workm.t[1]) +
-                                       ABS(D_dryfield_water_hole_8017FD1C[i].vz - part->workm.t[2]) + 0x20;
+                    // This task keeps its spawn odds, out of 0x200, in its work block's `angle`.
+                    work->angle = ABS(D_dryfield_water_hole_8017FD1C[i].vx - part->workm.t[0]) +
+                                  ABS(D_dryfield_water_hole_8017FD1C[i].vy - part->workm.t[1]) +
+                                  ABS(D_dryfield_water_hole_8017FD1C[i].vz - part->workm.t[2]) + 0x20;
                     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &part->workm, &surface.coord);
                     surface.parent       = view;
                     surface.coord.t[1]   = gGameSession->waterY;
                     surface.composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(&surface);
                     rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
-                    if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
+                    if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
                         Gp_SpawnEff(gRoomEffectWaterRippleId, &surface, 0x40, 0);
                     }
-                    splash->strength -= 0x20;
-                    rnd               = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
-                    if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
+                    work->angle -= 0x20;
+                    rnd          = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
+                    if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
                         Gp_SpawnEff(gRoomEffectWaterSprayId, &surface, 0x1202180, 0);
                     }
                     D_dryfield_water_hole_8017FD1C[i].vx = part->workm.t[0];
