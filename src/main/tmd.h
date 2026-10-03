@@ -11,13 +11,6 @@
 
 struct Task;
 
-/// 0x98-byte scratch for Tmd_SetupDraw (draw path).
-typedef struct {
-    TmdStreamWorkspace stream; // Shared construction/draw callback layout
-    byte               pad_88[0x10];
-} TmdScratchDrawBlock;
-STATIC_ASSERT_SIZEOF(TmdScratchDrawBlock, 0x98);
-
 /// Early-image handwritten GTE matrix load (src/main/hasm/Tmd_SetupGteMatrices.s).
 void Tmd_SetupGteMatrices(TmdStreamWorkspace* ws, u32 flags, void* stream, TmdObject* node);
 

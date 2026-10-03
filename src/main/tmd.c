@@ -60,6 +60,18 @@ typedef union {
 } _TmdStreamWord;
 STATIC_ASSERT_SIZEOF(_TmdStreamWord, 4);
 
+/// Scratch-stack block reserved while one model's stream is drawn.
+///
+/// The stream workspace comes first, so the block's address is the workspace
+/// handed to the group walk and to every draw callback. The reservation is
+/// 16 bytes longer than the bare `TmdStreamWorkspace` that packet construction
+/// reserves. No draw-pass code reads or writes that tail.
+typedef struct {
+    TmdStreamWorkspace workspace;        // Callback state for the draw walk; set up before the first group
+    byte               unknown_88[0x10]; // Reserved with the workspace but never accessed; purpose and subdivision unproven
+} _TmdDrawScratch;
+STATIC_ASSERT_SIZEOF(_TmdDrawScratch, 0x98);
+
 enum {
     /// Initial state of a shared TMD source whose draw-handler slots need resolution.
     ///
@@ -617,71 +629,71 @@ TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
 
 static void Tmd_SetupDraw(TmdObject* obj)
 {
-    s32                  vertexDepths[TMD_DRAW_VERTEX_DEPTH_COUNT];
-    TmdScratchDrawBlock* tmp;
-    TmdScratchDrawBlock* ws;
-    void*                stream;
-    u32                  flags;
-    void*                bufptr;
-    s32                  disp;
-    u_long*              ot;
-    TmdSource*           p;
-    s32                  e;
-    s32*                 depthTable;
-    SVECTOR*             normals;
+    s32              vertexDepths[TMD_DRAW_VERTEX_DEPTH_COUNT];
+    _TmdDrawScratch* scratchEnd;
+    _TmdDrawScratch* scratch;
+    void*            stream;
+    u32              flags;
+    void*            bufptr;
+    s32              disp;
+    u_long*          ot;
+    TmdSource*       p;
+    s32              e;
+    s32*             depthTable;
+    SVECTOR*         normals;
 
     {
         TmdSource* p;
 
-        p                       = obj->source;
-        tmp                     = SCRATCH_STACK_CURSOR(TmdScratchDrawBlock);
-        stream                  = p->stream;
-        disp                    = gDisplayState.otDepthShift;
-        ws                      = tmp - 1;
-        ws->stream.obj          = obj;
-        ws->stream.otDepthShift = disp;
+        p                               = obj->source;
+        scratchEnd                      = SCRATCH_STACK_CURSOR(_TmdDrawScratch);
+        stream                          = p->stream;
+        disp                            = gDisplayState.otDepthShift;
+        scratch                         = scratchEnd - 1;
+        scratch->workspace.obj          = obj;
+        scratch->workspace.otDepthShift = disp;
     }
-    bufptr                                    = obj->buffer;
-    ws->stream.primWrite                      = bufptr;
-    SCRATCH_STACK_CURSOR(TmdScratchDrawBlock) = ws;
+    bufptr                                = obj->buffer;
+    scratch->workspace.primWrite          = bufptr;
+    SCRATCH_STACK_CURSOR(_TmdDrawScratch) = scratch;
     if (obj->nextBufferHalf != 0) {
-        ws->stream.primWrite = (u8*)bufptr + obj->bufferHalfBytes;
+        scratch->workspace.primWrite = (u8*)bufptr + obj->bufferHalfBytes;
     }
-    ws->stream.preXformWrite = ws->stream.primWrite;
-    ws->stream.primWrite     = ws->stream.primWrite + obj->source->preXformRegionBytes;
-    obj->nextBufferHalf     ^= 1;
-    ws->stream.verts         = obj->source->verts;
-    ot                       = gGpuCurrentOt;
-    p                        = obj->source;
-    normals                  = p->normals;
-    ws->stream.ot            = ot;
-    ws->stream.normals       = normals;
-    e                        = obj->otOffset;
-    depthTable               = vertexDepths;
-    ws->stream.szTable       = depthTable;
-    ws->stream.ot            = ot + e;
+    scratch->workspace.preXformWrite = scratch->workspace.primWrite;
+    scratch->workspace.primWrite     = scratch->workspace.primWrite + obj->source->preXformRegionBytes;
+    obj->nextBufferHalf             ^= 1;
+    scratch->workspace.verts         = obj->source->verts;
+    ot                               = gGpuCurrentOt;
+    p                                = obj->source;
+    normals                          = p->normals;
+    scratch->workspace.ot            = ot;
+    scratch->workspace.normals       = normals;
+    e                                = obj->otOffset;
+    depthTable                       = vertexDepths;
+    scratch->workspace.szTable       = depthTable;
+    scratch->workspace.ot            = ot + e;
 
     gte_SetColorMatrix(obj->colorMtx);
     gte_ldbkdir(obj->colorMtx->t[0], obj->colorMtx->t[1], obj->colorMtx->t[2]);
 
     flags = obj->flags;
     // Remove the view rotation before combining the light directions with each part.
-    gte_TransposeMatrix(&gGfxViewCoord.workm, &ws->stream.viewLightRotation);
+    gte_TransposeMatrix(&gGfxViewCoord.workm, &scratch->workspace.viewLightRotation);
 
     gte_SetRotMatrix(obj->lightMtx);
-    gte_ldclmv(&ws->stream.viewLightRotation[0][0]);
+    gte_ldclmv(&scratch->workspace.viewLightRotation[0][0]);
     gte_rtir();
-    gte_stclmv(&ws->stream.viewLightRotation[0][0]);
-    gte_ldclmv(&ws->stream.viewLightRotation[0][1]);
+    gte_stclmv(&scratch->workspace.viewLightRotation[0][0]);
+    gte_ldclmv(&scratch->workspace.viewLightRotation[0][1]);
     gte_rtir();
-    gte_stclmv(&ws->stream.viewLightRotation[0][1]);
-    gte_ldclmv(&ws->stream.viewLightRotation[0][2]);
+    gte_stclmv(&scratch->workspace.viewLightRotation[0][1]);
+    gte_ldclmv(&scratch->workspace.viewLightRotation[0][2]);
     gte_rtir();
-    gte_stclmv(&ws->stream.viewLightRotation[0][2]);
+    gte_stclmv(&scratch->workspace.viewLightRotation[0][2]);
 
-    Tmd_SetupGteMatrices(&ws->stream, flags, stream, obj);
+    Tmd_SetupGteMatrices(&scratch->workspace, flags, stream, obj);
 
-    SCRATCH_STACK_RELEASE_BLOCK(TmdScratchDrawBlock);
+    SCRATCH_STACK_RELEASE_BLOCK(_TmdDrawScratch);
 }
 
 void Tmd_FreeBuffers(TmdObject* obj)

@@ -12,7 +12,7 @@
  *   Draw-path helper called from Tmd_SetupDraw. Loads light / colour
  *   matrices into the GTE (ctc2 to control regs) and runs packed mvmva
  *   vertex transforms for the current TMD node. Args (a0..a3) are the
- *   draw frame's stream workspace, flags, stream pointer, and TmdObject*.
+ *   draw scratch block's stream workspace, flags, stream pointer, and TmdObject*.
  *   Calls Tmd_DispatchStream to walk one command group. Returns, without
  *   consuming the word, when the stream pointer addresses TMD_STREAM_END.
  *

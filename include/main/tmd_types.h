@@ -215,9 +215,9 @@ STATIC_ASSERT(OFFSET_OF(TmdAllocation, coords) == sizeof(TmdObject), tmd_allocat
 /// Borrowed scratch workspace for TMD stream construction and draw callbacks.
 ///
 /// Construction reserves one workspace on the scratch stack. Drawing embeds
-/// the same workspace at the start of a larger frame and passes its address
-/// to the callbacks. Neither pass clears it: commands may use only state
-/// initialized by their pass or by an earlier command in the same walk.
+/// the same workspace at the start of a larger scratch-stack block and passes
+/// its address to the callbacks. Neither pass clears it: commands may use only
+/// state initialized by their pass or by an earlier command in the same walk.
 /// Callbacks must not retain the workspace or its draw depth-cache pointer
 /// after the walk.
 ///
