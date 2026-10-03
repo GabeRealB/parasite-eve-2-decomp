@@ -97,26 +97,29 @@ typedef struct {
 } _MistShootingGalleryModeTexts;
 STATIC_ASSERT_SIZEOF(_MistShootingGalleryModeTexts, 0x10);
 
-/// One row of the gallery's DATA panel. `gauge` picks the bar string out of
-/// `MistShootingGalleryGauges`; `label` is the word printed beside it
-/// ("EASY", "GOOD", "RICH", ...).
-typedef struct MistShootingGalleryRating {
-    /* 0x0 */ s32         gauge;
-    /* 0x4 */ const char* label;
-} MistShootingGalleryRating;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryRating, 0x8);
+/// A rating a row of the gallery's DATA panel can show: how far its gauge is
+/// filled and the word printed beside it.
+///
+/// The panel rates the run mode in force on four rows - mission level,
+/// condition, enemy level and supply level - and each row holds one of these
+/// for every mode.
+typedef struct {
+    s32         level; // Marks drawn on the row's gauge (1 lowest .. 5 full)
+    const char* name;  // Word for the rating ("EASY", "GOOD", "VERY POOR", ...)
+} _MistShootingGalleryRating;
+STATIC_ASSERT_SIZEOF(_MistShootingGalleryRating, 0x8);
 
 /// The four ratings one DATA row can show, indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode`
 /// (the difficulty the save runs at). `func_mist_shooting_gallery_8017F128`
 /// copies a whole table onto its stack before indexing it, like the mode table
 /// above.
 typedef struct MistShootingGalleryRatings {
-    /* 0x00 */ MistShootingGalleryRating entries[4];
+    /* 0x00 */ _MistShootingGalleryRating entries[4];
 } MistShootingGalleryRatings;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryRatings, 0x20);
 
 /// The six gauge strings the DATA panel draws through
-/// `MistShootingGalleryRating::gauge`; also stack-copied before use.
+/// `_MistShootingGalleryRating::level`; also stack-copied before use.
 typedef struct MistShootingGalleryGauges {
     /* 0x00 */ const char* bars[6];
 } MistShootingGalleryGauges;
@@ -1595,30 +1598,30 @@ static const char D_mist_shooting_gallery_8017D730[] = "VERY HARD";
 
 void func_mist_shooting_gallery_8017F128(Task* task)
 {
-    UiObject*                  obj           = task->spawnArg2.pointer;
-    MistShootingGalleryRatings missionLevels = { {
+    UiObject*                   obj           = task->spawnArg2.pointer;
+    MistShootingGalleryRatings  missionLevels = { {
         { 2, D_mist_shooting_gallery_8017D718 },
         { 3, D_mist_shooting_gallery_8017D720 },
         { 4, D_mist_shooting_gallery_8017D728 },
         { 5, D_mist_shooting_gallery_8017D730 },
     } };
-    MistShootingGalleryRatings conditions;
-    MistShootingGalleryRatings enemyLevels;
-    MistShootingGalleryRatings supplyLevels;
-    MistShootingGalleryGauges  gauges;
-    TextDrawReq                label0;
-    TextDrawReq                value0;
-    TextDrawReq                label1;
-    TextDrawReq                value1;
-    TextDrawReq                label2;
-    TextDrawReq                value2;
-    TextDrawReq                label3;
-    TextDrawReq                value3;
-    MistShootingGalleryRating* rating;
-    s32                        col;
-    s32                        row;
-    s32                        x;
-    s32                        y;
+    MistShootingGalleryRatings  conditions;
+    MistShootingGalleryRatings  enemyLevels;
+    MistShootingGalleryRatings  supplyLevels;
+    MistShootingGalleryGauges   gauges;
+    TextDrawReq                 label0;
+    TextDrawReq                 value0;
+    TextDrawReq                 label1;
+    TextDrawReq                 value1;
+    TextDrawReq                 label2;
+    TextDrawReq                 value2;
+    TextDrawReq                 label3;
+    TextDrawReq                 value3;
+    _MistShootingGalleryRating* rating;
+    s32                         col;
+    s32                         row;
+    s32                         x;
+    s32                         y;
 
     conditions   = D_mist_shooting_gallery_8017D778;
     enemyLevels  = D_mist_shooting_gallery_8017D7AC;
@@ -1648,8 +1651,8 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value0.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     value0.alignment  = TEXT_ALIGNMENT_RIGHT;
     value0.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&value0, rating->label);
-    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawString(&value0, rating->name);
+    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     uiDrawHorizontalSeparator(&(obj)->panel, col + 6, -x + 5, row + 0xD);
 
     y                 = row + 0x1E;
@@ -1670,8 +1673,8 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     value1.alignment  = TEXT_ALIGNMENT_RIGHT;
     value1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&value1, rating->label);
-    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawString(&value1, rating->name);
+    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     y                 = row + 0x2D;
     label2.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -1691,8 +1694,8 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     value2.alignment  = TEXT_ALIGNMENT_RIGHT;
     value2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&value2, rating->label);
-    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawString(&value2, rating->name);
+    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
     y                 = row + 0x3C;
     label3.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -1712,8 +1715,8 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     value3.alignment  = TEXT_ALIGNMENT_RIGHT;
     value3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    Text_DrawString(&value3, rating->label);
-    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawString(&value3, rating->name);
+    Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 /// Task handler for the gallery's closing sequence. State 0 spawns the results
 /// panel and stashes `gPlayerStatus.exp` / `gPlayerStatus.bp` in
