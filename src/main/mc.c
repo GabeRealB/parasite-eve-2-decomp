@@ -94,12 +94,18 @@ STATIC_ASSERT_SIZEOF(_McSaveSection, 0xC);
 /// called again on the next run.
 typedef void (*_McStateFunc)(Task* task, McWork* work);
 
-/// Fixed-size table of _McStateFunc callbacks. Copied onto the stack by
-/// Mc_DispatchStateTable so the call uses a local jump table (44 entries, 0xB0 bytes).
+/// Handlers of the save dialog, indexed by `Task.state`.
+///
+/// The dialog calls the handler for its current state with the task and the
+/// shared memory-card work area. A handler advances the dialog by storing the
+/// next state. Dispatch indexes the table only when the state is non-negative.
+/// The one negative value stored is -1, written when a closing prompt finishes
+/// its dismiss count; dispatch does not call a handler for it. The table has
+/// no terminator and dispatch does not reject an index past the last handler.
 typedef struct {
-    _McStateFunc funcs[44];
-} McStateFuncTable44;
-STATIC_ASSERT_SIZEOF(McStateFuncTable44, 0xB0);
+    _McStateFunc funcs[44]; // One handler per state, in `Task.state` order
+} _McSaveStateTable;
+STATIC_ASSERT_SIZEOF(_McSaveStateTable, 0xB0);
 
 /// Handlers of the file-select dialog, indexed by `Task.state`.
 ///
@@ -263,7 +269,7 @@ static UiObjectDesc Mc_LoadListDescriptors[];
 
 static const char McText_CloseParen[];
 
-static const McStateFuncTable44 Mc_PromptStates;
+static const _McSaveStateTable Mc_PromptStates;
 
 /// Jump table of 26 _McStateFunc handlers used by Mc_DispatchStateTable26.
 static const _McFileSelectStateTable Mc_FileSelectStates;
@@ -1183,7 +1189,7 @@ static void Mc_BuildSaveTitle(McWork* work)
 
 static const char McText_CloseParen[] = ")";
 
-static const McStateFuncTable44 Mc_PromptStates = { {
+static const _McSaveStateTable Mc_PromptStates = { {
     Mc_ResetWork,
     Mc_WriteSlotChecksumsEx,
     Mc_StateAcceptMode1,
@@ -3642,18 +3648,18 @@ static void Mc_StateEnterPromptD(Task* task, McWork* work)
 
 void Mc_DispatchStateTable(Task* task)
 {
-    McStateFuncTable44 sp;
-    McWork*            work;
-    s32                state;
+    _McSaveStateTable states;
+    McWork*           work;
+    s32               state;
 
-    sp    = Mc_PromptStates;
-    work  = &Mc_MenuWork;
-    state = task->state;
+    states = Mc_PromptStates;
+    work   = &Mc_MenuWork;
+    state  = task->state;
     if (state < 0) {
         Mc_KillIfCountdown(task, work);
         return;
     }
-    sp.funcs[state](task, work);
+    states.funcs[state](task, work);
     if (work->cardTimer >= MEMORY_CARD_IO_ABORT_FRAMES) {
         if (work->buffer != 0) {
             memFree(work->buffer);
