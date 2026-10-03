@@ -117836,6 +117836,36 @@ leave code: a `beqz` survives. So do a bare single `case 1` and `default: break;
 which are no different from the `if`. If you see the kept counter, check the
 `.loop` dump for `giv of insn N not worth while, 0 vs M` on a `mult 2 add 0` giv.
 
+## A pointer walk closed by `(s32)p < (s32)(start + N)` is an eliminated index loop: write `arr[i].field` (func_800CB6FC, 2026-10-03)
+
+**Symptom.** A matched body walks a stack array with
+`do { ... p++; } while ((s32)p < (s32)(start + 8));`. The casts are there
+because the target compares the two addresses *signed*
+(`addiu v0,s1,0x10; ...; addiu s0,s0,2; slt v0,s0,v0`) and a plain pointer
+relation emits `sltu`. The end address is also recomputed inside the loop
+instead of being hoisted.
+
+**Mechanism.** Both are the marks of `maybe_eliminate_biv` (see the entry
+above): `i < 8` keeps its signed code when the counter is replaced by the
+reduced giv, and the bound `start + 2*8` is emitted at the comparison because
+the giv's `add_val` is a register, not a constant. No pointer comparison was
+written.
+
+**Fix.** Index the array directly, with a counter of its own:
+
+```c
+for (carried = 0; carried < ARRAY_SIZE(table.pairs); carried++) {
+    if (lookup(variants[carried].weaponItemId) != 0) {
+```
+
+Taking the element's address first, `p = &variants[carried];`, does **not**
+match: the pointer is still reduced (`addiu s0,s0,2`) but the counter survives
+(`addiu s1,s1,1; slti v0,s1,8`) and costs a saved register. That kept-counter
+shape is what a neighbouring loop in the same function wanted, and there
+`for (i = 0, q = start; i < 8; i++, q++)` and plain `variants[i].field`
+compile identically. The counter must not be shared with a nested loop: a
+second assignment inside the body stops it being a biv of the outer loop.
+
 ## A flag-selected threshold with two separate branch tests is `(f && n >= A) || (!f && n >= B)` (func_actor_205200_8014C0C0, 2026-09-17)
 
 **Symptom.** Retail increments a counter, sign-extends it *before* testing a flag,

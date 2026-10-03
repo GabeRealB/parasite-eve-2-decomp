@@ -39,14 +39,19 @@
 
 #include "mapui/map_shelter.h"
 
+/// One variant of a weapon that takes add-ons: the weapon item it is carried
+/// as, and the add-on that item has mounted.
+///
+/// Using an add-on swaps the carried weapon item for the variant that has it
+/// mounted; the add-on the old variant held goes back to the inventory.
 typedef struct {
-    /* 0x0 */ u8 src;
-    /* 0x1 */ u8 dst;
-} GpUseCreatePair;
-STATIC_ASSERT_SIZEOF(GpUseCreatePair, 2);
+    u8 weaponItemId;  // Weapon item id of this variant (0x80..0x9F).
+    u8 mountedItemId; // Add-on item mounted on it (0 none).
+} _ItemMenuWeaponVariant;
+STATIC_ASSERT_SIZEOF(_ItemMenuWeaponVariant, 2);
 
 typedef struct {
-    GpUseCreatePair pairs[8];
+    _ItemMenuWeaponVariant pairs[8];
 } GpUseCreateTable;
 
 STATIC_ASSERT_SIZEOF(GpUseCreateTable, 0x10);
@@ -667,6 +672,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     register GpUseCreateWork* work;
     s32                       y;
     s32                       i;
+    s32                       carried;
     s32                       temp;
     s32                       lines;
     s32                       saved;
@@ -677,9 +683,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     InventoryItemRange*       scan;
     InventoryItemRange*       scanInit;
     GpUseCreateWork*          newWork;
-    GpUseCreatePair*          p;
-    GpUseCreatePair*          q;
-    GpUseCreatePair*          start;
+    _ItemMenuWeaponVariant*   variants;
     EquipmentWeaponLoad*      slotSrc;
     EquipmentWeaponLoad*      slotDst;
     InventoryItemRow*         rec;
@@ -736,32 +740,32 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 }
                 if (arg1->status == 0xFF) {
                     ten            = 0xA;
-                    start          = sp20.u.recipes.pairs;
+                    variants       = sp20.u.recipes.pairs;
                     sp20.u.recipes = D_80097184;
-                    p              = start;
                     arg1->status   = 0x17;
-                    do {
-                        if (Gp_SumScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, p->src) != 0) {
-                            extra = p->dst;
-                            if (item == ten && p->src == 0x93) {
+                    // Find the variant being carried; the add-on it has mounted comes back to the inventory.
+                    for (carried = 0; carried < ARRAY_SIZE(sp20.u.recipes.pairs); carried++) {
+                        if (Gp_SumScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, variants[carried].weaponItemId) != 0) {
+                            extra = variants[carried].mountedItemId;
+                            if (item == ten && variants[carried].weaponItemId == 0x93) {
                                 extra = 0;
                             }
                             if (extra != ten && extra == item) {
                                 arg1->status = 0x1A;
                             } else {
-                                src = p->src;
-                                for (i = 0, q = start; i < 8; i++, q++) {
-                                    if (item == q->dst && src != q->src) {
+                                // The weapon becomes the other variant that has the used item mounted.
+                                src = variants[carried].weaponItemId;
+                                for (i = 0; i < ARRAY_SIZE(sp20.u.recipes.pairs); i++) {
+                                    if (item == variants[i].mountedItemId && src != variants[i].weaponItemId) {
                                         arg1->status = 0xFF;
-                                        result       = q->src;
+                                        result       = variants[i].weaponItemId;
                                         break;
                                     }
                                 }
                             }
                             break;
                         }
-                        p++;
-                    } while ((s32)p < (s32)(start + 8));
+                    }
                 }
                 break;
         }
