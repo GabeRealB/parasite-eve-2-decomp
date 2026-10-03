@@ -7,13 +7,16 @@
 
 #include "gameplay/action_prompt.h"
 
-/// A pair of 16-bit coordinates used by the shrine's sliding-tile puzzle: the
-/// screen position of a tile's quad, or the texture origin it samples from.
-/// The puzzle tables index this by tile number or by board position.
+/// Top-left corner of one square tile of the shrine's sliding-tile puzzle.
+///
+/// The same pair serves two spaces: a screen position relative to the centre
+/// of the display, where the 4x4 board spans -64 to 63 on each axis, and a
+/// texel position within the puzzle's texture page. Some tables of it are
+/// indexed by tile number and others by board cell.
 typedef struct {
-    u16 x;
-    u16 y;
-} NeoArkShrineSlot;
+    s16 x; // horizontal position, in pixels or texels
+    s16 y; // vertical position, in pixels or texels
+} NeoArkShrineTileOrigin;
 
 /// Scratch state of the shrine's cap script, stored at `Task::work`
 /// (`memCalloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
@@ -46,17 +49,17 @@ extern s16 D_neo_ark_shrine_8018686A;
 extern s16 D_neo_ark_shrine_8018686C[16];
 
 /// Drawn position of each puzzle tile, eased towards its target every frame.
-extern NeoArkShrineSlot D_neo_ark_shrine_8018688C[16];
+extern NeoArkShrineTileOrigin D_neo_ark_shrine_8018688C[16];
 
 extern TaskDesc D_neo_ark_shrine_80182404[1];
 
 extern u16 D_neo_ark_shrine_80182410[16];
 
-extern NeoArkShrineSlot D_neo_ark_shrine_8018256C[16];
+extern NeoArkShrineTileOrigin D_neo_ark_shrine_8018256C[16];
 
 extern Task* D_neo_ark_shrine_80186864;
 
-extern NeoArkShrineSlot D_neo_ark_shrine_801868CC[16];
+extern NeoArkShrineTileOrigin D_neo_ark_shrine_801868CC[16];
 
 void func_neo_ark_shrine_8017DF7C(void);
 

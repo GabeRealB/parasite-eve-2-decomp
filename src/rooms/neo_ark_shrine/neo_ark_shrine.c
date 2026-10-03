@@ -35,6 +35,10 @@
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
 
+/// Edge of one square tile of the sliding-tile puzzle, in screen pixels and in
+/// texels alike: the tile sheet is drawn unscaled.
+#define NEO_ARK_SHRINE_TILE_SIZE 32
+
 /// Message table installed at `Task::msgTable` by the room task's state 0.
 extern TaskMessageEntry D_neo_ark_shrine_80181E34[];
 
@@ -48,8 +52,8 @@ extern s32 D_neo_ark_shrine_80181E74;
 /// indices per slot, `0xFF` terminated, into `D_neo_ark_shrine_8018686C`.
 extern s16 D_neo_ark_shrine_801825EC[][5];
 
-extern NeoArkShrineSlot D_neo_ark_shrine_8018252C[16];
-extern NeoArkShrineSlot D_neo_ark_shrine_801825AC[16];
+extern NeoArkShrineTileOrigin D_neo_ark_shrine_8018252C[16];
+extern NeoArkShrineTileOrigin D_neo_ark_shrine_801825AC[16];
 
 /// Steps the currently selected group and returns which kind of step it was.
 static s16 func_neo_ark_shrine_8017E254(void);
@@ -181,45 +185,45 @@ TaskDesc D_neo_ark_shrine_80182508[3] = {
     { { { TASK_BODY_TMD, 192 } }, func_neo_ark_shrine_8017EBB8, { .model = &_gNeoArkShrineModel04C6C } },
 };
 
-NeoArkShrineSlot D_neo_ark_shrine_8018252C[16] = {
-    { 0xFFC0, 0xFFC0 },
-    { 0xFFE0, 0xFFC0 },
-    { 0, 0xFFC0 },
-    { 32, 0xFFC0 },
-    { 0xFFC0, 0xFFE0 },
-    { 0xFFE0, 0xFFE0 },
-    { 0, 0xFFE0 },
-    { 32, 0xFFE0 },
-    { 0xFFC0, 0 },
-    { 0xFFE0, 0 },
+NeoArkShrineTileOrigin D_neo_ark_shrine_8018252C[16] = {
+    { -64, -64 },
+    { -32, -64 },
+    { 0, -64 },
+    { 32, -64 },
+    { -64, -32 },
+    { -32, -32 },
+    { 0, -32 },
+    { 32, -32 },
+    { -64, 0 },
+    { -32, 0 },
     { 0, 0 },
     { 32, 0 },
-    { 0xFFC0, 32 },
-    { 0xFFE0, 32 },
+    { -64, 32 },
+    { -32, 32 },
     { 0, 32 },
     { 32, 32 },
 };
 
-NeoArkShrineSlot D_neo_ark_shrine_8018256C[16] = {
+NeoArkShrineTileOrigin D_neo_ark_shrine_8018256C[16] = {
     { 32, 32 },
-    { 0xFFC0, 0xFFC0 },
-    { 0xFFE0, 0xFFC0 },
-    { 0, 0xFFC0 },
-    { 32, 0xFFC0 },
-    { 0xFFC0, 0xFFE0 },
-    { 0xFFE0, 0xFFE0 },
-    { 0, 0xFFE0 },
-    { 32, 0xFFE0 },
-    { 0xFFC0, 0 },
-    { 0xFFE0, 0 },
+    { -64, -64 },
+    { -32, -64 },
+    { 0, -64 },
+    { 32, -64 },
+    { -64, -32 },
+    { -32, -32 },
+    { 0, -32 },
+    { 32, -32 },
+    { -64, 0 },
+    { -32, 0 },
     { 0, 0 },
     { 32, 0 },
-    { 0xFFC0, 32 },
-    { 0xFFE0, 32 },
+    { -64, 32 },
+    { -32, 32 },
     { 0, 32 },
 };
 
-NeoArkShrineSlot D_neo_ark_shrine_801825AC[16] = {
+NeoArkShrineTileOrigin D_neo_ark_shrine_801825AC[16] = {
     { 96, 96 },
     { 0, 0 },
     { 32, 0 },
@@ -526,11 +530,11 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
 /// textured quad.
 void func_neo_ark_shrine_8017DF7C(void)
 {
-    s32               i;
-    s32               tile;
-    NeoArkShrineSlot* cur;
-    NeoArkShrineSlot* tgt;
-    POLY_FT4*         prim;
+    s32                     i;
+    s32                     tile;
+    NeoArkShrineTileOrigin* cur;
+    NeoArkShrineTileOrigin* tgt;
+    POLY_FT4*               prim;
 
     for (i = 0; i < 16; i++) {
         tile                              = D_neo_ark_shrine_8018686C[i];
@@ -542,10 +546,10 @@ void func_neo_ark_shrine_8017DF7C(void)
         tile    = D_neo_ark_shrine_8018686C[i];
         cur     = &D_neo_ark_shrine_8018688C[tile];
         tgt     = &D_neo_ark_shrine_801868CC[tile];
-        cur->x += ((s16)tgt->x - (s16)cur->x) >> 1;
-        cur->y += ((s16)tgt->y - (s16)cur->y) >> 1;
-        if (ABS((s16)cur->x - (s16)tgt->x) < 4 &&
-            ABS((s16)D_neo_ark_shrine_8018688C[tile].y - (s16)D_neo_ark_shrine_801868CC[tile].y) < 4) {
+        cur->x += (tgt->x - cur->x) >> 1;
+        cur->y += (tgt->y - cur->y) >> 1;
+        if (ABS(cur->x - tgt->x) < 4 &&
+            ABS(D_neo_ark_shrine_8018688C[tile].y - D_neo_ark_shrine_801868CC[tile].y) < 4) {
             D_neo_ark_shrine_8018688C[tile].x = D_neo_ark_shrine_801868CC[tile].x;
             D_neo_ark_shrine_8018688C[tile].y = D_neo_ark_shrine_801868CC[tile].y;
         }
@@ -553,11 +557,13 @@ void func_neo_ark_shrine_8017DF7C(void)
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
-            setUVWH(prim, D_neo_ark_shrine_801825AC[tile].x, D_neo_ark_shrine_801825AC[tile].y, 0x20, 0x20);
+            setUVWH(prim, D_neo_ark_shrine_801825AC[tile].x, D_neo_ark_shrine_801825AC[tile].y,
+                    NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE);
             prim->tpage = 0x8D;
             prim->clut  = 0x3FC0;
             setShadeTex(prim, 1);
-            setXYWH(prim, D_neo_ark_shrine_8018688C[tile].x, D_neo_ark_shrine_8018688C[tile].y, 0x20, 0x20);
+            setXYWH(prim, D_neo_ark_shrine_8018688C[tile].x, D_neo_ark_shrine_8018688C[tile].y,
+                    NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE);
             addPrim(&gGpuCurrentOt[10], prim);
         }
     }

@@ -1040,9 +1040,9 @@ s16 D_neo_ark_shrine_80186868 = 0;
 
 s16 D_neo_ark_shrine_8018686C[16] = { 0 };
 
-NeoArkShrineSlot D_neo_ark_shrine_8018688C[16] = { 0 };
+NeoArkShrineTileOrigin D_neo_ark_shrine_8018688C[16] = { 0 };
 
-NeoArkShrineSlot D_neo_ark_shrine_801868CC[16] = { 0 };
+NeoArkShrineTileOrigin D_neo_ark_shrine_801868CC[16] = { 0 };
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
 
@@ -1376,31 +1376,30 @@ static void func_neo_ark_shrine_8017F398(Task* task)
 }
 
 /// Resets the shrine's 16-slot arrangement puzzle to its starting state: clears
-/// the two puzzle flags, reloads the work copy of the slot layout from the
-/// room's initial-layout table, and re-seeds the slot arrangement with the
-/// room's starting order.
+/// the two puzzle flags, puts every tile's drawn position back at its starting
+/// origin, and re-seeds the slot arrangement with the room's starting order.
 void func_neo_ark_shrine_8017F448(void)
 {
-    NeoArkShrineSlot* dstSlot;
-    NeoArkShrineSlot* srcSlot;
-    s16*              dstOrder;
-    u16*              srcOrder;
-    s32               i;
-    u16               y;
-    u16               order;
+    NeoArkShrineTileOrigin* dstOrigin;
+    NeoArkShrineTileOrigin* srcOrigin;
+    s16*                    dstOrder;
+    u16*                    srcOrder;
+    s32                     i;
+    s16                     y;
+    u16                     order;
 
     i                         = 0;
-    dstSlot                   = D_neo_ark_shrine_8018688C;
-    srcSlot                   = D_neo_ark_shrine_8018256C;
+    dstOrigin                 = D_neo_ark_shrine_8018688C;
+    srcOrigin                 = D_neo_ark_shrine_8018256C;
     D_neo_ark_shrine_8018686A = 0;
     D_neo_ark_shrine_80186868 = 0;
     do {
         i++;
-        dstSlot->x = srcSlot->x;
-        y          = srcSlot->y;
-        srcSlot++;
-        dstSlot->y = y;
-        dstSlot++;
+        dstOrigin->x = srcOrigin->x;
+        y            = srcOrigin->y;
+        srcOrigin++;
+        dstOrigin->y = y;
+        dstOrigin++;
     } while (i < 0x10);
 
     i        = 0;
