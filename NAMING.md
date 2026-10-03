@@ -956,6 +956,11 @@ with `rename_item.record_rename(root, "local/renames.tsv", "macro",
 The report keeps its assigned qualified `name`; `current_name` is the final
 identifier alone. Replacing a macro with another kind of declaration also needs
 an explicit report of that change.
+An item the review concludes should not exist - a duplicate merged into
+another type, a scaffold replaced by real declarations - is reported with
+`"removed": true` instead of a `current_name`, with `changes` saying what
+replaced it; the validator then requires the name to be gone from `src/` and
+`include/` (for a qualified macro, from its own file).
 
 **The path in a spec is where the symbol is declared**, not where it is used. A
 path that does not declare it cannot resolve, and the tools say so only after
