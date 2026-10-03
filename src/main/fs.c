@@ -55,15 +55,22 @@ typedef struct {
 } _FsCdfResourceEntry;
 STATIC_ASSERT_SIZEOF(_FsCdfResourceEntry, 0x10);
 
-/// Small FS control block cleared at the start of `Fs_PrepareFolderLoad`.
-typedef struct _FsLoadRedirect {
-    u16 enabled;
-    u16 sectorsRead;
-    u16 redirectSector;
-    u16 pad_6;
-    u8* destination;
-} FsLoadRedirect;
-STATIC_ASSERT_SIZEOF(FsLoadRedirect, 0xC);
+/// A pending jump of a resource bundle's payload stream to a second RAM address.
+///
+/// A bundle's payload is normally copied sector by sector to one contiguous
+/// address. A directory entry with a `redirectDestination` arms this record;
+/// once `sectorsRead` payload sectors reach `redirectSector`, the write
+/// pointer moves to `destination` and the remaining sectors land there. Only
+/// one redirect is held: the last such entry in the directory wins. The record
+/// is disarmed only when a folder load is prepared, so a later bundle in the
+/// same load re-uses an earlier bundle's redirect unless it arms its own.
+typedef struct {
+    u16 enabled;        // Nonzero once a bundle entry has armed a redirect
+    u16 sectorsRead;    // Payload sectors streamed since the bundle directory
+    u16 redirectSector; // Value of `sectorsRead` at which the write pointer jumps
+    u8* destination;    // RAM address receiving the payload sectors after the jump
+} _FsLoadRedirect;
+STATIC_ASSERT_SIZEOF(_FsLoadRedirect, 0xC);
 
 /// Canary value at the end of the STAGE0.HED header.
 #define FS_CDF_STAGE0_CANARY -1
@@ -101,7 +108,7 @@ static u8 D5B498_8006ADE1;
 
 static u8 D_8006ADE2;
 
-static FsLoadRedirect Fs_LoadRedirect;
+static _FsLoadRedirect Fs_LoadRedirect;
 
 static u8 D5B498_8006ADF4;
 
@@ -963,7 +970,7 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
     Fs_LoadRedirect.enabled        = 0;
     Fs_LoadRedirect.sectorsRead    = 0;
     Fs_LoadRedirect.redirectSector = 0;
-    Fs_LoadRedirect.destination    = 0;
+    Fs_LoadRedirect.destination    = NULL;
     Fs_ChunkMode                   = 0;
     D5B498_8006ADF4                = 0;
 
