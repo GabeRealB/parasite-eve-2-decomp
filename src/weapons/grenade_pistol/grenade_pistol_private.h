@@ -6,7 +6,7 @@
 
 #include "types.h"
 
-/// Impact clip id per attachment, indexed by `sfx - 0xA`.
+/// Impact clip id per attachment, indexed by `ammunitionIndex - GRENADE_ROUND_FIRST`.
 extern u16 gGrenadeShellBlastRadii[4];
 
 /// Per-ammo muzzle offset the spawn state places the projectile at, indexed by

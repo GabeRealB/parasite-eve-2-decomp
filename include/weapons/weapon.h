@@ -63,20 +63,6 @@ enum {
     GRENADE_ROUND_RIOT          = 0xC  // Riot (item 0xAB)
 };
 
-/// The scratch-pad block a grenade's flight state takes when the attachment
-/// id comes from the task's spawn argument. `delta` is handed to
-/// `func_800E0FEC` and then holds the per-frame translation added onto the
-/// projectile coordinate; `field_30` keeps the byte of the spawn argument
-/// above the attachment id, which seeds the sound bank, and `sfx` is the
-/// attachment id itself.
-typedef struct WeaponGrenadeScratch {
-    byte                pad_0[0x20];
-    WorldCollisionDelta delta;
-    s32                 field_30;
-    s32                 sfx;
-} WeaponGrenadeScratch;
-STATIC_ASSERT_SIZEOF(WeaponGrenadeScratch, 0x38);
-
 /// The item a weapon's rounds are taken from, given the weapon's index. Weapon
 /// items follow item 0x7F in weapon order, so every weapon consumes item
 /// `index + 0x7F`.

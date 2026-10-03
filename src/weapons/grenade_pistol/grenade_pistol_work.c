@@ -14,7 +14,7 @@ SVECTOR gGrenadeShellMuzzleOffsets[2] = {
     { 0, 0x220, 0x80, 0 },
 };
 
-/// Impact clip id per attachment, indexed by `sfx - 0xA`.
+/// Impact clip id per attachment, indexed by `ammunitionIndex - GRENADE_ROUND_FIRST`.
 u16 gGrenadeShellBlastRadii[4] = { 0x1F4, 0x4B0, 0x7D0, 0 };
 
 /// Per-ammo launch speed.

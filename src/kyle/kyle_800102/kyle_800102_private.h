@@ -13,7 +13,7 @@ extern SVECTOR gGrenadeShellMuzzleOffsets[2];
 extern u8 gGrenadeShellSpeeds[4];
 
 /// Collision radius the shell takes on detonation, per attachment, indexed by
-/// `sfx - 0xA`.
+/// `ammunitionIndex - GRENADE_ROUND_FIRST`.
 extern u16 gGrenadeShellBlastRadii[4];
 
 #endif // SRC_KYLE_KYLE_800102_KYLE_800102_PRIVATE_H

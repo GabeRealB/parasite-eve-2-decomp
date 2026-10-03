@@ -56437,7 +56437,7 @@ pointer in the opposite order from its sibling: 4 refs across 22 insns
 
 ```c
 SOFT_USE_REG2(head, head);
-func_800E0FEC(rec, &((WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch)))->delta, 1, &idx);
+func_800E0FEC(rec, &(head - 1)->delta, 1, &idx); /* head: _GrenadeShellFlightScratch*, one past the block */
 ```
 
 Two things that do *not* work here. `SOFT_TOUCH_REG(head)` (`"+r"`) also adds
