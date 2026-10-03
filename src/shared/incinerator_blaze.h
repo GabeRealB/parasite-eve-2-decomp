@@ -18,14 +18,18 @@
 
 #include "overlay.h"
 
-/// The head of the work block of the task that spawns the blaze, which each
-/// package extends: the screen-wave context the fade sets to
-/// `SCREEN_WAVE_RAMP_FINISHED` when its
-/// colour ramp reaches 0x100.
-typedef struct BlazeParentWork {
-    /* 0x00 */ byte          pad_0[0x20];
-    /* 0x20 */ ScreenWaveCtx wave;
+/// Prefix of the work block of the task that spawns the blaze.
+///
+/// The fade is started with that task in `Task::spawnArg2` and reads the
+/// block through this prefix. It sets `wave` to `SCREEN_WAVE_RAMP_FINISHED`
+/// once the screen has washed white. Each package extends the block past the
+/// prefix with its own tasks and scene state. Nothing reads the bytes before
+/// `wave`.
+typedef struct {
+    byte          unknown_0[0x20]; // Never accessed; role unproven
+    ScreenWaveCtx wave;            // Heat-haze ramp the spawner seeds and the fade finishes
 } BlazeParentWork;
+STATIC_ASSERT_SIZEOF(BlazeParentWork, 0x2C);
 
 void blazeFadeTask(Task* arg0);
 void blazeBodyFireTask(Task* arg0);

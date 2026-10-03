@@ -10,9 +10,10 @@
 /// 0xFF -- and each hands the state machine back to 1 when it clamps, so the
 /// two ramps run back to back. State 4 steps `g` / `b` by 8; once
 /// `g` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
-/// filled white, the parent work block's wave ramp is sent to state 2, and state 5
-/// draws the full-screen white `TILE` + `DR_TPAGE` packed into
-/// `gGpuPrimCursor` before returning without the fade call. Every other state
+/// filled white, the parent work block's wave ramp is sent to
+/// `SCREEN_WAVE_RAMP_FINISHED`, and state 5 draws the full-screen white
+/// `TILE` + `DR_TPAGE` packed into `gGpuPrimCursor` before returning without
+/// the fade call. Every other state
 /// -- 1, 6 and up -- only draws the fade.
 void blazeFadeTask(Task* arg0)
 {

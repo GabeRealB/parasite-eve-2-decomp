@@ -376,6 +376,12 @@ one-centre projection block, are declared in `include/rooms/room_common.h`. If a
 subsystem have similar names, distinguish actual ownership and linkage before
 introducing a qualifier; do not assume that they are one API.
 
+`incinerator_blaze.h` uses the prefix `blaze`. It is the fade-to-white and
+body-fire tasks included by the incinerator room and `actor_342100`.
+`BlazeParentWork` is the prefix of the spawning task's work those tasks know:
+bytes they never read, then the heat-haze `ScreenWaveCtx` the fade finishes.
+Each package extends that prefix with its own tasks and scene state.
+
 `actionPrompt` owns the point-and-click action cursor shared by room and actor
 overlays. The resident per-port state and its public types are gameplay
 (`include/gameplay/action_prompt.h`, slots in `menu_actions.c`). The hotspot
