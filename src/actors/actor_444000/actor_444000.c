@@ -305,7 +305,7 @@ extern SVECTOR gGluttonSpinnerTarget;
 
 /// Shared coordinate `func_actor_444000_80140BBC` rebuilds when the fight
 /// reaches sub-state 0x2D of state 9, parented to the host model's fifth part.
-extern GluttonDropCoord D_actor_444000_801618B8;
+extern GluttonCoord D_actor_444000_801618B8;
 
 /// Which of the three shared debris coordinates below the next launch uses,
 /// cycled 0/1/2 by `func_actor_444000_801404C0`.
@@ -2678,7 +2678,7 @@ SVECTOR gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 
 Actor444000Storage1898 gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-GluttonDropCoord D_actor_444000_801618B8 = { .c = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
+GluttonCoord D_actor_444000_801618B8 = { .node = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
 
 Actor444000Storage1908 D_actor_444000_80161908 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
@@ -4365,16 +4365,16 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->field_ECC[3]->param         = &D_actor_444000_80144A58;
     work->field_ECC[3]->recs          = work->hits[1].recs;
 
-    freeCoord                             = &work->field_E3C.c;
-    work->field_E3C.c.parent              = task->extra.tmd->coords;
-    work->field_E3C.ident.rotation.m00M01 = ONE;
-    mtx                                   = (GfxMatrix*)&work->field_E3C.c.coord;
-    mtx->rotationWords.m02M10             = 0;
-    mtx->rotationWords.m11M12             = ONE;
-    mtx->rotationWords.m20M21             = 0;
-    mtx->rotationWords.m22                = ONE;
-    work->field_E3C.c.coord.t[0] = work->field_E3C.c.coord.t[1] = work->field_E3C.c.coord.t[2] = 0;
-    work->field_E3C.c.composeStamp                                                             = GRAPHICS_COORD_DIRTY;
+    freeCoord                                         = &work->field_E3C.node;
+    work->field_E3C.node.parent                       = task->extra.tmd->coords;
+    work->field_E3C.packed.coord.rotationWords.m00M01 = ONE;
+    mtx                                               = &work->field_E3C.packed.coord;
+    mtx->rotationWords.m02M10                         = 0;
+    mtx->rotationWords.m11M12                         = ONE;
+    mtx->rotationWords.m20M21                         = 0;
+    mtx->rotationWords.m22                            = ONE;
+    work->field_E3C.node.coord.t[0] = work->field_E3C.node.coord.t[1] = work->field_E3C.node.coord.t[2] = 0;
+    work->field_E3C.node.composeStamp                                                                   = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(freeCoord);
 
     work->d4rec.ends[1].vz    = 0x1B58;
@@ -5502,9 +5502,9 @@ static void func_actor_444000_8013FB74(Task* arg0)
         work->field_EF4 = 0;
         work->field_EFA = 1;
         work->field_EF8 = 1;
-        gfxRotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
-        work->field_E3C.c.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->field_E3C.c);
+        gfxRotMatrixY(&work->field_E3C.node.coord, work->field_7C8, 1);
+        work->field_E3C.node.composeStamp = GRAPHICS_COORD_DIRTY;
+        Gp_UpdateCoord(&work->field_E3C.node);
         work->field_E96 = 0xC80;
 
         resetId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
@@ -5513,14 +5513,14 @@ static void func_actor_444000_8013FB74(Task* arg0)
                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
 
-    coord                          = &work->field_E3C.c;
-    work->field_E3C.c.composeStamp = GRAPHICS_COORD_DIRTY;
+    coord                             = &work->field_E3C.node;
+    work->field_E3C.node.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 
     if (work->field_7B3 == 4 && (frame = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC &&
         work->field_7AC != frame) {
-        gfxRotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
-        work->field_E3C.c.composeStamp = GRAPHICS_COORD_DIRTY;
+        gfxRotMatrixY(&work->field_E3C.node.coord, work->field_7C8, 1);
+        work->field_E3C.node.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         work->field_EAC  = 3;
         work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -5875,19 +5875,19 @@ static void func_actor_444000_80140BBC(Task* arg0)
         work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
-        coords                                        = arg0->extra.tmd->coords;
-        D_actor_444000_801618B8.ident.rotation.m00M01 = ONE;
-        mtx                                           = (GfxMatrix*)&D_actor_444000_801618B8.c.coord;
-        mtx->rotationWords.m02M10                     = 0;
-        mtx->rotationWords.m11M12                     = ONE;
-        mtx->rotationWords.m20M21                     = 0;
-        mtx->rotationWords.m22                        = ONE;
-        D_actor_444000_801618B8.c.coord.t[1]          = -0x64;
-        D_actor_444000_801618B8.c.coord.t[0]          = 0;
-        D_actor_444000_801618B8.c.coord.t[2]          = 0x64;
-        D_actor_444000_801618B8.c.composeStamp        = GRAPHICS_COORD_DIRTY;
-        D_actor_444000_801618B8.c.parent              = &coords[4];
-        Gp_UpdateCoord(&D_actor_444000_801618B8.c);
+        coords                                                    = arg0->extra.tmd->coords;
+        D_actor_444000_801618B8.packed.coord.rotationWords.m00M01 = ONE;
+        mtx                                                       = &D_actor_444000_801618B8.packed.coord;
+        mtx->rotationWords.m02M10                                 = 0;
+        mtx->rotationWords.m11M12                                 = ONE;
+        mtx->rotationWords.m20M21                                 = 0;
+        mtx->rotationWords.m22                                    = ONE;
+        D_actor_444000_801618B8.node.coord.t[1]                   = -0x64;
+        D_actor_444000_801618B8.node.coord.t[0]                   = 0;
+        D_actor_444000_801618B8.node.coord.t[2]                   = 0x64;
+        D_actor_444000_801618B8.node.composeStamp                 = GRAPHICS_COORD_DIRTY;
+        D_actor_444000_801618B8.node.parent                       = &coords[4];
+        Gp_UpdateCoord(&D_actor_444000_801618B8.node);
     }
     if (work->field_7B3 == 0x14 && (work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->field_7B3 = 0xD;

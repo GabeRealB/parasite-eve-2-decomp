@@ -79,17 +79,28 @@
 #include "actors/actor.h"
 
 #include "main/coord.h"
+#include "main/gfx_types.h"
 #include "main/task_types.h"
 
-/// Scratch coordinate with word access to its identity rotation matrix.
-typedef union GluttonDropCoord {
-    GfxCoord c;
+/// Graphics coordinate node with packed word access to its local rotation.
+///
+/// `node` is the transform node itself: what composition, parenting and every
+/// `GfxCoord` consumer take. `packed` views the same storage with the local
+/// matrix as a `GfxMatrix`, so its 3x3 can be written as whole words; an
+/// identity is four word stores and one halfword store. Both views are live at
+/// once and neither owns anything the other does not.
+///
+/// The Glutton uses this wherever it builds a node's rotation in place: the
+/// host's free coordinate, the coordinate hung beneath its part 4, and the
+/// frame-local node under a falling rain blob's ground shadow.
+typedef union {
+    GfxCoord node;
     struct {
-        u32              composeStamp;
-        GfxRotationWords rotation;
-    } ident;
-} GluttonDropCoord;
-STATIC_ASSERT_SIZEOF(GluttonDropCoord, 0x50);
+        u32       composeStamp; // `node.composeStamp`
+        GfxMatrix coord;        // `node.coord`, with word access to its coefficients
+    } packed;
+} GluttonCoord;
+STATIC_ASSERT_SIZEOF(GluttonCoord, 0x50);
 
 /// One of the nine back-to-back collision groups in `GluttonWork` at
 /// 0x7F4. `obj` is the `WorldCollisionBody` the gameplay collision list carries and `recs`
@@ -387,7 +398,7 @@ typedef struct GluttonWork {
     /// `Gp_UpdateCoord` every step; `coord` is the matrix `gfxRotMatrixY`
     /// rebuilds from `field_7C8`. The spawn state seeds it with the identity
     /// through the word view.
-    /* 0xE3C */ GluttonDropCoord field_E3C;
+    /* 0xE3C */ GluttonCoord field_E3C;
     /// `Gp_GetIdParam2` of the hit the group-0 handler took this frame; the
     /// sibling slots carry the other groups' ids.
     /* 0xE8C */ s16 field_E8C;

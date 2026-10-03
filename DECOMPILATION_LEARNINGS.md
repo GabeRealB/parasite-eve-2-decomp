@@ -72596,19 +72596,20 @@ widen it to the whole `GfxCoord` when the identity is built in a local
 coordinate:
 
 ```c
-typedef union Actor403200DropCoord {
-    GfxCoord c;
+typedef union {
+    GfxCoord node;
     struct {
-        u32              composeStamp;
-        GfxRotationWords rotation;
-    } ident;
-} Actor403200DropCoord;
+        u32       composeStamp;
+        GfxMatrix coord;
+    } packed;
+} GluttonCoord;
 
-coord.ident.rotation.m00M01 = ONE;
-coord.ident.rotation.m02M10 = 0;
-*(s32*)&mtx->m[1][1] = 0x1000;   /* via the pointer: already varying, fine */
-coord.ident.rotation.m20M21 = 0;
-mtx->m[2][2]         = 0x1000;
+mtx                                     = &coord.packed.coord;
+coord.packed.coord.rotationWords.m00M01 = ONE;
+coord.packed.coord.rotationWords.m02M10 = 0;
+mtx->rotationWords.m11M12               = ONE;   /* via the pointer: already varying, fine */
+coord.packed.coord.rotationWords.m20M21 = 0;
+mtx->rotationWords.m22                  = ONE;
 ```
 
 `func_actor_444000_80139C80` is the worked example: 95.88% with the casts,
@@ -73699,7 +73700,7 @@ first") can come out reordered when the surrounding writes are ordinary member
 assignments on the same object:
 
 ```
-sw   a1,4(a0)        /* D.ident.rotation.m00M01 */
+sw   a1,4(a0)        /* D.packed.coord.rotationWords.m00M01 */
 sh   a1,0x10(v1)     /* mtx->m[2][2]    */
 sw   v0,0x1c(a0)     /* D.coord.t[1]    */
 ...
@@ -73717,7 +73718,7 @@ the word pairs - the project has one shared by rooms and actors,
 component reference and source order survives:
 
 ```c
-mtx                = (GfxMatrix*)&D_x.c.coord;
+mtx                = &D_x.packed.coord;
 mtx->rotationWords.m02M10 = 0;
 mtx->rotationWords.m11M12 = 0x1000;
 mtx->rotationWords.m20M21 = 0;
@@ -73727,7 +73728,7 @@ mtx->rotationWords.m22     = 0x1000;
 Two further points for a global rather than a stack coordinate:
 
 - The *first* address constant mentioned is the one GCC materialises; every
-  other reference is derived from it. Assigning `mtx = &D_x.c.coord` before the
+  other reference is derived from it. Assigning `mtx = &D_x.packed.coord` before the
   first store emits `lui`/`addiu` of `D_x+4` and then `addiu a0,v1,-4` for the
   object itself, losing the `sw zero,%lo(D_x)($hi)` the target uses for `composeStamp`.
   Store one field of the object first, then take the matrix pointer.

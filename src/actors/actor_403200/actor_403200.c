@@ -256,7 +256,7 @@ extern Actor403200StorageF900 gGluttonGrabQuery;
 /// which splat names separately because the code takes that address directly.
 extern GfxCoord D_actor_403200_8015F920;
 
-extern GluttonDropCoord D_actor_403200_8015F970;
+extern GluttonCoord D_actor_403200_8015F970;
 
 /// Position and Euler rotation the launch tick sends the player as message
 /// 0x3E9.
@@ -2854,7 +2854,7 @@ Actor403200StorageF900 gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0
 
 GfxCoord D_actor_403200_8015F920 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
-GluttonDropCoord D_actor_403200_8015F970 = { .c = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
+GluttonCoord D_actor_403200_8015F970 = { .node = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
 
 Actor403200StorageF9C0 D_actor_403200_8015F9C0;
 
@@ -4175,7 +4175,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     }
 
     work->field_F0C    = 0x3C;
-    freeCoord          = &work->field_E3C.c;
+    freeCoord          = &work->field_E3C.node;
     work->field_ECC[6] = NULL;
     work->field_F04    = 0;
     work->field_F06    = 0;
@@ -4183,15 +4183,15 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->field_F0A    = 0x32;
     work->field_7F2    = 0;
 
-    work->field_E3C.c.parent              = task->extra.tmd->coords;
-    work->field_E3C.ident.rotation.m00M01 = ONE;
-    mtx                                   = (GfxMatrix*)&work->field_E3C.c.coord;
-    mtx->rotationWords.m02M10             = 0;
-    mtx->rotationWords.m11M12             = ONE;
-    mtx->rotationWords.m20M21             = 0;
-    mtx->rotationWords.m22                = ONE;
-    work->field_E3C.c.coord.t[0] = work->field_E3C.c.coord.t[1] = work->field_E3C.c.coord.t[2] = 0;
-    work->field_E3C.c.composeStamp                                                             = GRAPHICS_COORD_DIRTY;
+    work->field_E3C.node.parent                       = task->extra.tmd->coords;
+    work->field_E3C.packed.coord.rotationWords.m00M01 = ONE;
+    mtx                                               = &work->field_E3C.packed.coord;
+    mtx->rotationWords.m02M10                         = 0;
+    mtx->rotationWords.m11M12                         = ONE;
+    mtx->rotationWords.m20M21                         = 0;
+    mtx->rotationWords.m22                            = ONE;
+    work->field_E3C.node.coord.t[0] = work->field_E3C.node.coord.t[1] = work->field_E3C.node.coord.t[2] = 0;
+    work->field_E3C.node.composeStamp                                                                   = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(freeCoord);
 
     work->d4rec.ends[1].vz    = 0x1B58;
@@ -5246,9 +5246,9 @@ static void func_actor_403200_8013D028(Task* arg0)
         work->field_EF4 = 0;
         work->field_EFA = 1;
         work->field_EF8 = 1;
-        gfxRotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
-        work->field_E3C.c.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->field_E3C.c);
+        gfxRotMatrixY(&work->field_E3C.node.coord, work->field_7C8, 1);
+        work->field_E3C.node.composeStamp = GRAPHICS_COORD_DIRTY;
+        Gp_UpdateCoord(&work->field_E3C.node);
         work->field_E96 = 0xC80;
         resetId         = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
         resetPan        = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -5256,8 +5256,8 @@ static void func_actor_403200_8013D028(Task* arg0)
                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
 
-    work->field_E3C.c.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->field_E3C.c);
+    work->field_E3C.node.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_UpdateCoord(&work->field_E3C.node);
 
     if (work->field_7B3 == 4 && (frame = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC &&
         work->field_7AC != frame) {
@@ -5736,19 +5736,19 @@ static void func_actor_403200_8013E2FC(Task* arg0)
         work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
-        coords                                        = arg0->extra.tmd->coords;
-        D_actor_403200_8015F970.ident.rotation.m00M01 = ONE;
-        mtx                                           = (GfxMatrix*)&D_actor_403200_8015F970.c.coord;
-        mtx->rotationWords.m02M10                     = 0;
-        mtx->rotationWords.m11M12                     = ONE;
-        mtx->rotationWords.m20M21                     = 0;
-        mtx->rotationWords.m22                        = ONE;
-        D_actor_403200_8015F970.c.coord.t[1]          = -0x64;
-        D_actor_403200_8015F970.c.coord.t[0]          = 0;
-        D_actor_403200_8015F970.c.coord.t[2]          = 0x64;
-        D_actor_403200_8015F970.c.composeStamp        = GRAPHICS_COORD_DIRTY;
-        D_actor_403200_8015F970.c.parent              = &coords[4];
-        Gp_UpdateCoord(&D_actor_403200_8015F970.c);
+        coords                                                    = arg0->extra.tmd->coords;
+        D_actor_403200_8015F970.packed.coord.rotationWords.m00M01 = ONE;
+        mtx                                                       = &D_actor_403200_8015F970.packed.coord;
+        mtx->rotationWords.m02M10                                 = 0;
+        mtx->rotationWords.m11M12                                 = ONE;
+        mtx->rotationWords.m20M21                                 = 0;
+        mtx->rotationWords.m22                                    = ONE;
+        D_actor_403200_8015F970.node.coord.t[1]                   = -0x64;
+        D_actor_403200_8015F970.node.coord.t[0]                   = 0;
+        D_actor_403200_8015F970.node.coord.t[2]                   = 0x64;
+        D_actor_403200_8015F970.node.composeStamp                 = GRAPHICS_COORD_DIRTY;
+        D_actor_403200_8015F970.node.parent                       = &coords[4];
+        Gp_UpdateCoord(&D_actor_403200_8015F970.node);
     }
     state = work->field_7B3;
     if (state == 0x14) {
