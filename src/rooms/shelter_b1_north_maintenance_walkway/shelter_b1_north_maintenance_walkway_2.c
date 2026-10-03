@@ -48,8 +48,6 @@
 
 #include "rooms/room_common.h"
 
-#include "rooms/rooms_shared_8017dcb8.h"
-
 #include "../../shared/room_visual_effects.h"
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x374F }

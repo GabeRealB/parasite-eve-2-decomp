@@ -58,7 +58,6 @@
 
 #include "rooms/room_common.h"
 
-#include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 // The latched-event symbol carries four unproven bytes after the event.

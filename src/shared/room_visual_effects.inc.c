@@ -30,7 +30,28 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
-#include "rooms/rooms_shared_8017dcb8.h"
+
+/// A mote's spawn argument word, read through its packed bytes.
+///
+/// The low two bits choose the motion, and the low twelve also give the
+/// sprite's half-extent, so the two overlap. A steady mote keeps full
+/// brightness and moves at `verticalSpeed`; any other rises at that speed plus
+/// a random 0..0x3F while it brightens.
+typedef struct {
+    u16 extentPalette; // Bits 0..11 sprite half-extent, bits 12..15 palette (0 the default)
+    u8  verticalSpeed; // World units moved per tick
+    s8  lifetime;      // Ticks of age at which the mote has faded; the fade starts 8 ticks earlier
+} _RoomFxMoteArg;
+STATIC_ASSERT_SIZEOF(_RoomFxMoteArg, 0x4);
+
+/// Bit of the mote argument: steady, moving down.
+#define ROOM_VISUAL_EFFECTS_MOTE_STEADY 0x1
+/// Bit of the mote argument: steady, moving up.
+#define ROOM_VISUAL_EFFECTS_MOTE_STEADY_UP 0x2
+/// `_RoomFxMoteArg::extentPalette` bits giving the sprite's half-extent.
+#define ROOM_VISUAL_EFFECTS_MOTE_EXTENT 0x0FFF
+/// `_RoomFxMoteArg::extentPalette` bits giving the sprite's palette.
+#define ROOM_VISUAL_EFFECTS_MOTE_PALETTE 0xF000
 
 /// A drifting mote. The first tick unpacks the spawn argument: a mote with
 /// either low bit set starts at full brightness and moves at its given
@@ -56,29 +77,30 @@ static inline void RoomFx_MoteTask(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                if (task->spawnArg1.value & 3) {
+                // Unpack the spawn argument and choose the motion.
+                if (task->spawnArg1.value & (ROOM_VISUAL_EFFECTS_MOTE_STEADY | ROOM_VISUAL_EFFECTS_MOTE_STEADY_UP)) {
                     work->scale   = 0x80;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
+                    work->angle   = ((_RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_EXTENT;
+                    work->period  = ((_RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_PALETTE;
+                    lifetime      = ((_RoomFxMoteArg*)&task->spawnArg1)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1.value)->speed;
+                    work->move.vy = ((_RoomFxMoteArg*)&task->spawnArg1)->verticalSpeed;
                     work->move.vz = 0;
-                    if (task->spawnArg1.value & 2) {
+                    if (task->spawnArg1.value & ROOM_VISUAL_EFFECTS_MOTE_STEADY_UP) {
                         work->move.vy = -work->move.vy;
                     }
                     task->state = 2;
                 } else {
                     work->scale   = 0x20;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
+                    work->angle   = ((_RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_EXTENT;
+                    work->period  = ((_RoomFxMoteArg*)&task->spawnArg1)->extentPalette & ROOM_VISUAL_EFFECTS_MOTE_PALETTE;
+                    lifetime      = ((_RoomFxMoteArg*)&task->spawnArg1)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1.value)->speed - (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F);
+                    work->move.vy = -((_RoomFxMoteArg*)&task->spawnArg1)->verticalSpeed - (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F);
                     work->move.vz = 0;
-                    task->state   = (task->spawnArg1.value & 1) + 1;
+                    task->state   = (task->spawnArg1.value & ROOM_VISUAL_EFFECTS_MOTE_STEADY) + 1;
                 }
                 break;
             case 1:

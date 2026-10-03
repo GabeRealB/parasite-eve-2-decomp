@@ -48,7 +48,6 @@
 
 #include "rooms/room_common.h"
 
-#include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/glow_draw.h"
 
 #define D_shelter_b1_storeroom_80184A18 (D_shelter_b1_storeroom_80184998 + 16)

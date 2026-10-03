@@ -49,7 +49,6 @@
 
 #include "rooms/room_common.h"
 
-#include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 
 extern TaskMessageEntry D_neo_ark_north_promenade_80181D68[];
