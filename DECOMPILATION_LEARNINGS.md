@@ -49919,23 +49919,49 @@ that function's `INCLUDE_ASM` therefore deletes exactly one table and leaves the
 rest as `INCLUDE_RODATA`.
 
 Write only the migrated table as a local initializer over the still-external
-string symbols, and keep the others as struct copies from their globals:
+string symbols, and keep the others as struct copies from their globals. The
+wrapper struct exists only so that a file-scope table can be copied by
+assignment:
 
 ```c
-extern u8 D_mist_shooting_gallery_8017D718[]; /* "EASY", still INCLUDE_RODATA */
+typedef struct { Rating byMode[4]; } RatingTable; /* scaffold, see below */
 
-MistShootingGalleryRatings missionLevels = { {
-    { 2, D_mist_shooting_gallery_8017D718 }, ...
-} };            /* 8017D73C: was migrated into the function's .s */
-MistShootingGalleryRatings conditions;
+extern u8          D_room_strEasy[];    /* "EASY", still INCLUDE_RODATA */
+extern RatingTable D_room_conditions;   /* still INCLUDE_RODATA */
 
-conditions = D_mist_shooting_gallery_8017D778;   /* still INCLUDE_RODATA */
+RatingTable missionLevels = { {
+    { 2, D_room_strEasy }, ...
+} };            /* was migrated into the function's .s */
+RatingTable conditions;
+
+conditions = D_room_conditions;
 ```
 
 The pool GCC emits for the local lands between the `INCLUDE_RODATA` blocks that
 precede the function in the C file and those that follow it — which is exactly
 where the migrated block was. Both forms compile to the same `lw`/`sw` run, so
 the choice is purely about who owns the bytes.
+
+**That shape is a stage, not the result.** Once every string and table the
+function reads is C, drop the wrapper and the globals and write each table as a
+local array initializer over string literals, in rodata order:
+
+```c
+_MistShootingGalleryRating missionLevels[4] = { { 2, "EASY" }, { 3, "NORMAL" }, ... };
+_MistShootingGalleryRating conditions[4]    = { { 5, "GOOD" }, { 5, "GOOD" }, ... };
+_MistShootingGalleryRating enemyLevels[4]   = { { 2, "EASY" }, { 4, "STRONG" }, ... };
+```
+
+The rodata says when this is the original form: each table is preceded by
+exactly the strings it is the *first* to use (`output_addressed_constants` emits
+a constant's strings before the constant), and a string an earlier table already
+used does not appear again, because cc1 pools identical literals within a TU.
+`"GOOD"` twice in one table and `"EASY"` / `"NORMAL"` shared between three
+tables each exist once in `rooms/mist_shooting_gallery`, at the position of
+their first use. File-scope `char[]` definitions cannot produce that interleaving
+with local initializers at all - they would all precede the function - so it is
+all literals or all globals, and the conversion has to be made for every table
+of the function at once.
 
 ## A `4 x 3` clear loop: keep the row offset a plain biv and pin its per-row copy
 

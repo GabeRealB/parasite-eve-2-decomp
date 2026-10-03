@@ -101,25 +101,17 @@ STATIC_ASSERT_SIZEOF(_MistShootingGalleryModeTexts, 0x10);
 /// filled and the word printed beside it.
 ///
 /// The panel rates the run mode in force on four rows - mission level,
-/// condition, enemy level and supply level - and each row holds one of these
-/// for every mode.
+/// condition, enemy level and supply level - and each row has a table of four
+/// of these, one for every run mode in the order of the save's `gameMode`
+/// (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
 typedef struct {
     s32         level; // Marks drawn on the row's gauge (1 lowest .. 5 full)
     const char* name;  // Word for the rating ("EASY", "GOOD", "VERY POOR", ...)
 } _MistShootingGalleryRating;
 STATIC_ASSERT_SIZEOF(_MistShootingGalleryRating, 0x8);
 
-/// The four ratings one DATA row can show, indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode`
-/// (the difficulty the save runs at). `func_mist_shooting_gallery_8017F128`
-/// copies a whole table onto its stack before indexing it, like the mode table
-/// above.
-typedef struct MistShootingGalleryRatings {
-    /* 0x00 */ _MistShootingGalleryRating entries[4];
-} MistShootingGalleryRatings;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryRatings, 0x20);
-
 /// The six gauge strings the DATA panel draws through
-/// `_MistShootingGalleryRating::level`; also stack-copied before use.
+/// `_MistShootingGalleryRating::level`; stack-copied before use.
 typedef struct MistShootingGalleryGauges {
     /* 0x00 */ const char* bars[6];
 } MistShootingGalleryGauges;
@@ -156,20 +148,13 @@ static const char D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
 
 static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8;
 static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708;
-static const char                          D_mist_shooting_gallery_8017D718[];
-static const char                          D_mist_shooting_gallery_8017D720[];
-static const char                          D_mist_shooting_gallery_8017D728[];
-static const char                          D_mist_shooting_gallery_8017D730[];
 
-static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D778;
-static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7AC;
-static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7E8;
-static const MistShootingGalleryGauges  D_mist_shooting_gallery_8017D808;
-static const char                       D_mist_shooting_gallery_8017D820[];
-static const char                       D_mist_shooting_gallery_8017D828[];
-static const char                       D_mist_shooting_gallery_8017D838[];
-static const char                       D_mist_shooting_gallery_8017D844[];
-static const char                       D_mist_shooting_gallery_8017D850[];
+static const MistShootingGalleryGauges D_mist_shooting_gallery_8017D808;
+static const char                      D_mist_shooting_gallery_8017D820[];
+static const char                      D_mist_shooting_gallery_8017D828[];
+static const char                      D_mist_shooting_gallery_8017D838[];
+static const char                      D_mist_shooting_gallery_8017D844[];
+static const char                      D_mist_shooting_gallery_8017D850[];
 
 extern void func_8014A398(void);
 extern s32  func_8014AA54(RoomEventMsg* loc);
@@ -1588,26 +1573,34 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
 }
 static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
 
-static const char D_mist_shooting_gallery_8017D718[] = "EASY";
-
-static const char D_mist_shooting_gallery_8017D720[] = "NORMAL";
-
-static const char D_mist_shooting_gallery_8017D728[] = "HARD";
-
-static const char D_mist_shooting_gallery_8017D730[] = "VERY HARD";
-
 void func_mist_shooting_gallery_8017F128(Task* task)
 {
-    UiObject*                   obj           = task->spawnArg2.pointer;
-    MistShootingGalleryRatings  missionLevels = { {
-        { 2, D_mist_shooting_gallery_8017D718 },
-        { 3, D_mist_shooting_gallery_8017D720 },
-        { 4, D_mist_shooting_gallery_8017D728 },
-        { 5, D_mist_shooting_gallery_8017D730 },
-    } };
-    MistShootingGalleryRatings  conditions;
-    MistShootingGalleryRatings  enemyLevels;
-    MistShootingGalleryRatings  supplyLevels;
+    UiObject* obj = task->spawnArg2.pointer;
+    // Each DATA row's rating for every run mode, indexed by the save's gameMode.
+    _MistShootingGalleryRating missionLevels[4] = {
+        { 2, "EASY" },
+        { 3, "NORMAL" },
+        { 4, "HARD" },
+        { 5, "VERY HARD" },
+    };
+    _MistShootingGalleryRating conditions[4] = {
+        { 5, "GOOD" },
+        { 5, "GOOD" },
+        { 4, "EXHAUSTED" },
+        { 1, "SICK" },
+    };
+    _MistShootingGalleryRating enemyLevels[4] = {
+        { 2, "EASY" },
+        { 4, "STRONG" },
+        { 3, "NORMAL" },
+        { 5, "VERY STRONG" },
+    };
+    _MistShootingGalleryRating supplyLevels[4] = {
+        { 4, "RICH" },
+        { 3, "NORMAL" },
+        { 1, "VERY POOR" },
+        { 2, "POOR" },
+    };
     MistShootingGalleryGauges   gauges;
     TextDrawReq                 label0;
     TextDrawReq                 value0;
@@ -1623,10 +1616,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     s32                         x;
     s32                         y;
 
-    conditions   = D_mist_shooting_gallery_8017D778;
-    enemyLevels  = D_mist_shooting_gallery_8017D7AC;
-    supplyLevels = D_mist_shooting_gallery_8017D7E8;
-    gauges       = D_mist_shooting_gallery_8017D808;
+    gauges = D_mist_shooting_gallery_8017D808;
     Ui_DrawTitle(&(obj)->panel, D_mist_shooting_gallery_8017D820);
 
     col               = obj->panel.contentLeft.signedValue;
@@ -1637,7 +1627,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     y                 = row + 0xB;
     label0.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
     label0.otIndex    = obj->panel.otIndex.signedValue + 1;
-    rating            = &missionLevels.entries[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
+    rating            = &missionLevels[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
     label0.colorRgb   = 0x606060;
     label0.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     label0.alignment  = TEXT_ALIGNMENT_LEFT;
@@ -1659,7 +1649,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label1.x          = obj->panel.contentOriginX.unsignedValue + x;
     label1.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
     label1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    rating            = &conditions.entries[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
+    rating            = &conditions[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
     label1.colorRgb   = 0x606060;
     label1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     label1.alignment  = TEXT_ALIGNMENT_LEFT;
@@ -1680,7 +1670,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label2.x          = obj->panel.contentOriginX.unsignedValue + x;
     label2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
     label2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    rating            = &enemyLevels.entries[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
+    rating            = &enemyLevels[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
     label2.colorRgb   = 0x606060;
     label2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     label2.alignment  = TEXT_ALIGNMENT_LEFT;
@@ -1701,7 +1691,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label3.x          = obj->panel.contentOriginX.unsignedValue + x;
     label3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
     label3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    rating            = &supplyLevels.entries[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
+    rating            = &supplyLevels[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
     label3.colorRgb   = 0x606060;
     label3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     label3.alignment  = TEXT_ALIGNMENT_LEFT;
@@ -1937,28 +1927,6 @@ void func_mist_shooting_gallery_8017FDD0(Task* task)
             break;
     }
 }
-static const char D_mist_shooting_gallery_8017D75C[] = "GOOD";
-
-static const char D_mist_shooting_gallery_8017D764[] = "EXHAUSTED";
-
-static const char D_mist_shooting_gallery_8017D770[] = "SICK";
-
-static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D778 = { { { 5, D_mist_shooting_gallery_8017D75C }, { 5, D_mist_shooting_gallery_8017D75C }, { 4, D_mist_shooting_gallery_8017D764 }, { 1, D_mist_shooting_gallery_8017D770 } } };
-
-static const char D_mist_shooting_gallery_8017D798[] = "STRONG";
-
-static const char D_mist_shooting_gallery_8017D7A0[] = "VERY STRONG";
-
-static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7AC = { { { 2, D_mist_shooting_gallery_8017D718 }, { 4, D_mist_shooting_gallery_8017D798 }, { 3, D_mist_shooting_gallery_8017D720 }, { 5, D_mist_shooting_gallery_8017D7A0 } } };
-
-static const char D_mist_shooting_gallery_8017D7CC[] = "RICH";
-
-static const char D_mist_shooting_gallery_8017D7D4[] = "VERY POOR";
-
-static const char D_mist_shooting_gallery_8017D7E0[] = "POOR";
-
-static const MistShootingGalleryRatings D_mist_shooting_gallery_8017D7E8 = { { { 4, D_mist_shooting_gallery_8017D7CC }, { 3, D_mist_shooting_gallery_8017D720 }, { 1, D_mist_shooting_gallery_8017D7D4 }, { 2, D_mist_shooting_gallery_8017D7E0 } } };
-
 static const MistShootingGalleryGauges D_mist_shooting_gallery_8017D808 = { { D_mist_shooting_gallery_80184F18, D_mist_shooting_gallery_80184F18, D_mist_shooting_gallery_80184F1C, D_mist_shooting_gallery_80184F20, D_mist_shooting_gallery_80184F24, D_mist_shooting_gallery_80184F2C } };
 
 static const char D_mist_shooting_gallery_8017D820[] = "DATA";
