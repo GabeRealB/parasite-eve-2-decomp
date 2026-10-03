@@ -43,6 +43,26 @@ STATIC_ASSERT_SIZEOF(WeaponGrenadeWork, 0xA0);
 /// ends the flight differs between them.
 #define GRENADE_SHELL_FLIGHT_STEP 0x1800
 
+/// The index a weapon load's consumable is known by once it is fired: its item
+/// id minus 0x9F, so the first consumable (item 0xA0) is 1.
+///
+/// `itemId` is evaluated once. An empty load, whose item id is 0, gives a
+/// negative value unless the result is narrowed to a byte.
+#define WEAPON_AMMUNITION_INDEX(itemId) ((itemId) - 0x9F)
+
+/// The 40mm grenade rounds, as `WEAPON_AMMUNITION_INDEX` of their items.
+///
+/// A grenade's detonation is keyed on the round it was loaded with: the round
+/// is the explosion effect's spawn argument and selects the blast's radius and
+/// how many frames it stays live. Tables and sound variants with one entry per
+/// round are indexed by the round minus `GRENADE_ROUND_FIRST`.
+enum {
+    GRENADE_ROUND_FIRST         = 0xA,
+    GRENADE_ROUND_FRAGMENTATION = 0xA, // Grenade (item 0xA9)
+    GRENADE_ROUND_AIRBURST      = 0xB, // Airburst (item 0xAA)
+    GRENADE_ROUND_RIOT          = 0xC  // Riot (item 0xAB)
+};
+
 /// The scratch-pad block a grenade's flight state takes when the attachment
 /// id comes from the task's spawn argument. `delta` is handed to
 /// `func_800E0FEC` and then holds the per-frame translation added onto the

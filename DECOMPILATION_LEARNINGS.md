@@ -56351,7 +56351,7 @@ the whole table, which is what makes this checkable rather than guesswork:
 
 ```
   r101  used 4/21  → $s2   sphereContacts
-  r81   used 13/135 → $s3  blk     <- target has this in $s4
+  r81   used 13/135 → $s3  scratch <- target has this in $s4
   r90   used 4/31  → $s4   head    <- target has this in $s3
 ```
 

@@ -39,16 +39,20 @@
 #include "weapons/weapon.h"
 #include "../../shared/grenade_shell.h"
 
-/// 0x34-byte scratch the flight state takes from the scratch stack. The
-/// `WorldCollisionDelta` at 0x20 is handed to `func_800E0FEC` and also holds the
-/// per-frame translation the state adds onto the projectile coordinate;
-/// `sfx` is the attachment id the explosion effect and sound are keyed on.
-typedef struct M4a1GrenadeScratch {
-    /* 0x00 */ byte                pad_0[0x20];
-    /* 0x20 */ WorldCollisionDelta delta;
-    /* 0x30 */ s32                 sfx;
-} M4a1GrenadeScratch;
-STATIC_ASSERT_SIZEOF(M4a1GrenadeScratch, 0x34);
+/// Scratch-stack block the flight state holds for one frame.
+///
+/// The block is reserved on entry and released on every way out, so nothing
+/// in it survives between frames. `delta` serves two purposes in turn: it
+/// first receives the push-back of the grid contact being classified, which
+/// is discarded because only the surface mask returned beside it is used, and
+/// then holds the frame's step, in whole coordinate units, that is added onto
+/// the projectile's coordinate.
+typedef struct {
+    byte                field_0[0x20];   // No recovered access; role unproven
+    WorldCollisionDelta delta;           // Contact push-back output, then this frame's translation
+    s32                 ammunitionIndex; // Loaded round on detonation (GRENADE_ROUND_*: 0xA fragmentation, 0xB airburst, 0xC riot)
+} _M4a1GrenadeFlightScratch;
+STATIC_ASSERT_SIZEOF(_M4a1GrenadeFlightScratch, 0x34);
 
 static void func_m4a1_grenade_8011D1EC(Task* arg0);
 static void func_m4a1_grenade_8011D654(Task* arg0);
@@ -292,7 +296,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
 /// in area 0x14 of stages 2 and 3.
 static void func_m4a1_grenade_8011D994(Task* arg0)
 {
-    M4a1GrenadeScratch*              blk;
+    _M4a1GrenadeFlightScratch*       scratch;
     WeaponGrenadeWork*               work;
     GfxCoord*                        coord;
     EquipmentWeaponLoad*             slot;
@@ -306,34 +310,37 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
     work                = (WeaponGrenadeWork*)arg0->work;
     coord               = arg0->extra.tmd->coords;
     slot                = Gp_GetItemSlot(gPlayerStatus.weapon + 0x7F);
-    blk                 = SCRATCH_STACK_RESERVE_BLOCK(M4a1GrenadeScratch);
+    scratch             = SCRATCH_STACK_RESERVE_BLOCK(_M4a1GrenadeFlightScratch);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (Gp_CountRec18Hi(work->sphereContacts, 0x30000) != 0) {
     explode:
-        blk->sfx = slot->secondaryItemId - 0x9F;
-        if (blk->sfx < 0) {
-            blk->sfx = 0xA;
+        // The launcher's load is the rifle's secondary one. With no round
+        // loaded the index comes out negative and the grenade detonates as
+        // a fragmentation round.
+        scratch->ammunitionIndex = WEAPON_AMMUNITION_INDEX(slot->secondaryItemId);
+        if (scratch->ammunitionIndex < 0) {
+            scratch->ammunitionIndex = GRENADE_ROUND_FRAGMENTATION;
         }
         arg0->state = 2;
-        Gp_SpawnEff(EFFECT_GRENADE_EXPLOSION, coord, blk->sfx, NULL);
+        Gp_SpawnEff(EFFECT_GRENADE_EXPLOSION, coord, scratch->ammunitionIndex, NULL);
         sfxbase = gPlayerStatus.weapon << 16;
-        sfxarg  = ((blk->sfx - 0xA) << 24) | 0x20000007;
+        sfxarg  = ((scratch->ammunitionIndex - GRENADE_ROUND_FIRST) << 24) | 0x20000007;
         Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
         clip = 8;
-        if (blk->sfx == 0xB) {
+        if (scratch->ammunitionIndex == GRENADE_ROUND_AIRBURST) {
             clip = 1;
         }
         work->flightTimer.word  = clip;
         work->sphereBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1GrenadeScratch));
-        work->sphereBody.radius = D_m4a1_grenade_8012E08C[blk->sfx - 0xA];
+        work->sphereBody.radius = D_m4a1_grenade_8012E08C[scratch->ammunitionIndex - GRENADE_ROUND_FIRST];
+        SCRATCH_STACK_RELEASE_BLOCK(_M4a1GrenadeFlightScratch);
         return;
     }
 
     if (Gp_CountRec18Hi(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
         goto trySphereContacts;
     }
-    func_800E0FEC(work->capsuleContacts, &blk->delta, 1, &idx);
+    func_800E0FEC(work->capsuleContacts, &scratch->delta, 1, &idx);
     idx = func_800E1ACC((u8*)&idx);
 check:
     surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
@@ -350,17 +357,17 @@ check:
     goto move;
 trySphereContacts:
     if (Gp_CountRec18Hi(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-        func_800E0FEC(work->sphereContacts, &blk->delta, 1, &idx);
+        func_800E0FEC(work->sphereContacts, &scratch->delta, 1, &idx);
         idx = func_800E1ACC((u8*)&idx);
         goto check;
     }
 move:
-    blk->delta.vector.vx     = work->dir.vx / work->flightTimer.halves.integer;
-    blk->delta.vector.vy     = work->dir.vy / work->flightTimer.halves.integer;
-    blk->delta.vector.vz     = work->dir.vz / work->flightTimer.halves.integer;
-    coord->coord.t[0]       += blk->delta.vector.vx;
-    coord->coord.t[1]       += blk->delta.vector.vy;
-    coord->coord.t[2]       += blk->delta.vector.vz;
+    scratch->delta.vector.vx = work->dir.vx / work->flightTimer.halves.integer;
+    scratch->delta.vector.vy = work->dir.vy / work->flightTimer.halves.integer;
+    scratch->delta.vector.vz = work->dir.vz / work->flightTimer.halves.integer;
+    coord->coord.t[0]       += scratch->delta.vector.vx;
+    coord->coord.t[1]       += scratch->delta.vector.vy;
+    coord->coord.t[2]       += scratch->delta.vector.vz;
     work->capsule.ends[1].vy = -(work->flightTimer.word >> 10);
     work->flightTimer.word  += GRENADE_SHELL_FLIGHT_STEP;
     if (work->flightTimer.word > 0xFFFFF) {
@@ -377,7 +384,7 @@ move:
     }
     Gp_ClearRec18Occupied(work->sphereContacts);
     Gp_ClearRec18Occupied(work->capsuleContacts);
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1GrenadeScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_M4a1GrenadeFlightScratch);
 }
 
 #include "../../shared/grenade_shell_blast.inc.c"
