@@ -62569,11 +62569,11 @@ do {
     s32  rng;
 
     dst = D_antibody_80130C0C;                       /* %hi movable first */
-    lo  = i * (0x1000 / D_antibody_80130BD4[mem->field_20].field_0);
+    lo  = i * (0x1000 / D_antibody_80130BD4[mem->field_20].wedgeCount);
     rng = gRandomLcgState * 5 + 0x71357911;              /* now the last movable */
     dst[i]      = lo + (((u32)rng >> 16) & 0x1FF);
     gRandomLcgState = rng;
-} while (++i < D_antibody_80130BD4[mem->field_20].field_0);
+} while (++i < D_antibody_80130BD4[mem->field_20].wedgeCount);
 ```
 
 This is not the walking dest pointer the `(&global)[i]` entry warns about:

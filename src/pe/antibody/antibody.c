@@ -34,26 +34,31 @@
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 
-/// One 14-byte row of `D_antibody_80130BD4`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.attachId % 10 - 1`, so the effect scales with the combo
-/// counter). `field_6` is the draw parameter `func_antibody_8012F734` seeds
-/// `EffectWork.scale` with, and `field_8` is the base it is re-rolled from
-/// on later frames (doubled in state 3). The remaining fields belong to the
-/// draw helpers.
-typedef struct AntibodyStep {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ u16 field_6;
-    /* 0x8 */ u16 field_8;
-    /* 0xA */ s16 field_A;
-    /* 0xC */ s16 field_C;
-} AntibodyStep;
-STATIC_ASSERT_SIZEOF(AntibodyStep, 0xE);
+/// Visual tuning of the antibody cast for one Parasite Energy level.
+///
+/// The cast is a set of rings, an arc and a fan of glow wedges that grow
+/// around the caster while motes spawned on a circle close on its centre. The
+/// cast task and the mote task both select their row with the level digit of
+/// the attachment id, less one, which they keep in `EffectWork::index`.
+///
+/// `scaleLimit` and `scaleStep` are in the units of the cast's
+/// `EffectWork::scale`, which is at once the brightness of the drawing (its
+/// low byte is the red and green channel) and, multiplied up, the radius of
+/// each ring. The mote sizes are the size argument of the mote's sprite quad.
+typedef struct {
+    s16 wedgeCount;         // Glow wedges fanned around the ring; the yaw table holds 16
+    s16 scaleLimit;         // Scale that ends the growth; the fading rings are drawn at this scale
+    s16 scaleStep;          // Scale gained per frame of growth; at level 3 the fading arc and wedges keep gaining it
+    s16 moteSpawnSize;      // Size a mote is spawned with
+    s16 moteRerollSizeBase; // Low end of the 0x200-wide range a mote's size is re-rolled in; doubled for the larger sprite
+    s16 moteSpawnRadius;    // Radius of the horizontal circle each burst of four motes is spawned on
+    s16 moteSpawnInterval;  // Frames between mote bursts during the first 0x14 frames of the cast
+} _AntibodyLevelTuning;
+STATIC_ASSERT_SIZEOF(_AntibodyLevelTuning, 0xE);
 
 /// Per-level tuning for the antibody motes, one row per PE level 1-3,
 /// weakest first.
-static AntibodyStep D_antibody_80130BD4[] = {
+static _AntibodyLevelTuning D_antibody_80130BD4[] = {
     { 0x0008, 0x0090, 0x0005, 0x0200, 0x0080, 0x0600, 0x0008 },
     { 0x000C, 0x00C0, 0x0006, 0x0300, 0x0100, 0x0700, 0x0006 },
     { 0x0010, 0x00F0, 0x0007, 0x0400, 0x0180, 0x0800, 0x0004 },
@@ -71,7 +76,7 @@ static void spriteQuadDrawMote(const GfxCoord* pos, s16 frame, s16 size, s16 ang
 static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
-/// Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit `gRandomLcgState` draw;
+/// Entry `i` is `i * (0x1000 / wedgeCount)` plus a 9-bit `gRandomLcgState` draw;
 /// states 1 and 2 pass one yaw per frame to `glowDrawWedge`.
 static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
@@ -83,11 +88,11 @@ static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 /// State 0 parents the coordinate with an identity rotation at the origin,
 /// seeds `index` from the combo counter, refills `D_antibody_80130C0C`
 /// with one yaw per wedge, and plays the row's cue. State 1 grows the draw
-/// parameter `scale` by the row's `field_4`, draws three rings plus the
-/// `field_0` wedges (and an arc above the weakest row), and for the first
-/// 0x14 ticks spawns four `0x600F5` motes on a `field_A`-radius circle every
-/// `field_C` frames, reparenting each onto this task. Once `scale` passes
-/// the row's `field_2` cap it spawns the `0x800600AC` burst, latches
+/// parameter `scale` by the row's `scaleStep`, draws three rings plus the
+/// `wedgeCount` wedges (and an arc above the weakest row), and for the first
+/// 0x14 ticks spawns four `0x600F5` motes on a `moteSpawnRadius`-radius circle every
+/// `moteSpawnInterval` frames, reparenting each onto this task. Once `scale` passes
+/// the row's `scaleLimit` cap it spawns the `0x800600AC` burst, latches
 /// `period` and moves to state 2, which shrinks `scale` by 0x10 a frame
 /// and redraws at the capped radius until it drops below 0x11.
 
@@ -125,18 +130,18 @@ void func_antibody_8012EF34(Task* arg0)
                 arg0->state                  = 1;
                 mem->index                   = (Gp_StateC08.attachId % 10) - 1;
                 i                            = 0;
-                if (D_antibody_80130BD4[mem->index].field_0 > 0) {
+                if (D_antibody_80130BD4[mem->index].wedgeCount > 0) {
                     do {
                         s16* dst;
                         s32  lo;
                         s32  rng;
 
                         dst             = D_antibody_80130C0C;
-                        lo              = i * (0x1000 / D_antibody_80130BD4[mem->index].field_0);
+                        lo              = i * (0x1000 / D_antibody_80130BD4[mem->index].wedgeCount);
                         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         dst[i]          = lo + (((u32)rng >> 16) & 0x1FF);
                         gRandomLcgState = rng;
-                    } while (++i < D_antibody_80130BD4[mem->index].field_0);
+                    } while (++i < D_antibody_80130BD4[mem->index].wedgeCount);
                 }
                 {
                     s32 pan;
@@ -148,16 +153,16 @@ void func_antibody_8012EF34(Task* arg0)
                 return;
             }
             case 1: {
-                AntibodyStep* table;
-                AntibodyStep* t2;
-                EffectWork*   eff;
-                s32           rng;
-                s16           ang;
-                s16*          p;
-                s16           count;
+                _AntibodyLevelTuning* table;
+                _AntibodyLevelTuning* t2;
+                EffectWork*           eff;
+                s32                   rng;
+                s16                   ang;
+                s16*                  p;
+                s16                   count;
 
                 table               = D_antibody_80130BD4;
-                mem->scale          = mem->scale + table[mem->index].field_4;
+                mem->scale          = mem->scale + table[mem->index].scaleStep;
                 rgb[0]              = (u8)mem->scale;
                 rgb[1]              = (u8)mem->scale;
                 rgb[2]              = mem->scale >> 1;
@@ -174,20 +179,20 @@ void func_antibody_8012EF34(Task* arg0)
                     Gp_DrawArc(coord, (s16)(mem->scale * 8), 0x80, rgb);
                 }
                 i     = 0;
-                count = table[mem->index].field_0;
+                count = table[mem->index].wedgeCount;
                 if (count > 0) {
                     t2 = table;
                     p  = D_antibody_80130C0C;
                     do {
                         glowDrawWedge(coord, (s16)(mem->scale * 6), *p, rgb);
                         p += 1;
-                    } while (++i < t2[mem->index].field_0);
+                    } while (++i < t2[mem->index].wedgeCount);
                 }
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 if (mem->age < 0x14) {
-                    if ((mem->age % D_antibody_80130BD4[mem->index].field_C) == 1) {
+                    if ((mem->age % D_antibody_80130BD4[mem->index].moteSpawnInterval) == 1) {
                         i = 0;
                         do {
                             rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -195,8 +200,8 @@ void func_antibody_8012EF34(Task* arg0)
                             gRandomLcgState = rng;
                             mem->angle      = ang;
                             mem->move.vx =
-                                (D_antibody_80130BD4[mem->index].field_A * rsin(ang)) >> 12;
-                            mem->move.vz = (D_antibody_80130BD4[mem->index].field_A *
+                                (D_antibody_80130BD4[mem->index].moteSpawnRadius * rsin(ang)) >> 12;
+                            mem->move.vz = (D_antibody_80130BD4[mem->index].moteSpawnRadius *
                                             rcos(mem->angle)) >>
                                            12;
                             eff = Gp_SpawnEff(EFFECT_ANTIBODY_MOTE, coord, 0, &mem->move);
@@ -207,7 +212,7 @@ void func_antibody_8012EF34(Task* arg0)
                         } while (i < 0x1000);
                     }
                 }
-                if (mem->scale > D_antibody_80130BD4[mem->index].field_2) {
+                if (mem->scale > D_antibody_80130BD4[mem->index].scaleLimit) {
                     Gp_SpawnEff((EFFECT_ANTIBODY_AURA | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
                     mem->period = mem->scale;
                     arg0->state = 2;
@@ -215,10 +220,10 @@ void func_antibody_8012EF34(Task* arg0)
                 return;
             }
             case 2: {
-                AntibodyStep* table;
-                AntibodyStep* t2;
-                s16*          p;
-                s16           count;
+                _AntibodyLevelTuning* table;
+                _AntibodyLevelTuning* t2;
+                s16*                  p;
+                s16                   count;
 
                 if (mem->scale < 0x11) {
                     goto release;
@@ -231,12 +236,12 @@ void func_antibody_8012EF34(Task* arg0)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 table = D_antibody_80130BD4;
-                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 4), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 8), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 0xC), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 4), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 8), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 0xC), rgb);
                 if (mem->index != 0) {
                     if (mem->index == 2) {
-                        mem->period = mem->period + table[mem->index].field_4;
+                        mem->period = mem->period + table[mem->index].scaleStep;
                     }
                     rgb[0] >>= 1;
                     rgb[1] >>= 1;
@@ -244,14 +249,14 @@ void func_antibody_8012EF34(Task* arg0)
                     Gp_DrawArc(coord, (s16)(mem->period * 8), 0x80, rgb);
                 }
                 i     = 0;
-                count = D_antibody_80130BD4[mem->index].field_0;
+                count = D_antibody_80130BD4[mem->index].wedgeCount;
                 if (count > 0) {
                     t2 = D_antibody_80130BD4;
                     p  = D_antibody_80130C0C;
                     do {
                         glowDrawWedge(coord, (s16)(mem->period * 6), *p, rgb);
                         p += 1;
-                    } while (++i < t2[mem->index].field_0);
+                    } while (++i < t2[mem->index].wedgeCount);
                 }
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -270,14 +275,14 @@ release:
 /// block's `pos` offset, then GPF-scales that offset by 0x100
 /// (a sixteenth) into `move` as the per-frame step, and seeds
 /// the intensity `index` from the combo counter, the draw parameter
-/// `scale` from that row's `field_6` and the phase `angle` from
+/// `scale` from that row's `moteSpawnSize` and the phase `angle` from
 /// `gRandomLcgState`. State 1 walks the coordinate back down that step every frame
 /// and draws with `spriteQuadDrawMote`; past tick 0x10 it parks a `-0x80`
 /// Y drift in `move.vy` and moves to state 2, and one frame in sixteen it
 /// jumps straight to state 3 instead. State 2 applies that Y drift and keeps
 /// drawing; state 3 draws the larger `spriteQuadDraw` /
 /// `func_antibody_80130428` pair. All three re-roll `scale` / `angle`
-/// from the row's `field_8` one frame in eight, and states 2 and 3 release the
+/// from the row's `moteRerollSizeBase` one frame in eight, and states 2 and 3 release the
 /// effect at tick 0x15.
 void func_antibody_8012F734(Task* arg0)
 {
@@ -325,7 +330,7 @@ void func_antibody_8012F734(Task* arg0)
             gRandomLcgState = rng0;
             idx             = Gp_StateC08.attachId % 10 - 1;
             mem->index      = idx;
-            mem->scale      = D_antibody_80130BD4[idx].field_6;
+            mem->scale      = D_antibody_80130BD4[idx].moteSpawnSize;
             mem->angle      = ((u32)rng0 >> 16) & 0xFFF;
             /* fallthrough */
         case 1:
@@ -335,7 +340,7 @@ void func_antibody_8012F734(Task* arg0)
                 rng1b           = rng1a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rng1b;
                 mem->scale =
-                    D_antibody_80130BD4[mem->index].field_8 + (((u32)rng1b >> 16) & 0x1FF);
+                    D_antibody_80130BD4[mem->index].moteRerollSizeBase + (((u32)rng1b >> 16) & 0x1FF);
                 rng1c           = rng1b * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rng1c;
                 mem->angle      = ((u32)rng1c >> 16) & 0xFFF;
@@ -364,7 +369,7 @@ void func_antibody_8012F734(Task* arg0)
                 rng2b           = rng2a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rng2b;
                 mem->scale =
-                    D_antibody_80130BD4[mem->index].field_8 + (((u32)rng2b >> 16) & 0x1FF);
+                    D_antibody_80130BD4[mem->index].moteRerollSizeBase + (((u32)rng2b >> 16) & 0x1FF);
                 rng2c           = rng2b * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rng2c;
                 mem->angle      = ((u32)rng2c >> 16) & 0xFFF;
@@ -380,7 +385,7 @@ void func_antibody_8012F734(Task* arg0)
             if ((((u32)rng3a >> 16) & 7) == 0) {
                 rng3b           = rng3a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rng3b;
-                mem->scale      = (s16)D_antibody_80130BD4[mem->index].field_8 * 2 +
+                mem->scale      = D_antibody_80130BD4[mem->index].moteRerollSizeBase * 2 +
                              (((u32)rng3b >> 16) & 0x1FF);
                 rng3c           = rng3b * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rng3c;
