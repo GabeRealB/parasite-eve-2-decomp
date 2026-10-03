@@ -74,12 +74,16 @@ typedef struct {
 
 extern _SpriteFrame D_dryfield_night_motel_balcony_80182DE0[];
 
-/// A CLUT origin in VRAM, as `x` in pixels and `y` in rows, packed into a
-/// `POLY_FT4` clut word by the caller.
+/// VRAM position of the first 16-colour CLUT in an animation row.
+///
+/// `x` and `y` are unencoded coordinates in the units `getClut` takes.
+/// Each later frame starts 16 pixels further along `x`, the width of one
+/// 4-bit CLUT, and the drawer packs that position with `getClut`.
 typedef struct {
-    s16 x;
-    u16 y;
+    s16 x; // First frame's palette X in VRAM pixels
+    u16 y; // Palette Y in VRAM scanlines
 } _ClutOrigin;
+STATIC_ASSERT_SIZEOF(_ClutOrigin, 4);
 
 extern _ClutOrigin D_dryfield_night_motel_balcony_80182DF4[];
 
@@ -4091,7 +4095,7 @@ static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
         setcode(prim, 0x2F);
         prim->tpage         = 0x2C;
         clut                = &D_dryfield_night_motel_balcony_80182DF4[arg];
-        prim->clut          = (clut->y << 6) | (((clut->x + work->index * 16) >> 4) & 0x3F);
+        prim->clut          = getClut(clut->x + work->index * 16, clut->y);
         prim->u0            = work->index % 5 * 48;
         prim->v0            = work->index / 5 * 48 + 0x68;
         prim->u1            = work->index % 5 * 48 + 0x2F;
