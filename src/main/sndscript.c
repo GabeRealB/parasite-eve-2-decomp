@@ -15,11 +15,6 @@
 #include "sound_types.h"
 #include "task.h"
 
-/// 6-byte block assigned via unaligned lwl/lwr + lb/sb (see TaskIdMap_RemapIndex).
-typedef struct _GBytes6 {
-    u8 data[6];
-} GBytes6;
-
 typedef struct _SndVoice _SndVoice;
 
 struct _SndScript;
@@ -424,10 +419,6 @@ static SndBankInitEntry Snd_BankInitTable[];
 
 static s16 SndScript_VoiceRanges[];
 
-/* Per-type arg1 limits for TaskIdMap_RemapIndex; sits between this TU's first
- * jtbl (SndLoad_ResolveSpuAddr) and TaskIdMap's jtbl at 0x80014130. */
-static const GBytes6 D_80014124;
-
 static void Snd_ClearBusy(void);
 
 static void Snd_SetBusyFlag(s32 arg0);
@@ -639,16 +630,12 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
     return arg0;
 }
 
-/* Per-type arg1 limits for TaskIdMap_RemapIndex; sits between this TU's first
- * jtbl (SndLoad_ResolveSpuAddr) and TaskIdMap's jtbl at 0x80014130. */
-static const GBytes6 D_80014124 = { { 0x00, 0x08, 0x07, 0x0B, 0x0C, 0x0A } };
-
 s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2)
 {
-    GBytes6 sp;
-    s32     temp;
+    // Music rows each stage has, indexed by the 1-based stage; slot 0 is unused.
+    u8  rowCounts[6] = { 0, 8, 7, 11, 12, 10 };
+    s32 temp;
 
-    sp   = D_80014124;
     arg2 = arg2 - 1;
 
     switch (arg0 & 0xFF) {
@@ -719,7 +706,7 @@ s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2)
             break;
     }
 
-    if ((u32)(arg1 & 0xFF) >= (u32)sp.data[arg0 & 0xFF]) {
+    if ((u32)(arg1 & 0xFF) >= (u32)rowCounts[arg0 & 0xFF]) {
         arg1 = 0;
     }
     return arg1 & 0xFF;

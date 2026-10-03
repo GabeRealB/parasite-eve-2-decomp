@@ -22984,15 +22984,23 @@ declare the blob as `const` **between the two functions** in source order:
 ```c
 s32 first_with_jtbl(…) { switch (…) { … } }
 
-const GBytes6 D_between = {{…}};  /* lands after first jtbl, before second */
+const u8 D_between[6] = {…};  /* lands after first jtbl, before second */
 
 s32 second_with_jtbl(…) { switch (…) { … } }
 ```
 
 Then expand the TU's `.rodata` segment start earlier in `main.yaml` and drop the
 hand-extracted `rodata, name_N` sibling that held the old jtbl + blob. Non-const
-definitions go to `.data` and break the layout. `SndLoad_ResolveSpuAddr` + `D_80014124` +
-`TaskIdMap_RemapIndex` is the pure example.
+definitions go to `.data` and break the layout.
+
+Check first whether the blob is a file-scope object at all. When its only use
+is a whole-block copy onto the second function's stack (`lwl`/`lwr` plus
+trailing `lb`/`sb`), it is that function's local array initializer: GCC emits
+the template while expanding the declaration, so it lands at the same place -
+after the first function's jtbl, before the second's own - with no file-scope
+symbol and no struct wrapper to make the copy an assignment.
+`SndLoad_ResolveSpuAddr` + `rowCounts` in `TaskIdMap_RemapIndex` is the pure
+example of that case.
 
 ## Volatile load-status flags keep `%hi` in `$a0` across reloads
 
