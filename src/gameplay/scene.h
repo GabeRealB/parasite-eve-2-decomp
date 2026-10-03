@@ -4,15 +4,14 @@
 #include "common.h"
 
 #include "gameplay/pad_script.h"
-#include "pad_script.h"
 
 /// Complete 0x18-byte pad-script work allocation, also the prefix of GpState34.
 typedef struct _GpState18 {
     /* 0x00 */ PadScriptCmd*              field_0;
     /* 0x04 */ PadScriptVibrationSegment* field_4;
     /* 0x08 */ s16                        field_8;
-    /* 0x0A */ GpScriptOpcode             field_A;
-    /* 0x0C */ GpScriptOpcode             field_C;
+    /* 0x0A */ PadScriptLane              field_A;
+    /* 0x0C */ PadScriptLane              field_C;
     /* 0x0E */ u8                         field_E;
     /* 0x0F */ u8                         field_F;
     /* 0x10 */ u8                         field_10;

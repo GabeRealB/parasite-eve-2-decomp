@@ -87,7 +87,7 @@ static void Gp_StepScriptA(Task* task)
     state    = (GpState18*)task->work;
     table    = state->field_0;
     segments = state->field_4;
-    cmd      = table[state->field_E].holdCommand;
+    cmd      = table[state->field_E].holdCommand.command;
     opcode   = cmd & 0xFF;
     // The saved word's opcode is this lane's state until the next step.
     state->field_A.command = cmd;
@@ -116,7 +116,7 @@ static void Gp_StepScriptA(Task* task)
             if (state->field_14 == 0) {
                 state->field_E++;
             } else {
-                state->field_E = table[state->field_E].holdCommand >> 8;
+                state->field_E = table[state->field_E].holdCommand.command >> 8;
             }
             Gp_StepScriptA(task);
         }
@@ -135,7 +135,7 @@ static void Gp_StepScriptB(Task* task)
     state    = (GpState18*)task->work;
     table    = state->field_0;
     segments = state->field_4;
-    cmd      = table[state->field_F].lerpCommand;
+    cmd      = table[state->field_F].lerpCommand.command;
     opcode   = cmd & 0xFF;
     // The saved word's opcode is this lane's state until the next step.
     state->field_C.command = cmd;
@@ -164,7 +164,7 @@ static void Gp_StepScriptB(Task* task)
             if (state->field_15 == 0) {
                 state->field_F++;
             } else {
-                state->field_F = table[state->field_F].lerpCommand >> 8;
+                state->field_F = table[state->field_F].lerpCommand.command >> 8;
             }
             Gp_StepScriptB(task);
         }
@@ -285,7 +285,7 @@ static void Gp_DispatchScript18(Task* task)
     tableB = Gp_ScriptBStates;
     tableA.funcs[state->field_A.bytes.opcode](task);
     tableB.funcs[state->field_C.bytes.opcode](task);
-    if (state->field_A.bytes.opcode == 0 && state->field_C.bytes.opcode == 0) {
+    if (state->field_A.bytes.opcode == PAD_SCRIPT_STOP && state->field_C.bytes.opcode == PAD_SCRIPT_STOP) {
         task->state++;
     }
 }
