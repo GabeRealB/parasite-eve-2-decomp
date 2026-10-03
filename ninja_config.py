@@ -1064,6 +1064,15 @@ def ninja_build(
     ninja_rules_file = ninja_syntax.Writer(
         open("rules.ninja", "w", encoding="utf-8"), width=9999
     )
+    # ninja's log (command hashes) and deps index live in builddir, so they
+    # move with build/. At the repository root they stayed put while the naming
+    # verifier swapped build/ between the matching and objdiff modes, and every
+    # switch saw the other mode's commands and rebuilt the whole project.
+    ninja_rules_file.variable("builddir", "build")
+    os.makedirs("build", exist_ok=True)
+    for log in (".ninja_log", ".ninja_deps"):
+        if os.path.exists(log) and not os.path.exists(os.path.join("build", log)):
+            os.replace(log, os.path.join("build", log))
     # build/ persists between runs, so every edge has to name every input.
     # cpp's depfile covers headers; the assembler's covers what it `.include`s
     # and `.incbin`s - the .s files INCLUDE_ASM pulls into a C object, and the
