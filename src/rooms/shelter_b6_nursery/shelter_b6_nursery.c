@@ -80,13 +80,20 @@ typedef struct {
 } _ShelterB6NurseryEffectCues;
 STATIC_ASSERT_SIZEOF(_ShelterB6NurseryEffectCues, 0x4);
 
-/// Scratch block one triangle is built in: its three corners in world space,
-/// then the GTE depth and flag of its projection.
-typedef struct _ShelterB6NurseryTriScratch {
-    SVECTOR v[3];
-    s32     otz;
-    s32     flag;
+/// Scratch-stack block one spark-shower shard is drawn from.
+///
+/// Each corner is staged in `corners` as a point of the shard's own plane and
+/// replaced in place by its world position, narrowed to signed 16-bit
+/// coordinate units. One RTPT then projects the three together; the screen
+/// positions go straight into the packet, so the block keeps none of them.
+///
+/// Reserve the whole block and release it before the drawer returns.
+typedef struct {
+    SVECTOR corners[3];      // Local corner workspace, then the world positions supplied to the projection
+    s32     otz;             // SZ3 / 4 of the projection, a quarter of the last corner's depth; ordering-table and blend depth
+    s32     projectionFlags; // GTE FLAG word of the projection; bit 31 set drops the triangle
 } _ShelterB6NurseryTriScratch;
+STATIC_ASSERT_SIZEOF(_ShelterB6NurseryTriScratch, 0x20);
 
 s32 rsin(s32);
 s32 rcos(s32);
@@ -1557,11 +1564,10 @@ static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 sha
     POLY_F3*                     prim;
     s32                          i;
 
-    SCRATCH_STACK_RESERVE_BLOCK(_ShelterB6NurseryTriScratch);
-    blk = SCRATCH_STACK_CURSOR(_ShelterB6NurseryTriScratch);
+    blk = SCRATCH_STACK_RESERVE_BLOCK(_ShelterB6NurseryTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 3; i++) {
-        p     = &blk->v[i];
+        p     = &blk->corners[i];
         p->vx = 0;
         p->vy = rsin(i * 0x555);
         p->vz = rcos(i * 0x555);
@@ -1578,14 +1584,14 @@ static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 sha
         p->vz = (u16)p->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv3(&blk->v[0], &blk->v[1], &blk->v[2]);
+    gte_ldv3(&blk->corners[0], &blk->corners[1], &blk->corners[2]);
     gte_rtpt();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyF3(prim);
     gte_stsxy3(&prim->x0, &prim->x1, &prim->x2);
-    gte_stflg(&blk->flag);
-    if (blk->flag >= 0) {
+    gte_stflg(&blk->projectionFlags);
+    if (blk->projectionFlags >= 0) {
         gte_stszotz(&blk->otz);
         setRGB0(prim, shade, shade, shade);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
