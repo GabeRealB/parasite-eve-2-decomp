@@ -5,19 +5,16 @@
 /// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
 void bossStrangerTurnToward(BossStrangerWalker* work, SVECTOR3* pos)
 {
-    OverlayWalkerTurnScratch* s;
-    GfxCoord*                 coord;
-    u8*                       head;
-    s16                       diff, t;
-    s32                       angle;
+    BossStrangerTurnTowardScratch* s;
+    GfxCoord*                      coord;
+    s16                            diff, t;
+    s32                            angle;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.unknown_5C0 == 1)
         return;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
-    s                        = (OverlayWalkerTurnScratch*)(head - 0x1C);
-    coord                    = work->coord;
-    diff                     = overlayCoordBearingXZ(pos, coord) -
+    s     = SCRATCH_STACK_RESERVE_BLOCK(BossStrangerTurnTowardScratch);
+    coord = work->coord;
+    diff  = overlayCoordBearingXZ(pos, coord) -
            ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     t = diff;
     if (diff < 0) {
@@ -56,5 +53,5 @@ void bossStrangerTurnToward(BossStrangerWalker* work, SVECTOR3* pos)
     s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
     memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
     gfxRotMatrixY(&work->coord->coord, s->angle, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(BossStrangerTurnTowardScratch);
 }

@@ -121,6 +121,22 @@ typedef struct {
 } BossStrangerPlanTowardScratch;
 STATIC_ASSERT_SIZEOF(BossStrangerPlanTowardScratch, 0x1C);
 
+/// Scratch-pad block of the walker's turn step.
+///
+/// The step works on a single angle, in units of 4096 to the turn. It is
+/// first the bearing of the goal relative to the walker's facing, wrapped to
+/// [-0x800, 0x800], then that turn clamped to the walker's per-frame limit,
+/// and finally the clamped turn added to the facing: the absolute yaw the
+/// walker's rotation is rebuilt around. The goal's offset from the walker is
+/// staged in a block of its own beneath this one, not in the bytes ahead of
+/// `angle`. Nothing clears the block when it is reserved.
+typedef struct {
+    byte pad_0[0x18]; // Never accessed
+    s16  angle;       // Relative bearing, then the clamped turn, then the absolute yaw
+    byte pad_1A[0x2]; // Never accessed. Rounds the block up to a whole word
+} BossStrangerTurnTowardScratch;
+STATIC_ASSERT_SIZEOF(BossStrangerTurnTowardScratch, 0x1C);
+
 s16  bossStrangerArrived(BossStrangerWalker* walker);
 void bossStrangerFollowRoute(BossStrangerWalker* work, SVECTOR3* pos);
 u8   bossStrangerNodeNearestActor(BossStrangerWalker* work, s32 actor);

@@ -600,17 +600,6 @@ typedef struct OverlayWalkerTickScratch {
 } OverlayWalkerTickScratch;
 STATIC_ASSERT_SIZEOF(OverlayWalkerTickScratch, 0x28);
 
-/// The scratch-pad frame a patrol walker's turn step opens, around the
-/// bearing delta it stages below `angle`: first the bearing relative to the
-/// walker's yaw, then that turn clamped to the per-frame limit, and finally
-/// the absolute yaw the walker ends the frame facing.
-typedef struct OverlayWalkerTurnScratch {
-    byte pad_0[0x18];
-    s16  angle;
-    byte pad_1A[0x2];
-} OverlayWalkerTurnScratch;
-STATIC_ASSERT_SIZEOF(OverlayWalkerTurnScratch, 0x1C);
-
 /// Whether the XZ offset staged in `d` is at least `r` long, squaring both
 /// sides in a scratch block of its own.
 static __inline__ s32 overlayWalkerOutOfRange(SVECTOR* d, s16 r)
