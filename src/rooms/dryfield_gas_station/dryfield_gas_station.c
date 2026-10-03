@@ -193,14 +193,14 @@ s32 func_dryfield_gas_station_8017FD54(s32 arg0, s32 arg1, s32 arg2)
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == arg2) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
         }
-        D_dryfield_gas_station_80184BD8.field_0  = 8;
-        D_dryfield_gas_station_80184BD8.field_1  = arg2;
-        D_dryfield_gas_station_80184BD8.field_3  = arg2;
-        D_dryfield_gas_station_80184BD8.field_2  = 0;
-        D_dryfield_gas_station_80184BD8.field_4  = 0x52010005;
-        D_dryfield_gas_station_80184BD8.field_8  = 0x52010007;
-        D_dryfield_gas_station_80184BD8.field_10 = 0x52010008;
-        D_dryfield_gas_station_80184BD8.field_C  = 0x52010010;
+        D_dryfield_gas_station_80184BD8.view            = 8;
+        D_dryfield_gas_station_80184BD8.capSlot         = arg2;
+        D_dryfield_gas_station_80184BD8.capFile         = arg2;
+        D_dryfield_gas_station_80184BD8.skipScene       = 0;
+        D_dryfield_gas_station_80184BD8.startSound      = 0x52010005;
+        D_dryfield_gas_station_80184BD8.endSound        = 0x52010007;
+        D_dryfield_gas_station_80184BD8.sceneSound      = 0x52010008;
+        D_dryfield_gas_station_80184BD8.afterSceneSound = 0x52010010;
         return (s32)Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_dryfield_gas_station_80184BD8);
     }
     return 1;

@@ -200,20 +200,20 @@ s32 func_dryfield_night_motel_lobby_8017FB7C(s32 arg0, s32 arg1, s32 arg2)
             Gp_RunCapCmd1(0xA);
             return 0;
         }
-        D_dryfield_night_motel_lobby_801844E0.field_0 = 5;
-        D_dryfield_night_motel_lobby_801844E0.field_1 = 1;
+        D_dryfield_night_motel_lobby_801844E0.view    = 5;
+        D_dryfield_night_motel_lobby_801844E0.capSlot = 1;
         if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) < 4) {
-            D_dryfield_night_motel_lobby_801844E0.field_14 = 0x380;
-            D_dryfield_night_motel_lobby_801844E0.field_3  = 1;
+            D_dryfield_night_motel_lobby_801844E0.capTPageX = 0x380;
+            D_dryfield_night_motel_lobby_801844E0.capFile   = 1;
         } else {
-            D_dryfield_night_motel_lobby_801844E0.field_14 = 0x3C0;
-            D_dryfield_night_motel_lobby_801844E0.field_3  = 2;
+            D_dryfield_night_motel_lobby_801844E0.capTPageX = 0x3C0;
+            D_dryfield_night_motel_lobby_801844E0.capFile   = 2;
         }
-        D_dryfield_night_motel_lobby_801844E0.field_2  = 0;
-        D_dryfield_night_motel_lobby_801844E0.field_4  = 0x53110003;
-        D_dryfield_night_motel_lobby_801844E0.field_8  = 0x53110004;
-        D_dryfield_night_motel_lobby_801844E0.field_10 = 0x53110005;
-        D_dryfield_night_motel_lobby_801844E0.field_C  = 0x53110006;
+        D_dryfield_night_motel_lobby_801844E0.skipScene       = 0;
+        D_dryfield_night_motel_lobby_801844E0.startSound      = 0x53110003;
+        D_dryfield_night_motel_lobby_801844E0.endSound        = 0x53110004;
+        D_dryfield_night_motel_lobby_801844E0.sceneSound      = 0x53110005;
+        D_dryfield_night_motel_lobby_801844E0.afterSceneSound = 0x53110006;
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_dryfield_night_motel_lobby_801844E0);
     }
     return 0;

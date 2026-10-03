@@ -758,14 +758,14 @@ static s32 func_shelter_r47_801801DC(Task* arg0, s32 arg1, s32 arg2, TaskMessage
                 Gp_RunCapCmd1(0x2A);
                 return 0;
             }
-            D_shelter_r47_8018A698.field_0  = 0x2C;
-            D_shelter_r47_8018A698.field_1  = arg2;
-            D_shelter_r47_8018A698.field_3  = 3;
-            D_shelter_r47_8018A698.field_2  = 0;
-            D_shelter_r47_8018A698.field_4  = 0x542F000C;
-            D_shelter_r47_8018A698.field_8  = 0x542F000F;
-            D_shelter_r47_8018A698.field_10 = 0x542F000D;
-            D_shelter_r47_8018A698.field_C  = 0x542F000E;
+            D_shelter_r47_8018A698.view            = 0x2C;
+            D_shelter_r47_8018A698.capSlot         = arg2;
+            D_shelter_r47_8018A698.capFile         = 3;
+            D_shelter_r47_8018A698.skipScene       = 0;
+            D_shelter_r47_8018A698.startSound      = 0x542F000C;
+            D_shelter_r47_8018A698.endSound        = 0x542F000F;
+            D_shelter_r47_8018A698.sceneSound      = 0x542F000D;
+            D_shelter_r47_8018A698.afterSceneSound = 0x542F000E;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xA, &D_shelter_r47_8018A698);
         } else {
             GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_FIRST_USE, 1);

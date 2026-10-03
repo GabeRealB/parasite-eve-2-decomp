@@ -705,25 +705,25 @@ static void func_mine_refuge_8017FE78(s32 arg0)
     s32 slot;
 
     if (arg0 != 0) {
-        D_mine_refuge_80182AE0.field_4 = 0;
-        D_mine_refuge_80182AE0.field_0 = -arg0;
+        D_mine_refuge_80182AE0.startSound = 0;
+        D_mine_refuge_80182AE0.view       = -arg0;
     } else {
-        D_mine_refuge_80182AE0.field_0 = 6;
-        D_mine_refuge_80182AE0.field_4 = 0x54060003;
+        D_mine_refuge_80182AE0.view       = 6;
+        D_mine_refuge_80182AE0.startSound = 0x54060003;
     }
     if (GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 0xF) {
         slot                           = 1;
-        D_mine_refuge_80182AE0.field_1 = 0xE;
-        D_mine_refuge_80182AE0.field_3 = 0;
+        D_mine_refuge_80182AE0.capSlot = 0xE;
+        D_mine_refuge_80182AE0.capFile = 0;
     } else {
         slot                           = 5;
-        D_mine_refuge_80182AE0.field_1 = 1;
-        D_mine_refuge_80182AE0.field_3 = 1;
+        D_mine_refuge_80182AE0.capSlot = 1;
+        D_mine_refuge_80182AE0.capFile = 1;
     }
-    D_mine_refuge_80182AE0.field_2  = 0;
-    D_mine_refuge_80182AE0.field_8  = 0x54060006;
-    D_mine_refuge_80182AE0.field_10 = 0x54060004;
-    D_mine_refuge_80182AE0.field_C  = 0x54060005;
+    D_mine_refuge_80182AE0.skipScene       = 0;
+    D_mine_refuge_80182AE0.endSound        = 0x54060006;
+    D_mine_refuge_80182AE0.sceneSound      = 0x54060004;
+    D_mine_refuge_80182AE0.afterSceneSound = 0x54060005;
     Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, slot, &D_mine_refuge_80182AE0);
 }
 

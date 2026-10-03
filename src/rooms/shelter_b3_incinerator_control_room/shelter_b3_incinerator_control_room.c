@@ -181,15 +181,15 @@ s32 func_shelter_b3_incinerator_control_room_8017FB20(Task* arg0, s32 arg1, s32 
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_INCINERATOR_CONTROL_FIRST_USE) != 0) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = arg2;
-            D_shelter_b3_incinerator_control_room_80182A58.field_0     = 8;
-            D_shelter_b3_incinerator_control_room_80182A58.field_1     = arg2;
-            D_shelter_b3_incinerator_control_room_80182A58.field_3     = arg2;
-            D_shelter_b3_incinerator_control_room_80182A58.field_2     = 0;
-            D_shelter_b3_incinerator_control_room_80182A58.field_4     = 0x54290001;
-            D_shelter_b3_incinerator_control_room_80182A58.field_8     = 0x54290004;
-            D_shelter_b3_incinerator_control_room_80182A58.field_10    = 0x54290002;
-            D_shelter_b3_incinerator_control_room_80182A58.field_C     = 0x54290003;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp     = arg2;
+            D_shelter_b3_incinerator_control_room_80182A58.view            = 8;
+            D_shelter_b3_incinerator_control_room_80182A58.capSlot         = arg2;
+            D_shelter_b3_incinerator_control_room_80182A58.capFile         = arg2;
+            D_shelter_b3_incinerator_control_room_80182A58.skipScene       = 0;
+            D_shelter_b3_incinerator_control_room_80182A58.startSound      = 0x54290001;
+            D_shelter_b3_incinerator_control_room_80182A58.endSound        = 0x54290004;
+            D_shelter_b3_incinerator_control_room_80182A58.sceneSound      = 0x54290002;
+            D_shelter_b3_incinerator_control_room_80182A58.afterSceneSound = 0x54290003;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 7, &D_shelter_b3_incinerator_control_room_80182A58);
         } else {
             GameFlag_SetNibble(GAME_FLAG_INCINERATOR_CONTROL_FIRST_USE, 1);

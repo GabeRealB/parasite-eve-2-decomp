@@ -637,14 +637,14 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
             Gp_RunCapCmd1(0xB);
             return 0;
         }
-        D_acropolis_fire_escape_80183048.field_0  = 9;
-        D_acropolis_fire_escape_80183048.field_1  = 1;
-        D_acropolis_fire_escape_80183048.field_3  = 1;
-        D_acropolis_fire_escape_80183048.field_2  = 0;
-        D_acropolis_fire_escape_80183048.field_4  = 0x510F0001;
-        D_acropolis_fire_escape_80183048.field_8  = 0x510F0004;
-        D_acropolis_fire_escape_80183048.field_10 = 0x510F0007;
-        D_acropolis_fire_escape_80183048.field_C  = 0x510F0008;
+        D_acropolis_fire_escape_80183048.view            = 9;
+        D_acropolis_fire_escape_80183048.capSlot         = 1;
+        D_acropolis_fire_escape_80183048.capFile         = 1;
+        D_acropolis_fire_escape_80183048.skipScene       = 0;
+        D_acropolis_fire_escape_80183048.startSound      = 0x510F0001;
+        D_acropolis_fire_escape_80183048.endSound        = 0x510F0004;
+        D_acropolis_fire_escape_80183048.sceneSound      = 0x510F0007;
+        D_acropolis_fire_escape_80183048.afterSceneSound = 0x510F0008;
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_acropolis_fire_escape_80183048);
     }
     if (event == 3) {

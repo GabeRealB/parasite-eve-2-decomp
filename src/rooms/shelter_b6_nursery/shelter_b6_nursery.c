@@ -900,22 +900,22 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
     s32 flag;
 
     if (arg2 == 0xA) {
-        D_shelter_b6_nursery_8018797C                = 0;
-        D_shelter_b6_nursery_80187980.value.field_4  = 0x55160002;
-        D_shelter_b6_nursery_80187980.value.field_8  = 0x55160005;
-        D_shelter_b6_nursery_80187980.value.field_10 = 0x55160003;
-        D_shelter_b6_nursery_80187980.value.field_C  = 0x55160004;
-        flag                                         = GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS);
+        D_shelter_b6_nursery_8018797C                       = 0;
+        D_shelter_b6_nursery_80187980.value.startSound      = 0x55160002;
+        D_shelter_b6_nursery_80187980.value.endSound        = 0x55160005;
+        D_shelter_b6_nursery_80187980.value.sceneSound      = 0x55160003;
+        D_shelter_b6_nursery_80187980.value.afterSceneSound = 0x55160004;
+        flag                                                = GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS);
         if (flag == 1) {
             if (GameFlag_GetNibble(GAME_FLAG_083) != 0) {
                 Gp_SetBit2Flag(0x22, 1, 4);
             }
             func_800E3FAC(0xA2, 0x31);
             GameFlag_SetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 2);
-            D_shelter_b6_nursery_80187980.value.field_0 = 6;
-            D_shelter_b6_nursery_80187980.value.field_1 = 0xB;
-            D_shelter_b6_nursery_80187980.value.field_3 = 0;
-            D_shelter_b6_nursery_80187980.value.field_2 = flag;
+            D_shelter_b6_nursery_80187980.value.view      = 6;
+            D_shelter_b6_nursery_80187980.value.capSlot   = 0xB;
+            D_shelter_b6_nursery_80187980.value.capFile   = 0;
+            D_shelter_b6_nursery_80187980.value.skipScene = flag;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 0x19,
                                 &D_shelter_b6_nursery_80187980.value);
             func_80132028();
@@ -927,10 +927,10 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
             GameFlag_SetNibble(GAME_FLAG_NURSERY_SCENE_SEEN, 1);
             return 0;
         }
-        D_shelter_b6_nursery_80187980.value.field_0 = 6;
-        D_shelter_b6_nursery_80187980.value.field_1 = 0x16;
-        D_shelter_b6_nursery_80187980.value.field_3 = 0;
-        D_shelter_b6_nursery_80187980.value.field_2 = 0;
+        D_shelter_b6_nursery_80187980.value.view      = 6;
+        D_shelter_b6_nursery_80187980.value.capSlot   = 0x16;
+        D_shelter_b6_nursery_80187980.value.capFile   = 0;
+        D_shelter_b6_nursery_80187980.value.skipScene = 0;
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xA,
                             &D_shelter_b6_nursery_80187980.value);
     }

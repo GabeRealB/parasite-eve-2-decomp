@@ -1863,28 +1863,28 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
             Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, arg2, 0);
             break;
         case 13:
-            st           = &D_shelter_b1_underground_parking_8018D75C.value;
-            st->field_4  = 0x5414000B;
-            st->field_8  = 0x5414000E;
-            st->field_10 = 0x5414000C;
-            st->field_C  = 0x5414000D;
-            st->field_0  = 0x14;
+            st                  = &D_shelter_b1_underground_parking_8018D75C.value;
+            st->startSound      = 0x5414000B;
+            st->endSound        = 0x5414000E;
+            st->sceneSound      = 0x5414000C;
+            st->afterSceneSound = 0x5414000D;
+            st->view            = 0x14;
             if (D_shelter_b1_underground_parking_8018D758 == 0) {
                 if (GameFlag_GetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE) == 0) {
                     Gp_MsgPlayerWeapon(0);
                     GameFlag_SetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE, 1);
                     Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, 1, 0);
                 } else {
-                    st->field_1 = 1;
-                    st->field_3 = 1;
-                    st->field_2 = 0;
+                    st->capSlot   = 1;
+                    st->capFile   = 1;
+                    st->skipScene = 0;
                     Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 9, st);
                 }
             } else {
                 D_shelter_b1_underground_parking_8018D758 = 0;
-                st->field_1                               = 0x1F;
-                st->field_3                               = 0;
-                st->field_2                               = 1;
+                st->capSlot                               = 0x1F;
+                st->capFile                               = 0;
+                st->skipScene                             = 1;
                 Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, arg2, st);
             }
             break;

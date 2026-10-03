@@ -1004,14 +1004,14 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
             }
             break;
         case 8:
-            D_mist_parking_8019533C.field_0  = 9;
-            D_mist_parking_8019533C.field_1  = 1;
-            D_mist_parking_8019533C.field_3  = 3;
-            D_mist_parking_8019533C.field_2  = 0;
-            D_mist_parking_8019533C.field_4  = 0x51130003;
-            D_mist_parking_8019533C.field_8  = 0x51130004;
-            D_mist_parking_8019533C.field_10 = 0x5113000B;
-            D_mist_parking_8019533C.field_C  = 0x51130012;
+            D_mist_parking_8019533C.view            = 9;
+            D_mist_parking_8019533C.capSlot         = 1;
+            D_mist_parking_8019533C.capFile         = 3;
+            D_mist_parking_8019533C.skipScene       = 0;
+            D_mist_parking_8019533C.startSound      = 0x51130003;
+            D_mist_parking_8019533C.endSound        = 0x51130004;
+            D_mist_parking_8019533C.sceneSound      = 0x5113000B;
+            D_mist_parking_8019533C.afterSceneSound = 0x51130012;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_mist_parking_8019533C);
             session                                                    = gGameSession;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;

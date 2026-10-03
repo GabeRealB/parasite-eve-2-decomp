@@ -656,14 +656,14 @@ s32 func_shelter_b1_sterilization_room_8017FF80(s32 arg0, s32 arg1, s32 arg2)
             Gp_SpawnIfCapIdle(0x18, 1);
             return;
         }
-        D_shelter_b1_sterilization_room_8018C344.field_0  = 0x13;
-        D_shelter_b1_sterilization_room_8018C344.field_1  = 1;
-        D_shelter_b1_sterilization_room_8018C344.field_3  = 2;
-        D_shelter_b1_sterilization_room_8018C344.field_2  = 0;
-        D_shelter_b1_sterilization_room_8018C344.field_4  = 0x5410000C;
-        D_shelter_b1_sterilization_room_8018C344.field_8  = 0x5410000F;
-        D_shelter_b1_sterilization_room_8018C344.field_10 = 0x5410000D;
-        D_shelter_b1_sterilization_room_8018C344.field_C  = 0x5410000E;
+        D_shelter_b1_sterilization_room_8018C344.view            = 0x13;
+        D_shelter_b1_sterilization_room_8018C344.capSlot         = 1;
+        D_shelter_b1_sterilization_room_8018C344.capFile         = 2;
+        D_shelter_b1_sterilization_room_8018C344.skipScene       = 0;
+        D_shelter_b1_sterilization_room_8018C344.startSound      = 0x5410000C;
+        D_shelter_b1_sterilization_room_8018C344.endSound        = 0x5410000F;
+        D_shelter_b1_sterilization_room_8018C344.sceneSound      = 0x5410000D;
+        D_shelter_b1_sterilization_room_8018C344.afterSceneSound = 0x5410000E;
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 6, &D_shelter_b1_sterilization_room_8018C344);
     }
     if (arg2 == 0x15) {

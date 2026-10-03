@@ -1083,28 +1083,28 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, TaskMess
             } else {
                 func_800E3FAC(0xA2, 0x29);
             }
-            D_shelter_b2_laboratory_801864BC.value.field_0  = 0xD;
-            D_shelter_b2_laboratory_801864BC.value.field_1  = 4;
-            D_shelter_b2_laboratory_801864BC.value.field_3  = 3;
-            D_shelter_b2_laboratory_801864BC.value.field_2  = 1;
-            D_shelter_b2_laboratory_801864BC.value.field_14 = 0x180;
-            D_shelter_b2_laboratory_801864BC.value.field_16 = 0x100;
-            D_shelter_b2_laboratory_801864BC.value.field_4  = 0x541F0005;
-            D_shelter_b2_laboratory_801864BC.value.field_8  = 0x541F0008;
-            D_shelter_b2_laboratory_801864BC.value.field_10 = 0x541F0006;
-            D_shelter_b2_laboratory_801864BC.value.field_C  = 0x541F0007;
+            D_shelter_b2_laboratory_801864BC.value.view            = 0xD;
+            D_shelter_b2_laboratory_801864BC.value.capSlot         = 4;
+            D_shelter_b2_laboratory_801864BC.value.capFile         = 3;
+            D_shelter_b2_laboratory_801864BC.value.skipScene       = 1;
+            D_shelter_b2_laboratory_801864BC.value.capTPageX       = 0x180;
+            D_shelter_b2_laboratory_801864BC.value.capTPageY       = 0x100;
+            D_shelter_b2_laboratory_801864BC.value.startSound      = 0x541F0005;
+            D_shelter_b2_laboratory_801864BC.value.endSound        = 0x541F0008;
+            D_shelter_b2_laboratory_801864BC.value.sceneSound      = 0x541F0006;
+            D_shelter_b2_laboratory_801864BC.value.afterSceneSound = 0x541F0007;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 1, &D_shelter_b2_laboratory_801864BC.value);
             Task_SpawnFromTable(D_shelter_b2_laboratory_80182A6C, 2, 0, 0);
         } else {
-            D_shelter_b2_laboratory_801864BC.value.field_0  = 0xD;
-            D_shelter_b2_laboratory_801864BC.value.field_1  = 1;
-            D_shelter_b2_laboratory_801864BC.value.field_3  = 2;
-            D_shelter_b2_laboratory_801864BC.value.field_2  = 0;
-            D_shelter_b2_laboratory_801864BC.value.field_14 = 0;
-            D_shelter_b2_laboratory_801864BC.value.field_4  = 0x541F0005;
-            D_shelter_b2_laboratory_801864BC.value.field_8  = 0x541F0008;
-            D_shelter_b2_laboratory_801864BC.value.field_10 = 0x541F0006;
-            D_shelter_b2_laboratory_801864BC.value.field_C  = 0x541F0007;
+            D_shelter_b2_laboratory_801864BC.value.view            = 0xD;
+            D_shelter_b2_laboratory_801864BC.value.capSlot         = 1;
+            D_shelter_b2_laboratory_801864BC.value.capFile         = 2;
+            D_shelter_b2_laboratory_801864BC.value.skipScene       = 0;
+            D_shelter_b2_laboratory_801864BC.value.capTPageX       = 0;
+            D_shelter_b2_laboratory_801864BC.value.startSound      = 0x541F0005;
+            D_shelter_b2_laboratory_801864BC.value.endSound        = 0x541F0008;
+            D_shelter_b2_laboratory_801864BC.value.sceneSound      = 0x541F0006;
+            D_shelter_b2_laboratory_801864BC.value.afterSceneSound = 0x541F0007;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 8, &D_shelter_b2_laboratory_801864BC.value);
         }
     }

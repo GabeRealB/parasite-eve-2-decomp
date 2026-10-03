@@ -1484,15 +1484,15 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 7) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
         }
-        D_acropolis_square_801888AC.value.field_0  = 9;
-        D_acropolis_square_801888AC.value.field_1  = 1;
-        D_acropolis_square_801888AC.value.field_3  = 1;
-        D_acropolis_square_801888AC.value.field_4  = 0x51010001;
-        D_acropolis_square_801888AC.value.field_8  = 0x51010007;
-        D_acropolis_square_801888AC.value.field_10 = 0x51010006;
-        D_acropolis_square_801888AC.value.field_C  = 0x5101000B;
-        D_acropolis_square_801888AC.value.field_2  = D_acropolis_square_8018382C;
-        D_acropolis_square_8018382C                = 0;
+        D_acropolis_square_801888AC.value.view            = 9;
+        D_acropolis_square_801888AC.value.capSlot         = 1;
+        D_acropolis_square_801888AC.value.capFile         = 1;
+        D_acropolis_square_801888AC.value.startSound      = 0x51010001;
+        D_acropolis_square_801888AC.value.endSound        = 0x51010007;
+        D_acropolis_square_801888AC.value.sceneSound      = 0x51010006;
+        D_acropolis_square_801888AC.value.afterSceneSound = 0x5101000B;
+        D_acropolis_square_801888AC.value.skipScene       = D_acropolis_square_8018382C;
+        D_acropolis_square_8018382C                       = 0;
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_acropolis_square_801888AC.value);
     }
     if ((arg2 == 0xE) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN) == 0)) {

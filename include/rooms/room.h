@@ -28,20 +28,21 @@ STATIC_ASSERT_SIZEOF(RoomLatchedEvent, 0xC);
 
 /// What a room's cutscene runner plays: the record a room hands the runner
 /// task as `Task::spawnArg2`. The runner forces the scene's view into the save
-/// location, loads the capture file and starts the capture slot with the
-/// scene's sound task beside it, lets the player cut it short, and restores
-/// everything when it ends.
-typedef struct RoomCutsceneRec {
-    s8  field_0;  // Positive: the view forced into the save location for the scene; otherwise its negation is the view restored after
-    s8  field_1;  // Capture slot the scene starts, which also picks the command run after it
-    s8  field_2;  // Non-zero skips straight to the abort path
-    s8  field_3;  // Capture file to load first; 0 for none
-    s32 field_4;  // Sound event at the start
-    s32 field_8;  // Sound event at the end
-    s32 field_C;  // Sound event after a scene that was not skipped
-    s32 field_10; // Sound the scene's sound task plays, and that task's spawn argument
-    s16 field_14; // First of the pair handed on once the capture file is loaded; 0 selects 0x3C0 with a second of 0
-    s16 field_16; // Second of that pair
+/// location, loads the CAP file and starts the CAP slot with the scene's sound
+/// task beside it, lets the player cut it short, runs the follow-up CAP
+/// command, and restores everything when it ends. The room owns the record and
+/// must leave it untouched until the runner has finished.
+typedef struct {
+    s8  view;            // Positive: view forced for the scene, the previous one restored after; otherwise the negation is the view set when it ends
+    s8  capSlot;         // CAP slot the scene starts, and the CAP command run after it (slot 1 runs command 0x10 + the story dialogue index)
+    s8  skipScene;       // Nonzero: start no scene and play no `afterSceneSound`; only load, run the follow-up command and restore
+    s8  capFile;         // CAP file to load before the scene (0 keeps the current one; nonzero also resets the CAP state at the end)
+    s32 startSound;      // Sound event queued when the runner starts (0 none)
+    s32 endSound;        // Sound event queued when the runner finishes
+    s32 afterSceneSound; // Sound event queued after a started scene, whether it ran out or the player skipped it
+    s32 sceneSound;      // Sound event the scene's sound task plays; stopped when the player skips the scene
+    s16 capTPageX;       // VRAM x of the texture page the loaded CAP file draws from (0 selects 0x3C0, with y 0)
+    s16 capTPageY;       // VRAM y of that texture page; used only with a nonzero `capTPageX`
 } RoomCutsceneRec;
 STATIC_ASSERT_SIZEOF(RoomCutsceneRec, 0x18);
 

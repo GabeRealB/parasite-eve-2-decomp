@@ -1664,14 +1664,14 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, TaskMes
             Gp_RunCapCmd1(0x1D);
             return 0;
         }
-        D_dryfield_trailer_coach_80189C9C.field_0  = 0xA;
-        D_dryfield_trailer_coach_80189C9C.field_1  = 1;
-        D_dryfield_trailer_coach_80189C9C.field_3  = 1;
-        D_dryfield_trailer_coach_80189C9C.field_2  = 0;
-        D_dryfield_trailer_coach_80189C9C.field_4  = 0x521B0003;
-        D_dryfield_trailer_coach_80189C9C.field_8  = 0x521B0005;
-        D_dryfield_trailer_coach_80189C9C.field_10 = 0x521B0004;
-        D_dryfield_trailer_coach_80189C9C.field_C  = 0x521B0006;
+        D_dryfield_trailer_coach_80189C9C.view            = 0xA;
+        D_dryfield_trailer_coach_80189C9C.capSlot         = 1;
+        D_dryfield_trailer_coach_80189C9C.capFile         = 1;
+        D_dryfield_trailer_coach_80189C9C.skipScene       = 0;
+        D_dryfield_trailer_coach_80189C9C.startSound      = 0x521B0003;
+        D_dryfield_trailer_coach_80189C9C.endSound        = 0x521B0005;
+        D_dryfield_trailer_coach_80189C9C.sceneSound      = 0x521B0004;
+        D_dryfield_trailer_coach_80189C9C.afterSceneSound = 0x521B0006;
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_dryfield_trailer_coach_80189C9C);
         return 0;
     }

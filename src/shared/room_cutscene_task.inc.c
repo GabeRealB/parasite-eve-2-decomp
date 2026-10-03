@@ -29,19 +29,19 @@ void roomCutsceneTask(Task* task)
             if (save->state.companionType == 1) {
                 Gp_MsgAllyWeapon(0);
             }
-            if (script->field_0 > 0) {
+            if (script->view > 0) {
                 D_80115694                    = save->state.location.loc.view;
-                save->state.location.loc.view = (u8)script->field_0;
+                save->state.location.loc.view = script->view;
             } else {
-                D_80115694 = -script->field_0;
+                D_80115694 = -script->view;
             }
             gGameSession->hideHud          = 1;
             gGameSession->eventState       = 1;
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
-            if (script->field_4 != 0) {
-                SndEvt_EnqueueType6(script->field_4, 0, 0);
+            if (script->startSound != 0) {
+                SndEvt_EnqueueType6(script->startSound, 0, 0);
             }
             task->state++;
             break;
@@ -50,19 +50,19 @@ void roomCutsceneTask(Task* task)
             task->state++;
             break;
         case 3:
-            if (script->field_3 != 0) {
+            if (script->capFile != 0) {
                 Gp_CapFile = 0;
-                Gp_LoadCapFile(script->field_3);
-                a0 = script->field_14;
+                Gp_LoadCapFile(script->capFile);
+                a0 = script->capTPageX;
                 a1 = 0;
                 if (a0 == 0) {
                     a0 = 0x3C0;
                 } else {
-                    a1 = script->field_16;
+                    a1 = script->capTPageY;
                 }
                 func_800E6D4C(a0, a1);
             }
-            if (script->field_2 != 0) {
+            if (script->skipScene != 0) {
                 task->state = 6;
             } else {
                 task->state++;
@@ -70,13 +70,13 @@ void roomCutsceneTask(Task* task)
             break;
         case 4:
             ROOM_CUTSCENE_SOUND_TASK =
-                Task_SpawnFromTable(gRoomCutsceneTaskDescs, 1, 0, script->field_10);
-            Gp_StartCapSlot(script->field_1, 0, 0x63);
+                Task_SpawnFromTable(gRoomCutsceneTaskDescs, 1, 0, script->sceneSound);
+            Gp_StartCapSlot(script->capSlot, 0, 0x63);
             task->state++;
             break;
         case 5:
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-                SndEvt_EnqueueType7(script->field_10, 1);
+                SndEvt_EnqueueType7(script->sceneSound, 1);
                 taskKill(ROOM_CUTSCENE_SOUND_TASK);
                 task->state++;
             } else if (Task_PollKill(ROOM_CUTSCENE_SOUND_TASK, &poll) != 0) {
@@ -88,8 +88,8 @@ void roomCutsceneTask(Task* task)
             task->state++;
             break;
         case 7:
-            if (script->field_2 == 0) {
-                SndEvt_EnqueueType6(script->field_C, 0, 0);
+            if (script->skipScene == 0) {
+                SndEvt_EnqueueType6(script->afterSceneSound, 0, 0);
             }
             flag = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
             if (flag > 0) {
@@ -105,10 +105,10 @@ void roomCutsceneTask(Task* task)
                     }
                 }
             }
-            if (script->field_1 == 1) {
+            if (script->capSlot == 1) {
                 Gp_RunCapCmd(GameFlag_GetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, 0);
             } else {
-                Gp_RunCapCmd(script->field_1, 0);
+                Gp_RunCapCmd(script->capSlot, 0);
             }
             if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) == 1) {
                 if (GameFlag_GetNibble(0) == 2) {
@@ -152,7 +152,7 @@ void roomCutsceneTask(Task* task)
             task->state++;
             break;
         case 14:
-            SndEvt_EnqueueType6(script->field_8, 0, 0);
+            SndEvt_EnqueueType6(script->endSound, 0, 0);
             Gp_MsgPlayerWeapon(1);
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
                 Gp_MsgAllyWeapon(1);
@@ -160,7 +160,7 @@ void roomCutsceneTask(Task* task)
             gGameSession->hideHud          = 0;
             gGameSession->eventState       = 0;
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            if (script->field_3 != 0) {
+            if (script->capFile != 0) {
                 Gp_ResetCap();
             }
             D_80114D08 = 0xA;

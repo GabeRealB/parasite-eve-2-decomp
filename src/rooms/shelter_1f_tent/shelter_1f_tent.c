@@ -226,14 +226,14 @@ s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg
             Gp_RunCapCmd1(0x18);
             return 0;
         }
-        D_shelter_1f_tent_801843C4.field_0  = 5;
-        D_shelter_1f_tent_801843C4.field_1  = arg2;
-        D_shelter_1f_tent_801843C4.field_3  = arg2;
-        D_shelter_1f_tent_801843C4.field_2  = 0;
-        D_shelter_1f_tent_801843C4.field_4  = 0x551C0003;
-        D_shelter_1f_tent_801843C4.field_8  = 0x551C0006;
-        D_shelter_1f_tent_801843C4.field_10 = 0x551C0004;
-        D_shelter_1f_tent_801843C4.field_C  = 0x551C0005;
+        D_shelter_1f_tent_801843C4.view            = 5;
+        D_shelter_1f_tent_801843C4.capSlot         = arg2;
+        D_shelter_1f_tent_801843C4.capFile         = arg2;
+        D_shelter_1f_tent_801843C4.skipScene       = 0;
+        D_shelter_1f_tent_801843C4.startSound      = 0x551C0003;
+        D_shelter_1f_tent_801843C4.endSound        = 0x551C0006;
+        D_shelter_1f_tent_801843C4.sceneSound      = 0x551C0004;
+        D_shelter_1f_tent_801843C4.afterSceneSound = 0x551C0005;
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xC, &D_shelter_1f_tent_801843C4);
     }
     return 0;
