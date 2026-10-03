@@ -149,13 +149,17 @@ typedef struct DdhEffWork {
 } DdhEffWork;
 STATIC_ASSERT_SIZEOF(DdhEffWork, 0x2A);
 
-/// One `gte_rtps` result kept on the stack: the screen position, and the slot
-/// the depth-cue value is written to. Only the first entry's slot is ever
-/// written.
-typedef struct DdhScreenPoint {
-    DVECTOR sxy;
-    s32     depthCue;
-} DdhScreenPoint;
+/// Screen position of one projected end of the morph model's ring beam.
+///
+/// The two ends stay side by side on the stack while the beam's screen rings
+/// are built around them. `depthCue` is the depth-cue coefficient of a
+/// projection: it is stored and never read, and both projections write the
+/// first element's slot.
+typedef struct {
+    DVECTOR sxy;      // Screen position of this end
+    s32     depthCue; // GTE IR0 depth-cue coefficient; stored, never read
+} _DryfieldDilapidatedHouseScreenPoint;
+STATIC_ASSERT_SIZEOF(_DryfieldDilapidatedHouseScreenPoint, 0x8);
 
 extern void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
@@ -3245,26 +3249,26 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
 /// `killCountdown`.
 static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3)
 {
-    SVECTOR                             a;
-    SVECTOR                             b;
-    GfxMatrix                           rot;
-    DdhScreenPoint                      proj[2];
-    _DryfieldDilapidatedHouseMorphWork* work;
-    MATRIX*                             mtx;
-    SVECTOR*                            src;
-    s16                                 t;
-    s16                                 r;
-    s32                                 scale;
-    GfxRotationWords*                   words;
-    s32                                 i;
-    u16                                 f;
-    s16                                 x0;
-    s32                                 y0;
-    s16                                 x1;
-    s32                                 y1;
-    s32                                 dx;
-    s32                                 dy;
-    s32                                 side;
+    SVECTOR                              a;
+    SVECTOR                              b;
+    GfxMatrix                            rot;
+    _DryfieldDilapidatedHouseScreenPoint proj[2];
+    _DryfieldDilapidatedHouseMorphWork*  work;
+    MATRIX*                              mtx;
+    SVECTOR*                             src;
+    s16                                  t;
+    s16                                  r;
+    s32                                  scale;
+    GfxRotationWords*                    words;
+    s32                                  i;
+    u16                                  f;
+    s16                                  x0;
+    s32                                  y0;
+    s16                                  x1;
+    s32                                  y1;
+    s32                                  dx;
+    s32                                  dy;
+    s32                                  side;
 
     side = task->spawnArg1.value;
     work = ((Task*)task->spawnArg2.pointer)->work;
@@ -3298,6 +3302,8 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
     b.vx += mtx->t[0];
     b.vy += mtx->t[1];
     b.vz += mtx->t[2];
+    // Project both ends. Both depth-cue stores write the first element, and
+    // that value is never read.
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&a);
