@@ -420,14 +420,14 @@ void                          func_dryfield_water_tower_8017F808(Task*, s32, Act
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-DryfieldWaterTowerMessageEntry D_dryfield_water_tower_801803A0[7] = {
-    { 5102, { .call1 = waterTowerEventMsg } },
-    { 5105, { .call0 = func_dryfield_water_tower_8017DCFC } },
-    { 5103, { .call0 = func_dryfield_water_tower_8017DD3C } },
-    { ROOM_MESSAGE_COMMAND, { .call2 = func_dryfield_water_tower_8017DD04 } },
-    { ROOM_MESSAGE_SOUND, { .call3 = waterTowerSoundMsg } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call2 = func_dryfield_water_tower_8017DD44 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_dryfield_water_tower_801803A0[7] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, waterTowerEventMsg },
+    { 5105, func_dryfield_water_tower_8017DCFC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_tower_8017DD3C },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_water_tower_8017DD04 },
+    { ROOM_MESSAGE_SOUND, waterTowerSoundMsg },
+    { ROOM_MESSAGE_ACTOR_EVENT, func_dryfield_water_tower_8017DD44 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_water_tower_801803D8[2] = {

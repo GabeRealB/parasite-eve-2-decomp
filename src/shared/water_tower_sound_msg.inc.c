@@ -2,7 +2,7 @@
 
 /// The room's handler for message 0x13F2: plays the stage sound for script
 /// events 8 and 13 and answers 0 for every event.
-s32 waterTowerSoundMsg(s32 arg0, s32 arg1, s32 arg2)
+s32 waterTowerSoundMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 8:

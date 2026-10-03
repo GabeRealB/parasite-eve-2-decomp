@@ -23,16 +23,6 @@ typedef struct {
 } DryfieldWaterTowerSavedView;
 STATIC_ASSERT_SIZEOF(DryfieldWaterTowerSavedView, 8);
 
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(void);
-        TaskMessageHandler call1;
-        TaskMessageHandler call2;
-        s32                (*call3)(s32, s32, s32);
-    } handler;
-} DryfieldWaterTowerMessageEntry;
-
 /// The room's task table at 0x80182384: entry 0 is the cap script
 /// `func_dryfield_water_tower_8017F128`, which the room's entry task spawns,
 /// entry 1 the prop `func_dryfield_water_tower_8017E764` and entry 2 the prop
@@ -49,7 +39,10 @@ extern TaskDesc D_dryfield_water_tower_801803D8[2];
 
 extern DryfieldWaterTowerSavedView D_dryfield_water_tower_8018768C;
 
-extern DryfieldWaterTowerMessageEntry D_dryfield_water_tower_801803A0[7];
+/// The room's message table, `(messageId, handler)` pairs ending at
+/// `TASK_MESSAGE_TABLE_END`, which the entry task installs as its own
+/// `Task::msgTable`.
+extern TaskMessageEntry D_dryfield_water_tower_801803A0[7];
 
 /// Sets the current view's skip-OT-link byte: a zero low byte skips the view's
 /// sprites, non-zero draws them.
@@ -58,13 +51,11 @@ void func_dryfield_water_tower_801802D8(u8 arg0);
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_water_tower_8017D948(Task*);
 
-// Callbacks referenced by the overlay's shared data tables.
-
-s32 func_dryfield_water_tower_8017DCFC(void);
+s32 func_dryfield_water_tower_8017DCFC(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 s32 func_dryfield_water_tower_8017DD04(Task*, s32, s32, s32);
 
-s32 func_dryfield_water_tower_8017DD3C(void);
+s32 func_dryfield_water_tower_8017DD3C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 s32 func_dryfield_water_tower_8017DD44(Task*, s32, s32, s32);
 

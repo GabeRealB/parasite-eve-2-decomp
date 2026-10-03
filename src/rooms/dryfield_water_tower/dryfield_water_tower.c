@@ -42,10 +42,6 @@ extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 extern u8           gRoomEventActive;
 
-/// The room's message table, `(msgId, handler)` pairs ending at `TASK_MESSAGE_TABLE_END`,
-/// which the entry task installs as its own `Task::msgTable`.
-// Message-table callbacks use the argument views required by this TU.
-
 static void func_dryfield_water_tower_8017DD6C(Task* arg0);
 static void func_dryfield_water_tower_8017DDD0(Task* task);
 
@@ -147,7 +143,7 @@ static void func_dryfield_water_tower_8017DCB4(void)
 }
 
 /// The room's handler for message 0x13F1: answers 0.
-s32 func_dryfield_water_tower_8017DCFC(void)
+s32 func_dryfield_water_tower_8017DCFC(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
 {
     return 0;
 }
@@ -163,7 +159,7 @@ s32 func_dryfield_water_tower_8017DD04(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 }
 
 /// The room's handler for message 0x13EF: answers 0.
-s32 func_dryfield_water_tower_8017DD3C(void)
+s32 func_dryfield_water_tower_8017DD3C(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
 {
     return 0;
 }
