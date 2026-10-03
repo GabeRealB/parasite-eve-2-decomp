@@ -48,21 +48,32 @@ typedef struct {
 } _EffectCriticalHitStyle;
 STATIC_ASSERT_SIZEOF(_EffectCriticalHitStyle, 4);
 
-/// 0xC-byte sprite frame of `Gp_EffSprRecs`, indexed by `EffectWork.age`.
-/// `w` is both the UV quad size and the billboard scale factor. `u` / `v` are
-/// the UV origin. `clutX` / `clutY` feed `getClut`; `tpageX` feeds
-/// `getTPage(0, 1, tpageX, 0)`.
-typedef struct _GpEffSprRec {
-    /* 0x0 */ u16 w;
-    /* 0x2 */ u8  u;
-    /* 0x3 */ u8  pad3;
-    /* 0x4 */ u8  v;
-    /* 0x5 */ u8  pad5;
-    /* 0x6 */ u16 clutX;
-    /* 0x8 */ u16 clutY;
-    /* 0xA */ u16 tpageX;
-} GpEffSprRec;
-STATIC_ASSERT_SIZEOF(GpEffSprRec, 0xC);
+/// One frame of the `EFFECT_IMPACT_FLASH` animation: a square texture cell with
+/// the texture page and palette it is drawn from.
+///
+/// The flash shows one frame per tick, and consecutive frames can come from
+/// different texture pages. `u` and `v` are texels within the page at `tpageX`;
+/// the record holds no page Y, and its pages sit on the top row of VRAM. The
+/// page and palette coordinates are unencoded VRAM coordinates for `getTPage`
+/// and `getClut`.
+///
+/// `uvSpan` is the distance between the cell's outermost texels, not its side,
+/// so a cell ends at `u + uvSpan` and `v + uvSpan`, which must stay within the
+/// page (0..255). It is also the distance from the drawn quad's centre to each
+/// corner, in the units the effect's scale and the perspective divide act on,
+/// so a larger cell is drawn larger.
+///
+/// Texture coordinates are eight bits wide when drawn. The high byte of `u` and
+/// `v` is zero in every frame and has no proven role of its own.
+typedef struct {
+    u16 uvSpan; // Texels from the cell's first column or row to its last: its side minus one
+    u16 u;      // Left texture column in texels (0..255)
+    u16 v;      // Top texture row in texels (0..255)
+    u16 clutX;  // Palette X in VRAM words, aligned to 16 words
+    u16 clutY;  // Palette Y in VRAM scanlines
+    u16 tpageX; // Texture page X in VRAM words, aligned to 64 words
+} _EffectImpactFlashFrame;
+STATIC_ASSERT_SIZEOF(_EffectImpactFlashFrame, 0xC);
 
 /// 0x14-byte scratch from the scratch stack used by `Gp_EffTileTaskA4`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
@@ -78,7 +89,7 @@ STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
 
 extern _EffectCriticalHitStyle D_8011291C[];
 
-extern GpEffSprRec Gp_EffSprRecs[];
+extern _EffectImpactFlashFrame Gp_EffSprRecs[];
 
 extern u32 D_80111EF4[1];
 
@@ -2135,7 +2146,7 @@ void Gp_EffSprTask76(Task* arg0)
     GfxCoord*           coord;
     EffectWork*         mem;
     POLY_FT4*           prim;
-    u16                 size;
+    u16                 uvSpan;
     s16                 scale;
     s32                 rng;
 
@@ -2159,7 +2170,7 @@ void Gp_EffSprTask76(Task* arg0)
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
-        size = Gp_EffSprRecs[mem->age].w;
+        uvSpan = Gp_EffSprRecs[mem->age].uvSpan;
         if (arg0->state == 0) {
             if (arg0->spawnArg1.value & 0xFFF) {
                 scale = arg0->spawnArg1.halves.low & 0xFFF;
@@ -2173,24 +2184,24 @@ void Gp_EffSprTask76(Task* arg0)
             arg0->state     = 1;
         }
         prim->code            |= 3;
-        prim->tpage            = ((Gp_EffSprRecs[mem->age].tpageX & 0x3FF) >> 6) | 0x20;
-        prim->clut             = (Gp_EffSprRecs[mem->age].clutY << 6) | ((Gp_EffSprRecs[mem->age].clutX >> 4) & 0x3F);
+        prim->tpage            = getTPage(0, 1, Gp_EffSprRecs[mem->age].tpageX, 0);
+        prim->clut             = getClut(Gp_EffSprRecs[mem->age].clutX, Gp_EffSprRecs[mem->age].clutY);
         prim->u0               = Gp_EffSprRecs[mem->age].u;
         prim->v0               = Gp_EffSprRecs[mem->age].v;
-        prim->u1               = Gp_EffSprRecs[mem->age].u + size;
+        prim->u1               = Gp_EffSprRecs[mem->age].u + uvSpan;
         prim->v1               = Gp_EffSprRecs[mem->age].v;
         prim->u2               = Gp_EffSprRecs[mem->age].u;
-        prim->v2               = Gp_EffSprRecs[mem->age].v + size;
-        prim->u3               = Gp_EffSprRecs[mem->age].u + size;
-        prim->v3               = Gp_EffSprRecs[mem->age].v + size;
-        block->extent.corner.x = ((((s16)size * mem->scale) / block->depth) * rsin(mem->angle)) >> 12;
-        block->extent.corner.y = ((((s16)size * mem->scale) / block->depth) * rcos(mem->angle)) >> 12;
+        prim->v2               = Gp_EffSprRecs[mem->age].v + uvSpan;
+        prim->u3               = Gp_EffSprRecs[mem->age].u + uvSpan;
+        prim->v3               = Gp_EffSprRecs[mem->age].v + uvSpan;
+        block->extent.corner.x = ((((s16)uvSpan * mem->scale) / block->depth) * rsin(mem->angle)) >> 12;
+        block->extent.corner.y = ((((s16)uvSpan * mem->scale) / block->depth) * rcos(mem->angle)) >> 12;
         prim->x0               = block->screenX + (u16)block->extent.corner.x;
         prim->x3               = block->screenX - (u16)block->extent.corner.x;
         prim->y0               = block->screenY - (u16)block->extent.corner.y;
         prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        block->extent.corner.x = ((((s16)size * mem->scale) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-        block->extent.corner.y = ((((s16)size * mem->scale) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
+        block->extent.corner.x = ((((s16)uvSpan * mem->scale) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
+        block->extent.corner.y = ((((s16)uvSpan * mem->scale) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
         prim->x1               = block->screenX + (u16)block->extent.corner.x;
         prim->x2               = block->screenX - (u16)block->extent.corner.x;
         prim->y1               = block->screenY - (u16)block->extent.corner.y;
@@ -3426,9 +3437,9 @@ _EffectCriticalHitStyle D_8011291C[6] = {
     { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(15, 7, 15), 24 },
     { EFFECT_CRITICAL_HIT_STYLE_COLOR(7, 7, 15), 24 },
 };
-GpEffSprRec Gp_EffSprRecs[4] = {
-    { 55, 112, 0, 200, 0, 176, 266, 576 },
-    { 31, 192, 0, 56, 0, 192, 266, 512 },
-    { 55, 168, 0, 200, 0, 192, 266, 576 },
-    { 31, 224, 0, 56, 0, 192, 266, 512 },
+_EffectImpactFlashFrame Gp_EffSprRecs[4] = {
+    { 55, 112, 200, 176, 266, 576 },
+    { 31, 192, 56, 192, 266, 512 },
+    { 55, 168, 200, 192, 266, 576 },
+    { 31, 224, 56, 192, 266, 512 },
 };
