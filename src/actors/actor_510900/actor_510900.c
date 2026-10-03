@@ -50,22 +50,28 @@
 #include "main/tmd_types.h"
 #include "../../shared/sprite_quad.h"
 
-/// 0x24-byte scratch `func_actor_510900_80134284` takes from the scratch stack
-/// to draw one frame of the debris trail. `vec0` is the effect coordinate's
-/// `workm.t[]` before the per-frame drift is added and `vec1` the same after,
-/// so the two `RTPS` projections give the ends of the trail `LINE_F2`.
-/// `otz0` / `otz1` receive `gte_stszotz` for each end and their mean picks the
-/// OT bucket; `flag` is the shared `gte_stflg` the projections are dropped on.
-typedef struct Actor510900TrailScratch {
-    /* 0x00 */ SVECTOR vec0;
-    /* 0x08 */ SVECTOR vec1;
-    /* 0x10 */ s32     otz0;
-    /* 0x14 */ s32     otz1;
-    /* 0x18 */ s32     flag;
-    /* 0x1C */ DVECTOR sxy0;
-    /* 0x20 */ DVECTOR sxy1;
-} Actor510900TrailScratch;
-STATIC_ASSERT_SIZEOF(Actor510900TrailScratch, 0x24);
+/// Scratch-stack block one frame's segment of a debris streak is drawn from.
+///
+/// A streak, `EFFECT_NO9_GOLEM_DEBRIS_STREAK`, is a point that drifts a little
+/// every frame. `endpoints` holds its world position before and after the
+/// frame's drift, narrowed to signed 16-bit coordinate units, and the line
+/// between the two is that frame's segment. Endpoints, depths and screen
+/// positions share indices 0..1, the order of the line packet's vertices.
+///
+/// Each end is projected by an RTPS of its own. `projectionFlags` holds the
+/// most recently stored GTE FLAG word, and a negative word after either
+/// projection drops the segment. Unlike `EffectLineScratch`, the block keeps
+/// a depth per end: the segment is sorted and blended at their mean.
+///
+/// Reserve one complete, word-aligned block and release it in scratch-stack
+/// order after drawing; no pointer into the block survives release.
+typedef struct {
+    SVECTOR endpoints[2];       // World positions of the segment's two ends: before the frame's drift, then after it
+    s32     depths[2];          // SZ3 / 4 of each end, stored once that end's projection is accepted; their mean is the ordering and blend depth
+    s32     projectionFlags;    // Latest GTE FLAG word; bit 31 makes it negative and drops the segment
+    DVECTOR screenEndpoints[2]; // Signed screen X/Y pixels, written together as one GTE word per end
+} _Actor510900DebrisStreakScratch;
+STATIC_ASSERT_SIZEOF(_Actor510900DebrisStreakScratch, 0x24);
 
 /// VRAM coordinates of one palette for actor 510900's explosion fireball.
 ///
@@ -1885,18 +1891,17 @@ void func_actor_510900_801340E8(Task* arg0)
 /// a `LINE_F2` that fades out over `field_24 * 16` frames.
 void func_actor_510900_80134284(Task* arg0)
 {
-    Actor510900TrailScratch* block;
-    EffectWork*              eff;
-    GfxCoord*                coord;
-    LINE_F2*                 prim;
-    s16                      mode;
-    s16                      step;
-    s32                      rng;
-    s16                      val;
-    s16                      count;
+    _Actor510900DebrisStreakScratch* block;
+    EffectWork*                      eff;
+    GfxCoord*                        coord;
+    LINE_F2*                         prim;
+    s16                              mode;
+    s16                              step;
+    s32                              rng;
+    s16                              val;
+    s16                              count;
 
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor510900TrailScratch));
-    block = SCRATCH_STACK_CURSOR(Actor510900TrailScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(_Actor510900DebrisStreakScratch);
     eff   = arg0->spawnArg2.pointer;
     mode  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
@@ -1925,31 +1930,31 @@ void func_actor_510900_80134284(Task* arg0)
         gRandomLcgState = rng;
         arg0->state++;
     }
-    block->vec0.vx      = (u16)coord->workm.t[0];
-    block->vec0.vy      = (u16)coord->workm.t[1];
-    block->vec0.vz      = (u16)coord->workm.t[2];
-    coord->coord.t[0]  += eff->move.vx;
-    coord->coord.t[1]  += eff->move.vy;
-    coord->coord.t[2]  += eff->move.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    block->endpoints[0].vx = coord->workm.t[0];
+    block->endpoints[0].vy = coord->workm.t[1];
+    block->endpoints[0].vz = coord->workm.t[2];
+    coord->coord.t[0]     += eff->move.vx;
+    coord->coord.t[1]     += eff->move.vy;
+    coord->coord.t[2]     += eff->move.vz;
+    coord->composeStamp    = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    block->vec1.vx = (u16)coord->workm.t[0];
-    block->vec1.vy = (u16)coord->workm.t[1];
-    block->vec1.vz = (u16)coord->workm.t[2];
+    block->endpoints[1].vx = coord->workm.t[0];
+    block->endpoints[1].vy = coord->workm.t[1];
+    block->endpoints[1].vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec0);
+    gte_ldv0(&block->endpoints[0]);
     gte_rtps();
-    gte_stsxy(&block->sxy0);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz0);
-        gte_ldv0(&block->vec1);
+    gte_stsxy(&block->screenEndpoints[0]);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depths[0]);
+        gte_ldv0(&block->endpoints[1]);
         gte_rtps();
-        gte_stsxy(&block->sxy1);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&block->otz1);
+        gte_stsxy(&block->screenEndpoints[1]);
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
+            gte_stszotz(&block->depths[1]);
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 3);
@@ -1958,16 +1963,16 @@ void func_actor_510900_80134284(Task* arg0)
             prim->r0 = val;
             prim->g0 = val >> eff->angle;
             prim->b0 = val >> 3;
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz0 + block->otz1) >> 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim->x0 = block->screenEndpoints[0].vx;
+            prim->y0 = block->screenEndpoints[0].vy;
+            prim->x1 = block->screenEndpoints[1].vx;
+            prim->y1 = block->screenEndpoints[1].vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->depths[0] + block->depths[1]) >> 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, (block->otz0 + block->otz1) >> 1);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, (block->depths[0] + block->depths[1]) >> 1);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor510900TrailScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor510900DebrisStreakScratch);
     eff->move.vy += 6;
     count         = eff->age + 1;
     eff->age      = count;
