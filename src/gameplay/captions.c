@@ -544,7 +544,7 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
     CapChoice*     choices;
     CapChoice*     choice;
 
-    const _GpCapLayout* layout;
+    const CapTextLayout* layout;
 
     text     = arg0;
     layout   = &D_80097518;

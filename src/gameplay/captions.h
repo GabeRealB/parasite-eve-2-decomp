@@ -27,7 +27,7 @@ extern s32 Gp_CapCaretDir;
 
 extern const char Gp_StrCapMagic[];
 
-extern const _GpCapLayout D_80097518;
+extern const CapTextLayout D_80097518;
 
 extern const char Gp_StrEvsFmt[];
 

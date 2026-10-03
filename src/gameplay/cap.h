@@ -48,10 +48,17 @@ typedef struct {
 } CapChoice;
 STATIC_ASSERT_SIZEOF(CapChoice, 8);
 
-/// Read-only layout settings for caption text. `vertical` selects
-/// top-to-bottom columns instead of left-to-right lines.
+/// Writing direction of drawn CAP text.
+///
+/// The text drawer consults it wherever the pen moves: after a glyph, after a
+/// spacer code and at a line break. The one instance is read-only and selects
+/// horizontal text, so the vertical paths are handled and never run.
+///
+/// The flag stays a member of an aggregate: the drawer's reads are ordered as
+/// member accesses, which a bare byte is not. Only this byte is read, and no
+/// further member is established.
 typedef struct {
-    u8 vertical;
-} _GpCapLayout;
+    u8 vertical; // 0 lines run left to right and stack downward; nonzero columns run top to bottom and stack leftward.
+} CapTextLayout;
 
 #endif // GAMEPLAY_PRIVATE_CAP_H

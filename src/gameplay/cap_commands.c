@@ -235,9 +235,9 @@ void Gp_EvtCapWeaponTask(Task* arg0)
     }
 }
 
-const char         Gp_StrCapMagic[] = "CAP";
-const _GpCapLayout D_80097518       = { 0 };
-const char         Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
+const char          Gp_StrCapMagic[] = "CAP";
+const CapTextLayout D_80097518       = { 0 };
+const char          Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
 
 const TaskFuncTable3 Gp_CapTaskStates = { {
     Gp_InitCapTask,
