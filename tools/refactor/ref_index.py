@@ -42,7 +42,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cref  # noqa: E402
 import clang.cindex as ci  # noqa: E402
 
-SCHEMA_VERSION = "1"
+SCHEMA_VERSION = "7"
 DEFAULT_PATH = os.path.join("local", "ref_index.sqlite")
 _LOCAL = re.compile(r"@\d+@")
 _IDENT = re.compile(r"[A-Za-z_]\w*")
@@ -87,6 +87,203 @@ def _stat(root: str, rel: str):
 
 
 # --------------------------------------------------------------------------
+# the dependency graph's records (moved here from dep_graph.py, which imports
+# them, so that a change to them rebuilds the index)
+# --------------------------------------------------------------------------
+
+_DEF_KINDS = {ci.CursorKind.FUNCTION_DECL, ci.CursorKind.VAR_DECL}
+_TYPE_KINDS = {ci.CursorKind.STRUCT_DECL, ci.CursorKind.UNION_DECL,
+               ci.CursorKind.TYPEDEF_DECL, ci.CursorKind.ENUM_DECL}
+_USE_KINDS = {
+    ci.CursorKind.CALL_EXPR,
+    ci.CursorKind.DECL_REF_EXPR,
+    ci.CursorKind.MEMBER_REF_EXPR,
+    ci.CursorKind.TYPE_REF,
+}
+
+
+# Aliases for machine types. They are referenced by almost everything and are
+# never work, so treating them as graph nodes would make every item depend on
+# them and drown the real structure.
+_PRIMITIVE = {
+    "s8", "s16", "s32", "s64", "u8", "u16", "u32", "u64", "f32", "f64",
+    "size_t", "bool", "byte", "void", "char", "int", "short", "long",
+    "unsigned", "signed", "float", "double", "va_list", "ptrdiff_t",
+    "u_char", "u_short", "u_int", "u_long", "s_char", "s_short", "s_int", "s_long",
+    "true", "false", "NULL", "bool_t",
+}
+
+
+def _is_local(usr: str) -> bool:
+    return bool(_LOCAL.search(usr))
+
+
+def sdk_symbols(tu, root: str) -> dict:
+    """USRs of everything a Psy-Q header declares, enum constants included.
+
+    The SDK is excluded by where it is declared, not by what it is called: a
+    name list read out of the headers misses whatever form it was not written
+    for (`struct DIRENTRY { ... };` with no typedef was one), and the symbol
+    then reaches the worklist as if it were the project's.
+    """
+    out = {}
+    for cur in tu.cursor.get_children():
+        loc = cur.location
+        if loc.file is None:
+            continue
+        where = cref.relpath(loc.file.name, root)
+        if not where.startswith("include/psyq/"):
+            continue
+        usr = cur.get_usr()
+        if usr:
+            out[usr] = cur.spelling
+        if cur.kind == ci.CursorKind.ENUM_DECL:
+            out.update((c.get_usr(), c.spelling) for c in cur.get_children() if c.get_usr())
+    return out
+
+
+def sdk_usrs(tu, root: str) -> set:
+    return set(sdk_symbols(tu, root))
+
+
+_UNNAMED = re.compile(r"\(unnamed at ([^:()]+):")
+
+
+def _spelling(cur, root: str) -> str:
+    """A cursor's spelling, with the path in an anonymous record's name made
+    relative to the tree: libclang spells it as the including unit reached the
+    header (`rooms/x/../../shared/y.h`, absolute), so the same type would
+    otherwise be named differently by every unit and in every checkout."""
+    sp = cur.spelling
+    if "(unnamed at " not in sp:
+        return sp
+    return _UNNAMED.sub(lambda m: "(unnamed at " + cref.relpath(os.path.normpath(m.group(1)), root) + ":", sp)
+
+
+def graph_records(tu, root: str, only=None, located=False) -> list:
+    """(node, [used nodes]) for every top-level definition in a parsed unit - the
+    dependency graph's raw records, shared by `dep_graph.py` and the index.
+
+    `only` restricts them to declarations written in those files, as a refresh
+    needs. A node is (usr, spelling, file, line, start_line, end_line); file is
+    empty for an extern declaration, which contributes its type edges only.
+    """
+    out = []
+    for cur in tu.cursor.get_children():
+        if only is not None:
+            f = cur.location.file
+            if f is None or cref.relpath(f.name, root) not in only:
+                continue
+        # A type depends on the types of its fields. Without this the graph has
+        # no type-to-type edges at all, every type looks like a leaf, and the
+        # cycles that types form with each other disappear.
+        if cur.kind in _TYPE_KINDS:
+            # Only the definition, never a forward declaration. `struct _Task;`
+            # in a header that is included first would otherwise be recorded as
+            # the type's location, and the documentation check would look at
+            # the forward declaration rather than at the fields.
+            if cur.kind != ci.CursorKind.TYPEDEF_DECL and not cur.is_definition():
+                continue
+            t_usr = cur.get_usr()
+            loc = cur.location
+            if not t_usr or loc.file is None:
+                continue
+            where = cref.relpath(loc.file.name, root)
+            if where.startswith("..") or "psyq" in where:
+                continue
+            uses = set()
+            # A typedef has no fields of its own; without an edge to the record
+            # it names, it is a dead end that silently breaks every cycle those
+            # records form with each other.
+            if cur.kind == ci.CursorKind.TYPEDEF_DECL:
+                d = cur.underlying_typedef_type.get_declaration()
+                if d is not None and _spelling(d, root) and _spelling(d, root) not in _PRIMITIVE:
+                    d_usr = d.get_usr()
+                    if d_usr and d_usr != t_usr:
+                        uses.add((d_usr, _spelling(d, root)))
+            for f in cur.get_children():
+                if f.kind != ci.CursorKind.FIELD_DECL:
+                    continue
+                for r in f.get_children():
+                    if r.kind != ci.CursorKind.TYPE_REF:
+                        continue
+                    d = r.referenced
+                    if d is None or _spelling(d, root) in _PRIMITIVE:
+                        continue
+                    d_usr = d.get_usr()
+                    if d_usr and d_usr != t_usr:
+                        uses.add((d_usr, _spelling(d, root)))
+            if _spelling(cur, root):
+                out.append(((t_usr, _spelling(cur, root), where, loc.line, cur.extent.start.line, cur.extent.end.line), sorted(uses))
+                           + ((where,) if located else ()))
+            continue
+        if cur.kind not in _DEF_KINDS:
+            continue
+        if not cur.is_definition():
+            # A symbol defined in assembly is only ever declared in C, so
+            # skipping declarations leaves it with no edges at all - and a
+            # variable with no edges looks like a leaf even though it plainly
+            # depends on its own type. Record the type, which is all a
+            # declaration carries.
+            loc = cur.location
+            if loc.file is None or cur.kind != ci.CursorKind.VAR_DECL:
+                continue
+            d_usr = cur.get_usr()
+            if not d_usr or _is_local(d_usr):
+                continue
+            uses = set()
+            for r in cur.walk_preorder():
+                if r.kind != ci.CursorKind.TYPE_REF:
+                    continue
+                d = r.referenced
+                if d is None or _spelling(d, root) in _PRIMITIVE:
+                    continue
+                u = d.get_usr()
+                if u and u != d_usr:
+                    uses.add((u, _spelling(d, root)))
+            if uses:
+                out.append(((d_usr, _spelling(cur, root), "", loc.line, cur.extent.start.line, cur.extent.end.line), sorted(uses))
+                           + ((cref.relpath(loc.file.name, root),) if located else ()))
+            continue
+        loc = cur.location
+        if loc.file is None:
+            continue
+        where = cref.relpath(loc.file.name, root)
+        if where.startswith("..") or not where.startswith("src"):
+            continue
+        usr = cur.get_usr()
+        if not usr or _is_local(usr):
+            continue
+        uses = set()
+        stack = [cur]
+        while stack:
+            node = stack.pop()
+            stack.extend(node.get_children())
+            if node.kind not in _USE_KINDS:
+                continue
+            ref = node.referenced
+            if ref is None:
+                continue
+            # A field is not an item on its own: it is understood as part of
+            # the type that declares it, so the dependency is on that type.
+            if ref.kind == ci.CursorKind.FIELD_DECL:
+                owner = ref.semantic_parent
+                if owner is None or not _spelling(owner, root):
+                    continue
+                ref = owner
+            if _spelling(ref, root) in _PRIMITIVE:
+                continue
+            r_usr = ref.get_usr()
+            if not r_usr or r_usr == usr or _is_local(r_usr):
+                continue
+            uses.add((r_usr, _spelling(ref, root)))
+        out.append(((usr, _spelling(cur, root), where, loc.line, cur.extent.start.line, cur.extent.end.line), sorted(uses))
+                   + ((where,) if located else ()))
+    return out
+
+
+
+# --------------------------------------------------------------------------
 # scanning one unit
 # --------------------------------------------------------------------------
 
@@ -102,7 +299,7 @@ def scan_tu(job):
     rel_file, args, root, only = job
     tu = cref.parse_tu(rel_file, args, root)
     if tu is None:
-        return rel_file, [], []
+        return rel_file, [], [], [], set()
     deps = set()
     for inc in tu.get_includes():
         f = inc.include.name if inc.include is not None else None
@@ -166,7 +363,9 @@ def scan_tu(job):
         col = loc.column
         rest = raw[col - 1:]
         for kw in ("struct ", "union ", "enum "):
-            if rest.startswith(kw):
+            # A tagless `struct {` has no identifier to step to; it stays at
+            # the keyword, as the collector reports it.
+            if rest.startswith(kw) and _IDENT.match(rest[len(kw):]):
                 col += len(kw)
                 rest = raw[col - 1:]
                 break
@@ -178,7 +377,9 @@ def scan_tu(job):
                 spelling = spelling[len(kw):]
         sites.append((fname, loc.line, col, usr, spelling, ident, use,
                       cref._enclosing(cur, parents)))
-    return rel_file, sites, sorted(deps)
+    # The Psy-Q headers never change, so only a full scan collects their USRs.
+    return (rel_file, sites, sorted(deps), graph_records(tu, root, only, located=True),
+            sdk_symbols(tu, root) if only is None else {})
 
 
 # --------------------------------------------------------------------------
@@ -190,12 +391,25 @@ CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
 CREATE TABLE IF NOT EXISTS files (id INTEGER PRIMARY KEY, path TEXT UNIQUE NOT NULL,
                                   mtime INTEGER, size INTEGER, sha TEXT);
 CREATE TABLE IF NOT EXISTS symbols (id INTEGER PRIMARY KEY, usr TEXT UNIQUE NOT NULL, spelling TEXT);
-CREATE TABLE IF NOT EXISTS sites (sym INTEGER NOT NULL, file INTEGER NOT NULL, line INTEGER NOT NULL,
-                                  col INTEGER NOT NULL, ident TEXT, use TEXT, enclosing TEXT,
+CREATE TABLE IF NOT EXISTS strings (id INTEGER PRIMARY KEY, text TEXT UNIQUE NOT NULL);
+-- ident is NULL when the site spells the symbol's own name, the usual case.
+CREATE TABLE IF NOT EXISTS sites (file INTEGER NOT NULL, line INTEGER NOT NULL, col INTEGER NOT NULL,
+                                  sym INTEGER NOT NULL, ident INTEGER, use INTEGER NOT NULL,
+                                  enclosing INTEGER NOT NULL,
                                   PRIMARY KEY (file, line, col, sym)) WITHOUT ROWID;
 CREATE INDEX IF NOT EXISTS sites_by_sym ON sites (sym);
 CREATE TABLE IF NOT EXISTS tus (file INTEGER PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS deps (tu INTEGER NOT NULL, dep INTEGER NOT NULL, PRIMARY KEY (dep, tu)) WITHOUT ROWID;
+-- The dependency graph's raw records, keyed by the file each is written in.
+CREATE TABLE IF NOT EXISTS gnodes (file INTEGER NOT NULL, sym INTEGER NOT NULL, name INTEGER NOT NULL,
+                                   at INTEGER, line INTEGER, start_line INTEGER, end_line INTEGER,
+                                   PRIMARY KEY (file, sym, line)) WITHOUT ROWID;
+-- dep_name is the name the graph gives the dependency, keyword included
+-- ("struct (unnamed at ...)"), where a site stores the bare identifier.
+CREATE TABLE IF NOT EXISTS gedges (file INTEGER NOT NULL, sym INTEGER NOT NULL, dep INTEGER NOT NULL,
+                                   dep_name INTEGER NOT NULL,
+                                   PRIMARY KEY (file, sym, dep)) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS gsdk (sym INTEGER PRIMARY KEY);
 """
 
 
@@ -204,12 +418,36 @@ class Index:
         self.root = root
         self.path = os.path.join(root, path or DEFAULT_PATH)
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
-        self.db = sqlite3.connect(self.path, timeout=600)
-        self.db.execute("PRAGMA journal_mode=WAL")
-        self.db.execute("PRAGMA synchronous=NORMAL")
+        self.db = self._connect()
+        # A table that exists is left as it is by CREATE TABLE IF NOT EXISTS,
+        # so a schema change has to start the file over; the next refresh then
+        # rebuilds it.
+        row = None
+        try:
+            row = self.db.execute("SELECT value FROM meta WHERE key='schema'").fetchone()
+        except sqlite3.OperationalError:
+            pass
+        if row is None or row[0] != SCHEMA_VERSION:
+            self.db.close()
+            for suffix in ("", "-wal", "-shm"):
+                try:
+                    os.remove(self.path + suffix)
+                except OSError:
+                    pass
+            self.db = self._connect()
         self.db.executescript(_DDL)
+        self.db.execute("INSERT OR REPLACE INTO meta (key, value) VALUES ('schema', ?)", (SCHEMA_VERSION,))
+        self.db.commit()
         self._file_ids: dict[str, int] = {}
         self._sym_ids: dict[str, int] = {}
+        self._str_ids: dict[str, int] = {}
+        self._sym_spelling: dict[int, str] = {}
+
+    def _connect(self):
+        db = sqlite3.connect(self.path, timeout=600)
+        db.execute("PRAGMA journal_mode=WAL")
+        db.execute("PRAGMA synchronous=NORMAL")
+        return db
 
     # ids ------------------------------------------------------------------
     def file_id(self, rel: str) -> int:
@@ -239,6 +477,21 @@ class Index:
             self._sym_ids[usr] = sid
         return sid
 
+    def string_id(self, text: str) -> int:
+        sid = self._str_ids.get(text)
+        if sid is None:
+            row = self.db.execute("SELECT id FROM strings WHERE text=?", (text,)).fetchone()
+            sid = row[0] if row else self.db.execute("INSERT INTO strings (text) VALUES (?)", (text,)).lastrowid
+            self._str_ids[text] = sid
+        return sid
+
+    def sym_spelling(self, sid: int) -> str:
+        sp = self._sym_spelling.get(sid)
+        if sp is None:
+            sp = self._sym_spelling[sid] = self.db.execute(
+                "SELECT spelling FROM symbols WHERE id=?", (sid,)).fetchone()[0]
+        return sp
+
     def meta(self, key: str):
         row = self.db.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
         return row[0] if row else None
@@ -256,7 +509,7 @@ class Index:
         work = [(u, db[u], self.root, only) for u in units if u in db]
         done = 0
         with Pool(jobs) as pool:
-            for unit, sites, deps in pool.imap_unordered(scan_tu, work, chunksize=4):
+            for unit, sites, deps, graph, sdk in pool.imap_unordered(scan_tu, work, chunksize=4):
                 done += 1
                 if progress:
                     progress(done, len(work))
@@ -270,23 +523,51 @@ class Index:
                 for fname, line, col, usr, spelling, ident, use, enclosing in sites:
                     if keep_files is not None and fname not in keep_files:
                         continue
-                    rows.append((self.sym_id(usr, spelling), self.file_id(fname), line, col,
-                                 ident, use, enclosing))
+                    sid = self.sym_id(usr, spelling)
+                    rows.append((self.file_id(fname), line, col, sid,
+                                 None if ident == self.sym_spelling(sid) else self.string_id(ident),
+                                 self.string_id(use), self.string_id(enclosing)))
                 # A shared fragment's site is seen from every carrier, each naming
                 # its enclosing function after itself; keep the least, so the
                 # index does not depend on which carrier the pool returned first.
+                # Compare the strings, not their ids, so the choice does not
+                # depend on the order strings were first interned either.
                 self.db.executemany(
                     "INSERT INTO sites VALUES (?,?,?,?,?,?,?) ON CONFLICT (file, line, col, sym) "
-                    "DO UPDATE SET enclosing = MIN(enclosing, excluded.enclosing)", rows)
+                    "DO UPDATE SET enclosing = CASE WHEN (SELECT text FROM strings WHERE id = excluded.enclosing)"
+                    " < (SELECT text FROM strings WHERE id = sites.enclosing) THEN excluded.enclosing"
+                    " ELSE sites.enclosing END", rows)
+                for (usr, spelling, at, line, start_line, end_line), uses, loc in graph:
+                    if keep_files is not None and loc not in keep_files:
+                        continue
+                    # Graph records keep the SDK's extern declarations, flagged
+                    # out of scope later; only sites leave the Psy-Q headers out.
+                    if not loc or not loc.startswith(("src/", "include/")):
+                        continue
+                    fid = self.file_id(loc)
+                    sid = self.sym_id(usr, spelling)
+                    # Same record from every unit that includes the file; one
+                    # definition of a name in two images keeps the lesser file.
+                    self.db.execute(
+                        "INSERT INTO gnodes VALUES (?,?,?,?,?,?,?) ON CONFLICT (file, sym, line) DO NOTHING",
+                        (fid, sid, self.string_id(spelling), self.file_id(at) if at else None,
+                         line, start_line, end_line))
+                    self.db.executemany("INSERT OR IGNORE INTO gedges VALUES (?,?,?,?)",
+                                        [(fid, sid, self.sym_id(u, sp), self.string_id(sp)) for u, sp in uses])
+                self.db.executemany("INSERT OR IGNORE INTO gsdk VALUES (?)",
+                                    [(self.sym_id(u, sp),) for u, sp in sdk.items()])
 
     def build(self, jobs: int, progress=None):
         with self.db:
-            for t in ("sites", "symbols", "files", "tus", "deps", "meta"):
+            for t in ("sites", "symbols", "strings", "files", "tus", "deps", "gnodes", "gedges", "gsdk"):
                 self.db.execute(f"DELETE FROM {t}")
             self._file_ids.clear()
             self._sym_ids.clear()
+            self._str_ids.clear()
+            self._sym_spelling.clear()
             units = sorted(cref.load_db(self.root))
             self._scan(units, None, jobs, progress)
+            self.db.execute("DELETE FROM meta WHERE key IN ('code', 'flags')")
             self.set_meta("code", _code_key())
             self.set_meta("flags", _flags_key(self.root))
         self.checkpoint()
@@ -326,7 +607,8 @@ class Index:
                 return {"changed": 0}
             touched = changed | gone | added
             ids = [self.file_id(r) for r in touched]
-            self.db.executemany("DELETE FROM sites WHERE file=?", [(i,) for i in ids])
+            for table in ("sites", "gnodes", "gedges"):
+                self.db.executemany(f"DELETE FROM {table} WHERE file=?", [(i,) for i in ids])
             rescan = set(added) | (changed & units)
             for (path,) in self.db.execute(
                     f"SELECT DISTINCT f.path FROM deps d JOIN files f ON f.id = d.tu "
@@ -350,8 +632,10 @@ class Index:
         if not usrs:
             return []
         names = set(names or ())
-        q = (f"SELECT f.path, s.line, s.col, s.ident, s.use, s.enclosing, y.usr, y.spelling "
+        q = (f"SELECT f.path, s.line, s.col, COALESCE(i.text, y.spelling), u.text, e.text, y.usr, y.spelling "
              f"FROM sites s JOIN symbols y ON y.id = s.sym JOIN files f ON f.id = s.file "
+             f"LEFT JOIN strings i ON i.id = s.ident JOIN strings u ON u.id = s.use "
+             f"JOIN strings e ON e.id = s.enclosing "
              f"WHERE y.usr IN ({','.join('?' * len(usrs))}) ORDER BY f.path, s.line, s.col")
         out, seen, lines = [], set(), {}
         for path, line, col, ident, use, enclosing, usr, spelling in self.db.execute(q, usrs):
@@ -375,6 +659,27 @@ class Index:
                 use = f"{use} (via macro)"
             out.append(cref.Ref(path, line, col, use, text, enclosing, written, usr))
         return out
+
+    def graph(self):
+        """(records, sdk): the dependency graph's raw records, in the shape
+        `dep_graph.scan_tu` produces, and the USRs the Psy-Q headers declare.
+
+        Records come in file order, so a name defined in two images resolves
+        the same way every time (dep_graph keeps the last definition)."""
+        uses: dict[tuple, list] = {}
+        for fid, sym, dusr, dspelling in self.db.execute(
+                "SELECT g.file, g.sym, d.usr, n.text FROM gedges g JOIN symbols d ON d.id = g.dep "
+                "JOIN strings n ON n.id = g.dep_name"):
+            uses.setdefault((fid, sym), []).append((dusr, dspelling))
+        records = []
+        for fid, sym, usr, name, at, line, start_line, end_line in self.db.execute(
+                "SELECT n.file, n.sym, y.usr, s.text, a.path, n.line, n.start_line, n.end_line "
+                "FROM gnodes n JOIN symbols y ON y.id = n.sym JOIN strings s ON s.id = n.name "
+                "LEFT JOIN files a ON a.id = n.at JOIN files f ON f.id = n.file "
+                "ORDER BY f.path DESC, y.usr, n.line"):
+            records.append(((usr, name, at or "", line, start_line, end_line), sorted(uses.get((fid, sym), []))))
+        sdk = {u for (u,) in self.db.execute("SELECT y.usr FROM gsdk g JOIN symbols y ON y.id = g.sym")}
+        return records, sdk
 
     def stats(self) -> dict:
         one = lambda q: self.db.execute(q).fetchone()[0]

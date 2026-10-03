@@ -406,12 +406,14 @@ overlay.
   assembly, inline asm, macro-reached references and a symbol map's prose are
   all outside them.
 - `venv/bin/python3 tools/refactor/ref_index.py build|refresh|stats|refs <usr>`
-  the persistent reference index (`local/ref_index.sqlite`, ~90 MB) that
+  the persistent reference index (`local/ref_index.sqlite`, ~58 MB) that
   `find_references.py` and `rename_item.py` query instead of parsing every
-  candidate unit. Every query refreshes it first: files whose content changed
-  have their sites re-collected from the units that include them (a widely
-  included header in ~3 s, a source file in under one), and a change of compile
-  flags or of the collector rebuilds it (~1 min). Locals and parameters are not
+  candidate unit, and from which `dep_graph.py --build` assembles the naming
+  graph (~14 s, no parse of its own). Every query refreshes it first: files
+  whose content changed have their sites and graph records re-collected from
+  the units that include them (a widely included header in ~3 s, a source file
+  in under one), and a change of compile flags, of the collector or of the
+  graph's extractor (`ref_index.graph_records`) rebuilds it (~75 s). Locals and parameters are not
   indexed and still parse their one unit; `PE2_REF_INDEX=0` turns it off. The
   naming pass's driver keeps it current and copies it into each worker.
 - `python3 tools/refactor/check_decls.py [PATH_PREFIX ...]` report C symbols

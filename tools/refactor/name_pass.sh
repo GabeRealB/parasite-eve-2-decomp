@@ -398,9 +398,10 @@ trap 'echo ""; echo "Interrupt received; stopping after this round - an unlanded
 # A step is an analysis, not just a rename of its own item: it merges a
 # duplicate type away, retypes a caller, renames a neighbouring field. That
 # changes which items remain and what depends on what, so the plan the next
-# step reads has to be rebuilt rather than carried forward. Roughly 20s against
-# a step of several minutes. --no-refresh keeps the original snapshot for the
-# whole run.
+# step reads has to be rebuilt rather than carried forward. The graph is read
+# from the reference index, which re-scans only what the round changed, so this
+# is seconds against a step of several minutes. --no-refresh keeps the original
+# snapshot for the whole run.
 refresh_worklist() {
   (( REFRESH )) || return 0
   echo "--- rebuilding the graph and worklist" | tee -a "$LOG"

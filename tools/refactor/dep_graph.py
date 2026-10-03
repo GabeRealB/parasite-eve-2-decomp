@@ -41,64 +41,14 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import clang.cindex as ci  # noqa: E402
 import cref  # noqa: E402
 import name_index  # noqa: E402
 import macro_refs  # noqa: E402
+import ref_index  # noqa: E402
+from ref_index import _PRIMITIVE  # noqa: E402
 
 DEFAULT_GRAPH = os.path.join("local", "dep_graph.json")
 
-_DEF_KINDS = {ci.CursorKind.FUNCTION_DECL, ci.CursorKind.VAR_DECL}
-_TYPE_KINDS = {ci.CursorKind.STRUCT_DECL, ci.CursorKind.UNION_DECL,
-               ci.CursorKind.TYPEDEF_DECL, ci.CursorKind.ENUM_DECL}
-_USE_KINDS = {
-    ci.CursorKind.CALL_EXPR,
-    ci.CursorKind.DECL_REF_EXPR,
-    ci.CursorKind.MEMBER_REF_EXPR,
-    ci.CursorKind.TYPE_REF,
-}
-
-
-# Aliases for machine types. They are referenced by almost everything and are
-# never work, so treating them as graph nodes would make every item depend on
-# them and drown the real structure.
-_PRIMITIVE = {
-    "s8", "s16", "s32", "s64", "u8", "u16", "u32", "u64", "f32", "f64",
-    "size_t", "bool", "byte", "void", "char", "int", "short", "long",
-    "unsigned", "signed", "float", "double", "va_list", "ptrdiff_t",
-    "u_char", "u_short", "u_int", "u_long", "s_char", "s_short", "s_int", "s_long",
-    "true", "false", "NULL", "bool_t",
-}
-
-
-def _is_local(usr: str) -> bool:
-    """A local or parameter, identified by the byte offset in its USR."""
-    import re
-    return bool(re.search(r"@\d+@", usr))
-
-
-def _sdk_usrs(tu, root: str) -> set:
-    """USRs of everything a Psy-Q header declares, enum constants included.
-
-    The SDK is excluded by where it is declared, not by what it is called: a
-    name list read out of the headers misses whatever form it was not written
-    for (`struct DIRENTRY { ... };` with no typedef was one), and the symbol
-    then reaches the worklist as if it were the project's.
-    """
-    out = set()
-    for cur in tu.cursor.get_children():
-        loc = cur.location
-        if loc.file is None:
-            continue
-        where = cref.relpath(loc.file.name, root)
-        if not where.startswith("include/psyq/"):
-            continue
-        usr = cur.get_usr()
-        if usr:
-            out.add(usr)
-        if cur.kind == ci.CursorKind.ENUM_DECL:
-            out.update(c.get_usr() for c in cur.get_children() if c.get_usr())
-    return out
 
 
 def scan_tu(job):
@@ -107,127 +57,35 @@ def scan_tu(job):
     tu = cref.parse_tu(rel, args, root)
     if tu is None:
         return [], set()
-    out = []
-    for cur in tu.cursor.get_children():
-        # A type depends on the types of its fields. Without this the graph has
-        # no type-to-type edges at all, every type looks like a leaf, and the
-        # cycles that types form with each other disappear.
-        if cur.kind in _TYPE_KINDS:
-            # Only the definition, never a forward declaration. `struct _Task;`
-            # in a header that is included first would otherwise be recorded as
-            # the type's location, and the documentation check would look at
-            # the forward declaration rather than at the fields.
-            if cur.kind != ci.CursorKind.TYPEDEF_DECL and not cur.is_definition():
-                continue
-            t_usr = cur.get_usr()
-            loc = cur.location
-            if not t_usr or loc.file is None:
-                continue
-            where = cref.relpath(loc.file.name, root)
-            if where.startswith("..") or "psyq" in where:
-                continue
-            uses = set()
-            # A typedef has no fields of its own; without an edge to the record
-            # it names, it is a dead end that silently breaks every cycle those
-            # records form with each other.
-            if cur.kind == ci.CursorKind.TYPEDEF_DECL:
-                d = cur.underlying_typedef_type.get_declaration()
-                if d is not None and d.spelling and d.spelling not in _PRIMITIVE:
-                    d_usr = d.get_usr()
-                    if d_usr and d_usr != t_usr:
-                        uses.add((d_usr, d.spelling))
-            for f in cur.get_children():
-                if f.kind != ci.CursorKind.FIELD_DECL:
-                    continue
-                for r in f.get_children():
-                    if r.kind != ci.CursorKind.TYPE_REF:
-                        continue
-                    d = r.referenced
-                    if d is None or d.spelling in _PRIMITIVE:
-                        continue
-                    d_usr = d.get_usr()
-                    if d_usr and d_usr != t_usr:
-                        uses.add((d_usr, d.spelling))
-            if cur.spelling:
-                out.append(((t_usr, cur.spelling, where, loc.line, cur.extent.start.line, cur.extent.end.line), sorted(uses)))
-            continue
-        if cur.kind not in _DEF_KINDS:
-            continue
-        if not cur.is_definition():
-            # A symbol defined in assembly is only ever declared in C, so
-            # skipping declarations leaves it with no edges at all - and a
-            # variable with no edges looks like a leaf even though it plainly
-            # depends on its own type. Record the type, which is all a
-            # declaration carries.
-            loc = cur.location
-            if loc.file is None or cur.kind != ci.CursorKind.VAR_DECL:
-                continue
-            d_usr = cur.get_usr()
-            if not d_usr or _is_local(d_usr):
-                continue
-            uses = set()
-            for r in cur.walk_preorder():
-                if r.kind != ci.CursorKind.TYPE_REF:
-                    continue
-                d = r.referenced
-                if d is None or d.spelling in _PRIMITIVE:
-                    continue
-                u = d.get_usr()
-                if u and u != d_usr:
-                    uses.add((u, d.spelling))
-            if uses:
-                out.append(((d_usr, cur.spelling, "", loc.line, cur.extent.start.line, cur.extent.end.line), sorted(uses)))
-            continue
-        loc = cur.location
-        if loc.file is None:
-            continue
-        where = cref.relpath(loc.file.name, root)
-        if where.startswith("..") or not where.startswith("src"):
-            continue
-        usr = cur.get_usr()
-        if not usr or _is_local(usr):
-            continue
-        uses = set()
-        stack = [cur]
-        while stack:
-            node = stack.pop()
-            stack.extend(node.get_children())
-            if node.kind not in _USE_KINDS:
-                continue
-            ref = node.referenced
-            if ref is None:
-                continue
-            # A field is not an item on its own: it is understood as part of
-            # the type that declares it, so the dependency is on that type.
-            if ref.kind == ci.CursorKind.FIELD_DECL:
-                owner = ref.semantic_parent
-                if owner is None or not owner.spelling:
-                    continue
-                ref = owner
-            if ref.spelling in _PRIMITIVE:
-                continue
-            r_usr = ref.get_usr()
-            if not r_usr or r_usr == usr or _is_local(r_usr):
-                continue
-            uses.add((r_usr, ref.spelling))
-        out.append(((usr, cur.spelling, where, loc.line, cur.extent.start.line, cur.extent.end.line), sorted(uses)))
-    return out, _sdk_usrs(tu, root)
+    return ref_index.graph_records(tu, root), ref_index.sdk_usrs(tu, root)
 
 
 def build(root: str, version: str, jobs: int, out_path: str) -> None:
     from multiprocessing import Pool
 
-    db = cref.load_db(root, version)
-    files = list(db)
     nodes, edges = {}, {}
     sdk = set()
-    done = 0
-    with Pool(jobs) as pool:
-        for res, tu_sdk in pool.imap_unordered(scan_tu, [(f, db[f], root) for f in files], chunksize=4):
+
+    def from_parse():
+        db = cref.load_db(root, version)
+        files = list(db)
+        done = 0
+        with Pool(jobs) as pool:
+            for res, tu_sdk in pool.imap_unordered(scan_tu, [(f, db[f], root) for f in files], chunksize=4):
+                done += 1
+                if done % 50 == 0 or done == len(files):
+                    print(f"\r  parsed {done}/{len(files)} TUs", end="", file=sys.stderr, flush=True)
+                yield res, tu_sdk
+
+    def from_index():
+        # The reference index holds the same records, refreshed for whatever
+        # changed since, so the graph needs no parse of its own.
+        records, index_sdk = ref_index.fresh(root, jobs).graph()
+        print(f"  {len(records)} records from the reference index", end="", file=sys.stderr)
+        yield records, index_sdk
+
+    for res, tu_sdk in (from_index() if ref_index.enabled() else from_parse()):
             sdk |= tu_sdk
-            done += 1
-            if done % 50 == 0 or done == len(files):
-                print(f"\r  parsed {done}/{len(files)} TUs", end="", file=sys.stderr, flush=True)
             for (usr, spelling, where, line, start_line, end_line), uses in res:
                 # An extern declaration must not erase the definition's extent.
                 if where or not nodes.get(usr, {}).get("file"):
