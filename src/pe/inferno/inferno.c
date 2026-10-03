@@ -29,16 +29,6 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// 0xC jitter block `func_inferno_8012F530` hangs off `Task::work` via
-/// `memCalloc(0xC)`. It is two parallel 6-byte columns, one per ring drawn
-/// by the pair of fan routines: `field_0[0][i]` seeds the inner ring's
-/// texture frame and `field_0[1][i]` the outer one. State 0 fills both with
-/// one walker, `p = &field_0[0][i]`, writing `p[0]` and `p[6]`.
-typedef struct InfernoIdMap {
-    /* 0x0 */ u8 field_0[2][6];
-} InfernoIdMap;
-STATIC_ASSERT_SIZEOF(InfernoIdMap, 0xC);
-
 /// Vertices on each rim of one inferno fan band.
 ///
 /// The texture row has one cell per vertex, so a segment index and its frame
@@ -47,6 +37,39 @@ STATIC_ASSERT_SIZEOF(InfernoIdMap, 0xC);
 /// band four units short of a full turn.
 #define INFERNO_FAN_SEGMENT_COUNT 6
 #define INFERNO_FAN_SEGMENT_YAW   0x2AA
+
+/// The two bands of one inferno fan, in shape-table and texture-phase order.
+///
+/// `INFERNO_FAN_RISING_BAND` is lifted by `EffectWork::period` plus the
+/// shape's lift and has base radius 0x100. `INFERNO_FAN_CONSTANT_LIFT_BAND`
+/// uses the shape's lift alone and has base radius 0x200.
+/// `INFERNO_FAN_BAND_COUNT` is how many of those columns the fan has.
+#define INFERNO_FAN_RISING_BAND        0
+#define INFERNO_FAN_CONSTANT_LIFT_BAND 1
+#define INFERNO_FAN_BAND_COUNT         2
+
+/// Per-segment texture-cell phase for both bands of one inferno fan.
+///
+/// The fan task allocates one as its `Task::work`. Each byte is the high
+/// half of an LCG draw. A drawer adds `EffectWork::age` and reduces modulo
+/// `INFERNO_FAN_SEGMENT_COUNT`; the residue selects that segment's cell on
+/// the six-cell texture row.
+///
+/// `band` names the two columns. `byBand` is those same bytes in band-major
+/// order, which is how a drawer addresses the column its `kind` selects.
+/// `byte` is that order flattened, so the fill can write segment `i` of both
+/// columns from one pointer and stay inside one array. `byte[i]` is segment
+/// `i` of `risingBand`; `byte[i + INFERNO_FAN_SEGMENT_COUNT]` is that segment
+/// of `constantLiftBand`.
+typedef union {
+    struct {
+        u8 risingBand[INFERNO_FAN_SEGMENT_COUNT];                 // Cell phase of the band whose lift is period + lift
+        u8 constantLiftBand[INFERNO_FAN_SEGMENT_COUNT];           // Cell phase of the band whose lift is the shape's lift alone
+    } band;
+    u8 byBand[INFERNO_FAN_BAND_COUNT][INFERNO_FAN_SEGMENT_COUNT]; // [0] risingBand, [1] constantLiftBand
+    u8 byte[INFERNO_FAN_BAND_COUNT * INFERNO_FAN_SEGMENT_COUNT];  // risingBand, then constantLiftBand
+} _InfernoFanTexturePhase;
+STATIC_ASSERT_SIZEOF(_InfernoFanTexturePhase, 0xC);
 
 /// Scratch-stack workspace for one band of the inferno ground fan.
 ///
@@ -85,8 +108,8 @@ static EffectBandShape D_inferno_801304E4[] = {
 static s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
 static void func_inferno_8012F3EC(s16 arg0);
-static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map);
-static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map);
+static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, _InfernoFanTexturePhase* phase);
+static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, _InfernoFanTexturePhase* phase);
 
 /// Runs one frame of the inferno cast: a state machine driven by
 /// `Task::state`, with the chain it takes chosen in state 0 from
@@ -238,25 +261,26 @@ static void func_inferno_8012F3EC(s16 arg0)
     gpuSetPrimitiveBlendMode(p, GPU_BLEND_ADD, z);
 }
 
-/// Companion inferno-cast task: state 0 allocates a 12-byte `InfernoIdMap`
-/// of LCG jitter, scales `EffectWork::pos` by 0x80 (`gte_gpf12`) and
-/// rotates it into `move`. States 1–6 fade `scale` while spinning
-/// `angle` / `period` / `step` and drawing through
-/// `func_inferno_8012F978` (kind 0) and `func_inferno_8012FF34` (kind 1).
-/// State 3 also walks the effect coordinate by `move`. Releases if the
-/// player is dying, the room is fading, or the state's brightness floor is
-/// hit. `Task::spawnArg1 + 1` selects the chain from state 0.
+/// Companion inferno-cast task: state 0 allocates an `_InfernoFanTexturePhase` and
+/// fills both bands from the LCG, scales `EffectWork::pos` by 0x80
+/// (`gte_gpf12`) and rotates it into `move`. States 1–6 fade `scale` while
+/// spinning `angle` / `period` / `step` and drawing the rising band through
+/// `func_inferno_8012F978` and the constant-lift band through
+/// `func_inferno_8012FF34`. State 3 also walks the effect coordinate by
+/// `move`. Releases if the player is dying, the room is fading, or the
+/// state's brightness floor is hit. `Task::spawnArg1 + 1` selects the chain
+/// from state 0.
 void func_inferno_8012F530(Task* arg0)
 {
-    EffectWork*   mem;
-    GfxCoord*     coord;
-    InfernoIdMap* map;
-    u8*           p;
-    s32           i;
-    s32           rng;
-    s32           tz;
+    EffectWork*              mem;
+    GfxCoord*                coord;
+    _InfernoFanTexturePhase* phase;
+    u8*                      segment;
+    s32                      i;
+    s32                      rng;
+    s32                      tz;
 
-    map   = (InfernoIdMap*)arg0->work;
+    phase = (_InfernoFanTexturePhase*)arg0->work;
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
@@ -267,24 +291,25 @@ void func_inferno_8012F530(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            map = memCalloc(0xC, 0);
-            if (map == NULL) {
+            phase = memCalloc(sizeof(_InfernoFanTexturePhase), 0);
+            if (phase == NULL) {
                 mem->age = 0;
                 return;
             }
-            arg0->work = map;
+            arg0->work = phase;
             mem->scale = 0x80;
-            i          = 0;
+            // Segment i of the rising band, then the same segment of the constant-lift band.
+            i = 0;
             do {
-                p               = &map->field_0[0][i];
+                segment         = &phase->byte[i];
                 rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rng;
-                p[0]            = (u32)rng >> 16;
+                segment[0]      = (u32)rng >> 16;
                 i++;
-                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rng;
-                p[6]            = (u32)rng >> 16;
-            } while (i < 6);
+                rng                                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState                    = rng;
+                segment[INFERNO_FAN_SEGMENT_COUNT] = (u32)rng >> 16;
+            } while (i < INFERNO_FAN_SEGMENT_COUNT);
             arg0->state = arg0->spawnArg1.value + 1;
             gte_lddp(0x80);
             gte_ldsv(&mem->pos);
@@ -304,8 +329,8 @@ void func_inferno_8012F530(Task* arg0)
                 }
                 mem->angle = mem->angle + 0x20;
                 mem->step  = mem->step + 0x18;
-                func_inferno_8012F978(mem, coord, 0, map);
-                func_inferno_8012FF34(mem, coord, 1, map);
+                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -315,8 +340,8 @@ void func_inferno_8012F530(Task* arg0)
                 mem->angle  = mem->angle + 0x20;
                 mem->period = mem->period + 0xC0;
                 mem->step   = mem->step + 0x18;
-                func_inferno_8012F978(mem, coord, 0, map);
-                func_inferno_8012FF34(mem, coord, 1, map);
+                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -331,8 +356,8 @@ void func_inferno_8012F530(Task* arg0)
                 mem->angle  = mem->angle + 0x20;
                 mem->period = mem->period + 0xC0;
                 mem->step   = mem->step + 0x18;
-                func_inferno_8012F978(mem, coord, 0, map);
-                func_inferno_8012FF34(mem, coord, 1, map);
+                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -342,8 +367,8 @@ void func_inferno_8012F530(Task* arg0)
                 mem->angle  = mem->angle + 0x40;
                 mem->period = mem->period + 0xC0;
                 mem->step   = mem->step + 0x10;
-                func_inferno_8012F978(mem, coord, 0, map);
-                func_inferno_8012FF34(mem, coord, 1, map);
+                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -353,8 +378,8 @@ void func_inferno_8012F530(Task* arg0)
                 mem->angle  = mem->angle + 0x40;
                 mem->period = mem->period + 0x40;
                 mem->step   = mem->step + 0x18;
-                func_inferno_8012F978(mem, coord, 0, map);
-                func_inferno_8012FF34(mem, coord, 1, map);
+                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -364,8 +389,8 @@ void func_inferno_8012F530(Task* arg0)
                 mem->angle  = mem->angle + 0x80;
                 mem->period = mem->period + 0x20;
                 mem->step   = mem->step + 0x20;
-                func_inferno_8012F978(mem, coord, 0, map);
-                func_inferno_8012FF34(mem, coord, 1, map);
+                func_inferno_8012F978(mem, coord, INFERNO_FAN_RISING_BAND, phase);
+                func_inferno_8012FF34(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
                 return;
             }
             break;
@@ -381,7 +406,7 @@ release:
 /// top rim is lifted by `EffectWork::period + lift` along local -Y instead
 /// of `lift` alone, so it rises as `period` winds up. `kind` picks the row
 /// of `D_inferno_801304E4` that sizes it.
-static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
+static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, _InfernoFanTexturePhase* phase)
 {
     u8*                 head;
     _InfernoFanScratch* block;
@@ -438,7 +463,7 @@ static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, In
     for (i = 0; i < INFERNO_FAN_SEGMENT_COUNT; i++) {
         gte_ldv0(&block->topRing[i]);
         gte_rtps();
-        frame = (map->field_0[kind][i] + mem->age) % INFERNO_FAN_SEGMENT_COUNT;
+        frame = (phase->byBand[kind][i] + mem->age) % INFERNO_FAN_SEGMENT_COUNT;
         gte_stsxy(&block->sxy0);
         next = i + 1;
         gte_ldv3(&block->topRing[next % INFERNO_FAN_SEGMENT_COUNT], &block->bottomRing[i], &block->bottomRing[next % INFERNO_FAN_SEGMENT_COUNT]);
@@ -479,10 +504,10 @@ static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, In
 /// plane. Both are built by `rsin` / `rcos` a sixth of a turn apart, rotated
 /// by `coord`'s `workm` and offset by its translation. Each segment is then
 /// projected through `GsWSMATRIX` and linked as one semi-transparent
-/// `POLY_FT4`. `map` and `EffectWork::age` pick which of the
+/// `POLY_FT4`. `phase` and `EffectWork::age` pick which of the
 /// `INFERNO_FAN_SEGMENT_COUNT` texture cells it uses, and a negative
 /// `gte_stflg` drops the segment.
-static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
+static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, _InfernoFanTexturePhase* phase)
 {
     u8*                 head;
     _InfernoFanScratch* block;
@@ -539,7 +564,7 @@ static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, In
     for (i = 0; i < INFERNO_FAN_SEGMENT_COUNT; i++) {
         gte_ldv0(&block->topRing[i]);
         gte_rtps();
-        frame = (map->field_0[kind][i] + mem->age) % INFERNO_FAN_SEGMENT_COUNT;
+        frame = (phase->byBand[kind][i] + mem->age) % INFERNO_FAN_SEGMENT_COUNT;
         gte_stsxy(&block->sxy0);
         next = i + 1;
         gte_ldv3(&block->topRing[next % INFERNO_FAN_SEGMENT_COUNT], &block->bottomRing[i], &block->bottomRing[next % INFERNO_FAN_SEGMENT_COUNT]);
