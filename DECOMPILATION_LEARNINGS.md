@@ -60638,7 +60638,7 @@ arguments that differ, with the whole call behind the label:
     desc = &D_acropolis_plaza_80183824; entry = 4; goto spawn;
     ...
 spawn:
-    work->field_C = Task_SpawnFromTable(desc, entry, 0, (s32)work);
+    work->eventTask = Task_SpawnFromTable(desc, entry, 0, (s32)work);
 ```
 
 `entry` is fine — an integer constant is materialised straight into the
@@ -60662,9 +60662,9 @@ order compiles to `sb 0x18 / sh 0x16 / sb 0x19` too, but with a `nop`; the
 match wanted source order **`0x16`, `0x18`, `0x19`**:
 
 ```c
-    work->evtId   = evtId;    /* 0x16 */
-    work->evtKind = evtKind;  /* 0x18 */
-    work->evtSub  = evtSub;   /* 0x19 */
+    work->eventControl    = evtId;    /* 0x16 */
+    work->eventKind       = evtKind;  /* 0x18 */
+    work->eventParameter1 = evtSub;   /* 0x19 */
 ```
 
 Stores through the same base at different constant offsets are provably
@@ -60676,7 +60676,7 @@ emitted store order.
 
 ## `(u16)(s8)x` on a `u8` field: fold it once and leave the second one raw
 
-`work->evtKind` is a `u8` compared twice as an unsigned short. Every honest
+`work->eventKind` is a `u8` compared twice as an unsigned short. Every honest
 spelling — `(u16)(s8)f`, `(s8)f & 0xFFFF`, `((f << 24) >> 24) & 0xFFFF`, via a
 `u8`/`u32`/`s32` temp, or a `switch` — folds the load and the sign extension
 into a single `lb` and then CSEs the `andi`, giving five instructions where the
@@ -60697,7 +60697,7 @@ The mix that reproduces it routes the *first* comparison through a `u16` local
 and leaves the second as the raw expression:
 
 ```c
-    latchedKind   = work->evtKind;         /* u32 */
+    latchedKind   = work->eventKind;       /* u32 */
     latchedKind16 = (s8)latchedKind;       /* u16 */
     if (latchedKind16 == 0) {
         ...
@@ -84609,7 +84609,7 @@ immediate by the intended offset before reading it as a wrong constant.
 **Fix - give the argument a type whose size is 1, by taking the field's
 address.** The fourth parameter is `s32 arg3`, so the address is cast at the
 call, exactly as the matched `(s32)&work->field_40` in `actor_503500_8.c` and
-`(s32)&work->field_10` in `acropolis_plaza_4.c` do it:
+`(s32)&work->sceneArg` in `acropolis_plaza_4.c` do it:
 
 ```c
 Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;

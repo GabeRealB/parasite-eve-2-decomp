@@ -211,7 +211,7 @@ enum {
 /// matrix. Crossing an edge re-seeks the movie: forward selects
 /// `forwardSubId`, reverse selects the next sub-id, and the target is counted
 /// in `ACROPOLIS_PLAZA_SEEK_FRAMES_FINE` or `ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE`
-/// units. This block is distinct from the sequence task's `AcropolisPlazaWork`.
+/// units. This block is distinct from the sequence task's `_AcropolisPlazaSequenceWork`.
 typedef struct {
     MATRIX*    playerMtx;    // Borrowed player root matrix; valid while the player actor is live
     Task*      playerTask;   // Borrowed player task, cached once the CD is idle
@@ -232,41 +232,70 @@ typedef struct {
 } _AcropolisPlazaSceneWork;
 STATIC_ASSERT_SIZEOF(_AcropolisPlazaSceneWork, 0x34);
 
-/// Work block the plaza's sequence task (`func_acropolis_plaza_80180054`)
-/// allocates with `memMalloc(0x28, 0)` and parks in `Task::work`. State 0
-/// caches the slot-3 task in `slot3` and the
-/// task it spawns from entry 5 of the room's table in `field_C`; state 3 spawns
-/// entry 1 into `field_8`, handing it `&field_10` as its spawn argument. The
-/// halfwords from 0x1E on are the per-emitter "already playing" flags
-/// `func_acropolis_plaza_8017F770` tests and sets, one per ambience voice
-/// started by `func_acropolis_plaza_8017F9EC`.
+/// Steps of the plaza sequence's event handling, kept in `_AcropolisPlazaSequenceWork::step`.
 ///
-/// 0x14..0x1D belong to `func_acropolis_plaza_8017FB50`, the scene stepper:
-/// `step` is its own state machine, `evtId`/`evtKind`/`evtSub` latch the
-/// pending `WorldCollisionTrigger` event `Gp_TakePendingObj4C` hands it, `streamFrame`
-/// snapshots `gCdCmdQueue.sceneFrame` when the event arrives, and `variant`
-/// counts how many times the entry-6 scene has run (capped at 2) so each pass
-/// spawns it with the next `Task_SpawnFromTable` arg2.
-typedef struct AcropolisPlazaWork {
-    /* 0x00 */ byte  pad_0[0x4];
-    /* 0x04 */ Task* slot3;
-    /* 0x08 */ Task* field_8;
-    /* 0x0C */ Task* field_C;
-    /* 0x10 */ s16   field_10;
-    /* 0x12 */ s16   field_12;
-    /* 0x14 */ u16   step;
-    /* 0x16 */ u16   evtId;
-    /* 0x18 */ u8    evtKind;
-    /* 0x19 */ u8    evtSub;
-    /* 0x1A */ u16   streamFrame;
-    /* 0x1C */ u16   variant;
-    /* 0x1E */ u16   sfxState1E;
-    /* 0x20 */ u16   sfxState20;
-    /* 0x22 */ u16   sfxState22;
-    /* 0x24 */ u16   sfxState24;
-    /* 0x26 */ byte  pad_26[0x2];
-} AcropolisPlazaWork;
-STATIC_ASSERT_SIZEOF(AcropolisPlazaWork, 0x28);
+/// The two waiting steps take a latched trigger event and spawn the task that
+/// answers it; each running step waits for that task to be killed, respawns
+/// the streamed scene and returns to a waiting step. Only the first scene and
+/// captions are accepted before the first scene has played. The code moves
+/// from a waiting step to the running step after it, and back, by adding and
+/// subtracting 1.
+enum {
+    ACROPOLIS_PLAZA_STEP_AWAIT_FIRST_SCENE = 0, // Before the first scene: accepts it or a caption
+    ACROPOLIS_PLAZA_STEP_RUN_FIRST_SCENE   = 1, // First scene running; its trigger is unlinked when it ends
+    ACROPOLIS_PLAZA_STEP_AWAIT_EVENT       = 2, // Accepts every event kind except the first scene
+    ACROPOLIS_PLAZA_STEP_RUN_SCENE         = 3, // Stream or final scene running; the final one ends the sequence
+    ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE  = 4, // Repeat scene running; advances `repeatVariant` when it ends
+    ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION = 5, // Caption running; returns to AWAIT_FIRST_SCENE
+    ACROPOLIS_PLAZA_STEP_RUN_CAPTION       = 6  // Caption running; returns to AWAIT_EVENT
+};
+
+/// Event kinds of the plaza sequence: `WorldCollisionTrigger::parameter0` of
+/// the room's action triggers, latched in `_AcropolisPlazaSequenceWork::eventKind`.
+///
+/// The three scenes below 3 fire on contact and each takes scripted control
+/// of the player. The repeat scene and the captions need the interaction
+/// button. A caption's kind is itself the CAP command to run.
+enum {
+    ACROPOLIS_PLAZA_EVENT_STREAM_SCENE  = 0, // Scene with its own movie stream; its trigger is unlinked afterwards
+    ACROPOLIS_PLAZA_EVENT_FIRST_SCENE   = 1, // The only scene accepted first; its trigger is unlinked afterwards
+    ACROPOLIS_PLAZA_EVENT_FINAL_SCENE   = 2, // Ends the sequence and leaves the room
+    ACROPOLIS_PLAZA_EVENT_REPEAT_SCENE  = 3, // Runs one of three scripts, selected by `repeatVariant`
+    ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION = 6  // This kind and every higher one is a CAP command ID
+};
+
+/// Work block of the plaza's sequence task, kept in `Task::work`.
+///
+/// The sequence task owns the room's walk through the streamed plaza scene:
+/// it starts the streamed-scene task, fades the ambience against the scene
+/// frame, and answers each collision-trigger event by spawning one event task
+/// and waiting for it. The task allocates and zeroes one block on its first
+/// frame, and kills itself when the allocation fails.
+///
+/// Every event task receives this block as `Task::spawnArg2`. When its stream
+/// handoff comes it stores the current scene frame in `resumeFrame` and kills
+/// `sceneTask`; the sequence then respawns the scene from `sceneArg` once the
+/// event task is gone. The final scene's task kills `sceneTask` without
+/// storing a frame, since no scene follows it. The caption task also reads
+/// `eventKind` as its CAP command.
+typedef struct {
+    byte                    field_0[4];       // No access established; role unproven
+    Task*                   playerTask;       // Borrowed player task, cached on the first frame and not read back
+    Task*                   sceneTask;        // Running streamed-scene task; an event task kills it at its stream handoff
+    Task*                   eventTask;        // Task answering the latched event, polled until killed; first holds the unpolled display-setup task
+    _AcropolisPlazaSceneArg sceneArg;         // Spawn argument of `sceneTask`, refilled before every spawn
+    u16                     step;             // Event-handling step (`ACROPOLIS_PLAZA_STEP_*`)
+    u16                     eventControl;     // Latched trigger `control` word; stored and not read back
+    u8                      eventKind;        // Latched trigger `parameter0` (`ACROPOLIS_PLAZA_EVENT_*`); read back as a signed byte
+    u8                      eventParameter1;  // Latched trigger `parameter1`; stored and not read back
+    u16                     resumeFrame;      // Scene frame latched when the scene was interrupted; the respawned scene starts there
+    u16                     repeatVariant;    // Script the next repeat scene runs (0..2); advances after each and stays at 2
+    u16                     ambience5Playing; // Non-zero while area sound 5 is started; the three below likewise
+    u16                     ambience1Playing; // Area sound 1
+    u16                     ambience2Playing; // Area sound 2
+    u16                     ambience4Playing; // Area sound 4
+} _AcropolisPlazaSequenceWork;
+STATIC_ASSERT_SIZEOF(_AcropolisPlazaSequenceWork, 0x28);
 
 /// The one scratch buffer the plaza's opening sequence shares between its area
 /// lookup and its last stream request. `key` is the location key states 6 and 8
@@ -291,22 +320,6 @@ typedef struct {
     s16   elapsedFrames; // Frames counted in the current timed wait; restarted from 0 when one begins
 } _AcropolisPlazaEventWork;
 STATIC_ASSERT_SIZEOF(_AcropolisPlazaEventWork, 0x8);
-
-/// Work block the plaza's cutscene tasks reach through `Task::spawnArg2`.
-/// Every one of them (`func_acropolis_plaza_8017E7E4`, `..._8017E9A8`,
-/// `..._8017F48C`, `..._8017F620`) runs the same handoff once `CdCmd_IsIdle`
-/// reports the stream has finished: latch `gCdCmdQueue.sceneFrame` into
-/// `field_1A`, kill the task at `task`, and (in `..._8017F620`) run the
-/// capture command named by `capCmd`. Only those three fields are identified,
-/// so this declaration is deliberately partial.
-typedef struct AcropolisPlazaCutWork {
-    /* 0x00 */ byte  pad_0[0x8];
-    /* 0x08 */ Task* task;
-    /* 0x0C */ byte  pad_C[0xC];
-    /* 0x18 */ s8    capCmd;
-    /* 0x19 */ byte  pad_19[0x1];
-    /* 0x1A */ u16   field_1A;
-} AcropolisPlazaCutWork;
 
 extern s16 D_acropolis_plaza_801987E0[];
 
@@ -3863,9 +3876,9 @@ L_tail:
 /// slot-3 task in it and places the player at (0x3804, 0, 0xFC8) with msg
 /// 0x3F2; states 1 and 2 wait for slot 3 to go idle (msg 0x3F0), state 1
 /// following up with the 0xD55 warp (msg 0x3EE). State 3 waits for the stream
-/// to finish, latches `gCdCmdQueue.sceneFrame` into the cutscene work block,
-/// kills the task it names and runs `func_800E8634`; state 4 kills this task
-/// once the session is out of its transition.
+/// to finish, latches `gCdCmdQueue.sceneFrame` into the sequence work block's
+/// `resumeFrame`, kills its `sceneTask` and runs `func_800E8634`; state 4 kills
+/// this task once the session is out of its transition.
 void func_acropolis_plaza_8017E7E4(Task* task)
 {
     ActorTransform            place;
@@ -3908,8 +3921,8 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 return;
             }
-            ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->sceneFrame;
-            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
+            ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
+            taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
             func_800E8634(D_acropolis_plaza_80182734, 1, D_acropolis_plaza_80182A34);
             task->state = task->state + 1;
             return;
@@ -3981,8 +3994,8 @@ static inline void _acropolisPlazaPlacePlayerAtModelRoot(Task* task, s32 yaw)
 /// (0xF6E, 0, 0x2328) with msg 0x3F2; states 1 and 2 wait for slot 3 to go idle
 /// (msg 0x3F0), following up with the 0xD55 warp (msg 0x3EE) and then the
 /// `D_actor_310100_801797FC` script (msg 0x3F4). State 3 waits for the CD queue, latches
-/// `gCdCmdQueue.sceneFrame` into the cutscene work block, kills the task it
-/// names and starts the scene's stream (`CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, ...)`); state 4
+/// `gCdCmdQueue.sceneFrame` into the sequence work block's `resumeFrame`, kills
+/// its `sceneTask` and starts the scene's stream (`CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, ...)`); state 4
 /// waits for the stream to report in and runs `D_acropolis_plaza_80182B24`.
 /// State 5 waits out 0x60 frames, republishes the player's weapon to slot 3
 /// (msg 0x3E8) and warps the player onto the slot-3 model's own coordinate
@@ -4038,8 +4051,8 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 return;
             }
-            ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->sceneFrame;
-            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
+            ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
+            taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
             q->sceneFrame       = 1;
             q->movieFrame       = 1;
             q->plazaStreamSubId = 2;
@@ -4077,8 +4090,8 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// counterpart to `func_acropolis_plaza_8017E9A8` for the rest of it. States 0
 /// to 2 allocate the work block, cache the slot-3 task in it, place the player
 /// at (0x3DE, 0, 0x33FE) with msg 0x3F2 and warp them with a 0x1000 heading
-/// (msg 0x3EE), waiting on msg 0x3F0 in between. State 3 kills the cutscene
-/// block's task and starts stream slot 4; state 4 runs
+/// (msg 0x3EE), waiting on msg 0x3F0 in between. State 3 kills the sequence
+/// work block's `sceneTask` and starts stream slot 4; state 4 runs
 /// `D_acropolis_plaza_80182C90` / `..._80182F18` once the CD queue reports in.
 /// State 5 waits out the session transition and starts stream slot 5, unless
 /// `GameSession::evtSkipped` says to skip the scene, in which case it blanks the
@@ -4149,7 +4162,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 return;
             }
-            taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
+            taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
             q->sceneFrame       = 1;
             q->movieFrame       = 1;
             q->plazaStreamSubId = 4;
@@ -4360,9 +4373,9 @@ void func_acropolis_plaza_8017ECF8(Task* task)
 
 /// Three-state cutscene tail: state 0 republishes the player's weapon to slot
 /// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish -- latching
-/// `gCdCmdQueue.sceneFrame` into the work block, killing the block's task and
-/// running the block `spawnArg1` names -- and state 2 kills this task once the
-/// session is out of its transition.
+/// `gCdCmdQueue.sceneFrame` into the sequence work block's `resumeFrame`, killing
+/// its `sceneTask` and running the block `spawnArg1` names -- and state 2 kills
+/// this task once the session is out of its transition.
 void func_acropolis_plaza_8017F48C(Task* task)
 {
     AnimationPlayRequest rec;
@@ -4386,8 +4399,8 @@ void func_acropolis_plaza_8017F48C(Task* task)
             break;
         case 1:
             if (CdCmd_IsIdle() != 0) {
-                ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->sceneFrame;
-                taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
+                ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
+                taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
                 switch (task->spawnArg1.value) {
                     case 0:
                         func_800E8614(D_acropolis_plaza_80183554, 1);
@@ -4412,8 +4425,9 @@ void func_acropolis_plaza_8017F48C(Task* task)
 
 /// Three-state cutscene tail: state 0 republishes the player's weapon to slot
 /// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish and hands
-/// control back -- latching `gCdCmdQueue.sceneFrame` into the work block, killing
-/// the block's task and running its capture command -- and state 2 releases
+/// control back -- latching `gCdCmdQueue.sceneFrame` into the sequence work
+/// block's `resumeFrame`, killing its `sceneTask` and running the CAP command
+/// its `eventKind` names -- and state 2 releases
 /// slot 3 (msg 0x3F1) and kills itself.
 void func_acropolis_plaza_8017F620(Task* task)
 {
@@ -4436,9 +4450,9 @@ void func_acropolis_plaza_8017F620(Task* task)
             break;
         case 1:
             if (CdCmd_IsIdle() != 0) {
-                ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->sceneFrame;
-                taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
-                Gp_RunCapCmd1(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->capCmd);
+                ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
+                taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
+                Gp_RunCapCmd1((s8)((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->eventKind);
                 task->state = task->state + 1;
             }
             break;
@@ -4510,19 +4524,19 @@ static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16
 /// distance to the nearer end outside that window.
 static void func_acropolis_plaza_8017F9EC(Task* task)
 {
-    CdCmdQueue*         q     = &gCdCmdQueue;
-    volatile u16*       frame = &gCdCmdQueue.sceneFrame;
-    AcropolisPlazaWork* work  = (AcropolisPlazaWork*)task->work;
-    s32                 pos;
-    s32                 vol;
+    CdCmdQueue*                  q     = &gCdCmdQueue;
+    volatile u16*                frame = &gCdCmdQueue.sceneFrame;
+    _AcropolisPlazaSequenceWork* work  = (_AcropolisPlazaSequenceWork*)task->work;
+    s32                          pos;
+    s32                          vol;
 
     switch (gCdCmdQueue.plazaStreamSubId) {
         case 0:
         case 1:
-            func_acropolis_plaza_8017F770(1, 0x320, 1, &work->sfxState1E, 0x51050005, 0);
-            func_acropolis_plaza_8017F770(1, 0x82, 1, &work->sfxState22, 0x51050002, 2);
-            func_acropolis_plaza_8017F770(0xF, 0x8E, 0x50, &work->sfxState24, 0x51050004, 0);
-            func_acropolis_plaza_8017F770(0xC8, 0x172, 0x140, &work->sfxState20, 0x51050001, 1);
+            func_acropolis_plaza_8017F770(1, 0x320, 1, &work->ambience5Playing, 0x51050005, 0);
+            func_acropolis_plaza_8017F770(1, 0x82, 1, &work->ambience2Playing, 0x51050002, 2);
+            func_acropolis_plaza_8017F770(0xF, 0x8E, 0x50, &work->ambience4Playing, 0x51050004, 0);
+            func_acropolis_plaza_8017F770(0xC8, 0x172, 0x140, &work->ambience1Playing, 0x51050001, 1);
             break;
         case 2:
             pos = q->sceneFrame;
@@ -4546,23 +4560,23 @@ static void func_acropolis_plaza_8017F9EC(Task* task)
 /// that global is set. Steps 0 and 2 latch the event into the work block and
 /// pick a table entry from its kind byte; steps 1, 3 and 4..6 wait on the task
 /// the previous step spawned (`Task_PollKill`) and respawn the entry-1 stream
-/// watcher over `field_10`. Step 3 is the only exit: it unlinks the scene's
+/// watcher over `sceneArg`. Step 3 is the only exit: it unlinks the scene's
 /// `WorldCollisionTrigger` and returns 1 when the latched kind is 2.
 static u16 func_acropolis_plaza_8017FB50(Task* task)
 {
-    CdCmdQueue*         q    = &gCdCmdQueue;
-    AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->work;
-    u16                 evtId;
-    u8                  evtKind;
-    u8                  evtSub;
-    s32                 killed0;
-    s32                 killed1;
-    s32                 killed2;
-    s16                 ready;
-    u16                 step;
-    s32                 kind;
-    u32                 latchedKind;
-    u16                 latchedKind16;
+    CdCmdQueue*                  q    = &gCdCmdQueue;
+    _AcropolisPlazaSequenceWork* work = (_AcropolisPlazaSequenceWork*)task->work;
+    u16                          evtId;
+    u8                           evtKind;
+    u8                           evtSub;
+    s32                          killed0;
+    s32                          killed1;
+    s32                          killed2;
+    s16                          ready;
+    u16                          step;
+    s32                          kind;
+    u32                          latchedKind;
+    u16                          latchedKind16;
 
     ready = Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub);
     if (!((s16)evtId & WORLD_COLLISION_TRIGGER_AUTOMATIC) && (ready != 0)) {
@@ -4570,111 +4584,111 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
     }
 
     switch (work->step) {
-        case 0:
+        case ACROPOLIS_PLAZA_STEP_AWAIT_FIRST_SCENE:
             if (ready != 0) {
-                work->evtId   = evtId;
-                work->evtKind = evtKind;
-                work->evtSub  = evtSub;
-                if ((s8)evtKind == 1) {
-                    work->field_C =
+                work->eventControl    = evtId;
+                work->eventKind       = evtKind;
+                work->eventParameter1 = evtSub;
+                if ((s8)evtKind == ACROPOLIS_PLAZA_EVENT_FIRST_SCENE) {
+                    work->eventTask =
                         Task_SpawnFromTable(D_acropolis_plaza_80183824, 4, 0, work);
                     work->step = work->step + 1;
                     goto running;
-                } else if ((s8)evtKind >= 6) {
-                    work->field_C =
+                } else if ((s8)evtKind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
+                    work->eventTask =
                         Task_SpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
-                    work->step = 5;
+                    work->step = ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION;
                 }
             }
             return 0;
-        case 1:
-            if (Task_PollKill(work->field_C, &killed0) != 0) {
-                work->field_12 = 1;
-                work->field_10 = work->streamFrame;
-                work->field_8 =
-                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);
+        case ACROPOLIS_PLAZA_STEP_RUN_FIRST_SCENE:
+            if (Task_PollKill(work->eventTask, &killed0) != 0) {
+                work->sceneArg.skipStreamReset = 1;
+                work->sceneArg.startFrame      = work->resumeFrame;
+                work->sceneTask =
+                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
                 Gp_UnlinkObj4A(0, &D_acropolis_plaza_801991F0);
                 work->step = work->step + 1;
             }
             return 0;
-        case 2:
+        case ACROPOLIS_PLAZA_STEP_AWAIT_EVENT:
             if (ready != 0) {
-                work->evtId       = evtId;
-                work->evtKind     = evtKind;
-                work->evtSub      = evtSub;
-                work->streamFrame = q->sceneFrame;
-                kind              = (s8)evtKind;
-                if (kind == 0) {
-                    work->field_C =
+                work->eventControl    = evtId;
+                work->eventKind       = evtKind;
+                work->eventParameter1 = evtSub;
+                work->resumeFrame     = q->sceneFrame;
+                kind                  = (s8)evtKind;
+                if (kind == ACROPOLIS_PLAZA_EVENT_STREAM_SCENE) {
+                    work->eventTask =
                         Task_SpawnFromTable(D_acropolis_plaza_80183824, 2, 0, work);
                     work->step = work->step + 1;
                     goto running;
-                } else if (kind == 2) {
-                    work->field_C =
+                } else if (kind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
+                    work->eventTask =
                         Task_SpawnFromTable(D_acropolis_plaza_80183824, 3, 0, work);
                     work->step = work->step + 1;
                     goto running;
-                } else if (kind == 3) {
-                    if (work->variant == 0) {
-                        work->field_C =
+                } else if (kind == ACROPOLIS_PLAZA_EVENT_REPEAT_SCENE) {
+                    if (work->repeatVariant == 0) {
+                        work->eventTask =
                             Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 0, work);
-                        work->step = 4;
-                    } else if (work->variant == 1) {
-                        work->field_C =
+                        work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
+                    } else if (work->repeatVariant == 1) {
+                        work->eventTask =
                             Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 1, work);
-                        work->step = 4;
+                        work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
                     } else {
-                        work->field_C =
+                        work->eventTask =
                             Task_SpawnFromTable(D_acropolis_plaza_80183824, 6, 2, work);
-                        work->step = 4;
+                        work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
                     }
-                } else if (kind >= 6) {
-                    work->field_C =
+                } else if (kind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
+                    work->eventTask =
                         Task_SpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
-                    work->step = 6;
+                    work->step = ACROPOLIS_PLAZA_STEP_RUN_CAPTION;
                 }
             }
             return 0;
-        case 3:
-            if (Task_PollKill(work->field_C, &killed1) != 0) {
+        case ACROPOLIS_PLAZA_STEP_RUN_SCENE:
+            if (Task_PollKill(work->eventTask, &killed1) != 0) {
                 /* The kind byte is tested as an unsigned short, so it is
                    sign-extended and narrowed again at each comparison; routing
                    both tests through one variable folds the pair away. */
-                latchedKind   = work->evtKind;
+                latchedKind   = work->eventKind;
                 latchedKind16 = (s8)latchedKind;
-                if (latchedKind16 == 0) {
+                if (latchedKind16 == ACROPOLIS_PLAZA_EVENT_STREAM_SCENE) {
                     Gp_UnlinkObj4A(0, &D_acropolis_plaza_801991A4);
-                } else if ((u16)(s8)latchedKind == 2) {
+                } else if ((u16)(s8)latchedKind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
                     Gp_UnlinkObj4A(0, D_acropolis_plaza_8019923C);
                 }
                 work->step = work->step - 1;
-                if ((s8)work->evtKind == 2) {
+                if ((s8)work->eventKind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
                     return 1;
                 }
-                work->field_12 = 1;
-                work->field_10 = work->streamFrame;
-                work->field_8 =
-                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);
+                work->sceneArg.skipStreamReset = 1;
+                work->sceneArg.startFrame      = work->resumeFrame;
+                work->sceneTask =
+                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
             }
             return 0;
-        case 4:
-        case 5:
-        case 6:
-            if (Task_PollKill(work->field_C, &killed2) != 0) {
-                work->field_12 = 1;
-                work->field_10 = work->streamFrame;
-                work->field_8 =
-                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);
+        case ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE:
+        case ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION:
+        case ACROPOLIS_PLAZA_STEP_RUN_CAPTION:
+            if (Task_PollKill(work->eventTask, &killed2) != 0) {
+                work->sceneArg.skipStreamReset = 1;
+                work->sceneArg.startFrame      = work->resumeFrame;
+                work->sceneTask =
+                    Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
                 step = work->step;
-                if (step == 5) {
-                    work->step = 0;
+                if (step == ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION) {
+                    work->step = ACROPOLIS_PLAZA_STEP_AWAIT_FIRST_SCENE;
                 } else {
-                    if (step != 6) {
-                        if (work->variant < 2) {
-                            work->variant = work->variant + 1;
+                    if (step != ACROPOLIS_PLAZA_STEP_RUN_CAPTION) {
+                        if (work->repeatVariant < 2) {
+                            work->repeatVariant = work->repeatVariant + 1;
                         }
                     }
-                    work->step = 2;
+                    work->step = ACROPOLIS_PLAZA_STEP_AWAIT_EVENT;
                 }
             }
             return 0;
@@ -4727,10 +4741,10 @@ void func_acropolis_plaza_8017FF18(Task* task)
 /// stage-load task.
 void func_acropolis_plaza_80180054(Task* task)
 {
-    CdCmdQueue*         q    = &gCdCmdQueue;
-    AcropolisPlazaWork* work = (AcropolisPlazaWork*)task->work;
-    AcropolisPlazaWork* newWork;
-    SVECTOR             vec;
+    CdCmdQueue*                  q    = &gCdCmdQueue;
+    _AcropolisPlazaSequenceWork* work = (_AcropolisPlazaSequenceWork*)task->work;
+    _AcropolisPlazaSequenceWork* newWork;
+    SVECTOR                      vec;
 
     switch (task->state) {
         case 0:
@@ -4743,8 +4757,8 @@ void func_acropolis_plaza_80180054(Task* task)
                 return;
             }
             memFillBytes(newWork, 0, sizeof(*newWork));
-            ((AcropolisPlazaWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            ((AcropolisPlazaWork*)task->work)->field_C =
+            ((_AcropolisPlazaSequenceWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            ((_AcropolisPlazaSequenceWork*)task->work)->eventTask =
                 Task_SpawnFromTable(D_acropolis_plaza_80183824, 5, 0, 0);
             Gp_KillPlayerEffs();
             Task_SpawnFromTable(D_acropolis_plaza_80183824, 0xB, 0, 0);
@@ -4760,9 +4774,9 @@ void func_acropolis_plaza_80180054(Task* task)
             vec.vz = 0x370;
             Gp_SetOverrideVec(&vec);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            work->field_12 = 0;
-            work->field_10 = 0;
-            work->field_8  = Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);
+            work->sceneArg.skipStreamReset = 0;
+            work->sceneArg.startFrame      = 0;
+            work->sceneTask                = Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
             Stage_RequestFromAreaTable(0);
             Task_SpawnFromTable(D_acropolis_plaza_80183824, 8, 6, 0);
             q->blockGamePause = 1;
