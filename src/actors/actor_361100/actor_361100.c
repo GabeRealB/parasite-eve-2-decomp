@@ -1033,49 +1033,49 @@ void func_actor_361100_80161E3C(Task* arg0)
 /// for `$t3`, as retail does.
 static void func_actor_361100_80161FF8(Task* arg0)
 {
-    DisplayState*          disp;
-    OverlayRippleScratch*  block;
-    OverlayRippleScratch** slot;
-    POLY_FT4*              prim;
-    s32                    left;
-    s32                    adj;
-    u8*                    ptr;
-    s32                    otBuf;
-    s32                    mode;
-    s32                    shift;
-    s32                    ang2;
-    s32                    ang;
-    s32                    y;
-    s32                    yTop;
-    s32                    x0;
-    s32                    x1;
-    s32                    nprims;
-    s32                    clip;
-    s32                    otOff;
-    s32                    fade;
-    s32                    scale;
-    s32                    xNeg;
-    s32                    wave;
-    s32                    wave1;
-    s32                    baseY;
-    s32                    one;
-    s32                    dist;
-    s32                    z;
-    s32                    otz;
-    s32                    i;
-    s32                    yOff;
-    s32                    fadeLen;
-    s32                    xMin;
-    s32                    xMax;
-    s32                    xLeft;
-    s32                    xRight;
-    s32                    xL;
-    s32                    xR;
-    s32                    v;
-    s32                    edge;
-    s32                    sine;
-    s32                    cosine;
-    u16                    spare;
+    DisplayState*            disp;
+    WaterRefractionScratch*  block;
+    WaterRefractionScratch** slot;
+    POLY_FT4*                prim;
+    s32                      left;
+    s32                      adj;
+    u8*                      ptr;
+    s32                      otBuf;
+    s32                      mode;
+    s32                      shift;
+    s32                      ang2;
+    s32                      ang;
+    s32                      y;
+    s32                      yTop;
+    s32                      x0;
+    s32                      x1;
+    s32                      nprims;
+    s32                      clip;
+    s32                      otOff;
+    s32                      fade;
+    s32                      scale;
+    s32                      xNeg;
+    s32                      wave;
+    s32                      wave1;
+    s32                      baseY;
+    s32                      one;
+    s32                      dist;
+    s32                      z;
+    s32                      otz;
+    s32                      i;
+    s32                      yOff;
+    s32                      fadeLen;
+    s32                      xMin;
+    s32                      xMax;
+    s32                      xLeft;
+    s32                      xRight;
+    s32                      xL;
+    s32                      xR;
+    s32                      v;
+    s32                      edge;
+    s32                      sine;
+    s32                      cosine;
+    u16                      spare;
 
     left    = 0x18000 - Fs_ChunkOutputSizes[2];
     left   &= -8;
@@ -1105,26 +1105,26 @@ static void func_actor_361100_80161FF8(Task* arg0)
         if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
             arg0->killCountdown = (u16)arg0->killCountdown + 0x20;
         }
-        ang2                                        = arg0->killCountdown * 2;
-        ang                                         = arg0->killCountdown;
-        slot                                        = (OverlayRippleScratch**)SCRATCH_HEAD_ADDR;
-        SCRATCH_HEAD_AT(slot, OverlayRippleScratch) = SCRATCH_HEAD_AT(slot, OverlayRippleScratch) - 1;
-        block                                       = SCRATCH_HEAD_AT(slot, OverlayRippleScratch);
-        TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
-        block->origin.vx = gGfxViewCoord.workm.t[0];
-        block->origin.vy = gGfxViewCoord.workm.t[1];
-        block->origin.vz = gGfxViewCoord.workm.t[2];
-        gfxRotateSv(&block->mtx, &block->origin);
-        block->depth  = block->origin.vy + 0x712;
-        block->depth *= disp->screenDistance;
-        block->row.vx = 0;
-        block->row.vz = disp->screenDistance;
-        gte_SetRotMatrix(&block->mtx);
+        ang2                                          = arg0->killCountdown * 2;
+        ang                                           = arg0->killCountdown;
+        slot                                          = (WaterRefractionScratch**)SCRATCH_HEAD_ADDR;
+        SCRATCH_HEAD_AT(slot, WaterRefractionScratch) = SCRATCH_HEAD_AT(slot, WaterRefractionScratch) - 1;
+        block                                         = SCRATCH_HEAD_AT(slot, WaterRefractionScratch);
+        TransposeMatrix(&gGfxViewCoord.workm, &block->transposedView);
+        block->viewTranslation.vx = gGfxViewCoord.workm.t[0];
+        block->viewTranslation.vy = gGfxViewCoord.workm.t[1];
+        block->viewTranslation.vz = gGfxViewCoord.workm.t[2];
+        gfxRotateSv(&block->transposedView, &block->viewTranslation);
+        block->depth        = block->viewTranslation.vy + 0x712;
+        block->depth       *= disp->screenDistance;
+        block->screenRow.vx = 0;
+        block->screenRow.vz = disp->screenDistance;
+        gte_SetRotMatrix(&block->transposedView);
         y = 0x50;
         do {
-            yTop          = y - 0x78;
-            block->row.vy = yTop;
-            gte_ldv0(&block->row);
+            yTop                = y - 0x78;
+            block->screenRow.vy = yTop;
+            gte_ldv0(&block->screenRow);
             gte_rtv0();
             x0     = xMin;
             x1     = xMax;
@@ -1175,9 +1175,9 @@ static void func_actor_361100_80161FF8(Task* arg0)
                     wave1 += one;
                 }
             }
-            gte_stsv(&block->rowView);
-            if (block->rowView.vy > 0) {
-                otz   = block->depth / block->rowView.vy;
+            gte_stsv(&block->rotatedRow);
+            if (block->rotatedRow.vy > 0) {
+                otz   = block->depth / block->rotatedRow.vy;
                 otz >>= 2;
             } else {
                 otz = 0x3FFF;
@@ -1338,7 +1338,7 @@ static void func_actor_361100_80161FF8(Task* arg0)
             }
             y += 1;
         } while (y < 0xF0);
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayRippleScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(WaterRefractionScratch));
     }
 }
 

@@ -18,46 +18,46 @@
 /// way the retail code needs.
 void waterRefractionTask(Task* task)
 {
-    s32                   buf;
-    s32                   sinArg;
-    s32                   cosArg;
-    s32                   kind;
-    s32                   scale;
-    s32                   zoff;
-    s32                   split;
-    s32                   splitX;
-    s32                   otzOff;
-    s32                   xLeft0;
-    s32                   xRight0;
-    s32                   xLeftS;
-    s32                   start;
-    s32                   end;
-    s32                   area;
-    POLY_FT4*             prim;
-    OverlayRippleScratch* scratch;
-    s32                   y;
-    s32                   y0;
-    s32                   xl;
-    s32                   xr;
-    s32                   passes;
-    s32                   pass;
-    s32                   wave;
-    s32                   sinv;
-    s32                   cosv;
-    s32                   w;
-    s32                   d;
-    s32                   z;
-    s32                   otz;
-    s32                   v;
-    s32                   dy;
-    s32                   xv;
-    s32                   x;
-    s32                   xe;
-    s32                   xMin;
-    s32                   xMax;
-    s32                   fadeLen;
-    s32                   one;
-    DisplayState*         disp;
+    s32                     buf;
+    s32                     sinArg;
+    s32                     cosArg;
+    s32                     kind;
+    s32                     scale;
+    s32                     zoff;
+    s32                     split;
+    s32                     splitX;
+    s32                     otzOff;
+    s32                     xLeft0;
+    s32                     xRight0;
+    s32                     xLeftS;
+    s32                     start;
+    s32                     end;
+    s32                     area;
+    POLY_FT4*               prim;
+    WaterRefractionScratch* scratch;
+    s32                     y;
+    s32                     y0;
+    s32                     xl;
+    s32                     xr;
+    s32                     passes;
+    s32                     pass;
+    s32                     wave;
+    s32                     sinv;
+    s32                     cosv;
+    s32                     w;
+    s32                     d;
+    s32                     z;
+    s32                     otz;
+    s32                     v;
+    s32                     dy;
+    s32                     xv;
+    s32                     x;
+    s32                     xe;
+    s32                     xMin;
+    s32                     xMax;
+    s32                     fadeLen;
+    s32                     one;
+    DisplayState*           disp;
 
     kind    = 0;
     scale   = 0x1000;
@@ -261,23 +261,23 @@ void waterRefractionTask(Task* task)
     }
     sinArg = task->killCountdown * 2;
     cosArg = task->killCountdown;
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayRippleScratch);
-    scratch = SCRATCH_STACK_CURSOR(OverlayRippleScratch);
-    TransposeMatrix(&gGfxViewCoord.workm, &scratch->mtx);
-    scratch->origin.vx = gGfxViewCoord.workm.t[0];
-    scratch->origin.vy = gGfxViewCoord.workm.t[1];
-    scratch->origin.vz = gGfxViewCoord.workm.t[2];
-    gfxRotateSv(&scratch->mtx, &scratch->origin);
-    scratch->depth  = scratch->origin.vy + zoff;
-    scratch->depth *= disp->screenDistance;
-    scratch->row.vx = 0;
-    scratch->row.vz = disp->screenDistance;
-    gte_SetRotMatrix(&scratch->mtx);
+    SCRATCH_STACK_RESERVE_BLOCK(WaterRefractionScratch);
+    scratch = SCRATCH_STACK_CURSOR(WaterRefractionScratch);
+    TransposeMatrix(&gGfxViewCoord.workm, &scratch->transposedView);
+    scratch->viewTranslation.vx = gGfxViewCoord.workm.t[0];
+    scratch->viewTranslation.vy = gGfxViewCoord.workm.t[1];
+    scratch->viewTranslation.vz = gGfxViewCoord.workm.t[2];
+    gfxRotateSv(&scratch->transposedView, &scratch->viewTranslation);
+    scratch->depth        = scratch->viewTranslation.vy + zoff;
+    scratch->depth       *= disp->screenDistance;
+    scratch->screenRow.vx = 0;
+    scratch->screenRow.vz = disp->screenDistance;
+    gte_SetRotMatrix(&scratch->transposedView);
 
     for (y = start; y < end; y++) {
-        y0              = y - 0x78;
-        scratch->row.vy = y0;
-        gte_ldv0(&scratch->row);
+        y0                    = y - 0x78;
+        scratch->screenRow.vy = y0;
+        gte_ldv0(&scratch->screenRow);
         gte_rtv0();
         xl     = xLeft0;
         xr     = xRight0;
@@ -323,9 +323,9 @@ void waterRefractionTask(Task* task)
                 w += one;
             }
         }
-        gte_stsv(&scratch->rowView);
-        if (scratch->rowView.vy > 0) {
-            otz   = scratch->depth / scratch->rowView.vy;
+        gte_stsv(&scratch->rotatedRow);
+        if (scratch->rotatedRow.vy > 0) {
+            otz   = scratch->depth / scratch->rotatedRow.vy;
             otz >>= 2;
         } else {
             otz = 0x3FFF;
@@ -494,5 +494,5 @@ void waterRefractionTask(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayRippleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(WaterRefractionScratch);
 }

@@ -1756,47 +1756,47 @@ u8 D_shelter_r48_8018BE54[6][16] = { 0 };
 
 void func_shelter_r48_8017D660(Task* arg0)
 {
-    DisplayState*         disp;
-    TmdObject*            tmd;
-    OverlayRippleScratch* block;
-    POLY_FT4*             prim;
-    u8*                   ptr;
-    s32                   otBuf;
-    s32                   view;
-    s32                   mode;
-    s32                   shift;
-    s32                   ang2;
-    s32                   ang;
-    s32                   y;
-    s32                   yTop;
-    s32                   x0;
-    s32                   x1;
-    s32                   nprims;
-    s32                   clip;
-    s32                   otOff;
-    s32                   fade;
-    s32                   scale;
-    s32                   xNeg;
-    s32                   wave;
-    s32                   wave1;
-    s32                   start;
-    s32                   end;
-    s32                   dist;
-    s32                   z;
-    s32                   otz;
-    s32                   i;
-    s32                   yOff;
-    s32                   fadeLen;
-    s32                   xMin;
-    s32                   xMax;
-    s32                   xLeft;
-    s32                   xRight;
-    s32                   xL;
-    s32                   xR;
-    s32                   v;
-    s32                   edge;
-    s32                   sine;
-    s32                   cosine;
+    DisplayState*           disp;
+    TmdObject*              tmd;
+    WaterRefractionScratch* block;
+    POLY_FT4*               prim;
+    u8*                     ptr;
+    s32                     otBuf;
+    s32                     view;
+    s32                     mode;
+    s32                     shift;
+    s32                     ang2;
+    s32                     ang;
+    s32                     y;
+    s32                     yTop;
+    s32                     x0;
+    s32                     x1;
+    s32                     nprims;
+    s32                     clip;
+    s32                     otOff;
+    s32                     fade;
+    s32                     scale;
+    s32                     xNeg;
+    s32                     wave;
+    s32                     wave1;
+    s32                     start;
+    s32                     end;
+    s32                     dist;
+    s32                     z;
+    s32                     otz;
+    s32                     i;
+    s32                     yOff;
+    s32                     fadeLen;
+    s32                     xMin;
+    s32                     xMax;
+    s32                     xLeft;
+    s32                     xRight;
+    s32                     xL;
+    s32                     xR;
+    s32                     v;
+    s32                     edge;
+    s32                     sine;
+    s32                     cosine;
 
     tmd   = arg0->extra.tmd;
     otBuf = gDisplayState.otBuffer;
@@ -1871,22 +1871,22 @@ void func_shelter_r48_8017D660(Task* arg0)
     }
     ang2 = arg0->killCountdown * 2;
     ang  = arg0->killCountdown;
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayRippleScratch);
-    block = SCRATCH_STACK_CURSOR(OverlayRippleScratch);
-    TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
-    block->origin.vx = gGfxViewCoord.workm.t[0];
-    block->origin.vy = gGfxViewCoord.workm.t[1];
-    block->origin.vz = gGfxViewCoord.workm.t[2];
-    gfxRotateSv(&block->mtx, &block->origin);
-    block->depth  = block->origin.vy + 0xD02;
-    block->depth *= disp->screenDistance;
-    block->row.vx = 0;
-    block->row.vz = disp->screenDistance;
-    gte_SetRotMatrix(&block->mtx);
+    SCRATCH_STACK_RESERVE_BLOCK(WaterRefractionScratch);
+    block = SCRATCH_STACK_CURSOR(WaterRefractionScratch);
+    TransposeMatrix(&gGfxViewCoord.workm, &block->transposedView);
+    block->viewTranslation.vx = gGfxViewCoord.workm.t[0];
+    block->viewTranslation.vy = gGfxViewCoord.workm.t[1];
+    block->viewTranslation.vz = gGfxViewCoord.workm.t[2];
+    gfxRotateSv(&block->transposedView, &block->viewTranslation);
+    block->depth        = block->viewTranslation.vy + 0xD02;
+    block->depth       *= disp->screenDistance;
+    block->screenRow.vx = 0;
+    block->screenRow.vz = disp->screenDistance;
+    gte_SetRotMatrix(&block->transposedView);
     for (y = start; y < end; y++) {
-        yTop          = y - 0x78;
-        block->row.vy = yTop;
-        gte_ldv0(&block->row);
+        yTop                = y - 0x78;
+        block->screenRow.vy = yTop;
+        gte_ldv0(&block->screenRow);
         gte_rtv0();
         x0     = xMin;
         x1     = xMax;
@@ -1938,9 +1938,9 @@ void func_shelter_r48_8017D660(Task* arg0)
                 } while (0);
             }
         }
-        gte_stsv(&block->rowView);
-        if (block->rowView.vy > 0) {
-            otz   = block->depth / block->rowView.vy;
+        gte_stsv(&block->rotatedRow);
+        if (block->rotatedRow.vy > 0) {
+            otz   = block->depth / block->rotatedRow.vy;
             otz >>= 2;
         } else {
             otz = 0x3FFF;
@@ -2100,7 +2100,7 @@ void func_shelter_r48_8017D660(Task* arg0)
             ang += 0xC5;
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayRippleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(WaterRefractionScratch);
 }
 
 s32 func_shelter_r48_8017DF50(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)

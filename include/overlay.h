@@ -321,22 +321,27 @@ STATIC_ASSERT_SIZEOF(OverlayEncounterPairWork, 0xC);
 /// overlays that reach it.
 extern TaskDesc D_80151E60;
 
-/// The scratch-pad block a screen-ripple drawer takes for one call. `mtx` is
-/// the transposed view rotation, loaded as the GTE rotation for every
-/// projection the drawer makes; each screen row's vector `row` is rotated
-/// through it into `rowView`, and `origin` is the view translation brought
-/// into the same frame. `depth` is divided by each row's height to find its
-/// ordering-table depth. Nothing reads the tail; the block's size is
-/// how far the drawer moves the scratch head.
-typedef struct OverlayRippleScratch {
-    MATRIX  mtx;
-    SVECTOR row;
-    SVECTOR rowView;
-    SVECTOR origin;
-    s32     depth;
-    byte    pad_3C[0x10];
-} OverlayRippleScratch;
-STATIC_ASSERT_SIZEOF(OverlayRippleScratch, 0x4C);
+/// Scratch-stack block a water-refraction drawer reserves for one call.
+///
+/// The drawer stores the transpose of `gGfxViewCoord.workm` in
+/// `transposedView` and loads that rotation into the GTE. Each screen row
+/// goes into `screenRow` and comes back rotated in `rotatedRow`.
+/// `viewTranslation` receives the view matrix's translation and is rotated
+/// by the same matrix; `depth` is that rotated Y plus a caller offset, times
+/// the projection distance. The ordering-table depth is `depth` divided by
+/// `rotatedRow.vy` when that Y is positive, and 0x3FFF otherwise. The block
+/// is released before the drawer returns. The last sixteen bytes are never
+/// read or written; they keep the reservation at 0x4C and their role is
+/// unproven.
+typedef struct {
+    MATRIX  transposedView;  // Transpose of gGfxViewCoord.workm; its rotation is the GTE rotation for every row
+    SVECTOR screenRow;       // Screen-row vector: X 0, Y the row minus 0x78, Z the projection distance
+    SVECTOR rotatedRow;      // screenRow rotated by transposedView; only Y is read, as the divisor of depth
+    SVECTOR viewTranslation; // View-matrix translation, rotated in place by transposedView; only Y is read
+    s32     depth;           // (viewTranslation.vy + caller offset) * projection distance, the ordering-table dividend
+    byte    field_3C[0x10];  // Never read or written; role unproven
+} WaterRefractionScratch;
+STATIC_ASSERT_SIZEOF(WaterRefractionScratch, 0x4C);
 
 /// Scratch-stack block of the contact steering walk, which nudges a coordinate
 /// away from the obstacles among its contact records.
