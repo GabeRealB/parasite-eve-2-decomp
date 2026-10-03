@@ -54,45 +54,24 @@
 
 #include "rooms/room_common.h"
 
-typedef struct {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ u8  field_3;
-    /* 0x4 */ u8  field_4;
-    /* 0x5 */ u8  field_5;
-    /* 0x6 */ u16 field_6;
-} AcropolisPatioMsg8;
-
-extern TaskDesc D_acropolis_patio_801802BC[];
-extern TaskDesc D_acropolis_patio_80182800;
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32  (*call0)(void);
-        s32  (*call1)(s32, s32, AcropolisPatioMsg8*, AcropolisPatioMsg8*);
-        s32  (*call2)(s32, s32, s32);
-        void (*call3)(s32, s32, AcropolisPatioMsg8*);
-    } handler;
-} AcropolisPatioMessageEntry;
-STATIC_ASSERT_SIZEOF(AcropolisPatioMessageEntry, 8);
-
-extern AcropolisPatioMessageEntry D_acropolis_patio_8018028C[6];
-extern ActorTransform             D_acropolis_patio_80180428;
-extern s32                        D_acropolis_patio_80180440;
-extern s32                        D_acropolis_patio_8018044C;
-extern ActorTransform             D_acropolis_patio_8018046C;
-extern Task*                      D_acropolis_patio_80187060;
-extern EvsCommand                 D_acropolis_patio_80180DEC[];
-extern EvsCommand                 D_acropolis_patio_80180EDC[];
-extern u8                         D_acropolis_patio_80187064;
-extern u8                         D_acropolis_patio_80187065;
-extern EvsCommand                 D_acropolis_patio_80180484[];
-extern EvsCommand                 D_acropolis_patio_801806AC[];
-extern EvsCommand                 D_acropolis_patio_8018082C[];
-extern EvsCommand                 D_acropolis_patio_80180C64[];
-extern EvsCommand                 D_acropolis_patio_8018280C[];
-extern EvsCommand                 D_acropolis_patio_80182BE4[];
+extern TaskDesc         D_acropolis_patio_801802BC[];
+extern TaskDesc         D_acropolis_patio_80182800;
+extern TaskMessageEntry D_acropolis_patio_8018028C[6];
+extern ActorTransform   D_acropolis_patio_80180428;
+extern s32              D_acropolis_patio_80180440;
+extern s32              D_acropolis_patio_8018044C;
+extern ActorTransform   D_acropolis_patio_8018046C;
+extern Task*            D_acropolis_patio_80187060;
+extern EvsCommand       D_acropolis_patio_80180DEC[];
+extern EvsCommand       D_acropolis_patio_80180EDC[];
+extern u8               D_acropolis_patio_80187064;
+extern u8               D_acropolis_patio_80187065;
+extern EvsCommand       D_acropolis_patio_80180484[];
+extern EvsCommand       D_acropolis_patio_801806AC[];
+extern EvsCommand       D_acropolis_patio_8018082C[];
+extern EvsCommand       D_acropolis_patio_80180C64[];
+extern EvsCommand       D_acropolis_patio_8018280C[];
+extern EvsCommand       D_acropolis_patio_80182BE4[];
 
 /// The 14 anchor points of the patio's fountain spray, in the room object's own
 /// space. The first three double as the jitter centres for the mist burst.
@@ -169,12 +148,12 @@ void                        func_acropolis_patio_8017DF38(s32);
 void                        func_acropolis_patio_8017DF48(void);
 void                        func_acropolis_patio_8017DF70(u8);
 
-s32  func_acropolis_patio_8017D7D0(s32, s32, AcropolisPatioMsg8*, AcropolisPatioMsg8*);
-s32  func_acropolis_patio_8017DCE4(s32, s32, s32);
-s32  func_acropolis_patio_8017DD44(void);
-s32  func_acropolis_patio_8017DD4C(s32, s32, s32);
+s32  func_acropolis_patio_8017D7D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32  func_acropolis_patio_8017DCE4(Task*, s32, s32, TaskMessageArg);
+s32  func_acropolis_patio_8017DD44(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_acropolis_patio_8017DD4C(Task*, s32, s32, TaskMessageArg);
 void func_acropolis_patio_8017DA5C(Task*);
-void func_acropolis_patio_8017DBAC(s32, s32, AcropolisPatioMsg8*);
+s32  func_acropolis_patio_8017DBAC(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_acropolis_patio_8017DD80(Task*);
 void func_acropolis_patio_8017DE2C(Task*);
 
@@ -310,13 +289,13 @@ static AnimationSet _gAcropolisPatioAnimation02CA4 = {
     { NULL, _gAcropolisPatioAnimation02CA4Bank1, NULL, NULL, _gAcropolisPatioAnimation02CA4Bank4, NULL, NULL, NULL },
 };
 
-AcropolisPatioMessageEntry D_acropolis_patio_8018028C[6] = {
-    { 5102, { .call1 = func_acropolis_patio_8017D7D0 } },
-    { ROOM_MESSAGE_COMMAND, { .call2 = func_acropolis_patio_8017DCE4 } },
-    { 5105, { .call0 = func_acropolis_patio_8017DD44 } },
-    { ROOM_MESSAGE_SOUND, { .call2 = func_acropolis_patio_8017DD4C } },
-    { 5103, { .call3 = func_acropolis_patio_8017DBAC } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_acropolis_patio_8018028C[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_patio_8017D7D0 },
+    { ROOM_MESSAGE_COMMAND, func_acropolis_patio_8017DCE4 },
+    { 5105, func_acropolis_patio_8017DD44 },
+    { ROOM_MESSAGE_SOUND, func_acropolis_patio_8017DD4C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_patio_8017DBAC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_acropolis_patio_801802BC[4] = {
@@ -1762,31 +1741,31 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-s32 func_acropolis_patio_8017D7D0(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2, AcropolisPatioMsg8* arg3)
+s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, RoomEventMsg* arg3)
 {
     s32 var_v0;
     u16 temp_s1;
 
     *arg3 = *arg2;
-    if (arg2->field_0 == 8) {
-        if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && (arg2->field_5 == 0)) {
-            arg3->field_3 = 2;
+    if (arg2->areaId == 8) {
+        if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && (arg2->queryOnly == 0)) {
+            arg3->room = 2;
         }
     }
-    if (arg2->field_0 == 4) {
+    if (arg2->areaId == 4) {
         if (GameFlag_GetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) < 2) {
             var_v0 = 0;
-            if (arg2->field_5 == 0) {
+            if (arg2->queryOnly == 0) {
                 Gp_RunCapCmd1(3);
                 GameFlag_SetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 1);
-                Gp_SetNibbleIf(arg2->field_6, 2);
+                Gp_SetNibbleIf(arg2->flagId, 2);
                 return 0;
             }
             return var_v0;
         }
         if (GameFlag_GetNibble(0) == 2) {
             var_v0 = 2;
-            if (arg2->field_5 == 0) {
+            if (arg2->queryOnly == 0) {
                 if (GameFlag_GetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN) == 0) {
                     func_800E8634(D_acropolis_patio_80180DEC, 0, D_acropolis_patio_80180EDC);
                     GameFlag_SetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN, 1);
@@ -1799,11 +1778,11 @@ s32 func_acropolis_patio_8017D7D0(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2, 
         }
         if (GameFlag_GetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) == 2) {
             var_v0 = 2;
-            if (arg2->field_5 == 0) {
+            if (arg2->queryOnly == 0) {
                 Task_SpawnFromTable(D_acropolis_patio_801802BC, 1, 0, 0);
                 Gp_SetItemSeenBit(0x101, 1);
-                D_acropolis_patio_80187064 = arg2->field_2;
-                D_acropolis_patio_80187065 = arg2->field_3;
+                D_acropolis_patio_80187064 = arg2->warp;
+                D_acropolis_patio_80187065 = arg2->room;
                 return 2;
             }
             return var_v0;
@@ -1811,30 +1790,30 @@ s32 func_acropolis_patio_8017D7D0(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2, 
         goto block_17;
     }
 block_17:
-    if ((arg2->field_0 == 8) && (GameFlag_GetNibble(0) < 5)) {
+    if ((arg2->areaId == 8) && (GameFlag_GetNibble(0) < 5)) {
         var_v0 = 0;
-        if (arg2->field_5 == 0) {
-            Gp_SetNibbleIf(arg2->field_6, 2);
+        if (arg2->queryOnly == 0) {
+            Gp_SetNibbleIf(arg2->flagId, 2);
             Gp_RunCapCmd1(4);
             return 0;
         }
         return var_v0;
     }
-    if ((arg2->field_5 == 0) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3)) {
+    if ((arg2->queryOnly == 0) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3)) {
         GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
     }
-    temp_s1 = arg2->field_0;
+    temp_s1 = arg2->areaId;
     var_v0  = 1;
     if (temp_s1 == 4) {
         var_v0 = 1;
-        if (arg2->field_5 == 0) {
+        if (arg2->queryOnly == 0) {
             if (GameFlag_GetNibble(0) >= 3) {
-                arg3->field_3 = (s8)temp_s1;
+                arg3->room = (s8)temp_s1;
             }
             var_v0 = 1;
             if (GameFlag_GetNibble(0) == 2) {
-                arg3->field_3 = 3;
-                var_v0        = 1;
+                arg3->room = 3;
+                var_v0     = 1;
             }
         }
     }
@@ -1880,28 +1859,30 @@ void func_acropolis_patio_8017DA5C(Task* task)
     }
 }
 
-void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
+s32 func_acropolis_patio_8017DBAC(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
 {
-    u8 state;
+    const DirectionActionRequest* request = arg2.pointer;
+    u8                            state;
 
-    if ((arg2->field_2 == 0) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
+    if ((request->actionId == 0) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
         GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 3);
         func_800E8634(D_acropolis_patio_80180484, 0, D_acropolis_patio_801806AC);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
-    if ((arg2->field_2 == 1) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3) &&
+    if ((request->actionId == 1) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3) &&
         (taskMessageDispatch(Gp_LookupSlot4(1), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
         GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
         func_800E8634(D_acropolis_patio_8018082C, 0, D_acropolis_patio_80180C64);
     }
-    state = arg2->field_2;
+    state = request->actionId;
     if ((state == 2) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == 0) && (GameFlag_GetNibble(0) == state)) {
         GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_PATIO_026, 1);
         func_800E8634(D_acropolis_patio_8018280C, 0, D_acropolis_patio_80182BE4);
     }
+    // No result is set; the sender of a room action ignores it.
 }
-s32 func_acropolis_patio_8017DCE4(s32 arg0, s32 arg1, s32 arg2)
+s32 func_acropolis_patio_8017DCE4(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     s32 var_v0;
 
@@ -1919,12 +1900,12 @@ s32 func_acropolis_patio_8017DCE4(s32 arg0, s32 arg1, s32 arg2)
     return var_v0;
 }
 
-s32 func_acropolis_patio_8017DD44(void)
+s32 func_acropolis_patio_8017DD44(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_patio_8017DD4C(s32 arg0, s32 arg1, s32 arg2)
+s32 func_acropolis_patio_8017DD4C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 3) {
         SndEvt_EnqueueType6(0x51030000 | 3, 0, 0);

@@ -49035,13 +49035,13 @@ The fix is to restore the dropped leading parameters rather than to chase the
 register through pins or the permuter:
 
 ```c
-void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8 *arg2)
+s32 func_acropolis_patio_8017DBAC(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
 ```
 
 Whenever the *only* diff is the argument register a parameter is moved out of,
 count the gap in m2c's `argN` names first — the matched siblings in the same TU
-usually show the real arity (here `func_acropolis_patio_8017DCE4(s32, s32, s32)`
-and the four-argument message handlers).
+usually show the real arity (here `func_acropolis_patio_8017DCE4(Task*, s32, s32, TaskMessageArg)`
+and the other four-argument message handlers).
 
 The drop need not be leading, so a gap can sit in the middle of an emitted
 signature. `func_actor_461800_80133970` reads `$a0` and `$a2` but never `$a1`
