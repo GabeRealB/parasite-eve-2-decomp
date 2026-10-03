@@ -173,15 +173,26 @@ typedef struct {
 } _WorldCollisionFloorQueryScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionFloorQueryScratch, 0x50);
 
-/// 0x30-byte scratch from the scratch stack used by `func_800DDDF8`.
-/// `pos` holds the world-space segment from `func_800DEC80`; `ray[0]`
-/// is its normalized direction and `ray[1]` receives the intersection
-/// from `func_800DD324` before it is copied into a collision record.
-typedef struct _GpSegmentHitScratch {
-    /* 0x00 */ VECTOR  pos[2];
-    /* 0x20 */ SVECTOR ray[2];
-} GpSegmentHitScratch;
-STATIC_ASSERT_SIZEOF(GpSegmentHitScratch, 0x30);
+/// Temporary view-space segment and hit storage for a capsule body's grid-contact scan.
+///
+/// The segment joins the capsule's two ends, placed by the body's cached
+/// transform; the direction runs from endpoint 1 toward endpoint 0. A face is
+/// crossed only from its front, with endpoint 1 in front of it and endpoint 0
+/// behind. A body that clips to its grid contact starts endpoint 0 at the
+/// point of the grid contact it already holds, when it has one, and each
+/// accepted hit then replaces endpoint 0, so a later face has to cross the
+/// shortened segment; endpoint 1 and the direction stay fixed. Other bodies
+/// record every crossed face against the unshortened segment. The face test
+/// may write a candidate intersection even when it later rejects the face;
+/// consume that point only on acceptance. Positions use game units. The block
+/// lives on the scratch stack through the nested candidate scan, segment
+/// placement and face tests. The SDK vectors' fourth components are unused
+/// and left uninitialized.
+typedef struct {
+    VECTOR  endpoints[2]; // View-space segment: [0] end a clipping body shortens to its latest accepted hit, [1] fixed far end
+    SVECTOR ray[2];       // [0] Endpoint 1 to endpoint 0 direction, 4096 per unit; [1] candidate intersection
+} _WorldCollisionCapsuleGridContactScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionCapsuleGridContactScratch, 0x30);
 
 /// 0xB0-byte scratch from the scratch stack used by `func_800DF6AC`: the
 /// quad-test block `func_800DEF80` works in, followed by `dir`, the normalised
@@ -315,21 +326,21 @@ static void func_800DDC2C(WorldCollisionBody* arg0)
 
 void func_800DDDF8(WorldCollisionBody* obj)
 {
-    GpSegmentHitScratch*   block;
-    WorldCollisionContact* slot;
-    u16                    flags;
-    s32                    i;
+    _WorldCollisionCapsuleGridContactScratch* scratch;
+    WorldCollisionContact*                    slot;
+    u16                                       flags;
+    s32                                       i;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpSegmentHitScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionCapsuleGridContactScratch);
     for (i = 0; i < Gp_GridParams->faceCount; i++) {
         D_80115450[i] = 0;
     }
 
     func_800DE150(obj);
-    func_800DEC80(obj, block->pos, block->ray, 1);
+    func_800DEC80(obj, scratch->endpoints, scratch->ray, 1);
 
     for (i = 0; i < Gp_GridParams->faceCount; i++) {
-        if (D_80115450[i] != 0 && func_800DD324(i, block->pos, block->ray, obj) != 0) {
+        if (D_80115450[i] != 0 && func_800DD324(i, scratch->endpoints, scratch->ray, obj) != 0) {
             slot = obj->context.capsule->contacts;
             if (obj->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
@@ -338,11 +349,11 @@ void func_800DDDF8(WorldCollisionBody* obj)
                     slot->distance           = 0;
                     slot->flags             |= WORLD_COLLISION_CONTACT_OCCUPIED;
                     slot->key.value          = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                    slot->point              = block->ray[1];
+                    slot->point              = scratch->ray[1];
                     slot->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
-                    block->pos[0].vx         = block->ray[1].vx;
-                    block->pos[0].vy         = block->ray[1].vy;
-                    block->pos[0].vz         = block->ray[1].vz;
+                    scratch->endpoints[0].vx = scratch->ray[1].vx;
+                    scratch->endpoints[0].vy = scratch->ray[1].vy;
+                    scratch->endpoints[0].vz = scratch->ray[1].vz;
                 }
             } else {
                 for (;;) {
@@ -351,20 +362,18 @@ void func_800DDDF8(WorldCollisionBody* obj)
                         slot->flags              = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
                         slot->distance           = 0;
                         slot->key.value          = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                        slot->point              = block->ray[1];
+                        slot->point              = scratch->ray[1];
                         slot->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
                         if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
                             void** head = SCRATCH_HEAD_ADDR;
 
-                            SCRATCH_POP_BYTES_AT(head, sizeof(GpSegmentHitScratch));
+                            SCRATCH_POP_BYTES_AT(head, sizeof(_WorldCollisionCapsuleGridContactScratch));
                             return;
                         }
                         break;
                     }
                     if (flags == (WORLD_COLLISION_CONTACT_OCCUPIED | WORLD_COLLISION_CONTACT_LAST)) {
-                        void** head = SCRATCH_HEAD_ADDR;
-
-                        SCRATCH_POP_BYTES_AT(head, sizeof(GpSegmentHitScratch));
+                        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleGridContactScratch);
                         return;
                     }
                     slot++;
@@ -372,7 +381,7 @@ void func_800DDDF8(WorldCollisionBody* obj)
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpSegmentHitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleGridContactScratch);
 }
 
 static void func_800DE150(WorldCollisionBody* arg0)
