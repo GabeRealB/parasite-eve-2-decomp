@@ -54,17 +54,21 @@ typedef struct {
 } _AcropolisHelicopterLandingPadLiftWork;
 STATIC_ASSERT_SIZEOF(_AcropolisHelicopterLandingPadLiftWork, 0x54);
 
-/// Main-executable globals with no module header yet, both of which hold the
-/// phase tick back from phase 2: `Gp_StateC08.mode` while it equals 1, `gDisplayState.pendingMode`
-/// while it is non-zero.
-
-/// Message entries with the payload signature selected by each message id.
+/// One row of the lift actor's message table, installed in `Task::msgTable`.
+///
+/// A row is a message id and the callback that handles it. Dispatch passes
+/// each argument in a word register, and the id selects which signature that
+/// word uses. `ACTOR_MESSAGE_PLAY_ANIMATION` borrows an `AnimationPlayRequest`;
+/// this receiver reads the animation id as a lift travel phase (0, 1 or 2)
+/// rather than starting a clip. `ACTOR_MESSAGE_PLACE` borrows an
+/// `ActorTransform` and places the model. `TASK_MESSAGE_TABLE_END` with a
+/// null callback closes the table.
 typedef struct {
-    s32 id; // Message id; `TASK_MESSAGE_TABLE_END` terminates the table
+    s32 messageId;                                                                                                // Receiver-specific id, or TASK_MESSAGE_TABLE_END
     union {
-        s32 (*animation)(Task*, s32, AnimationPlayRequest*, TaskMessageArg);
-        s32 (*placement)(Task*, s32, ActorTransform*, s32);
-    } handler; // Callback with the argument views required by that message
+        s32 (*playAnimation)(Task* task, s32 messageId, AnimationPlayRequest* request, TaskMessageArg secondArg); // ACTOR_MESSAGE_PLAY_ANIMATION; animation id is the travel phase
+        s32 (*place)(Task* task, s32 messageId, ActorTransform* placement, s32 secondArg);                        // ACTOR_MESSAGE_PLACE
+    } handler;                                                                                                    // Callback for `messageId`; NULL only on the end marker
 } _AcropolisHelicopterLandingPadMessageEntry;
 STATIC_ASSERT_SIZEOF(_AcropolisHelicopterLandingPadMessageEntry, 8);
 
@@ -82,9 +86,9 @@ static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
 s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, AnimationPlayRequest*, TaskMessageArg);
 
 _AcropolisHelicopterLandingPadMessageEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, { .animation = func_acropolis_helicopter_landing_pad_8017D824 } },
-    { ACTOR_MESSAGE_PLACE, { .placement = actorMsgPlaceEuler } },
-    { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, { .playAnimation = func_acropolis_helicopter_landing_pad_8017D824 } },
+    { ACTOR_MESSAGE_PLACE, { .place = actorMsgPlaceEuler } },
+    { TASK_MESSAGE_TABLE_END, { .playAnimation = NULL } },
 };
 
 GsF_LIGHT D_acropolis_helicopter_landing_pad_80182340[3] = {
