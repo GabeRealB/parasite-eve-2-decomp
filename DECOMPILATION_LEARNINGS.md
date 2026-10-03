@@ -87286,7 +87286,7 @@ arithmetic: `temp_v0 + 0x20` with `temp_v0` typed `_StageMusicSelection*` (8 byt
 `addiu v0,v1,0x100` and leaves the rest of the function matching at 99.886%.
 The block is `{ MATRIX color; MATRIX light; u16 speed, delta, ticks; }` - the
 0x48 allocation and the `light` / `color` republished onto
-`TmdObject::lightMtx` / `colorMtx` say so, as in `MineForkedTunnelWork` - so the
+`TmdObject::lightMtx` / `colorMtx` say so, as in `_MineForkedTunnelAreaObjectWork` - so the
 offset is the member, not a byte count. Note this struct has colour at 0x00 and
 light at 0x20, the reverse of every other room's work block.
 

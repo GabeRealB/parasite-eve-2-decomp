@@ -106,23 +106,18 @@ STATIC_ASSERT_SIZEOF(MineForkedTunnelMessageEntry, 8);
 
 extern MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3];
 
-/// Per-task work block for the tunnel's enemy: a 0x48-byte `memCalloc`
-/// allocation `func_mine_forked_tunnel_8017D5E8` stores at `Task::work`,
-/// seeding `field_44` to -1. The two leading matrices are the light and colour
-/// matrices `func_mine_forked_tunnel_8017DC70` republishes onto the task's
-/// `TmdObject` (`lightMtx` / `colorMtx`) so `Tmd_SetupDraw` picks them up.
-/// Same layout as `Actor503500ColorMtx`, whose overlay carries a byte-identical
-/// copy of that function.
+/// Work block of the room's area object, the model the switch event sends
+/// rolling down the tunnel slope; allocated zeroed and kept at `Task::work`.
 ///
-/// `field_40` is the `Task_SpawnFromTable` child the room's `func_mine_forked_tunnel_8017D724`
-/// frees; `field_44` is the signed lifetime counter it decrements.
-typedef struct MineForkedTunnelWork {
-    /* 0x00 */ MATRIX light;
-    /* 0x20 */ MATRIX color;
-    /* 0x40 */ void*  field_40;
-    /* 0x44 */ s32    field_44;
-} MineForkedTunnelWork;
-STATIC_ASSERT_SIZEOF(MineForkedTunnelWork, 0x48);
+/// The two matrices are the storage the object's `TmdObject::lightMtx` and
+/// `colorMtx` point at, which its child part borrows as well.
+typedef struct {
+    MATRIX light;         // the model's light matrix
+    MATRIX color;         // the model's colour matrix
+    Task*  child;         // the part parented onto the object's coordinate and tilted separately; NULL when its spawn failed
+    s32    freeCountdown; // frames until the hidden model's primitive buffers are freed, releasing them when it reaches 0 (-1 idle)
+} _MineForkedTunnelAreaObjectWork;
+STATIC_ASSERT_SIZEOF(_MineForkedTunnelAreaObjectWork, 0x48);
 
 extern WorldCollisionGrid D_mine_forked_tunnel_80181C5C;
 extern WorldCollisionGrid D_mine_forked_tunnel_80183D70;
@@ -1465,17 +1460,17 @@ WorldCollisionSurfaceProperties* D_mine_forked_tunnel_801855C0[8] = {
 
 static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 {
-    MineForkedTunnelWork* work;
-    ActorTransform        placement;
+    _MineForkedTunnelAreaObjectWork* work;
+    ActorTransform                   placement;
 
-    work = memCalloc(0x48, 0);
+    work = memCalloc(sizeof(_MineForkedTunnelAreaObjectWork), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
     }
 
-    arg0->work     = work;
-    work->field_44 = -1;
+    arg0->work          = work;
+    work->freeCountdown = -1;
 
     if (GameFlag_GetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0) {
         placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
@@ -1491,7 +1486,7 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 
     func_mine_forked_tunnel_8017DD08(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     func_mine_forked_tunnel_8017DC70(arg0);
-    work->field_40 = Task_SpawnFromTable(D_mine_forked_tunnel_80181B74, 1, 0, arg0);
+    work->child    = Task_SpawnFromTable(D_mine_forked_tunnel_80181B74, 1, 0, arg0);
     arg0->msgTable = D_mine_forked_tunnel_80181B8C;
     func_mine_forked_tunnel_8017DF34(GameFlag_GetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED));
     arg0->exitCallback = func_mine_forked_tunnel_8017DC50;
@@ -1526,11 +1521,11 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
         func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords->workm.t, 0, 3);
     }
 
-    if (((MineForkedTunnelWork*)arg0->work)->field_44 >= 0) {
-        if (((MineForkedTunnelWork*)arg0->work)->field_44 == 0) {
+    if (((_MineForkedTunnelAreaObjectWork*)arg0->work)->freeCountdown >= 0) {
+        if (((_MineForkedTunnelAreaObjectWork*)arg0->work)->freeCountdown == 0) {
             Tmd_FreeBuffers(ext);
         }
-        ((MineForkedTunnelWork*)arg0->work)->field_44--;
+        ((_MineForkedTunnelAreaObjectWork*)arg0->work)->freeCountdown--;
     }
 }
 
@@ -1553,20 +1548,20 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
 /// pointer and gives `$v0` to the values instead of the address.
 s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, ActorCommand* msg)
 {
-    ActorTransform        placement;
-    ActorTransform*       place;
-    ActorTransform*       src;
-    GfxCoord*             coord;
-    MineForkedTunnelWork* work;
+    ActorTransform                   placement;
+    ActorTransform*                  place;
+    ActorTransform*                  src;
+    GfxCoord*                        coord;
+    _MineForkedTunnelAreaObjectWork* work;
 
     switch (msg->command) {
         case 0:
             work                  = task->work;
             task->spawnArg1.value = 0;
             task->killCountdown   = 0;
-            if (work->field_40 != 0) {
-                ((Task*)work->field_40)->spawnArg1.value = 0;
-                ((Task*)work->field_40)->killCountdown   = 0;
+            if (work->child != NULL) {
+                work->child->spawnArg1.value = 0;
+                work->child->killCountdown   = 0;
             }
             placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
             placement.pos.vy = D_mine_forked_tunnel_80181244[0].vy;
@@ -1588,8 +1583,8 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, ActorCommand* msg)
             break;
         case 1:
             work = task->work;
-            if (work->field_40 != 0) {
-                ((Task*)work->field_40)->spawnArg1.value = 1;
+            if (work->child != NULL) {
+                work->child->spawnArg1.value = 1;
             }
             break;
         case 2:
@@ -1665,11 +1660,11 @@ static void func_mine_forked_tunnel_8017DC50(Task* arg0)
 
 static void func_mine_forked_tunnel_8017DC70(Task* arg0)
 {
-    TmdObject*            ext;
-    MineForkedTunnelWork* work;
+    TmdObject*                       ext;
+    _MineForkedTunnelAreaObjectWork* work;
 
     ext           = arg0->extra.tmd;
-    work          = (MineForkedTunnelWork*)arg0->work;
+    work          = arg0->work;
     ext->lightMtx = &work->light;
     ext->colorMtx = &work->color;
 }
@@ -1682,10 +1677,10 @@ static void func_mine_forked_tunnel_8017DC70(Task* arg0)
 /// `TMD_OBJECT_SKIP_AUTO_BUFFER` clear so the model keeps its buffers, mode 1
 /// reinstating them through `Tmd_AllocBuffers` first. Modes 2 and 3 set
 /// `TMD_OBJECT_SKIP_AUTO_BUFFER` instead, skipping that
-/// allocation; mode 2 also stores itself in the work block's lifetime counter,
-/// `MineForkedTunnelWork::field_44`, which `func_mine_forked_tunnel_8017D724`
-/// counts down before freeing the child. Any other mode touches nothing and
-/// reports 1.
+/// allocation; mode 2 also arms
+/// `_MineForkedTunnelAreaObjectWork::freeCountdown` with its own value, which
+/// the object's tick counts down before freeing the hidden model's primitive
+/// buffers. Any other mode touches nothing and reports 1.
 s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     TmdObject* ext;
@@ -1704,9 +1699,9 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            ext->flags                                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((MineForkedTunnelWork*)task->work)->field_44 = mode;
-            ext->flags                                   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            ext->flags                                                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((_MineForkedTunnelAreaObjectWork*)task->work)->freeCountdown = mode;
+            ext->flags                                                   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
