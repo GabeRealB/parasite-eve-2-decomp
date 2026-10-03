@@ -64,27 +64,45 @@
 
 extern TaskDesc D_80164FF8;
 
-/// Work block of the task that moves its model while steering another task.
-/// `lightMtx` and `colorMtx` are the model's own light and colour matrices,
-/// `target` is the task that receives each frame's pose, `start*` its
-/// translation captured on the first frame, `state` the step and `timer` the
-/// frames spent jittering once the model has come to rest. `view` is the
-/// session view recorded when the model lands, and `room` the session room the
-/// model was last placed for.
+/// Steps of the incinerator lift's second move, the one that carries an
+/// actor, held in `_ShelterB3GarbageIncineratorLiftWork::carryState`.
+///
+/// Reaching the second rest pose advances two steps at once, so the jolt step
+/// is never entered and the move reports done on the following frame.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_START  = 0, // Not begun; the next update starts the motion sound and records the carried actor's position
+    SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_MOVING = 1, // Lift travelling to its second rest pose, the carried actor keeping its own X and Z
+    SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_JOLT   = 2, // Carried actor pinned to its recorded X and Z, its height shaken about the lift's; skipped
+    SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_DONE   = 3, // Finished; the lift's task can end
+};
+
+/// Frames the jolt step shakes the carried actor for.
+enum { SHELTER_B3_GARBAGE_INCINERATOR_LIFT_JOLT_FRAMES = 16 };
+
+/// Work block of the incinerator lift, the room task that moves the lift's
+/// model between its rest poses.
+///
+/// The task allocates the block zeroed on its first frame. The block is the
+/// storage behind the model's lighting matrices, and holds what the lift's
+/// sequence has to remember between frames: the view it waits to see change
+/// after its first move, the room its lighting belongs to, and the progress of
+/// the second move, which takes the area's placement-0 actor along by placing
+/// it at the lift's height every frame.
 typedef struct {
-    MATRIX lightMtx;
-    MATRIX colorMtx;
-    Task*  field_40;
-    Task*  target;
-    s32    startX;
-    s32    startY;
-    s32    startZ;
-    byte   unknown_54[0xC];
-    u16    state;
-    u16    timer;
-    u16    view;
-    s16    room;
-} _DescentWork;
+    MATRIX lightMtx;        // Storage for the model's light matrix
+    MATRIX colorMtx;        // Storage for the model's colour matrix
+    Task*  playerTask;      // Player task, recorded at set-up but never read
+    Task*  carriedActor;    // Task of the area's placement-0 actor (key: area, stage, index 0), placed at the lift's height during the second move
+    s32    carriedStartX;   // Carried actor's X as the second move starts; read only by the skipped jolt step
+    s32    carriedStartY;   // Carried actor's Y as the second move starts; never read
+    s32    carriedStartZ;   // Carried actor's Z as the second move starts; read only by the skipped jolt step
+    byte   unknown_54[0xC]; // Never accessed; role unproven
+    u16    carryState;      // Step of the second move (SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_*)
+    u16    joltFrames;      // Frames of the jolt step played, cleared as the lift reaches its second rest pose
+    u16    arrivalView;     // Session view slot when the lift reached its first rest pose; the sequence resumes once the session shows another
+    s16    litRoom;         // Session room the model's lighting was last rebuilt for (0 before the first rebuild)
+} _ShelterB3GarbageIncineratorLiftWork;
+STATIC_ASSERT_SIZEOF(_ShelterB3GarbageIncineratorLiftWork, 0x68);
 
 extern ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2];
 
@@ -739,51 +757,51 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
 /// the sequence is over.
 static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 {
-    ActorTransform msg;
-    _DescentWork*  work  = arg0->work;
-    GfxCoord*      coord = arg0->extra.tmd->coords;
-    GfxCoord*      ref   = work->target->extra.tmd->coords;
+    ActorTransform                        msg;
+    _ShelterB3GarbageIncineratorLiftWork* work  = arg0->work;
+    GfxCoord*                             coord = arg0->extra.tmd->coords;
+    GfxCoord*                             ref   = work->carriedActor->extra.tmd->coords;
 
-    switch (work->state) {
-        case 0:
+    switch (work->carryState) {
+        case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_START:
             SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE_2, 0, 0);
-            work->startX = ref->coord.t[0];
-            work->startY = ref->coord.t[1];
-            work->startZ = ref->coord.t[2];
-            work->state++;
+            work->carriedStartX = ref->coord.t[0];
+            work->carriedStartY = ref->coord.t[1];
+            work->carriedStartZ = ref->coord.t[2];
+            work->carryState++;
             /* fallthrough */
-        case 1:
+        case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_MOVING:
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]  += 15;
             if (D_shelter_b3_garbage_incinerator_80185B58[1].pos.vy < coord->coord.t[1] || (gGameSession->location.loc.view == 0x28 && gGameSession->skipEventIntro != 0)) {
                 SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE_2, 1);
                 SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_LIFT_JOLT, 0, 0);
                 coord->coord.t[1] = D_shelter_b3_garbage_incinerator_80185B58[1].pos.vy;
-                work->state++;
-                work->timer = 0;
-                work->state++;
+                work->carryState++;
+                work->joltFrames = 0;
+                work->carryState++;
             }
             msg.pos.vx = ref->coord.t[0];
             msg.pos.vy = coord->coord.t[1];
             msg.pos.vz = ref->coord.t[2];
             break;
-        case 2:
-            msg.pos.vx = work->startX;
+        case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_JOLT:
+            msg.pos.vx = work->carriedStartX;
             msg.pos.vy = coord->coord.t[1];
-            msg.pos.vz = work->startZ;
-            if (++work->timer >= 16) {
-                work->state++;
+            msg.pos.vz = work->carriedStartZ;
+            if (++work->joltFrames >= SHELTER_B3_GARBAGE_INCINERATOR_LIFT_JOLT_FRAMES) {
+                work->carryState++;
             } else {
                 msg.pos.vy += (gDisplayState.animFrame & 1) ? 10 : -10;
             }
             break;
-        case 3:
+        case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_DONE:
             return 1;
     }
     msg.rot.vz = 0;
     msg.rot.vx = 0;
     msg.rot.vy = 0x800;
-    TASK_MESSAGE_DISPATCH_POINTER(work->target, 0x7D4, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->carriedActor, 0x7D4, &msg, 0);
     return 0;
 }
 
@@ -799,19 +817,19 @@ static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
 /// while any of the four flags tested on entry is set.
 void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
 {
-    VECTOR        pos;
-    u16           id;
-    s8            kind;
-    u8            arg;
-    TmdObject*    obj;
-    GfxCoord*     coord;
-    _DescentWork* work;
-    s16           landed;
-    TmdObject*    tail;
-    GfxCoord*     lift;
-    _DescentWork* done_work;
-    s32           want;
-    s32           t;
+    VECTOR                                pos;
+    u16                                   id;
+    s8                                    kind;
+    u8                                    arg;
+    TmdObject*                            obj;
+    GfxCoord*                             coord;
+    _ShelterB3GarbageIncineratorLiftWork* work;
+    s16                                   landed;
+    TmdObject*                            tail;
+    GfxCoord*                             lift;
+    _ShelterB3GarbageIncineratorLiftWork* done_work;
+    s32                                   want;
+    s32                                   t;
 
     if (gGameSession->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
         return;
@@ -820,7 +838,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
         case 0:
             obj        = task->extra.tmd;
             coord      = obj->coords;
-            work       = memCalloc(0x68, 0);
+            work       = memCalloc(sizeof(*work), 0);
             task->work = work;
             if (work == NULL) {
                 taskKill(task);
@@ -829,12 +847,12 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 coord->parent                             = &gGfxViewCoord;
                 obj->flags                                = 0;
                 obj->otOffset                             = 0x1F;
-                work->field_40                            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                work->playerTask                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 obj->colorMtx                             = &work->colorMtx;
                 D_shelter_b3_garbage_incinerator_8018FC34 = task;
                 obj->lightMtx                             = &work->lightMtx;
                 task->msgTable                            = D_shelter_b3_garbage_incinerator_80185B40;
-                work->target                              = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
+                work->carriedActor                        = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
             }
             if (gGameSession->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_NONE) {
                 func_shelter_b3_garbage_incinerator_8018507C();
@@ -909,12 +927,14 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 done_work                             = task->work;
                 gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_LANDED;
                 func_shelter_b3_garbage_incinerator_801853C4();
-                done_work->view = gGameSession->location.loc.view;
+                done_work->arrivalView = gGameSession->location.loc.view;
                 task->state++;
             }
             break;
-        case 3:
-            if (((_DescentWork*)task->work)->view != gGameSession->location.loc.view) {
+        case 3: {
+            _ShelterB3GarbageIncineratorLiftWork* liftWork = task->work;
+
+            if (liftWork->arrivalView != gGameSession->location.loc.view) {
                 if (gGameSession->location.loc.room < 4) {
                     gGameSession->location.loc.room                            = 3;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 3;
@@ -929,6 +949,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 task->state++;
             }
             break;
+        }
         case 5:
             if (!func_shelter_b3_garbage_incinerator_8017DF24(task)) {
                 break;
@@ -940,13 +961,13 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             return;
     }
     work = task->work;
-    if (gGameSession->location.loc.room != work->room) {
+    if (gGameSession->location.loc.room != work->litRoom) {
         tail   = task->extra.tmd;
         pos.vx = tail->coords->workm.t[0];
         pos.vy = task->extra.tmd->coords->workm.t[1];
         pos.vz = task->extra.tmd->coords->workm.t[2];
         func_800D7A9C(tail, &pos, 0, 3);
-        work->room = gGameSession->location.loc.room;
+        work->litRoom = gGameSession->location.loc.room;
     }
 }
 
