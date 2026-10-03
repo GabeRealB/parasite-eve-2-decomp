@@ -146609,3 +146609,40 @@ address in the member-store association (see "`&blk->arr[i]` and a store to
 `blk->arr[i].f` associate the same address differently"), which is
 `s0 + 8`, and cse2 then rewrites the increment `s0 = s0 + 8` at the loop end as
 a copy of it. That one address is the only cast left in the loop.
+
+## A `((T*)(head - N))->first` cast beside `blk->rest` can be plain `SCRATCH_STACK_RESERVE_BLOCK`
+
+**Problem.** `Gp_RollEnemyChance` keeps the old scratch cursor in `$s1` and the
+new block in `$s0`, and addresses the block's *first* word through the cursor
+while every other member goes through the block:
+
+```
+lw    s1,0(v0)          # head
+addiu s0,s1,-0x20       # block
+sw    s0,0(v0)
+...
+sw    v0,-0x20(s1)      # first member: head-relative
+sw    v0,4(s0)          # the rest: block-relative
+addiu v0,s1,-0x10       # address of a later member, taken for the GTE: head-relative
+```
+
+It had been matched by spelling that out: a `u8* head`, `blk = (T*)(head -
+0x20)`, `((VECTOR3*)(head - 0x20))->vx` at each offset-0 access and `head -
+0x10` for the GTE store.
+
+**Fix.** None of it is needed. The reserve macro already leaves both values
+live, and the compiler by itself addresses `block + 0` and a bare
+`&block->member` from the cursor the block was computed from, while a displaced
+member access keeps the block as its base. (Observed in the output; which pass
+makes the substitution was not isolated.)
+
+```c
+scratch = SCRATCH_STACK_RESERVE_BLOCK(_DamagePlayerDistanceScratch);
+scratch->offset.vx = ...;      /* sw v0,-0x20(s1) */
+scratch->offset.vy = ...;      /* sw v0,4(s0)     */
+gte_stlvnl(&scratch->world);   /* addiu v0,s1,-0x10 */
+```
+
+So a head-relative first member is not evidence of a second pointer in the
+source. Try the typed reserve and plain member accesses before keeping the
+casts; the release is then `SCRATCH_STACK_RELEASE_BLOCK` of the same type.

@@ -26,18 +26,25 @@
 #include "main/task_types.h"
 #include "main/wipsys.h"
 
-/// 0x20-byte scratch from the scratch stack used by `Gp_RollEnemyChance`.
-/// `local` first holds `Enemy.bodyPos`, which `field_18->workm` rotates
-/// into `world`; `world` then gets `workm.t[]` added to become a world
-/// position, and `local` is reused for the delta against the player
-/// coordinate whose length feeds `SquareRoot0`.
-typedef struct _GpDistScratch {
-    /* 0x00 */ VECTOR3 local;
-    /* 0x0C */ s32     pad_C;
-    /* 0x10 */ VECTOR3 world;
-    /* 0x1C */ s32     pad_1C;
-} GpDistScratch;
-STATIC_ASSERT_SIZEOF(GpDistScratch, 0x20);
+/// Scratch-stack block for measuring how far an enemy's body is from the player.
+///
+/// `offset` and `world` are one point carried through three spaces. It enters
+/// as `Enemy::bodyPos`, relative to the enemy's coordinate; that coordinate's
+/// world matrix rotates and then translates it into `world`; and `offset`
+/// finally takes it relative to the player's world origin, whose length is the
+/// distance. Coordinates are signed game units.
+///
+/// The rotation reads `offset` as a 16-bit `SVECTOR` although it is stored as
+/// 32-bit words, so the rotated vector is (low half of X, high half of X, low
+/// half of Y) and Z does not take part. That is the game's own behavior.
+///
+/// Reserve the complete record on the scratch stack; none of its members
+/// survive the matching release.
+typedef struct {
+    VECTOR offset; // Body point relative to the enemy's coordinate, then relative to the player; fourth word unused
+    VECTOR world;  // Body point in world axes: rotated, then moved to its world position; fourth word unused
+} _DamagePlayerDistanceScratch;
+STATIC_ASSERT_SIZEOF(_DamagePlayerDistanceScratch, 0x20);
 
 /// Per-sub-id damage rows used by `Gp_ComputeDamage`. The row is the id's
 /// `(id >> 8) & 0x3F` nibble pair; the column is the class picked from
@@ -291,19 +298,18 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
 
 s32 Gp_RollEnemyChance(Enemy* arg0, u32 arg1, s32 arg2)
 {
-    Task*          slot;
-    GfxCoord*      pcoord;
-    u8*            head;
-    GpDistScratch* blk;
-    s32            dist;
-    u16            sel;
-    s32            kind;
-    s32            col;
-    s32            val;
-    s32            chance;
-    u16            base;
-    s32            extra;
-    s32            rand;
+    Task*                         slot;
+    GfxCoord*                     pcoord;
+    _DamagePlayerDistanceScratch* scratch;
+    s32                           dist;
+    u16                           sel;
+    s32                           kind;
+    s32                           col;
+    s32                           val;
+    s32                           chance;
+    u16                           base;
+    s32                           extra;
+    s32                           rand;
 
     slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (slot == NULL) {
@@ -318,31 +324,32 @@ s32 Gp_RollEnemyChance(Enemy* arg0, u32 arg1, s32 arg2)
         return 0;
     }
 
-    head                                = SCRATCH_STACK_CURSOR(u8);
-    blk                                 = (GpDistScratch*)(head - 0x20);
-    SCRATCH_STACK_CURSOR(GpDistScratch) = blk;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_DamagePlayerDistanceScratch);
     Gp_UpdateCoord(arg0->coord);
 
-    ((VECTOR3*)(head - 0x20))->vx = arg0->bodyPos.vx;
-    blk->local.vy                 = arg0->bodyPos.vy;
-    blk->local.vz                 = arg0->bodyPos.vz;
+    // Carry the body point from the enemy's coordinate into world space. The
+    // rotation takes its 32-bit words as an `SVECTOR`; see the block's type.
+    scratch->offset.vx = arg0->bodyPos.vx;
+    scratch->offset.vy = arg0->bodyPos.vy;
+    scratch->offset.vz = arg0->bodyPos.vz;
 
     gte_SetRotMatrix(&arg0->coord->workm);
-    gte_ldv0(&blk->local);
+    gte_ldv0(&scratch->offset);
     gte_rtv0();
-    gte_stlvnl(head - 0x10);
+    gte_stlvnl(&scratch->world);
 
-    blk->world.vx = arg0->coord->workm.t[0] + blk->world.vx;
-    blk->world.vy = arg0->coord->workm.t[1] + blk->world.vy;
-    blk->world.vz = arg0->coord->workm.t[2] + blk->world.vz;
+    scratch->world.vx = arg0->coord->workm.t[0] + scratch->world.vx;
+    scratch->world.vy = arg0->coord->workm.t[1] + scratch->world.vy;
+    scratch->world.vz = arg0->coord->workm.t[2] + scratch->world.vz;
 
-    pcoord                        = slot->extra.tmd->coords;
-    ((VECTOR3*)(head - 0x20))->vx = blk->world.vx - pcoord->workm.t[0];
-    blk->local.vy                 = blk->world.vy - pcoord->workm.t[1];
-    blk->local.vz                 = blk->world.vz - pcoord->workm.t[2];
+    // Measure it from the player's world origin.
+    pcoord             = slot->extra.tmd->coords;
+    scratch->offset.vx = scratch->world.vx - pcoord->workm.t[0];
+    scratch->offset.vy = scratch->world.vy - pcoord->workm.t[1];
+    scratch->offset.vz = scratch->world.vz - pcoord->workm.t[2];
 
-    dist = SquareRoot0(((VECTOR3*)(head - 0x20))->vx * ((VECTOR3*)(head - 0x20))->vx +
-                       blk->local.vy * blk->local.vy + blk->local.vz * blk->local.vz);
+    dist = SquareRoot0(scratch->offset.vx * scratch->offset.vx +
+                       scratch->offset.vy * scratch->offset.vy + scratch->offset.vz * scratch->offset.vz);
 
     sel = dist / 1000;
     sel = sel < 0x10 ? D_80113864[sel] : 5;
@@ -375,7 +382,7 @@ s32 Gp_RollEnemyChance(Enemy* arg0, u32 arg1, s32 arg2)
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     rand            = gRandomLcgState >> 16 & 0xFFF;
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BLOCK(_DamagePlayerDistanceScratch);
     return rand < chance;
 }
 
