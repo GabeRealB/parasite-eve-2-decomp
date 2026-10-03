@@ -113,21 +113,30 @@ typedef struct Actor356100Work {
     /* 0x014 */ s16 field_14;
     /// Heading the placement handler derives from the root coordinate's
     /// Z axis (`ratan2` of its X and Z terms) once the spawn rotations are in.
-    /* 0x016 */ s16  yaw;
-    /* 0x018 */ byte pad_18[0x42];
-    /* 0x05A */ u16  field_5A;
-    /* 0x05C */ byte pad_5C[0xC];
-    /* 0x068 */ u16  field_68;
-    /* 0x06A */ byte pad_6A[0x90A];
-    /* 0x974 */ s32  field_974;
-    /* 0x978 */ s16  field_978;
-    /* 0x97A */ s16  field_97A;
-    /* 0x97C */ byte pad_97C[2];
-    /* 0x97E */ s16  field_97E;
-    /* 0x980 */ byte pad_980[2];
-    /* 0x982 */ s16  field_982;
-    /* 0x984 */ s16  field_984;
-    /* 0x986 */ byte pad_986[8];
+    /* 0x016 */ s16              yaw;
+    /* 0x018 */ byte             pad_18[0x4];
+    /* 0x01C */ AnimationContext anim;
+    /* 0x030 */ AnimationSlot    slots[24];
+    /* 0x3F0 */ byte             pad_3F0[0xD8];
+    /* 0x4C8 */ AnimationContext blendAnim;
+    /* 0x4DC */ AnimationSlot    blendSlots[24];
+    /* 0x89C */ byte             pad_89C[0xD8];
+    /* 0x974 */ s32              field_974;
+    /* 0x978 */ s16              field_978;
+    /* 0x97A */ s16              field_97A;
+    /* 0x97C */ s16              field_97C;
+    /* 0x97E */ s16              field_97E;
+    /* 0x980 */ u16              field_980;
+    /* 0x982 */ s16              field_982;
+    /* 0x984 */ s16              field_984;
+    /// Blend-context state `func_actor_356100_80163508` restarts at 2 with
+    /// speed 0x30 / weight 0x800: `field_986` the state, `field_988` the clip
+    /// id its slots are reset to, and `field_98A` / `field_98C` the pair the
+    /// reset copies into the primary slots and the blend weight.
+    /* 0x986 */ s16  field_986;
+    /* 0x988 */ s16  field_988;
+    /* 0x98A */ s16  field_98A;
+    /* 0x98C */ s16  field_98C;
     /* 0x98E */ s16  field_98E;
     /* 0x990 */ s16  field_990;
     /* 0x992 */ byte pad_992[2];
@@ -689,51 +698,6 @@ Actor356100Storage32B0 D_actor_356100_801732B0;
 
 GameActorButtonPressHold D_actor_356100_801732D0;
 
-/// Animation view of the work block above, as `func_actor_356100_801633DC`
-/// reads it: the `Actor01900Work` layout 0xE0 bytes later, so the two
-/// `AnimationContext` blocks at 0x1C / 0x4C8 each sit 0x14 bytes before their
-/// 0x28-byte slot array. `field_982` is the clip id the slot loop copies
-/// minus 3 into `slots[i].field_9`, `field_98A` the clip written whole into
-/// `blendSlots[i].field_9`, and `field_98C` the blend weight, the same three
-/// roles `Actor01900Work.field_8A2` / `field_8AA` / `field_8AC` have.
-typedef struct Actor356100AnimWork {
-    /* 0x000 */ byte             pad_0[0x1C];
-    /* 0x01C */ AnimationContext anim;
-    /* 0x030 */ AnimationSlot    slots[24];
-    /* 0x3F0 */ byte             pad_3F0[0xD8];
-    /* 0x4C8 */ AnimationContext blendAnim;
-    /* 0x4DC */ AnimationSlot    blendSlots[24];
-    /* 0x89C */ byte             pad_89C[0xDC];
-    /// The animation-state halfwords `func_actor_356100_80163508` drives, the
-    /// same slots `Actor356100Work` names: `field_978` is the state it leaves
-    /// at 3 once the 1/2 entry has been served, `field_97C` the clip id the
-    /// slots were last seeded with, `field_97E` the one being seeded now and
-    /// `field_980` the per-frame counter it bumps. The 0x97C / 0x97E pair is
-    /// what makes the state-1 reseed fire once per clip change.
-    /* 0x978 */ s16 field_978;
-    /* 0x97A */ s16 field_97A;
-    /* 0x97C */ s16 field_97C;
-    /* 0x97E */ s16 field_97E;
-    /* 0x980 */ u16 field_980;
-    /* 0x982 */ s16 field_982;
-    /* 0x984 */ s16 field_984;
-    /// Blend-context state `func_actor_356100_80163508` restarts at 2 with
-    /// speed 0x30 / weight 0x800: `field_986` the state, `field_988` the clip
-    /// id its slots are reset to, and `field_98A` / `field_98C` the pair the
-    /// reset copies into the primary slots and the blend weight.
-    /* 0x986 */ s16 field_986;
-    /* 0x988 */ s16 field_988;
-    /* 0x98A */ s16 field_98A;
-    /* 0x98C */ s16 field_98C;
-    /// The eased yaw pair `func_actor_356100_80163508` walks: `field_98E` is
-    /// the aim the root coordinates are turned to and `field_990` the running
-    /// value moved toward it by 0x100 per frame.
-    /* 0x98E */ s16  field_98E;
-    /* 0x990 */ s16  field_990;
-    /* 0x992 */ byte pad_992[2];
-    /* 0x994 */ s32  field_994;
-} Actor356100AnimWork;
-
 /// Blends pose slots 1..0x14: the first eleven copy the two clip ids into
 /// their slot records and are written from both animation contexts with
 /// `0x1000 - field_98C` as the blend weight, the rest only tick. Same body as
@@ -1029,14 +993,14 @@ static __inline__ void Actor356100_PositionDelta(GfxCoord* coord, SVECTOR* pos)
 
 static void func_actor_356100_801633DC(Task* arg0)
 {
-    AnimationPose        pose;
-    AnimationPose        blendPose;
-    AnimationContext*    anim;
-    s16                  weight;
-    s16                  i;
-    Actor356100AnimWork* work;
+    AnimationPose     pose;
+    AnimationPose     blendPose;
+    AnimationContext* anim;
+    s16               weight;
+    s16               i;
+    Actor356100Work*  work;
 
-    work   = (Actor356100AnimWork*)arg0->work;
+    work   = (Actor356100Work*)arg0->work;
     weight = work->field_98C;
     anim   = &work->anim;
     for (i = 1; i < 0x15; i++) {
@@ -1055,15 +1019,15 @@ static void func_actor_356100_801633DC(Task* arg0)
 
 static void func_actor_356100_80163508(Task* arg0)
 {
-    Actor356100AnimWork* work;
-    s16                  yaw;
+    Actor356100Work* work;
+    s16              yaw;
 
-    work = (Actor356100AnimWork*)arg0->work;
+    work = (Actor356100Work*)arg0->work;
     if (work->field_978 == 1) {
-        Actor356100AnimWork* anim;
-        s32                  i;
+        Actor356100Work* anim;
+        s32              i;
 
-        anim = (Actor356100AnimWork*)arg0->work;
+        anim = (Actor356100Work*)arg0->work;
         if (work->field_97C != work->field_97E) {
             for (i = 1; i < 0x15; i++) {
                 anim->slots[i].rate = anim->field_982;
@@ -1076,10 +1040,10 @@ static void func_actor_356100_80163508(Task* arg0)
         work->field_980 = 0;
         work->field_994 = 0;
     } else if (work->field_978 == 2) {
-        Actor356100AnimWork* anim;
-        s32                  i;
+        Actor356100Work* anim;
+        s32              i;
 
-        anim = (Actor356100AnimWork*)arg0->work;
+        anim = (Actor356100Work*)arg0->work;
         for (i = 1; i < 0x15; i++) {
             anim->slots[i].rate = anim->field_982;
             animationResetSlot(&anim->anim, i, anim->field_97E);
@@ -1090,10 +1054,10 @@ static void func_actor_356100_80163508(Task* arg0)
         work->field_994 = 0;
     }
     if (work->field_986 == 2) {
-        Actor356100AnimWork* blend;
-        s32                  i;
+        Actor356100Work* blend;
+        s32              i;
 
-        blend            = (Actor356100AnimWork*)arg0->work;
+        blend            = (Actor356100Work*)arg0->work;
         blend->field_98A = 0x30;
         blend->field_98C = 0x800;
         for (i = 1; i < 0x15; i++) {
@@ -1104,10 +1068,10 @@ static void func_actor_356100_80163508(Task* arg0)
     }
     work->field_980++;
     if (work->field_97A == 0) {
-        Actor356100AnimWork* tick;
-        s32                  i;
+        Actor356100Work* tick;
+        s32              i;
 
-        tick = (Actor356100AnimWork*)arg0->work;
+        tick = (Actor356100Work*)arg0->work;
         for (i = 1; i < 0x15; i++) {
             tick->slots[i].rate = tick->field_982;
             animationTickSlot(&tick->anim, i);
@@ -1184,12 +1148,12 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_356100_8016A984.hpMax;
     enemy->param                  = &D_actor_356100_8016A984;
     enemy->recs                   = &work->field_9C0;
-    animationInitContext(&((Actor356100AnimWork*)work)->anim, (AnimationSet**)D_actor_356100_801730B8, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor356100AnimWork*)work)->slots[21],
-                         ((Actor356100AnimWork*)work)->slots);
-    animationInitContext(&((Actor356100AnimWork*)work)->blendAnim, (AnimationSet**)D_actor_356100_801730B8, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor356100AnimWork*)work)->blendSlots[21],
-                         ((Actor356100AnimWork*)work)->blendSlots);
+    animationInitContext(&((Actor356100Work*)work)->anim, (AnimationSet**)D_actor_356100_801730B8, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor356100Work*)work)->slots[21],
+                         ((Actor356100Work*)work)->slots);
+    animationInitContext(&((Actor356100Work*)work)->blendAnim, (AnimationSet**)D_actor_356100_801730B8, obj,
+                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES]) & ((Actor356100Work*)work)->blendSlots[21],
+                         ((Actor356100Work*)work)->blendSlots);
     work->field_978 = 2;
     work->field_97E = 1;
     work->field_97A = 0;
@@ -1287,8 +1251,8 @@ static void func_actor_356100_80163CD4(Task* arg0)
         work->field_982 = 0x10;
         do {
             func_actor_356100_80163508(arg0);
-        } while (((work->field_97E != animA) || ((u32)(work->field_5A & 0x3FF) < 6U)) &&
-                 ((work->field_97E != animB) || ((u32)(work->field_5A & 0x3FF) < 9U)));
+        } while (((work->field_97E != animA) || ((u32)(work->slots[1].currentPose.indices.recordIndex & 0x3FF) < 6U)) &&
+                 ((work->field_97E != animB) || ((u32)(work->slots[1].currentPose.indices.recordIndex & 0x3FF) < 9U)));
         work->field_982 = 0x20;
         return;
     }
@@ -1339,7 +1303,7 @@ static void func_actor_356100_80163E2C(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
     aim                                   = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_68 & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         work->field_0 = 7;
     }
     aim->angle      = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
@@ -1553,7 +1517,7 @@ static void func_actor_356100_80164158(Task* arg0)
         } else {
             Actor356100_StepForward(arg0->extra.tmd->coords, 0x1E);
         }
-    } else if (work->field_68 & 1) {
+    } else if (work->slots[1].status.fields.flags & 1) {
         work->field_97E = 3;
         work->field_978 = 1;
     }
@@ -1938,7 +1902,7 @@ static void func_actor_356100_80166018(Task* arg0)
         work->field_B68                       = 0;
     }
     func_actor_356100_80163508(arg0);
-    if ((work->field_5A & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
+    if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
         angle = actorMatrixPositionYaw(arg0, &pos, gPlayerStatus.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
@@ -1955,10 +1919,10 @@ static void func_actor_356100_80166018(Task* arg0)
             }
         }
     }
-    if (work->field_97E == 4 && (work->field_68 & 1)) {
+    if (work->field_97E == 4 && (work->slots[1].status.fields.flags & 1)) {
         work->field_0 = 7;
     }
-    if ((work->field_5A & 0x3FF) > 0x10) {
+    if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) > 0x10) {
         p      = &pos;
         pos.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         pos.vy = 0;
@@ -2021,7 +1985,7 @@ static void func_actor_356100_801666B4(Task* arg0)
         TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_actor_356100_801732B0.value, 0);
     }
     func_actor_356100_80163508(arg0);
-    if (work->field_97E == 5 && (work->field_68 & 1)) {
+    if (work->field_97E == 5 && (work->slots[1].status.fields.flags & 1)) {
         work->field_0 = 0xD;
     }
 }
@@ -2067,7 +2031,7 @@ static void func_actor_356100_801668FC(Task* actor)
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         work->field_B68 = 0;
     }
-    if ((u32)(work->field_5A & 0x3FF) - 0x10 < 7U) {
+    if ((u32)(work->slots[1].currentPose.indices.recordIndex & 0x3FF) - 0x10 < 7U) {
         saveData = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         coord    = actor->extra.tmd->coords;
         if (saveData->state.actorsFrozen != 1) {
@@ -2145,7 +2109,7 @@ static void func_actor_356100_801668FC(Task* actor)
         actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     func_actor_356100_80163508(actor);
-    if (work->field_68 & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         nextState = 1;
 
         if (enemy->node.state.parts.targeted != nextState) {
@@ -2322,7 +2286,7 @@ static void func_actor_356100_80167584(Task* arg0)
         work->field_0 = 6;
     }
     func_actor_356100_80163508(arg0);
-    if (work->field_97E == 0xE && (work->field_68 & 2)) {
+    if (work->field_97E == 0xE && (work->slots[1].status.fields.flags & 2)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
             work->field_97E = 0xF;
@@ -2330,7 +2294,7 @@ static void func_actor_356100_80167584(Task* arg0)
             func_actor_356100_80163508(arg0);
         }
     }
-    if (work->field_97E == 0xF && (work->field_68 & 1)) {
+    if (work->field_97E == 0xF && (work->slots[1].status.fields.flags & 1)) {
         work->field_97E = 0xE;
         work->field_978 = 1;
         func_actor_356100_80163508(arg0);
@@ -2370,14 +2334,14 @@ static void func_actor_356100_80167818(Task* arg0)
         work->field_6 = 1;
     }
     func_actor_356100_80163508(arg0);
-    if ((work->field_5A & 0x3FF) == 4 && work->field_994 != (work->field_5A & 0x3FF)) {
+    if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 4 && work->field_994 != (work->slots[1].currentPose.indices.recordIndex & 0x3FF)) {
         D_actor_356100_801732A8.coord      = arg0->extra.tmd->coords;
         D_actor_356100_801732A8.spawnArgLo = 0x100;
         D_actor_356100_801732A8.spawnArgHi = 2;
         func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL,
                       &D_actor_356100_801732A8);
     }
-    work->field_994 = work->field_5A & 0x3FF;
+    work->field_994 = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
     coord           = arg0->extra.tmd->coords;
     d               = &delta;
     Actor356100_PositionDelta(coord, d);
@@ -2524,7 +2488,7 @@ static void func_actor_356100_8016804C(Task* arg0)
         }
     }
     func_actor_356100_80163508(arg0);
-    if ((work->field_68 & 1) || work->field_B4C == 0) {
+    if ((work->slots[1].status.fields.flags & 1) || work->field_B4C == 0) {
         work->field_0 = 9;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -2729,7 +2693,7 @@ static void func_actor_356100_80168AFC(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
     aim                                   = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if ((work->field_68 & 1) || ((s16)work->field_6 >= state)) {
+    if ((work->slots[1].status.fields.flags & 1) || ((s16)work->field_6 >= state)) {
         work->field_0 = state;
     }
     aim->angle      = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
@@ -3231,10 +3195,10 @@ static void func_actor_356100_8016A468(Task* arg0)
         playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 0), 0);
     }
-    if (work->field_68 & 2) {
+    if (work->slots[1].status.fields.flags & 2) {
         work->field_0 = 0xE;
     }
-    work->field_974 = work->field_5A & 0x3FF;
+    work->field_974 = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
     func_actor_356100_80163508(arg0);
 }
 
@@ -3256,7 +3220,7 @@ static void func_actor_356100_8016A550(Task* arg0)
         work->field_982               = work->field_984;
     }
     func_actor_356100_80163508(arg0);
-    if (work->field_68 & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         work->field_0 = 7;
     }
 }
@@ -3279,7 +3243,7 @@ static void func_actor_356100_8016A5DC(Task* arg0)
         work->field_982               = work->field_984;
     }
     func_actor_356100_80163508(arg0);
-    if (work->field_68 & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         work->field_0 = 7;
     }
 }
@@ -3331,13 +3295,13 @@ static void func_actor_356100_8016A710(Task* arg0)
         }
     }
     func_actor_356100_80163508(arg0);
-    if (work->field_68 & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         if (work->field_97E == 0xA) {
             work->field_97E = 0xB;
             work->field_978 = 2;
             func_actor_356100_80163508(arg0);
         }
-        if ((work->field_68 & 1) && (work->field_97E == 0xB)) {
+        if ((work->slots[1].status.fields.flags & 1) && (work->field_97E == 0xB)) {
             if (enemy->hp > 0) {
                 if (work->field_B3A <= 0) {
                     work->field_0 = 0x11;
@@ -3372,7 +3336,7 @@ static void func_actor_356100_8016A834(Task* arg0)
         }
     }
     func_actor_356100_80163508(arg0);
-    if (work->field_68 & 1) {
+    if (work->slots[1].status.fields.flags & 1) {
         if (enemy->hp > 0) {
             if (work->field_B3A <= 0) {
                 work->field_0 = 0x11;
