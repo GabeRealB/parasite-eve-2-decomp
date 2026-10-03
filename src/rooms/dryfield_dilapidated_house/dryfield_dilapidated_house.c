@@ -108,17 +108,23 @@ typedef struct DdhModelWork {
 } DdhModelWork;
 STATIC_ASSERT_SIZEOF(DdhModelWork, 0x24);
 
-/// Work block of the state family at `D_dryfield_dilapidated_house_8017D634`,
-/// whose state 0 is `func_dryfield_dilapidated_house_801814B4`: allocated with
-/// `memMalloc(0x40, 0)` and parked in the `Task::work` slot. One angle step per
-/// model part, each the matching entry of `D_dryfield_dilapidated_house_80186804`
-/// scaled by the task's spawn arg 1 and wrapped into the 0x4000 angle period.
-/// `func_dryfield_dilapidated_house_80180738` advances the same table against a
-/// running per-part angle.
-typedef struct DdhAngleStep {
-    /* 0x00 */ s32 step[16];
-} DdhAngleStep;
-STATIC_ASSERT_SIZEOF(DdhAngleStep, 0x40);
+/// One turn of a `_DryfieldDilapidatedHouseConeWork::rimPhase` entry, which
+/// counts in quarters of the 4096-per-turn angle unit `rsin` takes.
+#define DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD 0x4000
+
+/// Work block of one of the two cones the morphing model spawns as children:
+/// the ripple that waves the cone's outer rim back and forth along its axis.
+///
+/// A cone is two 16-vertex rings joined by quads, rebuilt every frame. The
+/// inner ring is rigid; each outer vertex is displaced along the axis by the
+/// sine of its own phase, and every phase advances at its own fixed rate, so
+/// the rim never settles into a repeating outline. A cone starts with each
+/// phase already advanced by the frame count in its spawn argument, which is
+/// what keeps the two cones out of step with each other.
+typedef struct {
+    s32 rimPhase[16]; // Ripple phase of each outer-ring vertex, wrapped to one period
+} _DryfieldDilapidatedHouseConeWork;
+STATIC_ASSERT_SIZEOF(_DryfieldDilapidatedHouseConeWork, 0x40);
 
 /// Work block of the three effect handlers `func_dryfield_dilapidated_house_80182744`,
 /// `func_dryfield_dilapidated_house_80183C8C` and
@@ -3450,7 +3456,7 @@ static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
 
 static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 {
-    DdhAngleStep*                       work;
+    _DryfieldDilapidatedHouseConeWork*  work;
     _DryfieldDilapidatedHouseMorphWork* src;
     MATRIX*                             mtx;
     SVECTOR*                            ofs;
@@ -3469,7 +3475,7 @@ static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
     v0 = verts;
     v1 = &verts[16];
 
-    work = (DdhAngleStep*)task->work;
+    work = task->work;
     src  = ((Task*)task->spawnArg2.pointer)->work;
 
     ofs       = D_dryfield_dilapidated_house_80186844;
@@ -3509,9 +3515,12 @@ static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 
         v1->vx = pos[1].vx + ((c * 0xFA) >> 12);
         v1->vy = pos[1].vy + ((s * 0x7D) >> 12);
-        v1->vz = pos[1].vz + ((rsin(work->step[i] >> 2) * 0x64) >> 12);
+        // The outer vertex rides a sine of its own phase along the cone's
+        // axis; the phase then moves on by this vertex's rate.
+        v1->vz = pos[1].vz + ((rsin(work->rimPhase[i] >> 2) * 0x64) >> 12);
 
-        work->step[i] = (work->step[i] + D_dryfield_dilapidated_house_80186804[i]) & 0x3FFF;
+        work->rimPhase[i] = (work->rimPhase[i] + D_dryfield_dilapidated_house_80186804[i]) &
+                            (DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD - 1);
 
         gte_ldv0(v1);
         gte_rtv0();
@@ -3817,16 +3826,16 @@ void func_dryfield_dilapidated_house_8018145C(Task* task)
 }
 
 /// State 0 of the handler table at `D_dryfield_dilapidated_house_8017D634`,
-/// dispatched by `func_dryfield_dilapidated_house_8018145C`: fills a fresh
-/// `DdhAngleStep` with the shared per-part angle table scaled by this task's spawn
-/// arg (each wrapped into the 0x4000 angle period), links the model coordinate
-/// this task works on to the parent model's coordinate array, and re-parents the
-/// task under the task that spawned it.
+/// dispatched by `func_dryfield_dilapidated_house_8018145C`: allocates the
+/// cone's `_DryfieldDilapidatedHouseConeWork` and starts each rim phase at its
+/// per-vertex rate times this task's spawn argument, wrapped into one turn,
+/// links the model coordinate this task works on to the parent model's
+/// coordinate array, and re-parents the task under the task that spawned it.
 static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
 {
-    DdhAngleStep* work;
-    GfxCoord*     coord;
-    s32           i;
+    _DryfieldDilapidatedHouseConeWork* work;
+    GfxCoord*                          coord;
+    s32                                i;
 
     coord = arg0->extra.tmd->coords;
     work  = memMalloc(sizeof(*work), false);
@@ -3835,8 +3844,9 @@ static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
         return;
     }
     arg0->work = work;
-    for (i = 0; i < 0x10; i++) {
-        work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1.value) & 0x3FFF;
+    for (i = 0; i < ARRAY_SIZE(work->rimPhase); i++) {
+        work->rimPhase[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1.value) &
+                            (DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD - 1);
     }
     coord->parent = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords;
     taskReparent(arg0->spawnArg2.pointer, arg0);
