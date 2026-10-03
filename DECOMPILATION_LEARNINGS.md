@@ -146320,3 +146320,23 @@ follow:
 - Two names at one address in a symbol map need `rom:` on the defined one, or
   splat refuses the duplicate, and `owner=` on the absolute one, or
   `check_symbols.py` reports the name as naming two things.
+
+## `&blk->arr[i]` and a store to `blk->arr[i].f` associate the same address differently (func_acropolis_bridge_801827EC, 2026-10-03)
+
+**Problem.** A loop over a scratch block's `SVECTOR corners[4]` at +8 keeps two
+address registers in the target: `addiu a0,a3,8` with `a3 = blk + i*8` for the
+plain halfword stores, and `addu v0,t1,t2` with `t2 = i*8 + 8` for the GTE
+macros' pointer operand.
+
+**Symptom.** Any typed pointer to the element - `&blk->corners[i]`,
+`blk->corners + i`, `&blk->corners[0] + i`, `sv = blk->corners; sv += i`,
+`(SVECTOR*)&blk->corners[i].vx` - folds to `blk + (i*8 + 8)`, the macros' form,
+so CSE shares one register and the function fails. A member store
+`blk->corners[i].vx = x` is the other association, `(blk + i*8) + 8`, emitted
+as `sh x,8(a3)`.
+
+**Fix.** None typed so far. Only a spelling that adds the member offset last
+matches: `(SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(T, corners))`,
+or `&((T*)((SVECTOR*)blk + i))->corners[0]`. When a match needs the offset
+form, read which association each use has in the target before trying more
+typed aliases; they all land on the address-of one.

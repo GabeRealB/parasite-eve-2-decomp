@@ -391,12 +391,30 @@ typedef struct {
 } OverlaySpriteScratch;
 STATIC_ASSERT_SIZEOF(OverlaySpriteScratch, 0x18);
 
-/// The scratch-pad block of a quad drawer that keeps the GTE flag word: the
-/// depth the quad is sorted at, the flag, and the quad's four corners.
-typedef struct OverlayFlaggedQuadScratch {
-    s32     otz;
-    s32     flag;
-    SVECTOR v[4];
+/// Scratch-stack block for projecting one four-corner quad straight into its
+/// packet, with room for the GTE flag word.
+///
+/// A drawer fills `corners` with world positions, either copied from
+/// coordinate translations or staged as local offsets that it rotates and
+/// translates in place, each component narrowed to 16 bits. Corners share
+/// indices 0..3 with the packet's vertices, in GPU quad strip order. One
+/// perspective transform projects corner 0 and a triple transform projects
+/// corners 1..3, and the screen positions are stored directly in the
+/// primitive, so the block keeps none of them.
+///
+/// `otz` receives the depth after the triple transform. A drawer either
+/// increments it before linking the primitive or skips a quad whose depth is
+/// below 0x11 (too near the camera); it then selects the ordering-table entry
+/// and the blend packet's depth. A drawer that checks the transforms stores
+/// the flag word in `flag` after each one it checks and drops the quad when
+/// the word is negative; one that does not leaves `flag` unwritten.
+///
+/// Reserve the complete block and release it in scratch-stack order after
+/// drawing; no pointer into it survives release.
+typedef struct {
+    s32     otz;        // Last projected corner's SZ3 / 4, with the drawer's ordering bias
+    s32     flag;       // Latest stored GTE flag word; negative means that transform failed
+    SVECTOR corners[4]; // Local corner workspace, then world positions supplied to the projection
 } OverlayFlaggedQuadScratch;
 STATIC_ASSERT_SIZEOF(OverlayFlaggedQuadScratch, 0x28);
 

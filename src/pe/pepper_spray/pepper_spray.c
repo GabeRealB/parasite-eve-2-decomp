@@ -179,9 +179,10 @@ static void func_pepper_spray_8012F21C(GfxCoord* arg0, s16 arg1, s16 arg2)
     SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
 }
 
-/* Every scratch vector address is computed off `head`, not off `blk`, so the
-   loads and stores keep spelling the block out from `head` rather than reusing
-   the `blk` register the way CSE off `blk` would. */
+/* The GTE loads and stores address the block as `head[-1]`, from the cursor
+   read before the reservation, while the plain field writes go through `blk`:
+   spelling them all off `blk` lets CSE reuse its register, and the original
+   does not. */
 /// Draws the pepper-spray cone as one Gouraud quad: three corners on a 0x100
 /// circle around `arg1` (at `-0xC0`, `0`, `+0xC0`) and one tip twice as far
 /// out and 0x200 towards the camera, all in `arg0`'s `workm` frame. `arg2` is
@@ -189,7 +190,7 @@ static void func_pepper_spray_8012F21C(GfxCoord* arg0, s16 arg1, s16 arg2)
 /// `arg2` in red and green and all of it in blue.
 static void func_pepper_spray_8012F634(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
-    u8*                        head;
+    OverlayFlaggedQuadScratch* head;
     OverlayFlaggedQuadScratch* blk;
     OverlayFlaggedQuadScratch* copy;
     POLY_G4*                   prim;
@@ -200,87 +201,85 @@ static void func_pepper_spray_8012F634(GfxCoord* arg0, s16 arg1, s16 arg2)
     s16                        color;
 
     depth                                           = -0x200;
-    head                                            = SCRATCH_STACK_CURSOR(u8);
-    blk                                             = (OverlayFlaggedQuadScratch*)(head - sizeof(OverlayFlaggedQuadScratch));
+    head                                            = SCRATCH_STACK_CURSOR(OverlayFlaggedQuadScratch);
+    blk                                             = head - 1;
     SCRATCH_STACK_CURSOR(OverlayFlaggedQuadScratch) = blk;
     copy                                            = blk;
     color                                           = arg2;
     gte_SetTransMatrix(&GsWSMATRIX);
     ang = arg1;
 
-    back         = ang - 0xC0;
-    blk->v[0].vx = (u32)rsin(back) >> 4;
-    blk->v[0].vy = (u32)rcos(back) >> 4;
-    blk->v[0].vz = 0;
-    wm           = &arg0->workm;
+    back               = ang - 0xC0;
+    blk->corners[0].vx = (u32)rsin(back) >> 4;
+    blk->corners[0].vy = (u32)rcos(back) >> 4;
+    blk->corners[0].vz = 0;
+    wm                 = &arg0->workm;
     gte_SetRotMatrix(wm);
-    gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[0]);
+    gte_ldv0(&head[-1].corners[0]);
     gte_rtv0();
-    gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[0]);
-    (u16) blk->v[0].vx = (u16)blk->v[0].vx + (u16)arg0->workm.t[0];
-    (u16) blk->v[0].vy = (u16)blk->v[0].vy + (u16)arg0->workm.t[1];
-    (u16) blk->v[0].vz = (u16)blk->v[0].vz + (u16)arg0->workm.t[2];
+    gte_stsv(&head[-1].corners[0]);
+    (u16) blk->corners[0].vx = (u16)blk->corners[0].vx + (u16)arg0->workm.t[0];
+    (u16) blk->corners[0].vy = (u16)blk->corners[0].vy + (u16)arg0->workm.t[1];
+    (u16) blk->corners[0].vz = (u16)blk->corners[0].vz + (u16)arg0->workm.t[2];
 
-    blk->v[1].vx = (u32)rsin(ang) >> 1;
-    blk->v[1].vy = (u32)rcos(ang) >> 1;
-    blk->v[1].vz = depth;
+    blk->corners[1].vx = (u32)rsin(ang) >> 1;
+    blk->corners[1].vy = (u32)rcos(ang) >> 1;
+    blk->corners[1].vz = depth;
     gte_SetRotMatrix(wm);
-    gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[1]);
+    gte_ldv0(&head[-1].corners[1]);
     gte_rtv0();
-    gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[1]);
-    (u16) blk->v[1].vx = (u16)blk->v[1].vx + (u16)arg0->workm.t[0];
-    (u16) blk->v[1].vy = (u16)blk->v[1].vy + (u16)arg0->workm.t[1];
-    (u16) blk->v[1].vz = (u16)blk->v[1].vz + (u16)arg0->workm.t[2];
+    gte_stsv(&head[-1].corners[1]);
+    (u16) blk->corners[1].vx = (u16)blk->corners[1].vx + (u16)arg0->workm.t[0];
+    (u16) blk->corners[1].vy = (u16)blk->corners[1].vy + (u16)arg0->workm.t[1];
+    (u16) blk->corners[1].vz = (u16)blk->corners[1].vz + (u16)arg0->workm.t[2];
 
-    blk->v[2].vx = (u32)rsin(ang) >> 4;
-    blk->v[2].vy = (u32)rcos(ang) >> 4;
-    blk->v[2].vz = 0;
+    blk->corners[2].vx = (u32)rsin(ang) >> 4;
+    blk->corners[2].vy = (u32)rcos(ang) >> 4;
+    blk->corners[2].vz = 0;
     gte_SetRotMatrix(wm);
-    gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[2]);
+    gte_ldv0(&head[-1].corners[2]);
     gte_rtv0();
-    gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[2]);
-    (u16) blk->v[2].vx = (u16)blk->v[2].vx + (u16)arg0->workm.t[0];
-    ang                = ang + 0xC0;
-    (u16) blk->v[2].vy = (u16)blk->v[2].vy + (u16)arg0->workm.t[1];
-    (u16) blk->v[2].vz = (u16)blk->v[2].vz + (u16)arg0->workm.t[2];
+    gte_stsv(&head[-1].corners[2]);
+    (u16) blk->corners[2].vx = (u16)blk->corners[2].vx + (u16)arg0->workm.t[0];
+    ang                      = ang + 0xC0;
+    (u16) blk->corners[2].vy = (u16)blk->corners[2].vy + (u16)arg0->workm.t[1];
+    (u16) blk->corners[2].vz = (u16)blk->corners[2].vz + (u16)arg0->workm.t[2];
 
-    blk->v[3].vx = (u32)rsin(ang) >> 4;
-    blk->v[3].vy = (u32)rcos(ang) >> 4;
-    blk->v[3].vz = 0;
+    blk->corners[3].vx = (u32)rsin(ang) >> 4;
+    blk->corners[3].vy = (u32)rcos(ang) >> 4;
+    blk->corners[3].vz = 0;
     gte_SetRotMatrix(wm);
-    gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[3]);
+    gte_ldv0(&head[-1].corners[3]);
     gte_rtv0();
-    gte_stsv(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[3]);
-    (u16) blk->v[3].vx = (u16)blk->v[3].vx + (u16)arg0->workm.t[0];
-    (u16) blk->v[3].vy = (u16)blk->v[3].vy + (u16)arg0->workm.t[1];
-    (u16) blk->v[3].vz = (u16)blk->v[3].vz + (u16)arg0->workm.t[2];
+    gte_stsv(&head[-1].corners[3]);
+    (u16) blk->corners[3].vx = (u16)blk->corners[3].vx + (u16)arg0->workm.t[0];
+    (u16) blk->corners[3].vy = (u16)blk->corners[3].vy + (u16)arg0->workm.t[1];
+    (u16) blk->corners[3].vz = (u16)blk->corners[3].vz + (u16)arg0->workm.t[2];
 
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[0]);
+    gte_ldv0(&head[-1].corners[0]);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyG4(prim);
     gte_stsxy(&prim->x0);
-    gte_stflg(&((OverlayFlaggedQuadScratch*)(head - 0x28))->flag);
+    gte_stflg(&head[-1].flag);
     if (blk->flag >= 0) {
-        gte_ldv3(&((OverlayFlaggedQuadScratch*)(head - 0x28))->v[1],
-                 &((OverlayFlaggedQuadScratch*)(head - 0x28))->v[2],
-                 &((OverlayFlaggedQuadScratch*)(head - 0x28))->v[3]);
+        gte_ldv3(&head[-1].corners[1], &head[-1].corners[2], &head[-1].corners[3]);
         gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-        gte_stflg(&((OverlayFlaggedQuadScratch*)(head - 0x28))->flag);
+        gte_stflg(&head[-1].flag);
         if (blk->flag >= 0) {
-            gte_stszotz(copy);
-            ((OverlayFlaggedQuadScratch*)(head - 0x28))->otz++;
+            gte_stszotz(&copy->otz);
+            head[-1].otz++;
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, arg2 >> 1, arg2 >> 1, color);
             setRGB3(prim, 0, 0, 0);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((OverlayFlaggedQuadScratch*)(head - 0x28))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)head[-1].otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, ((OverlayFlaggedQuadScratch*)(head - 0x28))->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, head[-1].otz);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayFlaggedQuadScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
 }

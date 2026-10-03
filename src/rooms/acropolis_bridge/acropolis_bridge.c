@@ -4434,31 +4434,31 @@ static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2)
     blk = SCRATCH_STACK_RESERVE_BLOCK(OverlayFlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        blk->v[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
-        /* Spelled as an offset rather than `&blk->v[i]`, which is the same
+        blk->corners[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
+        /* Spelled as an offset rather than `&blk->corners[i]`, which is the same
            address: the member form lets CSE share one register with the GTE
-           macros' `&blk->v[i]`, and the original keeps two. */
-        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, v));
+           macros' `&blk->corners[i]`, and the original keeps two. */
+        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, corners));
         sv->vy = 0;
         sv->vz = (u16)D_80111E38[i].axis1Sign * arg1;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->v[i]);
+        gte_ldv0(&blk->corners[i]);
         gte_rtv0();
-        gte_stsv(&blk->v[i]);
-        blk->v[i].vx += coord->workm.t[0];
-        sv->vy       += coord->workm.t[1];
-        sv->vz       += coord->workm.t[2];
+        gte_stsv(&blk->corners[i]);
+        blk->corners[i].vx += coord->workm.t[0];
+        sv->vy             += coord->workm.t[1];
+        sv->vz             += coord->workm.t[2];
     }
 
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->v[0]);
+    gte_ldv0(&blk->corners[0]);
     gte_rtps();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 9);
     setcode(prim, 0x2C);
     gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_ldv3(&blk->corners[1], &blk->corners[2], &blk->corners[3]);
     gte_rtpt();
     setUV4(prim, 0, 0x38, 0x37, 0x38, 0, 0x6F, 0x37, 0x6F);
     gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
