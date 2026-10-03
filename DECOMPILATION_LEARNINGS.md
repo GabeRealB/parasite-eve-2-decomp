@@ -60445,8 +60445,9 @@ declaration order from `STARTING_FRAME_OFFSET` (the outgoing-argument area,
 at pin down both each buffer's size and the order the buffers are declared in.
 Inlined helpers' frames follow the function's own locals, which is why the
 plaza's three sit above its three function-scope payloads.
-`acropolis_sanctuary`'s `AcsMsgArg` is the union form of the idiom, where the
-two views share offset 0.
+`acropolis_sanctuary` had the union form of the idiom, two views sharing offset
+0, and it went the same way: see "Two payload types at one offset behind a base
+set up before the branch" below.
 
 ## Take the address expression, not the pointer variable, for the last use
 
@@ -60603,6 +60604,61 @@ times at `sp+0x40`, between two `ActorTransform` locals: calling the existing
 restart helper there moved all four triples and the key into one slot after the
 locals and shrank the frame from 0x98 to 0x90. Those three sites are a plain
 `u8[4]` local.
+
+## Two payload types at one offset behind a base set up before the branch are helpers inside a helper (func_acropolis_sanctuary_8017DA40, 2026-10-03)
+
+**Symptom.** One arm of a nested `switch` sends an `AnimationPlayRequest` and
+then an `ActorTransform`, both built at `sp+0x28`, and the address is taken
+once, into a callee-saved register, *before* the inner switch tests anything:
+
+```
+lw    s2, 0x1C(s3)        ; work = task->work
+lhu   v1, 4(s2)           ; work->phase
+bltz  v1, out
+ addiu s0, sp, 0x28       ; base of both payloads, ahead of every test
+...
+jal   Gp_KillPlayerEffs
+...
+sw    v0, 0xC(s0)         ; request: constants through the base
+sw    s1, 0x10(s0)
+...
+sw    v0, 0x28(sp)        ; transform: pos.vx constant, frame-relative
+sw    v0, 8(a2)           ; pos.vz constant, through the base
+```
+
+It had been matched with a union of the two records and a pointer local
+assigned before the switch.
+
+**Cause.** Three `static inline` functions, two of them called from the third.
+The inner two each own one record; their frames are both 0x18, so inside the
+outer helper the second is an exact fit for the slot the first released and
+the outer helper's own frame is that one slot. Inlining the outer helper then
+forces *its* frame base into a pseudo at the start of *its* body, which is
+where the early `addiu` comes from and why it survives the call in `$s0`.
+
+Calling the two record helpers straight from the function gives the same frame
+and the same stores but sets the base up after the `jal`, at the first
+helper's own start (one instruction out of place, 14 differing lines). So a
+base hoisted above a test the payload code is not reached without is the
+outer helper's boundary: it begins where the base is set.
+
+The function's first payload, a request at `sp+0x10` written entirely
+`sp`-relative, is a named local and not a fourth helper. As a helper its 0x18
+slot is released and the outer helper's frame fits it exactly: the frame
+shrinks from 0x58 to 0x38.
+
+Arguments show as in the entry above: the request helper reloads
+`task->work` after the call, so it takes the `Task*`; the placement helper
+reads the player through the work pointer cached before the call and loads it
+at the dispatch, so it takes the work block (passing the player task itself
+moves `lw a0,0(s2)` ahead of the record's stores).
+
+**A constant at the record's offset 0 is frame-relative with no parameter
+involved.** `place.pos.vx = -0x1DB0` is a literal in the helper body and still
+compiles to `sw v0,0x28(sp)`, in the nested form and the flat one alike, while
+the literal `pos.vz` goes through the base. So the rule above - a non-zero
+constant stored frame-relative is an `int` parameter - holds for fields past
+the first only. (Measured; why the offset-0 address folds was not traced.)
 
 ## Ending a duplicated tail with `goto` instead of falling out of the switch flips which copy cross-jumping keeps
 
