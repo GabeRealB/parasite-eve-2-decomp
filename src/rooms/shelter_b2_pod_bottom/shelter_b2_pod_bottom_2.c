@@ -1005,8 +1005,6 @@ void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
 /// `gDisplayState.animFrame & 1` adding a 16-unit flicker to every channel.
 static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 color, u16 scale)
 {
-    void**           scratch;
-    u8*              head;
     RoomBeamScratch* block;
     POLY_G4*         prim;
     s32              pass;
@@ -1021,45 +1019,43 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
     s32              mid;
     s32              blend;
 
-    scratch       = SCRATCH_STACK_CURSOR_SLOT;
-    head          = *scratch;
-    block         = (RoomBeamScratch*)(*scratch = head - 0x2C);
-    block->tip.vy = -(size << 4);
-    block->tip.vx = 0;
-    block->tip.vz = 0;
+    block            = SCRATCH_STACK_RESERVE_BLOCK(RoomBeamScratch);
+    block->point1.vy = -(size << 4);
+    block->point1.vx = 0;
+    block->point1.vz = 0;
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&block->tip);
+    gte_ldv0(&block->point1);
     gte_rtv0();
-    gte_stsv(&block->tip);
-    block->base.vx = coord->workm.t[0];
-    block->base.vy = coord->workm.t[1];
-    block->base.vz = coord->workm.t[2];
-    block->tip.vx += block->base.vx;
-    block->tip.vy += block->base.vy;
-    block->tip.vz += block->base.vz;
+    gte_stsv(&block->point1);
+    block->point0.vx  = coord->workm.t[0];
+    block->point0.vy  = coord->workm.t[1];
+    block->point0.vz  = coord->workm.t[2];
+    block->point1.vx += block->point0.vx;
+    block->point1.vy += block->point0.vy;
+    block->point1.vz += block->point0.vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->base);
+    gte_ldv0(&block->point0);
     gte_rtps();
-    gte_stsxy(&block->sx0);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz0);
-        gte_ldv0(&block->tip);
+    gte_stsxy(&block->pair.sx0);
+    gte_stflg(&block->pair.flag);
+    if (block->pair.flag >= 0) {
+        gte_stszotz(&block->pair.otz0);
+        gte_ldv0(&block->point1);
         gte_rtps();
-        gte_stsxy(&block->sx1);
-        gte_stflg(&block->flag);
-        gte_stszotz(&block->otz1);
-        if (block->flag >= 0) {
+        gte_stsxy(&block->pair.sx1);
+        gte_stflg(&block->pair.flag);
+        gte_stszotz(&block->pair.otz1);
+        if (block->pair.flag >= 0) {
             blend = ((u8)gDisplayState.animFrame & 1) << 4;
             r     = scale * ((color >> 8) & 0xF) + blend;
             g     = scale * ((color >> 4) & 0xF) + blend;
             b     = scale * (color & 0xF) + blend;
             for (pass = 1; pass < 3; pass++) {
-                scaled    = size * (pass << 6);
-                block->r0 = scaled / block->otz0;
-                block->r1 = scaled / block->otz1;
-                ang       = (s16)ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
+                scaled              = size * (pass << 6);
+                block->pair.radius0 = scaled / block->pair.otz0;
+                block->pair.radius1 = scaled / block->pair.otz1;
+                ang                 = (s16)ratan2((s16)block->pair.sy1 - (s16)block->pair.sy0, (s16)block->pair.sx0 - (s16)block->pair.sx1);
                 if (ang < ang + 0x800) {
                     angStart = ang;
                     limit    = ang + 0x800;
@@ -1071,17 +1067,17 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
                         setRGB1(prim, 0, 0, 0);
                         setRGB2(prim, r, g, b);
                         setRGB3(prim, 0, 0, 0);
-                        prim->x0 = block->sx1 + ((block->r1 * rsin(ang + 0x800)) >> 12);
-                        prim->y0 = block->sy1 + ((block->r1 * rcos(ang + 0x800)) >> 12);
-                        prim->x1 = block->sx1 + ((block->r1 * rsin(ang + 0xA00)) >> 12);
-                        prim->y1 = block->sy1 + ((block->r1 * rcos(ang + 0xA00)) >> 12);
-                        prim->x2 = block->sx1;
-                        prim->y2 = block->sy1;
-                        prim->x3 = block->sx1 + ((block->r1 * rsin(ang + 0xC00)) >> 12);
-                        prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        prim->x0 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0x800)) >> 12);
+                        prim->y0 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0x800)) >> 12);
+                        prim->x1 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0xA00)) >> 12);
+                        prim->y1 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0xA00)) >> 12);
+                        prim->x2 = block->pair.sx1;
+                        prim->y2 = block->pair.sy1;
+                        prim->x3 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0xC00)) >> 12);
+                        prim->y3 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0xC00)) >> 12);
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz1);
 
                         prim           = gGpuPrimCursor;
                         gGpuPrimCursor = prim + 1;
@@ -1090,18 +1086,18 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
                         setRGB1(prim, 0, 0, 0);
                         setRGB2(prim, r, g, b);
                         setRGB3(prim, 0, 0, 0);
-                        prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-                        prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-                        prim->x1 = block->sx0 + ((block->r0 * rsin(ang + 0x200)) >> 12);
-                        prim->y1 = block->sy0 + ((block->r0 * rcos(ang + 0x200)) >> 12);
+                        prim->x0 = block->pair.sx0 + ((block->pair.radius0 * rsin(ang)) >> 12);
+                        prim->y0 = block->pair.sy0 + ((block->pair.radius0 * rcos(ang)) >> 12);
+                        prim->x1 = block->pair.sx0 + ((block->pair.radius0 * rsin(ang + 0x200)) >> 12);
+                        prim->y1 = block->pair.sy0 + ((block->pair.radius0 * rcos(ang + 0x200)) >> 12);
                         next     = ang + 0x400;
-                        prim->x2 = block->sx0;
-                        prim->y2 = block->sy0;
-                        prim->x3 = block->sx0 + ((block->r0 * rsin(next)) >> 12);
-                        prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        prim->x2 = block->pair.sx0;
+                        prim->y2 = block->pair.sy0;
+                        prim->x3 = block->pair.sx0 + ((block->pair.radius0 * rsin(next)) >> 12);
+                        prim->y3 = block->pair.sy0 + ((block->pair.radius0 * rcos(next)) >> 12);
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz0);
 
                         prim           = gGpuPrimCursor;
                         mid            = angStart + (ang - angStart) * 2;
@@ -1111,24 +1107,24 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
                         setRGB1(prim, 0, 0, 0);
                         setRGB2(prim, r, g, b);
                         setRGB3(prim, r, g, b);
-                        prim->x0 = block->sx0 + ((block->r0 * rsin(mid)) >> 12);
-                        prim->y0 = block->sy0 + ((block->r0 * rcos(mid)) >> 12);
-                        prim->x1 = block->sx1 + ((block->r1 * rsin(mid)) >> 12);
-                        prim->y1 = block->sy1 + ((block->r1 * rcos(mid)) >> 12);
-                        prim->x2 = block->sx0;
-                        prim->y2 = block->sy0;
-                        prim->x3 = block->sx1;
-                        prim->y3 = block->sy1;
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        prim->x0 = block->pair.sx0 + ((block->pair.radius0 * rsin(mid)) >> 12);
+                        prim->y0 = block->pair.sy0 + ((block->pair.radius0 * rcos(mid)) >> 12);
+                        prim->x1 = block->pair.sx1 + ((block->pair.radius1 * rsin(mid)) >> 12);
+                        prim->y1 = block->pair.sy1 + ((block->pair.radius1 * rcos(mid)) >> 12);
+                        prim->x2 = block->pair.sx0;
+                        prim->y2 = block->pair.sy0;
+                        prim->x3 = block->pair.sx1;
+                        prim->y3 = block->pair.sy1;
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz1);
                         ang = next;
                     } while (ang < limit);
                 }
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x2C);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBeamScratch);
 }
 
 void func_shelter_b2_pod_bottom_80181940(Task* arg0)

@@ -628,8 +628,6 @@ void func_shelter_b6_training_room_8017F8B8(Task* task)
 /// brightened on alternate fields; the outer vertices are black.
 void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color)
 {
-    void**           scratch;
-    u8*              head;
     RoomBeamScratch* block;
     POLY_G4*         prim;
     s32              pass;
@@ -649,29 +647,27 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
     if (D_shelter_b6_training_room_80185C90 == NULL) {
         return;
     }
-    scratch        = SCRATCH_STACK_CURSOR_SLOT;
-    head           = *scratch;
-    block          = (RoomBeamScratch*)(*scratch = head - 0x2C);
-    block->base.vx = D_shelter_b6_training_room_80185C90->workm.t[0];
-    block->base.vy = D_shelter_b6_training_room_80185C90->workm.t[1];
-    block->base.vz = D_shelter_b6_training_room_80185C90->workm.t[2];
-    block->tip.vx  = coord->workm.t[0];
-    block->tip.vy  = coord->workm.t[1];
-    block->tip.vz  = coord->workm.t[2];
+    block            = SCRATCH_STACK_RESERVE_BLOCK(RoomBeamScratch);
+    block->point0.vx = D_shelter_b6_training_room_80185C90->workm.t[0];
+    block->point0.vy = D_shelter_b6_training_room_80185C90->workm.t[1];
+    block->point0.vz = D_shelter_b6_training_room_80185C90->workm.t[2];
+    block->point1.vx = coord->workm.t[0];
+    block->point1.vy = coord->workm.t[1];
+    block->point1.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->base);
+    gte_ldv0(&block->point0);
     gte_rtps();
-    gte_stsxy(&block->sx0);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz0);
-        gte_ldv0(&block->tip);
+    gte_stsxy(&block->pair.sx0);
+    gte_stflg(&block->pair.flag);
+    if (block->pair.flag >= 0) {
+        gte_stszotz(&block->pair.otz0);
+        gte_ldv0(&block->point1);
         gte_rtps();
-        gte_stsxy(&block->sx1);
-        gte_stflg(&block->flag);
-        gte_stszotz(&block->otz1);
-        if (block->flag >= 0) {
+        gte_stsxy(&block->pair.sx1);
+        gte_stflg(&block->pair.flag);
+        gte_stszotz(&block->pair.otz1);
+        if (block->pair.flag >= 0) {
             color = D_shelter_b6_training_room_801843FC[color];
             tr    = ((color >> 8) & 0xF) << 4;
             tg    = ((color >> 4) & 0xF) << 4;
@@ -680,10 +676,10 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
             g     = tg + blend;
             b     = ((color & 0xF) << 4) + blend;
             for (pass = 1; pass < 3; pass++) {
-                scaled    = size * (pass << 6);
-                block->r0 = scaled / block->otz0;
-                block->r1 = scaled / block->otz1;
-                ang       = (s16)ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
+                scaled              = size * (pass << 6);
+                block->pair.radius0 = scaled / block->pair.otz0;
+                block->pair.radius1 = scaled / block->pair.otz1;
+                ang                 = (s16)ratan2((s16)block->pair.sy1 - (s16)block->pair.sy0, (s16)block->pair.sx0 - (s16)block->pair.sx1);
                 if (ang < ang + 0x800) {
                     angStart = ang;
                     limit    = ang + 0x800;
@@ -695,17 +691,17 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
                         setRGB1(prim, 0, 0, 0);
                         setRGB2(prim, r, g, b);
                         setRGB3(prim, 0, 0, 0);
-                        prim->x0 = block->sx1 + ((block->r1 * rsin(ang + 0x800)) >> 12);
-                        prim->y0 = block->sy1 + ((block->r1 * rcos(ang + 0x800)) >> 12);
-                        prim->x1 = block->sx1 + ((block->r1 * rsin(ang + 0xA00)) >> 12);
-                        prim->y1 = block->sy1 + ((block->r1 * rcos(ang + 0xA00)) >> 12);
-                        prim->x2 = block->sx1;
-                        prim->y2 = block->sy1;
-                        prim->x3 = block->sx1 + ((block->r1 * rsin(ang + 0xC00)) >> 12);
-                        prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        prim->x0 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0x800)) >> 12);
+                        prim->y0 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0x800)) >> 12);
+                        prim->x1 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0xA00)) >> 12);
+                        prim->y1 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0xA00)) >> 12);
+                        prim->x2 = block->pair.sx1;
+                        prim->y2 = block->pair.sy1;
+                        prim->x3 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0xC00)) >> 12);
+                        prim->y3 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0xC00)) >> 12);
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz1);
 
                         prim           = gGpuPrimCursor;
                         gGpuPrimCursor = prim + 1;
@@ -714,18 +710,18 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
                         setRGB1(prim, 0, 0, 0);
                         setRGB2(prim, r, g, b);
                         setRGB3(prim, 0, 0, 0);
-                        prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-                        prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-                        prim->x1 = block->sx0 + ((block->r0 * rsin(ang + 0x200)) >> 12);
-                        prim->y1 = block->sy0 + ((block->r0 * rcos(ang + 0x200)) >> 12);
+                        prim->x0 = block->pair.sx0 + ((block->pair.radius0 * rsin(ang)) >> 12);
+                        prim->y0 = block->pair.sy0 + ((block->pair.radius0 * rcos(ang)) >> 12);
+                        prim->x1 = block->pair.sx0 + ((block->pair.radius0 * rsin(ang + 0x200)) >> 12);
+                        prim->y1 = block->pair.sy0 + ((block->pair.radius0 * rcos(ang + 0x200)) >> 12);
                         next     = ang + 0x400;
-                        prim->x2 = block->sx0;
-                        prim->y2 = block->sy0;
-                        prim->x3 = block->sx0 + ((block->r0 * rsin(next)) >> 12);
-                        prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        prim->x2 = block->pair.sx0;
+                        prim->y2 = block->pair.sy0;
+                        prim->x3 = block->pair.sx0 + ((block->pair.radius0 * rsin(next)) >> 12);
+                        prim->y3 = block->pair.sy0 + ((block->pair.radius0 * rcos(next)) >> 12);
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz0);
 
                         prim           = gGpuPrimCursor;
                         mid            = angStart + (ang - angStart) * 2;
@@ -735,17 +731,17 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
                         setRGB1(prim, 0, 0, 0);
                         setRGB2(prim, r, g, b);
                         setRGB3(prim, r, g, b);
-                        prim->x0 = block->sx0 + ((block->r0 * rsin(mid)) >> 12);
-                        prim->y0 = block->sy0 + ((block->r0 * rcos(mid)) >> 12);
-                        prim->x1 = block->sx1 + ((block->r1 * rsin(mid)) >> 12);
-                        prim->y1 = block->sy1 + ((block->r1 * rcos(mid)) >> 12);
-                        prim->x2 = block->sx0;
-                        prim->y2 = block->sy0;
-                        prim->x3 = block->sx1;
-                        prim->y3 = block->sy1;
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        prim->x0 = block->pair.sx0 + ((block->pair.radius0 * rsin(mid)) >> 12);
+                        prim->y0 = block->pair.sy0 + ((block->pair.radius0 * rcos(mid)) >> 12);
+                        prim->x1 = block->pair.sx1 + ((block->pair.radius1 * rsin(mid)) >> 12);
+                        prim->y1 = block->pair.sy1 + ((block->pair.radius1 * rcos(mid)) >> 12);
+                        prim->x2 = block->pair.sx0;
+                        prim->y2 = block->pair.sy0;
+                        prim->x3 = block->pair.sx1;
+                        prim->y3 = block->pair.sy1;
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz1);
                         ang = next;
                     } while (ang < limit);
                 }
@@ -753,7 +749,7 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x2C);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBeamScratch);
 }
 
 /// Draws a glowing capsule between the ground points under `from` and `to`.
@@ -767,8 +763,6 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
 {
     GfxCoord         c0;
     GfxCoord         c1;
-    void**           scratch;
-    u8*              head;
     RoomBeamScratch* block;
     POLY_G4*         prim;
     u8               r;
@@ -786,42 +780,40 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
     if (Gp_TraceGroundCoord(from, &c0) != 1 || Gp_TraceGroundCoord(to, &c1) != 1) {
         return;
     }
-    scratch        = SCRATCH_STACK_CURSOR_SLOT;
-    head           = *scratch;
-    block          = (RoomBeamScratch*)(*scratch = head - 0x2C);
-    block->base.vx = c0.workm.t[0];
-    block->base.vy = c0.workm.t[1];
-    block->base.vz = c0.workm.t[2];
-    block->tip.vx  = c1.workm.t[0];
-    block->tip.vy  = c1.workm.t[1];
-    block->tip.vz  = c1.workm.t[2];
+    block            = SCRATCH_STACK_RESERVE_BLOCK(RoomBeamScratch);
+    block->point0.vx = c0.workm.t[0];
+    block->point0.vy = c0.workm.t[1];
+    block->point0.vz = c0.workm.t[2];
+    block->point1.vx = c1.workm.t[0];
+    block->point1.vy = c1.workm.t[1];
+    block->point1.vz = c1.workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->base);
+    gte_ldv0(&block->point0);
     gte_rtps();
-    gte_stsxy(&block->sx0);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz0);
-        gte_ldv0(&block->tip);
+    gte_stsxy(&block->pair.sx0);
+    gte_stflg(&block->pair.flag);
+    if (block->pair.flag >= 0) {
+        gte_stszotz(&block->pair.otz0);
+        gte_ldv0(&block->point1);
         gte_rtps();
-        gte_stsxy(&block->sx1);
-        gte_stflg(&block->flag);
-        gte_stszotz(&block->otz1);
-        if (block->flag >= 0) {
-            color     = D_shelter_b6_training_room_801843FC[color];
-            r         = ((color >> 8) & 0xF) << 1;
-            g         = ((color >> 4) & 0xF) << 1;
-            b         = (color & 0xF) << 1;
-            ds        = &gDisplayState;
-            blend     = ((u8)ds->animFrame & 1) << 1;
-            r        += blend;
-            g        += blend;
-            b        += blend;
-            scaled    = size << 6;
-            block->r0 = scaled / block->otz0;
-            block->r1 = scaled / block->otz1;
-            ang       = (s16)ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
+        gte_stsxy(&block->pair.sx1);
+        gte_stflg(&block->pair.flag);
+        gte_stszotz(&block->pair.otz1);
+        if (block->pair.flag >= 0) {
+            color               = D_shelter_b6_training_room_801843FC[color];
+            r                   = ((color >> 8) & 0xF) << 1;
+            g                   = ((color >> 4) & 0xF) << 1;
+            b                   = (color & 0xF) << 1;
+            ds                  = &gDisplayState;
+            blend               = ((u8)ds->animFrame & 1) << 1;
+            r                  += blend;
+            g                  += blend;
+            b                  += blend;
+            scaled              = size << 6;
+            block->pair.radius0 = scaled / block->pair.otz0;
+            block->pair.radius1 = scaled / block->pair.otz1;
+            ang                 = (s16)ratan2((s16)block->pair.sy1 - (s16)block->pair.sy0, (s16)block->pair.sx0 - (s16)block->pair.sx1);
             if (ang < ang + 0x800) {
                 angStart = ang;
                 limit    = ang + 0x800;
@@ -833,17 +825,17 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx1 + ((block->r1 * rsin(ang + 0x800)) >> 12);
-                    prim->y0 = block->sy1 + ((block->r1 * rcos(ang + 0x800)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(ang + 0xA00)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(ang + 0xA00)) >> 12);
-                    prim->x2 = block->sx1;
-                    prim->y2 = block->sy1;
-                    prim->x3 = block->sx1 + ((block->r1 * rsin(ang + 0xC00)) >> 12);
-                    prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    prim->x0 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0x800)) >> 12);
+                    prim->y0 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0x800)) >> 12);
+                    prim->x1 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0xA00)) >> 12);
+                    prim->y1 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0xA00)) >> 12);
+                    prim->x2 = block->pair.sx1;
+                    prim->y2 = block->pair.sy1;
+                    prim->x3 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0xC00)) >> 12);
+                    prim->y3 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0xC00)) >> 12);
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz1);
 
                     prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
@@ -852,18 +844,18 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-                    prim->x1 = block->sx0 + ((block->r0 * rsin(ang + 0x200)) >> 12);
-                    prim->y1 = block->sy0 + ((block->r0 * rcos(ang + 0x200)) >> 12);
+                    prim->x0 = block->pair.sx0 + ((block->pair.radius0 * rsin(ang)) >> 12);
+                    prim->y0 = block->pair.sy0 + ((block->pair.radius0 * rcos(ang)) >> 12);
+                    prim->x1 = block->pair.sx0 + ((block->pair.radius0 * rsin(ang + 0x200)) >> 12);
+                    prim->y1 = block->pair.sy0 + ((block->pair.radius0 * rcos(ang + 0x200)) >> 12);
                     next     = ang + 0x400;
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx0 + ((block->r0 * rsin(next)) >> 12);
-                    prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    prim->x2 = block->pair.sx0;
+                    prim->y2 = block->pair.sy0;
+                    prim->x3 = block->pair.sx0 + ((block->pair.radius0 * rsin(next)) >> 12);
+                    prim->y3 = block->pair.sy0 + ((block->pair.radius0 * rcos(next)) >> 12);
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz0);
 
                     prim           = gGpuPrimCursor;
                     mid            = angStart + (ang - angStart) * 2;
@@ -873,23 +865,23 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
                     setRGB1(prim, 0, 0, 0);
                     setRGB2(prim, r, g, b);
                     setRGB3(prim, r, g, b);
-                    prim->x0 = block->sx0 + ((block->r0 * rsin(mid)) >> 12);
-                    prim->y0 = block->sy0 + ((block->r0 * rcos(mid)) >> 12);
-                    prim->x1 = block->sx1 + ((block->r1 * rsin(mid)) >> 12);
-                    prim->y1 = block->sy1 + ((block->r1 * rcos(mid)) >> 12);
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx1;
-                    prim->y3 = block->sy1;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    prim->x0 = block->pair.sx0 + ((block->pair.radius0 * rsin(mid)) >> 12);
+                    prim->y0 = block->pair.sy0 + ((block->pair.radius0 * rcos(mid)) >> 12);
+                    prim->x1 = block->pair.sx1 + ((block->pair.radius1 * rsin(mid)) >> 12);
+                    prim->y1 = block->pair.sy1 + ((block->pair.radius1 * rcos(mid)) >> 12);
+                    prim->x2 = block->pair.sx0;
+                    prim->y2 = block->pair.sy0;
+                    prim->x3 = block->pair.sx1;
+                    prim->y3 = block->pair.sy1;
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz1);
                     ang = next;
                 } while (ang < limit);
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x2C);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBeamScratch);
 }
 
 void func_shelter_b6_training_room_80180DB4(Task* task)

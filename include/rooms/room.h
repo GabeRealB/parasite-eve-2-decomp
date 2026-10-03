@@ -8,6 +8,8 @@
 
 #include "main/task_types.h"
 
+#include "overlay.h"
+
 /// Script record for a room's staged event.
 ///
 /// The message handler fills the record on the stack. The event is eligible
@@ -246,22 +248,20 @@ typedef struct RoomMoteScratch {
 } RoomMoteScratch;
 STATIC_ASSERT_SIZEOF(RoomMoteScratch, 0xC);
 
-/// The scratch block a room's beam drawer takes from the scratch stack: the
-/// beam's base in world space and the tip offset from it, and both points'
-/// projections - `otz0`, `sx0` and `sy0` for `base`, `otz1`, `sx1` and `sy1`
-/// for `tip`. `r0` and `r1` are the wedge radii at each end.
-typedef struct RoomBeamScratch {
-    SVECTOR base;
-    SVECTOR tip;
-    s32     otz0;
-    s32     otz1;
-    s32     flag;
-    s32     r0;
-    s32     r1;
-    u16     sx0;
-    u16     sy0;
-    u16     sx1;
-    u16     sy1;
+/// Scratch-stack block of a room's own glow-beam drawer: the beam's two end
+/// points in world space, followed by the block their projection fills.
+///
+/// These drawers queue the same capsule of gouraud wedges as the shared
+/// two-point glow drawers, but work both ends out themselves from effect
+/// coordinates, so the points live in the block rather than arriving as
+/// arguments. `point0` is projected first and fills the `0` half of `pair`;
+/// `point1` fills the `1` half. A drawer that places the second end relative
+/// to the first rotates that offset in place in `point1` before adding
+/// `point0` to it.
+typedef struct {
+    SVECTOR                 point0; // World position of the first end
+    SVECTOR                 point1; // World position of the second end; holds its local offset while that is rotated
+    OverlayPointPairScratch pair;   // Both ends' screen positions and depths, the GTE flag word and the on-screen radii
 } RoomBeamScratch;
 STATIC_ASSERT_SIZEOF(RoomBeamScratch, 0x2C);
 

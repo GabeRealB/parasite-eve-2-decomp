@@ -140278,8 +140278,8 @@ needed.
 Storing a negated, scaled `s16` parameter into a 16-bit field:
 
 ```c
-block->tip.vy = -(size * 16);   /* sll a1,16; sra 12; negu; sh */
-block->tip.vy = -(size << 4);   /* sll a1,4;  negu;         sh */
+block->point1.vy = -(size * 16);   /* sll a1,16; sra 12; negu; sh */
+block->point1.vy = -(size << 4);   /* sll a1,4;  negu;         sh */
 ```
 
 Only the low half reaches the `sh`, so the promotion of `size` is dead, but
