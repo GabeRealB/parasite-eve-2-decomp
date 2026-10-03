@@ -219,16 +219,29 @@ typedef struct {
 } RoomBeamScratch;
 STATIC_ASSERT_SIZEOF(RoomBeamScratch, 0x2C);
 
-/// The scratch block a room's disc drawer takes from the scratch stack: the
-/// depth of the projected centre, the two on-screen radii derived from it, the
-/// GTE flag word and the projected centre.
-typedef struct RoomDiscScratch {
-    s32 otz;
-    s32 rOuter;
-    s32 rInner;
-    s32 flag;
-    u16 sx;
-    u16 sy;
+/// Scratch block a room's two-radius disc drawer takes from the scratch stack.
+///
+/// One perspective transform of a world point through `gGfxViewCoord.workm`
+/// writes the screen position and the GTE flag word. A negative flag word
+/// means the transform reported an error, and the drawer links nothing.
+/// Otherwise it stores the ordering-table depth and two on-screen radii, a
+/// caller size divided by that depth. The outer radius spans the wedge disc,
+/// and the tips of the cross drawn over it sit at that radius and at twice it.
+/// The inner radius is one eighth of the outer scale and places the shoulders
+/// either side of each ray. The flag word follows the radii.
+/// `GlowCentreRadiiScratch` keeps the same words with the flag between the
+/// depth and the radii, so the records stay separate. `sx` and `sy` are
+/// written by one screen-XY store, so they stay adjacent.
+///
+/// Reserve the complete block and release it in scratch-stack order after
+/// drawing.
+typedef struct {
+    s32 otz;         // Ordering-table depth of the centre; also the divisor for both radii
+    s32 outerRadius; // On-screen radius of the disc; cross-ray tips sit at this and at twice it
+    s32 innerRadius; // On-screen distance from the centre to a cross ray's shoulders
+    s32 flag;        // GTE flag word; negative means the transform reported an error
+    u16 sx;          // Projected centre, x; first half of the screen-XY word
+    u16 sy;          // Projected centre, y; second half of that word
 } RoomDiscScratch;
 STATIC_ASSERT_SIZEOF(RoomDiscScratch, 0x14);
 

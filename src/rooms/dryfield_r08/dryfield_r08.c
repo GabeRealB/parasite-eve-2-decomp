@@ -936,14 +936,7 @@ static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
     s32              outer;
     s32              inner;
 
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
-        block   = (RoomDiscScratch*)tmp;
-    }
+    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDiscScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -953,19 +946,19 @@ static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        arg1        <<= 16;
-        arg1        >>= 16;
-        outer         = (arg1 * 64) / block->otz;
-        frame         = gDisplayState.animFrame;
-        block->rOuter = outer;
-        inner         = (arg1 * 8) / block->otz;
-        ang           = 0;
-        packed        = arg2 << 16;
-        blend         = (frame & 1) << (packed >> 28);
-        r             = blend + ((packed >> 20) & 0xF0);
-        g             = blend + ((packed >> 16) & 0xF0);
-        b             = blend + ((arg2 & 0xF) << 4);
-        block->rInner = inner;
+        arg1             <<= 16;
+        arg1             >>= 16;
+        outer              = (arg1 * 64) / block->otz;
+        frame              = gDisplayState.animFrame;
+        block->outerRadius = outer;
+        inner              = (arg1 * 8) / block->otz;
+        ang                = 0;
+        packed             = arg2 << 16;
+        blend              = (frame & 1) << (packed >> 28);
+        r                  = blend + ((packed >> 20) & 0xF0);
+        g                  = blend + ((packed >> 16) & 0xF0);
+        b                  = blend + ((arg2 & 0xF) << 4);
+        block->innerRadius = inner;
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -974,16 +967,16 @@ static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, r, g, b);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
+            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
             t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
+            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 12);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 12);
             t2       = ang + 0x200;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
+            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 12);
+            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 12);
             ang      = t2;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
@@ -1003,15 +996,15 @@ static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, r, g, b);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ua)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ua)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
+            prim->x0 = block->sx + ((block->innerRadius * rsin(ua)) >> 12);
+            prim->y0 = block->sy + ((block->innerRadius * rcos(ua)) >> 12);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
             ub       = ang + 0x400;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(ub)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(ub)) >> 12);
+            prim->x3 = block->sx + ((block->innerRadius * rsin(ub)) >> 12);
+            prim->y3 = block->sy + ((block->innerRadius * rcos(ub)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
@@ -1023,22 +1016,22 @@ static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
             setRGB1(prim, 0, 0, 0);
             setRGB2(prim, r, g, b);
             setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ub)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ub)) >> 11);
+            prim->x0 = block->sx + ((block->innerRadius * rsin(ang)) >> 12);
+            prim->y0 = block->sy + ((block->innerRadius * rcos(ang)) >> 12);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(ub)) >> 11);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(ub)) >> 11);
             uc       = ang + 0x800;
             prim->x2 = block->sx;
             prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(uc)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(uc)) >> 12);
+            prim->x3 = block->sx + ((block->innerRadius * rsin(uc)) >> 12);
+            prim->y3 = block->sy + ((block->innerRadius * rcos(uc)) >> 12);
             ang      = uc;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDiscScratch);
 }
 
 void func_dryfield_r08_8017F334(s32 arg0)
