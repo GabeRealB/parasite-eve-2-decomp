@@ -682,17 +682,17 @@ void func_mist_parking_8018451C(Task* task)
 }
 
 /// Spawns entry 1 of `D_mist_parking_80190824` and keeps its handle in
-/// `D_mist_parking_8019532C.value`.
+/// `D_mist_parking_8019532C.task`.
 void func_mist_parking_8018459C(void)
 {
-    D_mist_parking_8019532C.value = Task_SpawnFromTable(D_mist_parking_80190824, 1, 0, 0);
+    D_mist_parking_8019532C.task = Task_SpawnFromTable(D_mist_parking_80190824, 1, 0, 0);
 }
 
-/// Hands `phase` (0 or 1) to the task in `D_mist_parking_8019532C.value` as its
+/// Hands `phase` (0 or 1) to the task in `D_mist_parking_8019532C.task` as its
 /// `spawnArg1`; any other value kills the task and drops the handle.
 void func_mist_parking_801845D0(s32 phase)
 {
-    Task* t = D_mist_parking_8019532C.value;
+    Task* t = D_mist_parking_8019532C.task;
 
     if (t == NULL) {
         return;
@@ -706,8 +706,8 @@ void func_mist_parking_801845D0(s32 phase)
     t->spawnArg1.value = phase;
     return;
 kill:
-    taskKill(D_mist_parking_8019532C.value);
-    D_mist_parking_8019532C.value = NULL;
+    taskKill(D_mist_parking_8019532C.task);
+    D_mist_parking_8019532C.task = NULL;
 }
 
 void func_mist_parking_80184624(s32 arg0)
@@ -744,9 +744,9 @@ void func_mist_parking_801846A4(s32 arg0)
     }
 }
 
-/// Drops the handle in `D_mist_parking_8019532C.value` without killing the task.
+/// Drops the handle in `D_mist_parking_8019532C.task` without killing the task.
 /// Its caller passes an argument, which is unused.
 void func_mist_parking_8018471C(s32 arg0)
 {
-    D_mist_parking_8019532C.value = NULL;
+    D_mist_parking_8019532C.task = NULL;
 }

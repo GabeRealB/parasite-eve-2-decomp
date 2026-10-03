@@ -826,7 +826,7 @@ Task* D_mist_parking_80195324 = NULL;
 
 MistParkingScanState D_mist_parking_80195328 = { 0 };
 
-MistParkingStorage532C D_mist_parking_8019532C = { 0 };
+MistParkingHeadAimHandle D_mist_parking_8019532C = { 0 };
 
 MistParkingCapState D_mist_parking_80195334 = { 0, 0, 0, 0 };
 

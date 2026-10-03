@@ -19,13 +19,15 @@ typedef struct {
     /* 0x2 */ s16 index;
 } MistParkingScanState;
 
-// Retain the zero tail after the accessed value. Whether it was spare
-// fields or alignment storage remains unresolved.
+/// The room's hold on the task that turns the player's head toward the
+/// index-0 placement for this stage and area.
+///
+/// The second word is zero and unreferenced. Its role is unproven.
 typedef struct {
-    Task* value;
-    u8    retained[4];
-} MistParkingStorage532C;
-STATIC_ASSERT_SIZEOF(MistParkingStorage532C, 8);
+    Task* task;       // Head-aim task, or NULL when the room holds none
+    u8    field_4[4]; // Unreferenced zeros; role unproven
+} MistParkingHeadAimHandle;
+STATIC_ASSERT_SIZEOF(MistParkingHeadAimHandle, 8);
 
 typedef struct {
     /* 0x0 */ u16 timer; // ticks down between companion slots
@@ -153,7 +155,7 @@ extern RoomCutsceneRec D_mist_parking_8019533C;
 
 extern MistParkingScanState D_mist_parking_80195328;
 
-extern MistParkingStorage532C D_mist_parking_8019532C;
+extern MistParkingHeadAimHandle D_mist_parking_8019532C;
 
 extern MistParkingCapState D_mist_parking_80195334;
 
