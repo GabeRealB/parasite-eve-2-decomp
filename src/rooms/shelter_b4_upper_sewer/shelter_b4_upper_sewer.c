@@ -67,18 +67,24 @@
 
 #define D_shelter_b4_upper_sewer_80186520 (D_shelter_b4_upper_sewer_801864F0 + 6)
 
-/// One water surface: a rectangle at (`x`, `z`) spanning `width` along X and
-/// `depth` along Z, cut into `count` flat quads. The quads are laid along X
-/// when `alongZ` is zero and along Z otherwise. A list of them ends at an entry
-/// whose `count` is -1.
-typedef struct ShelterB4UpperSewerSurface {
-    s16 x;
-    s16 z;
-    s16 width;
-    s16 depth;
-    s16 count;
-    s16 alongZ;
-} ShelterB4UpperSewerSurface;
+/// A rectangular water patch in world coordinates whose entry chooses its own strip axis.
+///
+/// The same rectangle as `RoomWaterSurface`, with height supplied by its
+/// drawer, but with a 16-bit segment count followed by a flag selecting which
+/// extent that count divides, using integer division; the other extent spans
+/// the strip. A list ends at an entry with
+/// `segmentCount == WATER_SURFACE_LIST_END`, whose other fields are not read.
+/// Every entry before it needs a nonzero `segmentCount`, and a positive one to
+/// draw anything.
+typedef struct {
+    s16 x;              // Starting X in world units
+    s16 z;              // Starting Z in world units
+    s16 width;          // Extent along +X in world units
+    s16 depth;          // Extent along +Z in world units
+    s16 segmentCount;   // Quads in the strip (>0 drawable entry, -1 list end)
+    s16 segmentsAlongZ; // Divided extent (0 width, quads side by side along X; nonzero depth, along Z)
+} _ShelterB4UpperSewerWaterSurface;
+STATIC_ASSERT_SIZEOF(_ShelterB4UpperSewerWaterSurface, 0xC);
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -97,9 +103,9 @@ extern RoomEventMsg D_shelter_b4_upper_sewer_80188D24;
 /// with `Task_Spawn(1, 0x31, ...)`.
 extern RoomFadeStorage D_shelter_b4_upper_sewer_80188D1C;
 
-extern ShelterB4UpperSewerSurface D_shelter_b4_upper_sewer_80186448[];
-extern ShelterB4UpperSewerSurface D_shelter_b4_upper_sewer_80186454[];
-extern u8*                        D_shelter_b4_upper_sewer_80188D30;
+extern _ShelterB4UpperSewerWaterSurface D_shelter_b4_upper_sewer_80186448[];
+extern _ShelterB4UpperSewerWaterSurface D_shelter_b4_upper_sewer_80186454[];
+extern u8*                              D_shelter_b4_upper_sewer_80188D30;
 
 extern SVECTOR D_shelter_b4_upper_sewer_80186490[];
 extern SVECTOR D_shelter_b4_upper_sewer_801864B0[];
@@ -116,7 +122,7 @@ extern SVECTOR D_shelter_b4_upper_sewer_801864D0[];
 
 static void func_shelter_b4_upper_sewer_8017DBA8(Task* task);
 static void func_shelter_b4_upper_sewer_8017DC28(Task* task);
-static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface* e, s16 y, u8 c);
+static void func_shelter_b4_upper_sewer_8017DD98(Task* task, _ShelterB4UpperSewerWaterSurface* surface, s16 y, u8 c);
 static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0);
 static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0);
 #include "../../shared/room_visual_effects.h"
@@ -179,11 +185,11 @@ TaskDesc D_shelter_b4_upper_sewer_8018643C[1] = {
     { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_upper_sewer_8017E4F4, { .value = 0 } },
 };
 
-ShelterB4UpperSewerSurface D_shelter_b4_upper_sewer_80186448[1] = {
+_ShelterB4UpperSewerWaterSurface D_shelter_b4_upper_sewer_80186448[1] = {
     { -9700, 5600, 1720, 1800, 16, 0 },
 };
 
-ShelterB4UpperSewerSurface D_shelter_b4_upper_sewer_80186454[5] = {
+_ShelterB4UpperSewerWaterSurface D_shelter_b4_upper_sewer_80186454[5] = {
     { -8000, 5000, 7120, 2900, 32, 0 },
     { -900, 3100, 2800, 4800, 32, 1 },
     { -900, -5900, 1800, 9000, 32, 1 },
@@ -1020,14 +1026,15 @@ static void func_shelter_b4_upper_sewer_8017DC88(Task* task)
     }
 }
 
-/// Draws each surface in `e` at height `y` as a strip of `count` flat
-/// semi-transparent quads coloured (0, `c` / 4, `c`), projected through the
-/// view matrix and each followed by a draw-mode packet selecting blend mode 2.
+/// Draws each surface in the list at `surface`, up to its terminator, at
+/// height `y` as a strip of `segmentCount` flat semi-transparent quads
+/// coloured (0, `c` / 4, `c`), projected through the view matrix and each
+/// followed by a draw-mode packet selecting blend mode 2.
 /// Quads are linked 0x60 deeper in the ordering table than their projected
 /// depth, and those the projection flags as invalid are skipped. The
 /// per-surface values live in a work block pushed on the scratchpad stack for
 /// the duration of the call. `task` is unused.
-static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewerSurface* e, s16 y, u8 c)
+static void func_shelter_b4_upper_sewer_8017DD98(Task* task, _ShelterB4UpperSewerWaterSurface* surface, s16 y, u8 c)
 {
     SVECTOR           v0, v1, v2, v3;
     long              sxy0, sxy1, sxy2, sxy3;
@@ -1048,13 +1055,13 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     scratch->y = y;
-    for (; e->count != WATER_SURFACE_LIST_END; e++) {
-        if (e->alongZ == 0) {
-            scratch->dx = e->width / e->count;
-            scratch->dz = e->depth;
-            scratch->x  = e->x;
-            scratch->z  = e->z;
-            for (i = 0; i < e->count; i++) {
+    for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
+        if (surface->segmentsAlongZ == 0) {
+            scratch->dx = surface->width / surface->segmentCount;
+            scratch->dz = surface->depth;
+            scratch->x  = surface->x;
+            scratch->z  = surface->z;
+            for (i = 0; i < surface->segmentCount; i++) {
                 v0.vx            = scratch->x + scratch->dx * i;
                 v0.vy            = scratch->y;
                 v0.vz            = scratch->z;
@@ -1093,11 +1100,11 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
                 }
             }
         } else {
-            scratch->dx = e->width;
-            scratch->dz = e->depth / e->count;
-            scratch->x  = e->x;
-            scratch->z  = e->z;
-            for (i = 0; i < e->count; i++) {
+            scratch->dx = surface->width;
+            scratch->dz = surface->depth / surface->segmentCount;
+            scratch->x  = surface->x;
+            scratch->z  = surface->z;
+            for (i = 0; i < surface->segmentCount; i++) {
                 v0.vx            = scratch->x;
                 v0.vy            = scratch->y;
                 v0.vz            = scratch->z + scratch->dz * i;
