@@ -89786,8 +89786,8 @@ already uses for the 0x7D4 placement payload the two calls carry - check
 
 ```c
 extern ActorTransform D_dryfield_motel_room_1_8017E130[2];
-taskMessageDispatch(work->field_C,  0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[0], 0);
-taskMessageDispatch(work->field_10, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[1], 0);
+taskMessageDispatch(work->enemySucklerTasks[0], 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[0], 0);
+taskMessageDispatch(work->enemySucklerTasks[1], 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[1], 0);
 ```
 
 The function's other half is the 4-byte stack payload of "m2c's scalar stack
@@ -90262,10 +90262,10 @@ and only the *variable* is narrowed at the call:
 ```c
 s32 id;
 ...
-id            = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-work->field_4 = (Task*)Gp_FindWorkById(id)->field_0;
-id            = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
-work->field_8 = (Task*)Gp_FindWorkById(id)->field_0;
+id                          = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
+work->stagedSucklerTasks[0] = (Task*)Gp_FindWorkById(id)->field_0;
+id                          = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
+work->stagedSucklerTasks[1] = (Task*)Gp_FindWorkById(id)->field_0;
 ```
 
 The same shape appears with `(idx << 12) | (field_3 << 8) | field_2` in

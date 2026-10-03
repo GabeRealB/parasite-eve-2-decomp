@@ -42,49 +42,61 @@
 
 #include "mapui/map_dryfield.h"
 
-/// Work block hung off `Task::work` (0x1C) of the room task parked in
-/// `D_dryfield_motel_room_1_8018159C`, which every entry point in this overlay
-/// reaches the room state through.
+/// Requests the event script makes of the event task, held in
+/// `_DryfieldMotelRoom1EventWork::action`.
 ///
-/// `func_dryfield_motel_room_1_8017DC2C` allocates it (`memMalloc(0x38, false)`) and
-/// fills `field_0` from `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` and `field_4` .. `field_10` from
-/// `Gp_FindWorkById(session id | index)`, which makes `field_C` / `field_10`
-/// the two placed objects `func_dryfield_motel_room_1_8017DF08` addresses its
-/// 0x7D4 placements to. `field_2C` is an action index the room's script driver
-/// consumes and `field_2E` the sub-state counter reset alongside it.
+/// The script sets one between its caption cues and the task carries it out on
+/// its next frame. Every request but the turn completes in that frame.
+enum {
+    DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_NONE            = 0,
+    DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_FIRST_STAGING   = 1, // Actor command 1; staged sucklers to their first marks
+    DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SECOND_STAGING  = 2, // Actor command 2; player model shown; staged sucklers to their second marks
+    DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SOUND_5         = 3, // Character bank 0xC, sound 5
+    DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SOUND_2         = 4, // Character bank 0xC, sound 2
+    DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_OPENING_SOUND_5 = 5, // The same sound as 3, requested as the script opens
+    DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_TURN_PLAYER     = 6, // Turn the player in place; runs over several frames
+};
+
+/// Steps of `DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_TURN_PLAYER`, held in
+/// `_DryfieldMotelRoom1EventWork::actionStep`.
+enum {
+    DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_BEGIN    = 0, // Capture the player's position and yaw and pick the direction
+    DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_UP   = 1, // Yaw rising
+    DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_DOWN = 2, // Yaw falling
+    DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE   = 3, // Turn finished; hold before the closing animation
+};
+
+/// Tuning of the player's turn. Angles are in `ActorTransform` units.
+enum {
+    DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_FACING_YAW    = ACTOR_TRANSFORM_ANGLE_TURN / 4, // Yaw the turn stops on crossing
+    DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_STEP      = 0x96,                           // Yaw turned per frame
+    DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE_FRAMES = 4,                              // Frames held in the settle step
+};
+
+/// Work block of the room's event task, parked at `Task::work`.
 ///
-/// `func_dryfield_motel_room_1_8017DFD0` copies the player matrix translation
-/// (`gPlayerStatus.coordMtx->t[0..2]`) into `field_14` .. `field_1C` and hands
-/// `&field_14` to the slot-4 task as the three-word payload of message 0x3E9;
-/// `field_24` / `field_26` / `field_28` are the halfwords it stages next to that
-/// payload, still as `0` / `0x500` / `0`. `field_20` stays unidentified.
+/// The room plays the event once, on a variant-3 visit. Its task allocates the
+/// block when it starts and resolves the tasks the event moves: the player and
+/// the room's four placed actors. Placements 0 and 1 are the bone sucklers
+/// staged for the event; placements 2 and 3 are the bone suckler enemies set
+/// down where the event ends. The pointers are borrowed, and all five tasks
+/// have to outlive the event task.
 ///
-/// Action 6 of `func_dryfield_motel_room_1_8017D7AC` turns an angle in
-/// `field_34`: it starts from the slot-3 actor's facing plus 0xC00, wrapped to
-/// 12 bits, and steps by 0x96 a frame, with `field_26` kept 0x400 ahead of it.
-/// `field_30` counts the frames of that action's closing step.
-typedef struct Dmr1Work {
-    /* 0x00 */ Task* field_0;
-    /* 0x04 */ Task* field_4;
-    /* 0x08 */ Task* field_8;
-    /* 0x0C */ Task* field_C;
-    /* 0x10 */ Task* field_10;
-    /* 0x14 */ s32   field_14;
-    /* 0x18 */ s32   field_18;
-    /* 0x1C */ s32   field_1C;
-    /* 0x20 */ byte  pad_20[0x4];
-    /* 0x24 */ s16   field_24;
-    /* 0x26 */ s16   field_26;
-    /* 0x28 */ s16   field_28;
-    /* 0x2A */ byte  pad_2A[0x2];
-    /* 0x2C */ u16   field_2C;
-    /* 0x2E */ u16   field_2E;
-    /* 0x30 */ u16   field_30;
-    /* 0x32 */ byte  pad_32[0x2];
-    /* 0x34 */ s16   field_34;
-    /* 0x36 */ byte  pad_36[0x2];
-} Dmr1Work;
-STATIC_ASSERT_SIZEOF(Dmr1Work, 0x38);
+/// The event script drives the task through `action`. The turn is the only
+/// request with state of its own: it takes the shorter way round to the facing
+/// yaw, re-placing the player every frame from `playerPlacement`.
+typedef struct {
+    Task*          playerTask;            // Player task
+    Task*          stagedSucklerTasks[2]; // Staged bone sucklers, placements 0 and 1
+    Task*          enemySucklerTasks[2];  // Bone suckler enemies, placements 2 and 3
+    ActorTransform playerPlacement;       // Placement sent to the player: the position captured as the turn or the skip script begins, and the angles to take
+    u16            action;                // Pending request (`DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_*`); cleared once carried out
+    u16            actionStep;            // Step of the pending request (`DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_*`); 0 whenever a request is set
+    u16            settleFrames;          // Frames spent in the turn's settle step
+    byte           field_32[2];           // Never accessed; role unproven
+    s16            turnYaw;               // Player yaw less the facing yaw: 0..4095 as the turn begins, stepped until it leaves 0..4096
+} _DryfieldMotelRoom1EventWork;
+STATIC_ASSERT_SIZEOF(_DryfieldMotelRoom1EventWork, 0x38);
 
 /// The one scratch buffer `func_dryfield_motel_room_1_8017DD3C` builds both of
 /// its payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
@@ -111,15 +123,17 @@ typedef union Dmr1DriverBuf {
 } Dmr1DriverBuf;
 STATIC_ASSERT_SIZEOF(Dmr1DriverBuf, 0x1C);
 
-/// The room's script-driver task, whose `work` holds a `Dmr1Work`.
+/// The room's event task, whose `work` holds a `_DryfieldMotelRoom1EventWork`.
 extern Task* D_dryfield_motel_room_1_8018159C;
 
-/// The two objects the room task places, passed as `taskMessageDispatch`'s `arg2`
-/// for message 0x7D4 - `[0]` to `Dmr1Work::field_C`, `[1]` to `field_10`.
+/// Where the event leaves the two bone suckler enemies: `[0]` and `[1]` go to
+/// the matching `_DryfieldMotelRoom1EventWork::enemySucklerTasks` entry as
+/// `ACTOR_MESSAGE_PLACE`.
 extern ActorTransform D_dryfield_motel_room_1_8017E130[2];
 
-/// The placements the script driver's actions 1 and 2 send as message 0x7D4:
-/// `[0]` to `Dmr1Work::field_4`, `[1]` to `field_8`.
+/// The staged bone sucklers' marks, sent as `ACTOR_MESSAGE_PLACE` to the matching
+/// `_DryfieldMotelRoom1EventWork::stagedSucklerTasks` entry: the first staging uses
+/// this pair and the second `D_dryfield_motel_room_1_8017E100`.
 extern ActorTransform D_dryfield_motel_room_1_8017E0D0[2];
 
 extern ActorTransform D_dryfield_motel_room_1_8017E100[2];
@@ -136,17 +150,17 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
 /// Install the player's weapon animation set on slot 3 (message 0x3E8: the
 /// equip-slot id `gPlayerStatus.weapon` plus 1 in the alternate weapon block, plus 0x22
 /// in the base one, `field_4` 9, the rest of the frame zero), then copy the
-/// player matrix translation into `Dmr1Work::field_14` .. `field_1C` and send
-/// them back to slot 4 as message 0x3E9. Same slot-3 record the actors'
+/// player matrix translation into `_DryfieldMotelRoom1EventWork::playerPlacement`, set its
+/// yaw to 0x500 and place the player there with `GAME_ACTOR_MESSAGE_PLACE`. Same slot-3 record the actors'
 /// `func_actor_341900_801635A4` builds.
 void func_dryfield_motel_room_1_8017DFD0(void);
 
-/// Set the room's action index, resetting the sub-state counter that goes with
+/// Set the event task's pending `action`, resetting the `actionStep` that goes with
 /// it - the same body as `func_actor_444000_801327E8`.
 void func_dryfield_motel_room_1_8017DFB0(s16 arg0);
 
 /// Arm the player's weapon, then re-issue the room task's messages: the 0x7DA
-/// poke at the slot-4 task and both 0x7D4 placements.
+/// poke at the slot-4 task and the `ACTOR_MESSAGE_PLACE` of both bone suckler enemies.
 void func_dryfield_motel_room_1_8017DF08(void);
 
 /// `gPlayerStatus.weapon` is the
@@ -197,19 +211,19 @@ ActorTransform D_dryfield_motel_room_1_8017E130[2] = {
 
 EvsCommand D_dryfield_motel_room_1_8017E160[20] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_OPENING_SOUND_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_TURN_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SOUND_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SOUND_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_FIRST_STAGING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SECOND_STAGING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_motel_room_1_8017DF08 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1019,63 +1033,64 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
 static void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
 
 /// The room's script driver: runs the action `func_dryfield_motel_room_1_8017DFB0`
-/// left in `Dmr1Work::field_2C`. Actions 1 and 2 send the 0x7DA message to the
-/// slot-4 task and one of the two placement pairs as message 0x7D4 (action 2
+/// left in `_DryfieldMotelRoom1EventWork::action`. Actions 1 and 2 send the 0x7DA message to the
+/// slot-4 task and one of the two placement pairs as `ACTOR_MESSAGE_PLACE` (action 2
 /// also sends 0x3F3 to the slot-3 task); 3, 4 and 5 play a sound. Each of these
 /// runs once and clears the action. Action 6 runs over several frames with
-/// `field_2E` as its step: it sends a slot-3 weapon record, turns the
-/// `field_34` angle one way or the other each frame while passing the stored
-/// player position back as message 0x3E9, and ends four frames after the turn
+/// `actionStep` as its step: it sends a slot-3 weapon record, turns the
+/// `turnYaw` angle one way or the other each frame while re-placing the player
+/// from `playerPlacement` with `GAME_ACTOR_MESSAGE_PLACE`, and ends four frames after the turn
 /// completes, when it clears the action itself. Every path through
 /// `func_dryfield_motel_room_1_8017DD3C` except its early return and its kill
 /// ends here.
 static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
 {
-    Dmr1Work*             work = (Dmr1Work*)arg0->work;
-    PlayerStatus*         cfg;
-    s32                   anim;
-    s32                   weaponId;
-    Dmr1DriverBuf         buf;
-    AnimationPlayRequest* rec;
+    _DryfieldMotelRoom1EventWork* work = arg0->work;
+    PlayerStatus*                 cfg;
+    s32                           anim;
+    s32                           weaponId;
+    Dmr1DriverBuf                 buf;
+    AnimationPlayRequest*         rec;
 
-    switch (work->field_2C) {
-        case 1:
+    switch (work->action) {
+        case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_FIRST_STAGING:
             buf.msg.context.loc.stage = gGameSession->location.loc.stage;
             buf.msg.context.loc.area  = gGameSession->location.loc.area;
             buf.msg.command           = 1;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E0D0[0], 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E0D0[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E0D0[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E0D0[1], 0);
             break;
-        case 2:
+        case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SECOND_STAGING:
             buf.msg.context.loc.stage = gGameSession->location.loc.stage;
             buf.msg.context.loc.area  = gGameSession->location.loc.area;
             buf.msg.command           = 2;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            taskMessageDispatch(work->field_0, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E100[0], 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E100[1], 0);
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E100[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E100[1], 0);
             break;
-        case 3:
-        case 5:
+        case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SOUND_5:
+        case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_OPENING_SOUND_5:
             SndEvt_EnqueueType6(SOUND_ID(SOUND_BANK_TYPE_CHARACTER, 0xC, 5), 0, 0);
             break;
-        case 4:
+        case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SOUND_2:
             SndEvt_EnqueueType6(SOUND_ID(SOUND_BANK_TYPE_CHARACTER, 0xC, 2), 0, 0);
             break;
-        case 6:
-            switch (work->field_2E) {
-                case 0:
-                    cfg            = &gPlayerStatus;
-                    work->field_14 = cfg->coordMtx->t[0];
-                    work->field_18 = cfg->coordMtx->t[1];
-                    work->field_1C = cfg->coordMtx->t[2];
-                    work->field_24 = 0;
-                    work->field_26 = 0;
-                    work->field_28 = 0;
-                    work->field_34 =
-                        (((GameActor*)(work->field_0)->work)->rotation.vy + 0xC00) % 0x1000;
-                    if (work->field_34 > 0x800) {
+        case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_TURN_PLAYER:
+            switch (work->actionStep) {
+                case DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_BEGIN:
+                    cfg                          = &gPlayerStatus;
+                    work->playerPlacement.pos.vx = cfg->coordMtx->t[0];
+                    work->playerPlacement.pos.vy = cfg->coordMtx->t[1];
+                    work->playerPlacement.pos.vz = cfg->coordMtx->t[2];
+                    work->playerPlacement.rot.vx = 0;
+                    work->playerPlacement.rot.vy = 0;
+                    work->playerPlacement.rot.vz = 0;
+                    // Measure the yaw from the facing yaw, so that either direction ends at a range limit.
+                    work->turnYaw =
+                        (((GameActor*)work->playerTask->work)->rotation.vy + (ACTOR_TRANSFORM_ANGLE_TURN - DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_FACING_YAW)) % ACTOR_TRANSFORM_ANGLE_TURN;
+                    if (work->turnYaw > ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
                         s32 weapon;
 
                         rec    = &buf.shifted.rec;
@@ -1091,8 +1106,8 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         rec->blendFrames                     = 5;
                         buf.shifted.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.shifted.rec, 0);
-                        taskMessageDispatch(work->field_0, ANIMATION_MESSAGE_SET_RATE, 0x30, 0);
-                        work->field_2E += 1;
+                        taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 0x30, 0);
+                        work->actionStep += 1;
                     } else {
                         weaponId = cfg->weapon;
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
@@ -1106,14 +1121,14 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.blendFrames          = 5;
                         buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
-                        taskMessageDispatch(work->field_0, ANIMATION_MESSAGE_SET_RATE, 0x30, 0);
-                        work->field_2E += 2;
+                        taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 0x30, 0);
+                        work->actionStep += 2;
                     }
                     return;
-                case 1:
-                    work->field_34 += 0x96;
-                    work->field_26  = work->field_34 + 0x400;
-                    if (work->field_34 > 0x1000) {
+                case DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_UP:
+                    work->turnYaw               += DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_STEP;
+                    work->playerPlacement.rot.vy = work->turnYaw + DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_FACING_YAW;
+                    if (work->turnYaw > ACTOR_TRANSFORM_ANGLE_TURN) {
                         anim = gPlayerStatus.weapon;
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim += 1;
@@ -1126,16 +1141,16 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.blendFrames          = 3;
                         buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
-                        work->field_30 = 0;
-                        work->field_2E = 3;
+                        work->settleFrames = 0;
+                        work->actionStep   = DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE;
                         return;
                     }
-                    TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &work->field_14, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
                     return;
-                case 2:
-                    work->field_34 -= 0x96;
-                    work->field_26  = work->field_34 + 0x400;
-                    if (work->field_34 < 0) {
+                case DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_DOWN:
+                    work->turnYaw               -= DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_STEP;
+                    work->playerPlacement.rot.vy = work->turnYaw + DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_FACING_YAW;
+                    if (work->turnYaw < 0) {
                         anim = gPlayerStatus.weapon;
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim += 1;
@@ -1148,15 +1163,15 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.blendFrames          = 3;
                         buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
-                        work->field_30 = 0;
-                        work->field_2E = 3;
+                        work->settleFrames = 0;
+                        work->actionStep   = DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE;
                         return;
                     }
-                    TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &work->field_14, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
                     return;
-                case 3:
-                    work->field_30 += 1;
-                    if (work->field_30 >= 4) {
+                case DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE:
+                    work->settleFrames += 1;
+                    if (work->settleFrames >= DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE_FRAMES) {
                         anim = gPlayerStatus.weapon;
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim += 1;
@@ -1169,30 +1184,30 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.blendFrames          = 10;
                         buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
-                        work->field_2C = 0;
+                        work->action = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_NONE;
                     }
                     return;
                 default:
                     return;
             }
             return;
-        case 0:
+        case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_NONE:
         default:
             break;
     }
-    work->field_2C = 0;
+    work->action = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_NONE;
 }
 
-/// Room entry point: allocate the `Dmr1Work` the room task hangs off
+/// Room entry point: allocate the `_DryfieldMotelRoom1EventWork` the event task hangs off
 /// `Task::work` (killing the task if the allocation fails), zero it, park the
-/// slot-3 task in `field_0` and the room task itself in
-/// `D_dryfield_motel_room_1_8018159C`, then resolve the four placed objects
-/// `field_4` .. `field_10` from the session id: the base id, then the id with
-/// the 0x1000 / 0x2000 / 0x3000 index of `Gp_FindWorkById`'s search key.
+/// slot-3 task in `playerTask` and the event task itself in
+/// `D_dryfield_motel_room_1_8018159C`, then resolve the four placed actors into
+/// `stagedSucklerTasks` and `enemySucklerTasks` by place key: the session's
+/// stage and area with placement index 0 to 3.
 static void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
 {
-    Dmr1Work* work;
-    s32       id;
+    _DryfieldMotelRoom1EventWork* work;
+    s32                           id;
 
     work       = memMalloc(sizeof(*work), false);
     arg0->work = work;
@@ -1201,16 +1216,16 @@ static void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
         return;
     }
     memFillBytes(work, 0, sizeof(*work));
-    work->field_0                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work->playerTask                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_dryfield_motel_room_1_8018159C = arg0;
-    id                               = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-    work->field_4                    = Gp_FindWorkById(id)->task;
-    id                               = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
-    work->field_8                    = Gp_FindWorkById(id)->task;
-    id                               = ((gGameSession->location.loc.stage << 8) | 0x2000) | gGameSession->location.loc.area;
-    work->field_C                    = Gp_FindWorkById(id)->task;
-    id                               = ((gGameSession->location.loc.stage << 8) | 0x3000) | gGameSession->location.loc.area;
-    work->field_10                   = Gp_FindWorkById(id)->task;
+    id                               = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
+    work->stagedSucklerTasks[0]      = Gp_FindWorkById(id)->task;
+    id                               = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+    work->stagedSucklerTasks[1]      = Gp_FindWorkById(id)->task;
+    id                               = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (2 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+    work->enemySucklerTasks[0]       = Gp_FindWorkById(id)->task;
+    id                               = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (3 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+    work->enemySucklerTasks[1]       = Gp_FindWorkById(id)->task;
 }
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 {
@@ -1262,35 +1277,35 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 
 void func_dryfield_motel_room_1_8017DF08(void)
 {
-    Dmr1Work*    work = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
-    ActorCommand msg;
+    _DryfieldMotelRoom1EventWork* work = D_dryfield_motel_room_1_8018159C->work;
+    ActorCommand                  msg;
 
     Gp_ArmStateF0(1);
     msg.context.loc.stage = gGameSession->location.loc.stage;
     msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = 3;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_C, 0x7D4, &D_dryfield_motel_room_1_8017E130[0], 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_10, 0x7D4, &D_dryfield_motel_room_1_8017E130[1], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->enemySucklerTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E130[0], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->enemySucklerTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E130[1], 0);
 }
 
 void func_dryfield_motel_room_1_8017DFB0(s16 arg0)
 {
-    Dmr1Work* work = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
+    _DryfieldMotelRoom1EventWork* work = D_dryfield_motel_room_1_8018159C->work;
 
-    work->field_2C = arg0;
-    work->field_2E = 0;
+    work->action     = arg0;
+    work->actionStep = DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_BEGIN;
 }
 
 void func_dryfield_motel_room_1_8017DFD0(void)
 {
-    Dmr1Work*            work;
-    AnimationPlayRequest msg;
-    PlayerStatus*        cfg;
-    s32                  weaponId;
-    s32                  anim;
+    _DryfieldMotelRoom1EventWork* work;
+    AnimationPlayRequest          msg;
+    PlayerStatus*                 cfg;
+    s32                           weaponId;
+    s32                           anim;
 
-    work                     = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
+    work                     = D_dryfield_motel_room_1_8018159C->work;
     weaponId                 = gPlayerStatus.weapon;
     anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = anim;
@@ -1299,14 +1314,14 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     msg.blendFrames          = 0;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
-    cfg            = &gPlayerStatus;
-    work->field_14 = cfg->coordMtx->t[0];
-    work->field_18 = cfg->coordMtx->t[1];
-    work->field_1C = cfg->coordMtx->t[2];
-    work->field_24 = 0;
-    work->field_26 = 0x500;
-    work->field_28 = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &work->field_14, 0);
+    cfg                          = &gPlayerStatus;
+    work->playerPlacement.pos.vx = cfg->coordMtx->t[0];
+    work->playerPlacement.pos.vy = cfg->coordMtx->t[1];
+    work->playerPlacement.pos.vz = cfg->coordMtx->t[2];
+    work->playerPlacement.rot.vx = 0;
+    work->playerPlacement.rot.vy = 0x500;
+    work->playerPlacement.rot.vz = 0;
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
 }
 void func_dryfield_motel_room_1_8017E0A0(Task* unused)
 {
