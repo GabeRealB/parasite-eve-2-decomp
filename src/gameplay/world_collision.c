@@ -157,25 +157,6 @@ typedef struct {
 } _WorldCollisionCapsuleScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionCapsuleScratch, 0x8C);
 
-/// 0x88-byte scratch from the scratch stack used by `Gp_CollideObjGrid`.
-/// `pos` is the object's world position (`Gp_ObjWorldPos`) and `grid` its cell
-/// (`Gp_LocalToGrid`). `verts` holds the face corners rotated by
-/// `Gp_GridParams->viewCoord->workm` and translated by that matrix, `normal` the
-/// rotated face normal. Per edge, `delta` is the corner difference, `unit` its
-/// `VectorNormal`, and `delta` is then reused for the `normal x unit` inward
-/// edge plane.
-typedef struct _GpGridHitScratch {
-    /* 0x00 */ SVECTOR3 grid;
-    /* 0x06 */ s16      pad_6;
-    /* 0x08 */ VECTOR3  pos;
-    /* 0x14 */ s32      pad_14;
-    /* 0x18 */ VECTOR   verts[4];
-    /* 0x58 */ VECTOR   normal;
-    /* 0x68 */ VECTOR   unit;
-    /* 0x78 */ VECTOR   delta;
-} GpGridHitScratch;
-STATIC_ASSERT_SIZEOF(GpGridHitScratch, 0x88);
-
 /// Transformed grid-face geometry and edge work for a segment intersection test.
 ///
 /// Corners and directions use the query space given by the grid's cached
@@ -191,6 +172,23 @@ typedef struct {
     VECTOR edgeWork;      // Edge displacement in game units, then outward edge-plane normal with 4096 per unit
 } _WorldCollisionGridRayScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionGridRayScratch, 0x70);
+
+/// Scratch for testing one sphere against the faces of its collision-grid cell.
+///
+/// The scratch stack reserves this block for the test and releases it on
+/// every exit; its contents are not retained. `gridCell` selects the cell:
+/// X and Z are the indices, Y is zero, and the fourth halfword is unused.
+/// `centre` is the sphere centre in the query space of the grid's cached
+/// view transform, the same space as `geometry`, and its fourth word is
+/// unused. `geometry` holds one face. Triangle tests fill three corners and
+/// quad tests all four. A centre past an edge test's slack on the positive
+/// side of that edge's plane is outside the face.
+typedef struct {
+    SVECTOR                       gridCell; // Cell indices; Y is 0 and the pad halfword is unused
+    VECTOR                        centre;   // Query-space sphere centre in game units; pad word unused
+    _WorldCollisionGridRayScratch geometry; // This face's corners, normal and outward edge planes
+} _WorldCollisionGridSphereScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionGridSphereScratch, 0x88);
 
 s32 Gp_PendingObj4CFlag;
 
@@ -561,31 +559,29 @@ check:
 
 void Gp_CollideObjGrid(WorldCollisionBody* arg0)
 {
-    u8*                     head;
-    GpGridHitScratch*       block;
-    VECTOR3*                pos;
-    WorldCollisionGridFace* face;
-    WorldCollisionContact*  slot;
-    s16*                    cell;
-    s32                     id;
-    s32                     i;
-    s32                     n;
-    s32                     outside;
-    s32                     val;
-    s32                     faceDot;
-    s32                     edgeDot;
-    u16                     dist;
-    u16                     flags;
+    u8*                               head;
+    _WorldCollisionGridSphereScratch* scratch;
+    WorldCollisionGridFace*           face;
+    WorldCollisionContact*            slot;
+    s16*                              cell;
+    s32                               id;
+    s32                               i;
+    s32                               n;
+    s32                               outside;
+    s32                               val;
+    s32                               faceDot;
+    s32                               edgeDot;
+    u16                               dist;
+    u16                               flags;
 
     head                       = SCRATCH_STACK_CURSOR(u8);
-    pos                        = (VECTOR3*)(head - 0x80);
-    SCRATCH_STACK_CURSOR(void) = head - 0x88;
-    block                      = (GpGridHitScratch*)(head - 0x88);
-    Gp_ObjWorldPos(arg0, pos);
-    Gp_LocalToGrid(pos, &block->grid);
+    SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionGridSphereScratch);
+    scratch                    = (_WorldCollisionGridSphereScratch*)(head - sizeof(_WorldCollisionGridSphereScratch));
+    Gp_ObjWorldPos(arg0, (VECTOR3*)&scratch->centre);
+    Gp_LocalToGrid((VECTOR3*)&scratch->centre, (SVECTOR3*)&scratch->gridCell);
 
-    if ((u16)block->grid.vx < Gp_GridParams->cellCountX && (u16)block->grid.vz < Gp_GridParams->cellCountZ) {
-        cell = Gp_GridParams->cellFaceIds[block->grid.vx * Gp_GridParams->cellCountZ + block->grid.vz];
+    if ((u16)scratch->gridCell.vx < Gp_GridParams->cellCountX && (u16)scratch->gridCell.vz < Gp_GridParams->cellCountZ) {
+        cell = Gp_GridParams->cellFaceIds[scratch->gridCell.vx * Gp_GridParams->cellCountZ + scratch->gridCell.vz];
         if (cell != NULL) {
             for (;;) {
                 id = *cell;
@@ -598,23 +594,24 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
                     continue;
                 }
 
+                // Transform this face into the sphere's query space.
                 gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
                 gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[0]]);
                 gte_rtv0();
-                gte_stlvnl(&block->verts[0]);
-                block->verts[0].vx += Gp_GridParams->viewCoord->workm.t[0];
-                block->verts[0].vy += Gp_GridParams->viewCoord->workm.t[1];
-                block->verts[0].vz += Gp_GridParams->viewCoord->workm.t[2];
+                gte_stlvnl(&scratch->geometry.corners[0]);
+                scratch->geometry.corners[0].vx += Gp_GridParams->viewCoord->workm.t[0];
+                scratch->geometry.corners[0].vy += Gp_GridParams->viewCoord->workm.t[1];
+                scratch->geometry.corners[0].vz += Gp_GridParams->viewCoord->workm.t[2];
 
                 gte_ldv0(&Gp_GridParams->normals[face->normalIndex]);
                 gte_rtv0();
-                gte_stlvnl(&block->normal);
+                gte_stlvnl(&scratch->geometry.faceNormal);
 
-                faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
-                           block->normal.vz * block->verts[0].vz) >>
+                faceDot = (scratch->geometry.faceNormal.vx * scratch->geometry.corners[0].vx + scratch->geometry.faceNormal.vy * scratch->geometry.corners[0].vy +
+                           scratch->geometry.faceNormal.vz * scratch->geometry.corners[0].vz) >>
                           12;
-                dist = ((block->normal.vx * block->pos.vx + block->normal.vy * block->pos.vy +
-                         block->normal.vz * block->pos.vz) >>
+                dist = ((scratch->geometry.faceNormal.vx * scratch->centre.vx + scratch->geometry.faceNormal.vy * scratch->centre.vy +
+                         scratch->geometry.faceNormal.vz * scratch->centre.vz) >>
                         12) -
                        faceDot;
                 if (arg0->radius >= ABS((s16)dist)) {
@@ -641,32 +638,33 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
                 for (i = 1; i < n; i++) {
                     gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[i]]);
                     gte_rtv0();
-                    gte_stlvnl(&block->verts[i]);
-                    block->verts[i].vx += Gp_GridParams->viewCoord->workm.t[0];
-                    block->verts[i].vy += Gp_GridParams->viewCoord->workm.t[1];
-                    block->verts[i].vz += Gp_GridParams->viewCoord->workm.t[2];
+                    gte_stlvnl(&scratch->geometry.corners[i]);
+                    scratch->geometry.corners[i].vx += Gp_GridParams->viewCoord->workm.t[0];
+                    scratch->geometry.corners[i].vy += Gp_GridParams->viewCoord->workm.t[1];
+                    scratch->geometry.corners[i].vz += Gp_GridParams->viewCoord->workm.t[2];
                 }
 
                 outside = 0;
+                // Reuse the displacement slot for each edge's outward Q12 plane normal.
                 for (i = n - 3; i < n * 2 - 3; i++) {
-                    block->delta.vx =
-                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vx;
-                    block->delta.vy =
-                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vy;
-                    block->delta.vz =
-                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vz;
-                    VectorNormal(&block->delta, &block->unit);
-                    gte_ldopv1(&block->normal);
-                    gte_ldopv2(&block->unit);
+                    scratch->geometry.edgeWork.vx =
+                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vx - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vx;
+                    scratch->geometry.edgeWork.vy =
+                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vy - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vy;
+                    scratch->geometry.edgeWork.vz =
+                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vz - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vz;
+                    VectorNormal(&scratch->geometry.edgeWork, &scratch->geometry.edgeDirection);
+                    gte_ldopv1(&scratch->geometry.faceNormal);
+                    gte_ldopv2(&scratch->geometry.edgeDirection);
                     gte_op12();
-                    gte_stlvnl(&block->delta);
+                    gte_stlvnl(&scratch->geometry.edgeWork);
 
-                    edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx +
-                               block->delta.vy * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy +
-                               block->delta.vz * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
+                    edgeDot = (scratch->geometry.edgeWork.vx * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vx +
+                               scratch->geometry.edgeWork.vy * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vy +
+                               scratch->geometry.edgeWork.vz * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
                               12;
-                    val = (s16)(((block->delta.vx * block->pos.vx + block->delta.vy * block->pos.vy +
-                                  block->delta.vz * block->pos.vz) >>
+                    val = (s16)(((scratch->geometry.edgeWork.vx * scratch->centre.vx + scratch->geometry.edgeWork.vy * scratch->centre.vy +
+                                  scratch->geometry.edgeWork.vz * scratch->centre.vz) >>
                                  12) -
                                 edgeDot);
                     if (val - 10 > 0) {
@@ -698,40 +696,38 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
     }
 
 done:
-    SCRATCH_STACK_RELEASE_BYTES(0x88);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionGridSphereScratch));
 }
 
 void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
 {
-    u8*                          head;
-    GpGridHitScratch*            block;
-    VECTOR3*                     pos;
-    WorldCollisionGridFace*      face;
-    WorldCollisionContact*       slot;
-    WorldCollisionMotionContext* motionContext;
-    s16*                         cell;
-    s32                          id;
-    s32                          i;
-    s32                          n;
-    s32                          outside;
-    s32                          val;
-    s32                          faceDot;
-    s32                          edgeDot;
-    u16                          dist;
-    s32                          extra;
-    s32                          faceKind;
-    u16                          flags;
+    u8*                               head;
+    _WorldCollisionGridSphereScratch* scratch;
+    WorldCollisionGridFace*           face;
+    WorldCollisionContact*            slot;
+    WorldCollisionMotionContext*      motionContext;
+    s16*                              cell;
+    s32                               id;
+    s32                               i;
+    s32                               n;
+    s32                               outside;
+    s32                               val;
+    s32                               faceDot;
+    s32                               edgeDot;
+    u16                               dist;
+    s32                               extra;
+    s32                               faceKind;
+    u16                               flags;
 
     head                       = SCRATCH_STACK_CURSOR(u8);
-    pos                        = (VECTOR3*)(head - 0x80);
-    SCRATCH_STACK_CURSOR(void) = head - 0x88;
-    block                      = (GpGridHitScratch*)(head - 0x88);
+    SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionGridSphereScratch);
+    scratch                    = (_WorldCollisionGridSphereScratch*)(head - sizeof(_WorldCollisionGridSphereScratch));
     motionContext              = arg0->context.motion;
-    Gp_ObjWorldPos(arg0, pos);
-    Gp_LocalToGrid(pos, &block->grid);
+    Gp_ObjWorldPos(arg0, (VECTOR3*)&scratch->centre);
+    Gp_LocalToGrid((VECTOR3*)&scratch->centre, (SVECTOR3*)&scratch->gridCell);
 
-    if ((u16)block->grid.vx < Gp_GridParams->cellCountX && (u16)block->grid.vz < Gp_GridParams->cellCountZ) {
-        cell = Gp_GridParams->cellFaceIds[block->grid.vx * Gp_GridParams->cellCountZ + block->grid.vz];
+    if ((u16)scratch->gridCell.vx < Gp_GridParams->cellCountX && (u16)scratch->gridCell.vz < Gp_GridParams->cellCountZ) {
+        cell = Gp_GridParams->cellFaceIds[scratch->gridCell.vx * Gp_GridParams->cellCountZ + scratch->gridCell.vz];
         if (cell != NULL) {
             for (;;) {
                 id = *cell;
@@ -748,30 +744,31 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                     continue;
                 }
 
+                // Transform this face into the sphere's query space.
                 gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
                 gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[0]]);
                 gte_rtv0();
-                gte_stlvnl(&block->verts[0]);
-                block->verts[0].vx += Gp_GridParams->viewCoord->workm.t[0];
-                block->verts[0].vy += Gp_GridParams->viewCoord->workm.t[1];
-                block->verts[0].vz += Gp_GridParams->viewCoord->workm.t[2];
+                gte_stlvnl(&scratch->geometry.corners[0]);
+                scratch->geometry.corners[0].vx += Gp_GridParams->viewCoord->workm.t[0];
+                scratch->geometry.corners[0].vy += Gp_GridParams->viewCoord->workm.t[1];
+                scratch->geometry.corners[0].vz += Gp_GridParams->viewCoord->workm.t[2];
 
                 gte_ldv0(&Gp_GridParams->normals[face->normalIndex]);
                 gte_rtv0();
-                gte_stlvnl(&block->normal);
+                gte_stlvnl(&scratch->geometry.faceNormal);
 
-                if (motionContext->motionDirection.vx * block->normal.vx + motionContext->motionDirection.vy * block->normal.vy +
-                        motionContext->motionDirection.vz * block->normal.vz >
+                if (motionContext->motionDirection.vx * scratch->geometry.faceNormal.vx + motionContext->motionDirection.vy * scratch->geometry.faceNormal.vy +
+                        motionContext->motionDirection.vz * scratch->geometry.faceNormal.vz >
                     0x280000) {
                     cell++;
                     continue;
                 }
 
-                faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
-                           block->normal.vz * block->verts[0].vz) >>
+                faceDot = (scratch->geometry.faceNormal.vx * scratch->geometry.corners[0].vx + scratch->geometry.faceNormal.vy * scratch->geometry.corners[0].vy +
+                           scratch->geometry.faceNormal.vz * scratch->geometry.corners[0].vz) >>
                           12;
-                dist = ((block->normal.vx * block->pos.vx + block->normal.vy * block->pos.vy +
-                         block->normal.vz * block->pos.vz) >>
+                dist = ((scratch->geometry.faceNormal.vx * scratch->centre.vx + scratch->geometry.faceNormal.vy * scratch->centre.vy +
+                         scratch->geometry.faceNormal.vz * scratch->centre.vz) >>
                         12) -
                        faceDot;
                 if (arg0->radius >= ABS((s16)dist)) {
@@ -788,33 +785,34 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                 for (i = 1; i < n; i++) {
                     gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[i]]);
                     gte_rtv0();
-                    gte_stlvnl(&block->verts[i]);
-                    block->verts[i].vx += Gp_GridParams->viewCoord->workm.t[0];
-                    block->verts[i].vy += Gp_GridParams->viewCoord->workm.t[1];
-                    block->verts[i].vz += Gp_GridParams->viewCoord->workm.t[2];
+                    gte_stlvnl(&scratch->geometry.corners[i]);
+                    scratch->geometry.corners[i].vx += Gp_GridParams->viewCoord->workm.t[0];
+                    scratch->geometry.corners[i].vy += Gp_GridParams->viewCoord->workm.t[1];
+                    scratch->geometry.corners[i].vz += Gp_GridParams->viewCoord->workm.t[2];
                 }
 
                 extra   = 0;
                 outside = 0;
+                // Reuse the displacement slot for each edge's outward Q12 plane normal.
                 for (i = n - 3; i < n * 2 - 3; i++) {
-                    block->delta.vx =
-                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vx;
-                    block->delta.vy =
-                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vy;
-                    block->delta.vz =
-                        block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz - block->verts[Gp_FaceEdgePairs[i].startCornerIndex].vz;
-                    VectorNormal(&block->delta, &block->unit);
-                    gte_ldopv1(&block->normal);
-                    gte_ldopv2(&block->unit);
+                    scratch->geometry.edgeWork.vx =
+                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vx - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vx;
+                    scratch->geometry.edgeWork.vy =
+                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vy - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vy;
+                    scratch->geometry.edgeWork.vz =
+                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vz - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vz;
+                    VectorNormal(&scratch->geometry.edgeWork, &scratch->geometry.edgeDirection);
+                    gte_ldopv1(&scratch->geometry.faceNormal);
+                    gte_ldopv2(&scratch->geometry.edgeDirection);
                     gte_op12();
-                    gte_stlvnl(&block->delta);
+                    gte_stlvnl(&scratch->geometry.edgeWork);
 
-                    edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vx +
-                               block->delta.vy * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vy +
-                               block->delta.vz * block->verts[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
+                    edgeDot = (scratch->geometry.edgeWork.vx * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vx +
+                               scratch->geometry.edgeWork.vy * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vy +
+                               scratch->geometry.edgeWork.vz * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
                               12;
-                    val = (s16)(((block->delta.vx * block->pos.vx + block->delta.vy * block->pos.vy +
-                                  block->delta.vz * block->pos.vz) >>
+                    val = (s16)(((scratch->geometry.edgeWork.vx * scratch->centre.vx + scratch->geometry.edgeWork.vy * scratch->centre.vy +
+                                  scratch->geometry.edgeWork.vz * scratch->centre.vz) >>
                                  12) -
                                 edgeDot);
                     if (val - arg0->radius > 0) {
@@ -872,7 +870,7 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
     }
 
 done:
-    SCRATCH_STACK_RELEASE_BYTES(0x88);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionGridSphereScratch));
 }
 
 s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg3)

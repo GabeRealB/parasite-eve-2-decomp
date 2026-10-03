@@ -41214,7 +41214,7 @@ mark_outside:
 
 placed before the loop, `outside` has three references, all at the outer loop's
 depth, and loses `global-alloc`'s priority race to the loop-invariant
-`&block->unit` / `&block->delta` pointers — it ends up on the stack while they
+`&scratch->geometry.edgeDirection` / `&scratch->geometry.edgeWork` pointers — it ends up on the stack while they
 take `s6`/`s7`. Turning *both* sites into `outside = 1; break;` fixes the
 allocation (the refs are now at the inner loop's depth) but moves the merged
 block to the end of the function.
