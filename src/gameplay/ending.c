@@ -199,7 +199,7 @@ void Gp_EndingTask(Task* arg0)
             arg0->killCountdown = 0x5A;
         }
         SndEvt_EnqueueType6(SOUND_AREA_EXIT, 0, 0);
-        Gp_SpawnScript18(&D_80114A24, D_80114A34);
+        Gp_SpawnScript18(D_80114A24, D_80114A34);
         Gp_SetCurAreaFlag4();
     } else if (arg0->state == 1) {
         session = gGameSession;

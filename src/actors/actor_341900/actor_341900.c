@@ -686,13 +686,13 @@ void func_actor_341900_80162708(Task* arg0)
                 frame = work->field_66 & 0x3FF;
                 if ((frame == 0x12) && (work->field_230 != frame)) {
                     taskReparent(arg0,
-                                 Gp_SpawnScript18(&D_80144A74, D_80144A7C));
+                                 Gp_SpawnScript18(D_80144A74, D_80144A7C));
                     func_80143490(3);
                 }
                 frame = work->field_66 & 0x3FF;
                 if ((frame == 0x18) && (work->field_230 != frame)) {
                     taskReparent(arg0,
-                                 Gp_SpawnScript18(&D_80144A74, D_80144A7C));
+                                 Gp_SpawnScript18(D_80144A74, D_80144A7C));
                     func_80143490(3);
                 }
                 work->field_230 = work->field_66 & 0x3FF;

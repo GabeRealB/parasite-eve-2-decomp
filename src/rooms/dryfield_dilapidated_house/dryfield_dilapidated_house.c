@@ -2971,7 +2971,7 @@ void func_dryfield_dilapidated_house_8017E970(s32 arg0)
 static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
 {
     if (arg0 != 0) {
-        Gp_SpawnScript18(&D_80114A24, D_80114A34);
+        Gp_SpawnScript18(D_80114A24, D_80114A34);
         D_dryfield_dilapidated_house_80189B80.duration = arg0;
         Task_SpawnFromTable(D_dryfield_dilapidated_house_80183E64, 0, 0, &D_dryfield_dilapidated_house_80189B80);
         return;

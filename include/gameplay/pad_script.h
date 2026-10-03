@@ -74,30 +74,15 @@ typedef struct PadScriptVibrationSegment {
 } PadScriptVibrationSegment;
 STATIC_ASSERT_SIZEOF(PadScriptVibrationSegment, 4);
 
-/// Serialized EVS operands and native pointers share the PS1 address word.
-typedef union GpScriptCmdAddress {
-    s32           address;
-    PadScriptCmd* commands;
-    void*         storage;
-} GpScriptCmdAddress __attribute__((transparent_union));
-
-typedef union GpScriptRecAddress {
-    s32                        address;
-    PadScriptVibrationSegment* records;
-    void*                      storage;
-} GpScriptRecAddress __attribute__((transparent_union));
-STATIC_ASSERT_SIZEOF(GpScriptCmdAddress, 4);
-STATIC_ASSERT_SIZEOF(GpScriptRecAddress, 4);
-
 /// Suspends pad-driven scripting: raises the script, hold and lerp halt
 /// flags, clears `GameSession::padScriptFlags` and flushes the pad event queue.
 void Gp_HaltPadScripts(void);
 
-Task* Gp_SpawnScript18(GpScriptCmdAddress arg0, GpScriptRecAddress arg1);
+Task* Gp_SpawnScript18(PadScriptCmd* commands, PadScriptVibrationSegment* segments);
 
 void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
 
-Task* Gp_SpawnScript18Ex(GpScriptCmdAddress arg0, GpScriptRecAddress arg1, s32 arg2);
+Task* Gp_SpawnScript18Ex(PadScriptCmd* commands, PadScriptVibrationSegment* segments, s32 arg2);
 
 void Gp_PadHoldTask(Task* task);
 

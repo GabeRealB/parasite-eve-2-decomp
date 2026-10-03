@@ -1031,7 +1031,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                     if (work->field_0[0].pos.vx >= 0x36B0) {
                         work->field_0[0].pos.vx = 0x36B0;
                         work->field_0[1].pos.vx = 0x36B0;
-                        taskReparent(arg0, Gp_SpawnScript18(&D_80144A74, D_80144A7C));
+                        taskReparent(arg0, Gp_SpawnScript18(D_80144A74, D_80144A7C));
                         func_80143490(3);
                         work->field_70 = 0;
                     }
@@ -1043,7 +1043,7 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 9:
             SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 1);
             SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_DOORS_SHUT, 0, 0);
-            taskReparent(arg0, Gp_SpawnScript18(&D_80144A74, D_80144A7C));
+            taskReparent(arg0, Gp_SpawnScript18(D_80144A74, D_80144A7C));
             func_80143490(3);
             break;
         default:

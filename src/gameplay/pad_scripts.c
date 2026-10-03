@@ -282,7 +282,7 @@ void Gp_HaltPadScripts(void)
     Pad_ClearEvents(0);
 }
 
-Task* Gp_SpawnScript18(GpScriptCmdAddress arg0, GpScriptRecAddress arg1)
+Task* Gp_SpawnScript18(PadScriptCmd* commands, PadScriptVibrationSegment* segments)
 {
     Task*           task;
     _PadScriptWork* mem;
@@ -293,8 +293,8 @@ Task* Gp_SpawnScript18(GpScriptCmdAddress arg0, GpScriptRecAddress arg1)
         if (task != NULL) {
             task->work       = mem;
             mem->sourceDepth = 0;
-            mem->commands    = arg0.commands;
-            mem->segments    = arg1.records;
+            mem->commands    = commands;
+            mem->segments    = segments;
             return task;
         }
         memFree(mem);
@@ -332,7 +332,7 @@ void Gp_ClearPadHalt(void)
     Gp_PadLerpHalt   = 0;
 }
 
-Task* Gp_SpawnScript18Ex(GpScriptCmdAddress arg0, GpScriptRecAddress arg1, s32 arg2)
+Task* Gp_SpawnScript18Ex(PadScriptCmd* commands, PadScriptVibrationSegment* segments, s32 arg2)
 {
     Task*           task;
     _PadScriptWork* mem;
@@ -343,8 +343,8 @@ Task* Gp_SpawnScript18Ex(GpScriptCmdAddress arg0, GpScriptRecAddress arg1, s32 a
         if (task != NULL) {
             task->work       = mem;
             mem->sourceDepth = arg2;
-            mem->commands    = arg0.commands;
-            mem->segments    = arg1.records;
+            mem->commands    = commands;
+            mem->segments    = segments;
             return task;
         }
         memFree(mem);
