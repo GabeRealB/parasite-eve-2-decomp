@@ -1345,7 +1345,7 @@ static void func_actor_361100_80161FF8(Task* arg0)
 
 /// Head-aim state of the actor, run only while `D_801156F9` is clear: a looker
 /// task that is missing, or a target task that is, parks the state machine on
-/// -1. State 0 allocates the `GpHeadAim` record into `Task::work` and
+/// -1. State 0 allocates the `AnimationHeadAim` record into `Task::work` and
 /// seeds its clamps to 0x300 yaw and 0x200 pitch; state 1 ramps its `rate` up
 /// toward 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it
 /// is not, then hands the record to `func_800B17D4` between the slot-3 task
@@ -1355,10 +1355,10 @@ static void func_actor_361100_80161FF8(Task* arg0)
 /// falls out of its own `if` into that kill, rather than into state 1.
 void func_actor_361100_801627D4(Task* task)
 {
-    Task*      looker;
-    Task*      target;
-    GpHeadAim* aim;
-    u16        rate;
+    Task*             looker;
+    Task*             target;
+    AnimationHeadAim* aim;
+    u16               rate;
 
     looker = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     target = Gp_LookupSlot4(2);
@@ -1368,7 +1368,7 @@ void func_actor_361100_801627D4(Task* task)
         }
         switch (task->state) {
             case 0:
-                aim = memCalloc(sizeof(GpHeadAim), false);
+                aim = memCalloc(sizeof(AnimationHeadAim), false);
                 if (aim != NULL) {
                     task->work      = aim;
                     aim->yawLimit   = 0x300;
@@ -1376,12 +1376,12 @@ void func_actor_361100_801627D4(Task* task)
                     task->state++;
                         /* fallthrough */
                     case 1:
-                        aim = (GpHeadAim*)task->work;
+                        aim = task->work;
                         if (task->spawnArg1.value != 0) {
                             rate      = aim->rate + 0x100;
                             aim->rate = rate;
-                            if ((s16)rate >= 0x1001) {
-                                aim->rate = 0x1000;
+                            if ((s16)rate > ONE) {
+                                aim->rate = ONE;
                             }
                         } else {
                             rate      = aim->rate - 0x100;

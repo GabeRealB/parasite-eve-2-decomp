@@ -177,7 +177,7 @@ void func_800B0CF4(Task* arg0, GfxCoord* arg1, s32 arg2, s32 arg3, s32 arg4);
 /// position, takes the offset in `arg0`'s head frame through `ratan2`, unwraps
 /// the pitch against `arg2->lastPitch` when it jumps by more than 0x800, steps
 /// toward it by `arg2->rate / 0x1000`, clamps, and writes the head rotation.
-void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2);
+void func_800B17D4(Task* arg0, Task* arg1, AnimationHeadAim* arg2);
 
 void Gp_EnemyDispatch(Task* arg0);
 

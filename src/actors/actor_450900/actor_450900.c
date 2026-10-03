@@ -873,21 +873,21 @@ void func_actor_450900_80132518(s32 arg0)
 
 /// State handler of the save-point capture task `func_actor_450900_80131E38`
 /// spawns. State 0 allocates the head-aim record the capture cursor sweeps with
-/// (`memCalloc(0xC, false)` into `Task::work`); state 1 ramps its `rate` one
+/// (an `AnimationHeadAim` in `Task::work`); state 1 ramps its `rate` one
 /// 0x200 step per frame, up or down according to `Task::spawnArg1` (the flag
 /// `func_actor_450900_80132518` arms), and hands the record to `func_800B17D4`
 /// between the slot-3 task and the ally's own slot-0xA task. Any other state
 /// kills the task and drops the overlay's handle to it.
 void func_actor_450900_80132548(Task* task)
 {
-    GpHeadAim* aim;
-    Task*      playerTask;
-    u16        rate;
+    AnimationHeadAim* aim;
+    Task*             playerTask;
+    u16               rate;
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (task->state) {
         case 0:
-            aim = memCalloc(sizeof(GpHeadAim), false);
+            aim = memCalloc(sizeof(AnimationHeadAim), false);
             if (aim == NULL) {
                 taskKill(task);
                 return;
@@ -898,12 +898,12 @@ void func_actor_450900_80132548(Task* task)
             task->state++;
             /* fallthrough */
         case 1:
-            aim = (GpHeadAim*)task->work;
+            aim = task->work;
             if (task->spawnArg1.value != 0) {
                 rate      = aim->rate + 0x200;
                 aim->rate = rate;
-                if ((s16)rate >= 0x1001) {
-                    aim->rate = 0x1000;
+                if ((s16)rate > ONE) {
+                    aim->rate = ONE;
                 }
             } else {
                 rate      = aim->rate - 0x200;

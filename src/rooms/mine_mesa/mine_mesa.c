@@ -2802,7 +2802,7 @@ void func_mine_mesa_8017E074(Task* arg0)
 
 /// Head-aim state of the mesa's run task, run only while `D_801156F9` is clear:
 /// a missing slot-3 or slot-0xA task parks the state machine on -1. State 0
-/// allocates the `GpHeadAim` record into `Task::work` and seeds its
+/// allocates the `AnimationHeadAim` record into `Task::work` and seeds its
 /// clamps to 0x300 yaw and 0x200 pitch; state 1 ramps its `rate` up toward
 /// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
 /// not, then hands the record to `func_800B17D4` between the slot-3 task whose
@@ -2812,12 +2812,12 @@ void func_mine_mesa_8017E074(Task* arg0)
 /// allocation falls out of its own `if` into that same kill.
 void func_mine_mesa_8017E15C(Task* arg0)
 {
-    Task*      turner;
-    Task*      looker;
-    GpHeadAim* aim;
-    s32        state;
-    u16        rateUp;
-    u16        rateDown;
+    Task*             turner;
+    Task*             looker;
+    AnimationHeadAim* aim;
+    s32               state;
+    u16               rateUp;
+    u16               rateDown;
 
     turner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     looker = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
@@ -2828,7 +2828,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
         state = arg0->state;
         switch (state) {
             case 0:
-                aim = memCalloc(sizeof(GpHeadAim), false);
+                aim = memCalloc(sizeof(AnimationHeadAim), false);
                 if (aim != NULL) {
                     arg0->work      = aim;
                     aim->yawLimit   = 0x300;
@@ -2836,12 +2836,12 @@ void func_mine_mesa_8017E15C(Task* arg0)
                     arg0->state++;
                         /* fallthrough */
                     case 1:
-                        aim = (GpHeadAim*)arg0->work;
+                        aim = arg0->work;
                         if (arg0->spawnArg1.value != 0) {
                             rateUp    = aim->rate + 0x100;
                             aim->rate = rateUp;
-                            if ((s16)rateUp >= 0x1001) {
-                                aim->rate = 0x1000;
+                            if ((s16)rateUp > ONE) {
+                                aim->rate = ONE;
                             }
                         } else {
                             rateDown  = aim->rate - 0x100;
@@ -2864,7 +2864,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
 
 /// Head-aim state of the mesa's tracked task, run only while `D_801156F9` is
 /// clear: a missing `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` task parks the state machine on -1.
-/// State 0 allocates the `GpHeadAim` record into `Task::work` and seeds
+/// State 0 allocates the `AnimationHeadAim` record into `Task::work` and seeds
 /// its clamps to 0x300 yaw and 0x100 pitch; state 1 ramps its `rate` up toward
 /// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
 /// not, then hands the record to `func_800B17D4` between the
@@ -2875,9 +2875,9 @@ void func_mine_mesa_8017E15C(Task* arg0)
 /// allocation falls out of its own `if` into that same kill.
 void func_mine_mesa_8017E2A4(Task* arg0)
 {
-    Task*      looker;
-    GpHeadAim* aim;
-    u16        rate;
+    Task*             looker;
+    AnimationHeadAim* aim;
+    u16               rate;
 
     looker = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (D_801156F9 == 0) {
@@ -2886,7 +2886,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
         }
         switch (arg0->state) {
             case 0:
-                aim = memCalloc(sizeof(GpHeadAim), false);
+                aim = memCalloc(sizeof(AnimationHeadAim), false);
                 if (aim != NULL) {
                     arg0->work      = aim;
                     aim->yawLimit   = 0x300;
@@ -2894,12 +2894,12 @@ void func_mine_mesa_8017E2A4(Task* arg0)
                     arg0->state++;
                         /* fallthrough */
                     case 1:
-                        aim = (GpHeadAim*)arg0->work;
+                        aim = arg0->work;
                         if (arg0->spawnArg1.value != 0) {
                             rate      = aim->rate + 0x100;
                             aim->rate = rate;
-                            if ((s16)rate >= 0x1001) {
-                                aim->rate = 0x1000;
+                            if ((s16)rate > ONE) {
+                                aim->rate = ONE;
                             }
                         } else {
                             rate      = aim->rate - 0x100;

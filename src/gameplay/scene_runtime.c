@@ -1529,7 +1529,7 @@ void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
     }
 }
 
-void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
+void func_800B17D4(Task* arg0, Task* arg1, AnimationHeadAim* arg2)
 {
     VECTOR    tmp;
     VECTOR    acc0;
@@ -1542,7 +1542,7 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
     MATRIX    tmtx;
     VECTOR    probe;
     s32       rate;
-    s32       inited;
+    s32       lastPitchValid;
     s32       i;
     GfxCoord* rec;
     GfxCoord* rec1;
@@ -1557,13 +1557,13 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
     GfxCoord* base;
     MATRIX*   m;
 
-    i          = 0;
-    m0         = &mtx0;
-    probe      = D_80093A28;
-    yawLimit   = arg2->yawLimit;
-    pitchLimit = arg2->pitchLimit;
-    rate       = arg2->rate;
-    inited     = arg2->inited;
+    i              = 0;
+    m0             = &mtx0;
+    probe          = D_80093A28;
+    yawLimit       = arg2->yawLimit;
+    pitchLimit     = arg2->pitchLimit;
+    rate           = arg2->rate;
+    lastPitchValid = arg2->lastPitchValid;
 
     *(s32*)&mtx0             = ONE;
     MATRIX_PAIR(&mtx0, 0, 2) = 0;
@@ -1626,7 +1626,7 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
         ang.vx = (u16)ang.vx - 0x1000;
     }
 
-    if (inited != 0) {
+    if (lastPitchValid != 0) {
         if (ABS(ang.vx - arg2->lastPitch) > 0x800) {
             while (ang.vx >= 0x800) {
                 ang.vx -= 0x1000;
@@ -1636,7 +1636,7 @@ void func_800B17D4(Task* arg0, Task* arg1, GpHeadAim* arg2)
             }
         }
     } else {
-        arg2->inited = 1;
+        arg2->lastPitchValid = 1;
     }
     arg2->lastPitch = ang.vx;
 

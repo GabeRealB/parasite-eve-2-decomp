@@ -254,22 +254,22 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
 /// `animationTickSlotPose`; no array lengths are checked here.
 void animationTickSlot(AnimationContext* context, s32 slotIndex);
 
-/// Persistent head-tracking state for `func_800B17D4`, allocated by the task
-/// that drives the head turn and kept in its `Task::work`. `yawLimit` /
-/// `pitchLimit` are the base clamps (widened to the head's current pose each
-/// step), `rate` the per-step fraction of the remaining angle in `/ 0x1000`,
-/// which the owner ramps, `lastPitch` the previous unwrapped pitch and
-/// `inited` whether it is valid. Every owner allocates 12 bytes; nothing reads
-/// the bytes after `inited`.
-typedef struct _GpHeadAim {
-    s16  yawLimit;
-    s16  pitchLimit;
-    s16  rate;
-    s16  lastPitch;
-    s8   inited;
-    byte pad_9[0x3];
-} GpHeadAim;
-STATIC_ASSERT_SIZEOF(GpHeadAim, 0xC);
+/// Persistent state of one task's head turning toward another task's head.
+///
+/// A driving task allocates the record zeroed into its `Task::work`, seeds the
+/// two limits, and passes it every frame to the gameplay routine that rotates
+/// the turning skeleton's head joint. Angles are in `ONE`-per-revolution units;
+/// `rate` is a fraction of `ONE`. The driver ramps `rate` between 0 and `ONE`
+/// to fade the turn in and out, and frees the record with the task.
+typedef struct {
+    s16  yawLimit;       // Base yaw clamp; widened to the head's current yaw when that is larger
+    s16  pitchLimit;     // Base pitch clamp; widened to the head's current pitch when that is larger
+    s16  rate;           // Fraction of the way from the head's current rotation to the aim applied per frame (0 holds, ONE snaps)
+    s16  lastPitch;      // Previous frame's aim pitch, unwrapped to stay continuous
+    s8   lastPitchValid; // Nonzero once `lastPitch` holds a value (set on the first frame)
+    byte field_9[0x3];   // Never accessed; role unproven (every driver allocates the full 12 bytes)
+} AnimationHeadAim;
+STATIC_ASSERT_SIZEOF(AnimationHeadAim, 0xC);
 
 /// Word counts of one weapon or companion animation bank.
 ///

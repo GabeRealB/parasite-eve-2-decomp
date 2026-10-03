@@ -1219,7 +1219,7 @@ void func_actor_450200_80131E24(Task* task)
 }
 
 /// Head-aim state of this actor's second sub-task: state 0 allocates the
-/// `GpHeadAim` record into `Task::work` and seeds both clamps to
+/// `AnimationHeadAim` record into `Task::work` and seeds both clamps to
 /// 0x100, state 1 ramps its `rate` up toward 0x1000 while `Task::spawnArg1` is
 /// set and back down toward 0 while it is not, then hands the record to
 /// `func_800B17D4` between the slot-3 task whose head turns and the
@@ -1229,14 +1229,14 @@ void func_actor_450200_80131E24(Task* task)
 /// distinct.
 void func_actor_450200_80131FA8(Task* arg0)
 {
-    Task*      looker;
-    GpHeadAim* aim;
-    u16        rate;
+    Task*             looker;
+    AnimationHeadAim* aim;
+    u16               rate;
 
     looker = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (arg0->state) {
         case 0:
-            aim = memCalloc(sizeof(GpHeadAim), false);
+            aim = memCalloc(sizeof(AnimationHeadAim), false);
             if (aim == NULL) {
                 taskKill(arg0);
                 return;
@@ -1247,12 +1247,12 @@ void func_actor_450200_80131FA8(Task* arg0)
             arg0->state++;
             /* fallthrough */
         case 1:
-            aim = (GpHeadAim*)arg0->work;
+            aim = arg0->work;
             if (arg0->spawnArg1.value != 0) {
                 rate      = aim->rate + 0x200;
                 aim->rate = rate;
-                if ((s16)rate >= 0x1001) {
-                    aim->rate = 0x1000;
+                if ((s16)rate > ONE) {
+                    aim->rate = ONE;
                 }
             } else {
                 rate      = aim->rate - 0x100;
