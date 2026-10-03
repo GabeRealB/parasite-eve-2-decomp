@@ -178,7 +178,7 @@ static void Task_AllocIdMap(Task* task)
         }
         temp_s1 = selection->table[selection->index].sequenceId;
         if (temp_s1 == STAGE_MUSIC_NO_SEQUENCE) {
-            SndEvt_EnqueueType2(gStageCurrentSong, gStageMusicParams.fadeFrames);
+            SndEvt_EnqueueType2(gStageCurrentSong, gStageMusicParams.fadeOutTicks);
             gStageMusicLoadState = temp_s1;
             taskKill(task);
             return;
@@ -186,13 +186,13 @@ static void Task_AllocIdMap(Task* task)
         gStageMusicLoadState = 0;
         if (Midi_IsChannelFree(selection->table[selection->index].sequenceId) == 1) {
             if ((gStageCurrentSong != 0) && (Midi_IsBusy(gStageCurrentSong) != 0)) {
-                SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeFrames + 1) & 0xFFFF);
+                SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
             }
             task->state = task->state + 1;
             return;
         }
         if (selection->table[selection->index].startMode == STAGE_MUSIC_START_DEFERRED) {
-            SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeFrames + 1) & 0xFFFF);
+            SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
             goto block_20;
         }
         if (Midi_IsBusy(gStageCurrentSong) == 0) {

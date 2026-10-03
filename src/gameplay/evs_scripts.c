@@ -173,7 +173,6 @@ static void Gp_ScriptTaskState1(Task* arg0)
     SVECTOR              vec;
     TextDrawReq          req;
     Task*                slot;
-    StageMusicParams*    pair;
     s32                  mode;
 
     st = (GpEvsState*)arg0->work;
@@ -394,12 +393,11 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (D_801156C9 != 0) {
                     break;
                 }
-                pair                                                = &gStageMusicParams;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = (u8)st->pc->operand0.value;
                 D_801156C9                                          = 1;
-                pair->fadeFrames                                    = (u16)st->pc->operand1.value;
+                gStageMusicParams.fadeOutTicks                      = st->pc->operand1.value;
                 gStageMusicLoadState                                = 0;
-                pair->unusedCommandArg                              = (u16)st->pc->operand2.value;
+                gStageMusicParams.field_2                           = st->pc->operand2.value;
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
                 break;
 

@@ -3,12 +3,23 @@
 
 #include "common.h"
 
-/// Parameters supplied by EVS command 20 when changing stage music.
-/// The second halfword is retained command state; the current loader ignores it.
-typedef struct StageMusicParams {
-    u16 fadeFrames;
-    u16 unusedCommandArg;
+/// How a stage music task disposes of the song it replaces.
+///
+/// A requester fills this in and then spawns the task, which reads it once
+/// while choosing the new music-table entry. Nothing clears it afterwards, and
+/// every requester writes both members: rooms, the area-entry, ending and load
+/// tasks, and the event script's scene-music instruction.
+///
+/// The duration ends up in the sound queue's sequence-stop request, which keeps
+/// whole multiples of four updates and stops the song at once when none
+/// remain. Where the task stops a song to make way for another it adds one
+/// first, wrapping at 16 bits; where the selected entry has no sequence it
+/// passes the value as stored.
+typedef struct {
+    u16 fadeOutTicks; // Audio updates the outgoing song takes to fade out (0 stops it at once)
+    u16 field_2;      // Written with every request; nothing reads it, role unproven
 } StageMusicParams;
+STATIC_ASSERT_SIZEOF(StageMusicParams, 0x4);
 
 /// Sequence id in `StageMusicEntry::sequenceId` that selects no music.
 ///

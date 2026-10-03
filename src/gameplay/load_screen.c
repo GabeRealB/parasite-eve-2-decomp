@@ -337,16 +337,15 @@ void Gp_LoadWaitStage(Task* task)
 
 void Gp_LoadState2(Task* task)
 {
-    TILE*             tile;
-    DR_TPAGE*         dr;
-    DisplayState*     ds;
-    s32               color;
-    s32               queued;
-    s32               buf;
-    s8                yoff;
-    McSaveData*       save;
-    StageMusicParams* pair;
-    GameLocationKey*  sess;
+    TILE*            tile;
+    DR_TPAGE*        dr;
+    DisplayState*    ds;
+    s32              color;
+    s32              queued;
+    s32              buf;
+    s8               yoff;
+    McSaveData*      save;
+    GameLocationKey* sess;
 
     color  = 8;
     queued = gCdCmdQueue.bootLoadActive;
@@ -389,9 +388,8 @@ void Gp_LoadState2(Task* task)
         gGameSession->deathSoundCountdown = 1;
         gGameSession->deathFadeFrames     = GAME_SESSION_DEATH_FADE_DEFAULT;
         gGameSession->deathRestartDelay   = 0x1E;
-        pair                              = &gStageMusicParams;
-        pair->fadeFrames                  = 0x3C;
-        pair->unusedCommandArg            = 0;
+        gStageMusicParams.fadeOutTicks    = 0x3C;
+        gStageMusicParams.field_2         = 0;
         Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
         task->state++;
     }

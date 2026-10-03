@@ -1252,8 +1252,6 @@ void func_shelter_b2_laboratory_80180290(Task* task)
 
 void func_shelter_b2_laboratory_80180350(Task* task)
 {
-    StageMusicParams* pair;
-
     switch (task->state) {
         case 0:
             if (gGameSession->location.loc.view == 0xD) {
@@ -1262,9 +1260,8 @@ void func_shelter_b2_laboratory_80180350(Task* task)
             return;
         case 1:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xE;
-            pair                                                = &gStageMusicParams;
-            pair->fadeFrames                                    = 0;
-            pair->unusedCommandArg                              = 0;
+            gStageMusicParams.fadeOutTicks                      = 0;
+            gStageMusicParams.field_2                           = 0;
             Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
             task->state++;
             return;

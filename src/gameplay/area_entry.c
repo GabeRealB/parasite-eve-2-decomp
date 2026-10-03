@@ -61,7 +61,6 @@ void Gp_AreaEnterTask(Task* arg0)
     s32                 i;
     Task*               slot;
     GameSession*        session;
-    StageMusicParams*   pair;
     InventoryItemRange* scan;
 
     if (arg0->state == 0) {
@@ -114,10 +113,9 @@ void Gp_AreaEnterTask(Task* arg0)
     } else if (arg0->state == 1) {
         session = gGameSession;
         if (!(session->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
-            session->viewReady     = 1;
-            pair                   = &gStageMusicParams;
-            pair->fadeFrames       = 0;
-            pair->unusedCommandArg = 0;
+            session->viewReady             = 1;
+            gStageMusicParams.fadeOutTicks = 0;
+            gStageMusicParams.field_2      = 0;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY)) {
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 1, 0);
             } else {

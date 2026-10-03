@@ -83,7 +83,7 @@ enum {
     EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND   = 17, // 0 nonzero starts the framebuffer-blend task; zero releases the current one.
     EVENT_SCRIPT_OPCODE_START_AREA_MUSIC        = 18, // 0 fade ticks, narrowed to s16 then u16; start area-table music at most once per event.
     EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC         = 19, // 0 fade control, narrowed to s16; stop area-table music with u16(control + 1).
-    EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC     = 20, // 0 u8 scene event, 1 u16 fade frames, 2 retained u16 operand; once per event.
+    EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC     = 20, // 0 u8 scene event, 1 u16 fade-out ticks, 2 u16 stored but never read; once per event.
     EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD         = 21, // Retry until the stage music load state is nonzero.
     EVENT_SCRIPT_OPCODE_SHAKE_SCREEN            = 22, // 0 amplitude, 1 counter bound; spawn with (amplitude << 8) | bound.
     EVENT_SCRIPT_OPCODE_CLEANUP_SCENE           = 23, // Release CAP/HUD control, reset player scripting, and cancel the secondary fade.

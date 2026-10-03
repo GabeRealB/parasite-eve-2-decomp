@@ -677,9 +677,8 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
 /// 5 also advances it to 7 and spawns `Stage_MusicTaskDesc`.
 void func_acropolis_fire_escape_8017FB40(Task* task)
 {
-    StageMusicParams* pair;
-    s32               vol;
-    s32               prev;
+    s32 vol;
+    s32 prev;
 
     switch (task->state) {
         case 0:
@@ -697,9 +696,8 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
             vol = 0x64;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 5) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 7;
-                pair                                                = &gStageMusicParams;
-                pair->fadeFrames                                    = 1;
-                pair->unusedCommandArg                              = 1;
+                gStageMusicParams.fadeOutTicks                      = 1;
+                gStageMusicParams.field_2                           = 1;
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
                 gGameSession->flowFlags = 0;
             }
