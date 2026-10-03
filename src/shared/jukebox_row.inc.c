@@ -6,14 +6,14 @@
 /// out and hands the sequence id to the menu task to load.
 void jukeboxDrawRow(UiList* prompt, UiObject* obj)
 {
-    RoomsShared8018055cMenu menu;
-    JukeboxTrack*           track;
-    s32                     row;
-    s32                     list;
-    s32                     mode;
+    JukeboxTrackLists work;
+    JukeboxTrack*     track;
+    s32               row;
+    s32               list;
+    s32               mode;
 
     row  = prompt->currentItemIndex;
-    menu = _gJukeboxTrackLists;
+    work = _gJukeboxTrackLists;
 
     list = 4;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount != 0) {
@@ -23,15 +23,15 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
         list += 5;
     }
 
-    track               = &menu.lists[list][row];
-    menu.req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.unsignedValue;
-    menu.req.y          = (prompt->rowTextY.signedValue - 3) + obj->panel.contentOriginY.unsignedValue;
-    menu.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    menu.req.colorRgb   = prompt->colorRgb;
-    menu.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
-    menu.req.drawMode   = TEXT_DRAW_OUTLINED;
-    menu.req.alignment  = TEXT_ALIGNMENT_LEFT;
-    Text_DrawString(&menu.req, track->name);
+    track               = &work.lists[list][row];
+    work.req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.unsignedValue;
+    work.req.y          = (prompt->rowTextY.signedValue - 3) + obj->panel.contentOriginY.unsignedValue;
+    work.req.otIndex    = obj->panel.otIndex.signedValue + 1;
+    work.req.colorRgb   = prompt->colorRgb;
+    work.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+    work.req.drawMode   = TEXT_DRAW_OUTLINED;
+    work.req.alignment  = TEXT_ALIGNMENT_LEFT;
+    Text_DrawString(&work.req, track->name);
 
     mode = prompt->rowInputEnabled;
     if (mode == 1) {

@@ -426,7 +426,8 @@ chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
 `jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the
 label drawn for that row. The saloon and shooting-gallery overlays each define
 their own tables, so the record stays in `include/rooms/rooms_shared_8018055c.h`
-beside the menu union that points at those tables.
+beside `JukeboxTrackLists`, the ten-list table whose stack copy the row callback
+also uses for its text request.
 
 ## Documentation
 

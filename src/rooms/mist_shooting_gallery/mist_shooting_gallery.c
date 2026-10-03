@@ -2176,7 +2176,7 @@ void func_mist_shooting_gallery_80180390(s32 arg0)
 /// The jukebox's ten track lists: one per game mode, with list 4 standing in
 /// before the first clear, and the second five used outside the debug attach
 /// room.
-static const RoomsShared8018055cMenu _gJukeboxTrackLists = {
+static const JukeboxTrackLists _gJukeboxTrackLists = {
     {
         gJukeboxTracksAttach0,
         gJukeboxTracksAttach1,

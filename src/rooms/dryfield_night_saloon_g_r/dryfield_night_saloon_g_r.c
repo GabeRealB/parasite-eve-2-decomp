@@ -1924,7 +1924,7 @@ const char D_dryfield_night_saloon_g_r_8017D85C[] = "1. Tower Rendezvous";
 /// The jukebox's ten track lists: one per game mode, with list 4 standing in
 /// before the first clear, and the second five used outside the debug attach
 /// room.
-static const RoomsShared8018055cMenu _gJukeboxTrackLists = {
+static const JukeboxTrackLists _gJukeboxTrackLists = {
     {
         D_dryfield_night_saloon_g_r_80184F0C,
         D_dryfield_night_saloon_g_r_80184F24,

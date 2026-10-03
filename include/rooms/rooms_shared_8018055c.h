@@ -18,16 +18,18 @@ typedef struct {
 } JukeboxTrack;
 STATIC_ASSERT_SIZEOF(JukeboxTrack, 0x8);
 
-/// The ten course lists the SELECT menu can offer, indexed by
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` (the difficulty the save runs at) plus 5 outside a
-/// debug attach. The row handler stack-copies the whole table like the other
-/// gallery tables, but draws its row through the same 0x28-byte block: the
-/// text request overlays the first four list pointers, which is safe because
-/// the row is looked up before the request is filled in.
-typedef union RoomsShared8018055cMenu {
-    /* 0x00 */ JukeboxTrack* lists[10];
-    /* 0x00 */ TextDrawReq   req;
-} RoomsShared8018055cMenu;
-STATIC_ASSERT_SIZEOF(RoomsShared8018055cMenu, 0x28);
+/// The jukebox's ten SELECT track lists, and the row callback's stack copy of
+/// them, whose storage then carries the row's text request.
+///
+/// Lists 0-4 are offered in the debug attach room and 5-9 everywhere else;
+/// within each half the save's `gameMode` picks the list, and list 4 of the
+/// half stands in before the first clear. The row callback copies the whole
+/// table to the stack, looks its row up, and only then fills in `req` over the
+/// first four list pointers.
+typedef union {
+    JukeboxTrack* lists[10]; // Track list per game mode: 0-4 debug attach room, 5-9 otherwise
+    TextDrawReq   req;       // Row label request, built after the row is looked up
+} JukeboxTrackLists;
+STATIC_ASSERT_SIZEOF(JukeboxTrackLists, 0x28);
 
 #endif // INCLUDE_ROOMS_ROOMS_SHARED_8018055C_H
