@@ -44,7 +44,7 @@ extern GpMapFlagIcon D_map_akropolis_8017A330[];
 extern MenuMapIcon D_map_akropolis_8017A38C[];
 
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
-extern GpMapName D_map_akropolis_8017A3BC[];
+extern MenuMapAreaName D_map_akropolis_8017A3BC[];
 
 /// This stage's `Gp_Bit2Banks` list table, by room, ended by a -1 list.
 extern GpBit2List D_map_akropolis_8017A7FC[];

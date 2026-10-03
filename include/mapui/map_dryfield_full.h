@@ -40,7 +40,7 @@ extern GpMapFlagIcon D_map_dryfield_full_80179E48[];
 extern MenuMapIcon D_map_dryfield_full_80179F04[];
 
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
-extern GpMapName D_map_dryfield_full_80179F4C[];
+extern MenuMapAreaName D_map_dryfield_full_80179F4C[];
 
 /// This stage's `Gp_Bit2Banks` list table, by room, ended by a -1 list.
 extern GpBit2List D_map_dryfield_full_8017A46C[];

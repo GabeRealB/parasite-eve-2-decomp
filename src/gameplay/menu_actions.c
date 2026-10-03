@@ -1700,13 +1700,13 @@ void Gp_HelpPanelTask(Task* arg0)
 
 void Gp_DrawMapName(Task* arg0)
 {
-    TextDrawReq  req;
-    TextDrawReq  req2;
-    GameSession* session;
-    GpMapName*   names;
-    u8*          text;
-    UiObject*    obj;
-    s32          width;
+    TextDrawReq      req;
+    TextDrawReq      req2;
+    GameSession*     session;
+    MenuMapAreaName* names;
+    u8*              text;
+    UiObject*        obj;
+    s32              width;
 
     session = gGameSession;
     names   = Gp_MapNameTables[session->location.loc.stage - 1];

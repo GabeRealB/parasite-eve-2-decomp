@@ -29,12 +29,17 @@ typedef struct {
 } MenuMapArea;
 STATIC_ASSERT_SIZEOF(MenuMapArea, 0xE);
 
-/// 0x20-byte per-room name string in tables pointed to by `Gp_MapNameTables`.
-/// Indexed by `GameSession.location.loc.stage - 1` then `GameSession.location.loc.area - 1`.
-typedef struct _GpMapName {
-    /* 0x00 */ u8 text[0x20];
-} GpMapName;
-STATIC_ASSERT_SIZEOF(GpMapName, 0x20);
+/// The name the map screen shows for one area.
+///
+/// Each stage has a table of these with one record for every area id up to
+/// the stage's highest, indexed by `GameSession.location.loc.area - 1`; area 0
+/// has no record. The map screen shows the name of the area the player is in,
+/// in a panel sized to fit it. An id the stage has no room for, or a room it
+/// leaves unnamed, holds the empty string.
+typedef struct {
+    u8 text[0x20]; // Name as one NUL-terminated line of UI text
+} MenuMapAreaName;
+STATIC_ASSERT_SIZEOF(MenuMapAreaName, 0x20);
 
 /// 8-byte map marker in tables pointed to by `Gp_MapMarkTables`.
 /// Indexed by loop `i` in `Gp_DrawMapMarks`. `field_0` is the marker's model,

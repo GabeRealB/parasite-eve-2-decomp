@@ -371,7 +371,7 @@ MenuMapIcon D_map_neo_ark_8017A26C[4] = {
     { 0, 0, 0, 0, 0, 0 },
 };
 
-GpMapName D_map_neo_ark_8017A28C[33] = {
+MenuMapAreaName D_map_neo_ark_8017A28C[33] = {
     { "Parking garage" },
     { "Vehicular airlock" },
     { "Bulwark" },

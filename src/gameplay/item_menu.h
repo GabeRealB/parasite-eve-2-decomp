@@ -54,9 +54,9 @@ void Gp_ItemMenuTask(Task* arg0);
 /// Per-stage table of `MenuMapArea` arrays. Index is `GameSession.location.loc.stage - 1`.
 extern MenuMapArea* Gp_MapRecTables[];
 
-/// Per-stage table of `GpMapName` arrays. Index is `GameSession.location.loc.stage - 1`.
+/// Per-stage table of `MenuMapAreaName` arrays. Index is `GameSession.location.loc.stage - 1`.
 /// A NULL entry skips the name draw (`Gp_DrawMapName`).
-extern GpMapName* Gp_MapNameTables[];
+extern MenuMapAreaName* Gp_MapNameTables[];
 
 /// Per-stage table of `GpMapMark` arrays. Index is `GameSession.location.loc.stage - 1`.
 extern GpMapMark* Gp_MapMarkTables[];

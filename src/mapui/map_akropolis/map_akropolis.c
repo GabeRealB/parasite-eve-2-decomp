@@ -451,7 +451,7 @@ MenuMapIcon D_map_akropolis_8017A38C[6] = {
     { 0, 0, 0, 0, 0, 0 },
 };
 
-GpMapName D_map_akropolis_8017A3BC[21] = {
+MenuMapAreaName D_map_akropolis_8017A3BC[21] = {
     { "Square" },
     { "East elevator hall" },
     { "Patio" },

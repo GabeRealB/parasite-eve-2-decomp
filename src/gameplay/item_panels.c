@@ -288,7 +288,7 @@ UiObjectDesc D_8010F080 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -80, -40, 160, 8
 
 UiObjectDesc D_8010F09C = { 0, { -144, 0, 90, 70 }, 52, 0, TASK_BODY_NONE, 192, func_800CCDC8, 0 };
 
-GpMapName* Gp_MapNameTables[5] = {
+MenuMapAreaName* Gp_MapNameTables[5] = {
     D_map_akropolis_8017A3BC,
     D_map_dryfield_8017A044,
     D_map_dryfield_full_80179F4C,

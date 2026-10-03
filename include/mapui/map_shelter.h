@@ -39,7 +39,7 @@ extern GpMapFlagIcon D_map_shelter_8017A134[];
 extern MenuMapIcon D_map_shelter_8017A1F0[];
 
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
-extern GpMapName D_map_shelter_8017A268[];
+extern MenuMapAreaName D_map_shelter_8017A268[];
 
 /// This stage's `Gp_Bit2Banks` list table, by room, ended by a -1 list.
 extern GpBit2List D_map_shelter_8017A998[];

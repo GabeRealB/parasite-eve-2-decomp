@@ -278,7 +278,7 @@ MenuMapIcon D_map_dryfield_full_80179F04[9] = {
     { 0, 0, 0, 0, 0, 0 },
 };
 
-GpMapName D_map_dryfield_full_80179F4C[38] = {
+MenuMapAreaName D_map_dryfield_full_80179F4C[38] = {
     { "Gas station" },
     { "Main street" },
     { "General store" },

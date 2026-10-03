@@ -372,7 +372,7 @@ MenuMapIcon D_map_shelter_8017A1F0[15] = {
     { 0, 0, 0, 0, 0, 0 },
 };
 
-GpMapName D_map_shelter_8017A268[49] = {
+MenuMapAreaName D_map_shelter_8017A268[49] = {
     { "Mesa" },
     { "Cavern" },
     { "Tunnel entrance" },
