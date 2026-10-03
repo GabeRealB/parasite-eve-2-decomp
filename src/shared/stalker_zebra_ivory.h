@@ -61,26 +61,17 @@
 
 #include "main/task_types.h"
 
-/// A model part's view-space position as the pose helpers hand it back; only
-/// `x` and `z` are written.
-typedef struct StalkerZebraIvoryViewPos {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 z;
-} StalkerZebraIvoryViewPos;
-STATIC_ASSERT_SIZEOF(StalkerZebraIvoryViewPos, 0x6);
-
 #include "main/task_types.h"
 
 void stalkerZebraIvoryTurnToward(Task* arg0, SVECTOR* target, s32 step);
-void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, StalkerZebraIvoryViewPos* out);
+void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, ActorPartViewPos* out);
 void stalkerZebraIvoryUpdateColor(Task* task);
 void stalkerZebraIvoryApplyRotation(Task* arg0);
 void stalkerZebraIvoryStepClip4(Task* arg0);
 void stalkerZebraIvoryRightItself(Task* arg0);
 s32  stalkerZebraIvoryTakePending(Task* arg0);
 s32  stalkerZebraIvoryWallDistance(Task* arg0);
-void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 index, StalkerZebraIvoryViewPos* pos);
+void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 index, ActorPartViewPos* pos);
 void stalkerZebraIvoryWaitClipThenRest(Task* arg0);
 void stalkerZebraIvoryReleaseHold(Task* arg0);
 void stalkerZebraIvoryRunSubStates(Task* arg0);

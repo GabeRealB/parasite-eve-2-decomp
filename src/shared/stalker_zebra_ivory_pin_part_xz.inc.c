@@ -2,7 +2,7 @@
 
 /// Moves the root so that part `arg1` lands on the view-space X/Z position
 /// `arg2`, measuring both through the view coordinate.
-void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2)
+void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 arg1, ActorPartViewPos* arg2)
 {
     MATRIX    root;
     MATRIX    local;

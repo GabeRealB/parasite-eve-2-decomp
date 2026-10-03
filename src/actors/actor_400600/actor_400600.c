@@ -91,96 +91,96 @@ STATIC_ASSERT_SIZEOF(Actor400600State, 0x4);
 /// pointer field for its own work block.
 /// Reach it with `(Actor400600Work*)task->work`.
 typedef struct Actor400600Work {
-    /* 0x000 */ MATRIX                   matrix_0;  // copy of the root coordinate's local matrix
-    /* 0x020 */ MATRIX                   matrix_20; // color matrix for the child models
-    /* 0x040 */ MATRIX                   matrix_40; // light matrix for the child models
-    /* 0x060 */ byte                     pad_60[0x10];
-    /* 0x070 */ VECTOR                   field_70;  // copy of the root coordinate's translation
-    /* 0x080 */ u16                      pitch;     // pitch, see stalkerZebraIvoryApplyRotation
-    /* 0x082 */ u16                      yaw;       // yaw, see stalkerZebraIvoryApplyRotation
-    /* 0x084 */ u16                      roll;      // roll, see stalkerZebraIvoryApplyRotation
-    /* 0x086 */ byte                     pad_86[0x2];
-    /* 0x088 */ StalkerZebraIvoryViewPos field_88;
-    /* 0x08E */ byte                     pad_8E[0x2];
-    /* 0x090 */ u16                      field_90; // spawn position X (low half)
-    /* 0x092 */ u16                      field_92; // seeds field_73E on state entry
-    /* 0x094 */ u16                      field_94; // spawn position Z (low half)
-    /* 0x096 */ byte                     pad_96[0x2];
-    /* 0x098 */ u16                      field_98; // low half of the root coordinate's world X
-    /* 0x09A */ u16                      field_9A; // copy of field_92
-    /* 0x09C */ u16                      field_9C; // low half of the root coordinate's world Z
-    /* 0x09E */ byte                     pad_9E[0xA];
-    /* 0x0A8 */ StalkerZebraIvoryViewPos field_A8; // copied to the stack for stalkerZebraIvoryTurnToward
-    /* 0x0AE */ byte                     pad_AE[0x2];
-    /* 0x0B0 */ AnimationContext         anim;     // slots 1..0x11 reset by stalkerZebraIvoryRestartClip
-    /* 0x0C4 */ AnimationSlot            slots[0x12];
-    /* 0x394 */ byte                     pad_394[0x120];
-    /* 0x4B4 */ WorldCollisionBody       obj_4B4;            // collision node; flags bit 0x8000 cleared
-    /* 0x4D4 */ WorldCollisionContact    rec_4D4[8];         // occupancy cleared by func_actor_400600_80138D78
-    /* 0x594 */ WorldCollisionBody       obj_594;            // collision node; flags bit 0x8000 cleared
-    /* 0x5B4 */ WorldCollisionContact    rec_5B4[1];         // obj_594's table (flags kind 1)
-    /* 0x5CC */ WorldCollisionBody       obj_5CC;            // collision node; flags bit 0x8000 cleared
-    /* 0x5EC */ WorldCollisionContact    rec_5EC[1];         // obj_5CC's table (flags kind 1)
-    /* 0x604 */ WorldCollisionBody       capsuleBody;        // collision node; flags bit 0x4000 cleared
-    /* 0x624 */ WorldCollisionCapsule    capsule;            // capsuleBody's payload (flags kind 3)
-    /* 0x63C */ WorldCollisionContact    capsuleContacts[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x6FC */ EffectSpawnArg           eff_6FC;            // fourth model part's coordinate
-    /* 0x704 */ Task*                    field_704;          // child task, killed on death
-    /* 0x708 */ Task*                    field_708;          // child task, killed on death
-    /* 0x70C */ byte                     pad_70C[0x4];
-    /* 0x710 */ Actor400600Timer         field_710;
-    /* 0x714 */ s16                      field_714; // reset to 0x1000 on death
-    /* 0x716 */ u16                      field_716; // frame counter, bumped by func_actor_400600_80138D78
-    /* 0x718 */ u16                      field_718; // per-state frame counter
-    /* 0x71A */ s16                      field_71A;
-    /* 0x71C */ u16                      state;     // state index
-    /* 0x71E */ u16                      subState;  // sub-state index
-    /* 0x720 */ s16                      animBlend;
-    /* 0x722 */ s16                      field_722; // velocity step (can go negative)
-    /* 0x724 */ s16                      field_724; // accumulated step
-    /* 0x726 */ s16                      animStep;
-    /* 0x728 */ s16                      playerDistance;
-    /* 0x72A */ u16                      field_72A;
-    /* 0x72C */ u16                      field_72C;
-    /* 0x72E */ s16                      pendingArmed;
-    /* 0x730 */ s16                      pendingAction;
-    /* 0x732 */ s16                      timer;     // countdown seeded by stalkerZebraIvorySeedTimer
-    /* 0x734 */ s16                      field_734; // model slot id handed to func_actor_400600_80139FE0
-    /* 0x736 */ byte                     pad_736[0x4];
-    /* 0x73A */ s16                      field_73A; // fade level, lerped toward 0xFF
-    /* 0x73C */ s16                      field_73C;
-    /* 0x73E */ u16                      field_73E;
-    /* 0x740 */ s16                      field_740;
-    /* 0x742 */ s16                      animRequest; // animation request kind
-    /* 0x744 */ s16                      animPlaying; // animation id now playing
-    /* 0x746 */ s16                      animClip;    // animation id
-    /* 0x748 */ s16                      animFrame;   // sound step index (func_actor_400600_801361AC)
-    /* 0x74A */ s16                      field_74A;   // hit cooldown, seeded from Gp_GetIdParam2
-    /* 0x74C */ s16                      field_74C;
-    /* 0x74E */ s16                      field_74E;
-    /* 0x750 */ u16                      countdown; // countdown to state 0xB
-    /* 0x752 */ s16                      field_752;
-    /* 0x754 */ s16                      field_754;
-    /* 0x756 */ u16                      field_756; // countdown to the next state-2 transition
-    /* 0x758 */ s16                      field_758;
-    /* 0x75A */ s16                      field_75A;
-    /* 0x75C */ Actor400600State         field_75C;
-    /* 0x760 */ s8                       field_760;
-    /* 0x761 */ byte                     pad_761;
-    /* 0x762 */ u8                       moveMode;
-    /* 0x763 */ u8                       field_763;
-    /* 0x764 */ u8                       holdTaken;
-    /* 0x765 */ s8                       queuedMode;
-    /* 0x766 */ s8                       queuedFlag;
-    /* 0x767 */ s8                       holding;
-    /* 0x768 */ u8                       onCeiling;
-    /* 0x769 */ u8                       onBack;       // sub-variant flag, gates state indices
-    /* 0x76A */ u8                       distanceMode; // distance mode: 0 none, 1 XZ, 2 XY
-    /* 0x76B */ u8                       field_76B;
-    /* 0x76C */ u8                       field_76C;    // nonzero: landing spawns the dust ring
-    /* 0x76D */ u8                       field_76D;
-    /* 0x76E */ u8                       field_76E;    // set when spawned in map 0x0314
-    /* 0x76F */ byte                     pad_76F;
+    /* 0x000 */ MATRIX                matrix_0;  // copy of the root coordinate's local matrix
+    /* 0x020 */ MATRIX                matrix_20; // color matrix for the child models
+    /* 0x040 */ MATRIX                matrix_40; // light matrix for the child models
+    /* 0x060 */ byte                  pad_60[0x10];
+    /* 0x070 */ VECTOR                field_70;  // copy of the root coordinate's translation
+    /* 0x080 */ u16                   pitch;     // pitch, see stalkerZebraIvoryApplyRotation
+    /* 0x082 */ u16                   yaw;       // yaw, see stalkerZebraIvoryApplyRotation
+    /* 0x084 */ u16                   roll;      // roll, see stalkerZebraIvoryApplyRotation
+    /* 0x086 */ byte                  pad_86[0x2];
+    /* 0x088 */ ActorPartViewPos      field_88;
+    /* 0x08E */ byte                  pad_8E[0x2];
+    /* 0x090 */ u16                   field_90; // spawn position X (low half)
+    /* 0x092 */ u16                   field_92; // seeds field_73E on state entry
+    /* 0x094 */ u16                   field_94; // spawn position Z (low half)
+    /* 0x096 */ byte                  pad_96[0x2];
+    /* 0x098 */ u16                   field_98; // low half of the root coordinate's world X
+    /* 0x09A */ u16                   field_9A; // copy of field_92
+    /* 0x09C */ u16                   field_9C; // low half of the root coordinate's world Z
+    /* 0x09E */ byte                  pad_9E[0xA];
+    /* 0x0A8 */ ActorPartViewPos      field_A8; // copied to the stack for stalkerZebraIvoryTurnToward
+    /* 0x0AE */ byte                  pad_AE[0x2];
+    /* 0x0B0 */ AnimationContext      anim;     // slots 1..0x11 reset by stalkerZebraIvoryRestartClip
+    /* 0x0C4 */ AnimationSlot         slots[0x12];
+    /* 0x394 */ byte                  pad_394[0x120];
+    /* 0x4B4 */ WorldCollisionBody    obj_4B4;            // collision node; flags bit 0x8000 cleared
+    /* 0x4D4 */ WorldCollisionContact rec_4D4[8];         // occupancy cleared by func_actor_400600_80138D78
+    /* 0x594 */ WorldCollisionBody    obj_594;            // collision node; flags bit 0x8000 cleared
+    /* 0x5B4 */ WorldCollisionContact rec_5B4[1];         // obj_594's table (flags kind 1)
+    /* 0x5CC */ WorldCollisionBody    obj_5CC;            // collision node; flags bit 0x8000 cleared
+    /* 0x5EC */ WorldCollisionContact rec_5EC[1];         // obj_5CC's table (flags kind 1)
+    /* 0x604 */ WorldCollisionBody    capsuleBody;        // collision node; flags bit 0x4000 cleared
+    /* 0x624 */ WorldCollisionCapsule capsule;            // capsuleBody's payload (flags kind 3)
+    /* 0x63C */ WorldCollisionContact capsuleContacts[8]; // occupancy cleared by func_actor_400600_80138D78
+    /* 0x6FC */ EffectSpawnArg        eff_6FC;            // fourth model part's coordinate
+    /* 0x704 */ Task*                 field_704;          // child task, killed on death
+    /* 0x708 */ Task*                 field_708;          // child task, killed on death
+    /* 0x70C */ byte                  pad_70C[0x4];
+    /* 0x710 */ Actor400600Timer      field_710;
+    /* 0x714 */ s16                   field_714; // reset to 0x1000 on death
+    /* 0x716 */ u16                   field_716; // frame counter, bumped by func_actor_400600_80138D78
+    /* 0x718 */ u16                   field_718; // per-state frame counter
+    /* 0x71A */ s16                   field_71A;
+    /* 0x71C */ u16                   state;     // state index
+    /* 0x71E */ u16                   subState;  // sub-state index
+    /* 0x720 */ s16                   animBlend;
+    /* 0x722 */ s16                   field_722; // velocity step (can go negative)
+    /* 0x724 */ s16                   field_724; // accumulated step
+    /* 0x726 */ s16                   animStep;
+    /* 0x728 */ s16                   playerDistance;
+    /* 0x72A */ u16                   field_72A;
+    /* 0x72C */ u16                   field_72C;
+    /* 0x72E */ s16                   pendingArmed;
+    /* 0x730 */ s16                   pendingAction;
+    /* 0x732 */ s16                   timer;     // countdown seeded by stalkerZebraIvorySeedTimer
+    /* 0x734 */ s16                   field_734; // model slot id handed to func_actor_400600_80139FE0
+    /* 0x736 */ byte                  pad_736[0x4];
+    /* 0x73A */ s16                   field_73A; // fade level, lerped toward 0xFF
+    /* 0x73C */ s16                   field_73C;
+    /* 0x73E */ u16                   field_73E;
+    /* 0x740 */ s16                   field_740;
+    /* 0x742 */ s16                   animRequest; // animation request kind
+    /* 0x744 */ s16                   animPlaying; // animation id now playing
+    /* 0x746 */ s16                   animClip;    // animation id
+    /* 0x748 */ s16                   animFrame;   // sound step index (func_actor_400600_801361AC)
+    /* 0x74A */ s16                   field_74A;   // hit cooldown, seeded from Gp_GetIdParam2
+    /* 0x74C */ s16                   field_74C;
+    /* 0x74E */ s16                   field_74E;
+    /* 0x750 */ u16                   countdown; // countdown to state 0xB
+    /* 0x752 */ s16                   field_752;
+    /* 0x754 */ s16                   field_754;
+    /* 0x756 */ u16                   field_756; // countdown to the next state-2 transition
+    /* 0x758 */ s16                   field_758;
+    /* 0x75A */ s16                   field_75A;
+    /* 0x75C */ Actor400600State      field_75C;
+    /* 0x760 */ s8                    field_760;
+    /* 0x761 */ byte                  pad_761;
+    /* 0x762 */ u8                    moveMode;
+    /* 0x763 */ u8                    field_763;
+    /* 0x764 */ u8                    holdTaken;
+    /* 0x765 */ s8                    queuedMode;
+    /* 0x766 */ s8                    queuedFlag;
+    /* 0x767 */ s8                    holding;
+    /* 0x768 */ u8                    onCeiling;
+    /* 0x769 */ u8                    onBack;       // sub-variant flag, gates state indices
+    /* 0x76A */ u8                    distanceMode; // distance mode: 0 none, 1 XZ, 2 XY
+    /* 0x76B */ u8                    field_76B;
+    /* 0x76C */ u8                    field_76C;    // nonzero: landing spawns the dust ring
+    /* 0x76D */ u8                    field_76D;
+    /* 0x76E */ u8                    field_76E;    // set when spawned in map 0x0314
+    /* 0x76F */ byte                  pad_76F;
 } Actor400600Work;
 STATIC_ASSERT_SIZEOF(Actor400600Work, 0x770);
 
@@ -316,8 +316,8 @@ static void func_actor_400600_80139764(Task* arg0);
 static void func_actor_400600_80139878(Task* arg0);
 static void func_actor_400600_801398E0(Task* arg0);
 static void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2);
-static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2);
+static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, ActorPartViewPos* arg2);
+static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, ActorPartViewPos* arg2);
 void        func_actor_400600_8013A0F0(Task* arg0);
 static void func_actor_400600_8013A170(Task* arg0);
 static void func_actor_400600_8013A26C(Task* arg0);
@@ -4507,7 +4507,7 @@ static void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3)
 
 #include "../../shared/stalker_zebra_ivory_pin_part_xz.inc.c"
 
-static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2)
+static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, ActorPartViewPos* arg2)
 {
     MATRIX    local;
     GfxCoord* coord;
@@ -4523,7 +4523,7 @@ static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, StalkerZebraIvoryVi
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2)
+static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, ActorPartViewPos* arg2)
 {
     MATRIX    root;
     MATRIX    local;
