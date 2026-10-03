@@ -16327,8 +16327,8 @@ if (work->nav->nodeCount != 0) {
 }
 
 /* Emits the shared pseudo */
-for (block->node = 0; block->node < work->nav->nodeCount; block->node++) {
-    ... work->nav->nodes[block->node] ...
+for (scan->node = 0; scan->node < work->nav->nodeCount; scan->node++) {
+    ... work->nav->nodes[scan->node] ...
 }
 ```
 
@@ -114258,8 +114258,8 @@ Two things the port has to carry that a `sed` of the type names does not:
 - The twin's scratch/helper structs are declared in the twin's own source or
   header, so this overlay needs its own copy — here a 0x18-byte
   `BossStrangerNodeNearestPlayerScratch` (`dx`/`dy`/`dz`, the `player` pointer,
-  `bestDistSq`, `distSq`, `node`, `nearest`) alongside the 0x14-byte `OverlayWalkerNearScratch`
-  the same scan uses without a config. Same layout, different name; the twin's
+  `bestDistSq`, `distSq`, `node`, `nearest`) alongside the 0x14-byte `BossStrangerNodeNearestSelfScratch`
+  the same scan uses when it measures from the walker itself. Same layout, different name; the twin's
   type is not reachable from here.
 - That struct names `PlayerStatus`, so this overlay's header must
   `#include "main/wipsys.h"`. Without it the failure is a `parse error before

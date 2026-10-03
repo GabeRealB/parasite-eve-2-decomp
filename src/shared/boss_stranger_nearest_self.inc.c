@@ -6,25 +6,21 @@
 /// as the acropolis bridge room's `func_acropolis_bridge_8018450C`.
 u8 bossStrangerNodeNearestSelf(BossStrangerWalker* work)
 {
-    OverlayWalkerNearScratch* block;
-    u8*                       head;
-    s16                       dz;
+    BossStrangerNodeNearestSelfScratch* scan;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x14;
-    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearScratch);
+    scan = SCRATCH_STACK_RESERVE_BLOCK(BossStrangerNodeNearestSelfScratch);
 
-    block->best = -1;
-    for (block->node = 0; block->node < work->nav->nodeCount; block->node++) {
-        block->dx   = (u16)work->coord->coord.t[0] - work->nav->nodes[block->node].x;
-        dz          = (u16)work->coord->coord.t[2] - work->nav->nodes[block->node].z;
-        block->dz   = dz;
-        block->dist = block->dx * block->dx + dz * dz;
-        if (block->dist < block->best || block->best == -1) {
-            block->best    = block->dist;
-            block->nearest = block->node;
+    scan->bestDistSq = BOSS_STRANGER_NODE_DISTANCE_NONE;
+    for (scan->node = 0; scan->node < work->nav->nodeCount; scan->node++) {
+        scan->dx     = (u16)work->coord->coord.t[0] - work->nav->nodes[scan->node].x;
+        scan->dz     = (u16)work->coord->coord.t[2] - work->nav->nodes[scan->node].z;
+        scan->distSq = scan->dx * scan->dx + scan->dz * scan->dz;
+        if (scan->distSq < scan->bestDistSq || scan->bestDistSq == BOSS_STRANGER_NODE_DISTANCE_NONE) {
+            scan->bestDistSq = scan->distSq;
+            scan->nearest    = scan->node;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
-    return block->nearest;
+    // Releasing only moves the cursor; the block is still intact for the read.
+    SCRATCH_STACK_RELEASE_BLOCK(BossStrangerNodeNearestSelfScratch);
+    return scan->nearest;
 }

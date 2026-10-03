@@ -72,7 +72,7 @@ STATIC_ASSERT_SIZEOF(Actor110600TsvScratch, 0x2C);
 
 /// Returns the patrol node nearest the walker: the squared XZ distance between
 /// each node and the low halfwords of the walker coordinate's translation,
-/// with the running best and the cursor staged in an `OverlayWalkerNearScratch`.
+/// with the running best and the cursor staged in a `BossStrangerNodeNearestSelfScratch`.
 
 /// Returns the node the walker's route cursor steps onto, reseeding the scan's
 /// stored node byte for the `actor` variant of the walker. Same body as the

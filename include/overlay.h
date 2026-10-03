@@ -591,23 +591,6 @@ typedef struct {
 } BossStrangerWalker;
 STATIC_ASSERT_SIZEOF(BossStrangerWalker, 0x94);
 
-/// The scratch-pad block of a patrol walker's nearest-node scan from its own
-/// coordinate: `dx` and `dz` are the offsets to the node under test and
-/// `dist` their squared sum, compared with the running `best`, which starts
-/// at -1 so the first node always wins; `nearest` is the winner.
-typedef struct OverlayWalkerNearScratch {
-    s16  dx;
-    byte pad_2[0x2];
-    s16  dz;
-    byte pad_6[0x2];
-    u32  best;
-    u32  dist;
-    u8   node;
-    u8   nearest;
-    byte pad_12[0x2];
-} OverlayWalkerNearScratch;
-STATIC_ASSERT_SIZEOF(OverlayWalkerNearScratch, 0x14);
-
 /// The scratch-pad block of a patrol walker's re-plan along `nodeOrder`.
 /// `nodeA` is the node nearest the actor the walker reacts to and `nodeB` the
 /// node nearest the walker; `listA` and `listB` collect the `nodeOrder` slots

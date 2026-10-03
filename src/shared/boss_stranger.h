@@ -20,10 +20,31 @@
 
 #include "main/wipsys_types.h"
 
-/// Value of `BossStrangerNodeNearestPlayerScratch::bestDistSq` before the
-/// scan has taken a node. A real squared distance equal to it still replaces
-/// it, so the first node tested always wins.
+/// Value of `bestDistSq` in `BossStrangerNodeNearestSelfScratch` and
+/// `BossStrangerNodeNearestPlayerScratch` before the scan has taken a node.
+/// A real squared distance equal to it still replaces it, so the first node
+/// tested always wins.
 #define BOSS_STRANGER_NODE_DISTANCE_NONE 0xFFFFFFFF
+
+/// Scratch-pad block of the scan for the nav node nearest the walker itself.
+///
+/// Each node of the walker's table is measured against the translation of the
+/// walker's own coordinate, using the low 16 bits of each axis. The distance
+/// is taken on the XZ plane and no height offset is staged: the halfword
+/// between `dx` and `dz` is never accessed. `nearest` has no value when the
+/// node table is empty.
+typedef struct {
+    s16  dx;          // Walker X minus the node's
+    byte pad_2[0x2];  // Never accessed. The player scan's block keeps its unread height offset here
+    s16  dz;          // Walker Z minus the node's
+    byte pad_6[0x2];  // Unread. Aligns bestDistSq
+    u32  bestDistSq;  // Smallest distSq taken so far, or BOSS_STRANGER_NODE_DISTANCE_NONE
+    u32  distSq;      // Squared XZ distance from the node under test to the walker
+    u8   node;        // Index of the node under test
+    u8   nearest;     // Index of the node bestDistSq was measured at. The scan's result
+    byte pad_12[0x2]; // Unread. Rounds the block up to a whole word
+} BossStrangerNodeNearestSelfScratch;
+STATIC_ASSERT_SIZEOF(BossStrangerNodeNearestSelfScratch, 0x14);
 
 /// Scratch-pad block of the scan for the nav node nearest a player.
 ///
