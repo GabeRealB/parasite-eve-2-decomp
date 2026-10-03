@@ -46155,8 +46155,8 @@ wrong, and editing the constants to match the target is the one fix that cannot
 work - the original adds a byte offset to a pointer.
 
 `Actor510900Work` already had `pad_314[0x168]` spanning 0x314..0x47C, so the fix
-splits the padding - `pad_314[0x128]`, `MATRIX field_43C`, `MATRIX field_45C` -
-and the body becomes `obj->lightMtx = &work->field_45C;`. Every later field keeps
+splits the padding - `pad_314[0x128]`, `MATRIX color`, `MATRIX light` -
+and the body becomes `obj->lightMtx = &work->light;`. Every later field keeps
 its offset and the two `addiu`s become the target's. This is the same pair the
 sibling types carry (`ActorsShared80135b64Work`, `Actor105600Work`): the colour
 matrix at 0x43C is handed to `TmdObject::colorMtx`, the light matrix at 0x45C to
@@ -50871,7 +50871,7 @@ two of the three cases, each written the way the matched sibling
 
 ```c
 pan = (s8)worldCoordGetOriginAudioPan(coord);
-SndEvt_EnqueueType6(work->field_578, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+SndEvt_EnqueueType6(work->sparkSound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
 ```
 
 That stalled at 94.97% saving `ra/s2/s1/s0` where the target saves `ra/s1/s0`,
@@ -75233,9 +75233,9 @@ s32 func_actor_510900_8013BD84(Actor510900* arg0, s32 arg1, AnimationPlayRequest
 {
     blend           = (arg2->blend != 0) * 8;
     work            = arg0->field_1C;
-    work->field_586 = arg2->animationId + 0x1B;
+    work->animationId = arg2->animationId + 0x1B;
     for (i = 1; i < 0x13; i++) {
-        animationSeekSlotWithBlend((AnimationContext*)work, i, work->field_586, 0, blend);
+        animationSeekSlotWithBlend((AnimationContext*)work, i, work->animationId, 0, blend);
     }
 ```
 
@@ -75467,7 +75467,7 @@ and pushed state to `$a2`. Moving the rng assignment into the subscript — the
 idiom `src/actors/lib/actor_100700_text.c:94` already uses — is the whole fix:
 
 ```c
-work->field_59C =
+work->stateCounter =
     D_actor_510900_801679F0[((u32)(rng = gRandomLcgState * 5 + 0x71357911) >> 16) & 0xF];
 gRandomLcgState = rng;
 ```
@@ -75491,7 +75491,7 @@ each from the same three pieces: a sound id built from the actor's attach
 coordinate, a `worldCoordGetOriginAudioPan` byte and a `worldCoordGetOriginAudioDepth` byte.
 
 ```c
-if (!(rec->flags & 0x20) && (work->field_59A & 0x20)) {
+if (!(rec->flags & 0x20) && (work->lastCueFlags & 0x20)) {
     snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780001;
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
@@ -75557,7 +75557,7 @@ it; the function's *other* block begins at a code label, which is why the same
 construct there keeps its constant.
 
 That asymmetry is also why this function needs `TOUCH_REG(i)` on the addend and
-the table lookup does not. Writing `work->field_58A += i` alone scores 95.918%
+the table lookup does not. Writing `work->animationFrame += i` alone scores 95.918%
 with the addend folded to `addiu v0,v0,1`: `i` is known to be 1 on that path, so
 constant propagation folds it before global alloc — `.greg` already reads
 `(plus:SI (subreg:SI (reg:HI 2 v0) 0) (const_int 1))`, versus `(reg/v:SI 16 s0)`
@@ -95662,9 +95662,9 @@ goes to a struct field:
 
 ```c
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-work->obj4E4.flags &= 0x7FFF;
-work->obj504.flags &= 0x7FFF;
-work->field_59C = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
+work->weaponAttack.flags &= 0x7FFF;
+work->forearmAttack.flags &= 0x7FFF;
+work->stateCounter = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
 ```
 
 put the `lhu` after the flag updates, while the target has it before them and
@@ -95674,9 +95674,9 @@ own temp lets it float ahead while the store stays last:
 
 ```c
 val = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
-work->obj4E4.flags &= 0x7FFF;
-work->obj504.flags &= 0x7FFF;
-work->field_59C = val;
+work->weaponAttack.flags &= 0x7FFF;
+work->forearmAttack.flags &= 0x7FFF;
+work->stateCounter = val;
 ```
 
 93.6% -> 100%. Reading the global back instead of keeping the product in a
@@ -95923,7 +95923,7 @@ loaded value in a second register:
 
 The natural in-place clamp — one local, loaded then overwritten —
 
-    val = work->field_5AC;
+    val = work->playerDistance;
     if (val >= 0x1389) { val = 0x1388; }
 
 compiles the other way round: the load lands directly in the result register,
@@ -95931,7 +95931,7 @@ the branch is inverted to `bnez`, there is no `move`, and the `li` falls out of
 the delay slot into the join block (7 instructions instead of 5). Give the load
 a local of its own and write the constant as the *default*:
 
-    cur = work->field_5AC;
+    cur = work->playerDistance;
     val = 0x1388;
     if (cur < 0x1389) { val = cur; }
 
@@ -96051,7 +96051,7 @@ is two live ranges in the original, not one.
 ## A join label at the merge point lets cross-jumping keep going; a mid-block one stops it
 
 `func_actor_510900_8013691C` (actors/actor_510900) ends five of its arms with
-`work->field_590 = 0; work->field_586 = <anim>;`. Factoring that pair out of the
+`work->subState = 0; work->animationId = <anim>;`. Factoring that pair out of the
 arms — writing it once after the inner `if`/`else`, which is the obvious C — got
 to 95.97% with one arm too few: the `li $v0,4; sh $v0,0x58E; j tail; li $v0,0x1B`
 block of the "player facing away" branch was deleted and the conditional above it
@@ -96086,8 +96086,8 @@ The same function returns through one `return ret;`, and three arms reach it
 having set `ret = 1` *before* their stores while two reach it having set it
 after. Writing `ret = 1;` last in the arm does not produce that: with
 
-    work->field_590 = 0;
-    work->field_586 = anim;
+    work->subState = 0;
+    work->animationId = anim;
     ret             = 1;
 
 sched1 emits `li $v1,1` first. All three insns have priority 1 and no
@@ -96120,7 +96120,7 @@ reads two pointers out of its argument:
     *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)matrix;
     work                  = arg0->field_1C;
     coord                 = &arg0->field_2C->field_8->field_0;
-    RotMatrix(&work->field_570, matrix);
+    RotMatrix(&work->hitTwist, matrix);
 
 That scored 97.56% with `reorder=5 regs=4`, all of it in the prologue: the
 `lw` of `work` was scheduled *above* the `sw` to the scratch head, which made
@@ -96203,14 +96203,14 @@ signed field into the same local first:
 s32 blend;
 ...
 case 2:
-    blend = (u16)work->field_58A;            /* lhu */
+    blend = (u16)work->animationFrame;            /* lhu */
     if (blend - 0x4B < 0x10U) { ... }
     else if (((blend - 0x8F) & 0xFFFF) < 0xFU) { ... }
     ...
 case 3:
-    blend = work->field_586;                 /* lh - this is the wide set */
+    blend = work->animationId;                 /* lh - this is the wide set */
     if (blend == 7) {
-        blend = (u16)work->field_58A;
+        blend = (u16)work->animationFrame;
         ...
 ```
 
@@ -96337,7 +96337,7 @@ of the function merges the live ranges instead and scores worse.
 
 ## A symbol-based `array[i]` materialises its address *after* the index; a pointer local moves it before
 
-`work->field_59C = D_actor_510900_801679D0[(gRandomLcgState >> 0x10) & 0xF];` puts
+`work->stateCounter = D_actor_510900_801679D0[(gRandomLcgState >> 0x10) & 0xF];` puts
 the `lui`/`addiu` pair at the end of the block:
 
 ```
@@ -96362,7 +96362,7 @@ is emitted at that assignment instead, ahead of the index:
 ```c
 u16* tbl = D_actor_510900_801679D0;
 ...
-work->field_59C = tbl[(gRandomLcgState >> 0x10) & 0xF];
+work->stateCounter = tbl[(gRandomLcgState >> 0x10) & 0xF];
 ```
 
 **Declare that pointer per block, not once per function.** One variable used at
@@ -96386,7 +96386,7 @@ consequence of the emission order, not a separate problem to chase in `.lreg`.
 
 ## Two reads of the same field merge unless a store separates them
 
-`if (tbl[work->field_59C] < draw || work->field_59C >= 3)` compiles to one `lh`
+`if (tbl[work->stateCounter] < draw || work->stateCounter >= 3)` compiles to one `lh`
 of `0x59C` reused for both the subscript and the compare. The target loads it
 twice, which costs a register elsewhere and changes the whole block's
 allocation. `cse` merges them because nothing between the two reads writes
@@ -96394,9 +96394,9 @@ memory; the fix is to put the global store that the original had there back
 between them, by embedding the assignment in the comparison:
 
 ```c
-if ((D_actor_510900_80167A10[work->field_59C] <
+if ((D_actor_510900_80167A10[work->stateCounter] <
      (s32)(((gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 0x10) & 0xF)) ||
-    (work->field_59C >= 3)) {
+    (work->stateCounter >= 3)) {
 ```
 
 The subscript is then read before the store and the `>= 3` test after it, so
@@ -116763,7 +116763,7 @@ all four are about *where an instruction lands in sched1's output*.
 ```c
     u16* tbl        = D_actor_510900_801679D0;
     gRandomLcgState     = gRandomLcgState * 5 + 0x71357911;
-    work->field_59C = tbl[(gRandomLcgState >> 0x10) & 0xF];
+    work->stateCounter = tbl[(gRandomLcgState >> 0x10) & 0xF];
 ```
 
 With the array reached directly (`D_...[idx]`) the address computation lands

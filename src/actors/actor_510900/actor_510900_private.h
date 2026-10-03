@@ -21,102 +21,111 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-typedef struct Actor510900Work {
-    /* 0x000 */ ActorAnimRig19     rig;
-    /* 0x43C */ MATRIX             field_43C; ///< colour matrix, handed to TmdObject::colorMtx
-    /* 0x45C */ MATRIX             field_45C; ///< light matrix, handed to TmdObject::lightMtx
-    /* 0x47C */ WorldCollisionBody obj47C;
-    /// `obj47C`'s collision table (`Gp_InitRec18Table` seeds 3 records), and
-    /// the enemy's `Enemy::recs`.
-    /* 0x49C */ WorldCollisionContact rec49C[3];
-    /* 0x4E4 */ WorldCollisionBody    obj4E4;
-    /* 0x504 */ WorldCollisionBody    obj504;
-    /// Shared collision table of `obj4E4` and `obj504`; only `obj4E4`'s
-    /// `Gp_InitRec18Table` seeds it.
-    /* 0x524 */ WorldCollisionContact rec524[1];
-    /* 0x53C */ EffectSpawnArg        field_53C; // record the hit's effect is spawned with; `coord` is the model's `coords[3]`, as the enemy's `Enemy::coord`
-    /* 0x544 */ MATRIX                field_544;
-    /* 0x564 */ s32*                  field_564; // 0x34 receives field_594 when it changes
-                                                 /// Task of the second enemy the spawn creates from `D_actor_510900_80167A18`;
-                                                 /// `obj4E4` hangs off its model's first coordinate.
-    /* 0x568 */ Task* field_568;
-    /// Task of the third enemy spawned from the same table.
-    /* 0x56C */ Task* field_56C;
-    /// Residual head rotation, stepped 0x20 at a time towards zero each frame
-    /// by `func_actor_510900_80138D38` while it yaws the head coordinate.
-    /* 0x570 */ SVECTOR field_570;
-    /* 0x578 */ s32     field_578;
-    /* 0x57C */ s32     field_57C; ///< sound id stopped alongside field_580
-    /* 0x580 */ s32     field_580; ///< last sound id queued
-    /* 0x584 */ s16     field_584;
-    /// Animation id the 0x7D3 handler reseeds slots 1..0x12 with; the handler
-    /// stores `AnimationPlayRequest::animationId + 0x1B` here.
-    /* 0x586 */ s16 field_586;
-    /// Animation id the slots were last reseeded with; `func_actor_510900_8013BB20`
-    /// reseeds 1..0x12 whenever this differs from `field_586`.
-    /* 0x588 */ s16 field_588;
-    /// Blend weight the 0x7D3 handler is handed, cleared once the reseed is done.
-    /* 0x58A */ s16 field_58A;
-    /* 0x58C */ s16 field_58C;
-    /// Handler index `func_actor_510900_8013B870` dispatches on each frame:
-    /// case 7 enters state 0 below, so this is the currently running one.
-    /* 0x58E */ s16 field_58E;
-    /// Per-handler sub-state. State 0 waits for `field_20`'s spawn block flag
-    /// to fire and then hands state 1 the animation 0x14; state 1 waits out
-    /// `field_58A` and drops back to state 0 with a fresh `field_59C`.
-    /* 0x590 */ s16 field_590;
-    /* 0x592 */ s16 field_592;
-    /* 0x594 */ s16 field_594;
-    /// `field_594` as last pushed to `field_564`.
-    /* 0x596 */ s16 field_596;
-    /* 0x598 */ s16 field_598;
-    /// The `AnimationRecord::flags` cue bits latched on the previous frame. The step
-    /// handler plays a sound on the frame one of them has just dropped.
-    /* 0x59A */ u16 field_59A;
-    /// Rolled from `gRandomLcgState` when state 1 expires.
-    /* 0x59C */ s16 field_59C;
-    /* 0x59E */ s16 field_59E;
-    /// Yaw the head coordinate is rebuilt from each frame: the actor's facing
-    /// angle, stepped 0x1E at a time towards the direction `field_5A8` selects.
-    /* 0x5A0 */ s16 field_5A0;
-    /// Cleared by state 0 on the frame it restarts.
-    /* 0x5A2 */ s16 field_5A2;
-    /* 0x5A4 */ s16 field_5A4;
-    /// Distance travelled around the patrol square, advanced by `field_5A2`
-    /// each frame and clamped to 0xC8..0xB66C. Its quotient by the side length
-    /// picks the corner below, the remainder the offset along that side.
-    /* 0x5A6 */ u16 field_5A6;
-    /* 0x5A8 */ s16 field_5A8;
-    /* 0x5AA */ s16 field_5AA;
-    /* 0x5AC */ s16 field_5AC;
-    /// Below 0x3E8 the turn target is taken one entry further along
-    /// `D_actor_510900_80167B9C`.
-    /* 0x5AE */ s16 field_5AE;
-    /* 0x5B0 */ s16 field_5B0;
-    /// Latch that sends the wind-up out to state 8 instead of back to state 1;
-    /// state 3 clears it on the way through.
-    /* 0x5B2 */ s16 field_5B2;
-    /// Handler phase latch: state 0 sets it to 1 on entry, state 2 to 2 once
-    /// the 0x50 blend has passed.
-    /* 0x5B4 */ s16 field_5B4;
-    /// Sub-state of the state-3 handler's disc load: 1 queues the file, 2 waits
-    /// for `CdCmd_IsIdle` and plays the cue, 0 is idle.
-    /* 0x5B6 */ s16 field_5B6;
-    /* 0x5B8 */ s16 field_5B8;
-    /* 0x5BA */ s16 field_5BA;
-    /* 0x5BC */ s16 field_5BC;
-    /// Grab request the child task's state 0 watches: when it equals the
-    /// child's `field_334 + 1` and `field_5C0` is 1 the grab lands, and the
-    /// handler takes the request back by writing -1.
-    /* 0x5BE */ s16 field_5BE;
-    /* 0x5C0 */ s16 field_5C0;
-    /// Written by the child task's frame handler from its `field_336` when
-    /// that task's `field_334` is 2 or more.
-    /* 0x5C2 */ s16 field_5C2;
-    /// Phase the child task's state machine reads: 1 starts it, 2 makes the
-    /// grab land on the node's occupancy tag rather than 0.
-    /* 0x5C4 */ s16  field_5C4;
-    /* 0x5C6 */ byte pad_5C6[2];
+/// Length of one side of the square lap the golem walks, corner to corner, in
+/// world units. `Actor510900Work::lapDistance` counts along four of them.
+#define ACTOR_510900_LAP_SIDE 13200
+
+/// Values of `Actor510900Work::state`: the behaviour the fighting golem runs
+/// each frame. Each one steps through its own `subState` values.
+enum {
+    ACTOR_510900_STATE_OPENING       = 0,  // First moves after the fight starts: a slash pair that ends in the flame lunge's charge
+    ACTOR_510900_STATE_PATROL        = 1,  // Walks the lap, firing as it goes, and picks the next attack
+    ACTOR_510900_STATE_SLASH         = 2,  // Slash cycles while walking on; also what breaks a helipad light
+    ACTOR_510900_STATE_FLAME_LUNGE   = 3,  // Lights the flame, then charges the distance to the player
+    ACTOR_510900_STATE_GRENADE       = 4,  // Throws the stun grenade
+    ACTOR_510900_STATE_DASH          = 5,  // Runs the lap until the player is in reach, then strikes
+    ACTOR_510900_STATE_LETHAL_ATTACK = 6,  // End of the lap: the attack that kills the player when it lands
+    ACTOR_510900_STATE_BUILDUP_STUN  = 7,  // Held down until the status build-up has run out
+    ACTOR_510900_STATE_FLINCH        = 8,  // Staggers in place
+    ACTOR_510900_STATE_RECOIL        = 9,  // Driven back along the lap
+    ACTOR_510900_STATE_SPARK_RECOIL  = 10, // Driven back in a shower of sparks by a helipad light's blast
+    ACTOR_510900_STATE_SPARK_STUN    = 11, // Stands in a shower of sparks, then recovers
+    ACTOR_510900_STATE_DEATH         = 12, // Hit points gone: silences its sounds and stops being present
+};
+
+/// Values of `Actor510900Work::flameMode`, which the flame-jet effect reads
+/// from its task's first payload word.
+enum {
+    ACTOR_510900_FLAME_OFF      = 0, // No flame; also the mode before the first ignition
+    ACTOR_510900_FLAME_BURNING  = 1, // Lit: the jet grows to full size and keeps throwing flame
+    ACTOR_510900_FLAME_BLAST    = 2, // Full-size burst from the first frame; the golem never sets it and only steps it back to burning
+    ACTOR_510900_FLAME_DYING    = 3, // Burn time over: the jet thins out
+    ACTOR_510900_FLAME_RELEASED = 4, // The golem has let go of the effect, which ends itself once room effects stop running
+};
+
+/// Work block of the Akropolis No. 9 golem, kept at `Task::work` of the body
+/// model's task.
+///
+/// The golem fights on a lap: one pass around a square of side
+/// `ACTOR_510900_LAP_SIDE` on the
+/// helicopter landing pad, measured by `lapDistance` from the first corner.
+/// Each frame the state handler picks the animation and the speed along the
+/// lap, and the common tail turns the body to the side's heading, places it,
+/// plays the step cues and keeps the flame jet and the pad's collision faces
+/// up to date.
+///
+/// The tasks spawned beside the body are its children and reach this block
+/// through `Task::parent`: three models that ride body parts (the weapon, a
+/// chest piece and a prop only event animations show), the stun grenade, the
+/// three helipad lights and a coordinate-only blast source beside light 2.
+/// The part-riding models borrow `color` and `light`; the others stop when
+/// `present` clears and exchange the latches at the end of the block with the
+/// golem.
+///
+/// The block is cleared at allocation. No access to `pad_5C6` has been
+/// observed; whether it is a member or tail padding is unproven.
+typedef struct {
+    ActorAnimRig19        rig;                // Playback storage of the nineteen-part body model; slots 1..18 are driven
+    MATRIX                color;              // Colour matrix lent to the body model and to the three part-riding models
+    MATRIX                light;              // Light matrix lent to the same models
+    WorldCollisionBody    body;               // Sphere of radius 0x1C2 at the chest on list 2, receiving attacks; pair tests go off when it dies or is put away
+    WorldCollisionContact bodyContacts[3];    // Contacts of `body`, also lent to the enemy record; each frame's hits are read from them and cleared
+    WorldCollisionBody    weaponAttack;       // Sphere on list 3 offset along the weapon model, carrying the current attack's key; enabled only while an attack or the flame can hit
+    WorldCollisionBody    forearmAttack;      // Sphere on list 3 at the weapon arm's forearm; keyed and enabled together with `weaponAttack`
+    WorldCollisionContact attackContacts[1];  // Contact shared by both attack spheres; a player contact latches `attackLanded`
+    EffectSpawnArg        hitEffectArg;       // Argument of the effect a landed hit spawns at the chest
+    MATRIX                propTossMtx;        // World transform of the off hand, taken as the prop leaves it; the prop model flies from it until it is caught
+    Task*                 flameJetTask;       // Flame-jet effect on the weapon model, steered through its first payload word; `NULL` if it never spawned or once released
+    Task*                 weaponTask;         // Task of the weapon model riding the weapon hand; the flame jet and `weaponAttack` follow its coordinate
+    Task*                 chestModelTask;     // Task of the model riding the chest
+    SVECTOR               hitTwist;           // Rotation a plain hit knocks the chest by (angle units of 4096 a turn; `vx` and `vy` only), walked back 0x20 a frame towards zero
+    s32                   sparkSound;         // Sound looping while a spark reaction plays, kept so its pan can follow the golem and it can be stopped; 0 when silent
+    s32                   flameSound;         // Flame sound started at ignition during the fight, stopped when the flame goes out; 0 when silent
+    s32                   eventFlameSound;    // Flame sound started by the event animation that lights the flame, stopped the same way; 0 when silent
+    s16                   hitTwistActive;     // Nonzero while `hitTwist` still has to be applied
+    s16                   animationId;        // Animation the body should be playing; `ACTOR_MESSAGE_PLAY_ANIMATION` stores its id plus 0x1B
+    s16                   seededAnimationId;  // Animation the slots were last started on; a difference from `animationId` restarts them
+    s16                   animationFrame;     // Frames the current animation has been stepped since it was started
+    s16                   hitCooldown;        // Frames left during which attack hits are ignored, set by the hit that landed
+    s16                   state;              // `ACTOR_510900_STATE_*`
+    s16                   subState;           // Step within `state`, numbered separately by each state
+    s16                   present;            // 1 from spawn until death; the answer to `ACTOR_MESSAGE_IS_PRESENT`, and 0 tells the children to stop
+    s16                   flameMode;          // `ACTOR_510900_FLAME_*` the flame jet should be in
+    s16                   sentFlameMode;      // `flameMode` as last written to the flame jet's task
+    s16                   flameFrames;        // Frames the flame still burns; reaching zero puts it out and disables the attack spheres
+    u16                   lastCueFlags;       // `ANIMATION_RECORD_CUE_MASK` bits of slot 1's record on the previous frame; a step sound plays when one drops
+    s16                   stateCounter;       // Scratch of the current state: frames to wait, lap distance left to cover, slash cycles done or the lunge's speed
+    s16                   shotCountdown;      // Frames until the next muzzle flash while the patrol walks firing
+    s16                   yaw;                // Heading of the body (4096 a turn), turned 0x1E a frame towards the heading of the lap side while the golem moves
+    s16                   lapSpeed;           // Distance added to `lapDistance` this frame; negative when driven back
+    s16                   activation;         // Set by message 2007 (0 put away: the frame handler does nothing, 1 shown, 2 fight started)
+    u16                   lapDistance;        // Distance covered around the lap, clamped to 0xC8..0xB66C
+    s16                   lapSide;            // Side of the lap the golem is on (0..3), `lapDistance / ACTOR_510900_LAP_SIDE`
+    s16                   playerSide;         // Side whose strip of the pad last held the player
+    s16                   playerDistance;     // Horizontal distance from the body to the player
+    s16                   sideRemaining;      // Distance left to the end of the current side
+    s16                   sideTravelled;      // Distance covered since the start of the current side
+    s16                   attackLanded;       // Set when an attack sphere has touched the player; the state that reads it clears it
+    s16                   lethalAttackPhase;  // Progress of the lethal attack (0 not begun, 1 winding up: hits neither flinch nor build up status, 2 struck: hit points stay at 1 or above)
+    s16                   deathSoundLoadStep; // Disc load after the lethal attack lands (0 idle, 1 queue the sound file, 2 wait for the drive, then play the death sound)
+    s16                   buildupStunned;     // Nonzero during the build-up stun, when most hits cause no flinch or recoil
+    s16                   grenadeLive;        // Nonzero from the throw until the grenade's task has finished; no second one is thrown meanwhile
+    s16                   playerEscaped;      // Set by message 2014 while the player lives; ends the grenade's stun early, which clears it
+    s16                   slashedLight;       // Helipad light the slash is to break (0 none yet, 1 or 2 light 0 or 1, -1 once that light has broken)
+    s16                   lightSlashStruck;   // Set on the frame the slash reaches the light; never cleared
+    s16                   light2Status;       // Display status helipad light 2 reports each frame (0 intact, 1 sparking, 2 spent, 3 stopped with the golem)
+    s16                   light2State;        // State of helipad light 2 (0 intact, 1 sparking, 2 done); read by the blast source beside it
+    byte                  pad_5C6[2];
 } Actor510900Work;
 STATIC_ASSERT_SIZEOF(Actor510900Work, 0x5C8);
 

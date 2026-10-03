@@ -32,7 +32,7 @@ typedef struct Actor521100Work {
     /* 0x514 */ WorldCollisionBody    obj514;
     /* 0x534 */ WorldCollisionContact rec534[3];
     /// The two collision nodes the burn-out sequence arms, the pair
-    /// `Actor510900Work`'s `obj4E4` / `obj504` carry. `func_actor_521100_80131E8C`
+    /// `Actor510900Work`'s `weaponAttack` / `forearmAttack` carry. `func_actor_521100_80131E8C`
     /// fills both - the two pointers, `pos` and
     /// `key` / `radius` - and links them. The state bodies then raise
     /// `flags` bit 0x8000 on the frame their effect fires, hand both back with
@@ -61,7 +61,7 @@ typedef struct Actor521100Work {
     /// arms `field_680`; the untwist body `func_actor_521100_80135024` then
     /// rotates that coordinate's matrix back by them, stepping each angle 0x20
     /// towards zero per frame until both arrive and it clears the flag. Same
-    /// pair as `Actor510900Work::field_570` / `field_584` and
+    /// pair as `Actor510900Work::hitTwist` / `hitTwistActive` and
     /// `GolemPawnRookWork::field_688` / `field_6B4`.
     /* 0x678 */ SVECTOR field_678;
     /* 0x680 */ s16     field_680;

@@ -2161,21 +2161,20 @@ STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(_gActor510900Fireba
 #include "../../shared/sprite_quad_draw.inc.c"
 
 /// Spawn/setup handler. It allocates the 0x5C8-byte work block and hangs it off
-/// the task, points the model object at the block's two `MATRIX`es (0x45C the
-/// light matrix, 0x43C the colour one) and fills the context's coordinate, pair
+/// the task, points the model object at the block's `light` and `color`
+/// matrices and fills the context's coordinate, pair
 /// source and HP (`field_40`, seeded from the record's `hpMax`).
 ///
 /// The block's rig is bound with `animationInitContext` over its nineteen slots, and
 /// slots 1..18 are reset. Six enemies are spawned from `D_actor_510900_80167A18`; entries 2
 /// and 3 are the two whose models get the current room's texture page and CLUT
 /// row (`Gp_GetNestedAreaRec`, indexed by the context id's top nibble) and whose
-/// tasks are kept in `field_568` / `field_56C`. Entry 2 also gets an effect
-/// reparented onto this task.
+/// tasks are kept in `weaponTask` / `chestModelTask`. Entry 2 also gets the
+/// flame-jet effect, kept in `flameJetTask` and reparented onto this task.
 ///
-/// The three list nodes at 0x47C / 0x4E4 / 0x504 are linked into the global
-/// object lists with their collision tables (`Gp_InitRec18Table`), which also
-/// sets each node's 0x8000 "last element" flag -- kept for the first node and
-/// cleared again for the other two.
+/// `body`, `weaponAttack` and `forearmAttack` are linked into the global
+/// object lists with their contact tables (`Gp_InitRec18Table`); pair tests
+/// are then enabled for `body` and left disabled for the two attack spheres.
 ///
 /// A failed allocation tears the enemy down instead and leaves the task on this
 /// handler; otherwise the task moves to the tick handler (`state` 1).
@@ -2212,27 +2211,27 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     arg1->work          = work;
     obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->field_45C;
-    obj->colorMtx       = &work->field_43C;
+    obj->lightMtx       = &work->light;
+    obj->colorMtx       = &work->color;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord                = &arg1->extra.tmd->coords[3];
-    arg0->bodyPos.vx           = 0;
-    arg0->bodyPos.vy           = 0;
-    arg0->bodyPos.vz           = 0;
-    arg0->param                = &D_actor_510900_80167980;
-    arg0->recs                 = work->rec49C;
-    arg0->hp                   = D_actor_510900_80167980.hpMax;
-    work->field_53C.coord      = &arg1->extra.tmd->coords[3];
-    work->field_53C.spawnArgLo = 0x400;
-    work->field_53C.spawnArgHi = 2;
+    arg0->coord                   = &arg1->extra.tmd->coords[3];
+    arg0->bodyPos.vx              = 0;
+    arg0->bodyPos.vy              = 0;
+    arg0->bodyPos.vz              = 0;
+    arg0->param                   = &D_actor_510900_80167980;
+    arg0->recs                    = work->bodyContacts;
+    arg0->hp                      = D_actor_510900_80167980.hpMax;
+    work->hitEffectArg.coord      = &arg1->extra.tmd->coords[3];
+    work->hitEffectArg.spawnArgLo = 0x400;
+    work->hitEffectArg.spawnArgHi = 2;
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_510900_80167AA4, obj,
                          work->rig.poses, work->rig.slots);
-    for (i = 1; i < 0x13; i++) {
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationResetSlot(&work->rig.anim, i, 1);
     }
-    work->field_592 = 1;
+    work->present = 1;
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 1, 0, arg0);
     spawned     = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 2, 0, arg0);
     raw1        = arg0->placeKey;
@@ -2252,14 +2251,14 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
         tmdProcessStream(model1);
         tmdProcessStream(model1);
     }
-    work->field_568 = spawned->task;
-    eff             = Gp_SpawnEff((EFFECT_ACTOR_510900_FLAME_JET | EFFECT_SPAWN_UNLIMITED), spawned->task->extra.tmd->coords, 0, NULL);
+    work->weaponTask = spawned->task;
+    eff              = Gp_SpawnEff((EFFECT_ACTOR_510900_FLAME_JET | EFFECT_SPAWN_UNLIMITED), spawned->task->extra.tmd->coords, 0, NULL);
     if (eff != NULL) {
-        work->field_564 = (s32*)eff->task;
+        work->flameJetTask = eff->task;
         taskReparent(arg1, eff->task);
     }
-    if (work->field_564 != NULL) {
-        work->field_564[0xD] = 0;
+    if (work->flameJetTask != NULL) {
+        work->flameJetTask->spawnArg1.value = ACTOR_510900_FLAME_OFF;
     }
     spawned     = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 3, 0, arg0);
     raw2        = arg0->placeKey;
@@ -2279,47 +2278,47 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
         tmdProcessStream(model2);
         tmdProcessStream(model2);
     }
-    work->field_56C = spawned->task;
+    work->chestModelTask = spawned->task;
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 0, arg0);
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 1, arg0);
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 2, arg0);
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 6, 0, arg0);
-    work->obj47C.coord            = &arg1->extra.tmd->coords[3];
-    records1                      = work->rec49C;
-    work->obj47C.context.contacts = records1;
-    work->obj47C.pos.vx           = 0;
-    work->obj47C.pos.vy           = 0;
-    work->obj47C.pos.vz           = 0;
-    work->obj47C.key              = 0x3001B;
-    work->obj47C.radius           = 0x1C2;
-    work->obj47C.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->obj47C);
-    Gp_InitRec18Table(records1, 3, 0);
-    records2                      = work->rec524;
-    work->obj47C.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    work->obj4E4.coord            = work->field_568->extra.tmd->coords;
-    work->obj4E4.context.contacts = records2;
-    work->obj4E4.pos.vx           = -0x140;
-    work->obj4E4.pos.vy           = 0x80;
-    work->obj4E4.pos.vz           = 0;
-    work->obj4E4.key              = 0;
-    work->obj4E4.radius           = 0x190;
-    work->obj4E4.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj4E4);
-    Gp_InitRec18Table(records2, 1, 0);
-    work->obj4E4.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->obj504.coord            = &arg1->extra.tmd->coords[7];
-    work->obj504.context.contacts = records2;
-    work->obj504.pos.vx           = 0;
-    work->obj504.pos.vy           = 0;
-    work->obj504.pos.vz           = 0;
-    work->obj504.key              = 0;
-    work->obj504.radius           = 0x190;
-    work->obj504.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj504);
-    work->obj504.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    arg1->msgTable      = D_actor_510900_80167A6C;
-    arg1->exitCallback  = func_actor_510900_8013B608;
+    work->body.coord            = &arg1->extra.tmd->coords[3];
+    records1                    = work->bodyContacts;
+    work->body.context.contacts = records1;
+    work->body.pos.vx           = 0;
+    work->body.pos.vy           = 0;
+    work->body.pos.vz           = 0;
+    work->body.key              = 0x3001B;
+    work->body.radius           = 0x1C2;
+    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work->body);
+    Gp_InitRec18Table(records1, ARRAY_SIZE(work->bodyContacts), 0);
+    records2                            = work->attackContacts;
+    work->body.flags                   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->weaponAttack.coord            = work->weaponTask->extra.tmd->coords;
+    work->weaponAttack.context.contacts = records2;
+    work->weaponAttack.pos.vx           = -0x140;
+    work->weaponAttack.pos.vy           = 0x80;
+    work->weaponAttack.pos.vz           = 0;
+    work->weaponAttack.key              = 0;
+    work->weaponAttack.radius           = 0x190;
+    work->weaponAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->weaponAttack);
+    Gp_InitRec18Table(records2, ARRAY_SIZE(work->attackContacts), 0);
+    work->weaponAttack.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->forearmAttack.coord            = &arg1->extra.tmd->coords[7];
+    work->forearmAttack.context.contacts = records2;
+    work->forearmAttack.pos.vx           = 0;
+    work->forearmAttack.pos.vy           = 0;
+    work->forearmAttack.pos.vz           = 0;
+    work->forearmAttack.key              = 0;
+    work->forearmAttack.radius           = 0x190;
+    work->forearmAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->forearmAttack);
+    work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    arg1->msgTable             = D_actor_510900_80167A6C;
+    arg1->exitCallback         = func_actor_510900_8013B608;
     func_actor_510900_8013B524(arg1);
     func_actor_510900_8013B424(1);
     arg1->state = 1;
@@ -2337,27 +2336,27 @@ void func_actor_510900_801355B4(Enemy* arg0, Task* arg1)
     work                         = arg1->work;
     coord                        = arg1->extra.tmd->coords;
     arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    if (work->field_586 == 0x20 && work->field_58A == 0xD2) {
-        work->field_594 = 1;
-        work->field_598 = 0xFF;
-        snd             = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
-        pan             = (s8)worldCoordGetOriginAudioPan(coord);
+    if (work->animationId == 0x20 && work->animationFrame == 0xD2) {
+        work->flameMode   = ACTOR_510900_FLAME_BURNING;
+        work->flameFrames = 0xFF;
+        snd               = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
+        pan               = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-        work->field_580 = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780011;
-        pan2            = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(work->field_580, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+        work->eventFlameSound = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780011;
+        pan2                  = (s8)worldCoordGetOriginAudioPan(coord);
+        SndEvt_EnqueueType6(work->eventFlameSound, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
     }
-    work->field_58A++;
-    for (i = 1; i < 0x13; i++) {
+    work->animationFrame++;
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationTickSlot(&work->rig.anim, i);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     func_actor_510900_8013BC38(arg1, coord);
-    if (work->field_594 != work->field_596) {
-        if (work->field_564 != NULL) {
-            work->field_564[0xD] = work->field_594;
+    if (work->flameMode != work->sentFlameMode) {
+        if (work->flameJetTask != NULL) {
+            work->flameJetTask->spawnArg1.value = work->flameMode;
         }
-        work->field_596 = work->field_594;
+        work->sentFlameMode = work->flameMode;
     }
 }
