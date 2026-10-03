@@ -360,39 +360,43 @@ typedef struct {
 } EffectBillboardScratch;
 STATIC_ASSERT_SIZEOF(EffectBillboardScratch, 0x1C);
 
-/// Scratch-stack workspace for a spinning textured quad stretched between two world points.
+/// Scratch-stack workspace for one textured strip stretched between two world points.
 ///
-/// A drawer stages both points as world positions narrowed to signed 16-bit
-/// coordinate units and gives each its own perspective transform. Every
-/// transform replaces `projectionFlags`, and a negative word rejects the quad.
-/// `depth` comes from the first point alone: its SZ3 / 4 plus one, which both
-/// divides the caller's size and selects the ordering-table entry.
+/// The drawer stages both ends here, each narrowed to signed 16-bit coordinate
+/// units: `worldStart` is the effect coordinate's world translation, and
+/// `worldEnd` is either a second coordinate's translation or the start moved by
+/// a caller's offset. Each end goes through its own perspective transform,
+/// which writes that end's screen position as one GTE word and replaces
+/// `projectionFlags`; a negative flag word after either transform drops the
+/// strip.
 ///
-/// The corners are those of a one-centre spinning sprite, shared out between
-/// the two points. `cornerOffsetX` and `cornerOffsetY` first hold the corner
-/// displacement at the bearing of the screen line from the first point to the
-/// second: packet vertex 0 is the first point plus (`cornerOffsetX`,
-/// -`cornerOffsetY`) and vertex 3 the second point minus it. Both words are
-/// then recomputed a quarter turn on, placing vertex 1 at the second point
-/// plus that displacement and vertex 2 at the first point minus it. Only the
-/// low 16 bits of each sum reach the packet.
+/// `depth` comes from the start point alone. It divides the caller's width to
+/// give the strip's on-screen half-width and then selects the ordering-table
+/// entry, so the whole strip sorts at its start. Some drawers add one to it
+/// first, placing the strip a slot behind that point.
 ///
-/// Each point's screen X and Y are adjacent so one GTE word store fills both.
+/// The corners are those of the one-centre spinning sprite of
+/// `EffectBillboardScratch`, shared out between the two ends. The corner
+/// offset is the half-width resolved against a screen angle, and it is filled
+/// twice. At the angle of the line joining the two screen positions, packet
+/// vertex 0 is the start plus (`cornerOffsetX`, -`cornerOffsetY`) and vertex 3
+/// the end minus it. A quarter turn further, vertex 1 is the end plus that
+/// displacement and vertex 2 the start minus it. The corners are 16-bit, so
+/// only the low half of each sum reaches the primitive.
+///
 /// Reserve one complete, word-aligned block and initialize fields as needed;
-/// release it in scratch-stack order after drawing. No pointer into it
-/// survives release.
+/// release it in scratch-stack order after drawing. Pointers into the block
+/// must not survive release.
 typedef struct {
-    SVECTOR worldPoint0;     // First point in world space, each component narrowed to s16; projection input
-    SVECTOR worldPoint1;     // Second point in world space, each component narrowed to s16; projection input
-    s32     depth;           // First point's SZ3 / 4 plus one; divisor for sizing and depth for sorting
-    s32     projectionFlags; // GTE FLAG word of the latest transform; a negative value rejects the quad
-    s32     cornerOffsetX;   // Signed horizontal displacement from a point to its corner, in pixels
-    s32     cornerOffsetY;   // Signed vertical displacement from a point to its corner, in pixels; applied negated
-    s16     screenX0;        // Projected X of the first point, in pixels; first half of its GTE screen-position word
-    s16     screenY0;        // Projected Y of the first point, in pixels; second half of that word
-    s16     screenX1;        // Projected X of the second point, in pixels; first half of its GTE screen-position word
-    s16     screenY1;        // Projected Y of the second point, in pixels; second half of that word
-} EffectPointPairScratch;
-STATIC_ASSERT_SIZEOF(EffectPointPairScratch, 0x28);
+    SVECTOR worldStart;      // Strip start in world space, each component narrowed to s16; first projection input
+    SVECTOR worldEnd;        // Strip end in world space, each component narrowed to s16; second projection input
+    s32     depth;           // Start point's SZ3 / 4, optionally plus one; width divisor and ordering-table depth
+    s32     projectionFlags; // GTE FLAG word of the latest projection; bit 31 makes it negative and rejects the strip
+    s32     cornerOffsetX;   // Scaled half-width times the sine of the current corner angle; signed pixels from an end to its corner
+    s32     cornerOffsetY;   // Scaled half-width times the cosine of the current corner angle; signed pixels, applied negated
+    DVECTOR screenStart;     // Projected screen position of the start point, signed pixels, written as one GTE word
+    DVECTOR screenEnd;       // Projected screen position of the end point, signed pixels, written as one GTE word
+} EffectStripScratch;
+STATIC_ASSERT_SIZEOF(EffectStripScratch, 0x28);
 
 #endif // GAMEPLAY_EFFECTS_H

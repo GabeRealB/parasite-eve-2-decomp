@@ -447,36 +447,36 @@ void func_antibody_8012F734(Task* arg0)
 /// projection sets a negative `gte_stflg`.
 static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
-    EffectPointPairScratch* block;
-    POLY_FT4*               prim;
-    GfxCoord*               player;
-    s32                     u0;
-    s32                     u1;
-    s32                     va;
-    s32                     vb;
-    s16                     ang;
+    EffectStripScratch* block;
+    POLY_FT4*           prim;
+    GfxCoord*           player;
+    s32                 u0;
+    s32                 u1;
+    s32                 va;
+    s32                 vb;
+    s16                 ang;
 
-    player                = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
-    block                 = SCRATCH_STACK_RESERVE_BLOCK(EffectPointPairScratch);
-    block->worldPoint0.vx = arg0->workm.t[0];
-    block->worldPoint0.vy = arg0->workm.t[1];
-    block->worldPoint0.vz = arg0->workm.t[2];
-    block->worldPoint1.vx = player->workm.t[0];
-    block->worldPoint1.vy = player->workm.t[1];
-    block->worldPoint1.vz = player->workm.t[2];
+    player               = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectStripScratch);
+    block->worldStart.vx = arg0->workm.t[0];
+    block->worldStart.vy = arg0->workm.t[1];
+    block->worldStart.vz = arg0->workm.t[2];
+    block->worldEnd.vx   = player->workm.t[0];
+    block->worldEnd.vy   = player->workm.t[1];
+    block->worldEnd.vz   = player->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint0);
+    gte_ldv0(&block->worldStart);
     gte_rtps();
-    gte_stsxy(&block->screenX0);
+    gte_stsxy(&block->screenStart);
     gte_stflg(&block->projectionFlags);
     if (block->projectionFlags >= 0) {
         gte_stszotz(&block->depth);
         block->depth++;
-        gte_ldv0(&block->worldPoint1);
+        gte_ldv0(&block->worldEnd);
         gte_rtps();
-        gte_stsxy(&block->screenX1);
+        gte_stsxy(&block->screenEnd);
         gte_stflg(&block->projectionFlags);
         if (block->projectionFlags >= 0) {
             prim           = gGpuPrimCursor;
@@ -490,24 +490,24 @@ static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
             va          = ((arg1 & 3) >> 1) * 24 - 0x30;
             vb          = ((arg1 & 3) >> 1) * 24 - 0x19;
             setUV4(prim, u0, va, u1, va, u0, vb, u1, vb);
-            ang                  = ratan2(block->screenY1 - block->screenY0, block->screenX1 - block->screenX0);
+            ang                  = ratan2(block->screenEnd.vy - block->screenStart.vy, block->screenEnd.vx - block->screenStart.vx);
             block->cornerOffsetX = (((arg2 * 0x17) / block->depth) * rsin(ang)) >> 12;
             block->cornerOffsetY = (((arg2 * 0x17) / block->depth) * rcos(ang)) >> 12;
-            prim->x0             = block->screenX0 + block->cornerOffsetX;
-            prim->x3             = block->screenX1 - block->cornerOffsetX;
-            prim->y0             = block->screenY0 - block->cornerOffsetY;
-            prim->y3             = block->screenY1 + block->cornerOffsetY;
+            prim->x0             = block->screenStart.vx + block->cornerOffsetX;
+            prim->x3             = block->screenEnd.vx - block->cornerOffsetX;
+            prim->y0             = block->screenStart.vy - block->cornerOffsetY;
+            prim->y3             = block->screenEnd.vy + block->cornerOffsetY;
             block->cornerOffsetX = (((arg2 * 0x17) / block->depth) * rsin(ang + 0x400)) >> 12;
             block->cornerOffsetY = (((arg2 * 0x17) / block->depth) * rcos(ang + 0x400)) >> 12;
-            prim->x1             = block->screenX1 + block->cornerOffsetX;
-            prim->x2             = block->screenX0 - block->cornerOffsetX;
-            prim->y1             = block->screenY1 - block->cornerOffsetY;
-            prim->y2             = block->screenY0 + block->cornerOffsetY;
+            prim->x1             = block->screenEnd.vx + block->cornerOffsetX;
+            prim->x2             = block->screenStart.vx - block->cornerOffsetX;
+            prim->y1             = block->screenEnd.vy - block->cornerOffsetY;
+            prim->y2             = block->screenStart.vy + block->cornerOffsetY;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(EffectPointPairScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectStripScratch);
 }
 
 #include "../../shared/glow_draw_wedge.inc.c"
