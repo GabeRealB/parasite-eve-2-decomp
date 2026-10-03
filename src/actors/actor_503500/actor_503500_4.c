@@ -100,44 +100,20 @@ STATIC_ASSERT_SIZEOF(Actor503500Work224, 0x224);
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
-/// Matrix table of the 0x3D8 block, which runs from 0x40 up to the block's
-/// `obj160` display node: `func_actor_503500_80141FC8`'s sub-state 0 resets
-/// entries 1..8 to an identity rotation with zero translation. The shared
-/// `Actor503500Work` view names other blocks' fields over the same bytes.
-typedef struct Actor503500Work3D8Mtx {
-    /* 0x000 */ byte   pad_0[0x40];
-    /* 0x040 */ MATRIX mats[9];
-} Actor503500Work3D8Mtx;
-STATIC_ASSERT_SIZEOF(Actor503500Work3D8Mtx, 0x160);
-
-/// Chain state of the 0x3D8 block, which the shared `Actor503500Work` view
-/// names with the 0x2EC block's fields: `func_actor_503500_80141448` samples a
-/// cubic Bezier into `pts` (root first), re-aims the chain along it and hands
-/// `angles` to `func_actor_503500_80142220`, which only reads the `vx` pitch of
-/// entries 2..7. `field_3B6` / `field_3CC` are the same bytes as the shared
-/// view's, loaded signed here.
-typedef struct Actor503500Work3D8Chain {
-    /* 0x000 */ byte    pad_0[0x2C8];
-    /* 0x2C8 */ SVECTOR pts[9];
-    /* 0x310 */ SVECTOR angles[9];
-    /* 0x358 */ SVECTOR field_358; // far control point, local to the root's parent
-    /* 0x360 */ byte    pad_360[0x54];
-    /* 0x3B4 */ s16     field_3B4; // sway amplitude
-    /* 0x3B6 */ s16     field_3B6; // sway fade-in, 0..0x1000
-    /* 0x3B8 */ s16     phase[9];  // sway phase per link, stepped by 0x80
-    /* 0x3CA */ byte    pad_3CA[0x2];
-    /* 0x3CC */ s16     field_3CC; // weight of the rest pitch table
-} Actor503500Work3D8Chain;
-STATIC_ASSERT_SIZEOF(Actor503500Work3D8Chain, 0x3CE);
-
 /// Element of `D_actor_503500_80177B60`, the 0x3D8 blocks
 /// `func_actor_503500_8013FA74` clears for spawn slots 0xD..0x10. Like
 /// `Actor503500Work2EC`, the shared `Actor503500Work` cannot be indexed at this
-/// stride; the task's `field_1C` still points here through the shared view,
-/// and `Actor503500Work3D8Mtx` / `Actor503500Work3D8Chain` are narrower views
-/// of the same bytes. It opens with the light / colour matrices the init
-/// republishes on `TmdObject::lightMtx` / `colorMtx`, then a private copy of
-/// model parts 1..8's `coord` matrices.
+/// stride; the task's `field_1C` still points here through the shared view.
+/// It opens with the light / colour matrices the init republishes on
+/// `TmdObject::lightMtx` / `colorMtx`, then a private copy of model parts
+/// 1..8's `coord` matrices: `func_actor_503500_80141FC8`'s sub-state 0 resets
+/// entries 1..8 of `mats` to an identity rotation with zero translation.
+///
+/// The chain state follows the collision records. `func_actor_503500_80141448`
+/// samples a cubic Bezier into `pts` (root first), re-aims the chain along it
+/// and hands `angles` to `func_actor_503500_80142220`, which only reads the
+/// `vx` pitch of entries 2..7. `field_358` is the far control point, local to
+/// the root's parent; `phase` is stepped by 0x80 per link.
 typedef struct Actor503500Work3D8 {
     /* 0x000 */ MATRIX                light;
     /* 0x020 */ MATRIX                color;
@@ -165,7 +141,9 @@ typedef struct Actor503500Work3D8 {
     /* 0x3B4 */ s16                   field_3B4; // sway amplitude
     /* 0x3B6 */ s16                   field_3B6; // sway fade-in, 0..0x1000
     /* 0x3B8 */ s16                   phase[9];  // sway phase per link, seeded to i * 0x200
-    /* 0x3CA */ byte                  pad_3CA[0xA];
+    /* 0x3CA */ byte                  pad_3CA[0x2];
+    /* 0x3CC */ s16                   field_3CC; // weight of the rest pitch table
+    /* 0x3CE */ byte                  pad_3CE[0x6];
     /* 0x3D4 */ s8                    field_3D4; // set while field_358 sits on field_368
     /* 0x3D5 */ s8                    field_3D5;
     /* 0x3D6 */ s8                    field_3D6;
@@ -3346,18 +3324,18 @@ static void func_actor_503500_80141248(Task* arg0)
 /// pitch before `func_actor_503500_80142220` applies it.
 static void func_actor_503500_80141448(Task* arg0)
 {
-    SVECTOR                  ctrl[4];
-    SVECTOR                  ofs;
-    SVECTOR                  tmp;
-    VECTOR                   out[9];
-    MATRIX                   m;
-    GfxCoord*                coord;
-    Actor503500Work3D8Chain* work;
-    s32                      i;
-    s32                      v;
+    SVECTOR             ctrl[4];
+    SVECTOR             ofs;
+    SVECTOR             tmp;
+    VECTOR              out[9];
+    MATRIX              m;
+    GfxCoord*           coord;
+    Actor503500Work3D8* work;
+    s32                 i;
+    s32                 v;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor503500Work3D8Chain*)arg0->work;
+    work  = (Actor503500Work3D8*)arg0->work;
     Gp_ComposeParentWorld(coord, &m, &ctrl[0]);
     work->pts[0].vx = ctrl[0].vx;
     work->pts[0].vy = ctrl[0].vy;
@@ -3479,7 +3457,7 @@ static void func_actor_503500_80141B94(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords + 1;
     if ((s16)work->field_3B2 < 0x1000) {
-        mat = &((Actor503500Work3D8Mtx*)work)->mats[1];
+        mat = &((Actor503500Work3D8*)work)->mats[1];
         t   = (s16)work->field_3B2;
         for (i = 1; i < 9; i++) {
             Gp_LerpOrthonormal(mat, &coord->coord, &m, t);
@@ -3604,14 +3582,14 @@ static void func_actor_503500_80141FC8(Task* arg0)
     switch (work->field_3D0) {
         case 0:
             for (i = 1; i < 9; i++) {
-                func_actor_503500_SetRotIdentity(&((Actor503500Work3D8Mtx*)work)->mats[i]);
+                func_actor_503500_SetRotIdentity(&((Actor503500Work3D8*)work)->mats[i]);
                 // The view shifted by i matrices puts mats[i] at mats[0]; this
                 // `(work + i) + offset` association is what lets the pointer
                 // derive from the giv the indexed store below uses.
-                t                                            = ((Actor503500Work3D8Mtx*)((MATRIX*)work + i))->mats[0].t;
-                ((Actor503500Work3D8Mtx*)work)->mats[i].t[0] = 0;
-                t[1]                                         = 0;
-                t[2]                                         = 0;
+                t                                         = ((Actor503500Work3D8*)((MATRIX*)work + i))->mats[0].t;
+                ((Actor503500Work3D8*)work)->mats[i].t[0] = 0;
+                t[1]                                      = 0;
+                t[2]                                      = 0;
             }
             work->field_3B2 = 0;
             work->field_3D0++;
