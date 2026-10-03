@@ -95,17 +95,21 @@ STATIC_ASSERT_SIZEOF(_ShelterB6CorridorScreenWaveGrid, 19204);
 /// through `SCREEN_WAVE_GRID`.
 extern _ShelterB6CorridorScreenWaveGrid gScreenWaveGrid;
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// Eight bytes of room work storage whose role is unproven.
+///
+/// The room task writes `field_0` once, while setting the room up, and nothing
+/// reads it back. `unknown_2` has no recovered access at all: it stands for the
+/// zero bytes between that value and the next object, which begins on an
+/// eight-byte boundary. Whether those bytes are further members, storage of
+/// their own or alignment is unresolved.
 typedef struct {
-    s16 value;
-    u8  retained[6];
-} ShelterB6CorridorStorage51B0;
-STATIC_ASSERT_SIZEOF(ShelterB6CorridorStorage51B0, 8);
+    s16 field_0;      // Set to 2 when the room task starts; never read, role unproven
+    u8  unknown_2[6]; // Zero image bytes; role and grouping unproven
+} _ShelterB6CorridorStorage51B0;
+STATIC_ASSERT_SIZEOF(_ShelterB6CorridorStorage51B0, 8);
 
-extern ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
-extern s32                          D_shelter_b6_corridor_801851B8;
+extern _ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
+extern s32                           D_shelter_b6_corridor_801851B8;
 
 // Indexed views below share one contiguous table.
 extern AnimationPlayRequest     D_shelter_b6_corridor_8017F27C;
@@ -517,7 +521,7 @@ ScreenWaveGridOscillator gScreenWaveRows[30] = { 0 };
 
 _ShelterB6CorridorScreenWaveGrid gScreenWaveGrid = { { 0 }, { 0 } };
 
-ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
+_ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
 
 s32 D_shelter_b6_corridor_801851B8;
 
@@ -613,7 +617,7 @@ static void func_shelter_b6_corridor_8017E064(Task* arg0)
         i   += 1;
         ptr += 1;
     } while (i <= FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS * 2 - 1);
-    D_shelter_b6_corridor_801851B0.value = 2;
+    D_shelter_b6_corridor_801851B0.field_0 = 2;
     if (gGameSession->location.loc.variant == 1) {
         gStageSceneMusicEntry    = 2;
         gGameSession->flowFlags |= GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
