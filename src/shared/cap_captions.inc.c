@@ -24,7 +24,7 @@
 static void CapCaption_RunSchedule(Task* task);
 
 static void CapCaption_DrawCurrent(void);
-static s32  CapCaption_Relocate(CapFileAddress base);
+static s32  CapCaption_Relocate(CapFile* file);
 static s32  CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2);
 static s32  CapCaption_DrawText(const u16* arg0, s32 arg1, s32 arg2, s32 arg3);
 static s16  CapCaption_TextTopY(const u16* arg0);
@@ -94,7 +94,7 @@ static void CapCaption_DrawCurrent(void)
 /// Relocates a caption file in place, the counterpart of gameplay's
 /// `Gp_RelocCapFile`, and publishes its glyph and script tables. Returns 0
 /// when the "CAP" magic is missing.
-static s32 CapCaption_Relocate(CapFileAddress base)
+static s32 CapCaption_Relocate(CapFile* file)
 {
     s32                i;
     s32                count;
@@ -104,23 +104,23 @@ static s32 CapCaption_Relocate(CapFileAddress base)
     CapSequenceTable*  sequenceTable;
     CapCommandTable*   commandTable;
 
-    if (strncmp(base.file->magic, "CAP", 3) != 0) {
+    if (strncmp(file->magic, "CAP", 3) != 0) {
         return 0;
     }
 
     i = 0;
-    if (base.file->glyphs.offset > 0) {
-        base.file->glyphs.offset    += base.address;
-        base.file->sequences.offset += base.address;
-        base.file->commands.offset  += base.address;
-        sequenceTable                = base.file->sequences.table;
-        rec                          = sequenceTable->records;
-        count                        = sequenceTable->count;
+    if (file->glyphs.offset > 0) {
+        file->glyphs.offset    += (u32)file;
+        file->sequences.offset += (u32)file;
+        file->commands.offset  += (u32)file;
+        sequenceTable           = file->sequences.table;
+        rec                     = sequenceTable->records;
+        count                   = sequenceTable->count;
         if (count > 0) {
             flag = CAP_TEXT_REF_END;
             do {
                 if (rec->textRef.offset != flag) {
-                    rec->textRef.offset += base.address;
+                    rec->textRef.offset += (u32)file;
                 } else {
                     rec++;
                 }
@@ -128,14 +128,14 @@ static s32 CapCaption_Relocate(CapFileAddress base)
                 rec++;
             } while (i < count);
         }
-        commandTable = base.file->commands.table;
+        commandTable = file->commands.table;
         i            = 0;
         count        = commandTable->count;
         ptr          = commandTable->entries;
         if (count > 0) {
             do {
                 if (ptr->offset != 0) {
-                    ptr->offset += base.address;
+                    ptr->offset += (u32)file;
                 }
                 i++;
                 ptr++;
@@ -143,8 +143,8 @@ static s32 CapCaption_Relocate(CapFileAddress base)
         }
     }
 
-    CapCaption_Data_8015E654 = base.file->glyphs.cells;
-    CapCaption_Data_8015E650 = (base.file->commands.table)->entries;
+    CapCaption_Data_8015E654 = file->glyphs.cells;
+    CapCaption_Data_8015E650 = (file->commands.table)->entries;
     return 1;
 }
 

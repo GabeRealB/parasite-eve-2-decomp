@@ -66,7 +66,7 @@ TextGlyphCell* Gp_CapGlyphs;
 
 u8 D_80115680;
 
-s32 Gp_RelocCapFile(CapFileAddress base)
+s32 Gp_RelocCapFile(CapFile* file)
 {
     s32                i;
     s32                count;
@@ -76,23 +76,23 @@ s32 Gp_RelocCapFile(CapFileAddress base)
     CapSequenceTable*  sequenceTable;
     CapCommandTable*   commandTable;
 
-    if (strncmp(base.file->magic, Gp_StrCapMagic, 3) != 0) {
+    if (strncmp(file->magic, Gp_StrCapMagic, 3) != 0) {
         return 0;
     }
 
     i = 0;
-    if (base.file->glyphs.offset > 0) {
-        base.file->glyphs.offset    += base.address;
-        base.file->sequences.offset += base.address;
-        base.file->commands.offset  += base.address;
-        sequenceTable                = base.file->sequences.table;
-        rec                          = sequenceTable->records;
-        count                        = sequenceTable->count;
+    if (file->glyphs.offset > 0) {
+        file->glyphs.offset    += (u32)file;
+        file->sequences.offset += (u32)file;
+        file->commands.offset  += (u32)file;
+        sequenceTable           = file->sequences.table;
+        rec                     = sequenceTable->records;
+        count                   = sequenceTable->count;
         if (count > 0) {
             flag = CAP_TEXT_REF_END;
             do {
                 if (rec->textRef.offset != flag) {
-                    rec->textRef.offset += base.address;
+                    rec->textRef.offset += (u32)file;
                 } else {
                     rec++;
                 }
@@ -100,14 +100,14 @@ s32 Gp_RelocCapFile(CapFileAddress base)
                 rec++;
             } while (i < count);
         }
-        commandTable = base.file->commands.table;
+        commandTable = file->commands.table;
         i            = 0;
         count        = commandTable->count;
         ptr          = commandTable->entries;
         if (count > 0) {
             do {
                 if (ptr->offset != 0) {
-                    ptr->offset += base.address;
+                    ptr->offset += (u32)file;
                 }
                 i++;
                 ptr++;
@@ -115,7 +115,7 @@ s32 Gp_RelocCapFile(CapFileAddress base)
         }
     }
 
-    Gp_CapGlyphs = base.file->glyphs.cells;
-    Gp_CapCmds   = (base.file->commands.table)->entries;
+    Gp_CapGlyphs = file->glyphs.cells;
+    Gp_CapCmds   = (file->commands.table)->entries;
     return 1;
 }

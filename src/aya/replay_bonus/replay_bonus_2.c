@@ -31,13 +31,6 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-/// CPU address of an STF buffer, also used to relocate its encoded words.
-typedef union ReplayBonusStfAddress {
-    ReplayBonusStfFile* file;
-    s32                 address;
-} ReplayBonusStfAddress __attribute__((transparent_union));
-STATIC_ASSERT_SIZEOF(ReplayBonusStfAddress, 4);
-
 void func_replay_bonus_801176A8(UiList* prompt, UiObject* obj);
 
 extern u8           D_replay_bonus_801157A8[];
@@ -76,7 +69,7 @@ static void        func_replay_bonus_80117924(Task* arg0);
 void               func_replay_bonus_8011797C(Task* arg0);
 void               func_replay_bonus_80117A08(Task* arg0);
 static void        func_replay_bonus_80117DE0(u8 arg0);
-static s32         func_replay_bonus_80118B6C(ReplayBonusStfAddress base, s32 index);
+static s32         func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index);
 void               func_replay_bonus_80118C64(Task* arg0);
 void               func_replay_bonus_80118D7C(Task* arg0);
 void               func_replay_bonus_80118E3C(Task* arg0);
@@ -892,33 +885,33 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
     }
 }
 
-static s32 func_replay_bonus_80118B6C(ReplayBonusStfAddress base, s32 index)
+static s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
 {
     ReplayBonusStfLine* rec;
     s32                 i;
 
-    if (strncmp(base.file->magic, "STF", 3) != 0) {
+    if (strncmp(file->magic, "STF", 3) != 0) {
         return 0;
     }
 
-    if (base.file->field_C.offset > 0) {
-        base.file->field_C.offset  += base.address;
-        base.file->field_8.offset  += base.address;
-        base.file->field_10.offset += base.address;
-        base.file->field_14.offset += base.address;
-        D_replay_bonus_80119298     = (base.file->field_10.pointer)->lines;
-        D_replay_bonus_801192A0     = (base.file->field_10.pointer)->count;
+    if (file->field_C.offset > 0) {
+        file->field_C.offset   += (s32)file;
+        file->field_8.offset   += (s32)file;
+        file->field_10.offset  += (s32)file;
+        file->field_14.offset  += (s32)file;
+        D_replay_bonus_80119298 = (file->field_10.pointer)->lines;
+        D_replay_bonus_801192A0 = (file->field_10.pointer)->count;
         for (i = 0; i < D_replay_bonus_801192A0; i++) {
             rec                     = D_replay_bonus_80119298;
             D_replay_bonus_80119298 = rec + 1;
-            rec->cmds.offset       += base.address;
+            rec->cmds.offset       += (s32)file;
         }
     }
 
-    D_replay_bonus_80119290 = base.file->field_C.pointer;
-    D_replay_bonus_80119294 = base.file->field_8.pointer;
-    D_replay_bonus_80119298 = (base.file->field_10.pointer)->lines;
-    D_replay_bonus_8011929C = base.file->field_14.pointer;
+    D_replay_bonus_80119290 = file->field_C.pointer;
+    D_replay_bonus_80119294 = file->field_8.pointer;
+    D_replay_bonus_80119298 = (file->field_10.pointer)->lines;
+    D_replay_bonus_8011929C = file->field_14.pointer;
     return 1;
 }
 
