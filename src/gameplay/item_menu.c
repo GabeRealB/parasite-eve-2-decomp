@@ -73,17 +73,25 @@ typedef struct _GpItemMoveState {
 } GpItemMoveState;
 STATIC_ASSERT_SIZEOF(GpItemMoveState, 0x1C);
 
-/// Ammo quantity selector work block, allocated by func_800BDF6C and stored
-/// in Task::work. Equipped rounds stay in the destination inventory.
-typedef struct _GpAmmoSplitState {
-    /* 0x00 */ s32 srcOrig;
-    /* 0x04 */ s32 dstOrig;
-    /* 0x08 */ s32 srcQty;
-    /* 0x0C */ s32 dstQty;
-    /* 0x10 */ s32 equipped;
-    /* 0x14 */ s32 limit;
-} GpAmmoSplitState;
-STATIC_ASSERT_SIZEOF(GpAmmoSplitState, 0x18);
+/// Work block of the ammunition quantity panel in the item-move screen.
+///
+/// The panel divides one ammunition item's rounds between the two item ranges
+/// the screen exchanges: the container (the Item Box or Battle Field pane) and
+/// the items the player carries. Every count is in rounds. The directional
+/// buttons shift rounds between `containerQty` and `carriedQty`, whose sum
+/// stays what it was when the panel opened; confirming moves the difference
+/// between `containerQty` and `containerInitialQty` across.
+///
+/// Allocated on the panel task's first run and held in its `Task::work`.
+typedef struct {
+    s32 containerInitialQty; // Container's stack when the panel opened.
+    s32 carriedInitialQty;   // Carried stack when the panel opened; stored and never read.
+    s32 containerQty;        // Rounds the container would hold (0..`stackLimit`).
+    s32 carriedQty;          // Rounds the player would carry (`loadedQty`..`stackLimit`).
+    s32 loadedQty;           // Carried rounds loaded in carried weapons, which cannot be moved.
+    s32 stackLimit;          // Largest quantity either side's stack may hold.
+} _ItemMenuAmmoSplitWork;
+STATIC_ASSERT_SIZEOF(_ItemMenuAmmoSplitWork, 0x18);
 
 GpItemMoveState* Gp_ItemMoveWork;
 
@@ -941,77 +949,77 @@ static const char Gp_StrBullet[] = "Bullet";
 
 void func_800BDF6C(Task* task)
 {
-    u8                  buf[0x20];
-    s32                 color;
-    s32                 width;
-    s32                 widthM2;
-    s32                 half;
-    InventoryItemRange* consumeScan;
-    LINE_F2*            line;
-    UiObject*           obj;
-    s16                 panelY;
-    s16                 coord;
-    s32                 srcLimit;
-    s32                 remaining;
-    s32                 dstLimit;
-    s32                 moveAllLimit;
-    s32                 sourceQty;
-    s32                 equippedWidth;
-    s32                 textY;
-    s32                 splitWidth;
-    s32                 caretX;
-    s32                 status;
-    s32                 caretY;
-    s32                 usableWidth;
-    s32                 srcTotal;
-    s32                 dstTotal;
-    s32                 destAfterStep;
-    s32                 negWidth;
-    s32                 halfWidth;
-    s32                 qty;
-    s32                 totalQty;
-    s32                 equipped;
-    s32                 srcAfterMove;
-    s32                 destAfterClamp;
-    s32                 sourceToMove;
-    s32                 combinedQty;
-    s32                 destQty;
-    s32                 repeatStep;
-    s32                 transferQty;
-    s32                 stepToSource;
-    u8                  message;
-    s16                 result;
-    PadState*           pad;
-    InventoryItemRange* sourceScan;
-    InventoryItemRange* dstScan;
-    GpAmmoSplitState*   state;
+    u8                      buf[0x20];
+    s32                     color;
+    s32                     width;
+    s32                     widthM2;
+    s32                     half;
+    InventoryItemRange*     consumeScan;
+    LINE_F2*                line;
+    UiObject*               obj;
+    s16                     panelY;
+    s16                     coord;
+    s32                     srcLimit;
+    s32                     remaining;
+    s32                     dstLimit;
+    s32                     moveAllLimit;
+    s32                     sourceQty;
+    s32                     equippedWidth;
+    s32                     textY;
+    s32                     splitWidth;
+    s32                     caretX;
+    s32                     status;
+    s32                     caretY;
+    s32                     usableWidth;
+    s32                     srcTotal;
+    s32                     dstTotal;
+    s32                     destAfterStep;
+    s32                     negWidth;
+    s32                     halfWidth;
+    s32                     qty;
+    s32                     totalQty;
+    s32                     equipped;
+    s32                     srcAfterMove;
+    s32                     destAfterClamp;
+    s32                     sourceToMove;
+    s32                     combinedQty;
+    s32                     destQty;
+    s32                     repeatStep;
+    s32                     transferQty;
+    s32                     stepToSource;
+    u8                      message;
+    s16                     result;
+    PadState*               pad;
+    InventoryItemRange*     sourceScan;
+    InventoryItemRange*     dstScan;
+    _ItemMenuAmmoSplitWork* split;
 
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
     width       = (obj->panel.contentRight.signedValue - obj->panel.contentLeft.signedValue) - 0x50;
     Ui_DrawText(&(obj)->panel, (char*)Gp_StrBullet);
     if (task->state == 0) {
-        state = memCalloc(0x18U, 0);
-        if (state == NULL) {
+        split = memCalloc(sizeof(*split), 0);
+        if (split == NULL) {
             obj->result = USER_INTERFACE_RESULT_DISMISS;
             return;
         }
-        task->work      = state;
-        srcTotal        = Gp_ScanStackQty(&Gp_MoveScanSrc, task->spawnArg1.value);
-        state->srcQty   = srcTotal;
-        state->srcOrig  = srcTotal;
-        dstTotal        = Gp_ScanStackQty(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
-        state->dstQty   = dstTotal;
-        state->dstOrig  = dstTotal;
-        state->equipped = Gp_CountEquippedRelated(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
+        task->work                 = split;
+        srcTotal                   = Gp_ScanStackQty(&Gp_MoveScanSrc, task->spawnArg1.value);
+        split->containerQty        = srcTotal;
+        split->containerInitialQty = srcTotal;
+        dstTotal                   = Gp_ScanStackQty(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
+        split->carriedQty          = dstTotal;
+        split->carriedInitialQty   = dstTotal;
+        split->loadedQty           = Gp_CountEquippedRelated(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
         Ui_SetHolderParam(Gp_StrSetAmmoHelp, 0, 0);
-        state->limit = Gp_StackLimits[task->spawnArg1.value - 0xA0].maxHeld;
-        task->state  = task->state + 1;
+        split->stackLimit = Gp_StackLimits[task->spawnArg1.value - 0xA0].maxHeld;
+        task->state       = task->state + 1;
     }
-    state = (GpAmmoSplitState*)task->work;
+    split = task->work;
     Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, task->spawnArg1.value, 0x606060, 0);
     task->status = 0;
-    totalQty     = state->srcQty + state->dstQty;
+    totalQty     = split->containerQty + split->carriedQty;
     color        = 0x606060;
     if (width < totalQty) {
         repeatStep = totalQty / width;
@@ -1026,24 +1034,24 @@ void func_800BDF6C(Task* task)
     if (status == 1) {
         if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
             if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
-                qty      = state->dstQty;
-                equipped = state->equipped;
+                qty      = split->carriedQty;
+                equipped = split->loadedQty;
                 if (equipped < qty) {
                     stepToSource = 1;
                     if (pad->directionRepeatTicks >= 0x14U) {
                         stepToSource = repeatStep;
                     }
-                    state->srcQty += stepToSource;
-                    state->dstQty -= stepToSource;
-                    if (state->dstQty < state->equipped) {
-                        state->srcQty += state->dstQty - state->equipped;
-                        state->dstQty  = state->equipped;
+                    split->containerQty += stepToSource;
+                    split->carriedQty   -= stepToSource;
+                    if (split->carriedQty < split->loadedQty) {
+                        split->containerQty += split->carriedQty - split->loadedQty;
+                        split->carriedQty    = split->loadedQty;
                     }
-                    srcAfterMove = state->srcQty;
-                    srcLimit     = state->limit;
+                    srcAfterMove = split->containerQty;
+                    srcLimit     = split->stackLimit;
                     if (srcLimit < srcAfterMove) {
-                        state->srcQty = srcLimit;
-                        state->dstQty = state->dstQty + (srcAfterMove - srcLimit);
+                        split->containerQty = srcLimit;
+                        split->carriedQty   = split->carriedQty + (srcAfterMove - srcLimit);
                         goto step_at_capacity;
                     }
                 } else if (equipped > 0) {
@@ -1057,20 +1065,20 @@ void func_800BDF6C(Task* task)
                     if (pad->directionRepeatTicks >= 0x14U) {
                         step = repeatStep;
                     }
-                    state->srcQty = state->srcQty - step;
-                    destAfterStep = state->dstQty + step;
-                    state->dstQty = destAfterStep;
-                    remaining     = state->srcQty;
+                    split->containerQty = split->containerQty - step;
+                    destAfterStep       = split->carriedQty + step;
+                    split->carriedQty   = destAfterStep;
+                    remaining           = split->containerQty;
                     if (remaining < 0) {
-                        state->dstQty = destAfterStep + remaining;
-                        state->srcQty = 0;
+                        split->carriedQty   = destAfterStep + remaining;
+                        split->containerQty = 0;
                     }
                 }
-                destAfterClamp = state->dstQty;
-                dstLimit       = state->limit;
+                destAfterClamp = split->carriedQty;
+                dstLimit       = split->stackLimit;
                 if (dstLimit < destAfterClamp) {
-                    state->dstQty = dstLimit;
-                    state->srcQty = state->srcQty + (destAfterClamp - dstLimit);
+                    split->carriedQty   = dstLimit;
+                    split->containerQty = split->containerQty + (destAfterClamp - dstLimit);
                 step_at_capacity:
                     task->status = 2U;
                 }
@@ -1078,41 +1086,41 @@ void func_800BDF6C(Task* task)
         }
         if (Pad_CheckButtons(0, 0, 0xA000) == 0) {
             if (Pad_CheckButtons(0, 1, 0x1005) != 0) {
-                if (state->dstQty > state->equipped) {
+                if (split->carriedQty > split->loadedQty) {
                     s32 total;
 
-                    total  = state->srcQty + state->dstQty;
-                    total -= state->equipped;
-                    if (total < state->limit) {
-                        state->dstQty = state->equipped;
-                        state->srcQty = total;
+                    total  = split->containerQty + split->carriedQty;
+                    total -= split->loadedQty;
+                    if (total < split->stackLimit) {
+                        split->carriedQty   = split->loadedQty;
+                        split->containerQty = total;
                     } else {
-                        state->srcQty = state->limit;
-                        state->dstQty = state->equipped + (total - state->limit);
-                        task->status  = 2;
+                        split->containerQty = split->stackLimit;
+                        split->carriedQty   = split->loadedQty + (total - split->stackLimit);
+                        task->status        = 2;
                     }
-                } else if (state->equipped > 0) {
+                } else if (split->loadedQty > 0) {
                     task->status = 1;
                 }
             } else if (Pad_CheckButtons(0, 1, 0x400A) != 0) {
-                sourceToMove = state->srcQty;
+                sourceToMove = split->containerQty;
                 if (sourceToMove > 0) {
-                    moveAllLimit = state->limit;
-                    combinedQty  = sourceToMove + state->dstQty;
+                    moveAllLimit = split->stackLimit;
+                    combinedQty  = sourceToMove + split->carriedQty;
                     if (combinedQty < moveAllLimit) {
-                        state->dstQty = combinedQty;
-                        state->srcQty = 0;
+                        split->carriedQty   = combinedQty;
+                        split->containerQty = 0;
                     } else {
-                        state->dstQty = moveAllLimit;
-                        state->srcQty = combinedQty - state->limit;
-                        task->status  = 2U;
+                        split->carriedQty   = moveAllLimit;
+                        split->containerQty = combinedQty - split->stackLimit;
+                        task->status        = 2U;
                     }
                 }
             }
         }
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
-            transferQty = state->srcQty - state->srcOrig;
+            transferQty = split->containerQty - split->containerInitialQty;
             if (transferQty > 0) {
                 sourceScan = &Gp_MoveScanSrc;
                 Gp_GiveItem(sourceScan, task->spawnArg1.value, transferQty);
@@ -1144,19 +1152,19 @@ void func_800BDF6C(Task* task)
             obj->result = result;
         }
     }
-    destQty = state->dstQty;
-    if ((destQty == state->equipped) && (destQty > 0)) {
+    destQty = split->carriedQty;
+    if ((destQty == split->loadedQty) && (destQty > 0)) {
         color = 0x37A78;
     }
-    sourceQty   = state->srcQty;
+    sourceQty   = split->containerQty;
     usableWidth = width - 2;
     widthM2     = usableWidth;
     panelY      = obj->panel.contentTop.signedValue;
-    splitWidth  = ((s32)(sourceQty * usableWidth) / (s32)(sourceQty + state->dstQty)) + 1;
+    splitWidth  = ((s32)(sourceQty * usableWidth) / (s32)(sourceQty + split->carriedQty)) + 1;
     textY       = panelY + 0x20;
     Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, TEXT_DRAW_OUTLINED,
                     TEXT_ALIGNMENT_RIGHT);
-    Text_DrawPrompt(obj, obj->panel.contentRight.signedValue - 6, textY, Text_ItoaUnsigned(buf, (u32)state->dstQty), color, TEXT_DRAW_OUTLINED,
+    Text_DrawPrompt(obj, obj->panel.contentRight.signedValue - 6, textY, Text_ItoaUnsigned(buf, (u32)split->carriedQty), color, TEXT_DRAW_OUTLINED,
                     TEXT_ALIGNMENT_RIGHT);
     caretY    = panelY + 0x16;
     negWidth  = -width;
@@ -1177,9 +1185,9 @@ void func_800BDF6C(Task* task)
     setcode(line, 0x40);
     line->y1 = coord;
     addPrim(gGpuCurrentOt + obj->panel.otIndex.signedValue + 1, line);
-    qty = state->equipped;
+    qty = split->loadedQty;
     if (qty > 0) {
-        equippedWidth = ((s32)(qty * widthM2) / (s32)(state->srcQty + state->dstQty)) + 2;
+        equippedWidth = ((s32)(qty * widthM2) / (s32)(split->containerQty + split->carriedQty)) + 2;
         if (equippedWidth > 0) {
             Ui_AllocTile(&(obj)->panel, (half + width) - equippedWidth, caretY, equippedWidth, 8, 0x37A78U);
         }
