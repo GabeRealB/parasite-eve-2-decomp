@@ -91,19 +91,28 @@ typedef struct _GpMapIconPos {
 } GpMapIconPos;
 STATIC_ASSERT_SIZEOF(GpMapIconPos, 0xC);
 
-/// 0x1C-byte scratch block `Gp_DrawMapCursor` / `func_800D0614` carve off
-/// the scratch stack to stage the player cursor position on the map screen.
-/// `x` / `y` are the map coordinates; only the tail from 0xC on is written.
-typedef struct _GpMapCursorPos {
-    /* 0x00 */ byte pad_0[0xC];
-    /* 0x0C */ u16  x;
-    /* 0x0E */ u16  y;
-    /* 0x10 */ u16  field_10;
-    /* 0x12 */ u16  field_12;
-    /* 0x14 */ u16  field_14;
-    /* 0x16 */ byte pad_16[6];
-} GpMapCursorPos;
-STATIC_ASSERT_SIZEOF(GpMapCursorPos, 0x1C);
+/// Workspace in which a map-screen drawer stages the centre of what it draws.
+///
+/// The player cursor, each flag marker and the map picture are drawn about a
+/// point in map-screen coordinates: the drawer reserves this block on the
+/// scratch stack, writes the point, builds its primitive's corners from it and
+/// releases the block once the primitive is queued. The picture is drawn about
+/// the origin, so map-screen coordinates run from the picture's centre. Nothing
+/// keeps a pointer into the block past its release.
+///
+/// Only `x`, `y` and the three halfwords after them are ever written, and only
+/// `x` and `y` are read back. The bytes around them are reserved with the block
+/// and left untouched, so what the block was laid out to hold is unproven.
+typedef struct {
+    byte unknown_0[0xC]; // Reserved with the block and never accessed; role unproven
+    u16  x;              // Map-screen X of the centre, as a raw 16-bit encoding of a signed pixel coordinate
+    u16  y;              // Map-screen Y of the centre, encoded the same way
+    u16  field_10;       // Cleared with every block and never read; role unproven
+    u16  field_12;       // Cleared with every block and never read; role unproven
+    u16  field_14;       // Cleared with every block and never read; role unproven
+    byte unknown_16[6];  // Reserved with the block and never accessed; role unproven
+} _MenuMapCentreScratch;
+STATIC_ASSERT_SIZEOF(_MenuMapCentreScratch, 0x1C);
 
 ActionPrompt D_80114D28[2];
 
@@ -1065,17 +1074,17 @@ void Gp_MapTaskState2(Task* arg0)
 
 static void Gp_DrawMapCursor(Task* arg0)
 {
-    UiObject*       obj;
-    GameActor*      actor;
-    MenuMapArea*    rec;
-    PlayerStatus*   cfg;
-    GpMapCursorPos* pos;
-    s32             off;
-    s32             base;
-    SPRT_16*        p;
-    DR_TPAGE*       dr;
-    s32             u0;
-    s32             ang;
+    UiObject*              obj;
+    GameActor*             actor;
+    MenuMapArea*           rec;
+    PlayerStatus*          cfg;
+    _MenuMapCentreScratch* centre;
+    s32                    off;
+    s32                    base;
+    SPRT_16*               p;
+    DR_TPAGE*              dr;
+    s32                    u0;
+    s32                    ang;
 
     obj   = arg0->spawnArg2.pointer;
     cfg   = &gPlayerStatus;
@@ -1086,16 +1095,16 @@ static void Gp_DrawMapCursor(Task* arg0)
         return;
     }
 
-    pos           = SCRATCH_STACK_RESERVE_BLOCK(GpMapCursorPos);
-    pos->field_14 = 0;
-    pos->field_12 = 0;
-    pos->field_10 = 0;
-    off           = (rec->originX - cfg->coordMtx->t[0]) / rec->scaleX;
-    base          = rec->mapX;
-    pos->x        = base - off;
-    off           = (rec->originZ - cfg->coordMtx->t[2]) / rec->scaleZ;
-    base          = rec->mapY;
-    pos->y        = base + off;
+    centre           = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapCentreScratch);
+    centre->field_14 = 0;
+    centre->field_12 = 0;
+    centre->field_10 = 0;
+    off              = (rec->originX - cfg->coordMtx->t[0]) / rec->scaleX;
+    base             = rec->mapX;
+    centre->x        = base - off;
+    off              = (rec->originZ - cfg->coordMtx->t[2]) / rec->scaleZ;
+    base             = rec->mapY;
+    centre->y        = base + off;
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -1134,34 +1143,33 @@ static void Gp_DrawMapCursor(Task* arg0)
     p->v0 = 0x10;
 noDir:
 
-    p->x0 = pos->x - 8;
-    p->y0 = pos->y - 8;
+    p->x0 = centre->x - 8;
+    p->y0 = centre->y - 8;
     addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1C], p);
     dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
     setDrawTPage(dr, 0, 0, 0xE);
     addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1C], dr);
-    SCRATCH_STACK_RELEASE_BLOCK(GpMapCursorPos);
+    SCRATCH_STACK_RELEASE_BLOCK(_MenuMapCentreScratch);
 }
 
 static void func_800D0614(Task* arg0)
 {
-    UiObject*       obj;
-    GpMapCursorPos* pos;
-    POLY_FT4*       p;
-    SPRT*           sprt;
-    DR_TPAGE*       dr;
+    UiObject*              obj;
+    _MenuMapCentreScratch* centre;
+    POLY_FT4*              p;
+    SPRT*                  sprt;
+    DR_TPAGE*              dr;
 
-    obj                                  = arg0->spawnArg2.pointer;
-    p                                    = gGpuPrimCursor;
-    pos                                  = (GpMapCursorPos*)(SCRATCH_STACK_CURSOR(u8) - 0x1C);
-    SCRATCH_STACK_CURSOR(GpMapCursorPos) = pos;
-    gGpuPrimCursor                       = p + 1;
-    pos->field_14                        = 0;
-    pos->field_12                        = 0;
-    pos->field_10                        = 0;
-    pos->y                               = 0;
-    pos->x                               = 0;
+    obj              = arg0->spawnArg2.pointer;
+    p                = gGpuPrimCursor;
+    centre           = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapCentreScratch);
+    gGpuPrimCursor   = p + 1;
+    centre->field_14 = 0;
+    centre->field_12 = 0;
+    centre->field_10 = 0;
+    centre->y        = 0;
+    centre->x        = 0;
     setPolyFT4(p);
     setRGB0(p, 0x80, 0x80, 0x80);
     p->clut = 0x4000;
@@ -1171,12 +1179,12 @@ static void func_800D0614(Task* arg0)
     p->v0 = p->v1 = 0x20;
     p->u3 = p->u1 = 0xFF;
     p->v3 = p->v2 = 0xF0;
-    p->x0 = p->x2 = pos->x - 0x7F;
-    p->y0 = p->y1 = pos->y - 0x68;
-    p->x1 = p->x3 = pos->x + 0x7F;
-    p->y2 = p->y3 = pos->y + 0x68;
+    p->x0 = p->x2 = centre->x - 0x7F;
+    p->y0 = p->y1 = centre->y - 0x68;
+    p->x1 = p->x3 = centre->x + 0x7F;
+    p->y2 = p->y3 = centre->y + 0x68;
     addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue + 2], p);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(_MenuMapCentreScratch);
 
     sprt           = gGpuPrimCursor;
     gGpuPrimCursor = sprt + 1;
@@ -1299,19 +1307,19 @@ static void Gp_DrawMapMarks(Task* arg0)
 
 static void func_800D0C34(Task* arg0)
 {
-    UiObject*            obj;
-    MenuMapMarker*       markers;
-    GameFlagStageHeader* bank;
-    GpMapCursorPos*      pos;
-    SPRT_16*             p;
-    DR_TPAGE*            dr;
-    s32                  flags[2];
-    u8                   i;
-    s16                  which;
-    s32                  bit;
-    u16                  state;
-    u8                   stage;
-    u8                   area;
+    UiObject*              obj;
+    MenuMapMarker*         markers;
+    GameFlagStageHeader*   bank;
+    _MenuMapCentreScratch* centre;
+    SPRT_16*               p;
+    DR_TPAGE*              dr;
+    s32                    flags[2];
+    u8                     i;
+    s16                    which;
+    s32                    bit;
+    u16                    state;
+    u8                     stage;
+    u8                     area;
 
     i        = 0;
     stage    = gGameSession->location.loc.stage;
@@ -1349,14 +1357,14 @@ static void func_800D0C34(Task* arg0)
             continue;
         }
         if (state == 2 || state == 0x802) {
-            pos            = SCRATCH_STACK_RESERVE_BLOCK(GpMapCursorPos);
-            pos->field_14  = 0;
-            pos->field_12  = 0;
-            pos->field_10  = 0;
-            pos->x         = markers[i].x;
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            pos->y         = markers[i].y;
+            centre           = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapCentreScratch);
+            centre->field_14 = 0;
+            centre->field_12 = 0;
+            centre->field_10 = 0;
+            centre->x        = markers[i].x;
+            p                = gGpuPrimCursor;
+            gGpuPrimCursor   = p + 1;
+            centre->y        = markers[i].y;
             setlen(p, 3);
             setcode(p, 0x7F);
             if (state == 2) {
@@ -1368,14 +1376,14 @@ static void func_800D0C34(Task* arg0)
                 p->u0   = 0x90;
                 p->v0   = 0;
             }
-            p->x0 = pos->x - 8;
-            p->y0 = pos->y - 8;
+            p->x0 = centre->x - 8;
+            p->y0 = centre->y - 8;
             addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1B], p);
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 0, 0xE);
             addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1B], dr);
-            SCRATCH_STACK_RELEASE_BLOCK(GpMapCursorPos);
+            SCRATCH_STACK_RELEASE_BLOCK(_MenuMapCentreScratch);
         }
         i++;
     }
