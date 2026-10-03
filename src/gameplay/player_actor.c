@@ -127,21 +127,21 @@ typedef struct {
 } _PlayerActorMoveStepScratch;
 STATIC_ASSERT_SIZEOF(_PlayerActorMoveStepScratch, 0x40);
 
-/// Scratch-pad block for turning an actor's yaw toward its lock target.
-/// `coord` is the aiming origin, placed by `rot` (the equipped weapon's row of
-/// the aim-offset table) relative to the root coordinate of the model the
-/// actor has attached; `delta` receives the lock position and is then made
-/// relative to that origin. `angle` is the
-/// target heading, then the shortest turn toward it, then that turn clamped
-/// to the weapon's turn rate.
-typedef struct _GpYawScratch {
-    GfxCoord coord;
-    VECTOR3  delta;
-    s32      pad_5C;
-    SVECTOR  rot;
-    s32      angle;
-} GpYawScratch;
-STATIC_ASSERT_SIZEOF(GpYawScratch, 0x6C);
+/// Scratch-stack block for turning a player actor's body yaw toward its lock target.
+///
+/// Holds a temporary coordinate node standing at the equipped weapon's aiming
+/// origin, the lock target's displacement from that point, whose X and Z give
+/// the heading to turn toward, and the yaw worked out from it. One block is
+/// reserved per call and released before returning. Angles use 4096 units per
+/// turn.
+typedef struct {
+    GfxCoord originCoord;  // Aim origin: the weapon model's root transform moved to `originOffset`, re-expressed beneath the view node
+    VECTOR3  targetDelta;  // Lock target's position beneath the view node, then that position minus the origin node's translation
+    byte     field_5C[4];  // Never accessed; role unproven
+    SVECTOR  originOffset; // Point in the weapon model's root space where the origin is placed
+    s32      yaw;          // Heading of `targetDelta`, then the shortest signed turn toward it, then that turn clamped to the weapon's turn rate
+} _PlayerActorAimYawScratch;
+STATIC_ASSERT_SIZEOF(_PlayerActorAimYawScratch, 0x6C);
 
 /// 0x2C-byte scratch from the scratch stack used by `Gp_PlayerMode2State3`.
 /// `mtx` receives a copy of the actor coordinate's `coord` matrix, pitched by
@@ -380,7 +380,7 @@ static inline s16 _gpShortestTurn(s16 from, s16 to);
 
 /// Turns `actor` toward its lock target once the target is farther than
 /// `thresh` in the ground plane, by at most the equipped weapon's turn rate.
-static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh);
+static inline void _gpAimYawAt(GameActor* actor, _PlayerActorAimYawScratch* block, s16 thresh);
 
 /// Places `block->originCoord` at the point `offset` in the local space of
 /// `src`, with the orientation of `src`.
@@ -5072,7 +5072,7 @@ static inline s16 _gpShortestTurn(s16 from, s16 to)
 
 /// Turns `actor` toward its lock target once the target is farther than
 /// `thresh` in the ground plane, by at most the equipped weapon's turn rate.
-static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh)
+static inline void _gpAimYawAt(GameActor* actor, _PlayerActorAimYawScratch* block, s16 thresh)
 {
     SVECTOR*  offset;
     GfxCoord* src;
@@ -5082,50 +5082,49 @@ static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh
     s32       limit;
 
     if (actor->targetNode != NULL) {
-        offset        = &D_801131B4[gPlayerStatus.weapon];
-        src           = actor->equipmentTasks[1]->extra.tmd->coords;
-        block->rot.vx = offset->vx;
-        block->rot.vy = offset->vy;
-        block->rot.vz = offset->vz;
-        Gp_PlaceCoordOffset(src, &block->coord, &block->rot);
-        lock = &block->delta;
+        offset                 = &D_801131B4[gPlayerStatus.weapon];
+        src                    = actor->equipmentTasks[1]->extra.tmd->coords;
+        block->originOffset.vx = offset->vx;
+        block->originOffset.vy = offset->vy;
+        block->originOffset.vz = offset->vz;
+        Gp_PlaceCoordOffset(src, &block->originCoord, &block->originOffset);
+        lock = &block->targetDelta;
         Gp_GetLockPos(actor->targetNode, lock);
-        lock->vx -= block->coord.coord.t[0];
-        lock->vy -= block->coord.coord.t[1];
-        lock->vz -= block->coord.coord.t[2];
-        dx        = block->delta.vx;
+        lock->vx -= block->originCoord.coord.t[0];
+        lock->vy -= block->originCoord.coord.t[1];
+        lock->vz -= block->originCoord.coord.t[2];
+        dx        = block->targetDelta.vx;
         dx        = ABS(dx);
         dx        = dx * dx;
-        dz        = block->delta.vz;
+        dz        = block->targetDelta.vz;
         dz        = ABS(dz);
         dz        = dz * dz;
         if (SquareRoot0(dx + dz) > thresh) {
-            block->angle = ratan2(block->delta.vx, block->delta.vz);
-            block->angle = _gpShortestTurn(actor->rotation.vy, block->angle);
-            limit        = (s16)D_80112E30[gPlayerStatus.weapon];
+            block->yaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
+            block->yaw = _gpShortestTurn(actor->rotation.vy, block->yaw);
+            limit      = (s16)D_80112E30[gPlayerStatus.weapon];
             if (func_800B9D80(0x2000) != 0) {
                 limit += limit >> 1;
             }
-            if (block->angle > limit) {
-                block->angle = limit;
-            } else if (block->angle < -limit) {
-                block->angle = -limit;
+            if (block->yaw > limit) {
+                block->yaw = limit;
+            } else if (block->yaw < -limit) {
+                block->yaw = -limit;
             }
-            actor->rotation.vy = (actor->rotation.vy + block->angle) & 0xFFF;
+            actor->rotation.vy = (actor->rotation.vy + block->yaw) & 0xFFF;
         }
     }
 }
 
 void Gp_AimYawToLock(Task* arg0, s32 arg1)
 {
-    GameActor* actor;
-    u8*        head;
+    GameActor*                 actor;
+    _PlayerActorAimYawScratch* block;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    actor                    = arg0->work;
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(GpYawScratch);
-    _gpAimYawAt(actor, (GpYawScratch*)(head - sizeof(GpYawScratch)), arg1);
-    SCRATCH_STACK_RELEASE_BLOCK(GpYawScratch);
+    actor = arg0->work;
+    block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimYawScratch);
+    _gpAimYawAt(actor, block, arg1);
+    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimYawScratch);
 }
 
 /// Places `block->originCoord` at the point `offset` in the local space of
