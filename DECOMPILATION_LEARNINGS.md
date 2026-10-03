@@ -21502,12 +21502,12 @@ pointers (e.g. file-list base in phase 1 and stream-folder base in phase 2 both
 in `$t2`), reusing one C variable across both phases forces the shared colouring:
 
 ```c
-FsCdfFile* files = (FsCdfFile*)&Fs_CdSector;
+FsCdfFile* files = Fs_CdSector.fileList;
 /* phase 1: walk files[j] */
 ...
 /* phase 2: reuse the same local for the stream-side folder entry */
 files = (FsCdfFile*)(Fs_FolderTable + (i & 0xFFFF));
-stream->offset += files->offset + stage;
+stream->offset += files->sectorOffset + stage;
 ```
 
 Separate `files` / `folder2` locals often colour differently and shift every
@@ -22408,8 +22408,8 @@ if (v / 100000 != 0) {
     tbl = Fs_FileTable;          /* lui order: table before len */
     i   = Fs_FileTableLen;
     Fs_FileTableLen++;
-    tbl[i].id     = v;           /* reloaded, not fileId */
-    tbl[i].offset = ((FsCdfFile*)&words[(u16)headerOffset])->offset;
+    tbl[i].fileId       = v;     /* reloaded, not fileId */
+    tbl[i].sectorOffset = ((FsCdfFile*)&words[(u16)headerOffset])->sectorOffset;
 }
 ```
 
@@ -22436,7 +22436,7 @@ case 4: {
     i   = Fs_FileTableCat4Len;
     Fs_FileTableCat4Len++;
     tbl[i].idInCategory = fileId - fileCategory * 10000;
-    tbl[i].sectorOffset = ((FsCdfFile*)entry)->offset; /* sector entry is full word */
+    tbl[i].sectorOffset = ((FsCdfFile*)entry)->sectorOffset; /* sector entry is full word */
     break;
 }
 ```

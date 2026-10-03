@@ -29,11 +29,6 @@ typedef struct _FsCdfFolder {
     u32 offset; // Offset from the beginning of the file.
 } FsCdfFolder;
 
-typedef struct _FsCdfFile {
-    u32 id;     // File id.
-    u32 offset; // Offset from the beginning of the folder.
-} FsCdfFile;
-
 /// A compact `STAGE0.HED` file entry, kept in the tables for file categories 1-4.
 ///
 /// The HED lists every STAGE0 file as a pair of words, file id and sector
@@ -455,8 +450,8 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                 if ((D5B498_8006ADF4 != 0) && ((len = Fs_FileTableLen) != 0)) {
                     i = 0;
                     do {
-                        if (Fs_FileTable[i].id == fileId) {
-                            sector = Fs_FileTable[i].offset + Fs_StageCdfSectors[0];
+                        if (Fs_FileTable[i].fileId == fileId) {
+                            sector = Fs_FileTable[i].sectorOffset + Fs_StageCdfSectors[0];
                             if (req[2] == 8) {
                                 if ((u32)(req[1] - 1) < 3U) {
                                     gGameSession->field_4E = 1;
@@ -1010,6 +1005,7 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
 void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
 {
     enum { FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET = 0x514 };
+    STATIC_ASSERT(sizeof(Fs_CdSector.fileList) <= FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET, fs_file_list_precedes_stream_table);
     s32 i;
     s32 j;
     s32 folderId;
@@ -1034,7 +1030,7 @@ void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
         }
     }
 
-    files.file = (FsCdfFile*)&Fs_CdSector;
+    files.file = Fs_CdSector.fileList;
     j          = 0;
     table      = D_8006C158;
     {
@@ -1042,10 +1038,10 @@ void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
         folder          = sp + (i & 0xFFFF);
     }
 loop_files:
-    offset = files.file[j & 0xFFFF].offset;
+    offset = files.file[j & 0xFFFF].sectorOffset;
     if (offset != 0) {
-        table[files.file[j & 0xFFFF].id] = offset + folder->offset;
-        j                               += 1;
+        table[files.file[j & 0xFFFF].fileId] = offset + folder->offset;
+        j                                   += 1;
         goto loop_files;
     }
 
@@ -1258,8 +1254,8 @@ sector_start:
                     cursor.files = Fs_FileTable;
                     n            = Fs_FileTableLen;
                     Fs_FileTableLen++;
-                    cursor.files[n].id     = id;
-                    cursor.files[n].offset = (&sectorBuffer->words[(u16)headerOffset])[1];
+                    cursor.files[n].fileId       = id;
+                    cursor.files[n].sectorOffset = (&sectorBuffer->words[(u16)headerOffset])[1];
                 }
             }
 

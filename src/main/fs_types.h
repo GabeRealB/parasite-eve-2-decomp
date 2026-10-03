@@ -36,6 +36,28 @@ typedef struct {
 } FsCdfFolderList;
 STATIC_ASSERT_SIZEOF(FsCdfFolderList, FS_SECTOR_BYTE_SIZE);
 
+/// One file as a CDF directory lists it: its id and where it starts.
+///
+/// Two directories are made of these records. `STAGE0.HED` lists every file of
+/// `STAGE0.CDF` under its full id, `fileGroup * 10000 + fileIdHundreds * 100 +
+/// fileIndex`, with `sectorOffset` counted from the start of that CDF. The file
+/// list that opens a stage 1-5 folder numbers the folder's own files by
+/// `fileIndex` alone and counts `sectorOffset` from the folder's first sector,
+/// the one holding the list. The loader also keeps the `STAGE0.HED` records
+/// whose id is 100000 or more in this form.
+typedef struct {
+    u32 fileId;       // Full STAGE0 file id, or the file's index within its folder
+    u32 sectorOffset; // CD sectors from the start of STAGE0.CDF or of the folder; 0 ends a folder's list
+} FsCdfFile;
+STATIC_ASSERT_SIZEOF(FsCdfFile, 0x8);
+
+/// How many file records a folder's file list has room for.
+///
+/// The list opens the folder's first sector and its stream table follows at
+/// byte 0x514, so this many whole records fit ahead of it. The list is read up
+/// to its first zero `sectorOffset`, which has to be one of these.
+#define FILE_SYSTEM_CDF_FILE_LIST_CAPACITY 0xA2
+
 /// Opcodes stored in `FsCdfChunkHeader.type`.
 enum {
     FILE_SYSTEM_CHUNK_PACKAGE    = 0, // LZSS room package
@@ -95,22 +117,23 @@ STATIC_ASSERT(sizeof(((FsCdfChunk*)0)->data.bytes) == sizeof(((FsCdfChunk*)0)->d
 ///
 /// The members read the same storage. `bytes` and `words` are the whole
 /// sector. `folderList` is the folder table that fills the first sector of a
-/// stage CDF. `chunk` is the opening sector of a CDF chunk; a later sector of
-/// that chunk is ordinary sector data and is read as `bytes`. `location` is
-/// the BCD minute, second and sector at the start of the 12-byte header
-/// delivered ahead of the payload. Those four bytes stay meaningful only until
-/// a payload read reuses the buffer.
+/// stage CDF. `fileList` is the file list that opens a folder's first sector;
+/// it ends at a zero `sectorOffset`, and the folder's stream descriptors sit
+/// later in that same sector. `chunk` is the opening sector of a CDF chunk; a
+/// later sector of that chunk is ordinary sector data and is read as `bytes`.
+/// `location` is the BCD minute, second and sector at the start of the 12-byte
+/// header delivered ahead of the payload. Those four bytes stay meaningful
+/// only until a payload read reuses the buffer.
 ///
-/// A folder's file list is an array of file-id and folder-relative offset
-/// records from the start of the sector, ending at a zero offset, with stream
-/// descriptors later in that same sector. The stage-zero header is walked
-/// through `words`, and ISO directory records through `bytes`.
+/// The stage-zero header is walked through `words`, and ISO directory records
+/// through `bytes`.
 typedef union {
-    u8              bytes[FS_SECTOR_BYTE_SIZE]; // Whole sector as bytes
-    u32             words[FS_SECTOR_WORD_SIZE]; // Whole sector as 32-bit words
-    FsCdfFolderList folderList;                 // Folder table from a stage CDF's first sector
-    FsCdfChunk      chunk;                      // Opening sector of a CDF chunk
-    CdlLOC          location;                   // BCD disc position from the 12-byte header
+    u8              bytes[FS_SECTOR_BYTE_SIZE];                   // Whole sector as bytes
+    u32             words[FS_SECTOR_WORD_SIZE];                   // Whole sector as 32-bit words
+    FsCdfFolderList folderList;                                   // Folder table from a stage CDF's first sector
+    FsCdfFile       fileList[FILE_SYSTEM_CDF_FILE_LIST_CAPACITY]; // File list opening a folder's first sector
+    FsCdfChunk      chunk;                                        // Opening sector of a CDF chunk
+    CdlLOC          location;                                     // BCD disc position from the 12-byte header
 } FsSector;
 STATIC_ASSERT_SIZEOF(FsSector, FS_SECTOR_BYTE_SIZE);
 
