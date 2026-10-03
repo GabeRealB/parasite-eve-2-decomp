@@ -88142,8 +88142,8 @@ Writing the same stores through a **local pointer declared before the call**
 takes it to 100.0% with every penalty zero:
 
 ```c
-    ActionPrompt* prompt = &D_80114D28;
-    DnmlExamineWork*  work   = (DnmlExamineWork*)task->work;
+    ActionPrompt*                            prompt = &D_80114D28;
+    DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
     func_dryfield_night_motel_lobby_801802A8(task);
     prompt->mode     = 0;

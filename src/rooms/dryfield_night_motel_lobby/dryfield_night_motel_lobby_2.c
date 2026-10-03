@@ -135,10 +135,10 @@ ActionPromptHotspot D_dryfield_night_motel_lobby_80182820[15] = {
     { -20, -6, 20, 22, 2, 0, 0 },
     { 8, -6, 20, 22, 3, 0, 0 },
     { -48, 22, 20, 22, 0, 0, 0 },
-    { -20, 22, 20, 22, 10, 0, 0 },
-    { 8, 22, 20, 22, 11, 0, 0 },
-    { -20, 50, 50, 22, 12, 0, 0 },
-    { 42, 50, 50, 22, 13, 0, 0 },
+    { -20, 22, 20, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_DOUBLE_ZERO, 0, 0 },
+    { 8, 22, 20, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_HASH, 0, 0 },
+    { -20, 50, 50, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_CLEAR, 0, 0 },
+    { 42, 50, 50, 22, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_TOTAL, 0, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
@@ -646,18 +646,18 @@ RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
 
 void func_dryfield_night_motel_lobby_801802A8(Task* task)
 {
-    DnmlExamineWork* work = (DnmlExamineWork*)task->work;
-    POLY_FT4*        p;
-    s32              i;
-    u8               digit;
-    u8               u;
+    DryfieldNightMotelLobbyCashRegisterWork* work = task->work;
+    POLY_FT4*                                p;
+    s32                                      i;
+    u8                                       digit;
+    u8                                       u;
 
-    if (work->field_6 == 0) {
+    if (work->entryOpen == 0) {
         for (i = 0; i < 7; i++) {
             D_dryfield_night_motel_lobby_801844D8[i] = 0xA;
         }
     }
-    if (work->field_7 == 0) {
+    if (work->entryCleared == 0) {
         for (i = 0; i < 7; i++) {
             digit          = D_dryfield_night_motel_lobby_801844D8[i];
             p              = gGpuPrimCursor;
@@ -703,13 +703,13 @@ void func_dryfield_night_motel_lobby_801802A8(Task* task)
 
 void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
 {
-    DnmlExamineWork* work = (DnmlExamineWork*)task->work;
-    s32              i;
+    DryfieldNightMotelLobbyCashRegisterWork* work = task->work;
+    s32                                      i;
 
     switch (key) {
         case 0:
             SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
-            if (work->field_2 < 7) {
+            if (work->digitCount < 7) {
                 if (D_dryfield_night_motel_lobby_801844D8[0] != 0 || D_dryfield_night_motel_lobby_801844D8[1] != 0xA) {
                     D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
                     D_dryfield_night_motel_lobby_801844D8[5] = D_dryfield_night_motel_lobby_801844D8[4];
@@ -718,7 +718,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
                     D_dryfield_night_motel_lobby_801844D8[2] = D_dryfield_night_motel_lobby_801844D8[1];
                     D_dryfield_night_motel_lobby_801844D8[1] = D_dryfield_night_motel_lobby_801844D8[0];
                     D_dryfield_night_motel_lobby_801844D8[0] = key;
-                    work->field_2++;
+                    work->digitCount++;
                 }
             }
             break;
@@ -732,21 +732,21 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
         case 8:
         case 9:
             SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
-            if (work->field_2 < 7) {
-                D_dryfield_night_motel_lobby_801844D8[work->field_2] = 0xA;
-                D_dryfield_night_motel_lobby_801844D8[6]             = D_dryfield_night_motel_lobby_801844D8[5];
-                D_dryfield_night_motel_lobby_801844D8[5]             = D_dryfield_night_motel_lobby_801844D8[4];
-                D_dryfield_night_motel_lobby_801844D8[4]             = D_dryfield_night_motel_lobby_801844D8[3];
-                D_dryfield_night_motel_lobby_801844D8[3]             = D_dryfield_night_motel_lobby_801844D8[2];
-                D_dryfield_night_motel_lobby_801844D8[2]             = D_dryfield_night_motel_lobby_801844D8[1];
-                D_dryfield_night_motel_lobby_801844D8[1]             = D_dryfield_night_motel_lobby_801844D8[0];
-                D_dryfield_night_motel_lobby_801844D8[0]             = key;
-                work->field_2++;
+            if (work->digitCount < 7) {
+                D_dryfield_night_motel_lobby_801844D8[work->digitCount] = 0xA;
+                D_dryfield_night_motel_lobby_801844D8[6]                = D_dryfield_night_motel_lobby_801844D8[5];
+                D_dryfield_night_motel_lobby_801844D8[5]                = D_dryfield_night_motel_lobby_801844D8[4];
+                D_dryfield_night_motel_lobby_801844D8[4]                = D_dryfield_night_motel_lobby_801844D8[3];
+                D_dryfield_night_motel_lobby_801844D8[3]                = D_dryfield_night_motel_lobby_801844D8[2];
+                D_dryfield_night_motel_lobby_801844D8[2]                = D_dryfield_night_motel_lobby_801844D8[1];
+                D_dryfield_night_motel_lobby_801844D8[1]                = D_dryfield_night_motel_lobby_801844D8[0];
+                D_dryfield_night_motel_lobby_801844D8[0]                = key;
+                work->digitCount++;
             }
             break;
-        case 10:
+        case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_DOUBLE_ZERO:
             SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
-            if (work->field_2 < 7) {
+            if (work->digitCount < 7) {
                 if (D_dryfield_night_motel_lobby_801844D8[0] != 0 || D_dryfield_night_motel_lobby_801844D8[1] != 0xA) {
                     D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
                     D_dryfield_night_motel_lobby_801844D8[5] = D_dryfield_night_motel_lobby_801844D8[4];
@@ -755,8 +755,8 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
                     D_dryfield_night_motel_lobby_801844D8[2] = D_dryfield_night_motel_lobby_801844D8[1];
                     D_dryfield_night_motel_lobby_801844D8[1] = D_dryfield_night_motel_lobby_801844D8[0];
                     D_dryfield_night_motel_lobby_801844D8[0] = 0;
-                    work->field_2++;
-                    if (work->field_2 < 7) {
+                    work->digitCount++;
+                    if (work->digitCount < 7) {
                         D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
                         D_dryfield_night_motel_lobby_801844D8[5] = D_dryfield_night_motel_lobby_801844D8[4];
                         D_dryfield_night_motel_lobby_801844D8[4] = D_dryfield_night_motel_lobby_801844D8[3];
@@ -764,30 +764,30 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
                         D_dryfield_night_motel_lobby_801844D8[2] = D_dryfield_night_motel_lobby_801844D8[1];
                         D_dryfield_night_motel_lobby_801844D8[1] = D_dryfield_night_motel_lobby_801844D8[0];
                         D_dryfield_night_motel_lobby_801844D8[0] = 0;
-                        work->field_2++;
+                        work->digitCount++;
                     }
                 }
             }
             break;
-        case 11:
+        case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_HASH:
             SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
-            work->field_2 = 0;
-            work->field_7 = 1;
+            work->digitCount   = 0;
+            work->entryCleared = 1;
             for (i = 0; i < 7; i++) {
                 D_dryfield_night_motel_lobby_801844D8[i] = 0xA;
             }
             break;
-        case 12:
+        case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_CLEAR:
             SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
-            work->field_2 = 0;
-            work->field_7 = 1;
+            work->digitCount   = 0;
+            work->entryCleared = 1;
             for (i = 0; i < 7; i++) {
                 D_dryfield_night_motel_lobby_801844D8[i] = 0xA;
             }
             break;
-        case 13:
+        case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_TOTAL:
             if (func_dryfield_night_motel_lobby_80180734() != 0) {
-                work->field_8 = 1;
+                work->codeAccepted = 1;
             } else {
                 SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ERROR, 0, 0);
             }
@@ -854,13 +854,13 @@ void func_dryfield_night_motel_lobby_80180D58(Task* task)
 /// lists them.
 static void func_dryfield_night_motel_lobby_80180E98(Task* task)
 {
-    DnmlExamineWork*     work;
-    ActionPromptHotspot* hs;
-    u8*                  p;
-    u8                   empty;
-    s32                  i;
+    DryfieldNightMotelLobbyCashRegisterWork* work;
+    ActionPromptHotspot*                     hs;
+    u8*                                      p;
+    u8                                       empty;
+    s32                                      i;
 
-    work = memCalloc(0xA, 0);
+    work = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         taskKill(task);
         return;
@@ -910,8 +910,8 @@ static void func_dryfield_night_motel_lobby_80180FA4(Task* task)
 /// gameplay-side globals the prompt's display task reads.
 static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
 {
-    ActionPrompt*    prompt = D_80114D28;
-    DnmlExamineWork* work   = (DnmlExamineWork*)task->work;
+    ActionPrompt*                            prompt = D_80114D28;
+    DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
     func_dryfield_night_motel_lobby_801802A8(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -920,21 +920,20 @@ static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
     task->state = 4;
 }
 
-/// Confirms the action prompt the script's current step put up: drops the
-/// highlight state, then, while `func_800D4EC0` still reports a prompt on
-/// screen, flags the step busy in `promptBusy` (which the cursor draw in
-/// `func_dryfield_night_motel_lobby_801802A8` gates its confirm on) and starts
-/// cap slot 9. Advances the task to state 2 either way.
+/// Acts on the answer to the examine prompt: drops the highlight state, then,
+/// when `func_800D4EC0` reports the prompt was accepted, marks the register
+/// `examined` (from which point the scan treats a confirm as a key press) and
+/// starts cap slot 9. Returns the task to state 2 either way.
 static void func_dryfield_night_motel_lobby_8018103C(Task* task)
 {
-    ActionPrompt*    prompt = D_80114D28;
-    DnmlExamineWork* work   = (DnmlExamineWork*)task->work;
+    ActionPrompt*                            prompt = D_80114D28;
+    DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
     func_dryfield_night_motel_lobby_801802A8(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
-        work->promptBusy = 1;
+        work->examined = 1;
         Gp_StartCapSlot(9, 0, 0);
     }
     task->state = 2;

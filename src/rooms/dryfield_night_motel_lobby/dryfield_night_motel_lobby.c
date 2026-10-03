@@ -295,13 +295,14 @@ void func_dryfield_night_motel_lobby_8017FE38(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Runs one frame of the lobby's examine prompt. A busy cap suspends the whole
-/// scan for that frame; otherwise the cursor is hit-tested against the room's
-/// hotspot table and a confirm press on a hit hotspot is handed to the keypad
-/// (`func_dryfield_night_motel_lobby_80180440`) or, while the prompt is idle,
-/// latches the hotspot for the next prompt state. Hotspot id 0xB is the panel
-/// the keypad is read from, and a code that checks out ends the sequence in
-/// state 6. A cancel press ends it in state 5.
+/// Runs one frame of the lobby's cash-register scan. A busy cap suspends the
+/// whole scan for that frame; otherwise the cursor is hit-tested against the
+/// room's hotspot table. Until the register has been examined, a confirm press
+/// on a hit hotspot latches it for the examine prompt the next state opens.
+/// Afterwards the press goes to the keypad
+/// (`func_dryfield_night_motel_lobby_80180440`), once the hash key has opened
+/// code entry, and a code that checks out ends the sequence in state 6. A
+/// cancel press ends it in state 5.
 ///
 /// The two paths that leave early call the cursor draw themselves and return
 /// rather than jumping to a shared label: the three identical call-and-epilogue
@@ -310,11 +311,11 @@ void func_dryfield_night_motel_lobby_8017FE38(Task* task)
 /// landing past it. Writing a `goto` there compiles to a different tail.
 void func_dryfield_night_motel_lobby_8017FE90(Task* task)
 {
-    DnmlExamineWork*     work   = (DnmlExamineWork*)task->work;
-    ActionPromptHotspot* hs     = D_dryfield_night_motel_lobby_80182820;
-    ActionPrompt*        prompt = D_80114D28;
+    DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
+    ActionPromptHotspot*                     hs     = D_dryfield_night_motel_lobby_80182820;
+    ActionPrompt*                            prompt = D_80114D28;
 
-    work->field_7            = 0;
+    work->entryCleared       = 0;
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (Gp_CapBusy() != 0) {
@@ -327,25 +328,25 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
             if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
                 while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
                     if (hs->hit != 0) {
-                        if (work->promptBusy == 0) {
+                        if (work->examined == 0) {
                             prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                             prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                            work->field_0       = hs->id;
+                            work->hotspotId     = hs->id;
                             work->promptKind    = hs->promptKind;
                             task->state         = 3;
                             func_dryfield_night_motel_lobby_801802A8(task);
                             return;
                         }
-                        if (work->field_6 == 0) {
-                            if (hs->id == 0xB) {
-                                work->field_6 = 1;
-                                work->field_7 = 1;
+                        if (work->entryOpen == 0) {
+                            if (hs->id == DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_HASH) {
+                                work->entryOpen    = 1;
+                                work->entryCleared = 1;
                                 SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
                             }
                             break;
                         }
                         func_dryfield_night_motel_lobby_80180440(task, hs->id);
-                        if (work->field_8 != 0) {
+                        if (work->codeAccepted != 0) {
                             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
                             task->state                                                = 6;
                             func_dryfield_night_motel_lobby_801802A8(task);
