@@ -32,24 +32,29 @@
 #include "main/tmd_types.h"
 #include "../../shared/rising_spark.h"
 
-/// One 8-byte row of `D_healing_8012FC1C`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.attachId % 10 - 1`). `field_2` is the brightness cap state 1
-/// grows `EffectWork.scale` toward (and the starting radius in
-/// `func_healing_8012F5E4`). `field_4` is the per-frame radius step and the
-/// yaw passed to `gfxRotMatrixY` as `-(field_4 * 2)`. `field_6` is both the
-/// `Gp_SpawnEff` spawn arg and the radius at which state 1 advances to 2.
-typedef struct HealingScale {
-    /* 0x0 */ s16 unk0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 field_6;
-} HealingScale;
-STATIC_ASSERT_SIZEOF(HealingScale, 8);
+/// Visual tuning of the healing cast for one Parasite Energy level.
+///
+/// The cast is an aura around the caster: two rings and one or more glow arcs
+/// that brighten and grow with one radius while the aura sprays a sparkle each
+/// frame, then fade while still growing. The aura task and each sparkle select
+/// their row with the level digit of the attachment id, less one.
+///
+/// `brightness` is a blue channel value; green is half of it and red a
+/// quarter. Radii are world units ahead of the perspective divide; the rings
+/// are drawn at half the aura's radius and the sparkles sprayed from about
+/// one and a half times it out.
+typedef struct {
+    s16 field_0;     // Never read by the cast, so its role is unproven
+    s16 brightness;  // Brightness the aura rises to, 0x10 a frame; a sparkle starts at it and, from frame 0x10 of its 0x1E, loses a sixteenth of it every other frame
+    s16 radiusStep;  // Aura radius gained per frame, while it grows and while it fades; the aura also turns about its own Y axis by twice this angle each frame, 0x1000 to the turn
+    s16 radiusLimit; // Aura radius that ends the growth; also the size of each sparkle, and of the sparks a sparkle sheds
+} _HealingLevelTuning;
+STATIC_ASSERT_SIZEOF(_HealingLevelTuning, 8);
 
 /// Per-level tuning for the healing aura: rows are PE levels 1-3, selected by
-/// `index`. `field_2` is the brightness ceiling, `field_4` the per-tick
-/// spin, `field_6` the radius the ring grows to before the effect ends.
-static HealingScale D_healing_8012FC1C[] = {
+/// `index`. `brightness` is the brightness ceiling, `radiusStep` the per-tick
+/// growth and spin, `radiusLimit` the radius the ring grows to before it fades.
+static _HealingLevelTuning D_healing_8012FC1C[] = {
     { 0x0008, 0x0080, 0x0040, 0x0400 },
     { 0x000C, 0x00B0, 0x0048, 0x0500 },
     { 0x0010, 0x00E0, 0x0050, 0x0600 },
@@ -118,12 +123,12 @@ void func_healing_8012EF34(Task* arg0)
             /* fallthrough */
         case 1:
             bright = mem->scale;
-            if (bright < D_healing_8012FC1C[mem->index].field_2) {
+            if (bright < D_healing_8012FC1C[mem->index].brightness) {
                 bright += 0x10;
             }
             mem->scale = bright;
-            mem->angle = mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
-            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
+            mem->angle = mem->angle + D_healing_8012FC1C[mem->index].radiusStep;
+            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -136,21 +141,21 @@ void func_healing_8012EF34(Task* arg0)
             gRandomLcgState = rng;
             mem->move.vy    = temp_lo >> 12;
             mem->move.vz    = (rsin(((u32)rng >> 16) & 0xFFF) * mem->move.vx) >> 12;
-            spawned         = Gp_SpawnEff(EFFECT_HEALING_SPARKLE, coord, (s32)(D_healing_8012FC1C[mem->index].field_6),
+            spawned         = Gp_SpawnEff(EFFECT_HEALING_SPARKLE, coord, (s32)D_healing_8012FC1C[mem->index].radiusLimit,
                                           &mem->move);
             if (spawned != NULL) {
                 taskReparent(arg0, spawned->task);
             }
-            if (mem->angle >= D_healing_8012FC1C[mem->index].field_6) {
+            if (mem->angle >= D_healing_8012FC1C[mem->index].radiusLimit) {
                 arg0->state = 2;
             }
             goto draw;
         case 2:
-            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
+            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             mem->scale = mem->scale - 0x10;
-            mem->angle = mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
+            mem->angle = mem->angle + D_healing_8012FC1C[mem->index].radiusStep;
             if (mem->scale < 0x11) {
                 arg0->state = 3;
             }
@@ -175,7 +180,7 @@ void func_healing_8012EF34(Task* arg0)
             }
             return;
         case 3:
-            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
+            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             mem->period = mem->period + 1;
@@ -223,7 +228,7 @@ void func_healing_8012F5E4(Task* arg0)
         arg0->state  = 1;
         kind         = (Gp_StateC08.attachId % 10U) - 1;
         mem->step    = kind;
-        mem->scale   = D_healing_8012FC1C[kind].field_2;
+        mem->scale   = D_healing_8012FC1C[kind].brightness;
         mem->angle   = (u16)arg0->spawnArg1.value & 0xFFF;
     }
     step                = mem->move.vy;
@@ -235,7 +240,7 @@ void func_healing_8012F5E4(Task* arg0)
         if (mem->age & 1) {
             mem->index = mem->index + 1;
             if (mem->age >= 0x10) {
-                mem->scale = mem->scale - ((s16)D_healing_8012FC1C[mem->step].field_2 >> 4);
+                mem->scale = mem->scale - (D_healing_8012FC1C[mem->step].brightness >> 4);
             }
             if (mem->step < 2) {
                 func_800EB6E8(coord, mem->index, mem->angle,
