@@ -94,25 +94,36 @@ typedef struct AsrMonitorWork {
 } AsrMonitorWork;
 STATIC_ASSERT_SIZEOF(AsrMonitorWork, 0xA);
 
-/// Scratch state of the security-room cap script, stored at `Task::work`.
+/// `_AcropolisSecurityRoomPowerSupplyWork::usedKey` values.
+enum {
+    ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE  = 0, // No key item, or one the panel refuses
+    ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_LEFT  = 1, // Item 0x104, which releases the left lock
+    ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_RIGHT = 2, // Item 0x103, which releases the right lock
+    ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_OTHER = 3, // Item 0x101, accepted but releasing neither lock
+};
+
+/// `_AcropolisSecurityRoomPowerSupplyWork::hotspotId` values: the two locks of
+/// the panel, as the ids of their hotspots.
+enum {
+    ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_HOTSPOT_LEFT  = 1,
+    ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_HOTSPOT_RIGHT = 2,
+};
+
+/// Work block of the room's power-supply panel task, held in `Task::work`.
 ///
-/// `func_acropolis_security_room_8017FA18` -- state 0 of the family whose
-/// handler table is `D_acropolis_security_room_8017D63C` -- allocates it with
-/// `memCalloc(0x10, 0)` and stores it straight into the `Task::work` slot,
-/// so the size below is the allocation and not a guess; the same function
-/// parks the family's `TaskMessageEntry[]` in `Task::msgTable`. The overlay's other
-/// two allocators (`memCalloc(0xA)` in `func_acropolis_security_room_8017D9DC`
-/// and `memCalloc(4)` in `func_acropolis_security_room_80180368`) belong to
-/// other task families and to a different block.
-typedef struct AcropolisSecurityRoomState {
-    /* 0x0 */ s32   field_0;    // sub-step picked by the previous cap event
-    /* 0x4 */ Task* child;      // task this state spawned, polled by Task_PollKill
-    /* 0x8 */ u16   frames;     // frames the current state has been running
-    /* 0xA */ s16   variant;    // 0 = the pair-4 cap script, 1 = the pair-3 one
-    /* 0xC */ s8    promptKind; // display mode forwarded to `func_800D4E78`
-    /* 0xD */ byte  pad_D[0x3];
-} AcropolisSecurityRoomState;
-STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomState, 0x10);
+/// The panel is a close-up view with one hotspot per lock. Confirming a
+/// hotspot opens the prompt that offers to examine it or to use a key item on
+/// it; the answer runs that lock's caption, or, given the lock's own key,
+/// releases the lock, fades the screen out and plays the unlock scene. The
+/// task allocates the block zeroed when it starts.
+typedef struct {
+    s32   usedKey;    // Key item used from the prompt, cleared once acted on (ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_*)
+    Task* sceneTask;  // Task playing the unlock scene, awaited until it stops
+    u16   timer;      // Fade level while the screen fades out (0 to 0x100, 4 a frame), then frames since the view changed
+    s16   hotspotId;  // Hotspot the player confirmed (ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_HOTSPOT_*)
+    s8    promptKind; // First row of the prompt opened for that hotspot (0 "Examine", 1 "Push")
+} _AcropolisSecurityRoomPowerSupplyWork;
+STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomPowerSupplyWork, 0x10);
 
 /// Scratch state of the security-room ambience task, stored at `Task::work`.
 /// `func_acropolis_security_room_80180368` allocates it with `memCalloc(4, 0)`,
@@ -2577,17 +2588,18 @@ void func_acropolis_security_room_8017ED68(Task* task)
 
 /// Idle state of the security room's cap script: the same hotspot scan
 /// `func_acropolis_security_room_8017EB9C` runs for the monitor, but against
-/// the script's own table and with the hit recorded in the script's state
-/// block instead of dispatched as a cap command. A confirmed
+/// the script's own table and with the hit recorded in the task's work block
+/// instead of dispatched as a cap command. A confirmed
 /// (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) hit copies the hotspot's `id` and `promptKind` into the
-/// state block and advances to state 3; with nothing under the cursor the
-/// pending sub-step is cleared and the prompt keeps its idle cursor.
+/// work block's `hotspotId` and `promptKind` and advances to state 3; with
+/// nothing under the cursor `usedKey` is cleared and the prompt keeps its idle
+/// cursor.
 /// `buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED` leaves the scan by advancing to state 5.
 static void func_acropolis_security_room_8017EE44(Task* task)
 {
-    ActionPrompt*               prompt = D_80114D28;
-    ActionPromptHotspot*        hs     = D_acropolis_security_room_801826DC;
-    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
+    ActionPrompt*                          prompt = D_80114D28;
+    ActionPromptHotspot*                   hs     = D_acropolis_security_room_801826DC;
+    _AcropolisSecurityRoomPowerSupplyWork* work   = task->work;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -2604,16 +2616,16 @@ static void func_acropolis_security_room_8017EE44(Task* task)
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    st->variant         = hs->id;
-                    st->promptKind      = hs->promptKind;
+                    work->hotspotId     = hs->id;
+                    work->promptKind    = hs->promptKind;
                     task->state         = 3;
                     return;
                 }
             }
         }
     } else {
-        st->field_0  = 0;
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
+        prompt->mode  = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = 5;
@@ -2624,23 +2636,23 @@ static void func_acropolis_security_room_8017EE44(Task* task)
 
 static void func_acropolis_security_room_8017F1BC(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
-    s32                         flag;
-    s32                         step;
+    _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
+    s32                                    flag;
+    s32                                    usedKey;
 
     flag = GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED);
     if ((flag == 0) || (flag == 2)) {
-        step = st->field_0;
-        if (step == 0) {
+        usedKey = work->usedKey;
+        if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
             Gp_StartCapSlot(3, 1, 0);
-        } else if (step == 1) {
+        } else if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_LEFT) {
             Gp_ClearCollectedBit(0x104);
             SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
             GameFlag_SetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | 1);
             GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 2);
             func_acropolis_security_room_8017FD64(GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
-            st->field_0 = 0;
-            task->state = 6;
+            work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
+            task->state   = 6;
             func_800E9BDC(1, 0xF9FF);
             Gp_ApplyAreaRecs(D_acropolis_security_room_80184F80);
             taskKill(task->spawnArg2.pointer);
@@ -2649,7 +2661,7 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
             Gp_StartCapSlot(3, 1, 2);
         }
     } else if ((flag == 1) || (flag == 3)) {
-        if (st->field_0 == 0) {
+        if (work->usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
             Gp_StartCapSlot(3, 1, 1);
         } else {
             Gp_StartCapSlot(3, 1, 3);
@@ -2662,21 +2674,21 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
 
 static void func_acropolis_security_room_8017F300(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
-    s32                         flag;
-    s32                         step;
+    _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
+    s32                                    flag;
+    s32                                    usedKey;
 
     flag = GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED);
     if ((flag == 0) || (flag == 1)) {
-        step = st->field_0;
-        if (step == 0) {
+        usedKey = work->usedKey;
+        if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
             Gp_StartCapSlot(4, 1, 0);
-        } else if (step == 2) {
+        } else if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_RIGHT) {
             Gp_ClearCollectedBit(0x103);
             SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
             GameFlag_SetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | 2);
             func_acropolis_security_room_8017FD64(GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
-            st->field_0              = 0;
+            work->usedKey            = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
             task->state              = 0xA;
             gGameSession->eventState = 1;
             func_800E9BDC(1, 0xF9FF);
@@ -2694,7 +2706,7 @@ static void func_acropolis_security_room_8017F300(Task* task)
             return;
         }
     } else if ((flag == 2) || (flag == 3)) {
-        if (st->field_0 == 0) {
+        if (work->usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
             Gp_StartCapSlot(4, 1, 1);
         } else {
             Gp_StartCapSlot(4, 1, 3);
@@ -2732,28 +2744,28 @@ void func_acropolis_security_room_8017F9C8(Task* task)
     funcs[task->state](task);
 }
 
-/// State 0 of the security-room cap script: allocates the 0x10 state block into
+/// State 0 of the security-room cap script: allocates the work block into
 /// `Task::work`, spawns the script's child task, publishes the message table
 /// and the current pair-flag nibble, takes a display reference and clears every
 /// hotspot's `hit` flag before the first cursor scan. A failed allocation kills
 /// the task instead.
 static void func_acropolis_security_room_8017FA18(Task* task)
 {
-    AcropolisSecurityRoomState* st;
-    ActionPromptHotspot*        hs;
+    _AcropolisSecurityRoomPowerSupplyWork* work;
+    ActionPromptHotspot*                   hs;
 
-    st = memCalloc(sizeof(AcropolisSecurityRoomState), 0);
-    if (st == NULL) {
+    work = memCalloc(sizeof(_AcropolisSecurityRoomPowerSupplyWork), 0);
+    if (work == NULL) {
         taskKill(task);
         return;
     }
     task->spawnArg2.pointer                                    = Task_SpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
     task->msgTable                                             = D_acropolis_security_room_801826CC;
-    task->work                                                 = st;
+    task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
     task->state++;
-    st->field_0 = 0;
-    st->frames  = 0;
+    work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
+    work->timer   = 0;
     func_acropolis_security_room_8017FD64(GameFlag_GetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
@@ -2785,38 +2797,36 @@ static void func_acropolis_security_room_8017FB20(Task* task)
 /// in `D_80114D28` with the display mode this state picked.
 static void func_acropolis_security_room_8017FB54(Task* task)
 {
-    ActionPrompt*               prompt = D_80114D28;
-    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
+    ActionPrompt*                          prompt = D_80114D28;
+    _AcropolisSecurityRoomPowerSupplyWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, st->promptKind);
+    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
-/// Runs one step of whichever cap script this task family is driving, once the
-/// gameplay side reports the action prompt has been dismissed: clears the
-/// prompt, then hands the task to `func_acropolis_security_room_8017F1BC` or
-/// `func_acropolis_security_room_8017F300` and resets the sub-step. While
-/// `func_800D4EC0` still reports a prompt up and no sub-step is pending, the
-/// task instead parks on state 2. `variant` is never written in this overlay --
-/// the state block is calloc'd -- so the `func_acropolis_security_room_8017F300`
-/// arm is the one this room actually takes.
+/// Acts on the answer to the prompt opened for the confirmed hotspot. When its
+/// first row was confirmed (`func_800D4EC0`) or a key item was used
+/// (`usedKey`), hands the task to the lock `hotspotId` names --
+/// `func_acropolis_security_room_8017F1BC` for the left one,
+/// `func_acropolis_security_room_8017F300` for the right -- and then forgets
+/// the key. A prompt closed without either returns the task to state 2.
 static void func_acropolis_security_room_8017FBA4(Task* task)
 {
-    ActionPrompt*               prompt = D_80114D28;
-    AcropolisSecurityRoomState* st     = (AcropolisSecurityRoomState*)task->work;
+    ActionPrompt*                          prompt = D_80114D28;
+    _AcropolisSecurityRoomPowerSupplyWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if ((func_800D4EC0() != 0) || (st->field_0 != 0)) {
-        if (st->variant == 1) {
+    if ((func_800D4EC0() != 0) || (work->usedKey != ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE)) {
+        if (work->hotspotId == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_HOTSPOT_LEFT) {
             func_acropolis_security_room_8017F1BC(task);
-            st->field_0 = 0;
+            work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
             return;
         }
         func_acropolis_security_room_8017F300(task);
-        st->field_0 = 0;
+        work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
         return;
     }
     task->state = 2;
@@ -2874,48 +2884,48 @@ static void func_acropolis_security_room_8017FD64(s32 flags)
 
 /// `TaskMessageEntry` handler for message 0x13F1, the "can this key item be used
 /// here?" query `Gp_UseKeyItemRow` sends to slot 7. `item` is the key item the
-/// player highlighted; the three ids this room accepts each select a sub-step
-/// of the cap script, recorded in the state block's `field_0` for
-/// `func_acropolis_security_room_8017FA18` to pick up. Any other item stores 0
-/// and answers 0, which is the "cannot use that now" reply.
+/// player highlighted; each of the three ids this room accepts is recorded in
+/// the work block's `usedKey` for the lock the player confirmed to act on. Any
+/// other item clears `usedKey` and answers 0, which is the "cannot use that
+/// now" reply.
 s32 func_acropolis_security_room_8017FE24(Task* task, s32 msgId, s32 item, s32 arg3)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
+    _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
 
     if (item == 0x101) {
-        st->field_0 = 3;
+        work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_OTHER;
         return 1;
     }
     if (item == 0x103) {
-        st->field_0 = 2;
+        work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_RIGHT;
         return 1;
     }
     if (item == 0x104) {
-        st->field_0 = 1;
+        work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_LEFT;
         return 1;
     }
-    st->field_0 = 0;
+    work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
     return 0;
 }
 
 /// Fades the screen to white over 0x40 frames, then steps the caller on one
-/// state: `frames` doubles as the fade level here, rising by 4 a frame and
+/// state: `timer` is the fade level here, rising by 4 a frame and
 /// driving `Fade_DrawOverlay`'s three colour channels together. At the halfway
 /// point (0x80) the door chime is queued; once the level passes 0xFF the
-/// counter is reset for the next state and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is set to 0x10.
+/// timer is reset for the next state and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is set to 0x10.
 static void func_acropolis_security_room_8017FE6C(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
-    u8                          level;
+    _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
+    u8                                     level;
 
-    level = st->frames;
+    level = work->timer;
     Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
-    st->frames = st->frames + 4;
-    if (st->frames == 0x80) {
+    work->timer = work->timer + 4;
+    if (work->timer == 0x80) {
         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 2), 0, 0);
     }
-    if (st->frames >= 0x100) {
-        st->frames                                                 = 0;
+    if (work->timer >= 0x100) {
+        work->timer                                                = 0;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x10;
         /* Without the barrier GCC hoists the `lw` of `task->state` above the
          * byte store, dropping the load-delay `nop`. */
@@ -2925,20 +2935,21 @@ static void func_acropolis_security_room_8017FE6C(Task* task)
 
 static void func_acropolis_security_room_8017FF0C(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
+    _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
 
-    if (st->frames == 1) {
-        st->child   = Task_SpawnFromTable(D_acropolis_security_room_80182700, 0, 0, 0);
-        task->state = task->state + 1;
+    if (work->timer == 1) {
+        work->sceneTask = Task_SpawnFromTable(D_acropolis_security_room_80182700, 0, 0, 0);
+        task->state     = task->state + 1;
     }
-    st->frames = st->frames + 1;
+    work->timer = work->timer + 1;
 }
 
 static void func_acropolis_security_room_8017FF84(Task* task)
 {
-    s32 killArg;
+    _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
+    s32                                    killArg;
 
-    if (Task_PollKill(((AcropolisSecurityRoomState*)task->work)->child, &killArg) != 0) {
+    if (Task_PollKill(work->sceneTask, &killArg) != 0) {
         task->state = task->state + 1;
     }
 }
@@ -2973,20 +2984,18 @@ static void func_acropolis_security_room_80180030(Task* task)
 
 static void func_acropolis_security_room_801800A4(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
-    s32                         level;
-    s16                         frames;
+    _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
+    u8                                     level;
 
     GameFlag_SetNibble(GAME_FLAG_MAP_MARK_SECURITY_ROOM, 0);
-    level = (u8)st->frames;
+    level = work->timer;
     Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
-    frames     = st->frames + 4;
-    st->frames = frames;
-    if ((u16)frames == 0x80) {
+    work->timer = work->timer + 4;
+    if (work->timer == 0x80) {
         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 2), 0, 0);
     }
-    if (st->frames >= 0x100) {
-        st->frames                                                 = 0;
+    if (work->timer >= 0x100) {
+        work->timer                                                = 0;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;
         /* Same load-delay shape as `func_acropolis_security_room_80180010`:
          * without the barrier GCC hoists the `lw` of `task->state` above the
@@ -2997,20 +3006,21 @@ static void func_acropolis_security_room_801800A4(Task* task)
 
 static void func_acropolis_security_room_8018014C(Task* task)
 {
-    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->work;
+    _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
 
-    if (st->frames == 1) {
-        st->child   = Task_SpawnFromTable(D_acropolis_security_room_80182700, 1, 0, 0);
-        task->state = task->state + 1;
+    if (work->timer == 1) {
+        work->sceneTask = Task_SpawnFromTable(D_acropolis_security_room_80182700, 1, 0, 0);
+        task->state     = task->state + 1;
     }
-    st->frames = st->frames + 1;
+    work->timer = work->timer + 1;
 }
 
 static void func_acropolis_security_room_801801C4(Task* task)
 {
-    s32 killArg;
+    _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
+    s32                                    killArg;
 
-    if (Task_PollKill(((AcropolisSecurityRoomState*)task->work)->child, &killArg) != 0) {
+    if (Task_PollKill(work->sceneTask, &killArg) != 0) {
         Gp_MsgPlayer3F3(1);
         task->state = task->state + 1;
     }
