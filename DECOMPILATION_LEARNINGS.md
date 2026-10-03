@@ -60426,30 +60426,27 @@ recovering the helpers.
 region: a three-byte CD slot triple at `sp+0x58`, an `AnimationPlayRequest` at `sp+0x60`, and
 an `ActorTransform` at `sp+0x58` that runs to `sp+0x6F`. Declaring them as three
 locals in three nested blocks scores 98.4% with `stack=0` but a 0xA0 frame
-instead of 0x88: each one got its own slot (`0x58`, `0x60`, `0x78`). The fix is
-to make the overlap explicit, with a wrapper struct for the view that does not
-start at offset 0:
+instead of 0x88: each one got its own slot (`0x58`, `0x60`, `0x78`).
 
-```c
-typedef struct AcropolisPlazaWeaponMsg {
-    /* 0x00 */ byte    pad_0[0x8];
-    /* 0x08 */ AnimationPlayRequest rec;
-} AcropolisPlazaWeaponMsg;          // 0x1C
-
-typedef union AcropolisPlazaTailMsg {
-    /* 0x0 */ u8                      slot[4];
-    /* 0x0 */ AcropolisPlazaWeaponMsg weapon;
-    /* 0x0 */ ActorTransform              place;
-} AcropolisPlazaTailMsg;            // 0x1C
-```
+It was first matched by making the overlap explicit - one function-scope union
+with a view per payload, the request wrapped in a struct that put it eight
+bytes in. That union is gone: the three payloads are the locals of three
+`static inline` helpers (`_acropolisPlazaRestartStream`,
+`_acropolisPlazaPlayPlayerAnimation`, `_acropolisPlazaPlacePlayerAtModelRoot`),
+whose frames of 8, 0x18 and 0x18 bytes land at `0x58`, `0x60` and `0x58` by the
+slot arithmetic in the entry named above. A wrapper struct whose only job is to
+offset one view inside such a union is the sign that the helper form has not
+been tried.
 
 Reading the frame backwards is what identifies the layout. Slot sizes are
 rounded up to 8, and function-scope locals are laid out bottom-up in
 declaration order from `STARTING_FRAME_OFFSET` (the outgoing-argument area,
 0x10 here) up to the saved-register block, so the offsets a payload is written
 at pin down both each buffer's size and the order the buffers are declared in.
-`acropolis_sanctuary`'s `AcsMsgArg` is the simpler form of the same idiom,
-where the two views do share offset 0 and no wrapper struct is needed.
+Inlined helpers' frames follow the function's own locals, which is why the
+plaza's three sit above its three function-scope payloads.
+`acropolis_sanctuary`'s `AcsMsgArg` is the union form of the idiom, where the
+two views share offset 0.
 
 ## Take the address expression, not the pointer variable, for the last use
 
@@ -60459,10 +60456,16 @@ the compiler materialise `addiu $a1, $sp, 0x60` early — in the delay slot of
 the preceding `bne`, in the plaza's case. Whether that pointer lives in `$a1`
 or in a callee-saved register is decided by the *call* that follows: passing
 `(s32)p` keeps the pointer live across `jal gameGetTaskSlot`, so it is coloured
-`$s0` and the argument becomes `move $a2, $s0`; passing `(s32)&buf.weapon.rec`
-ends the pointer's live range at its last store, so it stays in `$a1` and the
-argument is recomputed as `addiu $a2, $sp, 0x60`. That one substitution was the
-last 1% of `func_acropolis_plaza_8017E9A8`.
+`$s0` and the argument becomes `move $a2, $s0`; passing the address expression
+`(s32)&rec` ends the pointer's live range at its last store, so it stays in
+`$a1` and the argument is recomputed as `addiu $a2, $sp, 0x60`. That one
+substitution was the last 1% of `func_acropolis_plaza_8017E9A8` as first
+matched.
+
+The mix itself is not something the source wrote. It is what an inlined
+helper's frame base compiles to (next entry), and the plaza now gets it from
+`_acropolisPlazaPlayPlayerAnimation` with no pointer local at all. Reach for
+the hand-written mix only after the helper form has failed.
 
 ## A stack record shifted 8 bytes inside a shared buffer is a `static inline` helper's frame (func_dryfield_motel_room_1_8017D7AC, 2026-10-03)
 
@@ -60527,6 +60530,27 @@ constant, as in the target. Scores for the animation helper, everything else
 equal: `s32` 58 differing lines, `s16`/`s8` 36, `u16`/`u8` 0; one `s32` between
 two `u8` was 51. `u16` and `u8` are indistinguishable while the arguments fit
 a byte.
+
+An `int`-wide parameter shows the other way round, in the store.
+`expand_inline_function` copies the argument of a formal that is not read-only
+through `copy_to_mode_reg` before the body, and records a constant equivalence
+only for an argument that is not already a register - so none is recorded, the
+store of that parameter is not the constant store `try_constants` has to
+cancel, and it folds to the frame like a computed field. (Measured for the
+three widths below; how the narrower parameter's value becomes a known
+constant again inside the body was not traced.)
+`func_acropolis_plaza_8017E9A8`'s placement helper writes a `0xEAA` yaw into
+an `ActorTransform` at `sp+0x58`: the target has `li v0,0xEAA` /
+`sh v0,0x6A(sp)`, which `s32 yaw` reproduces, while `s16` and `u16` both give
+`addiu a2,sp,0x58` / `sh v0,0x12(a2)` and a function one instruction longer.
+So a non-zero constant stored frame-relative inside a helper's record is an
+`int` parameter, and one stored through the pointer is a narrower one.
+
+An argument the helper dereferences more than once is visible as well. That
+function loads `task->work->slot3` twice around the record's stores
+(`lw v0,0x1C(s2)` / `lw a0,0(v0)` both times), which a helper taking the
+cached pointer cannot produce - the argument is evaluated once - and one taking
+the owning `Task*` and spelling the path twice does.
 
 **Fix.**
 

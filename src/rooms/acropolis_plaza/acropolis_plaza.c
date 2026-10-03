@@ -316,30 +316,6 @@ typedef struct AcropolisPlazaCutWork {
     /* 0x1A */ u16   field_1A;
 } AcropolisPlazaCutWork;
 
-/// The 0x14-byte weapon record msg 0x3E8 takes, seen at its offset inside
-/// `AcropolisPlazaTailMsg`: the plaza's opening tail builds it eight bytes into
-/// the shared buffer, which is what makes that buffer 0x1C rather than 0x18
-/// bytes long.
-typedef struct AcropolisPlazaWeaponMsg {
-    /* 0x00 */ byte                 pad_0[0x8];
-    /* 0x08 */ AnimationPlayRequest rec;
-} AcropolisPlazaWeaponMsg;
-STATIC_ASSERT_SIZEOF(AcropolisPlazaWeaponMsg, 0x1C);
-
-/// The one scratch buffer `func_acropolis_plaza_8017E9A8` builds its late
-/// payloads in. The task only ever has one of them in flight, so all three
-/// views share a single frame slot, and the union is what makes that sharing
-/// explicit: `slot` is the CD stream-slot triple handed to
-/// `CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, ...)` in state 3, `weapon.rec` the record msg 0x3E8
-/// takes in state 5, and `place` the position + Euler rotation the 0x3E9
-/// placement that follows it takes.
-typedef union AcropolisPlazaTailMsg {
-    /* 0x0 */ u8                      slot[4];
-    /* 0x0 */ AcropolisPlazaWeaponMsg weapon;
-    /* 0x0 */ ActorTransform          place;
-} AcropolisPlazaTailMsg;
-STATIC_ASSERT_SIZEOF(AcropolisPlazaTailMsg, 0x1C);
-
 extern s16 D_acropolis_plaza_801987E0[];
 
 /// Gate `func_acropolis_plaza_8017FB50` applies to a pending `WorldCollisionTrigger` event
@@ -3953,8 +3929,62 @@ void func_acropolis_plaza_8017E7E4(Task* task)
     }
 }
 
-/// Seven-state opening sequence for the plaza's streamed scene, and the only
-/// caller of every payload `AcropolisPlazaTailMsg` describes. State 0 allocates
+/// Queues the plaza movie `subId` of the current room to restart from its
+/// first frame.
+///
+/// The command's argument is the stream slot followed by a big-endian frame
+/// offset to seek to; the queue copies it before this returns.
+static inline void _acropolisPlazaRestartStream(u8 subId)
+{
+    u8 streamAt[4];
+
+    streamAt[0] = Stream_FindSlot((u8*)&gGameSession->location.loc, subId, 0);
+    streamAt[1] = 0;
+    streamAt[2] = 0;
+    CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, streamAt);
+}
+
+/// Plays `animationId` from the player's bank for the equipped weapon, off the
+/// collision grid.
+///
+/// `blend` is an `ANIMATION_BLEND_*` choice and `blendFrames` the length of the
+/// transition in frames. The request is consumed by the dispatch.
+static inline void _acropolisPlazaPlayPlayerAnimation(u16 animationId, u16 blend, u16 blendFrames)
+{
+    AnimationPlayRequest request;
+    s32                  weapon;
+
+    // Each character has a bank per weapon slot: the primary's start at 1, the alternate's at 0x22.
+    weapon                       = gPlayerStatus.weapon;
+    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weapon + 1 : weapon + 0x22;
+    request.animationId          = animationId;
+    request.blend                = blend;
+    request.blendFrames          = blendFrames;
+    request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
+}
+
+/// Re-places the player where its model's root transform currently stands,
+/// upright and facing `yaw` (4096 units per turn).
+///
+/// `task` is the sequence task whose `AcropolisPlazaWarpWork` caches the
+/// player. The transform is consumed by the dispatch.
+static inline void _acropolisPlazaPlacePlayerAtModelRoot(Task* task, s32 yaw)
+{
+    ActorTransform place;
+    GfxCoord*      root;
+
+    root         = ((AcropolisPlazaWarpWork*)task->work)->slot3->extra.tmd->coords;
+    place.pos.vx = root->coord.t[0];
+    place.pos.vy = root->coord.t[1];
+    place.pos.vz = root->coord.t[2];
+    place.rot.vz = 0;
+    place.rot.vx = 0;
+    place.rot.vy = yaw;
+    TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, GAME_ACTOR_MESSAGE_PLACE, &place, 0);
+}
+
+/// Seven-state opening sequence for the plaza's streamed scene. State 0 allocates
 /// the work block, caches the slot-3 task in it and places the player at
 /// (0xF6E, 0, 0x2328) with msg 0x3F2; states 1 and 2 wait for slot 3 to go idle
 /// (msg 0x3F0), following up with the 0xD55 warp (msg 0x3EE) and then the
@@ -3972,14 +4002,9 @@ void func_acropolis_plaza_8017E9A8(Task* task)
     ActorTransform          place;
     ActorTransform          warp;
     AnimationPlayRequest    script;
-    AcropolisPlazaTailMsg   buf;
-    AnimationPlayRequest*   rec;
     CdCmdQueue*             q    = &gCdCmdQueue;
     AcropolisPlazaWarpWork* work = (AcropolisPlazaWarpWork*)task->work;
     AcropolisPlazaWarpWork* newWork;
-    GfxCoord*               coord;
-    s32                     weaponId;
-    s32                     id;
 
     switch (task->state) {
         case 0:
@@ -4026,10 +4051,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             q->sceneFrame       = 1;
             q->movieFrame       = 1;
             q->plazaStreamSubId = 2;
-            buf.slot[0]         = Stream_FindSlot((u8*)&gGameSession->location.loc, 2, 0);
-            buf.slot[1]         = 0;
-            buf.slot[2]         = 0;
-            CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, buf.slot);
+            _acropolisPlazaRestartStream(2);
             q->continueMovie = 1;
             task->state      = task->state + 1;
             return;
@@ -4042,24 +4064,8 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             return;
         case 5:
             if (q->movieFrame >= 0x60) {
-                rec                                 = &buf.weapon.rec;
-                weaponId                            = gPlayerStatus.weapon;
-                id                                  = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                buf.weapon.rec.source.index         = id;
-                rec->animationId                    = 1;
-                buf.weapon.rec.blend                = ANIMATION_BLEND_RESET;
-                rec->blendFrames                    = 0xA;
-                buf.weapon.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.weapon.rec, 0);
-
-                coord            = ((AcropolisPlazaWarpWork*)task->work)->slot3->extra.tmd->coords;
-                buf.place.pos.vx = coord->coord.t[0];
-                buf.place.pos.vy = coord->coord.t[1];
-                buf.place.pos.vz = coord->coord.t[2];
-                buf.place.rot.vz = 0;
-                buf.place.rot.vx = 0;
-                buf.place.rot.vy = 0xEAA;
-                TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3E9, &buf.place, 0);
+                _acropolisPlazaPlayPlayerAnimation(1, ANIMATION_BLEND_RESET, 10);
+                _acropolisPlazaPlacePlayerAtModelRoot(task, 0xEAA);
                 task->state = task->state + 1;
             }
             break;
