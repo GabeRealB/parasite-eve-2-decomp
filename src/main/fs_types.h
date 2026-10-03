@@ -167,13 +167,18 @@ enum {
     FILE_SYSTEM_IMAGE_COLUMN_ROWS_GIVEN = 0x8000, // Terminator `y` flag: the low 15 bits are the row count
 };
 
-/// Compact image/load params stored during FS setup (`Fs_LoadParams`).
-typedef struct _FsLoadParams {
-    byte unknown_0[0x2];
-    u8   field_2;
-    u8   field_3;
-} FsLoadParams;
-STATIC_ASSERT_SIZEOF(FsLoadParams, 0x4);
+/// Stage and area of the location a boot load is entering.
+///
+/// Starting a boot load copies these two bytes from the destination's
+/// `GameLocationKey`, at the offsets they have there; together they select the
+/// caption and the image file its loading screen shows. The values are that
+/// key's: a `GAME_STAGE_*` and a `GAME_AREA_*` of that stage.
+typedef struct {
+    u8 unknown_0[2]; // Never read or written; a `GameLocationKey` has its view and room here
+    u8 area;         // 1-based area within the stage
+    u8 stage;        // Stage ID (1..5)
+} BootLoadDestination;
+STATIC_ASSERT_SIZEOF(BootLoadDestination, 0x4);
 
 /// Number of stage CDF files.
 #define FS_CDF_STAGE_COUNT 6

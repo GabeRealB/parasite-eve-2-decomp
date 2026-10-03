@@ -17315,7 +17315,7 @@ order is `== 0x1B`, then `< 0x1C`, then `!= 0x11`. Keep the switch key in an
 `s32` (not `u8`) so the load is plain `lbu` without `andi`/`sltiu`.
 
 `Fs_SelectLoadHandlers2` is the pure example (FS load-table select by
-`Fs_LoadParams.field_2` × `GameFlag_GetNibble(0x7A)`).
+`Fs_LoadParams.area` × `GameFlag_GetNibble(0x7A)`).
 
 ## Independent `entry++` + mid-loop `i++`: prefer `goto` over re-index / `do`
 

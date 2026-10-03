@@ -30,7 +30,7 @@ extern void* Fs_BootTimSecondary;
 
 extern void* Fs_BootTimPrimary;
 
-extern FsLoadParams Fs_LoadParams;
+extern BootLoadDestination Fs_LoadParams;
 
 extern s16 D5B498_8006ACC0;
 

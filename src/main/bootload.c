@@ -4,6 +4,7 @@
 
 #include "types.h"
 
+#include "main/areas.h"
 #include "main/display.h"
 #include "display.h"
 #include "main/display_types.h"
@@ -42,7 +43,7 @@ void* Fs_BootTimPrimary;
 // Fade/clear color; written as halfword, often re-read as byte for TILE RGB.
 static s16 D_8006ACB4;
 
-FsLoadParams Fs_LoadParams;
+BootLoadDestination Fs_LoadParams;
 
 /// Unreferenced.
 static s32 D_8006ACBC;
@@ -1437,12 +1438,12 @@ static s32 Fade_StepOut(s32 arg0)
 
 static void Fs_SelectLoadHandlers0(u8* arg0)
 {
-    switch (Fs_LoadParams.field_2) {
-        case 1:
+    switch (Fs_LoadParams.area) {
+        case GAME_AREA_ACROPOLIS_SQUARE:
             Fs_BootTimPrimary = &BootCaption_Akropolis;
             *arg0             = 5;
             break;
-        case 5:
+        case GAME_AREA_ACROPOLIS_PLAZA:
             Fs_BootTimPrimary   = &BootCaption_AkropolisEvening;
             Fs_BootTimSecondary = &BootCaption_AkropolisEveningSecondary;
             *arg0               = 3;
@@ -1467,7 +1468,7 @@ static void Fs_SelectLoadHandlers0(u8* arg0)
             Fs_BootTimPrimary = &BootCaption_Akropolis;
             *arg0             = 6;
             break;
-        case 19:
+        case GAME_AREA_MIST_PARKING:
             if (GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER) == 0) {
                 Fs_BootTimPrimary = &BootCaption_MistArrival;
                 *arg0             = 7;
@@ -1476,7 +1477,7 @@ static void Fs_SelectLoadHandlers0(u8* arg0)
                 *arg0             = 8;
             }
             break;
-        case 20:
+        case GAME_AREA_MIST_SHOOTING_GALLERY:
             Fs_BootTimPrimary   = &BootCaption_MistEvening;
             Fs_BootTimSecondary = &BootCaption_MistEveningSecondary;
             *arg0               = 3;
@@ -1486,8 +1487,8 @@ static void Fs_SelectLoadHandlers0(u8* arg0)
 
 static void Fs_SelectLoadHandlers1(u8* arg0)
 {
-    switch (Fs_LoadParams.field_2) {
-        case 1:
+    switch (Fs_LoadParams.area) {
+        case GAME_AREA_DRYFIELD_GAS_STATION:
             if (D5B498_8006ACC0 == 0) {
                 Fs_BootTimPrimary = &BootCaption_Dryfield;
                 *arg0             = 0xA;
@@ -1497,15 +1498,15 @@ static void Fs_SelectLoadHandlers1(u8* arg0)
                 *arg0               = 3;
             }
             break;
-        case 2:
+        case GAME_AREA_DRYFIELD_MAIN_STREET:
             Fs_BootTimPrimary = &BootCaption_Dryfield;
             *arg0             = 0xA;
             break;
-        case 27:
+        case GAME_AREA_DRYFIELD_TRAILER_COACH:
             Fs_BootTimPrimary = &BootCaption_Dryfield;
             *arg0             = 0xB;
             break;
-        case 30:
+        case GAME_AREA_DRYFIELD_MOTEL_ROOM_6:
             Fs_BootTimPrimary = &BootCaption_Dryfield;
             *arg0             = 4;
             break;
@@ -1553,17 +1554,17 @@ static void Fs_SelectLoadHandlers1(u8* arg0)
 static void Fs_SelectLoadHandlers2(u8* arg0)
 {
     s32 temp_v1;
-    s32 field2;
+    s32 area;
     s32 val;
 
     temp_v1 = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
-    field2  = Fs_LoadParams.field_2;
+    area    = Fs_LoadParams.area;
 
-    if (field2 == 0x1B) {
+    if (area == GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH) {
         goto case_1B;
     }
-    if (field2 < 0x1C) {
-        if (field2 != 0x11) {
+    if (area <= GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH) {
+        if (area != GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY) {
             goto case_default;
         }
     } else {
@@ -1614,7 +1615,7 @@ case_1B_4:
     return;
 case_1B_5:
     Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-    *arg0             = field2;
+    *arg0             = 0x1B;
     return;
 
 case_default:
@@ -1647,13 +1648,13 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
     s32 val;
 
     temp_v1 = GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
-    switch (Fs_LoadParams.field_2) {
-        case 1:
+    switch (Fs_LoadParams.area) {
+        case GAME_AREA_MINE_MESA:
             Fs_BootTimPrimary   = &BootCaption_DryfieldMesaNight;
             Fs_BootTimSecondary = &BootCaption_DryfieldMesaNightSecondary;
             *arg0               = 3;
             break;
-        case 6:
+        case GAME_AREA_MINE_REFUGE:
             val = temp_v1 & 0xFFFF;
             if (val == 4) {
                 goto case_6_4;
@@ -1669,7 +1670,7 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
             Fs_BootTimPrimary = &BootCaption_Mine;
             *arg0             = 0x17;
             return;
-        case 16:
+        case GAME_AREA_SHELTER_B1_STERILIZATION_ROOM:
             val = temp_v1 & 0xFFFF;
             if (val == 5) {
                 goto case_16_5;
@@ -1692,7 +1693,7 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
             Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
             *arg0             = 0x24;
             return;
-        case 20:
+        case GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING:
             val = temp_v1 & 0xFFFF;
             if (val == 5) {
                 goto case_20_5;
@@ -1715,7 +1716,7 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
             Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
             *arg0             = 0x26;
             return;
-        case 36:
+        case GAME_AREA_SHELTER_R36:
             if (D5B498_8006ACC0 == 0) {
                 Fs_BootTimPrimary   = &BootCaption_WhiteHouseAftermath;
                 Fs_BootTimSecondary = &BootCaption_WhiteHouseAftermathSecondary;
@@ -1726,7 +1727,7 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
                 *arg0               = 3;
             }
             break;
-        case 41:
+        case GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM:
             val = temp_v1 & 0xFFFF;
             if (val == 4) {
                 goto case_41_4;
@@ -1742,7 +1743,7 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
             Fs_BootTimPrimary = &BootCaption_ShelterWaste;
             *arg0             = 0x19;
             return;
-        case 31:
+        case GAME_AREA_SHELTER_B2_LABORATORY:
             val = temp_v1 & 0xFFFF;
             if (val == 5) {
                 goto case_31_5;
@@ -1832,7 +1833,7 @@ void Fs_SetupBootLoad(void)
     u8    sp18[8];
     RECT  rect;
     RECT* r;
-    s32   field2;
+    s32   area;
 
     memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
     rect.y = 0;
@@ -1848,30 +1849,30 @@ void Fs_SetupBootLoad(void)
     sp10[3]             = 0;
     sp10[2]             = 0;
     Fs_BootTimSecondary = NULL;
-    switch (Fs_LoadParams.field_3) {
-        case 1:
+    switch (Fs_LoadParams.stage) {
+        case GAME_STAGE_ACROPOLIS:
             Fs_SelectLoadHandlers0(sp10);
             break;
-        case 2:
+        case GAME_STAGE_DRYFIELD:
             Fs_SelectLoadHandlers1(sp10);
             break;
-        case 3:
+        case GAME_STAGE_DRYFIELD_NIGHT:
             Fs_SelectLoadHandlers2(sp10);
             break;
-        case 4:
+        case GAME_STAGE_MINE_SHELTER:
             Fs_SelectLoadHandlers3(sp10);
             break;
-        case 5:
+        case GAME_STAGE_SHELTER_NEO_ARK:
         default:
             GameFlag_GetNibble(GAME_FLAG_STORY_CHAPTER);
-            field2 = Fs_LoadParams.field_2;
-            if (field2 == 0x16) {
+            area = Fs_LoadParams.area;
+            if (area == GAME_AREA_SHELTER_B6_NURSERY) {
                 goto case_16;
             }
-            if (field2 < 0x17) {
+            if (area <= GAME_AREA_SHELTER_B6_NURSERY) {
                 goto case_default;
             }
-            if (field2 == 0x1A) {
+            if (area == GAME_AREA_NEO_ARK_R26) {
                 goto case_1a;
             }
         case_default:

@@ -304,8 +304,8 @@ static void Fs_ResetBootLoadState(void)
 void Fs_BeginBootLoad(u8* arg0, s16 arg1)
 {
     gCdCmdQueue.bootLoadActive = 1;
-    Fs_LoadParams.field_3      = arg0[3];
-    Fs_LoadParams.field_2      = arg0[2];
+    Fs_LoadParams.stage        = arg0[3];
+    Fs_LoadParams.area         = arg0[2];
     D5B498_8006ACC0            = arg1;
 
     memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
