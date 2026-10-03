@@ -38401,9 +38401,9 @@ assigned at the top of the loop body:
 
 ```c
 for (i = 0; i < 0x12; rec++, i++) {
-    delta = &s->delta;          /* &scratch->field, invariant */
+    separation = &block->separation;   /* &scratch->field, invariant */
     ...
-        VectorNormal(delta, &s->unit);
+        VectorNormal(separation, &block->viewDirection);
 ```
 
 The extra pseudo changes the priority order and both induction pointers get

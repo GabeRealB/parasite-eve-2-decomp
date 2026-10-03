@@ -57,19 +57,21 @@ typedef struct {
 } _PlayerActorTurnScratch;
 STATIC_ASSERT_SIZEOF(_PlayerActorTurnScratch, 0x14);
 
-/// 0x40-byte scratch from the scratch stack used by `func_80109BB4`.
-/// `pos` is the world position of the colliding `WorldCollisionBody` (`pos` rotated by
-/// `coord->workm`, plus that matrix's translation), later
-/// reused to save the actor's pre-push `coord.t[0]` / `t[2]`. `delta` is
-/// `pos` minus the contact point, `unit` its `VectorNormal`, and `local`
-/// that direction in grid space via `Gp_GridParams->viewCoord->workm`.
-typedef struct _GpPushBackScratch {
-    /* 0x00 */ VECTOR pos;
-    /* 0x10 */ VECTOR delta;
-    /* 0x20 */ VECTOR local;
-    /* 0x30 */ VECTOR unit;
-} GpPushBackScratch;
-STATIC_ASSERT_SIZEOF(GpPushBackScratch, 0x40);
+/// Scratch-stack block for pushing a player actor out of the bodies it overlaps.
+///
+/// Each body contact is measured in view space, the space of the bodies'
+/// cached transforms and of the contact points: the receiving body's centre,
+/// then its separation from the contact point, whose length is compared with
+/// the contact's distance to give the overlap. The deepest overlap's direction
+/// is kept and turned back into room space, where it moves the actor's root.
+/// The block is reserved uninitialized and lives only for the one call.
+typedef struct {
+    VECTOR position;      // Receiving body's centre in view space; afterwards the root's translation before the push (X and Z only)
+    VECTOR separation;    // Body's rotated local offset while its centre is composed, then centre minus contact point, in view space
+    VECTOR roomDirection; // `viewDirection` in room space (4096 per unit); scaled by the overlap to move the root
+    VECTOR viewDirection; // Unit `separation` of the deepest contact so far (4096 per unit)
+} _PlayerActorPushbackScratch;
+STATIC_ASSERT_SIZEOF(_PlayerActorPushbackScratch, 0x40);
 
 /// Scratch-stack block for turning a player actor's aim yaw toward a point.
 ///
@@ -231,30 +233,27 @@ u16 D_80113F9C[70] = {
 
 void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
 {
-    u8*                    head;
-    GpPushBackScratch*     s;
-    GameActor*             actor;
-    GfxCoord*              coord;
-    WorldCollisionContact* rec;
-    WorldCollisionBody*    obj;
-    VECTOR*                delta;
-    s32                    i;
-    s32                    best;
-    s32                    push;
-    s32                    id;
-    s32                    val;
+    _PlayerActorPushbackScratch* block;
+    GameActor*                   actor;
+    GfxCoord*                    coord;
+    WorldCollisionContact*       rec;
+    WorldCollisionBody*          obj;
+    VECTOR*                      separation;
+    s32                          i;
+    s32                          best;
+    s32                          push;
+    s32                          id;
+    s32                          val;
 
-    rec                        = arg1;
-    best                       = 0;
-    i                          = 0;
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - 0x40;
-    s                          = (GpPushBackScratch*)(head - 0x40);
-    actor                      = arg0->work;
-    coord                      = arg0->extra.tmd->coords;
+    rec   = arg1;
+    best  = 0;
+    i     = 0;
+    block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorPushbackScratch);
+    actor = arg0->work;
+    coord = arg0->extra.tmd->coords;
 
     for (i = 0; i < 0x12; rec++, i++) {
-        delta = &s->delta;
+        separation = &block->separation;
         if (rec->flags & 1) {
             switch (rec->key.parts.kind) {
                 case 0:
@@ -271,29 +270,26 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
                         gte_SetRotMatrix(&obj->coord->workm);
                         gte_ldv0(&obj->pos);
                         gte_rtv0();
-                        gte_stlvnl(&s->delta);
-                        s->pos.vx = (obj->coord)->workm.t[0] +
-                                    s->delta.vx;
-                        s->pos.vy =
-                            (obj->coord)->workm.t[1] + s->delta.vy;
-                        s->pos.vz =
-                            (obj->coord)->workm.t[2] + s->delta.vz;
-                        s->delta.vx = s->pos.vx - rec->point.vx;
-                        s->delta.vy = s->pos.vy - rec->point.vy;
-                        s->delta.vz = s->pos.vz - rec->point.vz;
-                        push        = rec->distance - SquareRoot0(s->delta.vx * s->delta.vx +
-                                                                  s->delta.vy * s->delta.vy +
-                                                                  s->delta.vz * s->delta.vz);
-                        val         = push;
+                        gte_stlvnl(&block->separation);
+                        block->position.vx   = (obj->coord)->workm.t[0] + block->separation.vx;
+                        block->position.vy   = (obj->coord)->workm.t[1] + block->separation.vy;
+                        block->position.vz   = (obj->coord)->workm.t[2] + block->separation.vz;
+                        block->separation.vx = block->position.vx - rec->point.vx;
+                        block->separation.vy = block->position.vy - rec->point.vy;
+                        block->separation.vz = block->position.vz - rec->point.vz;
+                        push                 = rec->distance - SquareRoot0(block->separation.vx * block->separation.vx +
+                                                                           block->separation.vy * block->separation.vy +
+                                                                           block->separation.vz * block->separation.vz);
+                        val                  = push;
                         if (push < 0) {
                             val = 0;
                         }
                         push = val;
                         if (best < push) {
                             best = push;
-                            VectorNormal(delta, &s->unit);
+                            VectorNormal(separation, &block->viewDirection);
                             ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm,
-                                                   &s->unit, &s->local);
+                                                   &block->viewDirection, &block->roomDirection);
                         }
                     }
                     break;
@@ -312,22 +308,22 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
         actor->pushbackDirection.vx  = coord->workm.t[0];
         actor->pushbackDirection.vy  = coord->workm.t[1];
         actor->pushbackDirection.vz  = coord->workm.t[2];
-        s->pos.vx                    = coord->coord.t[0];
-        s->pos.vz                    = coord->coord.t[2];
-        coord->coord.t[0]           += (best * s->local.vx) >> 12;
-        coord->coord.t[2]           += (best * s->local.vz) >> 12;
+        block->position.vx           = coord->coord.t[0];
+        block->position.vz           = coord->coord.t[2];
+        coord->coord.t[0]           += (best * block->roomDirection.vx) >> 12;
+        coord->coord.t[2]           += (best * block->roomDirection.vz) >> 12;
         coord->composeStamp          = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         actor->pushbackDirection.vx = coord->workm.t[0] - actor->pushbackDirection.vx;
         actor->pushbackDirection.vy = coord->workm.t[1] - actor->pushbackDirection.vy;
         actor->pushbackDirection.vz = coord->workm.t[2] - actor->pushbackDirection.vz;
         VectorNormal(&actor->pushbackDirection, &actor->pushbackDirection);
-        coord->coord.t[0]   = s->pos.vx + ((best * s->local.vx) >> 14);
-        coord->coord.t[2]   = s->pos.vz + ((best * s->local.vz) >> 14);
+        coord->coord.t[0]   = block->position.vx + ((best * block->roomDirection.vx) >> 14);
+        coord->coord.t[2]   = block->position.vz + ((best * block->roomDirection.vz) >> 14);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorPushbackScratch);
 }
 
 void func_80109FC4(Task* arg0)
