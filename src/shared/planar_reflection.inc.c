@@ -92,13 +92,13 @@ static void Reflection_InitPlayer(Task* task)
     extra->colorMtx = &work->color;
     taskReparent(owner, task);
     task->state++;
-    work->viewFlg   = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
-    work->field_4   = 1;
-    work->configRev = -1;
-    extra->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->field_4   = 0;
-    work->viewFlg   = -1;
-    actor           = (GameActor*)owner->work;
+    work->viewRebuildStamp = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
+    work->copyPending      = 1;
+    work->equippedWeapon   = -1;
+    extra->flags          |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    work->copyPending      = 0;
+    work->viewRebuildStamp = -1;
+    actor                  = (GameActor*)owner->work;
     for (i = 0; i < 2; i++) {
         child = actor->attachmentTasks[i];
         if (child != NULL) {
@@ -150,7 +150,7 @@ static void Reflection_UpdatePlayer(Task* task)
     s32                      area;
     s32                      view;
     s32                      width;
-    s32                      viewFlg;
+    s32                      viewRebuildStamp;
     s32                      copyPending;
     s32                      halfWidth;
     s32                      texX;
@@ -168,9 +168,9 @@ static void Reflection_UpdatePlayer(Task* task)
     if (stage == 5) {
         width = 0x140;
     }
-    if (work->configRev != status->weapon) {
-        actor           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-        work->configRev = status->weapon;
+    if (work->equippedWeapon != status->weapon) {
+        actor                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+        work->equippedWeapon = status->weapon;
         for (i = 0; i < 2; i++) {
             child = actor->equipmentTasks[i];
             if (child != NULL) {
@@ -181,22 +181,22 @@ static void Reflection_UpdatePlayer(Task* task)
             }
         }
     }
-    extra->flags |= TMD_OBJECT_REVERSE_CULLING;
-    viewFlg       = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
-    if (work->viewFlg != viewFlg) {
+    extra->flags    |= TMD_OBJECT_REVERSE_CULLING;
+    viewRebuildStamp = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
+    if (work->viewRebuildStamp != viewRebuildStamp) {
         GfxCoord* viewParent;
 
-        work->viewFlg            = viewFlg;
+        work->viewRebuildStamp   = viewRebuildStamp;
         viewParent               = gGfxViewCoord.parent;
-        work->field_A0[0]        = -0xA0;
-        work->field_A0[1]        = 0xA0;
+        work->clipLeft           = -0xA0;
+        work->clipRight          = 0xA0;
         work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-        work->field_A0[2]        = -0x78;
-        work->field_A0[3]        = 0x78;
+        work->clipTop            = -0x78;
+        work->clipBottom         = 0x78;
         plane                    = (RoomMirrorPlaneScratch*)SCRATCH_STACK_RESERVE_BYTES(0x70);
         work->coord.parent       = viewParent;
         if (task->spawnArg1.value == 0) {
-            work->field_4     = 1;
+            work->copyPending = 1;
             work->coord.coord = gGfxViewCoord.coord;
             plane->viewRow.vx = work->coord.coord.m[1][0];
             plane->viewRow.vy = work->coord.coord.m[1][1];
@@ -213,22 +213,22 @@ static void Reflection_UpdatePlayer(Task* task)
                     if (view >= 6 && view < 12 && gGameSession->location.loc.room == 2) {
                         work->coord.coord.t[1] += 0x9B;
                         extra->flags           &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                        work->field_8           = 0;
+                        work->firstBlendMode    = GPU_BLEND_AVERAGE;
                     } else {
-                        work->field_4 = 0;
-                        extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                        work->copyPending = 0;
+                        extra->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                 }
             } else if (area == 1) {
                 extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 if (view == 9) {
-                    work->field_4 = 0;
+                    work->copyPending = 0;
                 }
             } else {
                 if (area != 0x11) {
                     work->coord.coord.t[1] += 0x69;
                 }
-                work->field_8 = 1;
+                work->firstBlendMode = GPU_BLEND_ADD;
                 if ((area == 0x11 && view == 5) || (area == 2 && (view == 7 || view == 5))) {
                     extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 } else {
@@ -261,11 +261,11 @@ static void Reflection_UpdatePlayer(Task* task)
                                 plane->offset.vz = -0x640;
                                 break;
                             case 4:
-                                work->field_A0[0] = -0x14;
-                                work->field_A0[1] = 0x14;
-                                plane->normal.vx  = -0x1000;
-                                plane->normal.vy  = 0;
-                                plane->normal.vz  = 0;
+                                work->clipLeft   = -0x14;
+                                work->clipRight  = 0x14;
+                                plane->normal.vx = -0x1000;
+                                plane->normal.vy = 0;
+                                plane->normal.vz = 0;
                                 VectorNormalSS(&plane->normal, &plane->normal);
                                 plane->offset.vx = 0x1644;
                                 plane->offset.vy = 0;
@@ -279,11 +279,11 @@ static void Reflection_UpdatePlayer(Task* task)
                     case 1:
                         switch (view) {
                             case 6:
-                                work->field_A0[1] = 0x64;
-                                work->field_A0[0] = 0;
-                                plane->normal.vx  = -0x1000;
-                                plane->normal.vy  = 0;
-                                plane->normal.vz  = 0;
+                                work->clipRight  = 0x64;
+                                work->clipLeft   = 0;
+                                plane->normal.vx = -0x1000;
+                                plane->normal.vy = 0;
+                                plane->normal.vz = 0;
                                 VectorNormalSS(&plane->normal, &plane->normal);
                                 plane->offset.vx = 0x1AF4;
                                 plane->offset.vy = 0;
@@ -403,25 +403,25 @@ static void Reflection_UpdatePlayer(Task* task)
                 work->coord.coord.t[0] -= plane->offset.vx;
                 work->coord.coord.t[1] -= plane->offset.vy;
                 work->coord.coord.t[2] -= plane->offset.vz;
-                work->field_8           = 1;
+                work->firstBlendMode    = GPU_BLEND_ADD;
             }
         }
-        work->field_C = extra->flags;
+        work->objectFlags = extra->flags;
         SCRATCH_STACK_RELEASE_BYTES(0x70);
     }
 
-    copyPending = work->field_4;
+    copyPending = work->copyPending;
     if (copyPending == 1 && task->spawnArg1.value == 0 && !(area == 1 && view == 0xF) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         u16  ofs[2];
         RECT rect;
 
-        work->field_4  = 0;
-        drArea         = gGpuPrimCursor;
-        gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
-        rect.x         = 0;
-        rect.y         = gDisplayState.drawBuffer * 0x110;
-        rect.w         = 0x140;
-        rect.h         = 0xF0;
+        work->copyPending = 0;
+        drArea            = gGpuPrimCursor;
+        gGpuPrimCursor    = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
+        rect.x            = 0;
+        rect.y            = gDisplayState.drawBuffer * 0x110;
+        rect.w            = 0x140;
+        rect.h            = 0xF0;
         SetDrawArea(drArea, &rect);
         addPrim(&gGpuCurrentOt[0x3FF], drArea);
 
@@ -505,7 +505,7 @@ static void Reflection_UpdatePlayer(Task* task)
         addPrim(&gGpuCurrentOt[0x3FF], drArea);
     }
 
-    extra->flags = work->field_C;
+    extra->flags = work->objectFlags;
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && gGameSession->sceneUpdatesPaused == 0) {
         parts   = task->extra.tmd->coords;
         owner   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -588,8 +588,8 @@ static void Reflection_UpdatePlayer(Task* task)
             if (extent->bottom > 0x78) {
                 extent->bottom = 0x78;
             }
-            if (extent->top < work->field_A0[3] && work->field_A0[2] < extent->bottom && extent->left < work->field_A0[1] &&
-                work->field_A0[0] < extent->right) {
+            if (extent->top < work->clipBottom && work->clipTop < extent->bottom && extent->left < work->clipRight &&
+                work->clipLeft < extent->right) {
                 DR_TPAGE* mode;
 
                 mode           = gGpuPrimCursor;
@@ -599,12 +599,12 @@ static void Reflection_UpdatePlayer(Task* task)
                 setDrawTPage(mode, 0, 1, 0);
                 addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
                         mode);
-                for (layer = work->field_8; layer < 3; layer++) {
+                for (layer = work->firstBlendMode; layer < GPU_BLEND_ADD_QUARTER; layer++) {
                     poly           = gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(POLY_FT4);
                     setPolyFT4(poly);
                     setSemiTrans(poly, 1);
-                    if (work->field_8 == 1) {
+                    if (work->firstBlendMode == GPU_BLEND_ADD) {
                         setShadeTex(poly, 0);
                         poly->r0 = poly->g0 = poly->b0 = 0x80;
                     } else {

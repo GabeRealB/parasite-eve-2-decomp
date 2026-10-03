@@ -89,28 +89,25 @@ typedef struct RoomPeUsage {
 } RoomPeUsage;
 STATIC_ASSERT_SIZEOF(RoomPeUsage, 0xC4);
 
-/// 0xAC work block the mirror-reflection task keeps at `Task::work`. Rooms
-/// with a reflective surface (the Acropolis elevator halls and square, motel
-/// room 6, the Neo Ark observatory) spawn a task that re-attaches the player's
-/// own TMD source and draws it through `coord`, which is `gGfxViewCoord` with
-/// one GTE rotation column negated.
+/// 0xAC work block a room's planar-reflection task parks in `Task::work`.
 ///
-/// `viewFlg` caches `gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK` so the
-/// mirror only rebuilds its matrices when the view moves, and `field_4` marks the block as live;
-/// both are set to their "dirty" values (`-1` / `0`) as the task starts so the
-/// first frame always rebuilds. `light` and `color` are the matrices hung off
-/// the clone's `TmdObject`, `field_A0` is the screen-space clip rectangle
-/// (-160, 160, -120, 120) and `configRev` caches `gPlayerStatus.weapon`.
-typedef struct RoomMirrorWork {
-    /* 0x00 */ s32      viewFlg;
-    /* 0x04 */ s32      field_4;
-    /* 0x08 */ s32      field_8;
-    /* 0x0C */ s32      field_C;
-    /* 0x10 */ GfxCoord coord;
-    /* 0x60 */ MATRIX   light;
-    /* 0x80 */ MATRIX   color;
-    /* 0xA0 */ s16      field_A0[4];
-    /* 0xA8 */ s32      configRev;
+/// The task draws another copy of the player's model, parented to `coord`.
+/// A floor mirror copies the view frame and negates its second row; any other
+/// mirror reflects the view through a plane. `light` and `color` are the
+/// matrices that copy and its held objects are drawn under.
+typedef struct {
+    s32      viewRebuildStamp; // Masked `GfxCoord::composeStamp` last rebuilt from; -1 rebuilds on the next update
+    s32      copyPending;      // Off-screen frame-buffer copy (0 idle, 1 requested; cleared once the copy is queued)
+    s32      firstBlendMode;   // First `GPU_BLEND_*` of the overlay quads; `GPU_BLEND_ADD` shades them, and the run stops after subtract
+    s32      objectFlags;      // Word-sized copy of this view's `TmdObject::flags`; restored each frame before the overlap test can hide the model
+    GfxCoord coord;            // Reflected frame the player's clone is parented to
+    MATRIX   light;            // Light matrix the reflection and its held objects are drawn with
+    MATRIX   color;            // Colour matrix the reflection and its held objects are drawn with
+    s16      clipLeft;         // Left screen edge the reflection may cover, in pixels from centre
+    s16      clipRight;        // Right screen edge, in pixels from centre
+    s16      clipTop;          // Top screen edge, in pixels from centre
+    s16      clipBottom;       // Bottom screen edge, in pixels from centre
+    s32      equippedWeapon;   // `PlayerStatus::weapon` last reflected; -1 until the first update
 } RoomMirrorWork;
 STATIC_ASSERT_SIZEOF(RoomMirrorWork, 0xAC);
 

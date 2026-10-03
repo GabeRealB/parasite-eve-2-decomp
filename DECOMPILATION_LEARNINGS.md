@@ -53081,18 +53081,18 @@ its work block in a row. m2c emitted them in the order the target's `sw`s
 appear:
 
 ```c
-work->field_4   = 1;                                /* 94.4%: regs=31 */
-work->configRev = -1;
-work->viewFlg   = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
+work->copyPending      = 1;                         /* 94.4%: regs=31 */
+work->equippedWeapon   = -1;
+work->viewRebuildStamp = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
 ```
 
 Moving the masked store to the front - and changing nothing else - was the whole
 match:
 
 ```c
-work->viewFlg   = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;   /* 100% */
-work->field_4   = 1;
-work->configRev = -1;
+work->viewRebuildStamp = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;   /* 100% */
+work->copyPending      = 1;
+work->equippedWeapon   = -1;
 ```
 
 GCC reorders stores to distinct constant offsets of one base freely, so source
@@ -54389,7 +54389,7 @@ word and reads it back as a halfword:
 
 ```
 lhu   v1, 0xC(s6)      # extra->flags, a u16
-sw    v1, 0xC(s7)      # work->field_C
+sw    v1, 0xC(s7)      # work->objectFlags
 ...
 lhu   v0, 0xC(s7)      # read back
 sh    v0, 0xC(s6)
@@ -54403,10 +54403,10 @@ and every later use is 16-bit:
 
 ```c
 /* RoomMirrorWork */
-/* 0x0C */ s32 field_C;
+/* 0x0C */ s32 objectFlags;
 ...
-work->field_C  = extra->flags;   /* lhu (u16 source) + sw */
-flags          = work->field_C;    /* u16 flags -> lw+andi, combined into lhu */
+work->objectFlags = extra->flags; /* lhu (u16 source) + sw */
+flags             = work->objectFlags; /* u16 flags -> lw+andi, combined into lhu */
 extra->flags = flags;
 ```
 
