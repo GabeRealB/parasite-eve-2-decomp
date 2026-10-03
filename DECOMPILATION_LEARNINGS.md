@@ -57441,7 +57441,7 @@ model flags on one of the cases. With m2c's `u16` local (`insert=4 delete=2
 branch=6`, 93.8%):
 
 ```c
-u16 step = work->field_290;
+u16 step = work->deathFrame;
 switch (step) {
 case 2: ((TmdObject*)task->extra)->flags = step; break;  /* forces HImode */
 ...
@@ -57453,7 +57453,7 @@ Widening the local is the whole fix — the store still truncates to `sh`, so
 nothing else changes:
 
 ```c
-s32 step = work->field_290;
+s32 step = work->deathFrame;
 /* lhu a3,0x290(s1); beq a3,v0,...   and later  sh a3,0xc(v0) */
 ```
 
@@ -57476,13 +57476,13 @@ advance to 6, 5 and 6 stay put, anything else resets to 5. The temp spelling
 reaches 99.6% with control flow already exact and `regs=8`:
 
 ```c
-if (state != 4) { work->field_0 = 5; return; }
+if (state != 4) { work->state = 5; return; }
 val = 6;
 } else {
     val = 5;
     if (state == 8) { val = 6; }
 }
-work->field_0 = val;
+work->state = val;
 /* li v0,8; bne a0,v0,...; li v1,5; li v1,6; sh v1,0(s0)   -- val in $v1 */
 ```
 
@@ -57626,8 +57626,8 @@ earlier copy and cost `branch=4 insert=1 delete=2`.
 argument and as an array index:
 
 ```c
-animationSeekSlotWithBlend(&start->anim, i, start->field_104, 0,
-              D_acropolis_bridge_801915E4[start->field_102][start->field_104]);
+animationSeekSlotWithBlend(&start->anim, i, start->animId, 0,
+              D_acropolis_bridge_801915E4[start->prevAnimId][start->animId]);
 ```
 
 The target loads it once with `lh` and uses that one register for both. With
@@ -57793,7 +57793,7 @@ if (((Work*)task->work)->field_19C == 0) {
     done = 1;
 }
 if (done != 0) {
-    work->field_0 = 3;
+    work->state = 3;
 }
 ```
 
