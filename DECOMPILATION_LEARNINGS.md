@@ -6577,7 +6577,7 @@ there too.
 ## Pin a scratch block so a later dest copy uses `$s0`, not the alloc temp
 
 `newhead = head - N; block = newhead; *scratch = newhead;
-TransposeMatrix(..., &block->mat)` copy-propagates `newhead` into `$a1`
+TransposeMatrix(..., &block->playerInverseRotation)` copy-propagates `newhead` into `$a1`
 (`move a1, v1` / `move s0, a1` / `sw a1`). The target assigns the block
 first (`move s0, v1`), copies that into the call dest (`move a1, s0`),
 and stores `newhead` from `$v1`. Pin `block` after the copy so the dest
@@ -6588,7 +6588,7 @@ newhead = head - 0x48;
 block   = (Scratch*)newhead;
 asm volatile("" : "+r"(block));
 *scratch = newhead;
-TransposeMatrix(&player->workm, &block->mat);
+TransposeMatrix(&player->workm, &block->playerInverseRotation);
 ```
 
 `Gp_UpdateLinkXforms` is the example.

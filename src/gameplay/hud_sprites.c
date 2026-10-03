@@ -148,16 +148,28 @@ STATIC_ASSERT_SIZEOF(_HudHpReadoutScratch, 0x30);
 STATIC_ASSERT(OFFSET_OF(_HudHpReadoutScratch, value.request) == 0x10, hud_hp_readout_value_request);
 STATIC_ASSERT(OFFSET_OF(_HudHpReadoutScratch, frame.rect) == 0x10, hud_hp_readout_frame);
 
-/// 0x48-byte scratch from the scratch stack used by `Gp_UpdateLinkXforms`.
-/// `mat` is the transpose of the player `workm`; `vec` at +0x40 is the
-/// packed SVECTOR that `gte_stsv` / translation add-sub share. The
-/// `stsv` dest pointer is `original_head - 8`, the same address as `vec`.
-typedef struct _GpXformScratch {
-    /* 0x00 */ MATRIX  mat;
-    /* 0x20 */ byte    pad_20[0x20];
-    /* 0x40 */ SVECTOR vec;
-} GpXformScratch;
-STATIC_ASSERT_SIZEOF(GpXformScratch, 0x48);
+/// Scratch-stack block for placing one tracked target in the player's frame.
+///
+/// The player's frame is the first coordinate of the player's model: its
+/// origin is the player's world position, and `playerInverseRotation` turns
+/// world axes into the player's when that rotation is orthonormal. `position`
+/// is one target's point in whichever space the work has reached. The
+/// per-frame refresh takes it from `Enemy::bodyPos`, local to the enemy's
+/// coordinate, through world space into the player's frame, and stores the
+/// result as `Enemy::playerRelPos`. The radar starts from that stored value
+/// flattened onto the ground plane, scales it by the radar zoom, and rounds it
+/// to the blip's pixel offset from the radar center.
+///
+/// Both users reserve the complete record on the scratch stack, although the
+/// radar touches only `position`; none of its members survive the matching
+/// release. The bytes between the two members are reserved with the block and
+/// left untouched, so what the block was laid out to hold there is unproven.
+typedef struct {
+    MATRIX  playerInverseRotation; // Transpose of the player's world rotation, 12 fractional bits (`ONE` is 1.0); translation unused
+    byte    unknown_20[0x20];      // Reserved with the block and never accessed; role unproven
+    SVECTOR position;              // One target's X, Y, Z in game units, or radar pixels once rounded; fourth word unused
+} _WorldTargetPlayerFrameScratch;
+STATIC_ASSERT_SIZEOF(_WorldTargetPlayerFrameScratch, 0x48);
 
 /// Scratch workspace for expressing a transform relative to a reference frame.
 ///
@@ -245,22 +257,22 @@ static void func_800A8D5C(void);
 
 void Gp_DrawHudSprites(HudState* hud)
 {
-    GpXformScratch*  block;
-    WorldTargetNode* node;
-    s32              mode;
-    s32              x;
-    s32              cx;
-    s32              cy;
-    s32              y;
-    s16              vx;
-    s32              vz;
-    s32              i;
-    s32              n;
-    s32              range;
-    DR_TPAGE*        tp;
-    SPRT*            sp;
-    SPRT*            sp2;
-    POLY_GT4*        poly;
+    _WorldTargetPlayerFrameScratch* block;
+    WorldTargetNode*                node;
+    s32                             mode;
+    s32                             x;
+    s32                             cx;
+    s32                             cy;
+    s32                             y;
+    s16                             vx;
+    s32                             vz;
+    s32                             i;
+    s32                             n;
+    s32                             range;
+    DR_TPAGE*                       tp;
+    SPRT*                           sp;
+    SPRT*                           sp2;
+    POLY_GT4*                       poly;
 
     x  = 0x61;
     y  = -0x6C;
@@ -269,33 +281,33 @@ void Gp_DrawHudSprites(HudState* hud)
     cy = y + 0x23;
     func_800A63B4(cx, cy, 0);
     node  = gWorldTargetListHead;
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpXformScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetPlayerFrameScratch);
     mode  = func_800B9D80(0x400);
     if (node != NULL) {
         do {
             if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
-                block->vec.vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
-                block->vec.vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
-                block->vec.vy = 0;
+                block->position.vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
+                block->position.vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
+                block->position.vy = 0;
                 if (mode == 0) {
                     gte_lddp(0x1555);
-                    gte_ldsv(&block->vec);
+                    gte_ldsv(&block->position);
                     gte_gpf12();
-                    gte_stsv(&block->vec);
+                    gte_stsv(&block->position);
                 } else {
                     gte_lddp(0xAAA);
-                    gte_ldsv(&block->vec);
+                    gte_ldsv(&block->position);
                     gte_gpf12();
-                    gte_stsv(&block->vec);
+                    gte_stsv(&block->position);
                 }
                 if (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
                     goto next;
                 }
-                vx = block->vec.vx;
+                vx = block->position.vx;
                 if (vx < -0x1300 || vx > 0x1300) {
                     goto next;
                 }
-                vz = block->vec.vz;
+                vz = block->position.vz;
                 if (vz > 0x1300) {
                     goto next;
                 }
@@ -305,13 +317,13 @@ void Gp_DrawHudSprites(HudState* hud)
                 if (vx * vx + vz * vz > 0x168FFFF) {
                     goto next;
                 }
-                block->vec.vx = (s16)(vx + 0x80) >> 8;
-                vz            = (s16)(block->vec.vz + 0x80) >> 8;
-                block->vec.vz = vz;
+                block->position.vx = (s16)(vx + 0x80) >> 8;
+                vz                 = (s16)(block->position.vz + 0x80) >> 8;
+                block->position.vz = vz;
                 if (node->state.parts.targeted != 0) {
-                    func_800A63B4(cx + block->vec.vx, cy - vz, 2);
+                    func_800A63B4(cx + block->position.vx, cy - vz, 2);
                 } else {
-                    func_800A63B4(cx + block->vec.vx, cy - vz, 1);
+                    func_800A63B4(cx + block->position.vx, cy - vz, 1);
                 }
             }
         next:
@@ -409,7 +421,7 @@ void Gp_DrawHudSprites(HudState* hud)
         LoadImage(&D_80114BD0, (u_long*)D_80114BB0);
         hud->radarRangeIcon = HUD_RADAR_RANGE_NONE;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpXformScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetPlayerFrameScratch);
 }
 
 void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
@@ -623,10 +635,10 @@ static inline void _gpRotateVector(MATRIX* m, SVECTOR* v)
 
 void Gp_UpdateLinkXforms(void)
 {
-    WorldTargetNode* node;
-    Task*            slot;
-    GfxCoord*        player;
-    GpXformScratch*  block;
+    WorldTargetNode*                node;
+    Task*                           slot;
+    GfxCoord*                       player;
+    _WorldTargetPlayerFrameScratch* block;
 
     node = gWorldTargetListHead;
     slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -634,28 +646,28 @@ void Gp_UpdateLinkXforms(void)
         return;
     }
     player = slot->extra.tmd->coords;
-    block  = SCRATCH_STACK_RESERVE_BLOCK(GpXformScratch);
-    TransposeMatrix(&player->workm, &block->mat);
+    block  = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetPlayerFrameScratch);
+    TransposeMatrix(&player->workm, &block->playerInverseRotation);
     for (; node != NULL; node = node->next) {
         if ((node->state.word & WORLD_TARGET_SCAN_MASK) == WORLD_TARGET_NOT_LOCKABLE) {
             continue;
         }
-        block->vec.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
-        block->vec.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
-        block->vec.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
-        _gpRotateVector(&GP_NODE_ENEMY(node)->coord->workm, &block->vec);
-        block->vec.vx += GP_NODE_ENEMY(node)->coord->workm.t[0];
-        block->vec.vy += GP_NODE_ENEMY(node)->coord->workm.t[1];
-        block->vec.vz += GP_NODE_ENEMY(node)->coord->workm.t[2];
-        block->vec.vx -= player->workm.t[0];
-        block->vec.vy -= player->workm.t[1];
-        block->vec.vz -= player->workm.t[2];
-        _gpRotateVector(&block->mat, &block->vec);
-        GP_NODE_ENEMY(node)->playerRelPos.vx = block->vec.vx;
-        GP_NODE_ENEMY(node)->playerRelPos.vy = block->vec.vy;
-        GP_NODE_ENEMY(node)->playerRelPos.vz = block->vec.vz;
+        block->position.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
+        block->position.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
+        block->position.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
+        _gpRotateVector(&GP_NODE_ENEMY(node)->coord->workm, &block->position);
+        block->position.vx += GP_NODE_ENEMY(node)->coord->workm.t[0];
+        block->position.vy += GP_NODE_ENEMY(node)->coord->workm.t[1];
+        block->position.vz += GP_NODE_ENEMY(node)->coord->workm.t[2];
+        block->position.vx -= player->workm.t[0];
+        block->position.vy -= player->workm.t[1];
+        block->position.vz -= player->workm.t[2];
+        _gpRotateVector(&block->playerInverseRotation, &block->position);
+        GP_NODE_ENEMY(node)->playerRelPos.vx = block->position.vx;
+        GP_NODE_ENEMY(node)->playerRelPos.vy = block->position.vy;
+        GP_NODE_ENEMY(node)->playerRelPos.vz = block->position.vz;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpXformScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetPlayerFrameScratch);
 }
 
 void Gp_StartAreaBgm(s16* arg0)
