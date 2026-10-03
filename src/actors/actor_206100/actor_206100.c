@@ -87,8 +87,8 @@ STATIC_ASSERT_SIZEOF(Actor206100VecScratch, 0x20);
 extern TaskDesc D_actor_206100_80158B0C[];
 
 /// Status flags `func_actor_206100_8014F970` reads through two widths: bit 0
-/// as a halfword, then bits 0x102 as a word.  The same union
-/// `ActorsShared8013a0b0Flags` is -- two widths on one address means two views
+/// as a halfword, then bits 0x102 as a word.  The same pair of reads other
+/// actors make of `AnimationSlot::status` -- two widths on one address means two views
 /// of the field in the original source, and declaring it a single `u16` makes
 /// the second test `lhu` too.
 typedef union Actor206100Flags {

@@ -8,8 +8,6 @@
 
 #include "actors/actor.h"
 
-#include "actors/actors_shared_8013a0b0.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
