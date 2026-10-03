@@ -35,28 +35,42 @@
 
 #include "mapui/map_shelter.h"
 
-/// The mirror's configuration, filled in by `func_shelter_b1_control_room_8017D600`
-/// whenever the view moves. `active` other than 1 hides the reflection.
-/// `copyPending` set to 1 makes the next frame copy the frame buffer into the
-/// off-screen strip at x = `stripX`, after which it is cleared. `mode` 1 is a
-/// floor mirror, which reflects the view through its second row and raises it
-/// by `normal.vy`; any other mode reflects through the plane `normal` placed at
-/// `offset` from the view. `firstLayer` is the first of the three blend layers
-/// the reflection quads are drawn in, and a negative value skips drawing them.
-/// `subject` is the task whose body the mirror reflects, and a `field_18` of 1
-/// as the task starts makes it exit instead.
+/// How `_ShelterB1ControlRoomMirrorConfig::mode` builds the reflected frame.
+enum {
+    SHELTER_B1_CONTROL_ROOM_MIRROR_MODE_PLANE = 0, // Reflect through the plane given by `normal` and `offset`
+    SHELTER_B1_CONTROL_ROOM_MIRROR_MODE_FLOOR = 1, // Copy the view frame with its second row negated
+};
+
+/// `_ShelterB1ControlRoomMirrorConfig::firstBlendMode` value that draws no
+/// overlay quads. Any negative value has that effect.
+enum { SHELTER_B1_CONTROL_ROOM_MIRROR_NO_OVERLAY = -1 };
+
+/// What the room's mirror task reflects, and how, for the current location.
+///
+/// The task keeps one of these in its work block and has it refilled from the
+/// location key as it starts and again whenever the view moves, so every field
+/// describes the view being shown. The reflection is a second copy of
+/// `subject`'s model drawn through a mirrored coordinate frame. Over the
+/// screen rectangle that copy covers, the task also draws quads textured from
+/// a saved copy of the frame buffer, once for each GPU blend mode from
+/// `firstBlendMode` up to `GPU_BLEND_SUBTRACT`.
+///
+/// A floor mirror raises its frame by `normal.vy`, which no floor configuration
+/// sets. The one that supplies a height writes it to `offset.vy`, which a floor
+/// mirror never reads; whether that was intended is unproven.
 typedef struct {
-    s32     active;
-    s32     copyPending;
-    s32     firstLayer;
-    s32     mode;
-    s32     field_10;
-    s32     stripX;
-    s32     field_18;
-    Task*   subject;
-    SVECTOR normal;
-    SVECTOR offset;
-} _MirrorCfg;
+    s32     active;          // 1 while this view shows the reflection; otherwise the copy is hidden
+    s32     copyPending;     // 1 requests a frame-buffer copy into the off-screen strip; cleared once queued
+    s32     firstBlendMode;  // First `GPU_BLEND_*` mode of the overlay quads; negative draws none
+    s32     mode;            // Frame construction (0 plane, 1 floor)
+    s32     subjectIsPlayer; // 1 makes every refill select the player task; 0 keeps the location's subject
+    s32     stripX;          // VRAM x of the 320x240 off-screen strip at y = 0x100
+    s32     disabled;        // 1 where the location's layout has no reflection; the task exits as it starts
+    Task*   subject;         // Borrowed task whose model and pose the reflection copies
+    SVECTOR normal;          // Plane mirror's unit normal, 4096 = 1.0
+    SVECTOR offset;          // Point on the mirror plane, relative to the view frame's position
+} _ShelterB1ControlRoomMirrorConfig;
+STATIC_ASSERT_SIZEOF(_ShelterB1ControlRoomMirrorConfig, 0x30);
 
 /// The mirror task's `Task::work`. `viewFlg` caches
 /// `gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK` so the frame is rebuilt only when the view
@@ -64,13 +78,13 @@ typedef struct {
 /// `light` and `color` the matrices the clone is drawn under, and `clip` the
 /// screen rectangle (left, right, top, bottom) the reflection may cover.
 typedef struct {
-    s32        viewFlg;
-    GfxCoord   coord;
-    MATRIX     light;
-    MATRIX     color;
-    s16        clip[4];
-    byte       unknown_9C[4];
-    _MirrorCfg cfg;
+    s32                               viewFlg;
+    GfxCoord                          coord;
+    MATRIX                            light;
+    MATRIX                            color;
+    s16                               clip[4];
+    byte                              unknown_9C[4];
+    _ShelterB1ControlRoomMirrorConfig cfg;
 } _MirrorWork;
 
 /// Scratchpad block the mirror takes for one frame. `refAxis` is the
@@ -110,7 +124,7 @@ extern TaskMessageEntry D_shelter_b1_control_room_80181B94[];
 extern s32              D_80132D70;
 extern s32              D_80133088;
 
-static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg);
+static void func_shelter_b1_control_room_8017D600(Task* task, _ShelterB1ControlRoomMirrorConfig* cfg);
 
 s32 func_shelter_b1_control_room_8017ECCC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_control_room_8017ECD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -148,14 +162,14 @@ static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
 /// player task (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`) as its subject. Three places turn it on,
 /// each for a set of views: area 7 of stage 5 while the session is in room 2,
 /// area 0x1E of stages 2 and 3, and area 0x12 of stage 4. In stage 4's area the
-/// subject becomes the `Gp_LookupSlot4(0)` task instead, and only when `place`
-/// is 0xB; with any other `place`, `field_18` is set so the mirror task exits
-/// on its first frame.
+/// subject becomes the `Gp_LookupSlot4(0)` task instead, and only when the
+/// key's `variant` is 0xB; with any other `variant`, `disabled` is set so the
+/// mirror task exits on its first frame.
 ///
 /// The `do { } while (0)` is not logic. Its loop notes act as a scheduling
 /// barrier: without it, the scheduler would move the shared constant 1 down to
 /// its first store, below the key reads.
-static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
+static void func_shelter_b1_control_room_8017D600(Task* task, _ShelterB1ControlRoomMirrorConfig* cfg)
 {
     s32              stage;
     s32              area;
@@ -170,14 +184,14 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
         area  = key->area;
         view  = key->view;
     } while (0);
-    cfg->stripX      = 0x1C0;
-    cfg->active      = 0;
-    cfg->copyPending = 0;
-    cfg->firstLayer  = 0;
-    cfg->mode        = one;
-    cfg->offset.vy   = 0;
-    cfg->field_10    = one;
-    cfg->field_18    = 0;
+    cfg->stripX          = 0x1C0;
+    cfg->active          = 0;
+    cfg->copyPending     = 0;
+    cfg->firstBlendMode  = GPU_BLEND_AVERAGE;
+    cfg->mode            = one;
+    cfg->offset.vy       = 0;
+    cfg->subjectIsPlayer = one;
+    cfg->disabled        = 0;
     switch (stage) {
         case 5:
             if (area == 7 && (u32)(view - 6) < 6 && gGameSession->location.loc.room == 2) {
@@ -189,41 +203,41 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
         case 4:
             if (area == 0x12) {
                 if (key->variant == 0xB) {
-                    cfg->field_10 = 0;
-                    cfg->subject  = Gp_LookupSlot4(0);
+                    cfg->subjectIsPlayer = 0;
+                    cfg->subject         = Gp_LookupSlot4(0);
                     if (view == 4 || view == 1) {
-                        cfg->normal.vz   = -0x1000;
-                        cfg->offset.vz   = -0xABE;
-                        cfg->mode        = 0;
-                        cfg->normal.vx   = 0;
-                        cfg->normal.vy   = 0;
-                        cfg->offset.vx   = 0;
-                        cfg->offset.vy   = 0;
-                        cfg->active      = 1;
-                        cfg->copyPending = 1;
-                        cfg->stripX      = 0x140;
-                        cfg->firstLayer  = 1;
+                        cfg->normal.vz      = -0x1000;
+                        cfg->offset.vz      = -0xABE;
+                        cfg->mode           = SHELTER_B1_CONTROL_ROOM_MIRROR_MODE_PLANE;
+                        cfg->normal.vx      = 0;
+                        cfg->normal.vy      = 0;
+                        cfg->offset.vx      = 0;
+                        cfg->offset.vy      = 0;
+                        cfg->active         = 1;
+                        cfg->copyPending    = 1;
+                        cfg->stripX         = 0x140;
+                        cfg->firstBlendMode = GPU_BLEND_ADD;
                     }
                 } else {
-                    cfg->field_18 = 1;
+                    cfg->disabled = 1;
                 }
             }
             break;
         case 2:
         case 3:
             if (area == 0x1E && (view == 8 || view == 1)) {
-                cfg->offset.vx   = 0xA38;
-                cfg->firstLayer  = -1;
-                cfg->normal.vx   = 0;
-                cfg->normal.vz   = 0;
-                cfg->offset.vy   = 0;
-                cfg->offset.vz   = 0;
-                cfg->active      = 1;
-                cfg->copyPending = 1;
+                cfg->offset.vx      = 0xA38;
+                cfg->firstBlendMode = SHELTER_B1_CONTROL_ROOM_MIRROR_NO_OVERLAY;
+                cfg->normal.vx      = 0;
+                cfg->normal.vz      = 0;
+                cfg->offset.vy      = 0;
+                cfg->offset.vz      = 0;
+                cfg->active         = 1;
+                cfg->copyPending    = 1;
             }
             break;
     }
-    if (cfg->field_10 == 1) {
+    if (cfg->subjectIsPlayer == 1) {
         cfg->subject = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
 }
@@ -239,31 +253,31 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
 /// that overlaps the clip rectangle, draws quads sampling the strip.
 void func_shelter_b1_control_room_8017D7B8(Task* task)
 {
-    _MirrorWork*    work;
-    _MirrorCfg*     cfg;
-    _MirrorScratch* scratch;
-    TmdObject*      model;
-    TmdObject*      src;
-    TmdObject*      body;
-    GfxCoord*       parts;
-    GfxCoord*       refPart;
-    GfxCoord*       from;
-    GfxCoord*       to;
-    DR_AREA*        drArea;
-    DR_STP*         drStp;
-    DR_OFFSET*      drOffset;
-    SPRT*           sprt;
-    DR_TPAGE*       tpage;
-    TILE*           tile;
-    POLY_FT4*       poly;
-    s32             copyPending;
-    s32             halfWidth;
-    s32             texX;
-    s32             texBase;
-    GfxCoord*       sub;
-    s32             layer;
-    u16             ofs[2];
-    RECT            rect;
+    _MirrorWork*                       work;
+    _ShelterB1ControlRoomMirrorConfig* cfg;
+    _MirrorScratch*                    scratch;
+    TmdObject*                         model;
+    TmdObject*                         src;
+    TmdObject*                         body;
+    GfxCoord*                          parts;
+    GfxCoord*                          refPart;
+    GfxCoord*                          from;
+    GfxCoord*                          to;
+    DR_AREA*                           drArea;
+    DR_STP*                            drStp;
+    DR_OFFSET*                         drOffset;
+    SPRT*                              sprt;
+    DR_TPAGE*                          tpage;
+    TILE*                              tile;
+    POLY_FT4*                          poly;
+    s32                                copyPending;
+    s32                                halfWidth;
+    s32                                texX;
+    s32                                texBase;
+    GfxCoord*                          sub;
+    s32                                layer;
+    u16                                ofs[2];
+    RECT                               rect;
 
     if (task->state == 0) {
         work = memCalloc(0xD0, 0);
@@ -273,7 +287,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         }
         task->work = work;
         func_shelter_b1_control_room_8017D600(task, cfg);
-        if (cfg->field_18 == 1) {
+        if (cfg->disabled == 1) {
             goto exit;
         }
         body = cfg->subject->extra.tmd;
@@ -315,7 +329,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             work->clip[3]            = 0x78;
             work->coord.parent       = sub;
-            if (cfg->mode == 1) {
+            if (cfg->mode == SHELTER_B1_CONTROL_ROOM_MIRROR_MODE_FLOOR) {
                 work->coord.coord          = gGfxViewCoord.coord;
                 work->coord.coord.m[1][0] *= -1;
                 work->coord.coord.m[1][1] *= -1;
@@ -484,7 +498,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
             to++;
             from++;
         }
-        if (cfg->firstLayer >= 0) {
+        if (cfg->firstBlendMode >= 0) {
             if (gGameSession->eventState != 0) {
                 Gp_UpdateCoord(refPart);
                 gte_SetTransMatrix(&refPart->workm);
@@ -549,12 +563,12 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                 setDrawTPage(mode, 0, 1, 0);
                 addPrim(&gGpuCurrentOt[(((scratch->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + model->otOffset - 15],
                         mode);
-                for (layer = cfg->firstLayer; layer < 3; layer++) {
+                for (layer = cfg->firstBlendMode; layer <= GPU_BLEND_SUBTRACT; layer++) {
                     poly           = gGpuPrimCursor;
                     gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(POLY_FT4);
                     setPolyFT4(poly);
                     setSemiTrans(poly, 1);
-                    if (cfg->firstLayer == 1) {
+                    if (cfg->firstBlendMode == GPU_BLEND_ADD) {
                         setShadeTex(poly, 0);
                         poly->r0 = poly->g0 = poly->b0 = 0x80;
                     } else {
