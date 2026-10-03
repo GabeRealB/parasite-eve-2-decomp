@@ -57,16 +57,6 @@
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/trailer_coach.h"
 
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(s32, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call2)(s32, s32, s32);
-    } handler;
-} DryfieldNightTrailerCoachMessageEntry;
-STATIC_ASSERT_SIZEOF(DryfieldNightTrailerCoachMessageEntry, 8);
-
 /// The "%" suffix the room's percentage formatters append.
 static u8 Telephone_Data_80181A78[];
 
@@ -154,11 +144,11 @@ static u16 Shop_Data_80181AD4[];
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xFD"
 #include "../../shared/shop.h"
 
-s32 func_dryfield_night_trailer_coach_801826A0(void);
-s32 func_dryfield_night_trailer_coach_801826A8(s32, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_trailer_coach_801826EC(s32, s32, s32);
-s32 func_dryfield_night_trailer_coach_80182800(void);
-s32 func_dryfield_night_trailer_coach_80182808(s32, s32, s32);
+s32 func_dryfield_night_trailer_coach_801826A0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_trailer_coach_801826A8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_night_trailer_coach_801826EC(Task*, s32, s32, s32);
+s32 func_dryfield_night_trailer_coach_80182800(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_trailer_coach_80182808(Task*, s32, s32, s32);
 
 void func_dryfield_night_trailer_coach_8018243C(Task*);
 
@@ -466,13 +456,13 @@ static AnimationSet _gDryfieldNightTrailerCoachAnimation0A364 = {
     { NULL, _gDryfieldNightTrailerCoachAnimation0A364Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation0A364Bank4, NULL, NULL, NULL },
 };
 
-DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_dryfield_night_trailer_coach_801826A8 } },
-    { 5105, { .call0 = func_dryfield_night_trailer_coach_801826A0 } },
-    { 5103, { .call0 = func_dryfield_night_trailer_coach_80182800 } },
-    { ROOM_MESSAGE_COMMAND, { .call2 = func_dryfield_night_trailer_coach_801826EC } },
-    { ROOM_MESSAGE_SOUND, { .call2 = func_dryfield_night_trailer_coach_80182808 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_dryfield_night_trailer_coach_8018794C[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_trailer_coach_801826A8 },
+    { 5105, func_dryfield_night_trailer_coach_801826A0 },
+    { 5103, func_dryfield_night_trailer_coach_80182800 },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_trailer_coach_801826EC },
+    { ROOM_MESSAGE_SOUND, func_dryfield_night_trailer_coach_80182808 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_trailer_coach_8018797C = { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_trailer_coach_8018243C, { .value = 0 } };
@@ -825,7 +815,7 @@ static UiObjectDesc Telephone_Data_80181CAC;
 
 static UiObjectDesc Telephone_Data_80181CC8;
 
-extern DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6];
+extern TaskMessageEntry D_dryfield_night_trailer_coach_8018794C[6];
 
 extern ActorTransform D_dryfield_night_trailer_coach_801879B8;
 
@@ -878,8 +868,6 @@ void func_dryfield_night_trailer_coach_8018138C(Task* task)
 /// nibble 0 at 2 and the save's location at 0x0101 in its upper half.
 
 #include "../../shared/room_cutscene_task.inc.c"
-
-// Message-table callbacks use the argument views required by this TU.
 
 /// State handlers of the room's task `func_dryfield_night_trailer_coach_801828CC`
 /// runs: its set-up, a per-frame state and the kill.
@@ -971,21 +959,21 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_dryfield_night_trailer_coach_801826A0(void)
+s32 func_dryfield_night_trailer_coach_801826A0(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
 {
     return 0;
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
 /// forwards both to `func_map_dryfield_full_80179954`. Always returns 1.
-s32 func_dryfield_night_trailer_coach_801826A8(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 func_dryfield_night_trailer_coach_801826A8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     func_map_dryfield_full_80179954(in, out);
     return 1;
 }
 
-s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_trailer_coach_801826EC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0xE) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
@@ -1014,12 +1002,12 @@ s32 func_dryfield_night_trailer_coach_801826EC(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_dryfield_night_trailer_coach_80182800(void)
+s32 func_dryfield_night_trailer_coach_80182800(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
 {
     return 0;
 }
 
-s32 func_dryfield_night_trailer_coach_80182808(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_trailer_coach_80182808(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
         Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, 0x0D), 0, 0);
