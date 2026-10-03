@@ -63,17 +63,43 @@ typedef struct AcropolisFountainSplash {
     /* 0x24 */ s16  viewIndex;
 } AcropolisFountainSplash;
 
-/// Four-byte work block `func_acropolis_fountain_8017E3D4` allocates into
-/// `Task::work` (`memCalloc(4, 0)`) and hands to
-/// `func_acropolis_fountain_8017E15C`, which drives the fountain's waterfall
-/// loop. `state` walks 0 -> 1 -> 2 -> 0: state 0 waits for the streamed
-/// fountain video to reach its playing window, state 2 (re)starts the loop for
-/// the camera the player is on, and `started` latches that the window was
-/// entered so the sound is not retriggered every frame.
-typedef struct AcropolisFountainSndWork {
-    /* 0x0 */ u16 state;
-    /* 0x2 */ u16 started;
-} AcropolisFountainSndWork;
+/// Phases of `_AcropolisFountainWaterLoop`.
+///
+/// Wait watches the streamed movie. The first time its frame is inside the
+/// playing window, and any later time the loop is not already running, the
+/// phase advances. Defer holds one tick. Apply commands the loop for a camera
+/// that hears the fountain, marks the loop running, and returns to wait.
+enum {
+    ACROPOLIS_FOUNTAIN_WATER_LOOP_WAIT  = 0,
+    ACROPOLIS_FOUNTAIN_WATER_LOOP_DEFER = 1,
+    ACROPOLIS_FOUNTAIN_WATER_LOOP_APPLY = 2
+};
+
+/// Encoded frames of the fountain movie, numbered from 1.
+///
+/// The loop may be commanded on `[FIRST, FADE)`. From `FADE` a running loop
+/// fades out. `WINDOW` is the exclusive bound of `(frame - FIRST)` and still
+/// covers `FADE`; the fade test is taken first.
+#define ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FIRST 0xF
+#define ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FADE  0xF0
+#define ACROPOLIS_FOUNTAIN_WATER_LOOP_WINDOW      0xE2
+
+/// Audio updates over which the loop fades once the movie leaves the window.
+#define ACROPOLIS_FOUNTAIN_WATER_LOOP_FADE_TICKS 0x14
+
+/// Task work for the fountain's waterfall loop.
+///
+/// Allocated into `Task::work` and cleared. `seenWindow` records that this
+/// task has already observed the playing window, so it does not command the
+/// loop again while that loop is still running. Whether the script is running
+/// lives in a separate room global, which survives the task being replaced on
+/// a camera cut. A new task has not seen the window, so while the script is
+/// still running it re-pans that script instead of starting another.
+typedef struct {
+    u16 state;      // Phase (0 wait, 1 defer one tick, 2 start or re-pan)
+    u16 seenWindow; // Nonzero once this task has observed the playing window
+} _AcropolisFountainWaterLoop;
+STATIC_ASSERT_SIZEOF(_AcropolisFountainWaterLoop, 4);
 
 extern WorldCollisionTrigger D_acropolis_fountain_8017E7A4;
 extern SVECTOR               D_acropolis_fountain_8017E7F0;
@@ -1570,33 +1596,40 @@ void func_acropolis_fountain_8017E014(Task* task)
 
 static void func_acropolis_fountain_8017E15C(Task* task, s32 view)
 {
-    AcropolisFountainSndWork* work;
-    CdCmdQueue*               queue;
-    u16                       frame;
+    _AcropolisFountainWaterLoop* waterLoop;
+    CdCmdQueue*                  queue;
+    u16                          frame;
 
-    queue = &gCdCmdQueue;
-    work  = (AcropolisFountainSndWork*)task->work;
-    switch (work->state) {
-        case 0:
+    queue     = &gCdCmdQueue;
+    waterLoop = (_AcropolisFountainWaterLoop*)task->work;
+    switch (waterLoop->state) {
+        case ACROPOLIS_FOUNTAIN_WATER_LOOP_WAIT:
+            // Outside the window, fade a running loop out. Inside it, command
+            // the loop the first time, and again only after that fade. A new
+            // task has not seen the window, so a camera cut re-pans a loop
+            // the previous task left running.
             frame = queue->movieFrame;
-            if (frame >= 0xF0) {
+            if (frame >= ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FADE) {
                 if (D_acropolis_fountain_8017E7F8 != 0) {
-                    SndEvt_EnqueueType7(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0x14);
+                    SndEvt_EnqueueType7(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, ACROPOLIS_FOUNTAIN_WATER_LOOP_FADE_TICKS);
                     D_acropolis_fountain_8017E7F8 = 0;
                 }
-            } else if ((u16)(frame - 0xF) < 0xE2) {
-                if (work->started == 0 || D_acropolis_fountain_8017E7F8 == 0) {
-                    work->started = 1;
-                    work->state   = work->state + 1;
+            } else if ((u16)(frame - ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FIRST) < ACROPOLIS_FOUNTAIN_WATER_LOOP_WINDOW) {
+                if (waterLoop->seenWindow == 0 || D_acropolis_fountain_8017E7F8 == 0) {
+                    waterLoop->seenWindow = 1;
+                    waterLoop->state      = waterLoop->state + 1;
                 }
             }
             break;
 
-        case 1:
-            work->state = 2;
+        case ACROPOLIS_FOUNTAIN_WATER_LOOP_DEFER:
+            // The command waits one tick after the window accepts it.
+            waterLoop->state = ACROPOLIS_FOUNTAIN_WATER_LOOP_APPLY;
             break;
 
-        case 2:
+        case ACROPOLIS_FOUNTAIN_WATER_LOOP_APPLY:
+            // Indices 2..8 re-pan a running loop or start one, at that index's
+            // pan and depth. The loop is then marked running for every index.
             switch ((u16)view) {
                 case 2:
                 case 3:
@@ -1643,7 +1676,7 @@ static void func_acropolis_fountain_8017E15C(Task* task, s32 view)
                     break;
             }
             D_acropolis_fountain_8017E7F8 = 1;
-            work->state                   = 0;
+            waterLoop->state              = ACROPOLIS_FOUNTAIN_WATER_LOOP_WAIT;
             break;
     }
 }
@@ -1670,12 +1703,12 @@ void func_acropolis_fountain_8017E3D4(Task* task)
     }
     switch (task->state) {
         case 0:
-            task->work = memCalloc(4, 0);
+            task->work = memCalloc(sizeof(_AcropolisFountainWaterLoop), 0);
             if (task->work == NULL) {
                 taskKill(task);
                 return;
             }
-            memFillBytes(task->work, 0, 4);
+            memFillBytes(task->work, 0, sizeof(_AcropolisFountainWaterLoop));
             task->state = task->state + 1;
             break;
 
