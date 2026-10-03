@@ -40,10 +40,25 @@
 
 #include "mapui/map_shelter.h"
 
-/// Per-task state of an elevator car: its travel, kept within 0..500.
+/// World Z of both elevator-door leaves when the door is shut: the line the
+/// two leaves meet on.
+#define SHELTER_B2_ELEVATOR_DOOR_CLOSED_Z (-500)
+
+/// World units a door leaf slides per frame while the door opens or closes.
+#define SHELTER_B2_ELEVATOR_DOOR_LEAF_SPEED 10
+
+/// Travel of a fully retracted door leaf, in world units: one leaf's width.
+#define SHELTER_B2_ELEVATOR_DOOR_LEAF_TRAVEL_MAX 500
+
+/// Work block of one leaf of the elevator's sliding door, held in `Task::work`.
+///
+/// The door is two mirrored leaves, each its own task with its own block. The
+/// task's `spawnArg1` selects opening (1), closing (-1) or rest (0), and its
+/// `spawnArg2` the side the leaf retracts to (-1 or 1 along Z).
 typedef struct {
-    s32 travel;
-} ShelterElevatorCar;
+    s32 travel; // World units slid from the shut position, 0 to `SHELTER_B2_ELEVATOR_DOOR_LEAF_TRAVEL_MAX`
+} _ShelterB2ElevatorDoorLeafWork;
+STATIC_ASSERT_SIZEOF(_ShelterB2ElevatorDoorLeafWork, 4);
 
 extern s32 D_801378D0;
 extern s32 D_801380F8;
@@ -51,10 +66,10 @@ extern s32 D_801380F8;
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_shelter_b2_elevator_8017DFA0[];
 
-/// The room's spawnable tasks: two elevator cars, then the exit task.
+/// The room's spawnable tasks: the two door leaves, then the exit task.
 extern TaskDesc D_shelter_b2_elevator_8017DF70[];
 
-/// The two elevator-car tasks the room entry task spawns.
+/// The two door-leaf tasks the room entry task spawns.
 extern Task* D_shelter_b2_elevator_8017EA00[];
 
 static void func_shelter_b2_elevator_8017DB08(Task* task);
@@ -348,7 +363,7 @@ static __inline__ Task* ShelterElevator_SpawnTask(s32 index, s32 direction);
 static void             func_shelter_b2_elevator_8017D5E8(Task* task);
 
 /// The room entry task's first state: installs the room's message table, takes
-/// pointer slot 7 and spawns the two elevator cars. Unless the byte
+/// pointer slot 7 and spawns the two door leaves. Unless the byte
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` is 9, it then either runs the first-visit sequence, setting
 /// event nibble 0xCF, or on a later visit hides the HUD, spawns the exit task
 /// and runs CAP command 3.
@@ -379,47 +394,49 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
     task->state++;
 }
 
-/// An elevator car's task. The first frame allocates its state and places the
-/// model; every later frame adds `spawnArg1` * 10 to the travel, clamps it to
-/// 0..500, sets the model's z from the travel times `spawnArg2`, and submits
-/// the model, with object flag 0x80 set except in camera view 2.
+/// The task of one leaf of the elevator's sliding door. The first frame
+/// allocates its `_ShelterB2ElevatorDoorLeafWork` and places the model shut;
+/// every later frame slides the leaf by `spawnArg1` steps, keeps its travel
+/// within the opening, offsets the model along Z to the side `spawnArg2`
+/// names, and submits the model, with object flag 0x80 set except in camera
+/// view 2.
 void func_shelter_b2_elevator_8017D70C(Task* task)
 {
-    TmdObject*          obj;
-    GfxCoord*           coord;
-    ShelterElevatorCar* car;
-    VECTOR              vec;
+    TmdObject*                      obj;
+    GfxCoord*                       coord;
+    _ShelterB2ElevatorDoorLeafWork* work;
+    VECTOR                          vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
     switch (task->state) {
         case 0:
-            car = memCalloc(4, 0);
-            if (car == NULL) {
+            work = memCalloc(sizeof(_ShelterB2ElevatorDoorLeafWork), 0);
+            if (work == NULL) {
                 taskKill(task);
                 return;
             }
-            task->work          = car;
-            car->travel         = 0;
+            task->work          = work;
+            work->travel        = 0;
             obj->otOffset       = 0x64;
             obj->flags          = 0;
             coord->parent       = &gGfxViewCoord;
             coord->coord.t[0]   = 0x2A94;
             coord->coord.t[1]   = 0;
-            coord->coord.t[2]   = -0x1F4;
+            coord->coord.t[2]   = SHELTER_B2_ELEVATOR_DOOR_CLOSED_Z;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             task->state++;
             break;
         case 1:
-            car         = (ShelterElevatorCar*)task->work;
-            car->travel = car->travel + task->spawnArg1.value * 10;
-            if (car->travel < 0) {
-                car->travel = 0;
+            work          = task->work;
+            work->travel += task->spawnArg1.value * SHELTER_B2_ELEVATOR_DOOR_LEAF_SPEED;
+            if (work->travel < 0) {
+                work->travel = 0;
             }
-            if (car->travel >= 0x1F5) {
-                car->travel = 0x1F4;
+            if (work->travel > SHELTER_B2_ELEVATOR_DOOR_LEAF_TRAVEL_MAX) {
+                work->travel = SHELTER_B2_ELEVATOR_DOOR_LEAF_TRAVEL_MAX;
             }
-            coord->coord.t[2] = car->travel * task->spawnArg2.value - 0x1F4;
+            coord->coord.t[2] = (work->travel * task->spawnArg2.value) + SHELTER_B2_ELEVATOR_DOOR_CLOSED_Z;
             if (gGameSession->location.loc.view == 2) {
                 obj->flags = 0;
             } else {
@@ -526,8 +543,8 @@ s32 func_shelter_b2_elevator_8017DAB0(Task* task, s32 msgId, TaskMessageArg arg2
     return 0;
 }
 
-/// Message-table handler for message 0x13EC: sets `spawnArg1` of both elevator
-/// cars to 1.
+/// Message-table handler for message 0x13EC: sets `spawnArg1` of both door
+/// leaves to 1, opening the door.
 s32 func_shelter_b2_elevator_8017DAB8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = 1;
@@ -535,8 +552,8 @@ s32 func_shelter_b2_elevator_8017DAB8(Task* task, s32 msgId, TaskMessageArg arg2
     return 0;
 }
 
-/// Message-table handler for message 0x13ED: sets `spawnArg1` of both elevator
-/// cars to -1.
+/// Message-table handler for message 0x13ED: sets `spawnArg1` of both door
+/// leaves to -1, closing the door.
 s32 func_shelter_b2_elevator_8017DAE0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = -1;
