@@ -394,31 +394,42 @@ extern Task*                 D_shelter_b3_dumping_hole_8018F4AC;
 extern ActorTransform        D_shelter_b3_dumping_hole_8018966C;
 
 extern s32 D_shelter_b3_dumping_hole_8018F4D8;
-// Message-table callbacks use the argument views required by this TU.
+/// One row of a task-message table in this unit.
+///
+/// A row is a receiver-specific message id and the callback that handles it.
+/// The collapse director's table has no end marker. The encounter controller's
+/// table ends with `TASK_MESSAGE_TABLE_END` and a null callback. The handler
+/// views are the callback signatures stored here; dispatch still passes each
+/// argument in a word register.
 typedef struct {
-    s32 id;
+    s32 messageId;                                                              // Receiver-specific id, or TASK_MESSAGE_TABLE_END
     union {
-        void (*call0)(Task*, s32, ActorCommand* request);
-        void (*call1)(Task*, s32, ActorTransform*);
-        void (*call2)(Task*, s32, s32);
-    } handler;
-} ShelterB3DumpingHole2MessageEntry;
-STATIC_ASSERT_SIZEOF(ShelterB3DumpingHole2MessageEntry, 8);
+        void (*applyCommand)(Task* task, s32 messageId, ActorCommand* command); // ACTOR_COMMAND_MESSAGE_APPLY
+        void (*place)(Task* task, s32 messageId, ActorTransform* placement);    // ACTOR_MESSAGE_PLACE
+        void (*setDrawMode)(Task* task, s32 messageId, s32 mode);               // ACTOR_MESSAGE_SET_MODEL_DRAW
+    } handler;                                                                  // Callback for messageId; null only on the end marker
+} _ShelterB3DumpingHole2MessageEntry;
+STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHole2MessageEntry, 8);
 
-extern ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2];
-extern EvsCommand                        D_shelter_b3_dumping_hole_8018968C[];
-extern EvsCommand                        D_shelter_b3_dumping_hole_801899A4[];
-extern TaskDesc                          D_shelter_b3_dumping_hole_8018AFBC;
-static CapSequenceRecord*                CapCaption_Data_8015E658;
-static s16                               CapCaption_Data_8015E662;
-static CapCaptionScheduleWindow          CapCaption_Data_80154514[];
-static TextGlyphCell*                    CapCaption_Data_8015E654;
-static CapCommandRef*                    CapCaption_Data_8015E650;
-static s16                               CapCaption_Data_8015E65C;
-static s16                               CapCaption_Data_8015E65E;
-static s16                               CapCaption_Data_8015E660;
-static s16                               CapCaption_Data_8015E664;
-static s16                               CapCaption_Data_8015E666;
+/// Collapse director's message table, installed in `Task::msgTable`.
+///
+/// The director sends itself only `ACTOR_MESSAGE_SET_MODEL_DRAW` and
+/// `ACTOR_MESSAGE_PLACE`. The table has no `TASK_MESSAGE_TABLE_END` row, so
+/// those are the only ids it may receive.
+extern _ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2];
+extern EvsCommand                         D_shelter_b3_dumping_hole_8018968C[];
+extern EvsCommand                         D_shelter_b3_dumping_hole_801899A4[];
+extern TaskDesc                           D_shelter_b3_dumping_hole_8018AFBC;
+static CapSequenceRecord*                 CapCaption_Data_8015E658;
+static s16                                CapCaption_Data_8015E662;
+static CapCaptionScheduleWindow           CapCaption_Data_80154514[];
+static TextGlyphCell*                     CapCaption_Data_8015E654;
+static CapCommandRef*                     CapCaption_Data_8015E650;
+static s16                                CapCaption_Data_8015E65C;
+static s16                                CapCaption_Data_8015E65E;
+static s16                                CapCaption_Data_8015E660;
+static s16                                CapCaption_Data_8015E664;
+static s16                                CapCaption_Data_8015E666;
 
 static s16      CapCaption_Data_801544EC;
 static s16      CapCaption_Data_801544EE;
@@ -431,7 +442,12 @@ extern TaskDesc D_80142604;
 extern TaskDesc D_801575F0;
 static TaskDesc CapCaption_Data_80154508;
 
-extern ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2];
+/// Encounter controller's message table, installed in `Task::msgTable`.
+///
+/// `ACTOR_COMMAND_MESSAGE_APPLY` stops the controller when the borrowed
+/// `ActorCommand::command` is 4. Any other id reaches `TASK_MESSAGE_TABLE_END`
+/// and returns zero.
+extern _ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2];
 
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
 
@@ -814,9 +830,9 @@ static TmdSource _gShelterB3DumpingHoleModel0BAC8 = {
     _gShelterB3DumpingHoleModel0BAC8Stream,
 };
 
-ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = actorMsgSetDrawMode } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceYawPitchRoll } },
+_ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .setDrawMode = actorMsgSetDrawMode } },
+    { ACTOR_MESSAGE_PLACE, { .place = actorMsgPlaceYawPitchRoll } },
 };
 
 ActorTransform D_shelter_b3_dumping_hole_8018966C = { { 4500, -0x2CEC, -5450, 0 }, { 341, 0, 0, 0 } };
@@ -1080,9 +1096,9 @@ ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12] = {
     { 0x4074, -3950, -0x30A2, 0 },
 };
 
-ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_shelter_b3_dumping_hole_80183530 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+_ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .applyCommand = func_shelter_b3_dumping_hole_80183530 } },
+    { TASK_MESSAGE_TABLE_END, { .applyCommand = NULL } },
 };
 
 OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[16] = {
