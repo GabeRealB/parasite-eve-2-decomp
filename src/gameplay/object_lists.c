@@ -106,16 +106,25 @@ typedef struct {
 } _WorldCollisionResponsePushbackScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionResponsePushbackScratch, 0x40);
 
-/// 0x20-byte scratch from the scratch stack used by `func_800E0994`.
-/// `local[0]` / `local[1]` are `(0, pos.vy +/- radius, 0)` in the
-/// object's local space, rotated by `coord->workm` into `vec` then added
-/// to `workm.t` to give the two world points `arg1[0]` / `arg1[1]`.
-/// `vec` is reused as `arg1[0] - arg1[1]` for `VectorNormalS`.
-typedef struct _GpAxisScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR local[2];
-} GpAxisScratch;
-STATIC_ASSERT_SIZEOF(GpAxisScratch, 0x20);
+/// Temporary vectors for placing a body's floor-query segment and finding its direction.
+///
+/// The local endpoints lie on the body's Y axis through the local origin, so
+/// their X and Z are zero. Endpoint 0's Y is the body's position plus its
+/// radius and endpoint 1's is the position minus that radius, each truncated
+/// to a signed 16-bit component. The radius is the floor-query half-height,
+/// in game units. The body's cached transform rotates an endpoint; the
+/// caller's endpoint is that result plus the translation. The same vector
+/// then holds endpoint 0 minus endpoint 1 for normalization. The block lives
+/// on the scratch stack for that calculation. The SDK vectors' fourth
+/// components are unused and left uninitialized.
+typedef struct {
+    union {
+        VECTOR rotatedEndpoint; // Local endpoint after the body's rotation, before its translation
+        VECTOR segmentDelta;    // Placed endpoint 0 minus endpoint 1, before normalization
+    } work;
+    SVECTOR localEndpoints[2];  // Body-frame ends: [0] position Y plus the half-height, [1] minus it
+} _WorldCollisionFloorSegmentScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionFloorSegmentScratch, 0x20);
 
 /// 0x4C-byte scratch from the scratch stack used by `Gp_OrientAlong`.
 /// `vec` is the `VectorNormalS` result, reused as the `RotMatrix` angle
@@ -395,31 +404,32 @@ void Gp_ObjWorldPos(WorldCollisionBody* arg0, VECTOR3* arg1)
 
 void func_800E0994(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2)
 {
-    GpAxisScratch* block;
-    s32            i;
+    _WorldCollisionFloorSegmentScratch* scratch;
+    s32                                 i;
 
-    SCRATCH_STACK_RESERVE_BYTES(0x20);
-    block              = SCRATCH_STACK_CURSOR(GpAxisScratch);
-    block->local[0].vx = 0;
-    block->local[0].vy = (u16)arg0->pos.vy + arg0->radius;
-    block->local[0].vz = 0;
-    block->local[1].vx = 0;
-    block->local[1].vy = (u16)arg0->pos.vy - arg0->radius;
-    block->local[1].vz = 0;
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(_WorldCollisionFloorSegmentScratch));
+    scratch = SCRATCH_STACK_CURSOR(_WorldCollisionFloorSegmentScratch);
+    // Local Y segment through the origin: X and Z stay zero, one half-height either side of the body's Y.
+    scratch->localEndpoints[0].vx = 0;
+    scratch->localEndpoints[0].vy = (u16)arg0->pos.vy + arg0->radius;
+    scratch->localEndpoints[0].vz = 0;
+    scratch->localEndpoints[1].vx = 0;
+    scratch->localEndpoints[1].vy = (u16)arg0->pos.vy - arg0->radius;
+    scratch->localEndpoints[1].vz = 0;
     gte_SetRotMatrix(&arg0->coord->workm);
-    for (i = 0; i < 2; i++) {
-        gte_ldv0(&block->local[i]);
+    for (i = 0; i < ARRAY_SIZE(scratch->localEndpoints); i++) {
+        gte_ldv0(&scratch->localEndpoints[i]);
         gte_rtv0();
-        gte_stlvnl(&block->vec);
-        arg1[i].vx = block->vec.vx + (arg0->coord)->workm.t[0];
-        arg1[i].vy = block->vec.vy + (arg0->coord)->workm.t[1];
-        arg1[i].vz = block->vec.vz + (arg0->coord)->workm.t[2];
+        gte_stlvnl(&scratch->work.rotatedEndpoint);
+        arg1[i].vx = scratch->work.rotatedEndpoint.vx + (arg0->coord)->workm.t[0];
+        arg1[i].vy = scratch->work.rotatedEndpoint.vy + (arg0->coord)->workm.t[1];
+        arg1[i].vz = scratch->work.rotatedEndpoint.vz + (arg0->coord)->workm.t[2];
     }
-    block->vec.vx = arg1[0].vx - arg1[1].vx;
-    block->vec.vy = arg1[0].vy - arg1[1].vy;
-    block->vec.vz = arg1[0].vz - arg1[1].vz;
-    VectorNormalS(&block->vec, arg2);
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
+    scratch->work.segmentDelta.vx = arg1[0].vx - arg1[1].vx;
+    scratch->work.segmentDelta.vy = arg1[0].vy - arg1[1].vy;
+    scratch->work.segmentDelta.vz = arg1[0].vz - arg1[1].vz;
+    VectorNormalS(&scratch->work.segmentDelta, arg2);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionFloorSegmentScratch));
 }
 
 void Gp_ClearPendingObj4C(void)
