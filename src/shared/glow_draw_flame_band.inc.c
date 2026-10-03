@@ -9,18 +9,18 @@
 /// negative `gte_stflg` drops the segment.
 void glowDrawFlameBand(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
-    GpBandScratch* block;
-    SVECTOR*       op;
-    POLY_G4*       prim;
-    s32            i;
-    s32            next;
-    s32            ang;
-    s16            r0;
-    s16            r1;
-    u32            ramp;
-    u8             red;
-    u8             grn;
-    u8             blu;
+    EffectBandScratch* block;
+    SVECTOR*           op;
+    POLY_G4*           prim;
+    s32                i;
+    s32                next;
+    s32                ang;
+    s16                r0;
+    s16                r1;
+    u32                ramp;
+    u8                 red;
+    u8                 grn;
+    u8                 blu;
 
     /* The ramp halves are unsigned: writing them as `(u16)arg2 >> 1` folds the
      * widening into an `andi`, where the ROM shifts the value up and back. */
@@ -29,44 +29,44 @@ void glowDrawFlameBand(GfxCoord* arg0, s16 arg1, s16 arg2)
     grn   = ramp >> 17;
     blu   = ramp >> 18;
     r1    = arg1 + 0x100;
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     r0 = arg1;
-    for (i = 0; i < 16; i++) {
-        ang                = i << 8;
-        block->inner[i].vx = (rsin(ang) * r0) >> 12;
-        block->inner[i].vy = (rcos(ang) * r0) >> 12;
-        block->inner[i].vz = 0x100;
+    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
+        ang                  = i << 8;
+        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
+        block->topRing[i].vy = (rcos(ang) * r0) >> 12;
+        block->topRing[i].vz = 0x100;
         gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->inner[i]);
+        gte_ldv0(&block->topRing[i]);
         gte_rtv0();
-        gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg0->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg0->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg0->workm.t[2];
-        block->outer[i].vx = (rsin(ang) * r1) >> 12;
-        op                 = &block->inner[i] + 16;
-        op->vy             = (rcos(ang) * r1) >> 12;
-        op->vz             = 0;
+        gte_stsv(&block->topRing[i]);
+        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)arg0->workm.t[0];
+        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)arg0->workm.t[1];
+        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)arg0->workm.t[2];
+        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
+        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
+        op->vy                  = (rcos(ang) * r1) >> 12;
+        op->vz                  = 0;
         gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->outer[i]);
+        gte_ldv0(&block->bottomRing[i]);
         gte_rtv0();
-        gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg0->workm.t[0];
-        op->vy             = (u16)op->vy + (u16)arg0->workm.t[1];
-        op->vz             = (u16)op->vz + (u16)arg0->workm.t[2];
+        gte_stsv(&block->bottomRing[i]);
+        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)arg0->workm.t[0];
+        op->vy                  = (u16)op->vy + (u16)arg0->workm.t[1];
+        op->vz                  = (u16)op->vz + (u16)arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 16; i++) {
-        gte_ldv0(&block->inner[i]);
+    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
+        gte_ldv0(&block->topRing[i]);
         gte_rtps();
         gte_stsxy(&block->sxy0);
-        next = (i + 1) & 0xF;
-        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
+        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
+        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
         gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
             prim           = gGpuPrimCursor;
@@ -89,5 +89,5 @@ void glowDrawFlameBand(GfxCoord* arg0, s16 arg1, s16 arg2)
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }

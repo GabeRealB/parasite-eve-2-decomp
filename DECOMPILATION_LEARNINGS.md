@@ -5538,7 +5538,7 @@ emitting form when it is not. `func_apobiosis_80130630` is the example.
 rim 0x200/0x480 instead of 0x600/0x800, clut 0x4282 instead of 0x42C1, and
 the jitter table `D_pyrokinesis_80131DFC`. Geometry, the `rimSize`/`hubSize`
 latch into `rimRad`/`hubRad`, `rot = &coord->workm`, and
-`op = &inner[i] + 16` copy verbatim.
+`op = &topRing[i] + EFFECT_BAND_SEGMENT_COUNT` copy verbatim.
 
 Two TU-local differences from the weapon original are load-bearing:
 
@@ -40289,22 +40289,22 @@ array's element address is *also* fed to a GTE inline asm, the target can show
 three different addressings of the same element: `0x80(s2)` for one field,
 `2(s0)` / `4(s0)` with `addiu s0, s2, 0x80` for the others, and a freshly
 recomputed `sll s1, i, 3; addiu s1, s1, 0x80; addu s1, base, s1` for the asm
-operand. Writing the pointer as `op = &block->outer[i];` collapses all three:
-cse1 folds it to the same rtx as `&block->outer[i]` in the asm operand, so the
+operand. Writing the pointer as `op = &block->bottomRing[i];` collapses all three:
+cse1 folds it to the same rtx as `&block->bottomRing[i]` in the asm operand, so the
 asm's non-reducible address wins and the field refs ride along on it.
 
-Derive the pointer from the *other* array instead. `&block->inner[i] + 16`
+Derive the pointer from the *other* array instead. `&block->topRing[i] + 16`
 expands as `(base + i*8) + 128`, which cse1 does not equate with the asm
 operand's `base + (i*8 + 128)`. The loop pass then strength-reduces it as a
 giv combined with the inner walking pointer (`addiu s0, s2, 0x80`) while the
 asm operand keeps its own computation:
 
 ```c
-block->outer[i].vx = (rsin(ang) * r1) >> 12;
-op                 = &block->inner[i] + 16;  /* not &block->outer[i] */
+block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
+op                 = &block->topRing[i] + 16;  /* not &block->bottomRing[i] */
 op->vy             = 0;
 op->vz             = (rcos(ang) * r1) >> 12;
-gte_ldv0(&block->outer[i]);
+gte_ldv0(&block->bottomRing[i]);
 ```
 
 `Gp_DrawBandEx` is the example (98.6% → 99.7% from this alone). Flattening the
@@ -40334,9 +40334,9 @@ store available too early and the scheduler parks it *before* the `jal`. Write
 the fields in natural order and let the gap pull the constant forward:
 
 ```c
-block->inner[i].vx = (rsin(ang) * r0) >> 12;
-block->inner[i].vy = (rcos(ang) * r0) >> 12;
-block->inner[i].vz = 0x100;   /* lands between mult and mflo */
+block->topRing[i].vx = (rsin(ang) * r0) >> 12;
+block->topRing[i].vy = (rcos(ang) * r0) >> 12;
+block->topRing[i].vz = 0x100;   /* lands between mult and mflo */
 ```
 
 Same for `op->vy = (rcos(ang) * r1) >> 12; op->vz = 0;` — keeping the constant
@@ -56725,14 +56725,14 @@ chaining `u1 = u0 + 0x37`, and read `coord->workm.t[i]` through
 
 The previous entry's "scratch size is the strongest fingerprint" rule has one
 more entry worth writing down: a `- 0x118` off `SCRATCH_STACK_CURSOR_SLOT` is the
-`GpBandScratch` two-ring band, and the matched example is `Gp_DrawBandEx`
+`EffectBandScratch` two-ring band, and the matched example is `Gp_DrawBandEx`
 (gameplay `3CD8_9CC8.c`). `func_pyrokinesis_801312B4` is that function with the
 colour source swapped and the trailing `DR_TPAGE` replaced by
 `gpuSetPrimitiveBlendMode`; porting the sibling and changing only those two things
 scored 100% on the first attempt, with the m2c seed never compiled.
 
 Recognise it from the shape rather than the size alone: two 16-iteration loops,
-the first building `inner[i]` / `outer[i]` from `rsin`/`rcos` with a
+the first building `topRing[i]` / `bottomRing[i]` from `rsin`/`rcos` with a
 `gte_SetRotMatrix(&index->workm)` + `mvmva 1,0,0,3,0` per vertex, the second
 doing one `RTPS` plus one `RTPT` per segment and emitting a `POLY_G4`
 (`sb 8, 3(prim)` / `sb 0x38, 7(prim)`).
@@ -56743,10 +56743,10 @@ Two details from the sibling are load-bearing and must be copied verbatim:
   still reaches 99.63%, but with `branch=3 regs=2 delete=1` — the pin is what
   the ROM's allocation needs, and this is the documented exception to
   "unpin first".
-- `op = &block->inner[i] + 16;` as a second alias for `&block->outer[i]`.
-  GCC 2.8.1 emits the `outer[i].vx` store off the `inner` base (`sh v0,
+- `op = &block->topRing[i] + 16;` as a second alias for `&block->bottomRing[i]`.
+  GCC 2.8.1 emits the `bottomRing[i].vx` store off the `topRing` base (`sh v0,
   0x80($s2)`) and the `vy`/`vz` stores off `op`; writing all three through
-  `outer[i]` re-derives the pointer.
+  `bottomRing[i]` re-derives the pointer.
 
 
 ## A redundant `andi 0xFFFF` only survives as a multi-use local

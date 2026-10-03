@@ -2583,69 +2583,64 @@ void func_shelter_r48_8017EFD8(Task* task)
 /// texture cell from the band's `D_shelter_r48_8018BE54` row and the work's age.
 static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 part)
 {
-    void**         scratch;
-    u8*            head;
-    GpBandScratch* block;
-    SVECTOR*       op;
-    POLY_FT4*      prim;
-    RoomRingShape* row;
-    s32            i;
-    s32            next;
-    s32            ang;
-    s32            u;
-    u16            idx;
-    s16            r0;
-    s16            r1;
-    u16            y;
-    u16            f28;
+    EffectBandScratch* block;
+    SVECTOR*           op;
+    POLY_FT4*          prim;
+    RoomRingShape*     row;
+    s32                i;
+    s32                next;
+    s32                ang;
+    s32                u;
+    u16                idx;
+    s16                r0;
+    s16                r1;
+    u16                y;
+    u16                f28;
 
-    row      = &D_shelter_r48_80182FE8[part];
-    f28      = work->period;
-    r1       = work->angle;
-    y        = f28 + (u16)row->yOff;
-    r1      += (u16)row->rInner;
-    r0       = r1 + work->step + (u16)row->rExtra;
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = (u8*)*scratch;
-    *scratch = head - 0x118;
-    block    = (GpBandScratch*)(head - 0x118);
+    row   = &D_shelter_r48_80182FE8[part];
+    f28   = work->period;
+    r1    = work->angle;
+    y     = f28 + (u16)row->yOff;
+    r1   += (u16)row->rInner;
+    r0    = r1 + work->step + (u16)row->rExtra;
+    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 16; i++) {
-        ang                = i << 8;
-        block->inner[i].vx = (rsin(ang) * r0) >> 12;
-        block->inner[i].vy = -y;
-        block->inner[i].vz = (rcos(ang) * r0) >> 12;
+    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
+        ang                  = i << 8;
+        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
+        block->topRing[i].vy = -y;
+        block->topRing[i].vz = (rcos(ang) * r0) >> 12;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->inner[i]);
+        gte_ldv0(&block->topRing[i]);
         gte_rtv0();
-        gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + (u16)coord->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + (u16)coord->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + (u16)coord->workm.t[2];
-        block->outer[i].vx = (rsin(ang) * r1) >> 12;
-        op                 = &block->inner[i] + 16;
-        op->vy             = 0;
-        op->vz             = (rcos(ang) * r1) >> 12;
+        gte_stsv(&block->topRing[i]);
+        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)coord->workm.t[0];
+        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)coord->workm.t[1];
+        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)coord->workm.t[2];
+        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
+        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
+        op->vy                  = 0;
+        op->vz                  = (rcos(ang) * r1) >> 12;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->outer[i]);
+        gte_ldv0(&block->bottomRing[i]);
         gte_rtv0();
-        gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + (u16)coord->workm.t[0];
-        op->vy             = (u16)op->vy + (u16)coord->workm.t[1];
-        op->vz             = (u16)op->vz + (u16)coord->workm.t[2];
+        gte_stsv(&block->bottomRing[i]);
+        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)coord->workm.t[0];
+        op->vy                  = (u16)op->vy + (u16)coord->workm.t[1];
+        op->vz                  = (u16)op->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 16; i++) {
-        gte_ldv0(&block->inner[i]);
+    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
+        gte_ldv0(&block->topRing[i]);
         gte_rtps();
         gte_stsxy(&block->sxy0);
-        next = (i + 1) & 0xF;
-        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
+        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
+        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
         gte_rtpt();
         idx = (D_shelter_r48_8018BE54[part][i] + work->age) % 6;
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
             gte_stszotz(&block->otz);
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -2668,7 +2663,7 @@ static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 par
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x118);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
 #include "../../shared/water_drift_task_u16.inc.c"

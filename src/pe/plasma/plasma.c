@@ -212,70 +212,67 @@ release:
 /// and projected through `GsWSMATRIX`; wedge `i` picks its texture column
 /// from `(D_plasma_8012FF54[arg2][i] + field_22) % 6`, and `field_24` sets the
 /// brightness. A negative `gte_stflg` on the wedge's first vertex drops it.
-/// Works out of a `GpBandScratch` taken from the scratch stack.
+/// Works out of an `EffectBandScratch` taken from the scratch stack.
 static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2)
 {
-    u8*              head;
-    GpBandScratch*   block;
-    SVECTOR*         op;
-    POLY_FT4*        prim;
-    PlasmaRingScale* row;
-    s32              i;
-    s32              next;
-    s32              ang;
-    s32              u;
-    s16              idx;
-    s16              r0;
-    s16              r1;
-    u16              y;
-    u16              f28;
+    EffectBandScratch* block;
+    SVECTOR*           op;
+    POLY_FT4*          prim;
+    PlasmaRingScale*   row;
+    s32                i;
+    s32                next;
+    s32                ang;
+    s32                u;
+    s16                idx;
+    s16                r0;
+    s16                r1;
+    u16                y;
+    u16                f28;
 
-    row                        = &D_plasma_8012FF34[arg2];
-    f28                        = arg0->period;
-    r1                         = arg0->angle;
-    y                          = f28 + (u16)row->yOff;
-    r1                        += (u16)row->rInner;
-    r0                         = r1 + arg0->step + (u16)row->rExtra;
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - 0x118;
-    block                      = (GpBandScratch*)(head - 0x118);
+    row   = &D_plasma_8012FF34[arg2];
+    f28   = arg0->period;
+    r1    = arg0->angle;
+    y     = f28 + (u16)row->yOff;
+    r1   += (u16)row->rInner;
+    r0    = r1 + arg0->step + (u16)row->rExtra;
+    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 16; i++) {
-        ang                = i << 8;
-        block->inner[i].vx = (rsin(ang) * r0) >> 12;
-        block->inner[i].vy = -y;
-        block->inner[i].vz = (rcos(ang) * r0) >> 12;
+    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
+        ang                  = i << 8;
+        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
+        block->topRing[i].vy = -y;
+        block->topRing[i].vz = (rcos(ang) * r0) >> 12;
         gte_SetRotMatrix(&arg1->workm);
-        gte_ldv0(&block->inner[i]);
+        gte_ldv0(&block->topRing[i]);
         gte_rtv0();
-        gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg1->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg1->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg1->workm.t[2];
-        block->outer[i].vx = (rsin(ang) * r1) >> 12;
-        op                 = &block->inner[i] + 16;
-        op->vy             = 0;
-        op->vz             = (rcos(ang) * r1) >> 12;
+        gte_stsv(&block->topRing[i]);
+        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)arg1->workm.t[0];
+        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)arg1->workm.t[1];
+        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)arg1->workm.t[2];
+        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
+        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
+        op->vy                  = 0;
+        op->vz                  = (rcos(ang) * r1) >> 12;
         gte_SetRotMatrix(&arg1->workm);
-        gte_ldv0(&block->outer[i]);
+        gte_ldv0(&block->bottomRing[i]);
         gte_rtv0();
-        gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg1->workm.t[0];
-        op->vy             = (u16)op->vy + (u16)arg1->workm.t[1];
-        op->vz             = (u16)op->vz + (u16)arg1->workm.t[2];
+        gte_stsv(&block->bottomRing[i]);
+        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)arg1->workm.t[0];
+        op->vy                  = (u16)op->vy + (u16)arg1->workm.t[1];
+        op->vz                  = (u16)op->vz + (u16)arg1->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 16; i++) {
-        gte_ldv0(&block->inner[i]);
+    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
+        gte_ldv0(&block->topRing[i]);
         gte_rtps();
         idx = (D_plasma_8012FF54[arg2][i] + arg0->age) % 6;
         gte_stsxy(&block->sxy0);
-        next = (i + 1) & 0xF;
-        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
+        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
+        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
         gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
             prim           = gGpuPrimCursor;
@@ -299,7 +296,7 @@ static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2)
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x118);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
 #include "../../shared/glow_draw_halo.inc.c"

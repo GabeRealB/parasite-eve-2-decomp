@@ -288,60 +288,57 @@ void func_energyshot_8012EF34(Task* arg0)
 /// and a negative `gte_stflg` drops the segment.
 static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
 {
-    u8*            head;
-    GpBandScratch* block;
-    SVECTOR*       op;
-    POLY_FT4*      prim;
-    s32            i;
-    s32            next;
-    s32            ang;
-    s32            u;
-    s16            idx;
-    s16            r0;
-    s16            r1;
+    EffectBandScratch* block;
+    SVECTOR*           op;
+    POLY_FT4*          prim;
+    s32                i;
+    s32                next;
+    s32                ang;
+    s32                u;
+    s16                idx;
+    s16                r0;
+    s16                r1;
 
-    r1                         = arg1 / 2 + 0x100;
-    r0                         = arg1 + 0x400;
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - 0x118;
-    block                      = (GpBandScratch*)(head - 0x118);
+    r1    = arg1 / 2 + 0x100;
+    r0    = arg1 + 0x400;
+    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 16; i++) {
-        ang                = i << 8;
-        block->inner[i].vx = (rsin(ang) * r0) >> 12;
-        block->inner[i].vy = -arg2;
-        block->inner[i].vz = (rcos(ang) * r0) >> 12;
+    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
+        ang                  = i << 8;
+        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
+        block->topRing[i].vy = -arg2;
+        block->topRing[i].vz = (rcos(ang) * r0) >> 12;
         gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->inner[i]);
+        gte_ldv0(&block->topRing[i]);
         gte_rtv0();
-        gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg0->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg0->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg0->workm.t[2];
-        block->outer[i].vx = (rsin(ang) * r1) >> 12;
-        op                 = &block->inner[i] + 16;
-        op->vy             = 0;
-        op->vz             = (rcos(ang) * r1) >> 12;
+        gte_stsv(&block->topRing[i]);
+        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)arg0->workm.t[0];
+        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)arg0->workm.t[1];
+        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)arg0->workm.t[2];
+        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
+        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
+        op->vy                  = 0;
+        op->vz                  = (rcos(ang) * r1) >> 12;
         gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->outer[i]);
+        gte_ldv0(&block->bottomRing[i]);
         gte_rtv0();
-        gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg0->workm.t[0];
-        op->vy             = (u16)op->vy + (u16)arg0->workm.t[1];
-        op->vz             = (u16)op->vz + (u16)arg0->workm.t[2];
+        gte_stsv(&block->bottomRing[i]);
+        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)arg0->workm.t[0];
+        op->vy                  = (u16)op->vy + (u16)arg0->workm.t[1];
+        op->vz                  = (u16)op->vz + (u16)arg0->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 16; i++) {
-        gte_ldv0(&block->inner[i]);
+    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
+        gte_ldv0(&block->topRing[i]);
         gte_rtps();
         idx = (u32)(D_energyshot_80130108[i] + gDisplayState.animFrame) % 6;
         gte_stsxy(&block->sxy0);
-        next = (i + 1) & 0xF;
-        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
+        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
+        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
         gte_rtpt();
         gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
             prim           = gGpuPrimCursor;
@@ -365,7 +362,7 @@ static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x118);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
 void func_energyshot_8012FFB8(Task* arg0)

@@ -79,25 +79,35 @@ typedef struct {
 } EffectShapeScratch;
 STATIC_ASSERT_SIZEOF(EffectShapeScratch, 0x1C);
 
-/// 0x118-byte scratch from the scratch stack used by `Gp_DrawBandEx`. Holds
-/// the two 16-vertex rings of a shaded band: `inner[i]` is the ring of
-/// radius `arg1` and `outer[i]` the ring of radius `arg1 + arg2`, both built
-/// in the XZ plane by `rsin` / `rcos`, rotated by the coordinate's `workm`
-/// and offset by its `workm.t[]`. The second pass projects each segment:
-/// `sxy0` is the `gte_stsxy` of `inner[i]` and `sxy1` / `sxy2` / `sxy3` the
-/// `gte_stsxy3` of `inner[i + 1]` / `outer[i]` / `outer[i + 1]`, with `otz`
-/// from `gte_stszotz` (then incremented) and `flag` from `gte_stflg`.
-typedef struct _GpBandScratch {
-    /* 0x000 */ SVECTOR inner[16];
-    /* 0x080 */ SVECTOR outer[16];
-    /* 0x100 */ s32     otz;
-    /* 0x104 */ s32     flag;
-    /* 0x108 */ DVECTOR sxy0;
-    /* 0x10C */ DVECTOR sxy1;
-    /* 0x110 */ DVECTOR sxy2;
-    /* 0x114 */ DVECTOR sxy3;
-} GpBandScratch;
-STATIC_ASSERT_SIZEOF(GpBandScratch, 0x118);
+/// Number of vertices in each ring of an `EffectBandScratch`, and so the number
+/// of quads in the band. A power of two: drawers wrap the next vertex index
+/// with `& (EFFECT_BAND_SEGMENT_COUNT - 1)`.
+#define EFFECT_BAND_SEGMENT_COUNT 16
+
+/// Scratch-stack workspace for drawing a band of quads between two rings.
+///
+/// A drawer places `EFFECT_BAND_SEGMENT_COUNT` vertices evenly round each ring
+/// in a coordinate frame's local space, moves each through that frame's world
+/// matrix and translation, and stores the result back as a world position
+/// narrowed to 16 bits. The rings may differ in radius, offset or both. Each
+/// segment `i` then becomes one quad whose vertices 0 and 1 are `topRing[i]`
+/// and `topRing[i + 1]` and whose vertices 2 and 3 are `bottomRing[i]` and
+/// `bottomRing[i + 1]`, wrapping at the last segment: the top ring is the
+/// textured quads' top row and the lit edge of a Gouraud band.
+///
+/// Reserve one complete block on the scratch stack and release it in reverse
+/// order after drawing. Pointers into the block must not survive its release.
+typedef struct {
+    SVECTOR topRing[EFFECT_BAND_SEGMENT_COUNT];    // World-space vertices forming each quad's vertices 0 and 1
+    SVECTOR bottomRing[EFFECT_BAND_SEGMENT_COUNT]; // World-space vertices forming each quad's vertices 2 and 3
+    s32     otz;                                   // Ordering-table depth: SZ3 / 4 of the quad's last vertex, plus 1 in some drawers
+    s32     projectionFlags;                       // GTE FLAG word after the segment's RTPT; bit 31 makes it negative and drops the quad
+    DVECTOR sxy0;                                  // Screen position of the current quad's vertex 0
+    DVECTOR sxy1;                                  // Screen position of vertex 1
+    DVECTOR sxy2;                                  // Screen position of vertex 2
+    DVECTOR sxy3;                                  // Screen position of vertex 3
+} EffectBandScratch;
+STATIC_ASSERT_SIZEOF(EffectBandScratch, 0x118);
 
 /// Argument record for `func_800FDB18`, the id-dispatched effect spawner.
 ///

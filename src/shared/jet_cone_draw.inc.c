@@ -2,27 +2,28 @@
 
 static void jetConeDraw(GfxCoord* coord, s16 age, s16 length, s32 shortCone)
 {
-    GpBandScratch* sc;
-    POLY_FT4*      prim;
-    SVECTOR*       vert;
-    s32            rimRad;
-    s32            hubRad;
-    s32            rimSize;
-    s32            hubSize;
-    s32            i;
-    s32            next;
-    s32            ang;
-    s32            u0;
-    s16            back;
-    MATRIX*        rot;
+    EffectBandScratch* sc;
+    POLY_FT4*          prim;
+    SVECTOR*           vert;
+    s32                rimRad;
+    s32                hubRad;
+    s32                rimSize;
+    s32                hubSize;
+    s32                i;
+    s32                next;
+    s32                ang;
+    s32                u0;
+    s16                back;
+    MATRIX*            rot;
 
     /* `rimSize` / `hubSize` are latched into the loop's own `rimRad` /
        `hubRad` on purpose: the ROM keeps the two copies the single pair would
        have coalesced away, and `rot` is a second spelling of `&coord->workm`
-       for the same reason. `vert` reaches `outer[i]` (the hub) through `inner[i]` (the rim) rather
-       than off `sc`, so the `gte_ldv0` / `gte_stsv` address stays a register
-       of its own instead of being shared with the field stores. */
-    sc = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
+       for the same reason. `vert` reaches `bottomRing[i]` (the hub) through
+       `topRing[i]` (the rim) rather than off `sc`, so the `gte_ldv0` /
+       `gte_stsv` address stays a register of its own instead of being shared
+       with the field stores. */
+    sc = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     if (shortCone != 0) {
         back    = (length << 1) + (age << 8);
         hubSize = 0x80;
@@ -37,41 +38,41 @@ static void jetConeDraw(GfxCoord* coord, s16 age, s16 length, s32 shortCone)
     rimRad = rimSize;
     rot    = &coord->workm;
     hubRad = hubSize;
-    for (; i < 0x10; i++) {
-        ang             = i << 8;
-        sc->inner[i].vx = (rsin(ang) * rimRad) >> 12;
-        sc->inner[i].vy = (rcos(ang) * rimRad) >> 12;
-        sc->inner[i].vz = -back;
+    for (; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
+        ang               = i << 8;
+        sc->topRing[i].vx = (rsin(ang) * rimRad) >> 12;
+        sc->topRing[i].vy = (rcos(ang) * rimRad) >> 12;
+        sc->topRing[i].vz = -back;
         gte_SetRotMatrix(rot);
-        gte_ldv0(&sc->inner[i]);
+        gte_ldv0(&sc->topRing[i]);
         gte_rtv0();
-        gte_stsv(&sc->inner[i]);
-        sc->inner[i].vx += (u16)coord->workm.t[0];
-        sc->inner[i].vy += (u16)coord->workm.t[1];
-        sc->inner[i].vz += (u16)coord->workm.t[2];
-        sc->outer[i].vx  = (rsin(ang) * hubRad) >> 12;
-        vert             = &sc->inner[i] + 16;
-        vert->vy         = (rcos(ang) * hubRad) >> 12;
-        vert->vz         = 0;
+        gte_stsv(&sc->topRing[i]);
+        sc->topRing[i].vx   += (u16)coord->workm.t[0];
+        sc->topRing[i].vy   += (u16)coord->workm.t[1];
+        sc->topRing[i].vz   += (u16)coord->workm.t[2];
+        sc->bottomRing[i].vx = (rsin(ang) * hubRad) >> 12;
+        vert                 = &sc->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
+        vert->vy             = (rcos(ang) * hubRad) >> 12;
+        vert->vz             = 0;
         gte_SetRotMatrix(rot);
-        gte_ldv0(&sc->outer[i]);
+        gte_ldv0(&sc->bottomRing[i]);
         gte_rtv0();
-        gte_stsv(&sc->outer[i]);
-        sc->outer[i].vx += (u16)coord->workm.t[0];
-        vert->vy        += (u16)coord->workm.t[1];
-        vert->vz        += (u16)coord->workm.t[2];
+        gte_stsv(&sc->bottomRing[i]);
+        sc->bottomRing[i].vx += (u16)coord->workm.t[0];
+        vert->vy             += (u16)coord->workm.t[1];
+        vert->vz             += (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 0x10; i++) {
-        gte_ldv0(&sc->inner[i]);
+    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
+        gte_ldv0(&sc->topRing[i]);
         gte_rtps();
         gte_stsxy(&sc->sxy0);
-        next = (i + 1) & 0xF;
-        gte_ldv3(&sc->inner[next], &sc->outer[i], &sc->outer[next]);
+        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
+        gte_ldv3(&sc->topRing[next], &sc->bottomRing[i], &sc->bottomRing[next]);
         gte_rtpt();
         gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
-        gte_stflg(&sc->flag);
-        if (sc->flag >= 0) {
+        gte_stflg(&sc->projectionFlags);
+        if (sc->projectionFlags >= 0) {
             gte_stszotz(&sc->otz);
             sc->otz++;
             prim           = gGpuPrimCursor;
@@ -88,5 +89,5 @@ static void jetConeDraw(GfxCoord* coord, s16 age, s16 length, s32 shortCone)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
