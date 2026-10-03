@@ -4,14 +4,14 @@
 /// bit 0 is set with it -- the handler that follows.
 s32 factoryLiftRaise(Task* task)
 {
-    FactoryLiftWork* work  = (FactoryLiftWork*)task->work;
+    FactoryLiftWork* work  = task->work;
     GfxCoord*        coord = task->extra.tmd->coords;
     s32              done  = 0;
 
-    switch (work->field_17) {
+    switch (work->yStep) {
         case 0:
-            work->field_4 = 0;
-            work->field_17++;
+            work->yVelocity = 0;
+            work->yStep++;
             break;
         case 1:
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
@@ -19,25 +19,25 @@ s32 factoryLiftRaise(Task* task)
             } else {
                 Gp_EnqueueStageSnd6(SOUND_NIGHT_FACTORY_LIFT_MOVE, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            work->field_17++;
+            work->yStep++;
             break;
         case 2:
-            work->field_4 += -0xC000;
-            if (work->field_4 < -0x30000) {
-                work->field_4 = -0x30000;
+            work->yVelocity += -0xC000;
+            if (work->yVelocity < -0x30000) {
+                work->yVelocity = -0x30000;
             }
-            work->field_C.word += work->field_4;
-            if (work->field_C.word < -0x23A0000) {
-                work->field_17++;
+            work->y.word += work->yVelocity;
+            if (work->y.word < FACTORY_LIFT_Y_RAISED) {
+                work->yStep++;
             }
             break;
         case 3:
-            work->field_4 += 0xC000;
-            if (work->field_4 > 0xC000) {
-                work->field_4 = 0xC000;
+            work->yVelocity += 0xC000;
+            if (work->yVelocity > 0xC000) {
+                work->yVelocity = 0xC000;
             }
-            work->field_C.word += work->field_4;
-            if (work->field_C.word >= -0x23A0000) {
+            work->y.word += work->yVelocity;
+            if (work->y.word >= FACTORY_LIFT_Y_RAISED) {
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     Gp_EnqueueStageSnd7(SOUND_FACTORY_LIFT_MOVE, 1);
@@ -46,7 +46,7 @@ s32 factoryLiftRaise(Task* task)
                     Gp_EnqueueStageSnd7(SOUND_NIGHT_FACTORY_LIFT_MOVE, 1);
                     Gp_EnqueueStageSnd6(SOUND_NIGHT_FACTORY_LIFT_MOVE_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
-                work->field_17++;
+                work->yStep++;
             }
             break;
         default:
@@ -54,7 +54,7 @@ s32 factoryLiftRaise(Task* task)
             break;
     }
 
-    if ((u8)(work->field_17 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
+    if ((u8)(work->yStep - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
         factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
             Gp_EnqueueStageSnd7(SOUND_FACTORY_LIFT_MOVE, 1);
@@ -63,11 +63,11 @@ s32 factoryLiftRaise(Task* task)
             Gp_EnqueueStageSnd7(SOUND_NIGHT_FACTORY_LIFT_MOVE, 1);
             Gp_EnqueueStageSnd6(SOUND_NIGHT_FACTORY_LIFT_MOVE_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         }
-        done               = 1;
-        work->field_C.word = -0x23A0000;
-        work->field_17     = 4;
+        done         = 1;
+        work->y.word = FACTORY_LIFT_Y_RAISED;
+        work->yStep  = 4;
     }
-    coord->coord.t[1]   = work->field_C.halves.integer;
+    coord->coord.t[1]   = work->y.halves.integer;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }

@@ -8,7 +8,7 @@ void factoryLiftBindLighting(Task* task)
     FactoryLiftWork* work;
     TmdObject*       extra;
 
-    work                = (FactoryLiftWork*)task->work;
+    work                = task->work;
     extra               = task->extra.tmd;
     coord               = extra->coords;
     extra->lightMtx     = &work->light;

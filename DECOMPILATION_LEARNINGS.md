@@ -93980,7 +93980,7 @@ a member access, once into the pointer variable that survives the frame.
 
 ```c
 coord = ((TmdObject*)task->extra)->coords;   /* the load lands here */
-work  = (FactoryLiftWork*)task->work;
+work  = task->work;
 obj   = (TmdObject*)task->extra;              /* cse -> move s4, v0 */
 ```
 
@@ -122557,10 +122557,10 @@ gives a `lw` where the target has `lh`, and two `s16`s give two `sh`s where the
 target has one `sw`:
 
 ```c
-    /* 0x0C */ Fixed16 field_C;
+    Fixed16 y;
 ```
 
-`work->field_C.word = 0xFDC60000;` is the `sw`; `work->field_C.halves.integer` is
+`work->y.word = 0xFDC60000;` is the `sw`; `work->y.halves.integer` is
 the `lh`. The wide/narrow pair is the tell - one `sw` and one `lh` at `+2` of the
 same offset is a union, where the existing "Two views of one union field are two
 loads" case is both reads narrow. A 16.16 accumulator read through its integer

@@ -91,36 +91,64 @@ typedef struct {
 } FactoryHatchStateFuncTable;
 STATIC_ASSERT_SIZEOF(FactoryHatchStateFuncTable, 0xC);
 
-/// Work block the room's factory task allocates as 0x58 zeroed bytes in its
-/// state 0 and parks at `Task::work`.
+/// Bits of the lift position nibble, game flag
+/// `GAME_FLAG_FACTORY_LIFT_POSITION`, and of the copy of it in
+/// `FactoryLiftWork::position`. The operator panel requests a move by changing
+/// a bit; the lift then moves until it stands where the nibble says.
+enum {
+    FACTORY_LIFT_POSITION_TURNED = 1 << 0, // Turned a quarter turn about Y
+    FACTORY_LIFT_POSITION_RAISED = 1 << 1, // Raised
+};
+
+/// Rest positions of the lift's two movements, as words of
+/// `FactoryLiftWork::y` and `FactoryLiftWork::yaw`. The other end of each
+/// movement is 0. Y grows downwards, so the raised position is negative.
+#define FACTORY_LIFT_Y_RAISED   (-570 * 0x10000)
+#define FACTORY_LIFT_YAW_TURNED (0x400 * 0x10000)
+
+/// Value of `FactoryLiftWork::moveFrames` from which a button press ends the
+/// running movement at once.
+#define FACTORY_LIFT_SKIP_FRAMES 11
+
+/// Work block of the lift task: where the lift model stands, how fast it is
+/// moving, and the progress of the two movements that take it to the position
+/// the lift position nibble asks for.
 ///
-/// `field_0` is the nibble of game flag 0x49 the task last saw, `field_14`
-/// counts the frames since that nibble changed, and `field_16` / `field_17` are
-/// the step counters of the handlers driven by its bit 0 and bit 1: each drops
-/// back to 0 when its bit changes, and the set-up state seeds both to -1 when
-/// it allocates the block.
+/// The task's set-up state allocates it zeroed, parks it at `Task::work` and
+/// seeds `y` and `yaw` from the nibble, so a lift loaded raised or turned
+/// starts there with both movements at rest.
 ///
-/// `field_C` is a 16.16 accumulator: the lift handlers add `field_4` to it and
-/// clamp the result, and the model's Y translation is the integer half.
+/// Every frame the task compares the nibble with `position`. A changed bit
+/// restarts that bit's movement from step 0 and restarts `moveFrames`. The
+/// vertical movement then runs towards `FACTORY_LIFT_Y_RAISED` or 0 and the
+/// turn towards `FACTORY_LIFT_YAW_TURNED` or 0, each by the same steps:
 ///
-/// `field_10` is the model's 16.16 yaw: the turn handlers accelerate `field_8`
-/// towards a limit, add it to `field_10`, and rebuild the model's rotation
-/// from the integer half alone.
+/// - 0 brings the velocity to rest;
+/// - 1 starts the movement's sound;
+/// - 2 accelerates up to a limit, adding the velocity to the position, until
+///   the position passes its target;
+/// - 3 does the same in reverse until it is back on the target, then tells the
+///   operator panel and plays the stop sound;
+/// - 4, like the -1 set-up leaves, is at rest.
 ///
-/// `light` and `color` are the model's own light and colour matrices, which the
-/// lighting helper publishes onto the model's `TmdObject::lightMtx` /
-/// `colorMtx`.
-typedef struct FactoryLiftWork {
-    /* 0x00 */ s32     field_0;
-    /* 0x04 */ s32     field_4;
-    /* 0x08 */ s32     field_8;
-    /* 0x0C */ Fixed16 field_C;
-    /* 0x10 */ Fixed16 field_10;
-    /* 0x14 */ u16     field_14;
-    /* 0x16 */ s8      field_16;
-    /* 0x17 */ s8      field_17;
-    /* 0x18 */ MATRIX  light;
-    /* 0x38 */ MATRIX  color;
+/// A turn asked for while the lift is lowered cannot complete. Its step 2 ends
+/// 0x80 past the starting yaw with a bang, and its step 3 swings back and
+/// rewrites both `position` and the nibble to the bit's previous value, so
+/// the frame after sees no change.
+///
+/// The model's Y translation and its rotation about Y are rebuilt every frame
+/// from the integer halves of `y` and `yaw` alone.
+typedef struct {
+    s32     position;    // Lift position nibble this task last saw, `FACTORY_LIFT_POSITION_` bits
+    s32     yVelocity;   // Vertical speed, 16.16 world units per frame; negative rises
+    s32     yawVelocity; // Turn rate, 16.16 angle units (0x1000 a turn) per frame
+    Fixed16 y;           // Model Y translation, 16.16 world units; 0 lowered, `FACTORY_LIFT_Y_RAISED` raised
+    Fixed16 yaw;         // Rotation about Y, 16.16 angle units; 0 home, `FACTORY_LIFT_YAW_TURNED` turned
+    s16     moveFrames;  // Frames since a movement was last requested; gates the button skip
+    s8      yawStep;     // Step of the turn (-1 at rest since set-up, 0-3 moving, 4 at rest)
+    s8      yStep;       // Step of the vertical movement, as `yawStep`
+    MATRIX  light;       // Light-direction matrix the lift model and the hatch draw with
+    MATRIX  color;       // Light-colour matrix the lift model and the hatch draw with
 } FactoryLiftWork;
 STATIC_ASSERT_SIZEOF(FactoryLiftWork, 0x58);
 

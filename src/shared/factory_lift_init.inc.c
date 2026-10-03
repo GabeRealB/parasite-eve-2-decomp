@@ -17,27 +17,29 @@ void factoryLiftInit(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    work  = memCalloc(0x58, 0);
+    work  = memCalloc(sizeof(FactoryLiftWork), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
     task->work     = work;
-    work->field_0  = GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION);
-    work->field_16 = -1;
-    work->field_17 = -1;
+    work->position = GameFlag_GetNibble(GAME_FLAG_FACTORY_LIFT_POSITION);
+    work->yawStep  = -1;
+    work->yStep    = -1;
     obj->flags    &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    if (work->field_0 & 1) {
-        work->field_10.word = 0x4000000;
-        RotMatrixY(0x4000000, &coord->coord);
+    if (work->position & FACTORY_LIFT_POSITION_TURNED) {
+        work->yaw.word = FACTORY_LIFT_YAW_TURNED;
+        // Passes the whole 16.16 word, where the per-frame handlers pass
+        // its integer half.
+        RotMatrixY(FACTORY_LIFT_YAW_TURNED, &coord->coord);
     }
-    if (work->field_0 & 2) {
-        work->field_C.word = 0xFDC60000;
+    if (work->position & FACTORY_LIFT_POSITION_RAISED) {
+        work->y.word = FACTORY_LIFT_Y_RAISED;
     } else {
-        work->field_C.word = 0;
+        work->y.word = 0;
     }
     coord->coord.t[0] = 0xE4C;
-    coord->coord.t[1] = work->field_C.halves.integer;
+    coord->coord.t[1] = work->y.halves.integer;
     coord->coord.t[2] = 0x1AAE;
     factoryLiftBindLighting(task);
     factoryLiftSyncCollision(task, 1, 0);
