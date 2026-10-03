@@ -1346,7 +1346,7 @@ arity 4, and the typedef gives the return type the caller's sloppy `extern void`
 had hidden.
 
 Take the body from the shaped sibling, not from m2c: `func_actor_503500_80132584`
-is byte-identical apart from `sb`/`sw` on the work block's `field_44`, so the
+is byte-identical apart from `sb`/`sw` on the work block's `freeCountdown`, so the
 sibling's case order and two-statement `|= 0x80` then `&= ~0x4` spelling (which
 the target merges into one read-modify-write) are what to copy. One instruction
 apart is invisible to `overlay_dup_index.py find`, which compares disassembly

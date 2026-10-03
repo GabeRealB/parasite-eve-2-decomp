@@ -116,7 +116,7 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
 /// `func_actor_503500_80146508` republishes the two matrices onto
 /// `TmdObject::lightMtx` / `colorMtx`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
-/// exactly as `func_actor_503500_801324EC` does for `Actor503500ColorMtx`.
+/// exactly as `func_actor_503500_801324EC` does for `_Actor503500SliderWork`.
 ///
 /// The size is the allocation, and the fields below are the ones the init
 /// seeds: the three `sb` bytes at 0x43D/0x43E/0x4C8 are set to -1, and the
