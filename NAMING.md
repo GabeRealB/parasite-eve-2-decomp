@@ -457,6 +457,13 @@ collision body. `PykeFlameSplashScratch` is the ground-splash quad's scratch
 block: the flat quad's corners and their projected screen positions, with
 ordering depth and the GTE FLAG word left on the call stack.
 
+`bladeTrail` owns the included swoosh the Gunblade, M4A1 bayonet and tonfa
+baton leave behind a swing. Its interface is `src/shared/blade_trail.h`.
+Each weapon keeps eight frames of the blade base and tip and includes
+`bladeTrailDraw`, which joins seven adjacent pairs into fading gouraud quads.
+`BladeTrailScratch` is one quad's scratch block: four world corners, the
+ordering depth and the GTE FLAG word, plus one word the drawer never touches.
+
 ## Documentation
 
 [`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before

@@ -16,16 +16,27 @@
 
 #include "common.h"
 
-/// 0x2C-byte scratch `bladeTrailDraw` carves off the scratch stack for
-/// one beam segment: `v` is the quad's four corners, taken from the
-/// translation of the two trail coordinates at each end of the segment, `flag`
-/// the `gte_stflg` of the projection (negative rejects the quad) and `otz` its
-/// `gte_stszotz`, which picks the OT bucket the `POLY_G4` is linked into.
-typedef struct BladeTrailScratch {
-    /* 0x00 */ SVECTOR v[4];
-    /* 0x20 */ s32     otz;
-    /* 0x24 */ s32     flag;
-    /* 0x28 */ s32     unused;
+/// Scratch-stack workspace for one quad of a blade trail.
+///
+/// `bladeTrailDraw` reserves one block and reuses it for each of the seven
+/// quads between the blade's base and tip rings. The corners are those frames'
+/// world translations, narrowed to signed 16-bit coordinate units. Corner 0 is
+/// the newer base and is projected on its own. Corners 1, 2 and 3 are the newer
+/// tip, the older base and the older tip, projected together. Screen positions
+/// are stored straight into the gouraud quad, so the block keeps none of them.
+///
+/// `projectionFlags` is the GTE flag word of that three-vertex transform. A
+/// negative word skips the quad. Otherwise `otz` is SZ3 / 4 of the same
+/// transform, the older tip's screen depth, and it selects the ordering-table
+/// bucket and the blend packet's depth.
+///
+/// The last word is never read or written. Its role is unproven. Reserve the
+/// complete block and release it before any pointer into it is used again.
+typedef struct {
+    SVECTOR worldCorners[4]; // [0] newer base, [1] newer tip, [2] older base, [3] older tip
+    s32     otz;             // SZ3 / 4 of the three-vertex transform; ordering and blend depth
+    s32     projectionFlags; // GTE FLAG word of that transform; bit 31 set skips the quad
+    s32     field_28;        // Role unproven; the drawer never reads or writes this word
 } BladeTrailScratch;
 STATIC_ASSERT_SIZEOF(BladeTrailScratch, 0x2C);
 
