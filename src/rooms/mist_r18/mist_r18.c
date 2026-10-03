@@ -44,17 +44,6 @@
 
 extern WorldCoordRoomLights D_mist_r18_80186E44[1];
 
-/// Spawn descriptor for the sprite task `func_mist_r18_8017E3A4` drives: the
-/// screen rectangle it redraws every frame, hung off `Task::spawnArg2`.
-typedef struct MistR18SpriteSpawn {
-    /* 0x00 */ s16 x;
-    /* 0x02 */ s16 y;
-    /* 0x04 */ s16 w;
-    /* 0x06 */ s16 h;
-} MistR18SpriteSpawn;
-
-STATIC_ASSERT_SIZEOF(MistR18SpriteSpawn, 0x8);
-
 s32  func_8017A038(void);
 void func_80179FC8(s32 arg0, s32 arg1);
 
@@ -1402,18 +1391,21 @@ static void func_mist_r18_8017E39C(Task* task)
 
 /// Redraw the room's sprite rectangle each frame until the spawn countdown in
 /// `Task::spawnArg1` runs out, then kill the task.
+///
+/// `Task::spawnArg2` points at the `RECT` to cover, in draw-environment
+/// pixels; the task borrows it and reads it again every frame.
 void func_mist_r18_8017E3A4(Task* task)
 {
-    PrimDrawParams      sprite;
-    MistR18SpriteSpawn* spawn;
+    PrimDrawParams sprite;
+    RECT*          rect;
 
-    spawn = task->spawnArg2.pointer;
+    rect = task->spawnArg2.pointer;
 
     if (task->state == 0) {
-        sprite.x         = spawn->x;
-        sprite.y         = spawn->y;
-        sprite.w         = spawn->w;
-        sprite.h         = spawn->h;
+        sprite.x         = rect->x;
+        sprite.y         = rect->y;
+        sprite.w         = rect->w;
+        sprite.h         = rect->h;
         sprite.b         = 0;
         sprite.g         = 0;
         sprite.r         = 0;
