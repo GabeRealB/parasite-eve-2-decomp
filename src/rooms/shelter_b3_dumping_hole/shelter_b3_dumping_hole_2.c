@@ -248,15 +248,21 @@ typedef struct {
 /// End marker in the X coordinate of the room's model placement tables.
 enum { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END = 0xFFFF };
 
-/// An entry of the third spawn table: a position, and a flag asking for a
-/// ring of debris tasks around it. A 0xFFFF `x` ends the table.
+/// Where the debris event places one piece of rubble, and whether a ring of
+/// debris sprites is spawned around it.
+///
+/// The piece's task borrows `transform` as its spawn placement and reads it
+/// once, when it initialises. A table of these ends at an entry whose
+/// `transform.pos.vx` is `SHELTER_B3_DUMPING_HOLE_TRANSFORM_END`.
 typedef struct {
-    s32 x;
-    s32 y;
-    s32 z;
-    u8  pad_C[0xC];
-    u16 field_18;
-} DumpingHoleDebrisEntry;
+    ActorTransform transform;  // Position and Euler angles the piece's model starts at
+    u16            spriteRing; // Nonzero spawns five debris sprites: one at the piece and one at each YZ diagonal, `SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET` away per axis
+} _ShelterB3DumpingHoleDebrisPlacement;
+STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHoleDebrisPlacement, 0x1C);
+
+/// Distance along Y and along Z between a ringed piece of rubble and each of
+/// the four debris sprites spawned around it, in world-coordinate units.
+enum { SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET = 200 };
 
 /// Where a billboard sprite of this room stands and how large it is drawn: the
 /// head of a `_ShelterB3DumpingHoleSpriteWork`.
@@ -383,17 +389,17 @@ extern OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[];
 extern TaskDesc D_shelter_b3_dumping_hole_80188C04[];
 extern TaskDesc D_shelter_b3_dumping_hole_80188BC8[];
 
-extern Task*                            D_shelter_b3_dumping_hole_8018F4A8;
-extern s16                              D_shelter_b3_dumping_hole_80188154[];
-extern _ShelterB3DumpingHoleSpriteFrame D_shelter_b3_dumping_hole_801880B8[];
-extern s16                              D_shelter_b3_dumping_hole_8018816C[];
-extern s16                              D_shelter_b3_dumping_hole_80188184[];
-extern s32                              D_shelter_b3_dumping_hole_8018819C[];
-extern ActorTransform                   D_shelter_b3_dumping_hole_801881CC;
-extern ActorTransform                   D_shelter_b3_dumping_hole_801881E4;
-extern ActorTransform                   D_shelter_b3_dumping_hole_801881FC[];
-extern ActorTransform                   D_shelter_b3_dumping_hole_80188304[];
-extern DumpingHoleDebrisEntry           D_shelter_b3_dumping_hole_801884CC[];
+extern Task*                                D_shelter_b3_dumping_hole_8018F4A8;
+extern s16                                  D_shelter_b3_dumping_hole_80188154[];
+extern _ShelterB3DumpingHoleSpriteFrame     D_shelter_b3_dumping_hole_801880B8[];
+extern s16                                  D_shelter_b3_dumping_hole_8018816C[];
+extern s16                                  D_shelter_b3_dumping_hole_80188184[];
+extern s32                                  D_shelter_b3_dumping_hole_8018819C[];
+extern ActorTransform                       D_shelter_b3_dumping_hole_801881CC;
+extern ActorTransform                       D_shelter_b3_dumping_hole_801881E4;
+extern ActorTransform                       D_shelter_b3_dumping_hole_801881FC[];
+extern ActorTransform                       D_shelter_b3_dumping_hole_80188304[];
+extern _ShelterB3DumpingHoleDebrisPlacement D_shelter_b3_dumping_hole_801884CC[];
 
 extern EvsCommand            D_shelter_b3_dumping_hole_80188640[];
 extern EvsCommand            D_shelter_b3_dumping_hole_80188A78[];
@@ -706,20 +712,20 @@ ActorTransform D_shelter_b3_dumping_hole_80188304[19] = {
     { { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END, 0, 0, 0 }, { 0, 0, 0, 0 } },
 };
 
-DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[13] = {
-    { 8300, -2900, -5600, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 9000, -1200, -6700, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 8600, -2700, -7000, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 8600, -2300, -6700, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 8600, -1800, -5500, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 8800, -1500, -5400, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 8900, -1000, -7700, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 },
-    { 8800, -1900, -6300, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 8300, -2300, -4800, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 8700, -1700, -4400, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 8500, -1800, -7700, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 8700, -2300, -5600, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 1 },
-    { 0xFFFF, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 },
+_ShelterB3DumpingHoleDebrisPlacement D_shelter_b3_dumping_hole_801884CC[13] = {
+    { { { 8300, -2900, -5600, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { 9000, -1200, -6700, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { 8600, -2700, -7000, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { 8600, -2300, -6700, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { 8600, -1800, -5500, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { 8800, -1500, -5400, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { 8900, -1000, -7700, 0 }, { 0, 0, 0, 0 } }, 0 },
+    { { { 8800, -1900, -6300, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { 8300, -2300, -4800, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { 8700, -1700, -4400, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { 8500, -1800, -7700, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { 8700, -2300, -5600, 0 }, { 0, 0, 0, 0 } }, 1 },
+    { { { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END, 0, 0, 0 }, { 0, 0, 0, 0 } }, 0 },
 };
 
 EvsSceneKey D_shelter_b3_dumping_hole_80188638 = { 4, 17, 11 };
@@ -2719,8 +2725,8 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
     _ShelterB3DumpingHoleDebrisEventWork* work = arg0->work;
     ActorCommand                          msg;
     _ShelterB3DumpingHoleSpriteSeed       seed;
-    DumpingHoleDebrisEntry*               e;
-    DumpingHoleDebrisEntry*               p;
+    _ShelterB3DumpingHoleDebrisPlacement* placement;
+    _ShelterB3DumpingHoleDebrisPlacement* ringed;
     u16                                   i;
     u8                                    area;
 
@@ -2781,28 +2787,29 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
                     for (i = 0; D_shelter_b3_dumping_hole_80188304[i].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
                         Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 3, 1, &D_shelter_b3_dumping_hole_80188304[i]);
                     }
-                    for (i = 0; D_shelter_b3_dumping_hole_801884CC[i].x != 0xFFFF; i++) {
-                        e = &D_shelter_b3_dumping_hole_801884CC[i];
-                        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 4, 2, e);
-                        if (e->field_18 != 0) {
-                            p            = e;
-                            seed.pos.vx  = p->x;
-                            seed.pos.vy  = p->y;
-                            seed.pos.vz  = p->z;
+                    for (i = 0; D_shelter_b3_dumping_hole_801884CC[i].transform.pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
+                        placement = &D_shelter_b3_dumping_hole_801884CC[i];
+                        Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 4, 2, &placement->transform);
+                        if (placement->spriteRing != 0) {
+                            // One sprite at the piece, then one at each diagonal around it in the YZ plane.
+                            ringed       = placement;
+                            seed.pos.vx  = ringed->transform.pos.vx;
+                            seed.pos.vy  = ringed->transform.pos.vy;
+                            seed.pos.vz  = ringed->transform.pos.vz;
                             seed.scale   = ONE;
                             seed.field_A = 1;
                             DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.pos.vy = p->y + 200;
-                            seed.pos.vz = p->z + 200;
+                            seed.pos.vy = ringed->transform.pos.vy + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
+                            seed.pos.vz = ringed->transform.pos.vz + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
                             DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.pos.vy = p->y + 200;
-                            seed.pos.vz = p->z - 200;
+                            seed.pos.vy = ringed->transform.pos.vy + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
+                            seed.pos.vz = ringed->transform.pos.vz - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
                             DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.pos.vy = p->y - 200;
-                            seed.pos.vz = p->z + 200;
+                            seed.pos.vy = ringed->transform.pos.vy - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
+                            seed.pos.vz = ringed->transform.pos.vz + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
                             DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.pos.vy = p->y - 200;
-                            seed.pos.vz = p->z - 200;
+                            seed.pos.vy = ringed->transform.pos.vy - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
+                            seed.pos.vz = ringed->transform.pos.vz - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
                             DUMPING_HOLE_SPAWN_DEBRIS(seed);
                         }
                     }
