@@ -29,7 +29,7 @@ static void func_800CE398(s32 arg0);
 
 static s32 func_800CE3A4(void);
 
-void (*D_8010D3A0[96])(UiObject*, Task*) = {
+UiObjectTaskFunc D_8010D3A0[96] = {
     NULL,
     func_800CFA34,
     func_800CFA34,

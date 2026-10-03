@@ -876,8 +876,8 @@ void func_800CFA34(UiObject* arg0, Task* arg1)
 
 void func_800CFA60(Task* arg0)
 {
-    void      (*fn)(UiObject*, Task*);
-    UiObject* obj;
+    UiObjectTaskFunc fn;
+    UiObject*        obj;
 
     fn  = D_8010D3A0[arg0->spawnArg1.value];
     obj = arg0->spawnArg2.pointer;
@@ -975,9 +975,9 @@ void func_800CFD78(Task* arg0)
 
 static void Gp_SpawnItemUsePrompt(UiList* arg0, UiObject* arg1)
 {
-    u8   id;
-    s32  one;
-    void (**slot)(UiObject*, Task*);
+    u8                id;
+    s32               one;
+    UiObjectTaskFunc* slot;
 
     id   = Gp_SelItemRec->itemId;
     slot = &D_8010D3A0[id];

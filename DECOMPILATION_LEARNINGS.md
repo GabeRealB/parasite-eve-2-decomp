@@ -25646,7 +25646,7 @@ the index, so the `lui` cannot move above the `lbu`, and `$v0` is reused for
 the table base:
 
 ```c
-void (**slot)(UiObject*, Task*);
+UiObjectTaskFunc* slot;
 
 id   = *Gp_SelItemRec;
 slot = &D_8010D3A0[id];

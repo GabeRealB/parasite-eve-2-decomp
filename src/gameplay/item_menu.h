@@ -44,7 +44,7 @@ void Gp_PublishItemObj(Task* arg0);
 
 extern UiObjectDesc D_8010D348;
 
-extern void (*D_8010D3A0[96])(UiObject*, Task*);
+extern UiObjectTaskFunc D_8010D3A0[96];
 
 void Gp_MenuExitCallback(Task* arg0);
 

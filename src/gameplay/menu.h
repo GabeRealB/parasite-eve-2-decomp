@@ -4,11 +4,23 @@
 #include "common.h"
 
 #include "main/task_types.h"
+#include "main/ui_types.h"
 
-struct UiObject;
-
-/// Callback for UiObject + Task state handlers (e.g. entries in `Gp_ItemMenuStates`).
-typedef void (*UiObjectTaskFunc)(struct UiObject* arg0, Task* arg1);
+/// Menu handler applied to one task-owned UI node. Takes the node and the task
+/// that owns it, and returns nothing.
+///
+/// The pair is always one object seen from both ends: `object` is the node in
+/// the task's `spawnArg2.pointer`, and `task` is that node's `owner`. Callers
+/// hold one of the two and derive the other, so a handler may use whichever it
+/// needs and ignore the other.
+///
+/// Three kinds of caller use it. A node's content task selects a state handler
+/// by `Task::state` and passes itself. A parent walks its child tasks and
+/// applies one handler to each child's node. A table keyed by item id supplies
+/// the handler that carries out an item's use, and a NULL entry there means
+/// the item has none. Both pointers are live on entry. A handler may tear the
+/// node down, so a caller walking children reads the next sibling first.
+typedef void (*UiObjectTaskFunc)(UiObject* object, Task* task);
 
 /// Fixed-size table of `UiObjectTaskFunc` callbacks. Copied onto the stack by
 /// `Gp_ItemMenuTask` so the call uses a local jump table.

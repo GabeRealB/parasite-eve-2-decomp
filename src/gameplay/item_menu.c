@@ -210,7 +210,7 @@ static void Gp_FillItemActions(UiList* arg0, UiObject* arg1);
 /// counts when the carried items no longer include any of that item.
 static inline void _gpDropOrphanedWeaponLoads(void);
 
-static void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*));
+static void Gp_ForEachUiChild(UiObject* arg0, UiObjectTaskFunc arg1);
 
 static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1);
 
@@ -413,7 +413,7 @@ void Gp_ItemMoveTask(Task* arg0)
     Task*                child;
     Task*                next;
     Task*                head;
-    void                 (*cb)(UiObject*, Task*);
+    UiObjectTaskFunc     cb;
 
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
@@ -588,7 +588,7 @@ void Gp_ItemPaneTask(Task* arg0)
     Task*               child;
     Task*               next;
     Task*               head;
-    void                (*cb)(UiObject*, Task*);
+    UiObjectTaskFunc    cb;
 
     menu        = &Gp_InvLists[(u8)arg0->spawnArg1.value];
     obj         = arg0->spawnArg2.pointer;
@@ -1524,7 +1524,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     func_800D7A9C(extra, &vec2, 0, 3);
 }
 
-static void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*))
+static void Gp_ForEachUiChild(UiObject* arg0, UiObjectTaskFunc arg1)
 {
     Task* owner;
     Task* child;
