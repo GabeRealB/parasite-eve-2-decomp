@@ -1626,7 +1626,13 @@ def split_one(job: tuple) -> YamlInfo:
                 use_cache=False,
                 verbose=False,
                 disassemble_all=True,
-                make_full_disasm_for_code=objdiff_config_option,
+                # Always: the whole-unit disassembly is an extra file the
+                # matching build never reads, and producing it in both modes
+                # keeps the split stamps mode-independent. Splitting it only
+                # for objdiff made every switch between the two (the naming
+                # verifier does two per run) re-split all 449 units and the
+                # switch back rebuild the whole project.
+                make_full_disasm_for_code=True,
             )
     except BaseException:
         # A failing split's explanation is in the log; show it where the
@@ -1951,7 +1957,7 @@ def main():
 
     def job_args(yaml: str) -> list:
         family = overlay_family[yaml]
-        return [yaml, family, family_imports.get(family), bool(objdiff_config_option)]
+        return [yaml, family, family_imports.get(family)]
 
     results: list[YamlInfo | None] = [None] * len(jobs)
     todo: list[int] = []
