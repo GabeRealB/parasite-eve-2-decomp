@@ -1,5 +1,19 @@
 /* Part of the screen wave library; see screen_wave.h. */
 
+/// Scratch-stack block the grid task holds for the length of one tick: the
+/// frame's snapshot of every wave the vertex pass reads.
+///
+/// Only the `phase` and `offset` of each record are filled, copied from the
+/// package's `gScreenWaveRows` and `gScreenWaveColumns` after they advance;
+/// `speed` and `field_6` are left as the scratch pad had them and never read.
+/// The mesh is 8 quads wide and 30 tall. Its nine vertical edges each have a
+/// wave; its top edge is pinned, so the 30 horizontal edges below it do.
+typedef struct {
+    ScreenWaveGridOscillator rows[30];   // Wave of each horizontal grid edge, top to bottom
+    ScreenWaveGridOscillator columns[9]; // Wave of each vertical grid edge, left to right
+} _ScreenWaveGridScratch;
+STATIC_ASSERT_SIZEOF(_ScreenWaveGridScratch, 0x138);
+
 /// Screen-wave task, spawned through `D_actor_205200_8014CA44` with the
 /// context `func_actor_205200_8014AB98` fills. State 0 seeds random phases and
 /// speeds for the 9 column and 30 row waves and builds, for each display
@@ -10,8 +24,8 @@
 /// vertex by the sine of its row and column waves.
 void screenWaveGridTask(Task* arg0)
 {
-    OverlayWaveScratch*       scratch;
-    OverlayWaveScratch*       head;
+    _ScreenWaveGridScratch*   scratch;
+    _ScreenWaveGridScratch*   head;
     ScreenWaveCtx*            ctx;
     ScreenWaveGridOscillator* cols;
     POLY_FT4*                 p;
@@ -39,11 +53,11 @@ void screenWaveGridTask(Task* arg0)
     s32 tpage0;
     s32 tpage1;
 
-    head                                     = SCRATCH_STACK_CURSOR(OverlayWaveScratch);
-    gCdCmdQueue.imageMdecMode                = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    SCRATCH_STACK_CURSOR(OverlayWaveScratch) = head - 1;
-    cols                                     = head[-1].cols;
-    scratch                                  = head - 1;
+    head                                         = SCRATCH_STACK_CURSOR(_ScreenWaveGridScratch);
+    gCdCmdQueue.imageMdecMode                    = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+    SCRATCH_STACK_CURSOR(_ScreenWaveGridScratch) = head - 1;
+    cols                                         = head[-1].columns;
+    scratch                                      = head - 1;
     switch (arg0->state) {
         case 0:
             for (i = 0; i < 9; i++) {
@@ -136,13 +150,13 @@ void screenWaveGridTask(Task* arg0)
             gScreenWaveRamp = gScreenWaveCtx->frame * gScreenWaveCtx->scale / gScreenWaveCtx->span;
             // Advance every wave, and copy its phase and offset - the two
             // halfwords the vertex pass reads - into the scratch block as one word.
-            for (i = 0; i < 9; i++) {
+            for (i = 0; i < ARRAY_SIZE(scratch->columns); i++) {
                 if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     gScreenWaveColumns[i].phase += gScreenWaveColumns[i].speed;
                 }
                 *(s32*)&cols[i] = *(s32*)&gScreenWaveColumns[i];
             }
-            for (i = 0; i < 30; i++) {
+            for (i = 0; i < ARRAY_SIZE(scratch->rows); i++) {
                 if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     gScreenWaveRows[i].phase += gScreenWaveRows[i].speed;
                 }
@@ -195,5 +209,5 @@ void screenWaveGridTask(Task* arg0)
     gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayWaveScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_ScreenWaveGridScratch);
 }

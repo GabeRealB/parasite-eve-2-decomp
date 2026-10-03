@@ -118,15 +118,6 @@ typedef struct {
 } ScreenWaveOscillator;
 STATIC_ASSERT_SIZEOF(ScreenWaveOscillator, 0x6);
 
-/// The scratch-pad block the padded screen-wave mesh takes from
-/// the scratch stack for one frame: a copy of the row and column wave records
-/// the mesh's vertices are displaced by.
-typedef struct OverlayWaveScratch {
-    ScreenWaveGridOscillator rows[30];
-    ScreenWaveGridOscillator cols[9];
-} OverlayWaveScratch;
-STATIC_ASSERT_SIZEOF(OverlayWaveScratch, 0x138);
-
 /// The scratch-pad block the world-space walk takes from the scratch stack:
 /// `coord` is the frame the walk stands on, climbing the `GfxCoord::parent`
 /// parent chain until it runs out, `vec` the vector being carried up, `out`
