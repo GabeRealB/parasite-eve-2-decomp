@@ -36,12 +36,25 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-/// Coordinates of one icon in the attachment selection wheel.
+/// Marks an `_AttachmentWheelPoint` that is not waiting to be drawn.
+///
+/// It lies below every cosine, so the search for the nearest remaining point
+/// never picks it.
+#define ATTACHMENT_WHEEL_POINT_RETIRED (-0x7FFF)
+
+/// Where one spell's icon sits on the Parasite Energy selection wheel.
+///
+/// The learned spells are spread evenly round a unit circle seen almost edge
+/// on, the highlighted one at angle 0, nearest the viewer. Both coordinates
+/// are 4.12 fixed point (4096 is the radius), and the wheel is flattened into
+/// screen pixels only when an icon is drawn. Icons are drawn nearest first, so
+/// `y` is also the key that picks the next one; a point is retired with
+/// `ATTACHMENT_WHEEL_POINT_RETIRED` once drawn.
 typedef struct {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-} GpWheelPt;
-STATIC_ASSERT_SIZEOF(GpWheelPt, 4);
+    s16 x; // Sine of the icon's angle: its offset to the right of the wheel's centre
+    s16 y; // Cosine of the icon's angle: its nearness, shown as an offset down the screen; `ATTACHMENT_WHEEL_POINT_RETIRED` once drawn
+} _AttachmentWheelPoint;
+STATIC_ASSERT_SIZEOF(_AttachmentWheelPoint, 4);
 
 /// Text scratch is reused for the wheel coordinates after drawing the prompt.
 typedef struct {
@@ -51,7 +64,7 @@ typedef struct {
             /* 0x00 */ u8          buf[0x20];
             /* 0x20 */ TextDrawReq req;
         } text;
-        GpWheelPt pts[12];
+        _AttachmentWheelPoint pts[12];
     } u;
     /* 0x60 */ RECT rect;
 } GpWheelScratch;
@@ -772,33 +785,33 @@ static __inline__ u16 getAttachWheelParam(s32 slot, s32 field)
 
 static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
 {
-    GpWheelScratch s;
-    s32            changed;
-    s32            order;
-    PlayerStatus*  cfg;
-    u8*            table;
-    s32            cond;
-    s32            count;
-    s32            xOff;
-    s32            yOff;
-    s32            item;
-    s32            param;
-    s32            ret;
-    s32            color;
-    GpWheelPt*     pts;
-    GpWheelPt*     dest;
-    GpWheelPt*     points;
-    GpWheelPt*     chosen;
-    McSaveData*    save;
-    s32            angle;
-    s32            best;
-    s32            flags;
-    s32            px;
-    s32            py;
-    s32            slot;
-    s32            i;
-    s32            j;
-    DR_TPAGE*      dr;
+    GpWheelScratch         s;
+    s32                    changed;
+    s32                    order;
+    PlayerStatus*          cfg;
+    u8*                    table;
+    s32                    cond;
+    s32                    count;
+    s32                    xOff;
+    s32                    yOff;
+    s32                    item;
+    s32                    param;
+    s32                    ret;
+    s32                    color;
+    _AttachmentWheelPoint* pts;
+    _AttachmentWheelPoint* dest;
+    _AttachmentWheelPoint* points;
+    _AttachmentWheelPoint* chosen;
+    McSaveData*            save;
+    s32                    angle;
+    s32                    best;
+    s32                    flags;
+    s32                    px;
+    s32                    py;
+    s32                    slot;
+    s32                    i;
+    s32                    j;
+    DR_TPAGE*              dr;
 
     changed              = 0;
     order                = -2;
@@ -876,14 +889,14 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
         s.rect.h = 0x13;
         Ui_DrawTextInRect(&s.rect, -1, 0x40002, NULL);
 
-        /* Lay the equipped attachments out on a circle; unused slots are
-         * parked at the sentinel height so the selection below skips them. */
+        /* Spread the learned spells evenly round the wheel, turned by the
+         * step still in progress; the unused points are retired. */
         s.obj.panel.contentOriginX.unsignedValue = 0x30;
         s.obj.panel.contentOriginY.unsignedValue = 0;
         s.obj.panel.otIndex.signedValue          = -3;
         s.obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
         pts                                      = s.u.pts;
-        for (i = 0; i < 12; i++) {
+        for (i = 0; i < ARRAY_SIZE(s.u.pts); i++) {
             if (i < count) {
                 angle = ((i * 4 + hud->wheelTurn) << 12) / (count * 4);
                 if (count == 1) {
@@ -893,13 +906,13 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
                 dest->x = rsin(angle);
                 dest->y = rcos(angle);
             } else {
-                pts[i].x = -0x7FFF;
-                pts[i].y = -0x7FFF;
+                pts[i].x = ATTACHMENT_WHEEL_POINT_RETIRED;
+                pts[i].y = ATTACHMENT_WHEEL_POINT_RETIRED;
             }
         }
 
-        /* Each pass draws the remaining point with the greatest y, then
-         * retires it to the sentinel height so later passes skip it. */
+        /* Each pass draws the nearest point still waiting, the one with the
+         * greatest y, and retires it so that later passes skip it. */
         if (count > 0) {
             i      = 0;
             points = s.u.pts;
@@ -908,9 +921,9 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
                 best  = 0;
                 flags = 0;
                 for (j = 0; j < count; j++) {
-                    GpWheelPt* top = &points[best];
+                    _AttachmentWheelPoint* nearest = &points[best];
 
-                    if (top->y < points[j].y) {
+                    if (nearest->y < points[j].y) {
                         best = j;
                     }
                 }
@@ -928,7 +941,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
                     px = cx + xOff;
                     py = cy + yOff;
                 }
-                chosen->y = -0x7FFF;
+                chosen->y = ATTACHMENT_WHEEL_POINT_RETIRED;
 
                 slot = stepAttachWheelSaved(Gp_StateC08.wheelIndex, best, save);
 
