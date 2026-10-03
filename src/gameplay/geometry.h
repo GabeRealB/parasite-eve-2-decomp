@@ -6,15 +6,6 @@
 
 #include "common.h"
 
-/// SVECTOR layout with unsigned X/Z so `Gp_YawToPosXZ` emits `lhu`.
-typedef struct _GpPosXZ {
-    /* 0x0 */ u16 vx;
-    /* 0x2 */ u16 pad_2;
-    /* 0x4 */ u16 vz;
-    /* 0x6 */ u16 pad_6;
-} GpPosXZ;
-STATIC_ASSERT_SIZEOF(GpPosXZ, 8);
-
 /// Scratch-stack workspace for a 3D point and its screen projection.
 ///
 /// The caller supplies the GTE rotation and translation matrices. The screen

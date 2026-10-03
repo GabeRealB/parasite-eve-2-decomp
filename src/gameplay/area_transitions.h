@@ -1,10 +1,12 @@
 #ifndef GAMEPLAY_PRIVATE_AREA_TRANSITIONS_H
 #define GAMEPLAY_PRIVATE_AREA_TRANSITIONS_H
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+
 #include "types.h"
 
 #include "direction.h"
-#include "geometry.h"
 
 #include "main/task_types.h"
 
@@ -16,7 +18,7 @@ extern const GpDirActionTable Gp_DirActionFns;
 /// index returns -1.
 s16 Gp_LookupStageFlag(s16 idx);
 
-s32 Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1);
+s32 Gp_YawToPosXZ(Task* arg0, SVECTOR* arg1);
 
 void Gp_SetCurAreaFlag4(void);
 

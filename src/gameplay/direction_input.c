@@ -9,7 +9,6 @@
 #include "gameplay/attachments.h"
 #include "gameplay/direction.h"
 #include "direction.h"
-#include "geometry.h"
 #include "hud_sprites.h"
 #include "loading.h"
 #include "gameplay/message.h"
@@ -284,7 +283,7 @@ void Gp_SetupDirWarp(void)
                 pos.vx     = -0x5C1;
                 pos.vy     = 0;
                 pos.vz     = 0x9C1;
-                msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], (GpPosXZ*)&pos);
+                msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], &pos);
             } else if (warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {
                 msg.rot.vy = actor->rotation.vy;
             }
@@ -326,7 +325,7 @@ void Gp_SetupDirWarp(void)
                 pos2.vx    = -0x5C1;
                 pos2.vy    = 0;
                 pos2.vz    = 0x9C1;
-                msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], (GpPosXZ*)&pos2);
+                msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], &pos2);
             } else if (warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {
                 msg.rot.vy = actor->rotation.vy;
             }

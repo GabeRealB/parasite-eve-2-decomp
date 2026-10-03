@@ -112538,9 +112538,16 @@ replication — same `lhu` pair, same offsets, same matched source line.
 **Scope.** Any expression in a 16-bit field position whose operands are wider.
 Read the destination's type before reaching for a typed view of the source. This
 does not say a `u16` view is always wrong — where the *result* needs the unsigned
-value (`GpPosXZ`, the `GpCoordXZ` reads in `func_actor_356100_801666B4`) it is
+value (the `GpCoordXZ` reads in `func_actor_356100_801666B4`) it is
 the only thing that works — only that a narrow destination explains the narrow
 load by itself.
+
+It covers a `short` *operand* as well. `Gp_YawToPosXZ` subtracts a `long`
+translation from an `SVECTOR` point into an `SVECTOR` and the target loads both
+with `lhu`, the signed point included: the narrowed subtraction reads its `short`
+operand in HImode too, so no sign extension is asked for. It matches as
+`vec.vx = arg1->vx - coord->coord.t[0]` on a plain `SVECTOR*`; an unsigned
+`u16` overlay of the point, with a cast at each caller, was this mistake.
 
 The match needed nothing else: `func_actor_356100_80168E44` is
 `func_actor_401300_8013AE48`'s body with this overlay's field names, five
