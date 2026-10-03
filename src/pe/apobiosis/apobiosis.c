@@ -32,30 +32,6 @@
 #include "main/tmd_types.h"
 #include "../../shared/glow_draw.h"
 
-/// 0x28-byte scratch block `func_apobiosis_80130630` takes from
-/// the scratch stack to draw one burst shard. `v0` is the effect coordinate's
-/// world position and `v1` that position plus the offset vector `arg1`;
-/// both are projected through `GsWSMATRIX` with one `RTPS` each,
-/// giving `sx0`/`sy0` and `sx1`/`sy1`. `flag` is the `gte_stflg` of whichever
-/// projection ran last (a negative value drops the quad) and `otz` is the
-/// first projection's `gte_stszotz`, incremented by 1 before it becomes both
-/// the radius divisor and the OT bucket. `dx` / `dy` hold the current
-/// `(arg3 * 23 / otz) * rsin|rcos(angle) >> 12` half-extents; only their low
-/// halves are read back.
-typedef struct ApobiosisShardScratch {
-    /* 0x00 */ SVECTOR v0;
-    /* 0x08 */ SVECTOR v1;
-    /* 0x10 */ s32     otz;
-    /* 0x14 */ s32     flag;
-    /* 0x18 */ s32     dx;
-    /* 0x1C */ s32     dy;
-    /* 0x20 */ s16     sx0;
-    /* 0x22 */ s16     sy0;
-    /* 0x24 */ s16     sx1;
-    /* 0x26 */ s16     sy1;
-} ApobiosisShardScratch;
-STATIC_ASSERT_SIZEOF(ApobiosisShardScratch, 0x28);
-
 /// One 8-byte row of `D_apobiosis_80130B5C`, indexed by the effect's
 /// `EffectWork.index` / `step` (`Gp_StateC08.attachId % 10 - 1`, so the
 /// burst scales with the combo counter). `field_0` is half the number of ring
@@ -478,41 +454,41 @@ static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3
 /// screen delta giving the spin applied at that angle and at `+ 0x400`. `arg2`
 /// selects the 128-texel UV tile: u = `(arg2 & 1) * 128`, v =
 /// `((arg2 & 3) >> 1) * 24 - 0x30`. `arg3` is a signed half-extent, so the
-/// on-screen half-width is `arg3 * 23 / otz`. Clut is 0x4287, or 0x42C8 on
+/// on-screen half-width is `arg3 * 23 / depth`. Clut is 0x4287, or 0x42C8 on
 /// one in four LCG rolls when the combo row is 2. Nothing is drawn if either
 /// projection sets a negative `gte_stflg`.
 static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16 arg3)
 {
-    ApobiosisShardScratch* block;
-    POLY_FT4*              prim;
-    s32                    u0;
-    s32                    u1;
-    s32                    va;
-    s32                    vb;
-    s16                    ang;
+    EffectPointPairScratch* block;
+    POLY_FT4*               prim;
+    s32                     u0;
+    s32                     u1;
+    s32                     va;
+    s32                     vb;
+    s16                     ang;
 
-    block        = SCRATCH_STACK_RESERVE_BLOCK(ApobiosisShardScratch);
-    block->v1.vx = block->v0.vx = arg0->workm.t[0];
-    block->v1.vy = block->v0.vy = arg0->workm.t[1];
-    block->v1.vz = block->v0.vz = arg0->workm.t[2];
-    block->v1.vx               += arg1->vx;
-    block->v1.vy               += arg1->vy;
-    block->v1.vz               += arg1->vz;
+    block                 = SCRATCH_STACK_RESERVE_BLOCK(EffectPointPairScratch);
+    block->worldPoint1.vx = block->worldPoint0.vx = arg0->workm.t[0];
+    block->worldPoint1.vy = block->worldPoint0.vy = arg0->workm.t[1];
+    block->worldPoint1.vz = block->worldPoint0.vz = arg0->workm.t[2];
+    block->worldPoint1.vx                        += arg1->vx;
+    block->worldPoint1.vy                        += arg1->vy;
+    block->worldPoint1.vz                        += arg1->vz;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->v0);
+    gte_ldv0(&block->worldPoint0);
     gte_rtps();
-    gte_stsxy(&block->sx0);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        gte_ldv0(&block->v1);
+    gte_stsxy(&block->screenX0);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth++;
+        gte_ldv0(&block->worldPoint1);
         gte_rtps();
-        gte_stsxy(&block->sx1);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
+        gte_stsxy(&block->screenX1);
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
@@ -529,22 +505,22 @@ static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16
             va = ((arg2 & 3) >> 1) * 24 - 0x30;
             vb = ((arg2 & 3) >> 1) * 24 - 0x19;
             setUV4(prim, u0, va, u1, va, u0, vb, u1, vb);
-            ang       = ratan2(block->sy1 - block->sy0, block->sx1 - block->sx0);
-            block->dx = (((arg3 * 0x17) / block->otz) * rsin(ang)) >> 12;
-            block->dy = (((arg3 * 0x17) / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = block->sx0 + block->dx;
-            prim->x3  = block->sx1 - block->dx;
-            prim->y0  = block->sy0 - block->dy;
-            prim->y3  = block->sy1 + block->dy;
-            block->dx = (((arg3 * 0x17) / block->otz) * rsin(ang + 0x400)) >> 12;
-            block->dy = (((arg3 * 0x17) / block->otz) * rcos(ang + 0x400)) >> 12;
-            prim->x1  = block->sx1 + block->dx;
-            prim->x2  = block->sx0 - block->dx;
-            prim->y1  = block->sy1 - block->dy;
-            prim->y2  = block->sy0 + block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            ang                  = ratan2(block->screenY1 - block->screenY0, block->screenX1 - block->screenX0);
+            block->cornerOffsetX = (((arg3 * 0x17) / block->depth) * rsin(ang)) >> 12;
+            block->cornerOffsetY = (((arg3 * 0x17) / block->depth) * rcos(ang)) >> 12;
+            prim->x0             = block->screenX0 + block->cornerOffsetX;
+            prim->x3             = block->screenX1 - block->cornerOffsetX;
+            prim->y0             = block->screenY0 - block->cornerOffsetY;
+            prim->y3             = block->screenY1 + block->cornerOffsetY;
+            block->cornerOffsetX = (((arg3 * 0x17) / block->depth) * rsin(ang + 0x400)) >> 12;
+            block->cornerOffsetY = (((arg3 * 0x17) / block->depth) * rcos(ang + 0x400)) >> 12;
+            prim->x1             = block->screenX1 + block->cornerOffsetX;
+            prim->x2             = block->screenX0 - block->cornerOffsetX;
+            prim->y1             = block->screenY1 - block->cornerOffsetY;
+            prim->y2             = block->screenY0 + block->cornerOffsetY;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectPointPairScratch);
 }

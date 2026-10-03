@@ -360,4 +360,39 @@ typedef struct {
 } EffectBillboardScratch;
 STATIC_ASSERT_SIZEOF(EffectBillboardScratch, 0x1C);
 
+/// Scratch-stack workspace for a spinning textured quad stretched between two world points.
+///
+/// A drawer stages both points as world positions narrowed to signed 16-bit
+/// coordinate units and gives each its own perspective transform. Every
+/// transform replaces `projectionFlags`, and a negative word rejects the quad.
+/// `depth` comes from the first point alone: its SZ3 / 4 plus one, which both
+/// divides the caller's size and selects the ordering-table entry.
+///
+/// The corners are those of a one-centre spinning sprite, shared out between
+/// the two points. `cornerOffsetX` and `cornerOffsetY` first hold the corner
+/// displacement at the bearing of the screen line from the first point to the
+/// second: packet vertex 0 is the first point plus (`cornerOffsetX`,
+/// -`cornerOffsetY`) and vertex 3 the second point minus it. Both words are
+/// then recomputed a quarter turn on, placing vertex 1 at the second point
+/// plus that displacement and vertex 2 at the first point minus it. Only the
+/// low 16 bits of each sum reach the packet.
+///
+/// Each point's screen X and Y are adjacent so one GTE word store fills both.
+/// Reserve one complete, word-aligned block and initialize fields as needed;
+/// release it in scratch-stack order after drawing. No pointer into it
+/// survives release.
+typedef struct {
+    SVECTOR worldPoint0;     // First point in world space, each component narrowed to s16; projection input
+    SVECTOR worldPoint1;     // Second point in world space, each component narrowed to s16; projection input
+    s32     depth;           // First point's SZ3 / 4 plus one; divisor for sizing and depth for sorting
+    s32     projectionFlags; // GTE FLAG word of the latest transform; a negative value rejects the quad
+    s32     cornerOffsetX;   // Signed horizontal displacement from a point to its corner, in pixels
+    s32     cornerOffsetY;   // Signed vertical displacement from a point to its corner, in pixels; applied negated
+    s16     screenX0;        // Projected X of the first point, in pixels; first half of its GTE screen-position word
+    s16     screenY0;        // Projected Y of the first point, in pixels; second half of that word
+    s16     screenX1;        // Projected X of the second point, in pixels; first half of its GTE screen-position word
+    s16     screenY1;        // Projected Y of the second point, in pixels; second half of that word
+} EffectPointPairScratch;
+STATIC_ASSERT_SIZEOF(EffectPointPairScratch, 0x28);
+
 #endif // GAMEPLAY_EFFECTS_H

@@ -51,30 +51,6 @@ typedef struct AntibodyStep {
 } AntibodyStep;
 STATIC_ASSERT_SIZEOF(AntibodyStep, 0xE);
 
-/// 0x28-byte scratch block `func_antibody_80130428` takes from
-/// the scratch stack to draw one antibody arc. `v0` is the effect
-/// coordinate's world position and `v1` the player's second part coordinate;
-/// both are projected through `GsWSMATRIX` with one `RTPS` each, giving
-/// `sx0`/`sy0` and `sx1`/`sy1`. `flag` is the `gte_stflg` of whichever
-/// projection ran last (a negative value drops the quad) and `otz` is the
-/// first projection's `gte_stszotz`, incremented by 1 before it becomes both
-/// the radius divisor and the OT bucket. `dx` / `dy` hold the current
-/// `(arg2 * 23 / otz) * rsin|rcos(angle) >> 12` half-extents; only their low
-/// halves are read back.
-typedef struct AntibodyArcScratch {
-    /* 0x00 */ SVECTOR v0;
-    /* 0x08 */ SVECTOR v1;
-    /* 0x10 */ s32     otz;
-    /* 0x14 */ s32     flag;
-    /* 0x18 */ s32     dx;
-    /* 0x1C */ s32     dy;
-    /* 0x20 */ s16     sx0;
-    /* 0x22 */ s16     sy0;
-    /* 0x24 */ s16     sx1;
-    /* 0x26 */ s16     sy1;
-} AntibodyArcScratch;
-STATIC_ASSERT_SIZEOF(AntibodyArcScratch, 0x28);
-
 /// Per-level tuning for the antibody motes, one row per PE level 1-3,
 /// weakest first.
 static AntibodyStep D_antibody_80130BD4[] = {
@@ -467,50 +443,42 @@ void func_antibody_8012F734(Task* arg0)
 /// delta giving the spin applied at that angle and at `+ 0x400`. `arg1`
 /// selects the 128-texel UV tile: u = `(arg1 & 1) * 128`, v =
 /// `((arg1 & 3) >> 1) * 24 - 0x30`. `arg2` is a signed half-extent, so the
-/// on-screen half-width is `arg2 * 23 / otz`. Nothing is drawn if either
+/// on-screen half-width is `arg2 * 23 / depth`. Nothing is drawn if either
 /// projection sets a negative `gte_stflg`.
 static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
-    u8*                 head;
-    AntibodyArcScratch* block;
-    POLY_FT4*           prim;
-    SVECTOR*            vec;
-    GfxCoord*           player;
-    s32                 u0;
-    s32                 u1;
-    s32                 va;
-    s32                 vb;
-    s16                 ang;
-    s32                 ang2;
-    u16                 vz;
+    EffectPointPairScratch* block;
+    POLY_FT4*               prim;
+    GfxCoord*               player;
+    s32                     u0;
+    s32                     u1;
+    s32                     va;
+    s32                     vb;
+    s16                     ang;
 
-    player                                      = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
-    head                                        = SCRATCH_STACK_CURSOR(u8);
-    ((AntibodyArcScratch*)(head - 0x28))->v0.vx = (u16)arg0->workm.t[0];
-    block                                       = (AntibodyArcScratch*)(head - 0x28);
-    block->v0.vy                                = (u16)arg0->workm.t[1];
-    block->v0.vz                                = (u16)arg0->workm.t[2];
-    block->v1.vx                                = (u16)player->workm.t[0];
-    block->v1.vy                                = (u16)player->workm.t[1];
-    vz                                          = (u16)player->workm.t[2];
-    SCRATCH_STACK_CURSOR(AntibodyArcScratch)    = block;
-    block->v1.vz                                = vz;
-    vec                                         = &block->v0;
+    player                = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
+    block                 = SCRATCH_STACK_RESERVE_BLOCK(EffectPointPairScratch);
+    block->worldPoint0.vx = arg0->workm.t[0];
+    block->worldPoint0.vy = arg0->workm.t[1];
+    block->worldPoint0.vz = arg0->workm.t[2];
+    block->worldPoint1.vx = player->workm.t[0];
+    block->worldPoint1.vy = player->workm.t[1];
+    block->worldPoint1.vz = player->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&block->worldPoint0);
     gte_rtps();
-    gte_stsxy(&((AntibodyArcScratch*)(head - 0x28))->sx0);
-    gte_stflg(&((AntibodyArcScratch*)(head - 0x28))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((AntibodyArcScratch*)(head - 0x28))->otz);
-        block->otz = block->otz + 1;
-        gte_ldv0(&((AntibodyArcScratch*)(head - 0x28))->v1);
+    gte_stsxy(&block->screenX0);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&block->depth);
+        block->depth++;
+        gte_ldv0(&block->worldPoint1);
         gte_rtps();
-        gte_stsxy(&((AntibodyArcScratch*)(head - 0x28))->sx1);
-        gte_stflg(&((AntibodyArcScratch*)(head - 0x28))->flag);
-        if (block->flag >= 0) {
+        gte_stsxy(&block->screenX1);
+        gte_stflg(&block->projectionFlags);
+        if (block->projectionFlags >= 0) {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setlen(prim, 9);
@@ -522,25 +490,24 @@ static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
             va          = ((arg1 & 3) >> 1) * 24 - 0x30;
             vb          = ((arg1 & 3) >> 1) * 24 - 0x19;
             setUV4(prim, u0, va, u1, va, u0, vb, u1, vb);
-            ang       = ratan2(block->sy1 - block->sy0, block->sx1 - block->sx0);
-            block->dx = (((arg2 * 0x17) / block->otz) * rsin(ang)) >> 12;
-            block->dy = (((arg2 * 0x17) / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = (u16)block->sx0 + (u16)block->dx;
-            prim->x3  = (u16)block->sx1 - (u16)block->dx;
-            prim->y0  = (u16)block->sy0 - (u16)block->dy;
-            ang2      = ang + 0x400;
-            prim->y3  = (u16)block->sy1 + (u16)block->dy;
-            block->dx = (((arg2 * 0x17) / block->otz) * rsin(ang2)) >> 12;
-            block->dy = (((arg2 * 0x17) / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = (u16)block->sx1 + (u16)block->dx;
-            prim->x2  = (u16)block->sx0 - (u16)block->dx;
-            prim->y1  = (u16)block->sy1 - (u16)block->dy;
-            prim->y2  = (u16)block->sy0 + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            ang                  = ratan2(block->screenY1 - block->screenY0, block->screenX1 - block->screenX0);
+            block->cornerOffsetX = (((arg2 * 0x17) / block->depth) * rsin(ang)) >> 12;
+            block->cornerOffsetY = (((arg2 * 0x17) / block->depth) * rcos(ang)) >> 12;
+            prim->x0             = block->screenX0 + block->cornerOffsetX;
+            prim->x3             = block->screenX1 - block->cornerOffsetX;
+            prim->y0             = block->screenY0 - block->cornerOffsetY;
+            prim->y3             = block->screenY1 + block->cornerOffsetY;
+            block->cornerOffsetX = (((arg2 * 0x17) / block->depth) * rsin(ang + 0x400)) >> 12;
+            block->cornerOffsetY = (((arg2 * 0x17) / block->depth) * rcos(ang + 0x400)) >> 12;
+            prim->x1             = block->screenX1 + block->cornerOffsetX;
+            prim->x2             = block->screenX0 - block->cornerOffsetX;
+            prim->y1             = block->screenY1 - block->cornerOffsetY;
+            prim->y2             = block->screenY0 + block->cornerOffsetY;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(AntibodyArcScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(EffectPointPairScratch);
 }
 
 #include "../../shared/glow_draw_wedge.inc.c"
