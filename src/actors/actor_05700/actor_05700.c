@@ -962,6 +962,8 @@ s32 gGolemPawnRookVoiceCues[17] = {
 
 s32 gGolemPawnRookShotSound = 0x40390007;
 
+/// Sound id of the cue a grenade plays where its flight ends; the bullet ORs
+/// the firing enemy's place index into bits 8 and up before queueing it.
 s32 gGolemPawnRookImpactSound = 0x40390008;
 
 s32 gGolemPawnRookScreamCue = 0x40390013;
@@ -1253,10 +1255,6 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 /// colour matrices to its `TmdObject`. The sound cue that marks the placement
 /// packs the room/channel bits of the spawn context into `gGolemPawnRookShotSound`.
 extern s32 gGolemPawnRookShotSound;
-
-/// Sound id of the burst cue, with the spawn context's room/channel bits
-/// packed in like `gGolemPawnRookShotSound`.
-extern s32 gGolemPawnRookImpactSound;
 
 extern s32 gGolemPawnRookScreamCue;
 

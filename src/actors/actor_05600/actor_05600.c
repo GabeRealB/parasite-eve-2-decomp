@@ -52,10 +52,8 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 #include "../../shared/player_detection.h"
-// The impact cue symbol carries twelve zero bytes after the id.
-#define GOLEM_PAWN_ROOK_IMPACT_SOUND gGolemPawnRookImpactSound.value
-#define GOLEM_PAWN_ROOK_TYPE         GOLEM_PAWN
-#define GOLEM_PAWN_ROOK_WEAPON       GOLEM_GRENADE_LAUNCHER
+#define GOLEM_PAWN_ROOK_TYPE   GOLEM_PAWN
+#define GOLEM_PAWN_ROOK_WEAPON GOLEM_GRENADE_LAUNCHER
 #include "../../shared/golem_pawn_rook.h"
 
 /// Placement descriptor for this actor.
@@ -902,16 +900,18 @@ s32 gGolemPawnRookVoiceCues[17] = {
 
 s32 gGolemPawnRookShotSound = 0x40380007;
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    s32 value;
-    u8  retained[12];
-} Actor05600Storage8114;
-STATIC_ASSERT_SIZEOF(Actor05600Storage8114, 16);
+/// Sound id of the cue a grenade plays where its flight ends; the bullet ORs
+/// the firing enemy's place index into bits 8 and up before queueing it.
+s32 gGolemPawnRookImpactSound = 0x40380008;
 
-Actor05600Storage8114 gGolemPawnRookImpactSound = { 0x40380008, { 0 } };
+/* The three cue ids every Rook build defines at this position: its scream,
+ * silence and burst. The Pawn is built without the code that plays them, so
+ * nothing in this package reads these and each holds no id. */
+s32 gGolemPawnRookScreamCue = 0;
+
+s32 gGolemPawnRookSilenceCue = 0;
+
+s32 gGolemPawnRookBurstCue = 0;
 
 u16 Actor05600_D16304[22] = {
     0,
@@ -1190,10 +1190,6 @@ TaskFunc gGolemPawnRookStates[15] = {
 /// Corner indices of the two ribbon polygons in the beam scratch's
 /// projected-point arrays.
 extern s16 gGolemPawnRookBeamRibbonCorners[][4];
-
-/// Sound id of the burst cue, with the spawn context's room/channel bits
-/// packed in.
-extern Actor05600Storage8114 gGolemPawnRookImpactSound;
 
 #include "../../shared/golem_pawn_rook_hit_tick.inc.c"
 

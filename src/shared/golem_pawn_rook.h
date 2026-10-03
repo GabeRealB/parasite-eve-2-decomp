@@ -19,6 +19,7 @@
  *
  *   s16 gGolemPawnRookAnimBlendFrames[32]  blend-in length per animation, in frames
  *   s32 gGolemPawnRookVoiceCues[17]        the voice-cue sound ids of its sound bank
+ *   s32 gGolemPawnRookImpactSound          the grenade's impact cue (Grenade Launcher only)
  */
 
 #ifndef SRC_SHARED_GOLEM_PAWN_ROOK_H
@@ -71,13 +72,6 @@
 #define GOLEM_PAWN_ROOK_BACKOFF_FRAMES 0x3C
 #define GOLEM_PAWN_ROOK_STRIKE_LIMIT   3
 #endif
-#endif
-
-/// The impact cue's sound id, as the bullet reads it. A package whose symbol
-/// is a wider object holding the id defines this as the member before
-/// including the header.
-#ifndef GOLEM_PAWN_ROOK_IMPACT_SOUND
-#define GOLEM_PAWN_ROOK_IMPACT_SOUND gGolemPawnRookImpactSound
 #endif
 
 #include "types.h"
