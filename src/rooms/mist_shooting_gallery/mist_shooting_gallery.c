@@ -110,16 +110,16 @@ typedef struct {
 } _MistShootingGalleryRating;
 STATIC_ASSERT_SIZEOF(_MistShootingGalleryRating, 0x8);
 
-/// One row of the gallery's RESULT panel: the points one kill of that target
-/// is worth and the name printed beside it ("Red Target", "Crow", ...).
-/// `func_mist_shooting_gallery_8017E234` walks the 13-entry table
-/// `D_mist_shooting_gallery_80184F98` in step with the per-target kill counts
-/// in `MistShootingGalleryWork::kills`.
-typedef struct MistShootingGalleryTarget {
-    /* 0x0 */ s32         points;
-    /* 0x4 */ const char* name;
-} MistShootingGalleryTarget;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryTarget, 0x8);
+/// Score and label for one gallery target kind, as the RESULT panel prints it.
+///
+/// The table of these is indexed by target kind, the same index as
+/// `MistShootingGalleryWork::kills`. `points` is added once for each kill of
+/// that kind, and is negative when the kill is penalised.
+typedef struct {
+    s32         points; // Points added for each kill of this kind; negative deducts
+    const char* name;   // Name printed for the kind ("Bacterium", "Woman", "Red Target", ...)
+} _MistShootingGalleryTargetScore;
+STATIC_ASSERT_SIZEOF(_MistShootingGalleryTargetScore, 0x8);
 
 extern UiObjectDesc D_mist_shooting_gallery_80185060;
 
@@ -173,11 +173,11 @@ extern s16 D_mist_shooting_gallery_80184F34[];
 
 extern UiList D_mist_shooting_gallery_80184F4C;
 
-extern UiList                    D_mist_shooting_gallery_8018503C;
-extern UiObjectDesc              D_mist_shooting_gallery_8018507C[];
-extern UiObjectDesc              D_mist_shooting_gallery_8018501C;
-extern MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[13];
-extern TaskMessageEntry          D_mist_shooting_gallery_801850E8[];
+extern UiList                          D_mist_shooting_gallery_8018503C;
+extern UiObjectDesc                    D_mist_shooting_gallery_8018507C[];
+extern UiObjectDesc                    D_mist_shooting_gallery_8018501C;
+extern _MistShootingGalleryTargetScore D_mist_shooting_gallery_80184F98[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT];
+extern TaskMessageEntry                D_mist_shooting_gallery_801850E8[];
 
 extern TaskDesc           D_mist_shooting_gallery_801850DC;
 extern WorldCollisionGrid D_mist_shooting_gallery_80185198;
@@ -683,7 +683,7 @@ UiObjectDesc D_mist_shooting_gallery_80184F70 = { USER_INTERFACE_PANEL_TITLE_STY
 
 TaskDesc D_mist_shooting_gallery_80184F8C = { { { TASK_BODY_NONE, 192 } }, Gp_MenuRootTask, { .value = 0 } };
 
-MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[13] = {
+_MistShootingGalleryTargetScore D_mist_shooting_gallery_80184F98[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT] = {
     { 600, D_mist_shooting_gallery_8017D650 },
     { 1600, D_mist_shooting_gallery_8017D648 },
     { 900, D_mist_shooting_gallery_8017D640 },
