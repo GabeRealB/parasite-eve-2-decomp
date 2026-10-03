@@ -212,7 +212,7 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 /// actor to state 2.
 /// `anim` is the animation context at offset 0 -- the block is handed to
 /// `animationResetSlot` as its `AnimationContext` -- with the 0x28-byte animation
-/// slots at +0x14, the layout `Actor400500Work` uses.
+/// slots at +0x14, the layout `_Actor400500GrayStalkerWork` uses.
 ///
 /// `obj_364` / `obj_414` are the two `Gp_LinkObj` nodes the actor's retirement
 /// handler `func_actor_206100_8014FBE4` unlinks, alongside the enemy's own

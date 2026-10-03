@@ -2891,21 +2891,21 @@ delay (`99.2%`, `delete=1` from the missing `nop`).
 ```c
 if (mode == 1 || mode == 3 || mode == 5 || mode == 6) {
     val = 0xFF;
-    work->field_A20 = val;
+    work->cloakLevel = val;
     val = 0x10;
-    work->field_A24 = 0;
-    work->field_A28 = 0;
+    work->colorBlend = 0;
+    work->shadowShade = 0;
 } else {
     val = 0x1000;
-    work->field_A24 = val;
+    work->colorBlend = val;
     val = 0xFF;
-    work->field_A28 = val;
+    work->shadowShade = val;
     val = 0x2000;
-    work->field_A20 = 0;
+    work->cloakLevel = 0;
 }
-work->field_A2C = val;
+work->hideHoldFrames = val;
 SOFT_BARRIER();
-func_8009EA50(work->field_A20);
+func_8009EA50(work->cloakLevel);
 ```
 
 The first else assignment (`0x1000`) fills the `bne` delay; each arm's last
@@ -2948,8 +2948,8 @@ copies in `$v1`, matching `lw v1, 0x20(s2)` in the delay of `lw s0, 0x1C(s2)`.
 Keep `if (enemy->hp <= 0)` so the branch is `bgtz` (the sibling
 `8013899C` uses `> 0` / `blez` because it only copies one table).
 
-The anim tail is the same sibling `if / else if` on `field_9FA` (with
-`(s16)field_9FC` and `(u16)field_A00 + 1`) and the `Actor400500AnimStride`
+The anim tail is the same sibling `if / else if` on `animRequest` (with
+`appliedAnim` and `(u16)animFrames + 1`) and the `Actor400500AnimStride`
 loop; m2c's `i = 1` before the `== 3` arm turns `addiu + 1` into `addu $s0`.
 
 Example: `func_actor_400500_801385D0`. Inputs: `base.i`
@@ -2959,7 +2959,7 @@ Example: `func_actor_400500_801385D0`. Inputs: `base.i`
 ## One work pointer in three tails prefers `$a0`; split it per leaf so local-alloc takes `$v1`
 
 `func_actor_400500_801391B0` reloads `index->work` in each of three animation
-leaves and writes `field_9F8` / `field_9FE` / `field_9FA` through that pointer.
+leaves and writes `animRate` / `animId` / `animRequest` through that pointer.
 One `work2` used in all three leaves is a global allocno (`dies in 3 places`).
 `.greg` gave it `preferences: 4` (`$a0`) from the earlier `addiu a0, 0x80`
 TmdObject hide, so every tail was `lw a0, 0x1C(a2)` against the target's
@@ -2972,12 +2972,12 @@ busy with the constant chain (`1`, `0x10`, `0xF`/`0x11`, `2`, `3`/`1`) so the
 lowest free register is `$v1`.
 
 Write the three leaves as complete duplicated stores, not a shared `animId` /
-`sub` join: m2c's merged tail lets CSE sink the identical `field_9F8 = 0x10`
+`sub` join: m2c's merged tail lets CSE sink the identical `animRate = 0x10`
 stores and speculate both anim ids. Cross-jumping then rebuilds the shared
-`field_9FE` phi and the final `field_A08` store from the duplicated C.
+`animId` phi and the final `subState` store from the duplicated C.
 
 The unused `0x30` leaf frame is an unreferenced `u8 unused[0x30]` (no stack
-accesses). `s32 flag = 0x81` is required so `field_A46` gets `addiu 0x81`
+accesses). `s32 flag = 0x81` is required so `cloakRequest` gets `addiu 0x81`
 rather than `li -0x7f`.
 
 Example: `func_actor_400500_801391B0` / `func_actor_400500_8013A5D8`. Inputs:
@@ -3049,22 +3049,22 @@ Reusing it makes one pseudo live across the helper `jal`. GCC then keeps
 `&sp.funcs` in `$s2` (`addiu s2, sp, 0x10` in the `blez` delay slot) and
 indexes as `lw 0(s2+idx)` instead of rematerializing `addu v0, sp, v0` /
 `lw 0x10(v0)`. The skip flag also lands in `$v1` rather than sharing `$v0`
-with the `lb` of `field_A4A`.
+with the `lb` of `knockdownPending`.
 
 Use a separate pointer for the A4A reload, and birth `skip = 0` only on the
 false path so it fills the `beqz` delay as `move v0, zero`:
 
 ```c
-workA = (Actor400500Work*)arg0->work;
-if (workA->field_A4A != 0) {
-    workA->field_A4A = 0;
+workA = (_Actor400500GrayStalkerWork*)arg0->work;
+if (workA->knockdownPending != 0) {
+    workA->knockdownPending = 0;
     func_actor_400500_8013DB64(arg0, 5);
     skip = 1;
 } else {
     skip = 0;
 }
 if (skip == 0) {
-    sp.funcs[(s16)work->field_A08](arg0);
+    sp.funcs[(s16)work->subState](arg0);
     goto common;
 }
 ```
@@ -3078,7 +3078,7 @@ if (skip == 0) {
 ## Call a `s16` callee as `s32` so `-heading` is `lh` / `jal` / `negu`
 
 `RotMatrixY` is prototyped `void func_8004BFF8(s16 angle, MATRIX*)`.
-Passing `-work->field_94A` (an `s16`) then emits
+Passing `-work->yaw` (an `s16`) then emits
 
 ```
 lhu    a0, 0x94A(s1)
@@ -3104,7 +3104,7 @@ A memory barrier before the load does not drop the promote. Call through an
 `s32` function type so the argument stays SI:
 
 ```c
-heading = work->field_94A;
+heading = work->yaw;
 ((void (*)(s32, MATRIX*))RotMatrixY)(-heading, &src->mat);
 ```
 
@@ -3412,7 +3412,7 @@ Siblings that reload `work2 = (T*)index->work` after an earlier call emit
 a second `lw`, not `move`. `func_actor_400500_8013AA98` is the example
 (the 9FA dispatch plus AnimStride loop plus a hit-flag tail that still
 needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
-`li v0, 2`); the copy is 99.94%; `work2->field_9FA = 3` in case 1 is
+`li v0, 2`); the copy is 99.94%; `work2->animRequest = 3` in case 1 is
 100%. Inputs: `base_1.i`
 `215f581ad6af1e2ce9c49aa6593d38d678a15ceccd8ee16de7b0daca93c1f72e`,
 `base_2.i`
@@ -3422,7 +3422,7 @@ needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
 
 ## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `rate` is `sb 0x1D`
 
-`Actor400500Work` opens with `AnimationContext` (0x14) then `AnimationSlot slots[0x12]`
+`_Actor400500GrayStalkerWork` opens with `AnimationContext` (0x14) then `AnimationSlot slots[0x12]`
 (0x28 each). `slots[i].rate` is at `0x14 + i*0x28 + 9`. A `AnimationSlot*`
 walk from `&slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
 work base:
@@ -3443,12 +3443,12 @@ typedef struct {
 } Actor400500AnimStride;
 
 stride = (Actor400500AnimStride*)work + 1;
-stride->field_1D = (u8)work->field_9F8;
+stride->field_1D = (u8)work->animRate;
 stride++;
 ```
 
 `func_actor_400500_8013A8E4` is the example. Computing
-`mapped = table[work->field_9FE]` *before* the `field_9F8` / `field_9FA`
+`mapped = table[work->animId]` *before* the `animRate` / `animRequest`
 stores is what hoists the table `lui` into the prologue and keeps `lbu` in
 `$v1` across those stores (same function). Inputs: `base_1.i`
 `7e8d3dfb642f4b70105a041b51235e353d475f9c96a829b30a18bfe0fea6c10e`,
@@ -3596,8 +3596,8 @@ unsigned halfword math on the work block, wants
 lw    v0, 0x2C(a0)     /* extra */
 lw    a1, 0x1C(a0)     /* work */
 lw    a2, 0x8(v0)      /* coord */
-lhu   v1, field_A10
-lhu   v0, field_A12
+lhu   v1, moveAccel
+lhu   v0, moveSpeed
 ```
 
 Independent `lhu`s on work are ready while extra is still live, so sched1
@@ -3616,11 +3616,11 @@ enough — empty asm emits no MIPS, extra dies in `$v0`, and the parameter
 copy is coalesced:
 
 ```c
-work  = (Actor400500Work*)arg0->work;
+work  = (_Actor400500GrayStalkerWork*)arg0->work;
 coord = (GfxCoord*)((TmdObject*)arg0->extra)->coords;
 SCHED_BARRIER();
-step  = (u16)work->field_A10 + 2;
-accum = (u16)work->field_A12 + step;
+step  = (u16)work->moveAccel + 2;
+accum = (u16)work->moveSpeed + step;
 ```
 
 `func_actor_400500_8013BB18` is the example (scratch `base_4.c`).
@@ -3641,17 +3641,17 @@ the incoming argument, and `$a0` is the call setup). Then:
 Give each diamond its own short-lived flag so both phis die into `$v0`:
 
 ```c
-if (work->field_A4A != 0) {
-    work->field_A4A = 0;
+if (work->knockdownPending != 0) {
+    work->knockdownPending = 0;
     func(arg0, 5);
     flag = 1;
 } else {
     flag = 0;
 }
 if (flag == 0) {
-    if (work2->field_A49 != 0) {
-        work2->field_A49 = 0;
-        if (work2->field_A1E & 1) {
+    if (work2->ceilingFallPending != 0) {
+        work2->ceilingFallPending = 0;
+        if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
             flag2 = 0;
         } else {
             func(arg0, 4);
@@ -3712,9 +3712,9 @@ loads 129 or 128 and lets `sb` truncate needs the constant born as a signed
 
 ```c
 s32 flag = 0x81;
-work->field_A46 = flag; /* addiu $v0, $zero, 0x81; sb */
+work->cloakRequest = flag; /* addiu $v0, $zero, 0x81; sb */
 flag            = 0x80;
-work->field_A46 = flag; /* addiu $v0, $zero, 0x80; sb */
+work->cloakRequest = flag; /* addiu $v0, $zero, 0x80; sb */
 ```
 
 Do not change the field to `u8` to get this: the same address is also read
@@ -3728,7 +3728,7 @@ on `s8` is the QImode fold (`func_actor_400500_8013BFB0` `base.c` 99.62%,
 
 ## An `s16` compared and stored into `u16` is `lh`+`lhu`; `s32` keeps one `lh`
 
-`work->field_A08 = work->field_A1A` with `field_A1A` `s16` and `field_A08`
+`work->subState = work->zone` with `zone` `s16` and `subState`
 `u16` keeps both a sign-extended SI for the compares and a HI copy for the
 store. Reload emits `lh` (`extendhisi2`) and `lhu` (`movhi`) from the same
 address, then `sh` of the unsigned copy. An `s16` local is not enough: it
@@ -3737,10 +3737,10 @@ still has HI mode for the store, so CSE/reload reconstruct the pair.
 Widen the value first so the compares and the truncated store share one SI:
 
 ```c
-s32 a1a = work->field_A1A; /* lh $v1 */
-if (a1a != 1) {
-    if (a1a == 4) {
-        work->field_A08 = a1a; /* sh $v1 */
+s32 zone = work->zone; /* lh $v1 */
+if (zone != 1) {
+    if (zone == 4) {
+        work->subState = zone; /* sh $v1 */
     }
 }
 ```
@@ -4074,14 +4074,14 @@ the arms so the temp is born after the `andi` dies; reorg still fills `li v0,8`
 into the `bnez` delay:
 
 ```c
-if (!(work->field_A1E & 1)) {
-    work2 = (Actor400500Work*)arg0->work;
+if (!(work->posture & ACTOR_400500_POSTURE_ON_FLOOR)) {
+    work2 = (_Actor400500GrayStalkerWork*)arg0->work;
     val   = 7;
 } else {
-    work2 = (Actor400500Work*)arg0->work;
+    work2 = (_Actor400500GrayStalkerWork*)arg0->work;
     val   = 8;
 }
-work2->field_A06 = val;
+work2->state = val;
 ```
 
 `if (flags & 1) { A06 = 8; } else { A06 = 7; }` inverts to `beqz` and stores in
@@ -4099,16 +4099,16 @@ lets `sh` truncate needs the constant born as a signed `s32`:
 
 ```c
 s32 neg = -1;
-work->field_A04 = neg; /* addiu $v0, $zero, -1; sh */
+work->stateFrames = neg; /* addiu $v0, $zero, -1; sh */
 ```
 
-`func_actor_400500_8013CA38` with `work->field_A04 = -1` was `ori`. The
+`func_actor_400500_8013CA38` with `work->stateFrames = -1` was `ori`. The
 same store through an `s32` temp is exact. Do not change the field to `s16`
-to get this: other readers of `field_A04` use `lhu`.
+to get this: other readers of `stateFrames` use `lhu`.
 
 ## Copy a field address across a `jal` to rematerialize `addiu` in a load delay
 
-`work->field_9A0.x = local.t[0]; work->field_9A0.z = local.t[2];` after
+`work->anchorPos.vx = local.t[0]; work->anchorPos.vz = local.t[2];` after
 `gfxMakeRelativeTransform` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
 nop. The target fills that delay with `addiu $v0, $s1, 0x9A0` and stores Z
 as `sh $v1, 4($v0)`.
@@ -4118,7 +4118,7 @@ to a second pointer after the calls, forces the address to be rematerialized
 there:
 
 ```c
-pos2 = &work->field_9A0;
+pos2 = &work->anchorPos;
 Gp_UpdateCoord(&coords[0xE]);
 gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
 pos    = pos2;
@@ -4126,7 +4126,7 @@ pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
 pos->z = local.t[2]; /* addiu $v0, $s1, 0x9A0; sh $v1, 4($v0) */
 ```
 
-A single `pos = &work->field_9A0` after the calls still folds. `func_actor_400500_8013CA38`
+A single `pos = &work->anchorPos` after the calls still folds. `func_actor_400500_8013CA38`
 is the example (permuter `de95fd9fa49844d3`, confirmed by `base_6.c`).
 
 ## Two dest pointers keep offset `addiu`s live across a following `jal`
@@ -4173,7 +4173,7 @@ angle = work->heading; /* lhu, before any store through child */
 RotMatrixY(angle, &src->mat); /* sll/sra of the s32 */
 ```
 
-`func_actor_400500_8013BEC4` with `RotMatrixY(work->field_A26, …)` is `lh`
+`func_actor_400500_8013BEC4` with `RotMatrixY(work->armSwingAngle, …)` is `lh`
 at the `jal` (83.9%). Assigning `s32 angle` *after* the `field_C` store makes
 that store a true alias dep of the reload: `lhu` cannot fill the child-load
 delay, `&rot` is born next to `a1 = src`, and two load-delay nops remain
@@ -71192,21 +71192,21 @@ delay (`99.2%`, `delete=1` from the missing `nop`).
 ```c
 if (mode == 1 || mode == 3 || mode == 5 || mode == 6) {
     val = 0xFF;
-    work->field_A20 = val;
+    work->cloakLevel = val;
     val = 0x10;
-    work->field_A24 = 0;
-    work->field_A28 = 0;
+    work->colorBlend = 0;
+    work->shadowShade = 0;
 } else {
     val = 0x1000;
-    work->field_A24 = val;
+    work->colorBlend = val;
     val = 0xFF;
-    work->field_A28 = val;
+    work->shadowShade = val;
     val = 0x2000;
-    work->field_A20 = 0;
+    work->cloakLevel = 0;
 }
-work->field_A2C = val;
+work->hideHoldFrames = val;
 SOFT_BARRIER();
-func_8009EA50(work->field_A20);
+func_8009EA50(work->cloakLevel);
 ```
 
 The first else assignment (`0x1000`) fills the `bne` delay; each arm's last
@@ -71249,8 +71249,8 @@ copies in `$v1`, matching `lw v1, 0x20(s2)` in the delay of `lw s0, 0x1C(s2)`.
 Keep `if (enemy->hp <= 0)` so the branch is `bgtz` (the sibling
 `8013899C` uses `> 0` / `blez` because it only copies one table).
 
-The anim tail is the same sibling `if / else if` on `field_9FA` (with
-`(s16)field_9FC` and `(u16)field_A00 + 1`) and the `Actor400500AnimStride`
+The anim tail is the same sibling `if / else if` on `animRequest` (with
+`appliedAnim` and `(u16)animFrames + 1`) and the `Actor400500AnimStride`
 loop; m2c's `i = 1` before the `== 3` arm turns `addiu + 1` into `addu $s0`.
 
 Example: `func_actor_400500_801385D0`. Inputs: `base.i`
@@ -71260,7 +71260,7 @@ Example: `func_actor_400500_801385D0`. Inputs: `base.i`
 ## One work pointer in three tails prefers `$a0`; split it per leaf so local-alloc takes `$v1`
 
 `func_actor_400500_801391B0` reloads `index->work` in each of three animation
-leaves and writes `field_9F8` / `field_9FE` / `field_9FA` through that pointer.
+leaves and writes `animRate` / `animId` / `animRequest` through that pointer.
 One `work2` used in all three leaves is a global allocno (`dies in 3 places`).
 `.greg` gave it `preferences: 4` (`$a0`) from the earlier `addiu a0, 0x80`
 TmdObject hide, so every tail was `lw a0, 0x1C(a2)` against the target's
@@ -71273,12 +71273,12 @@ busy with the constant chain (`1`, `0x10`, `0xF`/`0x11`, `2`, `3`/`1`) so the
 lowest free register is `$v1`.
 
 Write the three leaves as complete duplicated stores, not a shared `animId` /
-`sub` join: m2c's merged tail lets CSE sink the identical `field_9F8 = 0x10`
+`sub` join: m2c's merged tail lets CSE sink the identical `animRate = 0x10`
 stores and speculate both anim ids. Cross-jumping then rebuilds the shared
-`field_9FE` phi and the final `field_A08` store from the duplicated C.
+`animId` phi and the final `subState` store from the duplicated C.
 
 The unused `0x30` leaf frame is an unreferenced `u8 unused[0x30]` (no stack
-accesses). `s32 flag = 0x81` is required so `field_A46` gets `addiu 0x81`
+accesses). `s32 flag = 0x81` is required so `cloakRequest` gets `addiu 0x81`
 rather than `li -0x7f`.
 
 Example: `func_actor_400500_801391B0` / `func_actor_400500_8013A5D8`. Inputs:
@@ -71295,22 +71295,22 @@ Reusing it makes one pseudo live across the helper `jal`. GCC then keeps
 `&sp.funcs` in `$s2` (`addiu s2, sp, 0x10` in the `blez` delay slot) and
 indexes as `lw 0(s2+idx)` instead of rematerializing `addu v0, sp, v0` /
 `lw 0x10(v0)`. The skip flag also lands in `$v1` rather than sharing `$v0`
-with the `lb` of `field_A4A`.
+with the `lb` of `knockdownPending`.
 
 Use a separate pointer for the A4A reload, and birth `skip = 0` only on the
 false path so it fills the `beqz` delay as `move v0, zero`:
 
 ```c
-workA = (Actor400500Work*)arg0->work;
-if (workA->field_A4A != 0) {
-    workA->field_A4A = 0;
+workA = (_Actor400500GrayStalkerWork*)arg0->work;
+if (workA->knockdownPending != 0) {
+    workA->knockdownPending = 0;
     func_actor_400500_8013DB64(arg0, 5);
     skip = 1;
 } else {
     skip = 0;
 }
 if (skip == 0) {
-    sp.funcs[(s16)work->field_A08](arg0);
+    sp.funcs[(s16)work->subState](arg0);
     goto common;
 }
 ```
@@ -71324,7 +71324,7 @@ if (skip == 0) {
 ## Call a `s16` callee as `s32` so `-heading` is `lh` / `jal` / `negu`
 
 `RotMatrixY` is prototyped `void func_8004BFF8(s16 angle, MATRIX*)`.
-Passing `-work->field_94A` (an `s16`) then emits
+Passing `-work->yaw` (an `s16`) then emits
 
 ```
 lhu    a0, 0x94A(s1)
@@ -71350,7 +71350,7 @@ A memory barrier before the load does not drop the promote. Call through an
 `s32` function type so the argument stays SI:
 
 ```c
-heading = work->field_94A;
+heading = work->yaw;
 ((void (*)(s32, MATRIX*))RotMatrixY)(-heading, &src->mat);
 ```
 
@@ -71489,7 +71489,7 @@ Siblings that reload `work2 = (T*)index->work` after an earlier call emit
 a second `lw`, not `move`. `func_actor_400500_8013AA98` is the example
 (the 9FA dispatch plus AnimStride loop plus a hit-flag tail that still
 needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
-`li v0, 2`); the copy is 99.94%; `work2->field_9FA = 3` in case 1 is
+`li v0, 2`); the copy is 99.94%; `work2->animRequest = 3` in case 1 is
 100%. Inputs: `base_1.i`
 `215f581ad6af1e2ce9c49aa6593d38d678a15ceccd8ee16de7b0daca93c1f72e`,
 `base_2.i`
@@ -71499,7 +71499,7 @@ needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
 
 ## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `rate` is `sb 0x1D`
 
-`Actor400500Work` opens with `AnimationContext` (0x14) then `AnimationSlot slots[0x12]`
+`_Actor400500GrayStalkerWork` opens with `AnimationContext` (0x14) then `AnimationSlot slots[0x12]`
 (0x28 each). `slots[i].rate` is at `0x14 + i*0x28 + 9`. A `AnimationSlot*`
 walk from `&slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
 work base:
@@ -71520,12 +71520,12 @@ typedef struct {
 } Actor400500AnimStride;
 
 stride = (Actor400500AnimStride*)work + 1;
-stride->field_1D = (u8)work->field_9F8;
+stride->field_1D = (u8)work->animRate;
 stride++;
 ```
 
 `func_actor_400500_8013A8E4` is the example. Computing
-`mapped = table[work->field_9FE]` *before* the `field_9F8` / `field_9FA`
+`mapped = table[work->animId]` *before* the `animRate` / `animRequest`
 stores is what hoists the table `lui` into the prologue and keeps `lbu` in
 `$v1` across those stores (same function). Inputs: `base_1.i`
 `7e8d3dfb642f4b70105a041b51235e353d475f9c96a829b30a18bfe0fea6c10e`,
@@ -71567,8 +71567,8 @@ unsigned halfword math on the work block, wants
 lw    v0, 0x2C(a0)     /* extra */
 lw    a1, 0x1C(a0)     /* work */
 lw    a2, 0x8(v0)      /* coord */
-lhu   v1, field_A10
-lhu   v0, field_A12
+lhu   v1, moveAccel
+lhu   v0, moveSpeed
 ```
 
 Independent `lhu`s on work are ready while extra is still live, so sched1
@@ -71587,11 +71587,11 @@ enough — empty asm emits no MIPS, extra dies in `$v0`, and the parameter
 copy is coalesced:
 
 ```c
-work  = (Actor400500Work*)arg0->work;
+work  = (_Actor400500GrayStalkerWork*)arg0->work;
 coord = (GfxCoord*)((TmdObject*)arg0->extra)->coords;
 SCHED_BARRIER();
-step  = (u16)work->field_A10 + 2;
-accum = (u16)work->field_A12 + step;
+step  = (u16)work->moveAccel + 2;
+accum = (u16)work->moveSpeed + step;
 ```
 
 `func_actor_400500_8013BB18` is the example (scratch `base_4.c`).
@@ -71612,17 +71612,17 @@ the incoming argument, and `$a0` is the call setup). Then:
 Give each diamond its own short-lived flag so both phis die into `$v0`:
 
 ```c
-if (work->field_A4A != 0) {
-    work->field_A4A = 0;
+if (work->knockdownPending != 0) {
+    work->knockdownPending = 0;
     func(arg0, 5);
     flag = 1;
 } else {
     flag = 0;
 }
 if (flag == 0) {
-    if (work2->field_A49 != 0) {
-        work2->field_A49 = 0;
-        if (work2->field_A1E & 1) {
+    if (work2->ceilingFallPending != 0) {
+        work2->ceilingFallPending = 0;
+        if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
             flag2 = 0;
         } else {
             func(arg0, 4);
@@ -71682,9 +71682,9 @@ loads 129 or 128 and lets `sb` truncate needs the constant born as a signed
 
 ```c
 s32 flag = 0x81;
-work->field_A46 = flag; /* addiu $v0, $zero, 0x81; sb */
+work->cloakRequest = flag; /* addiu $v0, $zero, 0x81; sb */
 flag            = 0x80;
-work->field_A46 = flag; /* addiu $v0, $zero, 0x80; sb */
+work->cloakRequest = flag; /* addiu $v0, $zero, 0x80; sb */
 ```
 
 Do not change the field to `u8` to get this: the same address is also read
@@ -71698,7 +71698,7 @@ on `s8` is the QImode fold (`func_actor_400500_8013BFB0` `base.c` 99.62%,
 
 ## An `s16` compared and stored into `u16` is `lh`+`lhu`; `s32` keeps one `lh`
 
-`work->field_A08 = work->field_A1A` with `field_A1A` `s16` and `field_A08`
+`work->subState = work->zone` with `zone` `s16` and `subState`
 `u16` keeps both a sign-extended SI for the compares and a HI copy for the
 store. Reload emits `lh` (`extendhisi2`) and `lhu` (`movhi`) from the same
 address, then `sh` of the unsigned copy. An `s16` local is not enough: it
@@ -71707,10 +71707,10 @@ still has HI mode for the store, so CSE/reload reconstruct the pair.
 Widen the value first so the compares and the truncated store share one SI:
 
 ```c
-s32 a1a = work->field_A1A; /* lh $v1 */
-if (a1a != 1) {
-    if (a1a == 4) {
-        work->field_A08 = a1a; /* sh $v1 */
+s32 zone = work->zone; /* lh $v1 */
+if (zone != 1) {
+    if (zone == 4) {
+        work->subState = zone; /* sh $v1 */
     }
 }
 ```
@@ -71747,14 +71747,14 @@ the arms so the temp is born after the `andi` dies; reorg still fills `li v0,8`
 into the `bnez` delay:
 
 ```c
-if (!(work->field_A1E & 1)) {
-    work2 = (Actor400500Work*)arg0->work;
+if (!(work->posture & ACTOR_400500_POSTURE_ON_FLOOR)) {
+    work2 = (_Actor400500GrayStalkerWork*)arg0->work;
     val   = 7;
 } else {
-    work2 = (Actor400500Work*)arg0->work;
+    work2 = (_Actor400500GrayStalkerWork*)arg0->work;
     val   = 8;
 }
-work2->field_A06 = val;
+work2->state = val;
 ```
 
 `if (flags & 1) { A06 = 8; } else { A06 = 7; }` inverts to `beqz` and stores in
@@ -71772,16 +71772,16 @@ lets `sh` truncate needs the constant born as a signed `s32`:
 
 ```c
 s32 neg = -1;
-work->field_A04 = neg; /* addiu $v0, $zero, -1; sh */
+work->stateFrames = neg; /* addiu $v0, $zero, -1; sh */
 ```
 
-`func_actor_400500_8013CA38` with `work->field_A04 = -1` was `ori`. The
+`func_actor_400500_8013CA38` with `work->stateFrames = -1` was `ori`. The
 same store through an `s32` temp is exact. Do not change the field to `s16`
-to get this: other readers of `field_A04` use `lhu`.
+to get this: other readers of `stateFrames` use `lhu`.
 
 ## Copy a field address across a `jal` to rematerialize `addiu` in a load delay
 
-`work->field_9A0.x = local.t[0]; work->field_9A0.z = local.t[2];` after
+`work->anchorPos.vx = local.t[0]; work->anchorPos.vz = local.t[2];` after
 `gfxMakeRelativeTransform` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
 nop. The target fills that delay with `addiu $v0, $s1, 0x9A0` and stores Z
 as `sh $v1, 4($v0)`.
@@ -71791,7 +71791,7 @@ to a second pointer after the calls, forces the address to be rematerialized
 there:
 
 ```c
-pos2 = &work->field_9A0;
+pos2 = &work->anchorPos;
 Gp_UpdateCoord(&coords[0xE]);
 gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
 pos    = pos2;
@@ -71799,7 +71799,7 @@ pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
 pos->z = local.t[2]; /* addiu $v0, $s1, 0x9A0; sh $v1, 4($v0) */
 ```
 
-A single `pos = &work->field_9A0` after the calls still folds. `func_actor_400500_8013CA38`
+A single `pos = &work->anchorPos` after the calls still folds. `func_actor_400500_8013CA38`
 is the example (permuter `de95fd9fa49844d3`, confirmed by `base_6.c`).
 
 ## Two dest pointers keep offset `addiu`s live across a following `jal`
@@ -71846,7 +71846,7 @@ angle = work->heading; /* lhu, before any store through child */
 RotMatrixY(angle, &src->mat); /* sll/sra of the s32 */
 ```
 
-`func_actor_400500_8013BEC4` with `RotMatrixY(work->field_A26, …)` is `lh`
+`func_actor_400500_8013BEC4` with `RotMatrixY(work->armSwingAngle, …)` is `lh`
 at the `jal` (83.9%). Assigning `s32 angle` *after* the `field_C` store makes
 that store a true alias dep of the reload: `lhu` cannot fill the child-load
 delay, `&rot` is born next to `a1 = src`, and two load-delay nops remain
@@ -71881,7 +71881,7 @@ Duplicate the call in each arm and let `jump.c` merge the jal+return tails.
 Path 1 keeps `move a0` / `j` / `li a1, 1`; the 2/3 diamond keeps `bnez` /
 `move a0` / `j` / `li a1, 2` / `li a1, 3` / `jal` / `nop`. Same overlay's
 `func_actor_400500_8013DB78` already shows the distance/angle test this
-function extends. `field_A32` is `s16` so the second group is `lh`; the first
+function extends. `attackCooldown` is `s16` so the second group is `lh`; the first
 group's `>> 3` needs `(u16)` for `lhu` / `srl`.
 
 ## Actor02000_Fn018A4: sharing a sound result prevents local load/result tying
@@ -77099,7 +77099,7 @@ accesses an offset inside the record, model the record.
 
 The `(u8)` cast is enough to get the byte load; the field does not have to be
 declared `u8`. `(u8)work->field_51A` over an `s16` field emits `lbu`, as the
-matched `(u8)work2->field_9F8` does in `func_actor_400500_801348D8`, so an
+matched `(u8)work2->animRate` does in `func_actor_400500_801348D8`, so an
 `lh`/`andi` pair is not the risk it looks like and the field can keep the width
 the rest of the overlay stores it with.
 
@@ -81705,8 +81705,8 @@ Declaring the field `s16` so the dispatcher's `lh` needs no cast also gives the
 increment an `lh`, and the match is gone. The field is `u16`; the dispatcher's
 signed load comes from an explicit `(s16)` at the index, which is how the
 already-matched siblings of this shape write it -
-`states[(s16)work->field_A06](index)` (`actor_400500_4.c:23`,
-`actor_400600_6.c:58`) over a `u16 field_A06`. Two loads of one field at
+`states[(s16)work->state](index)` (`actor_400500_4.c:23`,
+`actor_400600_6.c:58`) over a `u16 state`. Two loads of one field at
 different signedness are one *cast*, not a type conflict, and the `u16`
 increment is the half that must survive: `addiu` + `sh` compiled from it.
 
@@ -133368,7 +133368,7 @@ unscoped build-and-verify.sh. No new barrier or register pin was needed; the
 seed's existing SCHED_BARRIER after the preceding x store remains. Actual local
 quantity priorities were not traced; this observation does not establish them.
 
-Four s16 casts at widening reads of current u16 field_950/field_954 also fold
+Four s16 casts at widening reads of the then-u16 `dropStartX`/`dropStartZ` also fold
 to the target lh instructions, avoiding the earlier retry's shared-header edits.
 Scope: this signed halfword capture and adjacent independent stack reads. A
 statement shuffle that leaves widening at the later use is a different RTL
@@ -133459,7 +133459,7 @@ succeeded.
 
 A switch result carried in `next` scored 99.007% (`regs=14 insert=1 delete=1`). The early jump pass hoisted result assignments into comparison blocks; local comparison temps occupied v0, so the global result hard-conflicted with v0 and received v1. Writing literal field stores in each arm avoids this overlap, but an earlier retry stopped at 91.227% because its default arm wrote the field **before** `coords[11].composeStamp = 0`. The stores were not a common trailing operation.
 
-The successful planned edit uses literal `work->field_A08 = N` in every arm and places the default `work->field_A08 = 1` **after** `coords[11].composeStamp = 0`. This reached 100% without pins. In `.lreg`, the comparison r148 and arm constants r149/r150 live in separate blocks; `.greg` assigns all three to v0. Fourteen A08 stores survive `.sched2`, then `.jump2` merges them into one (UID 708). `.dbr` places constant UID 327 after comparison branch UID 309 in its delay slot, allowing sequential v0 reuse. Removing the unused result declaration preserves 100%.
+The successful planned edit uses literal `work->subState = N` in every arm and places the default `work->subState = 1` **after** `coords[11].composeStamp = 0`. This reached 100% without pins. In `.lreg`, the comparison r148 and arm constants r149/r150 live in separate blocks; `.greg` assigns all three to v0. Fourteen A08 stores survive `.sched2`, then `.jump2` merges them into one (UID 708). `.dbr` places constant UID 327 after comparison branch UID 309 in its delay slot, allowing sequential v0 reuse. Removing the unused result declaration preserves 100%.
 
 When per-arm stores fix register allocation but fail to merge, inspect the final operation of **every** predecessor, including a long default arm. Do not conclude that literal stores are exhausted from the register improvement alone. The current result verifies both the v0 allocation and the late common-store merge; the old direct-store score is historical, not a current paired rebuild.
 
@@ -133469,7 +133469,7 @@ Evidence: `nonmatchings/func_actor_400500_801361EC-vacuum/{LEARNINGS.md,experime
 
 The target uses `sh x,0x9a0(work)` followed by `addiu p,work,0x9a0; sh z,4(p)`, and an analogous z load in movement blocks. Defining the pointer immediately before the stores lets combine fold its last use into `work+0x9a4`. Keeping it alive with empty asm prevents folding but changes its schedule, lifetime and home.
 
-Already-matched siblings 8013AF44 and 8013A0B8 show the source shape: define `savedPos = &work->field_9A0` before the coordinate conversion calls; copy it to the access pointer after the calls, then access x/z. The pointer definition survives combine across the call and sched1 sinks it just before z. In sibling 8013AF44 UID497/r88 and 8013A0B8 UID41/r95, the resulting address quantity is local with two refs across two instructions, allocated v0. This is **sched1 motion, not reload rematerialization**. Patched `combine.c:941` explicitly rejects substitution across the last call unless `CONSTANT_P(src)`; register-plus-offset does not qualify.
+Already-matched siblings 8013AF44 and 8013A0B8 show the source shape: define `savedPos = &work->anchorPos` before the coordinate conversion calls; copy it to the access pointer after the calls, then access x/z. The pointer definition survives combine across the call and sched1 sinks it just before z. In sibling 8013AF44 UID497/r88 and 8013A0B8 UID41/r95, the resulting address quantity is local with two refs across two instructions, allocated v0. This is **sched1 motion, not reload rematerialization**. Patched `combine.c:941` explicitly rejects substitution across the last call unless `CONSTANT_P(src)`; register-plus-offset does not qualify.
 
 Applying independent pointer locals to all four blocks and splitting the reused movement arithmetic locals changed this function from 96.421% to99.030%, with zero branch/register differences. The combined edit does not isolate each split's contribution; the dumps do establish surviving pre-call address definitions and short post-call local ranges. The remaining difference was a dead unsigned halfword read at entry; a volatile u16 access restored that load and prevented li1 filling the earlier guard delay, yielding100.000%. Existing shared headers suffice. Unscoped verification passed.
 
@@ -145608,10 +145608,10 @@ helper, while this copy needs the id built inside the helper
 ## A barrier after an if/else that picks a constant for one shared store is the store duplicated into both arms (func_actor_400500_80135414, 2026-09-27)
 
 An if/else set three fields and loaded a fourth field's value into a `val`
-local, and a single `work->field_A2C = val;` after the join matched only with
+local, and a single `work->hideHoldFrames = val;` after the join matched only with
 `SOFT_BARRIER()` before the next statement's load. Without it sched1 keeps the
 store in the join block and moves it past the following `lh` into the call's
-delay slot. Writing `field_A2C = 0x10;` / `= 0x2000;` as the last store of each
+delay slot. Writing `hideHoldFrames = 0x10;` / `= 0x2000;` as the last store of each
 arm needs no barrier: the stores stay in their arms through sched1, and jump2
 cross-jumps them into the shared `sh` the target has at the join label, where
 nothing after it can take its slot. In the same function the file's
