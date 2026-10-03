@@ -90,9 +90,9 @@ extern s32      D_8014D158;
 /// The room's message table, installed on the room task.
 extern TaskMessageEntry D_shelter_r48_80182FB8[];
 
-extern SVECTOR       D_shelter_r48_8018300C;
-extern u8            D_shelter_r48_8018BE54[6][16];
-extern RoomRingShape D_shelter_r48_80182FE8[];
+extern SVECTOR         D_shelter_r48_8018300C;
+extern u8              D_shelter_r48_8018BE54[6][16];
+extern EffectBandShape D_shelter_r48_80182FE8[];
 
 static void func_shelter_r48_8017E1A4(Task* arg0);
 static void func_shelter_r48_8017E214(Task* task);
@@ -141,7 +141,7 @@ TaskMessageEntry D_shelter_r48_80182FB8[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-RoomRingShape D_shelter_r48_80182FE8[6] = {
+EffectBandShape D_shelter_r48_80182FE8[6] = {
     { 512, 0, 3072 },
     { 512, 1024, 1024 },
     { 512, -1024, 1024 },
@@ -2586,7 +2586,7 @@ static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 par
     EffectBandScratch* block;
     SVECTOR*           op;
     POLY_FT4*          prim;
-    RoomRingShape*     row;
+    EffectBandShape*   row;
     s32                i;
     s32                next;
     s32                ang;
@@ -2600,9 +2600,9 @@ static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 par
     row   = &D_shelter_r48_80182FE8[part];
     f28   = work->period;
     r1    = work->angle;
-    y     = f28 + (u16)row->yOff;
-    r1   += (u16)row->rInner;
-    r0    = r1 + work->step + (u16)row->rExtra;
+    y     = f28 + row->lift;
+    r1   += row->baseRadius;
+    r0    = r1 + work->step + row->spread;
     block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {

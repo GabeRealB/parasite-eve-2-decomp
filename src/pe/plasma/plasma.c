@@ -29,26 +29,15 @@
 #include "main/tmd_types.h"
 #include "../../shared/glow_draw.h"
 
-/// Per-ring radius scale for `func_plasma_8012F568`, indexed by ring number
-/// (0..2). `rInner` widens the inner radius (`EffectWork::angle`), `rExtra`
-/// the outer radius on top of that (`+ EffectWork::step`), and `yOff` raises
-/// the inner edge above `EffectWork::period`.
-typedef struct PlasmaRingScale {
-    /* 0x0 */ s16 rInner;
-    /* 0x2 */ s16 yOff;
-    /* 0x4 */ s16 rExtra;
-} PlasmaRingScale;
-STATIC_ASSERT_SIZEOF(PlasmaRingScale, 0x6);
-
 /// This overlay's id. Every package opens with one: a u16 in a u32
 /// slot, distinct across all 448, with the families in contiguous blocks.
 
 static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2);
 
-/// Per-level geometry for the plasma ring: rows are PE levels 1-3. `rInner` is
-/// the inner radius, `yOff` the height above the caster, `rExtra` how far the
-/// ring grows before it breaks up.
-static PlasmaRingScale D_plasma_8012FF34[] = {
+/// Per-level geometry for the plasma ring: rows are PE levels 1-3.
+/// `baseRadius` is the inner radius, `lift` the height above the caster,
+/// `spread` how far the ring grows before it breaks up.
+static EffectBandShape D_plasma_8012FF34[] = {
     { 0x0100, 0x0800, 0x0200 },
     { 0x0200, 0x0600, 0x0300 },
     { 0x0300, 0x0400, 0x0400 },
@@ -206,8 +195,8 @@ release:
 
 /// Draws textured band `arg2` (0..2) of the plasma ring around `arg1`: sixteen
 /// `POLY_FT4` wedges between an outer circle of radius
-/// `field_26 + rInner + field_2A + rExtra` and an inner one of radius
-/// `field_26 + rInner`, the outer ring lifted by `-(field_28 + yOff)`. Both
+/// `field_26 + baseRadius + field_2A + spread` and an inner one of radius
+/// `field_26 + baseRadius`, the outer ring lifted by `-(field_28 + lift)`. Both
 /// circles are rotated by the coordinate's `workm`, translated by its `t[]`
 /// and projected through `GsWSMATRIX`; wedge `i` picks its texture column
 /// from `(D_plasma_8012FF54[arg2][i] + field_22) % 6`, and `field_24` sets the
@@ -218,7 +207,7 @@ static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2)
     EffectBandScratch* block;
     SVECTOR*           op;
     POLY_FT4*          prim;
-    PlasmaRingScale*   row;
+    EffectBandShape*   row;
     s32                i;
     s32                next;
     s32                ang;
@@ -232,9 +221,9 @@ static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2)
     row   = &D_plasma_8012FF34[arg2];
     f28   = arg0->period;
     r1    = arg0->angle;
-    y     = f28 + (u16)row->yOff;
-    r1   += (u16)row->rInner;
-    r0    = r1 + arg0->step + (u16)row->rExtra;
+    y     = f28 + row->lift;
+    r1   += row->baseRadius;
+    r0    = r1 + arg0->step + row->spread;
     block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {

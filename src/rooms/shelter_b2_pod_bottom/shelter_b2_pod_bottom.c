@@ -30,8 +30,6 @@
 
 #include "mapui/map_shelter.h"
 
-#include "rooms/room.h"
-
 void func_80162B0C(s32);
 
 extern u8               D_80165F48;
@@ -64,7 +62,7 @@ TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-RoomRingShape D_shelter_b2_pod_bottom_80181C94[3] = {
+EffectBandShape D_shelter_b2_pod_bottom_80181C94[3] = {
     { 512, 3072, 512 },
     { 1024, 2048, 768 },
     { 1536, 1024, 1024 },

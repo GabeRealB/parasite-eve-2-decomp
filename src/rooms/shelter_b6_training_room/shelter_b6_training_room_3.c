@@ -53,8 +53,8 @@
 // Preserve the nonzero halfword after the three effect records.
 // Its role is unresolved; it may be retained exporter padding.
 typedef struct {
-    RoomRingShape entries[3];
-    u16           retained;
+    EffectBandShape entries[3];
+    u16             retained;
 } ShelterB6TrainingRoomRingStorage;
 STATIC_ASSERT_SIZEOF(ShelterB6TrainingRoomRingStorage, 20);
 extern ShelterB6TrainingRoomRingStorage D_shelter_b6_training_room_80184404;
@@ -1035,7 +1035,7 @@ void func_shelter_b6_training_room_801811AC(Task* task)
 }
 
 /// Draws band `band` of a six-sided textured ring around `coord`: six
-/// `POLY_FT4` quads joining a ground rim of radius `angle + radius` to a rim
+/// `POLY_FT4` quads joining a ground rim of radius `angle + baseRadius` to a rim
 /// raised by `period + lift` and widened by `step + spread`. Both rims are
 /// rotated by the coordinate's `workm`, translated by its `t[]` and projected
 /// through `GsWSMATRIX`. Quad `i` takes its texture column from
@@ -1048,7 +1048,7 @@ static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* co
     _ShelterB6TrainingRoomBandScratch* block;
     SVECTOR*                           bp;
     POLY_FT4*                          prim;
-    RoomRingShape*                     shape;
+    EffectBandShape*                   shape;
     s32                                i;
     s32                                next;
     s32                                ang;
@@ -1062,9 +1062,9 @@ static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* co
     shape    = &D_shelter_b6_training_room_80184404.entries[band];
     period   = mem->period;
     rBase    = mem->angle;
-    height   = period + (u16)shape->yOff;
-    rBase   += (u16)shape->rInner;
-    rTop     = rBase + mem->step + (u16)shape->rExtra;
+    height   = period + shape->lift;
+    rBase   += shape->baseRadius;
+    rTop     = rBase + mem->step + shape->spread;
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = (u8*)*scratch;
     *scratch = head - 0x78;

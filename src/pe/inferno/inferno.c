@@ -39,18 +39,6 @@ typedef struct InfernoIdMap {
 } InfernoIdMap;
 STATIC_ASSERT_SIZEOF(InfernoIdMap, 0xC);
 
-/// One ring's geometry in `D_inferno_801304E4`, indexed by the `kind` the
-/// caster passes to the fan routines (0 = inner ring, 1 = outer ring).
-/// `field_0` is added to `EffectWork::angle` to give the ring's radius in
-/// the ground plane, `field_2` is how far the inner rim is lifted along local
-/// Y, and `field_4` plus `EffectWork::step` widens the outer rim.
-typedef struct InfernoFanParam {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-    /* 0x4 */ u16 field_4;
-} InfernoFanParam;
-STATIC_ASSERT_SIZEOF(InfernoFanParam, 0x6);
-
 /// 0x70-byte scratch `func_inferno_8012FF34` carves off the scratch stack for
 /// one ring. `inner` and `outer` are the six rim points of each edge of the
 /// ring, built by `rsin` / `rcos`, rotated by the effect coordinate's `workm`
@@ -69,7 +57,7 @@ typedef struct InfernoFanScratch {
 STATIC_ASSERT_SIZEOF(InfernoFanScratch, 0x70);
 
 /// The two fan shapes the inferno wall sweeps through.
-static InfernoFanParam D_inferno_801304E4[] = {
+static EffectBandShape D_inferno_801304E4[] = {
     { 0x0100, 0x0800, 0x0200 },
     { 0x0200, 0x0600, 0x0300 },
 };
@@ -374,15 +362,15 @@ release:
 
 /// Draws the lifted ring of the inferno's ground fan, the twin of
 /// `func_inferno_8012FF34`: identical geometry and prim setup, except the
-/// inner rim is lifted `EffectWork::period + field_2` along local Y instead
-/// of `field_2` alone, so the ring rises as the caster's `period` winds up.
+/// inner rim is lifted `EffectWork::period + lift` along local Y instead
+/// of `lift` alone, so the ring rises as the caster's `period` winds up.
 /// `kind` picks the row of `D_inferno_801304E4` that sizes it.
 static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
 {
     u8*                head;
     InfernoFanScratch* block;
-    InfernoFanParam*   row;
-    InfernoFanParam*   tbl;
+    EffectBandShape*   row;
+    EffectBandShape*   tbl;
     SVECTOR*           op;
     POLY_FT4*          prim;
     s32                flag;
@@ -398,9 +386,9 @@ static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, In
 
     tbl                        = D_inferno_801304E4;
     row                        = &tbl[kind];
-    h                          = mem->period + row->field_2;
-    inner                      = mem->angle + row->field_0;
-    outer                      = row->field_4 + (inner + mem->step);
+    h                          = mem->period + row->lift;
+    inner                      = mem->angle + row->baseRadius;
+    outer                      = row->spread + (inner + mem->step);
     head                       = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(void) = head - 0x70;
     block                      = (InfernoFanScratch*)(head - 0x70);
@@ -469,8 +457,8 @@ static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, In
 
 /// Draws one ring of the inferno's ground fan. `kind` picks the row of
 /// `D_inferno_801304E4` that sizes it: six inner rim points of radius
-/// `angle + field_0` lifted `field_2` along local Y and six outer rim
-/// points of radius `angle + field_0 + step + field_4` in the local XY
+/// `angle + baseRadius` lifted `lift` along local Y and six outer rim
+/// points of radius `angle + baseRadius + step + spread` in the local XY
 /// plane are built by `rsin` / `rcos` a sixth of a turn apart, rotated by
 /// `coord`'s `workm` and offset by its translation. Each of the six segments
 /// is then projected through `GsWSMATRIX` and linked as one semi-transparent
@@ -480,8 +468,8 @@ static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, In
 {
     u8*                head;
     InfernoFanScratch* block;
-    InfernoFanParam*   row;
-    InfernoFanParam*   tbl;
+    EffectBandShape*   row;
+    EffectBandShape*   tbl;
     SVECTOR*           op;
     POLY_FT4*          prim;
     s32                flag;
@@ -497,9 +485,9 @@ static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, In
 
     tbl                        = D_inferno_801304E4;
     row                        = &tbl[kind];
-    inner                      = mem->angle + row->field_0;
-    outer                      = row->field_4 + (inner + mem->step);
-    h                          = row->field_2;
+    inner                      = mem->angle + row->baseRadius;
+    outer                      = row->spread + (inner + mem->step);
+    h                          = row->lift;
     head                       = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(void) = head - 0x70;
     block                      = (InfernoFanScratch*)(head - 0x70);

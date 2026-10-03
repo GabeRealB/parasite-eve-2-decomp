@@ -449,7 +449,7 @@ static void func_shelter_b2_pod_bottom_8017EEAC(EffectWork* work, GfxCoord* coor
     EffectBandScratch* block;
     SVECTOR*           op;
     POLY_FT4*          prim;
-    RoomRingShape*     row;
+    EffectBandShape*   row;
     s32                i;
     s32                next;
     s32                ang;
@@ -463,9 +463,9 @@ static void func_shelter_b2_pod_bottom_8017EEAC(EffectWork* work, GfxCoord* coor
     row   = &D_shelter_b2_pod_bottom_80181C94[arg2];
     f28   = work->period;
     r1    = work->angle;
-    y     = f28 + (u16)row->yOff;
-    r1   += (u16)row->rInner;
-    r0    = r1 + work->step + (u16)row->rExtra;
+    y     = f28 + row->lift;
+    r1   += row->baseRadius;
+    r0    = r1 + work->step + row->spread;
     block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {

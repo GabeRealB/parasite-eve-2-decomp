@@ -63241,10 +63241,10 @@ not loaded, so only the fold order can be steered.
 The same function's prologue was then off by one local-alloc colouring
 (`head` in `$v0`/`r1` in `$a0` instead of `$a0`/`$a1`) that no reshaping of the
 three statements involved would move. What fixed it was hoisting the *unrelated*
-radius arithmetic (`r1 += row->rInner; r0 = r1 + …`) above the
+radius arithmetic (`r1 += row->baseRadius; r0 = r1 + …`) above the
 `SCRATCH_STACK_CURSOR_SLOT` load/store block. The instructions still schedule identically,
-but sched1 breaks its ties by source position, the `rInner` temp is born
-earlier relative to `head`, and local-alloc's priority order flips so `rInner`
+but sched1 breaks its ties by source position, the `baseRadius` temp is born
+earlier relative to `head`, and local-alloc's priority order flips so `baseRadius`
 takes `$v0` before `head` is coloured. When a colouring diff resists every
 edit of the statements it names, move the neighbours instead.
 

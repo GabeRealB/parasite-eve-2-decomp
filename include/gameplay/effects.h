@@ -171,6 +171,26 @@ typedef struct {
 } EffectWork;
 STATIC_ASSERT_SIZEOF(EffectWork, 0x2C);
 
+/// Shape of one band of a ring effect, as offsets from the ring parameters its
+/// `EffectWork` animates.
+///
+/// A band is a strip of quads joining a base rim, in the local XZ plane of the
+/// effect's coordinate frame, to a second rim displaced along local Y. Its
+/// drawer adds `baseRadius` to `EffectWork::angle` for the base rim's radius,
+/// `lift` to `EffectWork::period` for the second rim's height, and `spread`
+/// plus `EffectWork::step` to the base rim's radius for the second rim's. An
+/// effect keeps a table of these, one row per band, so several bands follow one
+/// work block while keeping their own proportions. A drawer whose band does not
+/// rise with the work uses `lift` alone.
+///
+/// All three are signed distances in the frame's coordinate units.
+typedef struct {
+    s16 baseRadius; // Base rim's radius beyond the work's radius
+    s16 lift;       // Second rim's height above the base rim beyond the work's height; negative lowers it
+    s16 spread;     // Second rim's radius beyond the base rim's, on top of the work's growth
+} EffectBandShape;
+STATIC_ASSERT_SIZEOF(EffectBandShape, 0x6);
+
 /// Texture origin and palette location for one frame of an effect sprite.
 ///
 /// UV coordinates are texels within the texture page selected by the drawer.

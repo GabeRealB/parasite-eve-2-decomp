@@ -261,15 +261,4 @@ typedef struct RoomDiscScratch {
 } RoomDiscScratch;
 STATIC_ASSERT_SIZEOF(RoomDiscScratch, 0x14);
 
-/// One row of a ring effect's per-band table, added to the effect work's ring
-/// parameters: `rInner` widens the ring drawn at the origin height, `yOff`
-/// raises the second ring, and `rExtra` widens the second ring beyond the
-/// first.
-typedef struct RoomRingShape {
-    s16 rInner;
-    s16 yOff;
-    s16 rExtra;
-} RoomRingShape;
-STATIC_ASSERT_SIZEOF(RoomRingShape, 0x6);
-
 #endif // INCLUDE_ROOMS_ROOM_H

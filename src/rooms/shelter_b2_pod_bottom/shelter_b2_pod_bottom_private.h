@@ -4,11 +4,10 @@
 #include "types.h"
 
 #include "gameplay/collision.h"
+#include "gameplay/effects.h"
 #include "gameplay/room.h"
 
-#include "rooms/room.h"
-
-extern RoomRingShape D_shelter_b2_pod_bottom_80181C94[3];
+extern EffectBandShape D_shelter_b2_pod_bottom_80181C94[3];
 
 extern u16 D_shelter_b2_pod_bottom_80181CA8[18][3];
 
