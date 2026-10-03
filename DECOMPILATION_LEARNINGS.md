@@ -140615,6 +140615,31 @@ The `(u8)` was a separate issue: the shared `RoomEventMsg.room` is `s8`
 (loads `lb`), while this site loads `lbu`, so the cast is applied at the use
 rather than retyping the shared field.
 
+## A `lw` + `andi` mask test on a `u16` flags field is two bit tests joined by `||` (actor_403100, 2026-10-04)
+
+**Symptom.** A halfword flags field is tested with a word load -
+`lw v0,0x634(v1)` / `andi v0,v0,0x102` - although every other access to it is
+`lhu`/`sh` and the halfword after it is an unrelated field. `flags & 0x102`
+compiles to `lhu`, so the field ends up wrapped in a union with a `u32 word`
+view over both halfwords just to make the load.
+
+**Cause.** The same `fold_truthop` merge as the entry above, in the other
+direction. `(flags & 2) || (flags & 0x100)` is two single-bit `!= 0`
+comparisons of one field; the merged test is loaded in the widest mode the
+containing object's alignment allows, which for a field in a word-aligned
+struct is the whole word.
+
+**Fix.** Write the two tests the original had, on the plain field, and drop the
+word view:
+
+```c
+if ((work->previousAnimationFlags & ANIMATION_SLOT_FOLLOWED_JUMP) ||
+    (work->previousAnimationFlags & ANIMATION_SLOT_SETTLED)) {
+```
+
+The same rewrite matched on `AnimationSlot`'s `status.fields.flags` in this
+overlay, in place of `status.word & (A | B)`.
+
 ## A scratch target can come from another overlay's same-named `.s` (RoomsShared8017eb5cIdList, 2026-09-24)
 
 **Symptom.** The first build compiles all 412 instructions yet scores 0% with

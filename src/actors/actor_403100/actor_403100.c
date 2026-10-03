@@ -99,16 +99,6 @@ typedef struct Actor403100RectEntry {
 } Actor403100RectEntry;
 STATIC_ASSERT_SIZEOF(Actor403100RectEntry, 0xC);
 
-typedef union Actor403100Flags {
-    u32 word;
-    u16 half;
-    struct {
-        u16 low;
-        s16 high;
-    } h;
-} Actor403100Flags;
-STATIC_ASSERT_SIZEOF(Actor403100Flags, 0x4);
-
 extern EnemyParams D_actor_403100_8014762C;
 
 typedef struct Actor403100Entry {
@@ -250,7 +240,8 @@ typedef struct Actor403100Work {
     /* 0x62E */ s16                   field_62E;
     /* 0x630 */ s16                   field_630;
     /* 0x632 */ s16                   field_632;
-    /* 0x634 */ Actor403100Flags      flags_634;
+    /* 0x634 */ u16                   previousAnimationFlags; // Slot 1's ANIMATION_SLOT_* results as the last running update's tick left them
+    /* 0x636 */ s16                   entryLifetime;          // Frames a pooled entry lives (28 or 20); also how many pool slots the update walks
     /* 0x638 */ s16                   field_638;
     /* 0x63A */ s16                   field_63A;
     /* 0x63C */ union {
@@ -3490,10 +3481,11 @@ static __inline__ s32 Actor403100_LocalizeRotation(GfxCoord* arg0, MATRIX* arg1,
 
 static __inline__ s16 Actor403100_TestFlags(void)
 {
-    if (D_actor_403100_80155808->flags_634.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (D_actor_403100_80155808->previousAnimationFlags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
     }
-    if (D_actor_403100_80155808->flags_634.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
+    if ((D_actor_403100_80155808->previousAnimationFlags & ANIMATION_SLOT_FOLLOWED_JUMP) ||
+        (D_actor_403100_80155808->previousAnimationFlags & ANIMATION_SLOT_SETTLED)) {
         return 1;
     }
     return 0;
@@ -4464,7 +4456,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    for (i = 0; i < D_actor_403100_80155808->flags_634.h.high; i++) {
+    for (i = 0; i < D_actor_403100_80155808->entryLifetime; i++) {
         entry = &D_actor_403100_80155814[i];
         if (entry->active == 0) {
             continue;
@@ -4527,7 +4519,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
             Gp_ClearRec18Occupied(D_actor_403100_80155814[i].records);
             entry->age++;
             entry->frame++;
-            if (entry->age == D_actor_403100_80155808->flags_634.h.high) {
+            if (entry->age == D_actor_403100_80155808->entryLifetime) {
                 entry->active = 0;
                 Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
             }
@@ -4735,10 +4727,10 @@ static void func_actor_403100_801355D4(Task* arg0)
     GfxCoord* coord;
     s32       i;
 
-    D_actor_403100_80155810                   = 0;
-    coord                                     = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->field_61C        = 3;
-    D_actor_403100_80155808->flags_634.h.high = 0x1C;
+    D_actor_403100_80155810                = 0;
+    coord                                  = arg0->extra.tmd->coords;
+    D_actor_403100_80155808->field_61C     = 3;
+    D_actor_403100_80155808->entryLifetime = 0x1C;
     for (i = 0; i < 28; i++) {
         if (D_actor_403100_80155814[i].active != 0) {
             D_actor_403100_80155814[i].active = 0;
@@ -5400,8 +5392,8 @@ static void func_actor_403100_80136830(Task* arg0)
             func_actor_403100_8013CDC0();
             func_actor_403100_8013BA64(arg0);
             func_actor_403100_801327CC(arg0);
-            flashTimer                              = D_actor_403100_80155808->field_5FE;
-            D_actor_403100_80155808->flags_634.half = (u16)D_actor_403100_80155808->field_B8.slots[1].status.fields.flags;
+            flashTimer                                      = D_actor_403100_80155808->field_5FE;
+            D_actor_403100_80155808->previousAnimationFlags = D_actor_403100_80155808->field_B8.slots[1].status.fields.flags;
             if (flashTimer != 0) {
                 if (flashTimer >= 0x10) {
                     flash = rsin(gDisplayState.animFrame << 9) << 0xD;
@@ -5847,12 +5839,12 @@ static void func_actor_403100_80137F4C(Task* task)
     } else {
         D_actor_403100_80155808->field_62C = 0x30;
     }
-    i                                         = 0;
-    entries                                   = D_actor_403100_80155814;
-    obj                                       = &D_actor_403100_80155814->obj;
-    entry                                     = entries;
-    D_actor_403100_80155810                   = 0;
-    D_actor_403100_80155808->flags_634.h.high = 0x14;
+    i                                      = 0;
+    entries                                = D_actor_403100_80155814;
+    obj                                    = &D_actor_403100_80155814->obj;
+    entry                                  = entries;
+    D_actor_403100_80155810                = 0;
+    D_actor_403100_80155808->entryLifetime = 0x14;
     for (; i < 0x1C; i++) {
         if (entry->active != 0) {
             entry->active = 0;
@@ -6446,7 +6438,7 @@ static void func_actor_403100_801395EC(Task* arg0)
         part->coord.t[0]                                           = -0x877;
         D_actor_403100_80155808->field_5DE                         = 7;
         D_actor_403100_80155808->field_5DA                         = 2;
-        D_actor_403100_80155808->flags_634.h.high                  = 0x14;
+        D_actor_403100_80155808->entryLifetime                     = 0x14;
         D_actor_403100_80155808->field_B2                          = 0x200;
         D_actor_403100_80155808->field_5EC                         = 0;
         D_actor_403100_80155808->field_5E2                         = 0x10;
@@ -6798,7 +6790,7 @@ static void func_actor_403100_8013A4C8(Task* arg0)
     (*(volatile s16*)&D_actor_403100_80155810) = 0;
     work->field_62C                            = 0x30;
     work->field_5F6                            = 0;
-    work->flags_634.h.high                     = 0x1C;
+    work->entryLifetime                        = 0x1C;
     for (; i < 0x1C; i++) {
         if (entries[i].active != 0) {
             entries[i].active = 0;
