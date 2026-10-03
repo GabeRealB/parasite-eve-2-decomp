@@ -18,6 +18,8 @@
 
 #include "overlay.h"
 
+#include "gameplay/geometry.h"
+
 #include "main/wipsys_types.h"
 
 /// Value of `bestDistSq` in `BossStrangerNodeNearestSelfScratch` and
@@ -65,6 +67,18 @@ typedef struct {
     byte          pad_16[0x2]; // Unread. Rounds the block up to a whole word
 } BossStrangerNodeNearestPlayerScratch;
 STATIC_ASSERT_SIZEOF(BossStrangerNodeNearestPlayerScratch, 0x18);
+
+/// Scratch-pad block of the walker's ground step.
+///
+/// Contact resolution writes the push-back from the walker's measured contacts
+/// into `delta`. The step then takes each axis in whole units into `move`,
+/// adds the fall, saves the result in the walker and applies it to the
+/// walker's coordinate. Nothing clears the block when it is reserved.
+typedef struct {
+    WorldCollisionDelta delta; // Push-back in signed 16.16 units. Left unwritten when the walker measures no contacts
+    SVECTOR             move;  // Whole-unit step for this frame. A resolved, unlocked Y adds onto the value the reservation found here, and pad is never written
+} BossStrangerGroundStepScratch;
+STATIC_ASSERT_SIZEOF(BossStrangerGroundStepScratch, 0x18);
 
 s16  bossStrangerArrived(BossStrangerWalker* walker);
 void bossStrangerFollowRoute(BossStrangerWalker* work, SVECTOR3* pos);

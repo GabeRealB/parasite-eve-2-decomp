@@ -613,15 +613,6 @@ typedef struct OverlayWalkerRouteScratch {
 } OverlayWalkerRouteScratch;
 STATIC_ASSERT_SIZEOF(OverlayWalkerRouteScratch, 0x1C);
 
-/// The scratch-pad block of a patrol walker's movement step: the 16.16 step
-/// `func_800E0C10` resolves toward the node, then the whole-unit step applied
-/// to the walker's coordinate.
-typedef struct OverlayWalkerMoveScratch {
-    WorldCollisionDelta delta;
-    SVECTOR        move;
-} OverlayWalkerMoveScratch;
-STATIC_ASSERT_SIZEOF(OverlayWalkerMoveScratch, 0x18);
-
 /// The scratch-pad frame a patrol walker's tick opens: `pos` is the position
 /// the walker steers for this frame. Nothing else in the frame is read.
 typedef struct OverlayWalkerTickScratch {

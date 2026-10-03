@@ -114511,8 +114511,8 @@ would be. The two bodies are instruction-identical (the `~` tier: same body at a
 different link offset), so this one is a type rename of its twin — it went from
 the m2c baseline of 85.982% (`branch=15 regs=14 insert=10 delete=12`,
 `blocks=33/33 instructions=163/161`) to 100.000% with every penalty zero on the
-next build, with the twin's `OverlayWalkerMoveScratch` re-declared here as
-`OverlayWalkerMoveScratch` and the walker's three unnamed slots given names. Read
+next build, with the twin's scratch block, `BossStrangerGroundStepScratch`,
+declared here as well and the walker's three unnamed slots given names. Read
 the twin and transcribe it; do not go looking for a promotion.
 
 Inputs: `base_1.i` SHA256

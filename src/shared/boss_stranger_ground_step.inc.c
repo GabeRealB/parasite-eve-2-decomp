@@ -7,25 +7,25 @@
 /// is nonzero; nothing reads it.
 void bossStrangerApplyGroundStep(BossStrangerWalker* work)
 {
-    u8*                       head;
-    OverlayWalkerMoveScratch* s;
-    s32                       valx;
-    s32                       valy;
-    s32                       valz;
-    s32                       dx;
-    s32                       dy;
-    s32                       dz;
-    s32                       y;
+    BossStrangerGroundStepScratch* head;
+    BossStrangerGroundStepScratch* s;
+    s32                            valx;
+    s32                            valy;
+    s32                            valz;
+    s32                            dx;
+    s32                            dy;
+    s32                            dz;
+    s32                            y;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x18;
-    s                        = (OverlayWalkerMoveScratch*)(head - 0x18);
+    head                                                = SCRATCH_STACK_CURSOR(BossStrangerGroundStepScratch);
+    SCRATCH_STACK_CURSOR(BossStrangerGroundStepScratch) = head - 1;
+    s                                                   = head - 1;
     if (func_800E0C10(work->recs, &s->delta, work->recCount, NULL) != 0) {
-        dx         = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.fixed.vx.halves.integer;
+        dx         = head[-1].delta.fixed.vx.halves.integer;
         dz         = s->delta.fixed.vz.halves.integer;
         s->move.vx = dx;
         s->move.vz = dz;
-        valx       = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.fixed.vx.word;
+        valx       = head[-1].delta.fixed.vx.word;
         if ((valx & 0xFFFF) != 0) {
             if (valx > 0) {
                 s->move.vx++;
@@ -81,5 +81,5 @@ void bossStrangerApplyGroundStep(BossStrangerWalker* work)
     } else {
         work->offOrigin = 0;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(BossStrangerGroundStepScratch);
 }
