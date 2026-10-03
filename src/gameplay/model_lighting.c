@@ -11,7 +11,6 @@
 #include "gte.h"
 
 #include "gameplay/attachment_state.h"
-#include "attachment_state.h"
 #include "gameplay/attachments.h"
 #include "attachments.h"
 #include "hud_sprites.h"
@@ -61,12 +60,12 @@
 /// 0x30-byte play-clock work `Gp_InitPlayClock` stores at `Task::work`.
 /// `field_0` / `field_4` are `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime` split into minutes and
 /// seconds. `field_8` snapshots `gDisplayState.gameTick`. `extra` is the
-/// +0xC overlay passed to `Gp_ResetHudFx`.
+/// HUD's state, which the HUD routines are handed by address.
 typedef struct _GpIdMap30 {
     /* 0x00 */ s32      field_0;
     /* 0x04 */ s32      field_4;
     /* 0x08 */ s32      field_8;
-    /* 0x0C */ GpIdMapC extra;
+    /* 0x0C */ HudState extra;
 } GpIdMap30;
 STATIC_ASSERT_SIZEOF(GpIdMap30, 0x30);
 

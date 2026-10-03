@@ -6,7 +6,6 @@
 
 #include "common.h"
 
-#include "attachment_state.h"
 #include "attachments.h"
 #include "hud_sprites.h"
 #include "gameplay/inventory.h"

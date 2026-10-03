@@ -5,7 +5,7 @@
 
 #include "area_entry.h"
 #include "ending.h"
-#include "ending_work.h"
+#include "hud.h"
 #include "hud_sprites.h"
 #include "item_menu.h"
 #include "gameplay/items.h"
@@ -57,7 +57,7 @@ TaskDesc D_8010CABC = { { { TASK_BODY_NONE, 0xC0 } }, Gp_AreaEnterTask };
 void Gp_AreaEnterTask(Task* arg0)
 {
     u32                 stageAreaKey;
-    GpEndWork*          work;
+    HudState*           hud;
     s32                 i;
     Task*               slot;
     GameSession*        session;
@@ -65,7 +65,7 @@ void Gp_AreaEnterTask(Task* arg0)
     InventoryItemRange* scan;
 
     if (arg0->state == 0) {
-        work          = arg0->spawnArg2.pointer;
+        hud           = arg0->spawnArg2.pointer;
         stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
         stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
         Stage_InitPrimBufOnce();
@@ -82,8 +82,9 @@ void Gp_AreaEnterTask(Task* arg0)
         } else {
             arg0->spawnArg2.pointer = Ui_SpawnFromDesc(D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
             if (arg0->spawnArg1.value == 0) {
-                work->field_4 = 0;
-                work->field_0 = 0;
+                // The battle is over: return the HUD to its out-of-battle state.
+                hud->battleStep = HUD_BATTLE_STEP_START;
+                hud->inBattle   = 0;
                 Gp_SetAreaFlag2(1, &gGameSession->location.loc);
                 gGameSession->battleResetPending = 1;
                 if (!((stageAreaKey == GAME_LOCATION_KEY(5, 11, 0, 0) || stageAreaKey == GAME_LOCATION_KEY(5, 29, 0, 0)) &&

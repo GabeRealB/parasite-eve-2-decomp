@@ -7,7 +7,6 @@
 
 #include "common.h"
 
-#include "attachment_state.h"
 #include "attachments.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/inventory.h"

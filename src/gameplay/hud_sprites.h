@@ -3,7 +3,6 @@
 
 #include "types.h"
 
-#include "attachment_state.h"
 #include "hud.h"
 
 #include "main/task_types.h"
@@ -16,7 +15,7 @@ void Gp_StartAreaBgm(s16* arg0);
 
 u8* Gp_GetAttachLevels(void);
 
-void Gp_ResetHudFx(GpIdMapC* arg0);
+void Gp_ResetHudFx(HudState* hud);
 
 void Gp_EnqueueAttach7Cd(void);
 
@@ -35,7 +34,7 @@ void func_800A7F24(void);
 
 void func_800A7E4C(void);
 
-void Gp_DrawHudSprites(GpIdMapC* arg0);
+void Gp_DrawHudSprites(HudState* hud);
 
 void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind);
 

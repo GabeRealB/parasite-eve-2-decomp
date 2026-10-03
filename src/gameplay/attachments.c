@@ -1,7 +1,7 @@
 #include "types.h"
 
 #include "gameplay/attachment_state.h"
-#include "attachment_state.h"
+#include "hud.h"
 
 #include "main/mc.h"
 #include "main/session.h"

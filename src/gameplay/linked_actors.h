@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "attachment_state.h"
+#include "hud.h"
 
 void func_800A4904(s32 arg0);
 
@@ -13,7 +13,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
-void func_800A57B0(GpIdMapC* arg0);
+void func_800A57B0(HudState* hud);
 
 void func_800A63B4(s32 arg0, s32 arg1, s32 arg2);
 

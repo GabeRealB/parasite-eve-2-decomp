@@ -11,7 +11,6 @@
 #include "gameplay/action_prompt.h"
 #include "area_transitions.h"
 #include "gameplay/attachment_state.h"
-#include "attachment_state.h"
 #include "gameplay/attachments.h"
 #include "attachments.h"
 #include "gameplay/captions.h"

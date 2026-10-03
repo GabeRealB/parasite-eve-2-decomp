@@ -9,7 +9,6 @@
 #include "gameplay/area_entry.h"
 #include "area_entry.h"
 #include "gameplay/attachment_state.h"
-#include "attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
 #include "hud.h"
@@ -95,9 +94,9 @@ static __inline__ s32 getAttachWheelLevel(s32 idx);
 /// of the `Gp_IdParamHi` row for `slot` at its current level.
 static __inline__ u16 getAttachWheelParam(s32 slot, s32 field);
 
-static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2);
+static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2);
 
-static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2);
+static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2);
 
 /// Inline copy of `Gp_GetAttachLevels`.
 static __inline__ u8* getAttachLevels(void);
@@ -114,7 +113,7 @@ static __inline__ s32 cdIdleIfF0Active_(void);
 /// `Gp_IsStateF0Active` but always returns 0.
 static __inline__ u8 stateF0Gate_(void);
 
-static void Gp_UseItemTask(GpIdMapC* arg0);
+static void Gp_UseItemTask(HudState* hud);
 
 u16 D_80113CFC[8] = {
     100,
@@ -295,7 +294,7 @@ u16 D_80113F90[6] = {
     0,
 };
 
-void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
+void Gp_ApplyAttachStats(s32 arg0, HudState* hud)
 {
     PlayerStatus*        p;
     SceneCombatState*    state;
@@ -359,38 +358,38 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
                 break;
             case ATTACHMENT_AREA_PROJECTILE:
                 func_800A7824(arg0, radiusWorld, extentWorld);
-                if (arg1 != NULL) {
-                    arg1->field_16 = 4;
-                    arg1->field_18 = extentWorld;
+                if (hud != NULL) {
+                    hud->radarRangeIcon = HUD_RADAR_RANGE_PROJECTILE;
+                    hud->radarRange     = extentWorld;
                 }
                 break;
             case ATTACHMENT_AREA_ELLIPSOID:
                 Gp_InitSlot18(arg0, radiusWorld, extentWorld, area->ahead);
-                if (arg1 != NULL) {
-                    ahead          = area->ahead;
-                    arg1->field_18 = radiusWorld;
-                    arg1->field_16 = ahead + 2;
+                if (hud != NULL) {
+                    ahead               = area->ahead;
+                    hud->radarRange     = radiusWorld;
+                    hud->radarRangeIcon = ahead + HUD_RADAR_RANGE_AROUND;
                 }
                 break;
             case ATTACHMENT_AREA_CYLINDER:
                 func_800A5574(arg0, radiusWorld, extentWorld, area->ahead);
-                if (arg1 != NULL) {
-                    ahead          = area->ahead;
-                    arg1->field_18 = radiusWorld;
-                    arg1->field_16 = ahead + 2;
+                if (hud != NULL) {
+                    ahead               = area->ahead;
+                    hud->radarRange     = radiusWorld;
+                    hud->radarRangeIcon = ahead + HUD_RADAR_RANGE_AROUND;
                 }
                 break;
             case ATTACHMENT_AREA_ALL:
                 func_800A4904(arg0);
-                if (arg1 != NULL) {
-                    arg1->field_16 = 2;
-                    arg1->field_18 = 0x3FFF;
+                if (hud != NULL) {
+                    hud->radarRangeIcon = HUD_RADAR_RANGE_AROUND;
+                    hud->radarRange     = 0x3FFF;
                 }
                 break;
         }
-        if (arg1 != NULL) {
+        if (hud != NULL) {
             if (idx >= 0xC) {
-                arg1->field_16 = -1;
+                hud->radarRangeIcon = HUD_RADAR_RANGE_NONE;
             }
         }
     } else if (idx == 7) {
@@ -771,7 +770,7 @@ static __inline__ u16 getAttachWheelParam(s32 slot, s32 field)
     return Gp_IdParamHi.rows[slot * 3 + lvl].value[field];
 }
 
-static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
+static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
 {
     GpWheelScratch s;
     s32            changed;
@@ -822,30 +821,30 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         }
     }
 
-    if (arg0->field_15 > 0) {
-        arg0->field_15--;
-    } else if (arg0->field_15 < 0) {
-        arg0->field_15++;
+    if (hud->wheelTurn > 0) {
+        hud->wheelTurn--;
+    } else if (hud->wheelTurn < 0) {
+        hud->wheelTurn++;
     }
 
-    if (arg0->field_15 == 0) {
+    if (hud->wheelTurn == 0) {
         if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
             if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
                 Gp_StateC08.wheelIndex = stepAttachWheel(Gp_StateC08.wheelIndex, 1);
                 changed                = 1;
-                arg0->field_15        += 4;
+                hud->wheelTurn        += 4;
             } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
                 Gp_StateC08.wheelIndex = stepAttachWheel(Gp_StateC08.wheelIndex, -1);
                 changed                = 1;
-                arg0->field_15        -= 4;
+                hud->wheelTurn        -= 4;
             }
         }
     }
 
     if (Gp_StateC08.queuedIndex == 0) {
-        xOff           = arg1 + 2;
-        yOff           = arg2 + 2;
-        arg0->field_10 = getAttachWheelParam(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
+        xOff                 = arg1 + 2;
+        yOff                 = arg2 + 2;
+        hud->previewCastCost = getAttachWheelParam(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
 
         item  = ((Gp_StateC08.wheelIndex / 3) << 4) + ((Gp_StateC08.wheelIndex % 3) << 2) + 0x300;
         param = getAttachWheelParam(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
@@ -886,7 +885,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         pts                                      = s.u.pts;
         for (i = 0; i < 12; i++) {
             if (i < count) {
-                angle = ((i * 4 + arg0->field_15) << 12) / (count * 4);
+                angle = ((i * 4 + hud->wheelTurn) << 12) / (count * 4);
                 if (count == 1) {
                     angle = 0;
                 }
@@ -936,7 +935,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
                 if (Gp_CheckAttachThreshold(slot) != 0) {
                     flags = 4;
                 }
-                if (best == 0 && arg0->field_15 == 0) {
+                if (best == 0 && hud->wheelTurn == 0) {
                     flags |= 8;
                 }
                 Gp_DrawItemIcon(&s.obj, px, py, ((slot / 3) << 4) + ((slot % 3) << 2) + 0x301, flags);
@@ -952,7 +951,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     return changed;
 }
 
-static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
+static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2)
 {
     UiObject  obj;
     TILE*     tile;
@@ -1142,7 +1141,7 @@ static __inline__ u8 stateF0Gate_(void)
     return 0;
 }
 
-static void Gp_UseItemTask(GpIdMapC* arg0)
+static void Gp_UseItemTask(HudState* hud)
 {
     PlayerStatus* cfg;
     Task*         work;
@@ -1159,9 +1158,9 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     u8            side;
     u16           mask;
 
-    cfg            = &gPlayerStatus;
-    flag           = 0;
-    arg0->field_10 = 0;
+    cfg                  = &gPlayerStatus;
+    flag                 = 0;
+    hud->previewCastCost = 0;
     if (Gp_StateC08.soundStep == ATTACHMENT_SOUND_QUEUED) {
         if (++D_80114C34 > 0) {
             lvl   = getAttachLevel(Gp_StateC08.activeIndex);
@@ -1178,7 +1177,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     x                    = 9;
     y                    = 0x3C;
     y                   -= gDisplayState.vramYOffset;
-    arg0->field_E        = 0;
+    hud->field_E         = 0;
     gGameSession->uiOpen = 0;
     if (Gp_StateC08.flags & ATTACHMENT_FLAG_APPLY_STATS) {
         func_800A7550();
@@ -1253,7 +1252,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
             Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_CHARGE;
             Gp_StateC08.mode        = ATTACHMENT_MODE_CAST;
         }
-        Gp_DrawPeGauge(arg0, x, y);
+        Gp_DrawPeGauge(hud, x, y);
         if (Gp_StateC08.mode == ATTACHMENT_MODE_CAST) {
             Gp_StateC08.duration--;
         }
@@ -1310,14 +1309,14 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
         return;
     }
 
-    if (func_800A2104(arg0, x, y) != 0) {
+    if (func_800A2104(hud, x, y) != 0) {
         flag = 1;
     }
     actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     if ((Gp_StateC08.queuedIndex != 0 && actor->mode == GAME_ACTOR_MODE_SCRIPTED) || (Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) {
         Gp_StateC08.queuedIndex = 0;
     }
-    if ((arg0->field_15 == 0 && Pad_CheckButtons(0, 0, Pad_MaskConfirm) != 0) ||
+    if ((hud->wheelTurn == 0 && Pad_CheckButtons(0, 0, Pad_MaskConfirm) != 0) ||
         Gp_StateC08.queuedIndex != 0) {
         if (cdIdleIfF0Active_()) {
             pad                        = &gPadStates[0];
@@ -1339,7 +1338,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     }
 
     if (Gp_StateC08.mode != ATTACHMENT_MODE_IDLE) {
-        Gp_ApplyAttachStats(0, arg0);
+        Gp_ApplyAttachStats(0, hud);
     }
     if (flag) {
         idx                      = getAttachLevel(Gp_StateC08.wheelIndex);
@@ -1352,7 +1351,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     }
 }
 
-void Gp_HudTask(GpIdMapC* arg0)
+void Gp_HudTask(HudState* hud)
 {
     DisplayState*     ds;
     PlayerStatus*     cfg;
@@ -1363,8 +1362,8 @@ void Gp_HudTask(GpIdMapC* arg0)
     POLY_FT4*         poly;
     s32               stageAreaKey;
     s32               bad;
-    s32               state;
-    s32               sub;
+    s32               inBattle;
+    s32               step;
     s32               n;
     s32               b;
 
@@ -1426,15 +1425,15 @@ void Gp_HudTask(GpIdMapC* arg0)
         addPrim(gGpuCurrentOt - 5, poly);
     }
 
-    b             = arg0->field_14;
-    arg0->field_D = 0;
+    b                = hud->queuedMenuMode;
+    hud->suppression = HUD_SUPPRESS_NONE;
     if (b != 0) {
         if (ds->pendingMode == DISPLAY_MODE_NONE) {
             if (ds->holdState >= 0) {
                 ds->pendingMode = b;
             }
         }
-        arg0->field_14 = 0;
+        hud->queuedMenuMode = DISPLAY_MODE_NONE;
     }
 
     slot = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
@@ -1475,9 +1474,9 @@ void Gp_HudTask(GpIdMapC* arg0)
             s32 hit;
             s32 ok;
 
-            if (arg0->field_0 == 0) {
-                arg0->field_14 = 0x41;
-                arg0->field_D  = 0x20;
+            if (hud->inBattle == 0) {
+                hud->queuedMenuMode = 0x41;
+                hud->suppression    = HUD_SUPPRESS_ALL;
                 goto after;
             }
             hit  = 0;
@@ -1518,12 +1517,12 @@ void Gp_HudTask(GpIdMapC* arg0)
             if (gPlayerStatus.armor == PLAYER_STATUS_EQUIPMENT_NONE) {
                 goto after;
             }
-            arg0->field_14 = 0x42;
-            arg0->field_D  = 0x10;
+            hud->queuedMenuMode = 0x42;
+            hud->suppression    = HUD_SUPPRESS_PARASITE_ENERGY;
             goto after;
         }
         if (Pad_CheckButtons(0, 1, 0x100) != 0) {
-            if (arg0->field_0 != 0) {
+            if (hud->inBattle != 0) {
                 PlayerStatus* p;
                 s32           cond;
 
@@ -1536,11 +1535,11 @@ void Gp_HudTask(GpIdMapC* arg0)
                 if (cond != 0) {
                     goto after;
                 }
-                arg0->field_14 = 0x45;
+                hud->queuedMenuMode = 0x45;
             } else {
-                arg0->field_14 = 0x43;
+                hud->queuedMenuMode = DISPLAY_MODE_MAP;
             }
-            arg0->field_D = 0x20;
+            hud->suppression = HUD_SUPPRESS_ALL;
         }
     }
 
@@ -1553,12 +1552,12 @@ after:
         d3                          = &gDisplayState;
         attachment->effectPhase     = ATTACHMENT_EFFECT_IDLE;
         d3->suppressDisconnectPause = 1;
-        state                       = arg0->field_0;
-        if (state != 1) {
+        inBattle                    = hud->inBattle;
+        if (inBattle != 1) {
             goto other;
         }
-        sub = arg0->field_4;
-        if (sub == 0) {
+        step = hud->battleStep;
+        if (step == HUD_BATTLE_STEP_START) {
             s32 currentStageAreaKey;
 
             if (bad != 0) {
@@ -1566,16 +1565,16 @@ after:
             }
             currentStageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
             currentStageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
-            arg0->field_8        = 0;
+            hud->field_8         = 0;
             if (currentStageAreaKey != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-                Display_InitModeObj(&D_8010CAB0, 0, arg0, 0x100);
+                Display_InitModeObj(&D_8010CAB0, 0, hud, 0x100);
             } else {
-                arg0->field_4 = arg0->field_4 + 1;
+                hud->battleStep = hud->battleStep + 1;
             }
             Gp_StateC08.mode = ATTACHMENT_MODE_IDLE;
             goto tail;
         }
-        if (sub == state) {
+        if (step == HUD_BATTLE_STEP_FIGHT) {
             combat                      = &gSceneCombatState;
             b                           = combat->signals.bytes.endDelayFrames;
             d3->suppressDisconnectPause = 0;
@@ -1608,7 +1607,7 @@ after:
                 if (gGameSession->flowFlags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
                     Gp_MsgPlayerWeapon(0);
                 }
-                arg0->field_4 = arg0->field_4 + 2;
+                hud->battleStep = hud->battleStep + 2;
                 goto tail;
             } else {
                 GameSession* session;
@@ -1631,12 +1630,12 @@ after:
                 D_80115768              = 0;
                 combat->actorControl    = SCENE_COMBAT_ACTORS_RUNNING;
                 attachment->menuOpen    = ATTACHMENT_MENU_CLOSED;
-                arg0->field_4           = 0;
-                arg0->field_0           = 0;
+                hud->battleStep         = HUD_BATTLE_STEP_START;
+                hud->inBattle           = 0;
                 goto tail;
             }
         }
-        if (sub == 2) {
+        if (step == HUD_BATTLE_STEP_END_ACTION) {
             SceneCombatState* combat;
             Task*             w;
             s32               c;
@@ -1655,7 +1654,7 @@ after:
             func_801088D4(w, 0, 2);
             goto inc1;
         }
-        if (sub == 3) {
+        if (step == HUD_BATTLE_STEP_WAIT_END_ACTION) {
             s32           hit;
             s32           flags;
             s32           item;
@@ -1707,12 +1706,12 @@ after:
                     goto inc1;
                 }
             }
-            arg0->field_D = 0x20;
+            hud->suppression = HUD_SUPPRESS_ALL;
         inc1:
-            arg0->field_4 = arg0->field_4 + 1;
+            hud->battleStep = hud->battleStep + 1;
             goto tail;
         }
-        if (sub == 4 && bad == 0) {
+        if (step == HUD_BATTLE_STEP_RESULTS && bad == 0) {
             PlayerStatus*    p;
             s32              cond;
             DisplayState*    d4;
@@ -1733,10 +1732,10 @@ after:
             if (d4->demoScene != DISPLAY_DEMO_NONE) {
                 d4->gameMode = DISPLAY_GAME_RESTART;
             zero:
-                arg0->field_4 = 0;
-                arg0->field_0 = 0;
+                hud->battleStep = HUD_BATTLE_STEP_START;
+                hud->inBattle   = 0;
             } else {
-                Display_InitModeObj(&D_8010CABC, 0, arg0, 0);
+                Display_InitModeObj(&D_8010CABC, 0, hud, 0);
             }
             attachment = &Gp_StateC08;
             if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
@@ -1751,12 +1750,12 @@ after:
     }
 
 tail:
-    if (arg0->field_D < 0x11) {
+    if (hud->suppression <= HUD_SUPPRESS_PARASITE_ENERGY) {
         if (gGameSession->hideHud == 0) {
-            func_800A57B0(arg0);
+            func_800A57B0(hud);
             if (func_800B9D80(0x100000) != 0) {
                 if (gGameSession->sceneUpdatesPaused == 0) {
-                    Gp_DrawHudSprites(arg0);
+                    Gp_DrawHudSprites(hud);
                 }
             }
         }
@@ -1776,8 +1775,8 @@ other: {
     combat = &gSceneCombatState;
     m      = gSceneCombatState.signals.bytes.battlePhase;
     if (m == 1) {
-        arg0->field_4 = 0;
-        arg0->field_0 = m;
+        hud->battleStep = HUD_BATTLE_STEP_START;
+        hud->inBattle   = m;
         CdCmd_EnqueueLoadFile(0, 0, 4);
         attachment = &Gp_StateC08;
         if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
@@ -1789,20 +1788,20 @@ other: {
         combat->actorControl     = SCENE_COMBAT_ACTORS_RUNNING;
         attachment->previewSound = 0;
         attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
-        arg0->field_D            = 0x20;
+        hud->suppression         = HUD_SUPPRESS_ALL;
     } else {
-        if (arg0->field_D < 0x11) {
+        if (hud->suppression <= HUD_SUPPRESS_PARASITE_ENERGY) {
             if (gGameSession->hideHud == 0) {
-                func_800A57B0(arg0);
+                func_800A57B0(hud);
                 goto end;
             }
         }
-        arg0->field_D = 0x20;
+        hud->suppression = HUD_SUPPRESS_ALL;
     }
 }
 
 end:
-    if (arg0->field_D <= 0) {
+    if (hud->suppression <= HUD_SUPPRESS_NONE) {
         if (gGameSession->eventState == 0) {
             if (func_800B9D80(0x4000) != 0) {
                 GameSession* session;
@@ -1810,11 +1809,11 @@ end:
                 session = gGameSession;
                 if (session->hideHud == 0) {
                     if (session->sceneUpdatesPaused == 0) {
-                        Gp_HudTrackSlot0(&arg0->field_1C);
+                        Gp_HudTrackSlot0(&hud->targetHpReadout);
                     }
                 }
             }
-            Gp_UseItemTask(arg0);
+            Gp_UseItemTask(hud);
             Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_EVENT_LOCK;
             if (Gp_ItemGrantCooldown > 0) {
                 Gp_ItemGrantCooldown = Gp_ItemGrantCooldown - 1;

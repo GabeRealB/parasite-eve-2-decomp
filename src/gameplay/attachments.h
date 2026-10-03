@@ -3,7 +3,6 @@
 
 #include "types.h"
 
-#include "attachment_state.h"
 #include "damage.h"
 #include "hud.h"
 #include "weapon_data.h"
@@ -73,9 +72,9 @@ extern const GpHudStatusBits D_8009389C;
 
 extern const char D_800938AC[8];
 
-void Gp_HudTask(GpIdMapC* arg0);
+void Gp_HudTask(HudState* hud);
 
-void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1);
+void Gp_ApplyAttachStats(s32 arg0, HudState* hud);
 
 /// Pending flags written by `Gp_ApplyItemUse` and consumed by `Gp_MenuExitCallback`.
 /// `Gp_HealPending == 1` requests `taskMessageDispatch(..., 0x402, ...)`.

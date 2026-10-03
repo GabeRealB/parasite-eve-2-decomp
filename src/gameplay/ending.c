@@ -4,7 +4,7 @@
 
 #include "area_transitions.h"
 #include "gameplay/ending.h"
-#include "ending_work.h"
+#include "hud.h"
 #include "hud_sprites.h"
 #include "items.h"
 #include "model_lighting.h"
@@ -189,12 +189,12 @@ const char Gp_StrItem[] = "Item";
 void Gp_EndingTask(Task* arg0)
 {
     GameSession*      session;
-    GpEndWork*        work;
+    HudState*         hud;
     StageMusicParams* pair;
 
     if (arg0->state == 0) {
-        work                = arg0->spawnArg2.pointer;
-        work->field_4       = 1;
+        hud                 = arg0->spawnArg2.pointer;
+        hud->battleStep     = HUD_BATTLE_STEP_FIGHT;
         arg0->killCountdown = 0x1E;
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 48, 0, 0)) {
             arg0->killCountdown = 0x5A;

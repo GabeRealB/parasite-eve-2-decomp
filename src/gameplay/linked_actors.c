@@ -10,7 +10,6 @@
 
 #include "gameplay/area_entry.h"
 #include "gameplay/attachment_state.h"
-#include "attachment_state.h"
 #include "gameplay/attachments.h"
 #include "attachments.h"
 #include "ending.h"
@@ -437,7 +436,7 @@ static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color)
     Text_DrawString(&mpReq, Gp_StrMP);
 }
 
-void func_800A57B0(GpIdMapC* arg0)
+void func_800A57B0(HudState* hud)
 {
     GameDebugState* debugState;
     s32             pendingMp;
@@ -488,9 +487,9 @@ void func_800A57B0(GpIdMapC* arg0)
     }
 
     if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
-        pendingHp = arg0->field_10 << 1;
+        pendingHp = hud->previewCastCost << 1;
     } else {
-        pendingMp = arg0->field_10;
+        pendingMp = hud->previewCastCost;
     }
 
     color = 0x606060;

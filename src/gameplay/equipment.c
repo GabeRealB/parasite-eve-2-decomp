@@ -5,7 +5,6 @@
 #include "types.h"
 
 #include "gameplay/attachment_state.h"
-#include "attachment_state.h"
 #include "gameplay/attachments.h"
 #include "attachments.h"
 #include "gameplay/inventory.h"

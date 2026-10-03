@@ -14,7 +14,6 @@
 #include "gameplay/area_entry.h"
 #include "area_entry.h"
 #include "gameplay/attachment_state.h"
-#include "attachment_state.h"
 #include "gameplay/attachments.h"
 #include "attachments.h"
 #include "gameplay/display.h"
@@ -221,7 +220,7 @@ static void func_800A8D5C(void);
 #undef DRAW_PROMPT_LABEL
 #undef DRAW_PROMPT_COUNT
 
-void Gp_DrawHudSprites(GpIdMapC* arg0)
+void Gp_DrawHudSprites(HudState* hud)
 {
     GpXformScratch*  block;
     WorldTargetNode* node;
@@ -234,7 +233,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     s32              vz;
     s32              i;
     s32              n;
-    s32              sy;
+    s32              range;
     DR_TPAGE*        tp;
     SPRT*            sp;
     SPRT*            sp2;
@@ -296,9 +295,9 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
             node = node->next;
         } while (node != NULL);
     }
-    sy = arg0->field_18;
+    range = hud->radarRange;
     if (mode == 0) {
-        sy *= 2;
+        range *= 2;
     }
     tp             = gGpuPrimCursor;
     gGpuPrimCursor = tp + 1;
@@ -339,15 +338,15 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     poly->x0 = poly->x2 = x;
     poly->y0 = poly->y1 = y;
     addPrim(gGpuCurrentOt - 2, poly);
-    if (arg0->field_16 != -1) {
+    if (hud->radarRangeIcon != HUD_RADAR_RANGE_NONE) {
         sp2            = gGpuPrimCursor;
         gGpuPrimCursor = sp2 + 1;
         sp2->x0        = x + 0xD;
         sp2->y0        = y + 0xC;
         sp2->h         = 0x28;
         sp2->w         = 0x28;
-        if (arg0->field_16 != 4) {
-            if (arg0->field_16 == 2) {
+        if (hud->radarRangeIcon != HUD_RADAR_RANGE_PROJECTILE) {
+            if (hud->radarRangeIcon == HUD_RADAR_RANGE_AROUND) {
                 sp2->u0 = 0x88;
             } else {
                 sp2->u0 = 0xD8;
@@ -361,7 +360,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
         setcode(sp2, 0x67);
         addPrim(gGpuCurrentOt - 3, sp2);
         Ui_InsertDrawTPage(-3, 1);
-        n = sy;
+        n = range;
         if (n > 0x1300) {
             n = 0x1300;
         }
@@ -385,7 +384,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
         D_80114BD0.w = 0x10;
         D_80114BD0.h = 1;
         LoadImage(&D_80114BD0, (u_long*)D_80114BB0);
-        arg0->field_16 = -1;
+        hud->radarRangeIcon = HUD_RADAR_RANGE_NONE;
     }
     SCRATCH_STACK_RELEASE_BLOCK(GpXformScratch);
 }
@@ -706,11 +705,11 @@ s32 Gp_IsStateF0Active(void)
 
 s32 func_800A7550(void)
 {
-    Gp_ApplyAttachStats(1, 0);
+    Gp_ApplyAttachStats(1, NULL);
     return 0;
 }
 
-void Gp_ResetHudFx(GpIdMapC* arg0)
+void Gp_ResetHudFx(HudState* hud)
 {
     PlayerStatus*    cfg;
     HudHpMp*         hudHpMp;
@@ -720,8 +719,8 @@ void Gp_ResetHudFx(GpIdMapC* arg0)
     hudHpMp                               = &Gp_HpMpWork;
     hudHpMp->hp                           = cfg->hp;
     hudHpMp->mp                           = cfg->mp;
-    arg0->field_16                        = -1;
-    arg0->field_18                        = 0;
+    hud->radarRangeIcon                   = HUD_RADAR_RANGE_NONE;
+    hud->radarRange                       = 0;
     attachment                            = &Gp_StateC08;
     attachment->antibodyTicks             = 0;
     attachment->antibodyCombo             = 0;
