@@ -10,7 +10,7 @@
 
 #include "main/task_types.h"
 
-extern const GpDirActionTable Gp_DirActionFns;
+extern const DirectionActionTable Gp_DirActionFns;
 
 /// Per-stage flag-nibble lookup. `idx` indexes a u16 table selected by
 /// `gGameSession->location.loc.stage` (1..5). Low 11 bits are the `GameFlag_GetNibble`

@@ -406,14 +406,14 @@ const TaskFuncTable3 Gp_DirTaskStates = { {
     taskKill,
 } };
 
-const GpDirActionTable Gp_DirActionFns = { {
-    [WORLD_COLLISION_TRIGGER_ACTION_WARP] = Gp_DirAction0,
-    Gp_DirAction1,
-    [WORLD_COLLISION_TRIGGER_ACTION_CAP] = Gp_PostDirIfCapIdle,
-    Gp_RunDirAction,
-    Gp_ClearDirCursor,
-    Gp_PostMsg13EF,
-    Gp_SpawnEvt1IfCapIdle,
+const DirectionActionTable Gp_DirActionFns = { {
+    [WORLD_COLLISION_TRIGGER_ACTION_WARP]       = Gp_DirAction0,
+    [WORLD_COLLISION_TRIGGER_ACTION_FACING]     = Gp_DirAction1,
+    [WORLD_COLLISION_TRIGGER_ACTION_CAP]        = Gp_PostDirIfCapIdle,
+    [WORLD_COLLISION_TRIGGER_ACTION_CALLBACK]   = Gp_RunDirAction,
+    [WORLD_COLLISION_TRIGGER_ACTION_CLEAR]      = Gp_ClearDirCursor,
+    [WORLD_COLLISION_TRIGGER_ACTION_ROOM]       = Gp_PostMsg13EF,
+    [WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON] = Gp_SpawnEvt1IfCapIdle,
 } };
 
 static const GpVoidFuncTable6 Gp_WarpPhaseFns = { {

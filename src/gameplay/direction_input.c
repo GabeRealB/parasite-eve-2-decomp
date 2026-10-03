@@ -134,12 +134,12 @@ u8 gViewIdentityMap[VIEW_IDENTITY_MAP_LENGTH] = {
 
 void func_800AD6BC(void)
 {
-    Task*            slot;
-    PlayerStatus*    cfg;
-    u32              flags;
-    u32              action;
-    u32              mask;
-    GpDirActionTable funcs;
+    Task*                slot;
+    PlayerStatus*        cfg;
+    u32                  flags;
+    u32                  action;
+    u32                  mask;
+    DirectionActionTable funcs;
 
     funcs = Gp_DirActionFns;
     cfg   = &gPlayerStatus;
@@ -199,7 +199,7 @@ void func_800AD6BC(void)
         gGameSession->dirActionBusy = 1;
         action                      = (u8)Gp_DirFlags;
         if (action != WORLD_COLLISION_TRIGGER_ACTION_CANCEL) {
-            funcs.funcs[action]();
+            funcs.handlers[action]();
         } else {
             Gp_DirNibble    = 0;
             Gp_DirByte      = 0;
