@@ -331,13 +331,17 @@
 
 #include "rooms/shelter_r49.h"
 
-/// 5-byte table at `Gp_ConfigCdTable`. `Gp_EnqueueConfigCd` copies it to the stack and
-/// indexes it 1-based by `gPlayerStatus.resourceVariant`; the byte is CdCmd 0x21
-/// param2[0].
-typedef struct _GpTbl5 {
-    /* 0x0 */ u8 field_0[5];
-} GpTbl5;
-STATIC_ASSERT_SIZEOF(GpTbl5, 5);
+/// Stage-zero file-id hundreds digits for the character model package, one per
+/// resource variant.
+///
+/// Indexed by `gPlayerStatus.resourceVariant` minus one. With file group 1 and
+/// file index 0, the digits 4, 3, 2, 5 and 6 select files 10400, 10300, 10200,
+/// 10500 and 10600; the last two load the same package. Wrapping the bytes in
+/// a struct lets the table be copied by assignment.
+typedef struct {
+    u8 fileIdHundreds[5]; // Hundreds component for resource variants 1..5
+} _LoadingConfigFileHundreds;
+STATIC_ASSERT_SIZEOF(_LoadingConfigFileHundreds, 5);
 
 extern AreaRecord D_8010CBE4[21];
 
@@ -366,7 +370,7 @@ extern u32 D_8010D1BC[2];
 
 static const TaskFuncTable6 Gp_LoadWaitFns;
 
-static const GpTbl5 Gp_ConfigCdTable;
+static const _LoadingConfigFileHundreds Gp_ConfigCdTable;
 
 /// Maps `gPlayerStatus.weapon` / `gPlayerStatus.weaponSlotItem` (and the 0x1B attach id) to a
 /// CdCmd 0x21 payload. No-op when `gPlayerStatus.weapon` is 0 or the mapped byte is 0.
@@ -600,7 +604,7 @@ static const TaskFuncTable6 Gp_LoadWaitFns = { {
     Gp_LoadWaitDone,
 } };
 
-static const GpTbl5 Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };
+static const _LoadingConfigFileHundreds Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };
 
 /// Maps `gPlayerStatus.weapon` / `gPlayerStatus.weaponSlotItem` (and the 0x1B attach id) to a
 /// CdCmd 0x21 payload. No-op when `gPlayerStatus.weapon` is 0 or the mapped byte is 0.
@@ -903,16 +907,16 @@ void Gp_LoadViewAndCd(u8 arg0)
 
 void Gp_EnqueueConfigCd(s32 arg0)
 {
-    u8     param1[8];
-    u8     param2[8];
-    GpTbl5 table;
+    u8                         param1[8];
+    u8                         param2[8];
+    _LoadingConfigFileHundreds table;
 
     table = Gp_ConfigCdTable;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId != 0) {
         param1[3] = 0;
         param1[2] = 1;
         param1[0] = 0;
-        param2[0] = table.field_0[gPlayerStatus.resourceVariant - 1];
+        param2[0] = table.fileIdHundreds[gPlayerStatus.resourceVariant - 1];
         if ((u8)arg0 == 0) {
             param2[1] = 0;
         } else {

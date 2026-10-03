@@ -27144,11 +27144,11 @@ Type the existing symbol and assign it:
 
 ```c
 typedef struct {
-    u8 field_0[5];
-} GpTbl5;
+    u8 fileIdHundreds[5];
+} _LoadingConfigFileHundreds;
 
-extern GpTbl5 Gp_ConfigCdTable;
-GpTbl5        table;
+extern _LoadingConfigFileHundreds Gp_ConfigCdTable;
+_LoadingConfigFileHundreds        table;
 
 table = Gp_ConfigCdTable; /* lwl/lwr/lb of Gp_ConfigCdTable */
 ```
