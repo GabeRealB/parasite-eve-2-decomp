@@ -149,14 +149,21 @@ typedef struct {
 } _AcropolisPlazaFlareScratch;
 STATIC_ASSERT_SIZEOF(_AcropolisPlazaFlareScratch, 0x4C);
 
-/// Spawn argument the plaza's scene task (`func_acropolis_plaza_8017DFE0`)
-/// reads once in state 0: `view` seeds both `gCdCmdQueue.sceneFrame` and
-/// `movieFrame`, and a non-zero `noStream` skips the opening stream request
-/// altogether.
-typedef struct AcropolisPlazaSceneArg {
-    /* 0x0 */ u16 view;
-    /* 0x2 */ u16 noStream;
-} AcropolisPlazaSceneArg;
+/// Spawn argument of the plaza's streamed-scene task.
+///
+/// `Task::spawnArg2` points at one of these and the task reads it only while
+/// initialising. The opening spawn passes frame 0 with `skipStreamReset`
+/// clear, which also requests the stream. A respawn after an interruption
+/// passes the scene frame latched when the scene stopped and sets
+/// `skipStreamReset`: the task resumes its bookkeeping at that frame and
+/// requests no stream until the player next crosses an edge.
+///
+/// The storage is the spawner's and need only outlive the task's first tick.
+typedef struct {
+    u16 startFrame;      // Scene frame to resume at; seeds both `CdCmdQueue::sceneFrame` and `movieFrame`
+    u16 skipStreamReset; // 0 resets the stream to the frame before `startFrame`; non-zero only clears `movieAtEnd`
+} _AcropolisPlazaSceneArg;
+STATIC_ASSERT_SIZEOF(_AcropolisPlazaSceneArg, 0x4);
 
 /// `GameActor.movementMode` value this plaza treats as running.
 enum { ACROPOLIS_PLAZA_MOVEMENT_RUNNING = 3 };
@@ -3658,10 +3665,10 @@ void func_acropolis_plaza_8017DFE0(Task* task)
     _AcropolisPlazaSceneWork* block;
     CdCmdQueue*               q;
     _AcropolisPlazaSceneWork* work;
-    AcropolisPlazaSceneArg*   arg;
+    _AcropolisPlazaSceneArg*  arg;
     Task*                     playerTask;
     u16                       view;
-    u16                       startView;
+    u16                       startFrame;
 
     q    = &gCdCmdQueue;
     work = (_AcropolisPlazaSceneWork*)task->work;
@@ -3707,17 +3714,19 @@ L_case0:
         return;
     }
     memFillBytes(block, 0, sizeof(*block));
-    arg                   = (AcropolisPlazaSceneArg*)task->spawnArg2.pointer;
+    arg                   = task->spawnArg2.pointer;
     work                  = (_AcropolisPlazaSceneWork*)task->work;
-    startView             = arg->view;
+    startFrame            = arg->startFrame;
     q->plazaStreamSubId   = 0;
-    q->sceneFrame         = startView;
-    q->movieFrame         = startView;
+    q->sceneFrame         = startFrame;
+    q->movieFrame         = startFrame;
     work->prevReverse     = 0;
     q->reverseSceneFrames = 0;
     q->movieReady         = 0;
     q->continueMovie      = 0;
-    if (((AcropolisPlazaSceneArg*)task->spawnArg2.pointer)->noStream == 0) {
+    // The argument is fetched from the task again after the queue stores.
+    arg = task->spawnArg2.pointer;
+    if (arg->skipStreamReset == 0) {
         slot[0]   = Stream_FindSlot((u8*)&gGameSession->location.loc, q->plazaStreamSubId, 0);
         frameOfs  = (q->movieFrame - 1) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
         openFrame = frameOfs & 0xFFFF;
