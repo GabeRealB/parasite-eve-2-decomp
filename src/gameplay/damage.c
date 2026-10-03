@@ -268,7 +268,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     if (arg3 == 0) {
         hp    = gPlayerStatus.hp;
         col   = D_80113F54[hp / 10];
-        val   = Gp_DmgRows[gSceneCombatState.difficulty].field_A[col] << 8;
+        val   = Gp_DmgRows[gSceneCombatState.difficulty].playerPercent[col] << 8;
         extra = Gp_StateC08.antibodyCombo;
         if (extra != 0) {
             val = val * D_80113CFC[(extra / 16 - 1) * 2 + (s8)(extra % 16)] / 100;
@@ -276,7 +276,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     } else {
         hp  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp;
         col = D_80113F54[hp / 10];
-        val = Gp_DmgRows[gSceneCombatState.difficulty].field_0[col] << 8;
+        val = Gp_DmgRows[gSceneCombatState.difficulty].companionPercent[col] << 8;
     }
 
     val = val / 100;

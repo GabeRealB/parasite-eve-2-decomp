@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "attachment_state.h"
+#include "damage.h"
 #include "hud.h"
 #include "weapon_data.h"
 
@@ -50,7 +51,7 @@ extern u16 D_80113D30[];
 extern u16 D_80113D38[];
 
 /// Damage-scale rows used by `Gp_ScaleDamage`. Indexed by `gSceneCombatState.difficulty`.
-extern GpDmgRow Gp_DmgRows[];
+extern DamageReceivedScaleRow Gp_DmgRows[];
 
 /// Column index table for `Gp_DmgRows`, indexed by signed HP / 10.
 extern u16 D_80113F54[];

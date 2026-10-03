@@ -247,7 +247,7 @@ AttachmentAreaRow Gp_AttachParams[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA
         { .area = { ATTACHMENT_AREA_CYLINDER, 16, 20, 1 } },
     },
 };
-GpDmgRow Gp_DmgRows[5] = {
+DamageReceivedScaleRow Gp_DmgRows[5] = {
     { { 20, 30, 40, 50, 60 }, { 50, 60, 70, 80, 100 } },
     { { 20, 30, 40, 50, 60 }, { 100, 120, 140, 160, 200 } },
     { { 20, 30, 40, 50, 60 }, { 150, 180, 210, 240, 300 } },
