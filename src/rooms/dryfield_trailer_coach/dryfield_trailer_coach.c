@@ -1687,16 +1687,16 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, TaskMes
 /// `Ui_SpawnTextBlock` and advances the task.
 static void func_dryfield_trailer_coach_801826A0(Task* task)
 {
-    RoomTextBlock* block;
-    TextLineNode*  node;
-    u8**           line;
-    s32            table;
-    s32            off;
-    s32            mode;
-    s32            i;
+    RoomTextBlock*  block;
+    UiDialogOption* option;
+    u8**            line;
+    s32             table;
+    s32             off;
+    s32             mode;
+    s32             i;
 
-    block = memCalloc(sizeof(RoomTextBlock), 0);
-    node  = block->lines;
+    block  = memCalloc(sizeof(RoomTextBlock), 0);
+    option = block->lines;
     if (block == NULL) {
         taskKill(task);
         return;
@@ -1712,16 +1712,16 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
 
     for (; i < 2; i++) {
         if (task->spawnArg1.value == mode) {
-            node->text = *(u8**)(off + table);
+            option->text = *(u8**)(off + table);
         } else {
-            node->text = *line;
+            option->text = *line;
         }
-        node->next = node + 1;
-        node++;
+        option->next = option + 1;
+        option++;
         line++;
         off += 4;
     }
-    node[-1].next = NULL;
+    option[-1].next = NULL;
 
     block->desc.count   = 2;
     block->desc.lines   = block->lines;

@@ -95,21 +95,13 @@ typedef struct {
 } _UiPanelLifecycleFuncTable6;
 STATIC_ASSERT_SIZEOF(_UiPanelLifecycleFuncTable6, 0x18);
 
-/// Linked text option node walked by Ui_DrawDialogLine (index via UiList::currentItemIndex).
-/// field_0 is the string passed to Text_DrawPrompt; field_4 is the next node.
-typedef struct _DialogOption {
-    /* 0x0 */ u8*                   text;
-    /* 0x4 */ struct _DialogOption* next;
-} DialogOption;
-STATIC_ASSERT_SIZEOF(DialogOption, 0x8);
-
 /// Context at Task::spawnArg1 for the Ui_DrawDialogLine dialog path.
-/// field_4 is the head of a DialogOption list; field_C bit0 gates cancel input.
+/// field_4 is the head of a UiDialogOption list; field_C bit0 gates cancel input.
 typedef struct _DialogListCtx {
-    /* 0x00 */ byte          unknown_0[4];
-    /* 0x04 */ DialogOption* field_4;
-    /* 0x08 */ byte          unknown_8[4];
-    /* 0x0C */ u8            field_C;
+    /* 0x00 */ byte            unknown_0[4];
+    /* 0x04 */ UiDialogOption* field_4;
+    /* 0x08 */ byte            unknown_8[4];
+    /* 0x0C */ u8              field_C;
 } DialogListCtx;
 
 /// Context at Task::spawnArg1 for the Ui_ListTaskCallback UI path.
@@ -2084,12 +2076,12 @@ void Ui_DrawText(UiPanel* panel, char* arg1)
 
 UiObject* Ui_SpawnTextBlock(TextBlockDesc* descriptor, s32 unused2, s32 unused3, s32 unused4)
 {
-    UiObject*     obj;
-    TextLineNode* node;
-    TaskSpawnArg  textBlockArg;
-    s32           count;
-    s32           maxWidth;
-    s32           width;
+    UiObject*       obj;
+    UiDialogOption* option;
+    TaskSpawnArg    textBlockArg;
+    s32             count;
+    s32             maxWidth;
+    s32             width;
 
     obj = NULL;
     if (descriptor->count > 0) {
@@ -2099,17 +2091,17 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* descriptor, s32 unused2, s32 unused3,
             RECT rect;
 
             count    = descriptor->count;
-            node     = descriptor->lines;
+            option   = descriptor->lines;
             maxWidth = 0;
             if (descriptor->field_8 == 0) {
                 obj->panel.style = 3;
             }
             for (; count > 0; count--) {
-                width = Text_MeasureWidth(node->text);
+                width = Text_MeasureWidth(option->text);
                 if (maxWidth < width) {
                     maxWidth = width;
                 }
-                node = node->next;
+                option = option->next;
             }
             _uiComputePanelInnerRect(&obj->panel, &obj->panel.bounds.rect, &rect);
             if ((obj->panel.style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
@@ -2894,21 +2886,21 @@ void Ui_WaitCdThenOverlay(Task* task)
 
 static void Ui_DrawDialogLine(UiList* list, UiObject* object)
 {
-    DialogListCtx* temp_s3;
-    DialogOption*  var_a3;
-    s32            var_v0;
-    s16            temp;
+    DialogListCtx*  temp_s3;
+    UiDialogOption* option;
+    s32             var_v0;
+    s16             temp;
 
     temp_s3 = object->owner->spawnArg1.pointer;
     var_v0  = list->currentItemIndex;
-    var_a3  = temp_s3->field_4;
+    option  = temp_s3->field_4;
     if (var_v0 > 0) {
         do {
-            var_a3  = var_a3->next;
+            option  = option->next;
             var_v0 -= 1;
         } while (var_v0 > 0);
     }
-    Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, var_a3->text, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, option->text, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             temp                = USER_INTERFACE_RESULT_CONFIRM;

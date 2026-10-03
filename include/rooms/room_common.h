@@ -36,14 +36,14 @@ STATIC_ASSERT_SIZEOF(RoomRect, 0x8);
 
 /// 0x20 work block a room's "show a two-line message" task allocates and parks
 /// in `Task::work`: a `TextBlockDesc` handed to `Ui_SpawnTextBlock` followed by
-/// the two `TextLineNode`s the descriptor's list points at, so one allocation
+/// the two `UiDialogOption`s the descriptor's list points at, so one allocation
 /// carries both. The room picks which pair of strings to publish from
 /// `Task::spawnArg1`.
 typedef struct RoomTextBlock {
-    /* 0x00 */ TextBlockDesc desc;
-    /* 0x0C */ u8            field_C;
-    /* 0x0D */ byte          pad_D[3];
-    /* 0x10 */ TextLineNode  lines[2];
+    /* 0x00 */ TextBlockDesc  desc;
+    /* 0x0C */ u8             field_C;
+    /* 0x0D */ byte           pad_D[3];
+    /* 0x10 */ UiDialogOption lines[2];
 } RoomTextBlock;
 STATIC_ASSERT_SIZEOF(RoomTextBlock, 0x20);
 

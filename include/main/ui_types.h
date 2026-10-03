@@ -204,21 +204,30 @@ typedef struct {
 } UiObjectDesc;
 STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
 
-/// Singly-linked text line node used by TextBlockDesc / Ui_SpawnTextBlock.
-typedef struct TextLineNode {
-    /* 0x0 */ u8*                  text;
-    /* 0x4 */ struct TextLineNode* next;
-} TextLineNode;
+/// One selectable row of an option dialog, linked in display order.
+///
+/// The caller builds the list and passes its head in the `TextBlockDesc` given
+/// to `Ui_SpawnTextBlock`. The dialog shows one option per list row and reports
+/// a confirmed row as its one-based position in the list. Nodes are reached by
+/// stepping `next` a counted number of times, never by testing for a
+/// terminator, so the list must hold at least the descriptor's `count` nodes.
+/// The dialog keeps only the pointers: the nodes and their strings must stay
+/// valid until it closes.
+typedef struct UiDialogOption {
+    u8*                    text; // Row label, one line in the large UI face; also measured to size the panel
+    struct UiDialogOption* next; // Option on the following row; the last counted node's link is never dereferenced
+} UiDialogOption;
+STATIC_ASSERT_SIZEOF(UiDialogOption, 0x8);
 
 /// Multi-line text block descriptor consumed by Ui_SpawnTextBlock to spawn a
 /// sized UiObject. field_0 is the line count; field_2 is cleared on return;
-/// field_4 is the head of a TextLineNode list; field_8 selects layout mode
+/// field_4 is the head of a UiDialogOption list; field_8 selects layout mode
 /// (0 forces UiObject::panel.style = 3).
 typedef struct TextBlockDesc {
-    /* 0x0 */ s16           count;
-    /* 0x2 */ s16           field_2;
-    /* 0x4 */ TextLineNode* lines;
-    /* 0x8 */ s32           field_8;
+    /* 0x0 */ s16             count;
+    /* 0x2 */ s16             field_2;
+    /* 0x4 */ UiDialogOption* lines;
+    /* 0x8 */ s32             field_8;
 } TextBlockDesc;
 STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
 

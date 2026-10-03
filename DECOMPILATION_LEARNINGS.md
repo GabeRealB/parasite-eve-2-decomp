@@ -51195,7 +51195,7 @@ that reaches 100%.
 
 ## A hoisted invariant lands last in the preheader, so an *early* `li reg, k` is a source-level local
 
-`func_mist_parking_80183304` fills two `TextLineNode`s, picking each line's
+`func_mist_parking_80183304` fills two `UiDialogOption`s, picking each line's
 string from one of two halves of a four-pointer table depending on
 `task->spawnArg1 == 1`. Two preheader details decided the last 2%.
 
