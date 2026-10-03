@@ -70,23 +70,6 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 extern AnimationSet* D_acropolis_helicopter_landing_pad_801838F4[3];
 
-/// 0x20 scratch block `func_acropolis_helicopter_landing_pad_80180A64` takes
-/// from the scratch stack for one spark line. `a` / `b` are the two random
-/// endpoints, rotated by the coord's `workm` and offset by its translation;
-/// `otz` is `SZ3 >> 2` of the second `RTPS`, `flag` the GTE flag word (bit 31
-/// rejects the line), and `x0..y1` the two projected screen points.
-typedef struct AhlpSparkScratch {
-    /* 0x00 */ SVECTOR a;
-    /* 0x08 */ SVECTOR b;
-    /* 0x10 */ s32     otz;
-    /* 0x14 */ s32     flag;
-    /* 0x18 */ u16     x0;
-    /* 0x1A */ u16     y0;
-    /* 0x1C */ u16     x1;
-    /* 0x1E */ u16     y1;
-} AhlpSparkScratch;
-STATIC_ASSERT_SIZEOF(AhlpSparkScratch, 0x20);
-
 extern SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12];
 extern s32     D_acropolis_helicopter_landing_pad_80184EE0[12];
 
@@ -1185,152 +1168,140 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 
 /// Draws one random spark line off the floodlight coord, the same shape as
 /// `func_acropolis_helicopter_landing_pad_80180A64` with a different box:
-/// `a` is rolled 64 wide and 128 tall hanging 0xC0..0x41 below the coord,
-/// `b` is centred (128 wide, 255 tall via an LCG modulo). Both are rotated by
+/// endpoint 0 is rolled 64 wide and 128 tall, 0x41..0xC0 units from the coord
+/// on its negative Y side, and endpoint 1 is centred on it (128 wide, 255 tall
+/// via an LCG modulo). Both are staged in an `EffectLineScratch`, rotated by
 /// the coord's `workm`, offset by its translation and projected through
 /// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
 /// and red half of it. Nothing is queued when the GTE flag word is negative.
 static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord)
 {
-    void**            scratch;
-    u8*               head;
-    AhlpSparkScratch* blk;
-    LINE_F2*          prim;
-    SVECTOR*          vec;
-    u32               tmp;
-    u16               lvl;
+    EffectLineScratch* line;
+    LINE_F2*           prim;
+    u32                tmp;
+    u16                lvl;
 
     Gp_UpdateCoord(coord);
-    scratch         = SCRATCH_STACK_CURSOR_SLOT;
-    head            = *scratch;
-    *scratch        = head - 0x20;
-    blk             = (AhlpSparkScratch*)(head - 0x20);
-    vec             = &blk->a;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->a.vx       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->a.vy       = ((gRandomLcgState >> 16) & 0x7F) - 0xC0;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->a.vz       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    line                  = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[0].vx = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[0].vy = ((gRandomLcgState >> 16) & 0x7F) - 0xC0;
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[0].vz = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(vec);
+    gte_ldv0(&line->endpoints[0]);
     gte_rtv0();
-    gte_stsv(vec);
-    blk->a.vx       = (u16)blk->a.vx + (u16)coord->workm.t[0];
-    blk->a.vy       = (u16)blk->a.vy + (u16)coord->workm.t[1];
-    blk->a.vz       = (u16)blk->a.vz + (u16)coord->workm.t[2];
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->b.vx       = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->b.vy       = ((gRandomLcgState >> 16) % 0xFF) - 0x80;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->b.vz       = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
+    gte_stsv(&line->endpoints[0]);
+    line->endpoints[0].vx += coord->workm.t[0];
+    line->endpoints[0].vy += coord->workm.t[1];
+    line->endpoints[0].vz += coord->workm.t[2];
+    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vx  = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
+    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vy  = ((gRandomLcgState >> 16) % 0xFF) - 0x80;
+    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vz  = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
+    gte_ldv0(&line->endpoints[1]);
     gte_rtv0();
-    gte_stsv(&((AhlpSparkScratch*)(head - 0x20))->b);
-    blk->b.vx = (u16)blk->b.vx + (u16)coord->workm.t[0];
-    blk->b.vy = (u16)blk->b.vy + (u16)coord->workm.t[1];
-    blk->b.vz = (u16)blk->b.vz + (u16)coord->workm.t[2];
+    gte_stsv(&line->endpoints[1]);
+    line->endpoints[1].vx += coord->workm.t[0];
+    line->endpoints[1].vy += coord->workm.t[1];
+    line->endpoints[1].vz += coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&line->endpoints[0]);
     gte_rtps();
-    gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x0);
-    gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
+    gte_stsxy(&line->screenEndpoints[0]);
+    gte_ldv0(&line->endpoints[1]);
     gte_rtps();
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     tmp             = (gRandomLcgState >> 16) & 0xFF;
     lvl             = tmp;
-    gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x1);
-    gte_stflg(&((AhlpSparkScratch*)(head - 0x20))->flag);
-    if (blk->flag >= 0) {
-        gte_stszotz(&((AhlpSparkScratch*)(head - 0x20))->otz);
+    gte_stsxy(&line->screenEndpoints[1]);
+    gte_stflg(&line->projectionFlags);
+    if (line->projectionFlags >= 0) {
+        gte_stszotz(&line->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setLineF2(prim);
         setRGB0(prim, tmp >> 1, lvl, 0xFF);
-        prim->x0 = blk->x0;
-        prim->y0 = blk->y0;
-        prim->x1 = blk->x1;
-        prim->y1 = blk->y1;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        prim->x0 = line->screenEndpoints[0].vx;
+        prim->y0 = line->screenEndpoints[0].vy;
+        prim->x1 = line->screenEndpoints[1].vx;
+        prim->y1 = line->screenEndpoints[1].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectLineScratch);
 }
 
 /// Draws one random spark line off the floodlight coord: two endpoints are
-/// rolled from the LCG (`a` in a 64x128x64 box, `b` in 64x256x64), rotated by
+/// rolled from the LCG into an `EffectLineScratch` (endpoint 0 in a 64x128x64
+/// box, endpoint 1 in 64x256x64, both on the coord's positive Y side), rotated by
 /// the coord's `workm` and offset by its translation, then projected through
 /// `GsWSMATRIX` into a semi-transparent `LINE_F2` whose green is an LCG byte
 /// and red half of it. Nothing is queued when the GTE flag word is negative.
 void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
 {
-    void**            scratch;
-    u8*               head;
-    AhlpSparkScratch* blk;
-    LINE_F2*          prim;
-    SVECTOR*          vec;
-    u32               tmp;
-    u16               lvl;
+    EffectLineScratch* line;
+    LINE_F2*           prim;
+    u32                tmp;
+    u16                lvl;
 
     Gp_UpdateCoord(coord);
-    scratch         = SCRATCH_STACK_CURSOR_SLOT;
-    head            = *scratch;
-    *scratch        = head - 0x20;
-    blk             = (AhlpSparkScratch*)(head - 0x20);
-    vec             = &blk->a;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->a.vx       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->a.vy       = (gRandomLcgState >> 16) & 0x7F;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->a.vz       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    line                  = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[0].vx = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[0].vy = (gRandomLcgState >> 16) & 0x7F;
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[0].vz = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(vec);
+    gte_ldv0(&line->endpoints[0]);
     gte_rtv0();
-    gte_stsv(vec);
-    blk->a.vx       = (u16)blk->a.vx + (u16)coord->workm.t[0];
-    blk->a.vy       = (u16)blk->a.vy + (u16)coord->workm.t[1];
-    blk->a.vz       = (u16)blk->a.vz + (u16)coord->workm.t[2];
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->b.vx       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->b.vy       = (gRandomLcgState >> 16) & 0xFF;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    blk->b.vz       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    gte_stsv(&line->endpoints[0]);
+    line->endpoints[0].vx += coord->workm.t[0];
+    line->endpoints[0].vy += coord->workm.t[1];
+    line->endpoints[0].vz += coord->workm.t[2];
+    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vx  = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vy  = (gRandomLcgState >> 16) & 0xFF;
+    gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    line->endpoints[1].vz  = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
+    gte_ldv0(&line->endpoints[1]);
     gte_rtv0();
-    gte_stsv(&((AhlpSparkScratch*)(head - 0x20))->b);
-    blk->b.vx = (u16)blk->b.vx + (u16)coord->workm.t[0];
-    blk->b.vy = (u16)blk->b.vy + (u16)coord->workm.t[1];
-    blk->b.vz = (u16)blk->b.vz + (u16)coord->workm.t[2];
+    gte_stsv(&line->endpoints[1]);
+    line->endpoints[1].vx += coord->workm.t[0];
+    line->endpoints[1].vy += coord->workm.t[1];
+    line->endpoints[1].vz += coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&line->endpoints[0]);
     gte_rtps();
-    gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x0);
-    gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
+    gte_stsxy(&line->screenEndpoints[0]);
+    gte_ldv0(&line->endpoints[1]);
     gte_rtps();
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     tmp             = (gRandomLcgState >> 16) & 0xFF;
     lvl             = tmp;
-    gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x1);
-    gte_stflg(&((AhlpSparkScratch*)(head - 0x20))->flag);
-    if (blk->flag >= 0) {
-        gte_stszotz(&((AhlpSparkScratch*)(head - 0x20))->otz);
+    gte_stsxy(&line->screenEndpoints[1]);
+    gte_stflg(&line->projectionFlags);
+    if (line->projectionFlags >= 0) {
+        gte_stszotz(&line->depth);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setLineF2(prim);
         setRGB0(prim, tmp >> 1, lvl, 0xFF);
-        prim->x0 = blk->x0;
-        prim->y0 = blk->y0;
-        prim->x1 = blk->x1;
-        prim->y1 = blk->y1;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        prim->x0 = line->screenEndpoints[0].vx;
+        prim->y0 = line->screenEndpoints[0].vy;
+        prim->x1 = line->screenEndpoints[1].vx;
+        prim->y1 = line->screenEndpoints[1].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BLOCK(EffectLineScratch);
 }
 
 /// Effect task for the helipad beacon anchored to `gWorldCoordTransientPointLights[4]`. State 0

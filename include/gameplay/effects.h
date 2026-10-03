@@ -310,6 +310,31 @@ typedef struct {
 } EffectQuadCornersScratch;
 STATIC_ASSERT_SIZEOF(EffectQuadCornersScratch, 0x24);
 
+/// Scratch-stack workspace for projecting one effect line.
+///
+/// `endpoints` holds the line's two ends as world positions narrowed to
+/// signed 16-bit coordinate units. A drawer can also stage an end there in
+/// local space, then rotate and translate it in place. Endpoints and screen
+/// positions share indices 0..1, the order of the line packet's vertices.
+///
+/// Each end is projected by an RTPS of its own. `projectionFlags` holds the
+/// most recently stored GTE FLAG word, and a negative word rejects the line.
+/// `depth` is SZ3 divided by four after the second projection, endpoint 1's
+/// screen depth. A drawer may bias it before it selects the ordering-table
+/// entry and the blend packet's depth.
+///
+/// The trail-line effect tasks and the helicopter landing pad's spark-line
+/// drawers share this block. Reserve one complete, word-aligned block and
+/// release it in scratch-stack order after drawing; pointers into the block
+/// must not survive release.
+typedef struct {
+    SVECTOR endpoints[2];       // The line's two ends: local workspace, then world positions supplied to the projection
+    s32     depth;              // Endpoint 1's SZ3 / 4, with the drawer's ordering bias
+    s32     projectionFlags;    // Latest GTE FLAG word; bit 31 makes it negative and rejects the line
+    DVECTOR screenEndpoints[2]; // Signed screen X/Y pixels, written together as one GTE word per end
+} EffectLineScratch;
+STATIC_ASSERT_SIZEOF(EffectLineScratch, 0x20);
+
 /// Scratch-stack workspace for a spinning textured billboard about one world point.
 ///
 /// One perspective transform supplies the centre, GTE status and SZ3 / 4

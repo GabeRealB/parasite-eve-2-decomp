@@ -39892,17 +39892,22 @@ much of the tail survives cross-jumping. `Gp_EffLineTask92` is the pure example.
 
 ```c
 /* block gets the callee-saved reg the bump computed in — often wrong */
-block = (GpEffLineScratch*)((u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x20);
+block = (EffectLineScratch*)((u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x20);
 *SCRATCH_STACK_CURSOR_SLOT = block;
 
 /* store first, then read back: CSE turns the reload into `move s1,v0`,   */
 /* which is what the target has, and shifts the other s-regs down one     */
 *SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x20;
-block = (GpEffLineScratch*)*SCRATCH_STACK_CURSOR_SLOT;
+block = (EffectLineScratch*)*SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 The second form cost nothing semantically and moved `Gp_EffLineTask92` from
 95.2% to 97.3% purely by swapping which locals landed in `$s0` / `$s1`.
+
+That was a step on the way, not the function's final shape: once its other
+locals settled, `Gp_EffLineTask92` matched with the block taken straight from
+`block = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);`. Treat the read-back
+as a register-allocation lever to try, and retry the direct form afterwards.
 
 ## Preheader `move` copies of invariants: recompute them in *fresh* locals at the top of the loop body
 
