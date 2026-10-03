@@ -28,26 +28,31 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor_messages.h"
 
-/// 0x54 work block of the helipad enemy task, hung off the `Task::work`
-/// slot -- it is the `memCalloc(0x54)` block that
-/// `func_acropolis_helicopter_landing_pad_8017D658` allocates. Reach it with
-/// `(AhlpEnemyWork*)task->work`.
+/// Frames one scripted run of the landing pad's lift lasts.
+#define ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES 120
+
+/// World units the lift moves per frame of a run.
 ///
-/// `lightMtx` / `colorMtx` are the model's own flat-light matrices:
-/// `func_acropolis_helicopter_landing_pad_8017D7B0` points the `TmdObject`'s
-/// `field_1C` / `field_20` at them and fills them from the three
-/// `D_acropolis_helicopter_landing_pad_80182340` lights.
-typedef struct AhlpEnemyWork {
-    /* 0x00 */ s32    field_0;
-    /* 0x04 */ s32    field_4;
-    /* 0x08 */ s32    field_8;
-    /* 0x0C */ s32    field_C;
-    /* 0x10 */ MATRIX lightMtx;
-    /* 0x30 */ MATRIX colorMtx;
-    /* 0x50 */ s16    field_50;
-    /* 0x52 */ byte   pad_52[0x2];
-} AhlpEnemyWork;
-STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
+/// Over `ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES` this covers the
+/// 3000 units between the lift's lower stop and the landing pad.
+#define ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP 25
+
+/// Work block of the landing pad's lift, the railed platform that carries the
+/// player up to the pad.
+///
+/// The lift's task allocates it zeroed into `Task::work`. It holds the
+/// scripted travel of the lift's model and the light matrices that model
+/// draws with, which the model borrows for as long as the task lives.
+typedef struct {
+    s32    stepX;      // World units added to the model's X translation each frame of travel
+    s32    stepY;      // As `stepX` for Y; negative is upward
+    s32    stepZ;      // As `stepX` for Z
+    s32    field_C;    // Never accessed; role unproven
+    MATRIX lightMtx;   // Light-direction matrix the model borrows, filled from the room's three flat lights
+    MATRIX colorMtx;   // Light-colour matrix the model borrows, filled with `lightMtx`
+    s16    stepFrames; // Frames of travel left; the lift is at rest at 0
+} _AcropolisHelicopterLandingPadLiftWork;
+STATIC_ASSERT_SIZEOF(_AcropolisHelicopterLandingPadLiftWork, 0x54);
 
 /// Main-executable globals with no module header yet, both of which hold the
 /// phase tick back from phase 2: `Gp_StateC08.mode` while it equals 1, `gDisplayState.pendingMode`
@@ -166,20 +171,21 @@ TmdSource gAcropolisHelicopterLandingPadModel0547C = {
 static void func_acropolis_helicopter_landing_pad_8017D658(Task* task);
 static void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task);
 
-/// State-0 entry of the room's enemy task: allocates the 0x54-byte work block
-/// into `Task::work`, marks the model (`field_E = 8`, clears bit 0x80 of
-/// `field_C`), runs the placement setup and installs the message table.
+/// State-0 entry of the room's enemy task: allocates the
+/// `_AcropolisHelicopterLandingPadLiftWork` block into `Task::work`, marks the
+/// model (`field_E = 8`, clears bit 0x80 of `field_C`), runs the placement
+/// setup and installs the message table.
 static void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
 {
-    TmdObject* obj = task->extra.tmd;
-    void*      mem;
+    TmdObject*                              obj = task->extra.tmd;
+    _AcropolisHelicopterLandingPadLiftWork* work;
 
-    mem = memCalloc(0x54, false);
-    if (mem == NULL) {
+    work = memCalloc(sizeof(_AcropolisHelicopterLandingPadLiftWork), false);
+    if (work == NULL) {
         enemyTaskExit(task);
         return;
     }
-    task->work    = mem;
+    task->work    = work;
     obj->otOffset = 8;
     obj->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     func_acropolis_helicopter_landing_pad_8017D7B0(task);
@@ -188,27 +194,28 @@ static void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
     task->state         = task->state + 1;
 }
 
-/// Per-frame update of the enemy task's model. While the `field_50` countdown
+/// Per-frame update of the enemy task's model. While the `stepFrames` countdown
 /// armed by the 0x7D3 handler is running, the model's coordinate translation
-/// is stepped by the work block's three velocity words and marked dirty; the
-/// countdown is clamped at zero once it expires. When `gGameSession->viewReady`
-/// is set, the model is hidden (bit 0x80 of `field_C`) in every camera view
-/// whose entry in the per-view table is zero and shown again otherwise.
+/// is stepped by the work block's `stepX` / `stepY` / `stepZ` and marked dirty;
+/// the countdown is clamped at zero once it expires. When
+/// `gGameSession->viewReady` is set, the model is hidden (bit 0x80 of
+/// `field_C`) in every camera view whose entry in the per-view table is zero
+/// and shown again otherwise.
 static void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 {
-    AhlpEnemyWork* work  = (AhlpEnemyWork*)task->work;
-    GfxCoord*      coord = task->extra.tmd->coords;
-    TmdObject*     obj   = task->extra.tmd;
-    s16            n;
+    _AcropolisHelicopterLandingPadLiftWork* work  = task->work;
+    GfxCoord*                               coord = task->extra.tmd->coords;
+    TmdObject*                              obj   = task->extra.tmd;
+    s16                                     n;
 
-    n = --work->field_50;
+    n = --work->stepFrames;
     if (n >= 0) {
-        coord->coord.t[0]  += work->field_0;
-        coord->coord.t[1]  += work->field_4;
-        coord->coord.t[2]  += work->field_8;
+        coord->coord.t[0]  += work->stepX;
+        coord->coord.t[1]  += work->stepY;
+        coord->coord.t[2]  += work->stepZ;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
-        work->field_50 = 0;
+        work->stepFrames = 0;
     }
     if (gGameSession->viewReady != 0) {
         if (D_acropolis_helicopter_landing_pad_80182370[gGameSession->location.loc.view] != 0) {
@@ -223,10 +230,10 @@ static void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
 /// and loads the room's three flat lights into them.
 static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
 {
-    AhlpEnemyWork* work = (AhlpEnemyWork*)task->work;
-    TmdObject*     obj  = task->extra.tmd;
-    GsF_LIGHT*     light;
-    s32            i;
+    _AcropolisHelicopterLandingPadLiftWork* work = task->work;
+    TmdObject*                              obj  = task->extra.tmd;
+    GsF_LIGHT*                              light;
+    s32                                     i;
 
     obj->lightMtx = &work->lightMtx;
     obj->colorMtx = &work->colorMtx;
@@ -241,26 +248,26 @@ static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
 /// returns to the first placement and clears the countdown.
 s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, AnimationPlayRequest* msg, TaskMessageArg arg3)
 {
-    AhlpEnemyWork* work = (AhlpEnemyWork*)task->work;
+    _AcropolisHelicopterLandingPadLiftWork* work = task->work;
 
     switch (msg->animationId) {
         case 0:
             actorMsgPlaceEuler(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
-            work->field_50 = 0x78;
-            work->field_0  = 0;
-            work->field_4  = -0x19;
-            work->field_8  = 0;
+            work->stepFrames = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES;
+            work->stepX      = 0;
+            work->stepY      = -ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP;
+            work->stepZ      = 0;
             break;
         case 1:
             actorMsgPlaceEuler(task, 0, &D_acropolis_helicopter_landing_pad_801823AC, 0);
-            work->field_50 = 0x78;
-            work->field_0  = 0;
-            work->field_4  = 0x19;
-            work->field_8  = 0;
+            work->stepFrames = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES;
+            work->stepX      = 0;
+            work->stepY      = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP;
+            work->stepZ      = 0;
             break;
         case 2:
             actorMsgPlaceEuler(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
-            work->field_50 = 0;
+            work->stepFrames = 0;
             break;
     }
     return 0;
