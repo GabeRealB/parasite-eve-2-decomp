@@ -20,6 +20,17 @@ typedef struct {
 } DryfieldWaterTankMessageEntry;
 STATIC_ASSERT_SIZEOF(DryfieldWaterTankMessageEntry, 8);
 
+/// Requests the prop scene's event script posts to the scene's driver task.
+///
+/// The driver carries a request out on its next frame and clears it, so each
+/// one lasts a single frame.
+enum {
+    DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_NONE        = 0, // Nothing posted
+    DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_START_SLIDE = 1, // Hide the player's model, show the prop and start its slide
+    DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_SHOW_PLAYER = 2, // Switch to the room's view 3 and show the player's model again
+    DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_PLAY_SOUNDS = 3, // Queue the scene's two sound events
+};
+
 extern TaskDesc D_dryfield_water_tank_80184DF4[2];
 
 extern u16 D_dryfield_water_tank_801868CC[10];

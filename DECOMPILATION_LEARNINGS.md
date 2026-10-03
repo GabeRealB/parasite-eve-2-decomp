@@ -88902,10 +88902,10 @@ side, in the call-argument position:
 
 ```c
     D_8007216C = Gp_FindViewIndex(3);
-    taskMessageDispatch(work->owner, 0x3F3, 1, 0);     /* 95.556%, reorder=2 */
+    taskMessageDispatch(work->playerTask, 0x3F3, 1, 0);     /* 95.556%, reorder=2 */
 ```
 
-`work->owner` is `(mem/s:SI (plus:SI (reg) (const_int 64)))` — in-struct, varying,
+`work->playerTask` is `(mem/s:SI (plus:SI (reg) (const_int 64)))` — in-struct, varying,
 mode SI, address a PLUS. The other half of the pair is the store to `D_8007216C`,
 `(mem:QI (lo_sum:SI (reg) (symbol_ref)))`: a symbol store whose `rtx_varies_p` is 0
 because `LO_SUM` looks only at operand 1. So the *second* suppression clause of
@@ -88926,7 +88926,7 @@ Symptom to recognise: a store that belongs before a call shows up *after* the
 The fix is the cast-through-`u8*` form, `OFFSET_OF` for the offset:
 
 ```c
-    taskMessageDispatch(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
+    taskMessageDispatch(*(Task**)((u8*)work + OFFSET_OF(_DryfieldWaterTankPropSceneWork, playerTask)), 0x3F3, 1, 0);
 ```
 
 Scope matters: only that one reference needs the cast. `gGameSession->viewDirty = 1`
@@ -121042,11 +121042,11 @@ Two arms of a switch end in the same call and a `break`:
 ```c
         case 1:
             ...
-            taskMessageDispatch(work->child, 0x7DB, (s32)&msg, 0);
+            taskMessageDispatch(work->propTask, 0x7DB, (s32)&msg, 0);
             break;
         case 2:
             ...
-            taskMessageDispatch(work->owner, 0x3F3, 1, 0);
+            taskMessageDispatch(work->playerTask, 0x3F3, 1, 0);
             break;
 ```
 
@@ -121074,12 +121074,12 @@ twice, every switch-dispatch branch offset past it shifted, and
 position looks like a separate problem until the dumps are read.
 
 The sink is the MEM_IN_STRUCT_P `true_dependence` clause from the entry above
-(`work->owner` is in-struct and varying, the `D_8007216C` store is a fixed-`LO_SUM`
+(`work->playerTask` is in-struct and varying, the `D_8007216C` store is a fixed-`LO_SUM`
 scalar), so the fix is that entry's cast deref on that one access - nothing else
 in the arm changes:
 
 ```c
-    taskMessageDispatch(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
+    taskMessageDispatch(*(Task**)((u8*)work + OFFSET_OF(_DryfieldWaterTankPropSceneWork, playerTask)), 0x3F3, 1, 0);
 ```
 
 95.904% (`branch=3 regs=2 reorder=4 insert=3 delete=0`) to 100.000%, one build.
@@ -121137,7 +121137,7 @@ applies to every ordinary state/request word.
 The neighbouring tell is the load: `lhu` on a halfword field means the source
 field is **unsigned**, and `switch` on it builds unsigned branches (`sltiu`).
 Here the target's `slti` with an `lhu` load is the pair the header was wrong
-about - `field_50` was declared `s16` and had to become `u16` for the load to
+about - `request` was declared `s16` and had to become `u16` for the load to
 zero-extend (the compare folds to a signed one because the value is known
 non-negative).
 

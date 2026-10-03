@@ -74,59 +74,37 @@ extern DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960;
 
 extern WorldCoordRoomAmbientEntry D_dryfield_water_tank_80188C58[11];
 
-/// Work block of the water-tank room's script-driver task, a
-/// `memMalloc(0x58, 0)` the driver `func_dryfield_water_tank_8017DEA4` hangs
-/// off `Task::work` (0x1C). That task is also parked in
-/// `D_dryfield_water_tank_80188D4C`, which is how the sibling entry points
-/// `func_dryfield_water_tank_8017E194` and `..._8017E1B4` reach this block.
-///
-/// `owner` is `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`, the task every `taskMessageDispatch` in the
-/// driver targets; `child` is the task spawned from
-/// `D_dryfield_water_tank_8017FF88`, the one messages 0x7D4 / 0x7D5 / 0x7DB are
-/// sent to. `field_50` is a request the driver's per-frame switch consumes and
-/// clears, and `func_dryfield_water_tank_8017E194` is what sets it.
-/// `field_52` has no identified role yet.
-///
-/// Distinct from `DwtWork`: that one belongs to the cutscene task parked in
-/// `D_dryfield_water_tank_80188D50`.
-typedef struct DwtScriptWork {
-    /* 0x00 */ byte  pad_0[0x40];
-    /* 0x40 */ Task* owner;
-    /* 0x44 */ Task* child;
-    /* 0x48 */ byte  pad_48[0x8];
-    /* 0x50 */ u16   field_50;
-    /* 0x52 */ s16   field_52;
-    /* 0x54 */ byte  pad_54[0x4];
-} DwtScriptWork;
-STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
+/// Phases of the prop's slide, held in `_DryfieldWaterTankPropSceneWork::slidePhase`.
+enum {
+    DRYFIELD_WATER_TANK_PROP_SLIDE_MOVING,   // Advancing in Z towards the end placement, raising dust
+    DRYFIELD_WATER_TANK_PROP_SLIDE_SETTLING, // Held at the end placement until the settle count runs out
+};
 
-/// Light/colour matrix pair `func_dryfield_water_tank_8017DD20` allocates for
-/// its `TmdObject` and republishes onto `TmdObject::lightMtx` / `colorMtx` —
-/// the pair `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` /
-/// `Gp_DefaultMtx2`. The task parks the block in `Task::work` (0x1C); `owner`
-/// is the slot-3 game task the same allocation
-/// is registered with (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`).
+/// Frames the prop is held at the end of its slide before it reports arrival.
+#define DRYFIELD_WATER_TANK_PROP_SETTLE_FRAMES 61
+
+/// Work block of each task in the water tank room's prop scene, kept at `Task::work`.
 ///
-/// The same block carries the model task's script state: `field_4C` is the
-/// state `func_dryfield_water_tank_8017DB98` switches on (0 lowers the model,
-/// 1 lets it settle) and `field_4E` the settle counter state 1 advances. The
-/// task's message 0x7DB handler, `func_dryfield_water_tank_8017E174`, restarts
-/// that script by clearing `field_4C` and `field_54`.
-///
-/// A different block from `DwtScriptWork`, which the room's script driver
-/// allocates at the same 0x58 size.
-typedef struct DwtColorMtx {
-    /* 0x00 */ MATRIX light; // TmdObject::lightMtx
-    /* 0x20 */ MATRIX color; // TmdObject::colorMtx
-    /* 0x40 */ Task*  owner; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
-    /* 0x44 */ byte   pad_44[0x8];
-    /* 0x4C */ u16    field_4C;
-    /* 0x4E */ s16    field_4E;
-    /* 0x50 */ byte   pad_50[0x4];
-    /* 0x54 */ s16    field_54;
-    /* 0x56 */ byte   pad_56[0x2];
-} DwtColorMtx;
-STATIC_ASSERT_SIZEOF(DwtColorMtx, 0x58);
+/// The scene is two tasks spawned from one table: a driver without a model,
+/// which carries out the requests the scene's event script posts, and the prop
+/// task whose model slides across the room. Each allocates its own zeroed copy
+/// of this block and stores the player task in it; beyond that the driver uses
+/// only `propTask` and `request`, and the prop only its matrices and the slide
+/// fields, so the remaining members of either copy stay zero.
+typedef struct {
+    MATRIX lightMtx;     // Prop: light matrix its model is drawn with
+    MATRIX colorMtx;     // Prop: colour matrix its model is drawn with
+    Task*  playerTask;   // Player task at allocation; the driver hides and shows its model
+    Task*  propTask;     // Driver: the scene's prop task, which it spawns
+    byte   field_48[4];  // Never accessed; role unproven
+    u16    slidePhase;   // Prop: phase of the slide (DRYFIELD_WATER_TANK_PROP_SLIDE_*)
+    s16    settleFrames; // Prop: frames spent settling, counted up to DRYFIELD_WATER_TANK_PROP_SETTLE_FRAMES
+    u16    request;      // Driver: request to carry out this frame, then cleared (DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_*)
+    s16    field_52;     // Cleared whenever a request is posted and never read; role unproven
+    s16    field_54;     // Cleared whenever the slide is restarted and never read; role unproven
+    byte   field_56[2];  // Never accessed; role unproven
+} _DryfieldWaterTankPropSceneWork;
+STATIC_ASSERT_SIZEOF(_DryfieldWaterTankPropSceneWork, 0x58);
 
 /// Main-executable flag word with no module header yet: while its bit 2 is
 /// raised the model task nudges the model 5 units off each position it snaps to.
@@ -1164,20 +1142,20 @@ static void func_dryfield_water_tank_8017DB48(void)
 /// before the record.
 static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
 {
-    DwtColorMtx* work  = (DwtColorMtx*)arg0->work;
-    GfxCoord*    coord = arg0->extra.tmd->coords;
-    GfxCoord*    effCoord;
-    SVECTOR      pos;
+    _DryfieldWaterTankPropSceneWork* work  = arg0->work;
+    GfxCoord*                        coord = arg0->extra.tmd->coords;
+    GfxCoord*                        effCoord;
+    SVECTOR                          pos;
 
-    switch (work->field_4C) {
-        case 0:
+    switch (work->slidePhase) {
+        case DRYFIELD_WATER_TANK_PROP_SLIDE_MOVING:
             coord->coord.t[2] += 0x14;
             coord->coord.t[1]  = D_dryfield_water_tank_8017FD60[1].pos.vy;
             if (gDisplayState.gameTick & 4) {
                 coord->coord.t[1] += 5;
             }
             if (coord->coord.t[2] > D_dryfield_water_tank_8017FD60[1].pos.vz) {
-                work->field_4C++;
+                work->slidePhase++;
             }
             effCoord = arg0->extra.tmd->coords;
             if (arg0->killCountdown >= 0xA) {
@@ -1191,9 +1169,9 @@ static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
             Gp_SpawnEff(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
             break;
 
-        case 1:
-            work->field_4E++;
-            if ((s16)work->field_4E >= 0x3D) {
+        case DRYFIELD_WATER_TANK_PROP_SLIDE_SETTLING:
+            work->settleFrames++;
+            if (work->settleFrames >= DRYFIELD_WATER_TANK_PROP_SETTLE_FRAMES) {
                 TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tank_8017FD60[1], 0);
                 return 1;
             }
@@ -1215,28 +1193,28 @@ static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
 /// it into the light/colour matrices.
 void func_dryfield_water_tank_8017DD20(Task* arg0)
 {
-    TmdObject*   extra;
-    GfxCoord*    coord;
-    DwtColorMtx* mtx;
-    TmdObject*   mdl;
-    VECTOR       pos;
+    TmdObject*                       extra;
+    GfxCoord*                        coord;
+    _DryfieldWaterTankPropSceneWork* work;
+    TmdObject*                       mdl;
+    VECTOR                           pos;
 
     switch (arg0->state) {
         case 0:
             extra      = arg0->extra.tmd;
             coord      = extra->coords;
-            mtx        = memMalloc(sizeof(*mtx), false);
-            arg0->work = mtx;
-            if (mtx == NULL) {
+            work       = memMalloc(sizeof(*work), false);
+            arg0->work = work;
+            if (work == NULL) {
                 taskKill(arg0);
             } else {
-                memFillBytes(mtx, 0, sizeof(*mtx));
-                mtx->owner    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                coord->parent = &gGfxViewCoord;
-                extra->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                memFillBytes(work, 0, sizeof(*work));
+                work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                coord->parent    = &gGfxViewCoord;
+                extra->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 Tmd_AllocBuffers(extra);
-                extra->lightMtx = &mtx->light;
-                extra->colorMtx = &mtx->color;
+                extra->lightMtx = &work->lightMtx;
+                extra->colorMtx = &work->colorMtx;
                 arg0->msgTable  = D_dryfield_water_tank_8017FD90;
                 taskReparent(D_dryfield_water_tank_80188D4C, arg0);
             }
@@ -1258,24 +1236,21 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
-/// Per-frame script driver for the water-tank scene. It is the task parked in
-/// `D_dryfield_water_tank_80188D4C`, which is how the room's two sibling entry
-/// points reach the 0x58-byte `DwtScriptWork` it hangs off `Task::work`.
-/// State 0 allocates that block, registers it with the slot-3 game task and
-/// spawns the model task from `D_dryfield_water_tank_8017FF88` as its `child`;
-/// state 1 sends the intro messages to both tasks; state 2 asks to be killed
-/// once the session is gone. Every frame it then runs at most one request off
-/// `field_50` and clears it: 1 rewinds the scene through owner 0x3F3 and child
-/// 0x7D5 and hands 0x7DB the payload that moves the receiver to script state 2,
-/// 2 publishes the view switch (the body `func_dryfield_water_tank_8017E1B4`
-/// runs on its own) and 3 fires the scene's sound events.
+/// Per-frame driver of the water tank's prop scene. It is the task parked in
+/// `D_dryfield_water_tank_80188D4C`, which is how the scene script's two
+/// callbacks reach the `_DryfieldWaterTankPropSceneWork` it keeps at
+/// `Task::work`. State 0 allocates that block, stores the player task in it and
+/// spawns the prop task from `D_dryfield_water_tank_8017FF88` as its
+/// `propTask`; state 1 places the prop and starts the scene's event script;
+/// state 2 asks to be killed once the event is over. Every frame it then
+/// carries out the block's `request`, if one was posted, and clears it.
 void func_dryfield_water_tank_8017DEA4(Task* arg0)
 {
-    DwtScriptWork* work;
-    ActorCommand   msg;
-    Task**         owner;
+    _DryfieldWaterTankPropSceneWork* work;
+    ActorCommand                     msg;
+    Task**                           playerTask;
 
-    work = (DwtScriptWork*)arg0->work;
+    work = arg0->work;
     switch (arg0->state) {
         case 0:
             work       = memMalloc(sizeof(*work), false);
@@ -1284,15 +1259,15 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
                 taskKill(arg0);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->owner                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                work->playerTask               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tank_80188D4C = arg0;
             }
-            work        = (DwtScriptWork*)arg0->work;
-            work->child = Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 1, 0, 0);
-            arg0->state = arg0->state + 1;
+            work           = arg0->work;
+            work->propTask = Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 1, 0, 0);
+            arg0->state    = arg0->state + 1;
             break;
         case 1:
-            TASK_MESSAGE_DISPATCH_POINTER(work->child, 0x7D4, &D_dryfield_water_tank_8017FD60, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->propTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_8017FD60, 0);
             func_800E8634(D_dryfield_water_tank_8017FDC0, 0, D_dryfield_water_tank_8017FEC8);
             arg0->state = arg0->state + 1;
             break;
@@ -1303,35 +1278,36 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             break;
     }
 
-    work = (DwtScriptWork*)arg0->work;
-    switch (work->field_50) {
+    // Carry out the request the scene script posted, for this one frame.
+    work = arg0->work;
+    switch (work->request) {
         /* This arm does nothing, and the switch needs it as written: it is what
          * puts four values in the case list, so the decision tree roots at the
-         * request-1 node the way the ROM's does. */
-        case 0:
+         * start-slide node the way the ROM's does. */
+        case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_NONE:
             break;
-        case 1:
-            taskMessageDispatch(work->owner, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-            taskMessageDispatch(work->child, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_START_SLIDE:
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+            taskMessageDispatch(work->propTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             msg.command = 2;
-            TASK_MESSAGE_DISPATCH_POINTER(work->child, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->propTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
-        case 2:
+        case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_SHOW_PLAYER:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(3);
             gGameSession->viewDirty                                    = 1;
-            /* Through a pointer rather than as `work->owner`: a member load is
-             * struct memory, which lets the store to the view index sink into
+            /* Through a pointer rather than as `work->playerTask`: a member load
+             * is struct memory, which lets the store to the view index sink into
              * the call's delay slot; the two request tails then no longer
              * cross-jump as the original's do. */
-            owner = &work->owner;
-            taskMessageDispatch(*owner, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            playerTask = &work->playerTask;
+            taskMessageDispatch(*playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
-        case 3:
+        case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_PLAY_SOUNDS:
             SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 2), 0, 0);
             SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 8), 0, 0);
             break;
     }
-    work->field_50 = 0;
+    work->request = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_NONE;
 }
 
 /// Excludes the task's `TmdObject` from active drawing while `arg2` is zero,
@@ -1358,46 +1334,47 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
 /// state the payload carries.
 void func_dryfield_water_tank_8017E174(Task* task, s32 msgId, ActorCommand* msg)
 {
-    DwtColorMtx* work;
-    s32          state;
+    _DryfieldWaterTankPropSceneWork* work;
+    s32                              state;
 
-    work                = (DwtColorMtx*)task->work;
-    work->field_4C      = 0;
+    work                = task->work;
+    work->slidePhase    = DRYFIELD_WATER_TANK_PROP_SLIDE_MOVING;
     work->field_54      = 0;
     state               = msg->command;
     task->killCountdown = 0;
     task->state         = state;
 }
 
-/// Sibling entry point into the script driver: reaches the driver's work block
-/// through the task parked in `D_dryfield_water_tank_80188D4C`, raises the
-/// request halfword `field_50` — the value the driver's per-frame switch reads,
-/// branches on and clears — and clears `field_52` beside it.
+/// Scene-script callback that posts a request to the prop scene's driver:
+/// reaches the driver's work block through the task parked in
+/// `D_dryfield_water_tank_80188D4C`, stores `request` (one of
+/// `DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_*`) for the driver's next frame and
+/// clears `field_52` beside it.
 void func_dryfield_water_tank_8017E194(s16 request)
 {
-    DwtScriptWork* work;
+    _DryfieldWaterTankPropSceneWork* work;
 
-    work           = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
-    work->field_50 = request;
+    work           = D_dryfield_water_tank_80188D4C->work;
+    work->request  = request;
     work->field_52 = 0;
 }
 
 /// Second sibling entry point into the script driver, the one that ends the
 /// water-tank scene: publishes view 3's area-record index, asks the view gate
 /// for a switch through `GameSession.viewDirty`, dispatches message 0x3F3 with
-/// argument 1 to the driver's `owner` task, and fires the scene's sound event.
+/// argument 1 to the driver's `playerTask`, and fires the scene's sound event.
 void func_dryfield_water_tank_8017E1B4(void)
 {
-    DwtScriptWork* work;
-    Task**         owner;
+    _DryfieldWaterTankPropSceneWork* work;
+    Task**                           playerTask;
 
-    work                                                       = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
+    work                                                       = D_dryfield_water_tank_80188D4C->work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(3);
-    /* Through a pointer rather than as `work->owner`: a member load is struct
-     * memory, which lets the store to the view index sink into the call's
-     * delay slot, and the original keeps it ahead of the load. */
-    owner = &work->owner;
-    taskMessageDispatch(*owner, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    /* Through a pointer rather than as `work->playerTask`: a member load is
+     * struct memory, which lets the store to the view index sink into the
+     * call's delay slot, and the original keeps it ahead of the load. */
+    playerTask = &work->playerTask;
+    taskMessageDispatch(*playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     gGameSession->viewDirty = 1;
     SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 2), 0xA);
 }
