@@ -60588,6 +60588,22 @@ that starts 8 bytes into a larger "buffer", and is the first of its size in
 source order, is the signature; so is a 4-byte payload sharing offset 0 with a
 0x14-byte one (the larger slot is split, and the small one takes its start).
 
+Two records of *different* types at one offset past every named local are the
+same thing with equal frames: the second helper's request is an exact fit for
+the slot the first released. `func_acropolis_plaza_8017ECF8` builds a
+`GameLocationKey` twice and a stream-slot triple once at `sp+0x78`, which had
+been a union of the two; a lookup helper and a play-stream helper, each with an
+8-byte frame, reproduce it with no union.
+
+The converse separates a helper from a hand-expanded copy of it. A named local
+is allocated when its declaration is expanded and a helper's frame when its
+call is, so a helper's slot can never sit *between* named locals of the
+function's outermost block. That function writes the same triple three more
+times at `sp+0x40`, between two `ActorTransform` locals: calling the existing
+restart helper there moved all four triples and the key into one slot after the
+locals and shrank the frame from 0x98 to 0x90. Those three sites are a plain
+`u8[4]` local.
+
 ## Ending a duplicated tail with `goto` instead of falling out of the switch flips which copy cross-jumping keeps
 
 "Duplicate a switch's shared tail" above says each duplicated copy merges with

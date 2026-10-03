@@ -297,16 +297,6 @@ typedef struct {
 } _AcropolisPlazaSequenceWork;
 STATIC_ASSERT_SIZEOF(_AcropolisPlazaSequenceWork, 0x28);
 
-/// The one scratch buffer the plaza's opening sequence shares between its area
-/// lookup and its last stream request. `key` is the location key states 6 and 8
-/// build from `gGameSession` before walking the nested area records for the
-/// 0x6C room, and `slot` is the CD stream-slot triple state 13 hands to
-/// `CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, ...)`; the task only ever has one of them in flight.
-typedef union AcropolisPlazaOpeningBuf {
-    /* 0x0 */ GameLocationKey key;
-    /* 0x0 */ u8              slot[4];
-} AcropolisPlazaOpeningBuf;
-
 /// Work block of the plaza's player-scripting event tasks, kept in `Task::work`.
 ///
 /// The sequence task answers a collision-trigger event of kind 0, 1 or 2 by
@@ -3949,6 +3939,62 @@ static inline void _acropolisPlazaRestartStream(u8 subId)
     CdCmd_Enqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, streamAt);
 }
 
+/// Queues the plaza movie `subId` of the current room to play from its first
+/// frame.
+///
+/// The argument has the layout `_acropolisPlazaRestartStream` describes, and
+/// is likewise copied by the queue.
+static inline void _acropolisPlazaPlayStream(u8 subId)
+{
+    u8 streamAt[4];
+
+    streamAt[0] = Stream_FindSlot((u8*)&gGameSession->location.loc, subId, 0);
+    streamAt[1] = 0;
+    streamAt[2] = 0;
+    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, streamAt);
+}
+
+/// Finds the live enemy spawned from the current area's placement of resource
+/// entry `entryId`.
+///
+/// The placements searched are those of the session's stage, area and layout
+/// variant. An enemy is identified by its position in that table, so the
+/// result is NULL when the placement was never spawned or its enemy is gone.
+/// An `entryId` the table does not hold selects the position one past its last
+/// placement.
+static inline Enemy* _acropolisPlazaFindPlacedEnemy(u8 entryId)
+{
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    AreaPlacement*   placement;
+    s32              index;
+
+    sessionKey  = &gGameSession->location.loc;
+    key.stage   = sessionKey->stage;
+    key.area    = sessionKey->area;
+    key.room    = gGameSession->spriteVariant;
+    key.view    = gGameSession->location.loc.view;
+    key.variant = sessionKey->variant;
+    placement   = Gp_GetNestedAreaRec(&key)->placements;
+    index       = 0;
+    // Count the table entries ahead of the one sought. Spelled with `goto`:
+    // the `while`, `do`/`break` and `for`/`break` forms all compile differently.
+    if (placement->entryId != AREA_PLACEMENT_END) {
+        for (;;) {
+            if (placement->entryId == entryId) {
+                goto found;
+            }
+            placement++;
+            index++;
+            if (placement->entryId == AREA_PLACEMENT_END) {
+                goto found;
+            }
+        }
+    }
+found:
+    return Gp_FindWorkById((index << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) | sessionKey->area);
+}
+
 /// Plays `animationId` from the player's bank for the equipped weapon, off the
 /// collision grid.
 ///
@@ -4097,11 +4143,10 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// `GameSession::evtSkipped` says to skip the scene, in which case it blanks the
 /// display and jumps straight to state 8.
 ///
-/// States 6 and 8 both look the room's own work object up by location: they
-/// build a `GameLocationKey` from `gGameSession`, walk the nested area records for
-/// the 0x6C entry and pack that index into the id `Gp_FindWorkById` matches.
+/// States 6 and 8 both address the enemy placed from resource entry 0x6C
+/// (`_acropolisPlazaFindPlacedEnemy`).
 /// State 6 releases slot 3 (msg 0x3F1), re-places the player at
-/// (0x3DE, 0, 0x439E) and hands the room a 0x7D3 record; state 8 sends it 0x7D7
+/// (0x3DE, 0, 0x439E) and has that enemy play an animation; state 8 sends it 0x7D7
 /// and rebuilds the graphics state (`Gpu_ResetGraphAndOt`, the aux heap from
 /// `GameSession::location.loc.stage` / `location.loc.area`, `Tmd_AllocMissingBuffers`). State 7
 /// waits 0x3D frames, playing 0x51050003 at frame 0x1E and spawning table entry
@@ -4120,13 +4165,9 @@ void func_acropolis_plaza_8017ECF8(Task* task)
     u8                        slot[4];
     ActorTransform            placeBack;
     AnimationPlayRequest      roomRec;
-    AcropolisPlazaOpeningBuf  buf;
     CdCmdQueue*               q    = &gCdCmdQueue;
     _AcropolisPlazaEventWork* work = (_AcropolisPlazaEventWork*)task->work;
     _AcropolisPlazaEventWork* newWork;
-    GameLocationKey*          sessionKey;
-    AreaPlacement*            entry;
-    s32                       idx;
 
     switch (task->state) {
         case 0:
@@ -4215,35 +4256,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             roomRec.blend                = ANIMATION_BLEND_RESET;
             roomRec.blendFrames          = 0xA;
             roomRec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            sessionKey                   = &gGameSession->location.loc;
-            buf.key.stage                = sessionKey->stage;
-            buf.key.area                 = sessionKey->area;
-            buf.key.room                 = gGameSession->spriteVariant;
-            buf.key.view                 = gGameSession->location.loc.view;
-            buf.key.variant              = sessionKey->variant;
-            entry                        = Gp_GetNestedAreaRec(&buf.key)->placements;
-            idx                          = 0;
-            /* `for (;;)` with a `goto` out: a `break` here makes GCC copy the
-               first exit test into the loop preheader and the walk stops
-               matching. */
-            if (entry->entryId != AREA_PLACEMENT_END) {
-                for (;;) {
-                    if (entry->entryId == 0x6C) {
-                        goto found6;
-                    }
-                    entry++;
-                    idx++;
-                    if (entry->entryId == AREA_PLACEMENT_END) {
-                        goto found6;
-                    }
-                }
-            }
-        found6:
-            TASK_MESSAGE_DISPATCH_POINTER(
-                Gp_FindWorkById((idx << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) |
-                                sessionKey->area)
-                    ->task,
-                0x7D3, &roomRec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(_acropolisPlazaFindPlacedEnemy(0x6C)->task, ACTOR_MESSAGE_PLAY_ANIMATION, &roomRec, 0);
             task->state         = task->state + 1;
             work->elapsedFrames = 0;
             return;
@@ -4260,32 +4273,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 8:
             if (CdCmd_IsIdle() != 0) {
-                sessionKey      = &gGameSession->location.loc;
-                buf.key.stage   = sessionKey->stage;
-                buf.key.area    = sessionKey->area;
-                buf.key.room    = gGameSession->spriteVariant;
-                buf.key.view    = gGameSession->location.loc.view;
-                buf.key.variant = sessionKey->variant;
-                entry           = Gp_GetNestedAreaRec(&buf.key)->placements;
-                idx             = 0;
-                if (entry->entryId != AREA_PLACEMENT_END) {
-                    for (;;) {
-                        if (entry->entryId == 0x6C) {
-                            goto found8;
-                        }
-                        entry++;
-                        idx++;
-                        if (entry->entryId == AREA_PLACEMENT_END) {
-                            goto found8;
-                        }
-                    }
-                }
-            found8:
-                taskMessageDispatch(
-                    Gp_FindWorkById((idx << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) |
-                                    sessionKey->area)
-                        ->task,
-                    0x7D7, 1, 0);
+                taskMessageDispatch(_acropolisPlazaFindPlacedEnemy(0x6C)->task, 0x7D7, 1, 0);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                 Gpu_ResetGraphAndOt();
                 Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
@@ -4342,10 +4330,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 q->sceneFrame       = 1;
                 q->movieFrame       = 1;
                 q->plazaStreamSubId = 3;
-                buf.slot[0]         = Stream_FindSlot((u8*)&gGameSession->location.loc, 3, 0);
-                buf.slot[1]         = 0;
-                buf.slot[2]         = 0;
-                CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, buf.slot);
+                _acropolisPlazaPlayStream(3);
                 q->continueMovie = 1;
                 task->state      = task->state + 1;
             }
