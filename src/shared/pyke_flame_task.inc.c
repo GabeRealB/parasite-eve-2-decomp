@@ -14,9 +14,10 @@
 ///   `(0, spawnArg1 - rand(0..0x3F), 0)` through the coordinate's own matrix,
 ///   seeds the width and spin, links the body and falls through.
 /// - State 1 flies the flame, redraws it, and on a random third of the frames
-///   traces the ground under it for a splash. Hitting a body
-///   (`Gp_CountRec18Hi`) or living past 0x14 frames releases it; hitting
-///   geometry (`func_800DE7CC`) switches to state 2 with a fresh velocity.
+///   traces the ground under it for a splash. A category-3 contact
+///   (`Gp_CountRec18Hi`, high halfword 0x30000) or living past 0x14 frames
+///   releases it; hitting geometry (`func_800DE7CC`) switches to state 2
+///   with a fresh velocity.
 /// - State 2 coasts on that velocity with a fast-widening flame until it is
 ///   0x15 frames old.
 static inline void pykeFlameTask(Task* task)
@@ -26,20 +27,20 @@ static inline void pykeFlameTask(Task* task)
     SVECTOR        before;
     GfxCoord*      coord;
     EffectWork*    work;
-    PykeFlameBody* beam;
+    PykeFlameBody* flame;
     s32            effectControl;
     u32            ang0;
     u32            ang1;
     u32            ang2;
     u32            ang3;
 
-    beam          = (PykeFlameBody*)task->work;
+    flame         = (PykeFlameBody*)task->work;
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
     if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (task->state != 0) {
-            Gp_UnlinkObj(&beam->obj);
+            Gp_UnlinkObj(&flame->body);
         }
         effectKillTask(work, task);
         return;
@@ -55,8 +56,8 @@ static inline void pykeFlameTask(Task* task)
     work->age = work->age + 1;
     switch (task->state) {
         case 0:
-            beam = memCalloc(sizeof(PykeFlameBody), 0);
-            if (beam == NULL) {
+            flame = memCalloc(sizeof(PykeFlameBody), 0);
+            if (flame == NULL) {
                 work->age = 0;
                 return;
             }
@@ -73,20 +74,21 @@ static inline void pykeFlameTask(Task* task)
             gte_ldv0(&work->move);
             gte_rtv0();
             gte_stsv(&work->move);
-            work->scale                = (u16)task->spawnArg1.value + 0x180;
-            ang1                       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle                = (ang1 >> 16) & 0xFFF;
-            task->state                = 1;
-            task->work                 = beam;
-            beam->obj.coord            = coord;
-            beam->obj.context.contacts = beam->rec;
-            beam->obj.key              = PYKE_FLAME_KEY;
-            beam->obj.radius           = work->scale >> 1;
-            gRandomLcgState            = ang1;
-            beam->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(1, &beam->obj);
-            beam->rec[0].flags = 2;
-            beam->obj.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            work->scale                  = (u16)task->spawnArg1.value + 0x180;
+            ang1                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle                  = (ang1 >> 16) & 0xFFF;
+            task->state                  = 1;
+            task->work                   = flame;
+            flame->body.coord            = coord;
+            flame->body.context.contacts = flame->contacts;
+            flame->body.key              = PYKE_FLAME_KEY;
+            flame->body.radius           = work->scale >> 1;
+            gRandomLcgState              = ang1;
+            flame->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+            Gp_LinkObj(1, &flame->body);
+            // The allocation already zeroed the entry; LAST terminates the table.
+            flame->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
+            flame->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             /* fallthrough */
         case 1:
             work->scale         = work->scale + 0x10;
@@ -111,13 +113,13 @@ static inline void pykeFlameTask(Task* task)
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
                 pykeFlameDrawSplash(MATRIX_TRANS(&ground.workm), (s16)((work->scale * 2) / 3));
             }
-            if (Gp_CountRec18Hi(beam->obj.context.contacts, 0x30000) != 0) {
-                Gp_UnlinkObj(&beam->obj);
+            if (Gp_CountRec18Hi(flame->body.context.contacts, 0x30000) != 0) {
+                Gp_UnlinkObj(&flame->body);
                 effectKillTask(work, task);
                 return;
             }
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
-                Gp_UnlinkObj(&beam->obj);
+                Gp_UnlinkObj(&flame->body);
                 task->state     = 2;
                 work->move.vx   = (u32)rcos(work->angle) >> 8;
                 work->move.vy   = (u32)rsin(work->angle) >> 8;
@@ -127,11 +129,11 @@ static inline void pykeFlameTask(Task* task)
                 return;
             }
             if (work->age >= 0x15) {
-                Gp_UnlinkObj(&beam->obj);
+                Gp_UnlinkObj(&flame->body);
                 effectKillTask(work, task);
                 return;
             }
-            Gp_ClearRec18Occupied(beam->rec);
+            Gp_ClearRec18Occupied(flame->contacts);
             return;
         case 2:
             work->scale         = work->scale + 0x40;

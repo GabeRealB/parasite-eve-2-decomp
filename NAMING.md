@@ -452,11 +452,12 @@ also uses for its text request.
 attachment, also carried by `actor_800100`. Its interface is
 `src/shared/pyke_flame.h`. Each package names the effect-table task itself and
 includes the shared body; `PYKE_FLAME_` bindings select the collision key, the
-paused-flame redraw and the splash depth bias. `PykeFlameBody` is the flame's
-collision body. The splash, the ground glow and the fireball's floor quad
-share `EffectGroundQuadScratch` in `include/gameplay/effects.h`: the flat
-quad's corners and their projected screen positions, with ordering depth and
-the GTE FLAG word left on the call stack.
+paused-flame redraw and the splash depth bias. `PykeFlameBody` is the flying
+flame's collision block: the list-1 sphere and the one contact it borrows.
+The splash, the ground glow and the fireball's floor quad share
+`EffectGroundQuadScratch` in `include/gameplay/effects.h`: the flat quad's
+corners and their projected screen positions, with ordering depth and the GTE
+FLAG word left on the call stack.
 
 `bladeTrail` owns the included swoosh the Gunblade, M4A1 bayonet and tonfa
 baton leave behind a swing. Its interface is `src/shared/blade_trail.h`.

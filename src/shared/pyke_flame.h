@@ -27,11 +27,21 @@
 void pykeFlameDrawNozzle(VECTOR3* pos, u16 frame, s32 brightness);
 void pykeFlameDrawBlob(VECTOR3* pos, u16 frame, u16 width, s16 ang);
 
-/// The flying flame's collision body: a sphere linked on list 1 with one
-/// contact record.
-typedef struct PykeFlameBody {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact rec[1];
+/// Collision block of one flying flame, allocated on its first tick and kept
+/// at `Task::work`.
+///
+/// The sphere is linked on collision list 1. Its radius is half the width
+/// seeded at spawn; later growth of the drawn flame leaves that radius
+/// unchanged. Its packed key is the carrier's `PYKE_FLAME_KEY` (contact
+/// category 2), and its centre stays the origin of the coordinate the flame
+/// flies on. The sphere takes pair tests. Room geometry is a separate segment
+/// test along the flight. An occupied contact whose key has category 3 in the
+/// high halfword (0x30000) ends the flame. The exit callback unlinks
+/// `Task::work` as a `WorldCollisionBody`, which addresses this block while
+/// `body` remains its first member.
+typedef struct {
+    WorldCollisionBody    body;        // Sphere linked on list 1; pair tests are enabled after the link
+    WorldCollisionContact contacts[1]; // One-entry table `body` borrows. The entry is marked LAST; occupied contacts are cleared each flight frame
 } PykeFlameBody;
 STATIC_ASSERT_SIZEOF(PykeFlameBody, 0x38);
 
