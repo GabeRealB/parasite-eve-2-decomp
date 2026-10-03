@@ -311,17 +311,17 @@ GpMapFlagIcon D_map_dryfield_80179F38[30] = {
     { 0, 0, 0, 0 },
 };
 
-GpMapIcon D_map_dryfield_80179FEC[11] = {
-    { 2, 1, 1, 0, 0x13, 0x26 },
-    { 2, 1, 0, 0, 0x35, 0x36 },
-    { 2, 0x1B, 1, 0, 0x4F, 0xFFDA },
+MenuMapIcon D_map_dryfield_80179FEC[11] = {
+    { 2, 1, MENU_MAP_ICON_KIND_TELEPHONE, 0, 19, 38 },
+    { 2, 1, 0, 0, 53, 54 },
+    { 2, 0x1B, MENU_MAP_ICON_KIND_TELEPHONE, 0, 79, -38 },
     { 1, 0x1E, 0, 0, 0, 7 },
-    { 1, 0x1E, 1, 0, 0, 0xFFFB },
-    { 2, 0x18, 2, 0xA, 0x29, 0xFFDF },
-    { 1, 0x1E, 2, 0xB, 3, 0xFFFD },
-    { 1, 0x15, 2, 0xD, 0xFFE5, 0xFFE1 },
-    { 2, 0x16, 2, 0xE, 0xFFF8, 0xFFE7 },
-    { 2, 0x19, 2, 0xF, 0x21, 0xFFFA },
+    { 1, 0x1E, MENU_MAP_ICON_KIND_TELEPHONE, 0, 0, -5 },
+    { 2, 0x18, MENU_MAP_ICON_KIND_OBJECTIVE, 0xA, 41, -33 },
+    { 1, 0x1E, MENU_MAP_ICON_KIND_OBJECTIVE, 0xB, 3, -3 },
+    { 1, 0x15, MENU_MAP_ICON_KIND_OBJECTIVE, 0xD, -27, -31 },
+    { 2, 0x16, MENU_MAP_ICON_KIND_OBJECTIVE, 0xE, -8, -25 },
+    { 2, 0x19, MENU_MAP_ICON_KIND_OBJECTIVE, 0xF, 33, -6 },
     { 0, 0, 0, 0, 0, 0 },
 };
 

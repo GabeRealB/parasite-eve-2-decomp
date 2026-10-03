@@ -266,15 +266,15 @@ GpMapFlagIcon D_map_dryfield_full_80179E48[31] = {
     { 0, 0, 0, 0 },
 };
 
-GpMapIcon D_map_dryfield_full_80179F04[9] = {
-    { 2, 1, 0, 0, 0x35, 0x36 },
-    { 2, 0x11, 1, 0, 0xFFCD, 0x14 },
-    { 2, 0x18, 0, 0x97, 0x25, 0xFFEF },
-    { 2, 0x1B, 1, 0, 0x4F, 0xFFDA },
+MenuMapIcon D_map_dryfield_full_80179F04[9] = {
+    { 2, 1, 0, 0, 53, 54 },
+    { 2, 0x11, MENU_MAP_ICON_KIND_TELEPHONE, 0, -51, 20 },
+    { 2, 0x18, 0, GAME_FLAG_097, 37, -17 },
+    { 2, 0x1B, MENU_MAP_ICON_KIND_TELEPHONE, 0, 79, -38 },
     { 1, 0x1E, 0, 0, 0, 7 },
-    { 1, 0x1E, 1, 0, 0, 0xFFFB },
-    { 2, 1, 2, 0x11, 0x1F, 0x2E },
-    { 2, 0x11, 2, 0x13, 0xFFC4, 0xD },
+    { 1, 0x1E, MENU_MAP_ICON_KIND_TELEPHONE, 0, 0, -5 },
+    { 2, 1, MENU_MAP_ICON_KIND_OBJECTIVE, 0x11, 31, 46 },
+    { 2, 0x11, MENU_MAP_ICON_KIND_OBJECTIVE, 0x13, -60, 13 },
     { 0, 0, 0, 0, 0, 0 },
 };
 

@@ -354,21 +354,21 @@ GpMapFlagIcon D_map_shelter_8017A134[31] = {
     { 0, 0, 0, 0 },
 };
 
-GpMapIcon D_map_shelter_8017A1F0[15] = {
-    { 2, 1, 0, 0x9A, 0x61, 0xFFF3 },
-    { 2, 6, 1, 0, 0xFF8E, 0xFFE5 },
-    { 3, 0x10, 1, 0, 3, 0xFFDC },
-    { 3, 0x10, 0, 0, 0x1A, 0xFFDC },
-    { 3, 0x14, 1, 0, 0xFFB4, 0 },
-    { 3, 0x14, 0, 0xEA, 0xFFB3, 0xFFF0 },
-    { 4, 0x1F, 1, 0, 0xFFFE, 0x44 },
-    { 4, 0x1F, 0, 0, 0, 0x2B },
-    { 5, 0x29, 1, 0, 0x26, 0x32 },
-    { 3, 0x2F, 1, 0, 0x52, 0xFFB0 },
-    { 3, 0xC, 2, 0x20, 0x5A, 0 },
-    { 3, 0x2F, 2, 0x28, 0x55, 0xFFB7 },
-    { 3, 0x2F, 2, 0x29, 0x55, 0xFFB7 },
-    { 4, 0x21, 2, 0x2E, 0xFFD0, 0x34 },
+MenuMapIcon D_map_shelter_8017A1F0[15] = {
+    { 2, 1, 0, GAME_FLAG_09A, 97, -13 },
+    { 2, 6, MENU_MAP_ICON_KIND_TELEPHONE, 0, -114, -27 },
+    { 3, 0x10, MENU_MAP_ICON_KIND_TELEPHONE, 0, 3, -36 },
+    { 3, 0x10, 0, 0, 26, -36 },
+    { 3, 0x14, MENU_MAP_ICON_KIND_TELEPHONE, 0, -76, 0 },
+    { 3, 0x14, 0, GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, -77, -16 },
+    { 4, 0x1F, MENU_MAP_ICON_KIND_TELEPHONE, 0, -2, 68 },
+    { 4, 0x1F, 0, 0, 0, 43 },
+    { 5, 0x29, MENU_MAP_ICON_KIND_TELEPHONE, 0, 38, 50 },
+    { 3, 0x2F, MENU_MAP_ICON_KIND_TELEPHONE, 0, 82, -80 },
+    { 3, 0xC, MENU_MAP_ICON_KIND_OBJECTIVE, 0x20, 90, 0 },
+    { 3, 0x2F, MENU_MAP_ICON_KIND_OBJECTIVE, 0x28, 85, -73 },
+    { 3, 0x2F, MENU_MAP_ICON_KIND_OBJECTIVE, 0x29, 85, -73 },
+    { 4, 0x21, MENU_MAP_ICON_KIND_OBJECTIVE, 0x2E, -48, 52 },
     { 0, 0, 0, 0, 0, 0 },
 };
 

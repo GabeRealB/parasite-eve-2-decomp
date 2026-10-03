@@ -364,10 +364,10 @@ GpMapFlagIcon D_map_neo_ark_8017A230[10] = {
     { 0, 0, 0, 0 },
 };
 
-GpMapIcon D_map_neo_ark_8017A26C[4] = {
-    { 3, 4, 0, 0, 0xFFDC, 0xFFEB },
-    { 3, 4, 1, 0, 0xFFCD, 0xFFF0 },
-    { 2, 0x16, 1, 0, 0x19, 0xFFFE },
+MenuMapIcon D_map_neo_ark_8017A26C[4] = {
+    { 3, 4, 0, 0, -36, -21 },
+    { 3, 4, MENU_MAP_ICON_KIND_TELEPHONE, 0, -51, -16 },
+    { 2, 0x16, MENU_MAP_ICON_KIND_TELEPHONE, 0, 25, -2 },
     { 0, 0, 0, 0, 0, 0 },
 };
 

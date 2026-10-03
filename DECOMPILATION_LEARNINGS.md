@@ -37058,7 +37058,7 @@ copy while keeping the loop a real loop for the optimiser:
 
 ```c
 for (;;) {
-    if (icons[(u8)i].field_0 == 0) {
+    if (icons[(u8)i].page == 0) {
         goto end;
     }
     ...
@@ -37085,8 +37085,8 @@ the block where the target has it (just after the first test) and leaves the
 body's last store in the `j` delay slot:
 
 ```c
-if (icons[(u8)i].field_2 == 2) {
-    if (icons[(u8)i].field_3 == func_800E3FCC(0xA2)) {
+if (icons[(u8)i].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
+    if (icons[(u8)i].condition == func_800E3FCC(0xA2)) {
         goto draw;
     }
 next:

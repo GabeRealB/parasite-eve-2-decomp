@@ -1383,12 +1383,12 @@ static void func_800D0C34(Task* arg0)
 
 static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
 {
-    UiObject*  obj;
-    GpMapIcon* icons;
-    u8         i;
-    s32        ret;
-    u8         otOff;
-    s32        lum;
+    UiObject*    obj;
+    MenuMapIcon* icons;
+    u8           i;
+    s32          ret;
+    u8           otOff;
+    s32          lum;
 
     otOff = 0;
     i     = 0;
@@ -1403,25 +1403,25 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
         DR_TPAGE*     dr;
         u16           clut;
 
-        if (icons[i].field_0 == 0) {
+        if (icons[i].page == 0) {
             break;
         }
-        if (icons[i].field_2 == 2) {
-            if (icons[i].field_3 != func_800E3FCC(0xA2)) {
+        if (icons[i].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
+            if (icons[i].condition != func_800E3FCC(0xA2)) {
                 i++;
                 continue;
             }
-        } else if (icons[i].field_3 != 0) {
-            if (GameFlag_GetNibble(icons[i].field_3) == 0) {
+        } else if (icons[i].condition != 0) {
+            if (GameFlag_GetNibble(icons[i].condition) == 0) {
                 i++;
                 continue;
             }
         }
-        if ((arg2 != 0) && (icons[i].field_2 < 2)) {
+        if ((arg2 != 0) && (icons[i].kind < MENU_MAP_ICON_KIND_OBJECTIVE)) {
             i++;
             continue;
         }
-        if ((icons[i].field_0 == (s8)Gp_MapRoomId) && (icons[i].field_1 == arg1)) {
+        if ((icons[i].page == (s8)Gp_MapRoomId) && (icons[i].area == arg1)) {
             pos            = SCRATCH_STACK_RESERVE_BLOCK(GpMapIconPos);
             pos->field_8   = 0;
             pos->field_6   = 0;
@@ -1430,7 +1430,7 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
             p              = gGpuPrimCursor;
             gGpuPrimCursor = p + 1;
             pos->y         = icons[i].y;
-            if (icons[i].field_2 == 2) {
+            if (icons[i].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
                 if (lum == 0x100) {
                     lum = 0xFF;
                 }
@@ -1438,11 +1438,11 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
             }
             setlen(p, 3);
             setcode(p, 0x7C);
-            if (icons[i].field_2 != 2) {
+            if (icons[i].kind != MENU_MAP_ICON_KIND_OBJECTIVE) {
                 setcode(p, 0x7D);
             }
             setSemiTrans(p, 1);
-            switch (icons[i].field_2) {
+            switch (icons[i].kind) {
                 case 0:
                     clut    = GetClut(0x20, 0x101);
                     otOff   = 0x1B;
@@ -1450,14 +1450,14 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
                     p->u0   = 0x50;
                     p->v0   = 0;
                     break;
-                case 1:
+                case MENU_MAP_ICON_KIND_TELEPHONE:
                     clut    = GetClut(0x10, 0x101);
                     otOff   = 0x1C;
                     p->clut = clut;
                     p->u0   = 0x40;
                     p->v0   = 0;
                     break;
-                case 2:
+                case MENU_MAP_ICON_KIND_OBJECTIVE:
                     clut    = GetClut(0x40, 0x101);
                     otOff   = 0x1C;
                     ret     = 1;

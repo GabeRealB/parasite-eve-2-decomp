@@ -296,7 +296,7 @@ GpMapName* Gp_MapNameTables[5] = {
     D_map_neo_ark_8017A28C,
 };
 
-GpMapIcon* D_8010F0CC[5] = {
+MenuMapIcon* D_8010F0CC[5] = {
     D_map_akropolis_8017A38C,
     D_map_dryfield_80179FEC,
     D_map_dryfield_full_80179F04,

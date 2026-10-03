@@ -37,8 +37,8 @@ extern GpMapMark D_map_dryfield_80179E00[];
 /// This stage's `D_8010F0E0` entry, ended by a room id of 0.
 extern GpMapFlagIcon D_map_dryfield_80179F38[];
 
-/// This stage's `D_8010F0CC` entry, ended by a room id of 0.
-extern GpMapIcon D_map_dryfield_80179FEC[];
+/// This stage's `D_8010F0CC` entry, ended by a page of 0.
+extern MenuMapIcon D_map_dryfield_80179FEC[];
 
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
 extern GpMapName D_map_dryfield_8017A044[];

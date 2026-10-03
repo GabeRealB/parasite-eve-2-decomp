@@ -40,8 +40,8 @@ extern GpMapMark D_map_akropolis_8017A288[];
 /// This stage's `D_8010F0E0` entry, ended by a room id of 0.
 extern GpMapFlagIcon D_map_akropolis_8017A330[];
 
-/// This stage's `D_8010F0CC` entry, ended by a room id of 0.
-extern GpMapIcon D_map_akropolis_8017A38C[];
+/// This stage's `D_8010F0CC` entry, ended by a page of 0.
+extern MenuMapIcon D_map_akropolis_8017A38C[];
 
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
 extern GpMapName D_map_akropolis_8017A3BC[];

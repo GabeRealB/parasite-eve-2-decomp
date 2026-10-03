@@ -48,21 +48,30 @@ typedef struct _GpMapMark {
 } GpMapMark;
 STATIC_ASSERT_SIZEOF(GpMapMark, 8);
 
-/// 8-byte map icon record in the per-stage tables pointed to by `D_8010F0CC`.
-/// Walked by `Gp_DrawMapIcons` until `field_0` is 0. `field_0` is the room id
-/// (`Gp_MapRoomId`), `field_1` the `Gp_DrawMapMarks` marker index the icon
-/// belongs to, `field_2` the icon kind (0 / 1 / 2; kind 2 is the blinking
-/// "current objective" icon gated on `func_800E3FCC(0xA2)`), `field_3` a
-/// GameFlag nibble id (0 = always shown); `x` / `y` are the map coordinates.
-typedef struct _GpMapIcon {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ u8  field_3;
-    /* 0x4 */ u16 x;
-    /* 0x6 */ u16 y;
-} GpMapIcon;
-STATIC_ASSERT_SIZEOF(GpMapIcon, 8);
+/// `MenuMapIcon.kind` of a telephone.
+#define MENU_MAP_ICON_KIND_TELEPHONE 1
+
+/// `MenuMapIcon.kind` of the marker for where the current objective is.
+#define MENU_MAP_ICON_KIND_OBJECTIVE 2
+
+/// A 16x16 icon the map screen draws over one area of a stage's map.
+///
+/// Each stage has a table of these, closed by a record whose `page` is 0. An
+/// icon is drawn with its area, while its page is the one on screen and its
+/// `condition` holds. A telephone and the kind-0 picture are fixed and appear
+/// only once the area has been visited; an objective marker pulses, and shows
+/// in an area not yet visited too. What the kind-0 picture depicts is unproven:
+/// it sits in rooms with a shop, behind the flag that opens the shop, and in
+/// other rooms unconditionally.
+typedef struct {
+    u8  page;      // Map page the icon is on, counted from 1; the page of its area's `MenuMapArea`
+    u8  area;      // Area the icon belongs to, as `GameSession.location.loc.area`
+    u8  kind;      // Picture (0 fixed picture, 1 telephone, 2 objective marker)
+    u8  condition; // Objective marker: the objective number it marks. Other kinds: a game flag that must be set, or 0 for always
+    s16 x;         // Map-screen X of the icon's centre
+    s16 y;         // Map-screen Y of the icon's centre
+} MenuMapIcon;
+STATIC_ASSERT_SIZEOF(MenuMapIcon, 8);
 
 /// Six-byte map icon record walked by `func_800D0C34` until `roomId` is 0.
 /// `flagId` gates visibility using the stage flag bank (0 = always, 0xFF = skip).

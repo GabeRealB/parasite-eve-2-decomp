@@ -61,8 +61,8 @@ extern GpMapName* Gp_MapNameTables[];
 /// Per-stage table of `GpMapMark` arrays. Index is `GameSession.location.loc.stage - 1`.
 extern GpMapMark* Gp_MapMarkTables[];
 
-/// Per-stage table of `GpMapIcon` arrays. Index is `GameSession.location.loc.stage - 1`.
-extern GpMapIcon* D_8010F0CC[];
+/// Per-stage table of `MenuMapIcon` arrays. Index is `GameSession.location.loc.stage - 1`.
+extern MenuMapIcon* D_8010F0CC[];
 
 /// Per-stage table of `GpMapFlagIcon` arrays. Index is `GameSession.location.loc.stage - 1`.
 extern GpMapFlagIcon* D_8010F0E0[];

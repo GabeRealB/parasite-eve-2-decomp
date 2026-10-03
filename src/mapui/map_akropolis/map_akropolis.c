@@ -19,6 +19,7 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
+#include "main/gameflag_ids.h"
 #include "main/gamemain.h"
 #include "main/gfx_types.h"
 #include "main/pad.h"
@@ -441,12 +442,12 @@ GpMapFlagIcon D_map_akropolis_8017A330[15] = {
     { 0, 0, 0, 0 },
 };
 
-GpMapIcon D_map_akropolis_8017A38C[6] = {
-    { 1, 1, 1, 0, 0x1F, 0xFFB3 },
-    { 1, 0xF, 1, 0, 0xFFB4, 0x35 },
-    { 3, 0x13, 1, 0, 0xFF92, 0xFFE6 },
-    { 3, 0x13, 0, 0x7A, 0xFFC7, 0xFFF9 },
-    { 1, 4, 2, 2, 0xFFB3, 0x11 },
+MenuMapIcon D_map_akropolis_8017A38C[6] = {
+    { 1, 1, MENU_MAP_ICON_KIND_TELEPHONE, 0, 31, -77 },
+    { 1, 0xF, MENU_MAP_ICON_KIND_TELEPHONE, 0, -76, 53 },
+    { 3, 0x13, MENU_MAP_ICON_KIND_TELEPHONE, 0, -110, -26 },
+    { 3, 0x13, 0, GAME_FLAG_STORY_CHAPTER, -57, -7 },
+    { 1, 4, MENU_MAP_ICON_KIND_OBJECTIVE, 2, -77, 17 },
     { 0, 0, 0, 0, 0, 0 },
 };
 
