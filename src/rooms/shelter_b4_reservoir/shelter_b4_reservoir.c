@@ -100,15 +100,6 @@ typedef struct {
 } _ShelterB4ReservoirBurstConfig;
 STATIC_ASSERT_SIZEOF(_ShelterB4ReservoirBurstConfig, 6);
 
-/// Work block `func_shelter_b4_reservoir_8017FB84` reaches through its task's
-/// `spawnArg2`. Only the three halves it uses are known.
-typedef struct {
-    byte pad_0[0x22];
-    s16  field_22; // Frames counted while game flag 0xB7 is set; the splash pass is skipped while it is zero
-    s16  field_24; // Radius of the last randomised burst point, scaled into the `rsin` / `rcos` offsets
-    s16  field_26; // The angle of that point, then the splash chance for the frame's movement
-} _ShelterB4ReservoirWork;
-
 /// Spawn table of the screen-wave task, and the context it is spawned with.
 /// The context's mode word is written through its own symbol, which is how the
 /// original reached it.
@@ -1647,14 +1638,14 @@ static void func_shelter_b4_reservoir_8017FB44(Task* arg0)
 
 void func_shelter_b4_reservoir_8017FB84(Task* task)
 {
-    _ShelterB4ReservoirWork* work;
-    Task*                    player;
-    GfxCoord*                root;
-    GfxCoord*                c;
-    GfxCoord                 coord;
-    s32                      i;
-    s32                      baseHalfExtent;
-    s32                      randomizedSpawnArgs;
+    EffectWork* work;
+    Task*       player;
+    GfxCoord*   root;
+    GfxCoord*   c;
+    GfxCoord    coord;
+    s32         i;
+    s32         baseHalfExtent;
+    s32         randomizedSpawnArgs;
 
     work   = task->spawnArg2.pointer;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -1666,14 +1657,16 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
         gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B4_RESERVOIR_FLYING_SPARK;
         gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B4_RESERVOIR_ORANGE_BURST_2;
         task->state               = 1;
+        // Scatter the burst points around the anchor. The work's `scale` and
+        // `angle` hold the polar radius and angle of the point being placed.
         for (i = 0; i < 10; i++) {
-            work->field_24                        = RAND() & 0x1C0;
-            work->field_26                        = (RAND() & 0x1FF) + (i << 9);
+            work->scale                           = RAND() & 0x1C0;
+            work->angle                           = (RAND() & 0x1FF) + (i << 9);
             D_shelter_b4_reservoir_80187634[i].vx = D_shelter_b4_reservoir_80185094.vx + 0x800;
             D_shelter_b4_reservoir_80187634[i].vy =
-                D_shelter_b4_reservoir_80185094.vy + ((work->field_24 * rsin(work->field_26)) >> 12);
+                D_shelter_b4_reservoir_80185094.vy + ((work->scale * rsin(work->angle)) >> 12);
             D_shelter_b4_reservoir_80187634[i].vz =
-                D_shelter_b4_reservoir_80185094.vz + ((work->field_24 * rcos(work->field_26)) >> 12);
+                D_shelter_b4_reservoir_80185094.vz + ((work->scale * rcos(work->angle)) >> 12);
         }
         D_shelter_b4_reservoir_80187684.pointCount         = 0;
         D_shelter_b4_reservoir_80187684.spawnChancePercent = 0;
@@ -1687,23 +1680,26 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
     }
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         if (GameFlag_GetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
-            if (gGameSession->waterY < root->coord.t[1] && work->field_22 != 0) {
+            // `age` counts the frames run with the event done; the splash pass waits for the second.
+            if (gGameSession->waterY < root->coord.t[1] && work->age != 0) {
                 for (i = 0; i < 2; i++) {
                     c = &player->extra.tmd->coords[i * 3 + 14];
                     Gp_UpdateCoord(c);
-                    work->field_26 = ABS(D_shelter_b4_reservoir_801850AC[i].vx - c->workm.t[0]) +
-                                     ABS(D_shelter_b4_reservoir_801850AC[i].vy - c->workm.t[1]) +
-                                     ABS(D_shelter_b4_reservoir_801850AC[i].vz - c->workm.t[2]) + 0x20;
+                    // `angle` is reused as the splash chance out of 512: the distance
+                    // this coordinate moved since the previous frame, plus a ripple bias.
+                    work->angle = ABS(D_shelter_b4_reservoir_801850AC[i].vx - c->workm.t[0]) +
+                                  ABS(D_shelter_b4_reservoir_801850AC[i].vy - c->workm.t[1]) +
+                                  ABS(D_shelter_b4_reservoir_801850AC[i].vz - c->workm.t[2]) + 0x20;
                     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &c->workm, &coord.coord);
                     coord.parent       = &gGfxViewCoord;
                     coord.coord.t[1]   = gGameSession->waterY;
                     coord.composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(&coord);
-                    if ((s32)(RAND() & 0x1FF) < work->field_26) {
+                    if ((s32)(RAND() & 0x1FF) < work->angle) {
                         Gp_SpawnEff(gRoomEffectWaterRippleId, &coord, 0x40, NULL);
                     }
-                    work->field_26 -= 0x20;
-                    if ((s32)(RAND() & 0x1FF) < work->field_26) {
+                    work->angle -= 0x20;
+                    if ((s32)(RAND() & 0x1FF) < work->angle) {
                         Gp_SpawnEff(gRoomEffectWaterSprayId, &coord, 0x1202180, NULL);
                     }
                     D_shelter_b4_reservoir_801850AC[i].vx = c->workm.t[0];
@@ -1711,19 +1707,19 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
                     D_shelter_b4_reservoir_801850AC[i].vz = c->workm.t[2];
                 }
             }
-            work->field_22++;
+            work->age++;
         }
         // Emit independently at each active point, occasionally moving its position.
         if (D_shelter_b4_reservoir_80187684.pointCount != 0 && D_shelter_b4_reservoir_80187684.spawnChancePercent != 0) {
             for (i = 0; i < D_shelter_b4_reservoir_80187684.pointCount; i++) {
                 if ((RAND() & 0x1F) == 0) {
-                    work->field_24                        = RAND() & 0x1C0;
-                    work->field_26                        = (RAND() & 0x1FF) + (i << 9);
+                    work->scale                           = RAND() & 0x1C0;
+                    work->angle                           = (RAND() & 0x1FF) + (i << 9);
                     D_shelter_b4_reservoir_80187634[i].vx = D_shelter_b4_reservoir_80185094.vx + 0x800;
                     D_shelter_b4_reservoir_80187634[i].vy =
-                        D_shelter_b4_reservoir_80185094.vy + ((work->field_24 * rsin(work->field_26)) >> 12);
+                        D_shelter_b4_reservoir_80185094.vy + ((work->scale * rsin(work->angle)) >> 12);
                     D_shelter_b4_reservoir_80187634[i].vz =
-                        D_shelter_b4_reservoir_80185094.vz + ((work->field_24 * rcos(work->field_26)) >> 12);
+                        D_shelter_b4_reservoir_80185094.vz + ((work->scale * rcos(work->angle)) >> 12);
                 }
                 if ((u16)(RAND() % SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE) < D_shelter_b4_reservoir_80187684.spawnChancePercent) {
                     baseHalfExtent      = D_shelter_b4_reservoir_80187684.baseHalfExtent;
