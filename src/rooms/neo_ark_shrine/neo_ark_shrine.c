@@ -175,7 +175,7 @@ ActionPromptHotspot D_neo_ark_shrine_80182430[18] = {
     { -32, 32, 32, 32, 13, 0, 0 },
     { 0, 32, 32, 32, 14, 0, 0 },
     { 32, 32, 32, 32, 15, 0, 0 },
-    { -160, -120, 320, 240, 16, 0, 0 },
+    { -160, -120, 320, 240, NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD, 0, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
@@ -374,8 +374,11 @@ void func_neo_ark_shrine_8017D948(Task* task)
 
 /// Idle state of the shrine's cap script: the hotspot the cursor sits on is
 /// confirm-tested (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) and its `id` / `promptKind` are
-/// latched into the script state, with the 3-vs-6 split decided by hotspot id
-/// 0x10 and the script's own `field_F`. The scan walks the hotspot table the
+/// latched into the work block's `selection` / `promptKind`. The confirm goes
+/// to state 3, which opens the command prompt, for
+/// `NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD` and for any board cell while
+/// `boardExamined` is clear; a board cell after that goes to state 6, which
+/// slides its tile. The scan walks the hotspot table the
 /// hit test `actionPromptHitTest` just marked, and
 /// `buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED` leaves the scan by advancing the task to state 5.
 ///
@@ -390,10 +393,10 @@ void func_neo_ark_shrine_8017D948(Task* task)
 /// `task`, so the copy itself is dropped by the allocator.
 void func_neo_ark_shrine_8017D9A0(Task* task)
 {
-    ActionPromptHotspot* hs     = D_neo_ark_shrine_80182430;
-    ActionPrompt*        prompt = D_80114D28;
-    NeoArkShrineScript*  st     = (NeoArkShrineScript*)task->work;
-    u16                  id;
+    ActionPromptHotspot*    hs     = D_neo_ark_shrine_80182430;
+    ActionPrompt*           prompt = D_80114D28;
+    NeoArkShrinePuzzleWork* work   = task->work;
+    u16                     id;
 
     func_neo_ark_shrine_8017EAC0(task);
     gGameSession->hideHud = 1;
@@ -410,17 +413,17 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
             if (hs->id != ACTION_PROMPT_HOTSPOT_END) {
                 do {
                     if (hs->hit != 0) {
-                        if ((s16)id == 0x10 || st->field_F == 0) {
+                        if ((s16)id == NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD || work->boardExamined == 0) {
                             prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                             prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                            st->field_C         = hs->id;
-                            st->field_E         = hs->promptKind;
+                            work->selection     = hs->id;
+                            work->promptKind    = hs->promptKind;
                             task->state         = 3;
                             return;
                         }
-                        st->field_C = id;
-                        st->field_E = hs->promptKind;
-                        task->state = 6;
+                        work->selection  = id;
+                        work->promptKind = hs->promptKind;
+                        task->state      = 6;
                         return;
                     }
                     hs++;
@@ -465,32 +468,32 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
 ///   from the assignment and one of those three spots stops matching.
 void func_neo_ark_shrine_8017DB10(Task* arg0)
 {
-    s16                 temp_v0;
-    s16                 state;
-    s16                 slot;
-    s32                 i;
-    u8                  swapped;
-    u8                  moved;
-    u16*                ord;
-    u16                 prev;
-    NeoArkShrineScript* st;
+    s16                     temp_v0;
+    s16                     state;
+    s16                     slot;
+    s32                     i;
+    u8                      swapped;
+    u8                      moved;
+    u16*                    ord;
+    u16                     prev;
+    NeoArkShrinePuzzleWork* work;
 
-    st      = (NeoArkShrineScript*)arg0->work;
+    work    = arg0->work;
     swapped = 0;
     func_neo_ark_shrine_8017EAC0();
     for (i = 0; i < 5; i++) {
-        state = D_neo_ark_shrine_801825EC[st->field_C][i];
+        state = D_neo_ark_shrine_801825EC[work->selection][i];
         if (state == 0xFF) {
             break;
         }
         if (D_neo_ark_shrine_8018686C[state] == 0) {
             SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_TILE_SLIDE, 0, 0);
-            slot                                                                 = st->field_C;
-            ord                                                                  = (u16*)&D_neo_ark_shrine_8018686C[slot];
-            prev                                                                 = *ord;
-            *ord                                                                 = D_neo_ark_shrine_8018686C[D_neo_ark_shrine_801825EC[slot][i]];
-            swapped                                                              = 1;
-            D_neo_ark_shrine_8018686C[D_neo_ark_shrine_801825EC[st->field_C][i]] = prev;
+            slot                                                                     = work->selection;
+            ord                                                                      = (u16*)&D_neo_ark_shrine_8018686C[slot];
+            prev                                                                     = *ord;
+            *ord                                                                     = D_neo_ark_shrine_8018686C[D_neo_ark_shrine_801825EC[slot][i]];
+            swapped                                                                  = 1;
+            D_neo_ark_shrine_8018686C[D_neo_ark_shrine_801825EC[work->selection][i]] = prev;
         }
     }
     arg0->state = 2;

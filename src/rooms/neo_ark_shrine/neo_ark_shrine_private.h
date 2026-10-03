@@ -1,7 +1,7 @@
 #ifndef SRC_ROOMS_NEO_ARK_SHRINE_NEO_ARK_SHRINE_PRIVATE_H
 #define SRC_ROOMS_NEO_ARK_SHRINE_NEO_ARK_SHRINE_PRIVATE_H
 
-#include "types.h"
+#include "common.h"
 
 #include "main/task_types.h"
 
@@ -18,16 +18,29 @@ typedef struct {
     s16 y; // vertical position, in pixels or texels
 } NeoArkShrineTileOrigin;
 
-/// Scratch state of the shrine's cap script, stored at `Task::work`
-/// (`memCalloc(0x10)` in `func_neo_ark_shrine_8017ECC4`).
+/// `ActionPromptHotspot::id` of the hotspot covering the whole screen, which
+/// follows the sixteen board cells (ids 0..15) in the puzzle's hotspot table
+/// and so is the one confirmed when the cursor is off the board.
+#define NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD 16
+
+/// Work block of the task that runs the shrine's sliding-tile puzzle screen,
+/// allocated by its first state and kept at `Task::work`.
+///
+/// The puzzle's idle state latches the hotspot the player confirms. A
+/// confirmed board cell slides its tile into the gap when the gap is next to
+/// it, but only once the player has examined the board; until then, and always
+/// for the rest of the screen, the confirm opens the Examine command at the
+/// cursor instead. The steps that play out a finished row or column time
+/// themselves with `timer`.
 typedef struct {
-    /* 0x00 */ u8  pad_0[8];
-    /* 0x08 */ u16 timer; ///< frames the current script step has run
-    /* 0x0A */ u8  pad_A[2];
-    /* 0x0C */ s16 field_C;
-    /* 0x0E */ s8  field_E;
-    /* 0x0F */ s8  field_F;
-} NeoArkShrineScript;
+    u8  unknown_0[8];  // Never read or written by the room; role unproven
+    u16 timer;         // Frames the current timed step has run; each such step is entered with it at 0
+    u8  unknown_A[2];  // Never read or written by the room; role unproven
+    s16 selection;     // `ActionPromptHotspot::id` of the confirmed hotspot (0..15 board cell, 16 off the board)
+    s8  promptKind;    // `ActionPromptHotspot::promptKind` of that hotspot, forwarded when its command prompt opens
+    s8  boardExamined; // Whether the Examine command was accepted on a tile (0 a tile confirm offers Examine, 1 it slides the tile)
+} NeoArkShrinePuzzleWork;
+STATIC_ASSERT_SIZEOF(NeoArkShrinePuzzleWork, 0x10);
 
 /// Hotspot table of the shrine's cap script, terminated by `ACTION_PROMPT_HOTSPOT_END`.
 extern ActionPromptHotspot D_neo_ark_shrine_80182430[];

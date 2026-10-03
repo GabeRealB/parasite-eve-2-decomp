@@ -1097,20 +1097,20 @@ void func_neo_ark_shrine_8017EBB8(Task* task)
 #include "../../shared/action_prompt_hit_test.inc.c"
 
 /// Task callback of the descriptor at `D_neo_ark_shrine_80182404`: allocates
-/// the cap script's state, sets the global mode byte, steps the task on one
+/// the puzzle's work block, sets the global mode byte, steps the task on one
 /// state and clears the shrine's hotspot list.
 static void func_neo_ark_shrine_8017ECC4(Task* task)
 {
-    NeoArkShrineScript*  st;
-    ActionPromptHotspot* hs;
+    NeoArkShrinePuzzleWork* work;
+    ActionPromptHotspot*    hs;
 
-    st = memCalloc(0x10, 0);
-    if (st == NULL) {
+    work = memCalloc(sizeof(NeoArkShrinePuzzleWork), 0);
+    if (work == NULL) {
         taskKill(task);
         return;
     }
     task->spawnArg2.pointer                                    = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
-    task->work                                                 = st;
+    task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xB;
     /* The once-loop folds away, but flow counts its references at loop depth
        2: without it the parameter's priority (6*2/42) loses to the state
@@ -1147,24 +1147,25 @@ static void func_neo_ark_shrine_8017EDAC(Task* task)
 /// display mode this step picked, and advances the task to state 4.
 static void func_neo_ark_shrine_8017EDE0(Task* task)
 {
-    ActionPrompt*       prompt = D_80114D28;
-    NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
+    ActionPrompt*           prompt = D_80114D28;
+    NeoArkShrinePuzzleWork* work   = task->work;
 
     func_neo_ark_shrine_8017EAC0(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->field_E);
+    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
 /// Hides the action prompt's cursor, stops it, and runs the shrine's per-step
 /// helper. When `func_800D4EC0` reports success, starts cap slot 2 if the
-/// script's `field_C` is 0x10, and otherwise sets `field_F` and starts cap
-/// slot 1. The task advances to state 2 on every path.
+/// latched `selection` is `NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD`, and otherwise
+/// sets `boardExamined` and starts cap slot 1. The task advances to state 2
+/// on every path.
 static void func_neo_ark_shrine_8017EE44(Task* task)
 {
-    ActionPrompt*       prompt = D_80114D28;
-    NeoArkShrineScript* work   = (NeoArkShrineScript*)task->work;
+    ActionPrompt*           prompt = D_80114D28;
+    NeoArkShrinePuzzleWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
@@ -1173,12 +1174,12 @@ static void func_neo_ark_shrine_8017EE44(Task* task)
         task->state = 2;
         return;
     }
-    if (work->field_C == 0x10) {
+    if (work->selection == NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD) {
         Gp_StartCapSlot(2, 0, 0);
         task->state = 2;
         return;
     }
-    work->field_F = 1;
+    work->boardExamined = 1;
     Gp_StartCapSlot(1, 0, 0);
     task->state = 2;
 }
@@ -1203,15 +1204,15 @@ static void func_neo_ark_shrine_8017EED4(Task* task)
 /// mode on rather than off.
 static void func_neo_ark_shrine_8017EF68(Task* task)
 {
-    ActionPrompt*       prompt = D_80114D28;
-    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
+    ActionPrompt*           prompt = D_80114D28;
+    NeoArkShrinePuzzleWork* work   = task->work;
 
     Gp_SpawnPadLerp(0x12, 0x30, 0x90);
     D_neo_ark_shrine_80186868 = 1;
     prompt->mode              = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed       = ACTION_PROMPT_SPEED_STOPPED;
     func_neo_ark_shrine_8017EAC0(task);
-    st->timer = 0;
+    work->timer = 0;
     task->state++;
 }
 
@@ -1228,14 +1229,14 @@ static void func_neo_ark_shrine_8017EF68(Task* task)
 /// four insns short.
 static void func_neo_ark_shrine_8017EFE4(Task* task)
 {
-    ActionPrompt*       prompt = D_80114D28;
-    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
+    ActionPrompt*           prompt = D_80114D28;
+    NeoArkShrinePuzzleWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    st->timer           = st->timer + 1;
+    work->timer         = work->timer + 1;
     func_neo_ark_shrine_8017EAC0(task);
-    if (st->timer >= 0x1E) {
+    if (work->timer >= 0x1E) {
         if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
             gGameSession->location.loc.room                            = 2;
@@ -1250,46 +1251,46 @@ static void func_neo_ark_shrine_8017EFE4(Task* task)
 
 static void func_neo_ark_shrine_8017F094(Task* task)
 {
-    NeoArkShrineScript* st;
+    NeoArkShrinePuzzleWork* work;
 
-    st                        = (NeoArkShrineScript*)task->work;
+    work                      = task->work;
     D_neo_ark_shrine_8018686A = 1;
     func_neo_ark_shrine_8017EAC0();
     taskKill(task->spawnArg2.pointer);
-    st->timer = 0;
+    work->timer = 0;
     task->state++;
 }
 
 static void func_neo_ark_shrine_8017F0F0(Task* task)
 {
-    NeoArkShrineScript* st;
-    u16                 timer;
+    NeoArkShrinePuzzleWork* work;
+    u16                     timer;
 
-    st = (NeoArkShrineScript*)task->work;
+    work = task->work;
     func_neo_ark_shrine_8017EAC0();
-    timer     = st->timer + 1;
-    st->timer = timer;
+    timer       = work->timer + 1;
+    work->timer = timer;
     if (timer >= 0x1EU) {
         Task_SpawnFromTable(D_neo_ark_shrine_80182508, 1, 0, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;
         /* Without this the scheduler hoists the `task->state` reload above the
            `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` byte store to fill its load-delay slot. */
-        st->timer = 0;
+        work->timer = 0;
         task->state++;
     }
 }
 
 static void func_neo_ark_shrine_8017F178(Task* task)
 {
-    NeoArkShrineScript* st;
-    u16                 timer;
-    s32                 next;
+    NeoArkShrinePuzzleWork* work;
+    u16                     timer;
+    s32                     next;
 
-    st        = (NeoArkShrineScript*)task->work;
-    timer     = st->timer + 1;
-    st->timer = timer;
+    work        = task->work;
+    timer       = work->timer + 1;
+    work->timer = timer;
     if (timer >= 0x5AU) {
-        st->timer = 0;
+        work->timer = 0;
         if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
             Task_SpawnFromTable(D_neo_ark_shrine_80182508, 2, 0, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
@@ -1304,16 +1305,16 @@ static void func_neo_ark_shrine_8017F178(Task* task)
 
 static void func_neo_ark_shrine_8017F21C(Task* task)
 {
-    NeoArkShrineScript* st;
-    u16                 timer;
+    NeoArkShrinePuzzleWork* work;
+    u16                     timer;
 
-    st        = (NeoArkShrineScript*)task->work;
-    timer     = st->timer + 1;
-    st->timer = timer;
+    work        = task->work;
+    timer       = work->timer + 1;
+    work->timer = timer;
     if (timer == 0x1E) {
         gSceneCombatState.shrineEnemyPhase = SCENE_COMBAT_SHRINE_REVEALED;
     }
-    if (st->timer >= 0x3CU) {
+    if (work->timer >= 0x3CU) {
         task->state++;
     }
 }
@@ -1334,20 +1335,20 @@ static void func_neo_ark_shrine_8017F274(Task* task)
     Task_RequestKill(task, 0);
 }
 
-/// Runs the shrine's per-step helper and restarts the script's step timer:
+/// Runs the shrine's per-step helper and restarts the work block's `timer`:
 /// raises a pad lerp, hides the cursor and stops it, and advances the
 /// task to the next state.
 static void func_neo_ark_shrine_8017F320(Task* task)
 {
-    ActionPrompt*       prompt = D_80114D28;
-    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
+    ActionPrompt*           prompt = D_80114D28;
+    NeoArkShrinePuzzleWork* work   = task->work;
 
     Gp_SpawnPadLerp(0x12, 0x30, 0x90);
     D_neo_ark_shrine_80186868 = 0;
     prompt->mode              = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed       = ACTION_PROMPT_SPEED_STOPPED;
     func_neo_ark_shrine_8017EAC0(task);
-    st->timer = 0;
+    work->timer = 0;
     task->state++;
 }
 
@@ -1355,14 +1356,14 @@ static void func_neo_ark_shrine_8017F320(Task* task)
 /// when flag 0xE9 is set.
 static void func_neo_ark_shrine_8017F398(Task* task)
 {
-    ActionPrompt*       prompt = D_80114D28;
-    NeoArkShrineScript* st     = (NeoArkShrineScript*)task->work;
+    ActionPrompt*           prompt = D_80114D28;
+    NeoArkShrinePuzzleWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    st->timer           = st->timer + 1;
+    work->timer         = work->timer + 1;
     func_neo_ark_shrine_8017EAC0(task);
-    if (st->timer >= 0x1E) {
+    if (work->timer >= 0x1E) {
         if (GameFlag_GetNibble(GAME_FLAG_0E9) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             gGameSession->location.loc.room                            = 1;
