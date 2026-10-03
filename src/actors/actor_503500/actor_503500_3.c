@@ -125,17 +125,23 @@ typedef struct Actor503500Work2EC {
 } Actor503500Work2EC;
 STATIC_ASSERT_SIZEOF(Actor503500Work2EC, 0x2EC);
 
-/// Storage of the boss's `Actor503500Work`, cleared by `func_actor_503500_80132F64`.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// Storage holding the boss's work block and the eight bytes after it.
+///
+/// `work` is the package's one `Actor503500Work`: the boss task's set-up
+/// state clears exactly that member and parks it at `Task::work`, and the
+/// accessors the slot enemies call address it directly. The eight bytes after
+/// it lie between the work block and the table of slot counters. They are zero
+/// in the image, neither neighbour's clear covers them and nothing in the
+/// package addresses them, so they are not established as part of either
+/// object; whether they are separate unreferenced variables is unproven. They
+/// share this allocation only so the data after them keeps its address.
 typedef struct {
-    Actor503500Work value;
-    u8              retained[8];
-} Actor5035003Storage6574;
-STATIC_ASSERT_SIZEOF(Actor5035003Storage6574, 2032);
+    Actor503500Work work;           // The boss's work block
+    byte            unknown_7E8[8]; // Zero in the image; no access established and role unproven
+} _Actor503500WorkStorage;
+STATIC_ASSERT_SIZEOF(_Actor503500WorkStorage, 0x7F0);
 
-extern Actor5035003Storage6574 D_actor_503500_80176574;
+extern _Actor503500WorkStorage D_actor_503500_80176574;
 /// 18-entry table of per-slot u16 counters, indexed by slot in
 /// `func_actor_503500_801360A4` / `_801360BC` / `_8013611C`.
 extern u16 D_actor_503500_80176D64[];
@@ -237,7 +243,7 @@ Task* D_actor_503500_80176558 = NULL;
 
 ActorTransform D_actor_503500_8017655C = { 0 };
 
-Actor5035003Storage6574 D_actor_503500_80176574 = { 0 };
+_Actor503500WorkStorage D_actor_503500_80176574 = { 0 };
 
 u16 D_actor_503500_80176D64[18] = { 0 };
 
@@ -275,7 +281,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     WorldCollisionContact* recs;
     /* Kept in a register across the spawn loop: the ROM stores enemies[0]
        through the same base rather than rebuilding the address. */
-    Actor503500Work* work = &D_actor_503500_80176574.value;
+    Actor503500Work* work = &D_actor_503500_80176574.work;
 
     tmd   = arg0->extra.tmd;
     enemy = arg0->spawnArg2.pointer;
@@ -1711,7 +1717,7 @@ s32 func_actor_503500_80135B74(Task* arg0, s32 arg1, ActorCommand* msg, s32 arg3
 /// `func_actor_503500_80135E04` does.
 void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
 {
-    D_actor_503500_80176574.value.enemies[arg1] = NULL;
+    D_actor_503500_80176574.work.enemies[arg1] = NULL;
 }
 
 /// Spawns table entry `arg1` as a child of `arg0`'s enemy, tints its model
@@ -1730,7 +1736,7 @@ Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
     u32              raw;
     /* Taken before the spawn call: the ROM keeps the address in s4 across
        every call rather than rebuilding it at the store. */
-    Actor503500Work* work = &D_actor_503500_80176574.value;
+    Actor503500Work* work = &D_actor_503500_80176574.work;
 
     enemy = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, arg1, arg1, arg0->spawnArg2.pointer);
     if (enemy != NULL) {
@@ -1761,7 +1767,7 @@ Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
 /// empty. `arg0` is loaded by every caller but the body ignores it.
 s32 func_actor_503500_80135E04(Task* arg0, s32 arg1)
 {
-    return D_actor_503500_80176574.value.enemies[arg1] == NULL;
+    return D_actor_503500_80176574.work.enemies[arg1] == NULL;
 }
 
 /// Sets the scale of boss part `arg1` (5, 11 or 16) from `arg2` and marks it
@@ -1770,7 +1776,7 @@ s32 func_actor_503500_80135E04(Task* arg0, s32 arg1)
 /// `parent`; any other `arg1` only sets its bit.
 void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2)
 {
-    Actor503500Work* work = &D_actor_503500_80176574.value;
+    Actor503500Work* work = &D_actor_503500_80176574.work;
 
     switch (arg1) {
         case 5:
@@ -1801,7 +1807,7 @@ void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2)
 /// `func_actor_503500_80135E04` does.
 void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
 {
-    D_actor_503500_80176574.value.slotBusy[arg1] = arg2;
+    D_actor_503500_80176574.work.slotBusy[arg1] = arg2;
 }
 
 /// Sets the per-slot playback rate `AnimationSlot.rate` on animation slots 1..16 of the
@@ -1832,10 +1838,10 @@ void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
 /// but the body ignores it, the same way `func_actor_503500_80135E04` does.
 s32 func_actor_503500_80136014(Task* arg0, s32 arg1)
 {
-    if (arg1 != D_actor_503500_80176574.value.animationId) {
+    if (arg1 != D_actor_503500_80176574.work.animationId) {
         return -1;
     }
-    return (D_actor_503500_80176574.value.rig.slots[1].status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) != 0;
+    return (D_actor_503500_80176574.work.rig.slots[1].status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) != 0;
 }
 
 /// Puts the boss into state 2: clears the state's step counters and the two
@@ -1859,7 +1865,7 @@ void func_actor_503500_80136048(Task* arg0)
 /// argument, and callers pass unrelated pointers they already hold.
 s32 func_actor_503500_8013608C(void* arg0)
 {
-    return (u32)((u16)D_actor_503500_80176574.value.state - ACTOR_503500_STATE_PART_LOST) < 3U;
+    return (u32)((u16)D_actor_503500_80176574.work.state - ACTOR_503500_STATE_PART_LOST) < 3U;
 }
 
 static void func_actor_503500_801360A4(s32 arg0, s16 arg1)
@@ -1925,12 +1931,12 @@ s16 func_actor_503500_80136134(Task* arg0)
 
 s32 func_actor_503500_80136208(void)
 {
-    return D_actor_503500_80176574.value.defeated;
+    return D_actor_503500_80176574.work.defeated;
 }
 
 s16 func_actor_503500_80136218(void)
 {
-    return D_actor_503500_80176574.value.playerBearing;
+    return D_actor_503500_80176574.work.playerBearing;
 }
 
 /// Exit callback of the boss task: tears down the second body part's display
