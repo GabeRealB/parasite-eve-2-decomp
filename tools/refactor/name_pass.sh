@@ -340,10 +340,12 @@ $(venv/bin/python3 tools/refactor/name_review.py context "${names[@]}")
 
 ## Finishing
 
-Run \`venv/bin/python3 tools/refactor/verify_name_pass.py\`. Image checksums,
-cross-image declarations/symbols and every individual objdiff function must pass.
-The verifier restores the normal matching configuration. Do not commit; the
-driver commits and repeats verification.
+Run \`./tools/build-and-verify.sh\` until it passes: it rebuilds what you
+changed, checks every image's checksum and that the symbol maps name every C
+function. Do not run \`tools/refactor/verify_name_pass.py\` yourself; the
+worker runs it after your session (the build again, plus the declaration and
+symbol-map checks) and decides whether the step lands. Do not commit; the
+driver commits.
 
 Fill \`$(review_file "$order")\` (a template is created before your session).
 Keep each entry's \`name\` as assigned; set \`current_name\`, \`meaning\`,
@@ -411,6 +413,8 @@ refresh_worklist() {
 }
 
 LOG="$(vacuum_log_dir)/name_pass-$$.log"
+# What this run started from, so the closing audit runs only when it landed work.
+RUN_START="$(git rev-parse HEAD)"
 RUN_ID="$(date -u '+%Y%m%dT%H%M%SZ')-$$"
 echo "logging to $LOG"
 
@@ -691,8 +695,8 @@ still exists on its worker's branch.
 3. Then make the result correct rather than merely applied: two steps may have
    renamed the same thing differently, or retyped a field in incompatible ways.
    Reconcile the declarations so the tree says one thing.
-4. Finish with \`venv/bin/python3 tools/refactor/verify_name_pass.py\` passing
-   both build modes, declaration/symbol checks and every individual function.
+4. Finish with \`venv/bin/python3 tools/refactor/verify_name_pass.py\` passing:
+   the matching build and the declaration and symbol-map checks.
    Review the round's reports under \`local/name-pass/reviews/$RUN_ID-r$i-*\`;
    preserve unresolved work and update conclusions affected by reconciliation.
 5. Leave the work committed on this branch, with the tree clean and no replay in
@@ -953,6 +957,18 @@ BARRIER
 done
 
 echo "reviewed $done_count step(s), $followup_count with follow-ups, $fail_count failed${barrier:+, stopped at a barrier}"
+
+# Steps and joins are verified by the build, declarations and symbol maps; the
+# per-function objdiff comparison is an audit, run once over everything landed.
+if (( DRY == 0 )) && [[ "$(git rev-parse HEAD)" != "$RUN_START" ]]; then
+  echo "--- auditing the landed tree with objdiff" | tee -a "$LOG"
+  if venv/bin/python3 tools/refactor/verify_name_pass.py --objdiff >"$LOG.audit" 2>&1; then
+    echo "objdiff audit passed: $(grep -o 'All [0-9]* individual functions match at 100%' "$LOG.audit")" | tee -a "$LOG"
+  else
+    echo "OBJDIFF AUDIT FAILED over ${RUN_START:0:9}..$(git rev-parse --short HEAD); see $LOG.audit" | tee -a "$LOG" >&2
+    tail -20 "$LOG.audit" >&2
+  fi
+fi
 if (( WORKERS > 1 )); then
   echo "worker worktrees kept for the next run; --clean-workers removes them"
 fi

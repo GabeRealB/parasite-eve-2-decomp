@@ -811,11 +811,13 @@ Equal load addresses or layouts alone do not prove shared symbol/type identity.
 ### Naming-pass acceptance and follow-ups
 
 Finish the cleanup justified by the item and its consumers. Record unrelated
-discoveries separately. Use `venv/bin/python3 tools/refactor/verify_name_pass.py`
-to verify image checksums, cross-image declarations and symbol ownership, and
-every individual function in a fresh objdiff report. It restores the normal
-matching configuration. Preserve established prototype exceptions without
-introducing new ones or implicit declarations.
+discoveries separately. `venv/bin/python3 tools/refactor/verify_name_pass.py`
+verifies image checksums, cross-image declarations and symbol ownership; with
+every function matched in C, the checksum and the symbol-map checks prove each
+function's bytes and name. `--objdiff` adds every individual function in a
+fresh objdiff report, an audit the naming pass runs once over what it landed;
+it restores the normal matching configuration. Preserve established prototype
+exceptions without introducing new ones or implicit declarations.
 
 Each step writes the structured JSON review requested in its brief: current name,
 meaning, evidence, changes and unresolved issues for every assigned item. A

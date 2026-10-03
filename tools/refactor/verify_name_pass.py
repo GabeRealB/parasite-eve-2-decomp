@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""Verify naming cleanup in both build modes, restoring normal matching mode.
+"""Verify a naming change: the matching build, declarations and symbol maps.
 
-Keep a separate objdiff build cache under local/name-pass so changing modes does
-not recompile the entire project every step. Run only one verifier per checkout;
-parallel naming workers each own their checkout and caches.
+Every function is matched in C, so the image checksum proves every byte, and
+the symbol checks prove the names: `check_sym_coverage.py` (run by the matching
+build) for functions, `check_symbols.py --strict` for everything the maps
+declare. That is what each step needs.
+
+`--objdiff` adds the per-function objdiff comparison, an audit rather than a
+per-step check: it rebuilds in objdiff mode beside the matching build and
+restores the matching configuration afterwards. Its build cache lives under
+local/name-pass so the switch does not recompile the whole project. Run only
+one verifier per checkout; parallel naming workers each own their checkout.
 """
 
 import argparse
@@ -43,7 +50,7 @@ def check_objdiff(report, config):
     return len(functions)
 
 
-def verify(root, logs, jobs):
+def verify(root, logs, jobs, objdiff=False):
     logs.mkdir(parents=True, exist_ok=True)
     python = str(root / "venv/bin/python3") if (root / "venv/bin/python3").exists() else sys.executable
     build = root / "build"
@@ -66,6 +73,9 @@ def verify(root, logs, jobs):
                 "declarations.log")
     check_declarations(decls.read_text(), aliases(root, {"Task_ExecDefaultList"}))
     run([python, "tools/check_symbols.py", "--strict"], "symbols.log")
+    if not objdiff:
+        print("Naming verification passed (build, declarations, symbols)", flush=True)
+        return
 
     require(build.is_dir(), "matching build is missing")
     build.rename(saved)
@@ -93,12 +103,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--log-dir", type=Path, default=Path("local/name-pass/verification"))
+    parser.add_argument("--objdiff", action="store_true",
+                        help="also compare every function in objdiff mode (an audit; about 40s more)")
     parser.add_argument("--jobs", type=int, default=min(int(os.environ.get("PE2_JOBS") or 0) or os.cpu_count() or 4, 4))
     args = parser.parse_args()
     root = args.root.resolve()
     try:
         require(args.jobs > 0, "--jobs must be positive")
-        verify(root, (root / args.log_dir).resolve(), args.jobs)
+        verify(root, (root / args.log_dir).resolve(), args.jobs, args.objdiff)
     except (ValueError, RuntimeError, OSError, KeyError) as exc:
         parser.exit(1, f"Naming verification failed: {exc}\n")
 
