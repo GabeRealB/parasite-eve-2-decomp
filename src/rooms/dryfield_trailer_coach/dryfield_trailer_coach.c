@@ -77,22 +77,31 @@
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/trailer_coach.h"
 
-// The animation copy spans the bank and its following records.
-// Keep the typed fields and the complete copied word range together.
+/// The clips the room adds to the player's animation bank, with the records
+/// stored after them.
+///
+/// The room's event scripts send `data.copy` to the player. The copy takes
+/// `ANIMATION_BANK_EXTENSION_CAPACITY` words from the start of the storage,
+/// which is more than the clip table holds, so the request itself, the three
+/// topic strings and the first menu pointer are written into the bank after
+/// the clips. None of the room's animation requests selects those words.
+///
+/// The topic strings and menus belong to the room's two-line option task and
+/// have no other connection to the clips.
 typedef union {
     struct {
-        AnimationSet*            sets[17];
-        AnimationBankCopyRequest copy;
-        u8                       text0[16];
-        u8                       text1[20];
-        u8                       text2[12];
-        u8*                      options[4];
-    } data;
-    s32 words[35];
-} DryfieldTrailerCoachAnimStorage5368;
-STATIC_ASSERT_SIZEOF(DryfieldTrailerCoachAnimStorage5368, 140);
+        AnimationSet*            sets[17];          // Player clips for extended ids 47-63; NULL at the three ids nothing requests
+        AnimationBankCopyRequest copy;              // Installs the first `ANIMATION_BANK_EXTENSION_CAPACITY` words of this storage
+        u8                       firearmsTopic[16]; // Shift-JIS "About firearms", NUL-terminated and zero-filled
+        u8                       shelterTopic[20];  // Shift-JIS "About the shelter", NUL-terminated and zero-filled
+        u8                       otherTopic[12];    // Shift-JIS "Anything else?", NUL-terminated and zero-filled
+        u8*                      topicMenus[2][2];  // Two-line option menus (0 firearms/shelter, 1 firearms/anything else)
+    } data;                                         // The records by name
+    s32 words[35];                                  // The same storage as the copy reads it; the last three words lie beyond the copied span
+} _DryfieldTrailerCoachAnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_DryfieldTrailerCoachAnimationBankExtensionStorage, 140);
 
-extern DryfieldTrailerCoachAnimStorage5368 D_dryfield_trailer_coach_80185368;
+extern _DryfieldTrailerCoachAnimationBankExtensionStorage D_dryfield_trailer_coach_80185368;
 
 /// The "%" suffix the room's percentage formatters append.
 static u8 Telephone_Data_80181A78[];
@@ -187,54 +196,53 @@ s32  func_dryfield_trailer_coach_801825A8(Task*, s32, s32, TaskMessageArg);
 void func_dryfield_trailer_coach_801822F4(Task*);
 void func_dryfield_trailer_coach_801827F8(Task*);
 
-extern DryfieldTrailerCoachAnimStorage5368 D_dryfield_trailer_coach_80185368;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185038;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_8018504C;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185060;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185088;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_8018509C;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_801850B0;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_801850C4;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_801850EC;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185100;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185114;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185128;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_8018513C;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185150;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185178;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_801851B0;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_801851EC;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185200;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185214;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185228;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_8018523C;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185250;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185264;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_801852A0;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_801852B4;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_801852C8;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_801852DC;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_801852F0;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185304;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185318;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_8018532C;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185340;
-extern AnimationPlayRequest                D_dryfield_trailer_coach_80185354;
-static AnimationSet                        _gDryfieldTrailerCoachAnimation07668;
-static AnimationSet                        _gDryfieldTrailerCoachAnimation07994;
-extern ActorCommand                        D_dryfield_trailer_coach_8018518C;
-extern ActorCommand                        D_dryfield_trailer_coach_80185190;
-extern ActorCommand                        D_dryfield_trailer_coach_80185194;
-extern ActorCommand                        D_dryfield_trailer_coach_80185198;
-extern WorldCollisionGrid                  D_dryfield_trailer_coach_801876B4[1];
-extern WorldCollisionTrigger               D_dryfield_trailer_coach_80189254[4];
-extern WorldCollisionTrigger               D_dryfield_trailer_coach_80189384[12];
-extern WorldCoordRoomAmbientEntry          D_dryfield_trailer_coach_80189BAC[12];
-extern WorldCoordRoomLights                D_dryfield_trailer_coach_80189B94[1];
-extern ActorTransform                      D_dryfield_trailer_coach_80184FD8;
-extern ActorTransform                      D_dryfield_trailer_coach_80184FF0;
-extern ActorTransform                      D_dryfield_trailer_coach_80185008;
-void                                       func_dryfield_trailer_coach_80182850(void);
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185038;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_8018504C;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185060;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185088;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_8018509C;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_801850B0;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_801850C4;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_801850EC;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185100;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185114;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185128;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_8018513C;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185150;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185178;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_801851B0;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_801851EC;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185200;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185214;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185228;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_8018523C;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185250;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185264;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_801852A0;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_801852B4;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_801852C8;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_801852DC;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_801852F0;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185304;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185318;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_8018532C;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185340;
+extern AnimationPlayRequest       D_dryfield_trailer_coach_80185354;
+static AnimationSet               _gDryfieldTrailerCoachAnimation07668;
+static AnimationSet               _gDryfieldTrailerCoachAnimation07994;
+extern ActorCommand               D_dryfield_trailer_coach_8018518C;
+extern ActorCommand               D_dryfield_trailer_coach_80185190;
+extern ActorCommand               D_dryfield_trailer_coach_80185194;
+extern ActorCommand               D_dryfield_trailer_coach_80185198;
+extern WorldCollisionGrid         D_dryfield_trailer_coach_801876B4[1];
+extern WorldCollisionTrigger      D_dryfield_trailer_coach_80189254[4];
+extern WorldCollisionTrigger      D_dryfield_trailer_coach_80189384[12];
+extern WorldCoordRoomAmbientEntry D_dryfield_trailer_coach_80189BAC[12];
+extern WorldCoordRoomLights       D_dryfield_trailer_coach_80189B94[1];
+extern ActorTransform             D_dryfield_trailer_coach_80184FD8;
+extern ActorTransform             D_dryfield_trailer_coach_80184FF0;
+extern ActorTransform             D_dryfield_trailer_coach_80185008;
+void                              func_dryfield_trailer_coach_80182850(void);
 
 #include "../../shared/shop_data.inc.c"
 
@@ -442,7 +450,7 @@ AnimationPlayRequest D_dryfield_trailer_coach_80185340 = { { .index = 1 }, 62, A
 
 AnimationPlayRequest D_dryfield_trailer_coach_80185354 = { { .index = 1 }, 63, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-DryfieldTrailerCoachAnimStorage5368 D_dryfield_trailer_coach_80185368 = { .data = { { &gActor420700Animation01C5C, &gActor420700Animation01EBC, &gActor420700Animation02328, &gActor420700Animation02F18, &gActor420700Animation0316C, &gActor420700Animation03404, &gActor420700Animation035D4, &gActor420700Animation03DD8, NULL, NULL, NULL, &gActor420700Animation00DE0, &gActor420700Animation013A8, &gActor420700Animation0164C, &gActor420700Animation01878, &_gDryfieldTrailerCoachAnimation07994, &_gDryfieldTrailerCoachAnimation07668 }, { { .words = D_dryfield_trailer_coach_80185368.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, { 143, 101, 138, 237, 130, 201, 130, 194, 130, 162, 130, 196, 0, 0, 0, 0 }, { 131, 86, 131, 70, 131, 139, 131, 94, 129, 91, 130, 201, 130, 194, 130, 162, 130, 196, 0, 0 }, { 145, 188, 130, 201, 137, 189, 130, 169, 129, 72, 0, 0 }, { D_dryfield_trailer_coach_80185368.data.text0, D_dryfield_trailer_coach_80185368.data.text1, D_dryfield_trailer_coach_80185368.data.text0, D_dryfield_trailer_coach_80185368.data.text2 } } };
+_DryfieldTrailerCoachAnimationBankExtensionStorage D_dryfield_trailer_coach_80185368 = { .data = { { &gActor420700Animation01C5C, &gActor420700Animation01EBC, &gActor420700Animation02328, &gActor420700Animation02F18, &gActor420700Animation0316C, &gActor420700Animation03404, &gActor420700Animation035D4, &gActor420700Animation03DD8, NULL, NULL, NULL, &gActor420700Animation00DE0, &gActor420700Animation013A8, &gActor420700Animation0164C, &gActor420700Animation01878, &_gDryfieldTrailerCoachAnimation07994, &_gDryfieldTrailerCoachAnimation07668 }, { { .words = D_dryfield_trailer_coach_80185368.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, "\x8F\x65\x8A\xED\x82\xC9\x82\xC2\x82\xA2\x82\xC4", "\x83\x56\x83\x46\x83\x8B\x83\x5E\x81\x5B\x82\xC9\x82\xC2\x82\xA2\x82\xC4", "\x91\xBC\x82\xC9\x89\xBD\x82\xA9\x81\x48", { { D_dryfield_trailer_coach_80185368.data.firearmsTopic, D_dryfield_trailer_coach_80185368.data.shelterTopic }, { D_dryfield_trailer_coach_80185368.data.firearmsTopic, D_dryfield_trailer_coach_80185368.data.otherTopic } } } };
 
 EvsCommand D_dryfield_trailer_coach_801853F4[58] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
@@ -1678,13 +1686,10 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, TaskMes
     return 0;
 }
 
-/// The message pointers the two-line text block reads: entries 0-1 by default,
-/// entries 2-3 when the task's `spawnArg1` is 1.
-
 /// Opens a two-line text block: allocates the `RoomTextBlock` (killing the task
-/// if that fails), links its two line nodes to the lines of
-/// `D_dryfield_trailer_coach_80185368.data.options` chosen by `spawnArg1`, hands the list to
-/// `Ui_SpawnTextBlock` and advances the task.
+/// if that fails), links its two line nodes to the lines of the topic menu
+/// chosen by `spawnArg1` (menu 1 when it is 1, menu 0 otherwise), hands the
+/// list to `Ui_SpawnTextBlock` and advances the task.
 static void func_dryfield_trailer_coach_801826A0(Task* task)
 {
     RoomTextBlock*  block;
@@ -1702,11 +1707,13 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
         return;
     }
 
+    // `line` walks menu 0, and `off` is the byte offset of the same line of
+    // menu 1 from the start of the table.
     i                  = 0;
     mode               = 1;
-    line               = D_dryfield_trailer_coach_80185368.data.options;
-    table              = (s32)D_dryfield_trailer_coach_80185368.data.options;
-    off                = 8;
+    line               = D_dryfield_trailer_coach_80185368.data.topicMenus[0];
+    table              = (s32)D_dryfield_trailer_coach_80185368.data.topicMenus;
+    off                = sizeof(D_dryfield_trailer_coach_80185368.data.topicMenus[0]);
     task->work         = block;
     task->exitCallback = func_dryfield_trailer_coach_801827D0;
 
@@ -1719,7 +1726,7 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
         option->next = option + 1;
         option++;
         line++;
-        off += 4;
+        off += sizeof(*line);
     }
     option[-1].next = NULL;
 
