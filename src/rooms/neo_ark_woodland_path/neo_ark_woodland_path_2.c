@@ -131,23 +131,13 @@ extern s16 gRoamerSpawnRequest;
 /// is dropped rather than placed again.
 extern s16 gRoamerLastRequest;
 
-/// A placement `func_...801806D8` puts a spawned task at: the x and z it writes
-/// into the task's coordinate translation (y is always zero) and the Y
-/// rotation it hands `gfxRotMatrixY`. The halfword after `x` is not read.
-typedef struct NeoArkWoodlandPathSpawnPos {
-    s16 x;
-    s16 pad_2;
-    s16 z;
-    s16 rotY;
-} NeoArkWoodlandPathSpawnPos;
-
 /// The room's spawn placements, indexed by `D_...80184992 - 1`.
-extern NeoArkWoodlandPathSpawnPos gRoamerSpawnPointsA[];
+extern RoamerSpawnPoint gRoamerSpawnPointsA[];
 
 /// The second arming sequence's spawn placements, which
 /// `func_...80180DDC` picks from by `D_...80184992 - 1`. Five of them; any
 /// request past the fourth takes the last.
-extern NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_80184A14[5];
+extern RoamerSpawnPoint D_neo_ark_woodland_path_80184A14[5];
 
 /// `gSceneCombatState.battleRefs` as `func_...801806D8` saw it on the previous frame, so
 /// that it can tell the reference count was non-zero before the frame began.
@@ -241,7 +231,7 @@ RoamerPoolAMessageEntry gRoamerMsgTableA[4] = {
     { TASK_MESSAGE_TABLE_END, { .message = NULL } },
 };
 
-NeoArkWoodlandPathSpawnPos gRoamerSpawnPointsA[7] = {
+RoamerSpawnPoint gRoamerSpawnPointsA[7] = {
     { -2000, 0, 8977, -1024 },
     { 379, 0, 7700, 2048 },
     { 7950, 0, 4650, -1024 },
@@ -260,7 +250,7 @@ TaskMessageEntry gRoamerMsgTableB[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_80184A14[5] = {
+RoamerSpawnPoint D_neo_ark_woodland_path_80184A14[5] = {
     { 8884, 0, 2200, 2048 },
     { 0, 0, -2000, 200 },
     { -4200, 0, -3000, 0 },
@@ -489,7 +479,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[0].z;
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                          D_neo_ark_woodland_path_80184A14[0].rotY, 1);
+                                          D_neo_ark_woodland_path_80184A14[0].yaw, 1);
                             break;
                         case 1:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[1].x;
@@ -497,14 +487,14 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[1].z;
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                          D_neo_ark_woodland_path_80184A14[1].rotY, 1);
+                                          D_neo_ark_woodland_path_80184A14[1].yaw, 1);
                             break;
                         case 2:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[2].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[2].z;
                             gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                          D_neo_ark_woodland_path_80184A14[2].rotY, 1);
+                                          D_neo_ark_woodland_path_80184A14[2].yaw, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 3:
@@ -512,7 +502,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[3].z;
                             gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                          D_neo_ark_woodland_path_80184A14[3].rotY, 1);
+                                          D_neo_ark_woodland_path_80184A14[3].yaw, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 4:
@@ -521,7 +511,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[4].z;
                             gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                          D_neo_ark_woodland_path_80184A14[4].rotY, 1);
+                                          D_neo_ark_woodland_path_80184A14[4].yaw, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                     }

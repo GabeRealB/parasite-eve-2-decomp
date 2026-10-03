@@ -87,7 +87,7 @@ void roamerTickPoolA(Task* task)
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].z;
                     Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                     gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                  gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].rotY, 1);
+                                  gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].yaw, 1);
                 }
                 break;
             }

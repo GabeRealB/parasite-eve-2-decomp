@@ -47,6 +47,21 @@ typedef struct {
 } RoamerPoolAMessageEntry;
 STATIC_ASSERT_SIZEOF(RoamerPoolAMessageEntry, 8);
 
+/// A fixed point at which a pool places an enemy it revives.
+///
+/// A room keeps one table of these for each pool. A spawn request names a row
+/// by its one-based position, and the pool's per-frame state then moves the
+/// enemy's root coordinate to the row's `x` and `z` at height zero and
+/// overwrites its rotation with `yaw`. Each table ends with a row's worth of
+/// 0x7FFF halfwords, which the pools never read.
+typedef struct {
+    s16 x;   // World X the enemy's root coordinate is moved to
+    s16 y;   // Zero in every row and never read: the pools place an enemy at height zero themselves
+    s16 z;   // World Z the enemy's root coordinate is moved to
+    s16 yaw; // Facing about the vertical axis, signed, 4096 units per turn
+} RoamerSpawnPoint;
+STATIC_ASSERT_SIZEOF(RoamerSpawnPoint, 8);
+
 void roamerBankRetreat(Task* task, s32 arg1, s32 arg2);
 void roamerArmPoolA(Task* task);
 void roamerTickPoolA(Task* task);
