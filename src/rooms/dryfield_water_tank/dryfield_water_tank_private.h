@@ -10,13 +10,21 @@
 
 #include "main/task_types.h"
 
+/// One row of the message table the prop scene's model task installs in
+/// `Task::msgTable`: a message id and the callback that handles it.
+///
+/// The row has the layout the task-message dispatcher walks, but not
+/// `TaskMessageEntry`'s callback type: these handlers return nothing and take
+/// only the first argument word, so `handler` holds one view per message. The
+/// prop's table has a row for each of the three messages below and no
+/// `TASK_MESSAGE_TABLE_END` row, so the prop may be sent no other id.
 typedef struct {
-    s32 id;
+    s32 messageId;                                                              // Message this row answers
     union {
-        void (*call0)(Task*, s32, ActorCommand* request);
-        void (*call1)(Task*, s32, ActorTransform*);
-        void (*call2)(Task*, s32, s32);
-    } handler;
+        void (*place)(Task* task, s32 messageId, ActorTransform* placement);    // ACTOR_MESSAGE_PLACE: sets the model's position and yaw/pitch/roll from a borrowed transform
+        void (*applyCommand)(Task* task, s32 messageId, ActorCommand* command); // ACTOR_COMMAND_MESSAGE_APPLY: restarts the slide and enters the task state `ActorCommand::command` holds
+        void (*setModelDraw)(Task* task, s32 messageId, s32 visible);           // ACTOR_MESSAGE_SET_MODEL_DRAW: draws the model when nonzero, hides it when zero
+    } handler;                                                                  // Callback for `messageId`, through the view its message selects
 } DryfieldWaterTankMessageEntry;
 STATIC_ASSERT_SIZEOF(DryfieldWaterTankMessageEntry, 8);
 

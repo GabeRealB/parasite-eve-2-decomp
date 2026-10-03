@@ -203,9 +203,9 @@ ActorTransform D_dryfield_water_tank_8017FD60[2] = {
 };
 
 DryfieldWaterTankMessageEntry D_dryfield_water_tank_8017FD90[3] = {
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceYawPitchRoll } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_dryfield_water_tank_8017E174 } },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = func_dryfield_water_tank_8017E0B4 } },
+    { ACTOR_MESSAGE_PLACE, { .place = actorMsgPlaceYawPitchRoll } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .applyCommand = func_dryfield_water_tank_8017E174 } },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .setModelDraw = func_dryfield_water_tank_8017E0B4 } },
 };
 
 u16 D_dryfield_water_tank_8017FDA8[12] = {
