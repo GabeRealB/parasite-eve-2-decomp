@@ -111,16 +111,6 @@ typedef struct Actor02500EffWork {
 } Actor02500EffWork;
 STATIC_ASSERT_SIZEOF(Actor02500EffWork, 0x40);
 
-/// 0x30-byte frame `Actor02500_Fn00494` carves off the scratchpad stack. It
-/// opens with the 16.16 movement delta `func_800E0C10` resolves, and keeps the `VectorNormal` unit vector and the
-/// grid-space direction `ApplyTransposeMatrixLV` produces from it.
-typedef struct Actor02500MoveScratch {
-    /* 0x00 */ WorldCollisionDelta delta;
-    /* 0x10 */ VECTOR              normal;
-    /* 0x20 */ VECTOR              dir;
-} Actor02500MoveScratch;
-STATIC_ASSERT_SIZEOF(Actor02500MoveScratch, 0x30);
-
 typedef struct Actor02500OffsetPair {
     s16 x;
     s16 z;
@@ -713,37 +703,37 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     actor->state        = 1;
 }
 
-/// Per-frame collision and damage pass. Carves a `Actor02500MoveScratch` off
+/// Per-frame collision and damage pass. Carves a `ActorWallPushFrame` off
 /// the scratchpad stack, lets `func_800E0C10` resolve this frame's movement
 /// into it, then walks the three `field_1C4` records: kind 2 is a hit that
 /// costs the enemy HP and plays a sound, kinds 1 and 3 push it away from the
 /// obstacle, and the strongest push is applied to the coordinate at the end.
 static void Actor02500_Fn00494(Task* actor)
 {
-    u32                    lastId;
-    Actor02500Work*        work;
-    Enemy*                 ctx;
-    GfxCoord*              coord;
-    GfxCoord*              target;
-    Actor02500MoveScratch* head;
-    Actor02500MoveScratch* frame;
-    VECTOR*                normal;
-    s32                    i;
-    s32                    push;
-    s32                    bestPush;
-    s32                    damage;
-    s32                    param0;
-    s32                    cooldown;
-    s32                    soundId;
+    u32                 lastId;
+    Actor02500Work*     work;
+    Enemy*              ctx;
+    GfxCoord*           coord;
+    GfxCoord*           target;
+    ActorWallPushFrame* head;
+    ActorWallPushFrame* frame;
+    VECTOR*             normal;
+    s32                 i;
+    s32                 push;
+    s32                 bestPush;
+    s32                 damage;
+    s32                 param0;
+    s32                 cooldown;
+    s32                 soundId;
 
     bestPush = 0;
     lastId   = 0;
     work     = actor->work;
-    head     = SCRATCH_STACK_CURSOR(Actor02500MoveScratch);
-    frame = SCRATCH_STACK_CURSOR(Actor02500MoveScratch) = head - 1;
-    coord                                               = actor->extra.tmd->coords;
-    ctx                                                 = actor->spawnArg2.pointer;
-    work->field_340                                     = 0;
+    head     = SCRATCH_STACK_CURSOR(ActorWallPushFrame);
+    frame = SCRATCH_STACK_CURSOR(ActorWallPushFrame) = head - 1;
+    coord                                            = actor->extra.tmd->coords;
+    ctx                                              = actor->spawnArg2.pointer;
+    work->field_340                                  = 0;
     switch (func_800E0C10(work->field_22C, &frame->delta, 5, NULL)) {
         case 0:
             break;
