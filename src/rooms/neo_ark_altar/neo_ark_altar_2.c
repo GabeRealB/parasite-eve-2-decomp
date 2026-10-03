@@ -43,18 +43,29 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// One 12-byte altar floor tile: `x` / `z` are the tile's low corner in world
-/// units, `w` / `d` its size along X and Z, and `id` the number the tile
-/// carries. A table scanned by `id` ends at an entry whose `id` is -1.
-typedef struct NeoArkAltarTile {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-    /* 0x4 */ s16 w;
-    /* 0x6 */ s16 d;
-    /* 0x8 */ s16 id;
-    /* 0xA */ u16 pad;
-} NeoArkAltarTile;
-STATIC_ASSERT_SIZEOF(NeoArkAltarTile, 0xC);
+/// End marker of an altar-tile table, stored in `_NeoArkAltarTile::id`.
+///
+/// A scan stops on the entry that carries this value and does not test that
+/// entry's rectangle.
+enum { NEO_ARK_ALTAR_TILE_END = -1 };
+
+/// One floor pad of the Neo Ark altar.
+///
+/// An axis-aligned rectangle in world units, the same units as an actor's
+/// matrix translation, plus the pad's number. Both edges belong to the pad.
+/// A table ends with an entry whose `id` is `NEO_ARK_ALTAR_TILE_END`; the
+/// other fields of that entry are zero and are not read. The four pads are
+/// numbered 1, 2, 3 and 4. A point on no pad is reported as 0, which is not
+/// an `id` stored in the table.
+typedef struct {
+    s16 x;     // Starting X in world units
+    s16 z;     // Starting Z in world units
+    s16 width; // Extent along +X in world units
+    s16 depth; // Extent along +Z in world units
+    s16 id;    // Pad number (1, 2, 3 or 4), or NEO_ARK_ALTAR_TILE_END
+    u16 pad;   // Unread. Zero in every entry; keeps each record 12 bytes
+} _NeoArkAltarTile;
+STATIC_ASSERT_SIZEOF(_NeoArkAltarTile, 0xC);
 
 /// Per-task work block of the altar task, allocated zeroed as 0x10 bytes by
 /// `func_neo_ark_altar_8017ED60` and parked in `Task::work`. `field_0` keeps
@@ -75,7 +86,7 @@ typedef struct NeoArkAltarWork {
 } NeoArkAltarWork;
 STATIC_ASSERT_SIZEOF(NeoArkAltarWork, 0x10);
 
-extern NeoArkAltarTile D_neo_ark_altar_8017F014[];
+extern _NeoArkAltarTile D_neo_ark_altar_8017F014[];
 
 extern s16 D_neo_ark_altar_801800AC;
 extern s16 D_neo_ark_altar_801800AE;
@@ -84,11 +95,11 @@ extern s16 D_neo_ark_altar_801800B0[];
 extern s16 D_neo_ark_altar_8017F050[];
 extern s16 D_neo_ark_altar_8017F068[];
 
-extern NeoArkAltarTile D_neo_ark_altar_8017EFD8[];
-extern AreaApplyRec    D_neo_ark_altar_8018007C[];
+extern _NeoArkAltarTile D_neo_ark_altar_8017EFD8[];
+extern AreaApplyRec     D_neo_ark_altar_8018007C[];
 
 static void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3);
-static s16  func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z);
+static s16  func_neo_ark_altar_8017EC34(_NeoArkAltarTile* table, s16 x, s16 z);
 static s16  func_neo_ark_altar_8017E260(Task* task);
 static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1);
 
@@ -105,20 +116,20 @@ TaskDesc D_neo_ark_altar_8017EFC0[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_neo_ark_altar_8017DA40, { .value = 0 } },
 };
 
-NeoArkAltarTile D_neo_ark_altar_8017EFD8[5] = {
+_NeoArkAltarTile D_neo_ark_altar_8017EFD8[5] = {
     { 8640, -9840, 700, 700, 1, 0 },
     { 8640, -5830, 700, 700, 2, 0 },
     { 0x2C9C, -9870, 700, 750, 3, 0 },
     { 0x2C92, -5930, 700, 750, 4, 0 },
-    { 0, 0, 0, 0, -1, 0 },
+    { 0, 0, 0, 0, NEO_ARK_ALTAR_TILE_END, 0 },
 };
 
-NeoArkAltarTile D_neo_ark_altar_8017F014[5] = {
+_NeoArkAltarTile D_neo_ark_altar_8017F014[5] = {
     { 8640, -9840, 700, 700, 1, 0 },
     { 8640, -5830, 700, 700, 2, 0 },
     { 0x2C9C, -9870, 700, 700, 3, 0 },
     { 0x2C92, -5930, 700, 700, 4, 0 },
-    { 0, 0, 0, 0, -1, 0 },
+    { 0, 0, 0, 0, NEO_ARK_ALTAR_TILE_END, 0 },
 };
 
 s16 D_neo_ark_altar_8017F050[12] = {
@@ -1023,18 +1034,18 @@ static void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, S
 /// of the tile's four sides goes to `func_neo_ark_altar_8017E658` as its two
 /// corners at the floor height `y0` and at `y0 - arg1`, so `arg1` is how far a
 /// side drops below the tile. The sides walk the tile rectangle
-/// `(x, z) -> (x + w, z) -> (x + w, z + d) -> (x, z + d)` as `arg0` selects
-/// the tile in the table.
+/// `(x, z) -> (x + width, z) -> (x + width, z + depth) -> (x, z + depth)` as
+/// `arg0` selects the tile in the table.
 static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
 {
-    NeoArkAltarTile* tile;
-    NeoArkAltarTile* base;
-    SVECTOR          p0;
-    SVECTOR          p1;
-    SVECTOR          p2;
-    SVECTOR          p3;
-    s16              y0;
-    s16              y1;
+    _NeoArkAltarTile* tile;
+    _NeoArkAltarTile* base;
+    SVECTOR           p0;
+    SVECTOR           p1;
+    SVECTOR           p2;
+    SVECTOR           p3;
+    s16               y0;
+    s16               y1;
 
     base = D_neo_ark_altar_8017F014;
     y0   = -0x1086;
@@ -1051,43 +1062,43 @@ static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
     p0.vx = tile->x;
     p0.vy = y0;
     p0.vz = tile->z;
-    p1.vx = tile->x + tile->w;
+    p1.vx = tile->x + tile->width;
     p1.vy = y0;
     p1.vz = tile->z;
     p2.vx = tile->x;
     p2.vy = y1;
     p2.vz = tile->z;
-    p3.vx = tile->x + tile->w;
+    p3.vx = tile->x + tile->width;
     p3.vy = y1;
     p3.vz = tile->z;
     func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
 
-    p0.vx = tile->x + tile->w;
+    p0.vx = tile->x + tile->width;
     p0.vy = y0;
     p0.vz = tile->z;
-    p1.vx = tile->x + tile->w;
+    p1.vx = tile->x + tile->width;
     p1.vy = y0;
-    p1.vz = tile->z + tile->d;
-    p2.vx = tile->x + tile->w;
+    p1.vz = tile->z + tile->depth;
+    p2.vx = tile->x + tile->width;
     p2.vy = y1;
     p2.vz = tile->z;
-    p3.vx = tile->x + tile->w;
+    p3.vx = tile->x + tile->width;
     p3.vy = y1;
-    p3.vz = tile->z + tile->d;
+    p3.vz = tile->z + tile->depth;
     func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
 
     p0.vx = tile->x;
     p0.vy = y0;
-    p0.vz = tile->z + tile->d;
-    p1.vx = tile->x + tile->w;
+    p0.vz = tile->z + tile->depth;
+    p1.vx = tile->x + tile->width;
     p1.vy = y0;
-    p1.vz = tile->z + tile->d;
+    p1.vz = tile->z + tile->depth;
     p2.vx = tile->x;
     p2.vy = y1;
-    p2.vz = tile->z + tile->d;
-    p3.vx = tile->x + tile->w;
+    p2.vz = tile->z + tile->depth;
+    p3.vx = tile->x + tile->width;
     p3.vy = y1;
-    p3.vz = tile->z + tile->d;
+    p3.vz = tile->z + tile->depth;
     func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
 
     p0.vx = tile->x;
@@ -1095,23 +1106,23 @@ static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
     p0.vz = tile->z;
     p1.vx = tile->x;
     p1.vy = y0;
-    p1.vz = tile->z + tile->d;
+    p1.vz = tile->z + tile->depth;
     p2.vx = tile->x;
     p2.vy = y1;
     p2.vz = tile->z;
     p3.vx = tile->x;
     p3.vy = y1;
-    p3.vz = tile->z + tile->d;
+    p3.vz = tile->z + tile->depth;
     func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
 }
 
 /// Returns the `id` of the first tile in `table` whose rectangle contains
 /// `(x, z)`, edges inclusive, or 0 when none does. The scan ends at the entry
-/// whose `id` is -1.
-static s16 func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z)
+/// whose `id` is `NEO_ARK_ALTAR_TILE_END`.
+static s16 func_neo_ark_altar_8017EC34(_NeoArkAltarTile* table, s16 x, s16 z)
 {
-    for (; table->id != -1; table++) {
-        if (table->x <= x && x <= table->x + table->w && table->z <= z && z <= table->z + table->d) {
+    for (; table->id != NEO_ARK_ALTAR_TILE_END; table++) {
+        if (table->x <= x && x <= table->x + table->width && table->z <= z && z <= table->z + table->depth) {
             return table->id;
         }
     }
