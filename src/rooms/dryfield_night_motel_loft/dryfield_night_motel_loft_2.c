@@ -38,13 +38,20 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
 
-/// Scratch block one triangle is built in: the GTE depth and flag of its
-/// projection, then its three corners in world space.
-typedef struct _DryfieldNightMotelLoftTriScratch {
-    s32     otz;
-    s32     flag;
-    SVECTOR v[3];
+/// Scratch-stack block the room's falling triangle is drawn from.
+///
+/// Each corner is staged in `corners` as a point of the triangle's own plane
+/// and replaced in place by its world position, narrowed to signed 16-bit
+/// coordinate units. One RTPT then projects the three together; the screen
+/// positions go straight into the packet, so the block keeps none of them.
+///
+/// Reserve the whole block and release it before the drawer returns.
+typedef struct {
+    s32     otz;             // SZ3 / 4 of the projection, a quarter of the last corner's depth; ordering-table and blend depth
+    s32     projectionFlags; // GTE FLAG word of the projection; bit 31 set drops the triangle
+    SVECTOR corners[3];      // Local corner workspace, then the world positions supplied to the projection
 } _DryfieldNightMotelLoftTriScratch;
+STATIC_ASSERT_SIZEOF(_DryfieldNightMotelLoftTriScratch, 0x20);
 
 /// `Task::spawnArg2` block of a falling triangle: its velocity, the spin its
 /// coordinate is rebuilt from each frame, the gain the velocity is scaled by
@@ -656,48 +663,45 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
 static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, s16 shade)
 {
     _DryfieldNightMotelLoftTriScratch* blk;
-    SVECTOR*                           p;
-    SVECTOR*                           q;
+    SVECTOR*                           corner;
     POLY_F3*                           prim;
     s32                                i;
-    s32                                off;
-    s32                                ang;
 
     SCRATCH_STACK_RESERVE_BLOCK(_DryfieldNightMotelLoftTriScratch);
     blk = SCRATCH_STACK_CURSOR(_DryfieldNightMotelLoftTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    // `off` is the corner's byte offset in the block, initialised with the
-    // other locals; indexing `v[]` instead lets loop strength reduction
-    // materialise the offset later, at the end of the preheader.
-    for (i = 0, off = 8, ang = 0, p = (SVECTOR*)blk; i < 3; i++) {
-        p[1].vx = 0;
-        p[1].vy = rsin(ang);
-        p[1].vz = rcos(ang);
+    for (i = 0; i < 3; i++) {
+        // Stage the corner on the unit circle of the local YZ plane, scale
+        // it, then rotate it by the coordinate's world matrix.
+        blk->corners[i].vx = 0;
+        blk->corners[i].vy = rsin(i * 0x555);
+        blk->corners[i].vz = rcos(i * 0x555);
         gte_lddp(scale);
-        gte_ldsv((SVECTOR*)((u8*)blk + off));
+        gte_ldsv(&blk->corners[i]);
         gte_gpf12();
-        gte_stsv((SVECTOR*)((u8*)blk + off));
+        gte_stsv(&blk->corners[i]);
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0((SVECTOR*)((u8*)blk + off));
+        gte_ldv0(&blk->corners[i]);
         gte_rtv0();
-        gte_stsv((SVECTOR*)((u8*)blk + off));
-        off    += 8;
-        p[1].vx = (u16)p[1].vx + (u16)coord->workm.t[0];
-        q       = p + 1;
-        q->vy   = (u16)q->vy + (u16)coord->workm.t[1];
-        q->vz   = (u16)q->vz + (u16)coord->workm.t[2];
-        p       = q;
-        ang    += 0x555;
+        gte_stsv(&blk->corners[i]);
+        // Move it by the world translation. The last two components go
+        // through the corner's address with the member offset added last:
+        // `&blk->corners[i]` is the same address, but the compiler then
+        // shares the pointer the GTE operands above already hold.
+        blk->corners[i].vx = (u16)blk->corners[i].vx + (u16)coord->workm.t[0];
+        corner             = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(_DryfieldNightMotelLoftTriScratch, corners));
+        corner->vy         = (u16)corner->vy + (u16)coord->workm.t[1];
+        corner->vz         = (u16)corner->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv3(&blk->v[0], &blk->v[1], &blk->v[2]);
+    gte_ldv3(&blk->corners[0], &blk->corners[1], &blk->corners[2]);
     gte_rtpt();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyF3(prim);
     gte_stsxy3(&prim->x0, &prim->x1, &prim->x2);
-    gte_stflg(&blk->flag);
-    if (blk->flag >= 0) {
+    gte_stflg(&blk->projectionFlags);
+    if (blk->projectionFlags >= 0) {
         gte_stszotz(&blk->otz);
         setRGB0(prim, shade, shade, shade);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),

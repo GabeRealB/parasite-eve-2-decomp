@@ -139133,8 +139133,12 @@ until the copy. This went from 94.6% to 98% on its own; the remaining
 prologue-order difference was an `s16` parameter (see "A narrower parameter
 type can change scheduling"). A second IV in the same loop, the byte offset
 `off` fed to the GTE loads, had to stay a source local initialised with the
-counter: indexing `&blk->v[j]` moved its `li s2,8` to the end of the
+counter: indexing `&blk->corners[j]` moved its `li s2,8` to the end of the
 preheader (99.7%).
+
+The function no longer uses either device: see "A walking pointer, a byte
+offset and an angle accumulator that all step with the counter are one index
+loop".
 
 ## A reload register mismatch in one `switch` case can be caused by allocation in another case (func_dryfield_night_motel_loft_8017E090, 2026-09-23)
 
@@ -146415,3 +146419,41 @@ matches: `(SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(T, corners))`,
 or `&((T*)((SVECTOR*)blk + i))->corners[0]`. When a match needs the offset
 form, read which association each use has in the target before trying more
 typed aliases; they all land on the address-of one.
+
+## A walking pointer, a byte offset and an angle accumulator that all step with the counter are one index loop (func_dryfield_night_motel_loft_8017E540, 2026-10-03)
+
+**Problem.** The matched body carried four source-level induction variables -
+`i`, a byte offset `off` fed to the GTE operands as
+`(SVECTOR*)((u8*)blk + off)`, an angle `ang += 0x555`, and a pointer walked
+from the block head as `p[1]` / `q = p + 1; ...; p = q`. Replacing only `off`
+with `&blk->corners[j]` left the preheader wrong (99.7%).
+
+**Symptom.** The preheader reads `move s4,zero` / `li s2,8` / `move s1,s4` /
+`move s0,s3`: the counter, then the offset, the angle and the pointer. Source
+initialisers come out in source order, so that order looked like evidence of
+four locals.
+
+**Fix.** It is the order strength reduction emits when all three are givs of
+one counter. The `.loop` dump shows the reduced givs initialised just before
+the loop in *reverse* of the order the body first uses them, and the body uses
+the store address first, the angle second and the GTE operand last:
+
+```c
+for (i = 0; i < 3; i++) {
+    blk->corners[i].vx = 0;                 /* giv 1: blk + i*8, `8(s0)`  */
+    blk->corners[i].vy = rsin(i * 0x555);   /* giv 2: i*0x555             */
+    ...
+    gte_ldsv(&blk->corners[i]);             /* giv 3: i*8 + 8, `s3 + s2`  */
+```
+
+Mixing the two kinds cannot reproduce it: one source-level initialiser sits
+before every reduced one. So when a typed index breaks only the preheader,
+convert the *other* accumulators to index expressions as well instead of
+keeping the cast.
+
+The `addiu a0,s0,8` ... `move s0,a0` tail that the `q = p + 1; p = q` walk
+imitated is the reduced pointer's own increment: the tail forms the element
+address in the member-store association (see "`&blk->arr[i]` and a store to
+`blk->arr[i].f` associate the same address differently"), which is
+`s0 + 8`, and cse2 then rewrites the increment `s0 = s0 + 8` at the loop end as
+a copy of it. That one address is the only cast left in the loop.
