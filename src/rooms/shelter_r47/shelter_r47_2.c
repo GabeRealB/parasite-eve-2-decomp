@@ -35,19 +35,28 @@
 #include "overlay.h"
 #include "../../shared/action_prompt.h"
 
-/// One entry of a map-marker table: the area it stands for and the screen
-/// position of its marker. A table ends at the entry whose `stage` is 0xFF.
+/// `_ShelterR47MapMark.stage` of the entry closing a marker table.
+#define SHELTER_R47_MAP_MARK_END 0xFF
+
+/// Where the room's map terminal draws the marker of one area.
+///
+/// Each page of the terminal's map has a table of these, closed by an entry
+/// whose `stage` is `SHELTER_R47_MAP_MARK_END`. An entry's marker is an 8x8
+/// sprite drawn over the page while the area's saved state has
+/// `AREA_SAVED_MAP_MARK` set and `AREA_SPAWN_RESTORE_SAVED_POSES` clear, the
+/// condition the map screen tests to mark the area's room.
 typedef struct {
-    s16 stage;
-    u16 area;
-    s16 x;
-    s16 y;
-} ShelterR47MapMark;
+    s16 stage; // Stage the area belongs to, as `GameLocationKey.stage`, or `SHELTER_R47_MAP_MARK_END`
+    u16 area;  // Area the marker stands for, as `GameLocationKey.area`
+    s16 x;     // X of the marker's centre, in screen pixels from the display centre
+    s16 y;     // Y of the marker's centre, in the same units
+} _ShelterR47MapMark;
+STATIC_ASSERT_SIZEOF(_ShelterR47MapMark, 8);
 
 /// Marker tables indexed by `ShelterR47State2::field_1C`; the second is used
 /// while game-flag nibble 0xDF is 1.
-extern ShelterR47MapMark* D_shelter_r47_801875C4[];
-extern ShelterR47MapMark* D_shelter_r47_801875D8[];
+extern _ShelterR47MapMark* D_shelter_r47_801875C4[];
+extern _ShelterR47MapMark* D_shelter_r47_801875D8[];
 
 extern s16 D_shelter_r47_801875EC[];
 extern s16 D_shelter_r47_801875F8[][2];
@@ -94,81 +103,81 @@ static const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
     },
 };
 
-ShelterR47MapMark D_shelter_r47_80187404[7] = {
-    { 5, 1, 124, 0 },
-    { 5, 2, 87, 0 },
-    { 5, 3, 55, 0 },
-    { 5, 4, 0, 0 },
-    { 5, 5, 100, -17 },
-    { 5, 28, -57, 0 },
-    { 255, 0, 0, 0 },
+_ShelterR47MapMark D_shelter_r47_80187404[7] = {
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_PARKING_GARAGE, 124, 0 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 87, 0 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_BULWARK, 55, 0 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_HELIPORT, 0, 0 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 100, -17 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_TENT, -57, 0 },
+    { SHELTER_R47_MAP_MARK_END },
 };
 
-ShelterR47MapMark D_shelter_r47_8018743C[17] = {
-    { 4, 47, 100, -77 },
-    { 4, 17, 64, -58 },
-    { 4, 16, 55, -12 },
-    { 4, 15, 51, 48 },
-    { 4, 14, 94, 13 },
-    { 4, 12, 130, -3 },
-    { 4, 11, 102, 40 },
-    { 4, 13, 86, 56 },
-    { 4, 10, 120, 81 },
-    { 4, 9, 100, 93 },
-    { 4, 25, 24, 53 },
-    { 4, 24, 24, 25 },
-    { 4, 18, -15, 52 },
-    { 4, 21, -15, 36 },
-    { 4, 19, 5, 25 },
-    { 4, 20, -41, -17 },
-    { 255, 0, 0, 0 },
+_ShelterR47MapMark D_shelter_r47_8018743C[17] = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 100, -77 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 64, -58 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 55, -12 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 51, 48 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 94, 13 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 130, -3 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 102, 40 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 86, 56 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, 120, 81 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, 100, 93 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, 24, 53 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, 24, 25 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, -15, 52 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1, -15, 36 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 5, 25 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, -41, -17 },
+    { SHELTER_R47_MAP_MARK_END },
 };
 
-ShelterR47MapMark D_shelter_r47_801874C4[11] = {
-    { 4, 48, 53, -73 },
-    { 4, 35, 13, -73 },
-    { 4, 34, 7, -11 },
-    { 4, 33, 11, 45 },
-    { 4, 27, 20, 94 },
-    { 4, 28, 84, 78 },
-    { 4, 29, 67, 33 },
-    { 4, 31, 45, 59 },
-    { 4, 30, 86, 2 },
-    { 4, 32, 56, 9 },
-    { 255, 0, 0, 0 },
+_ShelterR47MapMark D_shelter_r47_801874C4[11] = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, 53, -73 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 13, -73 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 7, -11 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 11, 45 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, 20, 94 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 84, 78 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 67, 33 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 45, 59 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 86, 2 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 56, 9 },
+    { SHELTER_R47_MAP_MARK_END },
 };
 
-ShelterR47MapMark D_shelter_r47_8018751C[5] = {
-    { 4, 39, -33, -59 },
-    { 4, 40, 85, -53 },
-    { 4, 41, 89, 51 },
-    { 4, 42, 99, 74 },
-    { 255, 0, 0, 0 },
+_ShelterR47MapMark D_shelter_r47_8018751C[5] = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, -33, -59 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 85, -53 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 89, 51 },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 99, 74 },
+    { SHELTER_R47_MAP_MARK_END },
 };
 
-ShelterR47MapMark D_shelter_r47_80187544[1] = {
-    { 255, 0, 0, 0 },
+_ShelterR47MapMark D_shelter_r47_80187544[1] = {
+    { SHELTER_R47_MAP_MARK_END },
 };
 
-ShelterR47MapMark D_shelter_r47_8018754C[15] = {
-    { 5, 8, 146, 6 },
-    { 5, 10, 135, -65 },
-    { 5, 11, 45, -75 },
-    { 5, 12, -15, -75 },
-    { 5, 13, -57, -78 },
-    { 5, 14, -23, -44 },
-    { 5, 27, -53, -36 },
-    { 5, 15, -65, 24 },
-    { 5, 33, -21, 28 },
-    { 5, 16, -21, 40 },
-    { 5, 17, -29, 60 },
-    { 5, 21, 25, 79 },
-    { 5, 18, 84, 60 },
-    { 5, 19, 136, 52 },
-    { 255, 0, 0, 0 },
+_ShelterR47MapMark D_shelter_r47_8018754C[15] = {
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL, 146, 6 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_NORTH_PROMENADE, 135, -65 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 45, -75 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, -15, -75 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, -57, -78 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, -23, -44 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, -53, -36 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, -65, 24 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBSTATION, -21, 28 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2, -21, 40 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, -29, 60 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 25, 79 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SAVANNA_ZONE, 84, 60 },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SOUTH_PROMENADE, 136, 52 },
+    { SHELTER_R47_MAP_MARK_END },
 };
 
-ShelterR47MapMark* D_shelter_r47_801875C4[5] = {
+_ShelterR47MapMark* D_shelter_r47_801875C4[5] = {
     D_shelter_r47_8018743C,
     D_shelter_r47_801874C4,
     D_shelter_r47_8018751C,
@@ -176,7 +185,7 @@ ShelterR47MapMark* D_shelter_r47_801875C4[5] = {
     D_shelter_r47_80187404,
 };
 
-ShelterR47MapMark* D_shelter_r47_801875D8[5] = {
+_ShelterR47MapMark* D_shelter_r47_801875D8[5] = {
     D_shelter_r47_8018743C,
     D_shelter_r47_801874C4,
     D_shelter_r47_8018751C,
@@ -1096,10 +1105,10 @@ static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area)
 /// `field_A` x `field_C` map quad.
 static void func_shelter_r47_80183484(Task* task)
 {
-    ShelterR47State2*  state;
-    ShelterR47MapMark* mark;
-    POLY_FT4*          p;
-    u8                 shade;
+    ShelterR47State2*   state;
+    _ShelterR47MapMark* mark;
+    POLY_FT4*           p;
+    u8                  shade;
 
     state = (ShelterR47State2*)task->work;
     shade = (u8)state->field_26 * 4;
@@ -1122,7 +1131,7 @@ static void func_shelter_r47_80183484(Task* task)
             setXY4(p, 0x78, -0x4B, 0x80, -0x4B, 0x78, -0x43, 0x80, -0x43);
             addPrim(&gGpuCurrentOt[10], p);
         }
-        while (mark->stage != 0xFF) {
+        while (mark->stage != SHELTER_R47_MAP_MARK_END) {
             if (_shelterR47IsAreaMarked(mark->stage, mark->area)) {
                 p              = gGpuPrimCursor;
                 shade         += 0x30;
@@ -1145,7 +1154,7 @@ static void func_shelter_r47_80183484(Task* task)
             Gp_StartCapSlot(0x13, 0, 0);
         }
         if (GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
-            while (mark->stage != 0xFF) {
+            while (mark->stage != SHELTER_R47_MAP_MARK_END) {
                 if (_shelterR47IsAreaMarked(mark->stage, mark->area)) {
                     p              = gGpuPrimCursor;
                     shade         += 0x30;
