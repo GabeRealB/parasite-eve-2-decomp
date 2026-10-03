@@ -37131,9 +37131,9 @@ coalesces any plain `tmp = expr; block = tmp;` pair (and CSE rewrites a repeated
 neither spelling reproduces it. Pinning just the temp does:
 
 ```c
-register GpMapIconPos* pos asm("v0");
+register _MenuMapIconCentreScratch* pos asm("v0");
 ...
-pos          = (GpMapIconPos*)(head - 0xC);
+pos          = (_MenuMapIconCentreScratch*)(head - 0xC);
 block        = pos;
 pos->field_8 = 0;      /* keeps `pos` live past the copy → move survives */
 block->field_6 = 0;

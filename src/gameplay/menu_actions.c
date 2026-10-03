@@ -79,17 +79,27 @@ typedef struct _GpMapMarkScratch {
 } GpMapMarkScratch;
 STATIC_ASSERT_SIZEOF(GpMapMarkScratch, 0x10);
 
-/// 0xC-byte scratchpad block `Gp_DrawMapIcons` carves off the scratch stack to
-/// stage one map icon position before it is turned into a `SPRT_16`.
-typedef struct _GpMapIconPos {
-    /* 0x0 */ u16 x;
-    /* 0x2 */ u16 y;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ u16 field_6;
-    /* 0x8 */ u16 field_8;
-    /* 0xA */ u16 field_A;
-} GpMapIconPos;
-STATIC_ASSERT_SIZEOF(GpMapIconPos, 0xC);
+/// Workspace in which the map screen's icon pass stages the centre of one icon.
+///
+/// Each `MenuMapIcon` drawn is a 16x16 sprite about a point in map-screen
+/// coordinates: the pass reserves this block on the scratch stack, copies the
+/// icon's centre into it, places the sprite's corner from it and releases the
+/// block once the sprite is queued. Nothing keeps a pointer into the block past
+/// its release.
+///
+/// The five halfwords are written the same way, and `x` and `y` read back the
+/// same way, as the ones in the middle of `_MenuMapCentreScratch`, the larger
+/// block the map screen's other drawers reserve. Only `x` and `y` are read, so
+/// what the rest of the block was laid out to hold is unproven.
+typedef struct {
+    s16  x;            // Map-screen X of the icon's centre, in pixels from the map picture's centre
+    s16  y;            // Map-screen Y of the icon's centre, measured the same way
+    u16  field_4;      // Cleared with every block and never read; role unproven
+    u16  field_6;      // Cleared with every block and never read; role unproven
+    u16  field_8;      // Cleared with every block and never read; role unproven
+    byte unknown_A[2]; // Reserved with the block and never accessed; role unproven
+} _MenuMapIconCentreScratch;
+STATIC_ASSERT_SIZEOF(_MenuMapIconCentreScratch, 0xC);
 
 /// Workspace in which a map-screen drawer stages the centre of what it draws.
 ///
@@ -1406,10 +1416,10 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
     lum   = (rsin(gDisplayState.loopCount << 6) + 0x1000) >> 5;
 
     for (;;) {
-        GpMapIconPos* pos;
-        SPRT_16*      p;
-        DR_TPAGE*     dr;
-        u16           clut;
+        _MenuMapIconCentreScratch* centre;
+        SPRT_16*                   p;
+        DR_TPAGE*                  dr;
+        u16                        clut;
 
         if (icons[i].page == 0) {
             break;
@@ -1430,14 +1440,14 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
             continue;
         }
         if ((icons[i].page == (s8)Gp_MapRoomId) && (icons[i].area == arg1)) {
-            pos            = SCRATCH_STACK_RESERVE_BLOCK(GpMapIconPos);
-            pos->field_8   = 0;
-            pos->field_6   = 0;
-            pos->field_4   = 0;
-            pos->x         = icons[i].x;
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            pos->y         = icons[i].y;
+            centre          = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapIconCentreScratch);
+            centre->field_8 = 0;
+            centre->field_6 = 0;
+            centre->field_4 = 0;
+            centre->x       = icons[i].x;
+            p               = gGpuPrimCursor;
+            gGpuPrimCursor  = p + 1;
+            centre->y       = icons[i].y;
             if (icons[i].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
                 if (lum == 0x100) {
                     lum = 0xFF;
@@ -1474,14 +1484,14 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
                     p->v0   = 0;
                     break;
             }
-            p->x0 = pos->x - 8;
-            p->y0 = pos->y - 8;
+            p->x0 = centre->x - 8;
+            p->y0 = centre->y - 8;
             addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - otOff], p);
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 0, 0xE);
             addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - otOff], dr);
-            SCRATCH_STACK_RELEASE_BLOCK(GpMapIconPos);
+            SCRATCH_STACK_RELEASE_BLOCK(_MenuMapIconCentreScratch);
         }
         i++;
     }
