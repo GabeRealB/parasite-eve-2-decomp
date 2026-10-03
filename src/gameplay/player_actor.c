@@ -191,14 +191,20 @@ typedef struct {
 } _PlayerActorAimPitchScratch;
 STATIC_ASSERT_SIZEOF(_PlayerActorAimPitchScratch, 0x84);
 
-/// 4-byte pad-event template indexed by `func_801041FC`. `field_0` / `field_2`
-/// are passed to `Pad_PostEvent` (`lbu` / `lh`).
-typedef struct _GpPadEvt {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ s16 field_2;
-} GpPadEvt;
-STATIC_ASSERT_SIZEOF(GpPadEvt, 0x4);
+/// Immutable variable-motor pulse the player actor posts for an attack.
+///
+/// The poster indexes the one-entry table with the low halfword of its
+/// selector. Normal-mode state 4 is the only caller and passes 0. While
+/// `GameActor::rumblePosted` is clear, port 0's variable motor is posted at
+/// `intensity` for `durationUnits` and the latch is set. `Pad_PostEvent`
+/// doubles each unit into serviced controller polls. The stored pulse is full
+/// intensity for two units. `field_1` is never read; its role is unproven.
+typedef struct {
+    u8  intensity;     // Variable-motor drive (0..255)
+    u8  field_1;       // Never read; role unproven
+    s16 durationUnits; // Duration before `Pad_PostEvent` doubles it into controller polls
+} _PlayerActorVibrationPreset;
+STATIC_ASSERT_SIZEOF(_PlayerActorVibrationPreset, 0x4);
 
 extern EffectSpawnArg D_80112C74;
 
@@ -233,8 +239,9 @@ extern u16 D_80112C6C[];
 /// `D_80112DFC[arg2 + gPlayerStatus.resourceVariant - 2]`.
 extern u8 D_80112DFC[];
 
-/// Pad-event templates for `func_801041FC` (`D_80112E28[arg1 & 0xFFFF]`).
-extern GpPadEvt D_80112E28[];
+/// The one variable-motor vibration preset. The poster indexes it with the
+/// low halfword of its selector; the only call passes 0.
+extern _PlayerActorVibrationPreset D_80112E28[];
 
 /// s16 scale rows indexed by `GameActor.movementMode`. `Gp_StepPlayerMove` divides
 /// the normalized matrix-column by `D_80112E10[movementMode]`.
@@ -1020,7 +1027,7 @@ u16 D_80112E20[4] = {
     40,
     88,
 };
-GpPadEvt D_80112E28[1] = {
+_PlayerActorVibrationPreset D_80112E28[1] = {
     { 255, 0, 2 },
 };
 u8 D_80112E2C[2][2] = {
@@ -5894,16 +5901,17 @@ s32 func_801041B4(Task* arg0)
 
 static void func_801041FC(Task* arg0, s32 arg1)
 {
-    GameActor* actor;
-    GpPadEvt*  entry;
-    s32        idx;
+    GameActor*                   actor;
+    _PlayerActorVibrationPreset* preset;
+    s32                          idx;
 
     actor = arg0->work;
     idx   = arg1 & 0xFFFF;
+    // Normal-mode state 4 calls this every tick; the latch allows one post.
     if (actor->rumblePosted == 0) {
         actor->rumblePosted++;
-        entry = &D_80112E28[idx];
-        Pad_PostEvent(0, 1, entry->field_0, entry->field_2);
+        preset = &D_80112E28[idx];
+        Pad_PostEvent(0, PAD_VIBRATION_MOTOR_VARIABLE, preset->intensity, preset->durationUnits);
     }
 }
 
