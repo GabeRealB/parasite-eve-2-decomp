@@ -60,15 +60,15 @@ void func_8010C980(void* arg0, WorldCollisionBody* arg1, WorldCollisionContact* 
 
 // Message handlers addressed by the companion overlays' dispatch tables.
 /// Plays an indexed companion animation and applies its world collision choice.
-s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request);
+s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request, TaskMessageArg unusedSecondArg);
 s32 func_8010C688(Task*, s32, ActorTransform* transform, s32);
-s32 func_8010C30C(Task*);
+s32 func_8010C30C(Task*, s32 unusedMessageId, TaskMessageArg unusedFirstArg, TaskMessageArg unusedSecondArg);
 s32 func_8010C6C8(Task*, s32, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 /// Installs a borrowed companion animation-set table while preserving player state.
-s32  func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request);
-s32  Gp_CopyAllyAnim(Task*, s32, const AnimationBankCopyRequest* request);
-s32  func_8010C75C(Task*, s32, GameActorButtonPressHold*);
-void Gp_MoveActorByKeep(Task*, s32, GameActorMoveBy*);
-s32  func_8010C708(Task*, s32, ActorTransform* transform, GameActorMoveAnim* moveAnim);
+s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request, TaskMessageArg unusedSecondArg);
+s32 Gp_CopyAllyAnim(Task*, s32, const AnimationBankCopyRequest* request, TaskMessageArg unusedSecondArg);
+s32 func_8010C75C(Task*, s32, GameActorButtonPressHold*, TaskMessageArg unusedSecondArg);
+s32 Gp_MoveActorByKeep(Task*, s32, GameActorMoveBy*, TaskMessageArg unusedSecondArg);
+s32 func_8010C708(Task*, s32, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
 #endif // GAMEPLAY_PLAYER_STATE_H

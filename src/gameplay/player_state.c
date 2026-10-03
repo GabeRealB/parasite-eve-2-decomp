@@ -122,13 +122,13 @@ static void func_8010B5E4(Task* arg0);
 
 static void func_8010B5F0(Task* arg0);
 
-s32 func_8010C30C(Task* arg0);
+s32 func_8010C30C(Task* arg0, s32 unusedMessageId, TaskMessageArg unusedFirstArg, TaskMessageArg unusedSecondArg);
 
 static void func_8010C46C(Task* arg0);
 
-s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request);
+s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request, TaskMessageArg unusedSecondArg);
 
-s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request);
+s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request, TaskMessageArg unusedSecondArg);
 
 s32 func_8010C688(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3);
 
@@ -136,11 +136,11 @@ s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
 
 s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
-s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2);
+s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, TaskMessageArg unusedSecondArg);
 
-void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move);
+s32 Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move, TaskMessageArg unusedSecondArg);
 
-s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request);
+s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request, TaskMessageArg unusedSecondArg);
 
 static inline void _gpResumeBaseState(Task* arg0)
 {
@@ -1628,7 +1628,7 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
     obj->flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
-s32 func_8010C30C(Task* arg0)
+s32 func_8010C30C(Task* arg0, s32 unusedMessageId, TaskMessageArg unusedFirstArg, TaskMessageArg unusedSecondArg)
 {
     TmdObject*     extra;
     GfxCoord*      coord;
@@ -1690,7 +1690,7 @@ static void func_8010C46C(Task* arg0)
     func_80106350(arg0, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
 }
 
-s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request)
+s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request, TaskMessageArg unusedSecondArg)
 {
     GameActor* actor;
     TmdObject* extra;
@@ -1733,14 +1733,14 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request)
     return 0;
 }
 
-s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request)
+s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request, TaskMessageArg unusedSecondArg)
 {
     PlayerStatus* playerStatus;
     u8            savedInteractionPressed;
 
     playerStatus            = &gPlayerStatus;
     savedInteractionPressed = playerStatus->interactionPressed;
-    func_80104B54(task, msgId, request);
+    func_80104B54(task, msgId, request, unusedSecondArg);
     playerStatus->interactionPressed = savedInteractionPressed;
     return 0;
 }
@@ -1784,7 +1784,7 @@ s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
     return 0;
 }
 
-s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2)
+s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, TaskMessageArg unusedSecondArg)
 {
     GameActor* actor;
 
@@ -1812,18 +1812,20 @@ s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2)
     return 0;
 }
 
-void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move)
+s32 Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move, TaskMessageArg unusedSecondArg)
 {
     PlayerStatus* p;
     u8            savedInteractionPressed;
+    s32           result;
 
     p                       = &gPlayerStatus;
     savedInteractionPressed = p->interactionPressed;
-    Gp_MoveActorBy(arg0, arg1, move);
-    p->interactionPressed = savedInteractionPressed;
+    result                  = Gp_MoveActorBy(arg0, arg1, move, unusedSecondArg);
+    p->interactionPressed   = savedInteractionPressed;
+    return result;
 }
 
-s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request)
+s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request, TaskMessageArg unusedSecondArg)
 {
     union {
         AnimationBank* block;

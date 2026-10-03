@@ -45,29 +45,10 @@ typedef struct {
 } Actor800300VecScratch;
 STATIC_ASSERT_SIZEOF(Actor800300VecScratch, 0x18);
 
-extern s32 D_8017A99C;
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*);
-        s32                (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32                (*call2)(Task*, s32, const AnimationBankCopyRequest*);
-        s32                (*call3)(Task*, s32, GameActorWalkSteps*);
-        s32                (*call4)(Task*, s32, ActorTransform*);
-        s32                (*transform)(Task*, s32, ActorTransform*, s32);
-        s32                (*call5)(Task*, s32, ActorTransform*, GameActorMoveAnim*);
-        s32                (*call6)(Task*, s32, s32);
-        TaskMessageHandler call7;
-        s32                (*call9)(Task*, s32, GfxCoord*);
-        void               (*call8)(Task*, s32, GameActorMoveBy*);
-    } handler;
-} Actor800300MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor800300MessageEntry, 8);
-
-extern Actor800300MessageEntry D_actor_800300_80168880[26];
-extern GpuImageUpload**        D_actor_800300_80168950[];
-extern GpuImageUpload**        D_actor_800300_80168960[];
+extern s32              D_8017A99C;
+extern TaskMessageEntry D_actor_800300_80168880[26];
+extern GpuImageUpload** D_actor_800300_80168950[];
+extern GpuImageUpload** D_actor_800300_80168960[];
 
 static void func_actor_800300_801623F8(Task* arg0);
 static void func_actor_800300_801625A8(Task* task);
@@ -133,33 +114,33 @@ TmdSource gActor800300Model02CF4 = {
     _gActor800300Model02CF4Stream,
 };
 
-Actor800300MessageEntry D_actor_800300_80168880[26] = {
-    { 1000, { .call1 = func_8010C4F0 } },
-    { 1002, { .call1 = func_8010C4F0 } },
-    { 1003, { .call1 = func_8010C4F0 } },
-    { 1004, { .call1 = func_8010C4F0 } },
-    { GAME_ACTOR_MESSAGE_PLACE, { .call4 = func_80104D68 } },
-    { ANIMATION_MESSAGE_IS_PLAYING, { .call7 = func_8010583C } },
-    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, { .transform = func_8010C688 } },
-    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, { .call1 = func_8010C4F0 } },
-    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, { .call0 = func_80105828 } },
-    { GAME_ACTOR_MESSAGE_END_SCRIPTED, { .call0 = func_8010C30C } },
-    { GAME_ACTOR_MESSAGE_MOVE_TO, { .call5 = func_8010C6C8 } },
-    { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = func_80104684 } },
-    { 1012, { .call1 = func_8010C648 } },
-    { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, { .call9 = func_80105A60 } },
-    { GAME_ACTOR_MESSAGE_WALK_STEPS, { .call3 = func_801052B8 } },
-    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, { .call2 = Gp_CopyAllyAnim } },
-    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, { .call1 = func_8010C4F0 } },
-    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, { .call7 = Gp_HurtAlly } },
-    { 1018, { .call1 = func_8010C4F0 } },
-    { 1019, { .call5 = func_8010C708 } },
-    { 1020, { .call1 = func_8010C4F0 } },
-    { ANIMATION_MESSAGE_SET_RATE, { .call6 = func_801058BC } },
-    { GAME_ACTOR_MESSAGE_MOVE_BY, { .call8 = Gp_MoveActorByKeep } },
-    { 1023, { .call0 = func_8010C30C } },
-    { 1024, { .call0 = func_8010C30C } },
-    { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, { .call6 = func_80105AB0 } },
+TaskMessageEntry D_actor_800300_80168880[26] = {
+    { ANIMATION_MESSAGE_PLAY, func_8010C4F0 },
+    { 1002, func_8010C4F0 },
+    { 1003, func_8010C4F0 },
+    { 1004, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_PLACE, func_80104D68 },
+    { ANIMATION_MESSAGE_IS_PLAYING, func_8010583C },
+    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, func_8010C688 },
+    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, func_80105828 },
+    { GAME_ACTOR_MESSAGE_END_SCRIPTED, func_8010C30C },
+    { GAME_ACTOR_MESSAGE_MOVE_TO, func_8010C6C8 },
+    { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, func_80104684 },
+    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, func_8010C648 },
+    { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, func_80105A60 },
+    { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
+    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyAllyAnim },
+    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_HurtAlly },
+    { 1018, func_8010C4F0 },
+    { 1019, func_8010C708 },
+    { 1020, func_8010C4F0 },
+    { ANIMATION_MESSAGE_SET_RATE, func_801058BC },
+    { GAME_ACTOR_MESSAGE_MOVE_BY, Gp_MoveActorByKeep },
+    { 1023, func_8010C30C },
+    { 1024, func_8010C30C },
+    { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, func_80105AB0 },
 };
 
 GpuImageUpload** D_actor_800300_80168950[4] = {

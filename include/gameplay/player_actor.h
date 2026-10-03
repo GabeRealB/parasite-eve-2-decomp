@@ -157,13 +157,13 @@ void Gp_PlayerMode2State2(Task* arg0);
 
 void Gp_PlayerMode2State6(Task* arg0);
 
-s32 func_80104684(Task* arg0, s32 arg1, s32 arg2);
-s32 func_80104D68(Task* arg0, s32 arg1, ActorTransform* transform);
-s32 func_801052B8(Task* arg0, s32 arg1, GameActorWalkSteps* walkSteps);
-s32 func_80105828(Task* arg0);
+s32 func_80104684(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg unusedSecondArg);
+s32 func_80104D68(Task* arg0, s32 arg1, ActorTransform* transform, TaskMessageArg unusedSecondArg);
+s32 func_801052B8(Task* arg0, s32 arg1, GameActorWalkSteps* walkSteps, TaskMessageArg unusedSecondArg);
+s32 func_80105828(Task* arg0, s32 unusedMessageId, TaskMessageArg unusedFirstArg, TaskMessageArg unusedSecondArg);
 s32 func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2);
-s32 func_80105A60(Task* arg0, s32 arg1, GfxCoord* arg2);
-s32 func_80105AB0(Task* arg0, s32 arg1, s32 arg2);
+s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg unusedSecondArg);
+s32 func_80105A60(Task* arg0, s32 arg1, GfxCoord* arg2, TaskMessageArg unusedSecondArg);
+s32 func_80105AB0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg unusedSecondArg);
 
 #endif // GAMEPLAY_PLAYER_ACTOR_H

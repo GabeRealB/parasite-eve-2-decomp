@@ -145,30 +145,10 @@ extern GpuImageUpload** D_actor_800100_80167210[];
 /// Translation the flare's own coordinate starts at, `(0, 0x200, 0x40)`.
 extern SVECTOR D_actor_800100_80167128;
 
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*);
-        s32                (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32                (*call2)(Task*, s32, const AnimationBankCopyRequest*);
-        s32                (*call3)(Task*, s32, GameActorWalkSteps*);
-        s32                (*call4)(Task*, s32, GameActorButtonPressHold*);
-        s32                (*call5)(Task*, s32, ActorTransform*);
-        s32                (*transform)(Task*, s32, ActorTransform*, s32);
-        s32                (*call6)(Task*, s32, ActorTransform*, GameActorMoveAnim*);
-        s32                (*call7)(Task*, s32, s32);
-        TaskMessageHandler call8;
-        void               (*call9)(Task*, s32, GameActorMoveBy*);
-        s32                (*call10)(Task*, s32, GfxCoord*);
-    } handler;
-} Actor800100MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor800100MessageEntry, 8);
-
-extern Actor800100MessageEntry D_actor_800100_80167130[26];
-extern s16                     D_actor_800100_80167218[];
-extern s16                     D_actor_800100_80167224[];
-extern u8                      D_actor_800100_80167230[];
+extern TaskMessageEntry D_actor_800100_80167130[26];
+extern s16              D_actor_800100_80167218[];
+extern s16              D_actor_800100_80167224[];
+extern u8               D_actor_800100_80167230[];
 
 /// Draws one frame of the launched projectile's spinning sprite at `pos`:
 /// `frame` walks the twelve windows of `gEffectSpriteAtlasFrames`, `width` is the flare's
@@ -228,33 +208,33 @@ extern GpuImageUpload* D_actor_800100_80167A60[2];
 
 SVECTOR D_actor_800100_80167128 = { 0, 512, 64, 0 };
 
-Actor800100MessageEntry D_actor_800100_80167130[26] = {
-    { 1000, { .call1 = func_8010C4F0 } },
-    { 1002, { .call1 = func_8010C4F0 } },
-    { 1003, { .call1 = func_8010C4F0 } },
-    { 1004, { .call1 = func_8010C4F0 } },
-    { GAME_ACTOR_MESSAGE_PLACE, { .call5 = func_80104D68 } },
-    { ANIMATION_MESSAGE_IS_PLAYING, { .call8 = func_8010583C } },
-    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, { .transform = func_8010C688 } },
-    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, { .call1 = func_8010C4F0 } },
-    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, { .call1 = func_8010C4F0 } },
-    { GAME_ACTOR_MESSAGE_END_SCRIPTED, { .call0 = func_8010C30C } },
-    { GAME_ACTOR_MESSAGE_MOVE_TO, { .call6 = func_8010C6C8 } },
-    { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, { .call7 = func_80104684 } },
-    { 1012, { .call1 = func_8010C648 } },
-    { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, { .call10 = func_80105A60 } },
-    { GAME_ACTOR_MESSAGE_WALK_STEPS, { .call3 = func_801052B8 } },
-    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, { .call2 = Gp_CopyAllyAnim } },
-    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, { .call4 = func_8010C75C } },
-    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, { .call8 = Gp_HurtAlly } },
-    { 1018, { .call1 = func_8010C4F0 } },
-    { 1019, { .call1 = func_8010C4F0 } },
-    { 1020, { .call1 = func_8010C4F0 } },
-    { ANIMATION_MESSAGE_SET_RATE, { .call7 = func_801058BC } },
-    { GAME_ACTOR_MESSAGE_MOVE_BY, { .call9 = Gp_MoveActorByKeep } },
-    { 1023, { .call0 = func_8010C30C } },
-    { 1024, { .call0 = func_8010C30C } },
-    { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, { .call7 = func_80105AB0 } },
+TaskMessageEntry D_actor_800100_80167130[26] = {
+    { ANIMATION_MESSAGE_PLAY, func_8010C4F0 },
+    { 1002, func_8010C4F0 },
+    { 1003, func_8010C4F0 },
+    { 1004, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_PLACE, func_80104D68 },
+    { ANIMATION_MESSAGE_IS_PLAYING, func_8010583C },
+    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, func_8010C688 },
+    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_END_SCRIPTED, func_8010C30C },
+    { GAME_ACTOR_MESSAGE_MOVE_TO, func_8010C6C8 },
+    { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, func_80104684 },
+    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, func_8010C648 },
+    { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, func_80105A60 },
+    { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
+    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyAllyAnim },
+    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_8010C75C },
+    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_HurtAlly },
+    { 1018, func_8010C4F0 },
+    { 1019, func_8010C4F0 },
+    { 1020, func_8010C4F0 },
+    { ANIMATION_MESSAGE_SET_RATE, func_801058BC },
+    { GAME_ACTOR_MESSAGE_MOVE_BY, Gp_MoveActorByKeep },
+    { 1023, func_8010C30C },
+    { 1024, func_8010C30C },
+    { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, func_80105AB0 },
 };
 
 GpuImageUpload** D_actor_800100_80167200[4] = {

@@ -287,27 +287,7 @@ extern VECTOR D_80112FA4[];
 /// offset from the resulting world position.
 extern SVECTOR D_801131B4[];
 
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32                (*call1)(Task*, s32, ActorTransform*);
-        s32                (*transform)(Task*, s32, ActorTransform*, s32);
-        TaskMessageHandler call2;
-        s32                (*call3)(Task*, s32, GameActorStairClimb*);
-        s32                (*call4)(Task*);
-        s32                (*call5)(Task*, s32, s32);
-        s32                (*coord)(Task*, s32, GfxCoord*);
-        s32                (*call6)(Task*, s32, ActorTransform*, GameActorMoveAnim*);
-        s32                (*call7)(Task*, s32, AnimationPlayRequest*);
-        s32                (*call8)(Task*, s32, GameActorWalkSteps*);
-        s32                (*call9)(Task*, s32, const AnimationBankCopyRequest*);
-        s32                (*call10)(Task*, s32, GameActorButtonPressHold*);
-        s32                (*call11)(Task*, s32, GameActorMoveBy*);
-    } handler;
-} GpPlayerMessageEntry;
-
-extern GpPlayerMessageEntry Gp_PlayerMsgTable[28];
+extern TaskMessageEntry Gp_PlayerMsgTable[28];
 
 extern u16 D_80112DF4[4];
 
@@ -445,28 +425,28 @@ static void func_80104A4C(Task* arg0);
 static void func_80104AAC(Task* arg0);
 
 /// Replaces player animation playback without clearing the current scripted state.
-s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request);
+s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request, TaskMessageArg unusedSecondArg);
 
 /// Puts the player in `mode` mode 2 (`Gp_TickPlayerMode2`): clears the
 /// movement state and the HUD flag, re-applies the equipped weapon, and during
 /// an event clears flag 0x2000 on the actor's first object.
 static inline void _gpSwitchToPlayerMode2(Task* arg0);
 
-s32 func_80104F5C(Task* arg0, s32 arg1, GameActorStairClimb* climb);
+s32 func_80104F5C(Task* arg0, s32 arg1, GameActorStairClimb* climb, TaskMessageArg unusedSecondArg);
 
 s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
-s32 func_801054D8(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2);
+s32 func_801054D8(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, TaskMessageArg unusedSecondArg);
 
 s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-s32 func_80105754(Task* arg0);
+s32 func_80105754(Task* arg0, s32 unusedMessageId, TaskMessageArg unusedFirstArg, TaskMessageArg unusedSecondArg);
 
-s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request);
+s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request, TaskMessageArg unusedSecondArg);
 
-s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2);
+s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg unusedSecondArg);
 
-s32 func_80105A8C(Task* arg0, s32 arg1, s32 arg2);
+s32 func_80105A8C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg unusedSecondArg);
 
 static void func_80105B0C(Task* arg0);
 
@@ -952,35 +932,35 @@ s32            D_80112C7C[3] = {
     -0x1FEEFFFF,
 };
 
-GpPlayerMessageEntry Gp_PlayerMsgTable[28] = {
-    { ANIMATION_MESSAGE_PLAY, { .call0 = func_80104508 } },
-    { GAME_ACTOR_MESSAGE_PLACE, { .call1 = func_80104D68 } },
-    { 1002, { .call0 = func_80104508 } },
-    { 1003, { .call0 = func_80104508 } },
-    { 1004, { .call0 = func_80104508 } },
-    { ANIMATION_MESSAGE_IS_PLAYING, { .call2 = func_8010583C } },
-    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, { .transform = func_80104E00 } },
-    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, { .call3 = func_80104F5C } },
-    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, { .call4 = func_80105828 } },
-    { GAME_ACTOR_MESSAGE_END_SCRIPTED, { .call2 = Gp_EnterActorMode2 } },
-    { GAME_ACTOR_MESSAGE_MOVE_TO, { .call6 = Gp_SetActorDest } },
-    { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, { .call5 = func_80104684 } },
-    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, { .call7 = func_80104B54 } },
-    { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, { .coord = func_80105A60 } },
-    { GAME_ACTOR_MESSAGE_WALK_STEPS, { .call8 = func_801052B8 } },
-    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, { .call9 = Gp_CopyPlayerAnim } },
-    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, { .call10 = func_801054D8 } },
-    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, { .call5 = Gp_ApplyPlayerDamage } },
-    { 1018, { .call2 = func_80105690 } },
-    { 1019, { .call6 = func_80105190 } },
-    { 1020, { .call5 = func_80105A8C } },
-    { ANIMATION_MESSAGE_SET_RATE, { .call5 = func_801058BC } },
-    { GAME_ACTOR_MESSAGE_MOVE_BY, { .call11 = Gp_MoveActorBy } },
-    { ANIMATION_MESSAGE_REPLACE_AND_PLAY, { .call7 = func_80104CAC } },
-    { 1024, { .call2 = func_801055D4 } },
-    { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, { .call5 = func_80105AB0 } },
-    { 1026, { .call4 = func_80105754 } },
-    { -1, { .call0 = NULL } },
+TaskMessageEntry Gp_PlayerMsgTable[28] = {
+    { ANIMATION_MESSAGE_PLAY, func_80104508 },
+    { GAME_ACTOR_MESSAGE_PLACE, func_80104D68 },
+    { 1002, func_80104508 },
+    { 1003, func_80104508 },
+    { 1004, func_80104508 },
+    { ANIMATION_MESSAGE_IS_PLAYING, func_8010583C },
+    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, func_80104E00 },
+    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_80104F5C },
+    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, func_80105828 },
+    { GAME_ACTOR_MESSAGE_END_SCRIPTED, Gp_EnterActorMode2 },
+    { GAME_ACTOR_MESSAGE_MOVE_TO, Gp_SetActorDest },
+    { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, func_80104684 },
+    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, func_80104B54 },
+    { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, func_80105A60 },
+    { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
+    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyPlayerAnim },
+    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_801054D8 },
+    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_ApplyPlayerDamage },
+    { 1018, func_80105690 },
+    { 1019, func_80105190 },
+    { 1020, func_80105A8C },
+    { ANIMATION_MESSAGE_SET_RATE, func_801058BC },
+    { GAME_ACTOR_MESSAGE_MOVE_BY, Gp_MoveActorBy },
+    { ANIMATION_MESSAGE_REPLACE_AND_PLAY, func_80104CAC },
+    { 1024, func_801055D4 },
+    { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, func_80105AB0 },
+    { 1026, func_80105754 },
+    { -1, NULL },
 };
 u16 Gp_WeaponIdBase[2] = {
     1,
@@ -6080,7 +6060,7 @@ s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     return 0;
 }
 
-s32 func_80104684(Task* arg0, s32 arg1, s32 arg2)
+s32 func_80104684(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg unusedSecondArg)
 {
     GameActor* actor;
     TmdObject* extra;
@@ -6256,7 +6236,7 @@ static void func_80104AAC(Task* arg0)
     }
 }
 
-s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request)
+s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request, TaskMessageArg unusedSecondArg)
 {
     GameActor*    actor;
     TmdObject*    extra;
@@ -6304,7 +6284,7 @@ s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request)
     return 0;
 }
 
-s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request)
+s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request, TaskMessageArg unusedSecondArg)
 {
     GameActor* actor;
     TmdObject* extra;
@@ -6333,7 +6313,7 @@ s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request)
     return 0;
 }
 
-s32 func_80104D68(Task* arg0, s32 arg1, ActorTransform* transform)
+s32 func_80104D68(Task* arg0, s32 arg1, ActorTransform* transform, TaskMessageArg unusedSecondArg)
 {
     TmdObject* extra;
     GameActor* actor;
@@ -6416,7 +6396,7 @@ s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg
     return 0;
 }
 
-s32 func_80104F5C(Task* arg0, s32 arg1, GameActorStairClimb* climb)
+s32 func_80104F5C(Task* arg0, s32 arg1, GameActorStairClimb* climb, TaskMessageArg unusedSecondArg)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6543,7 +6523,7 @@ s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
     return 0;
 }
 
-s32 func_801052B8(Task* arg0, s32 arg1, GameActorWalkSteps* walkSteps)
+s32 func_801052B8(Task* arg0, s32 arg1, GameActorWalkSteps* walkSteps, TaskMessageArg unusedSecondArg)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6577,7 +6557,7 @@ s32 func_801052B8(Task* arg0, s32 arg1, GameActorWalkSteps* walkSteps)
     return 0;
 }
 
-s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move)
+s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move, TaskMessageArg unusedSecondArg)
 {
     GameActor*    actor;
     GfxCoord*     coord;
@@ -6617,7 +6597,7 @@ s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move)
     return func_801041B4(arg0);
 }
 
-s32 func_801054D8(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2)
+s32 func_801054D8(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, TaskMessageArg unusedSecondArg)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6715,7 +6695,7 @@ s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_80105754(Task* arg0)
+s32 func_80105754(Task* arg0, s32 unusedMessageId, TaskMessageArg unusedFirstArg, TaskMessageArg unusedSecondArg)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6751,7 +6731,7 @@ s32 func_80105754(Task* arg0)
     return ret;
 }
 
-s32 func_80105828(Task* arg0)
+s32 func_80105828(Task* arg0, s32 unusedMessageId, TaskMessageArg unusedFirstArg, TaskMessageArg unusedSecondArg)
 {
     return ((GameActor*)arg0->work)->scriptedMotionPending;
 }
@@ -6783,7 +6763,7 @@ s32 func_80105894(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return (slot->flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) == 0;
 }
 
-s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2)
+s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg unusedSecondArg)
 {
     GameActor* actor;
     s32        i;
@@ -6805,7 +6785,7 @@ s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request)
+s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request, TaskMessageArg unusedSecondArg)
 {
     union {
         AnimationBank* block;
@@ -6829,7 +6809,7 @@ s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* requ
     return 0;
 }
 
-s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2)
+s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg unusedSecondArg)
 {
     GameActor* actor;
     s32        ret;
@@ -6848,13 +6828,13 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2)
     return ret;
 }
 
-s32 func_80105A60(Task* arg0, s32 arg1, GfxCoord* arg2)
+s32 func_80105A60(Task* arg0, s32 arg1, GfxCoord* arg2, TaskMessageArg unusedSecondArg)
 {
     Gp_ReparentCoord(arg2, arg0->extra.tmd->coords);
     return 0;
 }
 
-s32 func_80105A8C(Task* arg0, s32 arg1, s32 arg2)
+s32 func_80105A8C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg unusedSecondArg)
 {
     GameActor* inner;
 
@@ -6867,7 +6847,7 @@ s32 func_80105A8C(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_80105AB0(Task* arg0, s32 arg1, s32 arg2)
+s32 func_80105AB0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg unusedSecondArg)
 {
     GameActor* inner;
 

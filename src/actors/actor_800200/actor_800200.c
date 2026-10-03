@@ -62,43 +62,25 @@ typedef struct {
     /* 0x10 */ SVECTOR vec;
 } Actor800200VecScratch;
 
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32                (*call0)(Task*);
-        s32                (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32                (*call2)(Task*, s32, const AnimationBankCopyRequest*);
-        s32                (*call3)(Task*, s32, GameActorWalkSteps*);
-        s32                (*call4)(Task*, s32, ActorTransform*);
-        s32                (*transform)(Task*, s32, ActorTransform*, s32);
-        s32                (*call5)(Task*, s32, ActorTransform*, GameActorMoveAnim*);
-        s32                (*call6)(Task*, s32, s32);
-        TaskMessageHandler call7;
-        s32                (*call8)(Task*, s32, GfxCoord*);
-    } handler;
-} Actor800200MessageEntry;
-STATIC_ASSERT_SIZEOF(Actor800200MessageEntry, 8);
-
-extern Actor800200MessageEntry D_actor_800200_80169EF0[20];
-extern u8*                     D_actor_800200_80169FD0[4];
-extern _Actor800200Waypoint    D_actor_800200_80169FE0[];
-extern _Actor800200Waypoint    D_actor_800200_80169FF8[];
-extern _Actor800200Waypoint    D_actor_800200_8016A018[];
-extern _Actor800200Waypoint    D_actor_800200_8016A020[];
-extern _Actor800200Waypoint    D_actor_800200_8016A040[];
-extern _Actor800200Waypoint    D_actor_800200_8016A048[];
-extern _Actor800200Waypoint    D_actor_800200_8016A058[];
-extern _Actor800200Waypoint    D_actor_800200_8016A068[];
-extern _Actor800200Waypoint    D_actor_800200_8016A080[];
-extern _Actor800200Waypoint    D_actor_800200_8016A090[];
-extern _Actor800200Waypoint    D_actor_800200_8016A098[];
-extern _Actor800200Waypoint    D_actor_800200_8016A0B0[];
-extern _Actor800200Waypoint    D_actor_800200_8016A0C8[];
-extern _Actor800200Waypoint    D_actor_800200_8016A0E0[];
-extern _Actor800200Waypoint    D_actor_800200_8016A108[];
-extern _Actor800200Waypoint    D_actor_800200_8016A128[];
-extern _Actor800200Waypoint    D_actor_800200_8016A130[];
+extern TaskMessageEntry     D_actor_800200_80169EF0[20];
+extern u8*                  D_actor_800200_80169FD0[4];
+extern _Actor800200Waypoint D_actor_800200_80169FE0[];
+extern _Actor800200Waypoint D_actor_800200_80169FF8[];
+extern _Actor800200Waypoint D_actor_800200_8016A018[];
+extern _Actor800200Waypoint D_actor_800200_8016A020[];
+extern _Actor800200Waypoint D_actor_800200_8016A040[];
+extern _Actor800200Waypoint D_actor_800200_8016A048[];
+extern _Actor800200Waypoint D_actor_800200_8016A058[];
+extern _Actor800200Waypoint D_actor_800200_8016A068[];
+extern _Actor800200Waypoint D_actor_800200_8016A080[];
+extern _Actor800200Waypoint D_actor_800200_8016A090[];
+extern _Actor800200Waypoint D_actor_800200_8016A098[];
+extern _Actor800200Waypoint D_actor_800200_8016A0B0[];
+extern _Actor800200Waypoint D_actor_800200_8016A0C8[];
+extern _Actor800200Waypoint D_actor_800200_8016A0E0[];
+extern _Actor800200Waypoint D_actor_800200_8016A108[];
+extern _Actor800200Waypoint D_actor_800200_8016A128[];
+extern _Actor800200Waypoint D_actor_800200_8016A130[];
 
 static void func_actor_800200_801626A0(Task* task);
 static void func_actor_800200_801652EC(Task* arg0);
@@ -181,27 +163,27 @@ TmdSource gActor800200FlintBody = {
     _gActor800200FlintBodyStream,
 };
 
-Actor800200MessageEntry D_actor_800200_80169EF0[20] = {
-    { 1000, { .call1 = func_8010C4F0 } },
-    { 1002, { .call1 = func_8010C4F0 } },
-    { 1003, { .call1 = func_8010C4F0 } },
-    { 1004, { .call1 = func_8010C4F0 } },
-    { GAME_ACTOR_MESSAGE_PLACE, { .call4 = func_80104D68 } },
-    { ANIMATION_MESSAGE_IS_PLAYING, { .call7 = func_8010583C } },
-    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, { .transform = func_8010C688 } },
-    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, { .call1 = func_8010C4F0 } },
-    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, { .call0 = func_80105828 } },
-    { GAME_ACTOR_MESSAGE_END_SCRIPTED, { .call0 = func_8010C30C } },
-    { GAME_ACTOR_MESSAGE_MOVE_TO, { .call5 = func_8010C6C8 } },
-    { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, { .call6 = func_80104684 } },
-    { 1012, { .call1 = func_8010C648 } },
-    { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, { .call8 = func_80105A60 } },
-    { GAME_ACTOR_MESSAGE_WALK_STEPS, { .call3 = func_801052B8 } },
-    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, { .call2 = Gp_CopyAllyAnim } },
-    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, { .call1 = func_8010C4F0 } },
-    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, { .call1 = func_8010C4F0 } },
-    { 1018, { .call1 = func_8010C4F0 } },
-    { 1019, { .call5 = func_8010C708 } },
+TaskMessageEntry D_actor_800200_80169EF0[20] = {
+    { ANIMATION_MESSAGE_PLAY, func_8010C4F0 },
+    { 1002, func_8010C4F0 },
+    { 1003, func_8010C4F0 },
+    { 1004, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_PLACE, func_80104D68 },
+    { ANIMATION_MESSAGE_IS_PLAYING, func_8010583C },
+    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, func_8010C688 },
+    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, func_80105828 },
+    { GAME_ACTOR_MESSAGE_END_SCRIPTED, func_8010C30C },
+    { GAME_ACTOR_MESSAGE_MOVE_TO, func_8010C6C8 },
+    { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, func_80104684 },
+    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, func_8010C648 },
+    { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, func_80105A60 },
+    { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
+    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyAllyAnim },
+    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, func_8010C4F0 },
+    { 1018, func_8010C4F0 },
+    { 1019, func_8010C708 },
 };
 
 u8 D_actor_800200_80169F90[16] = {
