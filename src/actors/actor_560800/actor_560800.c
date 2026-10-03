@@ -4339,7 +4339,7 @@ static s32 func_actor_560800_80132498(Task* arg0)
     i    = 1;
     done = 1;
     for (; i < work->field_4BA; i++) {
-        if (!(work->rig.slots[i].flags & ANIMATION_SLOT_SETTLED)) {
+        if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
             done = 0;
             break;
         }
@@ -6481,7 +6481,7 @@ void func_actor_560800_80137820(Task* arg0)
                 i++;
             } while ((u32)(i & 0xFFFF) < 7U);
             for (i = 1; (u32)(i & 0xFFFF) < 7U; i++) {
-                if (!(anim->slots[i & 0xFFFF].flags & ANIMATION_SLOT_SETTLED)) {
+                if (!(anim->slots[i & 0xFFFF].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
                     break;
                 }
             }

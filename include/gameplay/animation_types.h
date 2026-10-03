@@ -105,23 +105,31 @@ STATIC_ASSERT_SIZEOF(AnimationPoseReference, 4);
 /// only a slot pointer recover the array as `slot - slot->trackIndex`, so they
 /// require its array index to equal `trackIndex`; indexed calls can remap it.
 typedef struct {
-    AnimationPoseReference currentPose;           // Segment's starting pose
-    AnimationPoseReference nextPose;              // Segment's destination pose
-    byte                   unknown_8;             // No direct accesses; role unproven
-    s8                     rate;                  // Signed sixteenth-frame step per tick (-128..127; 16 one frame)
-    u8                     field_A;               // Cleared when crossing segments; role unproven
-    u8                     poseEncoding;          // Initial keyframe's low flags nibble (1 translation/rotation, 4 packed rotation; 2 diagnostic only)
-    s16                    timeLeft;              // Remaining sixteenth-frame time; may cross either segment boundary
-    u16                    timeSpan;              // Segment duration in sixteenths; interpolation denominator (0 skips pose output)
-    u16                    flags;                 // Latest ANIMATION_SLOT_* tick and walk results; a pose tick clears them first
-    u16                    field_12;              // Cleared by initialization; role unproven
-    u8                     coordIndex;            // Destination model-part coordinate index
-    u8                     trackIndex;            // Source model-part track index
-    u8                     atEnd;                 // Boundary hold (0 advancing, 1 holds while endpoints agree)
-    u8                     usesBufferedPose;      // Latest blend endpoints (0 both bank poses, 1 either endpoint buffered)
-    SVECTOR                bufferedRotationDelta; // Cached next * inverse(current) Euler rotation, in 1/4096 turns
-    struct AnimationSet**  sets;                  // Borrowed animation-set pointer table
-    byte                   unknown_24[4];         // No direct accesses; role unproven
+    AnimationPoseReference currentPose;  // Segment's starting pose
+    AnimationPoseReference nextPose;     // Segment's destination pose
+    byte                   unknown_8;    // No direct accesses; role unproven
+    s8                     rate;         // Signed sixteenth-frame step per tick (-128..127; 16 one frame)
+    u8                     field_A;      // Cleared when crossing segments; role unproven
+    u8                     poseEncoding; // Initial keyframe's low flags nibble (1 translation/rotation, 4 packed rotation; 2 diagnostic only)
+    s16                    timeLeft;     // Remaining sixteenth-frame time; may cross either segment boundary
+    u16                    timeSpan;     // Segment duration in sixteenths; interpolation denominator (0 skips pose output)
+    /// The tick results and the halfword after them. They are two fields - slot
+    /// initialisation clears each on its own - but several actors test both in
+    /// one word load, which `word` is for.
+    union {
+        struct {
+            u16 flags;                           // Latest ANIMATION_SLOT_* tick and walk results; a pose tick clears them first
+            u16 field_12;                        // Cleared by initialization; role unproven
+        } fields;
+        u32 word;                                // Both halfwords, `flags` in the low half
+    } status;
+    u8                    coordIndex;            // Destination model-part coordinate index
+    u8                    trackIndex;            // Source model-part track index
+    u8                    atEnd;                 // Boundary hold (0 advancing, 1 holds while endpoints agree)
+    u8                    usesBufferedPose;      // Latest blend endpoints (0 both bank poses, 1 either endpoint buffered)
+    SVECTOR               bufferedRotationDelta; // Cached next * inverse(current) Euler rotation, in 1/4096 turns
+    struct AnimationSet** sets;                  // Borrowed animation-set pointer table
+    byte                  unknown_24[4];         // No direct accesses; role unproven
 } AnimationSlot;
 STATIC_ASSERT_SIZEOF(AnimationSlot, 0x28);
 

@@ -111,7 +111,7 @@ void desertChaserAnimTick(Task* task)
         } while (tickIndex < 0x12);
     } else {
         desertChaserBlendTick(task);
-        if (work->blendSlots[1].flags & DESERT_CHASER_BLEND_DONE) {
+        if (work->blendSlots[1].status.fields.flags & DESERT_CHASER_BLEND_DONE) {
             work->field_82A = 0;
         }
     }

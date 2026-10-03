@@ -1977,7 +1977,7 @@ static void func_actor_405800_80133800(Task* arg0)
             func_actor_405800_801375C4(arg0);
             func_actor_405800_8013315C(arg0);
             stalkerZebraIvoryTickAnimInline(arg0);
-            work->flags_83C.half = work->slots[1].flags;
+            work->flags_83C.half = work->slots[1].status.fields.flags;
             root->composeStamp   = GRAPHICS_COORD_DIRTY;
             stalkerZebraIvoryApplyRotationInline(arg0);
             func_actor_405800_80136388(arg0);

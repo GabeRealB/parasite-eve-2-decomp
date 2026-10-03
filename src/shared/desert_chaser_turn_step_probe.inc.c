@@ -98,7 +98,7 @@ void desertChaserTurnStepProbe(Task* arg0)
     if (abs(scratch->delta) < 0x20) {
         work->field_0 = 0x1C;
     }
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         work->field_0 = 0x1C;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnStepScratch);

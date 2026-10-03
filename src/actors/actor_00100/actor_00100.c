@@ -2578,7 +2578,7 @@ static void Actor00100_Fn061FC(Task* arg0)
     radius = 1000;
     desertChaserAnimTick(arg0);
     Actor00100_PositionDelta(arg0->extra.tmd->coords, &delta);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         outside       = actorOutsideRadius(&delta, radius);
         work->field_0 = outside == 0 ? 0x1F : 0x26;
     }
@@ -2611,7 +2611,7 @@ static void Actor00100_Fn06C10(Task* arg0)
     }
     work->field_6 += 1;
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         work->field_0 = 0x26;
     }
     if (((u32)((work->slots[1].currentPose.indices.recordIndex & 0x3FF) - 6) < 8U) && (work->field_8 < 5)) {
@@ -2809,7 +2809,7 @@ static void Actor00100_Fn07650(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         if (ctx->hp <= 0) {
             work->field_0 = 0x15;
         } else if (ctx->reactionFlags & ENEMY_REACTION_BUILDUP) {
@@ -3134,7 +3134,7 @@ static void Actor00100_Fn09724(Task* arg0)
             } else if (work->field_6 <= ((s16)work->field_834 * 25) / 16) {
                 actorMoveForwardNonzero(arg0->extra.tmd->coords, ((s16)work->field_834 * 1000) / 192);
             }
-            if (work->slots[1].flags & 0x100) {
+            if (work->slots[1].status.fields.flags & 0x100) {
                 work->field_0 = 0x26;
             }
             break;
@@ -3699,7 +3699,7 @@ static void Actor00100_Fn0B658(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         work->field_0 = 0x1C;
     }
 }
@@ -3724,7 +3724,7 @@ static void Actor00100_Fn0B730(Task* arg0)
         desertChaserAnimTick(arg0);
     }
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         work->field_0 = 0x26;
     }
 }
@@ -3784,7 +3784,7 @@ static void Actor00100_Fn0BB2C(Task* arg0)
         }
     }
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         if (ctx->hp > 0) {
             if (ctx->reactionFlags & ENEMY_REACTION_BUILDUP) {
                 work->field_0 = 4;

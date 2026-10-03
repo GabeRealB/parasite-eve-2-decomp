@@ -130,7 +130,7 @@ void gluttonEscortState(Task* arg0)
     }
     work->field_7C4 = angle;
     gluttonTickAnim(arg0);
-    if (work->field_7B3 == 0x10 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if (work->field_7B3 == 0x10 && (work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->field_7B3 = 0xE;
         work->field_7B0 = 1;
     }

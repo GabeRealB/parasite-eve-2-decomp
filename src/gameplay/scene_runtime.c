@@ -2295,8 +2295,8 @@ static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1)
     s32                    setIndex;
     u16                    segmentTime;
 
-    slot        = &context->slots[arg1];
-    slot->flags = 0;
+    slot                      = &context->slots[arg1];
+    slot->status.fields.flags = 0;
     if (slot->currentPose.key != slot->nextPose.key) {
         sets = slot->sets;
         do {
@@ -2310,18 +2310,18 @@ static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1)
                 if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
                     recordIndex = rec->wordOffset;
                     if (recordIndex == slot->nextPose.indices.recordIndex) {
-                        slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+                        slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
                     }
-                    slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
+                    slot->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
                 } else {
-                    recordIndex  = slot->nextPose.indices.recordIndex;
-                    slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+                    recordIndex                = slot->nextPose.indices.recordIndex;
+                    slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
                     break;
                 }
             }
             slot->nextPose.indices.recordIndex = recordIndex;
             slot->nextPose.indices.setIndex    = setIndex;
-            if (slot->flags & ANIMATION_SLOT_BOUNDARY_MASK) {
+            if (slot->status.fields.flags & ANIMATION_SLOT_BOUNDARY_MASK) {
                 break;
             }
         } while (slot->currentPose.key != slot->nextPose.key);
@@ -2390,34 +2390,34 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
     /// the control bit; the stop threshold compares the original unsigned flags.
     /// Negating the `u16` index in `s32` is representable and preserves the matching
     /// address-add operand order without converting a pointer to an integer.
-#define ANIMATION_RESOLVE_TICK_NEXT_RECORD(playbackSlot, recordArray, candidateIndex)   \
-    do {                                                                                \
-        const AnimationRecord* controlRecord;                                           \
-                                                                                        \
-        while ((s8)(recordArray)[(candidateIndex)].flags < 0) {                         \
-            controlRecord = (recordArray) - -(s32)(candidateIndex);                     \
-            if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {                \
-                (candidateIndex) = controlRecord->wordOffset;                           \
-                if ((candidateIndex) == (playbackSlot)->nextPose.indices.recordIndex) { \
-                    (playbackSlot)->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;           \
-                }                                                                       \
-                (playbackSlot)->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;                  \
-            } else {                                                                    \
-                (candidateIndex)       = (playbackSlot)->nextPose.indices.recordIndex;  \
-                (playbackSlot)->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;               \
-                break;                                                                  \
-            }                                                                           \
-        }                                                                               \
+#define ANIMATION_RESOLVE_TICK_NEXT_RECORD(playbackSlot, recordArray, candidateIndex)                \
+    do {                                                                                             \
+        const AnimationRecord* controlRecord;                                                        \
+                                                                                                     \
+        while ((s8)(recordArray)[(candidateIndex)].flags < 0) {                                      \
+            controlRecord = (recordArray) - -(s32)(candidateIndex);                                  \
+            if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {                             \
+                (candidateIndex) = controlRecord->wordOffset;                                        \
+                if ((candidateIndex) == (playbackSlot)->nextPose.indices.recordIndex) {              \
+                    (playbackSlot)->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;          \
+                }                                                                                    \
+                (playbackSlot)->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;                 \
+            } else {                                                                                 \
+                (candidateIndex)                     = (playbackSlot)->nextPose.indices.recordIndex; \
+                (playbackSlot)->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;              \
+                break;                                                                               \
+            }                                                                                        \
+        }                                                                                            \
     } while (0)
 
-    slot        = &context->slots[slotIndex];
-    coord       = &context->coords[slot->coordIndex];
-    scratch     = SCRATCH_STACK_RESERVE_BLOCK(_AnimationTickScratch);
-    slot->flags = 0;
+    slot                      = &context->slots[slotIndex];
+    coord                     = &context->coords[slot->coordIndex];
+    scratch                   = SCRATCH_STACK_RESERVE_BLOCK(_AnimationTickScratch);
+    slot->status.fields.flags = 0;
     // A latched hold whose endpoints still agree reports only the hold and does not step time.
     if (slot->atEnd == 1) {
         if (slot->nextPose.key == slot->currentPose.key) {
-            slot->flags = ANIMATION_SLOT_SETTLED;
+            slot->status.fields.flags = ANIMATION_SLOT_SETTLED;
         } else {
             slot->atEnd = 0;
         }
@@ -2449,10 +2449,10 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             slot->timeSpan                     = segmentDuration;
             slot->timeLeft                    += segmentDuration;
         }
-        if (slot->flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        if (slot->status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             // The forward walk reached a boundary: latch the hold.
-            slot->atEnd  = 1;
-            slot->flags |= ANIMATION_SLOT_SETTLED;
+            slot->atEnd                = 1;
+            slot->status.fields.flags |= ANIMATION_SLOT_SETTLED;
         } else {
             slot->atEnd = 0;
         }
@@ -2466,8 +2466,8 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             previousRecordIndex = slot->currentPose.indices.recordIndex - 1;
             firstRecordIndex    = slot->sets[previousSetIndex]->trackStartIndices[slot->trackIndex];
             if (previousRecordIndex < firstRecordIndex) {
-                previousRecordIndex = firstRecordIndex;
-                slot->flags        |= ANIMATION_SLOT_REACHED_BOUNDARY;
+                previousRecordIndex        = firstRecordIndex;
+                slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
             slot->currentPose.indices.recordIndex = previousRecordIndex;
             slot->currentPose.indices.setIndex    = previousSetIndex;
@@ -2475,10 +2475,10 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             segmentDuration                       = records[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
             slot->timeSpan                        = segmentDuration;
         }
-        if (slot->flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        if (slot->status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             // The reverse walk reached the track start: latch the hold.
-            slot->atEnd  = 1;
-            slot->flags |= ANIMATION_SLOT_SETTLED;
+            slot->atEnd                = 1;
+            slot->status.fields.flags |= ANIMATION_SLOT_SETTLED;
         } else {
             slot->atEnd = 0;
         }
@@ -2554,12 +2554,12 @@ static inline void _animationSelectSeekRecord(AnimationSlot* playbackSlot, const
         if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {
             candidateIndex = controlRecord->wordOffset;
             if (candidateIndex == playbackSlot->nextPose.indices.recordIndex) {
-                playbackSlot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+                playbackSlot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
-            playbackSlot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
+            playbackSlot->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
-            candidateIndex       = playbackSlot->nextPose.indices.recordIndex;
-            playbackSlot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+            candidateIndex                     = playbackSlot->nextPose.indices.recordIndex;
+            playbackSlot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             break;
         }
     }
@@ -2667,12 +2667,12 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
             if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
                 recordIndex = rec->wordOffset;
                 if (recordIndex == slot->nextPose.indices.recordIndex) {
-                    slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+                    slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
                 }
-                slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
+                slot->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
             } else {
-                recordIndex  = slot->nextPose.indices.recordIndex;
-                slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+                recordIndex                = slot->nextPose.indices.recordIndex;
+                slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
                 break;
             }
         }
@@ -2701,8 +2701,8 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
         arg1->nextPose.indices.recordIndex    = sets[arg3]->trackStartIndices[arg1->trackIndex];
         arg1->currentPose.indices.recordIndex = arg1->sets[arg3]->trackStartIndices[arg1->trackIndex];
         recordFlags                           = arg1->sets[arg1->nextPose.indices.setIndex]->records[arg1->nextPose.indices.recordIndex].flags;
-        arg1->field_12                        = 0;
-        arg1->flags                           = 0;
+        arg1->status.fields.field_12          = 0;
+        arg1->status.fields.flags             = 0;
         arg1->atEnd                           = 0;
         arg1->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
     }
@@ -2739,8 +2739,8 @@ void Gp_AnimInitSlot(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s
     arg1->nextPose.indices.recordIndex    = sets[arg3]->trackStartIndices[arg1->trackIndex];
     arg1->currentPose.indices.recordIndex = arg1->sets[arg3]->trackStartIndices[arg1->trackIndex];
     recordFlags                           = arg1->sets[arg1->nextPose.indices.setIndex]->records[arg1->nextPose.indices.recordIndex].flags;
-    arg1->field_12                        = 0;
-    arg1->flags                           = 0;
+    arg1->status.fields.field_12          = 0;
+    arg1->status.fields.flags             = 0;
     arg1->atEnd                           = 0;
     arg1->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 }
@@ -2846,9 +2846,9 @@ void animationResetSlot(AnimationContext* context, s32 slotIndex, s32 setIndex)
     slot->sets                         = sets;
     slot->nextPose.indices.recordIndex = sets[setIndex]->trackStartIndices[slot->trackIndex];
     recordFlags                        = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
-    slot->flags                        = 0;
+    slot->status.fields.flags          = 0;
     slot->atEnd                        = 0;
-    slot->field_12                     = 0;
+    slot->status.fields.field_12       = 0;
     slot->poseEncoding                 = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 }
 
@@ -2870,9 +2870,9 @@ void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3,
     slot->sets                            = sets;
     slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
     recordFlags                           = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
-    slot->flags                           = 0;
+    slot->status.fields.flags             = 0;
     slot->atEnd                           = 0;
-    slot->field_12                        = 0;
+    slot->status.fields.field_12          = 0;
     slot->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 }
 
@@ -2991,12 +2991,12 @@ void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16
         if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
             recordIndex = rec->wordOffset;
             if (recordIndex == slot->nextPose.indices.recordIndex) {
-                slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+                slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
-            slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
+            slot->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
-            recordIndex  = slot->nextPose.indices.recordIndex;
-            slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+            recordIndex                = slot->nextPose.indices.recordIndex;
+            slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             break;
         }
     }
@@ -3033,12 +3033,12 @@ static void func_800B46A4(AnimationContext* unusedContext, AnimationSlot* arg1, 
         if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
             arg3 = rec->wordOffset;
             if (arg3 == arg1->nextPose.indices.recordIndex) {
-                arg1->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+                arg1->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
-            arg1->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
+            arg1->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
-            arg3         = arg1->nextPose.indices.recordIndex;
-            arg1->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+            arg3                       = arg1->nextPose.indices.recordIndex;
+            arg1->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             break;
         }
     }
@@ -3052,8 +3052,8 @@ static void func_800B4754(AnimationContext* unusedContext, AnimationSlot* arg1, 
 
     limit = arg1->sets[arg2]->trackStartIndices[arg1->trackIndex];
     if (arg3 < limit) {
-        arg3         = limit;
-        arg1->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+        arg3                       = limit;
+        arg1->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
     }
     arg1->currentPose.indices.recordIndex = arg3;
     arg1->currentPose.indices.setIndex    = arg2;
@@ -3090,12 +3090,12 @@ static inline void _animationSelectPlayRecord(AnimationSlot* playbackSlot, const
         if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {
             candidateIndex = controlRecord->wordOffset;
             if (candidateIndex == playbackSlot->nextPose.indices.recordIndex) {
-                playbackSlot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+                playbackSlot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
-            playbackSlot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
+            playbackSlot->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
-            candidateIndex       = playbackSlot->nextPose.indices.recordIndex;
-            playbackSlot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
+            candidateIndex                     = playbackSlot->nextPose.indices.recordIndex;
+            playbackSlot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             break;
         }
     }

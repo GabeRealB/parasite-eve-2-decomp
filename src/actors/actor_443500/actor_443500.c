@@ -2575,7 +2575,7 @@ static void func_actor_443500_801321F0(Task* task)
         for (i = 1; i < 0x14; i++) {
             animationTickSlot(&work->rig.anim, i);
         }
-        if (gGameSession->eventState == 0 && (work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+        if (gGameSession->eventState == 0 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
             func_actor_443500_801327E0(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_443500_80158728, 0);
         }
     }
@@ -2606,7 +2606,7 @@ static void func_actor_443500_801321F0(Task* task)
                     break;
             }
         }
-        if (work->rig.slots[1].flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
+        if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
             work->field_4BA = 0;
         }
     }

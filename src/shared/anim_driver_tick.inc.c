@@ -49,7 +49,7 @@ void animDriverTick(Task* arg0)
     } else if (work->motion == 3) {
         work->frame++;
         animDriverTickSlots(arg0);
-        if (work->slots[1].flags & 2) {
+        if (work->slots[1].status.fields.flags & 2) {
             work->cueFrames++;
         }
     }

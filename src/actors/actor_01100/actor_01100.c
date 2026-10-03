@@ -2031,7 +2031,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
                 if (work->field_BA2 < 0x40) {
                     work->field_BA2 += 4;
                 }
-                if (work->slots2[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+                if (work->slots2[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
                     work->field_BA3++;
                 }
                 break;
@@ -2081,7 +2081,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
             }
             slot++;
         } while (slot < 0x15);
-        if (work->slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->field_BA9 = 1;
         }
         part               = task->extra.tmd->coords;
@@ -4085,7 +4085,7 @@ static void Actor01100_Fn07014(Enemy* enemy, Task* task, ActorsShared80138efcWor
         work->field_B8C = 0xA;
         work->field_BA8 = (u8)work->field_BA8 + 1;
     }
-    if (motion->flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
+    if (motion->status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
         work->field_B9C = 0;
         if (work->field_B92 > 0) {
             if (!(enemy->reactionFlags & ENEMY_REACTION_BUILDUP)) {

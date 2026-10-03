@@ -654,7 +654,7 @@ static void func_actor_312200_801637CC(Task* task)
         work->field_896.half = 0x10;
         func_actor_312200_80162FB4(task);
     }
-    if ((s16)work->field_892 == 0x10 && (work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if ((s16)work->field_892 == 0x10 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->field_892 = 4;
         work->field_88C = 1;
     }

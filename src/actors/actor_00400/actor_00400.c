@@ -2770,7 +2770,7 @@ static void Actor00400_Fn040DC(Task* arg0)
                 break;
             }
             fns.funcs[work->field_638](arg0);
-            work->flags_62C.half = work->slots[1].flags;
+            work->flags_62C.half = work->slots[1].status.fields.flags;
             if (work->field_644 != 4) {
                 work->field_660 = 1;
                 Actor00400_Fn02648(arg0, 1);
@@ -2941,7 +2941,7 @@ static void Actor00400_Fn04580(Task* arg0)
                 animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half = work->slots[1].flags;
+            work->flags_62C.half = work->slots[1].status.fields.flags;
             Actor00400_Fn016A4(arg0, (u8)work->field_665);
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
@@ -3088,7 +3088,7 @@ static void Actor00400_Fn04B48(Task* arg0)
                 break;
             }
             fns.funcs[work->field_638](arg0);
-            work->flags_62C.half = work->slots[1].flags;
+            work->flags_62C.half = work->slots[1].status.fields.flags;
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
             ctx2  = arg0->extra.tmd;
@@ -3223,7 +3223,7 @@ static void Actor00400_Fn04E18(Task* arg0)
                 animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half = work->slots[1].flags;
+            work->flags_62C.half = work->slots[1].status.fields.flags;
             Actor00400_Fn02648(arg0, work->field_660);
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
@@ -3952,7 +3952,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
                 animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half          = work->slots[1].flags;
+            work->flags_62C.half          = work->slots[1].status.fields.flags;
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
             ia                            = &m.matrix.rotationWords;
@@ -4134,7 +4134,7 @@ static void Actor00400_Fn070C0(Task* arg0)
                 animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
-            work->flags_62C.half          = work->slots[1].flags;
+            work->flags_62C.half          = work->slots[1].status.fields.flags;
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
             ia                            = &m.matrix.rotationWords;

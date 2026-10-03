@@ -1114,7 +1114,7 @@ static void func_actor_356100_80163508(Task* arg0)
         }
     } else {
         func_actor_356100_801633DC(arg0);
-        if (work->blendSlots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        if (work->blendSlots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->field_97A = 0;
         }
     }

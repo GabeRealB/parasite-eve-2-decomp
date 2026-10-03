@@ -487,7 +487,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
             animationTickSlot(&work->rig.anim, i);
         }
         if (work->field_500 != 0) {
-            if (work->rig.slots[1].flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
+            if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
                 if (gGameSession->location.loc.view == 2) {
                     SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
                 } else {

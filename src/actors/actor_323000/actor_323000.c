@@ -3303,7 +3303,7 @@ static void func_actor_323000_8016409C(Enemy* enemy, Task* task)
         return;
     }
     desertChaserAnimTick(task);
-    if (work->slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         if (work->field_82E == 0xF) {
             work->field_828 = 2;
             work->field_82E = 0x10;

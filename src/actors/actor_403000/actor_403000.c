@@ -4252,7 +4252,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
         } while (tickIndex < 0x18);
     } else {
         func_actor_403000_801336B4(arg0);
-        if (work->blendSlots[1].flags & ANIMATION_SLOT_SETTLED) {
+        if (work->blendSlots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
             work->field_AC2 = 0;
         }
     }

@@ -1608,7 +1608,7 @@ static void func_actor_110600_80134728(Task* arg0)
         } while (tickIndex < 0x13);
     } else {
         func_actor_110600_80134438(arg0);
-        if (work->blendSlots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        if (work->blendSlots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->field_88E = 0;
         }
     }

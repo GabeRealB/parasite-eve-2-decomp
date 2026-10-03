@@ -625,7 +625,7 @@ void func_actor_120500_8013241C(Task* arg0)
 
     i = 1;
 loop_slots:
-    if ((slotsWork->rig.slots[(u16)i].flags & ANIMATION_SLOT_REACHED_BOUNDARY) != 0) {
+    if ((slotsWork->rig.slots[(u16)i].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) != 0) {
         i++;
         if ((u16)i < 0x14U) {
             goto loop_slots;

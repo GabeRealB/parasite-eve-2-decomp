@@ -2270,7 +2270,7 @@ static void func_actor_400600_801337A8(Task* arg0)
             func_actor_400600_80137840(arg0);
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryTickAnimInline(arg0);
-            work->field_710.h.flags = work->slots[1].flags;
+            work->field_710.h.flags = work->slots[1].status.fields.flags;
             stalkerZebraIvoryApplyRotationInline(arg0);
             func_actor_400600_80136968(arg0);
             if (enemy->hp <= 0 && (u8)work->holding == 0) {

@@ -2009,7 +2009,7 @@ static void func_actor_401300_80133A3C(Task* arg0)
         Actor401300_TickAnim(arg0);
     } else {
         func_actor_401300_80133324(arg0);
-        if (((Actor401300AnimWork*)work)->blend.slots[1].flags & ANIMATION_SLOT_SETTLED) {
+        if (((Actor401300AnimWork*)work)->blend.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
             work->field_89E = 0;
         }
     }

@@ -1120,7 +1120,7 @@ static void Actor01900_Fn01C94(Task* arg0)
         } while (i4 < 0x13);
     } else {
         Actor01900_Fn01950(arg0);
-        if (work->blend.slots[1].flags & ANIMATION_SLOT_SETTLED) {
+        if (work->blend.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
             work->field_89A = 0;
         }
     }

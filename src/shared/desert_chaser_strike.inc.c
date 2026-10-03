@@ -59,7 +59,7 @@ void desertChaserStrike(Task* arg0)
     state = work->field_82E;
     switch (state) {
         case 5:
-            if (work->slots[1].flags & 0x100) {
+            if (work->slots[1].status.fields.flags & 0x100) {
                 actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, vec);
                 outside = actorOutsideRadius(vec, 2000);
                 if (outside) {

@@ -1788,7 +1788,7 @@ static s32 func_actor_121300_80132818(Task* arg0)
     i    = 1;
     done = 1;
     for (; i < 0x13; i++) {
-        if (!(work->rig.slots[i].flags & ANIMATION_SLOT_SETTLED)) {
+        if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
             goto fail;
         }
     }

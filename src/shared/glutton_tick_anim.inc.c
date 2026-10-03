@@ -61,7 +61,7 @@ void gluttonTickAnim(Task* arg0)
         }
     } else {
         gluttonTickBlended(arg0);
-        if (work->slots1[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        if (work->slots1[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->field_7B1 = 0;
         }
     }

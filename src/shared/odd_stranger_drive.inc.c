@@ -104,7 +104,7 @@ void oddStrangerDrive(Task* arg0)
         } while (tickIndex < 0x13);
     } else {
         oddStrangerTickBlended(arg0);
-        if (work->blend.slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        if (work->blend.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->field_89A = 0;
         }
     }

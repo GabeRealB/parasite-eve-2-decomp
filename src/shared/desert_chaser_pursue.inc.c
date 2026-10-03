@@ -250,7 +250,7 @@ void desertChaserPursue(Task* arg0)
     if (work->field_8 > work->poseVy) {
         state = work->field_82E;
         if (state == 2) {
-            if ((abs(scratch->targetYaw) < 0x80) || (work->slots[1].flags & ANIMATION_SLOT_SETTLED)) {
+            if ((abs(scratch->targetYaw) < 0x80) || (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
                 work->field_82E = 3;
                 work->field_828 = state;
                 pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);

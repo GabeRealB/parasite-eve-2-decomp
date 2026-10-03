@@ -4906,7 +4906,7 @@ void Gp_TickActorAnimState(Task* arg0)
             break;
         case 8:
             if (rec != NULL) {
-                flags = actor->animationSlots[1].flags;
+                flags = actor->animationSlots[1].status.fields.flags;
                 if ((flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (flags & ANIMATION_SLOT_FOLLOWED_JUMP)) {
                     actor->statePhase++;
                     func_801066DC(arg0, 0);
@@ -6757,7 +6757,7 @@ s32 func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     ret   = 0;
     for (i = actor->animationSlotCount - 1; i > 0; i--) {
         // Any part not holding its boundary pose means the clip is still running.
-        if ((actor->animationSlots[i].flags & ANIMATION_SLOT_SETTLED) == 0) {
+        if ((actor->animationSlots[i].status.fields.flags & ANIMATION_SLOT_SETTLED) == 0) {
             ret = 1;
             break;
         }
@@ -6771,7 +6771,7 @@ s32 func_80105894(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
     slot = &((GameActor*)arg0->work)->animationSlots[(u32)arg1];
     // Inside a segment: not holding the boundary, and this tick followed no jump.
-    return (slot->flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) == 0;
+    return (slot->status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) == 0;
 }
 
 s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg)

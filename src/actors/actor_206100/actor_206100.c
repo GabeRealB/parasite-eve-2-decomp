@@ -2061,7 +2061,7 @@ static void func_actor_206100_8014C458(Task* task)
             for (i = 1; i < 0xF; i++) {
                 animationTickSlot(&anim->anim, i);
             }
-            work->flags_514.parts.half = work->slots[1].flags;
+            work->flags_514.parts.half = work->slots[1].status.fields.flags;
             func_actor_206100_8014B0AC(task, work->field_54D);
             func_actor_206100_8014E0C0(task);
             func_actor_206100_8014EC54(task);
@@ -2862,7 +2862,7 @@ static void func_actor_206100_8014DA28(Task* task)
             for (i = 1; i < 0xF; i++) {
                 animationTickSlot(&next->anim, i);
             }
-            work->flags_514.parts.half = work->slots[1].flags;
+            work->flags_514.parts.half = work->slots[1].status.fields.flags;
             func_actor_206100_8014B0AC(task, work->field_54D);
             coord                       = task->extra.tmd->coords;
             sub                         = (Actor206100Work*)task->work;
@@ -3297,7 +3297,7 @@ static void func_actor_206100_8014E7D4(Task* task)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             states.funcs[(s16)work->field_520](task, &states);
-            work->flags_514.half = work->slots[1].flags;
+            work->flags_514.half = work->slots[1].status.fields.flags;
             coord->coord.t[0]    = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
             coord->coord.t[2]    = coord->coord.t[2] + (-coord->coord.t[2] >> 4);
             coord->coord.t[1] =

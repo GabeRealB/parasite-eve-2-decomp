@@ -30,7 +30,7 @@ void desertChaserStagger(Task* arg0)
         }
     }
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & ANIMATION_SLOT_SETTLED) {
+    if (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         if (ctx->hp > 0) {
             if (ctx->reactionFlags & ENEMY_REACTION_BUILDUP) {
                 work->field_0 = 4;

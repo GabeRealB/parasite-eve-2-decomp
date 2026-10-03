@@ -3196,11 +3196,11 @@ static void func_actor_421600_80135F6C(Task* arg0)
         return;
     }
     desertChaserAnimTick(arg0);
-    if ((work->slots[1].flags & 2) && (work->field_82E == 0xD)) {
+    if ((work->slots[1].status.fields.flags & 2) && (work->field_82E == 0xD)) {
         work->field_82E = 1;
         work->field_828 = 1;
     }
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         if (work->field_82E == 0xF) {
             work->field_828 = 2;
             work->field_82E = 0x10;
@@ -3614,7 +3614,7 @@ static void func_actor_421600_80138D24(Task* arg0)
     }
     work->field_6++;
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         work->field_0 = 2;
     }
     if (((u32)((u16)work->field_6 - 9) < 0x10) && (work->field_8 < 5)) {
@@ -3796,7 +3796,7 @@ static void func_actor_421600_8013947C(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         if (ctx->hp > 0) {
             if (ctx->reactionFlags & ENEMY_REACTION_BUILDUP) {
                 work->field_0 = 4;
@@ -4405,7 +4405,7 @@ static void func_actor_421600_8013B8E0(Task* arg0)
         desertChaserAnimTick(arg0);
     }
     desertChaserAnimTick(arg0);
-    if (temp_s1->slots[1].flags & 0x100) {
+    if (temp_s1->slots[1].status.fields.flags & 0x100) {
         arg0->extra.tmd->coords->coord.t[0]   = -0x334;
         arg0->extra.tmd->coords->coord.t[1]   = 0;
         arg0->extra.tmd->coords->coord.t[2]   = -0x4C4;
@@ -5311,7 +5311,7 @@ static void func_actor_421600_8013E9D8(Task* arg0)
         return;
     }
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         state = work->actorId.word & 0xFFFFFF;
         if (state == 0x11402) {
             state = 5;
@@ -5344,7 +5344,7 @@ static void func_actor_421600_8013EAAC(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         work->field_0 = 0x1C;
     }
 }
@@ -5369,7 +5369,7 @@ static void func_actor_421600_8013EB7C(Task* arg0)
         desertChaserAnimTick(arg0);
     }
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
+    if (work->slots[1].status.fields.flags & 0x100) {
         work->field_0 = 2;
     }
 }

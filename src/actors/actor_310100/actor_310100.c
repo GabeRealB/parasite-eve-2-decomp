@@ -711,7 +711,7 @@ static s32 func_actor_310100_80161E24(Task* task)
         animationTickSlot(&work->rig.anim, i & 0xFFFF);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
-    return work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY;
+    return work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY;
 }
 
 static void func_actor_310100_80161F80(Task* task)

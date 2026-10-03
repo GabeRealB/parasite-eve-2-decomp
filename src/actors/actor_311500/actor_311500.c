@@ -359,7 +359,7 @@ static inline u16 _actor311500TickAnim(Task* task)
         animationTickSlot(&work->rig.anim, i & 0xFFFF);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
-    if (work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
     }
     return 0;
