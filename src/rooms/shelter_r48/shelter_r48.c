@@ -79,13 +79,13 @@ s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 void    func_80132F58(s32 arg0);
 
-extern TaskDesc D_8014B958;
-extern TaskDesc D_8014B964;
-extern s32      D_8014BD48;
-extern s32      D_8014C288;
-extern s32      D_8014C540;
-extern s32      D_8014CAF8;
-extern s32      D_8014D158;
+extern TaskDesc   D_8014B958;
+extern TaskDesc   D_8014B964;
+extern EvsCommand D_8014BD48[];
+extern EvsCommand D_8014C288[];
+extern EvsCommand D_8014C540[];
+extern EvsCommand D_8014CAF8[];
+extern EvsCommand D_8014D158[];
 
 /// The room's message table, installed on the room task.
 extern TaskMessageEntry D_shelter_r48_80182FB8[];
@@ -2174,10 +2174,10 @@ s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, TaskMessa
 s32 func_shelter_r48_8017E0EC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     if (GameFlag_GetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE) == 1) {
-        func_800E8614(&D_8014D158, 0);
+        func_800E8614(D_8014D158, 0);
         GameFlag_SetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 2);
     } else {
-        func_800E8634(&D_8014C540, 0, &D_8014CAF8);
+        func_800E8634(D_8014C540, 0, D_8014CAF8);
         Task_SpawnFromTable(&D_8014B964, 0, 0, 0);
         Task_SpawnFromTable(&D_8014B964, 0, 1, 0);
         Task_SpawnFromTable(&D_8014B964, 0, 3, 0);
@@ -2191,7 +2191,7 @@ static void func_shelter_r48_8017E1A4(Task* arg0)
     arg0->msgTable = D_shelter_r48_80182FB8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_80132F58(0);
-    func_800E8634(&D_8014BD48, 0, &D_8014C288);
+    func_800E8634(D_8014BD48, 0, D_8014C288);
     GameFlag_SetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 1);
     arg0->state = (s32)(arg0->state + 1);
 }

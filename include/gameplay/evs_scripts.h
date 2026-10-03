@@ -11,9 +11,9 @@ extern u8 D_801156F9;
 
 Task* Gp_LookupSlot4(s32 arg0);
 
-void func_800E8614(GpEvsAddress arg0, s32 arg1);
+void func_800E8614(EvsCommand* arg0, s32 arg1);
 
-void func_800E8634(GpEvsAddress arg0, s32 arg1, GpEvsAddress arg2);
+void func_800E8634(EvsCommand* arg0, s32 arg1, EvsCommand* arg2);
 
 void Gp_ShakeTask(Task* arg0);
 

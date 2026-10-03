@@ -46,8 +46,8 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern AreaApplyRec D_neo_ark_garden_80182BF8[];
 
-extern s32 D_801334EC;
-extern s32 D_80133954;
+extern EvsCommand D_801334EC[];
+extern EvsCommand D_80133954[];
 
 extern AreaResource D_neo_ark_garden_80182AE8[2];
 extern AreaResource D_neo_ark_garden_80182B00[2];
@@ -181,7 +181,7 @@ static void func_neo_ark_garden_8017E9B4(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     // Match arrival warp 3 and placement variant 2 as one halfword.
     if (*(u16*)&gGameSession->location.loc.warp == ((2 << 8) | 3)) {
-        func_800E8634(&D_801334EC, 0, &D_80133954);
+        func_800E8634(D_801334EC, 0, D_80133954);
         func_800E3FAC(0xA2, 0x34);
     }
     arg0->state = (s32)(arg0->state + 1);

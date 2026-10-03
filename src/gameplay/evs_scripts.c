@@ -127,7 +127,7 @@ u8 D_801156CD;
 
 u8 D_801156CE;
 
-GpEvsAddress D_801156D0;
+EvsCommand* D_801156D0;
 
 ScreenFade D_801156D4;
 
@@ -205,7 +205,7 @@ static inline void _evsCancelSecondaryFade(Task* task)
 
 static void Gp_ScriptTaskState1(Task* arg0)
 {
-    GpEvsAddress         continuation;
+    EvsCommand*          continuation;
     _EvsInterpreterWork* work;
     AnimationPlayRequest rec;
     SVECTOR              vec;
@@ -222,15 +222,15 @@ static void Gp_ScriptTaskState1(Task* arg0)
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
 
-    if (Pad_CheckFlag800() != 0 && D_801156D0.address != 0 && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_801156F0 == 0) {
+    if (Pad_CheckFlag800() != 0 && D_801156D0 != NULL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_801156F0 == 0) {
         if (D_801156F4.sceneKey != NULL) {
             CdCmd_CancelReplaceAndActivate();
         }
         D_801156A4               = 0;
-        continuation.address     = D_801156D0.address;
+        continuation             = D_801156D0;
         work->waitFrames         = 0;
-        D_801156D0.address       = 0;
-        work->command            = continuation.commands;
+        D_801156D0               = NULL;
+        work->command            = continuation;
         D_80115688               = 1;
         gGameSession->evtSkipped = 1;
         if (D_801156CC != 0) {
@@ -625,7 +625,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET:
-                D_801156D0.commands = work->command->operand0.commands;
+                D_801156D0 = work->command->operand0.commands;
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND:
@@ -703,18 +703,18 @@ void Gp_SndFadeTask(Task* arg0)
     }
 }
 
-void func_800E8614(GpEvsAddress arg0, s32 arg1)
+void func_800E8614(EvsCommand* arg0, s32 arg1)
 {
-    func_800E8634(arg0, arg1, 0);
+    func_800E8634(arg0, arg1, NULL);
 }
 
-void func_800E8634(GpEvsAddress arg0, s32 arg1, GpEvsAddress arg2)
+void func_800E8634(EvsCommand* arg0, s32 arg1, EvsCommand* arg2)
 {
     gGameSession->eventState = 1;
     gGameSession->evtSkipped = 0;
     D_8010FBE0               = 0;
     D_8010FBE4               = 0;
-    D_801156D0.address       = arg2.address;
+    D_801156D0               = arg2;
     D_801156C9               = 0;
     D_801156CC               = 0;
     D_801156F0               = 5;
@@ -723,7 +723,7 @@ void func_800E8634(GpEvsAddress arg0, s32 arg1, GpEvsAddress arg2)
     D_801156F8               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     D_801156EC               = gPlayerStatus.weapon;
     SndEvt_EnqueueType7(0xFF0D, 1);
-    Task_Spawn(9, 7, arg1, arg0.address);
+    Task_Spawn(9, 7, arg1, arg0);
 }
 
 Task* Gp_LookupSlot4(s32 arg0)

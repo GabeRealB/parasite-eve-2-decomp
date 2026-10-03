@@ -15,8 +15,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-extern s32 D_80133898;
-extern s32 D_801341E0;
+extern EvsCommand D_80133898[];
+extern EvsCommand D_801341E0[];
 /// The room's message table, published in `Task::msgTable` for
 /// `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF and 0x13F0.
 extern TaskMessageEntry D_dryfield_night_r08_80180544[];
@@ -76,7 +76,7 @@ static void func_dryfield_night_r08_8017D630(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Gp_SetStreamBuf((u8*)Fs_ActorLoadBase1 + 0x20000);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        func_800E8634(&D_80133898, 0, &D_801341E0);
+        func_800E8634(D_80133898, 0, D_801341E0);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

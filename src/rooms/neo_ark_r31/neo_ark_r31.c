@@ -31,8 +31,8 @@
 
 /// Room message handler table installed into `Task::msgTable`.
 extern TaskMessageEntry D_neo_ark_r31_8017D9F4[];
-extern s32              D_80133F90;
-extern s32              D_80134470;
+extern EvsCommand       D_80133F90[];
+extern EvsCommand       D_80134470[];
 
 s32  func_neo_ark_r31_8017D8B0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_r31_8017D8B8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -241,7 +241,7 @@ static void func_neo_ark_r31_8017D90C(Task* arg0)
     arg0->msgTable = D_neo_ark_r31_8017D9F4;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    func_800E8634(&D_80133F90, 0, &D_80134470);
+    func_800E8634(D_80133F90, 0, D_80134470);
     arg0->state = (s32)(arg0->state + 1);
 }
 

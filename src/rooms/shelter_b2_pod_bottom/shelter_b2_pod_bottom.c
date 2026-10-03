@@ -32,8 +32,8 @@
 
 void func_80162B0C(s32);
 
-extern u8               D_80165F48;
-extern u8               D_80166848;
+extern EvsCommand       D_80165F48[];
+extern EvsCommand       D_80166848[];
 extern TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[];
 
 static void func_shelter_b2_pod_bottom_8017D648(Task* arg0);
@@ -1029,7 +1029,7 @@ static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         func_80162B0C(0);
-        func_800E8634(&D_80165F48, 0, &D_80166848);
+        func_800E8634(D_80165F48, 0, D_80166848);
     } else {
         msg.context.loc.stage = 0;
         msg.context.loc.area  = 0;

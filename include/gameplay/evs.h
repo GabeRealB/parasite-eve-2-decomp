@@ -176,12 +176,4 @@ typedef struct EvsCommand {
 } EvsCommand;
 STATIC_ASSERT_SIZEOF(EvsCommand, 0x18);
 
-/// Event-script entry points and serialized command operands share one word.
-typedef union GpEvsAddress {
-    s32         address;
-    EvsCommand* commands;
-    void*       storage;
-} GpEvsAddress __attribute__((transparent_union));
-STATIC_ASSERT_SIZEOF(GpEvsAddress, 4);
-
 #endif // GAMEPLAY_EVS_H

@@ -57,8 +57,8 @@ STATIC_ASSERT_SIZEOF(Actor503500EffWork, 0xC);
 extern SVECTOR D_actor_503500_8014B97C[];
 
 extern TaskDesc D_actor_503500_8014B964[];
-/// Opaque script/table blobs in the overlay's `.data`, handed to
-/// `func_800E8634` (which forwards them to `Task_Spawn`) as raw addresses.
+/// Event scripts in the overlay's `.data`, handed to `func_800E8634` (which
+/// forwards the first to `Task_Spawn`).
 extern EvsCommand D_actor_503500_8014CD98[];
 extern EvsCommand D_actor_503500_8014D098[];
 

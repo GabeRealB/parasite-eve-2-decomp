@@ -345,7 +345,7 @@ typedef struct {
     void (*funcs[4])(void);
 } Actor403100VoidTable4;
 extern Actor403100RectEntry D_actor_403100_80155638[];
-extern s32                  D_80166098;
+extern EvsCommand           D_80166098[];
 static s32                  func_actor_403100_8013D9C4(s16 x, s16 z, Actor403100RectEntry* regions);
 
 // Only the leading value has established accesses. Preserve the following
@@ -3196,7 +3196,7 @@ extern AnimationSet* D_actor_403100_8015572C[26];
 
 extern Actor403100QuadEntry D_actor_403100_801557E0[2];
 
-extern u8 D_80165FC0;
+extern EvsCommand D_80165FC0[];
 
 static void func_actor_403100_801326DC(Actor403100Work* work);
 
@@ -5456,7 +5456,7 @@ static void func_actor_403100_80136830(Task* arg0)
                     D_actor_403100_8015580C->reactionFlags = 0;
                     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                     D_actor_403100_8015580C->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
-                    func_800E8614(&D_80166098, 0);
+                    func_800E8614(D_80166098, 0);
                     arg0->state                        = 1;
                     D_actor_403100_80155808->field_5F8 = 0;
                     D_actor_403100_80155808->field_5FA = 0;
@@ -8187,7 +8187,7 @@ static void func_actor_403100_8013D8F4(Task* arg0)
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
-    func_800E8614(&D_80165FC0, 0);
+    func_800E8614(D_80165FC0, 0);
     arg0->state                        = 1;
     D_actor_403100_80155808->field_5F8 = 0;
     D_actor_403100_80155808->field_5FA = 0;

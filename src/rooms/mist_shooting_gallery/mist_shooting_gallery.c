@@ -154,10 +154,10 @@ extern void func_8014AB6C(void);
 extern void func_8014AF0C(void);
 extern void func_8014C5E0(s32, s32, s32);
 
-extern s32      D_8014D038;
-extern TaskDesc D_8014E13C;
-extern s32      D_80153274;
-extern s32      D_80153D6C;
+extern s32        D_8014D038;
+extern TaskDesc   D_8014E13C;
+extern EvsCommand D_80153274[];
+extern EvsCommand D_80153D6C[];
 
 /// Screen-fade "overlay owns the display" flag, first byte of the flag block
 /// at 0x80071068. Declared as an array on purpose: GCC 2.8.1 exempts a
@@ -2011,7 +2011,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, TaskMessageArg fi
     if ((request->actionId == 4) && (GameFlag_GetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
         func_800E3FAC(0xA2, 0x3B);
         GameFlag_SetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN, 1);
-        func_800E8634(&D_80153274, 0, &D_80153D6C);
+        func_800E8634(D_80153274, 0, D_80153D6C);
     }
     return 0;
 }

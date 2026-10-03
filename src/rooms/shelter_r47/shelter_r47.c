@@ -64,15 +64,15 @@
 
 extern UiObjectDesc D_800611E4;
 
-extern s32 D_801350BC;
-extern s32 D_801359D4;
-extern s32 D_8014152C;
-extern s32 D_80141C1C;
-extern s32 D_80141D9C;
-extern s32 D_80142A74;
-extern s32 D_80142C24;
-extern s32 D_801432FC;
-extern s32 D_80143494;
+extern EvsCommand D_801350BC[];
+extern EvsCommand D_801359D4[];
+extern EvsCommand D_8014152C[];
+extern EvsCommand D_80141C1C[];
+extern EvsCommand D_80141D9C[];
+extern EvsCommand D_80142A74[];
+extern EvsCommand D_80142C24[];
+extern EvsCommand D_801432FC[];
+extern EvsCommand D_80143494[];
 
 /// `clutX` value that ends a sprite's piece list. That record is not drawn.
 enum { SHELTER_R47_SPRITE_PART_END = 0xFFFF };
@@ -580,7 +580,7 @@ static void func_shelter_r47_8017FCC0(Task* task)
             break;
         case 2:
             if (gGameSession->cutsceneHold == 0) {
-                func_800E8634(&D_80141D9C, 0, &D_80142A74);
+                func_800E8634(D_80141D9C, 0, D_80142A74);
                 GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 3);
             }
             break;
@@ -595,7 +595,7 @@ static void func_shelter_r47_8017FCC0(Task* task)
             break;
         case 4:
             if (gGameSession->cutsceneHold == 0) {
-                func_800E8634(&D_80142C24, 0, &D_801432FC);
+                func_800E8634(D_80142C24, 0, D_801432FC);
                 GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 5);
             }
             break;
@@ -630,7 +630,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, T
                     func_800E3FAC(0xA2, 0x2B);
                     GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                     GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 5);
-                    func_800E8634(&D_8014152C, 0, &D_80141C1C);
+                    func_800E8634(D_8014152C, 0, D_80141C1C);
                     GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 1);
                     if (GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_165) == 0) {
                         flag_a = 0x165;
@@ -642,7 +642,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, T
                 break;
             case 4:
                 if ((GameFlag_GetNibble(GAME_FLAG_083) == 1) && (GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) >= 4)) {
-                    func_800E8614(&D_80143494, 0);
+                    func_800E8614(D_80143494, 0);
                 }
                 break;
             case 5:
@@ -672,7 +672,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, T
             if (kind < 4) {
                 if ((kind == 1) && (GameFlag_GetNibble(GAME_FLAG_083) == 0) && (GameFlag_GetNibble(GAME_FLAG_SHELTER_R47_080) == 0)) {
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        func_800E8634(&D_801350BC, 0, &D_801359D4);
+                        func_800E8634(D_801350BC, 0, D_801359D4);
                     }
                     func_800E3FAC(0xA2, 0x2A);
                     GameFlag_SetNibble(GAME_FLAG_SHELTER_R47_080, 1);

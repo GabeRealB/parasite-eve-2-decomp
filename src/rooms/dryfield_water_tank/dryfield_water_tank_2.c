@@ -100,7 +100,7 @@ extern AnimationSet* D_dryfield_water_tank_801804EC[2];
 /// The placement the room sends the player task with message 0x3E9.
 extern ActorTransform D_dryfield_water_tank_801804F4;
 
-/// The two blocks `func_800E8634` is handed as raw addresses.
+/// The two event scripts `func_800E8634` is handed.
 extern EvsCommand D_dryfield_water_tank_8018050C[];
 extern EvsCommand D_dryfield_water_tank_8018068C[];
 

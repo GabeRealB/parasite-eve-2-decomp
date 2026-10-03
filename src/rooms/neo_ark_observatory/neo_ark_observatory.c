@@ -96,12 +96,12 @@ typedef struct MapMarkerOut {
 /// room through the second.
 typedef s32 (*_MapMarkerResolve)(MapMarkerRec*, MapMarkerOut*);
 
-extern TaskDesc D_80137EE4;
-extern TaskDesc D_80138694;
-extern TaskDesc D_8013C72C;
-extern TaskDesc D_8013CAEC;
-extern TaskDesc D_8013FC58;
-extern TaskDesc D_80140078;
+extern EvsCommand D_80137EE4[];
+extern EvsCommand D_80138694[];
+extern EvsCommand D_8013C72C[];
+extern EvsCommand D_8013CAEC[];
+extern EvsCommand D_8013FC58[];
+extern EvsCommand D_80140078[];
 
 extern void func_80132220(void);
 extern void func_801322F8(void);
@@ -1654,11 +1654,11 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, TaskMessageArg first
         GameFlag_SetNibble(GAME_FLAG_0D7, 1);
         if (GameFlag_GetNibble(GAME_FLAG_083) != 0) {
             func_800E3FAC(0xA2, 0x2C);
-            func_800E8634(&D_8013C72C, 0, &D_8013CAEC);
+            func_800E8634(D_8013C72C, 0, D_8013CAEC);
         } else {
             func_800E3FAC(0xA2, 0x2D);
             GameFlag_SetNibble(GAME_FLAG_0D1, 3);
-            func_800E8634(&D_80137EE4, 0, &D_80138694);
+            func_800E8634(D_80137EE4, 0, D_80138694);
         }
     }
     if (request->actionId == 2) {
@@ -1667,7 +1667,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, TaskMessageArg first
             GameFlag_SetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
             GameFlag_SetNibble(GAME_FLAG_0E1, 1);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x15;
-            func_800E8634(&D_8013FC58, 0, &D_80140078);
+            func_800E8634(D_8013FC58, 0, D_80140078);
         }
     }
     if (request->actionId == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gGameSession->location.loc.view == 2) {

@@ -51,10 +51,10 @@
 
 /// Task descriptor table and cutscene script blobs owned by the main
 /// executable.
-extern TaskDesc D_8013B11C[];
-extern s32      D_8013B570;
-extern s32      D_8013B590;
-extern s32      D_8013C388;
+extern TaskDesc   D_8013B11C[];
+extern s32        D_8013B570;
+extern EvsCommand D_8013B590[];
+extern EvsCommand D_8013C388[];
 
 /// The 0xFFFF-terminated item id lists `func_dryfield_night_garage_8017D754`
 /// chooses from, and the one it returns when no case matches.
@@ -378,7 +378,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
         if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN) == 0) {
             Gp_FillAllyHp();
             GameFlag_SetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN, 1);
-            func_800E8634(&D_8013B590, 0, &D_8013C388);
+            func_800E8634(D_8013B590, 0, D_8013C388);
         } else {
             func_800E8614(D_dryfield_night_garage_80181C7C, 1);
         }

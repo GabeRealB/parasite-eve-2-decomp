@@ -49,8 +49,8 @@
 #include "../../shared/room_events.h"
 
 /// The pair of cutscene blocks the walkway's scene hands to `func_800E8634`.
-extern s32 D_80165354;
-extern s32 D_80165834;
+extern EvsCommand D_80165354[];
+extern EvsCommand D_80165834[];
 
 extern void func_8016268C(void);
 
@@ -783,7 +783,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, Roo
     u8 subId = in->warp;
 
     if (subId == 1 && GameFlag_GetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) == 0 && gGameSession->location.loc.variant == subId) {
-        func_800E8634(&D_80165354, 0, &D_80165834);
+        func_800E8634(D_80165354, 0, D_80165834);
         func_800E3FAC(0xA2, 0x20);
         GameFlag_SetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN, 1);
         Gp_ApplyAreaRecs(D_shelter_b2_north_maintenance_walkway_80186380);

@@ -21,8 +21,8 @@
 extern TaskDesc         D_80135E78;
 extern TaskMessageEntry D_shelter_b6_growth_room_8017F16C[];
 
-extern u8 D_80136110[];
-extern u8 D_80136308[];
+extern EvsCommand D_80136110[];
+extern EvsCommand D_80136308[];
 
 extern void func_801327A8(void);
 extern void func_80132834(void);
