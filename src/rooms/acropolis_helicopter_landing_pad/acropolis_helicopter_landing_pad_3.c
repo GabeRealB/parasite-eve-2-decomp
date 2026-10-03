@@ -738,13 +738,13 @@ static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0)
 
 static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 {
-    GpFacingArg args;
-    Task*       slot;
+    GameActorStairClimb climb;
+    Task*               slot;
 
-    slot         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    args.field_0 = 1;
-    args.field_4 = 3;
-    TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3EF, &args, 0);
+    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    climb.descend   = 1;
+    climb.stepCount = 3;
+    TASK_MESSAGE_DISPATCH_POINTER(slot, GAME_ACTOR_MESSAGE_CLIMB_STAIRS, &climb, 0);
     arg0->state = arg0->state + 1;
 }
 

@@ -271,7 +271,7 @@ typedef struct {
         s32                (*call1)(Task*, s32, ActorTransform*);
         s32                (*transform)(Task*, s32, ActorTransform*, s32);
         TaskMessageHandler call2;
-        s32                (*call3)(Task*, s32, GpFacingArg*);
+        s32                (*call3)(Task*, s32, GameActorStairClimb*);
         s32                (*call4)(Task*);
         s32                (*call5)(Task*, s32, s32);
         s32                (*coord)(Task*, s32, GfxCoord*);
@@ -429,7 +429,7 @@ s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request);
 /// an event clears flag 0x2000 on the actor's first object.
 static inline void _gpSwitchToPlayerMode2(Task* arg0);
 
-s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2);
+s32 func_80104F5C(Task* arg0, s32 arg1, GameActorStairClimb* climb);
 
 s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
@@ -937,7 +937,7 @@ GpPlayerMessageEntry Gp_PlayerMsgTable[28] = {
     { 1004, { .call0 = func_80104508 } },
     { ANIMATION_MESSAGE_IS_PLAYING, { .call2 = func_8010583C } },
     { GAME_ACTOR_MESSAGE_TURN_TO_YAW, { .transform = func_80104E00 } },
-    { 1007, { .call3 = func_80104F5C } },
+    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, { .call3 = func_80104F5C } },
     { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, { .call4 = func_80105828 } },
     { GAME_ACTOR_MESSAGE_END_SCRIPTED, { .call2 = Gp_EnterActorMode2 } },
     { GAME_ACTOR_MESSAGE_MOVE_TO, { .call6 = Gp_SetActorDest } },
@@ -6392,7 +6392,7 @@ s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg
     return 0;
 }
 
-s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2)
+s32 func_80104F5C(Task* arg0, s32 arg1, GameActorStairClimb* climb)
 {
     GameActor*    actor;
     PlayerStatus* p;
@@ -6422,10 +6422,10 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2)
     actor->state                   = 3;
     actor->scriptedMotionPending   = 1;
     actor->pendingCollisionUpdates = 0x38;
-    actor->jumpVariant             = arg2->field_0;
-    actor->scriptMotion.jumpSteps  = arg2->field_4;
+    actor->jumpVariant             = climb->descend;
+    actor->scriptMotion.jumpSteps  = climb->stepCount;
     mode                           = 0x24;
-    if (arg2->field_0 != 0) {
+    if (climb->descend != 0) {
         mode = 0x25;
     }
     Gp_AnimPlayChildSlots(arg0, mode, 0);

@@ -1393,13 +1393,13 @@ static void func_acropolis_fountain_8017DB00(Task* arg0)
 
 static void func_acropolis_fountain_8017DB54(Task* arg0)
 {
-    GpFacingArg args;
-    Task*       slot;
+    GameActorStairClimb climb;
+    Task*               slot;
 
-    slot         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    args.field_0 = 0;
-    args.field_4 = 1;
-    TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3EF, &args, 0);
+    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    climb.descend   = 0;
+    climb.stepCount = 1;
+    TASK_MESSAGE_DISPATCH_POINTER(slot, GAME_ACTOR_MESSAGE_CLIMB_STAIRS, &climb, 0);
     arg0->state = arg0->state + 1;
 }
 

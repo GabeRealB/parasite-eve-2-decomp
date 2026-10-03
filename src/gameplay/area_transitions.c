@@ -691,13 +691,13 @@ static void Gp_MsgPlayer3F0(void)
 
 static void Gp_MsgPlayer3EF(void)
 {
-    GpFacingArg sp;
-    Task*       playerTask;
+    GameActorStairClimb climb;
+    Task*               playerTask;
 
-    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    sp.field_0 = (Gp_DirFlags >> 8) & 1;
-    sp.field_4 = Gp_DirByte & 0xF;
-    TASK_MESSAGE_DISPATCH_POINTER(playerTask, 0x3EF, &sp, 0);
+    playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    climb.descend   = (Gp_DirFlags >> 8) & 1;
+    climb.stepCount = Gp_DirByte & 0xF;
+    TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_CLIMB_STAIRS, &climb, 0);
     Gp_DirAltNibble = 0;
     Gp_DirAlt       = 0;
     D_80114CD4      = 0;

@@ -217,6 +217,11 @@ enum {
     /// Takes scripted control and turns the receiver to the yaw of a borrowed
     /// `ActorTransform`, playing the turn animation for that direction. Returns 0.
     GAME_ACTOR_MESSAGE_TURN_TO_YAW = 0x3EE,
+    /// Takes scripted control and walks the player up or down the flight of
+    /// steps a borrowed `GameActorStairClimb` describes. Returns 0. Only the
+    /// player implements it: the companions bind the id to their generic
+    /// animation handler, which reads the payload as an `AnimationPlayRequest`.
+    GAME_ACTOR_MESSAGE_CLIMB_STAIRS = 0x3EF,
     /// Returns nonzero while a scripted turn, walk or timed state is still pending.
     GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING = 0x3F0,
     /// Ends scripted control and restores the equipped weapon's animation bank
@@ -453,14 +458,23 @@ typedef struct {
 } GameActorMoveBy;
 STATIC_ASSERT_SIZEOF(GameActorMoveBy, 0x14);
 
-/// The payload of message 0x3EF, which stops the receiver where it is and
-/// plays one of two animations: `field_0` non-zero picks the second. The
-/// receiver keeps both words in its own state; senders fill them as two words.
-typedef struct GpFacingArg {
-    s32 field_0;
-    s32 field_4;
-} GpFacingArg;
-STATIC_ASSERT_SIZEOF(GpFacingArg, 8);
+/// Payload of `GAME_ACTOR_MESSAGE_CLIMB_STAIRS`: a walk up or down a flight of steps.
+///
+/// The player moves along its facing direction pitched 0x180 (of 4096 per
+/// turn) upward or downward, in one burst per sounded footstep of the stair
+/// clip, and returns to its standing clip after `stepCount` of them. The
+/// receiver neither turns nor repositions first, so the sender faces it at
+/// the flight beforehand; an ascent picks its final clip from the parity of
+/// `stepCount`. Senders pass at least 1: an ascent treats a smaller count as
+/// 1, and a descent only ends once its countdown reads exactly zero.
+///
+/// The receiver copies both words through synchronous dispatch and does not
+/// keep the record, which occupies eight bytes with four-byte alignment.
+typedef struct {
+    s32 descend;   // Direction (0 climbs, nonzero descends); the receiver keeps the low halfword
+    s32 stepCount; // Steps in the flight, one per sounded footstep; the receiver keeps the low halfword
+} GameActorStairClimb;
+STATIC_ASSERT_SIZEOF(GameActorStairClimb, 8);
 
 /// Optional clips for a scripted move of the player or a companion.
 ///
