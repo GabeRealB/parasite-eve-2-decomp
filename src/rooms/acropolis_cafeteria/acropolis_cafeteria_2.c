@@ -60,32 +60,32 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/actor_contacts.h"
 
-/// 0xD8 work block the falling-debris task keeps at `Task::work`
-/// (`memCalloc(0xD8)` in `func_acropolis_cafeteria_801818DC`, released by
-/// `func_acropolis_cafeteria_80181E3C` through `Gp_UnlinkObj`).
+/// Phases of the loose-prop task, held in `_AcropolisCafeteriaLoosePropWork::phase`.
+enum {
+    ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING,  // Waiting for anything to touch the body
+    ACROPOLIS_CAFETERIA_LOOSE_PROP_HOPPING,  // Knocked upwards: the lift wears off while the prop spins and slides
+    ACROPOLIS_CAFETERIA_LOOSE_PROP_SLIDING,  // Horizontal speed decaying to a stop
+    ACROPOLIS_CAFETERIA_LOOSE_PROP_SETTLING, // Pitch and roll decaying to level, then resting again
+};
+
+/// Work block of the cafeteria's loose-prop task, kept at `Task::work`.
 ///
-/// It opens with the `WorldCollisionBody` list node linked onto `Gp_ObjLists[4]`, whose
-/// `field_C` points at the six `WorldCollisionContact` slots that follow it in the same
-/// block. `field_B0` is the spawn-time random seed / countdown
-/// (`(rand() & 0xFFF) + 0x3000`, decremented every frame);
-/// `field_B4` / `field_B8` / `field_BC` are the per-axis velocities added into
-/// the object's coordinate; `field_C4` is the rotation handed to `RotMatrix`
-/// and `field_CC` the normalised surface direction from `gfxReadMatrixZAxis` /
-/// `VectorNormalSS`; `field_D4` is the task's own sub-state.
-typedef struct AcropolisCafeteriaDebris {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact slots[6];
-    /* 0xB0 */ s32                   field_B0;
-    /* 0xB4 */ s32                   field_B4;
-    /* 0xB8 */ s32                   field_B8;
-    /* 0xBC */ s32                   field_BC;
-    /* 0xC0 */ byte                  pad_C0[4];
-    /* 0xC4 */ SVECTOR               field_C4;
-    /* 0xCC */ SVECTOR               field_CC;
-    /* 0xD4 */ u16                   field_D4;
-    /* 0xD6 */ byte                  pad_D6[2];
-} AcropolisCafeteriaDebris;
-STATIC_ASSERT_SIZEOF(AcropolisCafeteriaDebris, 0xD8);
+/// The prop is a small model set down above and ahead of the player. It sinks
+/// at a constant rate every frame, and whenever its collision sphere touches
+/// another body it is knocked away along the player's facing with a hop and a
+/// tumble, slides to a stop and levels out before it can be knocked again.
+/// The block owns the body and the contact table the body borrows, so the
+/// task's exit unlinks the body before the block is freed.
+typedef struct {
+    WorldCollisionBody    body;          // Sphere linked into the world's collision lists
+    WorldCollisionContact contacts[6];   // Contact table the body borrows; emptied after every update
+    s32                   kickStrength;  // Random 0x3000..0x3FFF at set-up, one less every frame; scales the launch speed and the spin
+    VECTOR                velocity;      // World units added to the prop's position per frame; `vy` is the hop on top of the constant sink
+    SVECTOR               rotation;      // Euler angles (4096 per turn) the model's rotation is rebuilt from every frame
+    SVECTOR               kickDirection; // Player's forward axis at the contact, normalised to 4096
+    u16                   phase;         // An `ACROPOLIS_CAFETERIA_LOOSE_PROP_*` phase
+} _AcropolisCafeteriaLoosePropWork;
+STATIC_ASSERT_SIZEOF(_AcropolisCafeteriaLoosePropWork, 0xD8);
 
 extern MATRIX  D_acropolis_cafeteria_8018D5A0;
 extern MATRIX  D_acropolis_cafeteria_8018D5C0;
@@ -1371,14 +1371,14 @@ void func_acropolis_cafeteria_80180C94(Task* task)
 
 static void func_acropolis_cafeteria_801818DC(Task* task)
 {
-    TmdObject*                obj;
-    GfxCoord*                 coord;
-    AcropolisCafeteriaDebris* work;
-    GfxCoord*                 player;
+    TmdObject*                        obj;
+    GfxCoord*                         coord;
+    _AcropolisCafeteriaLoosePropWork* work;
+    GfxCoord*                         player;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    work  = memCalloc(0xD8, 0);
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(task);
         return;
@@ -1390,100 +1390,100 @@ static void func_acropolis_cafeteria_801818DC(Task* task)
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->flags          = 0;
-    RotMatrix(&work->field_C4, &coord->coord);
-    work->field_B0             = (rand() & 0xFFF) + 0x3000;
-    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-    coord->coord.t[0]          = player->coord.t[0];
-    coord->coord.t[1]          = player->coord.t[1] - 0x800;
-    coord->coord.t[2]          = player->coord.t[2] + 0x800;
-    work->obj.context.contacts = work->slots;
-    work->obj.key              = 0x50000;
-    work->obj.radius           = 0xFA;
-    work->obj.coord            = coord;
-    work->obj.pos.vx           = 0;
-    work->obj.pos.vy           = 0;
-    work->obj.pos.vz           = 0;
-    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(4, &work->obj);
-    Gp_InitRec18Table(work->obj.context.contacts, 6, 0);
-    work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    RotMatrix(&work->rotation, &coord->coord);
+    work->kickStrength          = (rand() & 0xFFF) + 0x3000;
+    player                      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    coord->coord.t[0]           = player->coord.t[0];
+    coord->coord.t[1]           = player->coord.t[1] - 0x800;
+    coord->coord.t[2]           = player->coord.t[2] + 0x800;
+    work->body.context.contacts = work->contacts;
+    work->body.key              = 0x50000;
+    work->body.radius           = 0xFA;
+    work->body.coord            = coord;
+    work->body.pos.vx           = 0;
+    work->body.pos.vy           = 0;
+    work->body.pos.vz           = 0;
+    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(4, &work->body);
+    Gp_InitRec18Table(work->body.context.contacts, ARRAY_SIZE(work->contacts), 0);
+    work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 }
 
 static void func_acropolis_cafeteria_80181A3C(Task* task)
 {
-    MATRIX*                   head;
-    AcropolisCafeteriaDebris* work;
-    GfxCoord*                 coord;
-    SVECTOR*                  direction;
-    s32                       speed;
+    MATRIX*                           head;
+    _AcropolisCafeteriaLoosePropWork* work;
+    GfxCoord*                         coord;
+    SVECTOR*                          direction;
+    s32                               speed;
 
     head                         = SCRATCH_STACK_CURSOR(MATRIX);
     SCRATCH_STACK_CURSOR(MATRIX) = head - 1;
-    work                         = (AcropolisCafeteriaDebris*)task->work;
+    work                         = task->work;
     coord                        = task->extra.tmd->coords;
-    work->field_B0--;
+    work->kickStrength--;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]  += 0x80;
     Gp_UpdateCoord(coord);
-    switch (work->field_D4) {
-        case 0:
-            if (Gp_FindRec18(work->obj.context.contacts, 0)) {
-                work->field_D4++;
+    switch (work->phase) {
+        case ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING:
+            if (Gp_FindRec18(work->body.context.contacts, 0)) {
+                work->phase++;
                 head[-1]  = coord->coord;
-                direction = &work->field_CC;
+                direction = &work->kickDirection;
                 gfxReadMatrixZAxis(gPlayerStatus.coordMtx, direction);
                 VectorNormalSS(direction, direction);
                 rand();
-                speed          = work->field_B0;
-                speed        >>= 1;
-                speed          = (speed * speed) >> 6;
-                work->field_B8 = -0x100;
-                work->field_B4 = (work->field_CC.vx * speed) >> 24;
-                work->field_BC = (work->field_CC.vz * speed) >> 24;
+                speed             = work->kickStrength;
+                speed           >>= 1;
+                speed             = (speed * speed) >> 6;
+                work->velocity.vy = -0x100;
+                work->velocity.vx = (work->kickDirection.vx * speed) >> 24;
+                work->velocity.vz = (work->kickDirection.vz * speed) >> 24;
             }
             break;
-        case 1:
-            work->field_B8 += 0x10;
-            if (work->field_B8 > 0) {
-                work->field_B8 = 0;
-                work->field_D4++;
+        case ACROPOLIS_CAFETERIA_LOOSE_PROP_HOPPING:
+            work->velocity.vy += 0x10;
+            if (work->velocity.vy > 0) {
+                work->velocity.vy = 0;
+                work->phase++;
             } else {
-                work->field_C4.vx += (work->field_B0 >> 6) + (rand() & 0x7F);
-                work->field_C4.vy += (work->field_B0 >> 6) + (rand() & 0x7F);
-                work->field_C4.vz += (work->field_B0 >> 6) + (rand() & 0x7F);
+                work->rotation.vx += (work->kickStrength >> 6) + (rand() & 0x7F);
+                work->rotation.vy += (work->kickStrength >> 6) + (rand() & 0x7F);
+                work->rotation.vz += (work->kickStrength >> 6) + (rand() & 0x7F);
             }
-        case 2:
-            work->field_B4 = (work->field_B4 * 6) / 7;
-            if (ABS(work->field_B4) < 9) {
-                work->field_B4 = 0;
+        case ACROPOLIS_CAFETERIA_LOOSE_PROP_SLIDING:
+            work->velocity.vx = (work->velocity.vx * 6) / 7;
+            if (ABS(work->velocity.vx) < 9) {
+                work->velocity.vx = 0;
             }
-            work->field_BC = (work->field_BC * 6) / 7;
-            if (ABS(work->field_BC) < 9) {
-                work->field_BC = 0;
+            work->velocity.vz = (work->velocity.vz * 6) / 7;
+            if (ABS(work->velocity.vz) < 9) {
+                work->velocity.vz = 0;
             }
-            if ((work->field_B4 | work->field_BC) == 0) {
-                work->field_D4++;
+            if ((work->velocity.vx | work->velocity.vz) == 0) {
+                work->phase++;
             }
-            coord->coord.t[0] += work->field_B4;
-            coord->coord.t[1] += work->field_B8;
-            coord->coord.t[2] += work->field_BC;
+            coord->coord.t[0] += work->velocity.vx;
+            coord->coord.t[1] += work->velocity.vy;
+            coord->coord.t[2] += work->velocity.vz;
             break;
-        case 3:
-            work->field_C4.vx = (work->field_C4.vx * 2) / 3;
-            if (ABS(work->field_C4.vx) < 9) {
-                work->field_C4.vx = 0;
+        case ACROPOLIS_CAFETERIA_LOOSE_PROP_SETTLING:
+            work->rotation.vx = (work->rotation.vx * 2) / 3;
+            if (ABS(work->rotation.vx) < 9) {
+                work->rotation.vx = 0;
             }
-            work->field_C4.vz = (work->field_C4.vz * 2) / 3;
-            if (ABS(work->field_C4.vz) < 9) {
-                work->field_C4.vz = 0;
+            work->rotation.vz = (work->rotation.vz * 2) / 3;
+            if (ABS(work->rotation.vz) < 9) {
+                work->rotation.vz = 0;
             }
-            if (((u16)work->field_C4.vx | (u16)work->field_C4.vz) == 0) {
-                work->field_D4 = 0;
+            if (((u16)work->rotation.vx | (u16)work->rotation.vz) == 0) {
+                work->phase = ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING;
             }
             break;
     }
-    RotMatrix(&work->field_C4, &coord->coord);
-    Gp_ClearRec18Occupied(work->slots);
+    RotMatrix(&work->rotation, &coord->coord);
+    Gp_ClearRec18Occupied(work->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
@@ -1494,11 +1494,14 @@ static void func_acropolis_cafeteria_80181E30(Task* arg0)
 
 static void func_acropolis_cafeteria_80181E3C(Task* arg0)
 {
-    Gp_UnlinkObj(arg0->work);
+    _AcropolisCafeteriaLoosePropWork* work;
+
+    work = arg0->work;
+    Gp_UnlinkObj(&work->body);
     taskKill(arg0);
 }
 
-/// State handlers of the falling-debris task: set-up, the per-frame update, a
+/// State handlers of the loose-prop task: set-up, the per-frame update, a
 /// step that moves the task to state 3, and the exit that unlinks and kills it.
 static const TaskFuncTable4 D_acropolis_cafeteria_8017D69C = { {
     func_acropolis_cafeteria_801818DC,
