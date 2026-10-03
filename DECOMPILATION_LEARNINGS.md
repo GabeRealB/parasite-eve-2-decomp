@@ -142027,18 +142027,18 @@ why the ROM stores `s0`. Try this before any asm when the store is late.
 
 **Symptom.** The seed kept the scratch address in a `void**` local held by
 `TOUCH_REG2`, touched a node radius three times, and put `TOUCH_REG(vec)` and
-`TOUCH_REG(block)` inside the corner and edge loops, with a hand-built
+`TOUCH_REG(scratch)` inside the corner and edge loops, with a hand-built
 `0x1F800000 | 0x3FC` on one release path. Without them, the loops hoisted
-`&block->normal/delta/cross` into saved registers and split the corner
+`&scratch->faceNormal/work.edgeDisplacement/edgePlaneNormal` into saved registers and split the corner
 pointer into two givs, and the radius sum `lhu 0x44; lhu 0x1c; addu v1,v1,v0`
 came out with its loads swapped.
 
 **Fix.** Four source changes, no pins:
-- `SCRATCH_STACK_RESERVE_BLOCK(T)` / `block = SCRATCH_STACK_CURSOR(T)` / `SCRATCH_STACK_RELEASE_BLOCK(T)` with no
+- `scratch = SCRATCH_STACK_RESERVE_BLOCK(T)` / `SCRATCH_STACK_RELEASE_BLOCK(T)` with no
   address local. CSE holds `0x1F8003FC` in `s1` for the early exits by
   itself and drops it once dead, so the late pops each build a fresh
   `lui/ori` and cross-jump to one shared `lw/addiu/sw`.
-- `&block->verts[i]` (entry [58]) and `Gp_FaceEdgePairs[i].endCornerIndex` indexed by
+- `&scratch->corners[i]` (entry [58]) and `Gp_FaceEdgePairs[i].endCornerIndex` indexed by
   the loop counter, not a walked pointer. The table's giv is what keeps the
   member addresses in the loop body; the start comes out as `addiu t3,v0,4`
   off the symbol.
@@ -144370,7 +144370,7 @@ without them loop.c strength-reduced `vec4`'s field addresses into a second
 pointer and hoisted `&block[5]`/`&block[6]`/`&block[7]`. The target's
 pointers (`a0` over the corners, `t3` over the edge table, `off` added to the
 object) are loop.c's own reductions of `for (i = 1; i < N; i++)` loops over
-`&other->vertices[i]`, `&block->verts[i]` and `Gp_FaceEdgePairs[i]`. Written that
+`&other->vertices[i]`, `&block->quad.corners[i]` and `Gp_FaceEdgePairs[i]`. Written that
 way, and with the scratch block as a struct, the body matched outright. The
 preceding function in the unit ran the same quad test hack-free, and its body
 was the template: check neighbours for the same algorithm before steering loops.

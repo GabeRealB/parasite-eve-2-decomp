@@ -84,19 +84,31 @@ typedef struct {
 } _WorldCollisionCapsuleSegmentScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionCapsuleSegmentScratch, 0x18);
 
-/// 0x98-byte scratch from the scratch stack used by `func_800DEF80`.
-/// Transformed quad corners and normal are tested against `nodePos`;
-/// `delta` and `cross` hold each edge's separating-plane calculation.
-typedef struct _GpQuadHitScratch {
-    /* 0x00 */ VECTOR  verts[4];
-    /* 0x40 */ VECTOR  world;
-    /* 0x50 */ VECTOR  normal;
-    /* 0x60 */ VECTOR  delta;
-    /* 0x70 */ VECTOR  cross;
-    /* 0x80 */ VECTOR  nodePos;
-    /* 0x90 */ SVECTOR local;
-} GpQuadHitScratch;
-STATIC_ASSERT_SIZEOF(GpQuadHitScratch, 0x98);
+/// Query-space geometry for testing a motion sphere against a trigger quad.
+///
+/// The scratch stack reserves this block for one test and releases it on
+/// every exit. The trigger's cached transform maps its origin, corner offsets
+/// and normal into the query space that holds the placed sphere centre.
+/// Positions use game units. The face normal uses 4096 per unit. The
+/// broad-phase distance check comes first; corner 0 and the normal are placed
+/// for the plane test, and the other corners only once the sphere reaches the
+/// plane from its negative side. `leveledOrigin` and
+/// `work.leveledOriginToSphere` serve the near-or-facing kind's facing gate
+/// alone. Each SDK vector's fourth component is unused and left uninitialized.
+typedef struct {
+    VECTOR corners[4];                // Query-space corners in strip order, game units
+    VECTOR origin;                    // Query-space trigger origin, which places the corners
+    VECTOR faceNormal;                // Query-space plane normal, 4096 per unit
+    union {
+        VECTOR sphereToOrigin;        // Trigger origin minus sphere centre, for the broad-phase distance
+        VECTOR leveledOriginToSphere; // Rotated leveled origin, then sphere centre minus its placed point, normalized in place
+        VECTOR edgeDisplacement;      // End corner minus start corner of the current edge
+    } work;
+    VECTOR  edgePlaneNormal;          // Separating normal of the current edge; length follows the edge
+    VECTOR  sphereCenter;             // Body's local sphere centre placed in query space, game units
+    SVECTOR leveledOrigin;            // Trigger-local origin with Y replaced by the body's height, truncated to signed 16 bits
+} _WorldCollisionTriggerSphereScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionTriggerSphereScratch, 0x98);
 
 /// Query-space geometry for testing one segment against an occluder quad.
 ///
@@ -166,9 +178,9 @@ STATIC_ASSERT_SIZEOF(GpSegmentHitScratch, 0x30);
 /// offset of the object's origin from the point the caller passes. The test
 /// goes no further unless `dir` points against the quad's normal.
 typedef struct {
-    GpQuadHitScratch quad;
-    u8               unk98[8];
-    VECTOR           dir;
+    _WorldCollisionTriggerSphereScratch quad;
+    u8                                  unk98[8];
+    VECTOR                              dir;
 } _GpQuadDirScratch;
 STATIC_ASSERT_SIZEOF(_GpQuadDirScratch, 0xB0);
 
@@ -685,35 +697,34 @@ done_search:
 
 void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other)
 {
-    GpQuadHitScratch* block;
-    s32               distSq;
-    s32               kind;
-    s32               dot;
-    s32               dist;
-    s32               tmp;
-    s32               i;
-    VECTOR *          va, *vb;
-    s16               faceDot;
+    _WorldCollisionTriggerSphereScratch* scratch;
+    s32                                  distSq;
+    s32                                  kind;
+    s32                                  dot;
+    s32                                  dist;
+    s32                                  tmp;
+    s32                                  i;
+    VECTOR *                             va, *vb;
+    s16                                  faceDot;
 
-    SCRATCH_STACK_RESERVE_BLOCK(GpQuadHitScratch);
-    block = SCRATCH_STACK_CURSOR(GpQuadHitScratch);
-    Gp_ObjWorldPosInline(node, &block->nodePos);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionTriggerSphereScratch);
+    Gp_ObjWorldPosInline(node, &scratch->sphereCenter);
     gte_SetRotMatrix(&other->coord->workm);
     gte_ldv0(&other->origin);
     gte_rtv0();
-    gte_stlvnl(&block->world);
-    block->world.vx += other->coord->workm.t[0];
-    block->world.vy += other->coord->workm.t[1];
-    block->world.vz += other->coord->workm.t[2];
+    gte_stlvnl(&scratch->origin);
+    scratch->origin.vx += other->coord->workm.t[0];
+    scratch->origin.vy += other->coord->workm.t[1];
+    scratch->origin.vz += other->coord->workm.t[2];
 
-    block->delta.vx = block->world.vx - block->nodePos.vx;
-    block->delta.vy = block->world.vy - block->nodePos.vy;
-    block->delta.vz = block->world.vz - block->nodePos.vz;
-    distSq          = block->delta.vx * block->delta.vx + block->delta.vy * block->delta.vy +
-             block->delta.vz * block->delta.vz;
+    scratch->work.sphereToOrigin.vx = scratch->origin.vx - scratch->sphereCenter.vx;
+    scratch->work.sphereToOrigin.vy = scratch->origin.vy - scratch->sphereCenter.vy;
+    scratch->work.sphereToOrigin.vz = scratch->origin.vz - scratch->sphereCenter.vz;
+    distSq                          = scratch->work.sphereToOrigin.vx * scratch->work.sphereToOrigin.vx + scratch->work.sphereToOrigin.vy * scratch->work.sphereToOrigin.vy +
+             scratch->work.sphereToOrigin.vz * scratch->work.sphereToOrigin.vz;
     tmp = other->radius + node->radius;
     if (tmp * tmp < distSq) {
-        SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
         return;
     }
 
@@ -733,39 +744,39 @@ void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other)
         dot  = m0 + m1;
         dot += m2;
         if (dot > WORLD_COLLISION_TRIGGER_FACING_DOT_MAX) {
-            SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
             return;
         }
     } else if (kind == WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD) {
         if (distSq <= WORLD_COLLISION_TRIGGER_NEAR_DISTANCE_SQUARED_MAX) {
             other->hit = 1;
-            SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
             return;
         }
-        block->local.vx = other->origin.vx;
-        block->local.vy = node->coord->coord.t[1] + node->pos.vy;
-        block->local.vz = other->origin.vz;
+        scratch->leveledOrigin.vx = other->origin.vx;
+        scratch->leveledOrigin.vy = node->coord->coord.t[1] + node->pos.vy;
+        scratch->leveledOrigin.vz = other->origin.vz;
         gte_SetRotMatrix(&other->coord->workm);
-        gte_ldv0(&block->local);
+        gte_ldv0(&scratch->leveledOrigin);
         gte_rtv0();
-        gte_stlvnl(&block->delta);
-        block->delta.vx = block->nodePos.vx - (block->delta.vx + other->coord->workm.t[0]);
-        block->delta.vy = block->nodePos.vy - (block->delta.vy + other->coord->workm.t[1]);
-        block->delta.vz = block->nodePos.vz - (block->delta.vz + other->coord->workm.t[2]);
-        VectorNormal(&block->delta, &block->delta);
+        gte_stlvnl(&scratch->work.leveledOriginToSphere);
+        scratch->work.leveledOriginToSphere.vx = scratch->sphereCenter.vx - (scratch->work.leveledOriginToSphere.vx + other->coord->workm.t[0]);
+        scratch->work.leveledOriginToSphere.vy = scratch->sphereCenter.vy - (scratch->work.leveledOriginToSphere.vy + other->coord->workm.t[1]);
+        scratch->work.leveledOriginToSphere.vz = scratch->sphereCenter.vz - (scratch->work.leveledOriginToSphere.vz + other->coord->workm.t[2]);
+        VectorNormal(&scratch->work.leveledOriginToSphere, &scratch->work.leveledOriginToSphere);
         {
             GfxCoord* c;
             s32       n0, n1, n2;
 
             c    = node->coord;
-            n0   = block->delta.vx * c->workm.m[0][2];
-            n1   = block->delta.vy * c->workm.m[1][2];
-            n2   = block->delta.vz * c->workm.m[2][2];
+            n0   = scratch->work.leveledOriginToSphere.vx * c->workm.m[0][2];
+            n1   = scratch->work.leveledOriginToSphere.vy * c->workm.m[1][2];
+            n2   = scratch->work.leveledOriginToSphere.vz * c->workm.m[2][2];
             dot  = n0 + n1;
             dot += n2;
         }
         if (dot > WORLD_COLLISION_TRIGGER_FACING_DOT_MAX) {
-            SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
             return;
         }
     }
@@ -773,58 +784,58 @@ void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other)
     // Test the sphere against the transformed quad's one-sided plane and edges.
     gte_ldv0(&other->vertices[0]);
     gte_rtv0();
-    gte_stlvnl(&block->verts[0]);
-    block->verts[0].vx += block->world.vx;
-    block->verts[0].vy += block->world.vy;
-    block->verts[0].vz += block->world.vz;
+    gte_stlvnl(&scratch->corners[0]);
+    scratch->corners[0].vx += scratch->origin.vx;
+    scratch->corners[0].vy += scratch->origin.vy;
+    scratch->corners[0].vz += scratch->origin.vz;
 
     gte_ldv0(&other->normal);
     gte_rtv0();
-    gte_stlvnl(&block->normal);
+    gte_stlvnl(&scratch->faceNormal);
 
-    faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
-               block->normal.vz * block->verts[0].vz) >>
+    faceDot = (scratch->faceNormal.vx * scratch->corners[0].vx + scratch->faceNormal.vy * scratch->corners[0].vy +
+               scratch->faceNormal.vz * scratch->corners[0].vz) >>
               12;
-    dist = ((block->normal.vx * block->nodePos.vx + block->normal.vy * block->nodePos.vy +
-             block->normal.vz * block->nodePos.vz) >>
+    dist = ((scratch->faceNormal.vx * scratch->sphereCenter.vx + scratch->faceNormal.vy * scratch->sphereCenter.vy +
+             scratch->faceNormal.vz * scratch->sphereCenter.vz) >>
             12) -
            faceDot;
     if (dist >= 0 || dist < -node->radius) {
-        SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
         return;
     }
 
     for (i = 1; i < (s32)ARRAY_SIZE(other->vertices); i++) {
         gte_ldv0(&other->vertices[i]);
         gte_rtv0();
-        gte_stlvnl(&block->verts[i]);
-        block->verts[i].vx += block->world.vx;
-        block->verts[i].vy += block->world.vy;
-        block->verts[i].vz += block->world.vz;
+        gte_stlvnl(&scratch->corners[i]);
+        scratch->corners[i].vx += scratch->origin.vx;
+        scratch->corners[i].vy += scratch->origin.vy;
+        scratch->corners[i].vz += scratch->origin.vz;
     }
 
     for (i = 1; i < (s32)ARRAY_SIZE(other->vertices) + 1; i++) {
-        va              = &block->verts[(u16)Gp_FaceEdgePairs[i].endCornerIndex];
-        vb              = &block->verts[(u16)Gp_FaceEdgePairs[i].startCornerIndex];
-        block->delta.vx = va->vx - vb->vx;
-        block->delta.vy = va->vy - vb->vy;
-        block->delta.vz = va->vz - vb->vz;
-        gte_ldopv1(&block->normal);
-        gte_ldopv2(&block->delta);
+        va                                = &scratch->corners[(u16)Gp_FaceEdgePairs[i].endCornerIndex];
+        vb                                = &scratch->corners[(u16)Gp_FaceEdgePairs[i].startCornerIndex];
+        scratch->work.edgeDisplacement.vx = va->vx - vb->vx;
+        scratch->work.edgeDisplacement.vy = va->vy - vb->vy;
+        scratch->work.edgeDisplacement.vz = va->vz - vb->vz;
+        gte_ldopv1(&scratch->faceNormal);
+        gte_ldopv2(&scratch->work.edgeDisplacement);
         gte_op12();
-        gte_stlvnl(&block->cross);
-        tmp   = block->cross.vx * block->nodePos.vx + block->cross.vy * block->nodePos.vy;
-        tmp  += block->cross.vz * block->nodePos.vz;
+        gte_stlvnl(&scratch->edgePlaneNormal);
+        tmp   = scratch->edgePlaneNormal.vx * scratch->sphereCenter.vx + scratch->edgePlaneNormal.vy * scratch->sphereCenter.vy;
+        tmp  += scratch->edgePlaneNormal.vz * scratch->sphereCenter.vz;
         tmp >>= 12;
-        tmp  -= (block->cross.vx * va->vx + block->cross.vy * va->vy + block->cross.vz * va->vz) >> 12;
+        tmp  -= (scratch->edgePlaneNormal.vx * va->vx + scratch->edgePlaneNormal.vy * va->vy + scratch->edgePlaneNormal.vz * va->vz) >> 12;
         if (tmp >= 0) {
-            SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
             return;
         }
     }
 
     other->hit = 1;
-    SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
 }
 
 void func_800DF6AC(WorldCollisionBody* node, WorldCollisionTrigger* other, VECTOR3* from)
@@ -850,41 +861,41 @@ void func_800DF6AC(WorldCollisionBody* node, WorldCollisionTrigger* other, VECTO
         return;
     }
 
-    Gp_ObjWorldPosInline(node, &block->quad.nodePos);
+    Gp_ObjWorldPosInline(node, &block->quad.sphereCenter);
     gte_SetRotMatrix(&other->coord->workm);
     gte_ldv0(&other->origin);
     gte_rtv0();
-    gte_stlvnl(&block->quad.world);
-    block->quad.world.vx += other->coord->workm.t[0];
-    block->quad.world.vy += other->coord->workm.t[1];
-    block->quad.world.vz += other->coord->workm.t[2];
+    gte_stlvnl(&block->quad.origin);
+    block->quad.origin.vx += other->coord->workm.t[0];
+    block->quad.origin.vy += other->coord->workm.t[1];
+    block->quad.origin.vz += other->coord->workm.t[2];
 
-    block->quad.delta.vx = block->quad.world.vx - block->quad.nodePos.vx;
-    block->quad.delta.vy = block->quad.world.vy - block->quad.nodePos.vy;
-    block->quad.delta.vz = block->quad.world.vz - block->quad.nodePos.vz;
-    tmp                  = other->radius + node->radius;
-    if (tmp * tmp < block->quad.delta.vx * block->quad.delta.vx + block->quad.delta.vy * block->quad.delta.vy +
-                        block->quad.delta.vz * block->quad.delta.vz) {
+    block->quad.work.sphereToOrigin.vx = block->quad.origin.vx - block->quad.sphereCenter.vx;
+    block->quad.work.sphereToOrigin.vy = block->quad.origin.vy - block->quad.sphereCenter.vy;
+    block->quad.work.sphereToOrigin.vz = block->quad.origin.vz - block->quad.sphereCenter.vz;
+    tmp                                = other->radius + node->radius;
+    if (tmp * tmp < block->quad.work.sphereToOrigin.vx * block->quad.work.sphereToOrigin.vx + block->quad.work.sphereToOrigin.vy * block->quad.work.sphereToOrigin.vy +
+                        block->quad.work.sphereToOrigin.vz * block->quad.work.sphereToOrigin.vz) {
         SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
         return;
     }
 
     gte_ldv0(&other->vertices[0]);
     gte_rtv0();
-    gte_stlvnl(&block->quad.verts[0]);
-    block->quad.verts[0].vx += block->quad.world.vx;
-    block->quad.verts[0].vy += block->quad.world.vy;
-    block->quad.verts[0].vz += block->quad.world.vz;
+    gte_stlvnl(&block->quad.corners[0]);
+    block->quad.corners[0].vx += block->quad.origin.vx;
+    block->quad.corners[0].vy += block->quad.origin.vy;
+    block->quad.corners[0].vz += block->quad.origin.vz;
 
     gte_ldv0(&other->normal);
     gte_rtv0();
-    gte_stlvnl(&block->quad.normal);
+    gte_stlvnl(&block->quad.faceNormal);
 
-    faceDot = (block->quad.normal.vx * block->quad.verts[0].vx + block->quad.normal.vy * block->quad.verts[0].vy +
-               block->quad.normal.vz * block->quad.verts[0].vz) >>
+    faceDot = (block->quad.faceNormal.vx * block->quad.corners[0].vx + block->quad.faceNormal.vy * block->quad.corners[0].vy +
+               block->quad.faceNormal.vz * block->quad.corners[0].vz) >>
               12;
-    dist = ((block->quad.normal.vx * block->quad.nodePos.vx + block->quad.normal.vy * block->quad.nodePos.vy +
-             block->quad.normal.vz * block->quad.nodePos.vz) >>
+    dist = ((block->quad.faceNormal.vx * block->quad.sphereCenter.vx + block->quad.faceNormal.vy * block->quad.sphereCenter.vy +
+             block->quad.faceNormal.vz * block->quad.sphereCenter.vz) >>
             12) -
            faceDot;
     if (dist >= 0 || dist < -node->radius) {
@@ -895,26 +906,26 @@ void func_800DF6AC(WorldCollisionBody* node, WorldCollisionTrigger* other, VECTO
     for (i = 1; i < (s32)ARRAY_SIZE(other->vertices); i++) {
         gte_ldv0(&other->vertices[i]);
         gte_rtv0();
-        gte_stlvnl(&block->quad.verts[i]);
-        block->quad.verts[i].vx += block->quad.world.vx;
-        block->quad.verts[i].vy += block->quad.world.vy;
-        block->quad.verts[i].vz += block->quad.world.vz;
+        gte_stlvnl(&block->quad.corners[i]);
+        block->quad.corners[i].vx += block->quad.origin.vx;
+        block->quad.corners[i].vy += block->quad.origin.vy;
+        block->quad.corners[i].vz += block->quad.origin.vz;
     }
 
     for (i = 1; i < (s32)ARRAY_SIZE(other->vertices) + 1; i++) {
-        va                   = &block->quad.verts[(u16)Gp_FaceEdgePairs[i].endCornerIndex];
-        vb                   = &block->quad.verts[(u16)Gp_FaceEdgePairs[i].startCornerIndex];
-        block->quad.delta.vx = va->vx - vb->vx;
-        block->quad.delta.vy = va->vy - vb->vy;
-        block->quad.delta.vz = va->vz - vb->vz;
-        gte_ldopv1(&block->quad.normal);
-        gte_ldopv2(&block->quad.delta);
+        va                                   = &block->quad.corners[(u16)Gp_FaceEdgePairs[i].endCornerIndex];
+        vb                                   = &block->quad.corners[(u16)Gp_FaceEdgePairs[i].startCornerIndex];
+        block->quad.work.edgeDisplacement.vx = va->vx - vb->vx;
+        block->quad.work.edgeDisplacement.vy = va->vy - vb->vy;
+        block->quad.work.edgeDisplacement.vz = va->vz - vb->vz;
+        gte_ldopv1(&block->quad.faceNormal);
+        gte_ldopv2(&block->quad.work.edgeDisplacement);
         gte_op12();
-        gte_stlvnl(&block->quad.cross);
-        tmp   = block->quad.cross.vx * block->quad.nodePos.vx + block->quad.cross.vy * block->quad.nodePos.vy;
-        tmp  += block->quad.cross.vz * block->quad.nodePos.vz;
+        gte_stlvnl(&block->quad.edgePlaneNormal);
+        tmp   = block->quad.edgePlaneNormal.vx * block->quad.sphereCenter.vx + block->quad.edgePlaneNormal.vy * block->quad.sphereCenter.vy;
+        tmp  += block->quad.edgePlaneNormal.vz * block->quad.sphereCenter.vz;
         tmp >>= 12;
-        tmp  -= (block->quad.cross.vx * va->vx + block->quad.cross.vy * va->vy + block->quad.cross.vz * va->vz) >> 12;
+        tmp  -= (block->quad.edgePlaneNormal.vx * va->vx + block->quad.edgePlaneNormal.vy * va->vy + block->quad.edgePlaneNormal.vz * va->vz) >> 12;
         if (tmp >= 0) {
             SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
             return;
