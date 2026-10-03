@@ -166,9 +166,22 @@ typedef struct {
 } TaskFuncTable11;
 STATIC_ASSERT_SIZEOF(TaskFuncTable11, 0x2C);
 
+/// Twelve task handlers stored as a value for whole-table copies.
+///
+/// Each table defines its slots' roles: the selector may be an actor's
+/// mode-specific state or a step index kept in the task's work. Dispatch
+/// requires an index in 0..11 and a non-NULL entry, which receives the live
+/// task as its only argument. There is no terminator or bounds check in the
+/// table, so a selector that also indexes a longer table in another task
+/// state relies on its writers staying within the twelve slots while this one
+/// is in use.
+/// Copying it copies callback pointers, not task or work storage; the callback
+/// code must remain loaded for the call. A dispatcher that goes on using the
+/// task after the call relies on its handlers leaving the task live.
 typedef struct {
-    TaskFunc funcs[12];
+    TaskFunc funcs[12]; // Handlers in selector order; slot meanings belong to each table
 } TaskFuncTable12;
+STATIC_ASSERT_SIZEOF(TaskFuncTable12, 0x30);
 
 typedef struct {
     TaskFunc funcs[14];
