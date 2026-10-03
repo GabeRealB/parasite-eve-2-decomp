@@ -14,30 +14,35 @@
 #include "main/task_types.h"
 #include "main/ui_types.h"
 
-/// Per-run state of the Mist shooting gallery mini-game: a 0x24-byte
-/// `memCalloc` allocation that `func_mist_shooting_gallery_80182B1C` stores at
-/// `Task::work` of the gallery's controller task, which it also publishes in
-/// `D_mist_shooting_gallery_8018E0C4` so the round scripts can reach it without
-/// a task pointer. `difficulty` is seeded from the low nibble of the task's
-/// `spawnArg1` and gates the scoring rules (`< 3` and `< 2` branches).
-typedef struct MistShootingGalleryWork {
-    /* 0x00 */ u16  field_00;
-    /* 0x02 */ u16  field_02;
-    /* 0x04 */ u16  field_04;
-    /* 0x06 */ u16  field_06;
-    /* 0x08 */ s16  field_08;
-    /* 0x0A */ s16  field_0A;
-    /* 0x0C */ s16  field_0C;
-    /* 0x0E */ u8   field_0E;
-    /* 0x0F */ byte pad_0F[0xD];
-    /* 0x1C */ u8   difficulty;
-    /* 0x1D */ u8   field_1D;
-    /* 0x1E */ u8   field_1E;
-    /* 0x1F */ u8   field_1F;
-    /* 0x20 */ u8   field_20;
-    /* 0x21 */ u8   field_21;
-    /* 0x22 */ u8   field_22;
-    /* 0x23 */ byte pad_23[0x1];
+/// Number of target kinds the gallery scores: the low nibble of a target's
+/// spawn id, indexing both `MistShootingGalleryWork::kills` and the RESULT
+/// panel's point table.
+#define MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT 13
+
+/// Work block of the shooting gallery's controller task, which runs one course
+/// from its countdown through its target waves to the result panel.
+///
+/// The controller allocates it zeroed and publishes its task as
+/// `D_mist_shooting_gallery_8018E0C4`, through which the targets it spawns and
+/// the RESULT panel reach it. Times are in frames at 30 per second. The block
+/// lives as long as the controller task.
+typedef struct {
+    u16 scriptFrame;                                    // Frames into the wave script; records keyed to it spawn, saturating at 0xFFF0
+    u16 timeLeft;                                       // Course time remaining; counts down only while combat actors run
+    u16 phase;                                          // Step of the course script, then of the closing sequence
+    u16 resumePhase;                                    // `phase` to return to after an interrupting caption sequence
+    s16 spawnIndex;                                     // Next record of the course's wave script
+    s16 timer;                                          // General countdown for the current phase
+    s16 clockX;                                         // Screen X of the countdown clock, sliding in from the left
+    u8  liveTargets;                                    // Spawned targets still in play; scripts wait for 0 between waves
+    u8  kills[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT]; // Targets destroyed, per target kind
+    u8  course;                                         // Course being run (0..4), from the task's spawn argument; selects script, time and scoring
+    u8  targetLockMask;                                 // Player-actor slots locking onto the current target (`Gp_NodeSlotMask`)
+    u8  interrupted;                                    // Set once the course's single interruption (out of ammo, abort, lethal hit) has fired
+    u8  actionTriggered;                                // Raised when the player uses the gallery's action point; scripts clear it
+    u8  captionStep;                                    // Next caption of the course's caption script to show
+    u8  resumeCaptionStep;                              // `captionStep` to return to after an interrupting caption sequence
+    u8  lethalHit;                                      // Raised by a target attack the player could not survive; ends the course
 } MistShootingGalleryWork;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryWork, 0x24);
 

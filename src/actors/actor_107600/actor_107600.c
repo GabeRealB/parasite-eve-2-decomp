@@ -804,7 +804,7 @@ static void func_actor_107600_80131F10(Task* arg0)
     if ((!(arg0->spawnArg1.value & 0x40000000) && func_80103D8C(block->vx, block->vz) < 0x401) || (u8)arg0->spawnArg1.value == 0xFF) {
     fail:
         if ((arg0->spawnArg1.value & 0xF000) != 0x2000) {
-            ((MistShootingGalleryWork*)arg0->parent->work)->field_0E--;
+            ((MistShootingGalleryWork*)arg0->parent->work)->liveTargets--;
         }
         SCRATCH_STACK_RELEASE_BYTES(0x10);
         enemyDestroy(enemy, arg0);
@@ -1139,7 +1139,7 @@ static void func_actor_107600_80132A7C(Task* arg0)
     parent = arg0->parent;
     work   = (Actor107600Work*)arg0->work;
     if (work->field_144 != 2) {
-        ((MistShootingGalleryWork*)parent->work)->field_0E--;
+        ((MistShootingGalleryWork*)parent->work)->liveTargets--;
     }
     arg0->state++;
 }
@@ -1407,7 +1407,7 @@ static void func_actor_107600_80133024(Task* arg0)
             break;
     }
     if (work->field_162 != 2) {
-        ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->field_1D = Gp_NodeSlotMask(&enemy->node);
+        ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->targetLockMask = Gp_NodeSlotMask(&enemy->node);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_107600_80134A50(arg0);
@@ -1525,8 +1525,8 @@ static void func_actor_107600_801332D4(Task* arg0)
                 SndEvt_EnqueueType6(SOUND_MIST_SHOOTING_GALLERY_TARGET_ATTACK, p, (s8)worldCoordGetOriginAudioDepth(c));
                 if (actor->mode != GAME_ACTOR_MODE_DAMAGE) {
                     if (gPlayerStatus.hp < 11) {
-                        ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->field_22 = 1;
-                        actor->pendingDamage                                                         = 0;
+                        ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->lethalHit = 1;
+                        actor->pendingDamage                                                          = 0;
                     } else {
                         actor->pendingDamage = 10;
                     }
@@ -1656,7 +1656,7 @@ static void func_actor_107600_801339A4(Task* arg0)
     Enemy*                   enemy = arg0->spawnArg2.pointer;
     TmdObject*               tmd   = arg0->extra.tmd;
     GfxCoord*                obj   = tmd->coords;
-    MistShootingGalleryWork* gal   = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work;
+    MistShootingGalleryWork* gal   = D_mist_shooting_gallery_8018E0C4->work;
     Actor107600HitPos*       pos;
     s32                      id;
     s32                      pan;
@@ -1675,7 +1675,7 @@ static void func_actor_107600_801339A4(Task* arg0)
             Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
             work->field_154 = 0;
             id              = arg0->spawnArg1.value & 0xF;
-            gal->pad_0F[id]++;
+            gal->kills[id]++;
             if (id < 9) {
                 id = 0x51140011;
             } else if (id == 9) {

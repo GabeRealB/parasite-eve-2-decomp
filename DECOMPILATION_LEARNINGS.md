@@ -76177,7 +76177,7 @@ other way round (`lh v1,0x144(v0)` / `li v0,2`) - the `regs 4` plus the two
 parent = arg0->parent;
 work   = (Actor107600Work*)arg0->work;
 if (work->field_144 != 2) {
-    ((MistShootingGalleryWork*)parent->work)->field_0E--;
+    ((MistShootingGalleryWork*)parent->work)->liveTargets--;
 }
 arg0->state++;
 ```
@@ -76219,7 +76219,7 @@ grep -rnF 'D_80134F94' asm/USA/          # -> only mist_shooting_gallery
 
 `func_mist_shooting_gallery_80184CD0` spawns it, calls
 `taskReparent(s0, spawned->task)`, then does `lbu` / `addiu -1` / `sb` on
-`s0->work + 0xE` - and that room's `MistShootingGalleryWork::field_0E` is the
+`s0->work + 0xE` - and that room's `MistShootingGalleryWork::liveTargets` is the
 `u8` there. The gallery's other spawn site (`0x200D`, the phase-2 cursor
 target) skips the increment, which is exactly the `!= 2` guard being matched
 here.

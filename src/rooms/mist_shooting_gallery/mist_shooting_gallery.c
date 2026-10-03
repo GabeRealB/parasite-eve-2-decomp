@@ -122,7 +122,7 @@ STATIC_ASSERT_SIZEOF(MistShootingGalleryGauges, 0x18);
 /// is worth and the name printed beside it ("Red Target", "Crow", ...).
 /// `func_mist_shooting_gallery_8017E234` walks the 13-entry table
 /// `D_mist_shooting_gallery_80184F98` in step with the per-target kill counts
-/// in `MistShootingGalleryWork::pad_0F`.
+/// in `MistShootingGalleryWork::kills`.
 typedef struct MistShootingGalleryTarget {
     /* 0x0 */ s32         points;
     /* 0x4 */ const char* name;
@@ -1161,11 +1161,11 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     rows  = 0;
     total = 0;
     obj   = task->spawnArg2.pointer;
-    work  = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work;
+    work  = D_mist_shooting_gallery_8018E0C4->work;
     xOff  = obj->panel.contentLeft.signedValue + 2;
     y     = obj->panel.contentTop.signedValue + 0x17;
     do {
-        kills = (u8)work->pad_0F[i];
+        kills = work->kills[i];
         if (kills > 0) {
             points = D_mist_shooting_gallery_80184F98[i].points;
             rows  += 1;
@@ -1210,7 +1210,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             y     += 0xB;
         }
         i += 1;
-    } while (i < 0xD);
+    } while (i < MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT);
 
     uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, obj->panel.contentBottom.signedValue - 0xE);
 
@@ -1295,7 +1295,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
         state = task->state;
         if (state == status) {
             if (bonus > 0) {
-                flag = work->difficulty + 0x125;
+                flag = work->course + 0x125;
                 if (GameFlag_GetNibble(flag) == 0) {
                     if (func_mist_shooting_gallery_80184970(bonus) == state) {
                         GameFlag_SetNibble(flag, 2);
