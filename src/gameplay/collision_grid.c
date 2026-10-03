@@ -120,20 +120,24 @@ typedef struct {
 } _WorldCollisionOccluderSegmentScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionOccluderSegmentScratch, 0x80);
 
-/// 0x50-byte scratch from the scratch stack used by `func_800DDC2C` and
-/// `func_800DE150`. `src[0]` / `src[1]` are the local XZ endpoints of
-/// `WorldCollisionBody.pos` offset by `context.motion->motionDirection` scaled by
-/// `radius >> 12` (`func_800DDC2C`), or by the two `SVECTOR`s `context.capsule`
-/// leads with (`func_800DE150`, which passes 1 to `func_800DE2C0`). `mat`
-/// is `gGfxViewCoord.workm * coord->workm`. `pos` holds the rotated endpoints
-/// plus `mat.t[0]/t[2]` and `Gp_GridParams` grid offsets, then passed to
-/// `func_800DE2C0`.
-typedef struct _GpEdgeScratch {
-    /* 0x00 */ VECTOR  pos[2];
-    /* 0x20 */ SVECTOR src[2];
-    /* 0x30 */ MATRIX  mat;
-} GpEdgeScratch;
-STATIC_ASSERT_SIZEOF(GpEdgeScratch, 0x50);
+/// Temporary endpoint transforms for a collision body's grid-candidate query.
+///
+/// The local endpoints span the body's footprint in its own frame: a motion
+/// sphere's centre displaced one radius forward and back along its motion
+/// direction, or a capsule's two end offsets plus the body's position. Only X
+/// and Z are kept, truncated to signed 16 bits. `bodyToRoom` removes the view
+/// transform composed into the body's cached matrix, so rotating an endpoint,
+/// then adding the X/Z translation and the grid bias, gives biased-grid
+/// coordinates. The candidate scan may extend the grid endpoints in place.
+/// Coordinates use game units. The block lives on the scratch stack through
+/// that scan. The SDK vectors' fourth components are unused and left
+/// uninitialized.
+typedef struct {
+    VECTOR  gridEndpoints[2];  // Biased-grid XZ endpoints, in local-endpoint order, with Y zero
+    SVECTOR localEndpoints[2]; // Body-frame XZ endpoints, with Y zero
+    MATRIX  bodyToRoom;        // Body frame to room space: the body's cached matrix relative to the view's
+} _WorldCollisionGridBodyQueryScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionGridBodyQueryScratch, 0x50);
 
 /// 0x50-byte scratch from the scratch stack used by `func_800DD940`.
 /// `seg` holds the object's vertical world-space segment, `origin` saves its
@@ -262,32 +266,32 @@ void func_800DD940(WorldCollisionBody* arg0)
 
 static void func_800DDC2C(WorldCollisionBody* arg0)
 {
-    s32            i;
-    GpEdgeScratch* block;
-    SVECTOR*       motionDirection;
-    MATRIX*        mat;
+    s32                                  i;
+    _WorldCollisionGridBodyQueryScratch* scratch;
+    SVECTOR*                             motionDirection;
+    MATRIX*                              bodyToRoom;
 
-    motionDirection  = &arg0->context.motion->motionDirection;
-    block            = SCRATCH_STACK_RESERVE_BLOCK(GpEdgeScratch);
-    mat              = &block->mat;
-    block->src[0].vx = (u16)arg0->pos.vx + ((motionDirection->vx * arg0->radius) >> 12);
-    block->src[0].vy = 0;
-    block->src[0].vz = (u16)arg0->pos.vz + ((motionDirection->vz * arg0->radius) >> 12);
-    block->src[1].vx = (u16)arg0->pos.vx + (-(motionDirection->vx * arg0->radius) >> 12);
-    block->src[1].vy = 0;
-    block->src[1].vz = (u16)arg0->pos.vz + (-(motionDirection->vz * arg0->radius) >> 12);
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &arg0->coord->workm, mat);
-    gte_SetRotMatrix(mat);
+    motionDirection               = &arg0->context.motion->motionDirection;
+    scratch                       = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionGridBodyQueryScratch);
+    bodyToRoom                    = &scratch->bodyToRoom;
+    scratch->localEndpoints[0].vx = (u16)arg0->pos.vx + ((motionDirection->vx * arg0->radius) >> 12);
+    scratch->localEndpoints[0].vy = 0;
+    scratch->localEndpoints[0].vz = (u16)arg0->pos.vz + ((motionDirection->vz * arg0->radius) >> 12);
+    scratch->localEndpoints[1].vx = (u16)arg0->pos.vx + (-(motionDirection->vx * arg0->radius) >> 12);
+    scratch->localEndpoints[1].vy = 0;
+    scratch->localEndpoints[1].vz = (u16)arg0->pos.vz + (-(motionDirection->vz * arg0->radius) >> 12);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &arg0->coord->workm, bodyToRoom);
+    gte_SetRotMatrix(bodyToRoom);
     for (i = 0; i < 2; i++) {
-        gte_ldv0(&block->src[i]);
+        gte_ldv0(&scratch->localEndpoints[i]);
         gte_rtv0();
-        gte_stlvnl(&block->pos[i]);
-        block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->xBias;
-        block->pos[i].vy = 0;
-        block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->zBias;
+        gte_stlvnl(&scratch->gridEndpoints[i]);
+        scratch->gridEndpoints[i].vx = scratch->gridEndpoints[i].vx + scratch->bodyToRoom.t[0] + Gp_GridParams->xBias;
+        scratch->gridEndpoints[i].vy = 0;
+        scratch->gridEndpoints[i].vz = scratch->gridEndpoints[i].vz + scratch->bodyToRoom.t[2] + Gp_GridParams->zBias;
     }
-    func_800DE2C0(block->pos, 0);
-    SCRATCH_STACK_RELEASE_BLOCK(GpEdgeScratch);
+    func_800DE2C0(scratch->gridEndpoints, 0);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridBodyQueryScratch);
 }
 
 void func_800DDDF8(WorldCollisionBody* obj)
@@ -354,34 +358,31 @@ void func_800DDDF8(WorldCollisionBody* obj)
 
 static void func_800DE150(WorldCollisionBody* arg0)
 {
-    s32            i;
-    u8*            head;
-    GpEdgeScratch* block;
-    SVECTOR*       src;
-    GfxCoord*      coord;
-    MATRIX*        mat;
+    s32                                  i;
+    _WorldCollisionGridBodyQueryScratch* scratch;
+    SVECTOR*                             src;
+    GfxCoord*                            coord;
+    MATRIX*                              bodyToRoom;
 
-    coord                      = arg0->coord;
-    head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = head - 0x50;
-    block                      = (GpEdgeScratch*)(head - 0x50);
-    mat                        = (MATRIX*)(head - 0x20);
-    src                        = arg0->context.capsule->ends;
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, mat);
-    gte_SetRotMatrix(mat);
+    coord      = arg0->coord;
+    scratch    = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionGridBodyQueryScratch);
+    bodyToRoom = &scratch->bodyToRoom;
+    src        = arg0->context.capsule->ends;
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, bodyToRoom);
+    gte_SetRotMatrix(bodyToRoom);
     for (i = 0; i < 2; i++) {
-        block->src[i].vx = (u16)src[i].vx + (u16)arg0->pos.vx;
-        block->src[i].vy = 0;
-        block->src[i].vz = (u16)src[i].vz + (u16)arg0->pos.vz;
-        gte_ldv0(&block->src[i]);
+        scratch->localEndpoints[i].vx = (u16)src[i].vx + (u16)arg0->pos.vx;
+        scratch->localEndpoints[i].vy = 0;
+        scratch->localEndpoints[i].vz = (u16)src[i].vz + (u16)arg0->pos.vz;
+        gte_ldv0(&scratch->localEndpoints[i]);
         gte_rtv0();
-        gte_stlvnl(&block->pos[i]);
-        block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->xBias;
-        block->pos[i].vy = 0;
-        block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->zBias;
+        gte_stlvnl(&scratch->gridEndpoints[i]);
+        scratch->gridEndpoints[i].vx = scratch->gridEndpoints[i].vx + scratch->bodyToRoom.t[0] + Gp_GridParams->xBias;
+        scratch->gridEndpoints[i].vy = 0;
+        scratch->gridEndpoints[i].vz = scratch->gridEndpoints[i].vz + scratch->bodyToRoom.t[2] + Gp_GridParams->zBias;
     }
-    func_800DE2C0(block->pos, 1);
-    SCRATCH_STACK_RELEASE_BYTES(0x50);
+    func_800DE2C0(scratch->gridEndpoints, 1);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridBodyQueryScratch);
 }
 
 static void func_800DE2C0(VECTOR* arg0, s32 arg1)

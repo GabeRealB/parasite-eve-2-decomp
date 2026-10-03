@@ -34065,7 +34065,7 @@ Update the addend, then store it:
 
 ```c
 x += prod >> 12;
-block->src[0].vx = x;
+scratch->localEndpoints[0].vx = x;
 ```
 
 `func_800DDC2C` is the example.
@@ -34092,14 +34092,14 @@ is filled (not `nop`):
 ```c
 i = 0;
 asm volatile("lui %0, %%hi(Gp_GridParams)" : "=r"(hi) : "r"(i) : "memory");
-out = block->pos;
+out = scratch->gridEndpoints;
 off = 0x20;
 ...
 asm("lw %0, %%lo(Gp_GridParams)(%2)\n\tlw %1, 68(%3)"
-    : "=r"(p), "=r"(t) : "r"(hi), "r"(block));
+    : "=r"(p), "=r"(t) : "r"(hi), "r"(scratch));
 ```
 
-The paired `lw 68(block)` is `block->mat.t[0]` (offset 0x44). Volatile
+The paired `lw 68(scratch)` is `scratch->bodyToRoom.t[0]` (offset 0x44). Volatile
 `lui` plus `memory` keeps it from sinking below `out` / `off`.
 `func_800DDC2C` is the example.
 
@@ -50744,27 +50744,27 @@ parameters of one call end up with different widths.
 `obj->field_C` instead of computed. The matched sibling reaches the target's
 loop with eight `register … asm("")` pins, a `TOUCH_REG` and a hand-written
 `lw %lo(Gp_GridParams)` asm. None of that is needed: the loop matches unpinned
-if every scratch access is written as an *indexed* element of the block,
+if every scratch access is written as an *indexed* element of the block (`scratch`),
 
 ```c
 for (i = 0; i < 2; i++) {
-    block->src[i].vx = (u16)src[i].vx + (u16)arg0->field_10;
-    block->src[i].vy = 0;
-    block->src[i].vz = (u16)src[i].vz + (u16)arg0->field_14;
-    gte_ldv0(&block->src[i]);
+    scratch->localEndpoints[i].vx = (u16)src[i].vx + (u16)arg0->field_10;
+    scratch->localEndpoints[i].vy = 0;
+    scratch->localEndpoints[i].vz = (u16)src[i].vz + (u16)arg0->field_14;
+    gte_ldv0(&scratch->localEndpoints[i]);
     gte_rtv0();
-    gte_stlvnl(&block->pos[i]);
-    block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->xBias;
-    block->pos[i].vy = 0;
-    block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->zBias;
+    gte_stlvnl(&scratch->gridEndpoints[i]);
+    scratch->gridEndpoints[i].vx = scratch->gridEndpoints[i].vx + scratch->bodyToRoom.t[0] + Gp_GridParams->xBias;
+    scratch->gridEndpoints[i].vy = 0;
+    scratch->gridEndpoints[i].vz = scratch->gridEndpoints[i].vz + scratch->bodyToRoom.t[2] + Gp_GridParams->zBias;
 }
 ```
 
 Strength reduction then produces exactly the target's register set: the
-`sh` stores get a walking copy of `block` with the `0x20/0x22/0x24` field
+`sh` stores get a walking copy of `scratch` with the `0x20/0x22/0x24` field
 offsets folded into the displacement (`move a3, s2` … `sh zero, 0x22(a3)`),
-the `gte_ldv0` operand gets a separate `i * 8 + 0x20` giv added to `block` at
-each use (`li t0, 0x20` … `addu v0, s2, t0`), and `block->pos[i]` is one giv
+the `gte_ldv0` operand gets a separate `i * 8 + 0x20` giv added to `scratch` at
+each use (`li t0, 0x20` … `addu v0, s2, t0`), and `scratch->gridEndpoints[i]` is one giv
 shared by the `swc2` operand and the `lw/sw` stores. Walking pointers
 (`dst++`, `out++`) instead split *each field* into its own induction register
 (`sh zero, -0x2(s1)` / `sh v0, 0(s0)` / `sw zero, -0x4(a2)`), which was the
@@ -50793,12 +50793,10 @@ so neither of its setters gets the boost and the ties fall the wrong way.
 Giving the second value its own local,
 
 ```c
-head  = *SCRATCH_STACK_CURSOR_SLOT;
-*SCRATCH_STACK_CURSOR_SLOT = head - 0x50;
-block = (GpEdgeScratch*)(head - 0x50);
-mat   = (MATRIX*)(head - 0x20);      /* not `head -= 0x20` */
-gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coord->workm, mat);
-gte_SetRotMatrix(mat);
+scratch    = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionGridBodyQueryScratch);
+bodyToRoom = &scratch->bodyToRoom;   /* its own local, not `head -= 0x20` */
+gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coord->workm, bodyToRoom);
+gte_SetRotMatrix(bodyToRoom);
 ```
 
 restored the boost and matched 100% with identical instructions and the same
@@ -141970,13 +141968,14 @@ The seed pinned the carve to `$v0` and the scratch address to `$a2`. The plain
 `head = SCRATCH_STACK_CURSOR(u8); block = head - 0x50; ...; SCRATCH_STACK_CURSOR = block;`
 folds the carve into `addiu s1,s0,-0x50`.
 
-**Fix.** `block = SCRATCH_STACK_RESERVE_BLOCK(GpEdgeScratch);` at the top, with no explicit
+**Fix.** `scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionGridBodyQueryScratch);` at the top, with no explicit
 store later. The push's reload is the copy, as in the scratch-push entries
 above, and sched1 then sinks the head store past the in-struct field writes
 by itself, because the scalar store to the fixed head address cannot alias
 them. So a late store holding the copy's register does not by itself rule out
-the compound push: try it before an input-only `asm`. `mat = &block->mat`
-reproduced the separate `head - 0x20` register as well.
+the compound push: try it before an input-only `asm`. `bodyToRoom = &scratch->bodyToRoom`
+reproduced the separate `head - 0x20` register as well, and `func_800DE150`
+takes the same two lines in place of a saved head and a byte-offset cast.
 ### A late head store of the copy's register is still the compound push: sched1 sinks it, local-alloc re-points it (Gp_LightCone, 2026-09-26)
 
 **Symptom.** A scratch block is carved with `addiu a0,head,-K` / `move s0,a0`,
