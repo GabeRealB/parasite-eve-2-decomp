@@ -54,22 +54,6 @@
 
 #include "rooms/room_common.h"
 
-/// 0x78 stack scratch the patio's look-at task
-/// (`func_acropolis_patio_8017DE2C`) builds each frame and hands to
-/// `func_800B0CF4`.
-///
-/// Only `coord.coord.t` is written - the world point Aya is asked to face,
-/// `(-0x1F40, 0, 0x384)` with the patio's own approach offset subtracted from
-/// Z - and it is the only part `func_800B0CF4` reads, so the rest of the
-/// block is left uninitialised. It is a `GfxCoord` rather than a bare
-/// `VECTOR` because that is what puts the translation at +0x18, the same
-/// offset the callee reads the skeleton's own `GfxCoord.coord.t` from.
-typedef struct ApLookAtWork {
-    /* 0x00 */ GfxCoord coord;
-    /* 0x50 */ byte     pad_50[0x28];
-} ApLookAtWork;
-STATIC_ASSERT_SIZEOF(ApLookAtWork, 0x78);
-
 typedef struct {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u8  field_2;
@@ -1971,14 +1955,18 @@ void func_acropolis_patio_8017DD80(Task* task)
 
 void func_acropolis_patio_8017DE2C(Task* task)
 {
-    ApLookAtWork work;
-    Task*        target;
-    s32          offset;
+    GfxCoord focus;        // Frame whose origin the player's head turns toward; only its translation is ever set
+    byte     unused[0x28]; // Frame space no instruction touches; what the original declared here is unproven
+    Task*    target;
+    s32      offset;
 
-    target                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    work.coord.coord.t[0] = -0x1F40;
-    work.coord.coord.t[1] = 0;
-    work.coord.coord.t[2] = 0x384;
+    target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+
+    // The head turn reads nothing of its target frame but the translation, a
+    // world point, so the rest of `focus` stays uninitialised.
+    focus.coord.t[0] = -0x1F40;
+    focus.coord.t[1] = 0;
+    focus.coord.t[2] = 0x384;
 
     switch (task->state) {
         case 0:
@@ -1988,11 +1976,11 @@ void func_acropolis_patio_8017DE2C(Task* task)
         case 1:
             return;
         case 2:
-            func_800B0CF4(target, &work.coord, 0x200, 0x100, 0x1000);
+            func_800B0CF4(target, &focus, 0x200, 0x100, 0x1000);
             return;
         case 3:
             task->spawnArg1.value = 0;
-            func_800B0CF4(target, &work.coord, 0x200, 0x100, 0x1000);
+            func_800B0CF4(target, &focus, 0x200, 0x100, 0x1000);
             task->state = task->state + 1;
             return;
         case 4:
@@ -2001,8 +1989,8 @@ void func_acropolis_patio_8017DE2C(Task* task)
             if (offset >= 0x1001) {
                 task->spawnArg1.value = 0x1000;
             }
-            work.coord.coord.t[2] -= task->spawnArg1.value;
-            func_800B0CF4(target, &work.coord, 0x200, 0x100, 0x1000);
+            focus.coord.t[2] -= task->spawnArg1.value;
+            func_800B0CF4(target, &focus, 0x200, 0x100, 0x1000);
             return;
     }
 }
