@@ -56,9 +56,9 @@
 #define D_shelter_b1_storeroom_80184A98 (D_shelter_b1_storeroom_80184998 + 32)
 #define D_shelter_b1_storeroom_80184AB8 (D_shelter_b1_storeroom_80184998 + 36)
 
-static RoomHaloShade _gRoomEffectHaloShades[3];
-
 #include "../../shared/room_visual_effects.h"
+
+static RoomFxShade _gRoomEffectHaloShades[3];
 
 // Indexed views below share one contiguous table.
 extern WorldCollisionGrid         D_shelter_b1_storeroom_801850D8[1];
@@ -125,13 +125,13 @@ SVECTOR D_shelter_b1_storeroom_80184998[49] = {
     { 2, 1, 0 },                           \
     { 0, 2, 1 },                           \
 }
-#define ROOM_FX_HALO_STORAGE_TYPE  RoomHaloShade
+#define ROOM_FX_HALO_STORAGE_TYPE  RoomFxShade
 #define ROOM_FX_HALO_STORAGE_BOUND [3]
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-static inline RoomHaloShade* RoomFx_GetHaloShades(void)
+static inline RoomFxShade* RoomFx_GetHaloShades(void)
 {
     return _gRoomEffectHaloShades;
 }

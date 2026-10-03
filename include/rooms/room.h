@@ -285,16 +285,6 @@ typedef struct RoomLightShaftScratch {
 } RoomLightShaftScratch;
 STATIC_ASSERT_SIZEOF(RoomLightShaftScratch, 0x24);
 
-/// One row of a halo effect's shade table, picked by the effect's palette
-/// selector: each field is the right shift applied to the effect's fade level
-/// to get that colour channel, so a row sets the tint of the halo.
-typedef struct RoomHaloShade {
-    s16 r;
-    s16 g;
-    s16 b;
-} RoomHaloShade;
-STATIC_ASSERT_SIZEOF(RoomHaloShade, 0x6);
-
 /// One row of a ring effect's per-band table, added to the effect work's ring
 /// parameters: `rInner` widens the ring drawn at the origin height, `yOff`
 /// raises the second ring, and `rExtra` widens the second ring beyond the

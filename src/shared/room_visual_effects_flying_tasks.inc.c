@@ -60,9 +60,9 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].r;
-            col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].g;
-            col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].b;
+            col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].rShift;
+            col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].gShift;
+            col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].bShift;
             RoomFx_DrawFlyingDisc(coord, mem->angle, col);
             break;
         case 2:
@@ -73,9 +73,9 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             if (mem->angle < 0x200) {
                 mem->angle += 0x10;
             }
-            col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].r;
-            col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].g;
-            col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].b;
+            col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].rShift;
+            col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].gShift;
+            col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].bShift;
             RoomFx_DrawFlyingDisc(coord, mem->angle, col);
             col[0] >>= 1;
             col[1] >>= 1;
@@ -86,9 +86,9 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             break;
         case 3:
             Gp_UpdateCoord(coord);
-            col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].r;
-            col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].g;
-            col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].b;
+            col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].rShift;
+            col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].gShift;
+            col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].bShift;
             RoomFx_DrawFlyingDisc(coord, mem->angle, col);
             col[0] = mem->scale;
             col[1] = mem->scale >> 1;

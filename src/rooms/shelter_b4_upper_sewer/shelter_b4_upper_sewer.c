@@ -106,8 +106,6 @@ extern SVECTOR D_shelter_b4_upper_sewer_80186490[];
 extern SVECTOR D_shelter_b4_upper_sewer_801864B0[];
 extern SVECTOR D_shelter_b4_upper_sewer_801864D0[];
 
-static RoomHaloShade _gRoomEffectHaloShades[3];
-
 /// The two points the trail is emitted from, relative to the effect's parent:
 /// the first positions the effect's own coordinate, the second is the other
 /// end of the trail.
@@ -123,6 +121,8 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
 static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0);
 static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0);
 #include "../../shared/room_visual_effects.h"
+
+static RoomFxShade _gRoomEffectHaloShades[3];
 
 /// State handlers of the task `func_shelter_b4_upper_sewer_8017DC30` runs,
 /// which copies the table to the stack and calls the entry for the task's
@@ -236,13 +236,13 @@ SVECTOR D_shelter_b4_upper_sewer_801864F0[14] = {
     { 2, 1, 0 },                           \
     { 0, 2, 1 },                           \
 }
-#define ROOM_FX_HALO_STORAGE_TYPE  RoomHaloShade
+#define ROOM_FX_HALO_STORAGE_TYPE  RoomFxShade
 #define ROOM_FX_HALO_STORAGE_BOUND [3]
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-static inline RoomHaloShade* RoomFx_GetHaloShades(void)
+static inline RoomFxShade* RoomFx_GetHaloShades(void)
 {
     return _gRoomEffectHaloShades;
 }

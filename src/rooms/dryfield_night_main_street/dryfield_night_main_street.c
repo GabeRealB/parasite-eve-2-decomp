@@ -458,7 +458,7 @@ s32 D_dryfield_night_main_street_80182230[16] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
-static inline RoomHaloShade* RoomFx_GetHaloShades(void)
+static inline RoomFxShade* RoomFx_GetHaloShades(void)
 {
     return _gRoomEffectHaloShades.entries;
 }

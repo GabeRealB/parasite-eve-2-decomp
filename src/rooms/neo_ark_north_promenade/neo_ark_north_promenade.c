@@ -91,7 +91,7 @@ TaskMessageEntry D_neo_ark_north_promenade_80181D68[5] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
-static inline RoomHaloShade* RoomFx_GetHaloShades(void)
+static inline RoomFxShade* RoomFx_GetHaloShades(void)
 {
     return _gRoomEffectHaloShades.entries;
 }

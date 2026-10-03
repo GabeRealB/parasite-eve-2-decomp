@@ -123,7 +123,7 @@ SVECTOR D_mine_secret_passage_80180F08[16] = {
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
-static inline RoomHaloShade* RoomFx_GetHaloShades(void)
+static inline RoomFxShade* RoomFx_GetHaloShades(void)
 {
     return _gRoomEffectHaloShades.entries;
 }

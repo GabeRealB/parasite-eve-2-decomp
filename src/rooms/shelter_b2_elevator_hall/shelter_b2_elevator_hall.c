@@ -169,11 +169,11 @@ SVECTOR D_shelter_b2_elevator_hall_801838B0[1] = {
     { 2, 1, 0 },                           \
     { 0, 2, 1 },                           \
 }
-#define ROOM_FX_HALO_STORAGE_TYPE  RoomHaloShade
+#define ROOM_FX_HALO_STORAGE_TYPE  RoomFxShade
 #define ROOM_FX_HALO_STORAGE_BOUND [3]
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
-static inline RoomHaloShade* RoomFx_GetHaloShades(void)
+static inline RoomFxShade* RoomFx_GetHaloShades(void)
 {
     return _gRoomEffectHaloShades;
 }

@@ -60,7 +60,7 @@
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 #include "../../shared/room_events.h"
 
-static inline RoomHaloShade* RoomFx_GetHaloShades(void)
+static inline RoomFxShade* RoomFx_GetHaloShades(void)
 {
     return (_gRoomEffectHaloShades.entries);
 }

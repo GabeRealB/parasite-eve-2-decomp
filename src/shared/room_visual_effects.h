@@ -73,18 +73,29 @@ static inline void RoomFx_FlyingSparkTask(Task* task);
 
 static inline void RoomFx_OrangeBurst2Task(Task* arg0);
 
+/// A tint given as a right shift per colour channel of an effect's brightness
+/// level: channel = level >> shift, so 0 keeps the channel at full level and
+/// each step halves it. Halo and glow-disc effects keep a small table of these
+/// and pick a row from their spawn argument.
+typedef struct {
+    s16 rShift;
+    s16 gShift;
+    s16 bShift;
+} RoomFxShade;
+STATIC_ASSERT_SIZEOF(RoomFxShade, 0x6);
+
 /// Halo shade storage whose three shades are followed by a retained halfword.
 /// The halfword differs between rooms and nothing reads it; whether it belongs
 /// to this object is unresolved.
 typedef struct {
-    RoomHaloShade entries[3];
-    u16           retained;
+    RoomFxShade entries[3];
+    u16         retained;
 } RoomFxHaloStorage;
 
-extern SVECTOR       RoomFx_TrailOffsets[2];
-extern RoomHaloShade RoomFx_DiscShades[2];
+extern SVECTOR     RoomFx_TrailOffsets[2];
+extern RoomFxShade RoomFx_DiscShades[2];
 
 /* Array view of the including overlay's halo allocation. */
-static inline RoomHaloShade* RoomFx_GetHaloShades(void);
+static inline RoomFxShade* RoomFx_GetHaloShades(void);
 
 #endif /* SRC_SHARED_ROOM_VISUAL_EFFECTS_H */
