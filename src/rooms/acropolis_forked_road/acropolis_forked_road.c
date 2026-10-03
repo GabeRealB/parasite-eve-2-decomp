@@ -26,16 +26,23 @@
 /// The room's message table, installed on its entry task.
 extern TaskMessageEntry D_acropolis_forked_road_80180F14[];
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// The room task's once-per-visit latch for the return ride, and the word that
+/// follows it.
+///
+/// The return ride is the streamed scene that carries the player back along
+/// the road when the session arrives here through warp 2. The room task polls
+/// for that arrival every frame, so `spawned` keeps it from starting the scene
+/// again. Nothing clears it; it is zero in the room's image, so it starts over
+/// each time that image is loaded. The following word is zero and has no
+/// recovered access; its role, and whether it belongs to the latch at all, is
+/// unproven.
 typedef struct {
-    s32 value;
-    u8  retained[4];
-} AcropolisForkedRoadStorage0F3C;
-STATIC_ASSERT_SIZEOF(AcropolisForkedRoadStorage0F3C, 8);
+    s32 spawned;    // Return-ride scene started this visit (0 not yet, 1 started)
+    u8  field_4[4]; // Zero bytes with no accesses; role unproven
+} _AcropolisForkedRoadReturnRideLatch;
+STATIC_ASSERT_SIZEOF(_AcropolisForkedRoadReturnRideLatch, 8);
 
-extern AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C;
+extern _AcropolisForkedRoadReturnRideLatch D_acropolis_forked_road_80180F3C;
 
 static void func_acropolis_forked_road_8017D92C(Task* task);
 static void func_acropolis_forked_road_8017D970(Task* task);
@@ -58,7 +65,7 @@ TaskMessageEntry D_acropolis_forked_road_80180F14[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C = { 0, { 0 } };
+_AcropolisForkedRoadReturnRideLatch D_acropolis_forked_road_80180F3C = { 0, { 0 } };
 
 /// Message gate for the forked road's two hotspots: copies the incoming record
 /// to the outgoing one, then answers according to the message id and the
@@ -186,12 +193,12 @@ static void func_acropolis_forked_road_8017D92C(Task* task)
 }
 
 /// Per-frame state of the room's own task: the first frame the session's warp
-/// id is 2, spawns entry 2 of the room's task table, latching
-/// `D_acropolis_forked_road_80180F3C.value` so that happens only once.
+/// id is 2, spawns entry 2 of the room's task table, the return ride, latching
+/// `D_acropolis_forked_road_80180F3C.spawned` so that happens only once.
 static void func_acropolis_forked_road_8017D970(Task* task)
 {
-    if ((D_acropolis_forked_road_80180F3C.value == 0) && (gGameSession->location.loc.warp == 2)) {
-        D_acropolis_forked_road_80180F3C.value = 1;
+    if ((D_acropolis_forked_road_80180F3C.spawned == 0) && (gGameSession->location.loc.warp == 2)) {
+        D_acropolis_forked_road_80180F3C.spawned = 1;
         Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 2, 0, 0);
     }
 }
