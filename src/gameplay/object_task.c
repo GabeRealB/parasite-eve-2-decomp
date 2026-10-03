@@ -24,21 +24,15 @@
 
 #include "mapui/map_shelter.h"
 
-/// Fallback message handlers installed by `func_800E31E8` for pointer slot 7.
-typedef struct {
-    s32 id;
-    union {
-        TaskMessageHandler location;
-        s32                (*empty)(void);
-    } handler;
-} GpLocationMsgEntry;
-
 u8 D_80115598;
 
 /// Per-stage task descriptor tables searched by `func_800E31E8`.
 extern TaskDesc* D_8010FABC[];
 
-extern GpLocationMsgEntry D_8010FAD4[];
+/// Message table of the stand-in room task, used where the stage's table has
+/// no task for the current room: a room-transition request is echoed back as
+/// its reply, and a key-item use (0x13F1) is refused.
+extern TaskMessageEntry D_8010FAD4[];
 
 TaskDesc* D_8010FABC[6] = {
     NULL,
@@ -49,10 +43,10 @@ TaskDesc* D_8010FABC[6] = {
     D_map_neo_ark_8017A804,
 };
 
-GpLocationMsgEntry D_8010FAD4[3] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .location = func_800E3FF0 } },
-    { 5105, { .empty = func_800E4018 } },
-    { TASK_MESSAGE_TABLE_END, { .empty = NULL } },
+TaskMessageEntry D_8010FAD4[3] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_800E3FF0 },
+    { 5105, func_800E4018 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 void func_800E31E8(Task* arg0)
