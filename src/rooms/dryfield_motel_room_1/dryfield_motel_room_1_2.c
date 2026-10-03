@@ -98,18 +98,6 @@ typedef struct {
 } _DryfieldMotelRoom1EventWork;
 STATIC_ASSERT_SIZEOF(_DryfieldMotelRoom1EventWork, 0x38);
 
-/// The one scratch buffer `func_dryfield_motel_room_1_8017DD3C` builds both of
-/// its payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
-/// slot-3 record message 0x3E8 takes (`AnimationPlayRequest`, `source.index` the equipped weapon's
-/// animation id, `field_4` / `field_8` 1, `field_C` 5, `field_10` 0) and `msg` the
-/// `ActorCommand` the 0x7DA poke takes in states 1 and 2. Same shape as the
-/// breezeway's `DbwMsgBuf`.
-typedef union Dmr1MsgBuf {
-    /* 0x0 */ AnimationPlayRequest rec;
-    /* 0x0 */ ActorCommand         msg;
-} Dmr1MsgBuf;
-STATIC_ASSERT_SIZEOF(Dmr1MsgBuf, 0x14);
-
 /// The room's event task, whose `work` holds a `_DryfieldMotelRoom1EventWork`.
 extern Task* D_dryfield_motel_room_1_8018159C;
 
@@ -1183,22 +1171,11 @@ static void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
 }
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
 {
-    Dmr1MsgBuf buf;
-    s32        weaponId;
-    s32        anim;
-
     switch (arg0->state) {
         case 0:
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
-                weaponId                     = gPlayerStatus.weapon;
-                anim                         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                buf.rec.source.index         = anim;
-                buf.rec.animationId          = 1;
-                buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
-                buf.rec.blendFrames          = 5;
-                buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
+                _dryfieldMotelRoom1PlayPlayerAnimation(1, ANIMATION_BLEND_INTERPOLATE, 5);
                 func_800E8634(D_dryfield_motel_room_1_8017E160, 0,
                               D_dryfield_motel_room_1_8017E340);
                 arg0->state = arg0->state + 1;
@@ -1207,20 +1184,14 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
             return;
         case 1:
             if (gGameSession->eventState == 0) {
-                buf.msg.context.loc.stage = gGameSession->location.loc.stage;
-                buf.msg.context.loc.area  = gGameSession->location.loc.area;
-                buf.msg.command           = 4;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
+                _dryfieldMotelRoom1BroadcastActorCommand(4);
                 arg0->state = arg0->state + 1;
                 break;
             }
             break;
         case 2:
             if (gGameSession->location.loc.view == arg0->state) {
-                buf.msg.context.loc.stage = gGameSession->location.loc.stage;
-                buf.msg.context.loc.area  = gGameSession->location.loc.area;
-                buf.msg.command           = 3;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
+                _dryfieldMotelRoom1BroadcastActorCommand(3);
                 taskKill(arg0);
                 return;
             }
