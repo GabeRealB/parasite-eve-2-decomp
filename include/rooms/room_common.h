@@ -34,16 +34,18 @@ typedef struct RoomRect {
 } RoomRect;
 STATIC_ASSERT_SIZEOF(RoomRect, 0x8);
 
-/// 0x20 work block a room's "show a two-line message" task allocates and parks
-/// in `Task::work`: a `UiOptionDialogRequest` handed to `Ui_SpawnTextBlock`
-/// followed by the two `UiDialogOption`s the request's list points at, so one
-/// allocation carries both. The room picks which pair of strings to publish
-/// from `Task::spawnArg1`.
-typedef struct RoomTextBlock {
-    /* 0x00 */ UiOptionDialogRequest desc;
-    /* 0x10 */ UiDialogOption        lines[2];
-} RoomTextBlock;
-STATIC_ASSERT_SIZEOF(RoomTextBlock, 0x20);
+/// Work block of a room task that asks the player to choose between two options.
+///
+/// The task allocates it, parks it in `Task::work` and passes `request` to
+/// `Ui_SpawnTextBlock`. The option dialog keeps that pointer while it is open
+/// and reads the list through it, so the request and the two nodes its
+/// `options` head points at share one allocation, which the task's teardown
+/// frees. The task polls `request.result` for the answer.
+typedef struct {
+    UiOptionDialogRequest request;    // Dialog request and the place its answer arrives; lists both nodes below
+    UiDialogOption        options[2]; // The two rows in display order, linked first to second
+} RoomOptionDialog;
+STATIC_ASSERT_SIZEOF(RoomOptionDialog, 0x20);
 
 /// 0xA4 work block a shop / vending-machine panel task allocates and parks in
 /// `Task::work`: the `UiList` the panel is drawn from, followed by the ids of

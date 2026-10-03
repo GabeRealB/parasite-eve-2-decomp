@@ -1686,38 +1686,38 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, TaskMes
     return 0;
 }
 
-/// Opens a two-line text block: allocates the `RoomTextBlock` (killing the task
-/// if that fails), links its two line nodes to the lines of the topic menu
-/// chosen by `spawnArg1` (menu 1 when it is 1, menu 0 otherwise), hands the
-/// list to `Ui_SpawnTextBlock` and advances the task.
+/// Opens the room's two-option choice: allocates the `RoomOptionDialog` (killing
+/// the task if that fails), labels its two options from the topic menu chosen
+/// by `spawnArg1` (menu 1 when it is 1, menu 0 otherwise), passes the request
+/// to `Ui_SpawnTextBlock` and advances the task. Cancelling is not permitted.
 static void func_dryfield_trailer_coach_801826A0(Task* task)
 {
-    RoomTextBlock*  block;
-    UiDialogOption* option;
-    u8**            line;
-    s32             table;
-    s32             off;
-    s32             mode;
-    s32             i;
+    RoomOptionDialog* dialog;
+    UiDialogOption*   option;
+    u8**              line;
+    s32               table;
+    s32               off;
+    s32               mode;
+    s32               i;
 
-    block  = memCalloc(sizeof(RoomTextBlock), 0);
-    option = block->lines;
-    if (block == NULL) {
+    dialog = memCalloc(sizeof(RoomOptionDialog), 0);
+    option = dialog->options;
+    if (dialog == NULL) {
         taskKill(task);
         return;
     }
 
-    // `line` walks menu 0, and `off` is the byte offset of the same line of
+    // `line` walks menu 0, and `off` is the byte offset of the same option of
     // menu 1 from the start of the table.
     i                  = 0;
     mode               = 1;
     line               = D_dryfield_trailer_coach_80185368.data.topicMenus[0];
     table              = (s32)D_dryfield_trailer_coach_80185368.data.topicMenus;
     off                = sizeof(D_dryfield_trailer_coach_80185368.data.topicMenus[0]);
-    task->work         = block;
+    task->work         = dialog;
     task->exitCallback = func_dryfield_trailer_coach_801827D0;
 
-    for (; i < 2; i++) {
+    for (; i < ARRAY_SIZE(dialog->options); i++) {
         if (task->spawnArg1.value == mode) {
             option->text = *(u8**)(off + table);
         } else {
@@ -1730,29 +1730,31 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
     }
     option[-1].next = NULL;
 
-    block->desc.optionCount = 2;
-    block->desc.options     = block->lines;
-    block->desc.title       = NULL;
-    block->desc.flags       = 0;
-    Ui_SpawnTextBlock(&block->desc, 0, 0, 0);
+    dialog->request.optionCount = ARRAY_SIZE(dialog->options);
+    dialog->request.options     = dialog->options;
+    dialog->request.title       = NULL;
+    dialog->request.flags       = 0;
+    Ui_SpawnTextBlock(&dialog->request, 0, 0, 0);
     task->state++;
 }
 
-/// Waits for the text block parked at `Task::work` to report a result in
-/// `UiOptionDialogRequest::result`, stores it through `Task::spawnArg2` and advances
-/// the task.
+/// Waits for the option dialog to answer the `RoomOptionDialog` parked at
+/// `Task::work`, stores the answer (1 or 2, the chosen option) through
+/// `Task::spawnArg2` and advances the task.
 static void func_dryfield_trailer_coach_80182794(Task* task)
 {
-    s16 result;
+    RoomOptionDialog* dialog;
+    s16               result;
 
-    result = ((RoomTextBlock*)task->work)->desc.result;
+    dialog = task->work;
+    result = dialog->request.result;
     if (result != 0) {
         *(s32*)task->spawnArg2.pointer = result;
         task->state                    = task->state + 1;
     }
 }
 
-/// Exit callback of the text-block task: kills it and calls
+/// Exit callback of the two-option choice task: kills it and calls
 /// `Stage_SetEndingFlag`.
 static void func_dryfield_trailer_coach_801827D0(Task* arg0)
 {
@@ -1770,9 +1772,9 @@ static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC = {
     },
 };
 
-/// State table of the room's two-line text-block task, run by
-/// `func_dryfield_trailer_coach_801827F8`: open the block, wait for its
-/// result, then kill the task and call `Stage_SetEndingFlag`.
+/// State table of the room's two-option choice task, run by
+/// `func_dryfield_trailer_coach_801827F8`: open the dialog, wait for its
+/// answer, then kill the task and call `Stage_SetEndingFlag`.
 static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8 = {
     {
         func_dryfield_trailer_coach_801826A0,
@@ -1781,8 +1783,8 @@ static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8 = {
     },
 };
 
-/// Runs the text-block task's current state through a stack copy of its state
-/// table.
+/// Runs the two-option choice task's current state through a stack copy of its
+/// state table.
 void func_dryfield_trailer_coach_801827F8(Task* task)
 {
     TaskFuncTable3 sp;

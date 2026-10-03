@@ -62,7 +62,7 @@ static const TaskFuncTable3 D_mist_parking_8017D7E8 = {
         taskKill,
     },
 };
-/// State handlers of the text-block task `func_mist_parking_801832AC` runs.
+/// State handlers of the two-option choice task `func_mist_parking_801832AC` runs.
 static const TaskFuncTable3 D_mist_parking_8017D7F4 = {
     {
         func_mist_parking_80183304,
@@ -748,7 +748,7 @@ s32 D_mist_parking_8018FC10[5] = {
     1,
 };
 
-/// The two text lines of the block `func_mist_parking_80183304` shows, and
+/// The labels of the two options `func_mist_parking_80183304` offers, and
 /// the alternative pair it uses when the task's `spawnArg1` is 1.
 extern u8* D_mist_parking_8018DF24[4];
 
@@ -1018,7 +1018,8 @@ void func_mist_parking_8018326C(s32 arg0)
 }
 
 /// Runs the handler for the task's state from a stack copy of
-/// `D_mist_parking_8017D7F4`: the text block's setup, its wait and its exit.
+/// `D_mist_parking_8017D7F4`: the two-option choice's setup, its wait and its
+/// exit.
 void func_mist_parking_801832AC(Task* task)
 {
     TaskFuncTable3 sp;
@@ -1027,22 +1028,25 @@ void func_mist_parking_801832AC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Allocates a two-line text block, parks it at `Task::work`, spawns it and
-/// steps the task on; `func_mist_parking_80183434` is set as the exit
-/// callback.
+/// Opens the room's two-option choice: allocates the `RoomOptionDialog`
+/// (killing the task if that fails), parks it at `Task::work`, labels its two
+/// options from the pair chosen by `spawnArg1` (the second pair when it is 1,
+/// the first otherwise), passes the request to `Ui_SpawnTextBlock` and steps
+/// the task on. Cancelling is not permitted. `func_mist_parking_80183434` is
+/// set as the exit callback.
 static void func_mist_parking_80183304(Task* task)
 {
-    RoomTextBlock*  block;
-    UiDialogOption* option;
-    u8**            line;
-    s32             table;
-    s32             off;
-    s32             mode;
-    s32             i;
+    RoomOptionDialog* dialog;
+    UiDialogOption*   option;
+    u8**              line;
+    s32               table;
+    s32               off;
+    s32               mode;
+    s32               i;
 
-    block  = memCalloc(sizeof(RoomTextBlock), 0);
-    option = block->lines;
-    if (block == NULL) {
+    dialog = memCalloc(sizeof(RoomOptionDialog), 0);
+    option = dialog->options;
+    if (dialog == NULL) {
         taskKill(task);
         return;
     }
@@ -1052,10 +1056,10 @@ static void func_mist_parking_80183304(Task* task)
     line               = D_mist_parking_8018DF24;
     table              = (s32)D_mist_parking_8018DF24;
     off                = 8;
-    task->work         = block;
+    task->work         = dialog;
     task->exitCallback = func_mist_parking_80183434;
 
-    for (; i < 2; i++) {
+    for (; i < ARRAY_SIZE(dialog->options); i++) {
         if (task->spawnArg1.value == mode) {
             option->text = *(u8**)(off + table);
         } else {
@@ -1068,29 +1072,31 @@ static void func_mist_parking_80183304(Task* task)
     }
     option[-1].next = NULL;
 
-    block->desc.optionCount = 2;
-    block->desc.options     = block->lines;
-    block->desc.title       = NULL;
-    block->desc.flags       = 0;
-    Ui_SpawnTextBlock(&block->desc, 0, 0, 0);
+    dialog->request.optionCount = ARRAY_SIZE(dialog->options);
+    dialog->request.options     = dialog->options;
+    dialog->request.title       = NULL;
+    dialog->request.flags       = 0;
+    Ui_SpawnTextBlock(&dialog->request, 0, 0, 0);
     task->state++;
 }
 
-/// Waits for the text block parked at `Task::work` to report a non-zero
-/// `UiOptionDialogRequest::result`, stores it through `Task::spawnArg2` and steps
-/// the task on.
+/// Waits for the option dialog to answer the `RoomOptionDialog` parked at
+/// `Task::work`, stores the answer (1 or 2, the chosen option) through
+/// `Task::spawnArg2` and steps the task on.
 static void func_mist_parking_801833F8(Task* task)
 {
-    s16 result;
+    RoomOptionDialog* dialog;
+    s16               result;
 
-    result = ((RoomTextBlock*)task->work)->desc.result;
+    dialog = task->work;
+    result = dialog->request.result;
     if (result != 0) {
         *(s32*)task->spawnArg2.pointer = result;
         task->state                    = task->state + 1;
     }
 }
 
-/// Exit callback of the text-block task: kills it and calls
+/// Exit callback of the two-option choice task: kills it and calls
 /// `Stage_SetEndingFlag`.
 static void func_mist_parking_80183434(Task* arg0)
 {
