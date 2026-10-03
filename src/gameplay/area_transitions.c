@@ -84,9 +84,40 @@ typedef struct {
 } _DirectionFacingPhaseTable;
 STATIC_ASSERT_SIZEOF(_DirectionFacingPhaseTable, 0x14);
 
+/// Phases of the warp action, in the order its phase counter passes them.
+///
+/// The action asks the room whether the trigger's warp may be taken, turns
+/// the player to face it and then passes the warp to the room to execute. A
+/// warp the room allows goes on to leave the area; a refused one is executed
+/// by the room all the same and ends at `DIRECTION_WARP_PHASE_RESOLVE`. The
+/// first phase ends the action itself when an event is running, when the
+/// warp is refused during a battle, or when the room's answer has it execute
+/// the warp at once. Each phase from `DIRECTION_WARP_PHASE_AWAIT_TURN` on
+/// also draws the departure fade when the warp has one.
+enum {
+    DIRECTION_WARP_PHASE_QUERY,       // Ask the room about the warp and start the player's turn to face it
+    DIRECTION_WARP_PHASE_AWAIT_TURN,  // Wait for the turn to finish
+    DIRECTION_WARP_PHASE_HOLD,        // Pass one frame
+    DIRECTION_WARP_PHASE_RESOLVE,     // Have the room carry out the warp and play its sound. A refused warp ends here
+    DIRECTION_WARP_PHASE_AWAIT_SOUND, // Wait for the departure sound to finish
+    DIRECTION_WARP_PHASE_LEAVE,       // Store the destination as the live location, start the area change and end the action
+    DIRECTION_WARP_PHASE_COUNT
+};
+
+/// The phase handlers of the warp action, indexed by `DIRECTION_WARP_PHASE_*`.
+///
+/// The warp action's own handler calls the entry its phase counter picks once
+/// per frame, without a range check. The counter starts at
+/// `DIRECTION_WARP_PHASE_QUERY` when the action is latched and only ever
+/// steps forward by one, and the last phase ends the action without stepping
+/// it, so the index stays inside the table.
+///
+/// The array is wrapped in a struct so that the table can be copied by
+/// assignment: the action's handler dispatches through a copy of its own.
 typedef struct {
-    DirectionActionHandler funcs[6];
-} GpVoidFuncTable6;
+    DirectionActionHandler handlers[DIRECTION_WARP_PHASE_COUNT];
+} _DirectionWarpPhaseTable;
+STATIC_ASSERT_SIZEOF(_DirectionWarpPhaseTable, 0x18);
 
 /// `Gp_AreaTables[1]`, `[2]`, `[4]`, `[5]`. Splat labels the later slots as
 /// their own symbols; `Gp_ApplyNewGameAreaFlags` loads each as an `AreaRecord*`.
@@ -113,7 +144,7 @@ extern _AreaMapMarkRec Gp_NewGameFlagsStg5[];
 /// bit 0x800 is added onto that nibble's value.
 extern const TaskFuncTable3 Gp_DirTaskStates;
 
-static const GpVoidFuncTable6 Gp_WarpPhaseFns;
+static const _DirectionWarpPhaseTable Gp_WarpPhaseFns;
 
 static const _DirectionFacingPhaseTable D_80093990;
 
@@ -439,13 +470,13 @@ const DirectionActionTable Gp_DirActionFns = { {
     [WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON] = Gp_SpawnEvt1IfCapIdle,
 } };
 
-static const GpVoidFuncTable6 Gp_WarpPhaseFns = { {
-    Gp_SetupDirWarp,
-    Gp_FadeDirWaitMsg,
-    Gp_FadeDirAdvance,
-    Gp_CommitWarp,
-    Gp_WarpPhase4,
-    Gp_CommitSaveLoc,
+static const _DirectionWarpPhaseTable Gp_WarpPhaseFns = { {
+    [DIRECTION_WARP_PHASE_QUERY]       = Gp_SetupDirWarp,
+    [DIRECTION_WARP_PHASE_AWAIT_TURN]  = Gp_FadeDirWaitMsg,
+    [DIRECTION_WARP_PHASE_HOLD]        = Gp_FadeDirAdvance,
+    [DIRECTION_WARP_PHASE_RESOLVE]     = Gp_CommitWarp,
+    [DIRECTION_WARP_PHASE_AWAIT_SOUND] = Gp_WarpPhase4,
+    [DIRECTION_WARP_PHASE_LEAVE]       = Gp_CommitSaveLoc,
 } };
 
 static const _DirectionFacingPhaseTable D_80093990 = { {
@@ -577,10 +608,10 @@ static u8 Gp_GetViewCountLo(void)
 
 static void Gp_DirAction0(void)
 {
-    GpVoidFuncTable6 sp;
+    _DirectionWarpPhaseTable phaseTable;
 
-    sp = Gp_WarpPhaseFns;
-    sp.funcs[(s16)Gp_DirPhase]();
+    phaseTable = Gp_WarpPhaseFns;
+    phaseTable.handlers[(s16)Gp_DirPhase]();
 }
 
 static void Gp_DirAction1(void)
