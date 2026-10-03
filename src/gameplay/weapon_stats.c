@@ -9,10 +9,10 @@
 #include "gameplay/inventory.h"
 #include "inventory.h"
 #include "gameplay/item_menu.h"
-#include "item_pickup.h"
 #include "item_use.h"
 #include "gameplay/items.h"
 #include "items.h"
+#include "weapon_data.h"
 
 #define D_8010EEF8 D_8010EAB4[39]
 
@@ -37,7 +37,7 @@ static inline u16* gpWeaponStats(s32 itemId)
 /// Primary and secondary consumable comparisons use the low-id combat parameter table.
 static inline u16* gpAmmoStats(s32 itemId)
 {
-    return Gp_IdParamLo[itemId - 0x9F].params;
+    return &Gp_IdParamLo[itemId - 0x9F].amount;
 }
 
 /// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant

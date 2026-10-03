@@ -34510,7 +34510,7 @@ Keep a `u16` temp, barrier it, then widen:
 
 ```c
 if ((id & 0x8000) == 0) {
-    raw = Gp_IdParamLo[id & 0x7F].field_4;
+    raw = Gp_IdParamLo[id & 0x7F].hitReaction;
     asm volatile("" : "+r"(raw));
     kind = raw;
 } else {
@@ -39401,12 +39401,12 @@ Same function, last diff. With a named local:
 ```c
 lo = arg1 & 0x7F;
 ...
-if (Gp_IdParamLo[lo].field_4 == 6)
+if (Gp_IdParamLo[lo].hitReaction == 6)
 ```
 
 GCC emits the `andi` first and the table's `lui/addiu %hi/%lo` after it. The
 target loads the base first. Dropping the local and writing
-`Gp_IdParamLo[value & 0x7F].field_4` moves the mask to the point of use, so the
+`Gp_IdParamLo[value & 0x7F].hitReaction` moves the mask to the point of use, so the
 base address is materialised before the index — 99.1% → 100%. This is the
 non-call sibling of the "ternary second arg schedules `arr[idx]`
 base-before-index" note above: a named index local pins the index computation

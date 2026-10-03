@@ -4,9 +4,9 @@
 #include "types.h"
 
 #include "gameplay/item_menu.h"
-#include "item_pickup.h"
 #include "gameplay/map.h"
 #include "menu.h"
+#include "weapon_data.h"
 
 #include "main/mc_types.h"
 #include "main/task_types.h"
@@ -209,7 +209,7 @@ void Gp_PickupExitTask(Task* arg0);
 
 /// 10-byte records selected by `Gp_GetIdParam2` when the id's 0x8000 bit is
 /// clear. Indexed by `id & 0x7F`.
-extern GpRec10 Gp_IdParamLo[];
+extern WeaponAttackRow Gp_IdParamLo[];
 
 void Gp_UseKeyItemRow(Task* arg0);
 

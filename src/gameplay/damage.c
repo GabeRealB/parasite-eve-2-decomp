@@ -14,7 +14,6 @@
 #include "damage.h"
 #include "gameplay/enemy.h"
 #include "item_menu.h"
-#include "item_pickup.h"
 #include "items.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/scene_combat.h"
@@ -45,9 +44,9 @@ STATIC_ASSERT_SIZEOF(GpDistScratch, 0x20);
 /// `D_80113864` (or 5). The selected entry is scaled `<< 8` then / 100.
 extern u16 D_80113568[][8];
 
-/// Column table used when `GpRec10.field_4` is 6, indexed by the distance
-/// class picked from `D_80113864`. Scaled `<< 12` then / 100 by
-/// `Gp_RollEnemyChance`.
+/// Column table used for explosions (`WeaponAttackRow::hitReaction` 6), indexed
+/// by the distance class picked from `D_80113864`. Scaled `<< 12` then / 100
+/// by `Gp_RollEnemyChance`.
 extern u16 D_80113858[];
 
 /// Distance/hit class table for `D_80113568`, indexed by `hits / 1000` (or by
@@ -62,7 +61,7 @@ static void Gp_ApplyObjKind(Enemy* arg0, s32 arg1);
 static inline u16 _gpIdParam0(s32 id)
 {
     if ((id & 0x8000) == 0) {
-        return Gp_IdParamLo[id & 0x7F].params[2];
+        return Gp_IdParamLo[id & 0x7F].hitReaction;
     }
     return Gp_IdParamHi.rows[id & 0x7F].column.outcome.hitReaction;
 }
@@ -173,7 +172,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
         }
         lo   = arg0 & 0x7F;
         arg0 = (arg0 >> 8) & 0x3F;
-        raw  = Gp_IdParamLo[lo].params[0];
+        raw  = Gp_IdParamLo[lo].amount;
         base = raw << 8;
         if (flag != 0) {
             if ((gPlayerStatus.statusFlags & PLAYER_STATUS_BERSERKER) != 0) {
@@ -196,7 +195,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
 
         if (arg2 == 0) {
             mult = 0x100;
-        } else if (Gp_IdParamLo[lo].params[2] == arg2) {
+        } else if (Gp_IdParamLo[lo].hitReaction == arg2) {
             mult = arg3;
         } else {
             mult = 0x100;
@@ -349,7 +348,7 @@ s32 Gp_RollEnemyChance(Enemy* arg0, u32 arg1, s32 arg2)
     sel = sel < 0x10 ? D_80113864[sel] : 5;
 
     kind = (arg1 >> 8) & 0x3F;
-    if (Gp_IdParamLo[arg1 & 0x7F].params[2] == 6) {
+    if (Gp_IdParamLo[arg1 & 0x7F].hitReaction == 6) {
         val = (D_80113858[sel] << 12) / 100;
     } else {
         val = (D_80113568[kind][sel] << 12) / 100;

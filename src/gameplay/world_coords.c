@@ -20,7 +20,6 @@
 #include "gameplay/enemy.h"
 #include "geometry.h"
 #include "item_menu.h"
-#include "item_pickup.h"
 #include "item_use.h"
 #include "gameplay/light.h"
 #include "gameplay/lighting_work.h"
@@ -29,6 +28,7 @@
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/world_targets.h"
+#include "weapon_data.h"
 
 #include "gameplay/damage.h"
 #include "main/display.h"
@@ -1881,7 +1881,7 @@ static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos
 static inline u16 _gpIdParam0(s32 id)
 {
     if ((id & 0x8000) == 0) {
-        return Gp_IdParamLo[id & 0x7F].params[2];
+        return Gp_IdParamLo[id & 0x7F].hitReaction;
     }
     return Gp_IdParamHi.rows[id & 0x7F].column.outcome.hitReaction;
 }

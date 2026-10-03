@@ -12,10 +12,10 @@
 #include "gameplay/inventory.h"
 #include "inventory.h"
 #include "item_menu.h"
-#include "item_pickup.h"
 #include "gameplay/items.h"
 #include "items.h"
 #include "gameplay/message.h"
+#include "weapon_data.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -44,54 +44,54 @@ typedef struct {
 static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, s32 x, s32 y, s32 color,
                                                s32 item);
 
-GpRec10 Gp_IdParamLo[47] = {
-    { { 0, 0, 0, 0, 0 } },
-    { { 10, 0, 0, 1, 0 } },
-    { { 15, 0, 0, 1, 0 } },
-    { { 20, 0, 0, 1, 0 } },
-    { { 9999, 0, 0, 0, 0 } },
-    { { 9999, 0, 0, 0, 0 } },
-    { { 9999, 0, 0, 0, 0 } },
-    { { 40, 0, 0, 1, 0 } },
-    { { 70, 0, 3, 2, 0 } },
-    { { 999, 0, 3, 2, 0 } },
-    { { 270, 0, 4, 3, 10 } },
-    { { 220, 0, 6, 4, 3 } },
-    { { 60, 0, 9, 0, 10 } },
-    { { 40, 0, 6, 4, 0 } },
-    { { 70, 0, 7, 3, 0 } },
-    { { 90, 0, 5, 5, 0 } },
-    { { 22, 0, 0, 1, 0 } },
-    { { 1, 0, 2, 0, 0 } },
-    { { 1, 0, 9, 0, 0 } },
-    { { 9999, 0, 0, 0, 0 } },
-    { { 9999, 0, 0, 0, 0 } },
-    { { 10, 0, 0, 6, 11 } },
-    { { 0, 0, 8, 0, 0 } },
-    { { 10, 0, 0, 6, 8 } },
-    { { 1500, 0, 6, 4, 9 } },
-    { { 2000, 0, 7, 3, 9 } },
-    { { 2000, 0, 1, 7, 10 } },
-    { { 100, 0, 1, 8, 9 } },
-    { { 80, 0, 1, 15, 0 } },
-    { { 90, 0, 0, 8, 10 } },
-    { { 35, 0, 7, 16, 5 } },
-    { { 25, 0, 0, 10, 5 } },
-    { { 2500, 0, 5, 5, 9 } },
-    { { 60, 0, 6, 4, 2 } },
-    { { 80, 0, 6, 4, 2 } },
-    { { 100, 0, 6, 4, 2 } },
-    { { 15, 0, 7, 3, 5 } },
-    { { 30, 0, 1, 0, 1 } },
-    { { 45, 0, 1, 10, 0 } },
-    { { 80, 0, 1, 10, 0 } },
-    { { 45, 0, 2, 7, 0 } },
-    { { 45, 0, 1, 10, 0 } },
-    { { 12, 0, 0, 1, 0 } },
-    { { 40, 0, 1, 1, 1 } },
-    { { 60, 0, 1, 1, 1 } },
-    { { 60, 0, 7, 3, 1 } },
-    { { 100, 0, 7, 3, 1 } },
+WeaponAttackRow Gp_IdParamLo[47] = {
+    { 0, 0, 0, 0, 0 },
+    { 10, 0, 0, 1, 0 },
+    { 15, 0, 0, 1, 0 },
+    { 20, 0, 0, 1, 0 },
+    { 9999, 0, 0, 0, 0 },
+    { 9999, 0, 0, 0, 0 },
+    { 9999, 0, 0, 0, 0 },
+    { 40, 0, 0, 1, 0 },
+    { 70, 0, 3, 2, 0 },
+    { 999, 0, 3, 2, 0 },
+    { 270, 0, 4, 3, 10 },
+    { 220, 0, 6, 4, 3 },
+    { 60, 0, 9, 0, 10 },
+    { 40, 0, 6, 4, 0 },
+    { 70, 0, 7, 3, 0 },
+    { 90, 0, 5, 5, 0 },
+    { 22, 0, 0, 1, 0 },
+    { 1, 0, 2, 0, 0 },
+    { 1, 0, 9, 0, 0 },
+    { 9999, 0, 0, 0, 0 },
+    { 9999, 0, 0, 0, 0 },
+    { 10, 0, 0, 6, 11 },
+    { 0, 0, 8, 0, 0 },
+    { 10, 0, 0, 6, 8 },
+    { 1500, 0, 6, 4, 9 },
+    { 2000, 0, 7, 3, 9 },
+    { 2000, 0, 1, 7, 10 },
+    { 100, 0, 1, 8, 9 },
+    { 80, 0, 1, 15, 0 },
+    { 90, 0, 0, 8, 10 },
+    { 35, 0, 7, 16, 5 },
+    { 25, 0, 0, 10, 5 },
+    { 2500, 0, 5, 5, 9 },
+    { 60, 0, 6, 4, 2 },
+    { 80, 0, 6, 4, 2 },
+    { 100, 0, 6, 4, 2 },
+    { 15, 0, 7, 3, 5 },
+    { 30, 0, 1, 0, 1 },
+    { 45, 0, 1, 10, 0 },
+    { 80, 0, 1, 10, 0 },
+    { 45, 0, 2, 7, 0 },
+    { 45, 0, 1, 10, 0 },
+    { 12, 0, 0, 1, 0 },
+    { 40, 0, 1, 1, 1 },
+    { 60, 0, 1, 1, 1 },
+    { 60, 0, 7, 3, 1 },
+    { 100, 0, 7, 3, 1 },
 };
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
@@ -132,58 +132,58 @@ static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, 
 
 void func_800C5F70(Task* arg0)
 {
-    TextDrawReq     req20;
-    TextDrawReq     req30;
-    u8              buf40[0x20];
-    TextDrawReq     req60;
-    TextDrawReq     req70;
-    TextDrawReq     req80;
-    TextDrawReq     req90;
-    TextDrawReq     reqA0;
-    TextDrawReq     reqB0;
-    u8              bufC0[0x20];
-    u8              bufE0[0x20];
-    TextDrawReq     req100;
-    TextDrawReq     req110;
-    TextDrawReq     req120;
-    TextDrawReq     req130;
-    TextDrawReq     req140;
-    TextDrawReq     req150;
-    s32             ready;
-    u32             flags;
-    UiList*         menu;
-    UiObject*       obj;
-    s32             item;
-    s32             featCount;
-    s32             altColor;
-    s32             state;
-    s32             lines;
-    u8*             p;
-    u8*             payload;
-    s32             y;
-    s32             i;
-    s32             spriteCount;
-    s32             h;
-    s32             x;
-    SPRT*           sprt;
-    s32             saved;
-    ArmorStats*     attr;
-    u8**            names;
-    u8*             text;
-    GpRec10*        rec;
-    GpRec10*        recBase;
-    s32             idx;
-    s32             temp;
-    s32             caliber;
-    s32             recIndex;
-    s32             spriteW;
-    s32             textColor;
-    s32             featIndex;
-    s32             spriteI;
-    s32             baseY;
-    s32             spriteMode;
-    const ItemDesc* descBase;
-    const ItemDesc* desc;
+    TextDrawReq      req20;
+    TextDrawReq      req30;
+    u8               buf40[0x20];
+    TextDrawReq      req60;
+    TextDrawReq      req70;
+    TextDrawReq      req80;
+    TextDrawReq      req90;
+    TextDrawReq      reqA0;
+    TextDrawReq      reqB0;
+    u8               bufC0[0x20];
+    u8               bufE0[0x20];
+    TextDrawReq      req100;
+    TextDrawReq      req110;
+    TextDrawReq      req120;
+    TextDrawReq      req130;
+    TextDrawReq      req140;
+    TextDrawReq      req150;
+    s32              ready;
+    u32              flags;
+    UiList*          menu;
+    UiObject*        obj;
+    s32              item;
+    s32              featCount;
+    s32              altColor;
+    s32              state;
+    s32              lines;
+    u8*              p;
+    u8*              payload;
+    s32              y;
+    s32              i;
+    s32              spriteCount;
+    s32              h;
+    s32              x;
+    SPRT*            sprt;
+    s32              saved;
+    ArmorStats*      attr;
+    u8**             names;
+    u8*              text;
+    WeaponAttackRow* rec;
+    WeaponAttackRow* recBase;
+    s32              idx;
+    s32              temp;
+    s32              caliber;
+    s32              recIndex;
+    s32              spriteW;
+    s32              textColor;
+    s32              featIndex;
+    s32              spriteI;
+    s32              baseY;
+    s32              spriteMode;
+    const ItemDesc*  descBase;
+    const ItemDesc*  desc;
 
     ready = 0;
     flags = ready;
@@ -541,7 +541,7 @@ void func_800C5F70(Task* arg0)
                     recBase  = Gp_IdParamLo;
                     recIndex = item - 0x9F;
                     rec      = recBase + recIndex;
-                    Text_ItoaSigned(bufC0, rec->params[0]);
+                    Text_ItoaSigned(bufC0, rec->amount);
                     y                 = baseY + 0x2D;
                     req100.x          = obj->panel.contentOriginX.unsignedValue + 2;
                     req100.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
@@ -581,7 +581,7 @@ void func_800C5F70(Task* arg0)
                     req130.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
                     Text_DrawString(&req130, bufC0);
                     y = baseY + 0x4B;
-                    if (rec->params[2] != 0) {
+                    if (rec->hitReaction != 0) {
                         req140.x          = obj->panel.contentOriginX.unsignedValue + 2;
                         req140.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
                         req140.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -597,7 +597,7 @@ void func_800C5F70(Task* arg0)
                         req150.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                         req150.alignment  = TEXT_ALIGNMENT_LEFT;
                         req150.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                        Text_DrawString(&req150, D_8010E7C0[rec->params[2]]);
+                        Text_DrawString(&req150, D_8010E7C0[rec->hitReaction]);
                     }
                     x                 = obj->panel.contentLeft.signedValue + 2;
                     req140.x          = obj->panel.contentOriginX.unsignedValue + x;
