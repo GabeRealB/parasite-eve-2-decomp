@@ -31,26 +31,28 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// One 8-byte row of `D_metabolism_8012FB54`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.attachId % 10 - 1`, so the cast scales with the combo
-/// counter). `field_0` is how many fan wedges the cast lays out - the number
-/// of `D_metabolism_8012FB78` angles it seeds and then draws through
-/// `func_metabolism_8012F840`. `field_2` is the brightness cap state 1 grows
-/// `EffectWork.scale` toward in steps of 0x10, `field_4` the per-frame
-/// radius step added to `EffectWork.angle`, and `field_6` both the
-/// `Gp_SpawnEff` spawn arg for the three orbiting sparks and the radius at
-/// which state 1 hands over to state 2.
-typedef struct MetabolismStep {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ s16 field_6;
-} MetabolismStep;
-STATIC_ASSERT_SIZEOF(MetabolismStep, 8);
+/// Visual tuning of the metabolism cast for one Parasite Energy level.
+///
+/// The cast is a fan of glow wedges, two rings and up to three arcs that
+/// brighten and widen around the caster while it throws off sparks. It selects
+/// its row with the level digit of the attachment id, less one, which it keeps
+/// in `EffectWork::index`.
+///
+/// The brightness is the cast's `EffectWork::scale`: the green channel of the
+/// drawing, which red and blue are shifted down from. The radius is its
+/// `EffectWork::angle`: the extent of the fan and the arcs, twice the radius
+/// of the rings, and the distance from the caster each spark is spawned at.
+typedef struct {
+    s16 wedgeCount;      // Glow wedges in the fan, one random angle each; the angle table holds 16
+    s16 brightnessLimit; // Brightness the growth stops at; below it the cast gains 0x10 a frame
+    s16 radiusStep;      // Radius gained per frame, while the cast grows and while it fades
+    s16 radiusLimit;     // Radius that ends the growth; also the sprite radius each spark is spawned with
+} _MetabolismLevelTuning;
+STATIC_ASSERT_SIZEOF(_MetabolismLevelTuning, 8);
 
 /// Per-level tuning for the metabolism drain, one row per PE level 1-3,
 /// weakest first.
-static MetabolismStep D_metabolism_8012FB54[] = {
+static _MetabolismLevelTuning D_metabolism_8012FB54[] = {
     { 0x0008, 0x0080, 0x0020, 0x0400 },
     { 0x000C, 0x00B0, 0x0030, 0x0500 },
     { 0x0010, 0x00E0, 0x0040, 0x0600 },
@@ -74,7 +76,7 @@ static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
 /// three random yaws, rotating `EffectWork.move` through the new frame and
 /// then overwriting it with the `angle` circle at `step`, to parent
 /// three `0x60013` sparks; it hands over to state 2 once the radius reaches
-/// the row's `field_6`. State 2 shrinks brightness by 0x10 a frame and drops
+/// the row's `radiusLimit`. State 2 shrinks brightness by 0x10 a frame and drops
 /// to state 3 - release - below 0x11. States 1 and 2 both draw the fan wedges,
 /// two rings and two or three arcs, each arc on a colour halved again from the
 /// last.
@@ -118,7 +120,7 @@ void func_metabolism_8012EF34(Task* arg0)
             {
                 s32 rng;
 
-                for (i = 0; i < D_metabolism_8012FB54[mem->index].field_0; i++) {
+                for (i = 0; i < D_metabolism_8012FB54[mem->index].wedgeCount; i++) {
                     rng                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     D_metabolism_8012FB78[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
                     gRandomLcgState          = rng;
@@ -132,11 +134,11 @@ void func_metabolism_8012EF34(Task* arg0)
         case 1:
             Gp_UpdateCoord(coord);
             bright = mem->scale;
-            if (bright < D_metabolism_8012FB54[mem->index].field_2) {
+            if (bright < D_metabolism_8012FB54[mem->index].brightnessLimit) {
                 bright += 0x10;
             }
             mem->scale = bright;
-            mem->angle = mem->angle + D_metabolism_8012FB54[mem->index].field_4;
+            mem->angle = mem->angle + D_metabolism_8012FB54[mem->index].radiusStep;
             {
                 s32 rng;
                 s32 rng2;
@@ -157,29 +159,29 @@ void func_metabolism_8012EF34(Task* arg0)
                     mem->move.vz = 0;
                     mem->move.vy = temp_lo >> 12;
                     spawned      = Gp_SpawnEff(EFFECT_METABOLISM_SPARKLE, coord,
-                                               (s32)(D_metabolism_8012FB54[mem->index].field_6),
+                                               (s32)D_metabolism_8012FB54[mem->index].radiusLimit,
                                                &mem->move);
                     if (spawned != NULL) {
                         taskReparent(arg0, spawned->task);
                     }
                 }
             }
-            if (mem->angle >= D_metabolism_8012FB54[mem->index].field_6) {
+            if (mem->angle >= D_metabolism_8012FB54[mem->index].radiusLimit) {
                 arg0->state = 2;
             }
-            for (i = 0; i < D_metabolism_8012FB54[mem->index].field_0; i++) {
+            for (i = 0; i < D_metabolism_8012FB54[mem->index].wedgeCount; i++) {
                 func_metabolism_8012F840(coord, mem->angle, D_metabolism_8012FB78[i],
                                          mem->scale);
             }
             goto draw;
         case 2:
             Gp_UpdateCoord(coord);
-            for (i = 0; i < D_metabolism_8012FB54[mem->index].field_0; i++) {
+            for (i = 0; i < D_metabolism_8012FB54[mem->index].wedgeCount; i++) {
                 func_metabolism_8012F840(coord, mem->angle, D_metabolism_8012FB78[i],
                                          mem->scale);
             }
             mem->scale = mem->scale - 0x10;
-            mem->angle = mem->angle + D_metabolism_8012FB54[mem->index].field_4;
+            mem->angle = mem->angle + D_metabolism_8012FB54[mem->index].radiusStep;
             if (mem->scale < 0x11) {
                 arg0->state = 3;
             }
