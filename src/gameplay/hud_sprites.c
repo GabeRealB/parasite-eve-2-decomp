@@ -106,24 +106,37 @@ typedef struct _GpHudScratch {
 } GpHudScratch;
 STATIC_ASSERT_SIZEOF(GpHudScratch, 0x1C);
 
-/// 0x30-byte stack scratch shared by the enemy HP-bar HUD (`Gp_DrawHudNumbers`).
-/// The block is first initialised as a `UiObject` (`baseX` / `baseY` /
-/// `drawOrder` / `mode`), then reused: `text.buf` is the `Text_ItoaUnsigned`
-/// digit buffer with `text.req` (at +0x10) the matching draw request, while the
-/// "????" case draws through `bar.req` (at +0) and the trailing
-/// `Ui_DrawTextInRect` rectangle is `bar.rect` (also at +0x10).
-typedef union GpHudBarScratch {
-    UiObject obj;
+/// Stack workspace for one HUD hit-point readout.
+///
+/// `Gp_DrawHudNumbers` keeps a single 48-byte slot, the size of a `UiObject`.
+/// Separate locals would not share it. The function stores a zero content
+/// origin, ordering-table index -3 and the initial panel state through
+/// `uiObject`, then uses the same bytes for the amount text and the frame.
+/// It does not read those panel fields back. The "HP" label is a separate
+/// request, not part of this slot.
+///
+/// When the maximum is known, `value` holds the current amount: `digits`
+/// receives the decimal text and `request` draws it. The conversion writes at
+/// most ten bytes: nine digits and a terminator. The request follows those
+/// sixteen bytes, clear of the text. When the maximum is negative,
+/// `hiddenAmount` draws the stand-in string from the bytes `digits` occupies.
+/// `frame.rect` is the outer rectangle passed to `Ui_DrawTextInRect` after
+/// that text, on both paths, and it starts at the same byte as `value.request`.
+typedef union {
+    UiObject uiObject;            // Content origin, ordering-table index and initial panel state
     struct {
-        /* 0x00 */ u8          buf[0x10];
-        /* 0x10 */ TextDrawReq req;
-    } text;
+        u8          digits[0x10]; // Decimal text of the current amount, NUL-terminated
+        TextDrawReq request;      // Placement and style for `digits`
+    } value;
+    TextDrawReq hiddenAmount;     // Stand-in string when the maximum is negative
     struct {
-        /* 0x00 */ TextDrawReq req;
-        /* 0x10 */ RECT        rect;
-    } bar;
-} GpHudBarScratch;
-STATIC_ASSERT_SIZEOF(GpHudBarScratch, 0x30);
+        u8   amountBytes[0x10];   // Same bytes as `value.digits` and `hiddenAmount`; not read here
+        RECT rect;                // Outer rectangle in draw-environment pixels
+    } frame;
+} _HudHpReadoutScratch;
+STATIC_ASSERT_SIZEOF(_HudHpReadoutScratch, 0x30);
+STATIC_ASSERT(OFFSET_OF(_HudHpReadoutScratch, value.request) == 0x10, hud_hp_readout_value_request);
+STATIC_ASSERT(OFFSET_OF(_HudHpReadoutScratch, frame.rect) == 0x10, hud_hp_readout_frame);
 
 /// 0x48-byte scratch from the scratch stack used by `Gp_UpdateLinkXforms`.
 /// `mat` is the transpose of the player `workm`; `vec` at +0x40 is the
@@ -391,15 +404,15 @@ void Gp_DrawHudSprites(HudState* hud)
 
 void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
 {
-    GpHudBarScratch s;
-    TextDrawReq     req;
-    TILE*           tile;
-    SPRT*           sp;
-    POLY_FT4*       poly;
-    s32             span;
-    s32             right;
-    s32             w;
-    s32             order;
+    _HudHpReadoutScratch scratch;
+    TextDrawReq          req;
+    TILE*                tile;
+    SPRT*                sp;
+    POLY_FT4*            poly;
+    s32                  span;
+    s32                  right;
+    s32                  w;
+    s32                  order;
 
     span = 0x25;
     if (cur < 0) {
@@ -410,11 +423,12 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         return;
     }
 
-    order                                    = -3;
-    s.obj.panel.contentOriginX.unsignedValue = 0;
-    s.obj.panel.contentOriginY.unsignedValue = 0;
-    s.obj.panel.otIndex.signedValue          = order;
-    s.obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
+    // Panel view of the readout slot. The amount text and frame reuse these bytes.
+    order                                               = -3;
+    scratch.uiObject.panel.contentOriginX.unsignedValue = 0;
+    scratch.uiObject.panel.contentOriginY.unsignedValue = 0;
+    scratch.uiObject.panel.otIndex.signedValue          = order;
+    scratch.uiObject.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
 
     req.x          = x + 4;
     req.y          = y + 8;
@@ -435,14 +449,14 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             if (val < 0) {
                 val = 0;
             }
-            s.text.req.x          = tx;
-            s.text.req.y          = ty;
-            s.text.req.otIndex    = -2;
-            s.text.req.colorRgb   = 0x606060;
-            s.text.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            s.text.req.alignment  = TEXT_ALIGNMENT_RIGHT;
-            s.text.req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            Text_DrawString(&s.text.req, Text_ItoaUnsigned(s.text.buf, val));
+            scratch.value.request.x          = tx;
+            scratch.value.request.y          = ty;
+            scratch.value.request.otIndex    = -2;
+            scratch.value.request.colorRgb   = 0x606060;
+            scratch.value.request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            scratch.value.request.alignment  = TEXT_ALIGNMENT_RIGHT;
+            scratch.value.request.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+            Text_DrawString(&scratch.value.request, Text_ItoaUnsigned(scratch.value.digits, val));
         } else {
             s32 tx = x + 0x33;
             s32 ty = y + 0xA;
@@ -450,14 +464,14 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             if (val < 0) {
                 val = 0;
             }
-            s.text.req.x          = tx;
-            s.text.req.y          = ty;
-            s.text.req.otIndex    = -2;
-            s.text.req.colorRgb   = 0x606060;
-            s.text.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            s.text.req.alignment  = TEXT_ALIGNMENT_RIGHT;
-            s.text.req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            Text_DrawString(&s.text.req, Text_ItoaUnsigned(s.text.buf, val));
+            scratch.value.request.x          = tx;
+            scratch.value.request.y          = ty;
+            scratch.value.request.otIndex    = -2;
+            scratch.value.request.colorRgb   = 0x606060;
+            scratch.value.request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            scratch.value.request.alignment  = TEXT_ALIGNMENT_RIGHT;
+            scratch.value.request.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+            Text_DrawString(&scratch.value.request, Text_ItoaUnsigned(scratch.value.digits, val));
             span = 0x2D;
         }
 
@@ -528,22 +542,23 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         setcode(poly, 0x2D);
         addPrim(gGpuCurrentOt - 2, poly);
     } else {
-        s.bar.req.x          = x + 0x33;
-        s.bar.req.y          = y + 0xA;
-        s.bar.req.otIndex    = -2;
-        s.bar.req.colorRgb   = 0x37A78;
-        s.bar.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        s.bar.req.alignment  = TEXT_ALIGNMENT_RIGHT;
-        s.bar.req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        Text_DrawString(&s.bar.req, D_800938AC);
+        scratch.hiddenAmount.x          = x + 0x33;
+        scratch.hiddenAmount.y          = y + 0xA;
+        scratch.hiddenAmount.otIndex    = -2;
+        scratch.hiddenAmount.colorRgb   = 0x37A78;
+        scratch.hiddenAmount.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        scratch.hiddenAmount.alignment  = TEXT_ALIGNMENT_RIGHT;
+        scratch.hiddenAmount.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+        Text_DrawString(&scratch.hiddenAmount, D_800938AC);
         span = 0x2D;
     }
 
-    s.bar.rect.x = x;
-    s.bar.rect.y = y;
-    s.bar.rect.w = span + 0xA;
-    s.bar.rect.h = 0x14;
-    Ui_DrawTextInRect(&s.bar.rect, -1, 0x40002, NULL);
+    // The frame reuses the value request's bytes after the amount has been drawn.
+    scratch.frame.rect.x = x;
+    scratch.frame.rect.y = y;
+    scratch.frame.rect.w = span + 0xA;
+    scratch.frame.rect.h = 0x14;
+    Ui_DrawTextInRect(&scratch.frame.rect, -1, 0x40002, NULL);
 }
 
 static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout)

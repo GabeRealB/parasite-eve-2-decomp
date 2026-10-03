@@ -50262,8 +50262,8 @@ menu.req.x = ...;            /* clobbers lists[0..3], already read past       */
 ```
 
 The table read must come *before* the request stores in source order: they
-alias, so GCC will not hoist the `lw` past them. `GpHudBarScratch` in
-`include/gameplay/gameplay.h` is the same idea for a `UiObject`-sized block.
+alias, so GCC will not hoist the `lw` past them. `_HudHpReadoutScratch` in
+`src/gameplay/hud_sprites.c` is the same idea for a `UiObject`-sized block.
 
 ## `ori K; slt v0,v0,a0` is `x > K`, not `x >= K + 1`
 
