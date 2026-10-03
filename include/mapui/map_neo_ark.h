@@ -64,7 +64,7 @@ extern DirectionWarpEntry* D_map_neo_ark_8017AA80[];
 
 extern ViewCountTable D_map_neo_ark_8017AB88;
 
-extern GpRoomObjTbl D_map_neo_ark_8017ACA0;
+extern WorldCollisionStageResources D_map_neo_ark_8017ACA0;
 
 extern ViewCameraTable D_map_neo_ark_8017AD28;
 

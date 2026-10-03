@@ -615,7 +615,7 @@ static WorldCollisionRoomResources* D_map_dryfield_full_8017A940[38] = {
     D_dryfield_night_underpass_8017DD70,
 };
 
-GpRoomObjTbl D_map_dryfield_full_8017A9D8 = { D_map_dryfield_full_8017A940 };
+WorldCollisionStageResources D_map_dryfield_full_8017A9D8 = { D_map_dryfield_full_8017A940 };
 
 static ViewCamera* D_map_dryfield_full_8017A9DC[38] = {
     D_dryfield_night_gas_station_8018B780,

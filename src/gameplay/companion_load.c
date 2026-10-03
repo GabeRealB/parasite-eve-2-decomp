@@ -462,7 +462,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
     Task*                              spawned;
 
     sess          = &gGameSession->location.loc;
-    roomResources = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
+    roomResources = Gp_RoomObjTables[sess->stage - 1]->areaRooms[sess->area - 1];
     if (roomResources != NULL) {
         grid                 = roomResources[sess->room - 1].grid;
         viewBoundaryTriggers = roomResources[sess->room - 1].viewBoundaryTriggers;

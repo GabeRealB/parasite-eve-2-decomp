@@ -711,7 +711,7 @@ static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
     D_mist_shooting_gallery_801853A8,
 };
 
-GpRoomObjTbl D_map_akropolis_8017AAC8 = { D_map_akropolis_8017AA78 };
+WorldCollisionStageResources D_map_akropolis_8017AAC8 = { D_map_akropolis_8017AA78 };
 
 static SpriteView* D_map_akropolis_8017AACC[20] = {
     D_acropolis_square_8018857C,

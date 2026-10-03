@@ -270,7 +270,7 @@ static void Gp_LinkRoomObjects(Task* task)
     Gp_ClearObj4AList(1);
     Gp_ClearObj4AList(0);
     Gp_ClearObj3AList(0);
-    roomResources = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
+    roomResources = Gp_RoomObjTables[sess->stage - 1]->areaRooms[sess->area - 1];
     if (roomResources != NULL) {
         grid                 = roomResources[sess->room - 1].grid;
         viewBoundaryTriggers = roomResources[sess->room - 1].viewBoundaryTriggers;

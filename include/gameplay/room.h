@@ -175,10 +175,22 @@ typedef struct {
 } WorldCollisionRoomResources;
 STATIC_ASSERT_SIZEOF(WorldCollisionRoomResources, 0x10);
 
-/// Per-stage wrapper. `field_0` is an array of `WorldCollisionRoomResources*`, indexed
-/// 1-based by `GameSession.location.loc.area` / `GameLocationKey.area`.
-typedef struct _GpRoomObjTbl {
-    /* 0x0 */ WorldCollisionRoomResources** field_0;
-} GpRoomObjTbl;
+/// A stage's directory of per-area collision room resources.
+///
+/// `areaRooms[area - 1][room - 1]` is the `WorldCollisionRoomResources` that
+/// room setup links for a 1-based `GameLocationKey` area and room. Areas
+/// without a room folder have NULL entries, which leave the room with no grid,
+/// triggers or occluders. Neither level stores a count or terminator, so
+/// lookups require a valid 1-based area within the stage's directory and, for
+/// a populated area, a room inside that area's array.
+///
+/// The stage map overlay owns this record and its area directory, and borrows
+/// each room overlay's resource array, which stays valid only while that room
+/// is loaded. Consumers only read through this record; it allocates and
+/// releases nothing.
+typedef struct {
+    WorldCollisionRoomResources** areaRooms; // Borrowed per-area room-resource arrays, indexed by area - 1; NULL when that area has none
+} WorldCollisionStageResources;
+STATIC_ASSERT_SIZEOF(WorldCollisionStageResources, 4);
 
 #endif // GAMEPLAY_ROOM_H

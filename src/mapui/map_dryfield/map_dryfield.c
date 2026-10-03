@@ -660,7 +660,7 @@ static WorldCollisionRoomResources* D_map_dryfield_8017AA2C[38] = {
     D_dryfield_underpass_8017EB20,
 };
 
-GpRoomObjTbl D_map_dryfield_8017AAC4 = { D_map_dryfield_8017AA2C };
+WorldCollisionStageResources D_map_dryfield_8017AAC4 = { D_map_dryfield_8017AA2C };
 
 static ViewCamera* D_map_dryfield_8017AAC8[38] = {
     D_dryfield_gas_station_80183EC8,

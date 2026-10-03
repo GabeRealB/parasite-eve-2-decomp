@@ -72,7 +72,7 @@ extern WorldCoordRoomLighting** Gp_RoomCoordTables[];
 extern ViewIndexTable* Gp_ViewIndexTables[];
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-extern GpRoomObjTbl* Gp_RoomObjTables[];
+extern WorldCollisionStageResources* Gp_RoomObjTables[];
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`. Each
 /// entry is an array of `DirectionWarpEntry*`, indexed 1-based by

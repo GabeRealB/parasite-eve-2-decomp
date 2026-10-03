@@ -61,7 +61,7 @@ extern u16 D_map_akropolis_8017AA0C[];
 /// room into that room's package.
 extern WorldCoordRoomLighting* D_map_akropolis_8017AA28[];
 
-extern GpRoomObjTbl D_map_akropolis_8017AAC8;
+extern WorldCollisionStageResources D_map_akropolis_8017AAC8;
 
 extern SpriteAreaTable D_map_akropolis_8017AB1C;
 

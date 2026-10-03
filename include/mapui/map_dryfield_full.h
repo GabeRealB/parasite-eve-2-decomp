@@ -61,7 +61,7 @@ extern DirectionWarpEntry* D_map_dryfield_full_8017A80C[];
 
 extern ViewCountTable D_map_dryfield_full_8017A93C;
 
-extern GpRoomObjTbl D_map_dryfield_full_8017A9D8;
+extern WorldCollisionStageResources D_map_dryfield_full_8017A9D8;
 
 extern ViewCameraTable D_map_dryfield_full_8017AA74;
 

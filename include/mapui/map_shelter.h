@@ -61,7 +61,7 @@ extern DirectionWarpEntry* D_map_shelter_8017AF88[];
 
 extern ViewCountTable D_map_shelter_8017B110;
 
-extern GpRoomObjTbl D_map_shelter_8017B3B8;
+extern WorldCollisionStageResources D_map_shelter_8017B3B8;
 
 extern ViewCameraTable D_map_shelter_8017B480;
 

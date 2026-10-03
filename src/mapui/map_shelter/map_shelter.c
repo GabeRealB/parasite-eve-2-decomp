@@ -1057,7 +1057,7 @@ static WorldCollisionRoomResources* D_map_shelter_8017B2F4[49] = {
     D_shelter_r49_8017DA18,
 };
 
-GpRoomObjTbl D_map_shelter_8017B3B8 = { D_map_shelter_8017B2F4 };
+WorldCollisionStageResources D_map_shelter_8017B3B8 = { D_map_shelter_8017B2F4 };
 
 static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_mine_mesa_80187030,
