@@ -8,14 +8,6 @@
 #include "main/mc.h"
 #include "main/task_types.h"
 
-/// 2-byte table at `D_8010CAD0`. `Gp_PollAreaCdLoads` reads `field_0` at
-/// `AreaResource.fileGroupIndex` (stride 2) as the CdCmd 0x21 param1[2] base.
-typedef struct _GpTbl2 {
-    /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 field_1;
-} GpTbl2;
-STATIC_ASSERT_SIZEOF(GpTbl2, 2);
-
 enum { LOADING_AREA_FILE_COMMAND = 0x21,
        LOADING_FILE_ID_RADIX     = 100 };
 
@@ -36,14 +28,16 @@ u16 D_80114C74;
 
 #include "loading.h"
 
-extern GpTbl2 D_8010CAD0[];
+extern u16 D_8010CAD0[];
 
 /// No identified reader for either word; preserve the unresolved storage boundary.
 extern u32 D_8010CAC8[2];
 
 /// No identified reader for either word; preserve the unresolved storage boundary.
-u32    D_8010CAC8[2] = { 0, 0xE1EFCD00 };
-GpTbl2 D_8010CAD0[9] = { { 10, 0 }, { 20, 0 }, { 30, 0 }, { 40, 0 }, { 50, 0 }, { 60, 0 }, { 0, 0 }, { 1, 0 }, { 2, 0 } };
+u32 D_8010CAC8[2] = { 0, 0xE1EFCD00 };
+
+/// File-group base selected by each `AreaResource.fileGroupIndex` value.
+u16 D_8010CAD0[9] = { 10, 20, 30, 40, 50, 60, 0, 1, 2 };
 
 u16 Gp_PollAreaCdLoads(void)
 {
@@ -90,10 +84,10 @@ u16 Gp_PollAreaCdLoads(void)
                 fileNumber = resource->fileNumber;
                 if (fileNumber >= LOADING_FILE_ID_RADIX) {
                     fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                    fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0 + (resource->fileNumber / LOADING_FILE_ID_RADIX);
+                    fileKey[2]    = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
                 } else {
                     fileParams[0] = resource->fileNumber;
-                    fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0;
+                    fileKey[2]    = D_8010CAD0[resource->fileGroupIndex];
                 }
                 fileParams[1] = 0;
                 fileParams[2] = Gp_CdRecCur->texturePageOffset;
@@ -166,10 +160,10 @@ u16 func_800AA120(void)
                         fileNumber        = resource->fileNumber;
                         if (fileNumber >= LOADING_FILE_ID_RADIX) {
                             fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0 + (resource->fileNumber / LOADING_FILE_ID_RADIX);
+                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
                         } else {
                             fileParams[0] = resource->fileNumber;
-                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0;
+                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex];
                         }
                         fileParams[1] = 0;
                         fileParams[2] = texturePageOffset;
@@ -184,10 +178,10 @@ u16 func_800AA120(void)
                         fileNumber        = resource->fileNumber;
                         if (fileNumber >= LOADING_FILE_ID_RADIX) {
                             fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0 + (resource->fileNumber / LOADING_FILE_ID_RADIX);
+                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
                         } else {
                             fileParams[0] = resource->fileNumber;
-                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0;
+                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex];
                         }
                         fileParams[1] = 0;
                         fileParams[2] = texturePageOffset;
@@ -203,10 +197,10 @@ u16 func_800AA120(void)
                     fileNumber        = resource->fileNumber;
                     if (fileNumber >= LOADING_FILE_ID_RADIX) {
                         fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0 + (resource->fileNumber / LOADING_FILE_ID_RADIX);
+                        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
                     } else {
                         fileParams[0] = resource->fileNumber;
-                        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0;
+                        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex];
                     }
                     fileParams[1] = 0;
                     fileParams[2] = texturePageOffset;
