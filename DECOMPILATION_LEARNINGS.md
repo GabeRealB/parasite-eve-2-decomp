@@ -880,7 +880,7 @@ call already returned in, so the copy `addu $a0,$v0,$zero` stays and every use
 reads its destination. Naming the same block twice,
 
 ```c
-mem         = (MineCavernWork*)memCalloc(0x14C, false);
+mem         = memCalloc(sizeof(_MineCavernTargetWork), false);
 work        = mem;
 arg1->work = mem;
 if (mem == NULL) { enemyDestroy(arg0, arg1); return; }

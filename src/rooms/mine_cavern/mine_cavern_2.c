@@ -72,43 +72,29 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 
-/// Work block a mine_cavern task parks at `Task::work`, allocated with
-/// `memCalloc(0x14C, 0)` by the state-0 handler `func_mine_cavern_80182E34`
-/// (and by `func_mine_cavern_801836D0`). It carries two `WorldCollisionBody` collision bodies:
-/// the `+0x40` one is what `func_mine_cavern_80183890` is given away by - it
-/// clears `obj40.flags` with `andi 0x7FFF` at +0x5E and then passes `&obj40` (a
-/// `+0x40` on the same base pointer) to `Gp_UnlinkObj`, the way
-/// `func_mine_cavern_80183860` does on its own exit path - and
-/// `func_mine_cavern_801838F4` reaches the second by `+0xC0`, clearing its
-/// flags at +0xDE the same way. `field_148` is the counter that function ticks
-/// and switch-dispatches on (against 0x3C) and that `func_mine_cavern_80183890`
-/// clears on its way out.
+/// Work block of the cavern's two target tasks, parked at `Task::work`.
 ///
-/// `coord` is the block's own display coordinate. `func_mine_cavern_80183AD4`
-/// resets it - identity rotation, parked at (0, -0x320, 0) - and hangs the
-/// model's own coordinate (`TmdObject::coords`) under it as `parent`, which is
-/// what leaves the model's positions relative to that spot.
+/// The room spawns both tasks at each of its four target spots, and each
+/// allocates one of these zeroed. The intact target is an enemy: attacks reach
+/// it through `body`, and the hit that empties its hit points sets the spot's
+/// bit in `GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED`, after which `body` is
+/// retired and `frame` counts the 60-tick explosion sequence the task ends on.
+/// The remains task keeps its model hidden until that bit is set; it links no
+/// collision body and touches only the matrices, `centerCoord` and `frame`.
 ///
-/// `recs` and `recE0` are contact tables the collision tests fill:
-/// `func_mine_cavern_801830F0` looks through `recs` for a contact of class 2 and
-/// releases both tables at the end of its tick.
-///
-/// `light` and `color` are the two matrices the block itself supplies to the
-/// model: `func_mine_cavern_801836D0` publishes `&work->light` / `&work->color`
-/// into `TmdObject::lightMtx` / `colorMtx`, which is what `Tmd_SetupDraw` loads
-/// in place of `GsLIGHTWSMATRIX` and `D_80074080`.
-typedef struct MineCavernWork {
-    /* 0x000 */ MATRIX                light;
-    /* 0x020 */ MATRIX                color;
-    /* 0x040 */ WorldCollisionBody    obj40;
-    /* 0x060 */ WorldCollisionContact recs[4];
-    /* 0x0C0 */ WorldCollisionBody    objC0;
-    /* 0x0E0 */ WorldCollisionContact recE0;
-    /* 0x0F8 */ GfxCoord              coord;
-    /* 0x148 */ u16                   field_148;
-    /* 0x14A */ byte                  pad_14A[2];
-} MineCavernWork;
-STATIC_ASSERT_SIZEOF(MineCavernWork, 0x14C);
+/// The model borrows `light` and `color` as its lighting matrices, so the
+/// block has to outlive the model's last draw.
+typedef struct {
+    MATRIX                light;            // Light-direction matrix the model is drawn with; filled by the room-light query
+    MATRIX                color;            // Light-colour matrix the model is drawn with; filled by the same query
+    WorldCollisionBody    body;             // Target: 0x100-unit sphere on list 2 taking attacks; unlinked when the target is destroyed or its task exits
+    WorldCollisionContact bodyContacts[4];  // Target: `body`'s contact table; a class-2 contact is a hit. Released every tick
+    WorldCollisionBody    blast;            // Target: 3000-unit class-2 sphere on list 1, unlinked 9 ticks into the explosion. Its pair enable is only ever cleared
+    WorldCollisionContact blastContacts[1]; // Target: `blast`'s contact table; released every tick, never read
+    GfxCoord              centerCoord;      // Remains: child of the model's coordinate at (0, -0x320, 0), the target sphere's centre; recomposed while shown, reader unproven
+    u16                   frame;            // Target: tick of the explosion sequence, 0..0x3B. Remains: ticks spent shown, never read
+} _MineCavernTargetWork;
+STATIC_ASSERT_SIZEOF(_MineCavernTargetWork, 0x14C);
 
 typedef struct {
     u8  center[3];
@@ -2954,14 +2940,14 @@ void func_mine_cavern_80182DC8(Task* arg0)
 /// original keeps it behind them.
 static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
 {
-    MineCavernWork*     mem;
-    MineCavernWork*     work;
-    WorldCollisionBody* obj40;
-    WorldCollisionBody* objC0;
-    u16                 temp;
-    VECTOR              vec;
+    _MineCavernTargetWork* mem;
+    _MineCavernTargetWork* work;
+    WorldCollisionBody*    body;
+    WorldCollisionBody*    blast;
+    u16                    temp;
+    VECTOR                 vec;
 
-    mem        = memCalloc(0x14C, false);
+    mem        = memCalloc(sizeof(_MineCavernTargetWork), false);
     work       = mem;
     arg1->work = mem;
     if (mem == NULL) {
@@ -2977,32 +2963,32 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     arg1->extra.tmd->coords->coord.t[1]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vy;
     arg1->extra.tmd->coords->coord.t[2]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vz;
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj40                                 = &work->obj40;
-    obj40->coord                          = arg1->extra.tmd->coords;
-    obj40->context.contacts               = work->recs;
-    obj40->pos.vx                         = 0;
-    obj40->pos.vy                         = -0x320;
-    obj40->pos.vz                         = 0;
-    obj40->key                            = 0x50000;
-    obj40->radius                         = 0x100;
-    obj40->flags                          = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, obj40);
-    obj40->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(obj40->context.contacts, 4, 0);
-    work->obj40.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    objC0                   = &work->objC0;
-    objC0->coord            = arg1->extra.tmd->coords;
-    objC0->context.contacts = &work->recE0;
+    body                                  = &work->body;
+    body->coord                           = arg1->extra.tmd->coords;
+    body->context.contacts                = work->bodyContacts;
+    body->pos.vx                          = 0;
+    body->pos.vy                          = -0x320;
+    body->pos.vz                          = 0;
+    body->key                             = 0x50000;
+    body->radius                          = 0x100;
+    body->flags                           = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, body);
+    body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_InitRec18Table(body->context.contacts, ARRAY_SIZE(work->bodyContacts), 0);
+    work->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    blast                   = &work->blast;
+    blast->coord            = arg1->extra.tmd->coords;
+    blast->context.contacts = work->blastContacts;
     temp                    = ((SVECTOR*)NULL)->vy;
-    objC0->pos.vz           = 0;
-    objC0->radius           = 0xBB8;
-    objC0->flags            = WORLD_COLLISION_BODY_SPHERE;
-    objC0->pos.vy           = temp;
-    objC0->pos.vx           = temp;
-    Gp_LinkObj(1, objC0);
-    Gp_InitRec18Table(objC0->context.contacts, 1, 0);
-    work->objC0.key    = 0x22121;
-    work->objC0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    blast->pos.vz           = 0;
+    blast->radius           = 0xBB8;
+    blast->flags            = WORLD_COLLISION_BODY_SPHERE;
+    blast->pos.vy           = temp;
+    blast->pos.vx           = temp;
+    Gp_LinkObj(1, blast);
+    Gp_InitRec18Table(blast->context.contacts, ARRAY_SIZE(work->blastContacts), 0);
+    work->blast.key    = 0x22121;
+    work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg0->hp           = D_mine_cavern_8018EAE4.hpMax;
     arg0->param        = &D_mine_cavern_8018EAE4;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
@@ -3030,12 +3016,12 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
 /// the task advances.
 static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
 {
-    MineCavernWork*        work;
+    _MineCavernTargetWork* work;
     Task*                  player;
     u8*                    head;
     _MineCavernHitScratch* blk;
     GfxCoord*              coords;
-    WorldCollisionContact* recs;
+    WorldCollisionContact* contacts;
     SVECTOR*               d;
     SVECTOR*               dst;
     s16                    i;
@@ -3081,17 +3067,17 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
     func_800D7A9C(arg1->extra.tmd, &blk->pos, 0, 3);
     arg1->extra.tmd->flags = 0;
 
-    dst  = &blk->d;
-    recs = work->recs;
-    for (i = 0; i < 4; i++) {
-        if (recs[i].key.value == 0) {
+    dst      = &blk->d;
+    contacts = work->bodyContacts;
+    for (i = 0; i < ARRAY_SIZE(work->bodyContacts); i++) {
+        if (contacts[i].key.value == 0) {
             break;
         }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
-            dst->vx = recs[i].point.vx;
-            dst->vy = recs[i].point.vy;
-            dst->vz = recs[i].point.vz;
-            key     = recs[i].key.value;
+        if ((contacts[i].key.value & 0xFFFF0000) == 0x20000) {
+            dst->vx = contacts[i].point.vx;
+            dst->vy = contacts[i].point.vy;
+            dst->vz = contacts[i].point.vz;
+            key     = contacts[i].key.value;
             goto found;
         }
     }
@@ -3146,8 +3132,8 @@ found:
             arg1->state++;
         }
     }
-    Gp_ClearRec18Occupied(&work->recs[0]);
-    Gp_ClearRec18Occupied(&work->recE0);
+    Gp_ClearRec18Occupied(work->bodyContacts);
+    Gp_ClearRec18Occupied(work->blastContacts);
     SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
@@ -3163,11 +3149,11 @@ found:
 /// which is what keeps the two live ranges - and so `$v0` / `$a0` - apart.
 static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1)
 {
-    MineCavernWork* mem;
-    MineCavernWork* work;
-    VECTOR          vec;
+    _MineCavernTargetWork* mem;
+    _MineCavernTargetWork* work;
+    VECTOR                 vec;
 
-    mem        = memCalloc(0x14C, false);
+    mem        = memCalloc(sizeof(_MineCavernTargetWork), false);
     work       = mem;
     arg1->work = mem;
     if (mem == NULL) {
@@ -3192,23 +3178,23 @@ static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1)
 
 static void func_mine_cavern_80183860(Task* arg0)
 {
-    MineCavernWork* work;
+    _MineCavernTargetWork* work;
 
-    work = (MineCavernWork*)arg0->work;
+    work = arg0->work;
     if (work != NULL) {
-        Gp_UnlinkObj(&work->obj40);
+        Gp_UnlinkObj(&work->body);
     }
 }
 
 static void func_mine_cavern_80183890(Enemy* enemy, Task* task)
 {
-    MineCavernWork* work;
+    _MineCavernTargetWork* work;
 
-    work                          = (MineCavernWork*)task->work;
-    work->obj40.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work                          = task->work;
+    work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    Gp_UnlinkObj(&work->obj40);
-    work->field_148 = 0;
+    Gp_UnlinkObj(&work->body);
+    work->frame = 0;
     task->state++;
 }
 
@@ -3234,24 +3220,24 @@ static const EnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
 
 /// Fourth state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
 /// dispatches it). It parks the model hidden (`field_C = 0x80`) and walks
-/// `work->field_148` down its 0x3C-step countdown, one case per tick: 0 prints
+/// `work->frame` up through its 0x3C steps, one case per tick: 0 prints
 /// "BOMB1", drops the model to y = -0x258 and spawns effect 0x01001200; 1
 /// prints "BOMB2" and spawns 0x01000580, parking that effect's own first three
-/// halfwords; 2 and 4 spawn 0x01002500; 3 and 5 clear the hidden bit on the
-/// work block's second object (`objC0`); 9 hands `objC0` to `Gp_UnlinkObj`;
-/// 0x3B advances `Task::state`.
+/// halfwords; 2 and 4 spawn 0x01002500; 3 and 5 clear the pair enable of the
+/// work block's `blast` body; 9 hands `blast` to `Gp_UnlinkObj`; 0x3B advances
+/// `Task::state`.
 static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
 {
-    MineCavernWork* work;
-    EffectWork*     eff;
-    u16             state;
+    _MineCavernTargetWork* work;
+    EffectWork*            eff;
+    u16                    state;
 
-    work = (MineCavernWork*)arg1->work;
+    work = arg1->work;
 
     arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
-    state           = work->field_148;
-    work->field_148 = state + 1;
+    state       = work->frame;
+    work->frame = state + 1;
 
     switch ((s16)state) {
         case 0:
@@ -3279,11 +3265,11 @@ static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
 
         case 3:
         case 5:
-            work->objC0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
 
         case 9:
-            Gp_UnlinkObj(&work->objC0);
+            Gp_UnlinkObj(&work->blast);
             return;
 
         case 0x3B:
@@ -3305,10 +3291,10 @@ void func_mine_cavern_80183A68(Task* arg0)
 
 /// Third state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
 /// dispatches it). It republishes the model's world position through
-/// `func_800D7A9C`, then settles the work block's own coordinate: when the
+/// `func_800D7A9C`, then settles the work block's `centerCoord`: when the
 /// `GameFlag_GetNibble(0xE2)` bit selected by `Task::spawnArg1` is set the
 /// coordinate is reset to an identity rotation parked at (0, -0x320, 0) under
-/// the model's own coordinate, `field_148` ticks, and the model's `field_C` is
+/// the model's own coordinate, `work->frame` ticks, and the model's `field_C` is
 /// cleared; otherwise the model is flagged hidden with `field_C = 0x80`.
 ///
 /// `ang` is declared and never read - the original build's frame reserved 8
@@ -3316,12 +3302,12 @@ void func_mine_cavern_80183A68(Task* arg0)
 /// 0x30 and moves every spill.
 static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
 {
-    MineCavernWork* work;
-    MATRIX*         m;
-    VECTOR          vec;
-    SVECTOR         ang;
+    _MineCavernTargetWork* work;
+    MATRIX*                m;
+    VECTOR                 vec;
+    SVECTOR                ang;
 
-    work = (MineCavernWork*)task->work;
+    work = task->work;
 
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(task->extra.tmd->coords);
@@ -3333,19 +3319,19 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
     if (!((GameFlag_GetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> (u16)task->spawnArg1.value) & 1)) {
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        m                         = &work->coord.coord;
-        *(s32*)&work->coord.coord = 0x1000;
-        MATRIX_PAIR(m, 0, 2)      = 0;
-        MATRIX_PAIR(m, 1, 1)      = 0x1000;
-        MATRIX_PAIR(m, 2, 0)      = 0;
-        m->m[2][2]                = 0x1000;
-        work->coord.parent        = task->extra.tmd->coords;
-        work->coord.coord.t[2]    = 0;
-        work->coord.coord.t[0]    = 0;
-        work->coord.coord.t[1]    = -0x320;
-        work->coord.composeStamp  = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->coord);
-        work->field_148++;
+        m                                           = &work->centerCoord.coord;
+        MATRIX_PAIR(&work->centerCoord.coord, 0, 0) = 0x1000;
+        MATRIX_PAIR(m, 0, 2)                        = 0;
+        MATRIX_PAIR(m, 1, 1)                        = 0x1000;
+        MATRIX_PAIR(m, 2, 0)                        = 0;
+        m->m[2][2]                                  = 0x1000;
+        work->centerCoord.parent                    = task->extra.tmd->coords;
+        work->centerCoord.coord.t[2]                = 0;
+        work->centerCoord.coord.t[0]                = 0;
+        work->centerCoord.coord.t[1]                = -0x320;
+        work->centerCoord.composeStamp              = GRAPHICS_COORD_DIRTY;
+        Gp_UpdateCoord(&work->centerCoord);
+        work->frame++;
         task->extra.tmd->flags = 0;
     }
 }
