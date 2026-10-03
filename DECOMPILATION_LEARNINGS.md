@@ -140365,9 +140365,9 @@ to a local at the top of the loop body (`parent = &gGfxViewCoord; view =
 gets the register is a global-alloc tie. Here the local assigned *second* got
 `$fp`, and swapping the two assignments swapped the outcome.
 
-In the same function, `f4 + ((RAND() & M) + C)` became `(f4 + C) + x`
+In the same function, `D_shelter_b4_reservoir_80187684.baseHalfExtent + ((RAND() & M) + C)` became `(D_shelter_b4_reservoir_80187684.baseHalfExtent + C) + x`
 (see the `fold` reassociation entries). The target added `x + C` first and
-read `f4` before the draw. Reading `f4` into a local first and putting
+read `D_shelter_b4_reservoir_80187684.baseHalfExtent` before the draw. Reading `D_shelter_b4_reservoir_80187684.baseHalfExtent` into a local first and putting
 `(RAND() & M) + C` into a second local reproduced it. That form also kept
 the `lo_sum` of the struct's address short-lived enough that loop.c did not
 hoist it into an extra `$s` register.

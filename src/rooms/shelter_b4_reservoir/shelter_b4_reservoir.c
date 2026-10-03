@@ -77,17 +77,28 @@ extern SVECTOR D_shelter_b4_reservoir_80185024[14];
 // No separate references identify them; their role (including padding) is unresolved.
 extern s16 D_shelter_b4_reservoir_80185020[2];
 
-/// Parameters of the random effect burst the room's effect task
-/// `func_shelter_b4_reservoir_8017FB84` runs every frame, set together by
-/// `func_shelter_b4_reservoir_80182B04` and cleared when the task starts.
-/// While `field_0` and `field_2` are both non-zero the task walks `field_0`
-/// burst points, spawning an effect at each whose roll out of 100 falls below
-/// `field_2`, with `field_4` added to the spawn argument.
+enum {
+    SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE     = 100,
+    SHELTER_B4_RESERVOIR_BURST_BASE_HALF_EXTENT = 320,
+    // Packed sprite argument: movement step 80 and a two-frame animation period.
+    SHELTER_B4_RESERVOIR_BURST_MOTION_ARGS = (80 << 16) | (2 << 12),
+    // Adds 0..255 to the half-extent and 0..1 to the animation period.
+    SHELTER_B4_RESERVOIR_BURST_VARIATION_MASK = (1 << 12) | 0xFF,
+};
+
+/// Configuration of the reservoir's per-frame burst-sprite emitter.
+///
+/// Cleared when the room effect task starts and retained until reconfigured.
+/// A zero point count or spawn chance disables emission. The point count must
+/// fit the ten-point position table; it is not clamped. The base half-extent
+/// plus 0..255 random size variation must fit the spawn argument's low 12 bits
+/// so it does not carry into the animation period.
 typedef struct {
-    u16 field_0;
-    u16 field_2;
-    u16 field_4;
-} _ShelterB4ReservoirBurst;
+    u16 pointCount;         // Active emission points (0..10)
+    u16 spawnChancePercent; // Per-point, per-frame roll threshold out of 100 (0 disabled, >=100 always)
+    u16 baseHalfExtent;     // Base sprite half-extent in world units, before random size variation
+} _ShelterB4ReservoirBurstConfig;
+STATIC_ASSERT_SIZEOF(_ShelterB4ReservoirBurstConfig, 6);
 
 /// Work block `func_shelter_b4_reservoir_8017FB84` reaches through its task's
 /// `spawnArg2`. Only the three halves it uses are known.
@@ -141,22 +152,22 @@ STATIC_ASSERT_SIZEOF(_ShelterB4ReservoirWaterDriftHalfExtent, 4);
 
 extern _ShelterB4ReservoirWaterDriftHalfExtent D_shelter_b4_reservoir_80184F7C;
 
-extern s16                      D_shelter_b4_reservoir_80184F82;
-extern TaskDesc                 D_shelter_b4_reservoir_80184F84[];
-extern RoomWaterSurface         D_shelter_b4_reservoir_80184F90[];
-extern RoomWaterSurface         D_shelter_b4_reservoir_80184FA8[];
-extern RoomWaterSurface         D_shelter_b4_reservoir_80184FCC[];
-extern RoomWaterSurface         D_shelter_b4_reservoir_80184FE4[];
-extern SVECTOR                  D_shelter_b4_reservoir_80185094;
-extern SVECTOR                  D_shelter_b4_reservoir_8018509C[];
-extern SVECTOR                  D_shelter_b4_reservoir_801850AC[];
-extern AreaApplyRec             D_shelter_b4_reservoir_801874A0[];
-extern ScreenFade               D_shelter_b4_reservoir_80187500;
-extern RoomEventMsg             D_shelter_b4_reservoir_80187508;
-extern s32                      D_shelter_b4_reservoir_80187510;
-extern u8*                      D_shelter_b4_reservoir_80187630;
-extern SVECTOR                  D_shelter_b4_reservoir_80187634[];
-extern _ShelterB4ReservoirBurst D_shelter_b4_reservoir_80187684;
+extern s16                            D_shelter_b4_reservoir_80184F82;
+extern TaskDesc                       D_shelter_b4_reservoir_80184F84[];
+extern RoomWaterSurface               D_shelter_b4_reservoir_80184F90[];
+extern RoomWaterSurface               D_shelter_b4_reservoir_80184FA8[];
+extern RoomWaterSurface               D_shelter_b4_reservoir_80184FCC[];
+extern RoomWaterSurface               D_shelter_b4_reservoir_80184FE4[];
+extern SVECTOR                        D_shelter_b4_reservoir_80185094;
+extern SVECTOR                        D_shelter_b4_reservoir_8018509C[];
+extern SVECTOR                        D_shelter_b4_reservoir_801850AC[];
+extern AreaApplyRec                   D_shelter_b4_reservoir_801874A0[];
+extern ScreenFade                     D_shelter_b4_reservoir_80187500;
+extern RoomEventMsg                   D_shelter_b4_reservoir_80187508;
+extern s32                            D_shelter_b4_reservoir_80187510;
+extern u8*                            D_shelter_b4_reservoir_80187630;
+extern SVECTOR                        D_shelter_b4_reservoir_80187634[];
+extern _ShelterB4ReservoirBurstConfig D_shelter_b4_reservoir_80187684;
 
 static void func_shelter_b4_reservoir_8017E7C8(Task* arg0);
 static void func_shelter_b4_reservoir_8017E864(Task* task);
@@ -974,7 +985,7 @@ u8* D_shelter_b4_reservoir_80187630 = NULL;
 
 SVECTOR D_shelter_b4_reservoir_80187634[10] = { 0 };
 
-_ShelterB4ReservoirBurst D_shelter_b4_reservoir_80187684 = { 0, 0, 0 };
+_ShelterB4ReservoirBurstConfig D_shelter_b4_reservoir_80187684 = { 0, 0, 0 };
 
 static void func_shelter_b4_reservoir_8017E068(void);
 static void func_shelter_b4_reservoir_8017E8EC(Task* task);
@@ -1245,7 +1256,8 @@ void func_shelter_b4_reservoir_8017E770(s32 arg0)
 
 void func_shelter_b4_reservoir_8017E780(s32 arg0)
 {
-    func_shelter_b4_reservoir_80182B04(10, arg0, 0x140);
+    func_shelter_b4_reservoir_80182B04(ARRAY_SIZE(D_shelter_b4_reservoir_80187634), arg0,
+                                       SHELTER_B4_RESERVOIR_BURST_BASE_HALF_EXTENT);
 }
 
 /// Callback the room's event tables name: requests all-effect cancellation
@@ -1641,8 +1653,8 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
     GfxCoord*                c;
     GfxCoord                 coord;
     s32                      i;
-    s32                      offset;
-    s32                      roll;
+    s32                      baseHalfExtent;
+    s32                      randomizedSpawnArgs;
 
     work   = task->spawnArg2.pointer;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -1663,9 +1675,9 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             D_shelter_b4_reservoir_80187634[i].vz =
                 D_shelter_b4_reservoir_80185094.vz + ((work->field_24 * rcos(work->field_26)) >> 12);
         }
-        D_shelter_b4_reservoir_80187684.field_0 = 0;
-        D_shelter_b4_reservoir_80187684.field_2 = 0;
-        D_shelter_b4_reservoir_80187684.field_4 = 0;
+        D_shelter_b4_reservoir_80187684.pointCount         = 0;
+        D_shelter_b4_reservoir_80187684.spawnChancePercent = 0;
+        D_shelter_b4_reservoir_80187684.baseHalfExtent     = 0;
         for (i = 0; i < 2; i++) {
             c                                     = &player->extra.tmd->coords[i * 3 + 14];
             D_shelter_b4_reservoir_801850AC[i].vx = c->workm.t[0];
@@ -1701,8 +1713,9 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             }
             work->field_22++;
         }
-        if (D_shelter_b4_reservoir_80187684.field_0 != 0 && D_shelter_b4_reservoir_80187684.field_2 != 0) {
-            for (i = 0; i < D_shelter_b4_reservoir_80187684.field_0; i++) {
+        // Emit independently at each active point, occasionally moving its position.
+        if (D_shelter_b4_reservoir_80187684.pointCount != 0 && D_shelter_b4_reservoir_80187684.spawnChancePercent != 0) {
+            for (i = 0; i < D_shelter_b4_reservoir_80187684.pointCount; i++) {
                 if ((RAND() & 0x1F) == 0) {
                     work->field_24                        = RAND() & 0x1C0;
                     work->field_26                        = (RAND() & 0x1FF) + (i << 9);
@@ -1712,10 +1725,11 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
                     D_shelter_b4_reservoir_80187634[i].vz =
                         D_shelter_b4_reservoir_80185094.vz + ((work->field_24 * rcos(work->field_26)) >> 12);
                 }
-                if ((u16)(RAND() % 100) < D_shelter_b4_reservoir_80187684.field_2) {
-                    offset = D_shelter_b4_reservoir_80187684.field_4;
-                    roll   = (RAND() & 0x10FF) + 0x502000;
-                    Gp_SpawnEff(EFFECT_SHELTER_B4_RESERVOIR_BURST_SPRITE, NULL, offset + roll, &D_shelter_b4_reservoir_80187634[i]);
+                if ((u16)(RAND() % SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE) < D_shelter_b4_reservoir_80187684.spawnChancePercent) {
+                    baseHalfExtent      = D_shelter_b4_reservoir_80187684.baseHalfExtent;
+                    randomizedSpawnArgs = (RAND() & SHELTER_B4_RESERVOIR_BURST_VARIATION_MASK) + SHELTER_B4_RESERVOIR_BURST_MOTION_ARGS;
+                    Gp_SpawnEff(EFFECT_SHELTER_B4_RESERVOIR_BURST_SPRITE, NULL, baseHalfExtent + randomizedSpawnArgs,
+                                &D_shelter_b4_reservoir_80187634[i]);
                 }
             }
         }
@@ -1933,9 +1947,9 @@ static void func_shelter_b4_reservoir_80181668(GfxCoord* coord, u16 frame, s16 s
 
 static void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2)
 {
-    D_shelter_b4_reservoir_80187684.field_0 = arg0;
-    D_shelter_b4_reservoir_80187684.field_2 = arg1;
-    D_shelter_b4_reservoir_80187684.field_4 = arg2;
+    D_shelter_b4_reservoir_80187684.pointCount         = arg0;
+    D_shelter_b4_reservoir_80187684.spawnChancePercent = arg1;
+    D_shelter_b4_reservoir_80187684.baseHalfExtent     = arg2;
 }
 
 #include "../../shared/room_visual_effects.inc.c"
