@@ -6,10 +6,10 @@
 
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/battle_reward.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/item_menu.h"
-#include "gameplay/item_pickup.h"
 #include "gameplay/item_placement.h"
 #include "gameplay/items.h"
 #include "gameplay/map.h"
@@ -1658,7 +1658,7 @@ AreaPlacement D_map_dryfield_full_8017D038[8] = {
     { AREA_PLACEMENT_END },
 };
 
-GpGiveRec D_map_dryfield_full_8017D0B8[23] = {
+InventoryBattleReward D_map_dryfield_full_8017D0B8[23] = {
     { GAME_LOCATION_KEY(3, 1, 1, 0), { 2, 0, 0, 6 } },
     { GAME_LOCATION_KEY(3, 5, 3, 0), { 0xA1, 0, 0, 0xA2 } },
     { GAME_LOCATION_KEY(3, 13, 2, 0), { 0xA1, 0, 0, 0xA2 } },
@@ -1681,10 +1681,10 @@ GpGiveRec D_map_dryfield_full_8017D0B8[23] = {
     { GAME_LOCATION_KEY(3, 20, 11, 0), { 0xD, 0, 0, 0x3E } },
     { GAME_LOCATION_KEY(3, 21, 10, 0), { 0xA1, 0, 0, 0xA2 } },
     { GAME_LOCATION_KEY(3, 22, 21, 0), { 0xAA, 0, 0, 0 } },
-    { -1 },
+    { INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
-GpGiveRec D_map_dryfield_full_8017D1CC[9] = {
+InventoryBattleReward D_map_dryfield_full_8017D1CC[9] = {
     { GAME_LOCATION_KEY(3, 1, 7, 0), { 0x3C, 0xAA, 7, 0 } },
     { GAME_LOCATION_KEY(3, 2, 7, 0), { 0xAD, 0, 0, 0 } },
     { GAME_LOCATION_KEY(3, 5, 7, 0), { 0xAA, 0, 0, 0 } },
@@ -1693,7 +1693,7 @@ GpGiveRec D_map_dryfield_full_8017D1CC[9] = {
     { GAME_LOCATION_KEY(3, 29, 2, 0), { 0x3D, 0xAA, 0, 0 } },
     { GAME_LOCATION_KEY(3, 38, 1, 0), { 0xAE, 0, 0, 0xAD } },
     { GAME_LOCATION_KEY(3, 38, 7, 0), { 0x3F, 2, 0x3A, 0 } },
-    { -1 },
+    { INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
 StageMusicEntry D_map_dryfield_full_8017D238[430] = {

@@ -5,8 +5,8 @@
 
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/battle_reward.h"
 #include "gameplay/direction.h"
-#include "gameplay/item_pickup.h"
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -258,11 +258,12 @@ extern AreaPlacement D_map_neo_ark_8017C720[];
 
 extern AreaPlacement D_map_neo_ark_8017C760[];
 
-/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
-/// location, each ended by a key of -1.
-extern GpGiveRec D_map_neo_ark_8017C9B0[];
+/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
+/// for battles won at a location, each list ended by a key of
+/// `INVENTORY_BATTLE_REWARD_LIST_END`.
+extern InventoryBattleReward D_map_neo_ark_8017C9B0[];
 
-extern GpGiveRec D_map_neo_ark_8017CB0C[];
+extern InventoryBattleReward D_map_neo_ark_8017CB0C[];
 
 /// Updates the outgoing room marker state for this stage.
 s32 func_map_neo_ark_80179B14(RoomEventMsg* in, RoomEventMsg* out);

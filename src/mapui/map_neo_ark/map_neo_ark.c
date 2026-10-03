@@ -6,9 +6,9 @@
 
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/battle_reward.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/item_pickup.h"
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -1613,7 +1613,7 @@ static AreaObjectPlace D_map_neo_ark_8017C990[2] = {
     { 0xFFFF },
 };
 
-GpGiveRec D_map_neo_ark_8017C9B0[29] = {
+InventoryBattleReward D_map_neo_ark_8017C9B0[29] = {
     { GAME_LOCATION_KEY(5, 2, 1, 0), { 0xAA, 0, 0, 0xA2 } },
     { GAME_LOCATION_KEY(5, 3, 1, 0), { 0xAA, 0, 0, 0xAF } },
     { GAME_LOCATION_KEY(5, 5, 1, 0), { 0xAE, 0, 0, 0x3D } },
@@ -1642,16 +1642,16 @@ GpGiveRec D_map_neo_ark_8017C9B0[29] = {
     { GAME_LOCATION_KEY(5, 21, 11, 0), { 0x3C, 0, 0, 0 } },
     { GAME_LOCATION_KEY(5, 27, 11, 0), { 0xAF, 0, 0, 0xA2 } },
     { GAME_LOCATION_KEY(5, 32, 11, 0), { 0xAA, 0, 0, 0xAF } },
-    { -1 },
+    { INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
-GpGiveRec D_map_neo_ark_8017CB0C[6] = {
+InventoryBattleReward D_map_neo_ark_8017CB0C[6] = {
     { GAME_LOCATION_KEY(5, 5, 7, 0), { 0x3C, 0, 0, 0 } },
     { GAME_LOCATION_KEY(5, 21, 7, 0), { 0x44, 0xAF, 0, 3 } },
     { GAME_LOCATION_KEY(5, 25, 1, 0), { 1, 0, 0, 0x3E } },
     { GAME_LOCATION_KEY(5, 30, 1, 0), { 0xAD, 0, 0, 0xAE } },
     { GAME_LOCATION_KEY(5, 16, 17, 0), { 0x90, 0xAF, 0xA7, 0xB } },
-    { -1 },
+    { INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
 StageMusicEntry D_map_neo_ark_8017CB54[340] = {

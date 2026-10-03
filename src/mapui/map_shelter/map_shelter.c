@@ -7,10 +7,10 @@
 #include "actors/actor_503500.h"
 
 #include "gameplay/area_flags.h"
+#include "gameplay/battle_reward.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/item_menu.h"
-#include "gameplay/item_pickup.h"
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -1405,7 +1405,7 @@ static AreaObjectPlace D_map_shelter_8017BB28[3] = {
     { 0xFFFF },
 };
 
-GpGiveRec D_map_shelter_8017BB58[47] = {
+InventoryBattleReward D_map_shelter_8017BB58[47] = {
     { GAME_LOCATION_KEY(4, 1, 1, 0), { 3, 0xA1, 0xAF, 0xA2 } },
     { GAME_LOCATION_KEY(4, 2, 4, 0), { 2, 0x84, 0xA9, 0x45 } },
     { GAME_LOCATION_KEY(4, 4, 1, 0), { 0xAD, 0, 0, 0xAE } },
@@ -1452,10 +1452,10 @@ GpGiveRec D_map_shelter_8017BB58[47] = {
     { GAME_LOCATION_KEY(4, 35, 21, 0), { 0xAB, 0, 0, 0 } },
     { GAME_LOCATION_KEY(4, 35, 22, 0), { 0x3D, 0, 0, 0 } },
     { GAME_LOCATION_KEY(4, 48, 1, 0), { 0x3D, 0xA9, 0xAE, 0xA2 } },
-    { -1 },
+    { INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
-GpGiveRec D_map_shelter_8017BD8C[13] = {
+InventoryBattleReward D_map_shelter_8017BD8C[13] = {
     { GAME_LOCATION_KEY(4, 1, 7, 0), { 0x3C, 0xE, 0, 6 } },
     { GAME_LOCATION_KEY(4, 2, 4, 0), { 0x84, 0xA2, 0, 0 } },
     { GAME_LOCATION_KEY(4, 8, 1, 0), { 0xAE, 0, 0, 0 } },
@@ -1468,7 +1468,7 @@ GpGiveRec D_map_shelter_8017BD8C[13] = {
     { GAME_LOCATION_KEY(4, 19, 17, 0), { 0xAA, 0, 0, 4 } },
     { GAME_LOCATION_KEY(4, 35, 22, 0), { 2, 0, 0, 0 } },
     { GAME_LOCATION_KEY(4, 48, 1, 0), { 3, 0, 0, 7 } },
-    { -1 },
+    { INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
 StageMusicEntry D_map_shelter_8017BE28[600] = {

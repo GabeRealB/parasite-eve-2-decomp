@@ -9,11 +9,11 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "attachments.h"
+#include "gameplay/battle_reward.h"
 #include "collision.h"
 #include "hud_sprites.h"
 #include "gameplay/item_menu.h"
 #include "item_menu.h"
-#include "gameplay/item_pickup.h"
 #include "gameplay/items.h"
 #include "items.h"
 #include "gameplay/player_state.h"
@@ -72,7 +72,7 @@ s32 D_8010F9EC = -0x10000;
 
 s32 D_8010F9F0 = -0x10000;
 
-GpGiveRec* D_8010F9F4[6] = {
+InventoryBattleReward* D_8010F9F4[6] = {
     NULL,
     D_map_akropolis_8017C0DC,
     D_map_dryfield_8017BCE4,
@@ -81,7 +81,7 @@ GpGiveRec* D_8010F9F4[6] = {
     D_map_neo_ark_8017C9B0,
 };
 
-GpGiveRec* D_8010FA0C[6] = {
+InventoryBattleReward* D_8010FA0C[6] = {
     NULL,
     D_map_akropolis_8017C16C,
     D_map_dryfield_8017BD80,

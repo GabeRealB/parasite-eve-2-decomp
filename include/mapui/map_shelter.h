@@ -4,8 +4,8 @@
 #include "types.h"
 
 #include "gameplay/area_flags.h"
+#include "gameplay/battle_reward.h"
 #include "gameplay/direction.h"
-#include "gameplay/item_pickup.h"
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -72,11 +72,12 @@ extern SpriteAreaTable D_map_shelter_8017B610;
 
 extern WorldCollisionSurfaceProperties** D_map_shelter_8017B614[];
 
-/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
-/// location, each ended by a key of -1.
-extern GpGiveRec D_map_shelter_8017BB58[];
+/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
+/// for battles won at a location, each list ended by a key of
+/// `INVENTORY_BATTLE_REWARD_LIST_END`.
+extern InventoryBattleReward D_map_shelter_8017BB58[];
 
-extern GpGiveRec D_map_shelter_8017BD8C[];
+extern InventoryBattleReward D_map_shelter_8017BD8C[];
 
 /// Updates the outgoing room marker state for this stage.
 s32 func_map_shelter_80179A04(RoomEventMsg* in, RoomEventMsg* out);

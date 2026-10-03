@@ -5,8 +5,8 @@
 
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/battle_reward.h"
 #include "gameplay/direction.h"
-#include "gameplay/item_pickup.h"
 #include "gameplay/map.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
@@ -185,11 +185,12 @@ extern AreaPlacement D_map_dryfield_8017BC14[];
 
 extern AreaPlacement D_map_dryfield_8017BCC4[];
 
-/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
-/// location, each ended by a key of -1.
-extern GpGiveRec D_map_dryfield_8017BCE4[];
+/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
+/// for battles won at a location, each list ended by a key of
+/// `INVENTORY_BATTLE_REWARD_LIST_END`.
+extern InventoryBattleReward D_map_dryfield_8017BCE4[];
 
-extern GpGiveRec D_map_dryfield_8017BD80[];
+extern InventoryBattleReward D_map_dryfield_8017BD80[];
 
 /// The Dryfield map's part of main's MDEC buffer setup: `Mdec_SetupBuffers`
 /// calls this map-slot address (as `func_80179954`) for one of its layouts.

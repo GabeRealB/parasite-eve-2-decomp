@@ -5,8 +5,8 @@
 
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/battle_reward.h"
 #include "gameplay/direction.h"
-#include "gameplay/item_pickup.h"
 #include "gameplay/map.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
@@ -204,10 +204,11 @@ extern AreaPlacement D_map_akropolis_8017BDBC[];
 
 extern AreaPlacement D_map_akropolis_8017BDEC[];
 
-/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
-/// location, each ended by a key of -1.
-extern GpGiveRec D_map_akropolis_8017C0DC[];
+/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
+/// for battles won at a location, each list ended by a key of
+/// `INVENTORY_BATTLE_REWARD_LIST_END`.
+extern InventoryBattleReward D_map_akropolis_8017C0DC[];
 
-extern GpGiveRec D_map_akropolis_8017C16C[];
+extern InventoryBattleReward D_map_akropolis_8017C16C[];
 
 #endif // INCLUDE_MAPUI_MAP_AKROPOLIS_H

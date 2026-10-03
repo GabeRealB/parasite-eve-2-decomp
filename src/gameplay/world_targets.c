@@ -14,13 +14,13 @@
 #include "gameplay/area_entry.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/battle_reward.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/enemy.h"
 #include "gameplay/gpu_image_upload.h"
 #include "geometry.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/item_pickup.h"
 #include "item_use.h"
 #include "gameplay/items.h"
 #include "items.h"
@@ -842,39 +842,39 @@ void Gp_ClearSlotNodeFlags(void)
 
 s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
 {
-    GameLocationKey* loc;
-    GpGiveRec*       rec;
-    s32              key;
-    s32              ret;
-    s32              i;
-    u16              item;
-    s8               mode;
-    u8               stage;
-    u8               area;
-    u8               sub;
+    GameLocationKey*       loc;
+    InventoryBattleReward* rec;
+    s32                    key;
+    s32                    ret;
+    s32                    i;
+    u16                    item;
+    s8                     mode;
+    u8                     stage;
+    u8                     area;
+    u8                     sub;
 
     ret   = 0;
     loc   = &gGameSession->location.loc;
     stage = loc->stage;
     area  = loc->area;
     sub   = loc->variant;
-    key   = (stage << 24) | (area << 16) | (sub << 8);
+    key   = GAME_LOCATION_KEY(stage, area, sub, 0);
     mode  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
     if ((mode == 0) || (mode == 2)) {
         rec = D_8010F9F4[stage];
     } else {
         rec = D_8010FA0C[stage];
     }
-    if (rec->field_0 != -1) {
+    if (rec->areaLayoutKey != INVENTORY_BATTLE_REWARD_LIST_END) {
         do {
-            if (rec->field_0 == key) {
-                for (i = 0; i < 4; i++) {
+            if (rec->areaLayoutKey == key) {
+                for (i = 0; i < ARRAY_SIZE(rec->items); i++) {
                     item = rec->items[i];
                     if (item != 0) {
-                        if ((i != 3) || (func_800B9D80(0x80000) != 0)) {
+                        if ((i != INVENTORY_BATTLE_REWARD_BONUS_SLOT) || (func_800B9D80(0x80000) != 0)) {
                             if (func_800B7420(item) == 0) {
                                 ret = 1;
-                                if (i == 3) {
+                                if (i == INVENTORY_BATTLE_REWARD_BONUS_SLOT) {
                                     ret = 2;
                                 }
                                 Gp_GiveItem(arg0, item, -1);
@@ -885,7 +885,7 @@ s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
                 return ret;
             }
             rec++;
-        } while (rec->field_0 != -1);
+        } while (rec->areaLayoutKey != INVENTORY_BATTLE_REWARD_LIST_END);
     }
     return ret;
 }

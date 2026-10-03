@@ -5,8 +5,8 @@
 
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/battle_reward.h"
 #include "gameplay/direction.h"
-#include "gameplay/item_pickup.h"
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -266,11 +266,12 @@ extern AreaPlacement D_map_dryfield_full_8017D018[];
 
 extern AreaPlacement D_map_dryfield_full_8017D038[];
 
-/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
-/// location, each ended by a key of -1.
-extern GpGiveRec D_map_dryfield_full_8017D0B8[];
+/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
+/// for battles won at a location, each list ended by a key of
+/// `INVENTORY_BATTLE_REWARD_LIST_END`.
+extern InventoryBattleReward D_map_dryfield_full_8017D0B8[];
 
-extern GpGiveRec D_map_dryfield_full_8017D1CC[];
+extern InventoryBattleReward D_map_dryfield_full_8017D1CC[];
 
 /// Updates the outgoing room marker state for this stage.
 s32 func_map_dryfield_full_80179954(RoomEventMsg* in, RoomEventMsg* out);

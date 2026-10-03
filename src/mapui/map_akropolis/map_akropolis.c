@@ -6,10 +6,10 @@
 
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/battle_reward.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/item_menu.h"
-#include "gameplay/item_pickup.h"
 #include "gameplay/items.h"
 #include "gameplay/map.h"
 #include "gameplay/room.h"
@@ -1411,7 +1411,7 @@ static AreaObjectPlace D_map_akropolis_8017C03C[10] = {
     { 0xFFFF },
 };
 
-GpGiveRec D_map_akropolis_8017C0DC[12] = {
+InventoryBattleReward D_map_akropolis_8017C0DC[12] = {
     { GAME_LOCATION_KEY(1, 3, 2, 0), { 0x3B, 0, 0, 0 } },
     { GAME_LOCATION_KEY(1, 3, 4, 0), { 0xA1, 0, 0, 0xA2 } },
     { GAME_LOCATION_KEY(1, 4, 1, 0), { 2, 0, 0, 0xE } },
@@ -1423,16 +1423,16 @@ GpGiveRec D_map_akropolis_8017C0DC[12] = {
     { GAME_LOCATION_KEY(1, 11, 1, 0), { 1, 0, 0, 0 } },
     { GAME_LOCATION_KEY(1, 13, 1, 0), { 6, 0, 0, 1 } },
     { GAME_LOCATION_KEY(1, 15, 1, 0), { 2, 0, 0, 6 } },
-    { -1 },
+    { INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
-GpGiveRec D_map_akropolis_8017C16C[6] = {
+InventoryBattleReward D_map_akropolis_8017C16C[6] = {
     { GAME_LOCATION_KEY(1, 4, 1, 0), { 0x3B, 0, 0, 0 } },
     { GAME_LOCATION_KEY(1, 8, 7, 0), { 0xAB, 0, 0, 0 } },
     { GAME_LOCATION_KEY(1, 9, 7, 0), { 0x41, 0xA2, 0x3A, 0 } },
     { GAME_LOCATION_KEY(1, 10, 7, 0), { 6, 0, 0, 0 } },
     { GAME_LOCATION_KEY(1, 11, 7, 0), { 0x83, 0xA2, 0x3C, 0 } },
-    { -1 },
+    { INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
 StageMusicEntry D_map_akropolis_8017C1B4[168] = {
