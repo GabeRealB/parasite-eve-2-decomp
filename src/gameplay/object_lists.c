@@ -35,19 +35,6 @@ typedef struct _GpNearScratch {
 } GpNearScratch;
 STATIC_ASSERT_SIZEOF(GpNearScratch, 0x28);
 
-/// 0x40-byte scratch from the scratch stack used by `func_800E0FEC`.
-/// Each `WorldCollisionContact` whose `key` high halfword is `0x10` contributes to
-/// one accumulator, selected by `key` bits `0xF00`: kind 0 sums
-/// `distance * response.direction` into `acc[0]`, kind 1 writes the lift
-/// `-(distance << 12)` into `acc[1].vy`, and kind 2 writes the slide
-/// `distance * response.direction.vx` / `.vz` into `acc[2]` for the record with the
-/// smallest `distance`. `acc[3]` holds the pairwise XZ products of the kind-0
-/// records used to detect opposing pushes.
-typedef struct _GpPushScratch {
-    /* 0x00 */ VECTOR acc[4];
-} GpPushScratch;
-STATIC_ASSERT_SIZEOF(GpPushScratch, 0x40);
-
 /// Grid-normal Y below which a face counts as a floor.
 ///
 /// Components use 4096 for one unit. The floor query records a face only when
@@ -83,6 +70,41 @@ typedef struct {
     s32    floorCount;     // Floor contacts included in floorSum; zero skips the average
 } _WorldCollisionPushbackScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionPushbackScratch, 0x34);
+
+/// Slots of `_WorldCollisionResponsePushbackScratch.corrections`.
+///
+/// A slot's index is the response value a grid contact carries in bits 8..11
+/// of its key, so that value selects both how the contact is resolved and the
+/// slot that receives it.
+enum {
+    WORLD_COLLISION_RESPONSE_PUSHBACK_OVERLAP = 0, // Ordinary overlap: pushed out along the face normal
+    WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR   = 1, // Floor query: lifted by the distance to the floor
+    WORLD_COLLISION_RESPONSE_PUSHBACK_EDGE    = 2, // Edge overlap: slid horizontally off the nearest edge
+    WORLD_COLLISION_RESPONSE_PUSHBACK_COUNT   = 3
+};
+
+/// Scratch-stack workspace for resolving grid contacts by their response value.
+///
+/// The block is reserved for that resolution and released before it returns.
+/// Only occupied grid contacts on surfaces that apply pushback contribute.
+/// `corrections` is cleared on entry and holds one candidate correction for
+/// each response value: the overlap slot sums `normal * distance` over every
+/// ordinary contact, the floor slot keeps the last floor contact's lift
+/// `-(distance << 12)` in Y, and the edge slot keeps the X and Z of
+/// `normal * distance` for the edge contact with the smallest distance among
+/// those whose normal is horizontal. The result is overlap plus floor when
+/// any ordinary contact contributed, and floor plus edge otherwise.
+///
+/// `opposedProduct` is left unset on entry and holds the latest pairwise X
+/// and Z products of the ordinary contacts' normals; its Y is unused.
+/// Distances are world-coordinate units and normals use 4096 for one unit, so
+/// every correction has twelve fractional bits before
+/// `WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT`.
+typedef struct {
+    VECTOR corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_COUNT]; // Candidate correction per response value; see the slot enum
+    VECTOR opposedProduct;                                       // Latest pairwise X and Z products of ordinary-contact normals; Y is unused
+} _WorldCollisionResponsePushbackScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionResponsePushbackScratch, 0x40);
 
 /// 0x20-byte scratch from the scratch stack used by `func_800E0994`.
 /// `local[0]` / `local[1]` are `(0, pos.vy +/- radius, 0)` in the
@@ -522,16 +544,16 @@ s32 func_800E0C10(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
 
 s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 arg2, s32* arg3)
 {
-    u8*                    head;
-    GpPushScratch*         s;
-    WorldCollisionContact* rec;
-    s32                    i;
-    s32                    j;
-    s32                    count;
-    s32                    mask;
-    s32                    ret;
-    s32                    prev;
-    u8                     list[0x20];
+    u8*                                     head;
+    _WorldCollisionResponsePushbackScratch* scratch;
+    WorldCollisionContact*                  rec;
+    s32                                     i;
+    s32                                     j;
+    s32                                     count;
+    s32                                     mask;
+    s32                                     ret;
+    s32                                     prev;
+    u8                                      list[0x20];
 
     ret   = 0;
     count = 0;
@@ -542,38 +564,40 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
     }
 
     head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - 0x40;
-    s                          = (GpPushScratch*)(head - 0x40);
+    SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionResponsePushbackScratch);
+    scratch                    = (_WorldCollisionResponsePushbackScratch*)(head - sizeof(_WorldCollisionResponsePushbackScratch));
 
-    for (i = 0; i < 3; i++) {
-        s->acc[i].vx = 0;
-        s->acc[i].vy = 0;
-        s->acc[i].vz = 0;
+    // The opposed product needs no clearing: it is written before each test.
+    for (i = 0; i < WORLD_COLLISION_RESPONSE_PUSHBACK_COUNT; i++) {
+        scratch->corrections[i].vx = 0;
+        scratch->corrections[i].vy = 0;
+        scratch->corrections[i].vz = 0;
     }
 
+    // File each grid contact's correction under its response value.
     for (i = 0; i < arg2; i++) {
         rec = &arg0[i];
         if ((rec->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && (rec->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
             mask |= 1 << rec->key.value;
             if (Gp_RoomParams[rec->key.value & 7] == WORLD_COLLISION_SURFACE_APPLY_PUSHBACK) {
                 switch ((u32)(rec->key.value & 0xF00) >> 8) {
-                    case 0:
-                        s->acc[0].vx += rec->distance * rec->response.direction.vx;
-                        s->acc[0].vy += rec->distance * rec->response.direction.vy;
-                        s->acc[0].vz += rec->distance * rec->response.direction.vz;
-                        list[count++] = i;
+                    case WORLD_COLLISION_RESPONSE_PUSHBACK_OVERLAP:
+                        scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_OVERLAP].vx += rec->distance * rec->response.direction.vx;
+                        scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_OVERLAP].vy += rec->distance * rec->response.direction.vy;
+                        scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_OVERLAP].vz += rec->distance * rec->response.direction.vz;
+                        list[count++]                                                       = i;
                         break;
-                    case 1:
-                        s->acc[1].vx = 0;
-                        s->acc[1].vy = -(rec->distance << 12);
-                        s->acc[1].vz = 0;
+                    case WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR:
+                        scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR].vx = 0;
+                        scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR].vy = -(rec->distance << 12);
+                        scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR].vz = 0;
                         break;
-                    case 2:
+                    case WORLD_COLLISION_RESPONSE_PUSHBACK_EDGE:
                         if (rec->response.direction.vy == 0 && ((s16)prev == 0 || rec->distance < (s16)prev)) {
-                            s->acc[2].vx = rec->distance * rec->response.direction.vx;
-                            s->acc[2].vy = 0;
-                            s->acc[2].vz = rec->distance * rec->response.direction.vz;
-                            prev         = (u16)rec->distance;
+                            scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_EDGE].vx = rec->distance * rec->response.direction.vx;
+                            scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_EDGE].vy = 0;
+                            scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_EDGE].vz = rec->distance * rec->response.direction.vz;
+                            prev                                                            = (u16)rec->distance;
                         }
                         break;
                 }
@@ -582,11 +606,12 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
         }
     }
 
+    // Record when two ordinary-contact normals oppose on X or Z.
     for (i = 0; i < count; i++) {
         for (j = 1; j < count; j++) {
-            s->acc[3].vx = arg0[list[i]].response.direction.vx * arg0[list[j]].response.direction.vx;
-            s->acc[3].vz = arg0[list[i]].response.direction.vz * arg0[list[j]].response.direction.vz;
-            if (s->acc[3].vx < -0x800000 || s->acc[3].vz < -0x800000) {
+            scratch->opposedProduct.vx = arg0[list[i]].response.direction.vx * arg0[list[j]].response.direction.vx;
+            scratch->opposedProduct.vz = arg0[list[i]].response.direction.vz * arg0[list[j]].response.direction.vz;
+            if (scratch->opposedProduct.vx < WORLD_COLLISION_OPPOSED_NORMAL_PRODUCT || scratch->opposedProduct.vz < WORLD_COLLISION_OPPOSED_NORMAL_PRODUCT) {
                 ret = 2;
             }
         }
@@ -596,17 +621,18 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
         *arg3 = mask;
     }
 
+    // Convert the 12-bit products to a 16.16 correction; the edge slide applies only without an ordinary overlap.
     if (count != 0) {
-        delta->fixed.vx.word = (s->acc[0].vx + s->acc[1].vx) << 4;
-        delta->fixed.vy.word = (s->acc[0].vy + s->acc[1].vy) << 4;
-        delta->fixed.vz.word = (s->acc[0].vz + s->acc[1].vz) << 4;
+        delta->fixed.vx.word = (scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_OVERLAP].vx + scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR].vx) << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
+        delta->fixed.vy.word = (scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_OVERLAP].vy + scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR].vy) << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
+        delta->fixed.vz.word = (scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_OVERLAP].vz + scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR].vz) << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
     } else {
-        delta->fixed.vx.word = (s->acc[1].vx + s->acc[2].vx) << 4;
-        delta->fixed.vy.word = (s->acc[1].vy + s->acc[2].vy) << 4;
-        delta->fixed.vz.word = (s->acc[1].vz + s->acc[2].vz) << 4;
+        delta->fixed.vx.word = (scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR].vx + scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_EDGE].vx) << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
+        delta->fixed.vy.word = (scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR].vy + scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_EDGE].vy) << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
+        delta->fixed.vz.word = (scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_FLOOR].vz + scratch->corrections[WORLD_COLLISION_RESPONSE_PUSHBACK_EDGE].vz) << WORLD_COLLISION_PUSHBACK_FRACTION_SHIFT;
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionResponsePushbackScratch));
     return ret;
 }
 

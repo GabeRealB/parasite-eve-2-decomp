@@ -37959,7 +37959,7 @@ copies of it:
 ```c
 head     = *scratch;
 *scratch = head - 0x40;
-s        = (GpPushScratch*)(head - 0x40);
+s        = (_WorldCollisionResponsePushbackScratch*)(head - 0x40);
 ```
 
 `func_800E0FEC` is the example (that one instruction was the whole diff at
