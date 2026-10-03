@@ -66,15 +66,6 @@ s32 D_mist_shooting_gallery_8018E0C0;
 #include "../../shared/sprite_quad.h"
 #include "../../shared/beam_strip.h"
 
-/// The five round scripts of the gallery mini-game, indexed by
-/// `MistShootingGalleryWork::difficulty`. `func_mist_shooting_gallery_80184A14`
-/// copies the whole table onto its stack before dispatching through it, passing
-/// on the controller task.
-typedef struct MistShootingGalleryRounds {
-    /* 0x00 */ TaskFunc rounds[5];
-} MistShootingGalleryRounds;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryRounds, 0x14);
-
 /// 0xC-byte spawn record for `func_mist_shooting_gallery_80184CD0`. The round
 /// scripts index a table of these (reached through
 /// `D_mist_shooting_gallery_80186900`) with a 12-byte stride. `idLo` / `idHi`
@@ -150,7 +141,7 @@ static const TaskFuncTable3 D_mist_shooting_gallery_8017DB80 = {
 };
 
 /// The five round scripts, indexed by `MistShootingGalleryWork::difficulty`.
-static const MistShootingGalleryRounds D_mist_shooting_gallery_8017DB8C = {
+static const TaskFuncTable5 D_mist_shooting_gallery_8017DB8C = {
     {
         func_mist_shooting_gallery_80182C58,
         func_mist_shooting_gallery_801831B0,
@@ -3413,10 +3404,10 @@ void func_mist_shooting_gallery_801849BC(Task* task)
 
 static void func_mist_shooting_gallery_80184A14(Task* arg0)
 {
-    MistShootingGalleryWork*  work   = (MistShootingGalleryWork*)arg0->work;
-    MistShootingGalleryRounds rounds = D_mist_shooting_gallery_8017DB8C;
+    MistShootingGalleryWork* work   = (MistShootingGalleryWork*)arg0->work;
+    TaskFuncTable5           rounds = D_mist_shooting_gallery_8017DB8C;
 
-    rounds.rounds[work->difficulty](arg0);
+    rounds.funcs[work->difficulty](arg0);
 }
 
 static void func_mist_shooting_gallery_80184A80(Task* arg0)
