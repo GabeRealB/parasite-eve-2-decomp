@@ -48,18 +48,24 @@
 #include "overlay.h"
 #include "../../shared/room_visual_effects.h"
 
-// The animation copy spans the bank and its following records.
-// Keep the typed fields and the complete copied word range together.
+/// The clips the Dryfield toilet adds to the player's animation bank.
+///
+/// Both of the room's event scripts send `data.copy` to the player. The copy
+/// takes four words from the start of this storage: the three set pointers and
+/// the request's own source pointer. Those words occupy extended ids 47-50.
+/// One script then plays ids 48 and 49. The other plays a base-bank clip. Id 47
+/// stays NULL, id 50 holds the source pointer, and the stored word count sits
+/// past the copied span.
 typedef union {
     struct {
-        AnimationSet*            sets[3];
-        AnimationBankCopyRequest copy;
-    } data;
-    s32 words[5];
-} DryfieldToiletAnimStorage0B8C;
-STATIC_ASSERT_SIZEOF(DryfieldToiletAnimStorage0B8C, 20);
+        AnimationSet*            sets[3]; // Player clips for extended ids 47-49; NULL at the id nothing plays
+        AnimationBankCopyRequest copy;    // Copies the first four words of this storage
+    } data;                               // The records by name
+    s32 words[5];                         // The same storage as the copy reads it; the last word lies beyond the copied span
+} _DryfieldToiletAnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_DryfieldToiletAnimationBankExtensionStorage, 20);
 
-extern DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C;
+extern _DryfieldToiletAnimationBankExtensionStorage D_dryfield_toilet_80180B8C;
 
 extern WorldCollisionOccluder D_dryfield_toilet_801826F0[1];
 extern WorldCollisionTrigger  D_dryfield_toilet_8018227C[6];
@@ -78,9 +84,7 @@ extern AreaResource D_dryfield_toilet_80182900[2];
 extern SVECTOR D_dryfield_toilet_8018662C[326];
 extern SVECTOR D_dryfield_toilet_8018705C[1604];
 
-extern DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C;
-
-DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C = { .data = { { NULL, &gDryfieldToiletAnimation03054, &gDryfieldToiletAnimation035A4 }, { { .words = D_dryfield_toilet_80180B8C.words }, 4 } } };
+_DryfieldToiletAnimationBankExtensionStorage D_dryfield_toilet_80180B8C = { .data = { { NULL, &gDryfieldToiletAnimation03054, &gDryfieldToiletAnimation035A4 }, { { .words = D_dryfield_toilet_80180B8C.words }, 4 } } };
 
 AnimationPlayRequest D_dryfield_toilet_80180BA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
