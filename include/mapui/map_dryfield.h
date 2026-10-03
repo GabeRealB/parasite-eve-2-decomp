@@ -34,8 +34,8 @@ extern MenuMapArea D_map_dryfield_80179BD0[];
 /// map picture its map room id selects.
 extern GpMapMark D_map_dryfield_80179E00[];
 
-/// This stage's `D_8010F0E0` entry, ended by a room id of 0.
-extern GpMapFlagIcon D_map_dryfield_80179F38[];
+/// This stage's `D_8010F0E0` entry, ended by a page of 0.
+extern MenuMapMarker D_map_dryfield_80179F38[];
 
 /// This stage's `D_8010F0CC` entry, ended by a page of 0.
 extern MenuMapIcon D_map_dryfield_80179FEC[];

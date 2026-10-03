@@ -351,16 +351,16 @@ GpMapMark D_map_neo_ark_8017A110[36] = {
     { &D_mappic_s5_00_8012FD84, 5, 0xFF },
 };
 
-GpMapFlagIcon D_map_neo_ark_8017A230[10] = {
-    { 1, 0xFF, 0, 0 },
-    { 2, 0, 0xFFD1, 0x1A },
-    { 1, 0, 0xFFD1, 0x3B },
-    { 1, 0, 0xFFB0, 0x19 },
-    { 2, 0, 0x30, 0x10 },
-    { 3, 0, 0x6D, 0 },
-    { 1, 0, 0x3B, 0xFFB5 },
-    { 1, 0, 0x6D, 8 },
-    { 3, 0, 0x1E, 0 },
+MenuMapMarker D_map_neo_ark_8017A230[10] = {
+    { 1, MENU_MAP_MARKER_AREA_NEVER, 0, 0 },
+    { 2, MENU_MAP_MARKER_AREA_ANY, -47, 26 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, -47, 59 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, -80, 25 },
+    { 2, MENU_MAP_MARKER_AREA_ANY, 48, 16 },
+    { 3, MENU_MAP_MARKER_AREA_ANY, 109, 0 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, 59, -75 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, 109, 8 },
+    { 3, MENU_MAP_MARKER_AREA_ANY, 30, 0 },
     { 0, 0, 0, 0 },
 };
 

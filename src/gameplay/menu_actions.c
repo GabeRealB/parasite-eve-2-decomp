@@ -1301,7 +1301,7 @@ static void Gp_DrawMapMarks(Task* arg0)
 static void func_800D0C34(Task* arg0)
 {
     UiObject*            obj;
-    GpMapFlagIcon*       icons;
+    MenuMapMarker*       markers;
     GameFlagStageHeader* bank;
     GpMapCursorPos*      pos;
     SPRT_16*             p;
@@ -1312,30 +1312,31 @@ static void func_800D0C34(Task* arg0)
     s32                  bit;
     u16                  state;
     u8                   stage;
-    u8                   flag;
+    u8                   area;
 
     i        = 0;
     stage    = gGameSession->location.loc.stage;
     obj      = arg0->spawnArg2.pointer;
-    icons    = D_8010F0E0[stage - 1];
+    markers  = D_8010F0E0[stage - 1];
     bank     = Gp_FlagBanks[stage];
     flags[0] = bank->visitedAreas[0];
     flags[1] = bank->visitedAreas[1];
     for (;;) {
-        if (icons[i].roomId == 0) {
+        if (markers[i].page == 0) {
             return;
         }
-        flag = icons[i].flagId;
-        if (flag == 0xFF) {
+        area = markers[i].area;
+        if (area == MENU_MAP_MARKER_AREA_NEVER) {
             i++;
             continue;
         }
-        if (flag != 0) {
-            if (flag >= 0x21) {
-                bit   = 1 << (icons[i].flagId - 0x21);
+        if (area != MENU_MAP_MARKER_AREA_ANY) {
+            // Show the marker only once its area has been visited.
+            if (area >= 0x21) {
+                bit   = 1 << (markers[i].area - 0x21);
                 which = 1;
             } else {
-                bit   = 1 << (icons[i].flagId - 1);
+                bit   = 1 << (markers[i].area - 1);
                 which = 0;
             }
             if (!(bit & flags[which])) {
@@ -1344,7 +1345,7 @@ static void func_800D0C34(Task* arg0)
             }
         }
         state = Gp_LookupStageFlag(i);
-        if (icons[i].roomId != (s8)Gp_MapRoomId) {
+        if (markers[i].page != (s8)Gp_MapRoomId) {
             i++;
             continue;
         }
@@ -1353,10 +1354,10 @@ static void func_800D0C34(Task* arg0)
             pos->field_14  = 0;
             pos->field_12  = 0;
             pos->field_10  = 0;
-            pos->x         = icons[i].x;
+            pos->x         = markers[i].x;
             p              = gGpuPrimCursor;
             gGpuPrimCursor = p + 1;
-            pos->y         = icons[i].y;
+            pos->y         = markers[i].y;
             setlen(p, 3);
             setcode(p, 0x7F);
             if (state == 2) {

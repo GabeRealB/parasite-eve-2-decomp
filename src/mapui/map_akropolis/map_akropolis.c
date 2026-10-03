@@ -424,21 +424,21 @@ GpMapMark D_map_akropolis_8017A288[21] = {
     { NULL, 3, 0xFF },
 };
 
-GpMapFlagIcon D_map_akropolis_8017A330[15] = {
-    { 1, 0, 0xFFDF, 0xFFBB },
-    { 1, 0, 0x21, 0xFFBB },
-    { 1, 0, 0xFFEC, 0xFFF9 },
-    { 1, 0, 0x14, 0xFFF9 },
-    { 1, 0, 0x2B, 0xFFD6 },
-    { 1, 0, 0xFFB0, 0xFFF9 },
-    { 1, 0, 0xFFC2, 0x22 },
-    { 1, 0, 0xFFCC, 0x1D },
-    { 1, 0, 0xFFDD, 0x1D },
-    { 1, 0, 0xFFE4, 0x22 },
-    { 1, 0, 0x29, 0x4C },
-    { 1, 0, 0x3B, 0x36 },
-    { 1, 0, 0x1A, 0x41 },
-    { 1, 0, 0xFFD4, 0x41 },
+MenuMapMarker D_map_akropolis_8017A330[15] = {
+    { 1, MENU_MAP_MARKER_AREA_ANY, -33, -69 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, 33, -69 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, -20, -7 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, 20, -7 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, 43, -42 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, -80, -7 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, -62, 34 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, -52, 29 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, -35, 29 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, -28, 34 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, 41, 76 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, 59, 54 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, 26, 65 },
+    { 1, MENU_MAP_MARKER_AREA_ANY, -44, 65 },
     { 0, 0, 0, 0 },
 };
 

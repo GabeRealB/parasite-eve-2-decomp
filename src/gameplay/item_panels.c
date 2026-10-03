@@ -304,7 +304,7 @@ MenuMapIcon* D_8010F0CC[5] = {
     D_map_neo_ark_8017A26C,
 };
 
-GpMapFlagIcon* D_8010F0E0[5] = {
+MenuMapMarker* D_8010F0E0[5] = {
     D_map_akropolis_8017A330,
     D_map_dryfield_80179F38,
     D_map_dryfield_full_80179E48,

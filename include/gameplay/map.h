@@ -78,14 +78,27 @@ typedef struct {
 } MenuMapIcon;
 STATIC_ASSERT_SIZEOF(MenuMapIcon, 8);
 
-/// Six-byte map icon record walked by `func_800D0C34` until `roomId` is 0.
-/// `flagId` gates visibility using the stage flag bank (0 = always, 0xFF = skip).
-typedef struct _GpMapFlagIcon {
-    /* 0x0 */ u8  roomId;
-    /* 0x1 */ u8  flagId;
-    /* 0x2 */ u16 x;
-    /* 0x4 */ u16 y;
-} GpMapFlagIcon;
-STATIC_ASSERT_SIZEOF(GpMapFlagIcon, 6);
+/// `MenuMapMarker.area` of a marker that needs no area to have been visited.
+#define MENU_MAP_MARKER_AREA_ANY 0
+
+/// `MenuMapMarker.area` of a marker the map screen never draws.
+#define MENU_MAP_MARKER_AREA_NEVER 0xFF
+
+/// A 16x16 marker the map screen draws at a fixed point while a game flag asks for it.
+///
+/// Each stage has a table of these, closed by a record whose `page` is 0, beside
+/// a table of marker flags of the same order and count: record `n` is drawn
+/// while flag `n` holds 2, in one of two pictures that the flag's table entry
+/// selects. What each picture depicts is unproven. Most of the flags belong to
+/// a warp, which writes 1 on an arrival through it, and its room writes 2 when
+/// it refuses a transition there; a few are written by a room's own events
+/// instead. A flag may have several records, one for each page its place shows on.
+typedef struct {
+    u8  page; // Map page the marker is on, counted from 1; 0 closes the table
+    u8  area; // Area, as `GameSession.location.loc.area`, that must have been visited for the marker to show, or a `MENU_MAP_MARKER_AREA_*` value
+    s16 x;    // Map-screen X of the marker's centre
+    s16 y;    // Map-screen Y of the marker's centre
+} MenuMapMarker;
+STATIC_ASSERT_SIZEOF(MenuMapMarker, 6);
 
 #endif // GAMEPLAY_MAP_H
