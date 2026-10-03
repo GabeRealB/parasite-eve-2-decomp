@@ -125,25 +125,32 @@ typedef struct {
 } _AcropolisSanctuaryMosaicTile;
 STATIC_ASSERT_SIZEOF(_AcropolisSanctuaryMosaicTile, 0xE);
 
-/// Per-frame scratch the sanctuary's mosaic-shard task builds at
-/// the scratch stack: `v` holds the three corners of the shard's triangle,
-/// first scaled by `EffectWork::angle` through the GTE's `gpf` interpolator
-/// and rotated by the task's own `workm`, then offset by that matrix's
-/// translation, and `otz` is the depth (`SZ3 >> 2`) the ordering-table slot is
-/// taken from. The block is 0x20 bytes even though only 0x1C are used, because
-/// that is the amount the task reserves off the scratch head.
-typedef struct AcsMosaicScratch {
-    /* 0x00 */ s32     otz;
-    /* 0x04 */ SVECTOR v[3];
-    /* 0x1C */ s32     pad;
-} AcsMosaicScratch;
-STATIC_ASSERT_SIZEOF(AcsMosaicScratch, 0x20);
+/// Scratch-stack block one mosaic shard's triangle is drawn from.
+///
+/// Each corner is staged in `corners` as one of a mosaic tile's corner offsets,
+/// in the shard's own frame, and replaced in place twice: first by that offset
+/// scaled to the shard's size, then by the corner's world position, narrowed to
+/// signed 16-bit coordinate units. One RTPT then projects the three together;
+/// the screen positions go straight into the packet, so the block keeps none of
+/// them.
+///
+/// The block is one word longer than the words the drawer uses, and the room's
+/// whole-tile block carries the same spare word after its four corners.
+///
+/// Reserve the whole block and release it before the drawer returns; no pointer
+/// into it survives release.
+typedef struct {
+    s32     otz;         // SZ3 / 4 of the projection, a quarter of the last corner's depth; draw threshold and ordering-table depth
+    SVECTOR corners[3];  // Local corner workspace, then the world positions supplied to the projection
+    u8      field_1C[4]; // Reserved with the block but never read or written; role and field boundaries unproven
+} _AcropolisSanctuaryMosaicShardScratch;
+STATIC_ASSERT_SIZEOF(_AcropolisSanctuaryMosaicShardScratch, 0x20);
 
 /// Per-frame scratch the sanctuary's mosaic-tile task builds at
 /// the scratch stack: `v` holds the four corners of the tile's quad, each
 /// rotated by the task's own `workm` and then offset by that matrix's
 /// translation, and `otz` is the depth (`SZ3 >> 2`) the ordering-table slot is
-/// taken from. Unlike `AcsMosaicScratch` the corners are not scaled, because a
+/// taken from. Unlike `_AcropolisSanctuaryMosaicShardScratch` the corners are not scaled, because a
 /// whole tile is always drawn at its size class's own dimensions. The block is
 /// 0x28 bytes even though only 0x24 are used, because that is the amount the
 /// task reserves off the scratch head.
@@ -2348,7 +2355,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 /// `D_acropolis_sanctuary_80182710`, scaled about the origin by the shard's
 /// size (`angle`) with the GTE's `gpf` interpolator and rotated by the
 /// task's own `workm`, then projected through `GsWSMATRIX` with `rtpt` into an
-/// `AcsMosaicScratch` block taken from the scratch stack; shards inside `otz`
+/// `_AcropolisSanctuaryMosaicShardScratch` block taken from the scratch stack; shards inside `otz`
 /// 0x11 are dropped. The texture window is the tile's `originU` / `originV`
 /// corner and its `extentU` / `extentV` scaled by the same size factor, so the
 /// shard shows its own piece of the mosaic sheet.
@@ -2370,19 +2377,17 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 /// also age by 0x3C, so they clear away.
 void func_acropolis_sanctuary_8017EC90(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    void**            scratch;
-    u8*               head;
-    AcsMosaicScratch* blk;
-    POLY_FT3*         prim;
-    SVECTOR*          corner;
-    s32               size;
-    s32               hi;
-    s32               i;
-    s32               n;
-    s32               flags;
-    SVECTOR*          sv;
+    EffectWork*                            mem;
+    GfxCoord*                              coord;
+    _AcropolisSanctuaryMosaicShardScratch* shardScratch;
+    POLY_FT3*                              prim;
+    SVECTOR*                               corner;
+    s32                                    size;
+    s32                                    hi;
+    s32                                    i;
+    s32                                    n;
+    s32                                    flags;
+    SVECTOR*                               scratchCorner;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2391,10 +2396,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         return;
     }
     Gp_UpdateCoord(coord);
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    *scratch = head - 0x20;
-    blk      = (AcsMosaicScratch*)(head - 0x20);
+    shardScratch = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisSanctuaryMosaicShardScratch);
     if (mem->age == 0) {
         mem->scale = (arg0->spawnArg1.value >> 12) & 0xF;
         hi         = (s16)(arg0->spawnArg1.value >> 16);
@@ -2429,35 +2431,36 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     gte_SetTransMatrix(&GsWSMATRIX);
     corner = D_acropolis_sanctuary_80182710[0];
     for (i = 0; i < 3; i++) {
-        blk->v[i].vx = corner[i].vx;
-        // Spelled as an offset rather than `&blk->v[i]` so it stays a separate
-        // pointer from the one the GTE macros below take; writing both the same
-        // way lets CSE fold them into one register and the loop stops matching.
-        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(AcsMosaicScratch, v));
-        sv->vy = corner[i].vy;
-        sv->vz = corner[i].vz;
+        shardScratch->corners[i].vx = corner[i].vx;
+        // The same corner as `&shardScratch->corners[i]`, spelled as a byte
+        // offset from the block so that it stays a separate pointer from the
+        // one the GTE macros below take. Every typed spelling of this address
+        // folds into that operand's register and the loop stops matching.
+        scratchCorner     = (SVECTOR*)((u8*)shardScratch + i * sizeof(SVECTOR) + OFFSET_OF(_AcropolisSanctuaryMosaicShardScratch, corners));
+        scratchCorner->vy = corner[i].vy;
+        scratchCorner->vz = corner[i].vz;
         gte_lddp(mem->angle);
-        gte_ldsv(&blk->v[i]);
+        gte_ldsv(&shardScratch->corners[i]);
         gte_gpf12();
-        gte_stsv(&blk->v[i]);
+        gte_stsv(&shardScratch->corners[i]);
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->v[i]);
+        gte_ldv0(&shardScratch->corners[i]);
         gte_rtv0();
-        gte_stsv(&blk->v[i]);
-        blk->v[i].vx += coord->workm.t[0];
-        sv->vy       += coord->workm.t[1];
-        sv->vz       += coord->workm.t[2];
+        gte_stsv(&shardScratch->corners[i]);
+        shardScratch->corners[i].vx += coord->workm.t[0];
+        scratchCorner->vy           += coord->workm.t[1];
+        scratchCorner->vz           += coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv3(&blk->v[0], &blk->v[1], &blk->v[2]);
+    gte_ldv3(&shardScratch->corners[0], &shardScratch->corners[1], &shardScratch->corners[2]);
     gte_rtpt();
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setlen(prim, 7);
     setcode(prim, 0x24);
     gte_stsxy3(&prim->x0, &prim->x1, &prim->x2);
-    gte_stszotz(&blk->otz);
-    if (blk->otz >= 0x11) {
+    gte_stszotz(&shardScratch->otz);
+    if (shardScratch->otz >= 0x11) {
         prim->tpage = 0x8C;
         prim->clut  = 0x4200;
         prim->code |= 3;
@@ -2469,12 +2472,12 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU;
         prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV +
                    ((D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentV * mem->angle) >> 12);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)shardScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     coord->coord.t[0] += mem->move.vx;
     coord->coord.t[1] += mem->move.vy;
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BLOCK(_AcropolisSanctuaryMosaicShardScratch);
     coord->coord.t[2] += mem->move.vz;
     Gfx_RotMatrixYXZ(&coord->coord, &mem->pos, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
