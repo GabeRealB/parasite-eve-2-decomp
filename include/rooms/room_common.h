@@ -196,20 +196,30 @@ typedef struct _RoomShaftArg {
 } RoomShaftArg;
 STATIC_ASSERT_SIZEOF(RoomShaftArg, 0x4);
 
-/// Scratch block a room's glow or flare drawer takes from the scratch stack.
-/// `vec` is the glow's anchor point in world space; `otz` and `sx` / `sy` are
-/// that point projected through `GsWSMATRIX`. `rOuter` and `rInner` are sizes
-/// divided by `otz`, so they shrink with distance: the on-screen radii of the
-/// glow and of its inner quads.
+/// Scratch-stack block for drawing a radial glow around one projected point.
+///
+/// The two-radius sibling of `RoomGlowSpriteScratch`. A drawer stores the
+/// glow's centre in `worldPos`, projects it through `GsWSMATRIX` with one
+/// perspective transform, and draws only when `otz` exceeds 0x10; one
+/// flickering glow first moves `otz` 0x20 nearer. Each radius is a world size
+/// divided by `otz`, so the glow shrinks with distance. `outerRadius` spans
+/// the fan of wedges laid around the centre, or the flat diamond a flare draws
+/// instead, and the tips of a star's rays sit at it and at twice it.
+/// `innerRadius` is one eighth of the outer scale and places the shoulders
+/// either side of each ray; a drawer without rays leaves it unwritten, or
+/// stores it and never reads it.
+///
+/// `OverlaySpriteScratch` has the same layout but holds a quad's corner
+/// offsets in the two sizing words, so the records stay separate. Reserve the
+/// complete block and release it in scratch-stack order after drawing.
 typedef struct {
-    s32     otz;
-    s32     rOuter;
-    s32     rInner;
-    SVECTOR vec;
-    u16     sx;
-    u16     sy;
-} RoomGlowScratch;
-STATIC_ASSERT_SIZEOF(RoomGlowScratch, 0x18);
+    s32     otz;         // Projected depth (SZ3 / 4); the ordering-table depth, blend depth and divisor for both radii
+    s32     outerRadius; // On-screen radius of the wedge fan or diamond, in pixels
+    s32     innerRadius; // On-screen distance from the centre to a ray's shoulders, in pixels
+    SVECTOR worldPos;    // Glow centre in world coordinates, the input to the projection
+    DVECTOR screenPos;   // Projected centre in screen pixels, stored as one GTE word
+} RoomGlowRadiiScratch;
+STATIC_ASSERT_SIZEOF(RoomGlowRadiiScratch, 0x18);
 
 /// Scratch block a glow drawer takes from the scratch stack for one projected
 /// centre and the on-screen half-extent of the primitive around it.

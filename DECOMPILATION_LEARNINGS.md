@@ -87879,7 +87879,7 @@ block->vec.vx = vx;` - and holding the last half in a local until after
 head store: `func_acropolis_fire_escape_80180154` loads `workm.t[2]` into `$v0`
 after `sw s7,0(a1)`, and there the `vz` local pulled the loads into `$a1` and
 swapped the head/scratch registers (99.86%, `regs=17`); writing
-`block->vec.vz = coord->workm.t[2]` straight after the store matched.
+`block->worldPos.vz = coord->workm.t[2]` straight after the store matched.
 
 
 ## A loop-bottom `sra` of an `s16` bound means loop.c hoisted it; a cross-jumped duplicate arm grows the loop past the cut
