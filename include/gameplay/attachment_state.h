@@ -182,22 +182,24 @@ typedef struct _GpRec8 {
 } GpRec8;
 STATIC_ASSERT_SIZEOF(GpRec8, 8);
 
-/// 8-byte item-effect row used by `Gp_UpdateAttachCombo`. Indexed by
-/// `Gp_StateC08.attachId % 10`. `field_6` is the duration copied into
-/// `antibodyTicks`, `energyShotTicks` or `metabolismTicks`.
-typedef struct _GpItemRec8 {
-    /* 0x0 */ u16 pad_0[3];
-    /* 0x6 */ u16 field_6;
-} GpItemRec8;
-STATIC_ASSERT_SIZEOF(GpItemRec8, 8);
+/// Combo view of a `GpAttachParam` row: an ability whose dispatch kind is 0
+/// runs a timed combo, and the row's last halfword is how long it lasts.
+///
+/// Metabolism, antibody and energy shot read it for levels 1 to 3, loading
+/// `ticks` into `metabolismTicks`, `antibodyTicks` or `energyShotTicks`.
+typedef struct {
+    u16 unused[3]; // Dispatch kind (0) and two zero parameters; read only through the dispatch view
+    u16 ticks;     // Frames the combo lasts
+} AttachmentComboParam;
+STATIC_ASSERT_SIZEOF(AttachmentComboParam, 8);
 
 /// Row zero holds four damage percentages; the next 54 rows hold
 /// three upgrade levels for each of the eighteen attachment abilities.
 /// The dispatch and combo paths read signed parameters and an unsigned count.
 typedef union {
-    u16        percentages[4];
-    GpRec8     dispatch;
-    GpItemRec8 combo;
+    u16                  percentages[4];
+    GpRec8               dispatch;
+    AttachmentComboParam combo;
 } GpAttachParam;
 STATIC_ASSERT_SIZEOF(GpAttachParam, 8);
 

@@ -76,15 +76,15 @@ void Gp_UpdateAttachCombo(s32 arg0)
         case ATTACHMENT_ID_ANTIBODY_1:
         case ATTACHMENT_ID_ANTIBODY_2:
         case ATTACHMENT_ID_ANTIBODY_3: {
-            GpItemRec8* rec;
-            s32         lvl;
-            s32         count;
-            s32         time;
+            AttachmentComboParam* param;
+            s32                   lvl;
+            s32                   count;
+            s32                   time;
 
             lvl                       = Gp_StateC08.attachId % 10;
-            rec                       = &Gp_AttachParams[27 + lvl].combo;
+            param                     = &Gp_AttachParams[27 + lvl].combo;
             count                     = Gp_StateC08.antibodyCombo & ATTACHMENT_COMBO_STACK_MASK;
-            time                      = rec->field_6;
+            time                      = param->ticks;
             Gp_StateC08.antibodyCombo = count;
             Gp_StateC08.antibodyTicks = time;
             if (Gp_StateC08.antibodyCombo < ATTACHMENT_COMBO_STACK_CAP) {
@@ -96,15 +96,15 @@ void Gp_UpdateAttachCombo(s32 arg0)
         case ATTACHMENT_ID_ENERGY_SHOT_1:
         case ATTACHMENT_ID_ENERGY_SHOT_2:
         case ATTACHMENT_ID_ENERGY_SHOT_3: {
-            GpItemRec8* rec;
-            s32         lvl;
-            s32         count;
-            s32         time;
+            AttachmentComboParam* param;
+            s32                   lvl;
+            s32                   count;
+            s32                   time;
 
             lvl                         = Gp_StateC08.attachId % 10;
-            rec                         = &Gp_AttachParams[30 + lvl].combo;
+            param                       = &Gp_AttachParams[30 + lvl].combo;
             count                       = Gp_StateC08.energyShotCombo & ATTACHMENT_COMBO_STACK_MASK;
-            time                        = rec->field_6;
+            time                        = param->ticks;
             Gp_StateC08.energyShotCombo = count;
             Gp_StateC08.energyShotTicks = time;
             if (Gp_StateC08.energyShotCombo < ATTACHMENT_COMBO_STACK_CAP) {
@@ -116,15 +116,15 @@ void Gp_UpdateAttachCombo(s32 arg0)
         case ATTACHMENT_ID_METABOLISM_1:
         case ATTACHMENT_ID_METABOLISM_2:
         case ATTACHMENT_ID_METABOLISM_3: {
-            GpItemRec8* rec;
-            s32         lvl;
-            s32         count;
-            s32         time;
+            AttachmentComboParam* param;
+            s32                   lvl;
+            s32                   count;
+            s32                   time;
 
             lvl                         = Gp_StateC08.attachId % 10;
-            rec                         = &Gp_AttachParams[18 + lvl].combo;
+            param                       = &Gp_AttachParams[18 + lvl].combo;
             count                       = Gp_StateC08.metabolismCombo & ATTACHMENT_COMBO_STACK_MASK;
-            time                        = rec->field_6;
+            time                        = param->ticks;
             Gp_StateC08.metabolismCombo = count;
             Gp_StateC08.metabolismTicks = time;
             if (Gp_StateC08.metabolismCombo == 0) {
