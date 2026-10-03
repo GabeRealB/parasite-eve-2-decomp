@@ -70,16 +70,15 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 
-/// Settings of the room's effect task `func_shelter_b6_nursery_801800A0`,
-/// written together by `func_shelter_b6_nursery_80182D14`. A non-zero
-/// `field_0` widens the glints of views 3, 6, 8 and 10; a non-zero `field_2`
-/// fires a burst of sixteen effects in view 13, scaled by it, after which both
-/// are cleared.
-typedef struct ShelterB6NurseryPair {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} ShelterB6NurseryPair;
-STATIC_ASSERT_SIZEOF(ShelterB6NurseryPair, 0x4);
+/// Cues the room's cutscenes leave for its view-effect task.
+///
+/// The task clears both when it starts, and again once it has fired the spark
+/// shower, so the shower plays once per cue and takes the pulse cue with it.
+typedef struct {
+    u16 fastGlintPulse;   // non-zero: the glints of views 3, 6, 8 and 10 pulse at four times their idle rate
+    u16 sparkShowerScale; // non-zero: view 13 throws sixteen spark-shower shards, their spread and size multiplied by this
+} _ShelterB6NurseryEffectCues;
+STATIC_ASSERT_SIZEOF(_ShelterB6NurseryEffectCues, 0x4);
 
 /// Scratch block one triangle is built in: its three corners in world space,
 /// then the GTE depth and flag of its projection.
@@ -204,7 +203,7 @@ extern ShelterB6NurseryStorage7980 D_shelter_b6_nursery_80187980;
 /// Position the ambient sound is panned and attenuated from.
 extern GfxCoord D_shelter_b6_nursery_801879A0;
 
-extern ShelterB6NurseryPair D_shelter_b6_nursery_801879F0;
+extern _ShelterB6NurseryEffectCues D_shelter_b6_nursery_801879F0;
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x1FQ"
 #include "../../shared/telephone.h"
@@ -870,7 +869,7 @@ ShelterB6NurseryStorage7980 D_shelter_b6_nursery_80187980;
 
 GfxCoord D_shelter_b6_nursery_801879A0;
 
-ShelterB6NurseryPair D_shelter_b6_nursery_801879F0;
+_ShelterB6NurseryEffectCues D_shelter_b6_nursery_801879F0;
 
 #include "../../shared/telephone.inc.c"
 
@@ -1084,17 +1083,17 @@ void func_shelter_b6_nursery_801800A0(Task* task)
     s32      i;
 
     if (task->state == 0) {
-        gRoomEffectFlashId                    = EFFECT_SHELTER_B6_NURSERY_FLASH;
-        gRoomEffectTwinTrailId                = EFFECT_SHELTER_B6_NURSERY_TWIN_TRAIL;
-        gRoomEffectSparkBurstId               = EFFECT_SHELTER_B6_NURSERY_SPARK_BURST;
-        D_shelter_b6_nursery_801879F0.field_0 = 0;
-        D_shelter_b6_nursery_801879F0.field_2 = 0;
-        task->state                           = 1;
+        gRoomEffectFlashId                             = EFFECT_SHELTER_B6_NURSERY_FLASH;
+        gRoomEffectTwinTrailId                         = EFFECT_SHELTER_B6_NURSERY_TWIN_TRAIL;
+        gRoomEffectSparkBurstId                        = EFFECT_SHELTER_B6_NURSERY_SPARK_BURST;
+        D_shelter_b6_nursery_801879F0.fastGlintPulse   = 0;
+        D_shelter_b6_nursery_801879F0.sparkShowerScale = 0;
+        task->state                                    = 1;
     }
     switch (Gp_GetViewIndex() & 0xFF) {
         case 3:
         case 8:
-            if (D_shelter_b6_nursery_801879F0.field_0 != 0) {
+            if (D_shelter_b6_nursery_801879F0.fastGlintPulse != 0) {
                 glowDrawDiamond(D_shelter_b6_nursery_8018504C, 0x180, 0x80);
             } else {
                 glowDrawDiamond(D_shelter_b6_nursery_8018504C, 0x60, 0x80);
@@ -1102,7 +1101,7 @@ void func_shelter_b6_nursery_801800A0(Task* task)
             break;
         case 6:
         case 10:
-            if (D_shelter_b6_nursery_801879F0.field_0 != 0) {
+            if (D_shelter_b6_nursery_801879F0.fastGlintPulse != 0) {
                 glowDrawPulsingDisc(D_shelter_b6_nursery_8018504C, 0x180, 0x80);
             } else {
                 glowDrawPulsingDisc(D_shelter_b6_nursery_8018504C, 0x60, 0x80);
@@ -1118,23 +1117,23 @@ void func_shelter_b6_nursery_801800A0(Task* task)
             break;
         case 13:
             task->state = 3;
-            if (D_shelter_b6_nursery_801879F0.field_2 != 0) {
+            if (D_shelter_b6_nursery_801879F0.sparkShowerScale != 0) {
                 for (i = 0; i < 16; i++) {
                     a                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     b                                   = a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     angle                               = (a >> 16) & 0xFFF;
                     gRandomLcgState                     = b;
-                    r                                   = ((b >> 16) & 0xFF) * D_shelter_b6_nursery_801879F0.field_2;
+                    r                                   = ((b >> 16) & 0xFF) * D_shelter_b6_nursery_801879F0.sparkShowerScale;
                     D_shelter_b6_nursery_8018504C[6].vx = 0x1C20;
                     D_shelter_b6_nursery_8018504C[6].vy = ((r * rsin(angle)) >> 12) - 0x6D6;
                     D_shelter_b6_nursery_8018504C[6].vz = ((r * rsin(angle)) >> 12) + 0x7D0;
                     gRandomLcgState                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     Gp_SpawnEff(EFFECT_SHELTER_B6_NURSERY_SPARK_SHOWER, NULL,
-                                (((gRandomLcgState >> 16) & 0x1F) + 8) * D_shelter_b6_nursery_801879F0.field_2,
+                                (((gRandomLcgState >> 16) & 0x1F) + 8) * D_shelter_b6_nursery_801879F0.sparkShowerScale,
                                 &D_shelter_b6_nursery_8018504C[6]);
                 }
-                D_shelter_b6_nursery_801879F0.field_0 = 0;
-                D_shelter_b6_nursery_801879F0.field_2 = 0;
+                D_shelter_b6_nursery_801879F0.fastGlintPulse   = 0;
+                D_shelter_b6_nursery_801879F0.sparkShowerScale = 0;
             }
             break;
         case 15:
@@ -1599,8 +1598,8 @@ static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 sha
 
 void func_shelter_b6_nursery_80182D14(s32 arg0, s32 arg1)
 {
-    D_shelter_b6_nursery_801879F0.field_0 = arg0;
-    D_shelter_b6_nursery_801879F0.field_2 = arg1;
+    D_shelter_b6_nursery_801879F0.fastGlintPulse   = arg0;
+    D_shelter_b6_nursery_801879F0.sparkShowerScale = arg1;
 }
 
 #include "../../shared/room_visual_effects.inc.c"
