@@ -115,20 +115,36 @@ typedef struct {
 } _WorldCollisionSphereScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionSphereScratch, 0x48);
 
-/// Scratch storage for sphere/capsule intersection and its contact result.
+/// Scratch for one sphere-against-capsule pair test.
+///
+/// The scratch stack reserves this block for the test and releases it on
+/// every exit. Positions use game units. `segmentDirection` uses 4096 per
+/// unit and points from endpoint 1 toward endpoint 0. Endpoint 0 is an
+/// earlier clip contact when the capsule has one, and the geometric end
+/// otherwise. The sphere centre must lie between `extendedEnd0` and
+/// `extendedEnd1`, those endpoints moved apart by the sphere radius.
+/// `axisPoint` is the centre's projection onto that axis. A taper measures
+/// the segment with `segmentDelta` and interpolates the capsule radius,
+/// restoring geometric endpoint 0 from the capsule when a contact replaced
+/// it. `work` reuses one vector for the radius displacement, the restored
+/// local endpoint, the projection offset and the centre-to-axis vector.
+/// Each SDK vector's fourth component is unused and left uninitialized.
+/// `contact` is filled once for each body of the pair.
 typedef struct {
-    _WorldCollisionPairContact contact;
-    byte                       field_12[2]; // Role unproven
-    VECTOR3                    sphere;
-    s32                        pad_20;
-    VECTOR                     end0;
-    VECTOR                     end1;
-    VECTOR                     planeA;
-    VECTOR                     planeB;
-    VECTOR                     delta;
-    SVECTOR                    normal;
-    SVECTOR                    hit;
-    SVECTOR                    scaled;
+    _WorldCollisionPairContact contact;          // Per-body result copied into the contact table
+    VECTOR                     sphereCenter;     // Sphere body's world centre
+    VECTOR                     ends[2];          // World-space capsule segment, [0] then [1]
+    VECTOR                     extendedEnd0;     // Endpoint 0 moved away from endpoint 1 by the sphere radius
+    VECTOR                     extendedEnd1;     // Endpoint 1 moved away from endpoint 0 by the sphere radius
+    VECTOR                     segmentDelta;     // Endpoint 0 minus endpoint 1, game units; tapered length only
+    SVECTOR                    segmentDirection; // From endpoint 1 toward endpoint 0; 4096 per unit
+    SVECTOR                    axisPoint;        // Sphere centre projected onto the axis, truncated to signed 16 bits
+    union {
+        SVECTOR radiusAlongSegment;              // Sphere radius as a displacement along segmentDirection
+        SVECTOR localEndpoint;                   // Local endpoint 0 plus the body's position, before rotation
+        SVECTOR projectionOffset;                // segmentDirection times the distance from extendedEnd1
+        SVECTOR centreToAxis;                    // axisPoint minus the sphere centre
+    } work;
 } _WorldCollisionCapsuleScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionCapsuleScratch, 0x8C);
 
@@ -367,12 +383,11 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     } sourceAddress;
     u8*                            head;
     _WorldCollisionCapsuleScratch* block;
-    VECTOR*                        ends;
     WorldCollisionCapsule*         rec;
     s32                            proj;
     s32                            ret;
     s32                            tapered;
-    VECTOR3*                       pos;
+    VECTOR3*                       sphereCenter;
     s32                            radiusSquared;
     s32                            dx0;
     s32                            dy0;
@@ -395,38 +410,41 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     s32                            r1;
     s32                            tmp; // combined radius on a straight capsule, taper ratio less 1.0 on a tapered one
 
+    // Address the centre from the cursor before the reservation is stored.
+    // Taking &block->sphereCenter after that store does not keep this order.
     head                       = SCRATCH_STACK_CURSOR(u8);
-    pos                        = (VECTOR3*)(head - 0x78);
+    sphereCenter               = (VECTOR3*)&((_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch)))->sphereCenter;
     SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionCapsuleScratch);
     rec                        = arg1->context.capsule;
     block                      = (_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch));
-    Gp_ObjWorldPos(arg0, pos);
-    ends = (VECTOR*)(head - 0x68);
-    func_800DEC80(arg1, ends, (SVECTOR*)(head - 0x18), 0);
+    // Place the sphere centre and the capsule segment in world space.
+    Gp_ObjWorldPos(arg0, sphereCenter);
+    func_800DEC80(arg1, block->ends, &block->segmentDirection, 0);
 
-    block->scaled.vx = (block->normal.vx * arg0->radius) >> 12;
-    block->scaled.vy = (block->normal.vy * arg0->radius) >> 12;
-    block->scaled.vz = (block->normal.vz * arg0->radius) >> 12;
+    block->work.radiusAlongSegment.vx = (block->segmentDirection.vx * arg0->radius) >> 12;
+    block->work.radiusAlongSegment.vy = (block->segmentDirection.vy * arg0->radius) >> 12;
+    block->work.radiusAlongSegment.vz = (block->segmentDirection.vz * arg0->radius) >> 12;
 
-    block->planeA.vx = block->end0.vx + block->scaled.vx;
-    block->planeA.vy = block->end0.vy + block->scaled.vy;
-    block->planeA.vz = block->end0.vz + block->scaled.vz;
-    block->planeB.vx = block->end1.vx - block->scaled.vx;
-    block->planeB.vy = block->end1.vy - block->scaled.vy;
-    block->planeB.vz = block->end1.vz - block->scaled.vz;
+    block->extendedEnd0.vx = block->ends[0].vx + block->work.radiusAlongSegment.vx;
+    block->extendedEnd0.vy = block->ends[0].vy + block->work.radiusAlongSegment.vy;
+    block->extendedEnd0.vz = block->ends[0].vz + block->work.radiusAlongSegment.vz;
+    block->extendedEnd1.vx = block->ends[1].vx - block->work.radiusAlongSegment.vx;
+    block->extendedEnd1.vy = block->ends[1].vy - block->work.radiusAlongSegment.vy;
+    block->extendedEnd1.vz = block->ends[1].vz - block->work.radiusAlongSegment.vz;
 
-    dx0 = (block->sphere.vx - block->planeA.vx) * block->normal.vx;
-    dy0 = (block->sphere.vy - block->planeA.vy) * block->normal.vy;
-    dz0 = (block->sphere.vz - block->planeA.vz) * block->normal.vz;
+    // Reject a centre outside the segment extended by the sphere radius.
+    dx0 = (block->sphereCenter.vx - block->extendedEnd0.vx) * block->segmentDirection.vx;
+    dy0 = (block->sphereCenter.vy - block->extendedEnd0.vy) * block->segmentDirection.vy;
+    dz0 = (block->sphereCenter.vz - block->extendedEnd0.vz) * block->segmentDirection.vz;
     ret = 0;
     if (dx0 + dy0 + dz0 > 0) {
         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleScratch);
         return 0;
     }
 
-    dx1  = (block->sphere.vx - block->planeB.vx) * block->normal.vx;
-    dy1  = (block->sphere.vy - block->planeB.vy) * block->normal.vy;
-    dz1  = (block->sphere.vz - block->planeB.vz) * block->normal.vz;
+    dx1  = (block->sphereCenter.vx - block->extendedEnd1.vx) * block->segmentDirection.vx;
+    dy1  = (block->sphereCenter.vy - block->extendedEnd1.vy) * block->segmentDirection.vy;
+    dz1  = (block->sphereCenter.vz - block->extendedEnd1.vz) * block->segmentDirection.vz;
     proj = (dx1 + dy1 + dz1) >> 12;
     if (proj <= 0) {
         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleScratch);
@@ -435,77 +453,81 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
 
     r1      = rec->end0Radius;
     tapered = r1 != rec->end1Radius;
+    // Equal radii share one combined radius. A taper restores geometric
+    // endpoint 0 when a contact replaced it, then interpolates the radius.
     if (!tapered) {
-        tmp           = arg0->radius + r1;
-        block->hit.vx = (u16)block->planeB.vx + ((block->normal.vx * proj) >> 12);
-        block->hit.vy = (u16)block->planeB.vy + ((block->normal.vy * proj) >> 12);
-        block->hit.vz = (u16)block->planeB.vz + ((block->normal.vz * proj) >> 12);
-        proj          = tmp;
+        tmp                 = arg0->radius + r1;
+        block->axisPoint.vx = (u16)block->extendedEnd1.vx + ((block->segmentDirection.vx * proj) >> 12);
+        block->axisPoint.vy = (u16)block->extendedEnd1.vy + ((block->segmentDirection.vy * proj) >> 12);
+        block->axisPoint.vz = (u16)block->extendedEnd1.vz + ((block->segmentDirection.vz * proj) >> 12);
+        proj                = tmp;
         goto check;
     }
 
     if (arg1->flags & (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT)) {
         gte_SetRotMatrix(&arg1->coord->workm);
-        block->scaled.vx = (u16)rec->ends[0].vx + (u16)arg1->pos.vx;
-        block->scaled.vy = (u16)rec->ends[0].vy + (u16)arg1->pos.vy;
-        block->scaled.vz = (u16)rec->ends[0].vz + (u16)arg1->pos.vz;
-        gte_ldv0((SVECTOR*)(head - 8));
+        block->work.localEndpoint.vx = (u16)rec->ends[0].vx + (u16)arg1->pos.vx;
+        block->work.localEndpoint.vy = (u16)rec->ends[0].vy + (u16)arg1->pos.vy;
+        block->work.localEndpoint.vz = (u16)rec->ends[0].vz + (u16)arg1->pos.vz;
+        gte_ldv0(&block->work.localEndpoint);
         gte_rtv0();
-        gte_stlvnl(ends);
-        block->end0.vx += (arg1->coord)->workm.t[0];
-        block->end0.vy += (arg1->coord)->workm.t[1];
-        block->end0.vz += (arg1->coord)->workm.t[2];
+        gte_stlvnl(&block->ends[0]);
+        block->ends[0].vx += (arg1->coord)->workm.t[0];
+        block->ends[0].vy += (arg1->coord)->workm.t[1];
+        block->ends[0].vz += (arg1->coord)->workm.t[2];
     }
 
-    block->delta.vx = block->end0.vx - block->end1.vx;
-    block->delta.vy = block->end0.vy - block->end1.vy;
-    block->delta.vz = block->end0.vz - block->end1.vz;
-    dx2             = block->delta.vx * block->delta.vx;
-    dy2             = block->delta.vy * block->delta.vy;
-    dz2             = block->delta.vz * block->delta.vz;
-    len             = SquareRoot0(dx2 + dy2 + dz2);
+    block->segmentDelta.vx = block->ends[0].vx - block->ends[1].vx;
+    block->segmentDelta.vy = block->ends[0].vy - block->ends[1].vy;
+    block->segmentDelta.vz = block->ends[0].vz - block->ends[1].vz;
+    dx2                    = block->segmentDelta.vx * block->segmentDelta.vx;
+    dy2                    = block->segmentDelta.vy * block->segmentDelta.vy;
+    dz2                    = block->segmentDelta.vz * block->segmentDelta.vz;
+    len                    = SquareRoot0(dx2 + dy2 + dz2);
 
-    block->scaled.vx = (block->normal.vx * proj) >> 12;
-    block->scaled.vy = (block->normal.vy * proj) >> 12;
-    block->scaled.vz = (block->normal.vz * proj) >> 12;
-    dx3              = block->scaled.vx * block->scaled.vx;
-    dy3              = block->scaled.vy * block->scaled.vy;
-    dz3              = block->scaled.vz * block->scaled.vz;
-    proj             = len;
-    plen             = SquareRoot0(dx3 + dy3 + dz3);
+    block->work.projectionOffset.vx = (block->segmentDirection.vx * proj) >> 12;
+    block->work.projectionOffset.vy = (block->segmentDirection.vy * proj) >> 12;
+    block->work.projectionOffset.vz = (block->segmentDirection.vz * proj) >> 12;
+    dx3                             = block->work.projectionOffset.vx * block->work.projectionOffset.vx;
+    dy3                             = block->work.projectionOffset.vy * block->work.projectionOffset.vy;
+    dz3                             = block->work.projectionOffset.vz * block->work.projectionOffset.vz;
+    proj                            = len;
+    plen                            = SquareRoot0(dx3 + dy3 + dz3);
 
-    r0            = (rec->end0Radius << 12) / rec->end1Radius;
-    proj          = (plen << 12) / proj;
-    tmp           = r0 - 0x1000;
-    r1            = arg0->radius;
-    proj          = r1 + ((((tmp * proj) >> 12) * rec->end1Radius >> 12) + rec->end1Radius);
-    block->hit.vx = (u16)block->scaled.vx + (u16)block->planeB.vx;
-    block->hit.vy = (u16)block->scaled.vy + (u16)block->planeB.vy;
-    block->hit.vz = (u16)block->scaled.vz + (u16)block->planeB.vz;
+    r0                  = (rec->end0Radius << 12) / rec->end1Radius;
+    proj                = (plen << 12) / proj;
+    tmp                 = r0 - 0x1000;
+    r1                  = arg0->radius;
+    proj                = r1 + ((((tmp * proj) >> 12) * rec->end1Radius >> 12) + rec->end1Radius);
+    block->axisPoint.vx = (u16)block->work.projectionOffset.vx + (u16)block->extendedEnd1.vx;
+    block->axisPoint.vy = (u16)block->work.projectionOffset.vy + (u16)block->extendedEnd1.vy;
+    block->axisPoint.vz = (u16)block->work.projectionOffset.vz + (u16)block->extendedEnd1.vz;
 
 check:
-    block->scaled.vx = (u16)block->hit.vx - (u16)block->sphere.vx;
-    block->scaled.vy = (u16)block->hit.vy - (u16)block->sphere.vy;
-    block->scaled.vz = (u16)block->hit.vz - (u16)block->sphere.vz;
-    dx4              = block->scaled.vx * block->scaled.vx;
-    dy4              = block->scaled.vy * block->scaled.vy;
-    dz4              = block->scaled.vz * block->scaled.vz;
-    radiusSquared    = proj * proj;
+    block->work.centreToAxis.vx = (u16)block->axisPoint.vx - (u16)block->sphereCenter.vx;
+    block->work.centreToAxis.vy = (u16)block->axisPoint.vy - (u16)block->sphereCenter.vy;
+    block->work.centreToAxis.vz = (u16)block->axisPoint.vz - (u16)block->sphereCenter.vz;
+    dx4                         = block->work.centreToAxis.vx * block->work.centreToAxis.vx;
+    dy4                         = block->work.centreToAxis.vy * block->work.centreToAxis.vy;
+    dz4                         = block->work.centreToAxis.vz * block->work.centreToAxis.vz;
+    radiusSquared               = proj * proj;
     if (dx4 + dy4 + dz4 < radiusSquared) {
+        // The sphere records endpoint 1 and the segment direction. The capsule
+        // records the axis point, or the sphere centre when the capsule tapers.
         block->contact.distance              = 0;
-        block->contact.point.vx              = (u16)block->end1.vx;
-        block->contact.point.vy              = (u16)block->end1.vy;
-        block->contact.point.vz              = (u16)block->end1.vz;
-        block->contact.response.direction.vx = (u16)block->normal.vx;
-        block->contact.response.direction.vy = (u16)block->normal.vy;
-        block->contact.response.direction.vz = (u16)block->normal.vz;
+        block->contact.point.vx              = (u16)block->ends[1].vx;
+        block->contact.point.vy              = (u16)block->ends[1].vy;
+        block->contact.point.vz              = (u16)block->ends[1].vz;
+        block->contact.response.direction.vx = (u16)block->segmentDirection.vx;
+        block->contact.response.direction.vy = (u16)block->segmentDirection.vy;
+        block->contact.response.direction.vz = (u16)block->segmentDirection.vz;
         _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
         if (!tapered) {
-            block->contact.point = block->hit;
+            block->contact.point = block->axisPoint;
         } else {
-            block->contact.point.vx = (u16)block->sphere.vx;
-            block->contact.point.vy = (u16)block->sphere.vy;
-            block->contact.point.vz = (u16)block->sphere.vz;
+            block->contact.point.vx = (u16)block->sphereCenter.vx;
+            block->contact.point.vy = (u16)block->sphereCenter.vy;
+            block->contact.point.vz = (u16)block->sphereCenter.vz;
         }
         if (arg1->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
             sourceAddress.object                     = arg0;
