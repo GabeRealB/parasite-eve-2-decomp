@@ -73,12 +73,6 @@ static UiObjectDesc Telephone_Data_80181C90;
 /// entry 0 with a `RoomCutsceneRec` as its argument.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
-/// A 0x18-byte message argument block passed to `taskMessageDispatch`; only its
-/// stride is known.
-typedef struct {
-    u8 data[0x18];
-} _ShelterB1SterilizationRoomMsg;
-
 /// Where one of the room's internal doors leads, indexed by the door's room
 /// action minus 3.
 ///
@@ -152,7 +146,7 @@ extern s16                                    D_shelter_b1_sterilization_room_80
 extern WorldCollisionGrid                     D_shelter_b1_sterilization_room_80184F28;
 
 extern AnimationPlayRequest                       D_shelter_b1_sterilization_room_80188624;
-extern _ShelterB1SterilizationRoomMsg             D_shelter_b1_sterilization_room_80188668[];
+extern ActorTransform                             D_shelter_b1_sterilization_room_80188668[];
 extern _ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_room_80188728[];
 
 /// Area records `roomCutsceneTask` applies when it
@@ -471,15 +465,15 @@ ActorTransform D_shelter_b1_sterilization_room_80188638 = { { 5540, 0, 8600, 0 }
 
 ActorTransform D_shelter_b1_sterilization_room_80188650 = { { 5876, 0, 0x28D2, 0 }, { 0, 512, 0, 0 } };
 
-_ShelterB1SterilizationRoomMsg D_shelter_b1_sterilization_room_80188668[8] = {
-    { { 21, 19, 0, 0, 0, 0, 0, 0, 247, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { { 21, 19, 0, 0, 0, 0, 0, 0, 26, 41, 0, 0, 0, 0, 0, 0, 0, 0, 255, 7, 0, 0, 0, 0 } },
-    { { 18, 8, 0, 0, 0, 0, 0, 0, 226, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { { 18, 8, 0, 0, 0, 0, 0, 0, 26, 41, 0, 0, 0, 0, 0, 0, 0, 0, 255, 7, 0, 0, 0, 0 } },
-    { { 131, 19, 0, 0, 0, 0, 0, 0, 107, 20, 0, 0, 0, 0, 0, 0, 0, 0, 255, 7, 0, 0, 0, 0 } },
-    { { 129, 8, 0, 0, 0, 0, 0, 0, 107, 20, 0, 0, 0, 0, 0, 0, 0, 0, 255, 7, 0, 0, 0, 0 } },
-    { { 200, 7, 0, 0, 0, 0, 0, 0, 46, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
-    { { 131, 19, 0, 0, 0, 0, 0, 0, 46, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+ActorTransform D_shelter_b1_sterilization_room_80188668[8] = {
+    { { 4885, 0, 6391, 0 }, { 0, 0, 0, 0 } },
+    { { 4885, 0, 10522, 0 }, { 0, 2047, 0, 0 } },
+    { { 2066, 0, 6626, 0 }, { 0, 0, 0, 0 } },
+    { { 2066, 0, 10522, 0 }, { 0, 2047, 0, 0 } },
+    { { 4995, 0, 5227, 0 }, { 0, 2047, 0, 0 } },
+    { { 2177, 0, 5227, 0 }, { 0, 2047, 0, 0 } },
+    { { 1992, 0, 11566, 0 }, { 0, 0, 0, 0 } },
+    { { 4995, 0, 11566, 0 }, { 0, 0, 0, 0 } },
 };
 
 _ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_room_80188728[8] = {
