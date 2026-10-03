@@ -1,10 +1,11 @@
 /* Part of the model morph library; see model_morph.h. */
 
 /// Morphs the task's model by `ramp` (0..0x1000): restores the snapshot's
-/// `blendCount` vertices from `firstVertex` into the model, interpolates them
-/// toward `vertices` with `gteMIMefunc`, and, when the morph has `normals`,
-/// blends each normal between them and the saved ones.
-static void modelMorphBlend(Task* task, OverlayMorphTarget* morph, s32 ramp)
+/// `deltaCount` vertices from `firstVertex` into the model, adds each one's
+/// `vertexDeltas` entry scaled by the ramp with `gteMIMefunc`, and, when the
+/// morph has `targetNormals`, interpolates each normal from its saved value
+/// toward them.
+static void modelMorphBlend(Task* task, ModelMorph* morph, s32 ramp)
 {
     s32        i;
     s32        count;
@@ -24,7 +25,7 @@ static void modelMorphBlend(Task* task, OverlayMorphTarget* morph, s32 ramp)
     u16        vz;
 
     i     = 0;
-    count = morph->blendCount;
+    count = morph->deltaCount;
     src   = task->extra.tmd->source;
     first = morph->firstVertex;
     from  = (u16*)&morph->savedVertices[first];
@@ -48,8 +49,8 @@ static void modelMorphBlend(Task* task, OverlayMorphTarget* morph, s32 ramp)
     }
     blend = ramp;
     inv   = 0x1000 - blend;
-    gteMIMefunc(src->verts + morph->firstVertex, morph->vertices, morph->blendCount, blend);
-    nrmA = morph->normals;
+    gteMIMefunc(src->verts + morph->firstVertex, morph->vertexDeltas, morph->deltaCount, blend);
+    nrmA = morph->targetNormals;
     if (nrmA != NULL) {
         count = morph->normalCount;
         nrmB  = morph->savedNormals;

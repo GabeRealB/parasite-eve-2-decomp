@@ -825,7 +825,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
     TmdObject*          extra;
     TmdSource*          src;
     GfxCoord*           coord;
-    OverlayMorphTarget* ctl;
+    ModelMorph*         morph;
     SVECTOR*            dst;
     SVECTOR*            nrm;
     SVECTOR*            verts;
@@ -855,19 +855,20 @@ static void func_actor_323300_80162BE4(Task* arg0)
     func_actor_323300_80163718(arg0, 0x7D3, &D_actor_323300_80174A74, 0);
     func_actor_323300_8016369C(arg0, 0x7D3, &D_actor_323300_80174AB0, 0);
 
-    ctl   = &D_dryfield_toilet_801865D0;
+    // Snapshot the model's rest shape into the room's morph record.
+    morph = &D_dryfield_toilet_801865D0;
     src   = arg0->extra.tmd->source;
-    dst   = ctl->savedVertices;
-    nrm   = ctl->savedNormals;
+    dst   = morph->savedVertices;
+    nrm   = morph->savedNormals;
     verts = src->verts;
-    for (i = 0; i < ctl->vertexCount; i++) {
+    for (i = 0; i < morph->savedVertexCount; i++) {
         dst[i].vx = verts[i].vx;
         dst[i].vy = verts[i].vy;
         dst[i].vz = verts[i].vz;
     }
-    if (ctl->normals != 0) {
+    if (morph->targetNormals != NULL) {
         normals = src->normals;
-        for (i = 0; i < ctl->normalCount; i++) {
+        for (i = 0; i < morph->normalCount; i++) {
             nrm[i].vx = normals[i].vx;
             nrm[i].vy = normals[i].vy;
             nrm[i].vz = normals[i].vz;

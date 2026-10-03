@@ -203,14 +203,14 @@ extern DryfieldDilapidatedHouseSpawnState D_dryfield_dilapidated_house_80189B80;
 extern ScreenWaveCtx D_dryfield_dilapidated_house_80189C94;
 extern TaskDesc      D_dryfield_dilapidated_house_80183E48[];
 
-extern TaskMessageEntry   D_dryfield_dilapidated_house_80183E8C[];
-extern s32                D_dryfield_dilapidated_house_80186804[16];
-extern SVECTOR            D_dryfield_dilapidated_house_80186844[2];
-extern OverlayMorphTarget D_dryfield_dilapidated_house_8018669C;
-extern SVECTOR            D_dryfield_dilapidated_house_801866B4[];
-extern SVECTOR            D_dryfield_dilapidated_house_80186794[2];
-extern SVECTOR            D_dryfield_dilapidated_house_801867A4[6];
-extern SVECTOR            D_dryfield_dilapidated_house_801867D4[6];
+extern TaskMessageEntry D_dryfield_dilapidated_house_80183E8C[];
+extern s32              D_dryfield_dilapidated_house_80186804[16];
+extern SVECTOR          D_dryfield_dilapidated_house_80186844[2];
+extern ModelMorph       D_dryfield_dilapidated_house_8018669C;
+extern SVECTOR          D_dryfield_dilapidated_house_801866B4[];
+extern SVECTOR          D_dryfield_dilapidated_house_80186794[2];
+extern SVECTOR          D_dryfield_dilapidated_house_801867A4[6];
+extern SVECTOR          D_dryfield_dilapidated_house_801867D4[6];
 
 static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);
 static void func_dryfield_dilapidated_house_8017EBB8(Task* task);
@@ -786,7 +786,7 @@ SVECTOR D_dryfield_dilapidated_house_8018659C[32] = {
     { 12, 33, 87, 0 },
 };
 
-OverlayMorphTarget D_dryfield_dilapidated_house_8018669C = { D_dryfield_dilapidated_house_8018659C, NULL, D_dryfield_dilapidated_house_80189CA0, NULL, 40, 0, 0, 32 };
+ModelMorph D_dryfield_dilapidated_house_8018669C = { D_dryfield_dilapidated_house_8018659C, NULL, D_dryfield_dilapidated_house_80189CA0, NULL, 40, 0, 0, 32 };
 
 SVECTOR D_dryfield_dilapidated_house_801866B4[8] = {
     { -81, -162, -82, 0 },
@@ -3545,7 +3545,7 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     GfxCoord*                           coord;
     GfxCoord*                           parentCoord;
     _DryfieldDilapidatedHouseMorphWork* work;
-    OverlayMorphTarget*                 rec;
+    ModelMorph*                         morph;
     TmdSource*                          source;
     SVECTOR*                            dst;
     SVECTOR*                            dst2;
@@ -3583,19 +3583,20 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     obj->colorMtx       = parentObj->colorMtx;
     taskReparent(parent, task);
 
-    rec    = &D_dryfield_dilapidated_house_8018669C;
+    // Snapshot the model's rest shape into the morph record.
+    morph  = &D_dryfield_dilapidated_house_8018669C;
     source = task->extra.tmd->source;
-    dst    = rec->savedVertices;
-    dst2   = rec->savedNormals;
+    dst    = morph->savedVertices;
+    dst2   = morph->savedNormals;
     verts  = source->verts;
-    for (i = 0; i < rec->vertexCount; i++) {
+    for (i = 0; i < morph->savedVertexCount; i++) {
         dst[i].vx = verts[i].vx;
         dst[i].vy = verts[i].vy;
         dst[i].vz = verts[i].vz;
     }
-    if (rec->normals != 0) {
+    if (morph->targetNormals != NULL) {
         src2 = source->normals;
-        for (i = 0; i < rec->normalCount; i++) {
+        for (i = 0; i < morph->normalCount; i++) {
             dst2[i].vx = src2[i].vx;
             dst2[i].vy = src2[i].vy;
             dst2[i].vz = src2[i].vz;

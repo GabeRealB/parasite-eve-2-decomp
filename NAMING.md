@@ -397,6 +397,12 @@ textures. Its interface is `src/shared/sprite_quad.h`; its configuration macros
 use `SPRITE_QUAD_`. The frame-type binding selects each static instance's 16-bit
 texture-frame argument, including its signedness.
 
+`modelMorph` owns the included deformation of a TMD model by a ramp: scaled
+vertex deltas added to a snapshot of the rest shape, and normals interpolated
+toward a target set. Its interface is `src/shared/model_morph.h`. The record
+describing one morph is `ModelMorph` in `include/overlay.h`, public because a
+package can morph its model with a record another package defines.
+
 The included Dryfield factory room code shares the lift, hatch, operator panel,
 entry task and scenes between the day and night packages. Its interface is
 `src/shared/factory_lift.h`; configuration macros use `FACTORY_ROOM_` and select

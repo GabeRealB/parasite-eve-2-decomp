@@ -669,22 +669,25 @@ typedef struct OverlayCaptureArgs {
 } OverlayCaptureArgs;
 STATIC_ASSERT_SIZEOF(OverlayCaptureArgs, 0x4);
 
-/// A model's vertex morph: `vertices` / `normals` are the target shape
-/// (`normals` null when the model has no normal pass), `savedVertices` /
-/// `savedNormals` the snapshot of its rest shape taken at setup -
-/// `vertexCount` and `normalCount` of them - and the blend runs over
-/// `blendCount` vertices from `firstVertex`. A room declares one in its data
-/// and an actor can blend a room's (actor_323300 the Dryfield toilet's).
-typedef struct OverlayMorphTarget {
-    /* 0x00 */ SVECTOR* vertices;
-    /* 0x04 */ SVECTOR* normals;
-    /* 0x08 */ SVECTOR* savedVertices;
-    /* 0x0C */ SVECTOR* savedNormals;
-    /* 0x10 */ s16      vertexCount;
-    /* 0x12 */ s16      normalCount;
-    /* 0x14 */ s16      firstVertex;
-    /* 0x16 */ s16      blendCount;
-} OverlayMorphTarget;
-STATIC_ASSERT_SIZEOF(OverlayMorphTarget, 0x18);
+/// One morph of a TMD model: what the included `modelMorph` code needs to
+/// snapshot the model's rest shape and to deform it by a 0..`ONE` ramp.
+///
+/// A vertex morphs additively - its rest position plus its delta scaled by
+/// the ramp - while a normal is interpolated between its rest value and a
+/// target. The snapshot covers the model's first `savedVertexCount` vertices
+/// and `normalCount` normals; the deltas apply to the `deltaCount` vertices
+/// from `firstVertex`, which need not be all of them. The package owning the
+/// model's data defines the record and both snapshot buffers.
+typedef struct {
+    SVECTOR* vertexDeltas;     // displacement of each morphed vertex at a full ramp, `deltaCount` entries
+    SVECTOR* targetNormals;    // normals at a full ramp, `normalCount` entries; NULL leaves the model's normals alone
+    SVECTOR* savedVertices;    // snapshot buffer for the rest vertices, at least `savedVertexCount` entries
+    SVECTOR* savedNormals;     // snapshot buffer for the rest normals, at least `normalCount` entries; unused without `targetNormals`
+    s16      savedVertexCount; // vertices snapshotted, from the model's first
+    s16      normalCount;      // normals snapshotted and interpolated, from the model's first
+    s16      firstVertex;      // model vertex the first delta applies to
+    s16      deltaCount;       // vertices restored from the snapshot and displaced on each blend
+} ModelMorph;
+STATIC_ASSERT_SIZEOF(ModelMorph, 0x18);
 
 #endif /* OVERLAY_H */

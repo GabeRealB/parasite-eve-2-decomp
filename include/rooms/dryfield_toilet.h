@@ -15,7 +15,7 @@
 
 #include "main/task_types.h"
 
-extern OverlayMorphTarget D_dryfield_toilet_801865D0;
+extern ModelMorph D_dryfield_toilet_801865D0;
 
 extern AreaVariant D_dryfield_toilet_80182918[13];
 

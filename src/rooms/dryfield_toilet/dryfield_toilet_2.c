@@ -2469,7 +2469,7 @@ SVECTOR D_dryfield_toilet_801833A8[1605] = {
     { 0, 0, 0, 1604 },
 };
 
-OverlayMorphTarget D_dryfield_toilet_801865D0 = { D_dryfield_toilet_80182980, D_dryfield_toilet_801833A8, D_dryfield_toilet_8018662C, D_dryfield_toilet_8018705C, 325, 1604, 0, 325 };
+ModelMorph D_dryfield_toilet_801865D0 = { D_dryfield_toilet_80182980, D_dryfield_toilet_801833A8, D_dryfield_toilet_8018662C, D_dryfield_toilet_8018705C, 325, 1604, 0, 325 };
 
 WorldCollisionFootstepSounds D_dryfield_toilet_801865E8 = {
     0x10000001,
