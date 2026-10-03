@@ -15,13 +15,19 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-/// 4-byte table entry at `Gp_IdField0`. `Gp_LookupIdField(idx, 0)` returns
-/// `field_0` for index `(u16)idx`.
-typedef struct _GpRec4 {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} GpRec4;
-STATIC_ASSERT_SIZEOF(GpRec4, 0x4);
+/// What a hazard contact does to the player, one row per hazard id.
+///
+/// A hazard is a collision body whose key carries contact category 5 in its
+/// high halfword: scenery that rooms and actors place, as opposed to an
+/// attack, whose category-4 key packs its own power. The key's low halfword
+/// is the hazard id, and that id selects the row. The damage is fixed per id
+/// and is not scaled the way an attack's power is. An id whose row is zero
+/// costs the player nothing.
+typedef struct {
+    u16 damage;  // Damage the contact deals to the player, taken as stored; 0 for a harmless id
+    u16 field_2; // Never read, role unproven. Observed 5, 0, 5 in the three damaging rows, equal to the hit reaction the player's contact handler picks in code for those ids
+} _HazardPlayerDamage;
+STATIC_ASSERT_SIZEOF(_HazardPlayerDamage, 0x4);
 
 /// 6-byte table entry at `Gp_IdField1`. `Gp_LookupIdField(idx, 1)` returns
 /// `field_0` for index `(u16)idx`.
@@ -33,7 +39,7 @@ typedef struct _GpRec6 {
 STATIC_ASSERT_SIZEOF(GpRec6, 0x6);
 
 /// 4-byte records selected by `Gp_LookupIdField(..., 0)`.
-extern GpRec4 Gp_IdField0[];
+extern _HazardPlayerDamage Gp_IdField0[];
 
 /// 6-byte records selected by `Gp_LookupIdField(..., 1)`.
 extern GpRec6 Gp_IdField1[];
@@ -41,7 +47,7 @@ extern GpRec6 Gp_IdField1[];
 /// Unreferenced nonzero halfword following the ID-field table.
 extern u16 D_80114096;
 
-GpRec4 Gp_IdField0[11] = {
+_HazardPlayerDamage Gp_IdField0[11] = {
     { 0, 0 },
     { 0, 0 },
     { 10, 5 },
@@ -77,7 +83,7 @@ s32 Gp_LookupIdField(s32 arg0, s32 arg1)
     ret = 0;
     switch (arg1) {
         case 0:
-            ret = Gp_IdField0[(u16)arg0].field_0;
+            ret = Gp_IdField0[(u16)arg0].damage;
             break;
         case 1:
             ret = Gp_IdField1[(u16)arg0].field_0;
