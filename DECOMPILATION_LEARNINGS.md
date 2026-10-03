@@ -56284,8 +56284,8 @@ functions in it first; splat regenerates them as `INCLUDE_ASM`.
 winner to a common block. Written the obvious way,
 
 ```c
-rec = work->rec0;
-if (Gp_CountRec18Hi(work->rec0, 0x100000) != 0) goto check;
+rec = work->sphereContacts;
+if (Gp_CountRec18Hi(work->sphereContacts, 0x100000) != 0) goto check;
 ```
 
 `rec` is live across the `jal`, so `global_alloc` has to give it a callee-saved
@@ -56301,8 +56301,8 @@ Splitting the count into its own local so the assignment lands *after* the
 call —
 
 ```c
-count = Gp_CountRec18Hi(work->rec0, 0x100000);
-rec   = work->rec0;
+count = Gp_CountRec18Hi(work->sphereContacts, 0x100000);
+rec   = work->sphereContacts;
 if (count != 0) goto check;
 ```
 
@@ -56333,7 +56333,7 @@ pointer; the target clearly ranked it higher. `build.sh`'s RTL summary prints
 the whole table, which is what makes this checkable rather than guesswork:
 
 ```
-  r101  used 4/21  → $s2   rec0
+  r101  used 4/21  → $s2   sphereContacts
   r81   used 13/135 → $s3  blk     <- target has this in $s4
   r90   used 4/31  → $s4   head    <- target has this in $s3
 ```
@@ -56381,18 +56381,18 @@ two records, and the original wrote them once per path, joined *after* the
 assignment:
 
 ```c
-    if (Gp_CountRec18Hi(work->rec1, 0x100000) == 0) {
-        goto try_rec0;
+    if (Gp_CountRec18Hi(work->capsuleContacts, 0x100000) == 0) {
+        goto trySphereContacts;
     }
-    func_800E0FEC(work->rec1, &blk->delta, 1, &idx);
+    func_800E0FEC(work->capsuleContacts, &blk->delta, 1, &idx);
     idx = func_800E1ACC((u8*)&idx);
 check:
     param = Gp_RoomParamTables[...][...][idx];   /* reload: `check` is a join */
     ...
     goto move;
-try_rec0:
-    if (Gp_CountRec18Hi(work->rec0, 0x100000) != 0) {
-        func_800E0FEC(work->rec0, &blk->delta, 1, &idx);
+trySphereContacts:
+    if (Gp_CountRec18Hi(work->sphereContacts, 0x100000) != 0) {
+        func_800E0FEC(work->sphereContacts, &blk->delta, 1, &idx);
         idx = func_800E1ACC((u8*)&idx);
         goto check;
     }
@@ -56413,9 +56413,9 @@ pseudo sometimes needs one more reference to win the lower `$sN`; the idiom for
 spelling it is naming the same variable in both operands of one empty asm.
 
 `func_grenade_pistol_8011D6FC` is the grenade pistol's copy of
-`func_m4a1_grenade_8011D994`, and it needed the scratch head and the `rec0`
+`func_m4a1_grenade_8011D994`, and it needed the scratch head and the `sphereContacts`
 pointer in the opposite order from its sibling: 4 refs across 22 insns
-(2*4/22 = 0.36) lost `$s2` to `rec0` at 4/21 (0.38). Both are already at
+(2*4/22 = 0.36) lost `$s2` to `sphereContacts` at 4/21 (0.38). Both are already at
 `floor_log2(4) = 2`, so no boundary had to be crossed — one more reference,
 5/22 = 0.45, was enough:
 
@@ -56427,7 +56427,7 @@ func_800E0FEC(rec, &((WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch)
 Two things that do *not* work here. `SOFT_TOUCH_REG(head)` (`"+r"`) also adds
 references, but the write half starts a new live range at the asm and the copy
 it forces scores worse (99.79% against 100%). Introducing an explicit
-`rec0 = work->rec0;` local, or moving that assignment earlier to lengthen its
+`rec = work->sphereContacts;` local, or moving that assignment earlier to lengthen its
 range, changes neither number: `cse` re-derives the same pseudo with the same
 refs and the same length either way, so the ranking is unchanged.
 

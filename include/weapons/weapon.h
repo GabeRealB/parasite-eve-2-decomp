@@ -14,28 +14,34 @@
 #include "main/tmd_types.h"
 
 /// Work block of a fired grenade, allocated zeroed by the projectile's spawn
-/// state and kept at `Task::work`. The weapon overlays that fire grenades and
-/// Kyle's thrown-object task carry the same code. It leads with the two
-/// `WorldCollisionBody` list nodes the exit callback hands back to `Gp_UnlinkObj`: `obj`
-/// is a node whose `context.contacts` is `rec0` directly, and `obj2` a node whose
-/// `context.capsule` is `d4rec`, reaching `rec1` through that shape's `contacts`.
-/// `field_88` is 16.16: the whole word is the flight timer the flight state
-/// counts, and its high half the per-frame divisor the grenade's step along
-/// `dir` is taken by, so the grenade slows as the timer runs. `dir` is the
-/// launch direction: the muzzle's forward column pitched up and normalised.
-typedef struct WeaponGrenadeWork {
-    WorldCollisionBody    obj;
-    WorldCollisionBody    obj2;
-    WorldCollisionContact rec0[1];
-    WorldCollisionContact rec1[1];
-    WorldCollisionCapsule d4rec;
-    Fixed16               field_88;
-    s32                   field_8C;
-    s32                   field_90;
-    SVECTOR               dir;
-    byte                  pad_9C[4];
+/// state and kept at `Task::work`.
+///
+/// The grenade-shell task (Grenade Pistol, MM1 and Kyle) and the M4A1 grenade
+/// launcher share the block. Spawn links both collision bodies; the exit
+/// callback unlinks them. During flight the shell steps by `dir` divided by
+/// the integer half of `flightTimer`, so it slows as that 16.16 word climbs.
+/// Detonation replaces the word with the blast's remaining frames.
+typedef struct {
+    WorldCollisionBody    sphereBody;         // Pair-and-grid sphere (contact category 2); detonation widens it into the blast
+    WorldCollisionBody    capsuleBody;        // Grid-only capsule body; a zero key omits it from pair contacts
+    WorldCollisionContact sphereContacts[1];  // Sphere table: category 3 detonates, a grid contact names a surface
+    WorldCollisionContact capsuleContacts[1]; // Capsule table; its grid contacts are resolved before the sphere's
+    WorldCollisionCapsule capsule;            // Segment borrowed by `capsuleBody`; callers set the far end from `flightTimer`
+    Fixed16               flightTimer;        // 16.16 flight clock and step divisor; blast reuses the word as frames left
+    s32                   smokeInterval;      // Flight frames per smoke puff (1..4)
+    s32                   flightFrame;        // Flight frames elapsed; every seventh widens `smokeInterval` up to 4
+    SVECTOR               dir;                // Motion direction, 4096 per unit: pitched muzzle forward, then +0x10 on vy each frame
+    byte                  field_9C[4];        // No recovered access. Keeps the block at 0xA0; role unproven
 } WeaponGrenadeWork;
 STATIC_ASSERT_SIZEOF(WeaponGrenadeWork, 0xA0);
+
+/// Added to `flightTimer` each flight frame, in 16.16 units.
+///
+/// The integer half of the resulting word divides `dir` to produce that
+/// frame's step, so the shell slows as the word climbs. The shared
+/// grenade-shell flight and the M4A1 grenade both add this; the word that
+/// ends the flight differs between them.
+#define GRENADE_SHELL_FLIGHT_STEP 0x1800
 
 /// The scratch-pad block a grenade's flight state takes when the attachment
 /// id comes from the task's spawn argument. `delta` is handed to

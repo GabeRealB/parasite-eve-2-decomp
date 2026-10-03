@@ -1,11 +1,13 @@
 /* Part of the grenade shell library; see grenade_shell.h. */
 
-/// Flight state of the projectile. Detonates when the shot
-/// has touched world geometry (`rec0` with 0x30000), when a blocking surface
-/// enables weapon impacts, or when the flight timer runs past 0xDFFFF; otherwise it steps
-/// the projectile by `dir / field_88.halves.integer`, lets gravity pull `dir.vy` down,
-/// and trails smoke every `field_8C` frames — a divisor that grows by one
-/// every seven frames up to four, so the trail thins as the grenade slows.
+/// Flight state of the projectile. Detonates when `sphereContacts` holds a
+/// category-3 contact (packed kind 0x30000), when a blocking surface accepts
+/// weapon impacts, or when `flightTimer` passes 0xDFFFF. Surface index 1 in
+/// area 0x14 of stages 2 and 3 also detonates. Otherwise it steps the
+/// projectile by `dir / flightTimer.halves.integer`, lets gravity pull
+/// `dir.vy` down, and trails smoke every `smokeInterval` flight frames. That
+/// period starts at 1 and grows by one every seven `flightFrame`s, up to four,
+/// so the trail thins as the grenade slows.
 ///
 /// The shot is fired through `Task::spawnArg1`: its low byte is the
 /// attachment id driving the explosion effect, the byte above it seeds the
@@ -35,7 +37,7 @@ void grenadeShellFly(Task* arg0)
     SCRATCH_STACK_CURSOR(u8) = head - sizeof(WeaponGrenadeScratch);
     blk                      = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
     coord->composeStamp      = GRAPHICS_COORD_DIRTY;
-    if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
+    if (Gp_CountRec18Hi(work->sphereContacts, 0x30000) != 0) {
     explode:
         blk->field_30 = arg0->spawnArg1.value & 0xFF00;
         blk->sfx      = (u8)arg0->spawnArg1.value;
@@ -55,19 +57,19 @@ void grenadeShellFly(Task* arg0)
         if (blk->sfx == 0xB) {
             clip = 1;
         }
-        work->field_88.word = clip;
-        work->obj.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->flightTimer.word  = clip;
+        work->sphereBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         SCRATCH_STACK_RELEASE_BYTES(sizeof(WeaponGrenadeScratch));
-        work->obj.radius = gGrenadeShellBlastRadii[blk->sfx - 0xA];
+        work->sphereBody.radius = gGrenadeShellBlastRadii[blk->sfx - 0xA];
         return;
     }
 
     /* `rec` is picked after each count, not before: assigning it first would
        make it cross the call and cost a call-saved register. */
-    count = Gp_CountRec18Hi(work->rec1, 0x100000);
-    rec   = work->rec1;
+    count = Gp_CountRec18Hi(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID);
+    rec   = work->capsuleContacts;
     if (count == 0) {
-        goto try_rec0;
+        goto trySphereContacts;
     }
 check:
     /* `head - 0x18` is `&blk->delta`; spelling it off `head` is what keeps the
@@ -91,34 +93,34 @@ check:
         goto explode;
     }
     goto move;
-try_rec0:
-    count = Gp_CountRec18Hi(work->rec0, 0x100000);
-    rec   = work->rec0;
+trySphereContacts:
+    count = Gp_CountRec18Hi(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID);
+    rec   = work->sphereContacts;
     if (count != 0) {
         goto check;
     }
 move:
-    blk->delta.vector.vx   = work->dir.vx / work->field_88.halves.integer;
-    blk->delta.vector.vy   = work->dir.vy / work->field_88.halves.integer;
-    blk->delta.vector.vz   = work->dir.vz / work->field_88.halves.integer;
-    coord->coord.t[0]     += blk->delta.vector.vx;
-    coord->coord.t[1]     += blk->delta.vector.vy;
-    coord->coord.t[2]     += blk->delta.vector.vz;
-    work->d4rec.ends[1].vz = -(work->field_88.word >> 9);
-    work->field_88.word   += 0x1800;
-    if (work->field_88.word > 0xDFFFF) {
+    blk->delta.vector.vx     = work->dir.vx / work->flightTimer.halves.integer;
+    blk->delta.vector.vy     = work->dir.vy / work->flightTimer.halves.integer;
+    blk->delta.vector.vz     = work->dir.vz / work->flightTimer.halves.integer;
+    coord->coord.t[0]       += blk->delta.vector.vx;
+    coord->coord.t[1]       += blk->delta.vector.vy;
+    coord->coord.t[2]       += blk->delta.vector.vz;
+    work->capsule.ends[1].vz = -(work->flightTimer.word >> 9);
+    work->flightTimer.word  += GRENADE_SHELL_FLIGHT_STEP;
+    if (work->flightTimer.word > 0xDFFFF) {
         goto explode;
     }
-    work->dir.vy   = work->dir.vy + 0x10;
-    step           = work->field_90 + 1;
-    work->field_90 = step;
-    if (work->field_8C < 4 && step % 7 == 0) {
-        work->field_8C = work->field_8C + 1;
+    work->dir.vy      = work->dir.vy + 0x10;
+    step              = work->flightFrame + 1;
+    work->flightFrame = step;
+    if (work->smokeInterval < 4 && step % 7 == 0) {
+        work->smokeInterval = work->smokeInterval + 1;
     }
-    if (work->field_90 % work->field_8C == 0) {
+    if (work->flightFrame % work->smokeInterval == 0) {
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0, NULL);
     }
-    Gp_ClearRec18Occupied(work->rec0);
-    Gp_ClearRec18Occupied(work->rec1);
+    Gp_ClearRec18Occupied(work->sphereContacts);
+    Gp_ClearRec18Occupied(work->capsuleContacts);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(WeaponGrenadeScratch));
 }

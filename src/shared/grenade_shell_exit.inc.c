@@ -6,7 +6,7 @@ void grenadeShellExit(Task* task)
 {
     WeaponGrenadeWork* work = task->work;
 
-    Gp_UnlinkObj(&work->obj);
-    Gp_UnlinkObj(&work->obj2);
+    Gp_UnlinkObj(&work->sphereBody);
+    Gp_UnlinkObj(&work->capsuleBody);
     taskKill(task);
 }

@@ -245,51 +245,51 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     gfxRotMatrixX(mtx, -0x400, GRAPHICS_ROTATION_COMPOSE);
     gfxReadMatrixZAxis(mtx, &work->dir);
     VectorNormalSS(&work->dir, &work->dir);
-    work->field_88.word        = 0xA0000;
-    work->field_8C             = 1;
-    work->field_90             = 0;
-    work->obj.coord            = coord;
-    work->obj.context.contacts = work->rec0;
-    work->obj.pos.vx           = 0;
-    work->obj.pos.vy           = 0;
-    work->obj.pos.vz           = 0;
-    work->obj.key              = (u16)arg0->spawnArg1.value | 0x20000;
-    work->obj.radius           = 0x94;
-    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(1, &work->obj);
-    Gp_InitRec18Table(work->obj.context.contacts, 1, 0);
-    work->obj2.context.capsule = &work->d4rec;
-    work->obj2.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->d4rec.contacts       = work->rec1;
-    work->obj2.coord           = coord;
-    work->obj2.pos.vx          = 0;
-    work->obj2.pos.vy          = 0;
-    work->obj2.pos.vz          = 0;
-    work->obj2.key             = 0;
-    work->obj2.radius          = 0;
-    work->d4rec.ends[0].vx     = 0;
-    work->d4rec.ends[0].vy     = 0;
-    work->d4rec.ends[0].vz     = 0;
-    work->d4rec.ends[1].vx     = 0;
-    work->d4rec.ends[1].vz     = 0;
-    work->d4rec.end0Radius     = 1;
-    work->d4rec.end1Radius     = 1;
-    work->obj.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->d4rec.ends[1].vy     = -(work->field_88.word >> 10);
-    Gp_LinkObj(1, &work->obj2);
-    Gp_InitRec18Table(work->d4rec.contacts, 1, 0);
-    work->obj2.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
+    work->flightTimer.word            = 0xA0000;
+    work->smokeInterval               = 1;
+    work->flightFrame                 = 0;
+    work->sphereBody.coord            = coord;
+    work->sphereBody.context.contacts = work->sphereContacts;
+    work->sphereBody.pos.vx           = 0;
+    work->sphereBody.pos.vy           = 0;
+    work->sphereBody.pos.vz           = 0;
+    work->sphereBody.key              = (u16)arg0->spawnArg1.value | 0x20000;
+    work->sphereBody.radius           = 0x94;
+    work->sphereBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(1, &work->sphereBody);
+    Gp_InitRec18Table(work->sphereBody.context.contacts, 1, 0);
+    work->capsuleBody.context.capsule = &work->capsule;
+    work->capsuleBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    work->capsule.contacts            = work->capsuleContacts;
+    work->capsuleBody.coord           = coord;
+    work->capsuleBody.pos.vx          = 0;
+    work->capsuleBody.pos.vy          = 0;
+    work->capsuleBody.pos.vz          = 0;
+    work->capsuleBody.key             = 0;
+    work->capsuleBody.radius          = 0;
+    work->capsule.ends[0].vx          = 0;
+    work->capsule.ends[0].vy          = 0;
+    work->capsule.ends[0].vz          = 0;
+    work->capsule.ends[1].vx          = 0;
+    work->capsule.ends[1].vz          = 0;
+    work->capsule.end0Radius          = 1;
+    work->capsule.end1Radius          = 1;
+    work->sphereBody.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->capsule.ends[1].vy          = -(work->flightTimer.word >> 10);
+    Gp_LinkObj(1, &work->capsuleBody);
+    Gp_InitRec18Table(work->capsule.contacts, 1, 0);
+    work->capsuleBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
-/// Flight state: steps the grenade along `dir`, and detonates when it hits
-/// something, when it crosses a room record that blocks it, or when the 16.16
-/// flight timer runs past 0xFFFFF. `rec0` collects the solid hits, `rec1` the
-/// room-boundary ones; whichever table has a `0x100000` record is handed to
-/// `func_800E0FEC` / `func_800E1ACC` to select the surface properties it crossed.
-/// A surface with `probePassThrough` set only detonates the grenade in the
-/// one scripted case (area 0x14, stages 2 and 3). A blocking surface detonates
-/// it when `weaponImpactEnabled` is set, otherwise handing the task to state 3.
+/// Flight state: steps the grenade along `dir`. A category-3 contact in
+/// `sphereContacts` detonates it, as does `flightTimer` passing 0xFFFFF.
+/// Grid contacts on `capsuleContacts` are resolved first, then those on
+/// `sphereContacts`; the chosen table is handed to `func_800E0FEC` /
+/// `func_800E1ACC` for the surface it crossed. A surface that blocks probes
+/// detonates when it accepts weapon impacts, and otherwise advances the task
+/// to the exit state. Any other surface detonates only for surface index 1
+/// in area 0x14 of stages 2 and 3.
 static void func_m4a1_grenade_8011D994(Task* arg0)
 {
     M4a1GrenadeScratch*              blk;
@@ -308,7 +308,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
     slot                = Gp_GetItemSlot(gPlayerStatus.weapon + 0x7F);
     blk                 = SCRATCH_STACK_RESERVE_BLOCK(M4a1GrenadeScratch);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
+    if (Gp_CountRec18Hi(work->sphereContacts, 0x30000) != 0) {
     explode:
         blk->sfx = slot->secondaryItemId - 0x9F;
         if (blk->sfx < 0) {
@@ -323,17 +323,17 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
         if (blk->sfx == 0xB) {
             clip = 1;
         }
-        work->field_88.word = clip;
-        work->obj.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->flightTimer.word  = clip;
+        work->sphereBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1GrenadeScratch));
-        work->obj.radius = D_m4a1_grenade_8012E08C[blk->sfx - 0xA];
+        work->sphereBody.radius = D_m4a1_grenade_8012E08C[blk->sfx - 0xA];
         return;
     }
 
-    if (Gp_CountRec18Hi(work->rec1, 0x100000) == 0) {
-        goto try_rec0;
+    if (Gp_CountRec18Hi(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
+        goto trySphereContacts;
     }
-    func_800E0FEC(work->rec1, &blk->delta, 1, &idx);
+    func_800E0FEC(work->capsuleContacts, &blk->delta, 1, &idx);
     idx = func_800E1ACC((u8*)&idx);
 check:
     surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
@@ -348,35 +348,35 @@ check:
         goto explode;
     }
     goto move;
-try_rec0:
-    if (Gp_CountRec18Hi(work->rec0, 0x100000) != 0) {
-        func_800E0FEC(work->rec0, &blk->delta, 1, &idx);
+trySphereContacts:
+    if (Gp_CountRec18Hi(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+        func_800E0FEC(work->sphereContacts, &blk->delta, 1, &idx);
         idx = func_800E1ACC((u8*)&idx);
         goto check;
     }
 move:
-    blk->delta.vector.vx   = work->dir.vx / work->field_88.halves.integer;
-    blk->delta.vector.vy   = work->dir.vy / work->field_88.halves.integer;
-    blk->delta.vector.vz   = work->dir.vz / work->field_88.halves.integer;
-    coord->coord.t[0]     += blk->delta.vector.vx;
-    coord->coord.t[1]     += blk->delta.vector.vy;
-    coord->coord.t[2]     += blk->delta.vector.vz;
-    work->d4rec.ends[1].vy = -(work->field_88.word >> 10);
-    work->field_88.word   += 0x1800;
-    if (work->field_88.word > 0xFFFFF) {
+    blk->delta.vector.vx     = work->dir.vx / work->flightTimer.halves.integer;
+    blk->delta.vector.vy     = work->dir.vy / work->flightTimer.halves.integer;
+    blk->delta.vector.vz     = work->dir.vz / work->flightTimer.halves.integer;
+    coord->coord.t[0]       += blk->delta.vector.vx;
+    coord->coord.t[1]       += blk->delta.vector.vy;
+    coord->coord.t[2]       += blk->delta.vector.vz;
+    work->capsule.ends[1].vy = -(work->flightTimer.word >> 10);
+    work->flightTimer.word  += GRENADE_SHELL_FLIGHT_STEP;
+    if (work->flightTimer.word > 0xFFFFF) {
         goto explode;
     }
-    work->dir.vy   = work->dir.vy + 0x10;
-    step           = work->field_90 + 1;
-    work->field_90 = step;
-    if (work->field_8C < 4 && step % 7 == 0) {
-        work->field_8C = work->field_8C + 1;
+    work->dir.vy      = work->dir.vy + 0x10;
+    step              = work->flightFrame + 1;
+    work->flightFrame = step;
+    if (work->smokeInterval < 4 && step % 7 == 0) {
+        work->smokeInterval = work->smokeInterval + 1;
     }
-    if (work->field_90 % work->field_8C == 0) {
+    if (work->flightFrame % work->smokeInterval == 0) {
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0, NULL);
     }
-    Gp_ClearRec18Occupied(work->rec0);
-    Gp_ClearRec18Occupied(work->rec1);
+    Gp_ClearRec18Occupied(work->sphereContacts);
+    Gp_ClearRec18Occupied(work->capsuleContacts);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1GrenadeScratch));
 }
 
