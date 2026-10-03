@@ -4,6 +4,6 @@
 void factoryLiftNotifyPanel(Task* arg0)
 {
     if (arg0 != NULL) {
-        taskMessageDispatch(arg0, 0x13F3, 0, 0);
+        taskMessageDispatch(arg0, FACTORY_PANEL_MESSAGE_MOVE_SETTLED, 0, 0);
     }
 }

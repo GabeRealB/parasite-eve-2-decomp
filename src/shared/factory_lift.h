@@ -177,12 +177,30 @@ typedef struct {
 } FactoryPanelWork;
 STATIC_ASSERT_SIZEOF(FactoryPanelWork, 0x10);
 
-/// A message handler of the panel task's table.
+/// Messages the operator panel task receives.
+enum {
+    /// The lift has finished the movement the panel asked for, whether it ran
+    /// to its end or was skipped. Both argument words are zero and no result
+    /// is defined.
+    FACTORY_PANEL_MESSAGE_MOVE_SETTLED = 0x13F3,
+};
+
+/// One row of the operator panel task's message table.
+///
+/// The panel's set-up state installs the table in `Task::msgTable`, which
+/// borrows it for as long as the panel can receive messages. A row is a
+/// message id and the callback that handles it, and the table ends with
+/// `TASK_MESSAGE_TABLE_END` and a null callback, so any other id answers zero.
+///
+/// The row is not a `TaskMessageEntry`: the panel's one callback takes the
+/// receiver alone and returns nothing. Dispatch still passes the id and both
+/// argument words in their registers and forwards whatever the result register
+/// holds, so a sender must not read a result from this table.
 typedef struct {
-    s32  id;
-    void (*handler)(Task*);
-} FactoryControlMessageEntry;
-STATIC_ASSERT_SIZEOF(FactoryControlMessageEntry, 8);
+    s32  messageId;              // FACTORY_PANEL_MESSAGE_MOVE_SETTLED, or TASK_MESSAGE_TABLE_END
+    void (*handler)(Task* task); // Callback for `messageId`; NULL only on the end marker
+} FactoryPanelMessageEntry;
+STATIC_ASSERT_SIZEOF(FactoryPanelMessageEntry, 8);
 
 /* Defined by each build. */
 /// Collision templates the lift and barrier rebuild their grid faces from:
@@ -200,9 +218,9 @@ extern TaskDesc* gFactoryPanelDesc;
 extern Task**    gFactoryPanelSlot;
 /// The panel's prompt state machine descriptor, its hotspot table ended by
 /// `ACTION_PROMPT_HOTSPOT_END`, and its message table.
-extern TaskDesc                   gFactoryPromptDesc[];
-extern ActionPromptHotspot        gFactoryPanelHotspots[];
-extern FactoryControlMessageEntry gFactoryPanelMsgTable[2];
+extern TaskDesc                 gFactoryPromptDesc[];
+extern ActionPromptHotspot      gFactoryPanelHotspots[];
+extern FactoryPanelMessageEntry gFactoryPanelMsgTable[2];
 
 /* The room is built once per stage, day (stage 2) and night, from the same
  * source. Each build defines its own spawn table, collision grid, jolt script,

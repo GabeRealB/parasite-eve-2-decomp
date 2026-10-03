@@ -246,8 +246,8 @@ TaskDesc gFactoryDayPanelDesc[1] = {
     { { { TASK_BODY_NONE, 192 } }, factoryPanelRun, { .value = 0 } },
 };
 
-FactoryControlMessageEntry gFactoryPanelMsgTable[2] = {
-    { 5107, factoryPanelTrigger },
+FactoryPanelMessageEntry gFactoryPanelMsgTable[2] = {
+    { FACTORY_PANEL_MESSAGE_MOVE_SETTLED, factoryPanelTrigger },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
