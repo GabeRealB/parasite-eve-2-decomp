@@ -79,12 +79,15 @@ typedef struct {
     u8 data[0x18];
 } _ShelterB1SterilizationRoomMsg;
 
-/// One destination: the view written to the session and the save, and the
-/// index of the message block sent with it.
+/// Where one of the room's internal doors leads, indexed by the door's room
+/// action minus 3.
+///
+/// These doors stay inside the room: passing one fades the screen out,
+/// switches the view and places the player on the far side.
 typedef struct {
-    u8 view;
-    s8 msg;
-} _ShelterB1SterilizationRoomDest;
+    u8 view;           // View slot on the far side, stored to the session's and the live save's location
+    s8 placementIndex; // Entry of the room's door placement table the player is placed at
+} _ShelterB1SterilizationRoomDoorDestination;
 
 /// Row labels drawn by the statistics rows of `func_shelter_b1_sterilization_room_8017D794`.
 static u8 Telephone_Data_80181A20[];
@@ -148,9 +151,9 @@ extern s32                                    D_shelter_b1_sterilization_room_80
 extern s16                                    D_shelter_b1_sterilization_room_80184E80[3];
 extern WorldCollisionGrid                     D_shelter_b1_sterilization_room_80184F28;
 
-extern AnimationPlayRequest            D_shelter_b1_sterilization_room_80188624;
-extern _ShelterB1SterilizationRoomMsg  D_shelter_b1_sterilization_room_80188668[];
-extern _ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[];
+extern AnimationPlayRequest                       D_shelter_b1_sterilization_room_80188624;
+extern _ShelterB1SterilizationRoomMsg             D_shelter_b1_sterilization_room_80188668[];
+extern _ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_room_80188728[];
 
 /// Area records `roomCutsceneTask` applies when it
 /// advances game flag nibble 0 from 2 to 3 in one particular view.
@@ -479,7 +482,7 @@ _ShelterB1SterilizationRoomMsg D_shelter_b1_sterilization_room_80188668[8] = {
     { { 131, 19, 0, 0, 0, 0, 0, 0, 46, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
 };
 
-_ShelterB1SterilizationRoomDest D_shelter_b1_sterilization_room_80188728[8] = {
+_ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_room_80188728[8] = {
     { 9, 7 },
     { 5, 1 },
     { 8, 6 },
@@ -991,8 +994,8 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
             gGameSession->location.loc.view                            = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
             gGameSession->viewDirty                                    = 1;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9,
-                                          &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].msg],
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE,
+                                          &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].placementIndex],
                                           0);
             SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_DOOR_CLOSE, 0, 0);
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
