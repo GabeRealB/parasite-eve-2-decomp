@@ -67,10 +67,15 @@ typedef struct {
 } FactoryHatchWork;
 STATIC_ASSERT_SIZEOF(FactoryHatchWork, 0xC);
 
-/// A handler of the cutscene sequence. Unlike `TaskFunc` these report back: a
-/// non-zero return means the handler has finished its part of the scene, and
-/// the sequence drops back to state 0.
-typedef s32 (*FactoryHatchStateFunc)(Task*);
+/// A per-frame handler of the hatch, one for each `FACTORY_HATCH_STATE_`.
+///
+/// It receives the hatch task, whose `Task::work` is the `FactoryHatchWork`
+/// and whose body is the hatch model. Unlike a `TaskFunc` it reports back:
+/// non-zero means the movement it runs has settled, and the hatch then
+/// returns to `FACTORY_HATCH_STATE_WATCH`; zero keeps the state the handler
+/// left in `FactoryHatchWork::state`, which is how the watch handler, always
+/// answering zero, arms a movement itself.
+typedef s32 (*FactoryHatchStateFunc)(Task* task);
 
 /// The cutscene sequence's three handler slots, which the dispatcher copies
 /// onto the stack before calling through them.
