@@ -100,7 +100,7 @@ void Gp_FadeGrayHold(Task* task);
 void Gp_RoomObjState1(Task* task);
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-extern GpViewTbl* Gp_ViewTables[];
+extern ViewCameraTable* Gp_ViewTables[];
 
 extern DR_STP D_80114C50;
 

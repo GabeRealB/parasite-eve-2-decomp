@@ -808,7 +808,7 @@ static ViewCamera* D_map_akropolis_8017ABC4[20] = {
     D_mist_shooting_gallery_8018998C,
 };
 
-GpViewTbl D_map_akropolis_8017AC14 = { D_map_akropolis_8017ABC4 };
+ViewCameraTable D_map_akropolis_8017AC14 = { D_map_akropolis_8017ABC4 };
 
 static u8** D_map_akropolis_8017AC18[20] = {
     D_acropolis_square_80183BAC,

@@ -65,7 +65,7 @@ extern ViewCountTable D_map_dryfield_8017AA28;
 
 extern GpRoomObjTbl D_map_dryfield_8017AAC4;
 
-extern GpViewTbl D_map_dryfield_8017AB60;
+extern ViewCameraTable D_map_dryfield_8017AB60;
 
 extern ViewIndexTable D_map_dryfield_8017ABFC;
 

@@ -703,7 +703,7 @@ static ViewCamera* D_map_dryfield_8017AAC8[38] = {
     D_dryfield_underpass_8017F4A8,
 };
 
-GpViewTbl D_map_dryfield_8017AB60 = { D_map_dryfield_8017AAC8 };
+ViewCameraTable D_map_dryfield_8017AB60 = { D_map_dryfield_8017AAC8 };
 
 static u8** D_map_dryfield_8017AB64[38] = {
     D_dryfield_gas_station_8018315C,

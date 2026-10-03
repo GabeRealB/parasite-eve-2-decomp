@@ -1111,7 +1111,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_shelter_r49_8017DAD0,
 };
 
-GpViewTbl D_map_shelter_8017B480 = { D_map_shelter_8017B3BC };
+ViewCameraTable D_map_shelter_8017B480 = { D_map_shelter_8017B3BC };
 
 static u8** D_map_shelter_8017B484[49] = {
     D_mine_mesa_80186548,

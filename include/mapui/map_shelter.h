@@ -64,7 +64,7 @@ extern ViewCountTable D_map_shelter_8017B110;
 
 extern GpRoomObjTbl D_map_shelter_8017B3B8;
 
-extern GpViewTbl D_map_shelter_8017B480;
+extern ViewCameraTable D_map_shelter_8017B480;
 
 extern ViewIndexTable D_map_shelter_8017B548;
 

@@ -768,7 +768,7 @@ static ViewCamera* D_map_neo_ark_8017ACA4[33] = {
     D_neo_ark_substation_8017E8C8,
 };
 
-GpViewTbl D_map_neo_ark_8017AD28 = { D_map_neo_ark_8017ACA4 };
+ViewCameraTable D_map_neo_ark_8017AD28 = { D_map_neo_ark_8017ACA4 };
 
 static u8** D_map_neo_ark_8017AD2C[33] = {
     D_shelter_1f_parking_garage_80180C7C,

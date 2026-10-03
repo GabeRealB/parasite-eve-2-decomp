@@ -67,7 +67,7 @@ extern ViewCountTable D_map_neo_ark_8017AB88;
 
 extern GpRoomObjTbl D_map_neo_ark_8017ACA0;
 
-extern GpViewTbl D_map_neo_ark_8017AD28;
+extern ViewCameraTable D_map_neo_ark_8017AD28;
 
 extern ViewIndexTable D_map_neo_ark_8017ADB0;
 

@@ -92,10 +92,20 @@ typedef struct {
 } ViewCamera;
 STATIC_ASSERT_SIZEOF(ViewCamera, 0x24);
 
-/// Per-stage wrapper. `field_0` is an array of `ViewCamera*`, indexed by
-/// `GameSession.location.loc.area - 1` / `GameLocationKey.area - 1`.
-typedef struct _GpViewTbl {
-    /* 0x0 */ ViewCamera** field_0;
-} GpViewTbl;
+/// A stage's directory of per-area camera arrays.
+///
+/// `cameras[area - 1][camera - 1]` is the `ViewCamera` for a 1-based camera
+/// index, obtained by mapping the session's view through the stage's
+/// `ViewIndexTable`. Areas without a room folder have NULL entries; there is no
+/// count or terminator at either level, so lookups require a populated area and
+/// valid 1-based area and camera indices.
+///
+/// The stage map overlay owns the area directory and borrows each room
+/// overlay's camera array, which stays valid only while that room is loaded.
+/// Consumers only read through this record; it allocates and releases nothing.
+typedef struct {
+    ViewCamera** cameras; // Borrowed per-area camera arrays, indexed by area - 1; NULL when that area has none
+} ViewCameraTable;
+STATIC_ASSERT_SIZEOF(ViewCameraTable, 4);
 
 #endif // GAMEPLAY_VIEW_H

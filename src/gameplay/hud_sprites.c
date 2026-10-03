@@ -1279,7 +1279,7 @@ void func_800A8654(Task* task)
 void Gp_LoadStageView(void)
 {
     GameLocationKey* sess;
-    GpViewTbl*       tbl;
+    ViewCameraTable* cameraTable;
     ViewCamera*      cameras;
     ViewCamera*      camera;
     GfxCoord*        c1;
@@ -1287,10 +1287,10 @@ void Gp_LoadStageView(void)
     VECTOR3*         trans;
     u8               idx;
 
-    sess    = &gGameSession->location.loc;
-    tbl     = Gp_ViewTables[sess->stage - 1];
-    cameras = tbl->field_0[sess->area - 1];
-    idx     = Gp_GetViewIndex();
+    sess        = &gGameSession->location.loc;
+    cameraTable = Gp_ViewTables[sess->stage - 1];
+    cameras     = cameraTable->cameras[sess->area - 1];
+    idx         = Gp_GetViewIndex();
 
     rot    = &gGfxViewRotCoord.coord;
     trans  = MATRIX_TRANS(&gGfxViewCoord.coord);
@@ -1421,29 +1421,29 @@ static void Gp_ResetView(void)
 void Gp_SpawnViewTasks(void)
 {
     GameLocationKey* sess;
-    GpViewTbl*       tbl;
+    ViewCameraTable* cameraTable;
     ViewCamera*      cameras;
     ViewCamera*      camera;
     u8               idx;
 
-    sess    = &gGameSession->location.loc;
-    tbl     = Gp_ViewTables[sess->stage - 1];
-    cameras = tbl->field_0[sess->area - 1];
-    idx     = Gp_GetViewIndex();
-    camera  = gpViewAt(cameras, idx);
+    sess        = &gGameSession->location.loc;
+    cameraTable = Gp_ViewTables[sess->stage - 1];
+    cameras     = cameraTable->cameras[sess->area - 1];
+    idx         = Gp_GetViewIndex();
+    camera      = gpViewAt(cameras, idx);
     Task_SpawnPtr(0, 0xF, 0, (camera - 1));
     Task_Spawn(0, 0x17, 0, 0);
 }
 
 ViewCamera* Gp_GetStageView(GameLocationKey* arg0)
 {
-    GpViewTbl*  tbl;
-    ViewCamera* cameras;
-    u8          idx;
+    ViewCameraTable* cameraTable;
+    ViewCamera*      cameras;
+    u8               idx;
 
-    tbl     = Gp_ViewTables[arg0->stage - 1];
-    cameras = tbl->field_0[arg0->area - 1];
-    idx     = Gp_GetViewIndex();
+    cameraTable = Gp_ViewTables[arg0->stage - 1];
+    cameras     = cameraTable->cameras[arg0->area - 1];
+    idx         = Gp_GetViewIndex();
     return &cameras[idx - 1];
 }
 
@@ -1504,16 +1504,16 @@ static void func_800A8D5C(void)
 void Gp_SpawnCurView(s32 arg0)
 {
     GameLocationKey* sess;
-    GpViewTbl*       tbl;
+    ViewCameraTable* cameraTable;
     ViewCamera*      cameras;
     ViewCamera*      camera;
     u8               idx;
 
-    sess    = &gGameSession->location.loc;
-    tbl     = Gp_ViewTables[sess->stage - 1];
-    cameras = tbl->field_0[sess->area - 1];
-    idx     = Gp_GetViewIndex();
-    camera  = gpViewAt(cameras, idx);
+    sess        = &gGameSession->location.loc;
+    cameraTable = Gp_ViewTables[sess->stage - 1];
+    cameras     = cameraTable->cameras[sess->area - 1];
+    idx         = Gp_GetViewIndex();
+    camera      = gpViewAt(cameras, idx);
     Task_SpawnPtr(0, 0xF, 0, (camera - 1));
     if (arg0 == 0) {
         Task_Spawn(0, 0x17, 0, 0);
