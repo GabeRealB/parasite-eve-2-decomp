@@ -111,19 +111,7 @@ extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// The room's message table, which `func_dryfield_night_motel_lobby_8017FD9C`
 /// installs on its task.
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, DirectionActionRequest*);
-        s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call3)(s32, s32, s32);
-    } handler;
-} DryfieldNightMotelLobbyMessageEntry;
-STATIC_ASSERT_SIZEOF(DryfieldNightMotelLobbyMessageEntry, 8);
-
-extern DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6];
+extern TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6];
 
 extern TaskDesc D_dryfield_night_motel_lobby_801827FC[];
 
@@ -145,18 +133,18 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 func_dryfield_night_motel_lobby_8017FB00(void);
-s32 func_dryfield_night_motel_lobby_8017FB7C(s32, s32, s32);
-s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, DirectionActionRequest* request);
-s32 func_dryfield_night_motel_lobby_8017FCDC(s32, s32, s32);
+s32 func_dryfield_night_motel_lobby_8017FB00(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_lobby_8017FB7C(Task*, s32, s32, s32);
+s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_lobby_8017FCDC(Task*, s32, s32, s32);
 
-DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = roomVariantParkingLotMsg } },
-    { 5105, { .call0 = func_dryfield_night_motel_lobby_8017FB00 } },
-    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_motel_lobby_8017FC6C } },
-    { ROOM_MESSAGE_COMMAND, { .call3 = func_dryfield_night_motel_lobby_8017FB7C } },
-    { ROOM_MESSAGE_SOUND, { .call3 = func_dryfield_night_motel_lobby_8017FCDC } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
+    { 5105, func_dryfield_night_motel_lobby_8017FB00 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_lobby_8017FC6C },
+    { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_lobby_8017FB7C },
+    { ROOM_MESSAGE_SOUND, func_dryfield_night_motel_lobby_8017FCDC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_motel_lobby_801827FC[2] = {
@@ -182,7 +170,7 @@ void func_dryfield_night_motel_lobby_8017EAE0(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_dryfield_night_motel_lobby_8017FB00(void)
+s32 func_dryfield_night_motel_lobby_8017FB00(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)
 {
     return 0;
 }
@@ -192,7 +180,7 @@ s32 func_dryfield_night_motel_lobby_8017FB00(void)
 /// Message handler for the lobby's `arg2 == 3` event: on the first visit it
 /// latches the visit flag and starts the scene, otherwise it fills in the cap
 /// script and spawns the cutscene task.
-s32 func_dryfield_night_motel_lobby_8017FB7C(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_motel_lobby_8017FB7C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
         if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE) == 0) {
@@ -219,8 +207,10 @@ s32 func_dryfield_night_motel_lobby_8017FB7C(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, DirectionActionRequest* request)
+s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg secondArg)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN) == 0) {
             Gp_MsgPlayerWeapon(0);
@@ -233,7 +223,7 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, DirectionAct
     return 0;
 }
 
-s32 func_dryfield_night_motel_lobby_8017FCDC(s32 arg0, s32 arg1, s32 arg2)
+s32 func_dryfield_night_motel_lobby_8017FCDC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
         Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 0x0A), 0, 0);
