@@ -29,21 +29,30 @@
 #include "main/tmd_types.h"
 #include "../../shared/glow_draw.h"
 
-/// One 8-byte row of `D_energyshot_801300E4`, indexed by `EffectWork.index`
-/// (`Gp_StateC08.attachId % 10 - 1`). `field_0` is the wedge count. `field_2` is
-/// the brightness cap state 1 grows `EffectWork.scale` toward (and the ring
-/// radius in state 2). `field_4` is the per-frame brightness step. `field_6` is
-/// the beam depth / spawn height.
-typedef struct EnergyShotScale {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ s16 field_6;
-} EnergyShotScale;
-STATIC_ASSERT_SIZEOF(EnergyShotScale, 8);
+/// Visual tuning of the energy shot cast for one Parasite Energy level.
+///
+/// The cast draws three rings and a fan of glow wedges on a plane raised above
+/// the coordinate it is attached to, and up to three beams, each a flared
+/// sleeve of textured quads rising from that coordinate. They grow together
+/// while the cast sheds a spark each frame, then fade. The cast task selects
+/// its row with the level digit of the attachment id, less one, which it keeps
+/// in `EffectWork::index`.
+///
+/// `scaleLimit` and `scaleStep` are in the units of the cast's
+/// `EffectWork::scale`, which is at once the brightness of the drawing (its
+/// low byte is the red and blue channel, half of it the green) and, multiplied
+/// up, the radius of each ring, wedge and beam. `ringHeight` is a distance
+/// along the coordinate's Y axis.
+typedef struct {
+    s16 wedgeCount; // Glow wedges fanned around the rings; the yaw table holds 16
+    s16 scaleLimit; // Scale that ends the growth; the fading rings are drawn at this scale
+    s16 scaleStep;  // Scale gained per frame of growth; at level 3 the fading wedges and beams keep gaining it
+    u16 ringHeight; // Height of the ring and wedge plane. The main beam rises to 0x100 short of it; from level 2 a second rises to twice it, and level 3 adds a third to half of it. Also the size of each spark the cast sheds
+} _EnergyshotLevelTuning;
+STATIC_ASSERT_SIZEOF(_EnergyshotLevelTuning, 8);
 
 /// Per-level tuning for the energy shot: rows are PE levels 1-3.
-static EnergyShotScale D_energyshot_801300E4[] = {
+static _EnergyshotLevelTuning D_energyshot_801300E4[] = {
     { 0x0008, 0x0090, 0x0005, 0x0400 },
     { 0x000C, 0x00C0, 0x0006, 0x0500 },
     { 0x0010, 0x00F0, 0x0007, 0x0600 },
@@ -61,7 +70,7 @@ static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg
 /// texture.
 static s16 D_energyshot_80130108[16];
 /// Sixteen wedge yaws, refilled once per cast by `func_energyshot_8012EF34`
-/// from `gRandomLcgState`. Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit LCG
+/// from `gRandomLcgState`. Entry `i` is `i * (0x1000 / wedgeCount)` plus a 9-bit LCG
 /// draw. States 1 and 2 pass one yaw per frame to `glowDrawWedge`.
 static s16 D_energyshot_80130128[16];
 
@@ -71,7 +80,7 @@ static s16 D_energyshot_80130128[16];
 ///
 /// State 0 parents the coordinate, seeds 16 texture-frame offsets and 16 wedge
 /// yaws from `gRandomLcgState`, and plays the combo-indexed cue. State 1 grows
-/// brightness / radius, draws three rings plus `field_0` wedges and the beam,
+/// brightness / radius, draws three rings plus `wedgeCount` wedges and the beam,
 /// and parents a `0x600F4` spark; once brightness exceeds the row cap it
 /// advances to state 2, which shrinks brightness until it drops below 0x11.
 void func_energyshot_8012EF34(Task* arg0)
@@ -129,22 +138,22 @@ void func_energyshot_8012EF34(Task* arg0)
                 }
                 i = 0;
                 {
-                    EnergyShotScale* tbl;
+                    _EnergyshotLevelTuning* tbl;
 
                     tbl   = D_energyshot_801300E4;
-                    count = tbl[mem->index].field_0;
+                    count = tbl[mem->index].wedgeCount;
                     level = mem->index;
                     if (count > 0) {
                         do {
                             s32 lo;
                             s32 rng;
 
-                            lo                       = i * (0x1000 / D_energyshot_801300E4[(s16)level].field_0);
+                            lo                       = i * (0x1000 / D_energyshot_801300E4[(s16)level].wedgeCount);
                             rng                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             D_energyshot_80130128[i] = lo + (((u32)rng >> 16) & 0x1FF);
                             i                       += 1;
                             gRandomLcgState          = rng;
-                            count                    = D_energyshot_801300E4[mem->index].field_0;
+                            count                    = D_energyshot_801300E4[mem->index].wedgeCount;
                             level                    = mem->index;
                         } while (i < count);
                     }
@@ -159,33 +168,33 @@ void func_energyshot_8012EF34(Task* arg0)
                 return;
             }
             case 1: {
-                EnergyShotScale* table;
-                EnergyShotScale* t2;
-                s32              rng;
-                s16              ang;
-                s16*             p;
-                s16              count;
+                _EnergyshotLevelTuning* table;
+                _EnergyshotLevelTuning* t2;
+                s32                     rng;
+                s16                     ang;
+                s16*                    p;
+                s16                     count;
 
                 table               = D_energyshot_801300E4;
-                mem->scale          = mem->scale + table[mem->index].field_4;
+                mem->scale          = mem->scale + table[mem->index].scaleStep;
                 rgb[0]              = (u8)mem->scale;
                 rgb[1]              = mem->scale >> 1;
                 rgb[2]              = (u8)mem->scale;
-                coord->coord.t[1]   = -table[mem->index].field_6;
+                coord->coord.t[1]   = -(s16)table[mem->index].ringHeight;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 Gp_DrawRing(coord, (s16)(mem->scale * 4), rgb);
                 Gp_DrawRing(coord, (s16)(mem->scale * 8), rgb);
                 Gp_DrawRing(coord, (s16)(mem->scale * 0xC), rgb);
                 i     = 0;
-                count = table[mem->index].field_0;
+                count = table[mem->index].wedgeCount;
                 if (count > 0) {
                     t2 = table;
                     p  = D_energyshot_80130128;
                     do {
                         glowDrawWedge(coord, (s16)(mem->scale * 6), *p, rgb);
                         p += 1;
-                    } while (++i < t2[mem->index].field_0);
+                    } while (++i < t2[mem->index].wedgeCount);
                 }
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -193,15 +202,15 @@ void func_energyshot_8012EF34(Task* arg0)
                 if (mem->index != 0) {
                     if (mem->index == 2) {
                         func_energyshot_8012FA50(coord, (s16)(mem->scale * 8),
-                                                 (s16)(u16)D_energyshot_801300E4[2].field_6 >> 1, rgb);
+                                                 (s16)D_energyshot_801300E4[2].ringHeight >> 1, rgb);
                     }
                     func_energyshot_8012FA50(
                         coord, (s16)(mem->scale * 4),
-                        (u16)D_energyshot_801300E4[mem->index].field_6 * 2, rgb);
+                        D_energyshot_801300E4[mem->index].ringHeight * 2, rgb);
                 }
                 func_energyshot_8012FA50(
                     coord, (s16)(mem->scale * 6),
-                    (u16)D_energyshot_801300E4[mem->index].field_6 - 0x100, rgb);
+                    D_energyshot_801300E4[mem->index].ringHeight - 0x100, rgb);
                 rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 ang             = ((u32)rng >> 16) & 0xFFF;
                 gRandomLcgState = rng;
@@ -209,9 +218,9 @@ void func_energyshot_8012EF34(Task* arg0)
                 mem->move.vx    = (u32)(rsin(ang) * mem->scale * 3) >> 11;
                 mem->move.vz    = (u32)(rcos(mem->angle) * mem->scale * 3) >> 11;
                 Gp_SpawnEff(EFFECT_RISING_ENERGY_SPARK, coord,
-                            D_energyshot_801300E4[mem->index].field_6 | 0x8000,
+                            (s16)D_energyshot_801300E4[mem->index].ringHeight | 0x8000,
                             &mem->move);
-                if (D_energyshot_801300E4[mem->index].field_2 < mem->scale) {
+                if (D_energyshot_801300E4[mem->index].scaleLimit < mem->scale) {
                     Gp_SpawnEff((EFFECT_ENERGY_SHOT_AURA | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
                     mem->period = mem->scale;
                     arg0->state = 2;
@@ -219,10 +228,10 @@ void func_energyshot_8012EF34(Task* arg0)
                 return;
             }
             case 2: {
-                EnergyShotScale* table;
-                EnergyShotScale* t2;
-                s16*             p;
-                s16              count;
+                _EnergyshotLevelTuning* table;
+                _EnergyshotLevelTuning* t2;
+                s16*                    p;
+                s16                     count;
 
                 if (mem->scale < 0x11) {
                     effectKillTask(mem, arg0);
@@ -233,21 +242,21 @@ void func_energyshot_8012EF34(Task* arg0)
                 rgb[1]              = mem->scale >> 1;
                 rgb[2]              = (u8)mem->scale;
                 table               = D_energyshot_801300E4;
-                coord->coord.t[1]   = -table[mem->index].field_6;
+                coord->coord.t[1]   = -(s16)table[mem->index].ringHeight;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
-                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 4), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 8), rgb);
-                Gp_DrawRing(coord, (s16)(table[mem->index].field_2 * 0xC), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 4), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 8), rgb);
+                Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 0xC), rgb);
                 i     = 0;
-                count = table[mem->index].field_0;
+                count = table[mem->index].wedgeCount;
                 if (count > 0) {
                     t2 = table;
                     p  = D_energyshot_80130128;
                     do {
                         glowDrawWedge(coord, (s16)(mem->period * 6), *p, rgb);
                         p += 1;
-                    } while (++i < t2[mem->index].field_0);
+                    } while (++i < t2[mem->index].wedgeCount);
                 }
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -255,19 +264,19 @@ void func_energyshot_8012EF34(Task* arg0)
                 if (mem->index != 0) {
                     if (mem->index == 2) {
                         mem->period =
-                            mem->period + D_energyshot_801300E4[2].field_4;
+                            mem->period + D_energyshot_801300E4[2].scaleStep;
                         func_energyshot_8012FA50(
                             coord, (s16)(mem->period * 8),
-                            (s16)(u16)D_energyshot_801300E4[mem->index].field_6 >> 1,
+                            (s16)D_energyshot_801300E4[mem->index].ringHeight >> 1,
                             rgb);
                     }
                     func_energyshot_8012FA50(
                         coord, (s16)(mem->period * 4),
-                        (u16)D_energyshot_801300E4[mem->index].field_6 * 2, rgb);
+                        D_energyshot_801300E4[mem->index].ringHeight * 2, rgb);
                 }
                 func_energyshot_8012FA50(
                     coord, (s16)(mem->period * 6),
-                    (u16)D_energyshot_801300E4[mem->index].field_6 - 0x100, rgb);
+                    D_energyshot_801300E4[mem->index].ringHeight - 0x100, rgb);
                 return;
             }
         }
