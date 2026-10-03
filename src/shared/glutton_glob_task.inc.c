@@ -8,8 +8,8 @@
 /// model object's flag word rather than leaving it 2.
 void gluttonGlobTask(Task* arg0)
 {
-    GpEnemyTaskFuncTable5 sp;
-    GluttonGrabWork*      work;
+    EnemyTaskFuncTable5 sp;
+    GluttonGrabWork*    work;
 
     sp   = gGluttonGlobStates;
     work = (GluttonGrabWork*)arg0->work;

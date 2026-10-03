@@ -182,10 +182,17 @@ typedef struct {
     EnemyTaskFunc funcs[4];
 } GpEnemyTaskFuncTable4;
 
-/// Five-entry form of `EnemyTaskFuncTable3`, for actors with two extra
-/// states beyond spawn/tick/teardown.
+/// Five `EnemyTaskFunc` handlers stored as a value for whole-table copies.
+///
+/// Each table defines its slots' roles. The selector is the task state.
+/// Dispatch requires an index in 0..4 and a non-NULL entry, which receives
+/// the live enemy and the task that owns it. There is no terminator or bounds
+/// check in the table. Copying it copies callback pointers, not enemy or task
+/// storage; the callback code must remain loaded for the call. A handler may
+/// release either argument before returning.
 typedef struct {
-    EnemyTaskFunc funcs[5];
-} GpEnemyTaskFuncTable5;
+    EnemyTaskFunc funcs[5]; // Handlers in selector order; slot meanings belong to each table
+} EnemyTaskFuncTable5;
+STATIC_ASSERT_SIZEOF(EnemyTaskFuncTable5, 0x14);
 
 #endif // GAMEPLAY_ENEMY_H

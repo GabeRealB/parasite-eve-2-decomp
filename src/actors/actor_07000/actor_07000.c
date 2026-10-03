@@ -1253,7 +1253,7 @@ static const GpEnemyTaskFuncTable4 Actor07000_D0003C = {
 /// Task states of the specimen's second form as `Actor07000_Fn067B4`
 /// dispatches them: the same update, death and destruction after a spawn that
 /// parks the model hidden, and a fifth state for its drop into place.
-static const GpEnemyTaskFuncTable5 Actor07000_D0004C = {
+static const EnemyTaskFuncTable5 Actor07000_D0004C = {
     { Actor07000_Fn05068, Actor07000_Fn03164, Actor07000_Fn04468, enemyDestroy, Actor07000_Fn05400 },
 };
 
@@ -3018,7 +3018,7 @@ static void Actor07000_Fn06750(Task* task)
 /// table is copied onto the stack before the call.
 void Actor07000_Fn067B4(Task* task)
 {
-    GpEnemyTaskFuncTable5 sp;
+    EnemyTaskFuncTable5 sp;
 
     sp = Actor07000_D0004C;
     sp.funcs[task->state](task->spawnArg2.pointer, task);

@@ -3852,7 +3852,7 @@ static const EnemyTaskFuncTable3 gGluttonThrowStates = {
 
 /// State handlers of the grab enemy, by state: setup, bounce, rise, hold and
 /// teardown.
-static const GpEnemyTaskFuncTable5 gGluttonGlobStates = {
+static const EnemyTaskFuncTable5 gGluttonGlobStates = {
     {
         gluttonGlobSpawn,
         gluttonGlobFall,
@@ -3883,7 +3883,7 @@ static const GpEnemyTaskFuncTable4 gGluttonChunkStates = {
 
 /// State handlers of the dropped enemy: spawn, ascent, descent, landing and
 /// teardown.
-static const GpEnemyTaskFuncTable5 gGluttonRainStates = {
+static const EnemyTaskFuncTable5 gGluttonRainStates = {
     {
         gluttonRainSpawn,
         gluttonRainRise,

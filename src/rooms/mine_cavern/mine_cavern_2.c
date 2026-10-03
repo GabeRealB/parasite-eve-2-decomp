@@ -3203,7 +3203,7 @@ static const char D_mine_cavern_8017D7E8[] = "BOMB1\n";
 static const char D_mine_cavern_8017D7F0[] = "BOMB2\n";
 
 /// The cavern enemy's state handlers, run by `func_mine_cavern_80183A68`.
-static const GpEnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
+static const EnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
     {
         func_mine_cavern_80182E34,
         func_mine_cavern_801830F0,
@@ -3283,7 +3283,7 @@ static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
 
 void func_mine_cavern_80183A68(Task* arg0)
 {
-    GpEnemyTaskFuncTable5 sp;
+    EnemyTaskFuncTable5 sp;
 
     sp = D_mine_cavern_8017D7F8;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

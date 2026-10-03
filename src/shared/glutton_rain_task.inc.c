@@ -4,7 +4,7 @@
 /// for the task's state, skipped while the global game mode is 1 or 2.
 void gluttonRainTask(Task* arg0)
 {
-    GpEnemyTaskFuncTable5 sp;
+    EnemyTaskFuncTable5 sp;
 
     sp = gGluttonRainStates;
     switch (gSceneCombatState.actorControl) {
