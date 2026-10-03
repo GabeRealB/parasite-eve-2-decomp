@@ -916,7 +916,9 @@ preprocessor inventory described below:
   of the name in comments and in the markdown at the repository root and under
   `doc/`. `--dry-run` shows the plan; `--sidecars` also rewrites the version's
   `configs/` tree — symbol maps, splat configs, the overlay manifest — which
-  belongs to no translation unit. Generated linker scripts are left alone on
+  belongs to no translation unit. It is refused for a field or parameter
+  (skipped for those lines of a `--batch`), whose name is only a word outside
+  C. Generated linker scripts are left alone on
   purpose: the next split rebuilds them, and they are not tracked, so writing
   to them only survives a revert of the sources.
   In markdown, a field or parameter is rewritten only where the prose names

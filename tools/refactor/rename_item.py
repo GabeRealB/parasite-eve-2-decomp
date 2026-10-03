@@ -184,7 +184,8 @@ def main() -> int:
     ap.add_argument("--no-prefilter", action="store_true")
     ap.add_argument("-n", "--dry-run", action="store_true", help="show edits, change nothing")
     ap.add_argument("--sidecars", action="store_true",
-                    help="also rewrite whole-word hits in symbol maps and linker scripts")
+                    help="also rewrite whole-word hits in symbol maps and linker scripts; "
+                         "refused for a field or parameter (skipped for those lines of a batch)")
     ap.add_argument("--no-comments", action="store_true",
                     help="leave mentions of the name in comments alone")
     ap.add_argument("--ledger", default=DEFAULT_LEDGER,
@@ -283,6 +284,16 @@ def rename_one(root: str, spec_arg: str, new_name: str, args) -> int:
     usrs, names, kind, where = cref.resolve(spec, root, db)
     if not args.quiet:
         print(f"{spec.name}: {kind} declared at {where}", file=sys.stderr)
+    # A field or parameter is scoped to its owner, which a symbol map or the
+    # overlay manifest knows nothing about: there the name is just a word, and
+    # `row` or `count` rewrites whatever else happens to spell it.
+    sidecars = args.sidecars
+    if sidecars and kind in ("field", "parameter"):
+        if args.batch is None:
+            raise RenameError(f"--sidecars does not apply to a {kind}: {spec.name} is only a "
+                              f"word outside C, so rewriting configs/ by it would hit unrelated text")
+        print(f"  --sidecars skipped for this {kind}; configs/ are left alone")
+        sidecars = False
 
     def progress(done, total):
         if not args.quiet and (done % 25 == 0 or done == total):
@@ -342,7 +353,8 @@ def rename_one(root: str, spec_arg: str, new_name: str, args) -> int:
             print(f"    {r.file}:{r.line}  {r.context[:70]}")
     cars = sidecar_hits(root, spec.name, args.version)
     if cars:
-        verb = "will rewrite" if args.sidecars else "NOT touched (pass --sidecars)"
+        verb = ("will rewrite" if sidecars else "left alone" if kind in ("field", "parameter")
+                else "NOT touched (pass --sidecars)")
         print(f"\nnon-C files naming {spec.name} ({verb}):")
         for c in cars:
             print(f"    {c}")
@@ -361,7 +373,7 @@ def rename_one(root: str, spec_arg: str, new_name: str, args) -> int:
         staged[f] = _rewrite(os.path.join(root, f), positions, spec.name, new_name)
     for f, text in staged.items():
         open(os.path.join(root, f), "w").write(text)
-    if args.sidecars:
+    if sidecars:
         for c in cars:
             _apply_word(os.path.join(root, c), spec.name, new_name)
     added = record_generated_name(root, spec.name, new_name, decl_file,

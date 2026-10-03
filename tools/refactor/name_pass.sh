@@ -318,7 +318,9 @@ The conventions, the compiler's limits and what counts as evidence are above
    Rename with the tool so its alias ledger preserves the item's history:
      venv/bin/python3 tools/refactor/rename_item.py <file>/<oldName> <newName> --sidecars
 3. Apply the same to what the item contains: its fields, and its parameters in
-   both the prototype and the definition. The reference listing above already
+   both the prototype and the definition. Rename those without \`--sidecars\`,
+   which the tool refuses for a field or parameter (in a \`--batch\` it skips
+   it for those lines). The reference listing above already
    covers them - one line per member, with the counts that say which are live -
    so read that rather than querying each one, and open the file it names when
    you need a member's individual sites.
