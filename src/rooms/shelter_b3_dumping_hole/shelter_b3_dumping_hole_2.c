@@ -250,15 +250,16 @@ typedef struct {
     u16 field_18;
 } DumpingHoleDebrisEntry;
 
-/// The leading bytes of a debris task's work block, copied in whole.
+/// Where a billboard sprite of this room stands and how large it is drawn: the
+/// head of a `_ShelterB3DumpingHoleSpriteWork`.
+///
+/// The debris event builds one on its stack for each debris sprite and copies
+/// it whole into the sprite's freshly cleared work block.
 typedef struct {
-    s16 x;
-    s16 y;
-    s16 z;
-    s16 pad_6;
-    s16 field_8;
-    s16 field_A;
-} DumpingHoleDebrisSeed;
+    SVECTOR pos;     // World position the sprite's coordinate starts at; `pad` is never set
+    s16     scale;   // Size of the drawn quad relative to its frame's texel size (`ONE` = 1.0)
+    s16     field_A; // Set to 1 by the debris event and never read; role unproven
+} _ShelterB3DumpingHoleSpriteSeed;
 
 /// Work block of a rising, animated billboard sprite, spawned in rings around
 /// debris by the debris event, at its model by `actor_341700`, and at the
@@ -271,12 +272,12 @@ typedef struct {
 /// `SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES`; the bytes past `delay` are
 /// never accessed and their role is unproven.
 typedef struct {
-    DumpingHoleDebrisSeed seed;       // Debris sprites' world position, and the draw scale (unused by actor sprites); copied in whole by the debris event
-    SVECTOR               offset;     // Actor sprites: offset from the parent coordinate's world position
-    SVECTOR               vel;        // Per-tick drift; `vx` is cleared but never applied, and only player sprites drift in z
-    s16                   frame;      // Index into the frame table and the duration table
-    s16                   frameTimer; // Ticks the current frame has been shown
-    u16                   delay;      // Ticks left before the animation starts
+    _ShelterB3DumpingHoleSpriteSeed seed;       // Debris sprites' world position, and the draw scale (unused by actor sprites); copied in whole by the debris event
+    SVECTOR                         offset;     // Actor sprites: offset from the parent coordinate's world position
+    SVECTOR                         vel;        // Per-tick drift; `vx` is cleared but never applied, and only player sprites drift in z
+    s16                             frame;      // Index into the frame table and the duration table
+    s16                             frameTimer; // Ticks the current frame has been shown
+    u16                             delay;      // Ticks left before the animation starts
 } _ShelterB3DumpingHoleSpriteWork;
 
 /// Spawn record for a falling shard: where it starts relative to `parent`, its
@@ -2124,9 +2125,9 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
     switch (arg0->state) {
         case 0:
             coord->parent     = &gGfxViewCoord;
-            coord->coord.t[0] = work->seed.x;
-            coord->coord.t[1] = work->seed.y;
-            coord->coord.t[2] = work->seed.z;
+            coord->coord.t[0] = work->seed.pos.vx;
+            coord->coord.t[1] = work->seed.pos.vy;
+            coord->coord.t[2] = work->seed.pos.vz;
             arg0->state++;
             return;
         case 1:
@@ -2174,7 +2175,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
             D_shelter_b3_dumping_hole_801880B8[work->frame].v,
             D_shelter_b3_dumping_hole_801880B8[work->frame].vramX,
             D_shelter_b3_dumping_hole_801880B8[work->frame].vramY,
-            work->seed.field_8, 0x43C0, 0) != 0) {
+            work->seed.scale, 0x43C0, 0) != 0) {
         taskKill(arg0);
         return;
     }
@@ -2316,15 +2317,15 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             }
             work = arg0->work;
             memFillBytes(work, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);
-            work->vel.vy       = -0xA;
-            work->vel.vx       = 0;
-            work->vel.vz       = 0;
-            work->seed.field_8 = 0x1000;
-            work->vel.vx       = 0;
-            roll1              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->vel.vy       = -15 - ((roll1 >> 16) & 7);
-            sa1                = arg0->spawnArg1.value;
-            gRandomLcgState    = roll1;
+            work->vel.vy     = -0xA;
+            work->vel.vx     = 0;
+            work->vel.vz     = 0;
+            work->seed.scale = ONE;
+            work->vel.vx     = 0;
+            roll1            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->vel.vy     = -15 - ((roll1 >> 16) & 7);
+            sa1              = arg0->spawnArg1.value;
+            gRandomLcgState  = roll1;
             if (sa1 == 0) {
                 roll2           = roll1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 velZ            = work->vel.vz;
@@ -2379,7 +2380,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
                 D_shelter_b3_dumping_hole_801880B8[work->frame].v,
                 D_shelter_b3_dumping_hole_801880B8[work->frame].vramX,
                 D_shelter_b3_dumping_hole_801880B8[work->frame].vramY,
-                work->seed.field_8, 0x43C0, 0);
+                work->seed.scale, 0x43C0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
         }
@@ -2673,7 +2674,7 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
 {
     _ShelterB3DumpingHoleDebrisEventWork* work = arg0->work;
     ActorCommand                          msg;
-    DumpingHoleDebrisSeed                 seed;
+    _ShelterB3DumpingHoleSpriteSeed       seed;
     DumpingHoleDebrisEntry*               e;
     DumpingHoleDebrisEntry*               p;
     u16                                   i;
@@ -2741,23 +2742,23 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
                         Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 4, 2, e);
                         if (e->field_18 != 0) {
                             p            = e;
-                            seed.x       = p->x;
-                            seed.y       = p->y;
-                            seed.z       = p->z;
-                            seed.field_8 = 0x1000;
+                            seed.pos.vx  = p->x;
+                            seed.pos.vy  = p->y;
+                            seed.pos.vz  = p->z;
+                            seed.scale   = ONE;
                             seed.field_A = 1;
                             DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.y = p->y + 200;
-                            seed.z = p->z + 200;
+                            seed.pos.vy = p->y + 200;
+                            seed.pos.vz = p->z + 200;
                             DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.y = p->y + 200;
-                            seed.z = p->z - 200;
+                            seed.pos.vy = p->y + 200;
+                            seed.pos.vz = p->z - 200;
                             DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.y = p->y - 200;
-                            seed.z = p->z + 200;
+                            seed.pos.vy = p->y - 200;
+                            seed.pos.vz = p->z + 200;
                             DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.y = p->y - 200;
-                            seed.z = p->z - 200;
+                            seed.pos.vy = p->y - 200;
+                            seed.pos.vz = p->z - 200;
                             DUMPING_HOLE_SPAWN_DEBRIS(seed);
                         }
                     }
