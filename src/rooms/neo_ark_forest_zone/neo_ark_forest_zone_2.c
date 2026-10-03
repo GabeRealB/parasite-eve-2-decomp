@@ -83,20 +83,8 @@ extern s16 gRoamerLastRequest;
 extern s16 gRoamerReleasePending;
 
 /// Message tables the two arming tasks install in `Task::msgTable`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        TaskMessageHandler call0;
-        TaskMessageHandler call1;
-        void               (*call2)(Task*, s32, s32);
-    } handler;
-} NeoArkForestZone2MsgEntry;
-STATIC_ASSERT_SIZEOF(NeoArkForestZone2MsgEntry, 8);
-
-extern NeoArkForestZone2MsgEntry gRoamerMsgTableA[];
-extern TaskMessageEntry          gRoamerMsgTableB[];
+extern RoamerPoolAMessageEntry gRoamerMsgTableA[];
+extern TaskMessageEntry        gRoamerMsgTableB[];
 
 /// Spawn placements of the first and the second arming task, indexed by the
 /// placement request minus one.
@@ -544,11 +532,11 @@ s16 gRoamerLastRequest = 0;
 
 s16 gRoamerReleasePending = 0;
 
-NeoArkForestZone2MsgEntry gRoamerMsgTableA[4] = {
-    { 5103, { .call0 = roamerLatchRequest } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call2 = roamerBankRetreat } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_neo_ark_forest_zone_801813BC } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+RoamerPoolAMessageEntry gRoamerMsgTableA[4] = {
+    { DIRECTION_MESSAGE_ROOM_ACTION, { .message = roamerLatchRequest } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .actorEvent = roamerBankRetreat } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .message = func_neo_ark_forest_zone_801813BC } },
+    { TASK_MESSAGE_TABLE_END, { .message = NULL } },
 };
 
 NeoArkForestZoneSpawnPos gRoamerSpawnPointsA[7] = {

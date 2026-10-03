@@ -115,19 +115,7 @@ extern u8 gRoamerArmCountsA[];
 /// the placement request `roamerLatchRequest`, the spawn-slot
 /// filler `roamerBankRetreat` and a 0x7DB handler that
 /// ignores the message.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        TaskMessageHandler call0;
-        TaskMessageHandler call1;
-        void               (*call2)(Task*, s32, s32);
-    } handler;
-} NeoArkWoodlandPath2MsgEntry;
-STATIC_ASSERT_SIZEOF(NeoArkWoodlandPath2MsgEntry, 8);
-
-extern NeoArkWoodlandPath2MsgEntry gRoamerMsgTableA[];
+extern RoamerPoolAMessageEntry gRoamerMsgTableA[];
 
 /// Set once a spawn slot has been armed, read by the room's other states.
 extern s16 gRoamerReleasePending;
@@ -246,11 +234,11 @@ s16 gRoamerLastRequest = 0;
 
 s16 gRoamerReleasePending = 0;
 
-NeoArkWoodlandPath2MsgEntry gRoamerMsgTableA[4] = {
-    { 5103, { .call0 = roamerLatchRequest } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call2 = roamerBankRetreat } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_neo_ark_woodland_path_80181474 } },
-    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
+RoamerPoolAMessageEntry gRoamerMsgTableA[4] = {
+    { DIRECTION_MESSAGE_ROOM_ACTION, { .message = roamerLatchRequest } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .actorEvent = roamerBankRetreat } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .message = func_neo_ark_woodland_path_80181474 } },
+    { TASK_MESSAGE_TABLE_END, { .message = NULL } },
 };
 
 NeoArkWoodlandPathSpawnPos gRoamerSpawnPointsA[7] = {
