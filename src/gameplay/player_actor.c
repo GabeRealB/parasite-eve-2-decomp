@@ -126,17 +126,6 @@ typedef struct _GpMoveScratch {
 } GpMoveScratch;
 STATIC_ASSERT_SIZEOF(GpMoveScratch, 0x40);
 
-/// 8-byte rotation row (`SVECTOR` layout). `D_801131B4` is indexed by
-/// `Gp_AimPitchRec` arg1 (`D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant]`) and by
-/// `gPlayerStatus.weapon` in `Gp_AimYawToLock`.
-typedef struct _GpAimRot {
-    /* 0x0 */ s16 vx;
-    /* 0x2 */ s16 vy;
-    /* 0x4 */ s16 vz;
-    /* 0x6 */ s16 pad;
-} GpAimRot;
-STATIC_ASSERT_SIZEOF(GpAimRot, 8);
-
 /// Scratch-pad block for turning an actor's yaw toward its lock target.
 /// `coord` is the aiming origin, placed by `rot` (the equipped weapon's row of
 /// the aim-offset table) relative to the root coordinate of the model the
@@ -272,8 +261,11 @@ extern u8 D_80112F1C[][2];
 /// 16 bits of `vx`/`vy`/`vz` seed the shape's `ends[1]`.
 extern VECTOR D_80112FA4[];
 
-/// 8-byte `GpAimRot` rows copied onto `GpPitchScratch.rot`.
-extern GpAimRot D_801131B4[];
+/// Aiming origin of each weapon, indexed by weapon id: a point in the local
+/// space of the root coordinate of the equipped weapon's model. The aim
+/// routines stage a row in their scratch block and measure the lock target's
+/// offset from the resulting world position.
+extern SVECTOR D_801131B4[];
 
 typedef struct {
     s32 id;
@@ -393,8 +385,9 @@ static inline s16 _gpShortestTurn(s16 from, s16 to);
 /// `thresh` in the ground plane, by at most the equipped weapon's turn rate.
 static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh);
 
-/// Places `block->coord` at the offset and rotation `rot` from `src`.
-static inline void _gpAimPitchPlace(GpPitchScratch* block, GfxCoord* src, GpAimRot* rot);
+/// Places `block->coord` at the point `offset` in the local space of `src`,
+/// with the orientation of `src`.
+static inline void _gpAimPitchPlace(GpPitchScratch* block, GfxCoord* src, SVECTOR* offset);
 
 /// Stores the lock target's position relative to `block->coord` in
 /// `block->delta` and returns the length of that offset in the ground plane.
@@ -1200,7 +1193,7 @@ VECTOR D_80112FA4[33] = {
     { 0, -96, 0, 0 },
     { 0, -96, 0, 0 },
 };
-GpAimRot D_801131B4[33] = {
+SVECTOR D_801131B4[33] = {
     { 0, 0, 0, 0 },
     { 0, 320, 96, 0 },
     { 0, 320, -96, 0 },
@@ -5083,7 +5076,7 @@ static inline s16 _gpShortestTurn(s16 from, s16 to)
 /// `thresh` in the ground plane, by at most the equipped weapon's turn rate.
 static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh)
 {
-    GpAimRot* rec;
+    SVECTOR*  offset;
     GfxCoord* src;
     VECTOR3*  lock;
     s32       dx;
@@ -5091,11 +5084,11 @@ static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh
     s32       limit;
 
     if (actor->targetNode != NULL) {
-        rec           = &D_801131B4[gPlayerStatus.weapon];
+        offset        = &D_801131B4[gPlayerStatus.weapon];
         src           = actor->equipmentTasks[1]->extra.tmd->coords;
-        block->rot.vx = rec->vx;
-        block->rot.vy = rec->vy;
-        block->rot.vz = rec->vz;
+        block->rot.vx = offset->vx;
+        block->rot.vy = offset->vy;
+        block->rot.vz = offset->vz;
         Gp_PlaceCoordOffset(src, &block->coord, &block->rot);
         lock = &block->delta;
         Gp_GetLockPos(actor->targetNode, lock);
@@ -5137,12 +5130,13 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
     SCRATCH_STACK_RELEASE_BLOCK(GpYawScratch);
 }
 
-/// Places `block->coord` at the offset and rotation `rot` from `src`.
-static inline void _gpAimPitchPlace(GpPitchScratch* block, GfxCoord* src, GpAimRot* rot)
+/// Places `block->coord` at the point `offset` in the local space of `src`,
+/// with the orientation of `src`.
+static inline void _gpAimPitchPlace(GpPitchScratch* block, GfxCoord* src, SVECTOR* offset)
 {
-    block->rot.vx = rot->vx;
-    block->rot.vy = rot->vy;
-    block->rot.vz = rot->vz;
+    block->rot.vx = offset->vx;
+    block->rot.vy = offset->vy;
+    block->rot.vz = offset->vz;
     Gp_PlaceCoordOffset(src, &block->coord, &block->rot);
 }
 
