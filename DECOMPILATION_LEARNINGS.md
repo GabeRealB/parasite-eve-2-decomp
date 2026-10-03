@@ -60869,9 +60869,9 @@ arm of the `if` that keeps the temp distinct from both colours.
 Six ring-vertex reads out of the same 16-entry sine table,
 
 ```c
-prim->x0 = blk->sx + ((blk->rOuter * D_acropolis_plaza_801987E0[i + 4]) >> 12);
-prim->y0 = blk->sy + ((blk->rOuter * D_acropolis_plaza_801987E0[i]) >> 12);
-prim->x1 = blk->sx + ((blk->rOuter * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+prim->x0 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+prim->y0 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_plaza_801987E0[i]) >> 12);
+prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_plaza_801987E0[i + 5]) >> 12);
 ...
 ```
 
