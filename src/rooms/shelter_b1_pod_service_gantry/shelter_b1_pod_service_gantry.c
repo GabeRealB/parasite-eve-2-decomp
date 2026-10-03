@@ -36,12 +36,31 @@
 
 #include "mapui/map_shelter.h"
 
-/// Work block of the room task, allocated zeroed by its first state: the
-/// child task the current step spawned, and the step it dispatches on.
+/// Steps of the room task's running state, held in
+/// `_ShelterB1PodServiceGantryWork::step`. Each advances to the next; the last
+/// one idles while the area transition takes the room down.
+enum {
+    SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_FIRST_SCENE  = 0, // Spawn the first scene task
+    SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_FIRST_SCENE  = 1, // Reap it once it asks to stop, then spawn its follow-up task
+    SHELTER_B1_POD_SERVICE_GANTRY_STEP_PAUSE              = 2, // One frame with nothing to do
+    SHELTER_B1_POD_SERVICE_GANTRY_STEP_LOAD_SECOND_SCENE  = 3, // Queue the load of the second scene's actor package
+    SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_SECOND_SCENE = 4, // Once the CD queue is idle, spawn the second scene task
+    SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_SECOND_SCENE = 5, // Reap it once it asks to stop, then leave for the pod access tunnel
+    SHELTER_B1_POD_SERVICE_GANTRY_STEP_LEAVING            = 6, // Nothing further; the transition is under way
+};
+
+/// Work block of the room task, which plays two scenes back to back and then
+/// leaves for the pod access tunnel. The sequence starts unconditionally on
+/// the task's first running frame.
+///
+/// The task's first state allocates it zeroed and the default teardown frees
+/// it. The scene tasks are spawned unparented, so this pointer is the only
+/// link to the one being waited for.
 typedef struct {
-    Task* child;
-    s16   state;
-} _GantryWork;
+    Task* sceneTask; // Task the current step spawned; borrowed, and stale once that task has been reaped
+    s16   step;      // Position in the sequence (SHELTER_B1_POD_SERVICE_GANTRY_STEP_*)
+} _ShelterB1PodServiceGantryWork;
+STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantryWork, 8);
 
 extern TaskDesc D_8013FB50;
 extern TaskDesc D_8016EA28;
@@ -1506,24 +1525,24 @@ WorldCoordRoomLights D_shelter_b1_pod_service_gantry_801824F4 = { 0, NULL, ARRAY
 
 static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
 {
-    u8           param1[4];
-    u8           param2[4];
-    s32          poll;
-    _GantryWork* work = task->work;
+    u8                              param1[4];
+    u8                              param2[4];
+    s32                             poll;
+    _ShelterB1PodServiceGantryWork* work = task->work;
 
-    switch (work->state) {
-        case 0:
-            work->child = Task_SpawnFromTable(&D_801718F0, 0, 0, 0);
-            work->state++;
+    switch (work->step) {
+        case SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_FIRST_SCENE:
+            work->sceneTask = Task_SpawnFromTable(&D_801718F0, 0, 0, 0);
+            work->step++;
             break;
-        case 1:
-            if (Task_PollKill(work->child, &poll) == 0) {
+        case SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_FIRST_SCENE:
+            if (Task_PollKill(work->sceneTask, &poll) == 0) {
                 break;
             }
-            work->child = Task_SpawnFromTable(&D_8016EA28, 0, 0, 0);
-            work->state++;
+            work->sceneTask = Task_SpawnFromTable(&D_8016EA28, 0, 0, 0);
+            work->step++;
             break;
-        case 3:
+        case SHELTER_B1_POD_SERVICE_GANTRY_STEP_LOAD_SECOND_SCENE:
             param1[2] = 0x10;
             param1[3] = 0;
             param1[0] = 0;
@@ -1533,17 +1552,17 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             param2[3] = 0;
             CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             goto next;
-        case 4:
+        case SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_SECOND_SCENE:
             if (CdCmd_IsIdle() == 0) {
                 break;
             }
-            work->child = Task_SpawnFromTable(&D_8013FB50, 0, 0, 0);
+            work->sceneTask = Task_SpawnFromTable(&D_8013FB50, 0, 0, 0);
             Gp_ApplyAreaRecs(D_shelter_b1_pod_service_gantry_80182540);
             GameFlag_SetNibble(GAME_FLAG_118, 1);
-            work->state++;
+            work->step++;
             break;
-        case 5:
-            if (Task_PollKill(work->child, &poll) == 0) {
+        case SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_SECOND_SCENE:
+            if (Task_PollKill(work->sceneTask, &poll) == 0) {
                 break;
             }
             gGameSession->unknown_138                                   = 1;
@@ -1553,11 +1572,11 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
             Task_Spawn(0, 0x11, 0, 0);
-        case 2:
+        case SHELTER_B1_POD_SERVICE_GANTRY_STEP_PAUSE:
         next:
-            work->state++;
+            work->step++;
             break;
-        case 6:
+        case SHELTER_B1_POD_SERVICE_GANTRY_STEP_LEAVING:
             break;
     }
 }
@@ -1588,7 +1607,7 @@ s32 func_shelter_b1_pod_service_gantry_8017D814(Task* task, s32 msgId, TaskMessa
 
 static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
 {
-    _GantryWork* work;
+    _ShelterB1PodServiceGantryWork* work;
 
     arg0->msgTable = D_shelter_b1_pod_service_gantry_8017FAF4;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
