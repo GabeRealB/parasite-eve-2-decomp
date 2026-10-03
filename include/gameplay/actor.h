@@ -63,6 +63,26 @@ typedef struct CompanionWork {
 } CompanionWork;
 STATIC_ASSERT_SIZEOF(CompanionWork, 0xD4);
 
+/// Scratch-stack block for a companion actor's per-frame movement step.
+///
+/// Every companion package runs that step once per frame: it reserves one
+/// block, stages the heading the three `GameActor.collisionMotionContexts`
+/// records are given, draws the ground shadow, and releases the block before
+/// returning. The player's own movement step stages only the heading, in a
+/// bare `SVECTOR`.
+///
+/// The heading is the root coordinate's Z axis scaled by
+/// `GameActor.movementSign`, or `GameActor.pushbackDirection` while
+/// `GameActor.usesPushbackDirection` is set. The shadow centre is written only
+/// when a floor is found under the model; a package that centres the shadow
+/// on its root coordinate instead leaves it untouched.
+typedef struct {
+    VECTOR3 shadowCentre;    // Floor point under the model that the ground shadow is centred on, in world coordinate units
+    byte    field_C[4];      // Never accessed; role unproven
+    SVECTOR motionDirection; // Movement or push-back heading for this frame; 4096 per unit
+} CompanionMoveScratch;
+STATIC_ASSERT_SIZEOF(CompanionMoveScratch, 0x18);
+
 /// Scratch-pad block for picking the nearest collision record. `delta`
 /// receives the push-back of the record being classified, which is
 /// discarded (only the record mask returned alongside it is used), `coord`

@@ -55,13 +55,6 @@ typedef struct {
 } _Actor800200Waypoint;
 STATIC_ASSERT_SIZEOF(_Actor800200Waypoint, 8);
 
-/// 0x18-byte scratch stack block `func_actor_800200_801622B0` takes for the
-/// ground-quad heading it copies into the three `GameActor.collisionMotionContexts` records.
-typedef struct {
-    /* 0x00 */ byte    pad_0[0x10];
-    /* 0x10 */ SVECTOR vec;
-} Actor800200VecScratch;
-
 extern TaskMessageEntry     D_actor_800200_80169EF0[20];
 extern u8*                  D_actor_800200_80169FD0[4];
 extern _Actor800200Waypoint D_actor_800200_80169FE0[];
@@ -980,28 +973,28 @@ static void func_actor_800200_80162088(Task* arg0)
 
 static void func_actor_800200_801622B0(Task* arg0)
 {
-    void**                 scratch;
-    u8*                    head;
-    Actor800200VecScratch* sc;
-    GameActor*             actor;
-    TmdObject*             obj;
-    TmdObject*             extra;
-    GfxCoord*              coord;
-    CompanionWork*         companion;
-    WorldCollisionBody*    objs[2];
-    s32                    dy;
-    s32                    i;
-    s8                     bits;
+    void**                scratch;
+    CompanionMoveScratch* head;
+    CompanionMoveScratch* sc;
+    GameActor*            actor;
+    TmdObject*            obj;
+    TmdObject*            extra;
+    GfxCoord*             coord;
+    CompanionWork*        companion;
+    WorldCollisionBody*   objs[2];
+    s32                   dy;
+    s32                   i;
+    s8                    bits;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    obj                            = arg0->extra.tmd;
-    SCRATCH_HEAD_AT(scratch, void) = head - 0x18;
-    extra                          = obj;
-    sc                             = (Actor800200VecScratch*)(head - 0x18);
-    coord                          = extra->coords;
-    actor                          = arg0->work;
-    companion                      = actor->companionWork;
+    scratch                                        = SCRATCH_HEAD_ADDR;
+    head                                           = SCRATCH_HEAD_AT(scratch, CompanionMoveScratch);
+    obj                                            = arg0->extra.tmd;
+    SCRATCH_HEAD_AT(scratch, CompanionMoveScratch) = head - 1;
+    extra                                          = obj;
+    sc                                             = head - 1;
+    coord                                          = extra->coords;
+    actor                                          = arg0->work;
+    companion                                      = actor->companionWork;
     if (actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
         (dy = coord->coord.t[1], dy = dy - actor->previousPosition.vy, dy = ABS(dy), dy >= 0x200)) {
         coord->coord.t[0] = actor->previousPosition.vx;
@@ -1047,27 +1040,27 @@ static void func_actor_800200_801622B0(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     if ((s8)actor->usesPushbackDirection != 0) {
-        sc->vec.vx = (u16)actor->pushbackDirection.vx;
-        sc->vec.vy = (u16)actor->pushbackDirection.vy;
-        sc->vec.vz = (u16)actor->pushbackDirection.vz;
+        sc->motionDirection.vx = actor->pushbackDirection.vx;
+        sc->motionDirection.vy = actor->pushbackDirection.vy;
+        sc->motionDirection.vz = actor->pushbackDirection.vz;
     } else {
-        sc->vec.vx = (u16)coord->workm.m[0][2] * (s8) * (volatile u8*)&actor->movementSign;
-        sc->vec.vy = (u16)coord->workm.m[1][2] * (s8) * (volatile u8*)&actor->movementSign;
-        sc->vec.vz = (u16)coord->workm.m[2][2] * (s8) * (volatile u8*)&actor->movementSign;
+        sc->motionDirection.vx = (u16)coord->workm.m[0][2] * (s8) * (volatile u8*)&actor->movementSign;
+        sc->motionDirection.vy = (u16)coord->workm.m[1][2] * (s8) * (volatile u8*)&actor->movementSign;
+        sc->motionDirection.vz = (u16)coord->workm.m[2][2] * (s8) * (volatile u8*)&actor->movementSign;
     }
-    actor->collisionMotionContexts[0].motionDirection.vx = sc->vec.vx;
-    actor->collisionMotionContexts[0].motionDirection.vy = sc->vec.vy;
-    actor->collisionMotionContexts[0].motionDirection.vz = sc->vec.vz;
-    actor->collisionMotionContexts[1].motionDirection.vx = sc->vec.vx;
-    actor->collisionMotionContexts[1].motionDirection.vy = sc->vec.vy;
-    actor->collisionMotionContexts[1].motionDirection.vz = sc->vec.vz;
-    actor->collisionMotionContexts[2].motionDirection.vx = sc->vec.vx;
-    actor->collisionMotionContexts[2].motionDirection.vy = sc->vec.vy;
-    actor->collisionMotionContexts[2].motionDirection.vz = sc->vec.vz;
+    actor->collisionMotionContexts[0].motionDirection.vx = sc->motionDirection.vx;
+    actor->collisionMotionContexts[0].motionDirection.vy = sc->motionDirection.vy;
+    actor->collisionMotionContexts[0].motionDirection.vz = sc->motionDirection.vz;
+    actor->collisionMotionContexts[1].motionDirection.vx = sc->motionDirection.vx;
+    actor->collisionMotionContexts[1].motionDirection.vy = sc->motionDirection.vy;
+    actor->collisionMotionContexts[1].motionDirection.vz = sc->motionDirection.vz;
+    actor->collisionMotionContexts[2].motionDirection.vx = sc->motionDirection.vx;
+    actor->collisionMotionContexts[2].motionDirection.vy = sc->motionDirection.vy;
+    actor->collisionMotionContexts[2].motionDirection.vz = sc->motionDirection.vz;
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord->workm), 0x200, gRoomEffectState->groundShadowShade);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);
 }
 
 static void func_actor_800200_80162694(Task* arg0)

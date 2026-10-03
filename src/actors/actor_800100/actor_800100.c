@@ -55,18 +55,6 @@
 #include "main/wipsys_types.h"
 #include "../../shared/pyke_flame.h"
 
-/// Ground position and collision offset borrowed from the scratch stack by
-/// func_actor_800100_801635F4.
-typedef struct {
-    /* 0x00 */ VECTOR3 pos;
-    /* 0x0C */ s32     pad_C;
-    /* 0x10 */ u16     vx;
-    /* 0x12 */ u16     vy;
-    /* 0x14 */ u16     vz;
-    /* 0x16 */ u16     pad_16;
-} Actor800100ShadowScratch;
-STATIC_ASSERT_SIZEOF(Actor800100ShadowScratch, 0x18);
-
 static void func_actor_800100_801635F4(Task* arg0);
 static void func_actor_800100_80163A58(Task* arg0);
 static void func_actor_800100_80165528(Task* arg0);
@@ -1271,30 +1259,30 @@ static void func_actor_800100_80163214(Task* arg0)
 
 static void func_actor_800100_801635F4(Task* arg0)
 {
-    Actor800100ShadowScratch* scratch;
-    void**                    scratchHead;
-    u8*                       head;
-    GameActor*                actor;
-    TmdObject*                work;
-    TmdObject*                extra;
-    GfxCoord*                 coord;
-    GfxCoord*                 ground;
-    CompanionWork*            companion;
-    Task*                     task;
-    WorldCollisionBody*       objs[2];
-    s32                       dy;
-    s32                       i;
-    s8                        bits;
+    CompanionMoveScratch* scratch;
+    void**                scratchHead;
+    CompanionMoveScratch* head;
+    GameActor*            actor;
+    TmdObject*            work;
+    TmdObject*            extra;
+    GfxCoord*             coord;
+    GfxCoord*             ground;
+    CompanionWork*        companion;
+    Task*                 task;
+    WorldCollisionBody*   objs[2];
+    s32                   dy;
+    s32                   i;
+    s8                    bits;
 
-    scratchHead                        = SCRATCH_HEAD_ADDR;
-    head                               = SCRATCH_HEAD_AT(scratchHead, void);
-    extra                              = arg0->extra.tmd;
-    SCRATCH_HEAD_AT(scratchHead, void) = head - 0x18;
-    work                               = extra;
-    scratch                            = (Actor800100ShadowScratch*)(head - 0x18);
-    coord                              = work->coords;
-    actor                              = arg0->work;
-    companion                          = actor->companionWork;
+    scratchHead                                        = SCRATCH_HEAD_ADDR;
+    head                                               = SCRATCH_HEAD_AT(scratchHead, CompanionMoveScratch);
+    extra                                              = arg0->extra.tmd;
+    SCRATCH_HEAD_AT(scratchHead, CompanionMoveScratch) = head - 1;
+    work                                               = extra;
+    scratch                                            = head - 1;
+    coord                                              = work->coords;
+    actor                                              = arg0->work;
+    companion                                          = actor->companionWork;
 
     if (actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
         (dy = coord->coord.t[1], dy = dy - actor->previousPosition.vy, dy = ABS(dy), dy >= 0x200)) {
@@ -1352,36 +1340,33 @@ static void func_actor_800100_801635F4(Task* arg0)
     Gp_UpdateCoord(coord);
 
     if ((s8)actor->usesPushbackDirection != 0) {
-        scratch->vx = (u16)actor->pushbackDirection.vx;
-        scratch->vy = (u16)actor->pushbackDirection.vy;
-        scratch->vz = (u16)actor->pushbackDirection.vz;
+        scratch->motionDirection.vx = actor->pushbackDirection.vx;
+        scratch->motionDirection.vy = actor->pushbackDirection.vy;
+        scratch->motionDirection.vz = actor->pushbackDirection.vz;
     } else {
-        scratch->vx = (u16)coord->workm.m[0][2] *
-                      (s8) * (volatile u8*)&actor->movementSign;
-        scratch->vy = (u16)coord->workm.m[1][2] *
-                      (s8) * (volatile u8*)&actor->movementSign;
-        scratch->vz = (u16)coord->workm.m[2][2] *
-                      (s8) * (volatile u8*)&actor->movementSign;
+        scratch->motionDirection.vx = (u16)coord->workm.m[0][2] * (s8) * (volatile u8*)&actor->movementSign;
+        scratch->motionDirection.vy = (u16)coord->workm.m[1][2] * (s8) * (volatile u8*)&actor->movementSign;
+        scratch->motionDirection.vz = (u16)coord->workm.m[2][2] * (s8) * (volatile u8*)&actor->movementSign;
     }
-    actor->collisionMotionContexts[0].motionDirection.vx = scratch->vx;
-    actor->collisionMotionContexts[0].motionDirection.vy = scratch->vy;
-    actor->collisionMotionContexts[0].motionDirection.vz = scratch->vz;
-    actor->collisionMotionContexts[1].motionDirection.vx = scratch->vx;
-    actor->collisionMotionContexts[1].motionDirection.vy = scratch->vy;
-    actor->collisionMotionContexts[1].motionDirection.vz = scratch->vz;
-    actor->collisionMotionContexts[2].motionDirection.vx = scratch->vx;
-    actor->collisionMotionContexts[2].motionDirection.vy = scratch->vy;
-    actor->collisionMotionContexts[2].motionDirection.vz = scratch->vz;
+    actor->collisionMotionContexts[0].motionDirection.vx = scratch->motionDirection.vx;
+    actor->collisionMotionContexts[0].motionDirection.vy = scratch->motionDirection.vy;
+    actor->collisionMotionContexts[0].motionDirection.vz = scratch->motionDirection.vz;
+    actor->collisionMotionContexts[1].motionDirection.vx = scratch->motionDirection.vx;
+    actor->collisionMotionContexts[1].motionDirection.vy = scratch->motionDirection.vy;
+    actor->collisionMotionContexts[1].motionDirection.vz = scratch->motionDirection.vz;
+    actor->collisionMotionContexts[2].motionDirection.vx = scratch->motionDirection.vx;
+    actor->collisionMotionContexts[2].motionDirection.vy = scratch->motionDirection.vy;
+    actor->collisionMotionContexts[2].motionDirection.vz = scratch->motionDirection.vz;
 
     if (!(work->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         ground               = arg0->extra.tmd->coords + 1;
         ground->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(ground);
-        if (func_800EA1A8(MATRIX_TRANS(&ground->workm), (VECTOR3*)scratch) != 0) {
-            Gp_DrawEffGroundQuad((VECTOR3*)scratch, 0x200, gRoomEffectState->groundShadowShade);
+        if (func_800EA1A8(MATRIX_TRANS(&ground->workm), &scratch->shadowCentre) != 0) {
+            Gp_DrawEffGroundQuad(&scratch->shadowCentre, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);
 }
 
 /// Texture-upload state of the actor: runs two independent sequences, each a
