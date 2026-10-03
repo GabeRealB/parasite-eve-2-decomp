@@ -7,13 +7,13 @@
 #include "common.h"
 
 #include "gameplay/actor_render.h"
+#include "cap.h"
 #include "gameplay/inventory.h"
 #include "item_menu.h"
 #include "item_use.h"
 #include "gameplay/items.h"
 #include "items.h"
 #include "gameplay/message.h"
-#include "message.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/starter_inventory.h"
 #include "gameplay/world_coords.h"
@@ -117,7 +117,7 @@ extern UiListRowCallback D_8010D6B0[1];
 
 typedef struct {
     s32 id;
-    s32 (*handler)(Task*, s32, GpCmdReply*);
+    s32 (*handler)(Task*, s32, CapActionRequest*);
 } GpItemReplyEntry;
 
 extern GpItemReplyEntry D_8010D828[2];
@@ -182,7 +182,7 @@ void Gp_ItemMenuListTask(Task* arg0);
 /// lines are drawn at `field_18 + 0xF` / `+ 0x1E` in color `0x606060`.
 void Gp_HolderPromptTask(Task* arg0);
 
-s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2);
+s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request);
 
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.
@@ -227,7 +227,7 @@ UiObjectDesc      D_8010D6F4[11]    = {
     { 0, { -58, -30, 116, 60 }, 16, 0, TASK_BODY_NONE, 192, Gp_ItemMenuListTask, 0 },
     { 0, { -144, 64, 288, 40 }, 60, 0, TASK_BODY_NONE, 192, Gp_HolderPromptTask, 0 },
 };
-GpItemReplyEntry D_8010D828[2] = { { 2011, Gp_BindItemObj2 }, { TASK_MESSAGE_TABLE_END, NULL } };
+GpItemReplyEntry D_8010D828[2] = { { CAP_ACTION_MESSAGE_REQUEST, Gp_BindItemObj2 }, { TASK_MESSAGE_TABLE_END, NULL } };
 
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.
@@ -1311,23 +1311,23 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
 
 /// Task callback. `extra` is a `TmdObject`; `spawnArg2` is a `GpItemObj8`.
 /// Tilts `coords[2]` (a `GfxCoord`) while playing a location-specific
-/// type-6 sound, then signals `extraState` (`GpCmdReply.done = 1`) when
+/// type-6 sound, then signals `extraState` (`CapActionRequest.done = 1`) when
 /// the motion returns to 0.
 void Gp_ItemPickupTilt(Task* arg0)
 {
-    GameSession* session;
-    TmdObject*   extra;
-    GpItemObj8*  obj;
-    GfxCoord*    coord;
-    GfxCoord*    rot;
-    VECTOR       vec;
-    VECTOR       vec2;
-    MATRIX*      mem;
-    GpCmdReply*  done;
-    u32          stageAreaKey;
-    s32          room;
-    s32          check;
-    u16          item;
+    GameSession*      session;
+    TmdObject*        extra;
+    GpItemObj8*       obj;
+    GfxCoord*         coord;
+    GfxCoord*         rot;
+    VECTOR            vec;
+    VECTOR            vec2;
+    MATRIX*           mem;
+    CapActionRequest* request;
+    u32               stageAreaKey;
+    s32               room;
+    s32               check;
+    u16               item;
 
     extra        = arg0->extra.tmd;
     obj          = arg0->spawnArg2.pointer;
@@ -1499,9 +1499,9 @@ void Gp_ItemPickupTilt(Task* arg0)
         rot->composeStamp = GRAPHICS_COORD_DIRTY;
         if (arg0->killCountdown == 0) {
             arg0->status = 0;
-            done         = arg0->extraState.pointer;
-            if (done != NULL) {
-                done->done             = 1;
+            request      = arg0->extraState.pointer;
+            if (request != NULL) {
+                request->done          = 1;
                 arg0->extraState.value = 0;
             }
             arg0->state = 1;
@@ -1628,7 +1628,7 @@ void Gp_HolderPromptTask(Task* arg0)
     }
 }
 
-s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2)
+s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request)
 {
     s32         flag;
     GpItemObj8* obj;
@@ -1636,9 +1636,9 @@ s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpCmdReply* arg2)
     obj                      = arg0->spawnArg2.pointer;
     flag                     = 1;
     arg0->status             = flag;
-    arg0->extraState.pointer = arg2;
+    arg0->extraState.pointer = request;
     if (Gp_GetCurBit2Flag(obj->field_8) == 2) {
-        arg2->done = flag;
+        request->done = flag;
     }
     return 0;
 }

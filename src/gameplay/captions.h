@@ -6,14 +6,13 @@
 #include "gameplay/cap.h"
 #include "cap.h"
 #include "gameplay/direction.h"
-#include "message.h"
 
 #include "main/task_types.h"
 #include "main/text.h"
 
 // CAP dialogue commands, text state, relocation and task control.
 
-extern GpCmdReply D_801155A0;
+extern CapActionRequest D_801155A0;
 
 extern TaskDesc D_8010FB4C[3];
 

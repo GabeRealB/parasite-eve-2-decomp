@@ -48,6 +48,37 @@ typedef struct {
 } CapChoice;
 STATIC_ASSERT_SIZEOF(CapChoice, 8);
 
+/// Message delivering a `CapActionRequest` to a scene child that is not a
+/// placed actor.
+///
+/// The first argument addresses the request and the second is zero. The
+/// receiver keeps the address past the dispatch and completes the request
+/// later, so the result of the dispatch carries nothing. Placed actors bind
+/// the same number to `ACTOR_COMMAND_MESSAGE_APPLY`, whose payload is a
+/// different record; only children outside type 9 receive this one.
+enum { CAP_ACTION_MESSAGE_REQUEST = 0x7DB };
+
+/// The action a CAP sequence record asks for, and its outcome.
+///
+/// Playback copies a record's `actionId` here, hands the address to whatever
+/// carries the action out, and holds the sequence until `done` is set. Ids up
+/// to `CAP_SEQUENCE_CHILD_ACTION_BASE` name a placed object by its flag index:
+/// a prompt task looks the object up and opens its pickup, save or item-box
+/// panel. Larger ids name a scene child outside type 9, which receives
+/// `CAP_ACTION_MESSAGE_REQUEST`. A request whose outcome is not `accepted`
+/// switches the sequence to the record's fallback key.
+///
+/// Receivers borrow the request across frames - a scene child keeps the
+/// address until its own animation ends - so it must stay live until `done`.
+/// Playback owns the only instance and runs one action at a time.
+typedef struct {
+    u16 actionId;      // Placed object's flag index, or scene child ID + CAP_SEQUENCE_CHILD_ACTION_BASE.
+    s8  done;          // (0 pending, 1 finished); set by whoever carries the action out.
+    s8  accepted;      // (0 declined or object not found, 1 confirmed or carried out); meaningful once done.
+    u8  defaultPrompt; // Prompt panel form (1 default, 0 selected by the object's AREA_OBJECT_PLACE_PROMPT bit); written and read by the prompt task alone.
+} CapActionRequest;
+STATIC_ASSERT_SIZEOF(CapActionRequest, 6);
+
 /// Writing direction of drawn CAP text.
 ///
 /// The text drawer consults it wherever the pen moves: after a glyph, after a

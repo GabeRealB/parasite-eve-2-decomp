@@ -305,16 +305,16 @@ Several `func_*` rows are already matched C and only lack a role name.
 | `06` | `80` | `func_800E7570` | Unnamed |
 | `07` | `20` | `func_800E8830` | Spawned from fade setup (`Task_Spawn(9, 7, …)`) |
 | `08` | `80` | `func_800E8888` | Live pointer `D_801156B8` |
-| `0B` | `80` | `Gp_EndWaitTask` | `spawnArg2` is `GpEndWait*`; non-zero `field_2` sets the ending flag and kills |
+| `0B` | `80` | `Gp_EndWaitTask` | `spawnArg2` is `CapActionRequest*`; non-zero `done` sets the ending flag and kills |
 | `0C` | `20` | `Gp_ShakeTask` | Camera shake |
 | `0D` | `20` | `Gp_VolFadeTask` | `spawnArg2` is `_EvsMusicVolumeFade*` (music volume: target level + duration) |
 | `0E` | `20` | `Gp_SndFadeTask` | `spawnArg2` is `_EvsSoundAttenuationFade*` (one sound's attenuation: target + duration) |
 | `11` | `20` | `func_800E4028` | Unnamed |
 | `12` | `20` | NULL, `flags = 0xFFFF` | Sentinel |
 
-Payload structs live with their sole consumers: `GpEndWait` in
-`src/gameplay/cap_script.c`, and `_EvsMusicVolumeFade` / `_EvsSoundAttenuationFade` in
-`src/gameplay/evs_scripts.c`.
+`CapActionRequest` is shared with CAP playback and lives in `src/gameplay/cap.h`.
+The other payload structs live with their sole consumers: `_EvsMusicVolumeFade` /
+`_EvsSoundAttenuationFade` in `src/gameplay/evs_scripts.c`.
 
 ---
 
@@ -399,7 +399,7 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 | Slot | Typical payload |
 |------|-----------------|
 | `extra` | `TmdObject*` / TMD object (type 1) or a coordinate body (type 2) |
-| `spawnArg2` | `Enemy*`, `UiObject*`, `_EvsMusicVolumeFade*`, `_EvsSoundAttenuationFade*`, `GpEndWait*`, view record, … |
+| `spawnArg2` | `Enemy*`, `UiObject*`, `_EvsMusicVolumeFade*`, `_EvsSoundAttenuationFade*`, `CapActionRequest*`, view record, … |
 | `work` | Opaque `void*` to callback work; default teardown frees non-NULL primary-heap storage |
 | `msgTable` | Borrowed `const void*` to id/handler records; callbacks have receiver-specific signatures |
 | `state` | Dispatcher index (`TaskFuncTable3`–`8` copied onto the stack) |

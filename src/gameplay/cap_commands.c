@@ -9,7 +9,6 @@
 #include "gameplay/enemy.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
-#include "message.h"
 #include "gameplay/object_task.h"
 #include "object_task.h"
 #include "gameplay/player_actor.h"
@@ -24,7 +23,7 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
-GpCmdReply D_801155A0;
+CapActionRequest D_801155A0;
 
 extern TaskDesc Gp_EvtSpawnTable[3];
 

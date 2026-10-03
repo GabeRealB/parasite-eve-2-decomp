@@ -10,14 +10,6 @@
 #include "main/stage.h"
 #include "main/task.h"
 
-/// Object stored in `Task::spawnArg2` for `Gp_EndWaitTask`. `field_2` is a
-/// signed completion flag: when non-zero the task calls `Stage_SetEndingFlag`
-/// and kills itself.
-typedef struct _GpEndWait {
-    /* 0x00 */ byte pad_0[2];
-    /* 0x02 */ s8   field_2;
-} GpEndWait;
-
 void func_800E70AC(Task* task)
 {
     if (D_801156F9 == 0) {
@@ -35,16 +27,16 @@ void func_800E70AC(Task* task)
 
 void Gp_EndWaitTask(Task* task)
 {
-    GpEndWait* flag;
+    CapActionRequest* request;
 
-    flag = task->spawnArg2.pointer;
+    request = task->spawnArg2.pointer;
     switch (task->state) {
         case 0:
-            Task_Spawn(1, 0x2C, 0, flag);
+            Task_Spawn(1, 0x2C, 0, request);
             task->state++;
             break;
         case 1:
-            if (flag->field_2 != 0) {
+            if (request->done != 0) {
                 Stage_SetEndingFlag();
                 taskKill(task);
             }

@@ -2042,7 +2042,7 @@ D_80096E70 = 0x80096E70; // size:0x14 defined:True
 
 D_8010D348 = 0x8010D348; // size:0x1C defined:True
 
-D_801155A0 = 0x801155A0; // size:0x4 defined:True
+D_801155A0 = 0x801155A0; // size:0x6 defined:True
 
 D_801155D0 = 0x801155D0; // size:0x78 defined:True
 D_80115648 = 0x80115648; // size:0x1 defined:True

@@ -13,7 +13,6 @@
 #include "gameplay/items.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "message.h"
 #include "gameplay/scene_combat.h"
 
 #include "main/display.h"
@@ -267,28 +266,28 @@ resumeView:
 
             if (Gp_CapTable[(s16)D_801155AE].actionId != 0) {
                 if (D_801155AC == 0) {
-                    D_801155A0.key = Gp_CapTable[(s16)D_801155AE].actionId;
-                    if (D_801155A0.key < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
-                        if (Gp_GetCurBit2Flag((s32)D_801155A0.key) == 2) {
-                            D_801155AC         = 1;
-                            D_801155A0.done    = 1;
-                            D_801155A0.field_3 = 1;
+                    D_801155A0.actionId = Gp_CapTable[(s16)D_801155AE].actionId;
+                    if (D_801155A0.actionId < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
+                        if (Gp_GetCurBit2Flag(D_801155A0.actionId) == 2) {
+                            D_801155AC          = 1;
+                            D_801155A0.done     = 1;
+                            D_801155A0.accepted = 1;
                             return;
                         }
-                        if (D_801155A0.key < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
+                        if (D_801155A0.actionId < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
                             goto spawnDialog;
                         }
                     }
                     lookupTask = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
                     target     = lookupTask;
-                    TASK_MESSAGE_DISPATCH_SECOND_POINTER(lookupTask, SCENE_MESSAGE_FIND_OTHER_CHILD, D_801155A0.key - CAP_SEQUENCE_CHILD_ACTION_BASE, &target);
+                    TASK_MESSAGE_DISPATCH_SECOND_POINTER(lookupTask, SCENE_MESSAGE_FIND_OTHER_CHILD, D_801155A0.actionId - CAP_SEQUENCE_CHILD_ACTION_BASE, &target);
                     if (target != NULL) {
-                        D_801155A0.done    = 0;
-                        D_801155A0.field_3 = 1;
-                        TASK_MESSAGE_DISPATCH_POINTER(target, ACTOR_COMMAND_MESSAGE_APPLY, &D_801155A0, 0);
+                        D_801155A0.done     = 0;
+                        D_801155A0.accepted = 1;
+                        TASK_MESSAGE_DISPATCH_POINTER(target, CAP_ACTION_MESSAGE_REQUEST, &D_801155A0, 0);
                     } else {
-                        D_801155A0.done    = 1;
-                        D_801155A0.field_3 = 1;
+                        D_801155A0.done     = 1;
+                        D_801155A0.accepted = 1;
                     }
                     goto waitDialog;
                 spawnDialog:
@@ -311,7 +310,7 @@ resumeView:
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566D;
                     }
                     D_801155AC = 0;
-                    if (D_801155A0.field_3 == 0) {
+                    if (D_801155A0.accepted == 0) {
                         if (Gp_CapTable[(s16)D_801155AE].control.action.fallbackKey != 0) {
                             Gp_CapEventKey = Gp_CapTable[(s16)D_801155AE].control.action.fallbackKey;
                         }

@@ -285,7 +285,7 @@ segments:
       - [0x81D98, .bss, object_task]
       - [0x81D99, pad]
       - [0x81DA0, .bss, cap_commands]
-      - [0x81DA4, pad]
+      - [0x81DA6, pad]
       - [0x81DA8, .bss, cap_start]
       - [0x81DC2, pad] # 14 bytes after the choice halfword; eight beyond normal alignment
       - [0x81DD0, .bss, cap_reloc]
