@@ -10,21 +10,21 @@ void madChaserPullReact(Task* arg0)
     s32            pan;
 
     work = (MadChaserWork*)arg0->work;
-    if (gMadChaserAnimStance[work->field_418 - 1] == 0) {
-        work->field_426 = 4;
-        work->field_41C = 0x10;
-        work->field_418 = 9;
-        work->field_414 = 1;
-        soundId         = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002;
-        pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
+    if (gMadChaserAnimStance[work->animId - 1] == 0) {
+        work->animBlendFrames = 4;
+        work->animRate        = ANIMATION_RATE_ONE;
+        work->animId          = 9;
+        work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+        soundId               = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002;
+        pan                   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work->field_422 = 4;
+        work->subState = 4;
         return;
     }
-    work->field_426 = 8;
-    work->field_41C = 0x10;
-    work->field_418 = 7;
-    work->field_414 = 1;
-    work->field_44F = (u8)work->field_41C * 4;
-    work->field_422++;
+    work->animBlendFrames = 8;
+    work->animRate        = ANIMATION_RATE_ONE;
+    work->animId          = 7;
+    work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+    work->stateScratch    = (u8)work->animRate * 4;
+    work->subState++;
 }

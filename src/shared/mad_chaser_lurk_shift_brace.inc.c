@@ -20,14 +20,14 @@ void madChaserLurkShiftBrace(Task* arg0)
             cond = 0;
         }
         if (cond) {
-            work->field_412  = 0;
-            work->field_438  = 1;
-            work3            = (MadChaserWork*)arg0->work;
-            work3->field_426 = 4;
-            work3->field_41C = 0x10;
-            work3->field_418 = 4;
-            work3->field_414 = 1;
-            work->field_422  = work->field_422 + 1;
+            work->stateFrames      = 0;
+            work->busy             = 1;
+            work3                  = (MadChaserWork*)arg0->work;
+            work3->animBlendFrames = 4;
+            work3->animRate        = ANIMATION_RATE_ONE;
+            work3->animId          = 4;
+            work3->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+            work->subState         = work->subState + 1;
         }
     }
 }

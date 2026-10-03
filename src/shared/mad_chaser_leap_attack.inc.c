@@ -17,14 +17,14 @@ void madChaserLeapAttack(Task* arg0)
     s16            facing;
     s16            speed;
 
-    if ((s16)++work->field_412 < 40) {
+    if ((s16)++work->stateFrames < 40) {
         if ((s16)madChaserTakeHitRequest(arg0)) {
             return;
         }
     } else {
-        work->field_438 = 1;
+        work->busy = 1;
     }
-    if ((s16)work->field_412 == 43) {
+    if ((s16)work->stateFrames == 43) {
         GfxCoord* coords = arg0->extra.tmd->coords;
         SVECTOR*  v;
 
@@ -33,73 +33,73 @@ void madChaserLeapAttack(Task* arg0)
         coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&coords[6]);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[6].workm, &local);
-        v                      = &work->field_98;
+        v                      = &work->leapAnchorPos;
         v->vx                  = local.t[0];
         v->vy                  = local.t[1];
         v->vz                  = local.t[2];
         coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (work->field_412 >= 43 && work->field_412 <= 46) {
-        work->field_432 = 1;
+    if (work->stateFrames >= 43 && work->stateFrames <= 46) {
+        work->anchored = 1;
     } else {
-        work->field_432 = 0;
+        work->anchored = 0;
     }
-    if ((s16)work->field_412 == 46) {
+    if ((s16)work->stateFrames == 46) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0005;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if ((s16)work->field_412 == 45) {
-        facing = (work->field_444 + 0x800) & 0xFFF;
+    if ((s16)work->stateFrames == 45) {
+        facing = (work->playerBearing + 0x800) & 0xFFF;
         if (facing < 0x300) {
-            work->field_40C = (facing + work->field_7A) & 0xFFF;
+            work->leapHeading = (facing + work->rotation.vy) & 0xFFF;
         } else if (facing >= 0xD00) {
-            work->field_40C = (facing + work->field_7A) & 0xFFF;
+            work->leapHeading = (facing + work->rotation.vy) & 0xFFF;
         } else {
-            work->field_40C = work->field_7A;
+            work->leapHeading = work->rotation.vy;
         }
     }
-    if (work->field_412 >= 45 && work->field_412 <= 53) {
-        angle                                 = work->field_40C;
+    if (work->stateFrames >= 45 && work->stateFrames <= 53) {
+        angle                                 = work->leapHeading;
         speed                                 = -250;
         arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
         arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->obj_3AC.flags                  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->attackBody.flags               |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else {
-        work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    if (work->field_412 >= 45 && work->field_412 <= 48 && work->field_43A < 0x171) {
+    if (work->stateFrames >= 45 && work->stateFrames <= 48 && work->playerDist < 0x171) {
         MadChaserWork* w;
 
-        work->field_428      = 0;
-        work->field_42A      = -200;
-        w                    = (MadChaserWork*)arg0->work;
-        w->field_426         = 2;
-        w->field_41C         = 0x10;
-        w->field_418         = 0x10;
-        w->field_414         = 1;
-        work->field_432      = 0;
-        work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_422     += 2;
+        work->moveAccel         = 0;
+        work->moveSpeed         = -200;
+        w                       = (MadChaserWork*)arg0->work;
+        w->animBlendFrames      = 2;
+        w->animRate             = ANIMATION_RATE_ONE;
+        w->animId               = 0x10;
+        w->animRequest          = MAD_CHASER_ANIM_REQUEST_BLEND;
+        work->anchored          = 0;
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->subState         += 2;
         return;
     }
-    if ((s16)work->field_412 >= 47) {
-        root->coord.t[1]     += work->field_42A;
-        work->obj_2CC.pos.vy += work->field_42A;
-        work->field_428      += 30;
-        work->field_42A      += work->field_428;
-        if (root->coord.t[1] >= (s16)work->field_92) {
+    if ((s16)work->stateFrames >= 47) {
+        root->coord.t[1]      += work->moveSpeed;
+        work->gridBody.pos.vy += work->moveSpeed;
+        work->moveAccel       += 30;
+        work->moveSpeed       += work->moveAccel;
+        if (root->coord.t[1] >= work->moveStartPos.vy) {
             MadChaserWork* w = (MadChaserWork*)arg0->work;
 
-            w->field_426         = 2;
-            w->field_41C         = 0x10;
-            w->field_418         = 0x12;
-            w->field_414         = 1;
-            root->coord.t[1]     = (s16)work->field_92;
-            work->obj_2CC.pos.vy = 0;
-            work->field_412      = 0;
-            work->field_422++;
+            w->animBlendFrames    = 2;
+            w->animRate           = ANIMATION_RATE_ONE;
+            w->animId             = 0x12;
+            w->animRequest        = MAD_CHASER_ANIM_REQUEST_BLEND;
+            root->coord.t[1]      = work->moveStartPos.vy;
+            work->gridBody.pos.vy = 0;
+            work->stateFrames     = 0;
+            work->subState++;
         }
     }
 }

@@ -7,9 +7,9 @@ void madChaserDespawn(Task* arg0)
     MadChaserWork* work;
     u16            ticks;
 
-    work            = (MadChaserWork*)arg0->work;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
+    work              = (MadChaserWork*)arg0->work;
+    ticks             = work->stateFrames + 1;
+    work->stateFrames = ticks;
     if ((s16)ticks >= 0x24) {
         if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((u32)(gGameSession->location.loc.area - 0x27) < 2U) && (gGameSession->location.loc.variant == 1)) {
             taskMessageDispatch(Gp_LookupSlot4(0), ROOM_MESSAGE_ACTOR_EVENT, 1, 0);

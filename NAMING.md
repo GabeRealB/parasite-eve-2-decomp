@@ -441,6 +441,14 @@ position the walker turns towards. All of these are private to that
 interface. The arrival test has no block type of its own: the offset it
 stages is a plain `SVECTOR`.
 
+`madChaser` owns the included Mad Chaser enemy shared by `actor_04400`,
+`actor_341700` and `actor_342400`. Its implementation interface is
+`src/shared/mad_chaser.h`, one fragment per function. `MadChaserWork` is the
+task's work block; its animation request, hit reaction and room command values
+use `MAD_CHASER_ANIM_REQUEST_`, `MAD_CHASER_HIT_REACTION_` and
+`MAD_CHASER_COMMAND_`. The scripted waves that spawn the enemy are the separate
+`src/shared/mad_chaser_waves.h`.
+
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
 `jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the

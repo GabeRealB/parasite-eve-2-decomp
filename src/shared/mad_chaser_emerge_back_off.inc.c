@@ -16,13 +16,13 @@ void madChaserEmergeBackOff(Task* arg0)
     s16            speed;
 
     work = (MadChaserWork*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
+    if ((s16)++work->stateFrames == 1) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     speed                                 = -0x14;
-    angle                                 = work->field_7A;
+    angle                                 = work->rotation.vy;
     arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -34,13 +34,13 @@ void madChaserEmergeBackOff(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        next                 = (MadChaserWork*)arg0->work;
-        arg0->state          = 3;
-        next->field_420      = 0;
-        next->field_422      = 0;
-        next2                = (MadChaserWork*)arg0->work;
-        next2->field_420     = 3;
-        next2->field_422     = 0;
+        work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        next                  = (MadChaserWork*)arg0->work;
+        arg0->state           = 3;
+        next->state           = 0;
+        next->subState        = 0;
+        next2                 = (MadChaserWork*)arg0->work;
+        next2->state          = 3;
+        next2->subState       = 0;
     }
 }

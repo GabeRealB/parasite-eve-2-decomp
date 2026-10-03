@@ -5,9 +5,9 @@ void madChaserStatusHoldStart(Task* arg0)
 {
     MadChaserWork* work = (MadChaserWork*)arg0->work;
 
-    work->field_426 = 8;
-    work->field_41C = 0x10;
-    work->field_418 = 0xC;
-    work->field_414 = 1;
-    work->field_422 = work->field_422 + 1;
+    work->animBlendFrames = 8;
+    work->animRate        = ANIMATION_RATE_ONE;
+    work->animId          = 0xC;
+    work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+    work->subState        = work->subState + 1;
 }

@@ -12,10 +12,10 @@ void madChaserLurkSidestepRight(Task* arg0)
     s32            scale;
 
     work = (MadChaserWork*)arg0->work;
-    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
+    if ((u16)(work->stateFrames++ - 0x1D) < 0xD) {
         scale                                 = 0x1E;
-        angle                                 = work->field_7A + 0x400;
-        speed                                 = (((MadChaserWork*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
+        angle                                 = work->rotation.vy + 0x400;
+        speed                                 = (((MadChaserWork*)arg0->work)->animRate * scale) << 0xC >> 0x10;
         arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
         arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -28,13 +28,13 @@ void madChaserLurkSidestepRight(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work->field_438  = 0;
-        work2            = (MadChaserWork*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 3;
-        work2->field_414 = 1;
-        work->field_412  = 0;
-        work->field_422++;
+        work->busy             = 0;
+        work2                  = (MadChaserWork*)arg0->work;
+        work2->animBlendFrames = 8;
+        work2->animRate        = ANIMATION_RATE_ONE;
+        work2->animId          = 3;
+        work2->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+        work->stateFrames      = 0;
+        work->subState++;
     }
 }

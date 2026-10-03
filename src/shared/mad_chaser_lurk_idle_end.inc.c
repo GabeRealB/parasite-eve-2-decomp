@@ -14,8 +14,8 @@ void madChaserLurkIdleEnd(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work            = (MadChaserWork*)arg0->work;
-        work->field_420 = 1;
-        work->field_422 = 0;
+        work           = (MadChaserWork*)arg0->work;
+        work->state    = 1;
+        work->subState = 0;
     }
 }

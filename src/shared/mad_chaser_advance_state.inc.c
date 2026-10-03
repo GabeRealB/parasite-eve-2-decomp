@@ -1,11 +1,11 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Clears the frame counter `field_412` and advances `field_420`.
+/// Clears the frame counter `stateFrames` and advances `state`.
 void madChaserAdvanceState(Task* arg0)
 {
     MadChaserWork* work;
 
-    work            = (MadChaserWork*)arg0->work;
-    work->field_412 = 0;
-    work->field_420 = work->field_420 + 1;
+    work              = (MadChaserWork*)arg0->work;
+    work->stateFrames = 0;
+    work->state       = work->state + 1;
 }

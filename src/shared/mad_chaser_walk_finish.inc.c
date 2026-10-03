@@ -10,14 +10,14 @@ void madChaserWalkFinish(Task* arg0)
 
     madChaserTurnToPlayer(arg0, 0x10);
     speed                                 = madChaserScaleBySpeed(arg0, -0x10);
-    angle                                 = work->field_7A;
+    angle                                 = work->rotation.vy;
     arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (madChaserAnimEnded(arg0)) {
         MadChaserWork* next = (MadChaserWork*)arg0->work;
 
-        next->field_420 = 4;
-        next->field_422 = 0;
+        next->state    = 4;
+        next->subState = 0;
     }
 }

@@ -10,10 +10,10 @@ void madChaserVanish(Task* arg0)
     Enemy*         enemy;
     TmdObject*     model;
 
-    work            = (MadChaserWork*)arg0->work;
-    enemy           = (Enemy*)arg0->spawnArg2.pointer;
-    model           = arg0->extra.tmd;
-    work->field_412 = 0;
+    work              = (MadChaserWork*)arg0->work;
+    enemy             = (Enemy*)arg0->spawnArg2.pointer;
+    model             = arg0->extra.tmd;
+    work->stateFrames = 0;
     SndEvt_EnqueueType7(SOUND_MAD_CHASER_ALERT_CRY, 1);
     if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
         gSceneCombatState.madChaserAlertOwner = 0;
@@ -21,9 +21,9 @@ void madChaserVanish(Task* arg0)
     worldTargetUnlinkNode(&enemy->node);
     enemy->recs = 0;
     work2       = (MadChaserWork*)arg0->work;
-    Gp_UnlinkObj(&work2->obj_2AC);
-    Gp_UnlinkObj(&work2->obj_2CC);
-    Gp_UnlinkObj(&work2->obj_3AC);
-    model->flags    = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->field_420 = work->field_420 + 1;
+    Gp_UnlinkObj(&work2->pairBody);
+    Gp_UnlinkObj(&work2->gridBody);
+    Gp_UnlinkObj(&work2->attackBody);
+    model->flags = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    work->state  = work->state + 1;
 }

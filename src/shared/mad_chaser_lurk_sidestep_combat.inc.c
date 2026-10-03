@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Side-steps to the right of the heading at a speed scaled by `field_41C`
+/// Side-steps to the right of the heading at a speed scaled by `animRate`
 /// on frames 0x1D..0x29; once the hit flags are set, moves the task and the
 /// state machine to state 3.
 void madChaserLurkSidestepToCombat(Task* arg0)
@@ -13,10 +13,10 @@ void madChaserLurkSidestepToCombat(Task* arg0)
     s32            scale;
 
     work = (MadChaserWork*)arg0->work;
-    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
+    if ((u16)(work->stateFrames++ - 0x1D) < 0xD) {
         scale                                 = 0x1E;
-        angle                                 = work->field_7A + 0x400;
-        speed                                 = (((MadChaserWork*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
+        angle                                 = work->rotation.vy + 0x400;
+        speed                                 = (((MadChaserWork*)arg0->work)->animRate * scale) << 0xC >> 0x10;
         arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
         arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -29,7 +29,7 @@ void madChaserLurkSidestepToCombat(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work->field_438 = 0;
+        work->busy = 0;
         madChaserEnterState(arg0, 3);
         madChaserSetState(arg0, 3);
     }

@@ -1,7 +1,7 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Combat state 6: runs `madChaserRecoilLight` or `madChaserRecoilRecover`,
-/// chosen by `field_422`.
+/// chosen by `subState`.
 void madChaserRecoilLightState(Task* arg0)
 {
     MadChaserWork* work                = (MadChaserWork*)arg0->work;
@@ -10,5 +10,5 @@ void madChaserRecoilLightState(Task* arg0)
         madChaserRecoilRecover,
     };
 
-    states[(s16)work->field_422](arg0);
+    states[(s16)work->subState](arg0);
 }

@@ -1,20 +1,20 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// State handler: with `field_44F` 1, a pending request 1 while `field_41E`
+/// State handler: with `stateScratch` 1, a pending request 1 while `hitTaken`
 /// is set queues animation 0xB (kind 2, speed 0x20); otherwise a consumed
-/// request wins, and a hit moves to state 3. With `field_44F` clear, a hit
+/// request wins, and a hit moves to state 3. With `stateScratch` clear, a hit
 /// calls `madChaserSetAlertHold` and moves to state 5. The request test
-/// compares against the constant 1, which CSE folds into the `field_44F`
-/// register; writing `== work->field_44F` reloads the byte instead.
+/// compares against the constant 1, which CSE folds into the `stateScratch`
+/// register; writing `== work->stateScratch` reloads the byte instead.
 void madChaserRecoilRecover(Task* arg0)
 {
     MadChaserWork* work = (MadChaserWork*)arg0->work;
 
-    if (work->field_44F == 1) {
-        if (work->field_41E != 0 && work->field_448 == 1) {
-            work->field_41C = 0x20;
-            work->field_418 = 0xB;
-            work->field_414 = 2;
+    if (work->stateScratch == 1) {
+        if (work->hitTaken != 0 && work->hitReaction == MAD_CHASER_HIT_REACTION_LIGHT) {
+            work->animRate    = 0x20;
+            work->animId      = 0xB;
+            work->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
             return;
         }
         if (madChaserTakeRequest(arg0) == 0 && madChaserIsHit(arg0)) {

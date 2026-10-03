@@ -11,6 +11,6 @@ void madChaserLurkRiseState(Task* arg0)
     };
 
     if (madChaserJoinAlert(arg0) == 0) {
-        states[(s16)work->field_422](arg0);
+        states[(s16)work->subState](arg0);
     }
 }

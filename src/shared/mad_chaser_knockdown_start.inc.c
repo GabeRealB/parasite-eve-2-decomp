@@ -6,22 +6,22 @@ void madChaserKnockdownStart(Task* arg0)
 {
     MadChaserWork* work;
 
-    work            = (MadChaserWork*)arg0->work;
-    work->field_44F = gMadChaserAnimStance[work->field_418 - 1];
-    if (work->field_44F == 1) {
+    work               = (MadChaserWork*)arg0->work;
+    work->stateScratch = gMadChaserAnimStance[work->animId - 1];
+    if (work->stateScratch == 1) {
         MadChaserWork* w = (MadChaserWork*)arg0->work;
 
-        w->field_426 = 6;
-        w->field_41C = 0x10;
-        w->field_418 = 6;
-        w->field_414 = 1;
+        w->animBlendFrames = 6;
+        w->animRate        = ANIMATION_RATE_ONE;
+        w->animId          = 6;
+        w->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     } else {
         MadChaserWork* w = (MadChaserWork*)arg0->work;
 
-        w->field_426 = 6;
-        w->field_41C = 0x10;
-        w->field_418 = 5;
-        w->field_414 = 1;
+        w->animBlendFrames = 6;
+        w->animRate        = ANIMATION_RATE_ONE;
+        w->animId          = 5;
+        w->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     }
-    work->field_422++;
+    work->subState++;
 }

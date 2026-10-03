@@ -17,6 +17,6 @@ void madChaserDeathWaitAnim(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work->field_420 = work->field_420 + 1;
+        work->state = work->state + 1;
     }
 }

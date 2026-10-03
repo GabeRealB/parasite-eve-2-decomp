@@ -9,24 +9,24 @@ void madChaserRecoilLight(Task* arg0)
     s32            soundId;
     s32            pan;
 
-    work            = (MadChaserWork*)arg0->work;
-    work->field_44F = gMadChaserAnimStance[work->field_418 - 1];
-    if (work->field_44F == 1) {
-        work2            = (MadChaserWork*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xB;
-        work2->field_414 = 1;
+    work               = (MadChaserWork*)arg0->work;
+    work->stateScratch = gMadChaserAnimStance[work->animId - 1];
+    if (work->stateScratch == 1) {
+        work2                  = (MadChaserWork*)arg0->work;
+        work2->animBlendFrames = 8;
+        work2->animRate        = ANIMATION_RATE_ONE;
+        work2->animId          = 0xB;
+        work2->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
         SndEvt_EnqueueType7(SOUND_MAD_CHASER_ALERT_CRY, 1);
     } else {
-        work2            = (MadChaserWork*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0x11;
-        work2->field_414 = 1;
+        work2                  = (MadChaserWork*)arg0->work;
+        work2->animBlendFrames = 8;
+        work2->animRate        = ANIMATION_RATE_ONE;
+        work2->animId          = 0x11;
+        work2->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     }
     soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0003;
     pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    work->field_422++;
+    work->subState++;
 }

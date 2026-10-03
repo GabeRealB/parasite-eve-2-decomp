@@ -1,7 +1,7 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Task state 7: runs `madChaserVanish` or `madChaserVanishFree`, chosen by
-/// `field_420`.
+/// `state`.
 void madChaserVanishState(Task* arg0)
 {
     MadChaserWork* work                = (MadChaserWork*)arg0->work;
@@ -10,5 +10,5 @@ void madChaserVanishState(Task* arg0)
         madChaserVanishFree,
     };
 
-    states[(s16)work->field_420](arg0);
+    states[(s16)work->state](arg0);
 }

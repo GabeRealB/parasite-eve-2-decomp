@@ -6,10 +6,10 @@ void madChaserAlertWait(Task* arg0)
     u16            ticks;
     MadChaserWork* work;
 
-    work            = (MadChaserWork*)arg0->work;
-    ticks           = work->field_412;
-    work->field_412 = ticks + 1;
+    work              = (MadChaserWork*)arg0->work;
+    ticks             = work->stateFrames;
+    work->stateFrames = ticks + 1;
     if ((s16)ticks >= 0x51) {
-        work->field_422 = work->field_422 + 1;
+        work->subState = work->subState + 1;
     }
 }

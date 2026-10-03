@@ -15,5 +15,5 @@ void madChaserDeathCryUnlink(Task* arg0)
         gSceneCombatState.madChaserAlertOwner = 0;
     }
     worldTargetUnlinkNode(&enemy->node);
-    work->field_420 = work->field_420 + 1;
+    work->state = work->state + 1;
 }

@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Runs the sub-state handler for `field_422` from a four-entry table.
+/// Runs the sub-state handler for `subState` from a four-entry table.
 void madChaserDangleState(Task* arg0)
 {
     MadChaserWork* work;
@@ -8,5 +8,5 @@ void madChaserDangleState(Task* arg0)
 
     work     = (MadChaserWork*)arg0->work;
     handlers = gMadChaserDangleSteps;
-    handlers.funcs[(s16)work->field_422](arg0);
+    handlers.funcs[(s16)work->subState](arg0);
 }

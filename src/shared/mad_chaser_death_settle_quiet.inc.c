@@ -9,26 +9,26 @@ void madChaserDeathSettleQuiet(Task* arg0)
     s16            next;
 
     work = (MadChaserWork*)arg0->work;
-    anim = work->field_418;
+    anim = work->animId;
     if (anim == 8) {
-        if (work->field_440 == 0) {
-            work->field_426 = 4;
-            work->field_41C = 0x10;
-            work->field_418 = 5;
-            work->field_414 = 1;
+        if (work->hasLeaped == 0) {
+            work->animBlendFrames = 4;
+            work->animRate        = ANIMATION_RATE_ONE;
+            work->animId          = 5;
+            work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
         } else {
-            work->field_426 = 4;
-            work->field_41C = 0x10;
-            work->field_418 = 6;
-            work->field_414 = 1;
+            work->animBlendFrames = 4;
+            work->animRate        = ANIMATION_RATE_ONE;
+            work->animId          = 6;
+            work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
         }
     } else {
-        next            = gMadChaserSettleAnims[anim - 1];
-        work->field_426 = 4;
-        work->field_41C = 0x10;
-        work->field_418 = next;
-        work->field_414 = 1;
+        next                  = gMadChaserSettleAnims[anim - 1];
+        work->animBlendFrames = 4;
+        work->animRate        = ANIMATION_RATE_ONE;
+        work->animId          = next;
+        work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     }
     madChaserTickAnim(arg0);
-    work->field_420++;
+    work->state++;
 }

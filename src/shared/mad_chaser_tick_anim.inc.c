@@ -1,10 +1,10 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Runs the animation request in `field_414` on animation slots 1..8: kind 1
-/// blends into animation `field_418` over `field_426` frames, kind 2 resets
+/// Runs the animation request in `animRequest` on animation slots 1..8: kind 1
+/// blends into animation `animId` over `animBlendFrames` frames, kind 2 resets
 /// the slots straight to it, and either records it as applied and moves to
-/// kind 3, which counts frames in `field_41A`. Every frame each slot then
-/// ticks at speed `field_41C`.
+/// kind 3, which counts frames in `animFrames`. Every frame each slot then
+/// ticks at speed `animRate`.
 void madChaserTickAnim(Task* arg0)
 {
     MadChaserWork* work;
@@ -14,37 +14,37 @@ void madChaserTickAnim(Task* arg0)
     s32            k;
 
     work = (MadChaserWork*)arg0->work;
-    if (work->field_414 == 1) {
+    if (work->animRequest == MAD_CHASER_ANIM_REQUEST_BLEND) {
         start = work;
-        if (start->field_416 == start->field_418) {
+        if (start->appliedAnim == start->animId) {
             for (i = 1; i < 9; i++) {
-                (start->slots)[i].rate = start->field_41C;
-                animationSeekSlotWithBlend(&start->anim, i, start->field_418, 0, start->field_426);
+                (start->slots)[i].rate = start->animRate;
+                animationSeekSlotWithBlend(&start->anim, i, start->animId, 0, start->animBlendFrames);
             }
         } else {
             for (i = 1; i < 9; i++) {
-                (start->slots)[i].rate = start->field_41C;
-                animationSeekSlotWithBlend(&start->anim, i, start->field_418, 0, start->field_426);
+                (start->slots)[i].rate = start->animRate;
+                animationSeekSlotWithBlend(&start->anim, i, start->animId, 0, start->animBlendFrames);
             }
-            start->field_426 = 0;
+            start->animBlendFrames = 0;
         }
         goto advance;
     }
-    if (work->field_414 == 2) {
+    if (work->animRequest == MAD_CHASER_ANIM_REQUEST_RESET) {
         start = work;
         for (j = 1; j < 9; j++) {
-            animationResetSlot(&start->anim, j, start->field_418);
-            (start->slots)[j].rate = start->field_41C;
+            animationResetSlot(&start->anim, j, start->animId);
+            (start->slots)[j].rate = start->animRate;
         }
     advance:
-        start->field_416 = start->field_418;
-        work->field_414  = 3;
-        work->field_41A  = 0;
-    } else if (work->field_414 == 3) {
-        work->field_41A++;
+        start->appliedAnim = start->animId;
+        work->animRequest  = MAD_CHASER_ANIM_REQUEST_PLAYING;
+        work->animFrames   = 0;
+    } else if (work->animRequest == MAD_CHASER_ANIM_REQUEST_PLAYING) {
+        work->animFrames++;
     }
     for (k = 1; k < 9; k++) {
-        (work->slots)[k].rate = work->field_41C;
+        (work->slots)[k].rate = work->animRate;
         animationTickSlot(&work->anim, k);
     }
 }

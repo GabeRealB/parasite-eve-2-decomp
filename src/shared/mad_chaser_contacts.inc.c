@@ -3,9 +3,9 @@
 /// Per-frame contact handling for the overlay's enemy. Walks the eight
 /// contact records: kind 1 (skipped when `arg1` is set) and kind 3 push the
 /// model out, kind 2 applies a hit - damage, status effects and the pending
-/// state request in `field_448` - unless `field_40E` is still cooling down.
+/// state request in `hitReaction` - unless `hitCooldown` is still cooling down.
 /// Then ticks the status flags, applies `func_800E0C10`'s collision step
-/// (snapping back to `field_60` when it reports a conflict) and moves the
+/// (snapping back to `prevRootPos` when it reports a conflict) and moves the
 /// root by the combined step and push-out.
 void madChaserApplyContacts(Task* arg0, s16 arg1)
 {
@@ -34,15 +34,15 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
     coord   = arg0->extra.tmd->coords;
     enemy   = arg0->spawnArg2.pointer;
     SCRATCH_STACK_RESERVE_BYTES(8);
-    work->field_41E = 0;
+    work->hitTaken = 0;
     for (i = 0; i < 8; i++) {
-        switch (work->rec_2EC[i].key.value & 0xFFFF0000) {
+        switch (work->contacts[i].key.value & 0xFFFF0000) {
             case 0x10000:
                 if (arg1 != 0) {
                     break;
                 }
             case 0x30000:
-                madChaserCalcPush(arg0, coord, &work->rec_2EC[i], &push);
+                madChaserCalcPush(arg0, coord, &work->contacts[i], &push);
                 if (ABS(maxX) < ABS(push.vx)) {
                     maxX = push.vx;
                 }
@@ -51,61 +51,61 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                 }
                 break;
             case 0x20000:
-                if (work->field_40E == 0) {
-                    work->field_41E = 1;
-                    dmg             = Gp_ComputeDamage(work->rec_2EC[i].key.value, work->field_43A, 0, 0);
-                    amount          = dmg;
-                    work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].key.value);
-                    if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].key.value, 0) != 0) {
+                if (work->hitCooldown == 0) {
+                    work->hitTaken    = 1;
+                    dmg               = Gp_ComputeDamage(work->contacts[i].key.value, work->playerDist, 0, 0);
+                    amount            = dmg;
+                    work->hitCooldown = Gp_GetIdParam2(work->contacts[i].key.value);
+                    if (Gp_RollEnemyChance(enemy, work->contacts[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
-                    func_800E2C78(enemy, work->rec_2EC[i].key.value, amount, 0);
+                    func_800E2C78(enemy, work->contacts[i].key.value, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {
                         enemy->hp = 0;
                     }
-                    func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].key.value) & 0xFFFF,
-                                  &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
+                    func_800FDB18(Gp_GetIdParam1(work->contacts[i].key.value) & 0xFFFF,
+                                  &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
                     if (amount >= 0x28) {
-                        work->field_448 = 2;
+                        work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
                     } else {
-                        work->field_448 = 1;
+                        work->hitReaction = MAD_CHASER_HIT_REACTION_LIGHT;
                     }
-                    switch (Gp_GetIdParam0(work->rec_2EC[i].key.value) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF) {
                         case 0:
                             break;
                         case 1:
                             Gp_SetObjFlag1(enemy);
                             break;
                         case 2:
-                            Gp_SetObjFlag2(enemy, work->rec_2EC[i].key.value, 0);
+                            Gp_SetObjFlag2(enemy, work->contacts[i].key.value, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4(enemy, work->rec_2EC[i].key.value, 0);
+                            Gp_SetObjFlag4(enemy, work->contacts[i].key.value, 0);
                             break;
                         case 4:
-                            work->field_448 = 4;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_BLAST;
                             break;
                         case 5:
-                            work->field_448 = 2;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
                             break;
                         case 6:
-                            work->field_448 = 4;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_BLAST;
                             break;
                         case 7:
-                            work->field_448 = 2;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
                             break;
                         case 8:
-                            work->field_448 = 3;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_STATUS;
                             break;
                         case 9:
-                            work->field_448 = 3;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_STATUS;
                             break;
                     }
-                } else if ((Gp_GetIdParam1(work->rec_2EC[i].key.value) & 0xFFFF) == 0xD) {
-                    func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
+                } else if ((Gp_GetIdParam1(work->contacts[i].key.value) & 0xFFFF) == 0xD) {
+                    func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
                 }
                 break;
         }
@@ -113,31 +113,31 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
 
     if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= 0xFE;
-        work->field_448       = 5;
+        work->hitReaction     = MAD_CHASER_HIT_REACTION_KNOCKDOWN;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
         enemy->reactionFlags &= 0xFD;
-        work->field_448       = 3;
+        work->hitReaction     = MAD_CHASER_HIT_REACTION_STATUS;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        work->field_44E = 1;
-        tmp             = Gp_TickObjFlag4(enemy);
-        tick            = tmp;
+        work->damageOverTimeSeen = 1;
+        tmp                      = Gp_TickObjFlag4(enemy);
+        tick                     = tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
             func_800DA6E8(&enemy->node, tick, 0);
             if (enemy->hp < 0) {
                 enemy->hp = 0;
             }
-            work->field_41E = 1;
-            work->field_448 = 2;
+            work->hitTaken    = 1;
+            work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
         }
         if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
 
-    switch (func_800E0C10(work->rec_2EC, &delta, 8, NULL)) {
+    switch (func_800E0C10(work->contacts, &delta, 8, NULL)) {
         case 0:
             break;
         case 1:
@@ -159,23 +159,23 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
             }
             break;
         case 2:
-            coord->coord.t[0]   = work->field_60.vx;
-            coord->coord.t[2]   = work->field_60.vz;
+            coord->coord.t[0]   = work->prevRootPos.vx;
+            coord->coord.t[2]   = work->prevRootPos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             blocked             = 1;
             break;
     }
 
-    Gp_ClearRec18Occupied(work->rec_2EC);
+    Gp_ClearRec18Occupied(work->contacts);
     if (work->field_43E != 0) {
         work->field_43E--;
     }
-    if (work->field_40E > 0) {
-        work->field_40E--;
+    if (work->hitCooldown > 0) {
+        work->hitCooldown--;
     }
     if (blocked == 0) {
-        work->field_80     += actorPickStep(stepX, maxX >> 3);
-        work->field_84     += actorPickStep(stepZ, maxZ >> 3);
+        work->anchorPos.vx += actorPickStep(stepX, maxX >> 3);
+        work->anchorPos.vz += actorPickStep(stepZ, maxZ >> 3);
         coord->coord.t[0]  += actorPickStep(stepX, maxX >> 3);
         coord->coord.t[2]  += actorPickStep(stepZ, maxZ >> 3);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;

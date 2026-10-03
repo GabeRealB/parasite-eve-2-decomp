@@ -69,7 +69,7 @@ extern u8 gMadChaserAnimBank[]; // animation bank handed to `animationInitContex
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry gMadChaserMsgTable[3];   // stored into `Task::msgTable` by madChaserSpawn
-extern u8               gMadChaserAnimStance[];  // per animation id (1-based): value for `field_44F`
+extern u8               gMadChaserAnimStance[];  // per animation id (1-based): value for `stateScratch`
 extern u8               gMadChaserSettleAnims[]; // per animation id (1-based): the animation to follow it
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
@@ -117,7 +117,7 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     madChaserShrinkDeathTick,
 } };
 
-/// Eleven state handlers, indexed by `MadChaserWork::field_420`; copied to
+/// Eleven state handlers, indexed by `MadChaserWork::state`; copied to
 /// the stack before dispatch.
 static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserToAlertState,
@@ -133,21 +133,21 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserPullState,
 } };
 
-/// Sub-state handlers `madChaserKnockdownState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserKnockdownState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
     madChaserKnockdownStart,
     madChaserKnockdownRise,
     madChaserKnockdownEnd,
 } };
 
-/// Sub-state handlers `madChaserWalkState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserWalkState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserWalkSteps = { {
     madChaserWalkStart,
     madChaserWalkApproach,
     madChaserWalkFinish,
 } };
 
-/// Sub-state handlers `madChaserLeapState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserLeapState` dispatches by `subState`.
 static const TaskFuncTable5 gMadChaserLeapSteps = { {
     madChaserStartLeap,
     madChaserLeapAttack,
@@ -156,7 +156,7 @@ static const TaskFuncTable5 gMadChaserLeapSteps = { {
     madChaserLeapLand,
 } };
 
-/// Sub-state handlers `func_actor_342400_80169A98` dispatches by `field_422`.
+/// Sub-state handlers `func_actor_342400_80169A98` dispatches by `subState`.
 static const TaskFuncTable5 D_actor_342400_80161F00 = { {
     madChaserAlertCry,
     madChaserAlertWait,
@@ -165,7 +165,7 @@ static const TaskFuncTable5 D_actor_342400_80161F00 = { {
     madChaserAlertSidestep,
 } };
 
-/// Sub-state handlers `madChaserDangleState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserDangleState` dispatches by `subState`.
 static const TaskFuncTable4 gMadChaserDangleSteps = { {
     madChaserDangleStart,
     madChaserDangleSway,
@@ -786,7 +786,7 @@ static __inline__ void set_state_s16(Task* arg0, s16 state);
 
 #include "../../shared/mad_chaser_bodies.inc.c"
 
-/// Nine state handlers, indexed by `MadChaserWork::field_420`; copied to the
+/// Nine state handlers, indexed by `MadChaserWork::state`; copied to the
 /// stack before dispatch.
 static const TaskFuncTable9 gMadChaserDeathStates = { {
     madChaserDeathCry,
@@ -809,7 +809,7 @@ static const TaskFuncTable9 gMadChaserDeathStates = { {
 #include "../../shared/mad_chaser_recoil_recover.inc.c"
 
 /// The five state handlers of the second enemy form, indexed by
-/// `MadChaserWork::field_420`; copied to the stack before dispatch. It sits
+/// `MadChaserWork::state`; copied to the stack before dispatch. It sits
 /// between `madChaserRecoilRecover`'s jump table and this function's own.
 static const TaskFuncTable5 gMadChaserLurkStates = { {
     func_actor_342400_8016AE24,
@@ -821,28 +821,28 @@ static const TaskFuncTable5 gMadChaserLurkStates = { {
 
 #include "../../shared/mad_chaser_lurk_tick.inc.c"
 
-/// Sub-state handlers `func_actor_342400_8016AE24` dispatches by `field_422`.
+/// Sub-state handlers `func_actor_342400_8016AE24` dispatches by `subState`.
 static const TaskFuncTable3 D_actor_342400_80161FB4 = { {
     madChaserStartHold,
     madChaserLurkWait,
     madChaserLurkIdleEnd,
 } };
 
-/// Sub-state handlers `func_actor_342400_8016AEAC` dispatches by `field_422`.
+/// Sub-state handlers `func_actor_342400_8016AEAC` dispatches by `subState`.
 static const TaskFuncTable3 D_actor_342400_80161FC0 = { {
     madChaserLurkCrouch,
     madChaserLurkRaise,
     madChaserLurkLookAround,
 } };
 
-/// Sub-state handlers `madChaserLurkRiseState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserLurkRiseState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
     madChaserStartAlert,
     madChaserLurkBrace,
     madChaserLurkSidestepToCombat,
 } };
 
-/// Sub-state handlers `func_actor_342400_8016B038` dispatches by `field_422`.
+/// Sub-state handlers `func_actor_342400_8016B038` dispatches by `subState`.
 static const TaskFuncTable4 D_actor_342400_80161FD8 = { {
     madChaserLurkShiftStart,
     madChaserLurkShiftBrace,
@@ -850,7 +850,7 @@ static const TaskFuncTable4 D_actor_342400_80161FD8 = { {
     madChaserLurkSidestepLeft,
 } };
 
-/// Ten state handlers, indexed by `MadChaserWork::field_420`; copied to the
+/// Ten state handlers, indexed by `MadChaserWork::state`; copied to the
 /// stack before dispatch.
 static const TaskFuncTable10 gMadChaserEmergeStates = { {
     madChaserEmergeAtSpot,
@@ -865,7 +865,7 @@ static const TaskFuncTable10 gMadChaserEmergeStates = { {
     func_actor_342400_80168394,
 } };
 
-/// Sub-state handlers `madChaserPullState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserPullState` dispatches by `subState`.
 static const TaskFuncTable6 gMadChaserPullSteps = { {
     madChaserPullStart,
     madChaserPullReact,
@@ -875,7 +875,7 @@ static const TaskFuncTable6 gMadChaserPullSteps = { {
     madChaserPulledIn,
 } };
 
-/// Five state handlers, indexed by `MadChaserWork::field_420`; copied to
+/// Five state handlers, indexed by `MadChaserWork::state`; copied to
 /// the stack before dispatch.
 static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     madChaserDeathCryUnlink,
@@ -885,7 +885,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     func_actor_342400_8016BBD0,
 } };
 
-/// Seven state handlers, indexed by `MadChaserWork::field_420`; copied to
+/// Seven state handlers, indexed by `MadChaserWork::state`; copied to
 /// the stack before dispatch.
 static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     func_actor_342400_8016BBD8,
@@ -915,8 +915,8 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 {
     MadChaserWork* w = (MadChaserWork*)arg0->work;
 
-    w->field_420 = state;
-    w->field_422 = 0;
+    w->state    = state;
+    w->subState = 0;
 }
 
 #include "../../shared/mad_chaser_emerge_at_spot.inc.c"

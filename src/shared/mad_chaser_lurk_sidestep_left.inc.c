@@ -15,10 +15,10 @@ void madChaserLurkSidestepLeft(Task* arg0)
 
     work = (MadChaserWork*)arg0->work;
     if ((madChaserJoinAlert(arg0) << 0x10) == 0) {
-        if ((u16)(work->field_412++ - 0x17) < 0xD) {
+        if ((u16)(work->stateFrames++ - 0x17) < 0xD) {
             scale                                 = -0x1E;
-            angle                                 = work->field_7A + 0x400;
-            speed                                 = (((MadChaserWork*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
+            angle                                 = work->rotation.vy + 0x400;
+            speed                                 = (((MadChaserWork*)arg0->work)->animRate * scale) << 0xC >> 0x10;
             arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
             arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -31,10 +31,10 @@ void madChaserLurkSidestepLeft(Task* arg0)
             cond = 0;
         }
         if (cond) {
-            work->field_438 = 0;
-            next            = (MadChaserWork*)arg0->work;
-            next->field_420 = 0;
-            next->field_422 = 0;
+            work->busy     = 0;
+            next           = (MadChaserWork*)arg0->work;
+            next->state    = 0;
+            next->subState = 0;
         }
     }
 }

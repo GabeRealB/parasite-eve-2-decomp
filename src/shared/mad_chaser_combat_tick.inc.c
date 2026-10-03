@@ -3,9 +3,9 @@
 /// Per-frame callback for the main enemy, the eleven-state counterpart of
 /// `madChaserEmergeTick`. In mode 0 it aims at the nearest actor
 /// (`madChaserTrackPlayer`), lets a pending hit (`madChaserTakeHit`) replace the state
-/// handler, eases `field_424` toward zero, rebuilds the root rotation, and
-/// then picks the next state: the `field_448` request once dead, state 4 when
-/// dead, 8 / 9 for messages 4 / 5 while `field_438` is clear.
+/// handler, eases `spineYaw` toward zero, rebuilds the root rotation, and
+/// then picks the next state: the `hitReaction` request once dead, state 4 when
+/// dead, 8 / 9 for messages 4 / 5 while `busy` is clear.
 void madChaserCombatTick(Task* arg0)
 {
     Enemy*          enemy = arg0->spawnArg2.pointer;
@@ -20,31 +20,31 @@ void madChaserCombatTick(Task* arg0)
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_442++;
+            work->frameCount++;
             madChaserTrackPlayer(arg0);
             if (madChaserTakeHit(arg0) == 0) {
-                sp.funcs[(s16)work->field_420](arg0);
+                sp.funcs[(s16)work->state](arg0);
             }
             madChaserTickAnim(arg0);
-            cur             = (u16)work->field_424;
-            work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
+            cur            = (u16)work->spineYaw;
+            work->spineYaw = cur + ((s16)(-(cur * 16)) >> 9);
             madChaserTwistSpine(arg0);
-            if (work->field_432 == 1) {
-                madChaserPinPart(arg0, 6, (SVECTOR3*)&work->field_98);
+            if (work->anchored == 1) {
+                madChaserPinPart(arg0, 6, (SVECTOR3*)&work->leapAnchorPos);
             }
             madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
-            if (work->field_44A != 0) {
-                work->field_44A--;
+            if (work->leapCooldown != 0) {
+                work->leapCooldown--;
             }
-            if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
-                madChaserEnterState(arg0, work->field_448);
+            if (work->hitTaken != 0 && work->hitReaction == MAD_CHASER_HIT_REACTION_BLAST && enemy->hp <= 0) {
+                madChaserEnterState(arg0, work->hitReaction);
             }
-            if (work->field_438 == 0 && enemy->hp <= 0) {
+            if (work->busy == 0 && enemy->hp <= 0) {
                 madChaserEnterState(arg0, 4);
-            } else if (work->field_44C == 4 && work->field_438 == 0) {
+            } else if (work->command == MAD_CHASER_COMMAND_DROP_DEATH && work->busy == 0) {
                 madChaserEnterState(arg0, 8);
-            } else if (work->field_44C == 5 && work->field_438 == 0) {
+            } else if (work->command == MAD_CHASER_COMMAND_SHRINK_DEATH && work->busy == 0) {
                 madChaserEnterState(arg0, 9);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

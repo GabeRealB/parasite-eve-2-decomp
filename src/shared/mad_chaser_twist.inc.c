@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Turns model parts 5, 4 and 3 about Y by a third of `field_424` each: reads
+/// Turns model parts 5, 4 and 3 about Y by a third of `spineYaw` each: reads
 /// each part's rotation back as Euler angles, adds to the yaw, rebuilds the
 /// 3x3 and marks the coordinate dirty.
 void madChaserTwistSpine(Task* arg0)
@@ -25,7 +25,7 @@ void madChaserTwistSpine(Task* arg0)
     ident->m22               = ONE;
     m5                       = &coords[5].coord;
     Gp_MtxToEuler(m5, &rot);
-    rot.vy = (u16)rot.vy + work->field_424 / 3;
+    rot.vy = (u16)rot.vy + work->spineYaw / 3;
     RotMatrix(&rot, &mtx.mat);
     m5->m[0][0]            = (u16)mtx.mat.m[0][0];
     m5->m[0][1]            = (u16)mtx.mat.m[0][1];
@@ -45,7 +45,7 @@ void madChaserTwistSpine(Task* arg0)
     ident->m22               = ONE;
     m4                       = &coords[4].coord;
     Gp_MtxToEuler(m4, &rot);
-    rot.vy = (u16)rot.vy + work->field_424 / 3;
+    rot.vy = (u16)rot.vy + work->spineYaw / 3;
     RotMatrix(&rot, &mtx.mat);
     m4->m[0][0]            = (u16)mtx.mat.m[0][0];
     m4->m[0][1]            = (u16)mtx.mat.m[0][1];
@@ -65,7 +65,7 @@ void madChaserTwistSpine(Task* arg0)
     ident->m22               = ONE;
     m3                       = &coords[3].coord;
     Gp_MtxToEuler(m3, &rot);
-    rot.vy = (u16)rot.vy + work->field_424 / 3;
+    rot.vy = (u16)rot.vy + work->spineYaw / 3;
     RotMatrix(&rot, &mtx.mat);
     m3->m[0][0]            = (u16)mtx.mat.m[0][0];
     m3->m[0][1]            = (u16)mtx.mat.m[0][1];

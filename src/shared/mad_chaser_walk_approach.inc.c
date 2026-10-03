@@ -15,7 +15,7 @@ void madChaserWalkApproach(Task* arg0)
     s32            soundId;
     s32            pan;
 
-    dist = work->field_43A;
+    dist = work->playerDist;
     if (dist < 1000) {
         limit = 0x10;
         step  = 0x10;
@@ -35,13 +35,13 @@ void madChaserWalkApproach(Task* arg0)
         limit = 0x40;
         step  = 0x20;
     }
-    if (work->field_41C < limit) {
-        work->field_41C = limit;
-        work->field_436 = step;
+    if (work->animRate < limit) {
+        work->animRate = limit;
+        work->turnStep = step;
     }
-    madChaserTurnToPlayer(arg0, work->field_436);
+    madChaserTurnToPlayer(arg0, work->turnStep);
     speed                                 = madChaserScaleBySpeed(arg0, -0x10);
-    angle                                 = work->field_7A;
+    angle                                 = work->rotation.vy;
     arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -50,8 +50,8 @@ void madChaserWalkApproach(Task* arg0)
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (work->field_43A < work->field_410 + 2000 && (work->field_43A < 1500 || work->field_44A == 0) &&
-        (u16)(((work->field_444 + 0x800) & 0xFFF) - 0x200) > 0xC00) {
-        work->field_422++;
+    if (work->playerDist < work->leapRangeBonus + 2000 && (work->playerDist < 1500 || work->leapCooldown == 0) &&
+        (u16)(((work->playerBearing + 0x800) & 0xFFF) - 0x200) > 0xC00) {
+        work->subState++;
     }
 }

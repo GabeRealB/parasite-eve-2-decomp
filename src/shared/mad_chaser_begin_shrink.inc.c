@@ -13,15 +13,15 @@ void madChaserBeginShrink(Task* task)
     enemy->recs = 0;
 
     objWork = (MadChaserWork*)task->work;
-    Gp_UnlinkObj(&objWork->obj_2AC);
-    Gp_UnlinkObj(&objWork->obj_2CC);
-    Gp_UnlinkObj(&objWork->obj_3AC);
+    Gp_UnlinkObj(&objWork->pairBody);
+    Gp_UnlinkObj(&objWork->gridBody);
+    Gp_UnlinkObj(&objWork->attackBody);
 
-    work->field_430    = 0x1000;
+    work->shrinkScaleY = 0x1000;
     work->savedRootMtx = coord->coord;
 
     Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
 
-    work->field_412 = 0;
-    work->field_420++;
+    work->stateFrames = 0;
+    work->state++;
 }

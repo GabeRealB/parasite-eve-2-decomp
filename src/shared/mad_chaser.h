@@ -19,84 +19,100 @@
 
 #include "main/task_types.h"
 
-/// Work block of the enemy whose code both actor_341700 and actor_342400
-/// carry. Each allocates it zeroed at its full size and keeps it at
-/// `Task::work`. `field_420` / `field_422` are the state and sub-state indices
-/// the handler tables walk and `field_412` the per-state frame counter;
-/// `field_414` .. `field_41C` are the animation request.
-typedef struct MadChaserWork {
-    MATRIX           savedRootMtx; // root matrix saved at death, rescaled each frame while the model shrinks
-    MATRIX           colorMtx;     // the model's `TmdObject::colorMtx`
-    MATRIX           lightMtx;     // the model's `TmdObject::lightMtx`
-    VECTOR           field_60;     // position the root snaps back to when blocked
-    SVECTOR          field_70;     // origin of slot 4 entry 0's coords[3], carried into view space
-    s16              field_78;     // pitch, fed to RotMatrixX
-    s16              field_7A;     // heading fed to rsin / rcos
-    s16              field_7C;     // roll, fed to RotMatrixZ
-    byte             pad_7E[0x2];
-    u16              field_80;     // spawn position: root coord.t[0]
-    u16              field_82;     // root coord.t[1], after lifting it by 0x3C
-    u16              field_84;     // root coord.t[2]
-    byte             pad_86[0x2];
-    s16              field_88;     // x of the offset to the nearer player actor
-    s16              field_8A;     // y of that offset
-    s16              field_8C;     // z of that offset
-    byte             pad_8E[0x2];
-    u16              field_90;     // root coord.t[0], snapshotted with the view-space origin
-    u16              field_92;     // root coord.t[1]
-    u16              field_94;     // root coord.t[2]
-    byte             pad_96[0x2];
-    SVECTOR          field_98;     // translation of coords[6] relative to the view
-    AnimationContext anim;
-    /// The nine slots handed to `animationInitContext`. Every guard tests the
-    /// second slot's status: bit 0 as a halfword, then bits 0x102 as a word.
-    AnimationSlot         slots[9];
-    byte                  field_21C[0x90]; // `animationInitContext`'s poseBuffer buffer
-    WorldCollisionBody    obj_2AC;
-    WorldCollisionBody    obj_2CC;
-    WorldCollisionContact rec_2EC[8];
-    WorldCollisionBody    obj_3AC;
-    WorldCollisionContact rec_3CC[2]; // records of `obj_3AC`
-    EffectSpawnArg        eff_3FC;    // `func_800FDB18`'s argument record; `coord` is the model's `coords[1]`
-    byte                  pad_404[0x8];
-    s16                   field_40C;  // heading the root is moved along
-    s16                   field_40E;  // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame
-    s16                   field_410;
-    u16                   field_412;  // per-state frame counter
-    s16                   field_414;  // animation request kind
-    s16                   field_416;  // animation id last applied to the slots
-    s16                   field_418;  // animation id
-    u16                   field_41A;  // frames since the animation was applied
-    s16                   field_41C;  // animation speed / step scale
-    s16                   field_41E;  // 1 lets `field_448` jump the state machine
-    u16                   field_420;  // state index
-    u16                   field_422;  // sub-state index
-    s16                   field_424;  // yaw added to model parts 3..5, a third each; eased toward zero each frame
-    s16                   field_426;
-    s16                   field_428;
-    s16                   field_42A;
-    s16                   field_42C; // frames spent turning toward field_444; 16 enters state 3
-    byte                  pad_42E[0x2];
-    u16                   field_430; // Y scale while the model shrinks after death
-    s16                   field_432; // 1 re-derives the spawn position
-    s16                   field_434; // pitch latched when a sway ends, then eased back to zero
-    s16                   field_436; // turn step applied to the heading
-    s16                   field_438;
-    s16                   field_43A; // distance to the nearer player actor
-    byte                  pad_43C[0x2];
-    s16                   field_43E; // counted down each frame while blocked
-    s16                   field_440; // picks animation 5 (zero) or 6 after animation 8
-    s16                   field_442; // frame phase driving the pitch sway
-    u16                   field_444; // heading to the nearer player actor relative to field_7A, masked to 0xFFF
-    s16                   field_446; // randomised hold in frames
-    s16                   field_448; // pending state request; 4 moves the task to state 4 once the enemy is dead
-    s16                   field_44A;
-    u16                   field_44C; // message 0x2C00's halfword, when its low nibble is 1..5
-    u8                    field_44E; // set while the enemy carries status flag 4/8
-    u8                    field_44F; // 1 runs the post-sub-state step
-    byte                  pad_450[0x1];
-    u8                    field_451;
-    byte                  pad_452[0x2];
+/// Values of `MadChaserWork::animRequest`.
+enum {
+    MAD_CHASER_ANIM_REQUEST_BLEND   = 1, // blend into `animId` over `animBlendFrames` frames
+    MAD_CHASER_ANIM_REQUEST_RESET   = 2, // cut straight to `animId`
+    MAD_CHASER_ANIM_REQUEST_PLAYING = 3  // `animId` has been applied and is playing
+};
+
+/// Values of `MadChaserWork::hitReaction`, the reaction a hit asks for.
+enum {
+    MAD_CHASER_HIT_REACTION_NONE      = 0,
+    MAD_CHASER_HIT_REACTION_LIGHT     = 1, // light recoil
+    MAD_CHASER_HIT_REACTION_HEAVY     = 2, // heavy recoil
+    MAD_CHASER_HIT_REACTION_STATUS    = 3, // held until the status buildup runs out
+    MAD_CHASER_HIT_REACTION_BLAST     = 4, // heavy recoil; a blast that kills bursts the body
+    MAD_CHASER_HIT_REACTION_KNOCKDOWN = 5  // knocked down
+};
+
+/// Low nibble of `MadChaserWork::command`: what the room asks of the enemy.
+enum {
+    MAD_CHASER_COMMAND_KIND_MASK    = 0xF,
+    MAD_CHASER_COMMAND_EMERGE       = 1, // appear at a room spot and jump out
+    MAD_CHASER_COMMAND_PULL         = 2, // be dragged to the room's pull point
+    MAD_CHASER_COMMAND_VANISH       = 3, // disappear without dying
+    MAD_CHASER_COMMAND_DROP_DEATH   = 4, // die where it stands
+    MAD_CHASER_COMMAND_SHRINK_DEATH = 5  // die and shrink away
+};
+
+/// Work block of a Mad Chaser task.
+///
+/// The spawn handler allocates it zeroed and keeps it at `Task::work`. It holds
+/// the model's matrices, the animation context and its storage, the three
+/// collision spheres with their contact records, and the state machine: the
+/// task state picks a table of states, `state` an entry of that table, and
+/// `subState` a step of that entry's own table. Entering a task state clears
+/// both and selecting a state clears `subState`; their ranges are those of the
+/// table in use, the largest being eleven states and six steps.
+typedef struct {
+    MATRIX                savedRootMtx;                          // root matrix at the start of the death shrink; each frame rescales a copy of it
+    MATRIX                colorMtx;                              // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;                              // storage for the model's `TmdObject::lightMtx`
+    VECTOR                prevRootPos;                           // root position at the start of the frame; restored when the collision step reports a conflict
+    SVECTOR               pullPoint;                             // point a pull drags the root to: part 3 of the room's first slot-4 task, in the root's parent space
+    SVECTOR               rotation;                              // root rotation in 4096ths of a turn: `vx` pitch, `vy` heading, `vz` roll
+    SVECTOR               anchorPos;                             // spawn position, moved with every collision step; where part 6 hangs while the enemy dangles
+    SVECTOR               toPlayer;                              // offset from the root to the nearer player actor
+    SVECTOR               moveStartPos;                          // root position when the leap (`vy` only) or the pull began; the leap lands back on `vy`
+    SVECTOR               leapAnchorPos;                         // where part 6 stays during frames 43..46 of the leap, in the root's parent space
+    AnimationContext      anim;                                  // animation playback of the model
+    AnimationSlot         slots[9];                              // one per model part; 1..8 play `animId`, and slot 1's status tells when it ended
+    u8                    poses[9][ANIMATION_POSE_BUFFER_BYTES]; // blend pose of each slot
+    WorldCollisionBody    pairBody;                              // sphere other bodies touch; its contacts carry the hits and push-outs
+    WorldCollisionBody    gridBody;                              // larger sphere tested against the room grid; shares `contacts`
+    WorldCollisionContact contacts[8];                           // contacts of `pairBody` and `gridBody`; also the enemy's hit records
+    WorldCollisionBody    attackBody;                            // sphere carrying the enemy's attack key; enabled only while the leap lunges
+    WorldCollisionContact attackContacts[2];                     // contacts of `attackBody`
+    EffectSpawnArg        effectArg;                             // argument record of the effects its hits and death spawn, hung off part 1
+    byte                  field_404[0x8];                        // never accessed
+    s16                   leapHeading;                           // heading the leap travels along, locked on frame 45
+    s16                   hitCooldown;                           // frames before another hit is taken; set from the hit's id parameter 2
+    s16                   leapRangeBonus;                        // 0..0x7FF drawn per walk; the walk ends within 2000 plus this of the player
+    u16                   stateFrames;                           // frames spent in the current state or sub-state
+    s16                   animRequest;                           // `MAD_CHASER_ANIM_REQUEST_*`
+    s16                   appliedAnim;                           // animation last applied to the slots
+    s16                   animId;                                // requested animation: index into the animation bank
+    u16                   animFrames;                            // frames since `animId` was applied
+    s16                   animRate;                              // playback rate of slots 1..8; `ANIMATION_RATE_ONE` is normal speed
+    s16                   hitTaken;                              // 1 when a hit or a status tick dealt damage this frame; lets `hitReaction` be consumed
+    u16                   state;                                 // index into the state table of the current task state
+    u16                   subState;                              // index into the step table of the current state
+    s16                   spineYaw;                              // look-around yaw, spread over parts 3..5 a third each
+    s16                   animBlendFrames;                       // frames a blend request takes
+    s16                   moveAccel;                             // added to `moveSpeed` each frame; itself grows each frame
+    s16                   moveSpeed;                             // vertical speed of a jump or fall, or the speed of a pull with six fraction bits
+    s16                   lookFrames;                            // frames the look-around has faced a player; 16 raise the alert
+    byte                  field_42E[0x2];                        // never accessed
+    u16                   shrinkScaleY;                          // Y scale of the death shrink, 0x1000 = 1.0
+    s16                   anchored;                              // 1 pins part 6: to `anchorPos` while dangling, to `leapAnchorPos` in combat
+    s16                   fallPitch;                             // pitch the dangle sway ended on, eased to zero during the fall
+    s16                   turnStep;                              // heading change per frame of the walk
+    s16                   busy;                                  // 1 while the current move must finish: death and room commands wait
+    s16                   playerDist;                            // horizontal distance to the nearer player actor
+    byte                  field_43C[0x2];                        // never accessed
+    s16                   field_43E;                             // counted down to zero each frame; nothing sets it, role unproven
+    s16                   hasLeaped;                             // set by the first leap, never cleared; picks the settle animation after animation 8 (0: 5, 1: 6)
+    s16                   frameCount;                            // frames the enemy has run; phase of the dangle and look-around sways
+    u16                   playerBearing;                         // heading to the nearer player actor relative to `rotation.vy`, 0..0xFFF
+    s16                   holdFrames;                            // random length of the current lurk hold
+    s16                   hitReaction;                           // `MAD_CHASER_HIT_REACTION_*` awaiting the state machine
+    s16                   leapCooldown;                          // frames before the walk may leap from beyond 1500 units
+    u16                   command;                               // pending room command: kind in bits 0..3, entry move in 4..7, spot in 8..11
+    u8                    damageOverTimeSeen;                    // set once the enemy has carried a damage-over-time status; never read
+    u8                    stateScratch;                          // recoil, knockdown: stance of the interrupted animation (0 low, 1 upright); pull: ramp of four counts per unit of `animRate`
+    byte                  field_450[0x1];                        // never accessed
+    u8                    shadowHidden;                          // 1 leaves the limb shadows out
 } MadChaserWork;
 STATIC_ASSERT_SIZEOF(MadChaserWork, 0x454);
 

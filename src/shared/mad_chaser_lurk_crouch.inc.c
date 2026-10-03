@@ -16,11 +16,11 @@ void madChaserLurkCrouch(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work2            = (MadChaserWork*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xD;
-        work2->field_414 = 1;
-        work->field_422++;
+        work2                  = (MadChaserWork*)arg0->work;
+        work2->animBlendFrames = 8;
+        work2->animRate        = ANIMATION_RATE_ONE;
+        work2->animId          = 0xD;
+        work2->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+        work->subState++;
     }
 }

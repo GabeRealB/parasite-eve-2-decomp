@@ -15,15 +15,15 @@ void madChaserRecoilHeavyEnd(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        if (work->field_44F == 1) {
-            work            = (MadChaserWork*)arg0->work;
-            work->field_420 = 3;
-            work->field_422 = 0;
+        if (work->stateScratch == 1) {
+            work           = (MadChaserWork*)arg0->work;
+            work->state    = 3;
+            work->subState = 0;
         } else {
             madChaserSetAlertHold(arg0, 1);
-            work            = (MadChaserWork*)arg0->work;
-            work->field_420 = 5;
-            work->field_422 = 0;
+            work           = (MadChaserWork*)arg0->work;
+            work->state    = 5;
+            work->subState = 0;
         }
     }
 }

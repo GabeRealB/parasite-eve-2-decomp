@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once the hit flags are set, marks the enemy busy (`field_438`), requests
+/// Once the hit flags are set, marks the enemy busy (`busy`), requests
 /// animation 4 and advances the sub-state.
 void madChaserAlertCrouch(Task* arg0)
 {
@@ -9,13 +9,13 @@ void madChaserAlertCrouch(Task* arg0)
 
     work = (MadChaserWork*)arg0->work;
     if ((madChaserAnimEnded(arg0) << 0x10) != 0) {
-        work->field_438  = 1;
-        work->field_412  = 0;
-        work2            = (MadChaserWork*)arg0->work;
-        work2->field_426 = 4;
-        work2->field_41C = 0x10;
-        work2->field_418 = 4;
-        work2->field_414 = 1;
-        work->field_422  = work->field_422 + 1;
+        work->busy             = 1;
+        work->stateFrames      = 0;
+        work2                  = (MadChaserWork*)arg0->work;
+        work2->animBlendFrames = 4;
+        work2->animRate        = ANIMATION_RATE_ONE;
+        work2->animId          = 4;
+        work2->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+        work->subState         = work->subState + 1;
     }
 }

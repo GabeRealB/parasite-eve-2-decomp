@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Main enemy init. Allocates the 0x454-byte `MadChaserWork`, points the
+/// Main enemy init. Allocates the `MadChaserWork`, points the
 /// model at the light / color matrices inside it, runs the animation context,
 /// links the collision objects and the enemy's list node, and enters state 2
 /// for spawn kind 1 (low nibble of `spawnArg1`), state 1 otherwise. The root
@@ -25,36 +25,36 @@ void madChaserSpawn(Task* task)
 
     enemy      = task->spawnArg2.pointer;
     root       = task->extra.tmd->coords;
-    task->work = memCalloc(0x454, 0);
+    task->work = memCalloc(sizeof(MadChaserWork), 0);
     work       = (MadChaserWork*)task->work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     madChaserLoadSoundBank();
-    obj                   = task->extra.tmd;
-    w                     = (MadChaserWork*)task->work;
-    e                     = task->spawnArg2.pointer;
-    coord                 = obj->coords;
-    task->msgTable        = gMadChaserMsgTable;
-    obj->lightMtx         = &w->lightMtx;
-    obj->colorMtx         = &w->colorMtx;
-    e->param              = &gMadChaserEnemyParams;
-    e->recs               = w->rec_2EC;
-    w->eff_3FC.coord      = &task->extra.tmd->coords[1];
-    w->eff_3FC.spawnArgLo = 0x140;
-    w->eff_3FC.spawnArgHi = 2;
+    obj                     = task->extra.tmd;
+    w                       = (MadChaserWork*)task->work;
+    e                       = task->spawnArg2.pointer;
+    coord                   = obj->coords;
+    task->msgTable          = gMadChaserMsgTable;
+    obj->lightMtx           = &w->lightMtx;
+    obj->colorMtx           = &w->colorMtx;
+    e->param                = &gMadChaserEnemyParams;
+    e->recs                 = w->contacts;
+    w->effectArg.coord      = &task->extra.tmd->coords[1];
+    w->effectArg.spawnArgLo = 0x140;
+    w->effectArg.spawnArgHi = 2;
     e->hp = e->hpMax = gMadChaserEnemyParams.hpMax;
-    animationInitContext(&w->anim, (AnimationSet**)gMadChaserAnimBank, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])w->field_21C, w->slots);
-    w2            = (MadChaserWork*)task->work;
-    w2->field_41C = 0x10;
-    w2->field_418 = 7;
-    w2->field_414 = 2;
+    animationInitContext(&w->anim, (AnimationSet**)gMadChaserAnimBank, obj, w->poses, w->slots);
+    w2              = (MadChaserWork*)task->work;
+    w2->animRate    = ANIMATION_RATE_ONE;
+    w2->animId      = 7;
+    w2->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
     madChaserTickAnim(task);
     coord->parent = &gGfxViewCoord;
     madChaserLinkBodies(task);
-    w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
-    enemy       = task->spawnArg2.pointer;
+    w->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
+    enemy          = task->spawnArg2.pointer;
     Gp_LinkNode(&enemy->node);
     enemy->field_4                = &task->extra.tmd->coords->coord;
     enemy->field_48               = 0;
@@ -66,18 +66,18 @@ void madChaserSpawn(Task* task)
     one                           = 1;
     (Gp_IncStateF0Ref)(0);
     if ((task->spawnArg1.value & 0xF) == one) {
-        w3            = (MadChaserWork*)task->work;
-        task->state   = 2;
-        w3->field_420 = 0;
-        w3->field_422 = 0;
+        w3           = (MadChaserWork*)task->work;
+        task->state  = 2;
+        w3->state    = 0;
+        w3->subState = 0;
     } else {
-        w4            = (MadChaserWork*)task->work;
-        task->state   = one;
-        w4->field_420 = 0;
-        w4->field_422 = 0;
+        w4           = (MadChaserWork*)task->work;
+        task->state  = one;
+        w4->state    = 0;
+        w4->subState = 0;
     }
-    work->field_80    = root->coord.t[0];
-    root->coord.t[1] -= 0x3C;
-    work->field_82    = root->coord.t[1];
-    work->field_84    = root->coord.t[2];
+    work->anchorPos.vx = root->coord.t[0];
+    root->coord.t[1]  -= 0x3C;
+    work->anchorPos.vy = root->coord.t[1];
+    work->anchorPos.vz = root->coord.t[2];
 }

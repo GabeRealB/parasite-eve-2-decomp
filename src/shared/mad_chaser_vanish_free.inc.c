@@ -8,15 +8,15 @@ void madChaserVanishFree(Task* arg0)
     TmdObject*     model;
     u16            ticks;
 
-    work            = (MadChaserWork*)arg0->work;
-    model           = arg0->extra.tmd;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
+    work              = (MadChaserWork*)arg0->work;
+    model             = arg0->extra.tmd;
+    ticks             = work->stateFrames + 1;
+    work->stateFrames = ticks;
     if ((s16)ticks == 3) {
         Tmd_FreeBuffers(model);
         model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
-    if ((s16)work->field_412 >= 0x24) {
+    if ((s16)work->stateFrames >= 0x24) {
         enemyDestroy(arg0->spawnArg2.pointer, arg0);
     }
 }

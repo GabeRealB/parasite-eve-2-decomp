@@ -57,7 +57,7 @@
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/mad_chaser.h"
 
-extern u8            gMadChaserAnimStance[];  // per animation id (1-based): the value to put in `field_44F`
+extern u8            gMadChaserAnimStance[];  // per animation id (1-based): the value to put in `stateScratch`
 extern u8            gMadChaserSettleAnims[]; // per animation id (1-based): the animation to follow it
 extern EnemyParams   gMadChaserEnemyParams;   // the main enemy's `Enemy::param` record
 extern AnimationSet* gMadChaserAnimBank[21];  // animation bank handed to `animationInitContext`
@@ -784,7 +784,7 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     madChaserShrinkDeathTick,
 } };
 
-/// State handlers `madChaserCombatTick` dispatches by `field_420`.
+/// State handlers `madChaserCombatTick` dispatches by `state`.
 static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserToAlertState,
     Actor04400_Fn06848,
@@ -799,21 +799,21 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserPullState,
 } };
 
-/// Sub-state handlers `madChaserKnockdownState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserKnockdownState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
     madChaserKnockdownStart,
     madChaserKnockdownRise,
     madChaserKnockdownEnd,
 } };
 
-/// Sub-state handlers `madChaserWalkState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserWalkState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserWalkSteps = { {
     madChaserWalkStart,
     madChaserWalkApproach,
     madChaserWalkFinish,
 } };
 
-/// Sub-state handlers `madChaserLeapState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserLeapState` dispatches by `subState`.
 static const TaskFuncTable5 gMadChaserLeapSteps = { {
     madChaserStartLeap,
     madChaserLeapAttack,
@@ -822,7 +822,7 @@ static const TaskFuncTable5 gMadChaserLeapSteps = { {
     madChaserLeapLand,
 } };
 
-/// Sub-state handlers `Actor04400_Fn06964` dispatches by `field_422`.
+/// Sub-state handlers `Actor04400_Fn06964` dispatches by `subState`.
 static const TaskFuncTable5 Actor04400_D0009C = { {
     madChaserAlertCry,
     madChaserAlertWait,
@@ -831,7 +831,7 @@ static const TaskFuncTable5 Actor04400_D0009C = { {
     madChaserAlertSidestep,
 } };
 
-/// Sub-state handlers `madChaserDangleState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserDangleState` dispatches by `subState`.
 static const TaskFuncTable4 gMadChaserDangleSteps = { {
     madChaserDangleStart,
     madChaserDangleSway,
@@ -869,9 +869,9 @@ static const TaskFuncTable4 gMadChaserDangleSteps = { {
 
 /// Per-frame contact handling for the enemy. Walks the eight contact records: kind 1 (skipped when
 /// `arg1` is set) and kind 3 push the model out, kind 2 applies a hit -
-/// damage, status effects and the pending state request in `field_448` -
-/// unless `field_40E` is still cooling down. Then ticks the status flags,
-/// applies `func_800E0C10`'s collision step (snapping back to `field_60` when
+/// damage, status effects and the pending state request in `hitReaction` -
+/// unless `hitCooldown` is still cooling down. Then ticks the status flags,
+/// applies `func_800E0C10`'s collision step (snapping back to `prevRootPos` when
 /// it reports a conflict) and moves the root by the combined step and
 /// push-out.
 void madChaserApplyContacts(Task* arg0, s16 arg1)
@@ -901,15 +901,15 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
     coord   = arg0->extra.tmd->coords;
     enemy   = arg0->spawnArg2.pointer;
     SCRATCH_STACK_RESERVE_BYTES(8);
-    work->field_41E = 0;
+    work->hitTaken = 0;
     for (i = 0; i < 8; i++) {
-        switch (work->rec_2EC[i].key.value & 0xFFFF0000) {
+        switch (work->contacts[i].key.value & 0xFFFF0000) {
             case 0x10000:
                 if (arg1 != 0) {
                     break;
                 }
             case 0x30000:
-                madChaserCalcPush(arg0, coord, &work->rec_2EC[i], &push);
+                madChaserCalcPush(arg0, coord, &work->contacts[i], &push);
                 if (ABS(maxX) < ABS(push.vx)) {
                     maxX = push.vx;
                 }
@@ -918,61 +918,61 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                 }
                 break;
             case 0x20000:
-                if (work->field_40E == 0) {
-                    work->field_41E = 1;
-                    dmg             = Gp_ComputeDamage(work->rec_2EC[i].key.value, work->field_43A, 0, 0);
-                    amount          = dmg;
-                    work->field_40E = Gp_GetIdParam2(work->rec_2EC[i].key.value);
-                    if (Gp_RollEnemyChance(enemy, work->rec_2EC[i].key.value, 0) != 0) {
+                if (work->hitCooldown == 0) {
+                    work->hitTaken    = 1;
+                    dmg               = Gp_ComputeDamage(work->contacts[i].key.value, work->playerDist, 0, 0);
+                    amount            = dmg;
+                    work->hitCooldown = Gp_GetIdParam2(work->contacts[i].key.value);
+                    if (Gp_RollEnemyChance(enemy, work->contacts[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
-                    func_800E2C78(enemy, work->rec_2EC[i].key.value, amount, 0);
+                    func_800E2C78(enemy, work->contacts[i].key.value, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {
                         enemy->hp = 0;
                     }
-                    func_800FDB18(Gp_GetIdParam1(work->rec_2EC[i].key.value) & 0xFFFF,
-                                  &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
+                    func_800FDB18(Gp_GetIdParam1(work->contacts[i].key.value) & 0xFFFF,
+                                  &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
                     if (amount >= 0x28) {
-                        work->field_448 = 2;
+                        work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
                     } else {
-                        work->field_448 = 1;
+                        work->hitReaction = MAD_CHASER_HIT_REACTION_LIGHT;
                     }
-                    switch (Gp_GetIdParam0(work->rec_2EC[i].key.value) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF) {
                         case 0:
                             break;
                         case 1:
                             Gp_SetObjFlag1(enemy);
                             break;
                         case 2:
-                            Gp_SetObjFlag2(enemy, work->rec_2EC[i].key.value, 0);
+                            Gp_SetObjFlag2(enemy, work->contacts[i].key.value, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4(enemy, work->rec_2EC[i].key.value, 0);
+                            Gp_SetObjFlag4(enemy, work->contacts[i].key.value, 0);
                             break;
                         case 4:
-                            work->field_448 = 4;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_BLAST;
                             break;
                         case 5:
-                            work->field_448 = 2;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
                             break;
                         case 6:
-                            work->field_448 = 4;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_BLAST;
                             break;
                         case 7:
-                            work->field_448 = 2;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
                             break;
                         case 8:
-                            work->field_448 = 3;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_STATUS;
                             break;
                         case 9:
-                            work->field_448 = 3;
+                            work->hitReaction = MAD_CHASER_HIT_REACTION_STATUS;
                             break;
                     }
-                } else if ((Gp_GetIdParam1(work->rec_2EC[i].key.value) & 0xFFFF) == 0xD) {
-                    func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
+                } else if ((Gp_GetIdParam1(work->contacts[i].key.value) & 0xFFFF) == 0xD) {
+                    func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
                 }
                 break;
         }
@@ -980,31 +980,31 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
 
     if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
-        work->field_448       = 5;
+        work->hitReaction     = MAD_CHASER_HIT_REACTION_KNOCKDOWN;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
-        work->field_448       = 3;
+        work->hitReaction     = MAD_CHASER_HIT_REACTION_STATUS;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        work->field_44E = 1;
-        tmp             = Gp_TickObjFlag4(enemy);
-        tick            = tmp;
+        work->damageOverTimeSeen = 1;
+        tmp                      = Gp_TickObjFlag4(enemy);
+        tick                     = tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
             func_800DA6E8(&enemy->node, tick, 0);
             if (enemy->hp < 0) {
                 enemy->hp = 0;
             }
-            work->field_41E = 1;
-            work->field_448 = 2;
+            work->hitTaken    = 1;
+            work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
         }
         if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
 
-    switch (func_800E0C10(work->rec_2EC, &delta, 8, NULL)) {
+    switch (func_800E0C10(work->contacts, &delta, 8, NULL)) {
         case 0:
             break;
         case 1:
@@ -1026,23 +1026,23 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
             }
             break;
         case 2:
-            coord->coord.t[0]   = work->field_60.vx;
-            coord->coord.t[2]   = work->field_60.vz;
+            coord->coord.t[0]   = work->prevRootPos.vx;
+            coord->coord.t[2]   = work->prevRootPos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             blocked             = 1;
             break;
     }
 
-    Gp_ClearRec18Occupied(work->rec_2EC);
+    Gp_ClearRec18Occupied(work->contacts);
     if (work->field_43E != 0) {
         work->field_43E--;
     }
-    if (work->field_40E > 0) {
-        work->field_40E--;
+    if (work->hitCooldown > 0) {
+        work->hitCooldown--;
     }
     if (blocked == 0) {
-        work->field_80     += Actor04400_PickStep(stepX, maxX >> 3);
-        work->field_84     += Actor04400_PickStep(stepZ, maxZ >> 3);
+        work->anchorPos.vx += Actor04400_PickStep(stepX, maxX >> 3);
+        work->anchorPos.vz += Actor04400_PickStep(stepZ, maxZ >> 3);
         coord->coord.t[0]  += Actor04400_PickStep(stepX, maxX >> 3);
         coord->coord.t[2]  += Actor04400_PickStep(stepZ, maxZ >> 3);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1054,7 +1054,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
 
 #include "../../shared/mad_chaser_bodies.inc.c"
 
-/// State handlers `madChaserDeathTick` dispatches by `field_420`.
+/// State handlers `madChaserDeathTick` dispatches by `state`.
 static const TaskFuncTable9 gMadChaserDeathStates = { {
     madChaserDeathCry,
     madChaserDeathSettle,
@@ -1073,21 +1073,21 @@ static const TaskFuncTable9 gMadChaserDeathStates = { {
 
 #include "../../shared/mad_chaser_track_player.inc.c"
 
-/// State handler: with `field_44F` 1, a pending request 1 while `field_41E`
+/// State handler: with `stateScratch` 1, a pending request 1 while `hitTaken`
 /// is set queues animation 0xB (kind 2, speed 0x20); otherwise a consumed
-/// request wins, and a hit moves to state 3. With `field_44F` clear, a hit
+/// request wins, and a hit moves to state 3. With `stateScratch` clear, a hit
 /// calls `madChaserSetAlertHold` and moves to state 5. The request test
-/// compares against the constant 1, which CSE folds into the `field_44F`
-/// register; writing `== work->field_44F` reloads the byte instead.
+/// compares against the constant 1, which CSE folds into the `stateScratch`
+/// register; writing `== work->stateScratch` reloads the byte instead.
 static void Actor04400_Fn03390(Task* arg0)
 {
     MadChaserWork* work = (MadChaserWork*)arg0->work;
 
-    if (work->field_44F == 1) {
-        if (work->field_41E != 0 && work->field_448 == 1) {
-            work->field_41C = 0x20;
-            work->field_418 = 0xB;
-            work->field_414 = 2;
+    if (work->stateScratch == 1) {
+        if (work->hitTaken != 0 && work->hitReaction == MAD_CHASER_HIT_REACTION_LIGHT) {
+            work->animRate    = 0x20;
+            work->animId      = 0xB;
+            work->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
             return;
         }
         if (madChaserTakeRequest(arg0) == 0 && madChaserIsHit(arg0)) {
@@ -1099,7 +1099,7 @@ static void Actor04400_Fn03390(Task* arg0)
     }
 }
 
-/// State handlers `Actor04400_Fn03538` dispatches by `field_420`.
+/// State handlers `Actor04400_Fn03538` dispatches by `state`.
 static const TaskFuncTable5 Actor04400_D00128 = { {
     Actor04400_Fn07CF0,
     Actor04400_Fn07D78,
@@ -1109,12 +1109,12 @@ static const TaskFuncTable5 Actor04400_D00128 = { {
 } };
 
 /// The five-state per-frame callback of the enemy's state machine, the
-/// counterpart of `madChaserDropDeathTick`. Mode 0 counts `field_442` up, aims
+/// counterpart of `madChaserDropDeathTick`. Mode 0 counts `frameCount` up, aims
 /// (`madChaserTrackPlayer`), lets `madChaserTakeHit` replace the handler
-/// `field_420` selects from `Actor04400_D00128`, rebuilds the model root
+/// `state` selects from `Actor04400_D00128`, rebuilds the model root
 /// rotation through part 0's coordinate, and picks the next state: 4 once the
 /// `field_40` hold is empty, 8 / 9 for messages 4 / 5, and 3 after a consumed
-/// `field_448` request. Mode 1 recolours from part 1's world position; both
+/// `hitReaction` request. Mode 1 recolours from part 1's world position; both
 /// clear bit 0x80 of the model flags, which mode 2 sets.
 static void Actor04400_Fn03538(Task* arg0)
 {
@@ -1129,23 +1129,23 @@ static void Actor04400_Fn03538(Task* arg0)
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_442++;
+            work->frameCount++;
             madChaserTrackPlayer(arg0);
             if (madChaserTakeHit(arg0) == 0) {
-                sp.funcs[(s16)work->field_420](arg0);
+                sp.funcs[(s16)work->state](arg0);
             }
             madChaserTickAnim(arg0);
             madChaserTwistSpine(arg0);
             madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
-            if (work->field_438 == 0 && enemy->hp <= 0) {
+            if (work->busy == 0 && enemy->hp <= 0) {
                 madChaserEnterState(arg0, 4);
-            } else if (work->field_44C == 4 && work->field_438 == 0) {
+            } else if (work->command == MAD_CHASER_COMMAND_DROP_DEATH && work->busy == 0) {
                 madChaserEnterState(arg0, 8);
-            } else if (work->field_44C == 5 && work->field_438 == 0) {
+            } else if (work->command == MAD_CHASER_COMMAND_SHRINK_DEATH && work->busy == 0) {
                 madChaserEnterState(arg0, 9);
             } else if (madChaserTakeRequest(arg0)) {
-                work->field_438 = 0;
+                work->busy = 0;
                 madChaserEnterState(arg0, 3);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1159,28 +1159,28 @@ static void Actor04400_Fn03538(Task* arg0)
     }
 }
 
-/// Sub-state handlers `Actor04400_Fn07CF0` dispatches by `field_422`.
+/// Sub-state handlers `Actor04400_Fn07CF0` dispatches by `subState`.
 static const TaskFuncTable3 Actor04400_D00150 = { {
     madChaserStartHold,
     madChaserLurkWait,
     madChaserLurkIdleEnd,
 } };
 
-/// Sub-state handlers `Actor04400_Fn07D78` dispatches by `field_422`.
+/// Sub-state handlers `Actor04400_Fn07D78` dispatches by `subState`.
 static const TaskFuncTable3 Actor04400_D0015C = { {
     madChaserLurkCrouch,
     madChaserLurkRaise,
     madChaserLurkLookAround,
 } };
 
-/// Sub-state handlers `madChaserLurkAlertState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserLurkAlertState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
     madChaserStartAlert,
     madChaserLurkBrace,
     madChaserLurkSidestepToCombat,
 } };
 
-/// Sub-state handlers `Actor04400_Fn07F04` dispatches by `field_422`.
+/// Sub-state handlers `Actor04400_Fn07F04` dispatches by `subState`.
 static const TaskFuncTable4 Actor04400_D00174 = { {
     madChaserLurkShiftStart,
     madChaserLurkShiftBrace,
@@ -1188,7 +1188,7 @@ static const TaskFuncTable4 Actor04400_D00174 = { {
     madChaserLurkSidestepLeft,
 } };
 
-/// State handlers `madChaserEmergeTick` dispatches by `field_420`.
+/// State handlers `madChaserEmergeTick` dispatches by `state`.
 static const TaskFuncTable10 gMadChaserEmergeStates = { {
     madChaserEmergeAtSpot,
     madChaserEmergeBackflip,
@@ -1202,7 +1202,7 @@ static const TaskFuncTable10 gMadChaserEmergeStates = { {
     Actor04400_Fn05260,
 } };
 
-/// Sub-state handlers `madChaserPullState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserPullState` dispatches by `subState`.
 static const TaskFuncTable6 gMadChaserPullSteps = { {
     madChaserPullStart,
     madChaserPullReact,
@@ -1212,7 +1212,7 @@ static const TaskFuncTable6 gMadChaserPullSteps = { {
     madChaserPulledIn,
 } };
 
-/// State handlers `madChaserDropDeathTick` dispatches by `field_420`.
+/// State handlers `madChaserDropDeathTick` dispatches by `state`.
 static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     madChaserDeathCryUnlink,
     madChaserDeathSettleQuiet,
@@ -1221,7 +1221,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     Actor04400_Fn08A9C,
 } };
 
-/// State handlers `madChaserShrinkDeathTick` dispatches by `field_420`.
+/// State handlers `madChaserShrinkDeathTick` dispatches by `state`.
 static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     Actor04400_Fn08AA4,
     madChaserDeathSettleQuiet,
@@ -1283,56 +1283,56 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_alert_hold.inc.c"
 
-/// While `field_41E` is 1, consumes the pending request in `field_448`:
+/// While `hitTaken` is 1, consumes the pending request in `hitReaction`:
 /// requests 1..5 jump the state machine to states 6, 7, 8, 7 and 9 at
-/// sub-state 0, anything else is just cleared. Returns 1 when `field_41E` is 1
+/// sub-state 0, anything else is just cleared. Returns 1 when `hitTaken` is 1
 /// and 0 otherwise. Each case reloads the work block through its own local;
 /// one shared local lands in `$a0` instead of `$v1`.
 s32 madChaserTakeHitRequest(Task* arg0)
 {
     MadChaserWork* work = (MadChaserWork*)arg0->work;
 
-    if (work->field_41E == 1) {
-        switch ((s16)(work->field_448 - 1)) {
-            case 0: {
+    if (work->hitTaken == 1) {
+        switch ((s16)(work->hitReaction - 1)) {
+            case MAD_CHASER_HIT_REACTION_LIGHT - 1: {
                 MadChaserWork* w = (MadChaserWork*)arg0->work;
-                w->field_420     = 6;
-                w->field_422     = 0;
+                w->state         = 6;
+                w->subState      = 0;
                 break;
             }
-            case 1: {
+            case MAD_CHASER_HIT_REACTION_HEAVY - 1: {
                 MadChaserWork* w = (MadChaserWork*)arg0->work;
-                w->field_420     = 7;
-                w->field_422     = 0;
+                w->state         = 7;
+                w->subState      = 0;
                 break;
             }
-            case 2: {
+            case MAD_CHASER_HIT_REACTION_STATUS - 1: {
                 MadChaserWork* w = (MadChaserWork*)arg0->work;
-                w->field_420     = 8;
-                w->field_422     = 0;
+                w->state         = 8;
+                w->subState      = 0;
                 break;
             }
-            case 3: {
+            case MAD_CHASER_HIT_REACTION_BLAST - 1: {
                 MadChaserWork* w = (MadChaserWork*)arg0->work;
-                w->field_420     = 7;
-                w->field_422     = 0;
+                w->state         = 7;
+                w->subState      = 0;
                 break;
             }
-            case 4: {
+            case MAD_CHASER_HIT_REACTION_KNOCKDOWN - 1: {
                 MadChaserWork* w = (MadChaserWork*)arg0->work;
-                w->field_420     = 9;
-                w->field_422     = 0;
+                w->state         = 9;
+                w->subState      = 0;
                 break;
             }
         }
-        work->field_448 = 0;
+        work->hitReaction = MAD_CHASER_HIT_REACTION_NONE;
         return 1;
     }
     return 0;
 }
 
 /// Message handler: on message 0x2C00 whose low nibble is 1..5, store the
-/// message halfword in `field_44C`. The five identical case bodies are
+/// message halfword in `command`. The five identical case bodies are
 /// cross-jumped into one, but only separate bodies keep the jump table; a
 /// single `case 1 ... 5` becomes a range test. `arg1` is the dispatch's
 /// handler index and is unused here.
@@ -1341,21 +1341,21 @@ void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
     MadChaserWork* work = (MadChaserWork*)arg0->work;
 
     if (request->context.key == 0x2C00) {
-        switch (request->command & 0xF) {
-            case 1:
-                work->field_44C = request->command;
+        switch (request->command & MAD_CHASER_COMMAND_KIND_MASK) {
+            case MAD_CHASER_COMMAND_EMERGE:
+                work->command = request->command;
                 break;
-            case 2:
-                work->field_44C = request->command;
+            case MAD_CHASER_COMMAND_PULL:
+                work->command = request->command;
                 break;
-            case 3:
-                work->field_44C = request->command;
+            case MAD_CHASER_COMMAND_VANISH:
+                work->command = request->command;
                 break;
-            case 4:
-                work->field_44C = request->command;
+            case MAD_CHASER_COMMAND_DROP_DEATH:
+                work->command = request->command;
                 break;
-            case 5:
-                work->field_44C = request->command;
+            case MAD_CHASER_COMMAND_SHRINK_DEATH:
+                work->command = request->command;
                 break;
         }
     }

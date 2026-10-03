@@ -3,7 +3,7 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Plays sound 4 on the first frame and, once the hit flags are set, turns
-/// the enemy around, draws a 0x5A..0xD9 cooldown into `field_44A`, requests
+/// the enemy around, draws a 0x5A..0xD9 cooldown into `leapCooldown`, requests
 /// animation 0xD and moves the task to state 1.
 void madChaserLeapTurnAway(Task* arg0)
 {
@@ -15,24 +15,24 @@ void madChaserLeapTurnAway(Task* arg0)
     u32            rand;
 
     work = (MadChaserWork*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
+    if ((s16)++work->stateFrames == 1) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0004;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (madChaserAnimEnded(arg0) != 0) {
-        work->field_438  = 0;
-        rand             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
-        work->field_7A  += 0x800;
-        work2            = (MadChaserWork*)arg0->work;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xD;
-        work2->field_414 = 2;
-        work3            = (MadChaserWork*)arg0->work;
-        gRandomLcgState  = rand;
-        arg0->state      = 1;
-        work3->field_420 = 0;
-        work3->field_422 = 0;
+        work->busy         = 0;
+        rand               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->leapCooldown = ((rand >> 16) & 0x7F) + 0x5A;
+        work->rotation.vy += 0x800;
+        work2              = (MadChaserWork*)arg0->work;
+        work2->animRate    = ANIMATION_RATE_ONE;
+        work2->animId      = 0xD;
+        work2->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
+        work3              = (MadChaserWork*)arg0->work;
+        gRandomLcgState    = rand;
+        arg0->state        = 1;
+        work3->state       = 0;
+        work3->subState    = 0;
     }
 }

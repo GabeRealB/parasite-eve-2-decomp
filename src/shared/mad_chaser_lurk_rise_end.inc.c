@@ -15,8 +15,8 @@ void madChaserLurkRiseEnd(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work2            = (MadChaserWork*)arg0->work;
-        work2->field_420 = 0;
-        work2->field_422 = 0;
+        work2           = (MadChaserWork*)arg0->work;
+        work2->state    = 0;
+        work2->subState = 0;
     }
 }

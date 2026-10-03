@@ -20,11 +20,11 @@ void madChaserBurst(Task* arg0)
     Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
     work        = (MadChaserWork*)arg0->work;
-    Gp_UnlinkObj(&work->obj_2AC);
-    Gp_UnlinkObj(&work->obj_2CC);
-    Gp_UnlinkObj(&work->obj_3AC);
-    work2            = (MadChaserWork*)arg0->work;
-    arg0->state      = 5;
-    work2->field_420 = 0;
-    work2->field_422 = 0;
+    Gp_UnlinkObj(&work->pairBody);
+    Gp_UnlinkObj(&work->gridBody);
+    Gp_UnlinkObj(&work->attackBody);
+    work2           = (MadChaserWork*)arg0->work;
+    arg0->state     = 5;
+    work2->state    = 0;
+    work2->subState = 0;
 }

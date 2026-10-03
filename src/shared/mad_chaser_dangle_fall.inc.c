@@ -1,7 +1,7 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Drops the model back to the ground: eases the pitch latched in
-/// `field_434` back to zero while keeping the heading, adds the accelerating
+/// `fallPitch` back to zero while keeping the heading, adds the accelerating
 /// drop to the root Y, and on landing requests animation 0xC and advances the
 /// sub-state.
 void madChaserDangleFall(Task* arg0)
@@ -21,9 +21,9 @@ void madChaserDangleFall(Task* arg0)
     src->rotationWords.m11M12 = ONE;
     src->rotationWords.m20M21 = 0;
     src->rotationWords.m22    = ONE;
-    work->field_434          += -work->field_434 >> 2;
-    RotMatrixX(work->field_434, &src->mat);
-    RotMatrixY(work->field_7A, &src->mat);
+    work->fallPitch          += -work->fallPitch >> 2;
+    RotMatrixX(work->fallPitch, &src->mat);
+    RotMatrixY(work->rotation.vy, &src->mat);
     dst                = &coord->coord;
     dst->m[0][0]       = src->mat.m[0][0];
     dst->m[0][1]       = src->mat.m[0][1];
@@ -34,16 +34,16 @@ void madChaserDangleFall(Task* arg0)
     dst->m[2][0]       = src->mat.m[2][0];
     dst->m[2][1]       = src->mat.m[2][1];
     dst->m[2][2]       = src->mat.m[2][2];
-    work->field_428   += 2;
-    work->field_42A   += work->field_428;
-    coord->coord.t[1] += work->field_42A;
+    work->moveAccel   += 2;
+    work->moveSpeed   += work->moveAccel;
+    coord->coord.t[1] += work->moveSpeed;
     if (coord->coord.t[1] > 0) {
-        work->field_412   = 0;
+        work->stateFrames = 0;
         coord->coord.t[1] = 0;
         anim              = (MadChaserWork*)arg0->work;
-        anim->field_41C   = 0x20;
-        anim->field_418   = 0xC;
-        anim->field_414   = 2;
-        work->field_422++;
+        anim->animRate    = 0x20;
+        anim->animId      = 0xC;
+        anim->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
+        work->subState++;
     }
 }

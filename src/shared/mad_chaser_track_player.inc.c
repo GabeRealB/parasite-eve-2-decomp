@@ -1,9 +1,9 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Aims at the nearer of the two player actors: saves the root position in
-/// `field_60`, stores the offset to that actor in `field_88`..`field_8C` and
-/// its horizontal distance in `field_43A`, and its heading relative to
-/// `field_7A` in `field_444`. Nothing but the position is updated while
+/// `prevRootPos`, stores the offset to that actor in `toPlayer` and
+/// its horizontal distance in `playerDist`, and its heading relative to
+/// `rotation.vy` in `playerBearing`. Nothing but the position is updated while
 /// player slot 0 is empty.
 void madChaserTrackPlayer(Task* arg0)
 {
@@ -16,12 +16,12 @@ void madChaserTrackPlayer(Task* arg0)
     s32            dist;
     s32            dist2;
 
-    work              = (MadChaserWork*)arg0->work;
-    coord             = arg0->extra.tmd->coords;
-    player            = gPlayerActorTasks[0];
-    work->field_60.vx = coord->coord.t[0];
-    work->field_60.vy = coord->coord.t[1];
-    work->field_60.vz = coord->coord.t[2];
+    work                 = (MadChaserWork*)arg0->work;
+    coord                = arg0->extra.tmd->coords;
+    player               = gPlayerActorTasks[0];
+    work->prevRootPos.vx = coord->coord.t[0];
+    work->prevRootPos.vy = coord->coord.t[1];
+    work->prevRootPos.vz = coord->coord.t[2];
     if (player != NULL) {
         other = player->extra.tmd->coords;
         d0.vx = other->coord.t[0] - coord->coord.t[0];
@@ -43,12 +43,12 @@ void madChaserTrackPlayer(Task* arg0)
         }
         // The loop notes keep VectorNormalSS's argument setup below these stores.
         do {
-            work->field_88  = d0.vx;
-            work->field_8A  = d0.vy;
-            work->field_8C  = d0.vz;
-            work->field_43A = dist;
+            work->toPlayer.vx = d0.vx;
+            work->toPlayer.vy = d0.vy;
+            work->toPlayer.vz = d0.vz;
+            work->playerDist  = dist;
         } while (0);
         VectorNormalSS(&d0, &d0);
-        work->field_444 = (ratan2(d0.vx, d0.vz) - work->field_7A) & 0xFFF;
+        work->playerBearing = (ratan2(d0.vx, d0.vz) - work->rotation.vy) & 0xFFF;
     }
 }

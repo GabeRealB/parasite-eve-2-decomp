@@ -11,7 +11,7 @@ void madChaserDangleLand(Task* arg0)
     s32            pan;
 
     work = (MadChaserWork*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
+    if ((s16)++work->stateFrames == 1) {
         soundId   = (u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         soundId >>= 0xC;
         soundId <<= 8;
@@ -20,7 +20,7 @@ void madChaserDangleLand(Task* arg0)
         pan     >>= 24;
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if ((s16)work->field_412 == 2) {
+    if ((s16)work->stateFrames == 2) {
         soundId   = (u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         soundId >>= 0xC;
         soundId <<= 8;
@@ -30,12 +30,12 @@ void madChaserDangleLand(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (madChaserAnimEnded(arg0)) {
-        next             = (MadChaserWork*)arg0->work;
-        arg0->state      = 3;
-        next->field_420  = 0;
-        next->field_422  = 0;
-        next2            = (MadChaserWork*)arg0->work;
-        next2->field_420 = 3;
-        next2->field_422 = 0;
+        next            = (MadChaserWork*)arg0->work;
+        arg0->state     = 3;
+        next->state     = 0;
+        next->subState  = 0;
+        next2           = (MadChaserWork*)arg0->work;
+        next2->state    = 3;
+        next2->subState = 0;
     }
 }

@@ -1,10 +1,10 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Sets the state machine to state 5, the alert, with `field_422` cleared.
+/// Sets the state machine to state 5, the alert, with `subState` cleared.
 void madChaserToAlertState(Task* arg0)
 {
     MadChaserWork* work = (MadChaserWork*)arg0->work;
 
-    work->field_420 = 5;
-    work->field_422 = 0;
+    work->state    = 5;
+    work->subState = 0;
 }

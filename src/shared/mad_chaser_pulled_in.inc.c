@@ -13,10 +13,10 @@ void madChaserPulledIn(Task* arg0)
     s32            soundId;
     s32            pan;
 
-    work            = (MadChaserWork*)arg0->work;
-    enemy           = (Enemy*)arg0->spawnArg2.pointer;
-    tmd             = arg0->extra.tmd;
-    work->field_438 = 1;
+    work       = (MadChaserWork*)arg0->work;
+    enemy      = (Enemy*)arg0->spawnArg2.pointer;
+    tmd        = arg0->extra.tmd;
+    work->busy = 1;
     if (enemy->hp >= 0) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0003;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -29,9 +29,9 @@ void madChaserPulledIn(Task* arg0)
     Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
     objs        = (MadChaserWork*)arg0->work;
-    Gp_UnlinkObj(&objs->obj_2AC);
-    Gp_UnlinkObj(&objs->obj_2CC);
-    Gp_UnlinkObj(&objs->obj_3AC);
+    Gp_UnlinkObj(&objs->pairBody);
+    Gp_UnlinkObj(&objs->gridBody);
+    Gp_UnlinkObj(&objs->attackBody);
     madChaserEnterState(arg0, 5);
     taskMessageDispatch(Gp_LookupSlot4(0), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
     tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;

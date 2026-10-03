@@ -6,10 +6,10 @@ void madChaserDeathPause(Task* arg0)
     u16            ticks;
     MadChaserWork* work;
 
-    work            = (MadChaserWork*)arg0->work;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
+    work              = (MadChaserWork*)arg0->work;
+    ticks             = work->stateFrames + 1;
+    work->stateFrames = ticks;
     if ((s16)ticks >= 2) {
-        work->field_420 = work->field_420 + 1;
+        work->state = work->state + 1;
     }
 }

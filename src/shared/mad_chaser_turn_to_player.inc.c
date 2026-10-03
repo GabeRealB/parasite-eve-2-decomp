@@ -1,7 +1,7 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Turns the heading `field_7A` by `step` toward the nearer player actor
-/// (the offset in `field_88` / `field_8C`), leaving it alone within 0x100.
+/// Turns the heading `rotation.vy` by `step` toward the nearer player actor
+/// (the offset in `toPlayer.vx` / `toPlayer.vz`), leaving it alone within 0x100.
 void madChaserTurnToPlayer(Task* arg0, s32 step)
 {
     MadChaserWork* work = (MadChaserWork*)arg0->work;
@@ -10,16 +10,16 @@ void madChaserTurnToPlayer(Task* arg0, s32 step)
     u16            angle;
     s32            yaw;
 
-    vec.vx = work->field_88;
+    vec.vx = work->toPlayer.vx;
     vec.vy = 0;
-    vec.vz = work->field_8C;
+    vec.vz = work->toPlayer.vz;
     VectorNormalSS(&vec, &vec);
     yaw   = ratan2(-vec.vx, -vec.vz);
-    angle = work->field_7A;
+    angle = work->rotation.vy;
     diff  = ((angle - yaw) << 20) >> 20;
     if (diff > 0x100) {
-        work->field_7A = angle - step;
+        work->rotation.vy = angle - step;
     } else if (diff < -0x100) {
-        work->field_7A = angle + step;
+        work->rotation.vy = angle + step;
     }
 }

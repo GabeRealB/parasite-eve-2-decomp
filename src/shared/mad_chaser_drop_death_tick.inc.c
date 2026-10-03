@@ -15,15 +15,15 @@ void madChaserDropDeathTick(Task* arg0)
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_442++;
-            sp.funcs[(s16)work->field_420](arg0);
-            if (!(work->field_442 & 0x1F)) {
-                func_800FDB18(3, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
+            work->frameCount++;
+            sp.funcs[(s16)work->state](arg0);
+            if (!(work->frameCount & 0x1F)) {
+                func_800FDB18(3, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
             madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            if (work->field_451 == 0) {
+            if (work->shadowHidden == 0) {
                 madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
                 madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
                 madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
