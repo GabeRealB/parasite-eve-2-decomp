@@ -196,16 +196,7 @@ extern Task* gRoomCutsceneSoundTask;
 /// Non-zero while the ambient sound task runs.
 extern s32 D_shelter_b6_nursery_8018797C;
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomCutsceneRec value;
-    u8              retained[8];
-} ShelterB6NurseryStorage7980;
-STATIC_ASSERT_SIZEOF(ShelterB6NurseryStorage7980, 32);
-
-extern ShelterB6NurseryStorage7980 D_shelter_b6_nursery_80187980;
+extern RoomCutsceneRecStorage D_shelter_b6_nursery_80187980;
 
 /// Position the ambient sound is panned and attenuated from.
 extern GfxCoord D_shelter_b6_nursery_801879A0;
@@ -872,7 +863,7 @@ Task* gRoomCutsceneSoundTask;
 
 s32 D_shelter_b6_nursery_8018797C;
 
-ShelterB6NurseryStorage7980 D_shelter_b6_nursery_80187980;
+RoomCutsceneRecStorage D_shelter_b6_nursery_80187980;
 
 GfxCoord D_shelter_b6_nursery_801879A0;
 
@@ -906,24 +897,24 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
     s32 flag;
 
     if (arg2 == 0xA) {
-        D_shelter_b6_nursery_8018797C                       = 0;
-        D_shelter_b6_nursery_80187980.value.startSound      = 0x55160002;
-        D_shelter_b6_nursery_80187980.value.endSound        = 0x55160005;
-        D_shelter_b6_nursery_80187980.value.sceneSound      = 0x55160003;
-        D_shelter_b6_nursery_80187980.value.afterSceneSound = 0x55160004;
-        flag                                                = GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS);
+        D_shelter_b6_nursery_8018797C                     = 0;
+        D_shelter_b6_nursery_80187980.rec.startSound      = 0x55160002;
+        D_shelter_b6_nursery_80187980.rec.endSound        = 0x55160005;
+        D_shelter_b6_nursery_80187980.rec.sceneSound      = 0x55160003;
+        D_shelter_b6_nursery_80187980.rec.afterSceneSound = 0x55160004;
+        flag                                              = GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS);
         if (flag == 1) {
             if (GameFlag_GetNibble(GAME_FLAG_083) != 0) {
                 Gp_SetBit2Flag(0x22, 1, 4);
             }
             func_800E3FAC(0xA2, 0x31);
             GameFlag_SetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 2);
-            D_shelter_b6_nursery_80187980.value.view      = 6;
-            D_shelter_b6_nursery_80187980.value.capSlot   = 0xB;
-            D_shelter_b6_nursery_80187980.value.capFile   = 0;
-            D_shelter_b6_nursery_80187980.value.skipScene = flag;
+            D_shelter_b6_nursery_80187980.rec.view      = 6;
+            D_shelter_b6_nursery_80187980.rec.capSlot   = 0xB;
+            D_shelter_b6_nursery_80187980.rec.capFile   = 0;
+            D_shelter_b6_nursery_80187980.rec.skipScene = flag;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 0x19,
-                                &D_shelter_b6_nursery_80187980.value);
+                                &D_shelter_b6_nursery_80187980.rec);
             func_80132028();
             func_shelter_b6_nursery_80182D14(0, 0);
             return 0;
@@ -933,12 +924,12 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
             GameFlag_SetNibble(GAME_FLAG_NURSERY_SCENE_SEEN, 1);
             return 0;
         }
-        D_shelter_b6_nursery_80187980.value.view      = 6;
-        D_shelter_b6_nursery_80187980.value.capSlot   = 0x16;
-        D_shelter_b6_nursery_80187980.value.capFile   = 0;
-        D_shelter_b6_nursery_80187980.value.skipScene = 0;
+        D_shelter_b6_nursery_80187980.rec.view      = 6;
+        D_shelter_b6_nursery_80187980.rec.capSlot   = 0x16;
+        D_shelter_b6_nursery_80187980.rec.capFile   = 0;
+        D_shelter_b6_nursery_80187980.rec.skipScene = 0;
         Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xA,
-                            &D_shelter_b6_nursery_80187980.value);
+                            &D_shelter_b6_nursery_80187980.rec);
     }
     return 0;
 }

@@ -307,20 +307,11 @@ extern Task* gRoomCutsceneSoundTask;
 
 extern s32 D_shelter_b1_underground_parking_8018D758;
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomCutsceneRec value;
-    u8              retained[8];
-} ShelterB1UndergroundParkingStorageD75C;
-STATIC_ASSERT_SIZEOF(ShelterB1UndergroundParkingStorageD75C, 32);
-
-extern ShelterB1UndergroundParkingStorageD75C D_shelter_b1_underground_parking_8018D75C;
-extern TaskDesc                               D_shelter_b1_underground_parking_80187200;
-extern TaskDesc                               D_shelter_b1_underground_parking_80187260[];
-extern TaskDesc                               D_shelter_b1_underground_parking_8018726C[];
-extern ScreenFade                             D_shelter_b1_underground_parking_8018D750;
+extern RoomCutsceneRecStorage D_shelter_b1_underground_parking_8018D75C;
+extern TaskDesc               D_shelter_b1_underground_parking_80187200;
+extern TaskDesc               D_shelter_b1_underground_parking_80187260[];
+extern TaskDesc               D_shelter_b1_underground_parking_8018726C[];
+extern ScreenFade             D_shelter_b1_underground_parking_8018D750;
 
 /// The room's ambience table, one entry per view slot.
 extern RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[];
@@ -1640,7 +1631,7 @@ Task* gRoomCutsceneSoundTask = NULL;
 
 s32 D_shelter_b1_underground_parking_8018D758 = 0;
 
-ShelterB1UndergroundParkingStorageD75C D_shelter_b1_underground_parking_8018D75C = { { 0 }, { 0 } };
+RoomCutsceneRecStorage D_shelter_b1_underground_parking_8018D75C = { { 0 }, { 0 } };
 
 RoomDeparture gRoomDeparture = { 0, 0, 0, 0, 0, { 0, 0 }, 0 };
 
@@ -1864,7 +1855,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
             Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, arg2, 0);
             break;
         case 13:
-            st                  = &D_shelter_b1_underground_parking_8018D75C.value;
+            st                  = &D_shelter_b1_underground_parking_8018D75C.rec;
             st->startSound      = 0x5414000B;
             st->endSound        = 0x5414000E;
             st->sceneSound      = 0x5414000C;

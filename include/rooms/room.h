@@ -48,6 +48,19 @@ typedef struct {
 } RoomCutsceneRec;
 STATIC_ASSERT_SIZEOF(RoomCutsceneRec, 0x18);
 
+/// A room's cutscene record when that symbol is 32 bytes.
+///
+/// `rec` is the record the room fills and hands the cutscene runner. The
+/// eight bytes after it are zero in all four rooms with this extent and have
+/// no recovered access. Their role is unproven: a room whose image ends at
+/// its record stores exactly `RoomCutsceneRec`, so they are not established
+/// as fields of the record.
+typedef struct {
+    RoomCutsceneRec rec;        // Record handed to the cutscene runner as its spawn argument
+    u8              unknown[8]; // Role unproven; zero, with no recovered access
+} RoomCutsceneRecStorage;
+STATIC_ASSERT_SIZEOF(RoomCutsceneRecStorage, 0x20);
+
 /// A room's `gRoomCutsceneSoundTask` when that symbol is eight bytes.
 ///
 /// `task` is the sound task the cutscene runner starts beside the scene,

@@ -163,16 +163,7 @@ extern s32   D_acropolis_square_801888A4;
 extern Task* gRoomCutsceneSoundTask;
 
 /// The cutscene record the room hands entry 0 of `gRoomCutsceneTaskDescs`.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomCutsceneRec value;
-    u8              retained[8];
-} AcropolisSquareStorage88AC;
-STATIC_ASSERT_SIZEOF(AcropolisSquareStorage88AC, 32);
-
-extern AcropolisSquareStorage88AC D_acropolis_square_801888AC;
+extern RoomCutsceneRecStorage D_acropolis_square_801888AC;
 
 extern GfxCoord D_acropolis_square_801888CC;
 
@@ -1357,7 +1348,7 @@ s32 D_acropolis_square_801888A4 = 0;
 
 Task* gRoomCutsceneSoundTask = NULL;
 
-AcropolisSquareStorage88AC D_acropolis_square_801888AC = { 0 };
+RoomCutsceneRecStorage D_acropolis_square_801888AC = { 0 };
 
 GfxCoord D_acropolis_square_801888CC = { 0 };
 
@@ -1475,16 +1466,16 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 7) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
         }
-        D_acropolis_square_801888AC.value.view            = 9;
-        D_acropolis_square_801888AC.value.capSlot         = 1;
-        D_acropolis_square_801888AC.value.capFile         = 1;
-        D_acropolis_square_801888AC.value.startSound      = 0x51010001;
-        D_acropolis_square_801888AC.value.endSound        = 0x51010007;
-        D_acropolis_square_801888AC.value.sceneSound      = 0x51010006;
-        D_acropolis_square_801888AC.value.afterSceneSound = 0x5101000B;
-        D_acropolis_square_801888AC.value.skipScene       = D_acropolis_square_8018382C;
-        D_acropolis_square_8018382C                       = 0;
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_acropolis_square_801888AC.value);
+        D_acropolis_square_801888AC.rec.view            = 9;
+        D_acropolis_square_801888AC.rec.capSlot         = 1;
+        D_acropolis_square_801888AC.rec.capFile         = 1;
+        D_acropolis_square_801888AC.rec.startSound      = 0x51010001;
+        D_acropolis_square_801888AC.rec.endSound        = 0x51010007;
+        D_acropolis_square_801888AC.rec.sceneSound      = 0x51010006;
+        D_acropolis_square_801888AC.rec.afterSceneSound = 0x5101000B;
+        D_acropolis_square_801888AC.rec.skipScene       = D_acropolis_square_8018382C;
+        D_acropolis_square_8018382C                     = 0;
+        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_acropolis_square_801888AC.rec);
     }
     if ((arg2 == 0xE) && (GameFlag_GetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN) == 0)) {
         GameFlag_SetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN, 1);

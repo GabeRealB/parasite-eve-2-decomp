@@ -177,16 +177,7 @@ extern u8 gRoomEventActive;
 extern s32 D_shelter_b2_laboratory_801864B8;
 
 /// Parameters of the cutscene `func_shelter_b2_laboratory_8017FD18` starts.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomCutsceneRec value;
-    u8              retained[8];
-} ShelterB2LaboratoryStorage64BC;
-STATIC_ASSERT_SIZEOF(ShelterB2LaboratoryStorage64BC, 32);
-
-extern ShelterB2LaboratoryStorage64BC D_shelter_b2_laboratory_801864BC;
+extern RoomCutsceneRecStorage D_shelter_b2_laboratory_801864BC;
 
 /// World position the looping sound is panned and attenuated from.
 extern GfxCoord D_shelter_b2_laboratory_801864DC;
@@ -1042,7 +1033,7 @@ u8 gRoomEventActive = 0;
 
 s32 D_shelter_b2_laboratory_801864B8 = 0;
 
-ShelterB2LaboratoryStorage64BC D_shelter_b2_laboratory_801864BC = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+RoomCutsceneRecStorage D_shelter_b2_laboratory_801864BC = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 GfxCoord D_shelter_b2_laboratory_801864DC = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
@@ -1083,29 +1074,29 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, TaskMess
             } else {
                 func_800E3FAC(0xA2, 0x29);
             }
-            D_shelter_b2_laboratory_801864BC.value.view            = 0xD;
-            D_shelter_b2_laboratory_801864BC.value.capSlot         = 4;
-            D_shelter_b2_laboratory_801864BC.value.capFile         = 3;
-            D_shelter_b2_laboratory_801864BC.value.skipScene       = 1;
-            D_shelter_b2_laboratory_801864BC.value.capTPageX       = 0x180;
-            D_shelter_b2_laboratory_801864BC.value.capTPageY       = 0x100;
-            D_shelter_b2_laboratory_801864BC.value.startSound      = 0x541F0005;
-            D_shelter_b2_laboratory_801864BC.value.endSound        = 0x541F0008;
-            D_shelter_b2_laboratory_801864BC.value.sceneSound      = 0x541F0006;
-            D_shelter_b2_laboratory_801864BC.value.afterSceneSound = 0x541F0007;
-            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 1, &D_shelter_b2_laboratory_801864BC.value);
+            D_shelter_b2_laboratory_801864BC.rec.view            = 0xD;
+            D_shelter_b2_laboratory_801864BC.rec.capSlot         = 4;
+            D_shelter_b2_laboratory_801864BC.rec.capFile         = 3;
+            D_shelter_b2_laboratory_801864BC.rec.skipScene       = 1;
+            D_shelter_b2_laboratory_801864BC.rec.capTPageX       = 0x180;
+            D_shelter_b2_laboratory_801864BC.rec.capTPageY       = 0x100;
+            D_shelter_b2_laboratory_801864BC.rec.startSound      = 0x541F0005;
+            D_shelter_b2_laboratory_801864BC.rec.endSound        = 0x541F0008;
+            D_shelter_b2_laboratory_801864BC.rec.sceneSound      = 0x541F0006;
+            D_shelter_b2_laboratory_801864BC.rec.afterSceneSound = 0x541F0007;
+            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 1, &D_shelter_b2_laboratory_801864BC.rec);
             Task_SpawnFromTable(D_shelter_b2_laboratory_80182A6C, 2, 0, 0);
         } else {
-            D_shelter_b2_laboratory_801864BC.value.view            = 0xD;
-            D_shelter_b2_laboratory_801864BC.value.capSlot         = 1;
-            D_shelter_b2_laboratory_801864BC.value.capFile         = 2;
-            D_shelter_b2_laboratory_801864BC.value.skipScene       = 0;
-            D_shelter_b2_laboratory_801864BC.value.capTPageX       = 0;
-            D_shelter_b2_laboratory_801864BC.value.startSound      = 0x541F0005;
-            D_shelter_b2_laboratory_801864BC.value.endSound        = 0x541F0008;
-            D_shelter_b2_laboratory_801864BC.value.sceneSound      = 0x541F0006;
-            D_shelter_b2_laboratory_801864BC.value.afterSceneSound = 0x541F0007;
-            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 8, &D_shelter_b2_laboratory_801864BC.value);
+            D_shelter_b2_laboratory_801864BC.rec.view            = 0xD;
+            D_shelter_b2_laboratory_801864BC.rec.capSlot         = 1;
+            D_shelter_b2_laboratory_801864BC.rec.capFile         = 2;
+            D_shelter_b2_laboratory_801864BC.rec.skipScene       = 0;
+            D_shelter_b2_laboratory_801864BC.rec.capTPageX       = 0;
+            D_shelter_b2_laboratory_801864BC.rec.startSound      = 0x541F0005;
+            D_shelter_b2_laboratory_801864BC.rec.endSound        = 0x541F0008;
+            D_shelter_b2_laboratory_801864BC.rec.sceneSound      = 0x541F0006;
+            D_shelter_b2_laboratory_801864BC.rec.afterSceneSound = 0x541F0007;
+            Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 8, &D_shelter_b2_laboratory_801864BC.rec);
         }
     }
     return 0;
