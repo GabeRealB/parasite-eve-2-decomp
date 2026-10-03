@@ -119584,7 +119584,7 @@ pins, no empty asm, no permuter run. Scratch
 
 ## A loop's RTL insn count decides whether its constant is hoisted (func_neo_ark_altar_8017DF0C, 2026-09-17)
 
-The loop `if (grow == 1 && (work->field_8 - 1) == i)` tests a flag against the
+The loop `if (grow == 1 && (work->currentTile - 1) == i)` tests a flag against the
 literal `1`. The target materialises that `1` **inside** the loop -- `li $v0,1`
 sits in the back-edge delay slot, and the loop head re-tests `$v0` -- while the
 same C compiled by us put the `li` in the preheader and homed it in `$s3`: the
@@ -119616,10 +119616,10 @@ One that stays in the loop is set and used inside one iteration -- the value is
 deletes still counts.** Two dead stores to a local raise it from 28 to 30:
 
 ```c
-            work->field_C = i;
-            level         = 0;
-            level         = 1;
-            level         = (u16)work->field_A + ((0xBB8 - work->field_A) >> 1);
+            work->wallTileIndex = i;
+            level             = 0;
+            level             = 1;
+            work->wallHeight += (NEO_ARK_ALTAR_WALL_HEIGHT_FULL - work->wallHeight) >> 1;
 ```
 
 The second must differ from the first: `cse` deletes a repeated
@@ -119634,8 +119634,8 @@ difference.
 The entry block's `lw $s1, 0x1C($s0)` is followed in the target by the
 `lw $v0, %lo(gPlayerActorTasks)($v0)` of the *next* statement, filling the load-delay
 slot, and only then by `lhu $v1, 8($s1)`. Written as one expression --
-`coord = (*gPlayerActorTasks)->extra->coords;` after `work->field_6 =
-work->field_8;` -- sched1 cannot do that: **the scheduler will not move a load
+`coord = (*gPlayerActorTasks)->extra->coords;` after `work->previousTile =
+work->currentTile;` -- sched1 cannot do that: **the scheduler will not move a load
 above a store** (no aliasing information), so the `%hi`/`%lo` pair stays behind
 the `sh` and the delay slot keeps its `nop`. The store's value also gets `$v0`,
 which then forces the address chain to stay after it.
@@ -119644,9 +119644,9 @@ Reading the first link into a local splits the chain around the store, and the
 target's schedule follows:
 
 ```c
-    actor         = *gPlayerActorTasks;
-    work->field_6 = work->field_8;
-    coord         = actor->extra->coords;
+    actor              = *gPlayerActorTasks;
+    work->previousTile = work->currentTile;
+    coord              = actor->extra->coords;
 ```
 
 100.000%, all penalties zero. The tell is a `nop` in a load-delay slot the

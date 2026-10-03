@@ -67,24 +67,28 @@ typedef struct {
 } _NeoArkAltarTile;
 STATIC_ASSERT_SIZEOF(_NeoArkAltarTile, 0xC);
 
-/// Per-task work block of the altar task, allocated zeroed as 0x10 bytes by
-/// `func_neo_ark_altar_8017ED60` and parked in `Task::work`. `field_0` keeps
-/// the task spawned from `D_neo_ark_altar_8017EFC0` once the altar sequence
-/// completes. `field_8` is the tile the player currently stands on
-/// (`func_neo_ark_altar_8017EC34` of the player coordinate), `field_6` the
-/// value recorded on the previous frame, `field_C` the tile whose wall is
-/// currently raised and `field_A` that wall's height; `field_E` carries the
-/// new tile to `func_neo_ark_altar_8017E260`.
-typedef struct NeoArkAltarWork {
-    /* 0x0 */ Task* field_0;
-    /* 0x4 */ u8    pad_4[0x2];
-    /* 0x6 */ s16   field_6;
-    /* 0x8 */ s16   field_8;
-    /* 0xA */ s16   field_A;
-    /* 0xC */ s16   field_C;
-    /* 0xE */ s16   field_E;
-} NeoArkAltarWork;
-STATIC_ASSERT_SIZEOF(NeoArkAltarWork, 0x10);
+/// Height the walls around an altar tile ease towards while they are raised,
+/// in world units.
+enum { NEO_ARK_ALTAR_WALL_HEIGHT_FULL = 3000 };
+
+/// Work block of the altar's tile-sequence task.
+///
+/// Allocated zeroed when the task starts and kept in `Task::work`. While the
+/// player walks the floor tiles, it follows which tile the player is on from
+/// one frame to the next and the walls that rise around a tile. A tile here is
+/// an `id` of `_NeoArkAltarTile` (1, 2, 3 or 4), with 0 standing for no tile;
+/// `wallTileIndex` instead counts the same four tiles from 0, the way their
+/// table is indexed.
+typedef struct {
+    Task* movieLauncher; // Task spawned to start the movie that follows the second solved sequence; stored and not read back
+    u8    field_4[2];    // Never accessed; role and type unproven
+    s16   previousTile;  // `currentTile` as it was on the previous frame
+    s16   currentTile;   // Tile the player stands on, 0 when on none
+    s16   wallHeight;    // How far the walls of tile `wallTileIndex` rise above the floor, in world units: eases towards NEO_ARK_ALTAR_WALL_HEIGHT_FULL while they are raised and back to 0 afterwards
+    u16   wallTileIndex; // Tile whose walls were raised last, as an index 0 to 3
+    s16   enteredTile;   // Tile the player stepped onto this frame from no tile, 0 on every other frame
+} _NeoArkAltarTileSequenceWork;
+STATIC_ASSERT_SIZEOF(_NeoArkAltarTileSequenceWork, 0x10);
 
 extern _NeoArkAltarTile D_neo_ark_altar_8017F014[];
 
@@ -724,34 +728,35 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
 /// `D_neo_ark_altar_801800B0` whenever it changes; the returned sequence state
 /// picks the sound and area record set for the frame and, at 3, arms
 /// `var_s2`, which raises the matching tile by half the remaining distance to
-/// 0xBB8 per frame. With no tile raised, `field_A` instead decays by a quarter
-/// towards 0 while `field_C` still names a valid tile.
+/// `NEO_ARK_ALTAR_WALL_HEIGHT_FULL` per frame. With no tile raised,
+/// `wallHeight` instead decays by a quarter towards 0 while `wallTileIndex`
+/// still names a valid tile.
 static void func_neo_ark_altar_8017DF0C(Task* task)
 {
-    NeoArkAltarWork* work;
-    GfxCoord*        coord;
-    Task*            actor;
-    s32              prev;
-    s16              cur;
-    s16              level;
-    s32              i;
-    s32              grow;
-    s16              found;
+    _NeoArkAltarTileSequenceWork* work;
+    GfxCoord*                     coord;
+    Task*                         actor;
+    s32                           prev;
+    s16                           cur;
+    s16                           level;
+    s32                           i;
+    s32                           grow;
+    s16                           found;
 
-    work          = (NeoArkAltarWork*)task->work;
-    actor         = *gPlayerActorTasks;
-    work->field_6 = work->field_8;
-    grow          = 0;
-    coord         = actor->extra.tmd->coords;
-    cur           = func_neo_ark_altar_8017EC34(D_neo_ark_altar_8017EFD8, (s16)coord->coord.t[0], (s16)coord->coord.t[2]);
-    prev          = work->field_6;
-    work->field_8 = cur;
+    work               = task->work;
+    actor              = *gPlayerActorTasks;
+    work->previousTile = work->currentTile;
+    grow               = 0;
+    coord              = actor->extra.tmd->coords;
+    cur                = func_neo_ark_altar_8017EC34(D_neo_ark_altar_8017EFD8, (s16)coord->coord.t[0], (s16)coord->coord.t[2]);
+    prev               = work->previousTile;
+    work->currentTile  = cur;
     if (cur != prev && prev == 0) {
-        work->field_E                                      = cur;
-        D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC] = work->field_8;
+        work->enteredTile                                  = cur;
+        D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC] = work->currentTile;
         D_neo_ark_altar_801800AC                           = (u16)D_neo_ark_altar_801800AC + 1;
     } else {
-        work->field_E = 0;
+        work->enteredTile = 0;
     }
     switch (func_neo_ark_altar_8017E260(task)) {
         case 1:
@@ -772,26 +777,26 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
     }
     found = 0;
     for (i = 0; i < 4; i++) {
-        if (grow == 1 && (work->field_8 - 1) == i) {
-            work->field_C = i;
+        if (grow == 1 && (work->currentTile - 1) == i) {
+            work->wallTileIndex = i;
             /* Two dead stores: loop.c only keeps the `grow == 1` constant
                inside the loop (and so in a caller-saved register, remade in
                the back-edge delay slot) while the loop holds 30 RTL insns.
                At the 28 this body otherwise compiles to it is hoisted, which
                costs an extra saved register and an 8-byte frame. */
-            level         = 0;
-            level         = 1;
-            level         = (u16)work->field_A + ((0xBB8 - work->field_A) >> 1);
-            work->field_A = level;
+            level             = 0;
+            level             = 1;
+            work->wallHeight += (NEO_ARK_ALTAR_WALL_HEIGHT_FULL - work->wallHeight) >> 1;
+            level             = work->wallHeight;
             func_neo_ark_altar_8017E92C((s16)i, level);
             found = 1;
         }
     }
-    if (found == 0 && (u16)work->field_C < 4U) {
-        level         = (u16)work->field_A + ((-work->field_A) >> 2);
-        work->field_A = level;
+    if (found == 0 && work->wallTileIndex < 4) {
+        work->wallHeight += (-work->wallHeight) >> 2;
+        level             = work->wallHeight;
         if (level >= 0xB) {
-            func_neo_ark_altar_8017E92C(work->field_C, level);
+            func_neo_ark_altar_8017E92C(work->wallTileIndex, level);
         }
     }
 }
@@ -846,13 +851,13 @@ static void func_neo_ark_altar_8017E148(void)
 
 static s16 func_neo_ark_altar_8017E260(Task* task)
 {
-    NeoArkAltarWork* work;
-    s32              i;
-    s32              bad1;
-    s32              bad2;
+    _NeoArkAltarTileSequenceWork* work;
+    s32                           i;
+    s32                           bad1;
+    s32                           bad2;
 
     bad1 = 0;
-    work = (NeoArkAltarWork*)task->work;
+    work = task->work;
     bad2 = 0;
     if (D_neo_ark_altar_801800AC == 0) {
         return 0;
@@ -870,32 +875,32 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
     fail1:
         bad1 = 1;
     }
-    if (work->field_E != 0) {
+    if (work->enteredTile != 0) {
         if (D_neo_ark_altar_8017F050[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || bad1 == 1) {
-            if (work->field_E == 1) {
+            if (work->enteredTile == 1) {
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);
             }
-            if (work->field_E == 2) {
+            if (work->enteredTile == 2) {
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);
             }
-            if (work->field_E == 3) {
+            if (work->enteredTile == 3) {
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);
             }
-            if (work->field_E == 4) {
+            if (work->enteredTile == 4) {
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);
             }
         } else {
-            if (work->field_E == 1) {
+            if (work->enteredTile == 1) {
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);
             }
-            if (work->field_E == 2) {
-                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            if (work->enteredTile == 2) {
+                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
             }
-            if (work->field_E == 3) {
-                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            if (work->enteredTile == 3) {
+                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
             }
-            if (work->field_E == 4) {
-                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            if (work->enteredTile == 4) {
+                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
             }
         }
     }
@@ -913,32 +918,32 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
     fail2:
         bad2 = 1;
     }
-    if (work->field_E != 0) {
+    if (work->enteredTile != 0) {
         if (D_neo_ark_altar_8017F068[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || bad2 == 1) {
-            if (work->field_E == 1) {
+            if (work->enteredTile == 1) {
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);
             }
-            if (work->field_E == 2) {
+            if (work->enteredTile == 2) {
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);
             }
-            if (work->field_E == 3) {
+            if (work->enteredTile == 3) {
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);
             }
-            if (work->field_E == 4) {
+            if (work->enteredTile == 4) {
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);
             }
         } else {
-            if (work->field_E == 1) {
+            if (work->enteredTile == 1) {
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);
             }
-            if (work->field_E == 2) {
-                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            if (work->enteredTile == 2) {
+                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
             }
-            if (work->field_E == 3) {
-                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            if (work->enteredTile == 3) {
+                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
             }
-            if (work->field_E == 4) {
-                SndEvt_EnqueueType6(0x55140000 | work->field_E, 0, 0);
+            if (work->enteredTile == 4) {
+                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
             }
         }
     }
@@ -1154,9 +1159,9 @@ void func_neo_ark_altar_8017ECE0(Task* arg0)
 
 static void func_neo_ark_altar_8017ED60(Task* arg0)
 {
-    NeoArkAltarWork* work;
+    _NeoArkAltarTileSequenceWork* work;
 
-    work       = memCalloc(0x10, 0);
+    work       = memCalloc(sizeof(*work), 0);
     arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);
@@ -1197,12 +1202,12 @@ static void func_neo_ark_altar_8017EE30(Task* arg0)
 
 static void func_neo_ark_altar_8017EE90(Task* arg0)
 {
-    NeoArkAltarWork* work;
+    _NeoArkAltarTileSequenceWork* work;
 
     work = arg0->work;
     Gp_MsgPlayer3F3(0);
     gGameSession->hideHud = 1;
-    work->field_0         = Task_SpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 2, 0);
+    work->movieLauncher   = Task_SpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 2, 0);
     arg0->state           = (s32)(arg0->state + 1);
 }
 
