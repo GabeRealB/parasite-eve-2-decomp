@@ -236,15 +236,6 @@ STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHoleDebrisModelWork, 0x5C);
 /// piece is in flight.
 enum { SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_GRAVITY = 5 };
 
-/// Stack block for projecting a point through `GsWSMATRIX`: the point, then
-/// the screen position and depth the projection writes back.
-typedef struct {
-    SVECTOR pos;
-    s16     sx;
-    s16     sy;
-    s32     otz;
-} DumpingHoleProjection;
-
 /// End marker in the X coordinate of the room's model placement tables.
 enum { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END = 0xFFFF };
 
@@ -2487,9 +2478,11 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
     u16                                   signal = ((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->debrisModelSignal;
     GfxCoord*                             coord  = arg0->extra.tmd->coords;
     GfxCoord*                             c2;
-    DumpingHoleProjection                 p;
-    s32                                   sx;
-    s32                                   sy;
+    SVECTOR                               pos;
+    s32                                   sxy;
+    s32                                   otz;
+    s16                                   sx;
+    s16                                   sy;
     s16                                   angle;
     s32                                   x;
     s32                                   y;
@@ -2510,17 +2503,17 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
             }
             return;
         case 2:
-            p.pos.vx = coord->workm.t[0];
-            p.pos.vy = coord->workm.t[1];
-            p.pos.vz = coord->workm.t[2];
+            pos.vx = coord->workm.t[0];
+            pos.vy = coord->workm.t[1];
+            pos.vz = coord->workm.t[2];
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_SetRotMatrix(&GsWSMATRIX);
-            gte_ldv0(&p.pos);
+            gte_ldv0(&pos);
             gte_rtps();
-            gte_stsxy(&p.sx);
-            gte_stszotz(&p.otz);
-            sx = p.sx;
-            sy = p.sy;
+            gte_stsxy(&sxy);
+            gte_stszotz(&otz);
+            sx = sxy;
+            sy = sxy >> 16;
             if (sx < -0xA0) {
                 taskKill(arg0);
                 return;
@@ -2537,7 +2530,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            if (p.otz < 0) {
+            if (otz < 0) {
                 taskKill(arg0);
                 return;
             }
