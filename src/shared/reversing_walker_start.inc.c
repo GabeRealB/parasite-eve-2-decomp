@@ -43,7 +43,7 @@ s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, ActorMotion
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
-        work->model.animId = -1;
+        work->model.animId = ACTOR_MODEL_STATE_NONE;
         animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
                              work->rig.slots);
     }

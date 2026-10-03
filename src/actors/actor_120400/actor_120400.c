@@ -894,8 +894,8 @@ static void func_actor_120400_80131E5C(Task* arg0)
         return;
     }
     arg0->work             = work;
-    work->model.animId     = -1;
-    work->model.bank       = -1;
+    work->model.animId     = ACTOR_MODEL_STATE_NONE;
+    work->model.bank       = ACTOR_MODEL_STATE_NONE;
     work->freeCountdown    = -1;
     work->walk.acc[0].word = 0;
     work->walk.acc[1].word = 0;

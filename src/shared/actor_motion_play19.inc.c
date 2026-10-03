@@ -15,7 +15,7 @@ s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 a
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
-        work->model.animId = -1;
+        work->model.animId = ACTOR_MODEL_STATE_NONE;
         animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses, work->rig.slots);
     }
     if (msg->animationId != work->model.animId) {

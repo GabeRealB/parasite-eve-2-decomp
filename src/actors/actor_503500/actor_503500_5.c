@@ -1844,8 +1844,8 @@ static void func_actor_503500_8014642C(Task* arg0)
     }
 
     arg0->work         = work;
-    work->model.animId = -1;
-    work->model.bank   = -1;
+    work->model.animId = ACTOR_MODEL_STATE_NONE;
+    work->model.bank   = ACTOR_MODEL_STATE_NONE;
     work->field_4C8    = -1;
     work->field_4A0    = 0;
     work->field_4A4    = 0;

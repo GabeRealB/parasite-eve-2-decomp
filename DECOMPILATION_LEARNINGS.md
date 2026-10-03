@@ -69058,9 +69058,9 @@ still there at `.greg` is a CSE invalidation two dozen insns earlier.
 **The object's store order can hide the intervening store.** In
 `func_actor_503500_8014652C` the target reads `sb 0x43D; sb 0x43E; lb 0x43E` -
 a byte stored and immediately read back as an array index. Writing the stores
-in that order (`field_43D = -1; field_43E = msg->field_0; D[field_43E]`) lets
+in that order (`model.animId = -1; model.bank = msg->field_0; D[model.bank]`) lets
 CSE forward the stored byte, giving `sll`/`sra` instead of the `lb` (85.7%).
-The source order is the other one, `field_43E = ...; field_43D = -1;`: the
+The source order is the other one, `model.bank = ...; model.animId = -1;`: the
 `43D` store kills the equivalence, and sched then swaps the two stores (same
 base, disjoint offsets), so the kill is invisible in the dump. 100%.
 
@@ -83251,12 +83251,12 @@ animation id and bank index into the work block's two `s8` fields, and the
 target loads them as *bytes*: `lbu $v1, 0x0($s2)` feeding `sb $v1, 0x43E($s1)`,
 and `lbu $v0, 0x4($s2)` feeding `sb $v0, 0x43D($s1)`. The same two words are
 read as words elsewhere in the same body — `lw $v0, 0x0($s2)` for the
-`if (msg->field_0 != work->field_43E)` compare, `lw $v0, 0x8($s2)` for the
+`if (msg->field_0 != work->model.bank)` compare, `lw $v0, 0x8($s2)` for the
 flag — so the `lbu` reads as evidence that the message fields are `u8` and the
 word loads as evidence that they are not.
 
 **Cause.** GCC 2.8.1 narrows the *store*, not the load it was fed from:
-`work->field_43E = msg->field_0;` with a 4-byte source and an `s8` destination
+`work->model.bank = msg->field_0;` with a 4-byte source and an `s8` destination
 is a fresh byte load of the source followed by `sb`, even when the word value
 is already live in a register from the compare immediately above. The
 destination's signedness does not change it — both fields are `s8` and both
@@ -100932,7 +100932,7 @@ Inputs: `base.i`
 ## Two `-1` seeds of different widths each materialize, and that is the plain C (func_actor_317000_8016267C, 2026-09-16)
 
 The enemy actors' spawn state seeds `-1` into the work block with two byte
-stores and one halfword store - `field_43D`/`field_43E` are `s8`, `field_4C8` is
+stores and one halfword store - `model.animId`/`model.bank` are `s8`, `field_4C8` is
 `s16`. Retail materializes the constant **twice**:
 
 ```
@@ -100954,8 +100954,8 @@ merges them: uids 37 and 47 are both still present, at the same positions, in
 assignments:
 
 ```c
-    work->field_43D = -1;
-    work->field_43E = -1;
+    work->model.animId = -1;
+    work->model.bank = -1;
     work->field_4C8 = -1;
 ```
 
@@ -119966,15 +119966,15 @@ made the block connections differ). Scratch
 ## A two-value default written as a ternary becomes a skip block cse follows; an if/else into a stack field ends the path (func_actor_141000_801336DC, 2026-09-17)
 
 **Symptom.** `w->field_4C0 = 1;` at the top, then in the `anim == NULL` arm
-`preset.animationId = w->field_4C8 == 0 ? 0xA : 2; w->field_43F = 1;`. Everything
-matched except the `field_43F` store: ours reused the first `li 1` register
+`preset.animationId = w->field_4C8 == 0 ? 0xA : 2; w->model.nextAnimId = 1;`. Everything
+matched except the `model.nextAnimId` store: ours reused the first `li 1` register
 (`sb t0,0x43f`), the target reloads `li v0,1`.
 
 **Cause.** jump1 turns the ternary (and an if/else into a *register* temp) into
 `v = 2; if (!x) v = 10;`, a one-insn block cse's `-fcse-skip-blocks` path
 skips over, so the table from the function entry still holds `(reg:HI) = 1`
 and the QImode store picks it up through the wider-mode lookup (cse.c ~6697).
-Declaring `field_43F` `u8`, `if (anim == NULL)` as a second `if`, or pre-setting
+Declaring `model.nextAnimId` `u8`, `if (anim == NULL)` as a second `if`, or pre-setting
 the temp all leave that path intact.
 
 **Fix.** Assign both arms straight into the stack field:
@@ -119985,7 +119985,7 @@ if (w->field_4C8 != 0) {
 } else {
     preset.animationId = 0xA;
 }
-w->field_43F = 1;
+w->model.nextAnimId = 1;
 ```
 
 jump1 cannot if-convert a MEM destination, so the if/else keeps its join label
@@ -125559,18 +125559,18 @@ reads it straight back with `lb` to index the bank table (`sll $v1,$v1,2` before
 the `lw`). The m2c baseline emitted no `lb` at all: the index came from the byte
 still in a register (`lbu` + `sll 24` / `sra 20`). Retyping the work block as its
 animation head -- `AnimationContext anim; AnimationSlot slots[20]; byte field_334[0x140];
-s8 field_474; s8 field_475; s8 field_476;` replacing a `byte pad_0[0x475]`, which
+ActorModelState model;` (its `s8 ticking; s8 animId; s8 bank;`) replacing a `byte pad_0[0x475]`, which
 keeps every later offset -- and writing the body the way the matched sibling
 `func_actor_503500_8014652C` writes it (two field stores, then
-`D_actor_113100_801442E0[work->field_476]`) reached 100.000% in one build. That
+`D_actor_113100_801442E0[work->model.bank]`) reached 100.000% in one build. That
 sibling's *store order* is the part that decides the reload, which is why it is
 worth copying rather than re-deriving:
 
-    work->field_476 = preset->field_0;   /* sb 0x476, then read back with lb */
-    work->field_475 = -1;
+    work->model.bank = preset->field_0;   /* sb 0x476, then read back with lb */
+    work->model.animId = -1;
 
 Testing the two halves separately took two more builds. Compiling the same source
-with m2c's cast form on the store's source (`work->field_476 = (s8)(u8)preset->field_0;`)
+with m2c's cast form on the store's source (`work->model.bank = (s8)(u8)preset->field_0;`)
 reproduced the matching object byte for byte -- that hypothesis is falsified.
 Swapping only the two stores dropped the reload and the score with it (100.000% ->
 92.235%, `regs=12 insert=3 delete=3`); the `.cse` dump shows `(insn 45 ... (set
@@ -125594,7 +125594,7 @@ field is re-read in the C" is not enough to reproduce it -- the re-read folds aw
 unless another store sits between the two. And the reload's absence does not
 contradict the source either, because sched2 reorders independent stores: the
 target's `sb 0x475` before `sb 0x476` is fully compatible with the source writing
-`field_476` first.
+`model.bank` first.
 
 Inputs: scratch `nonmatchings/func_actor_113100_801331E8-vacuum`, `base_1.c`
 100.000% (`7a6b46a23f0b7cbe63c10583f1aa714a4dd041a161aa4fdef6358fc69a615429`),
@@ -125696,7 +125696,7 @@ branch longer:
     } else {
         preset.animationId = 0xA;
     }
-    w->field_477 = 1;
+    w->model.nextAnimId = 1;
 }
 ```
 

@@ -1192,8 +1192,8 @@ static void func_actor_113100_80131E58(Task* task)
         return;
     }
     task->work             = work;
-    work->model.animId     = -1;
-    work->model.bank       = -1;
+    work->model.animId     = ACTOR_MODEL_STATE_NONE;
+    work->model.bank       = ACTOR_MODEL_STATE_NONE;
     work->field_53D        = -1;
     work->walk.acc[0].word = 0;
     work->walk.acc[1].word = 0;
@@ -1614,7 +1614,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Act
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
-        work->model.animId = -1;
+        work->model.animId = ACTOR_MODEL_STATE_NONE;
         animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, work->rig.poses,
                              work->rig.slots);
     }
@@ -1732,7 +1732,7 @@ static void func_actor_113100_80132EF0(Task* arg0)
 }
 
 /// Points the model's light and colour matrices at the work block's own
-/// `light` / `color` pair; the setup handler calls it once.
+/// `model.light` / `model.color` pair; the setup handler calls it once.
 static void func_actor_113100_80132F24(Task* task)
 {
     TmdObject*       ext;
@@ -1863,7 +1863,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
     ext  = task->extra.tmd;
     if (preset->source.index != work->model.bank) {
         work->model.bank   = preset->source.index;
-        work->model.animId = -1;
+        work->model.animId = ACTOR_MODEL_STATE_NONE;
         animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, work->rig.poses,
                              work->rig.slots);
     }

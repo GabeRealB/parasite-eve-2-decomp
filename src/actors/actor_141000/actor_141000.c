@@ -2383,7 +2383,7 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, Acto
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
-        work->model.animId = -1;
+        work->model.animId = ACTOR_MODEL_STATE_NONE;
         animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
                              work->rig.slots);
     }
@@ -2436,8 +2436,8 @@ static void func_actor_141000_8013392C(Task* arg0)
     }
 
     arg0->work             = work;
-    work->model.animId     = -1;
-    work->model.bank       = -1;
+    work->model.animId     = ACTOR_MODEL_STATE_NONE;
+    work->model.bank       = ACTOR_MODEL_STATE_NONE;
     work->field_4C9        = -1;
     work->walk.acc[0].word = 0;
     work->walk.acc[1].word = 0;

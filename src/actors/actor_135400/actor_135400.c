@@ -652,8 +652,8 @@ static void func_actor_135400_80132064(Task* arg0)
         return;
     }
     arg0->work         = work;
-    work->model.animId = -1;
-    work->model.bank   = -1;
+    work->model.animId = ACTOR_MODEL_STATE_NONE;
+    work->model.bank   = ACTOR_MODEL_STATE_NONE;
     spawned            = Task_SpawnFromTable(D_actor_135400_8013A4AC, 1, 4, arg0);
     if (spawned != NULL) {
         work->field_4B8 = spawned;
@@ -974,8 +974,8 @@ static void func_actor_135400_80132B60(Task* arg0)
         return;
     }
     arg0->work         = work;
-    work->model.animId = -1;
-    work->model.bank   = -1;
+    work->model.animId = ACTOR_MODEL_STATE_NONE;
+    work->model.bank   = ACTOR_MODEL_STATE_NONE;
     work->field_494    = -1;
     work->params       = spawn;
     func_actor_135400_80132D24(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &params, 0);

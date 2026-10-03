@@ -1557,8 +1557,8 @@ static void func_actor_361100_80162D28(Task* arg0)
     }
 
     arg0->work         = work;
-    work->model.animId = -1;
-    work->model.bank   = -1;
+    work->model.animId = ACTOR_MODEL_STATE_NONE;
+    work->model.bank   = ACTOR_MODEL_STATE_NONE;
     work->field_4A2    = -1;
     work->field_480    = 0;
     work->field_484    = 0;
@@ -1780,8 +1780,8 @@ static void func_actor_361100_80163410(Task* arg0)
     }
 
     arg0->work         = work;
-    work->model.animId = -1;
-    work->model.bank   = -1;
+    work->model.animId = ACTOR_MODEL_STATE_NONE;
+    work->model.bank   = ACTOR_MODEL_STATE_NONE;
     work->field_4A2    = -1;
     func_actor_361100_801634B4(arg0);
     arg0->msgTable     = D_actor_361100_80171BB8;
@@ -1820,7 +1820,7 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, AnimationPlayRequest* msg, 
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
-        work->model.animId = -1;
+        work->model.animId = ACTOR_MODEL_STATE_NONE;
         animationInitContext(&work->rig.anim, D_actor_361100_80171BA8[work->model.bank], ext, work->rig.poses,
                              work->rig.slots);
     }

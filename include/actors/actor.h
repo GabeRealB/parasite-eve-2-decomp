@@ -576,18 +576,29 @@ typedef struct ActorSpriteUv {
 } ActorSpriteUv;
 STATIC_ASSERT_SIZEOF(ActorSpriteUv, 0x4);
 
-/// The animation state and lighting a scripted actor keeps right after its
-/// rig. `ticking` enables the animation tick, `animId` and `bank` are the
-/// animation now playing and the bank it comes from, and `nextAnimId` is the
-/// animation a later step starts. `light` and `color` are the matrices the
-/// model is lit with.
-typedef struct ActorModelState {
-    s8     ticking;
-    s8     animId;
-    s8     bank;
-    s8     nextAnimId;
-    MATRIX light;
-    MATRIX color;
+/// `ActorModelState::animId` and `ActorModelState::bank` before the first play
+/// request: no clip applied, no bank bound.
+///
+/// Bank indices and clip ids index tables, so it matches none of them: a block
+/// seeded with it binds its bank and applies its clip on the first request.
+#define ACTOR_MODEL_STATE_NONE (-1)
+
+/// What an actor's model is playing and the matrices it is lit with, kept
+/// right after the model's rig in the actor's work block.
+///
+/// A play request rebinds the rig when its bank differs from `bank` and
+/// records the clip it seeds the slots with in `animId`; the handlers that
+/// skip a repeated request do so by comparing against `animId`. The work block
+/// is allocated zeroed, and the actor's spawn then sets both ids to
+/// `ACTOR_MODEL_STATE_NONE`. The model object borrows `light` and `color` for
+/// as long as the work block lives.
+typedef struct {
+    s8     ticking;    // Set once a clip has been applied, never cleared: the slots are ticked each frame and a request may blend from their pose
+    s8     animId;     // Clip the slots were last seeded with, within `bank`
+    s8     bank;       // Index, in the package's animation bank table, of the bank the rig is bound to
+    s8     nextAnimId; // Clip, in bank 0, a walk changes to as it ends; unused by an actor that does not walk
+    MATRIX light;      // Light-direction matrix lent to the model object
+    MATRIX color;      // Light-colour matrix lent to the model object
 } ActorModelState;
 STATIC_ASSERT_SIZEOF(ActorModelState, 0x44);
 

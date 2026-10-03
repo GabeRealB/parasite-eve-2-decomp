@@ -2502,8 +2502,8 @@ static void func_actor_443500_80132078(Task* task)
         return;
     }
     task->work         = work;
-    work->model.animId = -1;
-    work->model.bank   = -1;
+    work->model.animId = ACTOR_MODEL_STATE_NONE;
+    work->model.bank   = ACTOR_MODEL_STATE_NONE;
     work->field_4BC    = -1;
     work->field_4C0    = task->extra.tmd->flags;
     spawned            = Task_SpawnFromTable(D_actor_443500_8015873C, 1, 4, task);
@@ -2662,7 +2662,7 @@ static void func_actor_443500_801327A4(Task* arg0)
 }
 
 /// Points the model's `TmdObject::lightMtx` / `colorMtx` at the work block's
-/// own `light` / `color` matrices, so the actor draws with its own lighting.
+/// own `model.light` / `model.color` matrices, so the actor draws with its own lighting.
 static void func_actor_443500_801327C4(Task* task)
 {
     TmdObject*       ext;

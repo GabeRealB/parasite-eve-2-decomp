@@ -576,7 +576,7 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Acto
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
-        work->model.animId = -1;
+        work->model.animId = ACTOR_MODEL_STATE_NONE;
         animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
                              work->rig.slots);
     }
@@ -629,8 +629,8 @@ static void func_actor_317000_8016267C(Task* arg0)
     }
 
     arg0->work             = work;
-    work->model.animId     = -1;
-    work->model.bank       = -1;
+    work->model.animId     = ACTOR_MODEL_STATE_NONE;
+    work->model.bank       = ACTOR_MODEL_STATE_NONE;
     work->field_4C8        = -1;
     work->walk.acc[0].word = 0;
     work->walk.acc[1].word = 0;
@@ -653,7 +653,7 @@ static void func_actor_317000_80162724(Task* arg0)
 }
 
 /// Points the display object's light and colour matrices at the work block's
-/// own copies, `Actor317000Work::light` and `color`.
+/// own copies, `light` and `color` of `Actor317000Work::model`.
 static void func_actor_317000_80162744(Task* arg0)
 {
     TmdObject*       ext;

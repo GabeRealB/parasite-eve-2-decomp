@@ -31,27 +31,19 @@
 /// Work block the spawn state `func_actor_213100_8014A118` allocates
 /// (`memCalloc(0x488)`) and parks in `Task::work`.
 ///
-/// It opens with the animation context the 0x7D3 handler
-/// `actorMotionPlayAnim19` drives: the `AnimationContext` at the block's own
-/// address, the 0x13 slots above it and the table at 0x30C, the three
-/// arguments that handler hands `animationInitContext`. `field_43C` latches once the
-/// slots have been started, and gates the per-frame tick; `field_43E` and
-/// `field_43D` hold the current bank index and animation id, seeded to -1 so
-/// the first preset always installs. `light` / `color` are the matrices
+/// It opens with the nineteen-part rig and the model state the 0x7D3 handler
+/// `actorMotionPlayAnim19` drives; the block ends short of the walk state that
+/// handler's own work type goes on to, which this actor never reaches.
+/// `model.light` / `model.color` are the matrices
 /// `func_actor_213100_8014A23C` publishes on the model. `field_480` is the
 /// child task the spawn state creates, whose model mirrors this one's
 /// visibility; `field_484` is the countdown after which the tick frees the
 /// model's buffers, -1 while idle.
 typedef struct Actor213100Work {
-    /* 0x000 */ ActorAnimRig19 rig;
-    /* 0x43C */ s8             field_43C;
-    /* 0x43D */ s8             field_43D;
-    /* 0x43E */ s8             field_43E;
-    /* 0x43F */ byte           pad_43F[0x1];
-    /* 0x440 */ MATRIX         light;
-    /* 0x460 */ MATRIX         color;
-    /* 0x480 */ struct Task*   field_480;
-    /* 0x484 */ s32            field_484;
+    ActorAnimRig19  rig;
+    ActorModelState model;
+    struct Task*    field_480;
+    s32             field_484;
 } Actor213100Work;
 STATIC_ASSERT_SIZEOF(Actor213100Work, 0x488);
 
@@ -420,7 +412,7 @@ static void func_actor_213100_80149E3C(Task* task)
 
     work  = (Actor213100Work*)task->work;
     extra = task->extra.tmd;
-    if (work->field_43C != 0) {
+    if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);
         }
@@ -516,12 +508,12 @@ static void func_actor_213100_8014A118(Task* arg0)
         enemyTaskExit(arg0);
         return;
     }
-    arg0->work      = work;
-    work->field_43D = -1;
-    work->field_43E = -1;
-    work->field_484 = -1;
-    child           = Task_SpawnFromTable(D_actor_213100_801521A8, 1, 8, arg0);
-    work->field_480 = child;
+    arg0->work         = work;
+    work->model.animId = ACTOR_MODEL_STATE_NONE;
+    work->model.bank   = ACTOR_MODEL_STATE_NONE;
+    work->field_484    = -1;
+    child              = Task_SpawnFromTable(D_actor_213100_801521A8, 1, 8, arg0);
+    work->field_480    = child;
     if (child == NULL) {
         enemyTaskExit(arg0);
         return;
@@ -557,8 +549,8 @@ static void func_actor_213100_8014A23C(Task* arg0)
 
     ext           = arg0->extra.tmd;
     work          = (Actor213100Work*)arg0->work;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    ext->lightMtx = &work->model.light;
+    ext->colorMtx = &work->model.color;
 }
 
 #include "../../shared/actor_motion_play19.inc.c"

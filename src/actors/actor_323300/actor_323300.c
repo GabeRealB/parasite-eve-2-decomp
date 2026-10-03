@@ -434,8 +434,8 @@ static void func_actor_323300_80161E78(Task* arg0)
         return;
     }
     arg0->work         = work;
-    work->model.animId = -1;
-    work->model.bank   = -1;
+    work->model.animId = ACTOR_MODEL_STATE_NONE;
+    work->model.bank   = ACTOR_MODEL_STATE_NONE;
     work->field_500    = 1;
     work->field_502    = -1;
     func_actor_323300_801626D0(arg0);
@@ -649,7 +649,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
             extra  = arg0->extra.tmd;
             if (preset->source.index != work->model.bank) {
                 work->model.bank   = preset->source.index;
-                work->model.animId = -1;
+                work->model.animId = ACTOR_MODEL_STATE_NONE;
                 animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], extra,
                                      work->rig.poses, work->rig.slots);
             }
