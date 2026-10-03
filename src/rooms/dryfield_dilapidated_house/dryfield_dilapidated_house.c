@@ -128,27 +128,6 @@ typedef struct {
 } _DryfieldDilapidatedHouseConeWork;
 STATIC_ASSERT_SIZEOF(_DryfieldDilapidatedHouseConeWork, 0x40);
 
-/// Work block of the three effect handlers `func_dryfield_dilapidated_house_80182744`,
-/// `func_dryfield_dilapidated_house_80183C8C` and
-/// `func_dryfield_dilapidated_house_80183D5C`, reached as `task->spawnArg2.pointer`
-/// and handed to `effectKillTask` when their ramp runs out. `field_24` is a
-/// scale and `field_26` an angle in the 0x100-step rotation space: the pair starts
-/// at 0x80 / 0x100, steps by -8 and +0x80 per frame and drives one draw call
-/// per frame. `gfxRotMatrixZ` composes the initial orientation before
-/// `Gp_UpdateCoord` refreshes it. `field_22` is the
-/// per-frame tick the task rolls back while `gRoomEffectState->effectControl` is not running;
-/// `field_20` and `field_28` are a third ramp value the two `80182744` states
-/// seed from one `gRandomLcgState` draw and hand to the same draw routine.
-typedef struct DdhEffWork {
-    /* 0x00 */ byte pad_00[0x20];
-    /* 0x20 */ u16  field_20;
-    /* 0x22 */ u16  field_22;
-    /* 0x24 */ s16  field_24;
-    /* 0x26 */ s16  field_26;
-    /* 0x28 */ s16  field_28;
-} DdhEffWork;
-STATIC_ASSERT_SIZEOF(DdhEffWork, 0x2A);
-
 /// Screen position of one projected end of the morph model's ring beam.
 ///
 /// The two ends stay side by side on the stack while the beam's screen rings
@@ -4163,9 +4142,9 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
     SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
 }
 
-/// Per-frame state machine of the ``DdhEffWork`` effect family's fade-in
-/// handler: state 0 seeds the work block (0xC0 / 0x500 scale and angle, a
-/// 12-bit `gRandomLcgState` draw as the third ramp value, a `Gp_SpawnEff` and a
+/// Per-frame state machine of the room's fire blast effect: state 0 seeds its
+/// `EffectWork` (0xC0 / 0x500 in `scale` and `angle`, a 12-bit `gRandomLcgState`
+/// draw in `period` as the flicker sprite's roll, a `Gp_SpawnEff` and a
 /// fade quad), maps the task's own coordinate onto
 /// `gWorldCoordTransientPointLights[0]` and spawns the ring of `0x60275` flame effects, then
 /// re-parents each onto this task. State 1 steps the angle by 0x40 per frame
@@ -4175,40 +4154,39 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 /// 0x580.
 void func_dryfield_dilapidated_house_80182744(Task* task)
 {
-    DdhEffWork*                    work;
+    EffectWork*                    work;
     GfxCoord*                      coord;
     WorldCoordTransientPointLight* lightSlot;
     WorldCoordPointLight*          pointLight;
     EffectWork*                    eff;
-    u16                            tick;
-    u16                            tick1;
+    s16                            tick;
+    s16                            tick1;
     s16                            size;
-    s32                            angle;
     s32                            i;
     u8                             rgb[3];
 
-    work           = task->spawnArg2.pointer;
-    coord          = task->extra.coordBody->coord;
-    tick           = work->field_22;
-    tick1          = tick + 1;
-    work->field_22 = tick1;
-    lightSlot      = &gWorldCoordTransientPointLights[0];
-    pointLight     = &lightSlot->light;
+    work       = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    tick       = work->age;
+    tick1      = tick + 1;
+    work->age  = tick1;
+    lightSlot  = &gWorldCoordTransientPointLights[0];
+    pointLight = &lightSlot->light;
 
     switch (task->state) {
         case 0:
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                work->field_22 = tick;
+                work->age = tick;
                 if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                     effectKillTask(work, task);
                 }
                 return;
             }
-            work->field_24  = 0xC0;
-            work->field_26  = 0x500;
-            work->field_20  = 0;
+            work->scale     = 0xC0;
+            work->angle     = 0x500;
+            work->index     = 0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->field_28  = (gRandomLcgState >> 16) & 0xFFF;
+            work->period    = (gRandomLcgState >> 16) & 0xFFF;
             Gp_SpawnEff(EFFECT_DRYFIELD_DILAPIDATED_HOUSE_FLAME_CONE, coord, 0, NULL);
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
@@ -4227,9 +4205,9 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             pointLight->head.transform.coord.coord.t[2]        = coord->coord.t[2];
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             i                                                  = 0;
-            spriteQuadDrawFlicker(coord, (s16)work->field_22, work->field_26, work->field_28);
-            glowDrawFlameStar(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
-            work->field_26 = 0x380;
+            spriteQuadDrawFlicker(coord, work->age, work->angle, work->period);
+            glowDrawFlameStar(coord, work->angle, work->scale >> 1);
+            work->angle = 0x380;
             do {
                 eff = Gp_SpawnEff(EFFECT_DILAPIDATED_HOUSE_FLAME_RING, coord, i, NULL);
                 if (eff != NULL) {
@@ -4241,19 +4219,17 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             return;
         case 1:
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                work->field_22 = tick;
+                work->age = tick;
                 if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                     effectKillTask(work, task);
                 }
                 return;
             }
-            spriteQuadDrawFlicker(coord, (s16)tick1, work->field_26, work->field_28);
-            glowDrawFlameStar(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
-            glowDrawFlameStar(coord, (s16)((u16)work->field_26 * 2), (s16)(u16)work->field_24 >> 1);
-            angle          = (u16)work->field_26;
-            angle         += 0x40;
-            work->field_26 = angle;
-            if ((s16)angle >= 0x581) {
+            spriteQuadDrawFlicker(coord, tick1, work->angle, work->period);
+            glowDrawFlameStar(coord, work->angle, work->scale >> 1);
+            glowDrawFlameStar(coord, (u16)work->angle * 2, work->scale >> 1);
+            work->angle += 0x40;
+            if (work->angle >= 0x581) {
                 effectKillTask(work, task);
             }
             break;
@@ -4297,18 +4273,16 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
     }
 }
 
-/// Per-frame handler that runs the `DdhEffWork` effect block one step further:
-/// an early out while `gRoomEffectState->effectControl` is not running. It counts frames in `field_22`,
+/// Per-frame handler that runs the flame cone effect's `EffectWork` one step further:
+/// an early out while `gRoomEffectState->effectControl` is not running. It counts frames in `age`,
 /// seeds the 0xC0 / 0x100 scale/angle pair on the first frame, feeds the pair to
 /// `glowDrawFlameBand` and then steps the scale by -0x10
 /// and the angle by +0x40. Once the scale falls below 0x10 - and immediately
 /// when effect control has reached cancellation - it releases the work block.
 void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 {
-    DdhEffWork* mem;
+    EffectWork* mem;
     s16         flag;
-    s32         scale;
-    s32         angle;
 
     mem  = arg0->spawnArg2.pointer;
     flag = gRoomEffectState->effectControl;
@@ -4319,26 +4293,22 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
         return;
     }
 
-    mem->field_22++;
+    mem->age++;
     if (arg0->state == 0) {
-        mem->field_24 = 0xC0;
-        mem->field_26 = 0x100;
-        arg0->state   = 1;
+        mem->scale  = 0xC0;
+        mem->angle  = 0x100;
+        arg0->state = 1;
     }
-    glowDrawFlameBand(arg0->extra.coordBody->coord, mem->field_26, mem->field_24);
-    angle         = (u16)mem->field_26;
-    scale         = (u16)mem->field_24;
-    angle        += 0x40;
-    scale        -= 0x10;
-    mem->field_24 = scale;
-    mem->field_26 = angle;
-    if ((s16)scale < 0x10) {
+    glowDrawFlameBand(arg0->extra.coordBody->coord, mem->angle, mem->scale);
+    mem->angle += 0x40;
+    mem->scale -= 0x10;
+    if (mem->scale < 0x10) {
         effectKillTask(mem, arg0);
     }
 }
 
-/// Per-frame handler of the effect family whose work block is `DdhEffWork`
-/// (`task->spawnArg2.pointer`). While `gRoomEffectState->effectControl` is running it
+/// Per-frame handler of the flame ring effect, whose `EffectWork` is
+/// `task->spawnArg2.pointer`. While `gRoomEffectState->effectControl` is running it
 /// seeds the ramp (0x80 / 0x100) on the first frame and then, every frame,
 /// clears the task coordinate's update flag, refreshes the coordinate and feeds
 /// the angle/scale pair to `glowDrawFlameRing`, stepping
@@ -4347,11 +4317,9 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 /// block through `effectKillTask`.
 void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
 {
-    DdhEffWork* mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     s16         flag;
-    s32         scale;
-    s32         angle;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -4367,19 +4335,15 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
         gfxRotMatrixZ(&coord->coord, arg0->spawnArg1.value, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        mem->field_24 = 0x80;
-        mem->field_26 = 0x100;
-        arg0->state   = 1;
+        mem->scale  = 0x80;
+        mem->angle  = 0x100;
+        arg0->state = 1;
     }
 
-    glowDrawFlameRing(coord, mem->field_26, 0x100, mem->field_24);
-    angle         = (u16)mem->field_26;
-    scale         = (u16)mem->field_24;
-    angle        += 0x80;
-    scale        -= 8;
-    mem->field_24 = scale;
-    mem->field_26 = angle;
-    if ((s16)scale < 9) {
+    glowDrawFlameRing(coord, mem->angle, 0x100, mem->scale);
+    mem->angle += 0x80;
+    mem->scale -= 8;
+    if (mem->scale < 9) {
         effectKillTask(mem, arg0);
     }
 }

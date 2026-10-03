@@ -1855,7 +1855,7 @@ enum {
     /// during its grab attack.
     EFFECT_DILAPIDATED_HOUSE_FIRE_BLAST = EFFECT_ID(EFFECT_TASK_BANK, 0x273),
     /// Expanding, fading flame cone (glowDrawFlameBand), the dilapidated house's copy
-    /// of the pyrokinesis cone; spawned by the room's DdhEffWork fade-in effect with a
+    /// of the pyrokinesis cone; spawned by the room's fire blast 0x60273 with a
     /// ring of 0x60275 flames.
     EFFECT_DRYFIELD_DILAPIDATED_HOUSE_FLAME_CONE = EFFECT_ID(EFFECT_TASK_BANK, 0x274),
     /// Flame band (glowDrawFlameRing) that spins 0x80 and shrinks 8 per frame until
