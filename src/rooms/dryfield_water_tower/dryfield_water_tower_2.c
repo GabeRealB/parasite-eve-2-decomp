@@ -1768,7 +1768,7 @@ DwtwStep D_dryfield_water_tower_8018767C[4] = {
     { 0xFFFF, 40 },
 };
 
-DryfieldWaterTowerStorage768C D_dryfield_water_tower_8018768C = { 0 };
+DryfieldWaterTowerSavedView D_dryfield_water_tower_8018768C = { 0 };
 
 static void       func_dryfield_water_tower_8017DE30(Task* arg0);
 static s32        func_dryfield_water_tower_8017E428(Task* arg0);

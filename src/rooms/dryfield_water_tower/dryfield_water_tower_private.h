@@ -7,13 +7,21 @@
 
 #include "main/task_types.h"
 
-// Retain the zero tail after the accessed value. Whether it was spare
-// fields or alignment storage remains unresolved.
+/// View slot the water-tower mechanism scene started on, plus the zero word
+/// that follows it.
+///
+/// A CAP command can move the room to another view. The scene task copies the
+/// live save's `location.loc.view` here before starting its command, and
+/// writes it back when the command ends without the event key that advances
+/// the mechanism; with that key the view the command left is kept. The slot is
+/// a byte stored as a word, so only the low byte carries it. The following
+/// word is zero in the room's image and has no recovered access; its role, and
+/// whether it belongs to this object at all, is unproven.
 typedef struct {
-    u32 value;
-    u8  retained[4];
-} DryfieldWaterTowerStorage768C;
-STATIC_ASSERT_SIZEOF(DryfieldWaterTowerStorage768C, 8);
+    u32 view;       // 1-based view slot saved at the scene's start (a `u8` stored as a word)
+    u8  field_4[4]; // Zero bytes with no accesses; role unproven
+} DryfieldWaterTowerSavedView;
+STATIC_ASSERT_SIZEOF(DryfieldWaterTowerSavedView, 8);
 
 typedef struct {
     s32 id;
@@ -39,7 +47,7 @@ extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskDesc D_dryfield_water_tower_801803D8[2];
 
-extern DryfieldWaterTowerStorage768C D_dryfield_water_tower_8018768C;
+extern DryfieldWaterTowerSavedView D_dryfield_water_tower_8018768C;
 
 extern DryfieldWaterTowerMessageEntry D_dryfield_water_tower_801803A0[7];
 

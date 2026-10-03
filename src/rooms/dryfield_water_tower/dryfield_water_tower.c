@@ -34,9 +34,6 @@ Task* D_dryfield_water_tower_801876A4;
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
 
-/// The saved view byte the scene task keeps while its CAP command runs, and
-/// puts back when the answer is not 0xA.
-
 /// The event the room's gate `roomEventGate` latched:
 /// the incoming message and the request, kept for the event task it spawns
 /// from `gRoomEventTaskDesc`, and the flag the gate sets once it
@@ -91,10 +88,10 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 Gp_RunCapCmd(7, 0);
                 gGameSession->eventState = 1;
                 {
-                    u32 view                              = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-                    s32 state                             = arg0->state;
-                    D_dryfield_water_tower_8018768C.value = view;
-                    arg0->state                           = state + 1;
+                    u32 view                             = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+                    s32 state                            = arg0->state;
+                    D_dryfield_water_tower_8018768C.view = view;
+                    arg0->state                          = state + 1;
                 }
                 return;
             }
@@ -118,7 +115,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 gGameSession->eventState                                   = 0;
                 gGameSession->hideHud                                      = 0;
                 gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_water_tower_8018768C.value;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_water_tower_8018768C.view;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
             }
