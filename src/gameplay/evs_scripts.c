@@ -89,17 +89,6 @@ typedef struct _GpEvsState {
 } GpEvsState;
 STATIC_ASSERT_SIZEOF(GpEvsState, 0x34);
 
-/// Extended script work allocation created by Gp_ScriptInit.
-typedef struct _GpState34 {
-    /* 0x00 */ PadScriptCmd*              field_0;
-    /* 0x04 */ PadScriptVibrationSegment* field_4;
-    /* 0x08 */ byte                       pad_8[0x20];
-    /* 0x28 */ s32                        field_28;
-    /* 0x2C */ s32                        field_2C;
-    /* 0x30 */ s32                        field_30;
-} GpState34;
-STATIC_ASSERT_SIZEOF(GpState34, 0x34);
-
 /* Define BSS before API headers to preserve first-declaration order. */
 u16 D_801156C0;
 
@@ -729,32 +718,32 @@ Task* Gp_LookupSlot4(s32 arg0)
 
 static void Gp_ScriptInit(Task* arg0)
 {
-    GpState34*    mem;
-    PadScriptCmd* script;
+    GpEvsState* state;
+    EvsCommand* script;
 
-    mem = memCalloc(0x34, 0);
-    if (mem == NULL) {
+    state = memCalloc(sizeof(*state), 0);
+    if (state == NULL) {
         taskKill(arg0);
         return;
     }
     D_801156F9          = 0;
     D_801156F4.sceneKey = 0;
     Display_AcquireRef();
-    script       = arg0->spawnArg2.pointer;
-    D_801156A4   = 0;
-    arg0->work   = mem;
-    mem->field_4 = 0;
-    D_801156C8   = 0;
-    mem->field_0 = script;
-    D_801156CA   = 0;
+    script      = arg0->spawnArg2.pointer;
+    D_801156A4  = 0;
+    arg0->work  = state;
+    state->wait = 0;
+    D_801156C8  = 0;
+    state->pc   = script;
+    D_801156CA  = 0;
     if (arg0->spawnArg1.value == 0) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
     }
-    D_801156CB    = 1;
-    mem->field_2C = 0;
-    mem->field_30 = 0;
-    mem->field_28 = 0;
-    D_8011569C    = 0;
+    D_801156CB      = 1;
+    state->msgTask  = NULL;
+    state->fadeTask = NULL;
+    state->sp       = 0;
+    D_8011569C      = 0;
     arg0->state++;
 }
 
