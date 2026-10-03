@@ -63,25 +63,43 @@ typedef struct HyperRecoil {
 } HyperRecoil;
 STATIC_ASSERT_SIZEOF(HyperRecoil, 0x18);
 
-/// 0x58-byte scratchpad block `func_hypervelocity_8011EC1C` reserves for the
-/// discharge cone. `hub` is the square collar sitting on the round itself and
-/// `rim` the flared mouth in front of it; both are the unit quad
-/// `D_80111E38` scaled in the round's own frame, rotated by its `workm` and
-/// shifted onto its world position. Two opposed walls are then projected a
-/// wall at a time - `sxy0`..`sxy3` are the four screen corners of the current
-/// wall, `flag` the `gte_stflg` that rejects a wall behind the eye and `otz`
-/// its `gte_stszotz` depth, which also picks the OT bucket.
-typedef struct HyperConeScratch {
-    /* 0x00 */ SVECTOR rim[4];
-    /* 0x20 */ SVECTOR hub[4];
-    /* 0x40 */ s32     otz;
-    /* 0x44 */ s32     flag;
-    /* 0x48 */ DVECTOR sxy0;
-    /* 0x4C */ DVECTOR sxy1;
-    /* 0x50 */ DVECTOR sxy2;
-    /* 0x54 */ DVECTOR sxy3;
-} HyperConeScratch;
-STATIC_ASSERT_SIZEOF(HyperConeScratch, 0x58);
+/// Vertices in each of the discharge cone's two squares, one per corner of
+/// the unit quad both are scaled from. The collar's vertices follow the
+/// mouth's at this distance in `_HypervelocityDischargeConeScratch::vertices`.
+#define HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT 4
+/// Walls drawn for one discharge cone: the local -X side, then the +X side.
+#define HYPERVELOCITY_DISCHARGE_CONE_WALL_COUNT 2
+
+/// Scratch-stack workspace for drawing the hypervelocity discharge cone.
+///
+/// The cone is spanned by two squares in an effect coordinate's local frame:
+/// a mouth, and a narrower collar at a fixed local height. A drawer stages
+/// each square's vertices in unit-quad corner order, rotates them by the
+/// coordinate's world matrix, adds its translation and stores the result back
+/// as a world position narrowed to 16 bits. `vertices` is one run of both
+/// squares, the mouth's four vertices followed by the collar's: the collar
+/// vertex of a corner is reached from its mouth vertex by stepping
+/// `HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT` elements on.
+///
+/// Only two opposed walls are drawn, one at a time. Wall `i` takes its
+/// vertices 0 and 1 from mouth vertices `i` and `i + 2`, the pair sharing a
+/// local X sign, and its vertices 2 and 3 from the collar vertices of the same
+/// corners. The remaining fields are refilled for each wall.
+///
+/// Reserve one complete block on the scratch stack and release it in reverse
+/// order after drawing. Pointers into the block must not survive its release.
+typedef struct {
+    SVECTOR vertices[2 * HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT]; // World-space vertices: the mouth square's, then the collar square's
+    s32     otz;                                                            // Ordering-table depth of the current wall: SZ3 / 4 of its last vertex, plus 1
+    s32     projectionFlags;                                                // GTE FLAG word after the wall's RTPT; bit 31 makes it negative and drops the wall
+    DVECTOR sxy0;                                                           // Screen position of the current wall's vertex 0
+    DVECTOR sxy1;                                                           // Screen position of vertex 1
+    DVECTOR sxy2;                                                           // Screen position of vertex 2
+    DVECTOR sxy3;                                                           // Screen position of vertex 3
+} _HypervelocityDischargeConeScratch;
+STATIC_ASSERT_SIZEOF(_HypervelocityDischargeConeScratch, 0x58);
+// The drawer stages one mouth and one collar vertex per unit-quad corner.
+STATIC_ASSERT(ARRAY_SIZE(D_80111E38) == HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT, hypervelocity_discharge_cone_square_vertex_count);
 
 /// 0x38 block the round's spawn state allocates with `memCalloc` and parks in
 /// `Task::work`. It leads with the `WorldCollisionBody` list node `func_hypervelocity_8011F11C`
@@ -524,37 +542,39 @@ void func_hypervelocity_8011D830(Task* task)
 
 /// Draws the discharge cone `func_hypervelocity_8011F270` leaves behind: two
 /// opposed `POLY_FT4` walls flaring out of `coord`, built in the scratchpad as
-/// a `HyperConeScratch`. The collar sits at y `0x700` and is `radius` wide,
-/// the mouth rises to `0x600 - age * 256 / 2` and flares to
+/// a `_HypervelocityDischargeConeScratch`. The collar sits at y `0x700` and
+/// is `radius` wide, the mouth rises to `0x600 - age * 256 / 2` and flares to
 /// `radius + age * 128 + 0x200`, so the cone climbs and opens as the puff
-/// ages; both rings are `radius` deep in z. Wall `i` is therefore the quad
-/// `rim[i]`, `rim[i + 2]`, `hub[i]`, `hub[i + 2]` - the -x pair, then the +x
-/// pair. Each wall is a frame of the same six-frame strip at tpage 0x2A the
-/// trail uses, picked by the stored jitter `D_hypervelocity_8012EF0C[i]` plus
-/// `age`, tinted by `rgb` and linked into the OT bucket its own projected
-/// depth names. Walls the GTE flags as behind the eye are dropped.
+/// ages; both squares are `radius` deep in z. Wall `i` is therefore the quad
+/// of mouth vertices `i` and `i + 2` and collar vertices `i` and `i + 2` -
+/// the -x pair, then the +x pair. Each wall is a frame of the same six-frame
+/// strip at tpage 0x2A the trail uses, picked by the stored jitter
+/// `D_hypervelocity_8012EF0C[i]` plus `age`, tinted by `rgb` and linked into
+/// the OT bucket its own projected depth names. Walls the GTE flags as behind
+/// the eye are dropped.
 static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8* rgb)
 {
-    HyperConeScratch*     sc;
-    POLY_FT4*             prim;
-    EffectUnitQuadCorner* corners;
-    SVECTOR*              vert;
-    MATRIX*               rot;
-    s32                   i;
-    s32                   rise;
-    s32                   top;
-    u16                   flare;
-    s32                   half;
-    s32                   u0;
+    _HypervelocityDischargeConeScratch* sc;
+    POLY_FT4*                           prim;
+    EffectUnitQuadCorner*               corners;
+    SVECTOR*                            collarVertex;
+    MATRIX*                             rot;
+    s32                                 i;
+    s32                                 rise;
+    s32                                 top;
+    u16                                 flare;
+    s32                                 half;
+    s32                                 u0;
 
     /* `rise` is built in two steps and then walked in place, and `half` is a
        second spelling of `radius`, because the ROM keeps both copies the
        folded forms would have coalesced away. `flare` is 16-bit on purpose:
        it only ever feeds a halfword store, and widening it moves the whole
-       prologue's register assignment. `vert` reaches `hub[i]` through
-       `rim[i]` so the `gte_ldv0` / `gte_stsv` address stays a register of its
-       own instead of being shared with the field stores. */
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(HyperConeScratch);
+       prologue's register assignment. `collarVertex` is stepped from the
+       mouth vertex of the same corner rather than indexed off `sc`, so the
+       `gte_ldv0` / `gte_stsv` address stays a register of its own instead of
+       being shared with the field stores. */
+    sc    = SCRATCH_STACK_RESERVE_BLOCK(_HypervelocityDischargeConeScratch);
     rise  = age;
     rise  = rise << 7;
     top   = 0x600 - rise;
@@ -565,42 +585,46 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
     i       = 0;
     rot     = &coord->workm;
     corners = D_80111E38;
+    // Stage each corner's mouth and collar vertex and move both to world space.
     do {
-        sc->rim[i].vx = (u16)corners[i].axis0Sign * flare;
-        sc->rim[i].vy = top;
-        sc->rim[i].vz = (u16)corners[i].axis1Sign * half;
+        sc->vertices[i].vx = (u16)corners[i].axis0Sign * flare;
+        sc->vertices[i].vy = top;
+        sc->vertices[i].vz = (u16)corners[i].axis1Sign * half;
         gte_SetRotMatrix(rot);
-        gte_ldv0(&sc->rim[i]);
+        gte_ldv0(&sc->vertices[i]);
         gte_rtv0();
-        gte_stsv(&sc->rim[i]);
-        (u16) sc->rim[i].vx = (u16)sc->rim[i].vx + (u16)coord->workm.t[0];
-        (u16) sc->rim[i].vy = (u16)sc->rim[i].vy + (u16)coord->workm.t[1];
-        (u16) sc->rim[i].vz = (u16)sc->rim[i].vz + (u16)coord->workm.t[2];
-        vert                = &sc->rim[i] + 4;
-        vert->vx            = (u16)corners[i].axis0Sign * radius;
-        vert->vy            = 0x700;
-        vert->vz            = (u16)corners[i].axis1Sign * half;
+        gte_stsv(&sc->vertices[i]);
+        sc->vertices[i].vx += (u16)coord->workm.t[0];
+        sc->vertices[i].vy += (u16)coord->workm.t[1];
+        sc->vertices[i].vz += (u16)coord->workm.t[2];
+        collarVertex        = &sc->vertices[i] + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT;
+        collarVertex->vx    = (u16)corners[i].axis0Sign * radius;
+        collarVertex->vy    = 0x700;
+        collarVertex->vz    = (u16)corners[i].axis1Sign * half;
         gte_SetRotMatrix(rot);
-        gte_ldv0(&sc->hub[i]);
+        gte_ldv0(&sc->vertices[i + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT]);
         gte_rtv0();
-        gte_stsv(&sc->hub[i]);
-        (u16) vert->vx = (u16)vert->vx + (u16)coord->workm.t[0];
+        gte_stsv(&sc->vertices[i + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT]);
+        collarVertex->vx += (u16)coord->workm.t[0];
         i++;
-        (u16) vert->vy = (u16)vert->vy + (u16)coord->workm.t[1];
-        (u16) vert->vz = (u16)vert->vz + (u16)coord->workm.t[2];
+        collarVertex->vy += (u16)coord->workm.t[1];
+        collarVertex->vz += (u16)coord->workm.t[2];
     } while (i < ARRAY_SIZE(D_80111E38));
 
+    // Project and draw one wall at a time: the corners sharing a local X sign.
     gte_SetRotMatrix(&GsWSMATRIX);
     i = 0;
     do {
-        gte_ldv0(&sc->rim[i]);
+        gte_ldv0(&sc->vertices[i]);
         gte_rtps();
         gte_stsxy(&sc->sxy0);
-        gte_ldv3(&sc->rim[i + 2], &sc->hub[i], &sc->hub[i + 2]);
+        gte_ldv3(&sc->vertices[i + 2],
+                 &sc->vertices[i + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT],
+                 &sc->vertices[i + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT + 2]);
         gte_rtpt();
         gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
-        gte_stflg(&sc->flag);
-        if (sc->flag >= 0) {
+        gte_stflg(&sc->projectionFlags);
+        if (sc->projectionFlags >= 0) {
             gte_stszotz(&sc->otz);
             sc->otz++;
             prim           = gGpuPrimCursor;
@@ -624,8 +648,8 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
         i++;
-    } while (i < 2);
-    SCRATCH_STACK_RELEASE_BLOCK(HyperConeScratch);
+    } while (i < HYPERVELOCITY_DISCHARGE_CONE_WALL_COUNT);
+    SCRATCH_STACK_RELEASE_BLOCK(_HypervelocityDischargeConeScratch);
 }
 
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was

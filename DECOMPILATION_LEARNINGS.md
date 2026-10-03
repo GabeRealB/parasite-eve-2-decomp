@@ -57179,6 +57179,46 @@ prologue value's only consumer is a halfword store or a 16-bit multiply and the
 leftover is `regs` with a correct instruction order, try narrowing the local
 before reaching for the permuter.
 
+## A vertex stepped from one square to the next is one array, not two
+
+**Problem.** The discharge-cone drawer `func_hypervelocity_8011EC1C` stages
+four mouth vertices and four collar vertices in a scratch block. With the
+block declared as two arrays, the only spelling that matched reached the
+collar through the mouth, one past the end of its array and then
+dereferenced:
+
+```c
+SVECTOR rim[4];
+SVECTOR hub[4];
+...
+vert = &sc->rim[i] + 4;   /* lands in hub[i] */
+```
+
+**Symptom.** The honest member spelling, `vert = &sc->hub[i]`, is the same
+RTL as the `gte_ldv0(&sc->hub[i])` address a few lines on, so CSE keeps one
+copy: the ROM's `addiu $a0, $t0, 0x20` becomes `addu $a0, $t1, $t8`, the GTE
+load reuses `$a0`, and the `0x20($t0)` stores turn into `0($a0)` (38 lines
+out). A hub pointer carried and incremented beside the loop is worse - a
+fifth induction register and a larger frame. The ROM wants three derivations
+of one address: `sc + (i * 8 + 0x20)` for the GTE, and the mouth vertex's own
+strength-reduced pointer plus a constant for the field stores, which is what
+`combine_givs` makes of a pointer *derived from* `&array[i]`.
+
+**Fix.** Declare what the address arithmetic says - one array holding both
+squares - and both spellings are then ordinary in-bounds C:
+
+```c
+SVECTOR vertices[2 * COUNT];   /* mouth square, then collar square */
+...
+collarVertex = &sc->vertices[i] + COUNT;
+gte_ldv0(&sc->vertices[i + COUNT]);
+```
+
+`&sc->vertices[i + COUNT]` folds to the same `i * 8 + 0x20` giv the member
+spelling gave, so nothing else moves. In the same loop the lvalue casts
+`(u16) v->vx = (u16)v->vx + (u16)t` were never needed: `v->vx += (u16)t`
+compiles identically.
+
 ## Loop-invariant `li` hoisting is decided by lifetime; reorder the stores to keep one inside
 
 Two constants used twice each in the same loop body do not have to be treated
