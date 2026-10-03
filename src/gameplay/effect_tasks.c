@@ -27,14 +27,26 @@
 #include "main/session.h"
 #include "main/tmd_types.h"
 
-/// 4-byte row of `D_8011291C`, indexed by `Task::spawnArg1`.
-/// `Gp_EffPolyTask9C` copies `field_0` / `field_2` into `EffectWork.period` /
-/// `field_2A` (draw param for `Gp_DrawEffShard` and per-frame `field_26` step).
-typedef struct _GpEffRec {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} GpEffRec;
-STATIC_ASSERT_SIZEOF(GpEffRec, 4);
+/// Flag in `_EffectCriticalHitStyle::color` that adds four radial spikes, each
+/// at a random angle within its own quarter turn, to the ring.
+#define EFFECT_CRITICAL_HIT_STYLE_SPIKES 0x1000
+
+/// Packs the channel weights of `_EffectCriticalHitStyle::color`, each 0 to 15.
+#define EFFECT_CRITICAL_HIT_STYLE_COLOR(red, green, blue) (((red) << 8) | ((green) << 4) | (blue))
+
+/// One look of the `EFFECT_CRITICAL_HIT` burst, selected by the effect's spawn
+/// argument.
+///
+/// The burst is an additive ring that grows for eight frames while it fades
+/// from its colour to black. Each colour channel is its weight multiplied by a
+/// brightness that falls from 14 to 0. The ring's radius starts at 0x20 and is
+/// in units of 256 / depth pixels at its outer edge; the inner edge sits at
+/// half that distance.
+typedef struct {
+    u16 color;      // `EFFECT_CRITICAL_HIT_STYLE_COLOR` channel weights, with `EFFECT_CRITICAL_HIT_STYLE_SPIKES` where the burst has spikes
+    u16 radiusStep; // amount the ring's radius grows each frame
+} _EffectCriticalHitStyle;
+STATIC_ASSERT_SIZEOF(_EffectCriticalHitStyle, 4);
 
 /// 0xC-byte sprite frame of `Gp_EffSprRecs`, indexed by `EffectWork.age`.
 /// `w` is both the UV quad size and the billboard scale factor. `u` / `v` are
@@ -64,7 +76,7 @@ typedef struct _GpEffTileScratch {
 } GpEffTileScratch;
 STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
 
-extern GpEffRec D_8011291C[];
+extern _EffectCriticalHitStyle D_8011291C[];
 
 extern GpEffSprRec Gp_EffSprRecs[];
 
@@ -2694,8 +2706,8 @@ void Gp_EffPolyTask9C(Task* arg0)
             if (arg0->state == 0) {
                 mem->scale  = 0x10;
                 mem->angle  = 0x20;
-                mem->period = D_8011291C[arg0->spawnArg1.value].field_0;
-                mem->step   = D_8011291C[arg0->spawnArg1.value].field_2;
+                mem->period = D_8011291C[arg0->spawnArg1.value].color;
+                mem->step   = D_8011291C[arg0->spawnArg1.value].radiusStep;
                 arg0->state++;
             }
             Gp_UpdateCoord(coord);
@@ -3406,13 +3418,13 @@ SVECTOR D_8011280C[34] = {
     { 0, 0, 384, 0 },
     { 0, 448, 128, 0 },
 };
-GpEffRec D_8011291C[6] = {
-    { 8183, 24 },
-    { 3959, 32 },
-    { 6143, 24 },
-    { 6135, 24 },
-    { 8063, 24 },
-    { 1919, 24 },
+_EffectCriticalHitStyle D_8011291C[6] = {
+    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(15, 15, 7), 24 },
+    { EFFECT_CRITICAL_HIT_STYLE_COLOR(15, 7, 7), 32 },
+    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(7, 15, 15), 24 },
+    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(7, 15, 7), 24 },
+    { EFFECT_CRITICAL_HIT_STYLE_SPIKES | EFFECT_CRITICAL_HIT_STYLE_COLOR(15, 7, 15), 24 },
+    { EFFECT_CRITICAL_HIT_STYLE_COLOR(7, 7, 15), 24 },
 };
 GpEffSprRec Gp_EffSprRecs[4] = {
     { 55, 112, 0, 200, 0, 176, 266, 576 },
