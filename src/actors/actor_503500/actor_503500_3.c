@@ -62,20 +62,20 @@
 
 /// The 0x160 work block cleared by func_actor_503500_801372C8.
 typedef struct Actor503500Work160 {
-    MATRIX                light;
-    MATRIX                color;
-    Actor503500Slot40     slot40;
-    WorldCollisionContact rec60[8];
-    EffectSpawnArg        field_120;
-    Actor503500FixVec     rot;
-    Actor503500FixVec     vel;
-    Actor503500FixVec     pos;
-    s16                   field_158;
-    u16                   field_15A;
-    s8                    field_15C;
-    s8                    field_15D;
-    s8                    field_15E;
-    s8                    field_15F;
+    MATRIX                 light;
+    MATRIX                 color;
+    Actor503500Slot40      slot40;
+    WorldCollisionContact  rec60[8];
+    EffectSpawnArg         field_120;
+    Actor503500FixedVector rot;
+    Actor503500FixedVector vel;
+    Actor503500FixedVector pos;
+    s16                    field_158;
+    u16                    field_15A;
+    s8                     field_15C;
+    s8                     field_15D;
+    s8                     field_15E;
+    s8                     field_15F;
 } Actor503500Work160;
 STATIC_ASSERT_SIZEOF(Actor503500Work160, 0x160);
 
@@ -2709,9 +2709,9 @@ static void func_actor_503500_801374BC(Task* arg0)
 
 /// Death state of the 0x160 enemy at `D_actor_503500_80176D88`: phase 0
 /// unlinks the enemy node and clears the 16.16 `rot` / `vel` / `pos`; phase 2
-/// steps `rot.vx` down for 31 frames, then re-parents the coordinate onto the
+/// steps `rot.fixed.vx` down for 31 frames, then re-parents the coordinate onto the
 /// view in world space, points `vel` along its Z axis and plays 0x40230004;
-/// phases 3/4 accelerate `vel.vy`, and phase 4 fires the light and sound cues
+/// phases 3/4 accelerate `vel.fixed.vy`, and phase 4 fires the light and sound cues
 /// on frames 10/30 and leaves on frame 40. Every frame the angles and position
 /// are applied to the coordinate, and every even frame sprays an effect from
 /// `D_actor_503500_8016F078`.
@@ -2740,23 +2740,23 @@ static void func_actor_503500_80137678(Task* arg0)
             (Gp_IncStateF0Ref)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
-            enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
-            work->rot.vx.word     = 0;
-            work->rot.vy.word     = 0;
-            work->rot.vz.word     = 0;
-            work->vel.vx.word     = 0;
-            work->vel.vy.word     = 0;
-            work->vel.vz.word     = 0;
-            work->pos.vx.word     = 0;
-            work->pos.vy.word     = 0;
-            work->pos.vz.word     = 0;
+            enemy->reactionFlags   &= ENEMY_REACTION_LOW_CLEAR;
+            work->rot.fixed.vx.word = 0;
+            work->rot.fixed.vy.word = 0;
+            work->rot.fixed.vz.word = 0;
+            work->vel.fixed.vx.word = 0;
+            work->vel.fixed.vy.word = 0;
+            work->vel.fixed.vz.word = 0;
+            work->pos.fixed.vx.word = 0;
+            work->pos.fixed.vy.word = 0;
+            work->pos.fixed.vz.word = 0;
             work->field_15D++;
             break;
         case 1:
             work->field_15D++;
             break;
         case 2:
-            work->rot.vx.word -= 0x4000;
+            work->rot.fixed.vx.word -= 0x4000;
             if ((s16)++work->field_15A >= 0x1F) {
                 // Copy the nine coefficients as four words and a halfword; preserve the alignment halfword.
                 src   = (s32*)&m;
@@ -2766,15 +2766,15 @@ static void func_actor_503500_80137678(Task* arg0)
                 for (i = 0; i < 4; i++) {
                     *out++ = *src++;
                 }
-                coord->coord.m[2][2] = m.mat.m[2][2];
-                coord->coord.t[0]    = rot.vx;
-                coord->coord.t[1]    = rot.vy;
-                coord->coord.t[2]    = rot.vz;
-                coord->parent        = &gGfxViewCoord;
-                work->vel.vx.word    = 0;
-                work->vel.vy.word    = 0;
-                work->vel.vz.word    = 0x100000;
-                ApplyMatrixLV(&m.mat, (VECTOR*)&work->vel, (VECTOR*)&work->vel);
+                coord->coord.m[2][2]    = m.mat.m[2][2];
+                coord->coord.t[0]       = rot.vx;
+                coord->coord.t[1]       = rot.vy;
+                coord->coord.t[2]       = rot.vz;
+                coord->parent           = &gGfxViewCoord;
+                work->vel.fixed.vx.word = 0;
+                work->vel.fixed.vy.word = 0;
+                work->vel.fixed.vz.word = 0x100000;
+                ApplyMatrixLV(&m.mat, &work->vel.vector, &work->vel.vector);
                 func_actor_503500_80135D00(arg0->parent, 0xC);
                 Gp_UpdateCoord(coord);
                 SndEvt_EnqueueType6(SOUND_BRAHMAN_PART_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
@@ -2784,14 +2784,14 @@ static void func_actor_503500_80137678(Task* arg0)
             }
             break;
         case 3:
-            work->vel.vy.word += 0x8000;
+            work->vel.fixed.vy.word += 0x8000;
             if ((s16)++work->field_15A >= 0x1F) {
                 work->field_15A = 0;
                 work->field_15D++;
             }
             break;
         case 4:
-            work->vel.vy.word += 0x8000;
+            work->vel.fixed.vy.word += 0x8000;
             switch ((s16)work->field_15A) {
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
@@ -2813,9 +2813,9 @@ static void func_actor_503500_80137678(Task* arg0)
             arg0->state++;
             break;
     }
-    rot.vx                 = work->rot.vx.word >> 16;
-    rot.vy                 = work->rot.vy.word >> 16;
-    rot.vz                 = work->rot.vz.word >> 16;
+    rot.vx                 = work->rot.fixed.vx.word >> 16;
+    rot.vy                 = work->rot.fixed.vy.word >> 16;
+    rot.vz                 = work->rot.fixed.vz.word >> 16;
     m.rotationWords.m00M01 = ONE;
     m.rotationWords.m02M10 = 0;
     ident                  = &m.rotationWords;
@@ -2833,16 +2833,16 @@ static void func_actor_503500_80137678(Task* arg0)
     gte_ldclmv((char*)&m.mat + 4);
     gte_rtir();
     gte_stclmv((char*)&coord->coord + 4);
-    work->pos.vx.word  += work->vel.vx.word;
-    work->pos.vy.word  += work->vel.vy.word;
-    work->pos.vz.word  += work->vel.vz.word;
-    coord->coord.t[0]  += work->pos.vx.halves.integer;
-    coord->coord.t[1]  += work->pos.vy.halves.integer;
-    coord->coord.t[2]  += work->pos.vz.halves.integer;
-    work->pos.vx.word   = (u16)work->pos.vx.word;
-    work->pos.vy.word   = (u16)work->pos.vy.word;
-    work->pos.vz.word   = (u16)work->pos.vz.word;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->pos.fixed.vx.word += work->vel.fixed.vx.word;
+    work->pos.fixed.vy.word += work->vel.fixed.vy.word;
+    work->pos.fixed.vz.word += work->vel.fixed.vz.word;
+    coord->coord.t[0]       += work->pos.fixed.vx.halves.integer;
+    coord->coord.t[1]       += work->pos.fixed.vy.halves.integer;
+    coord->coord.t[2]       += work->pos.fixed.vz.halves.integer;
+    work->pos.fixed.vx.word  = work->pos.fixed.vx.halves.fraction;
+    work->pos.fixed.vy.word  = work->pos.fixed.vy.halves.fraction;
+    work->pos.fixed.vz.word  = work->pos.fixed.vz.halves.fraction;
+    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
     if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
         switch (gDisplayState.animFrame % 6) {
             case 0:

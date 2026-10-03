@@ -48,15 +48,24 @@ typedef struct Actor503500Step {
     u32 weight;
 } Actor503500Step;
 
-/// A 16.16 world position: `func_actor_503500_80144520` reads each
-/// component's high half (`lh` at +2) back into `GfxCoord.coord.t[]`.
-typedef struct Actor503500FixVec {
-    /* 0x0 */ Fixed16 vx;
-    /* 0x4 */ Fixed16 vy;
-    /* 0x8 */ Fixed16 vz;
-    /* 0xC */ s32     pad;
-} Actor503500FixVec;
-STATIC_ASSERT_SIZEOF(Actor503500FixVec, 0x10);
+/// A signed 16.16 fixed-point XYZ vector with fixed-point and SDK vector views.
+///
+/// The package keeps its sub-unit motion in these: Euler angles, velocities
+/// and positions that are stepped a fraction of a unit per frame. `fixed`
+/// gives each component's whole word and its halves, so a caller can apply
+/// the signed integer half to a coordinate or an `SVECTOR` and keep the
+/// fraction as the carry. `vector` is the same three words as the SDK type,
+/// for matrix routines that transform the vector in place; a 16.16 input
+/// gives a 16.16 result. Changing views performs no conversion.
+typedef union {
+    VECTOR vector;  // SDK XYZ view; the SDK's fourth word is unused
+    struct {
+        Fixed16 vx; // X component in signed 16.16 units
+        Fixed16 vy; // Y component in signed 16.16 units
+        Fixed16 vz; // Z component in signed 16.16 units
+    } fixed;        // Whole word, fraction and signed integer half of each component
+} Actor503500FixedVector;
+STATIC_ASSERT_SIZEOF(Actor503500FixedVector, 0x10);
 
 typedef struct Actor503500Work {
     /* 0x000 */ WorldCollisionBody    obj; // the collision body Gp_UnlinkObj takes
@@ -97,9 +106,9 @@ typedef struct Actor503500Work {
                                           /// fall, stepped by `func_actor_503500_80137678`: the angles' high halves
                                           /// build the rotation and the position's high halves are added onto the
                                           /// coordinate's translation each frame.
-    /* 0x128 */ Actor503500FixVec rot;
-    /* 0x138 */ Actor503500FixVec vel;
-    /* 0x148 */ Actor503500FixVec pos;
+    /* 0x128 */ Actor503500FixedVector rot;
+    /* 0x138 */ Actor503500FixedVector vel;
+    /* 0x148 */ Actor503500FixedVector pos;
     /// Per-frame countdown of the 0x160 block, stepped down and floored at 0 by
     /// `func_actor_503500_801382FC`.
     /* 0x158 */ s16 field_158;

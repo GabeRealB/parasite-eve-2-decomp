@@ -81,20 +81,20 @@ typedef struct Actor503500Work224 {
                                           /// 16.16 Euler angles, velocity and position of the death fall stepped
                                           /// by `func_actor_503500_80142980`, as `Actor503500Work::rot` / `vel` /
                                           /// `pos` are for the 0x160 block.
-    /* 0x1E8 */ Actor503500FixVec rot;
-    /* 0x1F8 */ Actor503500FixVec vel;
-    /* 0x208 */ Actor503500FixVec pos;
-    /* 0x218 */ s16               field_218; // per-frame countdown, clamped at 0
-    /* 0x21A */ u16               field_21A; // sub-state frame counter
-                                             /// Recovery countdown, armed at 0x258 when a hit empties `field_40` and
-                                             /// stepped down by `func_actor_503500_801431EC`, which refills the health
-                                             /// when it reaches 0.
+    /* 0x1E8 */ Actor503500FixedVector rot;
+    /* 0x1F8 */ Actor503500FixedVector vel;
+    /* 0x208 */ Actor503500FixedVector pos;
+    /* 0x218 */ s16                    field_218; // per-frame countdown, clamped at 0
+    /* 0x21A */ u16                    field_21A; // sub-state frame counter
+                                                  /// Recovery countdown, armed at 0x258 when a hit empties `field_40` and
+                                                  /// stepped down by `func_actor_503500_801431EC`, which refills the health
+                                                  /// when it reaches 0.
     /* 0x21C */ s16 field_21C;
-    /* 0x21E */ s16 field_21E;               // CdCmd_Enqueue result of the death state's load
-    /* 0x220 */ s8  field_220;               // side flag: picks the +/-0x5DC turn
-    /* 0x221 */ s8  field_221;               // sub-state index
-    /* 0x222 */ s8  field_222;               // sub-state phase, cleared with field_221
-    /* 0x223 */ s8  field_223;               // 0xC or 0x12, picked in sub-state 1's phase 0
+    /* 0x21E */ s16 field_21E;                    // CdCmd_Enqueue result of the death state's load
+    /* 0x220 */ s8  field_220;                    // side flag: picks the +/-0x5DC turn
+    /* 0x221 */ s8  field_221;                    // sub-state index
+    /* 0x222 */ s8  field_222;                    // sub-state phase, cleared with field_221
+    /* 0x223 */ s8  field_223;                    // 0xC or 0x12, picked in sub-state 1's phase 0
 } Actor503500Work224;
 STATIC_ASSERT_SIZEOF(Actor503500Work224, 0x224);
 
@@ -158,19 +158,19 @@ STATIC_ASSERT_SIZEOF(Actor503500Work3D8, 0x3D8);
 /// in 16.16) and `field_94` the copy it restores from; `field_A4` is the
 /// forward offset `ApplyMatrixLV` rotates out of `Task::spawnArg2`.
 typedef struct Actor503500WorkC0 {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact rec[4];
-    /* 0x80 */ Task*                 field_80;
-    /* 0x84 */ Actor503500FixVec     field_84;
-    /* 0x94 */ VECTOR                field_94;
-    /* 0xA4 */ VECTOR                field_A4; // per-frame velocity added onto field_84
-    /* 0xB4 */ s32                   field_B4;
-    /* 0xB8 */ s16                   field_B8;
-    /* 0xBA */ u16                   field_BA; // sub-state frame counter
-    /* 0xBC */ s8                    field_BC; // sub-state index, -1 finishes the task
-    /* 0xBD */ byte                  pad_BD[0x1];
-    /* 0xBE */ s8                    field_BE; // set when a record's kind (key high half) is 1
-    /* 0xBF */ s8                    field_BF; // nonzero skips the push-back step
+    /* 0x00 */ WorldCollisionBody     obj;
+    /* 0x20 */ WorldCollisionContact  rec[4];
+    /* 0x80 */ Task*                  field_80;
+    /* 0x84 */ Actor503500FixedVector field_84;
+    /* 0x94 */ VECTOR                 field_94;
+    /* 0xA4 */ VECTOR                 field_A4; // per-frame velocity added onto field_84
+    /* 0xB4 */ s32                    field_B4;
+    /* 0xB8 */ s16                    field_B8;
+    /* 0xBA */ u16                    field_BA; // sub-state frame counter
+    /* 0xBC */ s8                     field_BC; // sub-state index, -1 finishes the task
+    /* 0xBD */ byte                   pad_BD[0x1];
+    /* 0xBE */ s8                     field_BE; // set when a record's kind (key high half) is 1
+    /* 0xBF */ s8                     field_BF; // nonzero skips the push-back step
 } Actor503500WorkC0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);
 
@@ -200,11 +200,11 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkB4, 0xB4);
 /// halves go to the player as `GAME_ACTOR_MESSAGE_MOVE_BY`. `field_34` counts frames spent at
 /// zero speed and `field_36` the remaining camera-shake frames.
 typedef struct Actor503500Work38 {
-    /* 0x00 */ Actor503500FixVec pos;
-    /* 0x10 */ MATRIX            rot;
-    /* 0x30 */ s32               speed;
-    /* 0x34 */ s16               field_34;
-    /* 0x36 */ s16               field_36;
+    /* 0x00 */ Actor503500FixedVector pos;
+    /* 0x10 */ MATRIX                 rot;
+    /* 0x30 */ s32                    speed;
+    /* 0x34 */ s16                    field_34;
+    /* 0x36 */ s16                    field_36;
 } Actor503500Work38;
 STATIC_ASSERT_SIZEOF(Actor503500Work38, 0x38);
 
@@ -3915,7 +3915,7 @@ static void func_actor_503500_8014271C(Task* arg0)
 /// 16.16 `rot` / `vel` / `pos`; phase 1 sprays effects for 31 frames, then
 /// queues the side's CD load, re-parents the coordinate onto the view in world
 /// space, copies the parent's parts 6/7 (or 12/13, by `field_220`) into its own
-/// parts 2/3 and points `vel` along the coordinate; phase 2 plays 0x40230004; phases 3/4 accelerate `vel.vy`, and
+/// parts 2/3 and points `vel` along the coordinate; phase 2 plays 0x40230004; phases 3/4 accelerate `vel.fixed.vy`, and
 /// phase 4 fires the light and sound cues on frames 10/30 and leaves on frame
 /// 40. Every frame the angles and position are applied to the coordinate, and
 /// every fourth frame sprays two effects from `D_actor_503500_80171564`.
@@ -3953,18 +3953,18 @@ static void func_actor_503500_80142980(Task* arg0)
             (Gp_IncStateF0Ref)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
-            enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
-            work->rot.vx.word     = 0;
-            work->rot.vy.word     = 0;
-            work->rot.vz.word     = 0;
-            work->vel.vx.word     = 0;
-            work->vel.vy.word     = 0;
-            work->vel.vz.word     = 0;
-            work->pos.vx.word     = 0;
-            work->pos.vy.word     = 0;
-            work->pos.vz.word     = 0;
-            work->obj1.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            work->obj2.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            enemy->reactionFlags   &= ENEMY_REACTION_LOW_CLEAR;
+            work->rot.fixed.vx.word = 0;
+            work->rot.fixed.vy.word = 0;
+            work->rot.fixed.vz.word = 0;
+            work->vel.fixed.vx.word = 0;
+            work->vel.fixed.vy.word = 0;
+            work->vel.fixed.vz.word = 0;
+            work->pos.fixed.vx.word = 0;
+            work->pos.fixed.vy.word = 0;
+            work->pos.fixed.vz.word = 0;
+            work->obj1.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->obj2.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->field_222++;
             break;
         case 1:
@@ -4024,16 +4024,16 @@ static void func_actor_503500_80142980(Task* arg0)
                 rot.vz = 0;
                 if (side != 0) {
                     func_actor_503500_80135E20(arg0->parent, 5, &rot);
-                    work->vel.vx.word = -0x100000;
-                    work->vel.vy.word = 0;
-                    work->vel.vz.word = 0;
+                    work->vel.fixed.vx.word = -0x100000;
+                    work->vel.fixed.vy.word = 0;
+                    work->vel.fixed.vz.word = 0;
                 } else {
                     func_actor_503500_80135E20(arg0->parent, 0xB, &rot);
-                    work->vel.vx.word = 0x100000;
-                    work->vel.vy.word = 0;
-                    work->vel.vz.word = 0;
+                    work->vel.fixed.vx.word = 0x100000;
+                    work->vel.fixed.vy.word = 0;
+                    work->vel.fixed.vz.word = 0;
                 }
-                ApplyMatrixLV(&coord->coord, (VECTOR*)&work->vel, (VECTOR*)&work->vel);
+                ApplyMatrixLV(&coord->coord, &work->vel.vector, &work->vel.vector);
                 coord->parent = &gGfxViewCoord;
                 Gp_UpdateCoord(coord);
                 work->field_21A = 0;
@@ -4050,20 +4050,20 @@ static void func_actor_503500_80142980(Task* arg0)
             if (func_actor_503500_801360BC(arg0->spawnArg1.value, 2) != 0) {
                 if (work->field_220 != 0) {
                     Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01101C00, &D_actor_503500_80171594);
-                    work->rot.vz.word -= 0x2000;
+                    work->rot.fixed.vz.word -= 0x2000;
                 } else {
                     Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01101C00, &D_actor_503500_8017158C);
-                    work->rot.vz.word += 0x2000;
+                    work->rot.fixed.vz.word += 0x2000;
                 }
             }
-            work->vel.vy.word += 0x8000;
+            work->vel.fixed.vy.word += 0x8000;
             if ((s16)++work->field_21A >= 0x1F) {
                 work->field_21A = 0;
                 work->field_222++;
             }
             break;
         case 4:
-            work->vel.vy.word += 0x8000;
+            work->vel.fixed.vy.word += 0x8000;
             switch ((s16)work->field_21A) {
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
@@ -4085,9 +4085,9 @@ static void func_actor_503500_80142980(Task* arg0)
             arg0->state++;
             break;
     }
-    rot.vx                 = work->rot.vx.word >> 16;
-    rot.vy                 = work->rot.vy.word >> 16;
-    rot.vz                 = work->rot.vz.word >> 16;
+    rot.vx                 = work->rot.fixed.vx.word >> 16;
+    rot.vy                 = work->rot.fixed.vy.word >> 16;
+    rot.vz                 = work->rot.fixed.vz.word >> 16;
     m.rotationWords.m00M01 = ONE;
     m.rotationWords.m02M10 = 0;
     ident                  = &m.rotationWords;
@@ -4105,16 +4105,16 @@ static void func_actor_503500_80142980(Task* arg0)
     gte_ldclmv((char*)&m.mat + 4);
     gte_rtir();
     gte_stclmv((char*)&coord->coord + 4);
-    work->pos.vx.word  += work->vel.vx.word;
-    work->pos.vy.word  += work->vel.vy.word;
-    work->pos.vz.word  += work->vel.vz.word;
-    coord->coord.t[0]  += work->pos.vx.halves.integer;
-    coord->coord.t[1]  += work->pos.vy.halves.integer;
-    coord->coord.t[2]  += work->pos.vz.halves.integer;
-    work->pos.vx.word   = (u16)work->pos.vx.word;
-    work->pos.vy.word   = (u16)work->pos.vy.word;
-    work->pos.vz.word   = (u16)work->pos.vz.word;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->pos.fixed.vx.word += work->vel.fixed.vx.word;
+    work->pos.fixed.vy.word += work->vel.fixed.vy.word;
+    work->pos.fixed.vz.word += work->vel.fixed.vz.word;
+    coord->coord.t[0]       += work->pos.fixed.vx.halves.integer;
+    coord->coord.t[1]       += work->pos.fixed.vy.halves.integer;
+    coord->coord.t[2]       += work->pos.fixed.vz.halves.integer;
+    work->pos.fixed.vx.word  = work->pos.fixed.vx.halves.fraction;
+    work->pos.fixed.vy.word  = work->pos.fixed.vy.halves.fraction;
+    work->pos.fixed.vz.word  = work->pos.fixed.vz.halves.fraction;
+    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
     if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
         if (!(gDisplayState.animFrame & 3)) {
             for (i = 0, j = 0; i < 2; i++) {
@@ -4360,12 +4360,12 @@ void func_actor_503500_80143AC0(Task* arg0)
                 return;
             }
             memFillBytes(work, 0, sizeof(Actor503500Work38));
-            work->speed       = 0x1000000;
-            work->pos.vx.word = 0;
-            work->pos.vy.word = 0;
-            work->pos.vz.word = 0;
-            src               = (s32*)arg0->spawnArg2.pointer;
-            dst               = (s32*)&work->rot;
+            work->speed             = 0x1000000;
+            work->pos.fixed.vx.word = 0;
+            work->pos.fixed.vy.word = 0;
+            work->pos.fixed.vz.word = 0;
+            src                     = (s32*)arg0->spawnArg2.pointer;
+            dst                     = (s32*)&work->rot;
             for (i = 0; i < 4; i++) {
                 *dst++ = *src++;
             }
@@ -4382,21 +4382,21 @@ void func_actor_503500_80143AC0(Task* arg0)
             vec.vy = 0;
             vec.vz = work->speed;
             ApplyMatrixLV(&work->rot, &vec, &vec);
-            work->pos.vx.word    += vec.vx;
-            work->pos.vy.word    += vec.vy;
-            work->pos.vz.word    += vec.vz;
-            msg.collisionRequests = 1;
-            msg.keepControl       = 1;
-            msg.displacement.vx   = work->pos.vx.halves.integer;
-            msg.displacement.vy   = work->pos.vy.halves.integer;
-            msg.displacement.vz   = work->pos.vz.halves.integer;
+            work->pos.fixed.vx.word += vec.vx;
+            work->pos.fixed.vy.word += vec.vy;
+            work->pos.fixed.vz.word += vec.vz;
+            msg.collisionRequests    = 1;
+            msg.keepControl          = 1;
+            msg.displacement.vx      = work->pos.fixed.vx.halves.integer;
+            msg.displacement.vy      = work->pos.fixed.vy.halves.integer;
+            msg.displacement.vz      = work->pos.fixed.vz.halves.integer;
             if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &msg, 0) != 0) {
                 work->speed = 0;
             }
-            work->pos.vx.word = (u16)work->pos.vx.word;
-            work->pos.vy.word = (u16)work->pos.vy.word;
-            work->pos.vz.word = (u16)work->pos.vz.word;
-            work->speed      -= 0x30000;
+            work->pos.fixed.vx.word = work->pos.fixed.vx.halves.fraction;
+            work->pos.fixed.vy.word = work->pos.fixed.vy.halves.fraction;
+            work->pos.fixed.vz.word = work->pos.fixed.vz.halves.fraction;
+            work->speed            -= 0x30000;
             if (work->speed < 0) {
                 work->speed = 0;
                 if (++work->field_34 > 20) {
@@ -4627,13 +4627,13 @@ static void func_actor_503500_80144300(Task* arg0)
     }
     arg0->work = work;
 
-    work->field_84.vx.word = coord->coord.t[0] << 16;
-    work->field_84.vy.word = coord->coord.t[1] << 16;
-    work->field_84.vz.word = coord->coord.t[2] << 16;
-    work->field_94.vx      = work->field_84.vx.word;
-    work->field_B8         = 0x1000;
-    work->field_94.vy      = work->field_84.vy.word;
-    work->field_94.vz      = work->field_84.vz.word;
+    work->field_84.fixed.vx.word = coord->coord.t[0] << 16;
+    work->field_84.fixed.vy.word = coord->coord.t[1] << 16;
+    work->field_84.fixed.vz.word = coord->coord.t[2] << 16;
+    work->field_94.vx            = work->field_84.fixed.vx.word;
+    work->field_B8               = 0x1000;
+    work->field_94.vy            = work->field_84.fixed.vy.word;
+    work->field_94.vz            = work->field_84.fixed.vz.word;
 
     if (arg0->spawnArg2.pointer != NULL) {
         v.vx = 0;
@@ -4720,12 +4720,12 @@ static void func_actor_503500_80144520(Task* arg0)
             arg0->state++;
             break;
     }
-    work->field_84.vx.word += work->field_A4.vx;
-    work->field_84.vy.word += work->field_A4.vy;
-    work->field_84.vz.word += work->field_A4.vz;
-    coord->coord.t[0]       = work->field_84.vx.halves.integer;
-    coord->coord.t[1]       = work->field_84.vy.halves.integer;
-    coord->coord.t[2]       = work->field_84.vz.halves.integer;
+    work->field_84.fixed.vx.word += work->field_A4.vx;
+    work->field_84.fixed.vy.word += work->field_A4.vy;
+    work->field_84.fixed.vz.word += work->field_A4.vz;
+    coord->coord.t[0]             = work->field_84.fixed.vx.halves.integer;
+    coord->coord.t[1]             = work->field_84.fixed.vy.halves.integer;
+    coord->coord.t[2]             = work->field_84.fixed.vz.halves.integer;
 }
 
 static void func_actor_503500_801446E4(Task* arg0)
@@ -4769,14 +4769,14 @@ static void func_actor_503500_80144778(Task* arg0)
             case 0:
                 break;
             case 1:
-                work->field_84.vx.word += delta.fixed.vx.word;
-                work->field_84.vy.word += delta.fixed.vy.word;
-                work->field_84.vz.word += delta.fixed.vz.word;
+                work->field_84.fixed.vx.word += delta.fixed.vx.word;
+                work->field_84.fixed.vy.word += delta.fixed.vy.word;
+                work->field_84.fixed.vz.word += delta.fixed.vz.word;
                 break;
             case 2:
-                work->field_84.vx.word = work->field_94.vx;
-                work->field_84.vy.word = work->field_94.vy;
-                work->field_84.vz.word = work->field_94.vz;
+                work->field_84.fixed.vx.word = work->field_94.vx;
+                work->field_84.fixed.vy.word = work->field_94.vy;
+                work->field_84.fixed.vz.word = work->field_94.vz;
                 break;
         }
     }
