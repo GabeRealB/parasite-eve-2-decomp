@@ -2469,7 +2469,7 @@ costs a second, sign-extending load. A `switch` never reaches `fold_range_test`
 at all.
 
 A single-value guard in the same idiom stays an `if`: the sibling
-`func_actor_310100_801631B0` is `if (work->field_4F0 == 0)` → `lhu` + `bnez`.
+`func_actor_310100_801631B0` is `if (work->playState == 0)` → `lhu` + `bnez`.
 `func_acropolis_plaza_8017F9EC` is the same `{0, 1}` cluster reached from a
 3-case switch, emitted as `bltz` / `slti`+`bnez` (the `node->right` form at line
 ~6485).
@@ -3509,14 +3509,14 @@ if (task->spawnArg1 == 0) {
     do {
         mode = 0x6D;              /* depth 1: def counts 2 */
     } while (0);
-    work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 2, 5, 0);
+    work->modelTask = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 2, 5, 0);
 } else if (task->spawnArg1 == 1) {
     do {
         do {
             mode = 0x6C;          /* depth 2: def counts 3 */
         } while (0);
     } while (0);
-    work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 2, 7, 0);
+    work->modelTask = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 2, 7, 0);
 }
 ```
 
@@ -53732,7 +53732,7 @@ message ids the sibling handlers in the overlay use, and do not read the
 constant back out of the assembly — it is not there.
 
 **The hidden case's *arm* can survive after its test is gone.** The same tree
-over `Actor310100Work::field_4F0` in `func_actor_310100_8016309C` — root 1, left
+over `_Actor310100PoliceOfficerWork::playState` in `func_actor_310100_8016309C` — root 1, left
 0, right 2 — whose default arm is a `return` rather than a `break`:
 
 ```
@@ -53753,7 +53753,7 @@ the hidden arm is the switch's end label too; otherwise expect a bare `j` to the
 arm, and still no `li` of the hidden value.
 
 Choose that value from the overlay's own evidence rather than guessing: here
-`func_actor_310100_80162CDC` parks `field_4F0` at 2 and the sibling handler
+`func_actor_310100_80162CDC` parks `playState` at 2 and the sibling handler
 `func_actor_310100_801632B0` groups `case 0: case 1:`, so the state the hidden
 arm returns on is the 2 the overlay already names — and the `slti` bound
 coinciding with it is a coincidence of that choice, not a reading of it. Written
@@ -81774,7 +81774,7 @@ dump, before any optimisation pass:
         (mem/s:HI (plus:SI (reg/v:SI 83) (const_int 4)))) -1 (nil)
 ```
 
-`base_3.c` writes it with no cast at all — `work->field_506 = placement->pos.vy;`
+`base_3.c` writes it with no cast at all — `work->bodyAnimationId = placement->pos.vy;`
 — and scores 100.000%, instruction-for-instruction identical to
 `(u16)placement->pos.vy` (`base_2.c`) and to `M2C_FIELD(arg3, u16 *, 4)`
 (`base_1.c`). All three are the same 30 instructions.
@@ -81796,7 +81796,7 @@ that guards its only use:
 
 ```
 lw $v0,0x1C($s1)      # task->work
-lw $a0,0x4E4($v0)     # ->field_4E4
+lw $a0,0x4E4($v0)     # ->modelTask
 lw $v1,0x1C($a0)      # ->work
 bne $s0,$v0,.L…
 li $v0,2
@@ -81808,12 +81808,12 @@ The natural spelling — chase inside the arm that uses it — scores **71.303%*
 with 33 instructions against the target's 29:
 
 ```c
-    work = (Actor310100Work*)task->work;
+    work = (_Actor310100PoliceOfficerWork*)task->work;
     if (arg2 == 3) {
-        ((Actor310100Work*)work->field_4E4->work)->field_4F0 = 2;
+        ((_Actor310100PoliceOfficerWork*)work->modelTask->work)->playState = 2;
         return;
     }
-    if (work->field_4E4 != NULL) { taskKill(work->field_4E4); }
+    if (work->modelTask != NULL) { taskKill(work->modelTask); }
 ```
 
 Both `lw 0x4E4` and `lw 0x1C` land in the branch arm, and the else path issues a
@@ -81826,13 +81826,13 @@ expression in the first place — there is no join where it is available.
 in the entry block's RTL to begin with:
 
 ```c
-    work    = (Actor310100Work*)task->work;
-    display = (Actor310100Work*)work->field_4E4->work;
+    work    = (_Actor310100PoliceOfficerWork*)task->work;
+    display = (_Actor310100PoliceOfficerWork*)work->modelTask->work;
     if (arg2 == 3) {
-        display->field_4F0 = 2;
+        display->playState = 2;
         return;
     }
-    if (work->field_4E4 != NULL) { taskKill(work->field_4E4); }
+    if (work->modelTask != NULL) { taskKill(work->modelTask); }
 ```
 
 100.000%, 29 instructions, one `lw 0x4E4` that the later `beqz $a0` re-uses.
@@ -81929,10 +81929,10 @@ do not overlap, so they are two pseudos: the source held the reloaded pointer in
 its own variable.
 
 ```c
-    work2  = (Actor310100Work*)task->work;
+    work2  = (_Actor310100PoliceOfficerWork*)task->work;
     do {
-        work2->slots[i & 0xFFFF].rate = 0x10;
-        animationResetSlot(&work2->anim, i & 0xFFFF, active);
+        work2->rig.slots[i & 0xFFFF].rate = 0x10;
+        animationResetSlot(&work2->rig.anim, i & 0xFFFF, active);
 ```
 
 99.914% on that one line (`regs` 20 → 2). The house style already does this —
@@ -81947,8 +81947,8 @@ identified the difference. Compare the two siblings' objects before concluding a
 shape is shared.
 
 **Writing the reload as a second mention does not merge.** The loop's other
-option — `((Actor310100Work*)task->work)->slots[…]` then
-`&((Actor310100Work*)task->work)->anim`, the form the `memFillBytes(task->work, …)`
+option — `((_Actor310100PoliceOfficerWork*)task->work)->rig.slots[…]` then
+`&((_Actor310100PoliceOfficerWork*)task->work)->rig.anim`, the form the `memFillBytes(task->work, …)`
 line above already uses — scored 6 branches and `regs=52`: the `sb` to `slots`
 sits between the two loads, CSE will not carry a memory value across a store it
 cannot prove disjoint, so each iteration loads the pointer twice.
@@ -82002,12 +82002,12 @@ copies of the body were compiled through cc1 side by side (`shapes.c`, one
 
 | preheader | emitted (cc1's own operands) |
 |---|---|
-| `active = task->spawnArg1; work->field_504 = active;` | `lhu active` / `sh active` |
-| `active = task->spawnArg1; work->field_504 = task->spawnArg1;` | `lhu active` / `sh active` |
-| `work->field_504 = active = task->spawnArg1;` | `lhu active` / `sh active` |
-| `active = tmp; work->field_504 = active;` | `lhu active` / `sh active` |
-| `work->field_504 = task->spawnArg1; active = task->spawnArg1;` | **two** `lhu`s |
-| `work->field_504 = task->spawnArg1; active = work->field_504;` | `lhu $v0` / `move active,$v0` / `sh active` |
+| `active = task->spawnArg1; work->spawnAnimationId = active;` | `lhu active` / `sh active` |
+| `active = task->spawnArg1; work->spawnAnimationId = task->spawnArg1;` | `lhu active` / `sh active` |
+| `work->spawnAnimationId = active = task->spawnArg1;` | `lhu active` / `sh active` |
+| `active = tmp; work->spawnAnimationId = active;` | `lhu active` / `sh active` |
+| `work->spawnAnimationId = task->spawnArg1; active = task->spawnArg1;` | **two** `lhu`s |
+| `work->spawnAnimationId = task->spawnArg1; active = work->spawnAnimationId;` | `lhu $v0` / `move active,$v0` / `sh active` |
 
 Only the last matches. The reload is not re-read from memory: `cse` forwards the
 register that already holds the stored value into it and keeps one explicit
@@ -82027,7 +82027,7 @@ by a reload of the same field is the reliable way to ask for it.**
 
 The same experiment rules out the cheap explanations: writing the expression
 twice does not produce the copy but a *second load*, and storing the variable
-(`work->field_504 = active;`) collapses the chain to the single `lhu` at
+(`work->spawnAnimationId = active;`) collapses the chain to the single `lhu` at
 99.076%. A near-identical sibling is not evidence here either —
 `func_actor_310100_80162414` has the same body at one fewer store and compiles to
 the plain `lhu` into `active`.
@@ -82080,10 +82080,10 @@ each extra constant-false loop around a single set is worth one more reference:
 ```c
 if (task->spawnArg1 == 0) {
     do { mode = 0x6D; } while (0);                                   /* depth 2 -> +2 */
-    work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 1, work->field_506, 0);
+    work->modelTask = Task_SpawnOnDefaultList(&D_actor_310100_80179920, 1, work->bodyAnimationId, 0);
 } else if (task->spawnArg1 == 1) {
     do { do { mode = 0x6C; } while (0); } while (0);                 /* depth 3 -> +3 */
-    work->field_4E4 = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 1, work->field_506, 0);
+    work->modelTask = Task_SpawnOnDefaultList(&D_actor_310100_801798FC, 1, work->bodyAnimationId, 0);
 } else {
     goto skip;
 }
@@ -82123,18 +82123,18 @@ two halfword locals beside it had swapped `$v1` / `$a0`. The branches are
 disjoint, so nothing in the source looked shared — but the *names* were:
 
 ```c
-    Actor310100Work* disp2;          /* one declaration ... */
+    _Actor310100PoliceOfficerWork* disp2;          /* one declaration ... */
     u16              vy;
     u16              vz;
     ...
     if (placement->pos.vx == 0) {
-        disp2 = (Actor310100Work*)display->work;   /* ... used here */
+        disp2 = (_Actor310100PoliceOfficerWork*)display->work;   /* ... used here */
         vy    = placement->pos.vy;
         vz    = placement->pos.vz;
         ...
     } else {
         vz    = placement->pos.vz;                  /* ... and here */
-        disp2 = (Actor310100Work*)display->work;
+        disp2 = (_Actor310100PoliceOfficerWork*)display->work;
 ```
 
 A name is a pseudo, and its live range is the union of its assignments, so the

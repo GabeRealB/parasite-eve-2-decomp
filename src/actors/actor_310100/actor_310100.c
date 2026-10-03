@@ -35,36 +35,59 @@
 
 #include "rooms/acropolis_plaza.h"
 
-/// Work block this overlay hangs off the task's `Task::work` slot (0x1C).
-/// `func_actor_310100_801625E4` allocates it
-/// with `memMalloc(0x50C, false)` and hands `&slots` to the model helpers as the slot
-/// array, so the prefix is the shared actor anim layout: an `AnimationContext` and the
-/// nineteen slots the frame handler ticks.
-typedef struct Actor310100Work {
-    /* 0x000 */ ActorAnimRig19 rig;
-    /// Light and colour matrices, handed to the model `TmdObject`'s `lightMtx`
-    /// and `field_20`.
-    /* 0x43C */ MATRIX                 field_43C;
-    /* 0x45C */ MATRIX                 field_45C;
-    /* 0x47C */ byte                   pad_47C[0x68];
-    /* 0x4E4 */ Task*                  field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
-    /* 0x4E8 */ Task*                  field_4E8; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
-    /* 0x4EC */ const AnimationRecord* field_4EC; // record the frame handler last saw on slot 1
-    /* 0x4F0 */ u16                    field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
-    /* 0x4F2 */ byte                   pad_4F2[0x4];
-    /* 0x4F6 */ u16                    field_4F6; // floor-quad yaw seed (func_actor_310100_80161F80)
-    /* 0x4F8 */ u16                    field_4F8;
-    /* 0x4FA */ u16                    field_4FA;
-    /* 0x4FC */ byte                   pad_4FC[0x8];
-    /* 0x504 */ u16                    field_504; // handed to Task_SpawnFromTable as the display task's spawnArg1
-    /* 0x506 */ u16                    field_506; // passed down as the model task's spawnArg1
-    /* 0x508 */ u16                    field_508; // display id (0x6C / 0x6D), 0x6C selects the step-sound table
-    /* 0x50A */ u16                    field_50A; // next step-sound index into D_actor_310100_801798A8, capped at 2
-} Actor310100Work;
-STATIC_ASSERT_SIZEOF(Actor310100Work, 0x50C);
+/// Area placement entries the two police officers are spawned from; the same
+/// IDs select each officer's placement record in the plaza's nested layout.
+enum {
+    ACTOR_310100_PLACEMENT_OFFICER_1 = 0x6C,
+    ACTOR_310100_PLACEMENT_OFFICER_2 = 0x6D,
+};
+
+/// Values of `_Actor310100PoliceOfficerWork::playState`.
+///
+/// The body model draws its floor quad in every state. The culled-body model
+/// never steps its animation after spawn; officer 1's draws its floor quad
+/// only while posed, officer 2's until frozen.
+enum {
+    ACTOR_310100_PLAY_STATE_POSED   = 0, // Holding the spawn pose: relit each frame, animation not stepped
+    ACTOR_310100_PLAY_STATE_PLAYING = 1, // A play request arrived: the body model steps its animation and follow-ups
+    ACTOR_310100_PLAY_STATE_FROZEN  = 2, // Neither stepped nor relit
+};
+
+/// Work block of one acropolis-plaza police officer, kept at `Task::work` by
+/// both of the officer's tasks.
+///
+/// The controller task is the placed actor the room's messages reach. It shows
+/// and hides the officer's model as the plaza movie advances and uses only
+/// `modelTask`, `spawnAnimationId` and `bodyAnimationId`. It allocates the
+/// block without clearing it, so those members are indeterminate until written.
+/// The model task clears its own block at spawn and uses the rig, the matrices
+/// and the playback members; its `modelTask` stays `NULL`.
+///
+/// No access to the `pad_` runs has been observed; whether they are unused
+/// members or padding is unproven.
+typedef struct {
+    ActorAnimRig19         rig;               // Model: playback storage of the nineteen-part officer model
+    MATRIX                 light;             // Model: light matrix lent to the model object
+    MATRIX                 color;             // Model: colour matrix lent to the model object
+    byte                   pad_47C[0x68];
+    Task*                  modelTask;         // Controller: the officer's live model task, `NULL` once hidden or torn down
+    Task*                  playerTask;        // Model: the player's task, asked to play the animations paired with the officer's
+    const AnimationRecord* lastCueRecord;     // Model: record slot 1 was on at the last step, so its sound cues fire once; borrowed from the bound set
+    u16                    playState;         // Model: `ACTOR_310100_PLAY_STATE_*`
+    byte                   pad_4F2[0x4];
+    u16                    playerAnimationId; // Model: animation last requested of the player; indexes the player's follow-up table
+    u16                    followUpTable;     // Model: follow-up table the officer chains through (0 the player's until the first request, 1 officer 1, 2 officer 2)
+    u16                    animationId;       // Model: animation last requested of the officer or chained to; 0 at spawn whatever the spawn animation
+    byte                   pad_4FC[0x8];
+    u16                    spawnAnimationId;  // Controller: animation officer 2's culled-body model spawns on. Model: the one a culled-body model spawned on
+    u16                    bodyAnimationId;   // Controller: animation the body model starts on when a draw-mode message swaps it in
+    u16                    placementId;       // Model: its `ACTOR_310100_PLACEMENT_*`, stored just before the spawn clear and so always read back as 0
+    u16                    stepSoundIndex;    // Model: next entry of the officer-1 step-sound sequence, stopping at the last
+} _Actor310100PoliceOfficerWork;
+STATIC_ASSERT_SIZEOF(_Actor310100PoliceOfficerWork, 0x50C);
 
 /// Step sounds the model runs through while it is on the 0x6C display id:
-/// `field_50A` indexes the first three.
+/// `stepSoundIndex` indexes the first three.
 extern s32 D_actor_310100_801798A8[];
 
 /// Model frame handler: queues the step sound for the animation record slot 1
@@ -108,7 +131,7 @@ void func_actor_310100_801632B0(Task* task);
 /// records the payload's `pos.vy` in the work block and spawns a fresh display
 /// task from `D_actor_310100_801798E4`. The display task is handed `arg2` as its
 /// `spawnArg1` and this task as its parent (`spawnArg2`); it spawns the model
-/// task in turn, handing it `field_506` as its `spawnArg1`.
+/// task in turn, handing it `bodyAnimationId` as its `spawnArg1`.
 void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform* placement);
 
 /// Message 0x7D7 handler: parks the display task's work block at state 2 and
@@ -666,23 +689,23 @@ static void func_actor_310100_80162414(Task* task, s32 arg1);
 
 static s32 func_actor_310100_80161E24(Task* task)
 {
-    Actor310100Work*       work;
-    const AnimationRecord* rec;
-    GfxCoord*              obj;
-    s32                    i;
-    u16                    step;
+    _Actor310100PoliceOfficerWork* work;
+    const AnimationRecord*         rec;
+    GfxCoord*                      obj;
+    s32                            i;
+    u16                            step;
 
-    work = (Actor310100Work*)task->work;
+    work = (_Actor310100PoliceOfficerWork*)task->work;
     obj  = task->extra.tmd->coords;
     rec  = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
-    if (rec != work->field_4EC) {
+    if (rec != work->lastCueRecord) {
         if (rec != NULL) {
-            if (work->field_508 == 0x6C) {
+            if (work->placementId == ACTOR_310100_PLACEMENT_OFFICER_1) {
                 if (rec->flags & ANIMATION_RECORD_CUE_2) {
-                    SndEvt_EnqueueType6(D_actor_310100_801798A8[work->field_50A], worldCoordGetOriginAudioPan(obj), 0);
-                    step = work->field_50A;
+                    SndEvt_EnqueueType6(D_actor_310100_801798A8[work->stepSoundIndex], worldCoordGetOriginAudioPan(obj), 0);
+                    step = work->stepSoundIndex;
                     if (step < 2U) {
-                        work->field_50A = (u16)(step + 1);
+                        work->stepSoundIndex = (u16)(step + 1);
                     }
                 }
             } else {
@@ -694,7 +717,7 @@ static s32 func_actor_310100_80161E24(Task* task)
                 }
             }
         }
-        work->field_4EC = rec;
+        work->lastCueRecord = rec;
     }
     i = 1;
     do {
@@ -706,47 +729,47 @@ static s32 func_actor_310100_80161E24(Task* task)
 
 static void func_actor_310100_80161F80(Task* task)
 {
-    AnimationPlayRequest arg;
-    Actor310100Work*     work;
-    Actor310100Work*     anim;
-    Actor310100Work*     msg;
-    Task*                player;
-    u16                  seed;
-    u16                  ok;
-    s32                  i;
+    AnimationPlayRequest           arg;
+    _Actor310100PoliceOfficerWork* work;
+    _Actor310100PoliceOfficerWork* anim;
+    _Actor310100PoliceOfficerWork* msg;
+    Task*                          player;
+    u16                            seed;
+    u16                            ok;
+    s32                            i;
 
-    work = (Actor310100Work*)task->work;
+    work = (_Actor310100PoliceOfficerWork*)task->work;
     if (func_actor_310100_80161E24(task) & 0xFFFF) {
-        seed = D_actor_310100_8017989C[work->field_4F8][work->field_4FA];
-        if (D_actor_310100_8017989C[work->field_4F8][work->field_4FA] >= 0) {
-            anim = (Actor310100Work*)task->work;
+        seed = D_actor_310100_8017989C[work->followUpTable][work->animationId];
+        if (D_actor_310100_8017989C[work->followUpTable][work->animationId] >= 0) {
+            anim = (_Actor310100PoliceOfficerWork*)task->work;
             i    = 1;
             do {
                 animationSeekSlotWithBlend(&anim->rig.anim, i & 0xFFFF, seed & 0xFFFF, 0, 8);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
-            work->field_4FA = seed;
+            work->animationId = seed;
         }
     }
-    player = ((Actor310100Work*)task->work)->field_4E8;
+    player = ((_Actor310100PoliceOfficerWork*)task->work)->playerTask;
     if (player == NULL || taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
         ok = 1;
     } else {
         ok = 0;
     }
     if (ok) {
-        seed = D_actor_310100_8017989C[0][work->field_4F6];
-        if (D_actor_310100_8017989C[0][work->field_4F6] >= 0) {
-            msg = (Actor310100Work*)task->work;
-            if (msg->field_4E8 != NULL) {
+        seed = D_actor_310100_8017989C[0][work->playerAnimationId];
+        if (D_actor_310100_8017989C[0][work->playerAnimationId] >= 0) {
+            msg = (_Actor310100PoliceOfficerWork*)task->work;
+            if (msg->playerTask != NULL) {
                 arg.source.sets          = D_actor_310100_801797FC;
                 arg.animationId          = seed;
                 arg.blend                = ANIMATION_BLEND_INTERPOLATE;
                 arg.blendFrames          = 0xA;
                 arg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(msg->field_4E8, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &arg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(msg->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &arg, 0);
             }
-            work->field_4F6 = seed;
+            work->playerAnimationId = seed;
         }
     }
 }
@@ -758,18 +781,18 @@ static void func_actor_310100_80161F80(Task* task)
 /// with 0x6C. It then walks the nested area place list for the record carrying
 /// that id, drops the record's translation into the spawned model's root
 /// coordinate frame, yaws that frame to the record's `yaw`, parks the
-/// display work block's `field_4F0` at 0 and tears this task down.
+/// display work block's `playState` at 0 and tears this task down.
 void func_actor_310100_801620FC(Task* task)
 {
-    Actor310100Work* work;
-    Actor310100Work* display;
-    Task*            modelTask;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    AreaPlacement*   place;
-    u8               mode;
+    _Actor310100PoliceOfficerWork* work;
+    _Actor310100PoliceOfficerWork* display;
+    Task*                          modelTask;
+    TmdObject*                     obj;
+    GfxCoord*                      coord;
+    AreaPlacement*                 place;
+    u8                             mode;
 
-    work = (Actor310100Work*)((Task*)task->spawnArg2.pointer)->work;
+    work = (_Actor310100PoliceOfficerWork*)((Task*)task->spawnArg2.pointer)->work;
     switch (task->state) {
         case 0:
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
@@ -781,21 +804,21 @@ void func_actor_310100_801620FC(Task* task)
         case 3:
             if (task->spawnArg1.value == 0) {
                 do {
-                    mode = 0x6D;
+                    mode = ACTOR_310100_PLACEMENT_OFFICER_2;
                 } while (0);
-                work->field_4E4 = Task_SpawnOnDefaultList(D_actor_310100_80179920, 1, (s32)(work->field_506), 0);
+                work->modelTask = Task_SpawnOnDefaultList(D_actor_310100_80179920, 1, (s32)(work->bodyAnimationId), 0);
             } else if (task->spawnArg1.value == 1) {
                 do {
                     do {
-                        mode = 0x6C;
+                        mode = ACTOR_310100_PLACEMENT_OFFICER_1;
                     } while (0);
                 } while (0);
-                work->field_4E4 = Task_SpawnOnDefaultList(D_actor_310100_801798FC, 1, (s32)(work->field_506), 0);
+                work->modelTask = Task_SpawnOnDefaultList(D_actor_310100_801798FC, 1, (s32)(work->bodyAnimationId), 0);
             } else {
                 goto skip;
             }
         skip:
-            modelTask = work->field_4E4;
+            modelTask = work->modelTask;
             place     = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
             while (place->entryId != AREA_PLACEMENT_END && place->entryId != mode) {
                 place++;
@@ -806,8 +829,8 @@ void func_actor_310100_801620FC(Task* task)
             coord->coord.t[1] = place->y;
             coord->coord.t[2] = place->z;
             gfxRotMatrixY(&coord->coord, place->yaw, 0);
-            display            = (Actor310100Work*)work->field_4E4->work;
-            display->field_4F0 = 0;
+            display            = (_Actor310100PoliceOfficerWork*)work->modelTask->work;
+            display->playState = ACTOR_310100_PLAY_STATE_POSED;
             taskKill(task);
             Display_ResetHeapWrapper();
             break;
@@ -821,19 +844,19 @@ void func_actor_310100_801620FC(Task* task)
 /// table index 2 with `arg2` 5 and 7. It then walks the nested area place list
 /// for the record carrying that id, drops the record's translation into the
 /// spawned model's root coordinate frame, yaws that frame to the record's
-/// `field_A`, parks the display work block's `field_4F0` at 0 and tears this
+/// `field_A`, parks the display work block's `playState` at 0 and tears this
 /// task down.
 void func_actor_310100_80162284(Task* task)
 {
-    Actor310100Work* work;
-    Actor310100Work* display;
-    Task*            modelTask;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    AreaPlacement*   place;
-    u8               mode;
+    _Actor310100PoliceOfficerWork* work;
+    _Actor310100PoliceOfficerWork* display;
+    Task*                          modelTask;
+    TmdObject*                     obj;
+    GfxCoord*                      coord;
+    AreaPlacement*                 place;
+    u8                             mode;
 
-    work = (Actor310100Work*)((Task*)task->spawnArg2.pointer)->work;
+    work = (_Actor310100PoliceOfficerWork*)((Task*)task->spawnArg2.pointer)->work;
     switch (task->state) {
         case 0:
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
@@ -845,21 +868,21 @@ void func_actor_310100_80162284(Task* task)
         case 3:
             if (task->spawnArg1.value == 0) {
                 do {
-                    mode = 0x6D;
+                    mode = ACTOR_310100_PLACEMENT_OFFICER_2;
                 } while (0);
-                work->field_4E4 = Task_SpawnOnDefaultList(D_actor_310100_80179920, 2, 5, 0);
+                work->modelTask = Task_SpawnOnDefaultList(D_actor_310100_80179920, 2, 5, 0);
             } else if (task->spawnArg1.value == 1) {
                 do {
                     do {
-                        mode = 0x6C;
+                        mode = ACTOR_310100_PLACEMENT_OFFICER_1;
                     } while (0);
                 } while (0);
-                work->field_4E4 = Task_SpawnOnDefaultList(D_actor_310100_801798FC, 2, 7, 0);
+                work->modelTask = Task_SpawnOnDefaultList(D_actor_310100_801798FC, 2, 7, 0);
             } else {
                 goto skip;
             }
         skip:
-            modelTask = work->field_4E4;
+            modelTask = work->modelTask;
             place     = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
             while (place->entryId != AREA_PLACEMENT_END && place->entryId != mode) {
                 place++;
@@ -870,8 +893,8 @@ void func_actor_310100_80162284(Task* task)
             coord->coord.t[1] = place->y;
             coord->coord.t[2] = place->z;
             gfxRotMatrixY(&coord->coord, place->yaw, 0);
-            display            = (Actor310100Work*)work->field_4E4->work;
-            display->field_4F0 = 0;
+            display            = (_Actor310100PoliceOfficerWork*)work->modelTask->work;
+            display->playState = ACTOR_310100_PLAY_STATE_POSED;
             taskKill(task);
             Display_ResetHeapWrapper();
             break;
@@ -885,15 +908,15 @@ void func_actor_310100_80162284(Task* task)
 /// applies the nested area record matching that id through `Gp_SetTmdBytes`.
 static void func_actor_310100_80162414(Task* task, s32 arg1)
 {
-    Actor310100Work* work;
-    Actor310100Work* work2;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    AreaPlacement*   place;
-    u16              mode;
-    u16              active;
-    u8               id;
-    s32              i;
+    _Actor310100PoliceOfficerWork* work;
+    _Actor310100PoliceOfficerWork* work2;
+    TmdObject*                     obj;
+    GfxCoord*                      coord;
+    AreaPlacement*                 place;
+    u16                            mode;
+    u16                            active;
+    u8                             id;
+    s32                            i;
 
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;
@@ -904,15 +927,15 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
         taskKill(task);
         return;
     }
-    work->field_508 = arg1;
+    work->placementId = arg1;
     memFillBytes(task->work, 0U, sizeof(*work));
-    work->field_4E8 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    coord->parent   = &gGfxViewCoord;
+    work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    coord->parent    = &gGfxViewCoord;
     Tmd_AllocBuffers(obj);
-    obj->lightMtx = &work->field_43C;
-    obj->colorMtx = &work->field_45C;
+    obj->lightMtx = &work->light;
+    obj->colorMtx = &work->color;
     obj->flags    = 0;
-    if (mode == 0x6C) {
+    if (mode == ACTOR_310100_PLACEMENT_OFFICER_1) {
         animationInitContext(&work->rig.anim, D_actor_310100_80179754, obj, work->rig.poses,
                              &work->rig.slots[0]);
     } else {
@@ -921,7 +944,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     }
     i      = 1;
     active = task->spawnArg1.value;
-    work2  = (Actor310100Work*)task->work;
+    work2  = (_Actor310100PoliceOfficerWork*)task->work;
     do {
         work2->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&work2->rig.anim, i & 0xFFFF, active);
@@ -940,20 +963,20 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
 /// Common spawn of the two floor-quad display handlers: `func_actor_310100_801631B0`
 /// passes display id 0x6C and `func_actor_310100_801632B0` 0x6D. Does the same
 /// 0x50C work block setup as `func_actor_310100_80162414`, except it also parks
-/// the task's `spawnArg1` in `field_504` — the argument `func_actor_310100_80162C64`
+/// the task's `spawnArg1` in `spawnAnimationId` — the argument `func_actor_310100_80162C64`
 /// hands the display task it spawns — and reads it back as the payload the
 /// eighteen animation slots are reset with.
 static void func_actor_310100_801625E4(Task* task, s32 arg1)
 {
-    Actor310100Work* work;
-    Actor310100Work* work2;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    AreaPlacement*   place;
-    u16              mode;
-    u16              active;
-    u8               id;
-    s32              i;
+    _Actor310100PoliceOfficerWork* work;
+    _Actor310100PoliceOfficerWork* work2;
+    TmdObject*                     obj;
+    GfxCoord*                      coord;
+    AreaPlacement*                 place;
+    u16                            mode;
+    u16                            active;
+    u8                             id;
+    s32                            i;
 
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;
@@ -964,25 +987,25 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
         taskKill(task);
         return;
     }
-    work->field_508 = arg1;
+    work->placementId = arg1;
     memFillBytes(task->work, 0U, sizeof(*work));
-    work->field_4E8 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    coord->parent   = &gGfxViewCoord;
+    work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    coord->parent    = &gGfxViewCoord;
     Tmd_AllocBuffers(obj);
-    obj->lightMtx = &work->field_43C;
-    obj->colorMtx = &work->field_45C;
+    obj->lightMtx = &work->light;
+    obj->colorMtx = &work->color;
     obj->flags    = 0;
-    if (mode == 0x6C) {
+    if (mode == ACTOR_310100_PLACEMENT_OFFICER_1) {
         animationInitContext(&work->rig.anim, D_actor_310100_80179754, obj, work->rig.poses,
                              &work->rig.slots[0]);
     } else {
         animationInitContext(&work->rig.anim, D_actor_310100_80179794, obj, work->rig.poses,
                              &work->rig.slots[0]);
     }
-    i               = 1;
-    work->field_504 = task->spawnArg1.value;
-    active          = work->field_504;
-    work2           = (Actor310100Work*)task->work;
+    i                      = 1;
+    work->spawnAnimationId = task->spawnArg1.value;
+    active                 = work->spawnAnimationId;
+    work2                  = (_Actor310100PoliceOfficerWork*)task->work;
     do {
         work2->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&work2->rig.anim, i & 0xFFFF, active);
@@ -1007,13 +1030,13 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
 /// id 0x6C; state 2 kills it again once that condition drops.
 void func_actor_310100_801627BC(Task* task)
 {
-    Actor310100Work* work;
-    Actor310100Work* work2;
-    AreaPlacement*   place;
-    GfxCoord*        coord;
-    Task*            child;
-    u16              st;
-    u16              on;
+    _Actor310100PoliceOfficerWork* work;
+    _Actor310100PoliceOfficerWork* work2;
+    AreaPlacement*                 place;
+    GfxCoord*                      coord;
+    Task*                          child;
+    u16                            st;
+    u16                            on;
 
     st = gCdCmdQueue.plazaStreamSubId;
     if (st == 3) {
@@ -1021,7 +1044,7 @@ void func_actor_310100_801627BC(Task* task)
     }
     switch (task->state) {
         case 0:
-            task->work = memMalloc(sizeof(Actor310100Work), false);
+            task->work = memMalloc(sizeof(_Actor310100PoliceOfficerWork), false);
             if (task->work == NULL) {
                 enemyDestroy(task->spawnArg2.pointer, task);
                 return;
@@ -1038,13 +1061,13 @@ void func_actor_310100_801627BC(Task* task)
                 on = 0;
             }
             if (on) {
-                work  = (Actor310100Work*)task->work;
+                work  = (_Actor310100PoliceOfficerWork*)task->work;
                 place = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
-                while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x6C) {
+                while (place->entryId != AREA_PLACEMENT_END && place->entryId != ACTOR_310100_PLACEMENT_OFFICER_1) {
                     place++;
                 }
                 child             = Task_SpawnFromTable(D_actor_310100_801798FC, 2, 1, 0);
-                work->field_4E4   = child;
+                work->modelTask   = child;
                 coord             = child->extra.tmd->coords;
                 coord->coord.t[0] = place->x;
                 coord->coord.t[1] = place->y;
@@ -1062,10 +1085,10 @@ void func_actor_310100_801627BC(Task* task)
                 on = 0;
             }
             if (!on) {
-                work2 = (Actor310100Work*)task->work;
+                work2 = (_Actor310100PoliceOfficerWork*)task->work;
                 task->state--;
-                taskKill(work2->field_4E4);
-                work2->field_4E4 = NULL;
+                taskKill(work2->modelTask);
+                work2->modelTask = NULL;
             }
             break;
     }
@@ -1073,33 +1096,33 @@ void func_actor_310100_801627BC(Task* task)
 
 /// Controller for the display model spawned from `D_actor_310100_80179920`
 /// (id 0x6D), the counterpart of `func_actor_310100_801627BC`. State 0 allocates
-/// the 0x50C work block and seeds the display task's `spawnArg1` (`field_504`)
+/// the 0x50C work block and seeds the display task's `spawnArg1` (`spawnAnimationId`)
 /// with 0x18. The model is shown while the plaza stream sub-ID is 0/1 with frame
 /// `sceneFrame` in 0x4B..0xC3; sub-IDs 2, 4 and 5 hide it. On hiding, state 2 keeps
-/// the display task's `field_504` before killing it.
+/// the display task's `spawnAnimationId` before killing it.
 void func_actor_310100_801629FC(Task* task)
 {
-    Actor310100Work* work;
-    AreaPlacement*   place;
-    GfxCoord*        coord;
-    Task*            child;
-    u16              st;
-    u16              on;
+    _Actor310100PoliceOfficerWork* work;
+    AreaPlacement*                 place;
+    GfxCoord*                      coord;
+    Task*                          child;
+    u16                            st;
+    u16                            on;
 
-    work = (Actor310100Work*)task->work;
+    work = (_Actor310100PoliceOfficerWork*)task->work;
     st   = gCdCmdQueue.plazaStreamSubId;
     if (st == 3) {
         task->state = st;
     }
     switch (task->state) {
         case 0:
-            task->work = (work = memMalloc(sizeof(Actor310100Work), false));
+            task->work = (work = memMalloc(sizeof(_Actor310100PoliceOfficerWork), false));
             if (work == NULL) {
                 enemyDestroy(task->spawnArg2.pointer, task);
                 return;
             }
-            task->msgTable  = D_actor_310100_801798B4;
-            work->field_504 = 0x18;
+            task->msgTable         = D_actor_310100_801798B4;
+            work->spawnAnimationId = 0x18;
             task->state++;
             break;
         case 1:
@@ -1118,11 +1141,11 @@ void func_actor_310100_801629FC(Task* task)
             }
             if (on) {
                 place = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
-                while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x6D) {
+                while (place->entryId != AREA_PLACEMENT_END && place->entryId != ACTOR_310100_PLACEMENT_OFFICER_2) {
                     place++;
                 }
-                child             = Task_SpawnFromTable(D_actor_310100_80179920, 2, (s32)(work->field_504), 0);
-                work->field_4E4   = child;
+                child             = Task_SpawnFromTable(D_actor_310100_80179920, 2, (s32)(work->spawnAnimationId), 0);
+                work->modelTask   = child;
                 coord             = child->extra.tmd->coords;
                 coord->coord.t[0] = place->x;
                 coord->coord.t[1] = place->y;
@@ -1146,10 +1169,10 @@ void func_actor_310100_801629FC(Task* task)
                 on = 0;
             }
             if (!on) {
-                work->field_504 = ((Actor310100Work*)work->field_4E4->work)->field_504;
+                work->spawnAnimationId = ((_Actor310100PoliceOfficerWork*)work->modelTask->work)->spawnAnimationId;
                 task->state--;
-                taskKill(work->field_4E4);
-                work->field_4E4 = NULL;
+                taskKill(work->modelTask);
+                work->modelTask = NULL;
             }
             break;
     }
@@ -1157,13 +1180,13 @@ void func_actor_310100_801629FC(Task* task)
 
 void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform* placement)
 {
-    Actor310100Work* work;
+    _Actor310100PoliceOfficerWork* work;
 
-    work = (Actor310100Work*)task->work;
-    if (work->field_4E4 != NULL) {
-        taskKill(work->field_4E4);
+    work = (_Actor310100PoliceOfficerWork*)task->work;
+    if (work->modelTask != NULL) {
+        taskKill(work->modelTask);
     }
-    work->field_506 = placement->pos.vy;
+    work->bodyAnimationId = placement->pos.vy;
     Display_SpawnWithOt(&D_actor_310100_801798E4, 0, arg2, task);
 }
 
@@ -1172,63 +1195,63 @@ void func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform*
 /// a fresh one from `D_actor_310100_801798F0`.
 void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
 {
-    Actor310100Work* work;
-    Actor310100Work* display;
+    _Actor310100PoliceOfficerWork* work;
+    _Actor310100PoliceOfficerWork* display;
 
-    work    = (Actor310100Work*)task->work;
-    display = (Actor310100Work*)work->field_4E4->work;
+    work    = (_Actor310100PoliceOfficerWork*)task->work;
+    display = (_Actor310100PoliceOfficerWork*)work->modelTask->work;
     if (arg2 == 3) {
-        display->field_4F0 = 2;
+        display->playState = ACTOR_310100_PLAY_STATE_FROZEN;
         return;
     }
-    if (work->field_4E4 != NULL) {
-        taskKill(work->field_4E4);
+    if (work->modelTask != NULL) {
+        taskKill(work->modelTask);
     }
     Display_SpawnWithOt(&D_actor_310100_801798F0, 0, arg2, task);
 }
 
 /// Message 0x7DD handler, and the display task's placement command: marks the
 /// display work block dirty, then either forwards the payload to the animation
-/// task (`pos.vx` zero — the seed carries the yaw into `field_4F6` and message
+/// task (`pos.vx` zero — the seed carries the yaw into `playerAnimationId` and message
 /// 0x3F4 gets `pos.vy` / `pos.vz` as a `AnimationPlayRequest`) or reseeds the nineteen
 /// animation slots (`pos.vz` zero resets them through `animationResetSlot`,
 /// otherwise `animationSeekSlotWithBlend` blends them) and records the new base in
-/// `field_4F8` / `field_4FA`.
+/// `followUpTable` / `animationId`.
 void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement)
 {
-    AnimationPlayRequest request;
-    Actor310100Work*     work;
-    Actor310100Work*     disp;
-    Actor310100Work*     msgDisp;
-    Actor310100Work*     resetDisp;
-    Task*                display;
-    u16                  animationId;
-    u16                  blendRequested;
-    u16                  blend;
-    u16                  active;
-    s32                  i;
+    AnimationPlayRequest           request;
+    _Actor310100PoliceOfficerWork* work;
+    _Actor310100PoliceOfficerWork* disp;
+    _Actor310100PoliceOfficerWork* msgDisp;
+    _Actor310100PoliceOfficerWork* resetDisp;
+    Task*                          display;
+    u16                            animationId;
+    u16                            blendRequested;
+    u16                            blend;
+    u16                            active;
+    s32                            i;
 
-    work            = (Actor310100Work*)task->work;
-    display         = work->field_4E4;
-    disp            = (Actor310100Work*)display->work;
-    disp->field_4F0 = 1;
+    work            = (_Actor310100PoliceOfficerWork*)task->work;
+    display         = work->modelTask;
+    disp            = (_Actor310100PoliceOfficerWork*)display->work;
+    disp->playState = ACTOR_310100_PLAY_STATE_PLAYING;
     if (placement->pos.vx == 0) {
-        disp->field_4F6 = placement->pos.vy;
-        msgDisp         = (Actor310100Work*)display->work;
-        animationId     = placement->pos.vy;
-        blendRequested  = placement->pos.vz;
-        if (msgDisp->field_4E8 != NULL) {
+        disp->playerAnimationId = placement->pos.vy;
+        msgDisp                 = (_Actor310100PoliceOfficerWork*)display->work;
+        animationId             = placement->pos.vy;
+        blendRequested          = placement->pos.vz;
+        if (msgDisp->playerTask != NULL) {
             request.source.sets          = D_actor_310100_801797FC;
             request.animationId          = animationId;
             request.blend                = blendRequested;
             request.blendFrames          = 0xA;
             request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(msgDisp->field_4E8, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(msgDisp->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
         }
     } else {
         active    = placement->pos.vy;
         blend     = placement->pos.vz;
-        resetDisp = (Actor310100Work*)display->work;
+        resetDisp = (_Actor310100PoliceOfficerWork*)display->work;
         i         = 1;
         if (blend == 0) {
             do {
@@ -1242,8 +1265,8 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
         }
-        disp->field_4F8 = placement->pos.vx;
-        disp->field_4FA = placement->pos.vy;
+        disp->followUpTable = placement->pos.vx;
+        disp->animationId   = placement->pos.vy;
     }
 }
 
@@ -1252,11 +1275,11 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement
 /// marks it dirty.
 void func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement)
 {
-    Actor310100Work* work;
-    GfxCoord*        coord;
+    _Actor310100PoliceOfficerWork* work;
+    GfxCoord*                      coord;
 
-    work              = (Actor310100Work*)task->work;
-    coord             = work->field_4E4->extra.tmd->coords;
+    work              = (_Actor310100PoliceOfficerWork*)task->work;
+    coord             = work->modelTask->extra.tmd->coords;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
@@ -1268,12 +1291,12 @@ void func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement
 /// parks this task in state 3.
 void func_actor_310100_80162F34(Task* task)
 {
-    Actor310100Work* work;
+    _Actor310100PoliceOfficerWork* work;
 
-    work = (Actor310100Work*)task->work;
-    if (work->field_4E4 != NULL) {
-        taskKill(work->field_4E4);
-        work->field_4E4 = NULL;
+    work = (_Actor310100PoliceOfficerWork*)task->work;
+    if (work->modelTask != NULL) {
+        taskKill(work->modelTask);
+        work->modelTask = NULL;
     }
     task->state = 3;
 }
@@ -1287,15 +1310,15 @@ void func_actor_310100_80162F34(Task* task)
 /// freeze parked by `func_actor_310100_80162CDC`, returns before either.
 void func_actor_310100_80162F88(Task* task)
 {
-    Actor310100Work* work;
-    SVECTOR          rot;
-    VECTOR           vec;
-    TmdObject*       extra;
+    _Actor310100PoliceOfficerWork* work;
+    SVECTOR                        rot;
+    VECTOR                         vec;
+    TmdObject*                     extra;
 
-    work = (Actor310100Work*)task->work;
+    work = (_Actor310100PoliceOfficerWork*)task->work;
     switch (task->state) {
         case 0:
-            func_actor_310100_80162414(task, 0x6C);
+            func_actor_310100_80162414(task, ACTOR_310100_PLACEMENT_OFFICER_1);
             task->state++;
             /* fallthrough */
         case 1:
@@ -1303,13 +1326,13 @@ void func_actor_310100_80162F88(Task* task)
             rot.vy = 0x380;
             rot.vz = 0;
             Gp_DrawFloorQuad(&task->extra.tmd->coords[1], 0x300, &rot);
-            switch (work->field_4F0) {
-                case 0:
+            switch (work->playState) {
+                case ACTOR_310100_PLAY_STATE_POSED:
                     break;
-                case 1:
+                case ACTOR_310100_PLAY_STATE_PLAYING:
                     func_actor_310100_80161F80(task);
                     break;
-                case 2:
+                case ACTOR_310100_PLAY_STATE_FROZEN:
                 default:
                     return;
             }
@@ -1331,15 +1354,15 @@ void func_actor_310100_80162F88(Task* task)
 /// freeze parked by `func_actor_310100_80162CDC`, returns before either.
 void func_actor_310100_8016309C(Task* task)
 {
-    Actor310100Work* work;
-    SVECTOR          rot;
-    VECTOR           vec;
-    TmdObject*       extra;
+    _Actor310100PoliceOfficerWork* work;
+    SVECTOR                        rot;
+    VECTOR                         vec;
+    TmdObject*                     extra;
 
-    work = (Actor310100Work*)task->work;
+    work = (_Actor310100PoliceOfficerWork*)task->work;
     switch (task->state) {
         case 0:
-            func_actor_310100_80162414(task, 0x6D);
+            func_actor_310100_80162414(task, ACTOR_310100_PLACEMENT_OFFICER_2);
             task->state++;
             /* fallthrough */
         case 1:
@@ -1347,13 +1370,13 @@ void func_actor_310100_8016309C(Task* task)
             rot.vy = 0x380;
             rot.vz = 0;
             Gp_DrawFloorQuad(&task->extra.tmd->coords[1], 0x300, &rot);
-            switch (work->field_4F0) {
-                case 0:
+            switch (work->playState) {
+                case ACTOR_310100_PLAY_STATE_POSED:
                     break;
-                case 1:
+                case ACTOR_310100_PLAY_STATE_PLAYING:
                     func_actor_310100_80161F80(task);
                     break;
-                case 2:
+                case ACTOR_310100_PLAY_STATE_FROZEN:
                 default:
                     return;
             }
@@ -1372,14 +1395,14 @@ void func_actor_310100_8016309C(Task* task)
 /// state goes non-zero.
 void func_actor_310100_801631B0(Task* task)
 {
-    Actor310100Work* work;
-    OverlayVecSlot   pos;
-    TmdObject*       extra;
+    _Actor310100PoliceOfficerWork* work;
+    OverlayVecSlot                 pos;
+    TmdObject*                     extra;
 
-    work = (Actor310100Work*)task->work;
+    work = (_Actor310100PoliceOfficerWork*)task->work;
     switch (task->state) {
         case 0:
-            func_actor_310100_801625E4(task, 0x6C);
+            func_actor_310100_801625E4(task, ACTOR_310100_PLACEMENT_OFFICER_1);
             Gp_UpdateCoord(&task->extra.tmd->coords[1]);
             extra      = task->extra.tmd;
             pos.vec.vx = extra->coords[1].workm.t[0];
@@ -1389,7 +1412,7 @@ void func_actor_310100_801631B0(Task* task)
             task->state++;
             break;
         case 1:
-            if (work->field_4F0 == 0) {
+            if (work->playState == ACTOR_310100_PLAY_STATE_POSED) {
                 pos.rot.vx = 0;
                 pos.rot.vy = 0x380;
                 pos.rot.vz = 0;
@@ -1405,14 +1428,14 @@ void func_actor_310100_801631B0(Task* task)
 /// below 2.
 void func_actor_310100_801632B0(Task* task)
 {
-    Actor310100Work* work;
-    OverlayVecSlot   pos;
-    TmdObject*       extra;
+    _Actor310100PoliceOfficerWork* work;
+    OverlayVecSlot                 pos;
+    TmdObject*                     extra;
 
-    work = (Actor310100Work*)task->work;
+    work = (_Actor310100PoliceOfficerWork*)task->work;
     switch (task->state) {
         case 0:
-            func_actor_310100_801625E4(task, 0x6D);
+            func_actor_310100_801625E4(task, ACTOR_310100_PLACEMENT_OFFICER_2);
             Gp_UpdateCoord(&task->extra.tmd->coords[1]);
             extra      = task->extra.tmd;
             pos.vec.vx = extra->coords[1].workm.t[0];
@@ -1422,9 +1445,9 @@ void func_actor_310100_801632B0(Task* task)
             task->state++;
             break;
         case 1:
-            switch (work->field_4F0) {
-                case 0:
-                case 1:
+            switch (work->playState) {
+                case ACTOR_310100_PLAY_STATE_POSED:
+                case ACTOR_310100_PLAY_STATE_PLAYING:
                     pos.rot.vx = 0;
                     pos.rot.vy = 0x380;
                     pos.rot.vz = 0;
