@@ -8,6 +8,7 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
+#include "gameplay/geometry.h"
 #include "gameplay/message.h"
 
 #include "main/coord.h"
@@ -29,6 +30,29 @@ typedef struct {
     byte    field_10[4]; // Never accessed; role unproven
 } PlayerActorApproachScratch;
 STATIC_ASSERT_SIZEOF(PlayerActorApproachScratch, 0x14);
+
+/// Scratch-stack block for marking where a weapon's attack struck the room.
+///
+/// The search walks the attacking actor's weapon contacts for the room
+/// geometry hit nearest the weapon, skipping surfaces that show no weapon
+/// impacts, and spawns the impact effect on a temporary coordinate node placed
+/// there. The player's routine, which the weapon packages call, and the armed
+/// companion package's own copy each reserve one block per call and release it
+/// before returning. The block is not cleared.
+///
+/// Positions are those of the contact points: the space the weapon node's
+/// composed transform is expressed in. Only the translation of the impact
+/// node's composed transform is written; its rotation, which the effect
+/// spawner applies to `jitter`, is whatever the scratch stack last held.
+/// The spawned effects are also handed the addresses of `impactCoord` and
+/// `jitter` and keep them past the block's release; whether any effect reads
+/// through them afterwards is unproven.
+typedef struct {
+    WorldCollisionDelta pushback;    // Correction the contact resolver writes for the hit being tested; never read, the resolver is run for the surface it reports
+    GfxCoord            impactCoord; // Parentless node with a supplied composed transform whose translation is the chosen contact point
+    SVECTOR             jitter;      // Random 0..7 per axis: the effect's offset from the node, also added to the position reported to the caller
+} PlayerActorWeaponImpactScratch;
+STATIC_ASSERT_SIZEOF(PlayerActorWeaponImpactScratch, 0x68);
 
 /// 2-wide rows indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId`. `Gp_PlayerMode2StateB` passes
 /// `D_80112E04[field_22][1]` to `func_80105894`.

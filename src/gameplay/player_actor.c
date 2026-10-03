@@ -12,7 +12,6 @@
 #include "gte.h"
 
 #include "gameplay/display.h"
-#include "gameplay/actor.h"
 #include "actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -6909,19 +6908,19 @@ void func_80105B74(VECTOR3* arg0)
 
 s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2)
 {
-    s32                    minDist;
-    s32                    idx;
-    GpPickScratch*         block;
-    WorldCollisionContact* rec;
-    s32                    i;
-    s32                    bestIdx;
-    s32                    dist;
+    s32                             minDist;
+    s32                             idx;
+    PlayerActorWeaponImpactScratch* block;
+    WorldCollisionContact*          rec;
+    s32                             i;
+    s32                             bestIdx;
+    s32                             dist;
 
     minDist = 0x7FFFFFFF;
     if (Gp_CountRec18Hi(arg0, 0x30000) != 0) {
         return 0;
     }
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpPickScratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorWeaponImpactScratch);
     for (i = 0, bestIdx = 0; i < 6; i++) {
         rec = &arg0[i];
         if (rec->key.value & 0x100000) {
@@ -6929,7 +6928,7 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
             dist += abs(arg1->workm.t[1] - rec->point.vy);
             dist += abs(arg1->workm.t[2] - rec->point.vz);
             if (dist < minDist) {
-                func_800E0FEC(rec, &block->delta, 1, &idx);
+                func_800E0FEC(rec, &block->pushback, 1, &idx);
                 idx = func_800E1ACC((u8*)&idx);
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
                     minDist = dist;
@@ -6939,33 +6938,33 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
         }
     }
     if (minDist != 0x7FFFFFFF) {
-        i                         = 1;
-        block->coord.parent       = 0;
-        block->coord.composeStamp = GRAPHICS_COORD_SUPPLIED_CACHE;
-        block->coord.workm.t[0]   = arg0[bestIdx].point.vx;
-        block->coord.workm.t[1]   = arg0[bestIdx].point.vy;
-        block->coord.workm.t[2]   = arg0[bestIdx].point.vz;
-        block->offset.vx          = rand() & 7;
-        block->offset.vy          = rand() & 7;
-        block->offset.vz          = rand() & 7;
+        i                               = 1;
+        block->impactCoord.parent       = NULL;
+        block->impactCoord.composeStamp = GRAPHICS_COORD_SUPPLIED_CACHE;
+        block->impactCoord.workm.t[0]   = arg0[bestIdx].point.vx;
+        block->impactCoord.workm.t[1]   = arg0[bestIdx].point.vy;
+        block->impactCoord.workm.t[2]   = arg0[bestIdx].point.vz;
+        block->jitter.vx                = rand() & 7;
+        block->jitter.vy                = rand() & 7;
+        block->jitter.vz                = rand() & 7;
         if (arg2 != NULL) {
-            arg2->workm.t[0] = block->coord.workm.t[0] + block->offset.vx;
-            arg2->workm.t[1] = block->coord.workm.t[1] + block->offset.vy;
-            arg2->workm.t[2] = block->coord.workm.t[2] + block->offset.vz;
+            arg2->workm.t[0] = block->impactCoord.workm.t[0] + block->jitter.vx;
+            arg2->workm.t[1] = block->impactCoord.workm.t[1] + block->jitter.vy;
+            arg2->workm.t[2] = block->impactCoord.workm.t[2] + block->jitter.vz;
         }
         if (gPlayerStatus.weapon != 0x1D) {
             if (gPlayerStatus.weaponSlotItem == 0xE) {
-                Gp_SpawnEff(EFFECT_FIRE_BURST, &block->coord, 0x300, &block->offset);
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, &block->coord, 0x300, &block->offset);
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, &block->coord, 0xC0013300, &block->offset);
+                Gp_SpawnEff(EFFECT_FIRE_BURST, &block->impactCoord, 0x300, &block->jitter);
+                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, &block->impactCoord, 0x300, &block->jitter);
+                Gp_SpawnEff(EFFECT_SMOKE_PUFF, &block->impactCoord, 0xC0013300, &block->jitter);
             } else {
-                Gp_SpawnEff(EFFECT_IMPACT_SPARK, &block->coord, 0, &block->offset);
+                Gp_SpawnEff(EFFECT_IMPACT_SPARK, &block->impactCoord, 0, &block->jitter);
             }
         }
     } else {
         i = 0;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpPickScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorWeaponImpactScratch);
     return i;
 }
 

@@ -6,7 +6,6 @@
 
 #include "common.h"
 
-#include "gameplay/geometry.h"
 #include "gameplay/world_collision_types.h"
 
 #include "main/coord.h"
@@ -82,17 +81,5 @@ typedef struct {
     SVECTOR motionDirection; // Movement or push-back heading for this frame; 4096 per unit
 } CompanionMoveScratch;
 STATIC_ASSERT_SIZEOF(CompanionMoveScratch, 0x18);
-
-/// Scratch-pad block for picking the nearest collision record. `delta`
-/// receives the push-back of the record being classified, which is
-/// discarded (only the record mask returned alongside it is used), `coord`
-/// is the node the pick effect is spawned on, and `offset` a small random
-/// jitter added to that position.
-typedef struct _GpPickScratch {
-    WorldCollisionDelta delta;
-    GfxCoord            coord;
-    SVECTOR             offset;
-} GpPickScratch;
-STATIC_ASSERT_SIZEOF(GpPickScratch, 0x68);
 
 #endif // GAMEPLAY_ACTOR_H
