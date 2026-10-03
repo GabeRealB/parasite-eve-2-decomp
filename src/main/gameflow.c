@@ -514,7 +514,7 @@ void Pad_PollControllers(void)
                 }
                 // Normalize all four wire-order axes after removing the raw dead zone.
                 axis    = pad->stickAxes;
-                rawAxis = (u8*)Pad_RawPorts[port].unknown_4;
+                rawAxis = Pad_RawPorts[port].stickAxes;
                 i       = 0;
                 do {
                     delta       = *rawAxis - pad->stickCenters[i];
@@ -549,8 +549,8 @@ void Pad_PollControllers(void)
             case 6:
             case 8:
                 raw                               = &Pad_RawPorts[port];
-                raw->field_2                      = 0xFF;
-                raw->field_3                      = 0xFF;
+                raw->buttonsHigh                  = 0xFF;
+                raw->buttonsLow                   = 0xFF;
                 status                            = PAD_INPUT_FORMAT_UNAVAILABLE;
                 pad->inputFormat                  = status;
                 pad->stickAxes[PAD_STICK_LEFT_Y]  = 0;
@@ -588,8 +588,8 @@ void Pad_UpdatePort0(void)
     do {
         pad = &gPadStates[i];
         if (pad->inputBlockPolls == 0) {
-            scratch->rawHi   = Pad_RawPorts[i].field_2;
-            scratch->rawLo   = Pad_RawPorts[i].field_3;
+            scratch->rawHi   = Pad_RawPorts[i].buttonsHigh;
+            scratch->rawLo   = Pad_RawPorts[i].buttonsLow;
             buttons          = ~*(u16*)&scratch->rawLo;
             scratch->buttons = buttons;
 
@@ -645,8 +645,8 @@ void Pad_UpdatePort0(void)
             pad->releasedButtons = 0;
             pad->buttons         = 0;
             if (pad->inputBlockPolls == 0) {
-                scratch->rawHi   = Pad_RawPorts[i].field_2;
-                scratch->rawLo   = Pad_RawPorts[i].field_3;
+                scratch->rawHi   = Pad_RawPorts[i].buttonsHigh;
+                scratch->rawLo   = Pad_RawPorts[i].buttonsLow;
                 buttons          = ~*(u16*)&scratch->rawLo;
                 scratch->buttons = buttons;
                 pad->buttons     = buttons;

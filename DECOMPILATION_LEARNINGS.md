@@ -15284,7 +15284,7 @@ DCE'd as a dead store. Pinning `stateByteOffset` to `$a2` keeps the zero and the
 ### Companion: non-volatile load, volatile stores for pad buffers
 
 `PadInitDirect((u8*)pad, (u8*)(pad + 1))` wants `lui s0` / `addiu s0, s0, %lo`
-on a plain `PadRawPort*`. Field stores `pad->field_2 = 0xFF` without `volatile`
+on a plain `PadRawPort*`. Field stores `pad->buttonsHigh = 0xFF` without `volatile`
 rebase the pointer (`addiu s0, 3` / `sb -1(s0)`). Load into a non-volatile
 pointer for the call, then assign a `volatile PadRawPort*` for the init loop:
 
@@ -15296,8 +15296,8 @@ pad = Pad_RawPorts;
 PadInitDirect((u8*)pad, (u8*)(pad + 1));
 vpad = pad;
 for (j = 0; j < 2; j++) {
-    vpad->field_2 = 0xFF;
-    vpad->field_3 = 0xFF;
+    vpad->buttonsHigh = 0xFF;
+    vpad->buttonsLow = 0xFF;
     vpad++;
 }
 ```
@@ -22059,7 +22059,7 @@ pattern as `Display_StepFadeOverlay` / `_textDrawGlyphOutlinedSingleEntry`).
 ## Empty `asm volatile` after field reads blocks pointer strength-reduction
 
 When a loop walks a struct pointer (`raw++` / `raw += sizeof`) but only touches
-fields at a fixed small offset (e.g. `raw->field_2` / `raw->field_3`), GCC 2.8.1
+fields at a fixed small offset (e.g. `raw->buttonsHigh` / `raw->buttonsLow`), GCC 2.8.1
 strength-reduces the induction variable to `base + offset` and emits
 `lbu -1(s2)` / `lbu 0(s2)` with `addiu s2, base, 3` instead of the target's
 `lbu 2(s2)` / `lbu 3(s2)` from the true base. Pinning `register … asm("s2")`
@@ -22072,8 +22072,8 @@ blocked by the loop-wide `+r`) but **not** at the loop tail (that steals the
 `blez` delay slot from the offset increment):
 
 ```c
-scratch->rawHi = raw->field_2;
-scratch->rawLo = raw->field_3;
+scratch->rawHi = raw->buttonsHigh;
+scratch->rawLo = raw->buttonsLow;
 asm volatile("" : "+r"(raw)); /* keeps s2 as base; lbu 2(s2)/3(s2) */
 buttons = ~*(u16*)&scratch->rawLo;
 /* … */
@@ -65596,7 +65596,7 @@ while GCC's local labels were already resolved. Two generated tables also used
 separate target symbols versus `.rodata` and `.rodata+0x20` in C. The final seed
 had 243 identical linked instructions (972 bytes compared against the original
 `assets/USA/main.exe`); unlinked scoring reported 99.934%, or 99.893% after using
-`Pad_RawPorts[port].unknown_4` instead of its `D_800711CC` alias. This is a
+`Pad_RawPorts[port].stickAxes` instead of its `D_800711CC` alias. This is a
 relocation-comparison limitation, not permission to ignore unexplained diffs:
 resolve the actual symbols and compare original bytes, then run the full build.
 The tables land through `[0x3cdc, .rodata, gameflow]`, leaving the preceding two

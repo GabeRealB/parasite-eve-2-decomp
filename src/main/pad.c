@@ -64,9 +64,9 @@ void Pad_Init(void)
     PadStartCom();
     vpad = pad;
     for (; j < 2; j++) {
-        ff            = 0xFF;
-        vpad->field_2 = ff;
-        vpad->field_3 = ff;
+        ff                = 0xFF;
+        vpad->buttonsHigh = ff;
+        vpad->buttonsLow  = ff;
         vpad++;
     }
 }

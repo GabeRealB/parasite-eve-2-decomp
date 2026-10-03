@@ -102,8 +102,8 @@ s32 Pad_ReadButtonsInv(s32 arg0)
     PadRawPort* base;
 
     base          = Pad_RawPorts;
-    ((u8*)&sp)[1] = base[arg0].field_2;
-    ((u8*)&sp)[0] = base[arg0].field_3;
+    ((u8*)&sp)[1] = base[arg0].buttonsHigh;
+    ((u8*)&sp)[0] = base[arg0].buttonsLow;
     return (u16)~sp;
 }
 
