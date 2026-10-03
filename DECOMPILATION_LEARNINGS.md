@@ -87339,7 +87339,7 @@ check - `if (work == NULL) { taskKill(task); return; } task->work = work;` -
 and following that convention here scored 97.273% with `reorder=2`: sched2
 hoisted the `func_neo_ark_shrine_8017F86C` argument into the branch delay slot
 (`bnez v1,4c` / `move a0,s2`) and pushed the store past `addiu v0,v1,0x20`.
-Writing `task->work = st;` **before** `if (st == NULL)` restores the
+Writing `task->work = work;` **before** `if (work == NULL)` restores the
 target exactly (100%, all-zero penalties).
 
 The store is unconditional in the target, so the source has to make it
@@ -87352,7 +87352,7 @@ constant.
 The same function is also the worked example for m2c's scaled pointer
 arithmetic: `temp_v0 + 0x20` with `temp_v0` typed `_StageMusicSelection*` (8 bytes) emits
 `addiu v0,v1,0x100` and leaves the rest of the function matching at 99.886%.
-The block is `{ MATRIX color; MATRIX light; u16 speed, delta, ticks; }` - the
+The block is `{ MATRIX color; MATRIX light; s16 fallAcceleration, fallVelocity, fallFrames; }` - the
 0x48 allocation and the `light` / `color` republished onto
 `TmdObject::lightMtx` / `colorMtx` say so, as in `_MineForkedTunnelAreaObjectWork` - so the
 offset is the member, not a byte count. Note this struct has colour at 0x00 and

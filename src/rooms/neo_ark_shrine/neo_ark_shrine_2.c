@@ -62,19 +62,21 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/action_prompt.h"
 
-/// Scratch state of the two falling-prop tasks, stored at `Task::work`
-/// (`memCalloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
-/// `color` / `light` are the prop's own matrices, republished onto
-/// `TmdObject::lightMtx` / `colorMtx` by the two spawn handlers; `speed` /
-/// `delta` / `ticks` are the fall itself, stepped by `func_neo_ark_shrine_8017F578`.
+/// Work block of the shrine's two falling-prop tasks.
+///
+/// Allocated zeroed when a prop spawns and kept in `Task::work`. The two
+/// matrices are the storage the prop's `TmdObject::colorMtx` and `lightMtx`
+/// point at; the rest is the drop that brings the prop down from above the
+/// room onto the floor, which starts from rest and whose acceleration itself
+/// grows by a fixed step every frame.
 typedef struct {
-    /* 0x00 */ MATRIX color;
-    /* 0x20 */ MATRIX light;
-    /* 0x40 */ u16    speed; ///< per-frame gravity step
-    /* 0x42 */ u16    delta; ///< accumulated fall distance for this frame
-    /* 0x44 */ u16    ticks; ///< frames since the fall started
-    /* 0x46 */ u8     pad_46[2];
-} NeoArkShrineFall;
+    MATRIX color;            // The model's colour matrix
+    MATRIX light;            // The model's light matrix
+    s16    fallAcceleration; // Added to `fallVelocity` every frame, in world units per frame squared; grows by the prop's own step each frame
+    s16    fallVelocity;     // Added to the prop's height every frame, in world units per frame (positive is down)
+    s16    fallFrames;       // Frames the drop has lasted; times its sound and its pad effect
+} _NeoArkShrineFallingPropWork;
+STATIC_ASSERT_SIZEOF(_NeoArkShrineFallingPropWork, 0x48);
 
 static void func_neo_ark_shrine_8017F86C(Task* task);
 static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2);
@@ -1421,21 +1423,21 @@ void func_neo_ark_shrine_8017F448(void)
 /// room's view coordinate system, and advances the task to the falling state.
 static void func_neo_ark_shrine_8017F4C8(Task* task)
 {
-    TmdObject*        extra;
-    GfxCoord*         coord;
-    NeoArkShrineFall* st;
+    TmdObject*                    extra;
+    GfxCoord*                     coord;
+    _NeoArkShrineFallingPropWork* work;
 
     extra      = task->extra.tmd;
     coord      = extra->coords;
-    st         = memCalloc(sizeof(NeoArkShrineFall), 0);
-    task->work = st;
-    if (st == NULL) {
+    work       = memCalloc(sizeof(_NeoArkShrineFallingPropWork), 0);
+    task->work = work;
+    if (work == NULL) {
         taskKill(task);
         return;
     }
-    extra->lightMtx   = &st->light;
+    extra->lightMtx   = &work->light;
     extra->flags      = 0;
-    extra->colorMtx   = &st->color;
+    extra->colorMtx   = &work->color;
     coord->parent     = &gGfxViewCoord;
     coord->coord.t[0] = 0x1B58;
     coord->coord.t[1] = -0xBB8;
@@ -1446,28 +1448,21 @@ static void func_neo_ark_shrine_8017F4C8(Task* task)
 
 static void func_neo_ark_shrine_8017F578(Task* task)
 {
-    NeoArkShrineFall* st;
-    GfxCoord*         coord;
-    u16               ticks;
-    u16               speed;
-    u16               delta;
-    s32               y;
+    _NeoArkShrineFallingPropWork* work;
+    GfxCoord*                     coord;
 
-    st        = (NeoArkShrineFall*)task->work;
-    coord     = task->extra.tmd->coords;
-    ticks     = st->ticks + 1;
-    st->ticks = ticks;
-    if ((s16)ticks == 4) {
+    work  = task->work;
+    coord = task->extra.tmd->coords;
+    work->fallFrames++;
+    if (work->fallFrames == 4) {
         Gp_SpawnPadLerp(0x18, 0x40, 0xFF);
         SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_PROP_1_FALL, 0, 0);
     }
-    speed             = st->speed + 1;
-    delta             = st->delta + speed;
-    st->delta         = delta;
-    st->speed         = speed;
-    y                 = coord->coord.t[1] + (s16)delta;
-    coord->coord.t[1] = y;
-    if (y > 0) {
+    // The drop accelerates harder every frame, and stops dead at floor height.
+    work->fallAcceleration += 1;
+    work->fallVelocity     += work->fallAcceleration;
+    coord->coord.t[1]      += work->fallVelocity;
+    if (coord->coord.t[1] > 0) {
         coord->coord.t[1] = 0;
         task->state++;
     }
@@ -1486,21 +1481,21 @@ static void func_neo_ark_shrine_8017F640(Task* task)
 /// but parked at the mirror position on the far side of the shrine.
 static void func_neo_ark_shrine_8017F688(Task* task)
 {
-    TmdObject*        extra;
-    GfxCoord*         coord;
-    NeoArkShrineFall* st;
+    TmdObject*                    extra;
+    GfxCoord*                     coord;
+    _NeoArkShrineFallingPropWork* work;
 
     extra      = task->extra.tmd;
     coord      = extra->coords;
-    st         = memCalloc(sizeof(NeoArkShrineFall), 0);
-    task->work = st;
-    if (st == NULL) {
+    work       = memCalloc(sizeof(_NeoArkShrineFallingPropWork), 0);
+    task->work = work;
+    if (work == NULL) {
         taskKill(task);
         return;
     }
-    extra->lightMtx   = &st->light;
+    extra->lightMtx   = &work->light;
     extra->flags      = 0;
-    extra->colorMtx   = &st->color;
+    extra->colorMtx   = &work->color;
     coord->parent     = &gGfxViewCoord;
     coord->coord.t[0] = 0x222E;
     coord->coord.t[1] = -0xBB8;
@@ -1511,30 +1506,23 @@ static void func_neo_ark_shrine_8017F688(Task* task)
 
 static void func_neo_ark_shrine_8017F738(Task* task)
 {
-    NeoArkShrineFall* st;
-    GfxCoord*         coord;
-    u16               ticks;
-    u16               speed;
-    u16               delta;
-    s32               y;
+    _NeoArkShrineFallingPropWork* work;
+    GfxCoord*                     coord;
 
-    st        = (NeoArkShrineFall*)task->work;
-    coord     = task->extra.tmd->coords;
-    ticks     = st->ticks + 1;
-    st->ticks = ticks;
-    if ((s16)ticks == 2) {
+    work  = task->work;
+    coord = task->extra.tmd->coords;
+    work->fallFrames++;
+    if (work->fallFrames == 2) {
         SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_PROP_2_FALL, 0, 0);
     }
-    if ((s16)st->ticks == 0x12) {
+    if (work->fallFrames == 0x12) {
         Gp_SpawnPadLerp(0xA, 0xA0, 0xFF);
     }
-    speed             = st->speed + 2;
-    delta             = st->delta + speed;
-    st->delta         = delta;
-    st->speed         = speed;
-    y                 = coord->coord.t[1] + (s16)delta;
-    coord->coord.t[1] = y;
-    if (y > 0) {
+    // The drop accelerates harder every frame, and stops dead at floor height.
+    work->fallAcceleration += 2;
+    work->fallVelocity     += work->fallAcceleration;
+    coord->coord.t[1]      += work->fallVelocity;
+    if (coord->coord.t[1] > 0) {
         coord->coord.t[1] = 0;
         task->state++;
     }
@@ -1543,7 +1531,7 @@ static void func_neo_ark_shrine_8017F738(Task* task)
 
 #include "../../shared/action_prompt_reset.inc.c"
 
-/// Tail every `NeoArkShrineFall` handler runs: clears the prop's root coordinate
+/// Tail every falling-prop handler runs: clears the prop's root coordinate
 /// flag, rebuilds its world matrix, and republishes the translation in
 /// `func_800D7A9C`'s format, lowered by 0x320 so the prop draws on the floor.
 static void func_neo_ark_shrine_8017F86C(Task* task)
