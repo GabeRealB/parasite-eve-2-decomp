@@ -182,7 +182,7 @@ void GameFlow_StateByField34(Task* task)
             gDisplayState.gameRunning                    = 1;
             p->releasePauseBlockAfterFade                = 1;
             p->blockGamePause                            = 1;
-            Wip_SysFlags.field_4                         = 1;
+            Wip_SysFlags.skipTitleIntro                  = 1;
             Mc_InitBufferSlots();
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saved;
             task->state                                        = task->state + 1;
@@ -192,7 +192,7 @@ void GameFlow_StateByField34(Task* task)
             gDisplayState.control.flags.pendingPlayerPos = 0;
             p->releasePauseBlockAfterFade                = 1;
             p->blockGamePause                            = 1;
-            Wip_SysFlags.field_4                         = 1;
+            Wip_SysFlags.skipTitleIntro                  = 1;
             gGameSession->applySaveVariant               = 1;
         }
         gDisplayState.stopTaskWalk = 1;
@@ -257,7 +257,7 @@ static void Game_ResetSessionAndBuffers(Task* task)
     gDisplayState.gameRunning                    = 1;
     p->releasePauseBlockAfterFade                = 1;
     p->blockGamePause                            = 1;
-    Wip_SysFlags.field_4                         = 1;
+    Wip_SysFlags.skipTitleIntro                  = 1;
     Mc_InitBufferSlots();
     do {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saved;

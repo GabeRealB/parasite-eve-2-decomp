@@ -184,7 +184,7 @@ s32 LoadUi_PollDiskSwap(void)
             }
         case 4:
             Fs_ScanIsoDirectory(0);
-            if (Wip_SysFlags.field_0 != 0) {
+            if (Wip_SysFlags.discNumber != GAME_MAIN_DISC_UNKNOWN) {
                 while (Fs_CdOpStatus != 0xFF) {
                     if (Fs_CdOpStatus == 0x80) {
                         return 0xFF;
@@ -193,7 +193,7 @@ s32 LoadUi_PollDiskSwap(void)
                 }
                 Fs_ClearDiskError();
             }
-            if (Wip_SysFlags.field_0 != D_8007A393) {
+            if (Wip_SysFlags.discNumber != D_8007A393) {
                 D_8007A392 = 2;
                 D_8007A390 = 0x8080;
                 D_8007A394 = 1;

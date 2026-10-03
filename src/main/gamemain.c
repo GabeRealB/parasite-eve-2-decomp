@@ -79,7 +79,7 @@ DisplayState gDisplayState;
 
 u_long* gGpuCurrentOt;
 
-WipSysFlags Wip_SysFlags;
+GameMainPersistentState Wip_SysFlags;
 
 /// Unreferenced.
 static u8 D_800710C8[0x50];

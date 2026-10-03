@@ -317,14 +317,14 @@ caller supplies stream id (+ optional sub keys)
 
 #### Title (fully known)
 
-ISO root scan sets disc class (`Wip_SysFlags.unknown_0[0]`):
+ISO root scan sets the disc number (`Wip_SysFlags.discNumber`):
 
 - stage1/2 present → `1` (disk1-like)
 - stage4/5 present → `2` (disk2-like)
 
 ```c
 // title.c
-if (Wip_SysFlags.unknown_0[0] == 2)
+if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2)
     key_id = 0x65;  // 101
 else
     key_id = 0x64;  // 100

@@ -447,13 +447,13 @@ s32 CdCmd_StopMdec(s32 arg0)
         DecDCTReset(0);
         StClearRing();
         StUnSetRing();
-        ac14                 = D_8006AC14;
-        Wip_SysFlags.field_6 = 0;
-        p->field_24A         = 0;
-        p->movieReady        = 0;
-        p->movieFrameChanged = 0;
-        p->field_1E2         = 0;
-        p->movieStep         = CD_COMMAND_MOVIE_WAIT_READY;
+        ac14                           = D_8006AC14;
+        Wip_SysFlags.movieStreamActive = 0;
+        p->field_24A                   = 0;
+        p->movieReady                  = 0;
+        p->movieFrameChanged           = 0;
+        p->field_1E2                   = 0;
+        p->movieStep                   = CD_COMMAND_MOVIE_WAIT_READY;
         if (ac14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
             f12a = gDisplayState.videoMode;
             if (f12a == 1) {
@@ -726,7 +726,7 @@ static __inline__ void _streamStartDecode(void)
     StSetStream(D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB16 ? STREAM_MOVIE_DISPLAY_TEXTURE : D_8006AC14, 0, -1, NULL, NULL);
     StSetRing((u_long*)D_8006AC60, D_8006AC24);
     StClearRing();
-    Wip_SysFlags.field_6 = 1;
+    Wip_SysFlags.movieStreamActive = 1;
     DecDCToutCallback(Mdec_UploadSlice);
     CdVol_ApplyFromTable(0);
     queue->mdecOutputPending = 0;
@@ -831,13 +831,13 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             DecDCTReset(0);
             StClearRing();
             StUnSetRing();
-            videoMode               = D_8006AC14;
-            Wip_SysFlags.field_6    = 0;
-            stop->field_24A         = 0;
-            stop->movieReady        = 0;
-            stop->movieFrameChanged = 0;
-            stop->field_1E2         = 0;
-            stop->movieStep         = CD_COMMAND_MOVIE_WAIT_READY;
+            videoMode                      = D_8006AC14;
+            Wip_SysFlags.movieStreamActive = 0;
+            stop->field_24A                = 0;
+            stop->movieReady               = 0;
+            stop->movieFrameChanged        = 0;
+            stop->field_1E2                = 0;
+            stop->movieStep                = CD_COMMAND_MOVIE_WAIT_READY;
             if (videoMode != 0) {
                 displayMode = gDisplayState.videoMode;
                 if (displayMode == 1) {

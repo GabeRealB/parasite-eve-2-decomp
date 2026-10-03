@@ -6,17 +6,31 @@
 
 #include "common.h"
 
-/// WIP: boot/gamemain flag block (Wip_SysFlags). field_4 set on soft-reset paths;
-/// field_6 polled/cleared in boot and stream paths. Role not fully proven.
-typedef struct _WipSysFlags {
-    byte field_0;
-    s8   field_1;
-    byte unknown_2[2];
-    s16  field_4;
-    s16  field_6;
-    byte unknown_8[0x18];
-} WipSysFlags;
-STATIC_ASSERT_SIZEOF(WipSysFlags, 0x20);
+/// Game disc identified in the drive, by which stages' `.CDF` files it carries.
+///
+/// Disc 1 holds stages 1 and 2, disc 2 stages 4 and 5.
+enum {
+    GAME_MAIN_DISC_UNKNOWN = 0,
+    GAME_MAIN_DISC_1       = 1,
+    GAME_MAIN_DISC_2       = 2,
+};
+
+/// System state cleared once at power-on and kept across the game's soft resets.
+///
+/// Unlike the session, which each new game or reset clears, these flags carry
+/// knowledge from one boot cycle to the next: which disc is inserted, whether
+/// the title intro has already played, and whether a game over has occurred.
+/// It also records whether the CD stream ring and MDEC decoder are installed, so
+/// a CD reset can tear them down.
+typedef struct {
+    byte discNumber;        // Inserted disc, GAME_MAIN_DISC_* (0 unknown, 1 disc 1, 2 disc 2); rewritten by each ISO directory scan
+    s8   gameOver;          // Set by a game over, never cleared (0 no, 1 yes); the title menu then opens on Load Game
+    byte unknown_2[2];      // No observed accesses
+    s16  skipTitleIntro;    // Next title boot skips the logo intro (0 play it, 1 skip it); an idle title menu and a demo played to its end clear it
+    s16  movieStreamActive; // Stream ring and MDEC decoder are installed for movie playback (0 no, 1 yes)
+    byte unknown_8[0x18];   // No observed accesses; extent taken from the symbol size
+} GameMainPersistentState;
+STATIC_ASSERT_SIZEOF(GameMainPersistentState, 0x20);
 
 /// Captured player position and facing for restoring the player at room entry.
 ///

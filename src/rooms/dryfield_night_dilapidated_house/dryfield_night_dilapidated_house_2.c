@@ -2393,7 +2393,7 @@ static u8 _gDryfieldNightDilapidatedHouseUnreferencedData[] = {
 /// Entry 1 of the room's two-entry descriptor table, the task that plays a
 /// stream. It blanks the display and allocates the auxiliary buffers, looks
 /// up the stream slot for the current location with view 0x65 or 0x64
-/// (chosen by `Wip_SysFlags.field_0`) and queues CD command 0x61 for it,
+/// (0x65 on disc 2, by `Wip_SysFlags.discNumber`) and queues CD command 0x61 for it,
 /// shows the display once the queue's `field_1FA` is set, and blanks it again
 /// when the CD goes idle - or, on the pad's 0x800 flag, early, activating CD
 /// phase 1. Once the CD is idle it restores the stream state, clears the
@@ -2414,7 +2414,7 @@ void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
             return;
         case 1:
             key = gGameSession->location;
-            if (Wip_SysFlags.field_0 == 2) {
+            if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
                 key.loc.view = 0x65;
             } else {
                 key.loc.view = 0x64;

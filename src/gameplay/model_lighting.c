@@ -2979,8 +2979,8 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
             Gp_ReplayFramesLeft = Gp_ReplayCursor[1];
         }
         if (arg1->buttons & 0x800) {
-            arg1->buttons        = Gp_ReplayButtons | 0x800;
-            Wip_SysFlags.field_4 = 1;
+            arg1->buttons               = Gp_ReplayButtons | 0x800;
+            Wip_SysFlags.skipTitleIntro = 1;
         } else {
             arg1->buttons = Gp_ReplayButtons;
         }
@@ -2992,7 +2992,7 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
             Gp_ReplayButtons = 0xFFFF;
             Gp_ReplayCursor  = next;
             if (*next == 0xFFFF) {
-                Wip_SysFlags.field_4              = 0;
+                Wip_SysFlags.skipTitleIntro       = 0;
                 Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_NONE;
             }
         }
@@ -3162,8 +3162,8 @@ void Gp_TickPlayClock(Task* task)
         }
     }
         Display_AcquireRef();
-        task->killCountdown  = gGameSession->deathRestartDelay;
-        Wip_SysFlags.field_1 = 1;
+        task->killCountdown   = gGameSession->deathRestartDelay;
+        Wip_SysFlags.gameOver = 1;
         task->state++;
         return;
     }

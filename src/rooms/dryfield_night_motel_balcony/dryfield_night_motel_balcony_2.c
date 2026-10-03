@@ -51,7 +51,7 @@ TaskDesc D_dryfield_night_motel_balcony_80182834[2] = {
 
 TaskDesc D_dryfield_night_motel_balcony_8018284C = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_balcony_8017E068, { .value = 0 } }; /// The balcony movie task. It blanks the display, allocates the movie
 /// buffers and plays two streams keyed on the current location - view 0x65
-/// then 0x64, or 0x67 then 0x66 when `Wip_SysFlags.field_0` is 2 - either of
+/// then 0x64, or 0x67 then 0x66 when `Wip_SysFlags.discNumber` is disc 2 - either of
 /// which the pad can skip, then restores the stream state, resets the display
 /// heap and kills itself.
 void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
@@ -71,7 +71,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             return;
         case 1:
             introKey = gGameSession->location;
-            if (Wip_SysFlags.field_0 == 2) {
+            if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
                 introKey.loc.view = 0x67;
             } else {
                 introKey.loc.view = 0x65;
@@ -104,7 +104,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
         case 4:
             if (CdCmd_IsIdle() & 0xFFFF) {
                 loopKey = gGameSession->location;
-                if (Wip_SysFlags.field_0 == 2) {
+                if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
                     loopKey.loc.view = 0x66;
                 } else {
                     loopKey.loc.view = 0x64;

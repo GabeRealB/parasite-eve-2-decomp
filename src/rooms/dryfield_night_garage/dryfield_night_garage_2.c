@@ -1172,7 +1172,7 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
             return;
         case 1:
             key = gGameSession->location;
-            if (Wip_SysFlags.field_0 == 2) {
+            if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
                 if (task->spawnArg1.value != 0) {
                     key.loc.view = 0x67;
                 } else {

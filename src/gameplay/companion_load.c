@@ -384,8 +384,8 @@ void Gp_LoadStateTask(Task* task)
     if (ds->demoScene != DISPLAY_DEMO_NONE) {
         if (Pad_ReadButtonsInv(0) & 0x800) {
             if (CdCmd_IsIdle() & 0xFFFF) {
-                Wip_SysFlags.field_4 = 1;
-                ds->gameMode         = DISPLAY_GAME_RESTART;
+                Wip_SysFlags.skipTitleIntro = 1;
+                ds->gameMode                = DISPLAY_GAME_RESTART;
                 return;
             }
         }

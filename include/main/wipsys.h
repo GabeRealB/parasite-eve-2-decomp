@@ -3,7 +3,7 @@
 
 #include "main/wipsys_types.h"
 
-extern WipSysFlags Wip_SysFlags;
+extern GameMainPersistentState Wip_SysFlags;
 
 /// Resident player state and its serialized memory-card backup.
 ///

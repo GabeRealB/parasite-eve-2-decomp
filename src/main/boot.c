@@ -314,11 +314,11 @@ void Boot_ResetCd(s32 mode)
     CdFlush();
     VSync(3);
     CdControlB(CdlPause, NULL, NULL);
-    if (Wip_SysFlags.field_6 != 0) {
+    if (Wip_SysFlags.movieStreamActive != 0) {
         DecDCTReset(0);
         StClearRing();
         StUnSetRing();
-        Wip_SysFlags.field_6 = 0;
+        Wip_SysFlags.movieStreamActive = 0;
     }
     CdReset(mode);
     ctrlParam[0] = CdlModeSpeed;

@@ -150,7 +150,7 @@ static void Title_InitTask(Task* arg0)
         work->menuCount      = 5;
         work->selection      = 2;
         work->timer          = 0;
-        if (Wip_SysFlags.field_1 != 0) {
+        if (Wip_SysFlags.gameOver != 0) {
             work->selection = 3;
         }
         Text_LoadClutImages();
@@ -230,8 +230,8 @@ static void Title_MenuTask(Task* task)
                 addPrim(gGpuCurrentOt, tpage);
             }
         } else {
-            Wip_SysFlags.field_4 = 0;
-            if (Wip_SysFlags.field_0 == 1) {
+            Wip_SysFlags.skipTitleIntro = 0;
+            if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_1) {
                 Task_CallExit(task);
                 gDisplayState.demoScene = GameMain_GetResetCount() + 2;
                 gDisplayState.demoScene = gDisplayState.demoScene % 3 + 1;
@@ -427,7 +427,7 @@ void Title_DemoStreamTask(Task* task)
             break;
         case 1:
             key = gGameSession->location;
-            if (Wip_SysFlags.field_0 == 2) {
+            if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
                 key.loc.view = 0x65;
             } else {
                 key.loc.view = 0x64;
@@ -500,7 +500,7 @@ void Title_BootTask(Task* arg0)
         case 0:
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             Title_SkipFadeFlag                      = 1;
-            if ((gDisplayState.debugMode < 0) || (Wip_SysFlags.field_4 != 0)) {
+            if ((gDisplayState.debugMode < 0) || (Wip_SysFlags.skipTitleIntro != 0)) {
                 next               = 6;
                 Title_SkipFadeFlag = 0;
             } else {
@@ -526,7 +526,7 @@ void Title_BootTask(Task* arg0)
             return;
         case 5:
             SetDispMask(1);
-            Wip_SysFlags.field_4 = 1;
+            Wip_SysFlags.skipTitleIntro = 1;
             taskKill(task);
             return;
         case 6:
