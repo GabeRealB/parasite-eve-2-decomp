@@ -81,17 +81,8 @@ extern RoomEventReq gRoomEventReq;
 /// Descriptor of the event task `roomEventTask`.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// Saved `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` (area id), restored when the cutscene ends.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    u8 value;
-    u8 retained[7];
-} DryfieldNightSaloonGRStorage8FA4;
-STATIC_ASSERT_SIZEOF(DryfieldNightSaloonGRStorage8FA4, 8);
-
-extern DryfieldNightSaloonGRStorage8FA4 D_dryfield_night_saloon_g_r_80188FA4;
+/// The view slot the room was on when its cutscene took over, restored when the cutscene ends.
+extern RoomSavedViewStorage D_dryfield_night_saloon_g_r_80188FA4;
 
 extern TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[];
 extern TaskDesc         D_dryfield_night_saloon_g_r_8017F940[];
@@ -1817,7 +1808,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_saloon_g_r_80188F84[8] = {
     D_dryfield_night_saloon_g_r_80188F64,
 };
 
-DryfieldNightSaloonGRStorage8FA4 D_dryfield_night_saloon_g_r_80188FA4 = { 0 };
+RoomSavedViewStorage D_dryfield_night_saloon_g_r_80188FA4 = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
@@ -1836,24 +1827,24 @@ RoomEventReq gRoomEventReq;
 static const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
     { func_dryfield_night_saloon_g_r_8017DF90, func_dryfield_night_saloon_g_r_8017E040, taskKill },
 };
-/// Room cutscene task: case 0 saves the area id, forces `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`
+/// Room cutscene task: case 0 saves the view slot, forces `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`
 /// to 0xC, raises the script halt flags and starts cap command 0x13; the
 /// following states wait for the cap to go idle, then start the jukebox task,
-/// and case 4 restores the area id and kills the task.
+/// and case 4 restores the saved view slot and kills the task.
 void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
 {
     McSaveData* save;
-    u8          temp;
+    u8          view;
 
     switch (task->state) {
         case 0:
-            gGameSession->eventState                   = 1;
-            gGameSession->hideHud                      = 1;
-            gSceneCombatState.actorControl             = SCENE_COMBAT_ACTORS_HIDDEN;
-            save                                       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-            temp                                       = save->state.location.loc.view;
-            save->state.location.loc.view              = 0xC;
-            D_dryfield_night_saloon_g_r_80188FA4.value = temp;
+            gGameSession->eventState                  = 1;
+            gGameSession->hideHud                     = 1;
+            gSceneCombatState.actorControl            = SCENE_COMBAT_ACTORS_HIDDEN;
+            save                                      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+            view                                      = save->state.location.loc.view;
+            save->state.location.loc.view             = 0xC;
+            D_dryfield_night_saloon_g_r_80188FA4.view = view;
             Gp_MsgPlayer3F3(0);
             Gp_RunCapCmd(0x13, 0);
             task->state = task->state + 1;
@@ -1876,7 +1867,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             gGameSession->hideHud                                      = 0;
             D_80114D08                                                 = 0xA;
             gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_night_saloon_g_r_80188FA4.value;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_night_saloon_g_r_80188FA4.view;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;

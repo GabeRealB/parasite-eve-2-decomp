@@ -112,6 +112,19 @@ typedef struct {
 } RoomEventStartStorage;
 STATIC_ASSERT_SIZEOF(RoomEventStartStorage, 8);
 
+/// Eight-byte room storage for the view slot a room scene took over.
+///
+/// A scene task that shows the room from a view of its own copies the live
+/// save's `location.loc.view` into `view` before replacing it, and writes the
+/// copy back when the scene ends, so play resumes on the view it interrupted.
+/// The seven trailing zero bytes have no recovered access; their role and
+/// grouping are unproven.
+typedef struct {
+    u8 view;       // 1-based view slot the room was on before the scene replaced it
+    u8 unknown[7]; // Zero image bytes; role and grouping unproven
+} RoomSavedViewStorage;
+STATIC_ASSERT_SIZEOF(RoomSavedViewStorage, 8);
+
 /// Latched room-event request with twelve bytes of unidentified trailing storage.
 ///
 /// The room owns this storage. Starting an event copies only the twenty-byte

@@ -528,7 +528,7 @@ s32 Shop_Data_80187628 = 0;
 
 EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
 
-ShelterB1ArmoryStorage557C D_shelter_b1_armory_8018557C = { 0 };
+RoomSavedViewStorage D_shelter_b1_armory_8018557C = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0, 0, 0, 0, 0, 0 };
 
