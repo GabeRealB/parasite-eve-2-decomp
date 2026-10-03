@@ -142,20 +142,12 @@ extern AnimationSet* D_actor_206100_80158B24[];
 /// it, so the tail entry is reachable.
 extern AreaPlacement D_actor_206100_80155134[];
 
-/// One vertex of the 8-point ring `func_actor_206100_8014FAE4` steps the actor's
-/// root coordinate around: radius 7600 in the XZ plane, one 45-degree step per
-/// entry, at a constant 3000 height.  `field_6` is unread.
-typedef struct Actor206100RingPos {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 field_6;
-} Actor206100RingPos;
-STATIC_ASSERT_SIZEOF(Actor206100RingPos, 0x8);
-
-/// Eight `Actor206100RingPos` entries, walked by the index at
+/// The eight positions of the ring the actor circles, walked by the index at
 /// `Actor206100Work::field_548`.
-extern Actor206100RingPos D_actor_206100_80158B68[8];
+///
+/// Each is a point in the root coordinate's translation units: radius 7600 in
+/// the XZ plane, one 45-degree step per entry, at a constant height of 3000.
+extern SVECTOR D_actor_206100_80158B68[8];
 
 /// One of the actor's two companion slots: the enemy the spawner
 /// `func_actor_206100_8014EE2C` returned for it, and the cooldown that keeps
@@ -298,7 +290,7 @@ typedef struct Actor206100Work {
     /// Position ring `func_actor_206100_8014FAE4` seeds from
     /// `D_actor_206100_80158B68` and then walks one entry per frame with
     /// `field_548`.
-    /* 0x4F4 */ Actor206100RingPos* field_4F4;
+    /* 0x4F4 */ SVECTOR* field_4F4;
     /// Child task `func_actor_206100_8014CB68` spawns off
     /// `D_actor_206100_80158AF0` with `D_actor_206100_80158CCC` as its spawn arg
     /// when the actor teleports: the screen tint that fades the flash in over
@@ -1206,7 +1198,7 @@ AnimationSet* D_actor_206100_80158B24[17] = {
     &_gActor206100Animation0ECA8,
 };
 
-Actor206100RingPos D_actor_206100_80158B68[8] = {
+SVECTOR D_actor_206100_80158B68[8] = {
     { 0, 3000, 7600, 0 },
     { 5373, 3000, 5373, 0 },
     { 7600, 3000, 0, 0 },
@@ -2999,20 +2991,20 @@ static void func_actor_206100_8014DD3C(Task* task)
 /// `addu` operand order".
 static void func_actor_206100_8014DEAC(Task* task)
 {
-    Actor206100Work*    sub = (Actor206100Work*)task->work;
-    Actor206100Work*    work;
-    GfxCoord*           coord;
-    GfxCoord*           coord2;
-    Actor206100RingPos* ring;
-    u32                 index;
-    SVECTOR             delta;
-    SVECTOR             vec;
-    u16                 roll;
-    u8                  count;
-    s32                 angle;
-    s32                 yaw;
-    s32                 diff;
-    s32                 limit;
+    Actor206100Work* sub = (Actor206100Work*)task->work;
+    Actor206100Work* work;
+    GfxCoord*        coord;
+    GfxCoord*        coord2;
+    SVECTOR*         ring;
+    u32              index;
+    SVECTOR          delta;
+    SVECTOR          vec;
+    u16              roll;
+    u8               count;
+    s32              angle;
+    s32              yaw;
+    s32              diff;
+    s32              limit;
 
     coord = task->extra.tmd->coords;
     if (sub->field_54F == 0) {
@@ -3025,10 +3017,10 @@ static void func_actor_206100_8014DEAC(Task* task)
             sub->field_550 = 0;
         }
     }
-    delta.vx       = (u16)sub->field_4F4[sub->field_548].field_0 - (u16)coord->coord.t[0];
-    delta.vy       = (u16)sub->field_4F4[sub->field_548].field_2 - (u16)coord->coord.t[1];
-    delta.vz       = (u16)sub->field_4F4[sub->field_548].field_4 - (u16)coord->coord.t[2];
-    sub->field_526 = (u16)sub->field_4F4[sub->field_548].field_2;
+    delta.vx       = sub->field_4F4[sub->field_548].vx - (u16)coord->coord.t[0];
+    delta.vy       = sub->field_4F4[sub->field_548].vy - (u16)coord->coord.t[1];
+    delta.vz       = sub->field_4F4[sub->field_548].vz - (u16)coord->coord.t[2];
+    sub->field_526 = sub->field_4F4[sub->field_548].vy;
     if ((s16)SquareRoot0(delta.vx * delta.vx + delta.vz * delta.vz) < 0x3E8) {
         sub->field_548 = (sub->field_548 + 1) & 7;
         count          = sub->field_54F + 1;
@@ -3042,9 +3034,9 @@ static void func_actor_206100_8014DEAC(Task* task)
         work                 = (Actor206100Work*)task->work;
         coord2               = task->extra.tmd->coords;
         coord2->composeStamp = GRAPHICS_COORD_DIRTY;
-        vec.vx               = (u16)ring[index].field_0 - (u16)coord2->coord.t[0];
+        vec.vx               = ring[index].vx - (u16)coord2->coord.t[0];
         vec.vy               = 0;
-        vec.vz               = (u16)ring[index].field_4 - (u16)coord2->coord.t[2];
+        vec.vz               = ring[index].vz - (u16)coord2->coord.t[2];
         VectorNormalSS(&vec, &vec);
         yaw   = ratan2(vec.vx, vec.vz);
         limit = 0x100;
@@ -3877,9 +3869,9 @@ static void func_actor_206100_8014FAE4(Task* task)
     next->animClip                = 3;
     next->animRequest             = 2;
     work->field_43E               = 0x400;
-    coord->coord.t[0]             = work->field_4F4[work->field_548].field_0;
-    coord->coord.t[1]             = work->field_4F4[work->field_548].field_2;
-    coord->coord.t[2]             = work->field_4F4[work->field_548].field_4;
+    coord->coord.t[0]             = work->field_4F4[work->field_548].vx;
+    coord->coord.t[1]             = work->field_4F4[work->field_548].vy;
+    coord->coord.t[2]             = work->field_4F4[work->field_548].vz;
     work->field_548               = (work->field_548 + 1) & 7;
     Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     work->field_51E = 0;

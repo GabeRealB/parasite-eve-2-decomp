@@ -14683,15 +14683,15 @@ operands flip. Both operands have to be register locals with the subscript
 inline:
 
 ```c
-Actor206100RingPos* ring;
-u32                 index;   /* u8 here costs an `andi 0xff` before the shift */
+SVECTOR* ring;
+u32      index;   /* u8 here costs an `andi 0xff` before the shift */
 
 ring  = sub->field_4F4;
 index = sub->field_548;      /* the index load schedules one slot late unless
                                 it is assigned before the other loads */
-vec.vx = (u16)ring[index].field_0 - (u16)coord2->coord.t[0];
+vec.vx = ring[index].vx - (u16)coord2->coord.t[0];
 vec.vy = 0;
-vec.vz = (u16)ring[index].field_4 - (u16)coord2->coord.t[2];
+vec.vz = ring[index].vz - (u16)coord2->coord.t[2];
 ```
 
 The temp's width matters as much as its existence: `u8 index` makes the shift
