@@ -16,7 +16,7 @@
 /// Pair-handler table used by `Gp_RunPairHandler` / `Gp_CollideLists`.
 /// Indexed by `GpPairRule.handler` (`Gp_PairNop` / `Gp_PairHandler1` /
 /// `Gp_PairHandler3`).
-extern GpPairFn Gp_PairHandlers[5];
+extern WorldCollisionPairHandler Gp_PairHandlers[5];
 
 /// Pair-rule table used by `Gp_RunPairHandler` / `Gp_CollideLists`, one rule
 /// per ordered pair of body kinds. Rows and columns are `(flags & 7) - 1`.

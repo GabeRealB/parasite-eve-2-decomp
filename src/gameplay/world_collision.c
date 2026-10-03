@@ -224,7 +224,7 @@ static inline WorldCollisionContact* _worldCollisionGetObjectContacts(WorldColli
     return recs;
 }
 
-GpPairFn Gp_PairHandlers[5] = {
+WorldCollisionPairHandler Gp_PairHandlers[5] = {
     Gp_PairNop,
     Gp_PairHandler1,
     Gp_PairNop,
