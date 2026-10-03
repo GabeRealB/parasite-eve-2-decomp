@@ -249,16 +249,21 @@ typedef struct _GpSndMaskRec {
 } GpSndMaskRec;
 STATIC_ASSERT_SIZEOF(GpSndMaskRec, 8);
 
-/// 8-byte RGB555-unpacked vector. `Gp_BlendRgb555` allocates three of
-/// these (0x18 bytes) from the scratch stack: src0, src1, then the GTE
-/// lerp result. Channels are 5-bit values shifted left 7.
-typedef struct _GpRgbScratch {
-    /* 0x00 */ u16 r;
-    /* 0x02 */ u16 g;
-    /* 0x04 */ u16 b;
-    /* 0x06 */ u16 pad;
-} GpRgbScratch;
-STATIC_ASSERT_SIZEOF(GpRgbScratch, 8);
+/// One unpacked RGB555 colour on the scratch stack, in GTE short-vector form.
+///
+/// A blend reserves three and releases them together: the colour weighted by
+/// the blend factor, the colour weighted by `ONE` minus that factor, then the
+/// interpolated result. Each channel holds its 5-bit component in bits 7..11,
+/// the scale `gte_gpf12` and `gte_gpl12` interpolate. `gte_ldsv` and
+/// `gte_stsv` transfer only those three channels. Semi-transparency is not
+/// stored; the packed result copies bit 15 from either source colour.
+typedef struct {
+    u16 r;   // Red, 5-bit component in bits 7..11
+    u16 g;   // Green, 5-bit component in bits 7..11
+    u16 b;   // Blue, 5-bit component in bits 7..11
+    u16 pad; // Unused. Present so the record is an 8-byte short-vector slot
+} _Rgb555Scratch;
+STATIC_ASSERT_SIZEOF(_Rgb555Scratch, 8);
 
 /// 0x28-byte scratch from the scratch stack used by `worldCollisionCalcContactViewOffset`.
 /// `vec` is the `arg1->pos - arg0` delta (normalized in place);
@@ -1767,48 +1772,53 @@ static void func_800B1EFC(Task* t)
 /// either source has it set.
 static void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
 {
-    u8*           head;
-    GpRgbScratch* c0;
-    GpRgbScratch* c1;
-    GpRgbScratch* out;
-    u16           color;
-    u16           packed;
+    u8*             head;
+    _Rgb555Scratch* firstColor;
+    _Rgb555Scratch* secondColor;
+    _Rgb555Scratch* blendedColor;
+    u16             color;
+    u16             packed;
 
-    head                               = SCRATCH_STACK_CURSOR(u8);
-    c0                                 = (GpRgbScratch*)(head - 0x18);
-    SCRATCH_STACK_CURSOR(GpRgbScratch) = c0;
+    // Three slots below the saved cursor: first source, second source, result.
+    head                                 = SCRATCH_STACK_CURSOR(u8);
+    firstColor                           = (_Rgb555Scratch*)(head - 3 * sizeof(_Rgb555Scratch));
+    SCRATCH_STACK_CURSOR(_Rgb555Scratch) = firstColor;
 
-    color = *arg0;
-    c0->b = color;
-    c0->g = color;
-    c0->r = (color & 0x1F) << 7;
-    c0->g = (c0->g << 2) & 0xF80;
-    c0->b = (c0->b >> 3) & 0xF80;
+    // Place each 5-bit channel in bits 7..11.
+    color         = *arg0;
+    firstColor->b = color;
+    firstColor->g = color;
+    firstColor->r = (color & 0x1F) << 7;
+    firstColor->g = (firstColor->g << 2) & 0xF80;
+    firstColor->b = (firstColor->b >> 3) & 0xF80;
 
-    c1    = (GpRgbScratch*)(head - 0x10);
-    color = *arg1;
-    c1->b = color;
-    c1->g = color;
-    c1->r = (color & 0x1F) << 7;
-    c1->g = (c1->g << 2) & 0xF80;
-    c1->b = (c1->b >> 3) & 0xF80;
+    secondColor    = (_Rgb555Scratch*)(head - 2 * sizeof(_Rgb555Scratch));
+    color          = *arg1;
+    secondColor->b = color;
+    secondColor->g = color;
+    secondColor->r = (color & 0x1F) << 7;
+    secondColor->g = (secondColor->g << 2) & 0xF80;
+    secondColor->b = (secondColor->b >> 3) & 0xF80;
 
+    // Weight the first colour by the factor, then add the second by its complement.
     gte_lddp(arg2);
-    gte_ldsv(c0);
+    gte_ldsv(firstColor);
     gte_gpf12();
-    gte_lddp(0x1000 - arg2);
-    gte_ldsv(c1);
+    gte_lddp(ONE - arg2);
+    gte_ldsv(secondColor);
     gte_gpl12();
-    out = (GpRgbScratch*)(head - 8);
-    gte_stsv(out);
+    blendedColor = (_Rgb555Scratch*)(head - sizeof(_Rgb555Scratch));
+    gte_stsv(blendedColor);
 
-    packed = ((out->b >> 2) & 0x3E0) | ((out->g >> 7) & 0x1F);
-    packed = (packed << 5) | ((out->r >> 7) & 0x1F);
+    // Stage blue in bits 5..9, then shift green and blue into place and insert red.
+    packed = ((blendedColor->b >> 2) & 0x3E0) | ((blendedColor->g >> 7) & 0x1F);
+    packed = (packed << 5) | ((blendedColor->r >> 7) & 0x1F);
     *arg3  = packed;
+    // Bit 15 is semi-transparency. Either source sets it on the packed result.
     if ((s16)*arg0 < 0 || (s16)*arg1 < 0) {
         *arg3 = packed | 0x8000;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BYTES(3 * sizeof(_Rgb555Scratch));
 }
 
 /// Full-screen fade quad. Ramps a 0x140 by 0xF0 semi-transparent `TILE` from
