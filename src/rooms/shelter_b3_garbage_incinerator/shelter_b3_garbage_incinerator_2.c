@@ -87,19 +87,30 @@ typedef struct {
 } _DescentWork;
 
 extern ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2];
-// Message-table callbacks use the argument views required by this TU.
-typedef struct {
-    s32 id;
-    union {
-        void (*call0)(Task*);
-        void (*call1)(Task*, s32, ActorTransform*);
-        void (*call2)(Task*, s32, s32);
-    } handler;
-} ShelterB3GarbageIncinerator2ExtendedMessageEntry;
-STATIC_ASSERT_SIZEOF(ShelterB3GarbageIncinerator2ExtendedMessageEntry, 8);
 
-extern ShelterB3GarbageIncinerator2ExtendedMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3];
-extern ActorTransform                                   D_shelter_b3_garbage_incinerator_80185B88;
+/// One row of the incinerator lift task's message table.
+///
+/// A row is a receiver-specific message id and the callback that handles it.
+/// The lift installs its table in `Task::msgTable` when it sets up. The table
+/// has no `TASK_MESSAGE_TABLE_END` row, so the lift may be sent only the three
+/// ids it holds: it places and shows its own model with the first two, and the
+/// room's task forwards the third when an actor reports event 0. No callback
+/// here produces a result, so a sender must not read one; that is what keeps
+/// the row apart from `TaskMessageEntry`. The handler views are the callback
+/// signatures stored here; dispatch still passes each argument in a word
+/// register.
+typedef struct {
+    s32 messageId;                                                           // Receiver-specific id; the table has no end marker
+    union {
+        void (*setDrawMode)(Task* task, s32 messageId, s32 mode);            // ACTOR_MESSAGE_SET_MODEL_DRAW
+        void (*place)(Task* task, s32 messageId, ActorTransform* placement); // ACTOR_MESSAGE_PLACE
+        void (*actorEvent)(Task* task);                                      // ROOM_MESSAGE_ACTOR_EVENT; the event argument is not read
+    } handler;                                                               // Callback for messageId
+} _ShelterB3GarbageIncineratorLiftMessageEntry;
+STATIC_ASSERT_SIZEOF(_ShelterB3GarbageIncineratorLiftMessageEntry, 8);
+
+extern _ShelterB3GarbageIncineratorLiftMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3];
+extern ActorTransform                               D_shelter_b3_garbage_incinerator_80185B88;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
@@ -221,10 +232,10 @@ static TmdSource _gShelterB3GarbageIncineratorModel081E4 = {
     _gShelterB3GarbageIncineratorModel081E4Stream,
 };
 
-ShelterB3GarbageIncinerator2ExtendedMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .call2 = actorMsgSetDrawMode } },
-    { ACTOR_MESSAGE_PLACE, { .call1 = actorMsgPlaceInView } },
-    { ROOM_MESSAGE_ACTOR_EVENT, { .call0 = func_shelter_b3_garbage_incinerator_8017E7A4 } },
+_ShelterB3GarbageIncineratorLiftMessageEntry D_shelter_b3_garbage_incinerator_80185B40[3] = {
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, { .setDrawMode = actorMsgSetDrawMode } },
+    { ACTOR_MESSAGE_PLACE, { .place = actorMsgPlaceInView } },
+    { ROOM_MESSAGE_ACTOR_EVENT, { .actorEvent = func_shelter_b3_garbage_incinerator_8017E7A4 } },
 };
 
 ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2] = {
