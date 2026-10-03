@@ -28,8 +28,32 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "rooms/room.h"
 #include "rooms/room_common.h"
+
+/// Scratch block for rebuilding a planar reflection's coordinate frame.
+///
+/// Reserved on the scratch stack when the view changes, and released before
+/// the player's light matrices are copied. A floor mirror uses only
+/// `viewYRow`. Any other mirror reflects the view through a plane.
+/// `normal` and `planePoint` describe that plane, `refAxis` is the world axis
+/// least aligned with the normal, `basis` is the orthonormal frame built from
+/// the two, and `reflect` is the reflection matrix copied into the mirror's
+/// coordinate frame. That frame's translation is the view translation plus
+/// the shift that makes `reflect` fix `planePoint`.
+typedef struct {
+    SVECTOR viewYRow;      // View matrix Y row, copied and then negated in place (4.12)
+    SVECTOR refAxis;       // Unit world axis least aligned with `normal` (4.12; 0x1000 = 1)
+    byte    unknown_10[8]; // No recovered access; role unproven
+    MATRIX  basis;         // Orthonormal frame whose third column is the plane normal
+    MATRIX  reflect;       // Reflection through that plane; only the rotation is used
+    SVECTOR normal;        // Plane normal, normalized in place to 4.12
+    SVECTOR planePoint;    // Point on the plane, in view-translation units; then rotated by `reflect`
+    s16     leastAbs;      // Smallest absolute component of `normal` so far (4.12)
+    s16     leastAxis;     // Which component `leastAbs` came from (0 X, 1 Y, 2 Z)
+    s16     axisAbs;       // Absolute value of the component being compared (4.12)
+    byte    unknown_6E[2]; // No recovered access; role unproven
+} _PlanarReflectionFrameScratch;
+STATIC_ASSERT_SIZEOF(_PlanarReflectionFrameScratch, 0x70);
 
 static void Reflection_InitPlayer(Task* task);
 static void Reflection_UpdatePlayer(Task* task);
@@ -177,7 +201,7 @@ static void Reflection_UpdatePlayer(Task* task)
     GameActor*                      actor;
     Task*                           child;
     Task*                           spawned;
-    RoomMirrorPlaneScratch*         plane;
+    _PlanarReflectionFrameScratch*  frame;
     _PlanarReflectionExtentScratch* extent;
     GfxCoord*                       parts;
     GfxCoord*                       refPart;
@@ -235,21 +259,21 @@ static void Reflection_UpdatePlayer(Task* task)
         work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
         work->clipTop            = -0x78;
         work->clipBottom         = 0x78;
-        plane                    = (RoomMirrorPlaneScratch*)SCRATCH_STACK_RESERVE_BYTES(0x70);
+        frame                    = SCRATCH_STACK_RESERVE_BLOCK(_PlanarReflectionFrameScratch);
         work->coord.parent       = viewParent;
         if (task->spawnArg1.value == 0) {
-            work->copyPending = 1;
-            work->coord.coord = gGfxViewCoord.coord;
-            plane->viewRow.vx = work->coord.coord.m[1][0];
-            plane->viewRow.vy = work->coord.coord.m[1][1];
-            plane->viewRow.vz = work->coord.coord.m[1][2];
+            work->copyPending  = 1;
+            work->coord.coord  = gGfxViewCoord.coord;
+            frame->viewYRow.vx = work->coord.coord.m[1][0];
+            frame->viewYRow.vy = work->coord.coord.m[1][1];
+            frame->viewYRow.vz = work->coord.coord.m[1][2];
             gte_lddp(-0x1000);
-            gte_ldsv(&plane->viewRow);
+            gte_ldsv(&frame->viewYRow);
             gte_gpf12();
-            gte_stsv(&plane->viewRow);
-            work->coord.coord.m[1][0] = plane->viewRow.vx;
-            work->coord.coord.m[1][1] = plane->viewRow.vy;
-            work->coord.coord.m[1][2] = plane->viewRow.vz;
+            gte_stsv(&frame->viewYRow);
+            work->coord.coord.m[1][0] = frame->viewYRow.vx;
+            work->coord.coord.m[1][1] = frame->viewYRow.vy;
+            work->coord.coord.m[1][2] = frame->viewYRow.vz;
             if (stage == 5) {
                 if (area == 7) {
                     if (view >= 6 && view < 12 && gGameSession->location.loc.room == 2) {
@@ -285,33 +309,33 @@ static void Reflection_UpdatePlayer(Task* task)
                     case 0x11:
                         switch (view) {
                             case 2:
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = -0x1518;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
+                                frame->normal.vx = -0x1000;
+                                frame->normal.vy = 0;
+                                frame->normal.vz = 0;
+                                VectorNormalSS(&frame->normal, &frame->normal);
+                                frame->planePoint.vx = -0x1518;
+                                frame->planePoint.vy = 0;
+                                frame->planePoint.vz = 0;
                                 break;
                             case 3:
-                                plane->normal.vx = 0x64;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = -0x384;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = -0x640;
+                                frame->normal.vx = 0x64;
+                                frame->normal.vy = 0;
+                                frame->normal.vz = -0x384;
+                                VectorNormalSS(&frame->normal, &frame->normal);
+                                frame->planePoint.vx = 0;
+                                frame->planePoint.vy = 0;
+                                frame->planePoint.vz = -0x640;
                                 break;
                             case 4:
                                 work->clipLeft   = -0x14;
                                 work->clipRight  = 0x14;
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0x1644;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
+                                frame->normal.vx = -0x1000;
+                                frame->normal.vy = 0;
+                                frame->normal.vz = 0;
+                                VectorNormalSS(&frame->normal, &frame->normal);
+                                frame->planePoint.vx = 0x1644;
+                                frame->planePoint.vy = 0;
+                                frame->planePoint.vz = 0;
                                 break;
                             default:
                                 model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -323,24 +347,24 @@ static void Reflection_UpdatePlayer(Task* task)
                             case 6:
                                 work->clipRight  = 0x64;
                                 work->clipLeft   = 0;
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0x1AF4;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
-                                model->otOffset  = 0x1F;
+                                frame->normal.vx = -0x1000;
+                                frame->normal.vy = 0;
+                                frame->normal.vz = 0;
+                                VectorNormalSS(&frame->normal, &frame->normal);
+                                frame->planePoint.vx = 0x1AF4;
+                                frame->planePoint.vy = 0;
+                                frame->planePoint.vz = 0;
+                                model->otOffset      = 0x1F;
                                 break;
                             case 7:
                             case 8:
-                                plane->normal.vx = 0;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0x1000;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0x14B4;
+                                frame->normal.vx = 0;
+                                frame->normal.vy = 0;
+                                frame->normal.vz = 0x1000;
+                                VectorNormalSS(&frame->normal, &frame->normal);
+                                frame->planePoint.vx = 0;
+                                frame->planePoint.vy = 0;
+                                frame->planePoint.vz = 0x14B4;
                                 break;
                             default:
                                 model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -351,31 +375,31 @@ static void Reflection_UpdatePlayer(Task* task)
                         switch (view) {
                             case 2:
                             case 5:
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0x170C;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
+                                frame->normal.vx = -0x1000;
+                                frame->normal.vy = 0;
+                                frame->normal.vz = 0;
+                                VectorNormalSS(&frame->normal, &frame->normal);
+                                frame->planePoint.vx = 0x170C;
+                                frame->planePoint.vy = 0;
+                                frame->planePoint.vz = 0;
                                 break;
                             case 4:
-                                plane->normal.vx = -0x1000;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = 0;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = -0x1644;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = 0;
+                                frame->normal.vx = -0x1000;
+                                frame->normal.vy = 0;
+                                frame->normal.vz = 0;
+                                VectorNormalSS(&frame->normal, &frame->normal);
+                                frame->planePoint.vx = -0x1644;
+                                frame->planePoint.vy = 0;
+                                frame->planePoint.vz = 0;
                                 break;
                             case 3:
-                                plane->normal.vx = -0x64;
-                                plane->normal.vy = 0;
-                                plane->normal.vz = -0x384;
-                                VectorNormalSS(&plane->normal, &plane->normal);
-                                plane->offset.vx = 0;
-                                plane->offset.vy = 0;
-                                plane->offset.vz = -0x640;
+                                frame->normal.vx = -0x64;
+                                frame->normal.vy = 0;
+                                frame->normal.vz = -0x384;
+                                VectorNormalSS(&frame->normal, &frame->normal);
+                                frame->planePoint.vx = 0;
+                                frame->planePoint.vy = 0;
+                                frame->planePoint.vz = -0x640;
                                 break;
                             default:
                                 model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -387,69 +411,71 @@ static void Reflection_UpdatePlayer(Task* task)
                         break;
                 }
             } else if (view == 8 || view == 1) {
-                plane->normal.vx = -0x1000;
-                plane->normal.vy = 0;
-                plane->normal.vz = 0;
-                VectorNormalSS(&plane->normal, &plane->normal);
-                plane->offset.vx = 0xA38;
-                plane->offset.vy = 0;
-                plane->offset.vz = 0;
+                frame->normal.vx = -0x1000;
+                frame->normal.vy = 0;
+                frame->normal.vz = 0;
+                VectorNormalSS(&frame->normal, &frame->normal);
+                frame->planePoint.vx = 0xA38;
+                frame->planePoint.vy = 0;
+                frame->planePoint.vz = 0;
             } else {
                 model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-                plane->leastAbs = plane->normal.vx;
-                if (plane->leastAbs < 0) {
-                    plane->leastAbs = -plane->leastAbs;
+                // The axis least aligned with the normal completes the frame. Translation is the
+                // view translation plus the shift that makes the reflection fix planePoint.
+                frame->leastAbs = frame->normal.vx;
+                if (frame->leastAbs < 0) {
+                    frame->leastAbs = -frame->leastAbs;
                 }
-                plane->leastAxis = 0;
-                plane->axisAbs   = plane->normal.vy;
-                if (plane->axisAbs < 0) {
-                    plane->axisAbs = -plane->axisAbs;
+                frame->leastAxis = 0;
+                frame->axisAbs   = frame->normal.vy;
+                if (frame->axisAbs < 0) {
+                    frame->axisAbs = -frame->axisAbs;
                 }
-                if (plane->leastAbs > plane->axisAbs) {
-                    plane->leastAbs  = plane->axisAbs;
-                    plane->leastAxis = 1;
+                if (frame->leastAbs > frame->axisAbs) {
+                    frame->leastAbs  = frame->axisAbs;
+                    frame->leastAxis = 1;
                 }
-                plane->axisAbs = plane->normal.vz;
-                if (plane->axisAbs < 0) {
-                    plane->axisAbs = -plane->axisAbs;
+                frame->axisAbs = frame->normal.vz;
+                if (frame->axisAbs < 0) {
+                    frame->axisAbs = -frame->axisAbs;
                 }
-                if (plane->leastAbs > plane->axisAbs) {
-                    plane->leastAbs  = plane->axisAbs;
-                    plane->leastAxis = 2;
+                if (frame->leastAbs > frame->axisAbs) {
+                    frame->leastAbs  = frame->axisAbs;
+                    frame->leastAxis = 2;
                 }
-                plane->refAxis.vx = 0;
-                if (plane->leastAxis == 0) {
-                    plane->refAxis.vx = 0x1000;
+                frame->refAxis.vx = 0;
+                if (frame->leastAxis == 0) {
+                    frame->refAxis.vx = 0x1000;
                 }
-                plane->refAxis.vy = 0;
-                if (plane->leastAxis == 1) {
-                    plane->refAxis.vy = 0x1000;
+                frame->refAxis.vy = 0;
+                if (frame->leastAxis == 1) {
+                    frame->refAxis.vy = 0x1000;
                 }
-                plane->refAxis.vz = 0;
-                if (plane->leastAxis == 2) {
-                    plane->refAxis.vz = 0x1000;
+                frame->refAxis.vz = 0;
+                if (frame->leastAxis == 2) {
+                    frame->refAxis.vz = 0x1000;
                 }
-                Gfx_OrthonormalBasis(&plane->basis, &plane->normal, &plane->refAxis);
-                gte_TransposeMatrix(&plane->basis, &plane->reflect);
-                plane->reflect.m[2][0] = -plane->reflect.m[2][0];
-                plane->reflect.m[2][1] = -plane->reflect.m[2][1];
-                plane->reflect.m[2][2] = -plane->reflect.m[2][2];
-                gte_MulMatrix0(&plane->basis, &plane->reflect, &plane->reflect);
-                work->coord.coord      = plane->reflect;
-                work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + plane->offset.vx;
-                work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + plane->offset.vy;
-                work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + plane->offset.vz;
-                gfxRotateSv(&plane->reflect, &plane->offset);
-                work->coord.coord.t[0] -= plane->offset.vx;
-                work->coord.coord.t[1] -= plane->offset.vy;
-                work->coord.coord.t[2] -= plane->offset.vz;
+                Gfx_OrthonormalBasis(&frame->basis, &frame->normal, &frame->refAxis);
+                gte_TransposeMatrix(&frame->basis, &frame->reflect);
+                frame->reflect.m[2][0] = -frame->reflect.m[2][0];
+                frame->reflect.m[2][1] = -frame->reflect.m[2][1];
+                frame->reflect.m[2][2] = -frame->reflect.m[2][2];
+                gte_MulMatrix0(&frame->basis, &frame->reflect, &frame->reflect);
+                work->coord.coord      = frame->reflect;
+                work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + frame->planePoint.vx;
+                work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + frame->planePoint.vy;
+                work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + frame->planePoint.vz;
+                gfxRotateSv(&frame->reflect, &frame->planePoint);
+                work->coord.coord.t[0] -= frame->planePoint.vx;
+                work->coord.coord.t[1] -= frame->planePoint.vy;
+                work->coord.coord.t[2] -= frame->planePoint.vz;
                 work->firstBlendMode    = GPU_BLEND_ADD;
             }
         }
         work->objectFlags = extra->flags;
-        SCRATCH_STACK_RELEASE_BYTES(0x70);
+        SCRATCH_STACK_RELEASE_BLOCK(_PlanarReflectionFrameScratch);
     }
 
     copyPending = work->copyPending;

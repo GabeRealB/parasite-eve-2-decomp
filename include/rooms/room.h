@@ -107,30 +107,6 @@ typedef struct {
 } RoomLatchedEventStorage;
 STATIC_ASSERT_SIZEOF(RoomLatchedEventStorage, 0x10);
 
-/// The scratchpad block a mirror task takes while it rebuilds the reflected
-/// coordinate frame in its `RoomMirrorWork`. A floor mirror only needs
-/// `viewRow`, the view matrix's second row, which it negates through the GTE.
-/// The other mirrors reflect through a plane: `normal` is the plane's unit
-/// normal, `refAxis` the coordinate axis least aligned with it (picked through
-/// `leastAbs`, `leastAxis` and `axisAbs`), `basis` the orthonormal frame built
-/// from the two and `reflect` the reflection matrix derived from it. `offset`
-/// is the plane's position relative to the view, rotated in place into the
-/// reflected frame.
-typedef struct RoomMirrorPlaneScratch {
-    SVECTOR viewRow;
-    SVECTOR refAxis;
-    byte    unknown_10[8];
-    MATRIX  basis;
-    MATRIX  reflect;
-    SVECTOR normal;
-    SVECTOR offset;
-    s16     leastAbs;
-    s16     leastAxis;
-    s16     axisAbs;
-    byte    unknown_6E[2];
-} RoomMirrorPlaneScratch;
-STATIC_ASSERT_SIZEOF(RoomMirrorPlaneScratch, 0x70);
-
 /// World-coordinate working values for constructing a water surface's quad strips.
 ///
 /// All values are signed world units. A drawer reserves one block on the
