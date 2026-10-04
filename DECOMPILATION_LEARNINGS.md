@@ -128661,7 +128661,7 @@ whole diff being that `work` and `ret` had swapped `$s1`/`$s2`:
 + sw    s2,0x18(sp)   lw s1,0x1c(a0) ... sw a2,0x4bc(s1)   move v0,s2
 ```
 
-Both cross the mode-1 `Tmd_AllocBuffers` call (the trailing `field_4C0` mirror
+Both cross the mode-1 `Tmd_AllocBuffers` call (the trailing `savedModelFlags` mirror
 is reachable from it), so both need a `$s` register, and `.lreg` shows them
 *exactly* tied: `Register 85 used 3 times across 42 insns; crosses 1 call;
 pointer.` against `Register 86 used 3 times across 42 insns; crosses 1 call.`
@@ -128675,7 +128675,7 @@ the two assignments (`work = ...; ret = 0;` → `ret = 0; work = ...;`) produced
 *byte-identical* object with the same numbers, because `expand_decl`
 (`stmt.c:3611`) runs `DECL_RTL (decl) = gen_reg_rtx (...)` for every
 non-addressable automatic variable as its declaration is reached. Reordering
-the *declarations* - `TmdObject* obj; s32 ret; Actor443500Work* work;` - numbers
+the *declarations* - `TmdObject* obj; s32 ret; _Actor443500PierceCarradineWork* work;` - numbers
 `ret` 85 and `work` 86 and lands 100.000%, with the statement order left exactly
 as the sibling writes it (`obj`, `work`, `ret = 0`).
 

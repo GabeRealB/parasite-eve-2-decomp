@@ -41,26 +41,30 @@
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
 
-/// Work block `func_actor_443500_80132078` `memCalloc`s (0x4C4) and parks in
-/// the task's `Task::work` slot. The spawn
-/// handler seeds the two `sb` bytes at 0x475/0x476 and the word at 0x4BC to
-/// -1 and copies the parent TmdObject's flags halfword to 0x4C0; the
-/// light/colour matrix pair at 0x478/0x498 is the one
-/// `func_actor_443500_801327C4` republishes onto the model.
+/// Tick of each pass of the default clip on which the clip's sound is started.
+enum { ACTOR_443500_PIERCE_CARRADINE_LOOP_SOUND_TICK = 15 };
+
+/// Work block of Pierce Carradine in the shelter's room 47.
 ///
-/// The size is the allocation; the fields below are the ones this overlay's
-/// decompiled bodies touch.
-typedef struct Actor443500Work {
-    ActorAnimRig20   rig;
-    ActorModelState  model;
-    /* 0x4B8 */ byte pad_4B8[0x2];
-    /// Cleared by `func_actor_443500_801327E0` after the slot passes, beside
-    /// the `model.ticking` latch it raises.
-    /* 0x4BA */ s16 field_4BA;
-    /* 0x4BC */ s32 field_4BC;
-    /* 0x4C0 */ s32 field_4C0;
-} Actor443500Work;
-STATIC_ASSERT_SIZEOF(Actor443500Work, 0x4C4);
+/// The actor's task allocates it zeroed in its spawn state and keeps it at
+/// `Task::work` for the task's life. It opens with the rig and the model state
+/// a twenty-part actor that only plays clips keeps (`ActorMotionPlayWork`
+/// names the pair); the package's own play handler runs on them, and the model
+/// object borrows `model.light` and `model.color` for as long as the block
+/// lives.
+///
+/// What follows is the package's own: the timing of the default clip's sound,
+/// the delayed free of the model's buffers once the model has been hidden, and
+/// the model's flags as kept across the camera views that hide it.
+typedef struct {
+    ActorAnimRig20  rig;              // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    ActorModelState model;            // Clip and bank the rig plays, and the matrices the model is lit with
+    byte            unknown_4B8[0x2]; // Never accessed; role unproven
+    s16             loopTicks;        // Ticks the default clip has played since a play request or the clip's loop jump last zeroed it; the tick that takes it to `ACTOR_443500_PIERCE_CARRADINE_LOOP_SOUND_TICK` starts the clip's sound
+    s32             freeCountdown;    // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    u32             savedModelFlags;  // The model's `TmdObject::flags` as last recorded: at spawn, after each draw-mode message, and, while no event holds the scene, on each tick in camera views 0 to 3 before that tick hides the model; written back to the model on such a tick in views 4 and 5
+} _Actor443500PierceCarradineWork;
+STATIC_ASSERT_SIZEOF(_Actor443500PierceCarradineWork, 0x4C4);
 
 static void func_actor_443500_80132078(Task* task);
 static void func_actor_443500_801321F0(Task* task);
@@ -2485,28 +2489,28 @@ void func_actor_443500_8013206C(s8 arg0)
 /// table, the exit callback and the tick handler.
 static void func_actor_443500_80132078(Task* task)
 {
-    Actor443500Work* work;
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    u8               areaByte0;
-    AreaVariant*     layout;
-    AreaPlacement*   entry;
-    TmdObject*       model;
-    Task*            spawned;
-    s32              idx;
-    u32              raw;
+    _Actor443500PierceCarradineWork* work;
+    GameLocationKey                  key;
+    GameLocationKey*                 sessionKey;
+    u8                               areaByte0;
+    AreaVariant*                     layout;
+    AreaPlacement*                   entry;
+    TmdObject*                       model;
+    Task*                            spawned;
+    s32                              idx;
+    u32                              raw;
 
-    work = memCalloc(0x4C4, 0);
+    work = memCalloc(sizeof(_Actor443500PierceCarradineWork), 0);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
     }
-    task->work         = work;
-    work->model.animId = ACTOR_MODEL_STATE_NONE;
-    work->model.bank   = ACTOR_MODEL_STATE_NONE;
-    work->field_4BC    = -1;
-    work->field_4C0    = task->extra.tmd->flags;
-    spawned            = Task_SpawnFromTable(D_actor_443500_8015873C, 1, 4, task);
+    task->work            = work;
+    work->model.animId    = ACTOR_MODEL_STATE_NONE;
+    work->model.bank      = ACTOR_MODEL_STATE_NONE;
+    work->freeCountdown   = -1;
+    work->savedModelFlags = task->extra.tmd->flags;
+    spawned               = Task_SpawnFromTable(D_actor_443500_8015873C, 1, 4, task);
     if (spawned != NULL) {
         sessionKey = &gGameSession->location.loc;
         raw        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
@@ -2538,41 +2542,41 @@ static void func_actor_443500_80132078(Task* task)
 }
 
 /// Per-frame tick: while the view is live and idle, views 0..3 hide the model
-/// (saving `TmdObject::flags` into `field_4C0`) and views 4..5 restore that
+/// (saving `TmdObject::flags` into `savedModelFlags`) and views 4..5 restore that
 /// saved word, showing the model through message 0x7D5 when flag 0x83 is set.
 /// Ticks animation slots 1..0x13 once `model.ticking` is latched, restarting 0x7D3
 /// when slot 1 reports the clip ended. The `model.animId == 0x1C` path is the
-/// default clip's sound: `field_4BA` counts to 0xF for a Type6 (views 4/5) or
+/// default clip's sound: `loopTicks` counts to 0xF for a Type6 (views 4/5) or
 /// Type7 (view 3) cue, TypeA otherwise while the view is ready, and resets when
 /// slot 1 reports `ANIMATION_SLOT_FOLLOWED_JUMP`. A visible model gets a ground
-/// shadow and a rebuilt child-part matrix; `field_4BC` then counts down to free
+/// shadow and a rebuilt child-part matrix; `freeCountdown` then counts down to free
 /// the buffers.
 static void func_actor_443500_801321F0(Task* task)
 {
-    Actor443500Work* work;
-    TmdObject*       extra;
-    VECTOR3          pos;
-    s32              i;
-    u8               view;
+    _Actor443500PierceCarradineWork* work;
+    TmdObject*                       extra;
+    VECTOR3                          pos;
+    s32                              i;
+    u8                               view;
 
     extra = task->extra.tmd;
-    work  = (Actor443500Work*)task->work;
+    work  = task->work;
     if (gGameSession->viewReady != 0 && gGameSession->eventState == 0 &&
         gGameSession->cutsceneHold == 0) {
         view = gGameSession->location.loc.view;
         if (view < 4) {
-            work->field_4C0 = extra->flags;
-            extra->flags    = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->savedModelFlags = extra->flags;
+            extra->flags          = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else if (view < 6) {
             if (GameFlag_GetNibble(GAME_FLAG_083) > 0) {
                 func_actor_443500_80132A68(0);
                 func_actor_443500_8013297C(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }
-            extra->flags = work->field_4C0;
+            extra->flags = work->savedModelFlags;
         }
     }
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
         if (gGameSession->eventState == 0 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
@@ -2580,8 +2584,8 @@ static void func_actor_443500_801321F0(Task* task)
         }
     }
     if (work->model.animId == 0x1C) {
-        work->field_4BA++;
-        if (work->field_4BA == 0xF) {
+        work->loopTicks++;
+        if (work->loopTicks == ACTOR_443500_PIERCE_CARRADINE_LOOP_SOUND_TICK) {
             switch (gGameSession->location.loc.view) {
                 case 5:
                     SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 9, 0);
@@ -2607,7 +2611,7 @@ static void func_actor_443500_801321F0(Task* task)
             }
         }
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
-            work->field_4BA = 0;
+            work->loopTicks = 0;
         }
     }
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
@@ -2619,11 +2623,11 @@ static void func_actor_443500_801321F0(Task* task)
             func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
         }
     }
-    if (work->field_4BC >= 0) {
-        if (work->field_4BC == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(extra);
         }
-        work->field_4BC--;
+        work->freeCountdown--;
     }
 }
 
@@ -2665,11 +2669,11 @@ static void func_actor_443500_801327A4(Task* arg0)
 /// own `model.light` / `model.color` matrices, so the actor draws with its own lighting.
 static void func_actor_443500_801327C4(Task* task)
 {
-    TmdObject*       ext;
-    Actor443500Work* work;
+    TmdObject*                       ext;
+    _Actor443500PierceCarradineWork* work;
 
     ext           = task->extra.tmd;
-    work          = (Actor443500Work*)task->work;
+    work          = task->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -2681,11 +2685,11 @@ static void func_actor_443500_801327C4(Task* task)
 /// otherwise resets the slots before ticking them.
 s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3)
 {
-    Actor443500Work* work;
-    TmdObject*       ext;
-    s32              i;
+    _Actor443500PierceCarradineWork* work;
+    TmdObject*                       ext;
+    s32                              i;
 
-    work = (Actor443500Work*)task->work;
+    work = task->work;
     ext  = task->extra.tmd;
     if (params->source.index != work->model.bank) {
         work->model.bank = params->source.index;
@@ -2694,19 +2698,19 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* param
     }
     work->model.animId = params->animationId;
     if (params->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, params->blendFrames);
         }
     } else {
-        for (i = 1; i < 0x14; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
-    for (i = 1; i < 0x14; i++) {
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationTickSlot(&work->rig.anim, i);
     }
     work->model.ticking = 1;
-    work->field_4BA     = 0;
+    work->loopTicks     = 0;
     return 0;
 }
 
@@ -2719,22 +2723,22 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* param
 ///
 ///   mode 0  hide, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 1  show, `Tmd_AllocBuffers`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 2  hide, latch `mode` in the work block's `field_4BC`, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 2  hide, latch `mode` in the work block's `freeCountdown`, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 3  show, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///
 /// Any other mode returns 1; the four known ones return 0. Either way the
-/// resulting flags are mirrored onto `Actor443500Work::field_4C0`, the slot
-/// the spawn handler seeds from the model's own flags. `field_4BC` is the word
+/// resulting flags are mirrored onto the work block's `savedModelFlags`, the slot
+/// the spawn handler seeds from the model's own flags. `freeCountdown` is the word
 /// the spawn handler seeds to -1 and the tick counts down to free the buffers.
 /// `anim` and `arg3` are unused -- the dispatch passes four arguments.
 s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3)
 {
-    TmdObject*       obj;
-    s32              ret;
-    Actor443500Work* work;
+    TmdObject*                       obj;
+    s32                              ret;
+    _Actor443500PierceCarradineWork* work;
 
     obj  = task->extra.tmd;
-    work = (Actor443500Work*)task->work;
+    work = task->work;
     ret  = 0;
     switch (mode) {
         case 0:
@@ -2747,9 +2751,9 @@ s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->field_4BC = mode;
-            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = mode;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2759,7 +2763,7 @@ s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3)
             ret = 1;
             break;
     }
-    work->field_4C0 = obj->flags;
+    work->savedModelFlags = obj->flags;
     return ret;
 }
 
