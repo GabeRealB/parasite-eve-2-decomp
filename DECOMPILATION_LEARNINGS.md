@@ -125083,15 +125083,15 @@ and both `target` loads (set once, live at block end). Priorities tie, so the
 uid decides, and the uid is set by *where the statement sits in the source*.
 
 **Fix.** Move the one statement whose producers make it ready last - the
-`work->field_4FE = mode;` store, whose only predecessor is the `task->work`
+`work->walkMode = mode;` store, whose only predecessor is the `task->work`
 load - to *after* the two difference computations:
 
 ```c
     coord = ((TmdObject*)task->extra)->coords;
-    work  = (Actor450800Work*)task->work;
+    work  = task->work;
     dx    = target->vx - coord->coord.t[0];
     dz    = target->vz - coord->coord.t[2];
-    work->field_4FE = mode;          /* was before dx/dz: 93.77% */
+    work->walkMode = mode;           /* was before dx/dz: 93.77% */
     angle = ratan2(dx, dz);
 ```
 

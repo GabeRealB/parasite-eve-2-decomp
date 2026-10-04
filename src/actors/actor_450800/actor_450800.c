@@ -66,31 +66,49 @@ STATIC_ASSERT_SIZEOF(Actor450800AnimCopy94BC, 144);
 
 extern Actor450800AnimCopy94BC D_actor_450800_801394BC;
 
-/// Work block of the overlay's own actor, allocated zeroed by its spawn
-/// routine and kept at `Task::work`; the overlay's enemy uses
-/// `Actor150400Work` instead, and the two dispatchers keep the blocks apart.
-/// `light` and `color` are the matrices the actor's model is lit with, `rig`
-/// and `st` its animation rig and state, and `turnFrames` the frames of
-/// turning left while animation 3 plays. `field_4F0` .. `field_4F8` are the
-/// helper tasks the spawn routine starts and the exit callback kills.
-/// `animArg` is the argument the blended reseed passes on, and `field_4FE`
-/// the approach mode the last approach command selected.
-typedef struct Actor450800Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig20  rig;
-    ActorEnemyState st;
-    s16             turnFrames;
+/// How Kyle Madigan covers a walk, kept in
+/// `_Actor450800KyleMadiganWork::walkMode`.
+///
+/// The walk-to message's last argument selects it. Every mode ends at the
+/// target: the distance is divided by the mode's stride to give the frames the
+/// walk lasts. A value outside these three turns Kyle toward the target and
+/// counts the slow stride, but no frame then moves him.
+enum {
+    ACTOR_450800_WALK_FAST     = 0, // Faces the target and advances 60 units a frame
+    ACTOR_450800_WALK_BACKWARD = 1, // Faces away from the target and backs up to it, 15 units a frame
+    ACTOR_450800_WALK_SLOW     = 2, // Faces the target and advances 25 units a frame
+};
+
+/// Work block of the package's Kyle Madigan actor, allocated zeroed at its
+/// full size by the actor's spawn state and kept at `Task::work`.
+///
+/// Both bodies the package's task table runs through the actor's states use
+/// it: the Kyle Madigan body and the second twenty-part body. The pawn golem
+/// the package also carries keeps an `Actor150400Work` instead.
+///
+/// The block opens like the other scripted walkers' - matrices, twenty-slot
+/// rig, animation state - so the paced walk library's slot tick, slot reset
+/// and placement run on it unchanged. Behind that it holds what is Kyle's
+/// own: the tasks of the two hands and the gun, drawn as separate models hung
+/// off parts of the body, and the way he walks to a target. The model object
+/// borrows `light` and `color`, and the three tasks are killed with the
+/// actor, so all of it lives exactly as long as the actor's task.
+typedef struct {
+    MATRIX          light;         // Light-direction matrix lent to the body's model object
+    MATRIX          color;         // Light-colour matrix lent to the body's model object
+    ActorAnimRig20  rig;           // Playback storage of the body; slots 1 to 19 are driven
+    ActorEnemyState st;            // Animation request, heading and frames of walk left
+    s16             turnFrames;    // Frames left of a turn of 51/4096 a frame while clip 3 plays; only ever cleared here, so the turn never runs
     byte            pad_4EE[0x2];
-    Task*           field_4F0;
-    Task*           field_4F4;
-    Task*           field_4F8;
-    s16             animArg;
-    s16             field_4FE;
-    u8              field_500; // 0x7DB mode 1 latches the copied flags here, 2 the 0x84 state
+    Task*           handLeftTask;  // Task drawing the left-hand model
+    Task*           handRightTask; // Task drawing the right-hand model
+    Task*           gunTask;       // Task drawing the gun model
+    s16             blendFrames;   // Whole frames the next blended reseed takes to reach the requested clip
+    s16             walkMode;      // How the walk in progress covers its distance (`ACTOR_450800_WALK_FAST`, `_BACKWARD` or `_SLOW`)
+    u8              gunShown;      // 1 while the gun is drawn with the body, 0 while it stays hidden whatever the body's draw mode
     byte            pad_501[0x3];
-} Actor450800Work;
-STATIC_ASSERT_SIZEOF(Actor450800Work, 0x504);
+} _Actor450800KyleMadiganWork;
+STATIC_ASSERT_SIZEOF(_Actor450800KyleMadiganWork, 0x504);
 
 /// Spawn offset `func_actor_450800_80132108` copies into a local and hands to
 /// `Gp_SpawnEff` as the effect's position.
@@ -2752,23 +2770,23 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
 
 /// Spawn handler of the actor's own task, state 0 of the `fns` table
 /// `func_actor_450800_80132790` dispatches through. Builds the actor's
-/// `Actor450800Work` block, hangs its leading matrices off the model's
-/// `lightMtx` / `colorMtx`, and starts the animation.
+/// `_Actor450800KyleMadiganWork` block, hangs its leading matrices off the
+/// model's `lightMtx` / `colorMtx`, and starts the animation.
 ///
 /// The three helper tasks come out of `D_actor_450800_8014AC88`: 1 and 2 are
-/// the actor's own model parts, textured from the placement the actor's
-/// `Task::spawnArg2` enemy selects. Task 4 is spawned but not textured.
+/// the hands, textured from the placement the actor's `Task::spawnArg2` enemy
+/// selects. Task 4, the gun, is spawned but not textured.
 static void func_actor_450800_80132160(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    Actor450800Work* work;
-    Task*            spawned;
+    VECTOR                       vec;
+    GfxCoord*                    coord;
+    TmdObject*                   obj;
+    _Actor450800KyleMadiganWork* work;
+    Task*                        spawned;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    work       = memCalloc(0x504, 0);
+    work       = memCalloc(sizeof(_Actor450800KyleMadiganWork), false);
     task->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
@@ -2797,37 +2815,37 @@ static void func_actor_450800_80132160(Enemy* enemy, Task* task)
 
     spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 1, 8, 0);
     if (spawned != NULL) {
-        work->field_4F0 = spawned;
-        spawned->parent = task;
+        work->handLeftTask = spawned;
+        spawned->parent    = task;
         _actor450800TintModel(spawned, task);
     }
 
     spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 2, 0xC, 0);
     if (spawned != NULL) {
-        work->field_4F4 = spawned;
-        spawned->parent = task;
+        work->handRightTask = spawned;
+        spawned->parent     = task;
         _actor450800TintModel(spawned, task);
     }
 
     spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 4, 8, 0);
     if (spawned != NULL) {
         spawned->parent = task;
-        work->field_4F8 = spawned;
+        work->gunTask   = spawned;
     }
 
-    work->animArg    = 8;
-    work->st.travel  = 0;
-    work->turnFrames = 0;
-    work->field_500  = 0;
-    task->msgTable   = D_actor_450800_8014AC58;
+    work->blendFrames = 8;
+    work->st.travel   = 0;
+    work->turnFrames  = 0;
+    work->gunShown    = 0;
+    task->msgTable    = D_actor_450800_8014AC58;
     func_actor_450800_80132448(task);
     task->state++;
 }
 
 static void func_actor_450800_80132448(Task* task)
 {
-    GfxCoord*        coord = task->extra.tmd->coords;
-    Actor450800Work* work  = (Actor450800Work*)task->work;
+    GfxCoord*                    coord = task->extra.tmd->coords;
+    _Actor450800KyleMadiganWork* work  = task->work;
 
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         func_actor_450800_80132AE0(task);
@@ -2838,21 +2856,21 @@ static void func_actor_450800_80132448(Task* task)
     } else if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
         if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
             if (work->st.travel != 0) {
-                switch (work->field_4FE) {
-                    case 0:
+                switch (work->walkMode) {
+                    case ACTOR_450800_WALK_FAST:
                         actorMoveModelForward(task, 0x3C);
                         break;
-                    case 1:
+                    case ACTOR_450800_WALK_BACKWARD:
                         actorMoveModelForward(task, -0xF);
                         break;
-                    case 2:
+                    case ACTOR_450800_WALK_SLOW:
                         actorMoveModelForward(task, 0x19);
                         break;
                 }
                 if (--work->st.travel == 0) {
-                    work->st.state  = ACTOR_ENEMY_ANIM_BLEND;
-                    work->animArg   = 0xA;
-                    work->st.animId = 0xD;
+                    work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
+                    work->blendFrames = 0xA;
+                    work->st.animId   = 0xD;
                 }
             }
         }
@@ -2883,12 +2901,12 @@ void func_actor_450800_80132790(Task* task)
 
 static void func_actor_450800_80132868(Task* task)
 {
-    Actor450800Work* work = (Actor450800Work*)task->work;
+    _Actor450800KyleMadiganWork* work = task->work;
 
     enemyDestroy(task->spawnArg2.pointer, task);
-    taskKill(work->field_4F0);
-    taskKill(work->field_4F4);
-    taskKill(work->field_4F8);
+    taskKill(work->handLeftTask);
+    taskKill(work->handRightTask);
+    taskKill(work->gunTask);
 }
 
 #include "../../shared/walker_shadow_shaded.inc.c"
@@ -2934,13 +2952,13 @@ void func_actor_450800_80132958(Task* task)
 
 static void func_actor_450800_80132AE0(Task* task)
 {
-    Actor450800Work* work;
-    s32              i;
+    _Actor450800KyleMadiganWork* work;
+    s32                          i;
 
-    work = (Actor450800Work*)task->work;
+    work = task->work;
     i    = 1;
     do {
-        animationSeekSlotWithBlend(&work->rig.anim, i, work->st.animId, 0, work->animArg);
+        animationSeekSlotWithBlend(&work->rig.anim, i, work->st.animId, 0, work->blendFrames);
         i++;
     } while (i < 0x14);
     work->st.appliedAnimId = work->st.animId;
@@ -2952,14 +2970,14 @@ static void func_actor_450800_80132AE0(Task* task)
 /// The blend path carries the requested duration in whole frames.
 s32 func_actor_450800_80132B44(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
-    Actor450800Work* work;
+    _Actor450800KyleMadiganWork* work;
 
-    work = (Actor450800Work*)task->work;
+    work = task->work;
     if (args->animationId < 0x1F) {
         work->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            work->animArg  = args->blendFrames;
+            work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
+            work->blendFrames = args->blendFrames;
         } else {
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
@@ -2971,45 +2989,45 @@ s32 func_actor_450800_80132B44(Task* task, s32 arg1, AnimationPlayRequest* args,
 }
 
 /// Message handler 0x7D5 of `D_actor_450800_8014AC58`: sets `TmdObject::flags`
-/// on this actor's own model and on the three helper tasks' ones at once.
+/// on this actor's own model and on the hands' and the gun's at once.
 ///
 /// `arg2` bit 0 selects 0 rather than 0x80, and bit 1 ORs 4 in.
-/// `Actor450800Work::field_500` overrides the last of them: while it is 0 the
-/// helper at `field_4F8` keeps the 0x84 handler 0x7DB's mode 2 gave it,
-/// instead of the flags just computed.
+/// `_Actor450800KyleMadiganWork::gunShown` overrides the last of them: while
+/// it is 0 the gun keeps the 0x84 handler 0x7DB's mode 2 gave it, instead of
+/// the flags just computed.
 s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
-    Actor450800Work* work;
-    TmdObject*       self;
-    TmdObject*       first;
-    TmdObject*       second;
-    TmdObject*       third;
+    _Actor450800KyleMadiganWork* work;
+    TmdObject*                   self;
+    TmdObject*                   handLeft;
+    TmdObject*                   handRight;
+    TmdObject*                   gun;
 
-    work   = (Actor450800Work*)task->work;
-    self   = task->extra.tmd;
-    first  = work->field_4F0->extra.tmd;
-    second = work->field_4F4->extra.tmd;
-    third  = work->field_4F8->extra.tmd;
+    work      = task->work;
+    self      = task->extra.tmd;
+    handLeft  = work->handLeftTask->extra.tmd;
+    handRight = work->handRightTask->extra.tmd;
+    gun       = work->gunTask->extra.tmd;
 
     if (arg2 & 1) {
-        self->flags   = 0;
-        first->flags  = 0;
-        second->flags = 0;
-        third->flags  = 0;
+        self->flags      = 0;
+        handLeft->flags  = 0;
+        handRight->flags = 0;
+        gun->flags       = 0;
     } else {
-        self->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        first->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        second->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        third->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        self->flags      = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        handLeft->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        handRight->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        gun->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     if (arg2 & 2) {
-        self->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        first->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        second->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        third->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        self->flags      |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        handLeft->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        handRight->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        gun->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
-    if (work->field_500 == 0) {
-        third->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    if (work->gunShown == 0) {
+        gun->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     }
     return 0;
 }
@@ -3020,29 +3038,29 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2, s32 arg3)
 /// body (or spawn its 0x6002B burst) according to the message's selector.
 ///
 /// The model is the actor's own -- `task->extra.tmd`, the `TmdObject` a bodyKind-1
-/// task carries -- and the one it is driven through is that of the helper task
-/// in `Actor450800Work::field_4F8`. Both pointers, and `field_8` of the helper's
-/// model, are resolved before the switch: the ROM reads them there, and a
-/// scheduler pass cannot lift the loads into the entry block on its own.
+/// task carries -- and the one it is driven through is that of the gun task
+/// in `_Actor450800KyleMadiganWork::gunTask`. Both pointers, and `field_8` of
+/// the gun's model, are resolved before the switch: the ROM reads them there,
+/// and a scheduler pass cannot lift the loads into the entry block on its own.
 s32 func_actor_450800_80132CE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor450800Work* work  = (Actor450800Work*)task->work;
-    TmdObject*       obj   = work->field_4F8->extra.tmd;
-    GfxCoord*        coord = obj->coords;
-    TmdObject*       self  = task->extra.tmd;
-    s32              mode  = msg->command;
+    _Actor450800KyleMadiganWork* work  = task->work;
+    TmdObject*                   obj   = work->gunTask->extra.tmd;
+    GfxCoord*                    coord = obj->coords;
+    TmdObject*                   self  = task->extra.tmd;
+    s32                          mode  = msg->command;
 
     switch (mode) {
         case 0:
             Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 0x21, 0);
             break;
         case 1:
-            work->field_500 = mode;
-            obj->flags      = self->flags;
+            work->gunShown = mode;
+            obj->flags     = self->flags;
             break;
         case 2:
-            work->field_500 = 0;
-            obj->flags      = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            work->gunShown = 0;
+            obj->flags     = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
     }
     return 0;
@@ -3061,35 +3079,35 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 /// block comes out in a different order and on different registers.
 s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    Actor450800Work* work;
-    GfxCoord*        coord;
-    s32              dx;
-    s32              dz;
-    s32              steps;
-    s32              dist;
-    s32              angle;
+    _Actor450800KyleMadiganWork* work;
+    GfxCoord*                    coord;
+    s32                          dx;
+    s32                          dz;
+    s32                          steps;
+    s32                          dist;
+    s32                          angle;
 
-    coord           = task->extra.tmd->coords;
-    work            = (Actor450800Work*)task->work;
-    dx              = target->vx - coord->coord.t[0];
-    dz              = target->vz - coord->coord.t[2];
-    work->field_4FE = mode;
-    angle           = ratan2(dx, dz);
-    work->st.yaw    = angle;
-    if (work->field_4FE == 1) {
+    coord          = task->extra.tmd->coords;
+    work           = task->work;
+    dx             = target->vx - coord->coord.t[0];
+    dz             = target->vz - coord->coord.t[2];
+    work->walkMode = mode;
+    angle          = ratan2(dx, dz);
+    work->st.yaw   = angle;
+    if (work->walkMode == ACTOR_450800_WALK_BACKWARD) {
         work->st.yaw = angle + 0x800;
     }
     gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
     dist  = SquareRoot0(dx * dx + dz * dz);
     steps = 0x19;
-    switch (work->field_4FE) {
-        case 0:
+    switch (work->walkMode) {
+        case ACTOR_450800_WALK_FAST:
             steps = 0x3C;
             break;
-        case 1:
+        case ACTOR_450800_WALK_BACKWARD:
             steps = 0xF;
             break;
-        case 2:
+        case ACTOR_450800_WALK_SLOW:
             break;
     }
     work->st.travel = dist / steps;
