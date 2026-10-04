@@ -61,11 +61,39 @@
 #include "../../shared/frame_capture.h"
 #include "../../shared/coord_math.h"
 
-/// State handlers copied onto the stack by func_actor_400500_80135770.
-typedef struct Actor400500TaskFuncTable13 {
-    TaskFunc funcs[13];
-} Actor400500TaskFuncTable13;
-STATIC_ASSERT_SIZEOF(Actor400500TaskFuncTable13, 0x34);
+/// Values of `_Actor400500GrayStalkerWork::state` while the Stalker is alive.
+///
+/// Each is entered by name, together with a reset of `subState`, and selects
+/// a handler of `_Actor400500StateTable`. The death sequence and the teardown
+/// step the same field through tables of their own, outside this numbering.
+enum {
+    ACTOR_400500_STATE_CRAWL          = 0x0, // crawls the ceiling or the floor along the room's axes; picks the attacks, the drop and the jump
+    ACTOR_400500_STATE_GRAB           = 0x1, // reaches down from the ceiling for a target right below it and carries what it catches
+    ACTOR_400500_STATE_STRIKE_CEILING = 0x2, // swings the right arm out from the ceiling and strikes
+    ACTOR_400500_STATE_STRIKE_FLOOR   = 0x3, // swings the left arm out on the floor and strikes, then crawls on or jumps up
+    ACTOR_400500_STATE_FALL           = 0x4, // falls from the ceiling onto its back and gets up into `CRAWL_FALLEN`
+    ACTOR_400500_STATE_KNOCKDOWN      = 0x5, // recoil of a knockdown hit; one taken on the ceiling ends in a fall
+    ACTOR_400500_STATE_AMBUSH         = 0x6, // first state: waits cloaked until the target comes close, then strikes, or until it is hit
+    ACTOR_400500_STATE_DROP           = 0x7, // lets go of the ceiling and lands on the floor where it hung
+    ACTOR_400500_STATE_JUMP           = 0x8, // jumps from the floor back onto the ceiling
+    ACTOR_400500_STATE_TURN_OVER      = 0x9, // ends `CRAWL_FALLEN`: turns over, reversing `yaw`, then crawls on or jumps up
+    ACTOR_400500_STATE_CRAWL_FALLEN   = 0xA, // crawls the floor after a fall from the ceiling, until it turns over
+    ACTOR_400500_STATE_ROOM_SEQUENCE  = 0xB, // sequence started by room command 1, whose steps wait for commands 2, 3 and 4
+    ACTOR_400500_STATE_STATUS_HOLD    = 0xC, // recoil held until the status buildup runs out; one taken on the ceiling ends in a fall
+    ACTOR_400500_STATE_COUNT                 // number of states, and of the handlers in `_Actor400500StateTable`
+};
+
+/// The living Stalker's state handlers, indexed by `ACTOR_400500_STATE_*`.
+///
+/// The package defines one table. While combat is running, the task's
+/// per-frame handler copies it to the stack by assignment, which is why the
+/// array is wrapped in a struct, and calls the entry of the current state.
+/// The call is unconditional and every entry is a handler. Most of them run a
+/// table of their own in turn, indexed by `subState`.
+typedef struct {
+    TaskFunc handlers[ACTOR_400500_STATE_COUNT]; // Handler of each `ACTOR_400500_STATE_*`, taking the Stalker's task
+} _Actor400500StateTable;
+STATIC_ASSERT_SIZEOF(_Actor400500StateTable, ACTOR_400500_STATE_COUNT * sizeof(TaskFunc));
 
 /// Values of `_Actor400500GrayStalkerWork::animRequest`.
 enum {
@@ -1951,7 +1979,7 @@ static s32 func_actor_400500_80132D74(Task* arg0)
         if ((work->targetDist < (0x500 - (work->playerLocalMove.vz * 8))) &&
             ((u32)(work->targetBearing - 0x2E0) >= 0xA41U)) {
             if ((((u16)work->attackCooldown >> 3) == 0) && !(work->posture & ACTOR_400500_POSTURE_ON_FLOOR)) {
-                func_actor_400500_8013DB64(arg0, 1);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_GRAB);
                 return 1;
             }
             return 0;
@@ -1960,9 +1988,9 @@ static s32 func_actor_400500_80132D74(Task* arg0)
             ((u32)(work->targetBearing - 0x300) >= 0xA01U) &&
             (work->attackCooldown == 0)) {
             if (!(((_Actor400500GrayStalkerWork*)arg0->work)->posture & ACTOR_400500_POSTURE_ON_FLOOR)) {
-                func_actor_400500_8013DB64(arg0, 2);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_STRIKE_CEILING);
             } else {
-                func_actor_400500_8013DB64(arg0, 3);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_STRIKE_FLOOR);
             }
             return 1;
         }
@@ -2152,7 +2180,7 @@ static s32 func_actor_400500_80133358(Task* arg0)
         if (sub != ACTOR_400500_HIT_REACTION_STATUS) {
             goto check_hit;
         }
-        func_actor_400500_8013DB64(arg0, 0xC);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_STATUS_HOLD);
         ret = 1;
     zero_both:
         work->hitTaken    = 0;
@@ -2908,7 +2936,7 @@ static void func_actor_400500_80135414(Task* arg0)
     work->effectArg.spawnArgLo = 0x100;
     work->effectArg.spawnArgHi = 3;
     work->effectArg.coord      = &coord2[3];
-    _actor400500SetState(arg0, 6, 0);
+    _actor400500SetState(arg0, ACTOR_400500_STATE_AMBUSH, 0);
     gStageSceneMusicEntry = 2;
     work7                 = (_Actor400500GrayStalkerWork*)arg0->work;
     if (((work7->cloakRequest >= 0) || ((u8)work7->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK)) && (work7->hideCooldown == 0)) {
@@ -2988,7 +3016,7 @@ static __inline__ u8* push_proj(void)
     return head;
 }
 
-static const Actor400500TaskFuncTable13 D_actor_400500_80131E5C = { {
+static const _Actor400500StateTable D_actor_400500_80131E5C = { {
     func_actor_400500_80135EBC,
     func_actor_400500_8013BA24,
     func_actor_400500_801385D0,
@@ -3014,7 +3042,7 @@ static void func_actor_400500_80135770(Task* arg0)
     GfxCoord*                    part2;
     PlayerStatus*                cfg;
     AnimationPlayRequest         msg;
-    Actor400500TaskFuncTable13   sp;
+    _Actor400500StateTable       states;
     GfxMatrix                    rot;
     s8                           handshake;
     _Actor400500GrayStalkerWork* work_pos;
@@ -3047,7 +3075,7 @@ static void func_actor_400500_80135770(Task* arg0)
     part2  = extra0->coords + 2;
     obj    = extra0;
     slot   = *gPlayerActorTasks;
-    sp     = D_actor_400500_80131E5C;
+    states = D_actor_400500_80131E5C;
 
     handshake = work->grabStep;
     switch (handshake) {
@@ -3091,7 +3119,7 @@ static void func_actor_400500_80135770(Task* arg0)
             } else {
                 work->playerZone = lookup_zone(slot);
             }
-            sp.funcs[(s16)work->state](arg0);
+            states.handlers[(s16)work->state](arg0);
             work_pos = (_Actor400500GrayStalkerWork*)arg0->work;
             if (*gPlayerActorTasks != NULL) {
                 player                     = (*gPlayerActorTasks)->extra.tmd->coords;
@@ -3320,7 +3348,7 @@ static void func_actor_400500_801361EC(Task* arg0)
     coord   = arg0->extra.tmd->coords;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -3332,7 +3360,7 @@ static void func_actor_400500_801361EC(Task* arg0)
             if (workA->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -3496,7 +3524,7 @@ static void func_actor_400500_8013662C(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -3508,7 +3536,7 @@ static void func_actor_400500_8013662C(Task* arg0)
             if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -3551,10 +3579,10 @@ static void func_actor_400500_8013662C(Task* arg0)
                         if (((rnd >> 0x10) & 0x1F) == 0) {
                             if (!(work->posture & ACTOR_400500_POSTURE_ON_FLOOR)) {
                                 work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-                                val   = 7;
+                                val   = ACTOR_400500_STATE_DROP;
                             } else {
                                 work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-                                val   = 8;
+                                val   = ACTOR_400500_STATE_JUMP;
                             }
                             work2->state    = val;
                             work2->subState = 0;
@@ -3581,7 +3609,7 @@ static void func_actor_400500_80136864(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -3593,7 +3621,7 @@ static void func_actor_400500_80136864(Task* arg0)
             if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -3640,7 +3668,7 @@ static void func_actor_400500_801369A4(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -3652,7 +3680,7 @@ static void func_actor_400500_801369A4(Task* arg0)
             if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -3687,10 +3715,10 @@ static void func_actor_400500_801369A4(Task* arg0)
                     if (((rnd >> 0x10) & 0x1F) == 0) {
                         if (!(work->posture & ACTOR_400500_POSTURE_ON_FLOOR)) {
                             work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-                            val   = 7;
+                            val   = ACTOR_400500_STATE_DROP;
                         } else {
                             work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-                            val   = 8;
+                            val   = ACTOR_400500_STATE_JUMP;
                         }
                         work2->state    = val;
                         work2->subState = 0;
@@ -3714,7 +3742,7 @@ static void func_actor_400500_80136B94(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -3726,7 +3754,7 @@ static void func_actor_400500_80136B94(Task* arg0)
             if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -3775,7 +3803,7 @@ static void func_actor_400500_80136D00(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -3787,7 +3815,7 @@ static void func_actor_400500_80136D00(Task* arg0)
             if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -3849,7 +3877,7 @@ static void func_actor_400500_80136EB8(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -3861,7 +3889,7 @@ static void func_actor_400500_80136EB8(Task* arg0)
             if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -3906,7 +3934,7 @@ static void func_actor_400500_80137034(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -3918,7 +3946,7 @@ static void func_actor_400500_80137034(Task* arg0)
             if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -3969,7 +3997,7 @@ static void func_actor_400500_801371A0(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -3981,7 +4009,7 @@ static void func_actor_400500_801371A0(Task* arg0)
             if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -4033,7 +4061,7 @@ static void func_actor_400500_80137338(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -4045,7 +4073,7 @@ static void func_actor_400500_80137338(Task* arg0)
             if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -4089,7 +4117,7 @@ static void func_actor_400500_80137478(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -4101,7 +4129,7 @@ static void func_actor_400500_80137478(Task* arg0)
             if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
                 flag2 = 0;
             } else {
-                func_actor_400500_8013DB64(arg0, 4);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_FALL);
                 flag2 = 1;
             }
         } else {
@@ -4371,7 +4399,7 @@ static void func_actor_400500_8013771C(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        _actor400500SetState(arg0, 0, 0);
+        _actor400500SetState(arg0, ACTOR_400500_STATE_CRAWL, 0);
         work->attackCooldown = 0x3C;
         work->body.radius    = 0x260;
     }
@@ -4423,7 +4451,7 @@ static void func_actor_400500_80138088(Task* arg0)
     }
     if (cond) {
         work->body.radius = 0x260;
-        _actor400500SetState(arg0, 0, 0);
+        _actor400500SetState(arg0, ACTOR_400500_STATE_CRAWL, 0);
         _actor400500RequestMode(arg0, ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_HIDE);
         work->attackCooldown = 0x3C;
     }
@@ -4482,7 +4510,7 @@ static void func_actor_400500_801385D0(Task* arg0)
     workA = (_Actor400500GrayStalkerWork*)arg0->work;
     if (workA->knockdownPending != 0) {
         workA->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         skip = 1;
     } else {
         skip = 0;
@@ -4558,7 +4586,7 @@ static void func_actor_400500_801387E8(Task* arg0)
     }
     if (cond) {
         work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work2->state    = 0;
+        work2->state    = ACTOR_400500_STATE_CRAWL;
         work2->subState = 0;
         work3           = (_Actor400500GrayStalkerWork*)arg0->work;
         if (((work3->cloakRequest >= 0) || ((u8)work3->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK)) && (work3->hideCooldown == 0)) {
@@ -4597,7 +4625,7 @@ static void func_actor_400500_8013899C(Task* arg0)
         workA = (_Actor400500GrayStalkerWork*)arg0->work;
         if (workA->knockdownPending != 0) {
             workA->knockdownPending = 0;
-            func_actor_400500_8013DB64(arg0, 5);
+            func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
             skip = 1;
         } else {
             skip = 0;
@@ -4740,12 +4768,12 @@ static void func_actor_400500_80138DC4(Task* arg0)
         gRandomLcgState     = rnd;
         if (!((rnd >> 0x10) & 3)) {
             work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->state    = 0;
+            work2->state    = ACTOR_400500_STATE_CRAWL;
             work2->subState = 0;
             return;
         }
         work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work3->state    = 8;
+        work3->state    = ACTOR_400500_STATE_JUMP;
         work3->subState = 0;
     }
 }
@@ -4938,7 +4966,7 @@ static void func_actor_400500_801392D8(Task* arg0)
     work4                     = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work4->knockdownPending != 0) {
         work4->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
     }
 }
 
@@ -4969,7 +4997,7 @@ static void func_actor_400500_80139448(Task* arg0)
             work2->cloakPhase   = 0;
         }
         work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work3->state    = 2;
+        work3->state    = ACTOR_400500_STATE_STRIKE_CEILING;
         work3->subState = 0;
         return;
     }
@@ -4985,7 +5013,7 @@ static void func_actor_400500_80139448(Task* arg0)
             work4->cloakPhase   = 0;
         }
         work5           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work5->state    = 0;
+        work5->state    = ACTOR_400500_STATE_CRAWL;
         work5->subState = 0;
     }
 }
@@ -5200,7 +5228,7 @@ static void func_actor_400500_80139AC4(Task* arg0)
         work2 = (_Actor400500GrayStalkerWork*)arg0->work;
         if (work2->knockdownPending != 0) {
             work2->knockdownPending = 0;
-            func_actor_400500_8013DB64(arg0, 5);
+            func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
             flag = 1;
         } else {
             flag = 0;
@@ -5215,7 +5243,7 @@ static void func_actor_400500_80139AC4(Task* arg0)
             }
             if (cond) {
                 work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-                work3->state    = 0;
+                work3->state    = ACTOR_400500_STATE_CRAWL;
                 work3->subState = 0;
                 work->posture  |= ACTOR_400500_POSTURE_ON_FLOOR;
             }
@@ -5298,7 +5326,7 @@ static void func_actor_400500_80139D70(Task* arg0)
         work2 = (_Actor400500GrayStalkerWork*)arg0->work;
         if (work2->knockdownPending != 0) {
             work2->knockdownPending = 0;
-            func_actor_400500_8013DB64(arg0, 5);
+            func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         }
     } else {
         step              = (u16)work->moveAccel - 2;
@@ -5481,7 +5509,7 @@ static void func_actor_400500_8013A0B8(Task* arg0)
             work3 = (_Actor400500GrayStalkerWork*)arg0->work;
             if (work3->knockdownPending != 0) {
                 work3->knockdownPending = 0;
-                func_actor_400500_8013DB64(arg0, 5);
+                func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
                 flag = 1;
             } else {
                 flag = 0;
@@ -5491,12 +5519,12 @@ static void func_actor_400500_8013A0B8(Task* arg0)
                 gRandomLcgState = rnd;
                 if (((rnd >> 0x10) & 1) == 0) {
                     nextWork           = (_Actor400500GrayStalkerWork*)arg0->work;
-                    nextWork->state    = 0;
+                    nextWork->state    = ACTOR_400500_STATE_CRAWL;
                     nextWork->subState = 0;
                     return;
                 }
                 work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-                work3->state    = 8;
+                work3->state    = ACTOR_400500_STATE_JUMP;
                 work3->subState = 0;
             }
         } else {
@@ -5899,7 +5927,7 @@ static void func_actor_400500_8013AF44(Task* arg0)
     coord   = arg0->extra.tmd->coords;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -6009,7 +6037,7 @@ static void func_actor_400500_8013B228(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -6018,7 +6046,7 @@ static void func_actor_400500_8013B228(Task* arg0)
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) != 0x400) {
             work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->state    = 9;
+            work2->state    = ACTOR_400500_STATE_TURN_OVER;
             work2->subState = 0;
         } else {
             zone = work->zone;
@@ -6036,7 +6064,7 @@ static void func_actor_400500_8013B228(Task* arg0)
             } else {
                 if (work->toTarget.vx < -0xF9F) {
                     work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work3->state    = 9;
+                    work3->state    = ACTOR_400500_STATE_TURN_OVER;
                     work3->subState = 0;
                 }
                 func_actor_400500_8013403C(arg0);
@@ -6058,7 +6086,7 @@ static void func_actor_400500_8013B374(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -6084,7 +6112,7 @@ static void func_actor_400500_8013B374(Task* arg0)
             return;
         }
         work4           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work4->state    = 9;
+        work4->state    = ACTOR_400500_STATE_TURN_OVER;
         work4->subState = 0;
     }
 }
@@ -6612,7 +6640,7 @@ static void func_actor_400500_8013C348(Task* arg0)
     if (cond) {
         if (enemy->hp > 0) {
             work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->state    = 0xA;
+            work2->state    = ACTOR_400500_STATE_CRAWL_FALLEN;
             work2->subState = 0;
             work->posture   = work->posture | ACTOR_400500_POSTURE_ON_FLOOR;
             return;
@@ -6678,11 +6706,11 @@ static void func_actor_400500_8013C474(Task* arg0)
             work->knockdownPending = 0;
             if (!(work->posture & ACTOR_400500_POSTURE_ON_BACK)) {
                 work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->state    = 0;
+                work2->state    = ACTOR_400500_STATE_CRAWL;
                 work2->subState = 0;
             } else {
                 work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-                work3->state    = 0xA;
+                work3->state    = ACTOR_400500_STATE_CRAWL_FALLEN;
                 work3->subState = 0;
             }
         }
@@ -6791,7 +6819,7 @@ static void func_actor_400500_8013C750(Task* arg0)
     }
     if (cond) {
         work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work2->state    = 0xA;
+        work2->state    = ACTOR_400500_STATE_CRAWL_FALLEN;
         work2->subState = 0;
     }
 }
@@ -6883,7 +6911,7 @@ static void func_actor_400500_8013C9D4(Task* arg0)
     }
     if (cond) {
         work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work2->state    = 0;
+        work2->state    = ACTOR_400500_STATE_CRAWL;
         work2->subState = 0;
         work->posture  &= ~ACTOR_400500_POSTURE_ON_FLOOR;
     }
@@ -6934,7 +6962,7 @@ static void func_actor_400500_8013CB0C(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -6950,7 +6978,7 @@ static void func_actor_400500_8013CB0C(Task* arg0)
             return;
         }
         work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work3->state    = 9;
+        work3->state    = ACTOR_400500_STATE_TURN_OVER;
         work3->subState = 0;
     }
 }
@@ -6968,7 +6996,7 @@ static void func_actor_400500_8013CBD8(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -6977,7 +7005,7 @@ static void func_actor_400500_8013CBD8(Task* arg0)
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) != 0xC00) {
             work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->state    = 9;
+            work2->state    = ACTOR_400500_STATE_TURN_OVER;
             work2->subState = 0;
         } else {
             zone = work->zone;
@@ -6987,7 +7015,7 @@ static void func_actor_400500_8013CBD8(Task* arg0)
                 }
             } else if (work->toTarget.vx >= 0xFA0) {
                 work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-                work3->state    = 9;
+                work3->state    = ACTOR_400500_STATE_TURN_OVER;
                 work3->subState = 0;
             }
             func_actor_400500_8013403C(arg0);
@@ -7006,7 +7034,7 @@ static void func_actor_400500_8013CCDC(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -7022,7 +7050,7 @@ static void func_actor_400500_8013CCDC(Task* arg0)
             return;
         }
         work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work3->state    = 9;
+        work3->state    = ACTOR_400500_STATE_TURN_OVER;
         work3->subState = 0;
     }
 }
@@ -7038,7 +7066,7 @@ static void func_actor_400500_8013CDA8(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -7047,7 +7075,7 @@ static void func_actor_400500_8013CDA8(Task* arg0)
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if ((u16)work->yaw & 0xFFF) {
             work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->state    = 9;
+            work2->state    = ACTOR_400500_STATE_TURN_OVER;
             work2->subState = 0;
         } else {
             if (work->zone != 3) {
@@ -7073,7 +7101,7 @@ static void func_actor_400500_8013CE9C(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -7089,7 +7117,7 @@ static void func_actor_400500_8013CE9C(Task* arg0)
             return;
         }
         work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work3->state    = 9;
+        work3->state    = ACTOR_400500_STATE_TURN_OVER;
         work3->subState = 0;
     }
 }
@@ -7105,7 +7133,7 @@ static void func_actor_400500_8013CF68(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -7114,7 +7142,7 @@ static void func_actor_400500_8013CF68(Task* arg0)
         ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) != 0x800) {
             work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->state    = 9;
+            work2->state    = ACTOR_400500_STATE_TURN_OVER;
             work2->subState = 0;
         } else {
             switch (work->zone) {
@@ -7145,7 +7173,7 @@ static void func_actor_400500_8013D078(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -7161,7 +7189,7 @@ static void func_actor_400500_8013D078(Task* arg0)
             return;
         }
         work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work3->state    = 9;
+        work3->state    = ACTOR_400500_STATE_TURN_OVER;
         work3->subState = 0;
     }
 }
@@ -7176,7 +7204,7 @@ static void func_actor_400500_8013D144(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->knockdownPending != 0) {
         work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, 5);
+        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
         flag = 1;
     } else {
         flag = 0;
@@ -7192,7 +7220,7 @@ static void func_actor_400500_8013D144(Task* arg0)
             return;
         }
         work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work3->state    = 9;
+        work3->state    = ACTOR_400500_STATE_TURN_OVER;
         work3->subState = 0;
     }
 }
@@ -7303,7 +7331,7 @@ static void func_actor_400500_8013D420(Task* arg0)
     if (work->roomCommand == 4) {
         work->commandActive = 0;
         work2               = (_Actor400500GrayStalkerWork*)arg0->work;
-        work2->state        = 0;
+        work2->state        = ACTOR_400500_STATE_CRAWL;
         work2->subState     = 0;
     }
 }
@@ -7358,11 +7386,11 @@ static void func_actor_400500_8013D59C(Task* arg0)
             work->knockdownPending = 0;
             if (!(work->posture & ACTOR_400500_POSTURE_ON_BACK)) {
                 work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->state    = 0;
+                work2->state    = ACTOR_400500_STATE_CRAWL;
                 work2->subState = 0;
             } else {
                 work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-                work3->state    = 0xA;
+                work3->state    = ACTOR_400500_STATE_CRAWL_FALLEN;
                 work3->subState = 0;
             }
         }
@@ -7471,7 +7499,7 @@ static void func_actor_400500_8013D878(Task* arg0)
     }
     if (cond) {
         work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work2->state    = 0xA;
+        work2->state    = ACTOR_400500_STATE_CRAWL_FALLEN;
         work2->subState = 0;
     }
 }
@@ -7582,7 +7610,7 @@ s32 func_actor_400500_8013DAE4(Task* arg0, s32 arg1, u16* arg2, s32 arg3)
             work->commandActive  = kind;
             work->hideHoldFrames = 0x1E;
             work->roomCommand    = kind;
-            func_actor_400500_8013DB64(arg0, 0xB);
+            func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_ROOM_SEQUENCE);
             break;
         case 2:
             work->roomCommand = kind;
@@ -7609,7 +7637,7 @@ static s32 func_actor_400500_8013DB78(Task* arg0)
     _Actor400500GrayStalkerWork* work = (_Actor400500GrayStalkerWork*)arg0->work;
 
     if ((work->targetDist < (0x640 - (work->playerLocalMove.vz * 8))) && ((u32)(work->targetBearing - 0x300) >= 0xA01U)) {
-        work->state    = 9;
+        work->state    = ACTOR_400500_STATE_TURN_OVER;
         work->subState = 0;
         return 1;
     }
