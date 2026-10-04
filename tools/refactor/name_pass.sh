@@ -790,6 +790,40 @@ substance. The build output is at $LOG.build."
   return 0
 }
 
+# A round that cannot be joined is not a round of bad steps. Each step was
+# verified in its own worktree, so the failure belongs to a pair of them - two
+# steps that agree textually and disagree in substance - and the rest have
+# nothing to do with it. So when the join and its agent both fail, the steps are
+# landed one at a time, each verified on top of those already kept, and only a
+# step that conflicts or breaks the tree there is left for a later round, where
+# it will be worked against a tree that already holds its counterpart. Without
+# this one clash discarded ten steps of finished work.
+# Prints the orders that landed.
+salvage_round() {
+  local order sha before
+  for order in "$@"; do
+    sha="${sha_of[$order]:-}"
+    if [[ -z "$sha" ]]; then
+      echo "$order"               # a review with no commit has nothing to join
+      continue
+    fi
+    before="$(git rev-parse HEAD)"
+    if ! git cherry-pick "$sha" >>"$LOG" 2>&1; then
+      git cherry-pick --abort >/dev/null 2>&1 || true
+      git reset -q --hard "$before"
+      echo "--- step $order conflicts with the steps already landed; left for a later round" | tee -a "$LOG" >&2
+      continue
+    fi
+    if ! venv/bin/python3 tools/refactor/verify_name_pass.py >"$LOG.build" 2>&1; then
+      git reset -q --hard "$before"
+      git clean -qfd src include configs >/dev/null 2>&1
+      echo "--- step $order does not build on the steps already landed; left for a later round" | tee -a "$LOG" >&2
+      continue
+    fi
+    echo "$order"
+  done
+}
+
 if (( CLEAN_WORKERS )); then
   for wt in "$WORKER_ROOT"/pe2-name-w*; do
     [[ -d "$wt" ]] || continue
@@ -936,11 +970,12 @@ BARRIER
   # Join. In the serial case the commit is already on the branch and there is
   # nothing to replay; the bookkeeping below is the same either way.
   commits=(); review_order=(); round_bad=0
+  declare -A sha_of=()
   for order in "${batch[@]}"; do
     read -r outcome sha <<<"${status_of[$order]:-failed}"
     case "$outcome" in
       ok|followup) review_order+=("$order")
-                   [[ "$sha" == "-" ]] || commits+=("$sha") ;;
+                   [[ "$sha" == "-" ]] || { commits+=("$sha"); sha_of[$order]="$sha"; } ;;
       *) record "$order" "${step_items[$order]}" - failed
          SKIP_NAMES+="${step_items[$order]} "
          fail_count=$((fail_count + 1)); round_bad=1 ;;
@@ -948,8 +983,15 @@ BARRIER
   done
 
   if (( ${#review_order[@]} > 0 )); then
-    if (( WORKERS == 1 || ${#commits[@]} == 0 )) || join_round "$pre" "${commits[@]}"; then
-      for order in "${review_order[@]}"; do
+    landed_order=("${review_order[@]}")
+    joined=1
+    if ! { (( WORKERS == 1 || ${#commits[@]} == 0 )) || join_round "$pre" "${commits[@]}"; }; then
+      joined=0
+      echo "--- the round could not be joined; landing its steps one at a time" | tee -a "$LOG"
+      mapfile -t landed_order < <(salvage_round "${review_order[@]}")
+    fi
+    if (( ${#landed_order[@]} > 0 )); then
+      for order in "${landed_order[@]}"; do
         read -ra names <<<"${step_items[$order]}"
         report="$(review_file "$order")"
         outcome=$(venv/bin/python3 tools/refactor/name_review.py land --report "$report" \
@@ -960,17 +1002,18 @@ BARRIER
         echo "=== step $order: $outcome; review: $report" | tee -a "$LOG"
       done
       { echo "=== round landed: $pre..$(git rev-parse --short HEAD)"; echo; } | tee -a "$LOG"
-    else
+    fi
+    if (( ! joined )); then
       # The commits still exist on the worker branches, so the work is
       # recoverable; what must not survive is an unverified branch tip.
       for order in "${review_order[@]}"; do
+        [[ " ${landed_order[*]} " == *" $order "* ]] && continue
         record "$order" "${step_items[$order]}" - landing-failed
         SKIP_NAMES+="${step_items[$order]} "
         fail_count=$((fail_count + 1))
+        round_bad=1
+        echo "step $order NOT landed; it is still committed on its name-pass/w* branch" >&2
       done
-      round_bad=1
-      echo "round NOT landed; the branch is back at ${pre:0:9}" >&2
-      echo "the steps are still committed on the name-pass/w* branches" >&2
     fi
   fi
 
