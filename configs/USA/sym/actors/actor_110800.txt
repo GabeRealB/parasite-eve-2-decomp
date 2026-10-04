@@ -2,7 +2,7 @@
 gViewFigureWork = 0x80139F10; // size:0x4 defined:True
 gActorSelfTask = 0x80139F14; // size:0x4 defined:True
 gActorHelperTask = 0x80139F18; // size:0x4 defined:True
-gViewFigureTasks = 0x80139EDC; // size:0x18 defined:True
+gActor110800ViewFigureTasks = 0x80139EDC; // size:0x18 defined:True
 gViewFigureAnimSets = 0x80139EF4; // size:0x1C defined:True
 gViewFigureMessages = 0x80139EC4; // size:0x18 defined:True
 _gActor110800SwatMember2BodySkeleton = 0x801325F0; // size:0x2D0 defined:True

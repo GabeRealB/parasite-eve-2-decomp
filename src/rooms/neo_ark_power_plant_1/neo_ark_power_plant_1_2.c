@@ -685,7 +685,7 @@ WorldCollisionTrigger D_neo_ark_power_plant_1_80181854[7] = {
 };
 
 AreaResource D_neo_ark_power_plant_1_80181A68[3] = {
-    { 54, 54, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_105400_8013CEA0 },
+    { 54, 54, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105400GeneratorTasks },
     { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_202100_8014DC30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

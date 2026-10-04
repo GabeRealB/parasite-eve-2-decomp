@@ -41,7 +41,7 @@ D_acropolis_roof_garden_80186D98 = 0x80186D98; // size:0x8 defined:True
 D_acropolis_roof_garden_80186DA0 = 0x80186DA0; // size:0x8 defined:True
 D_acropolis_roof_garden_80186DA8 = 0x80186DA8; // size:0x8 defined:True
 D_acropolis_roof_garden_80186DB0 = 0x80186DB0; // size:0x20 defined:True
-D_actor_110800_80139EDC = 0x80139EDC; // absolute:True
+gActor110800ViewFigureTasks = 0x80139EDC; // absolute:True owner=actor_110800
 gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_actor_105500_8013A8DC = 0x8013A8DC; // absolute:True owner=actor_105500 shared=actors
 Actor00700_D075A8 = 0x801513C8; // absolute:True owner=actor_200700

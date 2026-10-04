@@ -523,7 +523,7 @@ WorldCollisionTrigger D_acropolis_roof_garden_80185690[7] = {
 };
 
 AreaResource D_acropolis_roof_garden_801858A4[3] = {
-    { 110, 108, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_110800_80139EDC },
+    { 110, 108, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor110800ViewFigureTasks },
     { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_205500_801528DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -535,7 +535,7 @@ AreaResource D_acropolis_roof_garden_801858C8[3] = {
 };
 
 AreaResource D_acropolis_roof_garden_801858EC[3] = {
-    { 110, 108, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_110800_80139EDC },
+    { 110, 108, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor110800ViewFigureTasks },
     { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_202600_801528D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

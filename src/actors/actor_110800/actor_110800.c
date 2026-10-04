@@ -20,6 +20,8 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/actor_messages.h"
+// Exported instance: a room spawns from this package's table by name.
+#define gViewFigureTasks gActor110800ViewFigureTasks
 #include "../../shared/view_figure.h"
 
 /// The block above, published by `func_actor_110800_801322A0` from the task's

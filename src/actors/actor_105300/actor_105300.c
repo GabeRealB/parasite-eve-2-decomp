@@ -48,6 +48,8 @@
 #include "rooms/neo_ark_power_plant_2.h"
 #include "../../shared/model_placement.h"
 #define GENERATOR_KIND GENERATOR_BETA
+// Exported instance: a room spawns from this package's table by name.
+#define gGeneratorTasks gActor105300GeneratorTasks
 #include "../../shared/generator.h"
 
 extern EnemyParams             gGeneratorLifeSupportParams;

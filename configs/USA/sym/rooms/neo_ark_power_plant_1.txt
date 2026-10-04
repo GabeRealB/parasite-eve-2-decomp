@@ -52,7 +52,7 @@ D_neo_ark_power_plant_1_80181BA8 = 0x80181BA8; // size:0xC defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_actor_102500_801379A8 = 0x801379A8; // absolute:True owner=actor_102500 shared=actors
 D_actor_103800_80137D74 = 0x80137D74; // absolute:True owner=actor_103800
-D_actor_105400_8013CEA0 = 0x8013CEA0; // absolute:True
+gActor105400GeneratorTasks = 0x8013CEA0; // absolute:True owner=actor_105400
 D_actor_202100_8014DC30 = 0x8014DC30; // absolute:True owner=actor_202100
 D_actor_203800_8014FD74 = 0x8014FD74; // absolute:True owner=actor_203800
 D_map_neo_ark_8017B8D0 = 0x8017B8D0; // absolute:True owner=map_neo_ark
