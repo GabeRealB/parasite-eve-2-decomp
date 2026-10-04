@@ -328,7 +328,7 @@ enum {
 /// The emitter has no model: its task carries only a coordinate, hung with
 /// no offset or rotation from part 8 of the boss's model, and a target
 /// sphere 800 units along that part's Z. It is not among the slot enemies
-/// the boss spawns at set-up. The slot-1 enemy, which rides the same part,
+/// the boss spawns at set-up. The pink-flash emitter (slot 1), which rides the same part,
 /// spawns it when it comes off the boss, and the boss then tells it to
 /// become a target; until then its sphere is not pair-tested.
 ///
@@ -4260,7 +4260,7 @@ static void func_actor_503500_8014271C(Task* arg0)
     }
 }
 
-/// `ACTOR_503500_ARM_STATE_DYING` step of the arm, the counterpart of the 0x160 enemy's
+/// `ACTOR_503500_ARM_STATE_DYING` step of the arm, the counterpart of the pink-flash emitter's
 /// `func_actor_503500_80137678`: step 0 unlinks the enemy node and clears the
 /// 16.16 `spin` / `velocity` / `positionCarry`; step 1 sprays effects for 31 frames, then
 /// queues the side's CD load, re-parents the coordinate onto the view in world
