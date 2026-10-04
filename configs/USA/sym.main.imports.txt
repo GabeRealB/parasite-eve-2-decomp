@@ -165,7 +165,7 @@ D_aya_10300_8011BE98 = 0x8011BE98; // absolute:True owner=aya_10300
 D_aya_10200_8011C210 = 0x8011C210; // absolute:True owner=aya_10200
 D_aya_10500_8011C2E4 = 0x8011C2E4; // absolute:True owner=aya_10500
 D_unused_85_8011D53C = 0x8011D53C; // absolute:True owner=unused_85
-D_p08_8011D924 = 0x8011D924; // absolute:True owner=p08 shared=weapons
+D_p08_8011D924 = 0x8011D924; // absolute:True owner=p08
 D_mongoose_8011D934 = 0x8011D934; // absolute:True owner=mongoose
 D_pa3_8011DA04 = 0x8011DA04; // absolute:True owner=pa3
 D_m93r_8011DA74 = 0x8011DA74; // absolute:True owner=m93r
@@ -177,7 +177,7 @@ func_mm1_8011DBD0 = 0x8011DBD8; // type:func absolute:True owner=mm1
 D_as12_8011DCF0 = 0x8011DCF0; // absolute:True owner=as12
 func_m4a1_grenade_8011DE68 = 0x8011DE68; // type:func absolute:True owner=m4a1_grenade
 D_m249_8011DE74 = 0x8011DE74; // absolute:True owner=m249
-D_m4a1_8011DEC4 = 0x8011DEC4; // absolute:True owner=m4a1 shared=weapons
+D_m4a1_8011DEC4 = 0x8011DEC4; // absolute:True owner=m4a1
 D_grenade_pistol_8011E28C = 0x8011E28C; // absolute:True owner=grenade_pistol
 D_tonfa_baton_8011E460 = 0x8011E460; // absolute:True owner=tonfa_baton
 D_mm1_8011E494 = 0x8011E494; // absolute:True owner=mm1
@@ -185,7 +185,7 @@ D_p229_8011E5E4 = 0x8011E5E4; // absolute:True owner=p229
 D_tonfa_baton_8011E5EC = 0x8011E5EC; // absolute:True owner=tonfa_baton
 D_m4a1_bayonet_8011E9FC = 0x8011E9FC; // absolute:True owner=m4a1_bayonet
 D_m4a1_grenade_8011EA2C = 0x8011EA2C; // absolute:True owner=m4a1_grenade
-D_mp5a5_8011EAFC = 0x8011EAFC; // absolute:True owner=mp5a5 shared=weapons
+D_mp5a5_8011EAFC = 0x8011EAFC; // absolute:True owner=mp5a5
 D_gunblade_8011EEB0 = 0x8011EEB0; // absolute:True owner=gunblade
 D_m4a1_pyke_8011F56C = 0x8011F56C; // absolute:True owner=m4a1_pyke
 func_hypervelocity_8011F6C0 = 0x8011F6C0; // type:func absolute:True owner=hypervelocity
@@ -219,8 +219,8 @@ func_acropolis_helicopter_landing_pad_8017EF8C = 0x8017EF8C; // type:func absolu
 func_acropolis_bridge_8017F788 = 0x8017F788; // type:func absolute:True owner=acropolis_bridge
 func_acropolis_security_room_80180294 = 0x80180294; // type:func absolute:True owner=acropolis_security_room
 func_acropolis_cafeteria_80181E70 = 0x80181E70; // type:func absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaModel07CA8 = 0x801858C4; // absolute:True
-gAcropolisCafeteriaModel08638 = 0x8018625C; // absolute:True
+gAcropolisCafeteriaModel07CA8 = 0x801858C4; // absolute:True owner=acropolis_cafeteria shared=rooms
+gAcropolisCafeteriaModel08638 = 0x8018625C; // absolute:True owner=acropolis_cafeteria shared=rooms
 gAcropolisCafeteriaModel09090 = 0x80186CAC; // absolute:True owner=acropolis_cafeteria
 gAcropolisCafeteriaModel09A20 = 0x80187518; // absolute:True owner=acropolis_cafeteria
 func_807011D8 = 0x807011D8; // type:func absolute:True

@@ -25,11 +25,11 @@ D_actor_311500_80169324 = 0x80169324; // size:0xC defined:True
 D_actor_311500_80169330 = 0x80169330; // size:0x8 defined:True
 D_actor_311500_80169338 = 0x80169338; // size:0xC defined:True
 
-gAcropolisFireEscapeCollision04CE8Normals = 0x80181E74; // absolute:True
+gAcropolisFireEscapeCollision04CE8Normals = 0x80181E74; // absolute:True owner=acropolis_fire_escape shared=rooms
 
 gAcropolisFireEscapeCollision04CE8Verts = 0x80181EC4; // absolute:True owner=acropolis_fire_escape
 
-gAcropolisFireEscapeCollision04CE8Faces = 0x8018207C; // absolute:True
+gAcropolisFireEscapeCollision04CE8Faces = 0x8018207C; // absolute:True owner=acropolis_fire_escape shared=rooms
 ActorContact_TurnJoint = 0x801626CC; // type:func
 ActorContact_FindPush = 0x80161E38; // type:func
 ActorContact_Steer = 0x80162180; // type:func

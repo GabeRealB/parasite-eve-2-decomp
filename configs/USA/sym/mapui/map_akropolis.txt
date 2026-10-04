@@ -122,7 +122,7 @@ D_acropolis_sanctuary_801860C8 = 0x801860C8; // absolute:True owner=acropolis_sa
 D_acropolis_sanctuary_80186188 = 0x80186188; // absolute:True owner=acropolis_sanctuary
 D_acropolis_sanctuary_801863F8 = 0x801863F8; // absolute:True owner=acropolis_sanctuary
 gAcropolisSanctuaryModel090F0 = 0x80186A08; // absolute:True owner=acropolis_sanctuary
-gAcropolisSanctuaryModel09584 = 0x80186C68; // absolute:True
+gAcropolisSanctuaryModel09584 = 0x80186C68; // absolute:True owner=acropolis_sanctuary shared=rooms
 func_acropolis_roof_garden_8017DC74 = 0x8017DC74; // type:func absolute:True owner=acropolis_roof_garden
 func_acropolis_roof_garden_80180160 = 0x80180160; // type:func absolute:True owner=acropolis_roof_garden
 D_acropolis_roof_garden_80184C8C = 0x80184C8C; // absolute:True owner=acropolis_roof_garden
@@ -133,7 +133,7 @@ D_acropolis_roof_garden_80184CAC = 0x80184CAC; // absolute:True owner=acropolis_
 D_acropolis_roof_garden_80186648 = 0x80186648; // absolute:True owner=acropolis_roof_garden
 D_acropolis_roof_garden_80186BF4 = 0x80186BF4; // absolute:True owner=acropolis_roof_garden
 D_acropolis_roof_garden_80186DB0 = 0x80186DB0; // absolute:True owner=acropolis_roof_garden
-gAcropolisRoofGardenModel09868 = 0x80186E70; // absolute:True
+gAcropolisRoofGardenModel09868 = 0x80186E70; // absolute:True owner=acropolis_roof_garden shared=rooms
 func_acropolis_bridge_8017DA0C = 0x8017DA0C; // type:func absolute:True owner=acropolis_bridge shared=rooms
 D_acropolis_bridge_80189A54 = 0x80189A54; // absolute:True owner=acropolis_bridge
 D_acropolis_bridge_80189A80 = 0x80189A80; // absolute:True owner=acropolis_bridge shared=rooms
@@ -155,7 +155,7 @@ D_acropolis_fire_escape_80183020 = 0x80183020; // absolute:True owner=acropolis_
 func_acropolis_helicopter_landing_pad_8017D964 = 0x8017D964; // type:func absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 func_acropolis_helicopter_landing_pad_8017EB00 = 0x8017EB00; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 func_acropolis_helicopter_landing_pad_801822B0 = 0x801822B0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
-gAcropolisHelicopterLandingPadModel0547C = 0x801836EC; // absolute:True
+gAcropolisHelicopterLandingPadModel0547C = 0x801836EC; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 D_acropolis_helicopter_landing_pad_80184F10 = 0x80184F10; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 D_acropolis_helicopter_landing_pad_80184F3C = 0x80184F3C; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 D_acropolis_helicopter_landing_pad_80184F40 = 0x80184F40; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms

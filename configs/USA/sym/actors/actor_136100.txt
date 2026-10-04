@@ -179,7 +179,7 @@ D_actor_136100_8014078C = 0x8014078C; // size:0x4 defined:True
 D_actor_136100_8013F304 = 0x8013F304; // size:0x30 defined:True
 D_actor_136100_8013F334 = 0x8013F334; // size:0x30 defined:True
 
-gDryfieldNightMainStreetCollision06F80Normals = 0x801833F4; // absolute:True
+gDryfieldNightMainStreetCollision06F80Normals = 0x801833F4; // absolute:True owner=dryfield_night_main_street shared=rooms
 
 gDryfieldNightMainStreetCollision06F80Verts = 0x801834AC; // absolute:True owner=dryfield_night_main_street
 

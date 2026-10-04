@@ -325,7 +325,7 @@ func_m4a1_pyke_8011E4F8 = 0x8011E4F8; // type:func absolute:True owner=m4a1_pyke
 func_m4a1_hammer_8011E710 = 0x8011E710; // type:func absolute:True owner=m4a1_hammer
 func_m4a1_javelin_8011F5D4 = 0x8011F5D4; // type:func absolute:True owner=m4a1_javelin
 func_hypervelocity_8011F724 = 0x8011F724; // type:func absolute:True owner=hypervelocity
-gShelterB6NurseryModel07BAC = 0x801852D0; // absolute:True
+gShelterB6NurseryModel07BAC = 0x801852D0; // absolute:True owner=shelter_b6_nursery shared=rooms
 gAcropolisCafeteriaModel077D8 = 0x80184E5C; // absolute:True owner=acropolis_cafeteria
 
 // Map UI tables selected by the resident gameplay map screen.
@@ -479,7 +479,7 @@ D_kyle_800104_80176C1C = 0x80176C1C; // absolute:True owner=kyle_800104
 D_actor_800200_8016F208 = 0x8016F208; // absolute:True owner=actor_800200
 D_actor_800300_8016CB98 = 0x8016CB98; // absolute:True owner=actor_800300
 D_shelter_b4_reservoir_801850C8 = 0x801850C8; // absolute:True owner=shelter_b4_reservoir
-D_shelter_b4_reservoir_801850D8 = 0x801850D8; // absolute:True
+D_shelter_b4_reservoir_801850D8 = 0x801850D8; // absolute:True owner=shelter_b4_reservoir shared=rooms
 
 
 
