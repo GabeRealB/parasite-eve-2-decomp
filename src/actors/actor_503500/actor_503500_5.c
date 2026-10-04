@@ -99,21 +99,41 @@ typedef struct Actor503500WorkD0 {
 } Actor503500WorkD0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkD0, 0xD0);
 
-/// The 0xAC block `func_actor_503500_80145A2C` allocates: an attack capsule
-/// with its shape and four-entry contact table, then the effect task it
-/// reparents itself under and its phase counters.
-typedef struct Actor503500WorkAC {
+/// Frames the orange-flash attack charges before its capsule is switched on.
+#define ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_FRAMES 91
+/// Frames the orange-flash attack's capsule stays switched on, unless it
+/// touches the player first.
+#define ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_FRAMES 56
+/// Frames the orange-flash attack task outlives its strike by.
+#define ACTOR_503500_ORANGE_FLASH_ATTACK_LINGER_FRAMES 36
+
+/// Values of `_Actor503500OrangeFlashAttackWork::phase`.
+enum {
+    ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE, // Counting the charge under a light pad rumble; the capsule is off
+    ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE, // The capsule is pair-tested, outside scripted events, under a full pad rumble
+    ACTOR_503500_ORANGE_FLASH_ATTACK_LINGER, // The capsule is off again; the task moves on to its exit state when the count ends
+};
+
+/// Work block of the orange-flash attack task: the attack that charges under
+/// the `EFFECT_SHELTER_R48_RING_FLASH` effect and then strikes along the Z
+/// axis of the coordinate it was spawned on.
+///
+/// The damage comes from a fixed tapered capsule reaching 6000 units out from
+/// that coordinate. It is switched on when the charge ends and off again at
+/// the first contact with the player, so it lands once. While
+/// `GameSession::eventState` is set the attack is presentation only: it plays
+/// a different charge sound and the capsule is never switched on.
+typedef struct {
     WorldCollisionBody    body;        // Attack capsule on the task's own coordinate; pair-tested during the strike phase until it touches the player
     WorldCollisionCapsule capsule;     // Shape of `body`: fixed, from the coordinate's origin (radius 2000) to (0, 500, 6000) (radius 3000)
     WorldCollisionContact contacts[4]; // Contact table of `capsule`, emptied every frame
-    /* 0x98 */ Task*      field_98;
-    /* 0x9C */ byte       pad_9C[0x8];
-    /* 0xA4 */ s16        field_A4; // sub-state frame counter
-    /* 0xA6 */ byte       pad_A6[0x2];
-    /* 0xA8 */ s8         field_A8; // sub-state index
-    /* 0xA9 */ byte       pad_A9[0x3];
-} Actor503500WorkAC;
-STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
+    Task*                 effectTask;  // Task of the charge effect, made a child of the attack task; never read back
+    byte                  field_9C[8]; // Never accessed; role unproven
+    s16                   phaseFrames; // Frames spent in `phase`
+    byte                  field_A6[2]; // Never accessed; role unproven
+    s8                    phase;       // (0 charge, 1 strike, 2 linger): `ACTOR_503500_ORANGE_FLASH_ATTACK_*`
+} _Actor503500OrangeFlashAttackWork;
+STATIC_ASSERT_SIZEOF(_Actor503500OrangeFlashAttackWork, 0xAC);
 
 /// The 0x4CC effect work block, allocated by `func_actor_503500_8014642C`
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot. Unlike the
@@ -1525,15 +1545,15 @@ static const TaskFuncTable3 D_actor_503500_80132224 = {
 
 static void func_actor_503500_80145A2C(Task* arg0)
 {
-    Actor503500WorkAC*     work;
-    GfxCoord*              coord;
-    WorldCollisionCapsule* capsule;
-    WorldCollisionContact* contacts;
-    EffectWork*            eff;
-    Task*                  child;
-    GfxRotationWords*      m;
-    s32                    pan;
-    s32                    pan2;
+    _Actor503500OrangeFlashAttackWork* work;
+    GfxCoord*                          coord;
+    WorldCollisionCapsule*             capsule;
+    WorldCollisionContact*             contacts;
+    EffectWork*                        eff;
+    Task*                              child;
+    GfxRotationWords*                  m;
+    s32                                pan;
+    s32                                pan2;
 
     coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
@@ -1581,8 +1601,8 @@ static void func_actor_503500_80145A2C(Task* arg0)
         func_actor_503500_80145E98(arg0);
         return;
     }
-    child          = eff->task;
-    work->field_98 = child;
+    child            = eff->task;
+    work->effectTask = child;
     taskReparent(arg0, child);
     if (gGameSession->eventState != 0) {
         pan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -1598,17 +1618,17 @@ static void func_actor_503500_80145A2C(Task* arg0)
 
 static void func_actor_503500_80145C50(Task* arg0)
 {
-    Actor503500WorkAC* work;
-    GfxCoord*          coord;
-    s32                pan;
+    _Actor503500OrangeFlashAttackWork* work;
+    GfxCoord*                          coord;
+    s32                                pan;
 
-    work = (Actor503500WorkAC*)arg0->work;
-    switch (work->field_A8) {
-        case 0:
+    work = arg0->work;
+    switch (work->phase) {
+        case ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE:
             if (gDisplayState.animFrame & 1) {
                 Gp_SpawnPadLerp(1, 0x96, 0x96);
             }
-            if (++work->field_A4 < 0x5B) {
+            if (++work->phaseFrames < ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_FRAMES) {
                 return;
             }
             if (gGameSession->eventState == 0) {
@@ -1618,21 +1638,21 @@ static void func_actor_503500_80145C50(Task* arg0)
                 SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             }
             goto next;
-        case 1:
+        case ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE:
             if (gGameSession->eventState == 0) {
                 Gp_SpawnPadLerp(1, 0xFF, 0xFF);
             }
-            if (++work->field_A4 < 0x38) {
+            if (++work->phaseFrames < ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_FRAMES) {
                 return;
             }
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), 1);
         next:
-            work->field_A4 = 0;
-            work->field_A8++;
+            work->phaseFrames = 0;
+            work->phase++;
             return;
-        case 2:
-            if (++work->field_A4 < 0x24) {
+        case ACTOR_503500_ORANGE_FLASH_ATTACK_LINGER:
+            if (++work->phaseFrames < ACTOR_503500_ORANGE_FLASH_ATTACK_LINGER_FRAMES) {
                 return;
             }
         default:
@@ -1663,7 +1683,8 @@ static void func_actor_503500_80145E1C(Task* arg0)
 
 static void func_actor_503500_80145E98(Task* arg0)
 {
-    TmdObject* ext;
+    _Actor503500OrangeFlashAttackWork* work;
+    TmdObject*                         ext;
 
     func_actor_503500_801372AC(8);
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0E), 1);
@@ -1671,15 +1692,16 @@ static void func_actor_503500_80145E98(Task* arg0)
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), 1);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500WorkAC*)arg0->work)->body);
+    work                  = arg0->work;
+    Gp_UnlinkObj(&work->body);
     taskKill(arg0);
 }
 
 static void func_actor_503500_80145F18(Task* arg0)
 {
-    Actor503500WorkAC*     work;
-    WorldCollisionContact* contacts;
-    s32                    i;
+    _Actor503500OrangeFlashAttackWork* work;
+    WorldCollisionContact*             contacts;
+    s32                                i;
 
     work     = arg0->work;
     contacts = work->contacts;
