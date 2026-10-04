@@ -32,8 +32,8 @@
 /// (`memCalloc(0x488)`) and parks in `Task::work`.
 ///
 /// It opens with the nineteen-part rig and the model state the 0x7D3 handler
-/// `actorMotionPlayAnim19` drives; the block ends short of the walk state that
-/// handler's own work type goes on to, which this actor never reaches.
+/// `actorMotionPlayAnim19` drives, which is all that handler reaches
+/// (`ActorMotion19PlayWork`); this actor does not walk and keeps no walk state.
 /// `model.light` / `model.color` are the matrices
 /// `func_actor_213100_8014A23C` publishes on the model. `field_480` is the
 /// child task the spawn state creates, whose model mirrors this one's

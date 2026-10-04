@@ -38,13 +38,13 @@ typedef struct ActorMotionWork {
 /// the rig plays.
 ///
 /// Every package that installs the handler opens its work block with these
-/// two members. What follows is the package's own and the handler does not
-/// reach it: a walker keeps its walk state there (`ActorMotion19WalkWork`),
-/// while an actor that only plays clips keeps other state or ends the block
-/// soon after.
+/// two members, and the handler reaches nothing after them. What follows is
+/// the package's own: a walker that runs the library's arrival step keeps its
+/// walk state directly after (`ActorMotion19WalkWork`), while other actors
+/// keep state of their own there, or end the block a few bytes later.
 typedef struct {
-    ActorAnimRig19  rig;   // Playback storage of the nineteen-part model; the handler drives slots 1 to 18
-    ActorModelState model; // Bank the rig is bound to and the clip its slots were last seeded with
+    ActorAnimRig19  rig;   // Playback storage of the nineteen-part model; the handler binds it to the requested bank and drives slots 1 to 18
+    ActorModelState model; // What the rig plays; the handler keeps `bank`, `animId` and `ticking` and leaves the rest to the package
 } ActorMotion19PlayWork;
 STATIC_ASSERT_SIZEOF(ActorMotion19PlayWork, 0x480);
 
