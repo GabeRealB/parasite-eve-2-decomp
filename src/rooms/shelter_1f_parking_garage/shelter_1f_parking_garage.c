@@ -393,10 +393,10 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
 /// clears `gSceneCombatState.actorControl`, restores the weapon and ends the task.
 void func_shelter_1f_parking_garage_8017DAF0(Task* task)
 {
-    RoomDeparture  rec;
-    RoomEventMsg   msg;
-    RoomDeparture* p;
-    s32            (*handler)(RoomEventMsg*, RoomEventMsg*);
+    RoomDeparture       rec;
+    RoomEventMsg        msg;
+    RoomDeparture*      p;
+    RoomVariantResolver handler;
 
     switch (task->state) {
         case 0:

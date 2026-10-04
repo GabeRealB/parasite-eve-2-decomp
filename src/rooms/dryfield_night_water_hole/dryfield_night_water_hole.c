@@ -1102,8 +1102,8 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
 
     if (arg2 == 2) {
         if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) != 0) {
-            RoomDeparture* wp;
-            s32            (*resolve)(RoomEventMsg*, RoomEventMsg*) = roomVariantResolveShelter;
+            RoomDeparture*      wp;
+            RoomVariantResolver resolve = roomVariantResolveShelter;
 
             work.stage    = GAME_STAGE_MINE_SHELTER;
             work.area     = GAME_AREA_SHELTER_B4_WATER_SUPPLY;

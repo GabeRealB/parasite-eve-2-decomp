@@ -21,6 +21,13 @@
 
 #include "main/task_types.h"
 
+/// A stage's room-variant resolver, as a room holds one to call it indirectly.
+///
+/// The resolver reads the destination area from `request` and, unless the
+/// request is a query, writes the room that area currently shows to `reply`.
+/// Both may be the same record. It always returns 1.
+typedef s32 (*RoomVariantResolver)(RoomEventMsg* request, RoomEventMsg* reply);
+
 s32 roomVariantResolveShelter(RoomEventMsg* arg0, RoomEventMsg* arg1);
 s32 roomVariantResolveNeoArk(RoomEventMsg* arg0, RoomEventMsg* arg1);
 s32 roomVariantMainStreetMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);

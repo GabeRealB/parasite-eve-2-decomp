@@ -447,10 +447,10 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             task->state++;
             return;
         case 4: {
-            RoomDeparture  work;
-            RoomEventMsg   msg;
-            RoomDeparture* wp;
-            s32            (*resolve)(RoomEventMsg*, RoomEventMsg*) = roomVariantResolveShelter;
+            RoomDeparture       work;
+            RoomEventMsg        msg;
+            RoomDeparture*      wp;
+            RoomVariantResolver resolve = roomVariantResolveShelter;
 
             work.stage    = GAME_STAGE_MINE_SHELTER;
             work.area     = (u8)task->spawnArg1.value;

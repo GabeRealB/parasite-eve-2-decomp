@@ -61,40 +61,30 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/follow_collision.h"
 
-// The animation copy spans the bank and its following records.
-// Keep the typed fields and the complete copied word range together.
+/// The clip the room adds to the player's animation bank, with the event
+/// scene's records stored after it.
+///
+/// The scene script sends `data.copy` to the player before it plays the clip.
+/// The copy takes `ANIMATION_BANK_EXTENSION_CAPACITY` words from the start of
+/// the storage, which is more than the one-entry clip table holds: the set
+/// pointer occupies extended id 47, and the copy request, the play request and
+/// the script's first four commands are written into the bank after it. The
+/// play request selects id 47 only, so none of those words is played as a clip.
+///
+/// The script is not animation-bank data. It is part of this object because
+/// the copied span ends inside it.
 typedef union {
     struct {
-        AnimationSet*            sets[1];
-        AnimationBankCopyRequest copy;
-        AnimationPlayRequest     arguments[1];
-        EvsCommand               commands[8];
-    } data;
-    s32 words[56];
-} NeoArkObservatoryAnimStorage11E0;
-STATIC_ASSERT_SIZEOF(NeoArkObservatoryAnimStorage11E0, 224);
+        AnimationSet*            sets[1];        // Player clip for extended id 47
+        AnimationBankCopyRequest copy;           // Installs the first `ANIMATION_BANK_EXTENSION_CAPACITY` words of this storage in the player's bank extension
+        AnimationPlayRequest     playRequest;    // Blends the player into extended id 47 over 15 frames
+        EvsCommand               sceneScript[8]; // The room's one-time event scene: starts CAP sequence 12, installs and plays the clip, waits for the CAP cue and ends the player's scripted control
+    } data;                                      // The records by name
+    s32 words[56];                               // The same storage as the copy reads it; the last 24 words lie beyond the copied span
+} _NeoArkObservatoryAnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_NeoArkObservatoryAnimationBankExtensionStorage, 224);
 
-extern NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0;
-
-/// Record the destination resolver `roomVariantResolveShelter` reads:
-/// `field_0` is the destination area and `field_5` must be 0 for it to act.
-typedef struct MapMarkerRec {
-    u16  field_0;
-    byte pad_2[3];
-    u8   field_5;
-} MapMarkerRec;
-
-/// Record the destination resolver writes: `field_3` is the destination room.
-/// The caller passes the same buffer as the `MapMarkerRec`, so it overwrites
-/// the room byte the caller staged after the area and warp.
-typedef struct MapMarkerOut {
-    byte pad_0[3];
-    s8   field_3;
-} MapMarkerOut;
-
-/// A destination resolver: reads the area from its first record and writes the
-/// room through the second.
-typedef s32 (*_MapMarkerResolve)(MapMarkerRec*, MapMarkerOut*);
+extern _NeoArkObservatoryAnimationBankExtensionStorage D_neo_ark_observatory_801811E0;
 
 extern EvsCommand D_80137EE4[];
 extern EvsCommand D_80138694[];
@@ -158,11 +148,10 @@ extern WorldCollisionTrigger  D_neo_ark_observatory_8018742C[14];
 extern WorldCoordRoomLights   D_neo_ark_observatory_80186844[1];
 extern WorldCoordRoomLights   D_neo_ark_observatory_80186EBC[1];
 
-extern NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0;
-s32                                     func_neo_ark_observatory_8017F6F8(Task* task, s32 msgId, const void* firstArg, s32);
-s32                                     func_neo_ark_observatory_8017FBE0(Task*, s32, s32, s32);
-s32                                     func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                                     func_neo_ark_observatory_8017FCA0(Task*, s32, s32, s32);
+s32 func_neo_ark_observatory_8017F6F8(Task* task, s32 msgId, const void* firstArg, s32);
+s32 func_neo_ark_observatory_8017FBE0(Task*, s32, s32, s32);
+s32 func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_neo_ark_observatory_8017FCA0(Task*, s32, s32, s32);
 
 void func_neo_ark_observatory_8017FB1C(Task*);
 
@@ -212,7 +201,7 @@ TaskMessageEntry D_neo_ark_observatory_801811B8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0 = { .data = { { &_gNeoArkObservatoryAnimation03BC4 }, { { .words = D_neo_ark_observatory_801811E0.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE } }, { { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_neo_ark_observatory_801811E0.data.copy } }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = D_neo_ark_observatory_801811E0.data.arguments }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } }, { .opcode = EVENT_SCRIPT_OPCODE_END } } } };
+_NeoArkObservatoryAnimationBankExtensionStorage D_neo_ark_observatory_801811E0 = { .data = { { &_gNeoArkObservatoryAnimation03BC4 }, { { .words = D_neo_ark_observatory_801811E0.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE }, { { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_neo_ark_observatory_801811E0.data.copy } }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_observatory_801811E0.data.playRequest }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } }, { .opcode = EVENT_SCRIPT_OPCODE_END } } } };
 
 EvsCommand D_neo_ark_observatory_801812C0[7] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1573,7 +1562,7 @@ RoomDeparture gRoomDeparture;
 
 s16 D_neo_ark_observatory_80187A3C;
 
-static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, _MapMarkerResolve resolve);
+static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, RoomVariantResolver resolve);
 static void            func_neo_ark_observatory_8017FCE0(Task* arg0);
 static void            func_neo_ark_observatory_8017FD7C(Task* task);
 
@@ -1592,27 +1581,27 @@ static void func_neo_ark_observatory_8017F3FC(Task* task)
 
 /// Copies the area, warp and room of `desc` into a resolver record, lets
 /// `resolve` rewrite the record in place, and copies the result back.
-static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, _MapMarkerResolve resolve)
+static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, RoomVariantResolver resolve)
 {
-    MapMarkerRec rec;
+    RoomEventMsg rec;
 
-    rec.field_0  = desc->area;
-    rec.pad_2[0] = desc->warp;
-    rec.pad_2[1] = desc->room;
-    rec.field_5  = 0;
-    resolve(&rec, (MapMarkerOut*)&rec);
-    desc->area = rec.field_0;
-    desc->warp = rec.pad_2[0];
-    desc->room = rec.pad_2[1];
+    rec.areaId    = desc->area;
+    rec.warp      = desc->warp;
+    rec.room      = desc->room;
+    rec.queryOnly = ROOM_EVENT_EXECUTE;
+    resolve(&rec, &rec);
+    desc->area = rec.areaId;
+    desc->warp = rec.warp;
+    desc->room = rec.room;
 }
 
 s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg, s32 arg3)
 {
     const DirectionActionRequest* request = firstArg;
 
-    RoomDeparture     desc;
-    _MapMarkerResolve resolve;
-    s32               temp;
+    RoomDeparture       desc;
+    RoomVariantResolver resolve;
+    s32                 temp;
 
     if (request->actionId == 0xA) {
         if (GameFlag_GetNibble(GAME_FLAG_0D1) == 2) {
@@ -1621,7 +1610,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
         if (GameFlag_GetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) == 0) {
             temp = GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED);
             if (temp == 1) {
-                _MapMarkerResolve resolve;
+                RoomVariantResolver resolve;
 
                 GameFlag_SetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN, 1);
                 desc.stage    = GAME_STAGE_MINE_SHELTER;
@@ -1675,7 +1664,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
     }
     if (request->actionId == 4 && GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0 && GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN) == 0) {
         GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN, 1);
-        func_800E8634(D_neo_ark_observatory_801811E0.data.commands, 0, D_neo_ark_observatory_801812C0);
+        func_800E8634(D_neo_ark_observatory_801811E0.data.sceneScript, 0, D_neo_ark_observatory_801812C0);
     }
     return 0;
 }

@@ -119889,22 +119889,22 @@ but in a `static __inline__` helper the caller passes a pointer to:
 before the call that separates it from the helper invocation:
 
 ```c
-static __inline__ void NeoArk_StageMarker(NeoArkObservatoryEventDesc* desc, MapMarkerResolve resolve)
+static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, RoomVariantResolver resolve)
 {
-    MapMarkerRec rec;
+    RoomEventMsg rec;
 
-    rec.field_0  = desc->field_1;      /* u16 = u8   -> lbu + sh  */
-    rec.pad_2[0] = desc->field_2;
-    rec.pad_2[1] = desc->field_3;
-    rec.field_5  = 0;
-    resolve(&rec, (MapMarkerOut*)&rec);   /* jalr */
-    desc->field_1 = rec.field_0;       /* u8 = u16 -> lbu (little-endian low half) */
-    desc->field_2 = rec.pad_2[0];
-    desc->field_3 = rec.pad_2[1];
+    rec.areaId    = desc->area;        /* u16 = u8   -> lbu + sh  */
+    rec.warp      = desc->warp;
+    rec.room      = desc->room;
+    rec.queryOnly = ROOM_EVENT_EXECUTE;
+    resolve(&rec, &rec);               /* jalr */
+    desc->area = rec.areaId;           /* u8 = u16 -> lbu (little-endian low half) */
+    desc->warp = rec.warp;
+    desc->room = rec.room;
 }
 ```
 
-with `resolve = func_...; Gp_MsgPlayerWeapon(0); NeoArk_StageMarker(&desc, resolve);`
+with `resolve = func_...; Gp_MsgPlayerWeapon(0); _neoArkObservatoryStageMarker(&desc, resolve);`
 in each arm. CSE folds the value back into a direct `jal` if the assignment and
 the helper call are adjacent in the same block (`cse`'s table does not survive
 the intervening call), so the separating call is what keeps the call indirect —
