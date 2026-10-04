@@ -88,7 +88,7 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
     }
     work->prevState = (u16)work->state;
 #if ODD_STRANGER_VARIANT == 1
-    states.fn[work->state](actor);
+    states.handlers[work->state](actor);
 
     state = work->state;
     if ((state == ODD_STRANGER_STATE_DEATH_BURN) || (state == ODD_STRANGER_STATE_HIDDEN) || (state == ODD_STRANGER_STATE_DEATH_BURST) || (state == ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
@@ -100,7 +100,7 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
     index = work->state;
     SCHED_BARRIER();
     stop = ODD_STRANGER_STATE_DEATH_BURN;
-    states.fn[index](actor);
+    states.handlers[index](actor);
     state = work->state;
     if ((state == ODD_STRANGER_STATE_AMBUSH) || (state == stop) || (state == ODD_STRANGER_STATE_HIDDEN) || (state == ODD_STRANGER_STATE_DEATH_BURST) || (state == ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
         work->hitBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

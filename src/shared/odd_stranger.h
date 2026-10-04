@@ -107,7 +107,8 @@ enum {
     ODD_STRANGER_STATE_STALK            = 0x1E, // walks at the player and grabs once close and facing
     ODD_STRANGER_STATE_REFALL_BACK      = 0x1F, // knocked down again while in `RISE_BACK`
     ODD_STRANGER_STATE_REFALL_FRONT     = 0x20, // knocked down again while in `RISE_FRONT`
-    ODD_STRANGER_STATE_DEATH_BURST_WALK = 0x21  // walks a few steps, bursts and burns away
+    ODD_STRANGER_STATE_DEATH_BURST_WALK = 0x21, // walks a few steps, bursts and burns away
+    ODD_STRANGER_STATE_COUNT                    // number of states, and of the handlers in `OddStrangerStateTable`
 };
 
 /// Values of `OddStrangerWork::animRequest` and `OddStrangerWork::blendRequest`.
@@ -222,19 +223,35 @@ typedef struct {
 } OddStrangerWork;
 STATIC_ASSERT_SIZEOF(OddStrangerWork, ODD_STRANGER_HIT_FX_OFFSET ? 0xC80 : 0xC78);
 
-/// The actor's state handlers, indexed by `OddStrangerWork::state`.
-/// `oddStrangerTick` copies the table to its frame before
-/// dispatching. Same shape as `Actor01900StateTable` / `Actor401300StateTable`.
-typedef struct OddStrangerStateTable {
-    TaskFunc fn[34];
-} OddStrangerStateTable;
-STATIC_ASSERT_SIZEOF(OddStrangerStateTable, 0x88);
-
+/// The Odd Stranger's state handlers, indexed by `OddStrangerWork::state`.
+///
+/// Each package defines one table, since some of the handlers are its own. The
+/// per-frame tick copies the table to the stack before calling the entry of
+/// the current state. The call is unconditional, so the `NULL` entry of
+/// `ODD_STRANGER_STATE_UNUSED_12` marks a state the actor must never be put in.
 typedef struct {
-    ActorTransform value;
-    u8             retained[8];
+    TaskFunc handlers[ODD_STRANGER_STATE_COUNT]; // Handler of each state, taking the actor's task
+} OddStrangerStateTable;
+STATIC_ASSERT_SIZEOF(OddStrangerStateTable, ODD_STRANGER_STATE_COUNT * sizeof(TaskFunc));
+
+/// Allocation holding the placement a grab hands the player.
+///
+/// `placement` is the payload of `GAME_ACTOR_MESSAGE_PLACE`, kept in static
+/// storage and lent to the player for the length of the dispatch, which
+/// consumes it. The grab fills it in as it takes hold: the player keeps their
+/// position and takes the bearing to the enemy as their yaw, and the enemy
+/// stands 1000 units away along that bearing.
+///
+/// In both packages eight zero bytes separate the record from the button-press
+/// record that follows. No access to them is recovered, so whether they are
+/// trailing fields of this object or a separate unreferenced variable is
+/// unproven; they stay in this allocation only to keep the data after it at
+/// its address.
+typedef struct {
+    ActorTransform placement;     // Player's own position, with the yaw of the bearing from the player to the enemy and no pitch or roll
+    u8             unknown_18[8]; // Zero in the image; no access established and role unproven
 } OddStrangerTransformStorage;
-STATIC_ASSERT_SIZEOF(OddStrangerTransformStorage, 32);
+STATIC_ASSERT_SIZEOF(OddStrangerTransformStorage, 0x20);
 
 #include "main/task_types.h"
 

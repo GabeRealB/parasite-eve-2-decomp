@@ -486,6 +486,15 @@ damage step. `DesertChaserStateTable` holds an armed package's
 `DESERT_CHASER_STATE_COUNT` state handlers, and `DesertChaserVariant` is one of
 the four tunings both armed packages define and the spawn argument picks from.
 
+`oddStranger` owns the included Odd Stranger enemy, one source built twice:
+`actor_401000` and `actor_401800`. Its implementation interface is
+`src/shared/odd_stranger.h`, one fragment per function; a carrier binds
+`ODD_STRANGER_VARIANT` before including it. `OddStrangerWork` is the task's
+work block, state values use `ODD_STRANGER_STATE_` and animation request
+values `ODD_STRANGER_ANIM_REQUEST_`. `OddStrangerStateTable` holds a package's
+`ODD_STRANGER_STATE_COUNT` state handlers, and `OddStrangerTransformStorage`
+is the static allocation of the placement a grab sends the player.
+
 `stalkerZebraIvory` owns the included pose, animation-request and
 pending-action code shared by the Zebra Stalker (`actor_400600`) and the Ivory
 Stalker (`actor_405800`). Its implementation interface is

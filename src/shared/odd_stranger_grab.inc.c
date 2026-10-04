@@ -23,7 +23,7 @@ void oddStrangerGrab(Task* arg0)
         work->animId                            = 5;
         player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(player->extra.tmd->coords);
-        msg         = &gOddStrangerGrabTransform.value;
+        msg         = &gOddStrangerGrabTransform.placement;
         msg->pos.vx = player->extra.tmd->coords->coord.t[0];
         msg->pos.vy = player->extra.tmd->coords->coord.t[1];
         msg->pos.vz = player->extra.tmd->coords->coord.t[2];
