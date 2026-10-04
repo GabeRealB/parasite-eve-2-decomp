@@ -294,22 +294,22 @@ D_dryfield_night_underpass_8017E6F8 = 0x8017E6F8; // absolute:True owner=dryfiel
 D_dryfield_night_underpass_8017F420 = 0x8017F420; // absolute:True owner=dryfield_night_underpass
 D_dryfield_night_underpass_80180374 = 0x80180374; // absolute:True owner=dryfield_night_underpass shared=rooms
 D_mappic_s3_00_8012EFF4 = 0x8012EFF4; // absolute:True owner=mappic_s3_00
-D_mappic_s3_00_8012F084 = 0x8012F084; // absolute:True
+D_mappic_s3_00_8012F084 = 0x8012F084; // absolute:True owner=mappic_s3_00 shared=mappic
 D_mappic_s3_00_8012F19C = 0x8012F19C; // absolute:True owner=mappic_s3_00
 D_mappic_s3_00_8012F22C = 0x8012F22C; // absolute:True owner=mappic_s3_00
-D_mappic_s3_00_8012F2BC = 0x8012F2BC; // absolute:True
-D_mappic_s3_02_8012EFBC = 0x8012EFBC; // absolute:True
-D_mappic_s3_02_8012F04C = 0x8012F04C; // absolute:True
-D_mappic_s3_02_8012F0DC = 0x8012F0DC; // absolute:True
-D_mappic_s3_02_8012F188 = 0x8012F188; // absolute:True
-D_mappic_s3_02_8012F218 = 0x8012F218; // absolute:True
-D_mappic_s3_02_8012F2A8 = 0x8012F2A8; // absolute:True
+D_mappic_s3_00_8012F2BC = 0x8012F2BC; // absolute:True owner=mappic_s3_00 shared=mappic
+D_mappic_s3_02_8012EFBC = 0x8012EFBC; // absolute:True owner=mappic_s3_02 shared=mappic
+D_mappic_s3_02_8012F04C = 0x8012F04C; // absolute:True owner=mappic_s3_02 shared=mappic
+D_mappic_s3_02_8012F0DC = 0x8012F0DC; // absolute:True owner=mappic_s3_02 shared=mappic
+D_mappic_s3_02_8012F188 = 0x8012F188; // absolute:True owner=mappic_s3_02 shared=mappic
+D_mappic_s3_02_8012F218 = 0x8012F218; // absolute:True owner=mappic_s3_02 shared=mappic
+D_mappic_s3_02_8012F2A8 = 0x8012F2A8; // absolute:True owner=mappic_s3_02 shared=mappic
 D_mappic_s3_02_8012F36C = 0x8012F36C; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F3FC = 0x8012F3FC; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F48C = 0x8012F48C; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F51C = 0x8012F51C; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F5AC = 0x8012F5AC; // absolute:True owner=mappic_s3_02
-D_mappic_s3_02_8012F6AC = 0x8012F6AC; // absolute:True
+D_mappic_s3_02_8012F6AC = 0x8012F6AC; // absolute:True owner=mappic_s3_02 shared=mappic
 D_mappic_s3_02_8012F73C = 0x8012F73C; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F7CC = 0x8012F7CC; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F8AC = 0x8012F8AC; // absolute:True owner=mappic_s3_02
@@ -317,12 +317,12 @@ D_mappic_s3_02_8012F93C = 0x8012F93C; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F9E8 = 0x8012F9E8; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012FA94 = 0x8012FA94; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012FB24 = 0x8012FB24; // absolute:True owner=mappic_s3_02
-D_mappic_s3_02_8012FBB4 = 0x8012FBB4; // absolute:True
+D_mappic_s3_02_8012FBB4 = 0x8012FBB4; // absolute:True owner=mappic_s3_02 shared=mappic
 D_mappic_s3_02_8012FC7C = 0x8012FC7C; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012FD78 = 0x8012FD78; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012FE08 = 0x8012FE08; // absolute:True owner=mappic_s3_02
-D_mappic_s3_03_8012EFD8 = 0x8012EFD8; // absolute:True
-D_mappic_s3_03_8012F084 = 0x8012F084; // absolute:True
-D_mappic_s3_03_8012F180 = 0x8012F180; // absolute:True
+D_mappic_s3_03_8012EFD8 = 0x8012EFD8; // absolute:True owner=mappic_s3_03 shared=mappic
+D_mappic_s3_03_8012F084 = 0x8012F084; // absolute:True owner=mappic_s3_03 shared=mappic
+D_mappic_s3_03_8012F180 = 0x8012F180; // absolute:True owner=mappic_s3_03 shared=mappic
 
 func_map_dryfield_full_80179954 = 0x80179954; // type:func

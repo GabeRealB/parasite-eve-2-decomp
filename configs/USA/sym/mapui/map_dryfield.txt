@@ -300,17 +300,17 @@ D_dryfield_underpass_8017EC10 = 0x8017EC10; // absolute:True owner=dryfield_unde
 D_dryfield_underpass_8017F4A8 = 0x8017F4A8; // absolute:True owner=dryfield_underpass shared=rooms
 D_dryfield_underpass_80180250 = 0x80180250; // absolute:True owner=dryfield_underpass
 D_dryfield_underpass_80181164 = 0x80181164; // absolute:True owner=dryfield_underpass
-D_mappic_s2_00_8012EFA0 = 0x8012EFA0; // absolute:True
-D_mappic_s2_00_8012F0B8 = 0x8012F0B8; // absolute:True
+D_mappic_s2_00_8012EFA0 = 0x8012EFA0; // absolute:True owner=mappic_s2_00 shared=mappic
+D_mappic_s2_00_8012F0B8 = 0x8012F0B8; // absolute:True owner=mappic_s2_00 shared=mappic
 D_mappic_s2_00_8012F148 = 0x8012F148; // absolute:True owner=mappic_s2_00
 D_mappic_s2_00_8012F1D8 = 0x8012F1D8; // absolute:True owner=mappic_s2_00
-D_mappic_s2_00_8012F2BC = 0x8012F2BC; // absolute:True
-D_mappic_s2_02_8012EFBC = 0x8012EFBC; // absolute:True
-D_mappic_s2_02_8012F04C = 0x8012F04C; // absolute:True
-D_mappic_s2_02_8012F0DC = 0x8012F0DC; // absolute:True
-D_mappic_s2_02_8012F188 = 0x8012F188; // absolute:True
-D_mappic_s2_02_8012F218 = 0x8012F218; // absolute:True
-D_mappic_s2_02_8012F2A8 = 0x8012F2A8; // absolute:True
+D_mappic_s2_00_8012F2BC = 0x8012F2BC; // absolute:True owner=mappic_s2_00 shared=mappic
+D_mappic_s2_02_8012EFBC = 0x8012EFBC; // absolute:True owner=mappic_s2_02 shared=mappic
+D_mappic_s2_02_8012F04C = 0x8012F04C; // absolute:True owner=mappic_s2_02 shared=mappic
+D_mappic_s2_02_8012F0DC = 0x8012F0DC; // absolute:True owner=mappic_s2_02 shared=mappic
+D_mappic_s2_02_8012F188 = 0x8012F188; // absolute:True owner=mappic_s2_02 shared=mappic
+D_mappic_s2_02_8012F218 = 0x8012F218; // absolute:True owner=mappic_s2_02 shared=mappic
+D_mappic_s2_02_8012F2A8 = 0x8012F2A8; // absolute:True owner=mappic_s2_02 shared=mappic
 D_mappic_s2_02_8012F354 = 0x8012F354; // absolute:True owner=mappic_s2_02
 D_mappic_s2_02_8012F3E4 = 0x8012F3E4; // absolute:True owner=mappic_s2_02
 D_mappic_s2_02_8012F474 = 0x8012F474; // absolute:True owner=mappic_s2_02
@@ -328,6 +328,6 @@ D_mappic_s2_02_8012FB9C = 0x8012FB9C; // absolute:True owner=mappic_s2_02
 D_mappic_s2_02_8012FC64 = 0x8012FC64; // absolute:True owner=mappic_s2_02
 D_mappic_s2_02_8012FD60 = 0x8012FD60; // absolute:True owner=mappic_s2_02
 D_mappic_s2_02_8012FDF0 = 0x8012FDF0; // absolute:True owner=mappic_s2_02
-D_mappic_s2_03_8012EFD8 = 0x8012EFD8; // absolute:True
-D_mappic_s2_03_8012F084 = 0x8012F084; // absolute:True
-D_mappic_s2_03_8012F180 = 0x8012F180; // absolute:True
+D_mappic_s2_03_8012EFD8 = 0x8012EFD8; // absolute:True owner=mappic_s2_03 shared=mappic
+D_mappic_s2_03_8012F084 = 0x8012F084; // absolute:True owner=mappic_s2_03 shared=mappic
+D_mappic_s2_03_8012F180 = 0x8012F180; // absolute:True owner=mappic_s2_03 shared=mappic

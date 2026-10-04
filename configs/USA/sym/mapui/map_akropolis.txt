@@ -202,9 +202,9 @@ D_mist_shooting_gallery_8018998C = 0x8018998C; // absolute:True owner=mist_shoot
 D_mist_shooting_gallery_8018BD10 = 0x8018BD10; // absolute:True owner=mist_shooting_gallery
 D_mist_shooting_gallery_8018E09C = 0x8018E09C; // absolute:True owner=mist_shooting_gallery
 func_mist_r21_8017D708 = 0x8017D708; // type:func absolute:True owner=mist_r21 shared=rooms
-D_mappic_s1_00_8012EFD8 = 0x8012EFD8; // absolute:True
+D_mappic_s1_00_8012EFD8 = 0x8012EFD8; // absolute:True owner=mappic_s1_00 shared=mappic
 D_mappic_s1_00_8012F128 = 0x8012F128; // absolute:True owner=mappic_s1_00
-D_mappic_s1_00_8012F224 = 0x8012F224; // absolute:True
+D_mappic_s1_00_8012F224 = 0x8012F224; // absolute:True owner=mappic_s1_00 shared=mappic
 D_mappic_s1_00_8012F2D0 = 0x8012F2D0; // absolute:True owner=mappic_s1_00
 D_mappic_s1_00_8012F360 = 0x8012F360; // absolute:True owner=mappic_s1_00
 D_mappic_s1_00_8012F3F0 = 0x8012F3F0; // absolute:True owner=mappic_s1_00
@@ -217,4 +217,4 @@ D_mappic_s1_00_8012F88C = 0x8012F88C; // absolute:True owner=mappic_s1_00
 D_mappic_s1_00_8012F91C = 0x8012F91C; // absolute:True owner=mappic_s1_00
 D_mappic_s1_00_8012F9AC = 0x8012F9AC; // absolute:True owner=mappic_s1_00
 D_mappic_s1_00_8012FAFC = 0x8012FAFC; // absolute:True owner=mappic_s1_00
-D_mappic_s1_02_8012EFA0 = 0x8012EFA0; // absolute:True
+D_mappic_s1_02_8012EFA0 = 0x8012EFA0; // absolute:True owner=mappic_s1_02 shared=mappic
