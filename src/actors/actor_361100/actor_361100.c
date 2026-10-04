@@ -45,13 +45,14 @@
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 
-/// Work block of the actor drawn with `_gActor361100Model06038`, the first of
-/// the package's two scripted models.
+/// Work block of the tentacle drawn with `_gActor361100Model06038`, the first
+/// of the package's two scripted models: a tube of ten segments about nine
+/// times as long as Aya is tall, whose tip carries four two-jointed flaps.
 ///
 /// The task's spawn state allocates it zeroed and keeps it at `Task::work`
-/// for the task's life. It opens with the head the nineteen-part play handler
-/// runs on (`ActorMotion19PlayWork`), and the model object borrows
-/// `model.light` and `model.color` for as long as the block lives.
+/// for the task's life. It opens as `ActorMotion19PlayWork` does, which the
+/// play handler of the actor-motion library runs on, and the model object
+/// borrows `model.light` and `model.color` for as long as the block lives.
 ///
 /// What follows moves the model in a straight line: each tick adds `velocity`
 /// to `carry` and moves the root coordinate by the whole units that makes. A
@@ -67,11 +68,11 @@ typedef struct {
     Fixed16         carry[3];      // X, Y and Z displacement not yet applied; only the fractions survive a tick
     byte            pad_48C[0x4];
     VECTOR          velocity;      // Displacement added each tick, in signed 16.16 units; zero while standing
-    s16             moveFrames;    // Ticks the move still has to run; the tick finding 0 applies `velocity` once more, clears it and leaves -1
+    s16             moveFrames;    // Ticks the move still has to run; the tick finding 0 applies `velocity` once more, clears it and leaves -1 (0 from the spawn, -1 once no move is counting)
     s8              freeCountdown; // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
     byte            pad_4A3[0x1];
-} _Actor361100Model06038Work;
-STATIC_ASSERT_SIZEOF(_Actor361100Model06038Work, 0x4A4);
+} _Actor361100TentacleWork;
+STATIC_ASSERT_SIZEOF(_Actor361100TentacleWork, 0x4A4);
 
 /// Work block of Aya Brea's body, the second of the package's two scripted
 /// models.
@@ -1478,7 +1479,7 @@ static void func_actor_361100_80162B0C(void)
     D_actor_361100_80171BE0 = 0;
 }
 
-/// Per-frame tick of the first model: adds `velocity` to `carry` and moves the
+/// Per-frame tick of the tentacle: adds `velocity` to `carry` and moves the
 /// root part's local translation by the whole units that makes, keeping the
 /// fractions -- runs the `moveFrames` countdown that zeroes `velocity` while it
 /// is at 0, ticks the animation slots once `model.ticking` has latched, and
@@ -1492,11 +1493,11 @@ static void func_actor_361100_80162B0C(void)
 /// part.
 static void func_actor_361100_80162B18(Task* task)
 {
-    TmdObject*                  ext  = task->extra.tmd;
-    _Actor361100Model06038Work* work = (_Actor361100Model06038Work*)task->work;
-    GfxCoord*                   coord;
-    VECTOR                      pos;
-    s32                         i;
+    TmdObject*                ext  = task->extra.tmd;
+    _Actor361100TentacleWork* work = task->work;
+    GfxCoord*                 coord;
+    VECTOR                    pos;
+    s32                       i;
 
     coord                = ext->coords;
     work->carry[0].word += work->velocity.vx;
@@ -1518,7 +1519,7 @@ static void func_actor_361100_80162B18(Task* task)
         work->moveFrames--;
     }
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
@@ -1559,14 +1560,14 @@ void func_actor_361100_80162CBC(Task* task)
 /// `func_actor_361100_80162DE4` if the allocation fails.
 static void func_actor_361100_80162D28(Task* arg0)
 {
-    _Actor361100Model06038Work* work;
-    GfxCoord*                   coord;
-    Enemy*                      enemy;
+    _Actor361100TentacleWork* work;
+    GfxCoord*                 coord;
+    Enemy*                    enemy;
 
     coord = arg0->extra.tmd->coords;
     enemy = arg0->spawnArg2.pointer;
 
-    work = memCalloc(sizeof(_Actor361100Model06038Work), false);
+    work = memCalloc(sizeof(_Actor361100TentacleWork), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
@@ -1598,10 +1599,10 @@ static void func_actor_361100_80162DE4(Task* arg0)
 
 static void func_actor_361100_80162E04(Task* arg0)
 {
-    TmdObject*                  ext;
-    _Actor361100Model06038Work* work;
+    TmdObject*                ext;
+    _Actor361100TentacleWork* work;
 
-    work          = (_Actor361100Model06038Work*)arg0->work;
+    work          = arg0->work;
     ext           = arg0->extra.tmd;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
@@ -1617,10 +1618,10 @@ static void func_actor_361100_80162E04(Task* arg0)
 /// in progress.
 s32 func_actor_361100_80162F58(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
-    GfxCoord*                   coord;
-    _Actor361100Model06038Work* work;
+    GfxCoord*                 coord;
+    _Actor361100TentacleWork* work;
 
-    work                = (_Actor361100Model06038Work*)task->work;
+    work                = task->work;
     coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
@@ -1641,8 +1642,9 @@ s32 func_actor_361100_80162F58(Task* task, s32 arg1, ActorTransform* placement, 
 
 s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
-    TmdObject* obj;
-    s32        ret;
+    _Actor361100TentacleWork* work;
+    TmdObject*                obj;
+    s32                       ret;
 
     obj = task->extra.tmd;
     ret = 0;
@@ -1657,9 +1659,10 @@ s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                                              |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((_Actor361100Model06038Work*)task->work)->freeCountdown = mode;
-            obj->flags                                              |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work                = task->work;
+            work->freeCountdown = mode;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1681,9 +1684,9 @@ s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// the task through its own `Task::exitCallback`.
 s32 func_actor_361100_801630D4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    _Actor361100Model06038Work* work;
+    _Actor361100TentacleWork* work;
 
-    work = (_Actor361100Model06038Work*)task->work;
+    work = task->work;
     switch (msg->command) {
         case 0:
             work->velocity.vx = 0;
