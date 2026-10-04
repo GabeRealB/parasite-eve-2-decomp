@@ -97,62 +97,88 @@ STATIC_ASSERT_SIZEOF(Actor503500Work224, 0x224);
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
-/// Element of `D_actor_503500_80177B60`, the 0x3D8 blocks
-/// `func_actor_503500_8013FA74` clears for spawn slots 0xD..0x10; the task's
-/// `Task::work` points at its element. Like `Actor503500Work2EC`, it opens with the light / colour matrices the init republishes on
-/// `TmdObject::lightMtx` / `colorMtx`, then a private copy of model parts
-/// 1..8's `coord` matrices: `func_actor_503500_80141FC8`'s sub-state 0 resets
-/// entries 1..8 of `mats` to an identity rotation with zero translation.
+/// Shape of a lunging chain's model.
+enum {
+    ACTOR_503500_LUNGING_CHAIN_PART_COUNT = 9, // Model parts: the root and the eight links aimed along the curve
+    ACTOR_503500_LUNGING_CHAIN_TIP_PART   = 8, // Last part, which carries the target and attack spheres
+};
+
+/// What a lunging chain is doing, as held in `_Actor503500LungingChainWork::state`.
 ///
-/// The chain state follows the collision records. `func_actor_503500_80141448`
-/// samples a cubic Bezier into `pts` (root first), re-aims the chain along it
-/// and hands `angles` to `func_actor_503500_80142220`, which only reads the
-/// `vx` pitch of entries 2..7. `field_358` is the far control point, local to
-/// the root's parent; `phase` is stepped by 0x80 per link.
-typedef struct Actor503500Work3D8 {
-    /* 0x000 */ MATRIX                light;
-    /* 0x020 */ MATRIX                color;
-    /* 0x040 */ MATRIX                mats[9];
-    /* 0x160 */ WorldCollisionBody    obj160;
-    /* 0x180 */ WorldCollisionContact rec180[8]; // obj160's table, count 8
-    /* 0x240 */ WorldCollisionBody    obj240;
-    /* 0x260 */ WorldCollisionContact rec260[4]; // obj240's table, count 4
-    /* 0x2C0 */ EffectSpawnArg        field_2C0; // record this block's effects are spawned with
-    /* 0x2C8 */ SVECTOR               pts[9];
-    /* 0x310 */ SVECTOR               angles[9];
-    /* 0x358 */ SVECTOR               field_358;
-    /* 0x360 */ SVECTOR               field_360; // field_358 before this frame's step
-    /* 0x368 */ SVECTOR               field_368;
-    /* 0x370 */ SVECTOR               field_370; // player position latched by func_actor_503500_801400A4
-                                                 /// Part 0's `coord` matrix, saved by `func_actor_503500_80140654` once
-                                                 /// the body has risen and restored every frame before scaling.
-    /* 0x378 */ MATRIX  field_378;
-    /* 0x398 */ s32     field_398;               // step speed toward field_368
-    /* 0x39C */ Fixed16 field_39C;               // speed limit; integer half is the arrival radius
-    /* 0x3A0 */ byte    pad_3A0[0x4];
-    /* 0x3A4 */ s16     field_3A4;               // sub-state, see func_actor_503500_80142310
-    /* 0x3A6 */ s16     field_3A6;
-    /* 0x3A8 */ s16     field_3A8;               // hit countdown, raised by each landed id's stun
-    /* 0x3AA */ s16     field_3AA;
-    /* 0x3AC */ s16     field_3AC;               // vertical scale, 0x1000 down to 0x200
-    /* 0x3AE */ s16     field_3AE;               // sub-state frame counter
-    /* 0x3B0 */ u16     field_3B0;
-    /* 0x3B2 */ u16     field_3B2;               // fade level, stepped by 0x10 up to 0x1000
-    /* 0x3B4 */ s16     field_3B4;               // sway amplitude
-    /* 0x3B6 */ s16     field_3B6;               // sway fade-in, 0..0x1000
-    /* 0x3B8 */ s16     phase[9];                // sway phase per link, seeded to i * 0x200
-    /* 0x3CA */ byte    pad_3CA[0x2];
-    /* 0x3CC */ s16     field_3CC;               // weight of the rest pitch table
-    /* 0x3CE */ byte    pad_3CE[0x2];
-    /* 0x3D0 */ s8      field_3D0;               // sub-state index
-    /* 0x3D1 */ s8      field_3D1;               // sub-state phase, cleared with field_3D0
-    /* 0x3D2 */ byte    pad_3D2[0x2];
-    /* 0x3D4 */ s8      field_3D4;               // set while field_358 sits on field_368
-    /* 0x3D5 */ s8      field_3D5;
-    /* 0x3D6 */ s8      field_3D6;
-    /* 0x3D7 */ s8      field_3D7; // TMD buffer countdown
-} Actor503500Work3D8;
-STATIC_ASSERT_SIZEOF(Actor503500Work3D8, 0x3D8);
+/// Value 3 is not used.
+enum {
+    ACTOR_503500_LUNGING_CHAIN_STATE_IDLE             = 0, // Sways with its tip at the slot's rest offset; a command from the boss starts a lunge
+    ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE            = 1, // Curls up over where the player stood, then throws its tip there
+    ACTOR_503500_LUNGING_CHAIN_STATE_HOLD             = 2, // Waits out `holdFrames`, then idles; stepped, but nothing enters it
+    ACTOR_503500_LUNGING_CHAIN_STATE_DAMAGE_OVER_TIME = 4, // Held between the ticks of a damage-over-time reaction; has no step of its own
+    ACTOR_503500_LUNGING_CHAIN_STATE_DYING            = 5, // Health exhausted: leaves the boss, rises, squashes flat and burns away
+    ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING        = 6, // Split off a large chain: eases out of `blendStart`, then becomes a target
+    ACTOR_503500_LUNGING_CHAIN_STATE_REGROWING        = 7, // Regrown: collapses `blendStart` onto the root and eases out of that at twice the rate
+};
+
+/// Work block of a lunging chain, one of the four slot enemies (slots 13 to
+/// 16) that take the place of the boss's two large chains.
+///
+/// The enemy is a nine-part model whose root hangs from part 1 of the boss
+/// and whose last part, the tip, carries its target sphere and its attack
+/// sphere. Nothing animates it. Every frame the tip's position is stepped
+/// toward a target in the frame of that boss part, a cubic Bezier is drawn
+/// from the root to the tip, and the links are aimed along samples of it;
+/// a sine sway and a curl are then added as pitch on links 2 to 7. Idle, the
+/// tip stays at the slot's rest offset. Commanded by the boss, the chain
+/// curls up over where the player stood and throws its tip there with the
+/// attack sphere live.
+///
+/// The command waiting in the task at set-up says how the chain came to be.
+/// Split off a large chain, it eases out of the pose its model was spawned
+/// in; regrown later, it eases out from its root. Either way it becomes a target
+/// only once that blend is complete. With neither command it is a target at
+/// once.
+///
+/// One block per slot exists in a static array; the task's `Task::work`
+/// points at its element.
+typedef struct {
+    MATRIX                lightMtx;                                          // Light matrix the model is lit with
+    MATRIX                colorMtx;                                          // Colour matrix the model is lit with
+    MATRIX                blendStart[ACTOR_503500_LUNGING_CHAIN_PART_COUNT]; // Local matrix of each model part that the laid-out pose is blended from while `blendWeight` is below 0x1000; entry 0 is not used
+    WorldCollisionBody    body;                                              // Target sphere of radius 600 on the tip; pair-tested only while the chain is a target
+    WorldCollisionContact contacts[8];                                       // Contact table of `body`, also the enemy's hit records
+    WorldCollisionBody    attackBody;                                        // Attack sphere of radius 500 on the tip, delivering the slot's first attack; pair-tested from a lunge's throw until the tip lands or the sphere touches the player
+    WorldCollisionContact attackContacts[4];                                 // Contact table of `attackBody`, emptied every frame
+    EffectSpawnArg        hitEffect;                                         // Record hit effects on the chain are spawned with, bound to the tip
+    SVECTOR               linkPoints[ACTOR_503500_LUNGING_CHAIN_PART_COUNT]; // World positions the links are aimed along, root end first: nine samples of the Bezier from the root to the tip
+    SVECTOR               linkAngles[ACTOR_503500_LUNGING_CHAIN_PART_COUNT]; // Euler angles given to the links once aimed; only the pitch of entries 2 to 7 is applied, the sway plus the curl
+    SVECTOR               tipPosition;                                       // Where the chain ends, in the frame of the boss part the root hangs from
+    SVECTOR               previousTipPosition;                               // `tipPosition` before this frame's step. Nothing reads it back
+    SVECTOR               tipTarget;                                         // Position `tipPosition` is stepped toward, in the same frame
+    SVECTOR               lungeTarget;                                       // World position of the player, latched when a lunge starts
+    MATRIX                unscaledRootMatrix;                                // Root part's matrix saved once the dying chain has risen; put back every frame before the collapse scale is applied
+    s32                   tipSpeed;                                          // Speed of the tip toward `tipTarget`, 16.16 units per frame
+    Fixed16               tipSpeedLimit;                                     // Top tip speed, 16.16: 96 normally, 1024 for a lunge's throw. A thirty-second of it is the per-frame acceleration; its integer half is the distance, summed over the axes, inside which the tip snaps onto the target
+    byte                  unknown_3A0[0x4];                                  // No access found; role unproven
+    s16                   state;                                             // An `ACTOR_503500_LUNGING_CHAIN_STATE_*` state
+    s16                   holdFrames;                                        // Frames the hold state lasts; a stagger sets 5
+    s16                   hitCooldown;                                       // Frames during which further hits are ignored; each hit that lands raises it to that attack's value
+    s16                   slowFrames;                                        // Frames during which the tip moves at a quarter of its speed; a stagger or a damage-over-time tick sets 8
+    s16                   collapseScaleY;                                    // Vertical scale of the dying chain, 0x1000 down to 0x200
+    s16                   stateFrames;                                       // Frames counted by the current state's step
+    s16                   stepFrames;                                        // Frames counted by the timed steps of a lunge
+    s16                   blendWeight;                                       // Share of the laid-out pose in the model, from 0 (all `blendStart`) to 0x1000 (all laid out); raised while the chain unfolds or regrows
+    s16                   swayAmplitude;                                     // Peak pitch of the sway, in 4096ths of a turn
+    s16                   swayWeight;                                        // Scale of the sway, 0 to 0x1000; restored while idle, dropped during a lunge's throw
+    s16                   swayPhase[ACTOR_503500_LUNGING_CHAIN_PART_COUNT];  // Sway phase of each link in 4096ths of a turn, seeded 0x200 apart; entries 2 to 8 advance 0x80 a frame
+    byte                  unknown_3CA[0x2];                                  // No access found; role unproven
+    s16                   curlWeight;                                        // Scale of the per-link curl pitch, 0x1000 being 1.0; wound up to 0x2000 before a lunge's throw and released after it
+    byte                  unknown_3CE[0x2];                                  // No access found; role unproven
+    s8                    stateStep;                                         // Step within the current state, restarted on every state change
+    s8                    field_3D1;                                         // Cleared on every state change. Nothing reads it back; role unproven
+    byte                  unknown_3D2[0x2];                                  // No access found; role unproven
+    s8                    tipArrived;                                        // 1 while `tipPosition` sits on `tipTarget`
+    s8                    tipAdvancing;                                      // 1 while the tip accelerates toward its limit, 0 while it slows to a stop; set at set-up and never cleared
+    s8                    detached;                                          // 1 once the dying chain's root has been re-parented onto the view; the chain is no longer laid out
+    s8                    bufferFreeCountdown;                               // Frames until the model's buffers are freed after it is hidden; negative when idle
+} _Actor503500LungingChainWork;
+STATIC_ASSERT_SIZEOF(_Actor503500LungingChainWork, 0x3D8);
 
 /// Phase of a ballistic shot, as held in `_Actor503500BallisticShotWork::phase`.
 enum {
@@ -440,7 +466,7 @@ static void func_actor_503500_80144DA8(Task* arg0);
 
 static void func_actor_503500_80141D04(Task* arg0);
 
-extern Actor503500Work3D8 D_actor_503500_80177B60[];
+extern _Actor503500LungingChainWork D_actor_503500_80177B60[];
 
 extern Actor5035004Storage8AC0 D_actor_503500_80178AC0;
 
@@ -488,7 +514,7 @@ Actor503500Work7797C D_actor_503500_8017797C = { 0 };
 
 Actor503500WorkF4 D_actor_503500_80177A6C = { 0 };
 
-Actor503500Work3D8 D_actor_503500_80177B60[4];
+_Actor503500LungingChainWork D_actor_503500_80177B60[4];
 
 Actor5035004Storage8AC0 D_actor_503500_80178AC0;
 
@@ -2697,17 +2723,17 @@ static const TaskFuncTable3 D_actor_503500_80132108 = {
 
 static void func_actor_503500_8013FA74(Task* arg0)
 {
-    Enemy*                 enemy;
-    TmdObject*             tmd;
-    GfxCoord*              coord;
-    GfxCoord*              part;
-    Actor503500Work3D8*    work;
-    WorldCollisionContact* rec;
-    WorldCollisionContact* rec2;
-    GfxMatrix              m;
-    GfxRotationWords*      ident;
-    s32                    idx;
-    s32                    i;
+    Enemy*                        enemy;
+    TmdObject*                    tmd;
+    GfxCoord*                     coord;
+    GfxCoord*                     part;
+    _Actor503500LungingChainWork* work;
+    WorldCollisionContact*        rec;
+    WorldCollisionContact*        rec2;
+    GfxMatrix                     m;
+    GfxRotationWords*             ident;
+    s32                           idx;
+    s32                           i;
 
     idx   = arg0->spawnArg1.value - 0xD;
     enemy = arg0->spawnArg2.pointer;
@@ -2729,77 +2755,77 @@ static void func_actor_503500_8013FA74(Task* arg0)
     ident->m22             = ONE;
     RotMatrix(&D_actor_503500_8016F3CC[idx], &m.mat);
     MulMatrix0(&coord->coord, &m.mat, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_3D7     = -1;
-    tmd->lightMtx       = &work->light;
-    tmd->colorMtx       = &work->color;
-    tmd->otOffset       = 0x12;
+    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    work->bufferFreeCountdown = -1;
+    tmd->lightMtx             = &work->lightMtx;
+    tmd->colorMtx             = &work->colorMtx;
+    tmd->otOffset             = 0x12;
 
     enemy->field_4                = &coord->coord;
-    part                          = &coord[8];
+    part                          = &coord[ACTOR_503500_LUNGING_CHAIN_TIP_PART];
     enemy->field_48               = 0;
     enemy->coord                  = part;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
     enemy->bodyPos.vx             = D_actor_503500_8016F3EC.vx;
     enemy->bodyPos.vy             = D_actor_503500_8016F3EC.vy;
     enemy->bodyPos.vz             = D_actor_503500_8016F3EC.vz;
-    rec                           = work->rec180;
+    rec                           = work->contacts;
     enemy->param                  = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
     enemy->recs                   = rec;
 
-    work->obj160.coord            = part;
-    work->obj160.context.contacts = rec;
-    work->obj160.pos.vx           = D_actor_503500_8016F3EC.vx;
-    work->obj160.pos.vy           = D_actor_503500_8016F3EC.vy;
-    work->obj160.pos.vz           = D_actor_503500_8016F3EC.vz;
-    work->obj160.key              = 0x30023;
-    work->obj160.radius           = 0x258;
-    work->obj160.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->obj160);
-    Gp_InitRec18Table(rec, 8, 0);
-    rec2                          = work->rec260;
-    work->obj240.coord            = part;
-    work->obj240.context.contacts = rec2;
-    work->obj160.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->obj240.pos.vx           = D_actor_503500_8016F3F4[idx].vx;
-    work->obj240.pos.vy           = D_actor_503500_8016F3F4[idx].vy;
-    work->obj240.pos.vz           = D_actor_503500_8016F3F4[idx].vz;
-    work->obj240.key              = Gp_PackPair(enemy->param->attacks, 0);
-    work->obj240.radius           = 0x1F4;
-    work->obj240.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj240);
-    Gp_InitRec18Table(rec2, 4, 0);
-    work->field_2C0.spawnArgLo = 0x600;
-    work->field_2C0.coord      = part;
-    work->field_2C0.spawnArgHi = 3;
-    work->obj240.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->body.coord            = part;
+    work->body.context.contacts = rec;
+    work->body.pos.vx           = D_actor_503500_8016F3EC.vx;
+    work->body.pos.vy           = D_actor_503500_8016F3EC.vy;
+    work->body.pos.vz           = D_actor_503500_8016F3EC.vz;
+    work->body.key              = 0x30023;
+    work->body.radius           = 0x258;
+    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work->body);
+    Gp_InitRec18Table(rec, ARRAY_SIZE(work->contacts), 0);
+    rec2                              = work->attackContacts;
+    work->attackBody.coord            = part;
+    work->attackBody.context.contacts = rec2;
+    work->body.flags                 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->attackBody.pos.vx           = D_actor_503500_8016F3F4[idx].vx;
+    work->attackBody.pos.vy           = D_actor_503500_8016F3F4[idx].vy;
+    work->attackBody.pos.vz           = D_actor_503500_8016F3F4[idx].vz;
+    work->attackBody.key              = Gp_PackPair(enemy->param->attacks, 0);
+    work->attackBody.radius           = 0x1F4;
+    work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->attackBody);
+    Gp_InitRec18Table(rec2, ARRAY_SIZE(work->attackContacts), 0);
+    work->hitEffect.spawnArgLo = 0x600;
+    work->hitEffect.coord      = part;
+    work->hitEffect.spawnArgHi = 3;
+    work->attackBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    copyVector(&work->field_368, &D_actor_503500_8016F414[arg0->spawnArg1.value - 0xD]);
-    copyVector(&work->field_358, &D_actor_503500_8016F414[arg0->spawnArg1.value - 0xD]);
-    work->field_39C.word = 0x600000;
-    work->field_3B4      = 0x40;
-    work->field_3B6      = 0x1000;
-    work->field_3D5      = 1;
-    for (i = 1; i < 9; i++) {
-        work->phase[i] = (i << 9) & 0xFFF;
-        work->mats[i]  = coord[i].coord;
+    copyVector(&work->tipTarget, &D_actor_503500_8016F414[arg0->spawnArg1.value - 0xD]);
+    copyVector(&work->tipPosition, &D_actor_503500_8016F414[arg0->spawnArg1.value - 0xD]);
+    work->tipSpeedLimit.word = 0x600000;
+    work->swayAmplitude      = 0x40;
+    work->swayWeight         = 0x1000;
+    work->tipAdvancing       = 1;
+    for (i = 1; i < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; i++) {
+        work->swayPhase[i]  = (i << 9) & 0xFFF;
+        work->blendStart[i] = coord[i].coord;
     }
     Gp_UpdateCoord(coord);
     func_actor_503500_801421A8(arg0);
     switch (arg0->killCountdown) {
         case 8:
-            func_actor_503500_80142310(arg0, 6);
+            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING);
             break;
         case 9:
             tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            func_actor_503500_80142310(arg0, 7);
+            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_REGROWING);
             break;
         default:
             Gp_LinkNode(&enemy->node);
-            enemy->hp           = D_actor_503500_8016E7EC[arg0->spawnArg1.value].hpMax;
-            work->field_3B2     = 0x1000;
-            work->obj160.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            func_actor_503500_80142310(arg0, 0);
+            enemy->hp         = D_actor_503500_8016E7EC[arg0->spawnArg1.value].hpMax;
+            work->blendWeight = 0x1000;
+            work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             break;
     }
     arg0->exitCallback = func_actor_503500_80141D04;
@@ -2808,21 +2834,21 @@ static void func_actor_503500_8013FA74(Task* arg0)
 
 static void func_actor_503500_8013FF0C(Task* arg0)
 {
-    Actor503500Work3D8* work;
-    Enemy*              enemy;
-    TmdObject*          tmd;
-    s8                  countdown;
-    s32                 slot;
+    _Actor503500LungingChainWork* work;
+    Enemy*                        enemy;
+    TmdObject*                    tmd;
+    s8                            countdown;
+    s32                           slot;
 
     work      = arg0->work;
     enemy     = arg0->spawnArg2.pointer;
-    countdown = work->field_3D7;
+    countdown = work->bufferFreeCountdown;
     tmd       = arg0->extra.tmd;
     if (countdown >= 0) {
         if (countdown == 0) {
             Tmd_FreeBuffers(tmd);
         }
-        work->field_3D7 = (s8)((u8)work->field_3D7 - 1);
+        work->bufferFreeCountdown--;
     }
     if (gGameSession->eventState != 0) {
         slot = 0xB;
@@ -2836,7 +2862,7 @@ static void func_actor_503500_8013FF0C(Task* arg0)
         }
     } else {
     tick:
-        func_actor_503500_80135828(arg0, &work->field_3D7);
+        func_actor_503500_80135828(arg0, &work->bufferFreeCountdown);
     }
 
     switch (gSceneCombatState.actorControl) {
@@ -2855,7 +2881,7 @@ static void func_actor_503500_8013FF0C(Task* arg0)
             }
             func_actor_503500_801420C4(arg0);
             func_actor_503500_80141D7C(arg0);
-            if (work->field_3D6 == 0) {
+            if (work->detached == 0) {
                 func_actor_503500_80141248(arg0);
                 func_actor_503500_80141448(arg0);
             }
@@ -2865,102 +2891,102 @@ static void func_actor_503500_8013FF0C(Task* arg0)
     }
 }
 
-/// Sub-state of the 0x3D8 enemies. Phase 0 latches the position behind
-/// `gPlayerStatus.coordMtx` in `field_370` and rotates its offset from the
-/// parent coordinate into `field_368`; phase 1 ramps `field_3CC` to 0x2000 and
-/// re-aims once `field_3D4` is set; phases 2..4 ramp it back to 0. While in
-/// phases 0..1, `func_actor_503500_80142310` ends the state after 120 frames
+/// Lunge state of the lunging chains. Step 0 latches the position behind
+/// `gPlayerStatus.coordMtx` in `lungeTarget` and rotates its offset from the
+/// parent coordinate into `tipTarget`; step 1 ramps `curlWeight` to 0x2000 and
+/// re-aims once `tipArrived` is set; steps 2..4 ramp it back to 0. While in
+/// steps 0..1, `func_actor_503500_80142310` ends the state after 120 frames
 /// or when `func_actor_503500_80136218`'s reading leaves the window the slot
 /// (and whether its partner slot is empty) allows.
 static void func_actor_503500_801400A4(Task* arg0)
 {
-    SVECTOR             v;
-    SVECTOR             pos;
-    MATRIX              mtx;
-    MATRIX              rot;
-    Actor503500Work3D8* work;
-    GfxCoord*           coord;
-    s32                 keep;
-    s32                 dist;
+    SVECTOR                       v;
+    SVECTOR                       pos;
+    MATRIX                        mtx;
+    MATRIX                        rot;
+    _Actor503500LungingChainWork* work;
+    GfxCoord*                     coord;
+    s32                           keep;
+    s32                           dist;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (func_actor_503500_8013608C(arg0->parent) != 0) {
-        func_actor_503500_80142310(arg0, 0);
+        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
         func_actor_503500_8013611C(arg0->spawnArg1.value);
         return;
     }
-    switch (work->field_3D0) {
+    switch (work->stateStep) {
         case 0:
-            work->field_370.vx = gPlayerStatus.coordMtx->t[0];
-            work->field_370.vy = gPlayerStatus.coordMtx->t[1];
-            work->field_370.vz = gPlayerStatus.coordMtx->t[2];
+            work->lungeTarget.vx = gPlayerStatus.coordMtx->t[0];
+            work->lungeTarget.vy = gPlayerStatus.coordMtx->t[1];
+            work->lungeTarget.vz = gPlayerStatus.coordMtx->t[2];
             Gp_ComposeParentWorld(coord->parent, &mtx, &pos);
-            v.vx = work->field_370.vx - pos.vx;
-            v.vy = work->field_370.vy - pos.vy - 5000;
-            v.vz = work->field_370.vz - pos.vz;
+            v.vx = work->lungeTarget.vx - pos.vx;
+            v.vy = work->lungeTarget.vy - pos.vy - 5000;
+            v.vz = work->lungeTarget.vz - pos.vz;
             gte_TransposeMatrix(&mtx, &rot);
             gte_SetRotMatrix(&rot);
             gte_ldv0(&v);
             gte_rtv0();
-            gte_stsv(&work->field_368);
+            gte_stsv(&work->tipTarget);
             func_actor_503500_80135FB4(arg0->parent, 0x12, 0x10);
-            work->field_3D0++;
+            work->stateStep++;
             break;
         case 1:
-            work->field_3CC += 0x88;
-            if (work->field_3CC > 0x2000) {
-                work->field_3CC = 0x2000;
+            work->curlWeight += 0x88;
+            if (work->curlWeight > 0x2000) {
+                work->curlWeight = 0x2000;
             }
-            if (work->field_3D4 != 0 && work->phase[8] > 2000) {
+            if (work->tipArrived != 0 && work->swayPhase[ACTOR_503500_LUNGING_CHAIN_TIP_PART] > 2000) {
                 Gp_ComposeParentWorld(coord->parent, &mtx, &pos);
-                v.vx = work->field_370.vx - pos.vx;
-                v.vy = work->field_370.vy - pos.vy + 500;
-                v.vz = work->field_370.vz - pos.vz;
+                v.vx = work->lungeTarget.vx - pos.vx;
+                v.vy = work->lungeTarget.vy - pos.vy + 500;
+                v.vz = work->lungeTarget.vz - pos.vz;
                 gte_TransposeMatrix(&mtx, &rot);
                 gte_SetRotMatrix(&rot);
                 gte_ldv0(&v);
                 gte_rtv0();
-                gte_stsv(&work->field_368);
-                work->field_39C.word = 0x4000000;
-                work->obj240.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->field_3D0++;
+                gte_stsv(&work->tipTarget);
+                work->tipSpeedLimit.word = 0x4000000;
+                work->attackBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                work->stateStep++;
             }
             break;
         case 2:
-            work->field_3CC -= 0x200;
-            if (work->field_3CC < 0) {
-                work->field_3CC = 0;
+            work->curlWeight -= 0x200;
+            if (work->curlWeight < 0) {
+                work->curlWeight = 0;
             }
-            work->field_3B6 -= 0x80;
-            if (work->field_3B6 < 0) {
-                work->field_3B6 = 0;
+            work->swayWeight -= 0x80;
+            if (work->swayWeight < 0) {
+                work->swayWeight = 0;
             }
-            work->field_3B0++;
-            if ((s16)work->field_3B0 > 30) {
-                work->field_3B0 = 0;
-                work->field_3D0++;
+            work->stepFrames++;
+            if (work->stepFrames > 30) {
+                work->stepFrames = 0;
+                work->stateStep++;
             }
             break;
         case 3:
-            work->field_3CC -= 0x2AA;
-            if (work->field_3CC < 0) {
-                work->field_3CC = 0;
+            work->curlWeight -= 0x2AA;
+            if (work->curlWeight < 0) {
+                work->curlWeight = 0;
             }
-            if (work->field_3D4 != 0) {
-                work->field_3B0     = 0;
-                work->obj240.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->field_3D0++;
+            if (work->tipArrived != 0) {
+                work->stepFrames        = 0;
+                work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                work->stateStep++;
             }
             break;
         case 4:
-            work->field_3CC -= 0x400;
-            if (work->field_3CC < 0) {
-                work->field_3CC = 0;
+            work->curlWeight -= 0x400;
+            if (work->curlWeight < 0) {
+                work->curlWeight = 0;
             }
-            work->field_3B0++;
-            if ((s16)work->field_3B0 > 30) {
-                func_actor_503500_80142310(arg0, 0);
+            work->stepFrames++;
+            if (work->stepFrames > 30) {
+                func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             }
             break;
     }
@@ -3006,53 +3032,54 @@ static void func_actor_503500_801400A4(Task* arg0)
             }
             break;
     }
-    work->field_3AE++;
-    if (work->field_3D0 < 2 && (work->field_3AE > 120 || keep == 0)) {
-        func_actor_503500_80142310(arg0, 0);
+    work->stateFrames++;
+    if (work->stateStep < 2 && (work->stateFrames > 120 || keep == 0)) {
+        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
     }
 }
 
-/// Death state of the 0x3D8 enemies, the same body as
+/// Death state of the lunging chains, the same body as
 /// `func_actor_503500_80139014` at this block's offsets: unlinks the enemy
-/// node, waits for `field_3D4`, re-parents the root coordinate onto the view
+/// node, waits for `tipArrived`, re-parents the root coordinate onto the view
 /// and plays 0x40230004 at it. Phase 2 eases every part back to rest while the
-/// body rises; past 1000 the pose is saved in `field_378` and phase 3 squashes
-/// it vertically (`field_3AC`), firing the cues on frames 10/15/30/40.
+/// body rises; past 1000 the pose is saved in `unscaledRootMatrix` and phase 3
+/// squashes it vertically (`collapseScaleY`), firing the cues on frames
+/// 10/15/30/40.
 /// Every twelfth frame of phases 0..2 sprays effects along parts 8..1.
 static void func_actor_503500_80140654(Task* arg0)
 {
-    MATRIX              m;
-    VECTOR              scale;
-    SVECTOR             rot;
-    Actor503500Work3D8* work;
-    Enemy*              enemy;
-    GfxCoord*           coord;
-    GfxCoord*           part;
-    s16*                p;
-    s32                 phase;
-    s32                 i;
-    s32                 j;
+    MATRIX                        m;
+    VECTOR                        scale;
+    SVECTOR                       rot;
+    _Actor503500LungingChainWork* work;
+    Enemy*                        enemy;
+    GfxCoord*                     coord;
+    GfxCoord*                     part;
+    s16*                          p;
+    s32                           phase;
+    s32                           i;
+    s32                           j;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    phase = work->field_3D0;
+    phase = work->stateStep;
     coord = arg0->extra.tmd->coords;
     switch (phase) {
         case 0:
-            work->obj160.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            enemy->recs         = 0;
+            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
-            work->field_3A8 = 0;
+            work->hitCooldown = 0;
             (Gp_IncStateF0Ref)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
-            work->field_368.vy    = 0x7D0;
-            work->field_3D0++;
+            work->tipTarget.vy    = 0x7D0;
+            work->stateStep++;
             break;
         case 1:
-            if (work->field_3D4 != 0) {
+            if (work->tipArrived != 0) {
                 Gp_ComposeParentWorld(coord, &m, &rot);
                 coord->coord        = m;
                 coord->coord.t[0]   = rot.vx;
@@ -3060,15 +3087,15 @@ static void func_actor_503500_80140654(Task* arg0)
                 coord->coord.t[2]   = rot.vz;
                 coord->parent       = &gGfxViewCoord;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                work->field_3D6     = phase;
+                work->detached      = phase;
                 Gp_UpdateCoord(coord);
                 SndEvt_EnqueueType6(SOUND_BRAHMAN_PART_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-                work->field_3D0++;
+                work->stateStep++;
             }
             break;
         case 2:
-            for (i = 1; i < 9; i++) {
+            for (i = 1; i < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; i++) {
                 part = &coord[i];
                 gfxExtractSmallestEuler(&rot, &part->coord);
                 p = &rot.vx;
@@ -3094,22 +3121,22 @@ static void func_actor_503500_80140654(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]  += 10;
             if (coord->coord.t[1] > 1000) {
-                work->field_378 = coord->coord;
-                work->field_3AC = 0x1000;
-                work->field_3D0++;
+                work->unscaledRootMatrix = coord->coord;
+                work->collapseScaleY     = 0x1000;
+                work->stateStep++;
             }
             break;
         case 3:
-            if (work->field_3AC > 0x200) {
-                work->field_3AC -= 0x20;
+            if (work->collapseScaleY > 0x200) {
+                work->collapseScaleY -= 0x20;
             }
-            coord->coord = work->field_378;
+            coord->coord = work->unscaledRootMatrix;
             scale.vx     = 0x1000;
-            scale.vy     = work->field_3AC;
+            scale.vy     = work->collapseScaleY;
             scale.vz     = 0x1000;
             ScaleMatrixL(&coord->coord, &scale);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            switch (work->field_3AE) {
+            switch (work->stateFrames) {
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
@@ -3127,18 +3154,18 @@ static void func_actor_503500_80140654(Task* arg0)
                     arg0->state++;
                     break;
             }
-            work->field_3AE++;
+            work->stateFrames++;
             break;
     }
-    if (func_actor_503500_801360BC(arg0->spawnArg1.value, 4) != 0 && work->field_3D0 < 3 &&
+    if (func_actor_503500_801360BC(arg0->spawnArg1.value, 4) != 0 && work->stateStep < 3 &&
         gDisplayState.animFrame % 12 == 0) {
-        for (i = 8, j = 0; i > 0; i--) {
+        for (i = ACTOR_503500_LUNGING_CHAIN_TIP_PART, j = 0; i > 0; i--) {
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F448[j]);
             j++;
             j = (j < 3) ? j : 0;
         }
     }
-    if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->field_3D0 > 0) {
+    if (gGameSession->eventState != 0 && gGameSession->viewReady != 0 && work->stateStep > 0) {
         SndEvt_EnqueueType7(SOUND_COMMON(0x0D), 1);
         arg0->state = 2;
     }
@@ -3146,10 +3173,10 @@ static void func_actor_503500_80140654(Task* arg0)
 
 static void func_actor_503500_80140BE8(Task* arg0)
 {
-    Actor503500Work3D8* work;
-    Enemy*              enemy;
-    s32                 dmg;
-    u8                  flags;
+    _Actor503500LungingChainWork* work;
+    Enemy*                        enemy;
+    s32                           dmg;
+    u8                            flags;
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
@@ -3157,29 +3184,29 @@ static void func_actor_503500_80140BE8(Task* arg0)
         flags = enemy->reactionFlags;
         if (flags & ENEMY_REACTION_STAGGER) {
             enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
-            func_actor_503500_80142310(arg0, 0);
-            work->field_3A6 = 5;
-            work->field_3AA = 8;
+            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+            work->holdFrames = 5;
+            work->slowFrames = 8;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
             enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            func_actor_503500_80142310(arg0, 4);
+            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DAMAGE_OVER_TIME);
             if (Gp_ObjFlag4Expired(arg0->spawnArg2.pointer) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
-                func_actor_503500_80142310(arg0, 0);
+                func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             } else {
                 dmg = Gp_TickObjFlag4(enemy);
                 if (dmg != 0) {
                     enemy->hp -= dmg;
                     func_800DA6E8(&enemy->node, dmg, 0);
-                    work->field_3AA = 8;
+                    work->slowFrames = 8;
                     if (enemy->hp <= 0) {
                         enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
-                        func_actor_503500_80142310(arg0, 5);
+                        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DYING);
                     } else {
-                        func_actor_503500_80142310(arg0, 0);
+                        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
                     }
                 }
             }
@@ -3187,34 +3214,34 @@ static void func_actor_503500_80140BE8(Task* arg0)
     }
 }
 
-/// Applies this frame's hits from `obj160`'s collision records `arg2[0..arg3)`
-/// to the 0x3D8 block's enemy, like `func_actor_503500_8013EE5C`, but at model
+/// Applies this frame's hits from `body`'s collision records `arg2[0..arg3)`
+/// to the lunging chain's enemy, like `func_actor_503500_8013EE5C`, but at model
 /// part 8: each attack id is taken once, only type-2 ids land while the
-/// `field_3A8` countdown is clear, and a hit that empties `field_40` enters
+/// `hitCooldown` countdown is clear, and a hit that empties `hp` enters
 /// state 5 (unless already past it) instead of applying the id's status effect.
 /// The hit effect is pulled to 500 units along the contact offset, and a hit
 /// landing in state 1 drops back to state 0. `arg1` is passed but unused.
 static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
-    SVECTOR             pos;
-    MATRIX              rot;
-    MATRIX              mtx;
-    VECTOR              d;
-    Actor503500Work3D8* work;
-    Enemy*              enemy;
-    GfxCoord*           coord;
-    GfxCoord*           src;
-    s16                 stun;
-    u32                 id;
-    s32                 dmg;
-    s32                 crit;
-    s32                 scale;
-    s32                 i;
-    s32                 j;
+    SVECTOR                       pos;
+    MATRIX                        rot;
+    MATRIX                        mtx;
+    VECTOR                        d;
+    _Actor503500LungingChainWork* work;
+    Enemy*                        enemy;
+    GfxCoord*                     coord;
+    GfxCoord*                     src;
+    s16                           stun;
+    u32                           id;
+    s32                           dmg;
+    s32                           crit;
+    s32                           scale;
+    s32                           i;
+    s32                           j;
 
     enemy = arg0->spawnArg2.pointer;
-    work  = (Actor503500Work3D8*)arg0->work;
-    coord = &arg0->extra.tmd->coords[8];
+    work  = arg0->work;
+    coord = &arg0->extra.tmd->coords[ACTOR_503500_LUNGING_CHAIN_TIP_PART];
     for (i = 0; i < arg3; i++) {
         id = arg2[i].key.value;
         for (j = 0; j < i; j++) {
@@ -3228,7 +3255,7 @@ static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, Wor
         if ((id & 0xFFFF0000) != 0x20000) {
             continue;
         }
-        if (work->field_3A8 != 0) {
+        if (work->hitCooldown != 0) {
             continue;
         }
         Gp_ComposeParentWorld(coord, &mtx, &pos);
@@ -3246,8 +3273,8 @@ static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, Wor
         func_800DA6E8(&enemy->node, dmg, 0);
         enemy->hp -= dmg;
         if (enemy->hp <= 0) {
-            if (work->field_3A4 < 6) {
-                func_actor_503500_80142310(arg0, 5);
+            if (work->state < ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING) {
+                func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DYING);
             }
         } else {
             switch (Gp_GetIdParam0(id) & 0xFFFF) {
@@ -3285,55 +3312,55 @@ static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, Wor
         pos.vx += D_actor_503500_8016F3EC.vx;
         pos.vy += D_actor_503500_8016F3EC.vy;
         pos.vz += D_actor_503500_8016F3EC.vz;
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_2C0);
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->hitEffect);
         if (crit != 0) {
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
-        if (work->field_3A8 < stun) {
-            work->field_3A8 = stun;
+        if (work->hitCooldown < stun) {
+            work->hitCooldown = stun;
         }
-        if (work->field_3A4 == 1) {
-            func_actor_503500_80142310(arg0, 0);
+        if (work->state == ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE) {
+            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
         }
     next:;
     }
 }
 
-/// The 0x3D8 block's copy of `func_actor_503500_80139EFC`: saves `field_358`
-/// into `field_360`, then steers it toward `field_368`. Inside the arrival
-/// distance (the integer half of `field_39C`) it snaps onto the target and sets
-/// `field_3D4`; otherwise the speed `field_398` accelerates toward
-/// +/-`field_39C` while `field_3D5` is set, or decays to 0, and moves
-/// `field_358` along the normalized offset (at a quarter speed while
-/// `field_3AA` runs).
+/// The lunging chain's copy of `func_actor_503500_80139EFC`: saves
+/// `tipPosition` into `previousTipPosition`, then steers it toward `tipTarget`.
+/// Inside the arrival distance (the integer half of `tipSpeedLimit`) it snaps
+/// onto the target and sets `tipArrived`; otherwise the speed `tipSpeed`
+/// accelerates toward +/-`tipSpeedLimit` while `tipAdvancing` is set, or decays
+/// to 0, and moves `tipPosition` along the normalized offset (at a quarter
+/// speed while `slowFrames` runs).
 static void func_actor_503500_80141248(Task* arg0)
 {
-    SVECTOR             d;
-    SVECTOR             n;
-    VECTOR              step;
-    Actor503500Work3D8* work;
-    s32                 lim;
-    s32                 speed;
+    SVECTOR                       d;
+    SVECTOR                       n;
+    VECTOR                        step;
+    _Actor503500LungingChainWork* work;
+    s32                           lim;
+    s32                           speed;
 
-    work               = (Actor503500Work3D8*)arg0->work;
-    work->field_360.vx = work->field_358.vx;
-    work->field_360.vy = work->field_358.vy;
-    work->field_360.vz = work->field_358.vz;
-    d.vx               = work->field_368.vx - work->field_358.vx;
-    d.vy               = work->field_368.vy - work->field_358.vy;
-    d.vz               = work->field_368.vz - work->field_358.vz;
-    if (ABS(d.vx) + ABS(d.vy) + ABS(d.vz) < work->field_39C.halves.integer) {
-        work->field_3D4    = 1;
-        work->field_358.vx = work->field_368.vx;
-        work->field_358.vy = work->field_368.vy;
-        work->field_358.vz = work->field_368.vz;
+    work                         = arg0->work;
+    work->previousTipPosition.vx = work->tipPosition.vx;
+    work->previousTipPosition.vy = work->tipPosition.vy;
+    work->previousTipPosition.vz = work->tipPosition.vz;
+    d.vx                         = work->tipTarget.vx - work->tipPosition.vx;
+    d.vy                         = work->tipTarget.vy - work->tipPosition.vy;
+    d.vz                         = work->tipTarget.vz - work->tipPosition.vz;
+    if (ABS(d.vx) + ABS(d.vy) + ABS(d.vz) < work->tipSpeedLimit.halves.integer) {
+        work->tipArrived     = 1;
+        work->tipPosition.vx = work->tipTarget.vx;
+        work->tipPosition.vy = work->tipTarget.vy;
+        work->tipPosition.vz = work->tipTarget.vz;
         return;
     }
-    lim             = work->field_39C.word;
-    work->field_3D4 = 0;
-    if (work->field_3D5 != 0) {
-        speed = work->field_398 + lim / 32;
+    lim              = work->tipSpeedLimit.word;
+    work->tipArrived = 0;
+    if (work->tipAdvancing != 0) {
+        speed = work->tipSpeed + lim / 32;
         if (speed > 0) {
             if (speed > lim) {
                 speed = lim;
@@ -3342,49 +3369,49 @@ static void func_actor_503500_80141248(Task* arg0)
             speed = -lim;
         }
     } else {
-        speed = work->field_398 - lim / 32;
+        speed = work->tipSpeed - lim / 32;
         if (speed < 0) {
             speed = 0;
         }
     }
-    work->field_398 = speed;
+    work->tipSpeed = speed;
     VectorNormalSS(&d, &n);
-    if (work->field_3AA != 0) {
+    if (work->slowFrames != 0) {
         speed >>= 2;
     }
-    step.vx             = n.vx * (speed >> 12);
-    step.vy             = n.vy * (speed >> 12);
-    step.vz             = n.vz * (speed >> 12);
-    work->field_358.vx += step.vx >> 16;
-    work->field_358.vy += step.vy >> 16;
-    work->field_358.vz += step.vz >> 16;
+    step.vx               = n.vx * (speed >> 12);
+    step.vy               = n.vy * (speed >> 12);
+    step.vz               = n.vz * (speed >> 12);
+    work->tipPosition.vx += step.vx >> 16;
+    work->tipPosition.vy += step.vy >> 16;
+    work->tipPosition.vz += step.vz >> 16;
 }
 
-/// Lays the 0x3D8 enemy's nine-point chain along a cubic Bezier from the root
+/// Lays the lunging chain's nine points along a cubic Bezier from the root
 /// coordinate's world position to its parent's, with the near control point
 /// offset 1000 units in the root's frame (X mirrored for spawn slots 15 / 16)
-/// and both far control points at the parent plus its rotated `field_358`. The
-/// samples land in `pts`, `func_actor_503500_8014176C` re-aims the links along
+/// and both far control points at the parent plus its rotated `tipPosition`. The
+/// samples land in `linkPoints`, `func_actor_503500_8014176C` re-aims the links along
 /// them, and links 2..8 get a pitch of a fading sine sway plus the scaled rest
 /// pitch before `func_actor_503500_80142220` applies it.
 static void func_actor_503500_80141448(Task* arg0)
 {
-    SVECTOR             ctrl[4];
-    SVECTOR             ofs;
-    SVECTOR             tmp;
-    VECTOR              out[9];
-    MATRIX              m;
-    GfxCoord*           coord;
-    Actor503500Work3D8* work;
-    s32                 i;
-    s32                 v;
+    SVECTOR                       ctrl[4];
+    SVECTOR                       ofs;
+    SVECTOR                       tmp;
+    VECTOR                        out[ACTOR_503500_LUNGING_CHAIN_PART_COUNT];
+    MATRIX                        m;
+    GfxCoord*                     coord;
+    _Actor503500LungingChainWork* work;
+    s32                           i;
+    s32                           v;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor503500Work3D8*)arg0->work;
+    work  = arg0->work;
     Gp_ComposeParentWorld(coord, &m, &ctrl[0]);
-    work->pts[0].vx = ctrl[0].vx;
-    work->pts[0].vy = ctrl[0].vy;
-    work->pts[0].vz = ctrl[0].vz;
+    work->linkPoints[0].vx = ctrl[0].vx;
+    work->linkPoints[0].vy = ctrl[0].vy;
+    work->linkPoints[0].vz = ctrl[0].vz;
     if ((u32)(arg0->spawnArg1.value - 15) < 2) {
         ofs.vx = -1000;
         ofs.vy = 0;
@@ -3403,7 +3430,7 @@ static void func_actor_503500_80141448(Task* arg0)
     ctrl[1].vz += ctrl[0].vz;
     Gp_ComposeParentWorld(coord->parent, &m, &tmp);
     gte_SetRotMatrix(&m);
-    gte_ldv0(&work->field_358);
+    gte_ldv0(&work->tipPosition);
     gte_rtv0();
     gte_stsv(&ofs);
     tmp.vx    += ofs.vx;
@@ -3415,20 +3442,20 @@ static void func_actor_503500_80141448(Task* arg0)
     ctrl[3].vx = tmp.vx;
     ctrl[3].vy = tmp.vy;
     ctrl[3].vz = tmp.vz;
-    for (i = 8; i >= 0; i--) {
-        bezierCurveEvaluate(ctrl, &ctrl[3], 9, i, &out[i].vx);
-        copyVector(&work->pts[8 - i], &out[i]);
+    for (i = ACTOR_503500_LUNGING_CHAIN_TIP_PART; i >= 0; i--) {
+        bezierCurveEvaluate(ctrl, &ctrl[3], ACTOR_503500_LUNGING_CHAIN_PART_COUNT, i, &out[i].vx);
+        copyVector(&work->linkPoints[ACTOR_503500_LUNGING_CHAIN_TIP_PART - i], &out[i]);
     }
-    func_actor_503500_8014176C(work->pts, arg0->extra.tmd->coords);
-    for (i = 8; i >= 2; i--) {
-        v                   = ((work->field_3B4 * work->field_3B6 >> 12) * rsin(work->phase[i])) >> 12;
-        work->angles[i].vx  = v;
-        work->angles[i].vx += D_actor_503500_8016F434[i] * work->field_3CC >> 12;
-        work->angles[i].vy  = 0;
-        work->angles[i].vz  = 0;
-        work->phase[i]      = (work->phase[i] + 0x80) & 0xFFF;
+    func_actor_503500_8014176C(work->linkPoints, arg0->extra.tmd->coords);
+    for (i = ACTOR_503500_LUNGING_CHAIN_TIP_PART; i >= 2; i--) {
+        v                       = ((work->swayAmplitude * work->swayWeight >> 12) * rsin(work->swayPhase[i])) >> 12;
+        work->linkAngles[i].vx  = v;
+        work->linkAngles[i].vx += D_actor_503500_8016F434[i] * work->curlWeight >> 12;
+        work->linkAngles[i].vy  = 0;
+        work->linkAngles[i].vz  = 0;
+        work->swayPhase[i]      = (work->swayPhase[i] + 0x80) & 0xFFF;
     }
-    func_actor_503500_80142220(work->angles, arg0->extra.tmd->coords);
+    func_actor_503500_80142220(work->linkAngles, arg0->extra.tmd->coords);
 }
 
 /// Re-aims a chain of eight child coordinates along the polyline `pts[0..8]`.
@@ -3482,29 +3509,30 @@ static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords)
 
 #include "../../shared/bezier_curve_evaluate.inc.c"
 
-/// The fade-level counterpart of `func_actor_503500_8013AB38`: while
-/// `field_3B2` is below 0x1000, blends parts 1..8 toward the 0x3D8 block's
-/// matrix table, copying the lerped rotation back word-wise and keeping a
-/// `field_3B2 / 0x1000` share of each part's offset from its table entry.
+/// The lunging chain's counterpart of `func_actor_503500_8013AB38`: while
+/// `blendWeight` is below 0x1000, blends parts 1..8 toward `blendStart`,
+/// copying the lerped rotation back word-wise and keeping a
+/// `blendWeight / 0x1000` share of each part's offset from its `blendStart`
+/// entry.
 static void func_actor_503500_80141B94(Task* arg0)
 {
-    MATRIX              m;
-    VECTOR              d;
-    Actor503500Work3D8* work;
-    GfxCoord*           coord;
-    MATRIX*             mat;
-    s32*                src;
-    s32*                dst;
-    s32                 t;
-    s32                 i;
-    s32                 j;
+    MATRIX                        m;
+    VECTOR                        d;
+    _Actor503500LungingChainWork* work;
+    GfxCoord*                     coord;
+    MATRIX*                       mat;
+    s32*                          src;
+    s32*                          dst;
+    s32                           t;
+    s32                           i;
+    s32                           j;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords + 1;
-    if ((s16)work->field_3B2 < 0x1000) {
-        mat = &work->mats[1];
-        t   = (s16)work->field_3B2;
-        for (i = 1; i < 9; i++) {
+    if (work->blendWeight < 0x1000) {
+        mat = &work->blendStart[1];
+        t   = work->blendWeight;
+        for (i = 1; i < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; i++) {
             Gp_LerpOrthonormal(mat, &coord->coord, &m, t);
             dst = (s32*)&coord->coord;
             src = (s32*)&m;
@@ -3531,8 +3559,8 @@ static void func_actor_503500_80141D04(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_8013611C(arg0->spawnArg1.value);
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500Work3D8*)arg0->work)->obj160);
-    Gp_UnlinkObj(&((Actor503500Work3D8*)arg0->work)->obj240);
+    Gp_UnlinkObj(&((_Actor503500LungingChainWork*)arg0->work)->body);
+    Gp_UnlinkObj(&((_Actor503500LungingChainWork*)arg0->work)->attackBody);
     enemy->recs = 0;
     arg0->work  = NULL;
     enemyDestroy(enemy, arg0);
@@ -3540,139 +3568,131 @@ static void func_actor_503500_80141D04(Task* arg0)
 
 static void func_actor_503500_80141D7C(Task* arg0)
 {
-    Actor503500Work3D8* work;
+    _Actor503500LungingChainWork* work;
 
     work = arg0->work;
-    switch (work->field_3A4) {
-        case 0:
+    switch (work->state) {
+        case ACTOR_503500_LUNGING_CHAIN_STATE_IDLE:
             func_actor_503500_80141E64(arg0);
             break;
-        case 1:
+        case ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE:
             func_actor_503500_801400A4(arg0);
             break;
-        case 2:
-            work->field_3A6--;
-            if (work->field_3A6 < 0) {
-                func_actor_503500_80142310(arg0, 0);
+        case ACTOR_503500_LUNGING_CHAIN_STATE_HOLD:
+            work->holdFrames--;
+            if (work->holdFrames < 0) {
+                func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             }
             break;
-        case 5:
+        case ACTOR_503500_LUNGING_CHAIN_STATE_DYING:
             func_actor_503500_80140654(arg0);
             break;
-        case 6:
+        case ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING:
             func_actor_503500_80141F48(arg0);
             break;
-        case 7:
+        case ACTOR_503500_LUNGING_CHAIN_STATE_REGROWING:
             func_actor_503500_80141FC8(arg0);
             break;
     }
-    work->field_3AA--;
-    if (work->field_3AA < 0) {
-        work->field_3AA = 0;
+    work->slowFrames--;
+    if (work->slowFrames < 0) {
+        work->slowFrames = 0;
     }
 }
 
 static void func_actor_503500_80141E64(Task* arg0)
 {
-    Actor503500Work3D8* work;
-    u16                 level;
+    _Actor503500LungingChainWork* work;
 
     work = arg0->work;
     if (arg0->killCountdown == 2) {
-        func_actor_503500_80142310(arg0, 1);
+        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE);
         arg0->killCountdown = 0;
     }
-    level           = work->field_3B6 + 0x20;
-    work->field_3B6 = level;
-    if ((s16)level >= 0x1001) {
-        work->field_3B6 = 0x1000;
+    work->swayWeight += 0x20;
+    if (work->swayWeight > 0x1000) {
+        work->swayWeight = 0x1000;
     }
-    level           = work->field_3CC - 0x111;
-    work->field_3CC = level;
-    if ((s16)level < 0) {
-        work->field_3CC = 0;
+    work->curlWeight -= 0x111;
+    if (work->curlWeight < 0) {
+        work->curlWeight = 0;
     }
-    work->field_368.vx = D_actor_503500_8016F3AC[arg0->spawnArg1.value].vx;
-    work->field_368.vy = D_actor_503500_8016F3AC[arg0->spawnArg1.value].vy;
-    work->field_368.vz = D_actor_503500_8016F3AC[arg0->spawnArg1.value].vz;
+    work->tipTarget.vx = D_actor_503500_8016F3AC[arg0->spawnArg1.value].vx;
+    work->tipTarget.vy = D_actor_503500_8016F3AC[arg0->spawnArg1.value].vy;
+    work->tipTarget.vz = D_actor_503500_8016F3AC[arg0->spawnArg1.value].vz;
 }
 
 static void func_actor_503500_80141F48(Task* arg0)
 {
-    Actor503500Work3D8* work;
-    u16                 level;
+    _Actor503500LungingChainWork* work;
 
-    work            = arg0->work;
-    level           = work->field_3B2 + 0x10;
-    work->field_3B2 = level;
-    if ((s16)level >= 0x1001) {
+    work               = arg0->work;
+    work->blendWeight += 0x10;
+    if (work->blendWeight > 0x1000) {
         Gp_LinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
-        work->field_3B2     = 0x1000;
-        work->obj160.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        func_actor_503500_80142310(arg0, 0);
+        work->blendWeight = 0x1000;
+        work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
     }
 }
 
-/// Sub-state 0 resets the matrix table to identity; sub-state 1 raises the
-/// fade level by 0x20 a frame and, once it passes 0x1000, relinks the display
-/// node and moves on like `func_actor_503500_80141F48`.
+/// Step 0 resets `blendStart` to identity; step 1 raises `blendWeight` by 0x20
+/// a frame and, once it passes 0x1000, relinks the display node and moves on
+/// like `func_actor_503500_80141F48`.
 static void func_actor_503500_80141FC8(Task* arg0)
 {
-    Actor503500Work3D8* work;
-    u16                 level;
-    s32                 i;
-    long*               t;
+    _Actor503500LungingChainWork* work;
+    s32                           i;
+    long*                         t;
 
     work = arg0->work;
-    switch (work->field_3D0) {
+    switch (work->stateStep) {
         case 0:
-            for (i = 1; i < 9; i++) {
-                func_actor_503500_SetRotIdentity(&work->mats[i]);
-                // The view shifted by i matrices puts mats[i] at mats[0]; this
-                // `(work + i) + offset` association is what lets the pointer
-                // derive from the giv the indexed store below uses.
-                t                  = ((Actor503500Work3D8*)((MATRIX*)work + i))->mats[0].t;
-                work->mats[i].t[0] = 0;
-                t[1]               = 0;
-                t[2]               = 0;
+            for (i = 1; i < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; i++) {
+                func_actor_503500_SetRotIdentity(&work->blendStart[i]);
+                // The view shifted by i matrices puts blendStart[i] at
+                // blendStart[0]; this `(work + i) + offset` association is
+                // what lets the pointer derive from the giv the indexed store
+                // below uses.
+                t                        = ((_Actor503500LungingChainWork*)((MATRIX*)work + i))->blendStart[0].t;
+                work->blendStart[i].t[0] = 0;
+                t[1]                     = 0;
+                t[2]                     = 0;
             }
-            work->field_3B2 = 0;
-            work->field_3D0++;
+            work->blendWeight = 0;
+            work->stateStep++;
         case 1:
-            level           = work->field_3B2 + 0x20;
-            work->field_3B2 = level;
-            if ((s16)level >= 0x1001) {
+            work->blendWeight += 0x20;
+            if (work->blendWeight > 0x1000) {
                 Gp_LinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
-                work->field_3B2     = 0x1000;
-                work->obj160.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                func_actor_503500_80142310(arg0, 0);
+                work->blendWeight = 0x1000;
+                work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             }
             break;
     }
 }
 
-/// Steps the 0x3D8 block's countdown at 0x3A8 down to zero, then, unless the
+/// Steps the lunging chain's `hitCooldown` down to zero, then, unless the
 /// global freeze is on, runs both display nodes through their record tables
 /// before releasing the tables. Same shape as `func_actor_503500_80144004`.
 static void func_actor_503500_801420C4(Task* arg0)
 {
-    Actor503500Work3D8* work;
-    s16                 timer;
+    _Actor503500LungingChainWork* work;
 
     work = arg0->work;
-    if (work->field_3A8 != 0) {
-        timer           = (u16)work->field_3A8 - 1;
-        work->field_3A8 = timer;
-        if (timer < 0) {
-            work->field_3A8 = 0;
+    if (work->hitCooldown != 0) {
+        work->hitCooldown--;
+        if (work->hitCooldown < 0) {
+            work->hitCooldown = 0;
         }
     }
     if (func_actor_503500_80136208() == 0) {
-        func_actor_503500_80140D38(arg0, &work->obj160, work->rec180, 8);
-        func_actor_503500_8014215C(arg0, &work->obj240, work->rec260, 4);
+        func_actor_503500_80140D38(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
+        func_actor_503500_8014215C(arg0, &work->attackBody, work->attackContacts, ARRAY_SIZE(work->attackContacts));
     }
-    Gp_ClearRec18Occupied(work->rec180);
-    Gp_ClearRec18Occupied(work->rec260);
+    Gp_ClearRec18Occupied(work->contacts);
+    Gp_ClearRec18Occupied(work->attackContacts);
 }
 
 /// Scans `count` `WorldCollisionContact` slots and clears bit 0x8000 of `obj->flags` for
@@ -3729,17 +3749,17 @@ static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes)
 
 static void func_actor_503500_80142310(Task* arg0, s32 arg1)
 {
-    Actor503500Work3D8* work;
+    _Actor503500LungingChainWork* work;
 
-    work                 = arg0->work;
-    work->field_3A4      = arg1;
-    work->field_3D0      = 0;
-    work->field_3D1      = 0;
-    work->field_3AE      = 0;
-    work->field_3B0      = 0;
-    work->field_39C.word = 0x600000;
-    work->obj240.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    arg0->killCountdown  = 0;
+    work                     = arg0->work;
+    work->state              = arg1;
+    work->stateStep          = 0;
+    work->field_3D1          = 0;
+    work->stateFrames        = 0;
+    work->stepFrames         = 0;
+    work->tipSpeedLimit.word = 0x600000;
+    work->attackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    arg0->killCountdown      = 0;
     func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
 }
 
