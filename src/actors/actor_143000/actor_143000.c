@@ -40,28 +40,39 @@ extern u8 D_actor_143000_80135C0C[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern u8 D_actor_143000_80135C0C_value __asm__("D_actor_143000_80135C0C");
 
-/// Work block of the actor's callback task. `promptKind` is the picked hotspot's
-/// prompt display mode, copied from its `ActionPromptHotspot::promptKind` by
-/// `func_actor_143000_801325F0` and handed to `func_800D4E78` when
-/// `func_actor_143000_80133698` re-spawns the prompt.
-typedef struct Actor143000Work {
-    /* 0x00 */ byte pad_0[2];
-    /* 0x02 */ u16  field_2;
-    /* 0x04 */ s16  field_4;
-    /* 0x06 */ s8   promptKind;
-    /* 0x07 */ s8   field_7;
-    /* 0x08 */ s16  field_8;
-    /* 0x0A */ s16  field_A;
-    /* 0x0C */ s32  field_C;
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s8   field_12;
-    /* 0x13 */ s8   field_13;
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ s16  field_16;
-    /* 0x18 */ s16  field_18;
-    /* 0x1A */ s16  field_1A;
-} Actor143000Work;
-STATIC_ASSERT_SIZEOF(Actor143000Work, 0x1C);
+/// Most characters the keypad's entry line holds.
+#define ACTOR_143000_KEYPAD_CODE_CAPACITY 20
+
+/// Banner stored in `_Actor143000KeypadWork::resultBanner`.
+#define ACTOR_143000_KEYPAD_BANNER_NONE     0
+#define ACTOR_143000_KEYPAD_BANNER_ACCEPTED 1
+#define ACTOR_143000_KEYPAD_BANNER_REJECTED 2
+
+/// Work block of the Shelter B2 laboratory's code keypad task.
+///
+/// The task shows the keypad full screen and lets the action cursor confirm
+/// its hotspots. A confirmed hotspot is latched and offers its command at the
+/// cursor; accepting that command on the key grid makes the grid type from
+/// then on. Typed characters fill the entry line, and the Enter hotspot checks
+/// it: `statusLine`, `statusWidth` and `resultBanner` step through the answer,
+/// and an accepted code ends the task and spawns the one that follows.
+typedef struct {
+    byte                  field_0[2];      // Never read or written; role unproven
+    u16                   selectedHotspot; // `ActionPromptHotspot::id` confirmed this frame, kept while its command prompt is open (0 none)
+    s16                   field_4;         // Sends the task through a state that clears it when the command prompt closes unaccepted; nothing sets it, role unproven
+    s8                    promptKind;      // `ActionPromptHotspot::promptKind` of that hotspot, forwarded when its command prompt opens
+    s8                    keypadExamined;  // Whether the command was accepted on the key grid (0 a confirm there offers the command, 1 it types the key)
+    ActionPromptCursorPos keyPress;        // Cursor position latched with a confirm on the key grid; selects the key typed
+    s32                   codeAccepted;    // Result of the last check of the entry (0 rejected, 1 accepted); passed with the task's kill request when it ends
+    s16                   codeLength;      // Characters on the entry line, at most ACTOR_143000_KEYPAD_CODE_CAPACITY
+    s8                    statusLine;      // Status text drawn near the top of the screen, as its 1-based 16-pixel row in the texture (0 none)
+    s8                    resultBanner;    // Banner drawn at the screen center (0 none, 1 code accepted, 2 code rejected)
+    s16                   statusWidth;     // Pixels of the status line drawn, widened in steps while an answer is pending (0 the whole line)
+    s16                   marqueeX;        // Left edge of the animated sprite crossing the top of the screen, in 1/16 pixel from the screen center
+    s16                   marqueeSpeed;    // 1/16 pixels that sprite moves left each frame; a typed key raises it and it decays back to one pixel
+    s16                   field_1A;        // Cleared when the task starts and never read; role unproven
+} _Actor143000KeypadWork;
+STATIC_ASSERT_SIZEOF(_Actor143000KeypadWork, 0x1C);
 
 extern TaskDesc            D_actor_143000_80134558;
 extern u8                  D_actor_143000_80134570[];
@@ -255,12 +266,12 @@ static void func_actor_143000_80132D10(Task* arg0);
 
 static void func_actor_143000_801324C8(Task* arg0)
 {
-    Actor143000Work*     work;
-    ActionPromptHotspot* p;
-    u8                   temp_a0;
+    _Actor143000KeypadWork* work;
+    ActionPromptHotspot*    p;
+    u8                      temp_a0;
 
     p    = D_actor_143000_80134580;
-    work = memCalloc(0x1CU, false);
+    work = memCalloc(sizeof(_Actor143000KeypadWork), false);
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -280,13 +291,13 @@ static void func_actor_143000_801324C8(Task* arg0)
             p++;
         } while (p->id != ACTION_PROMPT_HOTSPOT_END);
     }
-    work->field_7              = 0;
-    work->field_12             = 1;
-    work->field_13             = 0;
-    work->field_16             = 0xA00;
-    work->field_C              = 0;
-    work->field_10             = 0;
-    work->field_18             = 0x10;
+    work->keypadExamined       = 0;
+    work->statusLine           = 1;
+    work->resultBanner         = ACTOR_143000_KEYPAD_BANNER_NONE;
+    work->marqueeX             = 0xA00;
+    work->codeAccepted         = 0;
+    work->codeLength           = 0;
+    work->marqueeSpeed         = 0x10;
     work->field_1A             = 0;
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
@@ -296,20 +307,20 @@ static void func_actor_143000_801324C8(Task* arg0)
 
 static void func_actor_143000_801325F0(Task* arg0)
 {
-    Actor143000Work*     work;
-    u8                   u;
-    ActionPromptHotspot* p;
-    POLY_FT4*            prim;
-    ActionPrompt*        prompt;
-    s16                  dx;
-    s16                  dy;
-    s16                  x;
-    s16                  y;
-    s16                  w;
-    s16                  h;
-    u8                   v;
-    u8                   uw;
-    u8                   vh;
+    _Actor143000KeypadWork* work;
+    u8                      u;
+    ActionPromptHotspot*    p;
+    POLY_FT4*               prim;
+    ActionPrompt*           prompt;
+    s16                     dx;
+    s16                     dy;
+    s16                     x;
+    s16                     y;
+    s16                     w;
+    s16                     h;
+    u8                      v;
+    u8                      uw;
+    u8                      vh;
 
     work                           = arg0->work;
     gGameSession->hideHud          = 1;
@@ -326,26 +337,26 @@ static void func_actor_143000_801325F0(Task* arg0)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
         func_actor_143000_80133C2C();
     }
-    work->field_2 = 0;
+    work->selectedHotspot = 0;
     if (func_actor_143000_80133AE8(p, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; p->id != ACTION_PROMPT_HOTSPOT_END; p++) {
                 if (p->hit != 0) {
-                    if (work->field_7 != 0 && p->id == 5) {
+                    if (work->keypadExamined != 0 && p->id == 5) {
                         SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
                         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                        work->field_8       = prompt->screen.xy.x;
-                        work->field_A       = prompt->screen.xy.y;
+                        work->keyPress.x    = prompt->screen.xy.x;
+                        work->keyPress.y    = prompt->screen.xy.y;
                         arg0->state         = 8;
                         return;
                     }
-                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
-                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    work->field_2       = p->id;
-                    work->promptKind    = p->promptKind;
-                    arg0->state         = 3;
+                    prompt->mode          = ACTION_PROMPT_MODE_HIDDEN;
+                    prompt->cursorSpeed   = ACTION_PROMPT_SPEED_STOPPED;
+                    work->selectedHotspot = p->id;
+                    work->promptKind      = p->promptKind;
+                    arg0->state           = 3;
                     return;
                 }
             }
@@ -429,45 +440,45 @@ static const char D_actor_143000_80131EBC[] = "YSD";
 
 static void func_actor_143000_80132A04(Task* arg0)
 {
-    Actor143000Work* temp_s0;
+    _Actor143000KeypadWork* work;
 
-    temp_s0 = arg0->work;
+    work = arg0->work;
     if (arg0->killCountdown == 0) {
         s32 var_s2 = 0;
 
         if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0))) {
             var_s2 = 1;
         }
-        temp_s0->field_C = var_s2;
+        work->codeAccepted = var_s2;
     }
-    if (temp_s0->field_C != 0) {
+    if (work->codeAccepted != 0) {
         switch (arg0->killCountdown) {
             case 0:
-                temp_s0->field_12 = 2;
+                work->statusLine = 2;
                 break;
             case 0x3C:
-                temp_s0->field_12 = 3;
-                temp_s0->field_14 = 0x7C;
+                work->statusLine  = 3;
+                work->statusWidth = 0x7C;
                 break;
             case 0x46:
-                temp_s0->field_14 = 0x83;
+                work->statusWidth = 0x83;
                 break;
             case 0x50:
-                temp_s0->field_14 = 0x8A;
+                work->statusWidth = 0x8A;
                 break;
             case 0x5A:
-                temp_s0->field_14 = 0;
+                work->statusWidth = 0;
                 break;
             case 0x78:
                 SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_CODE_ACCEPTED, 0, 0);
-                temp_s0->field_13 = 1;
+                work->resultBanner = ACTOR_143000_KEYPAD_BANNER_ACCEPTED;
                 break;
             case 0x96:
-                temp_s0->field_12 = 4;
-                temp_s0->field_13 = 0;
+                work->statusLine   = 4;
+                work->resultBanner = ACTOR_143000_KEYPAD_BANNER_NONE;
                 break;
             case 0xF0:
-                temp_s0->field_12 = 5;
+                work->statusLine = 5;
                 break;
             case 0x14A:
                 arg0->state                     = 0xA;
@@ -481,50 +492,50 @@ static void func_actor_143000_80132A04(Task* arg0)
     } else {
         switch (arg0->killCountdown) {
             case 0:
-                temp_s0->field_12 = 2;
+                work->statusLine = 2;
                 break;
             case 0x3C:
-                temp_s0->field_12 = 3;
-                temp_s0->field_14 = 0x7C;
+                work->statusLine  = 3;
+                work->statusWidth = 0x7C;
                 break;
             case 0x46:
-                temp_s0->field_14 = 0x83;
+                work->statusWidth = 0x83;
                 break;
             case 0x50:
-                temp_s0->field_14 = 0x8A;
+                work->statusWidth = 0x8A;
                 break;
             case 0x5A:
-                temp_s0->field_14 = 0;
+                work->statusWidth = 0;
                 break;
             case 0x78:
                 SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_CODE_REJECTED, 0, 0);
-                temp_s0->field_13 = 2;
+                work->resultBanner = ACTOR_143000_KEYPAD_BANNER_REJECTED;
                 break;
             case 0x96:
-                temp_s0->field_12 = 6;
-                temp_s0->field_14 = 0x7C;
-                temp_s0->field_13 = 0;
+                work->statusLine   = 6;
+                work->statusWidth  = 0x7C;
+                work->resultBanner = ACTOR_143000_KEYPAD_BANNER_NONE;
                 break;
             case 0xA0:
-                temp_s0->field_14 = 0x83;
+                work->statusWidth = 0x83;
                 break;
             case 0xAA:
-                temp_s0->field_14 = 0x8A;
+                work->statusWidth = 0x8A;
                 break;
             case 0xB4:
-                temp_s0->field_14 = 0;
+                work->statusWidth = 0;
                 break;
             case 0xD2:
-                temp_s0->field_13 = 2;
+                work->resultBanner = ACTOR_143000_KEYPAD_BANNER_REJECTED;
                 break;
             case 0xF0:
-                temp_s0->field_12 = 7;
-                temp_s0->field_13 = 0;
+                work->statusLine   = 7;
+                work->resultBanner = ACTOR_143000_KEYPAD_BANNER_NONE;
                 break;
             case 0x14A:
-                temp_s0->field_12 = 1;
-                temp_s0->field_10 = 0;
-                arg0->state       = 2;
+                work->statusLine = 1;
+                work->codeLength = 0;
+                arg0->state      = 2;
                 break;
         }
     }
@@ -533,27 +544,27 @@ static void func_actor_143000_80132A04(Task* arg0)
 
 static void func_actor_143000_80132D10(Task* arg0)
 {
-    Actor143000Work* work;
-    POLY_FT4*        prim;
-    s32              i;
-    s16              y;
-    s16              x1;
-    s16              sx;
-    u8               sv;
-    s16              sy;
-    s16              y1;
-    u8               u;
-    u8               v;
-    u8               v1;
-    u8               u1;
-    s16              clut;
+    _Actor143000KeypadWork* work;
+    POLY_FT4*               prim;
+    s32                     i;
+    s16                     y;
+    s16                     x1;
+    s16                     sx;
+    u8                      sv;
+    s16                     sy;
+    s16                     y1;
+    u8                      u;
+    u8                      v;
+    u8                      v1;
+    u8                      u1;
+    s16                     clut;
 
-    x1                                      = -0x48;
-    work                                    = arg0->work;
-    D_actor_143000_80135C20[work->field_10] = 0;
+    x1                                        = -0x48;
+    work                                      = arg0->work;
+    D_actor_143000_80135C20[work->codeLength] = 0;
     D_actor_143000_80135C00++;
     y = 0x10;
-    for (i = 0; i < work->field_10; i++) {
+    for (i = 0; i < work->codeLength; i++) {
         y1             = y + 8;
         u              = 0x58;
         v              = 0xB8;
@@ -570,7 +581,7 @@ static void func_actor_143000_80132D10(Task* arg0)
         addPrim(&gGpuCurrentOt[0x3FE], prim);
         x1 += 8;
     }
-    if (work->field_10 != 0x14 && arg0->state != 7) {
+    if (work->codeLength != ACTOR_143000_KEYPAD_CODE_CAPACITY && arg0->state != 7) {
         u              = 0x60;
         v              = 0xB8;
         prim           = gGpuPrimCursor;
@@ -585,14 +596,14 @@ static void func_actor_143000_80132D10(Task* arg0)
             addPrim(&gGpuCurrentOt[0x3FE], prim);
         }
     }
-    if (work->field_12 != 0) {
+    if (work->statusLine != 0) {
         y1 = 0xFE;
-        if (work->field_14 != 0) {
-            y1 = work->field_14;
+        if (work->statusWidth != 0) {
+            y1 = work->statusWidth;
         }
         sx             = -0x78;
         sy             = -0x48;
-        sv             = (work->field_12 - 1) * 0x10;
+        sv             = (work->statusLine - 1) * 0x10;
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         SetPolyFT4(prim);
@@ -603,11 +614,11 @@ static void func_actor_143000_80132D10(Task* arg0)
         setShadeTex(prim, 1);
         addPrim(&gGpuCurrentOt[0x3FE], prim);
     }
-    if (work->field_13 != 0) {
+    if (work->resultBanner != ACTOR_143000_KEYPAD_BANNER_NONE) {
         sy = sx = -0x28;
         x1      = 0x18;
         y1      = -0x10;
-        if (work->field_13 == 1) {
+        if (work->resultBanner == ACTOR_143000_KEYPAD_BANNER_ACCEPTED) {
             u    = 0x70;
             v    = 0xA0;
             clut = 0x3DC3;
@@ -627,7 +638,7 @@ static void func_actor_143000_80132D10(Task* arg0)
         addPrim(&gGpuCurrentOt[0x3FE], prim);
     }
     sy             = -0x60;
-    sx             = work->field_16 >> 4;
+    sx             = work->marqueeX >> 4;
     y1             = sy + 0x18;
     x1             = sx + 0x30;
     sv             = D_actor_143000_80134570[(D_actor_143000_80135C04 / 16) % 16] * 0x18 - 0x60;
@@ -642,16 +653,16 @@ static void func_actor_143000_80132D10(Task* arg0)
     prim->clut  = clut;
     setShadeTex(prim, 1);
     addPrim(&gGpuCurrentOt[0x3FE], prim);
-    D_actor_143000_80135C04 += work->field_18;
+    D_actor_143000_80135C04 += work->marqueeSpeed;
     if (arg0->state != 7 && arg0->state != 0xA) {
-        work->field_16 -= work->field_18;
-        if (work->field_16 < -0xD00) {
-            work->field_16 = 0xA00;
+        work->marqueeX -= work->marqueeSpeed;
+        if (work->marqueeX < -0xD00) {
+            work->marqueeX = 0xA00;
         }
     }
-    work->field_18 -= 4;
-    if (work->field_18 < 0x10) {
-        work->field_18 = 0x10;
+    work->marqueeSpeed -= 4;
+    if (work->marqueeSpeed < 0x10) {
+        work->marqueeSpeed = 0x10;
     }
 }
 
@@ -701,8 +712,8 @@ static void func_actor_143000_80133664(Task* task)
 /// to state 4.
 static void func_actor_143000_80133698(Task* task)
 {
-    ActionPrompt*    prompt = D_80114D28;
-    Actor143000Work* work   = (Actor143000Work*)task->work;
+    ActionPrompt*           prompt = D_80114D28;
+    _Actor143000KeypadWork* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
@@ -712,14 +723,14 @@ static void func_actor_143000_80133698(Task* task)
 
 static void func_actor_143000_801336E8(Task* arg0)
 {
-    Actor143000Work* work   = arg0->work;
-    ActionPrompt*    prompt = D_80114D28;
-    s32              cmd;
+    _Actor143000KeypadWork* work   = arg0->work;
+    ActionPrompt*           prompt = D_80114D28;
+    s32                     cmd;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
-        switch ((s16)(work->field_2 - 1)) {
+        switch ((s16)(work->selectedHotspot - 1)) {
             case 0:
                 cmd = 8;
                 goto run;
@@ -738,7 +749,7 @@ static void func_actor_143000_801336E8(Task* arg0)
                 arg0->killCountdown = 0;
                 break;
             case 4:
-                work->field_7 = 1;
+                work->keypadExamined = 1;
                 Gp_RunCapCmd(0xA, 0);
                 if (GameFlag_GetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 1) {
                     arg0->killCountdown = 0xA;
@@ -760,11 +771,11 @@ static void func_actor_143000_801336E8(Task* arg0)
 
 static void func_actor_143000_80133800(Task* arg0)
 {
-    Actor143000Work* work = (Actor143000Work*)arg0->work;
+    _Actor143000KeypadWork* work = arg0->work;
 
     Display_ReleaseRef();
     gGameSession->cutsceneHold = 0;
-    if (work->field_C == 0) {
+    if (work->codeAccepted == 0) {
         D_80114D08                                                 = 0xA;
         gGameSession->eventState                                   = 0;
         gGameSession->hideHud                                      = 0;
@@ -775,37 +786,39 @@ static void func_actor_143000_80133800(Task* arg0)
         Task_SpawnFromTable(D_actor_143000_801350B0, 1, 0, &D_actor_143000_80135C08);
     }
     taskKill(arg0->spawnArg2.pointer);
-    Task_RequestKill(arg0, work->field_C);
+    Task_RequestKill(arg0, work->codeAccepted);
 }
 
 static void func_actor_143000_801338C8(Task* arg0)
 {
-    ((Actor143000Work*)arg0->work)->field_4 = 0;
-    arg0->state                             = 2;
+    _Actor143000KeypadWork* work = arg0->work;
+
+    work->field_4 = 0;
+    arg0->state   = 2;
 }
 
 static void func_actor_143000_801338E0(Task* arg0)
 {
-    Actor143000Work* work = arg0->work;
-    s32              col  = (work->field_8 + 0x80) / 16;
-    s32              row  = (work->field_A - 0x20) / 16;
-    const char*      key;
+    _Actor143000KeypadWork* work = arg0->work;
+    s32                     col  = (work->keyPress.x + 0x80) / 16;
+    s32                     row  = (work->keyPress.y - 0x20) / 16;
+    const char*             key;
 
     if ((u32)col < 13) {
         if (row >= 0) {
             if (row < 3) {
                 key = D_actor_143000_801345F8[row] + col;
                 if ((s8)*key == '#') {
-                    work->field_10 = 0;
+                    work->codeLength = 0;
                 } else if ((s8)*key == '-') {
-                    if (work->field_10 > 0) {
-                        work->field_10--;
+                    if (work->codeLength > 0) {
+                        work->codeLength--;
                     }
-                } else if (work->field_10 < 20) {
-                    D_actor_143000_80135C20[work->field_10] = *key;
-                    work->field_10++;
+                } else if (work->codeLength < ACTOR_143000_KEYPAD_CODE_CAPACITY) {
+                    D_actor_143000_80135C20[work->codeLength] = *key;
+                    work->codeLength++;
                 }
-                work->field_18 = 0x30;
+                work->marqueeSpeed = 0x30;
             }
         }
     }
@@ -814,18 +827,18 @@ static void func_actor_143000_801338E0(Task* arg0)
 
 static void func_actor_143000_801339CC(Task* arg0)
 {
-    Actor143000Work* work = arg0->work;
-    u32              count;
+    _Actor143000KeypadWork* work = arg0->work;
+    u32                     count;
 
     if (Gp_CapBusy() == 0) {
         count               = (u16)arg0->killCountdown - 1;
         arg0->killCountdown = count;
         if ((s16)count <= 0) {
             arg0->killCountdown = (rand() * 8 >> 15) + 8;
-            work->field_10++;
+            work->codeLength++;
             SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
             memcpy(D_actor_143000_80135C20, D_actor_143000_80131EB0, 11);
-            count = work->field_10;
+            count = work->codeLength;
             if (count >= 0xA) {
                 arg0->state = 2;
             }

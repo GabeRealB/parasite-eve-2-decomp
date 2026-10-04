@@ -43445,7 +43445,7 @@ if (task->killCountdown == 0) {
     if (strcmp(...) == 0 || ...) {
         found = 1;
     }
-    work->field_C = found;
+    work->codeAccepted = found;
 }
 ```
 
