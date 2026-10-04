@@ -4,7 +4,7 @@
 /// that id as the one applied.
 void pacedWalkResetAnim(Task* task)
 {
-    PacedWalkAnimWork* work;
+    PACED_WALK_WORK_T* work;
     s32                i;
 
     work = task->work;

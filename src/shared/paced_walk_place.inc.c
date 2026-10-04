@@ -6,7 +6,7 @@
 s32 pacedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord*          coord;
-    PacedWalkAnimWork* work;
+    PACED_WALK_WORK_T* work;
     u16                yaw;
 
     coord        = task->extra.tmd->coords;

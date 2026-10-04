@@ -38,6 +38,8 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_b6_nursery.h"
+// The paced walk helpers this package carries run on Kyle Madigan's block.
+#define PACED_WALK_WORK_T _Actor450800KyleMadiganWork
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"

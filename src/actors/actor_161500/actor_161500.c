@@ -31,6 +31,8 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_1f_heliport.h"
+// The paced walk helpers this package carries run on the stride walker's block.
+#define PACED_WALK_WORK_T Actor161500Work
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"
 #include "../../shared/stride_walk.h"

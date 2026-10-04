@@ -146840,7 +146840,13 @@ copy's own, only for the names that fragment uses:
 
 An update body that calls the helpers gets the helpers' names defined too, so
 each copy calls its own instance; package data works the same way (define the
-shared data name, or the library's access macro, to the copy's object). A copy
+shared data name, or the library's access macro, to the copy's object). A
+fragment that walkers with different work block types carry takes the type the
+same way: `pacedWalkTickAnim`, `pacedWalkResetAnim` and `pacedWalkPlace` declare
+their block as `PACED_WALK_WORK_T`, which defaults to `PacedWalkWork` and which
+`actor_161500`, `actor_450800` and `actor_460200`'s second walker bind to the
+type that walker allocates, rather than viewing every block through a separate
+struct that repeats its leading members. A copy
 the file already declared `static` keeps internal linkage, since a later
 definition without a storage class inherits it. Where every copy is private to
 its unit, as the Bezier helpers are in `actor_503500`'s `_3.c` and `_4.c`, make

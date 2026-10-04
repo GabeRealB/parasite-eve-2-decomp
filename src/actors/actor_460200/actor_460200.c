@@ -2325,6 +2325,11 @@ void strideWalkExit(Task* task)
 #include "../../shared/walker_shadow.inc.c"
 #undef walkerDrawShadow
 
+// The second walker is a stride walker, so its copies of the paced walk
+// helpers run on that walker's block.
+#undef PACED_WALK_WORK_T
+#define PACED_WALK_WORK_T Actor161500Work
+
 /// The second walker's copy.
 #define pacedWalkTickAnim func_actor_460200_801332E0
 #include "../../shared/paced_walk_tick_anim.inc.c"
@@ -2348,6 +2353,9 @@ void strideWalkExit(Task* task)
 #define pacedWalkPlace func_actor_460200_801334F0
 #include "../../shared/paced_walk_place.inc.c"
 #undef pacedWalkPlace
+
+#undef PACED_WALK_WORK_T
+#define PACED_WALK_WORK_T PacedWalkWork
 
 /// Script opcode: set the work block's `turnUp`, which selects whether the
 /// per-frame state blends the model toward the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task or away

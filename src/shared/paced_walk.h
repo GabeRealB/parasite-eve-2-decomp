@@ -10,6 +10,11 @@
  * position. A file with several walkers, as actor_460200 has, includes the
  * fragments again for each further walker with the library names defined to
  * that walker's own.
+ *
+ * A walker that keeps a work block of its own type and carries only the slot
+ * tick, the slot reset or the placement handler names that type through
+ * PACED_WALK_WORK_T before including this header. actor_161500 and
+ * actor_450800 do; actor_460200 rebinds it around its second walker's copies.
  */
 
 #ifndef SRC_SHARED_PACED_WALK_H
@@ -27,28 +32,11 @@
 
 #include "main/task_types.h"
 
-/// The head of a walker's work block as the slot helpers and the placement
-/// handler see it.
-///
-/// `pacedWalkTickAnim`, `pacedWalkResetAnim` and `pacedWalkPlace` are also
-/// carried by walkers whose work block is a type of their own. Each of those
-/// blocks opens with these four members, and the three reach nothing after
-/// them; what follows is the walker's own.
-typedef struct {
-    MATRIX          light; // Light-direction matrix lent to the model object
-    MATRIX          color; // Light-colour matrix lent to the model object
-    ActorAnimRig20  rig;   // Playback storage of the twenty-part model; slots 1 to 19 are driven
-    ActorEnemyState st;    // Animation request, heading last given the root and frames of walk left
-} PacedWalkAnimWork;
-STATIC_ASSERT_SIZEOF(PacedWalkAnimWork, 0x4EC);
-
 /// Work block of a paced walker, allocated zeroed at its full size by the
 /// walker's spawn state and kept at `Task::work`.
 ///
 /// The model object borrows `light` and `color` for as long as the block
 /// lives, and a sub-model carried on the walker is lit through the same two.
-/// The first four members are laid out as `PacedWalkAnimWork`, which is how
-/// the slot helpers and the placement handler view the block.
 typedef struct {
     MATRIX          light;       // Light-direction matrix lent to the model object
     MATRIX          color;       // Light-colour matrix lent to the model object
@@ -60,6 +48,23 @@ typedef struct {
     Enemy*          enemy;       // Enemy the walker's task belongs to; recorded at spawn, never read
 } PacedWalkWork;
 STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
+
+#ifndef PACED_WALK_WORK_T
+/// Type `pacedWalkTickAnim`, `pacedWalkResetAnim` and `pacedWalkPlace` take
+/// the block at `Task::work` as.
+///
+/// Walkers whose work block is a type of their own carry those three, so each
+/// includer binds the type its walker allocates; the default is the paced
+/// walker's own block. The three reach only the rig and the animation state,
+/// so a bound type has to declare an `ActorAnimRig20 rig` and an
+/// `ActorEnemyState st`, as every walker of this family does behind its two
+/// light matrices.
+///
+/// Bind before this header. The binding persists across the fragments'
+/// inclusions; a file whose walkers differ in block type undefines and
+/// redefines it around the copies of the walker that differs.
+#define PACED_WALK_WORK_T PacedWalkWork
+#endif
 
 void pacedWalkUpdate(Task* task);
 void pacedWalkTickAnim(Task* task);
