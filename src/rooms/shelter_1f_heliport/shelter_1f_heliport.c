@@ -534,7 +534,7 @@ WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13] = {
 
 AreaResource D_shelter_1f_heliport_80182BAC[3] = {
     { 116, 615, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gStrideWalkTasks },
-    { 115, 605, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_260500_80159DB0 },
+    { 115, 605, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_260500_80159DB0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

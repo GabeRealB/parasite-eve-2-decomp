@@ -244,7 +244,7 @@ WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801824B8[4] = {
 };
 
 AreaResource D_shelter_b3_incinerator_control_room_801825E8[2] = {
-    { 101, 426, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_142600_80135E24 },
+    { 101, 426, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_142600_80135E24 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

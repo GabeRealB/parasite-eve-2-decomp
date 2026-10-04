@@ -674,7 +674,7 @@ WorldCoordRoomLights D_dryfield_motel_room_2_80180398[1] = {
 };
 
 AreaResource D_dryfield_motel_room_2_801803B0[2] = {
-    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_401800_80155AC4 },
+    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401800_80155AC4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -447,11 +447,11 @@ void func_800B6398(Task* task);
 
 extern TaskDesc D_aya_20900_80115D9C[];
 
-extern TaskDesc D_replay_bonus_80119218[];
+extern TaskDesc D_replay_bonus_80119218;
 
 extern TaskDesc D_replay_bonus_8011922C[];
 
-extern TaskDesc D_actor_361100_801637C8[];
+extern TaskDesc D_actor_361100_801637C8;
 
 _CdCmdSceneSoundBankBit Gp_SndMaskTable[7] = {
     { 1, SOUND_ID(SOUND_BANK_TYPE_COMMON, 0, 0) },
@@ -1978,7 +1978,7 @@ void func_800B25B0(void)
             Task_SpawnFromTable(&D_neo_ark_woodland_path_80181638, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(4, 22, 0, 0):
-            Task_SpawnFromTable(D_actor_361100_801637C8, 0, 0, 0);
+            Task_SpawnFromTable(&D_actor_361100_801637C8, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(4, 48, 0, 0):
             Task_SpawnFromTable(&D_shelter_r48_80182FAC, 0, 0, 0);
@@ -2032,7 +2032,7 @@ void func_800B2910(Task* arg0)
 
 Task* func_800B2968(void)
 {
-    return Task_SpawnFromTable(D_replay_bonus_80119218, 0, 0, 0);
+    return Task_SpawnFromTable(&D_replay_bonus_80119218, 0, 0, 0);
 }
 
 /// Blends one part's decoded rotations into its local matrix or an unpacked pose.

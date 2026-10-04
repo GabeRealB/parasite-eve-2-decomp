@@ -398,7 +398,7 @@ AreaResource D_neo_ark_pyramid_8018168C[2] = {
 };
 
 AreaResource D_neo_ark_pyramid_801816A4[2] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gMaggotCaterpillarBodyTask },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gMaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -409,7 +409,7 @@ AreaResource D_neo_ark_pyramid_801816BC[3] = {
 };
 
 AreaResource D_neo_ark_pyramid_801816E0[3] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_401300_80158A18 },
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401300_80158A18 },
     { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80177DF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

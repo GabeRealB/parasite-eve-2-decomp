@@ -951,8 +951,8 @@ WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20] = {
 
 AreaResource D_shelter_b2_pod_bottom_80187598[4] = {
     { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_403600_80160514 },
-    { 45, 611, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_361100_8016BAE4 },
-    { 132, 611, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_361100_80171BAC },
+    { 45, 611, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_361100_8016BAE4 },
+    { 132, 611, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_361100_80171BAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -965,8 +965,8 @@ AreaPlacement D_shelter_b2_pod_bottom_801875C8[4] = {
 
 AreaResource D_shelter_b2_pod_bottom_80187608[4] = {
     { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_403600_80160514 },
-    { 45, 611, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_361100_8016BAE4 },
-    { 132, 611, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_361100_80171BAC },
+    { 45, 611, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_361100_8016BAE4 },
+    { 132, 611, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_361100_80171BAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

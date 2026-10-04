@@ -530,7 +530,7 @@ AreaResource D_acropolis_roof_garden_801858A4[3] = {
 
 AreaResource D_acropolis_roof_garden_801858C8[3] = {
     { 55, 55, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8DC },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, Actor00700_D075A8 },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &Actor00700_D075A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -541,8 +541,8 @@ AreaResource D_acropolis_roof_garden_801858EC[3] = {
 };
 
 AreaResource D_acropolis_roof_garden_80185910[3] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gMaggotCaterpillarBodyTask },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, Actor00700_D075A8 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gMaggotCaterpillarBodyTask },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &Actor00700_D075A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

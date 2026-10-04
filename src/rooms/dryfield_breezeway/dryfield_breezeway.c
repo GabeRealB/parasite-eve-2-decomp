@@ -423,7 +423,7 @@ WorldCoordRoomLights D_dryfield_breezeway_80184250[1] = {
 };
 
 AreaResource D_dryfield_breezeway_80184268[3] = {
-    { 101, 234, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_323400_8017120C },
+    { 101, 234, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_323400_8017120C },
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -434,7 +434,7 @@ AreaResource D_dryfield_breezeway_8018428C[2] = {
 };
 
 AreaResource D_dryfield_breezeway_801842A4[3] = {
-    { 101, 234, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_323400_8017120C },
+    { 101, 234, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_323400_8017120C },
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

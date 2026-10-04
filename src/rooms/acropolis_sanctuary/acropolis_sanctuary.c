@@ -879,13 +879,13 @@ WorldCollisionTrigger D_acropolis_sanctuary_80183AE4[17] = {
 };
 
 AreaResource D_acropolis_sanctuary_80183FF0[3] = {
-    { 27, 107, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_110700_8013BF94 },
-    { 102, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_210700_801585CC },
+    { 27, 107, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_110700_8013BF94 },
+    { 102, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_210700_801585CC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_sanctuary_80184014[2] = {
-    { 102, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_210700_801585CC },
+    { 102, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_210700_801585CC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

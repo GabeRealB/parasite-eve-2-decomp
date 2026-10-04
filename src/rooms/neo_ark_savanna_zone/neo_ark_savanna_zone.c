@@ -315,7 +315,7 @@ AreaResource D_neo_ark_savanna_zone_801807BC[2] = {
 
 AreaResource D_neo_ark_savanna_zone_801807D4[3] = {
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gMaggotCaterpillarBodyTask },
+    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gMaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

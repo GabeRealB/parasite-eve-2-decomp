@@ -560,7 +560,7 @@ AreaResource D_shelter_b1_main_corridor_80185A80[3] = {
 };
 
 AreaResource D_shelter_b1_main_corridor_80185AA4[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_400600_80151B10 },
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_400600_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -570,7 +570,7 @@ AreaResource D_shelter_b1_main_corridor_80185ABC[2] = {
 };
 
 AreaResource D_shelter_b1_main_corridor_80185AD4[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_402200_80154188 },
+    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_402200_80154188 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

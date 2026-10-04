@@ -1481,7 +1481,7 @@ AreaResource D_dryfield_general_store_80185588[2] = {
 };
 
 AreaResource D_dryfield_general_store_801855A0[3] = {
-    { 140, 236, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_223600_80150B48 },
+    { 140, 236, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_223600_80150B48 },
     { 40, 40, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013E500 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

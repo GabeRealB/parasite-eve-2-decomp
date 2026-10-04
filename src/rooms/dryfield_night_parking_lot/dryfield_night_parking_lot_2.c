@@ -511,7 +511,7 @@ WorldCollisionOccluder D_dryfield_night_parking_lot_80181330[2] = {
 
 AreaResource D_dryfield_night_parking_lot_801813A8[3] = {
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_300700_80165B88 },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_300700_80165B88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -527,7 +527,7 @@ AreaResource D_dryfield_night_parking_lot_801813E4[3] = {
 };
 
 AreaResource D_dryfield_night_parking_lot_80181408[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_403900_801540E0 },
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_403900_801540E0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

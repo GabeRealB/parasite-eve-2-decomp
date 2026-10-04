@@ -72,7 +72,7 @@ extern AreaResource D_dryfield_night_garage_80187468[3];
 extern AreaResource D_dryfield_night_garage_8018748C[2];
 extern AreaResource D_dryfield_night_garage_801874A4[2];
 
-extern TaskDesc D_actor_136300_8013B11C[];
+extern TaskDesc D_actor_136300_8013B11C;
 
 extern WorldCollisionGrid    D_dryfield_night_garage_801843D4[1];
 extern WorldCollisionTrigger D_dryfield_night_garage_8018630C[14];
@@ -1004,17 +1004,17 @@ AreaResource D_dryfield_night_garage_80187450[2] = {
 
 AreaResource D_dryfield_night_garage_80187468[3] = {
     { 106, 354, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A4AC },
-    { 114, 354, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_135400_8013F8D8 },
+    { 114, 354, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_135400_8013F8D8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_garage_8018748C[2] = {
-    { 101, 363, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_136300_8013B11C },
+    { 101, 363, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_136300_8013B11C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_garage_801874A4[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_400600_80151B10 },
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_400600_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -47,7 +47,7 @@ static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);
 static void func_shelter_b6_growth_room_8017E7F0(GfxCoord* coord, u16 arg1, s16 arg2, u16 arg3);
 static void func_shelter_b6_growth_room_8017ED28(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 
-extern TaskDesc D_actor_450900_80135E78;
+extern TaskDesc D_actor_450900_80135E78[];
 
 /// The layout template and the live copy the reset below restores from it.
 extern WorldCollisionGrid D_shelter_b6_growth_room_8017F234;
@@ -267,7 +267,7 @@ WorldCollisionTrigger D_shelter_b6_growth_room_8017FF90[12] = {
 };
 
 AreaResource D_shelter_b6_growth_room_80180320[2] = {
-    { 101, 509, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_450900_80135E78 },
+    { 101, 509, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_450900_80135E78 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -362,18 +362,18 @@ WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6] = {
 };
 
 AreaResource D_neo_ark_forest_zone_8018287C[3] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_401300_80158A18 },
-    { 10, 561, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_356100_80173294 },
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401300_80158A18 },
+    { 10, 561, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_356100_80173294 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_forest_zone_801828A0[2] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_401300_80158A18 },
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401300_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_forest_zone_801828B8[2] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_401300_80158A18 },
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401300_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -383,7 +383,7 @@ AreaResource D_neo_ark_forest_zone_801828D0[2] = {
 };
 
 AreaResource D_neo_ark_forest_zone_801828E8[3] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_401300_80158A18 },
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401300_80158A18 },
     { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80177DF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -395,7 +395,7 @@ AreaResource D_neo_ark_forest_zone_8018290C[3] = {
 };
 
 AreaResource D_neo_ark_forest_zone_80182930[2] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_401300_80158A18 },
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401300_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -28,7 +28,7 @@ u16 D_shelter_b3_garbage_incinerator_801855DC;
 
 #include "mapui/map_shelter.h"
 
-extern TaskDesc         D_actor_342400_8016BFE0;
+extern TaskDesc         D_actor_342400_8016BFE0[];
 extern TaskDesc         D_actor_444000_801449F4;
 extern TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[];
 
@@ -207,7 +207,7 @@ static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
         Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 0, 0);
     }
     if (gGameSession->location.loc.variant == 2) {
-        Task_SpawnFromTable(&D_actor_342400_8016BFE0, 0, 0, 0);
+        Task_SpawnFromTable(D_actor_342400_8016BFE0, 0, 0, 0);
     }
     task->state = task->state + 1;
 }

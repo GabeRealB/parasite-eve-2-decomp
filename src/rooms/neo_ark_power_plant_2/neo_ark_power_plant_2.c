@@ -664,7 +664,7 @@ AreaResource D_neo_ark_power_plant_2_80182DA4[3] = {
 };
 
 AreaResource D_neo_ark_power_plant_2_80182DC8[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_403900_801540E0 },
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_403900_801540E0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

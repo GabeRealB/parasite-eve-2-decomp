@@ -51,7 +51,7 @@
 
 /// Task descriptor table and cutscene script blobs owned by the main
 /// executable.
-extern TaskDesc   D_actor_136300_8013B11C[];
+extern TaskDesc   D_actor_136300_8013B11C;
 extern s32        D_actor_136300_8013B570;
 extern EvsCommand D_8013B590[];
 extern EvsCommand D_actor_136300_8013C388[];
@@ -444,7 +444,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
         }
     }
     if (msg->actionId == 2 && gGameSession->location.loc.variant == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        Task_SpawnFromTable(D_actor_136300_8013B11C, 1, 0, 0);
+        Task_SpawnFromTable(&D_actor_136300_8013B11C, 1, 0, 0);
     }
     return 0;
 }

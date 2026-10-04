@@ -47,7 +47,7 @@ extern SVECTOR D_dryfield_night_toilet_8017DAA0[];
 extern SVECTOR D_dryfield_night_toilet_8017DAA8[];
 
 /// Gameplay's task descriptor table; the room task spawns its entry 0.
-extern TaskDesc Actor04000_D0C6FC[];
+extern TaskDesc Actor04000_D0C6FC;
 
 s32 func_dryfield_night_toilet_8017D678(Task*, s32, s32, s32);
 s32 func_dryfield_night_toilet_8017D680(Task*, s32, s32, s32);
@@ -418,8 +418,8 @@ AreaResource D_dryfield_night_toilet_8017F300[2] = {
 };
 
 AreaResource D_dryfield_night_toilet_8017F318[3] = {
-    { 7, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, Actor00700_D06E60 },
-    { 8, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, Actor00700_D075A8 },
+    { 7, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor00700_D06E60 },
+    { 8, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor00700_D075A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -500,14 +500,14 @@ s32 func_dryfield_night_toilet_8017D688(Task* task, s32 msgId, s32 arg2, s32 arg
 /// First state of the room task: publishes the room's message table and claims
 /// pointer slot 7. When game nibble 0xAF is still clear and the session's place
 /// (`gGameSession->location.loc.variant`) is 1, it sets the nibble to 1 and spawns
-/// entry 0 of `Actor04000_D0C6FC`. Advances to the next state either way.
+/// entry 0 of `&Actor04000_D0C6FC`. Advances to the next state either way.
 static void func_dryfield_night_toilet_8017D690(Task* task)
 {
     task->msgTable = D_dryfield_night_toilet_8017DA70;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (GameFlag_GetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == 1) {
         GameFlag_SetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN, 1);
-        Task_SpawnFromTable(Actor04000_D0C6FC, 0, 0, 0);
+        Task_SpawnFromTable(&Actor04000_D0C6FC, 0, 0, 0);
     }
     task->state = task->state + 1;
 }

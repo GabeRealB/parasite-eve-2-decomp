@@ -380,7 +380,7 @@ WorldCoordRoomLights D_neo_ark_r26_8017E928[1] = {
 };
 
 AreaResource D_neo_ark_r26_8017E940[3] = {
-    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_143900_801413EC },
+    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_143900_801413EC },
     { 112, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_143900_80149664 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

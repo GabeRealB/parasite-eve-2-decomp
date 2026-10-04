@@ -155,7 +155,7 @@ extern void func_actor_215100_8014AF0C(void);
 extern void func_actor_215100_8014C5E0(s16, s16, s16);
 
 extern s32        D_actor_215100_8014D038;
-extern TaskDesc   D_actor_215100_8014E13C;
+extern TaskDesc   D_actor_215100_8014E13C[];
 extern EvsCommand D_80153274[];
 extern EvsCommand D_80153D6C[];
 
@@ -1872,7 +1872,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 7) {
         Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 0, 0, 0);
     } else if (gGameSession->location.loc.warp == 7) {
-        Task_SpawnFromTable(&D_actor_215100_8014E13C, 0, 0, 0);
+        Task_SpawnFromTable(D_actor_215100_8014E13C, 0, 0, 0);
     }
     if ((gGameSession->location.loc.warp == 6) && (GameFlag_GetNibble(GAME_FLAG_0ED) != 0)) {
         Gp_RunCapCmd1(0x16);
@@ -1999,7 +1999,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
 
     if ((request->actionId == 1) && (D_actor_215100_8014D038 == 0)) {
         Gp_MsgPlayerWeapon(0);
-        Task_SpawnFromTable(&D_actor_215100_8014E13C, 1, 1, 0);
+        Task_SpawnFromTable(D_actor_215100_8014E13C, 1, 1, 0);
         D_80114D08 = 0xA;
     }
     if ((request->actionId == 2) && (GameFlag_GetNibble(GAME_FLAG_0ED) == 0)) {

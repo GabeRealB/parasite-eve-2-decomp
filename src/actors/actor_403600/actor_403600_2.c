@@ -188,11 +188,11 @@ s32         func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* reque
 static void func_actor_403600_80140B4C(struct Enemy* arg0, Task* arg1);
 static void func_actor_403600_80141F58(GfxCoord* arg0, s32 arg1);
 
-extern TaskDesc D_actor_303600_80162E98;
+extern TaskDesc D_actor_303600_80162E98[];
 /// Models effect 0x80005 spawns, set in `D_800626EC[5].data.model`.
 extern Task* D_actor_403600_801606B4;
 
-extern TaskDesc              D_actor_303600_8016E468;
+extern TaskDesc              D_actor_303600_8016E468[];
 extern AnimationPlayRequest  D_actor_403600_80160568;
 extern AnimationSet*         D_actor_403600_8016057C[22];
 extern SVECTOR               D_actor_403600_801605F4[];
@@ -1268,7 +1268,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                         if (D_actor_403600_801606B4 != 0) {
                             Task_CallExit(D_actor_403600_801606B4);
                         }
-                        Task_SpawnFromTable(&D_actor_303600_80162E98, 0, 0, 0);
+                        Task_SpawnFromTable(D_actor_303600_80162E98, 0, 0, 0);
                         func_800E9BDC(0, 0xF9FF);
                         goto block_115;
                     }
@@ -4342,7 +4342,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             work->mode         = ACTOR_403600_MODE_SCENE_BRIGHTEN;
             break;
         case 4:
-            D_actor_403600_801606B0 = Task_SpawnFromTable(&D_actor_303600_8016E468, 0, 0, 0);
+            D_actor_403600_801606B0 = Task_SpawnFromTable(D_actor_303600_8016E468, 0, 0, 0);
             taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

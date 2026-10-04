@@ -62,7 +62,7 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/incinerator_blaze.h"
 
-extern TaskDesc D_actor_342000_80164FF8;
+extern TaskDesc D_actor_342000_80164FF8[];
 
 /// Steps of the incinerator lift's second move, the one that carries an
 /// actor, held in `_ShelterB3GarbageIncineratorLiftWork::carryState`.
@@ -717,7 +717,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
             break;
         case 2:
             if (CdCmd_IsSlotEmpty(arg0->spawnArg1.value)) {
-                arg0->spawnArg2.pointer = Task_SpawnFromTable(&D_actor_342000_80164FF8, 0, 0, 0);
+                arg0->spawnArg2.pointer = Task_SpawnFromTable(D_actor_342000_80164FF8, 0, 0, 0);
                 arg0->state++;
             }
             break;

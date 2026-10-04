@@ -80,7 +80,7 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 void    func_actor_503500_80132F58(s32 arg0);
 
 extern TaskDesc   D_actor_503500_8014B958;
-extern TaskDesc   D_actor_503500_8014B964;
+extern TaskDesc   D_actor_503500_8014B964[];
 extern EvsCommand D_actor_503500_8014BD48[];
 extern EvsCommand D_actor_503500_8014C288[];
 extern EvsCommand D_8014C540[];
@@ -2178,9 +2178,9 @@ s32 func_shelter_r48_8017E0EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
         GameFlag_SetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 2);
     } else {
         func_800E8634(D_8014C540, 0, D_8014CAF8);
-        Task_SpawnFromTable(&D_actor_503500_8014B964, 0, 0, 0);
-        Task_SpawnFromTable(&D_actor_503500_8014B964, 0, 1, 0);
-        Task_SpawnFromTable(&D_actor_503500_8014B964, 0, 3, 0);
+        Task_SpawnFromTable(D_actor_503500_8014B964, 0, 0, 0);
+        Task_SpawnFromTable(D_actor_503500_8014B964, 0, 1, 0);
+        Task_SpawnFromTable(D_actor_503500_8014B964, 0, 3, 0);
         GameFlag_SetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 3);
     }
     return 0;

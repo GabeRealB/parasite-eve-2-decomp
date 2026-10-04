@@ -397,7 +397,7 @@ WorldCollisionOccluder D_shelter_b1_elevator_hall_80184748[1] = {
 };
 
 AreaResource D_shelter_b1_elevator_hall_80184784[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_400600_80151B10 },
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_400600_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

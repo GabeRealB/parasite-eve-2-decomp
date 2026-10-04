@@ -95,7 +95,7 @@ WorldCoordRoomLights D_neo_ark_r31_8017DB7C = { 0, NULL, ARRAY_SIZE(D_neo_ark_r3
 
 AreaResource D_neo_ark_r31_8017DB94[3] = {
     { 101, 618, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_461800_80139F8C },
-    { 132, 618, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_461800_801437EC },
+    { 132, 618, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_461800_801437EC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

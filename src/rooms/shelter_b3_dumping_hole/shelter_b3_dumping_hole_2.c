@@ -556,7 +556,7 @@ extern SpriteSource   D_shelter_b3_dumping_hole_8018DB44[8];
 extern SpriteSource   D_shelter_b3_dumping_hole_8018DC1C[14];
 extern SpriteSource   D_shelter_b3_dumping_hole_8018DD6C[1];
 extern SpriteSource   D_shelter_b3_dumping_hole_8018DDA8[24];
-extern TaskDesc       D_actor_342100_80164B78;
+extern TaskDesc       D_actor_342100_80164B78[];
 extern TaskDesc       D_actor_341700_80174D58;
 extern TaskDesc       D_shelter_b3_dumping_hole_80188BC8[5];
 
@@ -1803,7 +1803,7 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EAEC[5] = {
 AreaResource D_shelter_b3_dumping_hole_8018EB3C[5] = {
     { 32, 32, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8015F8D0 },
     { 103, 417, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_dumping_hole_80188BC8 },
-    { 252, 417, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_341700_80176354 },
+    { 252, 417, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_341700_80176354 },
     { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_60, 2, { 0, 0 }, &D_actor_341700_80174D58 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -1822,7 +1822,7 @@ AreaResource D_shelter_b3_dumping_hole_8018EBB0[5] = {
     { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 1, { 0, 0 }, &Actor04400_D107E4 },
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_801575F0 },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_80151E60 },
-    { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, &D_actor_342100_80164B78 },
+    { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, D_actor_342100_80164B78 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
