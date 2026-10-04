@@ -75,45 +75,76 @@
 #include "../../shared/coord_math.h"
 #include "../../shared/diver.h"
 
+/// Handlers of the diver's states in water, stored as a value for whole-table
+/// copies.
+///
+/// `_Actor00400Work::state` is the index: an `ACTOR_00400_SWIM_STATE_*` or one
+/// of the three `ACTOR_00400_STATE_*` values the stranded table shares. The
+/// water tick copies the package's one table to the stack and calls the
+/// current state's handler with the diver's task once a frame; there is no
+/// terminator or bounds check, and every slot is filled.
 typedef struct {
-    TaskFunc funcs[15];
-} TaskFuncTable15;
+    TaskFunc funcs[15]; // Handlers in state order
+} _Actor00400SwimStateTable;
+STATIC_ASSERT_SIZEOF(_Actor00400SwimStateTable, 0x3C);
 
-typedef struct Actor100400QuadWork {
-    /* 0x00 */ Enemy*  field_0;
-    /* 0x04 */ SVECTOR vertices[4];
-    /* 0x24 */ u8      intensity;
-} Actor100400QuadWork;
+/// Half the side of the ground stain, which is a square centred on the root.
+#define ACTOR_00400_GROUND_STAIN_HALF_SIZE 0x5DC
 
-/// 0x64-byte work block of the marker task `Actor00400_Fn064B0` spawns from
-/// `Actor00400_D16028[1]`: a display object and its two `WorldCollisionContact` slots, then
-/// the view-space span between the marker's base and tip.
-typedef struct Actor100400MarkerWork {
-    /* 0x00 */ byte                  pad_0[8];
-    /* 0x08 */ WorldCollisionBody    obj;
-    /* 0x28 */ WorldCollisionContact recs[2];
-    /* 0x58 */ s16                   field_58;
-    /* 0x5A */ s16                   field_5A;
-    /* 0x5C */ s16                   field_5C;
-    /* 0x5E */ byte                  pad_5E[2];
-    /* 0x60 */ s32                   field_60;
-} Actor100400MarkerWork;
-STATIC_ASSERT_SIZEOF(Actor100400MarkerWork, 0x64);
+/// Work block of the stain on the ground under the diver that spawns wounded
+/// and lying out of the water.
+///
+/// The spawn state gives the stain a task of its own and fixes the square at
+/// the root's position and height. The task draws it every frame: the blob
+/// texture the limb shadows use, subtracted from the picture with red at half
+/// strength, which leaves a red patch. It is drawn at full strength while the
+/// diver lives and then fades by one step a frame, and the task ends when it
+/// has faded out.
+typedef struct {
+    Enemy*  enemy;       // the diver's enemy record; the stain starts to fade once its `hp` is 0 or less
+    SVECTOR vertices[4]; // corners in the view coordinate's space, in the order the quad is drawn; `pad` is never written
+    u8      intensity;   // strength of the subtraction: 0xFF from the spawn, less 1 a frame while fading, and 0 ends the task
+} _Actor00400GroundStainWork;
+STATIC_ASSERT_SIZEOF(_Actor00400GroundStainWork, 0x28);
 
-/// 0x1C-byte scratch `Actor00400_Fn03318` carves off the scratch stack to hold
-/// `RotTransPers4`'s outputs for the quad it projects: the four screen-space
-/// corners, the perspective term, the clip flags and the average depth used as
-/// the OT key.
-typedef struct Actor100400TextQuadScratch {
-    /* 0x00 */ long screen0;
-    /* 0x04 */ long screen1;
-    /* 0x08 */ long screen2;
-    /* 0x0C */ long screen3;
-    /* 0x10 */ long perspective;
-    /* 0x14 */ long flags;
-    /* 0x18 */ s32  depth;
-} Actor100400TextQuadScratch;
-STATIC_ASSERT_SIZEOF(Actor100400TextQuadScratch, 0x1C);
+/// Vertical speed the shot leaves with; negative is up.
+#define ACTOR_00400_SHOT_LAUNCH_SPEED_Y (-0x14)
+
+/// Added to the shot's vertical speed every frame.
+#define ACTOR_00400_SHOT_GRAVITY 2
+
+/// Frame count at which a shot still flying bursts by itself.
+#define ACTOR_00400_SHOT_LIFETIME 0x3D
+
+/// Work block of the shot the attack in water fires.
+///
+/// The shot is a task of its own with a coordinate for a body, parented to the
+/// view coordinate. The attack places it at part 5 of the model and aims it
+/// along the head; from then on it moves by `velocity` every frame, falling
+/// under `ACTOR_00400_SHOT_GRAVITY`, and trails sparks and spray. It bursts
+/// when its sphere touches a body or the room, when the room asks the divers
+/// to hide, or when it has flown `ACTOR_00400_SHOT_LIFETIME` frames, and the Diver
+/// library's teardown then unlinks the sphere and ends the task.
+typedef struct {
+    DiverChildWork        child;       // head the Diver library's teardown reads: the sphere carrying the attack, linked while the shot flies
+    WorldCollisionContact contacts[2]; // contacts of the sphere: what the shot touched this frame
+    SVECTOR               velocity;    // movement a frame in the view coordinate's space: the head's forward axis times the speed of the enemy's placement row, with `vy` relaunched at `ACTOR_00400_SHOT_LAUNCH_SPEED_Y`; `pad` is never accessed
+    s32                   frames;      // frames the shot has flown; the phase of its sparks and spray
+} _Actor00400ShotWork;
+STATIC_ASSERT_SIZEOF(_Actor00400ShotWork, 0x64);
+
+/// Scratch-stack block of the ground stain's drawer: `RotTransPers4`'s outputs
+/// for the four corners it projects through the view.
+///
+/// The drawer reserves one block and releases it once the quad is queued;
+/// nothing in it outlives the call.
+typedef struct {
+    long screenCorners[4]; // projected corners: screen X in bits 0..15, Y in bits 16..31, copied whole into the primitive
+    long depthCue;         // depth-cueing interpolation value of the projection; never read
+    long flags;            // GTE FLAG word of the projection; a set bit 31 drops the quad
+    s32  depth;            // last corner's screen Z / 4, which picks the ordering-table entry
+} _Actor00400GroundStainScratch;
+STATIC_ASSERT_SIZEOF(_Actor00400GroundStainScratch, 0x1C);
 
 /// Value of `bestDistance` in `_Actor00400NearestSurfaceSpotScratch` before the
 /// search has taken a spot. Only a strictly smaller distance replaces it.
@@ -134,14 +165,6 @@ typedef struct {
     s16    nearestIndex; // index of the spot `bestDistance` was measured at; the result of the search that claims a spot
 } _Actor00400NearestSurfaceSpotScratch;
 STATIC_ASSERT_SIZEOF(_Actor00400NearestSurfaceSpotScratch, 0x1C);
-
-typedef union Actor100400Mat {
-    GfxMatrix matrix; // SDK and packed-coefficient views of the working matrix
-    /// The same storage reused as the view-space position `coordLocalToWorld`
-    /// fills in, once the rotation it held has been handed to the coordinate.
-    SVECTOR vec;
-} Actor100400Mat;
-STATIC_ASSERT_SIZEOF(Actor100400Mat, 0x20);
 
 /// Values of `_Actor00400Work::hitReaction`, the reaction a hit asks for.
 enum {
@@ -336,23 +359,31 @@ STATIC_ASSERT_SIZEOF(_Actor00400Work, 0x668);
 /// The Diver library's name for this package's work block (see diver.h).
 typedef _Actor00400Work DiverWork;
 
-/// One 0x14-byte row of `Actor00400_D15F20`, the per-room spawn table the entry
-/// state walks until `area` reads 0xFF. A row matches when its `area` / `room`
-/// equal `GameSession.location.loc.stage` / `location.loc.area`; `flags` bit 1 rejects the actor
-/// outright and bit 2 sets its `gridCollision`. The three pointers are
-/// optional overrides taken from the room overlay: `waypointSets` is indexed by
-/// the spawn argument's second nibble, `records` becomes
-/// `_Actor00400Work::surfaceSpots` and `height` seeds `waterLevel`.
-typedef struct Actor100400AreaConfig {
-    /* 0x00 */ SVECTOR** waypointSets;
-    /* 0x04 */ SVECTOR*  records;
-    /* 0x08 */ s16*      height;
-    /* 0x0C */ s16       area;
-    /* 0x0E */ s16       room;
-    /* 0x10 */ u16       flags;
-    /* 0x12 */ byte      pad_12[2];
-} Actor100400AreaConfig;
-STATIC_ASSERT_SIZEOF(Actor100400AreaConfig, 0x14);
+/// Value of `_Actor00400AreaConfig::stage` on the row that ends the table.
+#define ACTOR_00400_AREA_CONFIG_END 0xFF
+
+/// Bits of `_Actor00400AreaConfig::flags`.
+enum {
+    ACTOR_00400_AREA_CONFIG_NO_DIVER       = 0x1, // the room takes no diver: the spawn destroys the enemy; no row of the package sets it
+    ACTOR_00400_AREA_CONFIG_GRID_COLLISION = 0x2  // sets `_Actor00400Work::gridCollision`
+};
+
+/// What one room lends the divers that spawn in it.
+///
+/// The package holds one row for each room a diver appears in, ended by a row
+/// whose `stage` is `ACTOR_00400_AREA_CONFIG_END`. The spawn state takes the
+/// row of the session's current stage and area, and destroys the enemy when
+/// there is none. Each pointer names data of that room's package, or is NULL
+/// to leave the work block's member as the spawn found it.
+typedef struct {
+    SVECTOR** waypointSets; // the room's four patrol rings, picked by bits 4..5 of the spawn argument: becomes `_Actor00400Work::waypoints`
+    SVECTOR*  surfaceSpots; // the room's spots to emerge at: becomes `_Actor00400Work::surfaceSpots`
+    s16*      waterLevel;   // Y of the room's water surface, read once at the spawn: seeds `_Actor00400Work::waterLevel`
+    s16       stage;        // `GAME_STAGE_*` of the room, or `ACTOR_00400_AREA_CONFIG_END`
+    s16       area;         // `GAME_AREA_*` of the room within `stage`
+    u16       flags;        // `ACTOR_00400_AREA_CONFIG_*`
+} _Actor00400AreaConfig;
+STATIC_ASSERT_SIZEOF(_Actor00400AreaConfig, 0x14);
 
 static void Actor00400_Fn0875C(Task* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 static void Actor00400_Fn088EC(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -475,11 +506,11 @@ static void Actor00400_Fn09F18(Task* arg0);
 static void Actor00400_Fn09FDC(Task* arg0);
 
 extern EnemyParams Actor00400_D0FDC8;
-/// Pair table `Actor00400_Fn0A190` packs, at index 1, into the marker object's
-/// `key`.
+/// Pair table `Actor00400_Fn0A190` packs, at index 1, into the `key` of the
+/// shot's sphere.
 extern DamageAttack          Actor00400_D0FDC0[2];
 extern TaskDesc              Actor00400_D16028[];
-extern Actor100400AreaConfig Actor00400_D15F20[];
+extern _Actor00400AreaConfig Actor00400_D15F20[];
 // Typed callback views for the task message dispatcher.
 
 extern TaskMessageEntry Actor00400_D16010[3];
@@ -1173,19 +1204,19 @@ static AnimationSet _gActor00400Actor100400Animation15EF8 = {
     { NULL, _gActor00400Actor100400Animation15EF8Bank1, NULL, NULL, _gActor00400Actor100400Animation15EF8Bank4, NULL, NULL, NULL },
 };
 
-Actor100400AreaConfig Actor00400_D15F20[12] = {
-    { NULL, NULL, NULL, 4, 46, 0, { 0, 0 } },
-    { D_shelter_b4_reservoir_801851D4, D_shelter_b4_reservoir_801851E4, &D_shelter_b4_reservoir_80184F80, 4, 45, 2, { 0, 0 } },
-    { D_shelter_b2_septic_tank_801836A4, D_shelter_b2_septic_tank_801836B4, &D_shelter_b2_septic_tank_801832BC, 4, 34, 2, { 0, 0 } },
-    { D_shelter_b4_upper_sewer_801866F8, D_shelter_b4_upper_sewer_80186708, &D_shelter_b4_upper_sewer_80186438, 4, 44, 2, { 0, 0 } },
-    { D_neo_ark_bridge_801820BC, D_neo_ark_bridge_801820CC, &D_neo_ark_bridge_80181FF8, 5, 27, 0, { 0, 0 } },
-    { D_neo_ark_submarine_gallery_80181B0C, D_neo_ark_submarine_gallery_80181B1C, &D_neo_ark_submarine_gallery_80181A48, 5, 30, 2, { 0, 0 } },
-    { D_neo_ark_submarine_tunnel_80181F94, NULL, &D_neo_ark_submarine_tunnel_80181E90, 5, 12, 0, { 0, 0 } },
-    { D_neo_ark_pavilion_80183A64, D_neo_ark_pavilion_80183A74, &D_neo_ark_pavilion_801839A0, 5, 13, 0, { 0, 0 } },
-    { D_neo_ark_island_80181CE8, D_neo_ark_island_80181CF8, &D_neo_ark_island_80181C24, 5, 14, 0, { 0, 0 } },
-    { D_shelter_b2_main_corridor_80182EEC, D_shelter_b2_main_corridor_80182EFC, &D_shelter_b2_main_corridor_80182E28, 4, 33, 0, { 0, 0 } },
-    { D_shelter_b4_lower_sewer_8018210C, D_shelter_b4_lower_sewer_8018211C, &D_shelter_b4_lower_sewer_80181E6C, 4, 43, 2, { 0, 0 } },
-    { NULL, NULL, NULL, 255, 0, 0, { 0, 0 } },
+_Actor00400AreaConfig Actor00400_D15F20[12] = {
+    { NULL, NULL, NULL, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, 0 },
+    { D_shelter_b4_reservoir_801851D4, D_shelter_b4_reservoir_801851E4, &D_shelter_b4_reservoir_80184F80, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_RESERVOIR, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
+    { D_shelter_b2_septic_tank_801836A4, D_shelter_b2_septic_tank_801836B4, &D_shelter_b2_septic_tank_801832BC, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
+    { D_shelter_b4_upper_sewer_801866F8, D_shelter_b4_upper_sewer_80186708, &D_shelter_b4_upper_sewer_80186438, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
+    { D_neo_ark_bridge_801820BC, D_neo_ark_bridge_801820CC, &D_neo_ark_bridge_80181FF8, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 0 },
+    { D_neo_ark_submarine_gallery_80181B0C, D_neo_ark_submarine_gallery_80181B1C, &D_neo_ark_submarine_gallery_80181A48, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
+    { D_neo_ark_submarine_tunnel_80181F94, NULL, &D_neo_ark_submarine_tunnel_80181E90, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, 0 },
+    { D_neo_ark_pavilion_80183A64, D_neo_ark_pavilion_80183A74, &D_neo_ark_pavilion_801839A0, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 0 },
+    { D_neo_ark_island_80181CE8, D_neo_ark_island_80181CF8, &D_neo_ark_island_80181C24, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 0 },
+    { D_shelter_b2_main_corridor_80182EEC, D_shelter_b2_main_corridor_80182EFC, &D_shelter_b2_main_corridor_80182E28, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 0 },
+    { D_shelter_b4_lower_sewer_8018210C, D_shelter_b4_lower_sewer_8018211C, &D_shelter_b4_lower_sewer_80181E6C, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
+    { NULL, NULL, NULL, ACTOR_00400_AREA_CONFIG_END, 0, 0 },
 };
 
 TaskMessageEntry Actor00400_D16010[3] = {
@@ -1502,9 +1533,9 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     MATRIX            t1;
     MATRIX            t2;
     MATRIX            t3;
-    Actor100400Mat    ma;
-    Actor100400Mat    mb;
-    Actor100400Mat    mc;
+    GfxMatrix         ma;
+    GfxMatrix         mb;
+    GfxMatrix         mc;
     GfxRotationWords* ia;
     GfxRotationWords* ib;
     GfxRotationWords* ic;
@@ -1541,52 +1572,52 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     }
 
     m2 = &c2->coord;
-    ia = &ma.matrix.rotationWords;
-    ib = &mb.matrix.rotationWords;
-    ic = &mc.matrix.rotationWords;
+    ia = &ma.rotationWords;
+    ib = &mb.rotationWords;
+    ic = &mc.rotationWords;
 
-    ma.matrix.rotationWords.m00M01 = ONE;
-    ma.matrix.rotationWords.m02M10 = 0;
-    ia->m11M12                     = ONE;
-    ma.matrix.rotationWords.m20M21 = 0;
-    ia->m22                        = ONE;
-    mb.matrix.rotationWords.m00M01 = ONE;
-    mb.matrix.rotationWords.m02M10 = 0;
-    ib->m11M12                     = ONE;
-    mb.matrix.rotationWords.m20M21 = 0;
-    ib->m22                        = ONE;
-    mc.matrix.rotationWords.m00M01 = ONE;
-    mc.matrix.rotationWords.m02M10 = 0;
-    ic->m11M12                     = ONE;
-    mc.matrix.rotationWords.m20M21 = 0;
-    ic->m22                        = ONE;
+    ma.rotationWords.m00M01 = ONE;
+    ma.rotationWords.m02M10 = 0;
+    ia->m11M12              = ONE;
+    ma.rotationWords.m20M21 = 0;
+    ia->m22                 = ONE;
+    mb.rotationWords.m00M01 = ONE;
+    mb.rotationWords.m02M10 = 0;
+    ib->m11M12              = ONE;
+    mb.rotationWords.m20M21 = 0;
+    ib->m22                 = ONE;
+    mc.rotationWords.m00M01 = ONE;
+    mc.rotationWords.m02M10 = 0;
+    ic->m11M12              = ONE;
+    mc.rotationWords.m20M21 = 0;
+    ic->m22                 = ONE;
 
     Gp_MtxToEuler(m2, &rot1);
     m3 = &c3->coord;
     Gp_MtxToEuler(m3, &rot2);
-    RotMatrixX(rot1.vx, &ma.matrix.mat);
-    RotMatrixX(rot2.vx, &mb.matrix.mat);
-    Actor00400_Fn08A1C(&ma.matrix.mat, m2);
-    Actor00400_Fn08A1C(&mb.matrix.mat, m3);
+    RotMatrixX(rot1.vx, &ma.mat);
+    RotMatrixX(rot2.vx, &mb.mat);
+    Actor00400_Fn08A1C(&ma.mat, m2);
+    Actor00400_Fn08A1C(&mb.mat, m3);
     Gp_UpdateCoord(c1);
     Gp_UpdateCoord(c2);
     Gp_UpdateCoord(c3);
     diverTurnJoint(c2, (s16)work->lookYaw / 3);
     diverTurnJoint(c3, (s16)work->lookYaw / 3);
 
-    mc.matrix.rotationWords.m00M01 = ONE;
-    mc.matrix.rotationWords.m02M10 = 0;
-    ic->m11M12                     = ONE;
-    mc.matrix.rotationWords.m20M21 = 0;
-    ic->m22                        = ONE;
+    mc.rotationWords.m00M01 = ONE;
+    mc.rotationWords.m02M10 = 0;
+    ic->m11M12              = ONE;
+    mc.rotationWords.m20M21 = 0;
+    ic->m22                 = ONE;
 
-    RotMatrixY((s16)work->lookYaw / 3, &mc.matrix.mat);
+    RotMatrixY((s16)work->lookYaw / 3, &mc.mat);
     TransposeMatrix(&c1->coord, &t1);
     TransposeMatrix(m2, &t2);
     TransposeMatrix(m3, &t3);
     MulMatrix(&t1, &t2);
     MulMatrix(&t1, &t3);
-    MulMatrix(&t1, &mc.matrix.mat);
+    MulMatrix(&t1, &mc.mat);
     Actor00400_Fn08A1C(&t1, &c4->coord);
 }
 
@@ -2008,13 +2039,13 @@ static void Actor00400_Fn0237C(Task* arg0)
 static void Actor00400_Fn02648(Task* arg0, s32 arg1)
 {
     VECTOR           scale;
-    Actor100400Mat   rot;
+    GfxMatrix        rot;
     SVECTOR          euler0;
-    Actor100400Mat   ma;
+    GfxMatrix        ma;
     SVECTOR          euler1;
-    Actor100400Mat   mb;
+    GfxMatrix        mb;
     SVECTOR          euler2;
-    Actor100400Mat   mc;
+    GfxMatrix        mc;
     _Actor00400Work* work;
     GfxCoord*        base;
     GfxCoord*        c2;
@@ -2044,27 +2075,27 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             case ACTOR_00400_NECK_STRAIGHTEN: {
                 GfxRotationWords* ir;
 
-                ir                              = &rot.matrix.rotationWords;
-                work->lowerNeckAngles.vx        = (u16)work->lowerNeckAngles.vx + ((s32) - (work->lowerNeckAngles.vx * 0x10) >> 6);
-                work->lowerNeckAngles.vy        = (u16)work->lowerNeckAngles.vy + ((s32) - (work->lowerNeckAngles.vy * 0x10) >> 6);
-                work->lowerNeckAngles.vz        = (u16)work->lowerNeckAngles.vz + ((s32) - (work->lowerNeckAngles.vz * 0x10) >> 6);
-                work->upperNeckAngles.vx        = (u16)work->upperNeckAngles.vx + ((s32) - (work->upperNeckAngles.vx * 0x10) >> 6);
-                work->upperNeckAngles.vy        = (u16)work->upperNeckAngles.vy + ((s32) - (work->upperNeckAngles.vy * 0x10) >> 6);
-                work->upperNeckAngles.vz        = (u16)work->upperNeckAngles.vz + ((s32) - (work->upperNeckAngles.vz * 0x10) >> 6);
-                rot.matrix.rotationWords.m00M01 = ONE;
-                rot.matrix.rotationWords.m02M10 = 0;
-                ir->m11M12                      = ONE;
-                rot.matrix.rotationWords.m20M21 = 0;
-                ir->m22                         = ONE;
-                RotMatrix(&work->lowerNeckAngles, &rot.matrix.mat);
-                Actor00400_Fn08A1C(&rot.matrix.mat, &c2->coord);
-                rot.matrix.rotationWords.m00M01 = ONE;
-                rot.matrix.rotationWords.m02M10 = 0;
-                ir->m11M12                      = ONE;
-                rot.matrix.rotationWords.m20M21 = 0;
-                ir->m22                         = ONE;
-                RotMatrix(&work->upperNeckAngles, &rot.matrix.mat);
-                Actor00400_Fn08A1C(&rot.matrix.mat, &c3->coord);
+                ir                       = &rot.rotationWords;
+                work->lowerNeckAngles.vx = (u16)work->lowerNeckAngles.vx + ((s32) - (work->lowerNeckAngles.vx * 0x10) >> 6);
+                work->lowerNeckAngles.vy = (u16)work->lowerNeckAngles.vy + ((s32) - (work->lowerNeckAngles.vy * 0x10) >> 6);
+                work->lowerNeckAngles.vz = (u16)work->lowerNeckAngles.vz + ((s32) - (work->lowerNeckAngles.vz * 0x10) >> 6);
+                work->upperNeckAngles.vx = (u16)work->upperNeckAngles.vx + ((s32) - (work->upperNeckAngles.vx * 0x10) >> 6);
+                work->upperNeckAngles.vy = (u16)work->upperNeckAngles.vy + ((s32) - (work->upperNeckAngles.vy * 0x10) >> 6);
+                work->upperNeckAngles.vz = (u16)work->upperNeckAngles.vz + ((s32) - (work->upperNeckAngles.vz * 0x10) >> 6);
+                rot.rotationWords.m00M01 = ONE;
+                rot.rotationWords.m02M10 = 0;
+                ir->m11M12               = ONE;
+                rot.rotationWords.m20M21 = 0;
+                ir->m22                  = ONE;
+                RotMatrix(&work->lowerNeckAngles, &rot.mat);
+                Actor00400_Fn08A1C(&rot.mat, &c2->coord);
+                rot.rotationWords.m00M01 = ONE;
+                rot.rotationWords.m02M10 = 0;
+                ir->m11M12               = ONE;
+                rot.rotationWords.m20M21 = 0;
+                ir->m22                  = ONE;
+                RotMatrix(&work->upperNeckAngles, &rot.mat);
+                Actor00400_Fn08A1C(&rot.mat, &c3->coord);
                 if ((abs(work->lowerNeckAngles.vx) < 0x30) && (abs(work->lowerNeckAngles.vy) < 0x30) && (abs(work->lowerNeckAngles.vz) < 0x30) &&
                     (abs(work->upperNeckAngles.vx) < 0x30) && (abs(work->upperNeckAngles.vy) < 0x30) && (abs(work->upperNeckAngles.vz) < 0x30)) {
                     work->neckPhase = ACTOR_00400_NECK_RETRACTED;
@@ -2082,49 +2113,49 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 GfxRotationWords* ir;
 
                 Gp_MtxToEuler(&c4->coord, &euler2);
-                work->neckScale                = (u16)work->neckScale + ((0x2AA - work->neckScale) >> 3);
-                ia                             = &ma.matrix.rotationWords;
-                ma.matrix.rotationWords.m00M01 = ONE;
-                ma.matrix.rotationWords.m02M10 = 0;
-                ia->m11M12                     = ONE;
-                ma.matrix.rotationWords.m20M21 = 0;
-                ia->m22                        = ONE;
-                scale.vx                       = 0x1000;
-                scale.vy                       = 0x1000;
-                scale.vz                       = work->neckScale;
-                ScaleMatrix(&ma.matrix.mat, &scale);
-                Actor00400_Fn08A1C(&ma.matrix.mat, &base[2].coord);
-                ib                             = &mb.matrix.rotationWords;
-                mb.matrix.rotationWords.m00M01 = ONE;
-                mb.matrix.rotationWords.m02M10 = 0;
-                ib->m11M12                     = ONE;
-                mb.matrix.rotationWords.m20M21 = 0;
-                ib->m22                        = ONE;
-                scale.vx                       = 0x1000;
-                scale.vy                       = 0x1000;
-                scale.vz                       = 0x1000;
-                ScaleMatrix(&mb.matrix.mat, &scale);
-                Actor00400_Fn08A1C(&mb.matrix.mat, &base[3].coord);
-                ic                             = &mc.matrix.rotationWords;
-                mc.matrix.rotationWords.m00M01 = ONE;
-                mc.matrix.rotationWords.m02M10 = 0;
-                ic->m11M12                     = ONE;
-                mc.matrix.rotationWords.m20M21 = 0;
-                ic->m22                        = ONE;
-                scale.vx                       = 0x1000;
-                scale.vy                       = 0x1000;
-                invScale                       = 0x1000000 / work->neckScale;
-                scale.vz                       = invScale;
-                ScaleMatrix(&mc.matrix.mat, &scale);
-                ir                              = &rot.matrix.rotationWords;
-                rot.matrix.rotationWords.m00M01 = ONE;
-                rot.matrix.rotationWords.m02M10 = 0;
-                ir->m11M12                      = ONE;
-                rot.matrix.rotationWords.m20M21 = 0;
-                ir->m22                         = ONE;
-                RotMatrix(&euler2, &rot.matrix.mat);
-                MulMatrix(&mc.matrix.mat, &rot.matrix.mat);
-                Actor00400_Fn08A1C(&mc.matrix.mat, &c4->coord);
+                work->neckScale         = (u16)work->neckScale + ((0x2AA - work->neckScale) >> 3);
+                ia                      = &ma.rotationWords;
+                ma.rotationWords.m00M01 = ONE;
+                ma.rotationWords.m02M10 = 0;
+                ia->m11M12              = ONE;
+                ma.rotationWords.m20M21 = 0;
+                ia->m22                 = ONE;
+                scale.vx                = 0x1000;
+                scale.vy                = 0x1000;
+                scale.vz                = work->neckScale;
+                ScaleMatrix(&ma.mat, &scale);
+                Actor00400_Fn08A1C(&ma.mat, &base[2].coord);
+                ib                      = &mb.rotationWords;
+                mb.rotationWords.m00M01 = ONE;
+                mb.rotationWords.m02M10 = 0;
+                ib->m11M12              = ONE;
+                mb.rotationWords.m20M21 = 0;
+                ib->m22                 = ONE;
+                scale.vx                = 0x1000;
+                scale.vy                = 0x1000;
+                scale.vz                = 0x1000;
+                ScaleMatrix(&mb.mat, &scale);
+                Actor00400_Fn08A1C(&mb.mat, &base[3].coord);
+                ic                      = &mc.rotationWords;
+                mc.rotationWords.m00M01 = ONE;
+                mc.rotationWords.m02M10 = 0;
+                ic->m11M12              = ONE;
+                mc.rotationWords.m20M21 = 0;
+                ic->m22                 = ONE;
+                scale.vx                = 0x1000;
+                scale.vy                = 0x1000;
+                invScale                = 0x1000000 / work->neckScale;
+                scale.vz                = invScale;
+                ScaleMatrix(&mc.mat, &scale);
+                ir                       = &rot.rotationWords;
+                rot.rotationWords.m00M01 = ONE;
+                rot.rotationWords.m02M10 = 0;
+                ir->m11M12               = ONE;
+                rot.rotationWords.m20M21 = 0;
+                ir->m22                  = ONE;
+                RotMatrix(&euler2, &rot.mat);
+                MulMatrix(&mc.mat, &rot.mat);
+                Actor00400_Fn08A1C(&mc.mat, &c4->coord);
                 base[2].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[4].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2146,49 +2177,49 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             GfxRotationWords* ir;
 
             Gp_MtxToEuler(&c4->coord, &euler2);
-            work->neckScale                = (u16)work->neckScale + ((0x1000 - work->neckScale) >> 3);
-            ia                             = &ma.matrix.rotationWords;
-            ma.matrix.rotationWords.m00M01 = ONE;
-            ma.matrix.rotationWords.m02M10 = 0;
-            ia->m11M12                     = ONE;
-            ma.matrix.rotationWords.m20M21 = 0;
-            ia->m22                        = ONE;
-            scale.vx                       = 0x1000;
-            scale.vy                       = 0x1000;
-            scale.vz                       = work->neckScale;
-            ScaleMatrix(&ma.matrix.mat, &scale);
-            Actor00400_Fn08A1C(&ma.matrix.mat, &base[2].coord);
-            ib                             = &mb.matrix.rotationWords;
-            mb.matrix.rotationWords.m00M01 = ONE;
-            mb.matrix.rotationWords.m02M10 = 0;
-            ib->m11M12                     = ONE;
-            mb.matrix.rotationWords.m20M21 = 0;
-            ib->m22                        = ONE;
-            scale.vx                       = 0x1000;
-            scale.vy                       = 0x1000;
-            scale.vz                       = 0x1000;
-            ScaleMatrix(&mb.matrix.mat, &scale);
-            Actor00400_Fn08A1C(&mb.matrix.mat, &base[3].coord);
-            ic                             = &mc.matrix.rotationWords;
-            mc.matrix.rotationWords.m00M01 = ONE;
-            mc.matrix.rotationWords.m02M10 = 0;
-            ic->m11M12                     = ONE;
-            mc.matrix.rotationWords.m20M21 = 0;
-            ic->m22                        = ONE;
-            scale.vx                       = 0x1000;
-            scale.vy                       = 0x1000;
-            invScale                       = 0x1000000 / work->neckScale;
-            scale.vz                       = invScale;
-            ScaleMatrix(&mc.matrix.mat, &scale);
-            ir                              = &rot.matrix.rotationWords;
-            rot.matrix.rotationWords.m00M01 = ONE;
-            rot.matrix.rotationWords.m02M10 = 0;
-            ir->m11M12                      = ONE;
-            rot.matrix.rotationWords.m20M21 = 0;
-            ir->m22                         = ONE;
-            RotMatrix(&euler2, &rot.matrix.mat);
-            MulMatrix(&mc.matrix.mat, &rot.matrix.mat);
-            Actor00400_Fn08A1C(&mc.matrix.mat, &c4->coord);
+            work->neckScale         = (u16)work->neckScale + ((0x1000 - work->neckScale) >> 3);
+            ia                      = &ma.rotationWords;
+            ma.rotationWords.m00M01 = ONE;
+            ma.rotationWords.m02M10 = 0;
+            ia->m11M12              = ONE;
+            ma.rotationWords.m20M21 = 0;
+            ia->m22                 = ONE;
+            scale.vx                = 0x1000;
+            scale.vy                = 0x1000;
+            scale.vz                = work->neckScale;
+            ScaleMatrix(&ma.mat, &scale);
+            Actor00400_Fn08A1C(&ma.mat, &base[2].coord);
+            ib                      = &mb.rotationWords;
+            mb.rotationWords.m00M01 = ONE;
+            mb.rotationWords.m02M10 = 0;
+            ib->m11M12              = ONE;
+            mb.rotationWords.m20M21 = 0;
+            ib->m22                 = ONE;
+            scale.vx                = 0x1000;
+            scale.vy                = 0x1000;
+            scale.vz                = 0x1000;
+            ScaleMatrix(&mb.mat, &scale);
+            Actor00400_Fn08A1C(&mb.mat, &base[3].coord);
+            ic                      = &mc.rotationWords;
+            mc.rotationWords.m00M01 = ONE;
+            mc.rotationWords.m02M10 = 0;
+            ic->m11M12              = ONE;
+            mc.rotationWords.m20M21 = 0;
+            ic->m22                 = ONE;
+            scale.vx                = 0x1000;
+            scale.vy                = 0x1000;
+            invScale                = 0x1000000 / work->neckScale;
+            scale.vz                = invScale;
+            ScaleMatrix(&mc.mat, &scale);
+            ir                       = &rot.rotationWords;
+            rot.rotationWords.m00M01 = ONE;
+            rot.rotationWords.m02M10 = 0;
+            ir->m11M12               = ONE;
+            rot.rotationWords.m20M21 = 0;
+            ir->m22                  = ONE;
+            RotMatrix(&euler2, &rot.mat);
+            MulMatrix(&mc.mat, &rot.mat);
+            Actor00400_Fn08A1C(&mc.mat, &c4->coord);
         } else {
             GfxRotationWords* ir;
             MATRIX*           m2;
@@ -2198,27 +2229,27 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             Gp_MtxToEuler(m2, &euler0);
             m3 = &base[3].coord;
             Gp_MtxToEuler(m3, &euler1);
-            work->lowerNeckAngles.vx        = (u16)work->lowerNeckAngles.vx + ((euler0.vx - work->lowerNeckAngles.vx) >> 1);
-            work->lowerNeckAngles.vy        = (u16)work->lowerNeckAngles.vy + ((euler0.vy - work->lowerNeckAngles.vy) >> 1);
-            work->lowerNeckAngles.vz        = (u16)work->lowerNeckAngles.vz + ((euler0.vz - work->lowerNeckAngles.vz) >> 1);
-            work->upperNeckAngles.vx        = (u16)work->upperNeckAngles.vx + ((euler1.vx - work->upperNeckAngles.vx) >> 1);
-            work->upperNeckAngles.vy        = (u16)work->upperNeckAngles.vy + ((euler1.vy - work->upperNeckAngles.vy) >> 1);
-            work->upperNeckAngles.vz        = (u16)work->upperNeckAngles.vz + ((euler1.vz - work->upperNeckAngles.vz) >> 1);
-            ir                              = &rot.matrix.rotationWords;
-            rot.matrix.rotationWords.m00M01 = ONE;
-            rot.matrix.rotationWords.m02M10 = 0;
-            ir->m11M12                      = ONE;
-            rot.matrix.rotationWords.m20M21 = 0;
-            ir->m22                         = ONE;
-            RotMatrix(&work->lowerNeckAngles, &rot.matrix.mat);
-            Actor00400_Fn08A1C(&rot.matrix.mat, m2);
-            rot.matrix.rotationWords.m00M01 = ONE;
-            rot.matrix.rotationWords.m02M10 = 0;
-            ir->m11M12                      = ONE;
-            rot.matrix.rotationWords.m20M21 = 0;
-            ir->m22                         = ONE;
-            RotMatrix(&work->upperNeckAngles, &rot.matrix.mat);
-            Actor00400_Fn08A1C(&rot.matrix.mat, m3);
+            work->lowerNeckAngles.vx = (u16)work->lowerNeckAngles.vx + ((euler0.vx - work->lowerNeckAngles.vx) >> 1);
+            work->lowerNeckAngles.vy = (u16)work->lowerNeckAngles.vy + ((euler0.vy - work->lowerNeckAngles.vy) >> 1);
+            work->lowerNeckAngles.vz = (u16)work->lowerNeckAngles.vz + ((euler0.vz - work->lowerNeckAngles.vz) >> 1);
+            work->upperNeckAngles.vx = (u16)work->upperNeckAngles.vx + ((euler1.vx - work->upperNeckAngles.vx) >> 1);
+            work->upperNeckAngles.vy = (u16)work->upperNeckAngles.vy + ((euler1.vy - work->upperNeckAngles.vy) >> 1);
+            work->upperNeckAngles.vz = (u16)work->upperNeckAngles.vz + ((euler1.vz - work->upperNeckAngles.vz) >> 1);
+            ir                       = &rot.rotationWords;
+            rot.rotationWords.m00M01 = ONE;
+            rot.rotationWords.m02M10 = 0;
+            ir->m11M12               = ONE;
+            rot.rotationWords.m20M21 = 0;
+            ir->m22                  = ONE;
+            RotMatrix(&work->lowerNeckAngles, &rot.mat);
+            Actor00400_Fn08A1C(&rot.mat, m2);
+            rot.rotationWords.m00M01 = ONE;
+            rot.rotationWords.m02M10 = 0;
+            ir->m11M12               = ONE;
+            rot.rotationWords.m20M21 = 0;
+            ir->m22                  = ONE;
+            RotMatrix(&work->upperNeckAngles, &rot.mat);
+            Actor00400_Fn08A1C(&rot.mat, m3);
         }
         base[2].composeStamp = GRAPHICS_COORD_DIRTY;
         base[3].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2228,16 +2259,18 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
     }
 }
 
-/// Per-frame callback of the marker task `Actor00400_SpawnMarker` starts: it
-/// walks the marker up its stored view-space span, then decides whether the
-/// marker should stop being drawn.
+/// Flight state of the shot `Actor00400_SpawnMarker` starts: each frame it
+/// adds `ACTOR_00400_SHOT_GRAVITY` to the shot's vertical speed, moves the
+/// coordinate by `_Actor00400ShotWork::velocity`, then decides whether the
+/// shot bursts.
 ///
-/// `hidden` is raised when either of the marker's two `WorldCollisionContact` slots reports
-/// one of the three kinds 1/3/5, or when `func_800E0C10`'s push-back says the
-/// marker is being crowded and the current stage/room is not one of the
-/// exceptions. Once it is raised - or after 0x3C frames, or when
-/// `gSceneCombatState.actor00400HideRequested` is set - the object's draw flags are cleared, the task's
-/// state is bumped and the effect is spawned with kind 2 instead of 1.
+/// `hidden` is raised when either of the shot's two contacts reports one of
+/// the three kinds 1/3/5, or when `func_800E0C10` finds the sphere against the
+/// room's grid and the current stage and area are not among the exceptions.
+/// Once it is raised - or at `ACTOR_00400_SHOT_LIFETIME` frames, or when
+/// `gSceneCombatState.actor00400HideRequested` is set - the sphere's grid and pair tests are
+/// switched off, the task's state is bumped and the burst is spawned with kind
+/// 2 instead of 1.
 ///
 /// `composeStamp` is cleared through a scalar lvalue on purpose: written as a struct
 /// member it is an in-struct MEM, and GCC 2.8.1's
@@ -2246,30 +2279,30 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
 /// body changes GCC 2.8.1's aliasing".
 static void Actor00400_Fn02D48(Task* arg0)
 {
-    Actor100400MarkerWork* work;
-    s32                    hidden;
-    GfxCoord*              coord;
-    WorldCollisionDelta    delta;
-    s32                    mask;
-    s32                    i;
-    s32                    n;
-    u16                    kind;
+    _Actor00400ShotWork* work;
+    s32                  hidden;
+    GfxCoord*            coord;
+    WorldCollisionDelta  delta;
+    s32                  mask;
+    s32                  i;
+    s32                  n;
+    u16                  kind;
 
     hidden                = 0;
-    work                  = (Actor100400MarkerWork*)arg0->work;
+    work                  = arg0->work;
     coord                 = arg0->extra.tmd->coords;
     *&coord->composeStamp = GRAPHICS_COORD_DIRTY;
     kind                  = 1;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_60    += 1;
-            work->field_5A    += 2;
-            coord->coord.t[0] += work->field_58;
-            coord->coord.t[1] += work->field_5A;
-            coord->coord.t[2] += work->field_5C;
-            if (Gp_FindRec18(work->recs, 0) != 0) {
+            work->frames      += 1;
+            work->velocity.vy += ACTOR_00400_SHOT_GRAVITY;
+            coord->coord.t[0] += work->velocity.vx;
+            coord->coord.t[1] += work->velocity.vy;
+            coord->coord.t[2] += work->velocity.vz;
+            if (Gp_FindRec18(work->contacts, 0) != 0) {
                 for (i = 0; i < 2; i++) {
-                    switch (work->recs[i].key.value & 0xFFFF0000) {
+                    switch (work->contacts[i].key.value & 0xFFFF0000) {
                         case 0x10000:
                             hidden = 1;
                             break;
@@ -2282,7 +2315,7 @@ static void Actor00400_Fn02D48(Task* arg0)
                     }
                 }
             }
-            n = func_800E0C10(work->recs, &delta, 2, &mask);
+            n = func_800E0C10(work->contacts, &delta, 2, &mask);
             if (n < 3) {
                 if (n > 0) {
                     if (gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER &&
@@ -2307,14 +2340,14 @@ static void Actor00400_Fn02D48(Task* arg0)
                     }
                 }
             }
-            Gp_ClearRec18Occupied(work->recs);
-            if ((++arg0->killCountdown >= 0x3D) || (gSceneCombatState.actor00400HideRequested != 0) || (hidden != 0)) {
-                arg0->killCountdown = 0;
-                work->obj.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                kind                = 2;
-                arg0->state        += 1;
+            Gp_ClearRec18Occupied(work->contacts);
+            if ((++arg0->killCountdown >= ACTOR_00400_SHOT_LIFETIME) || (gSceneCombatState.actor00400HideRequested != 0) || (hidden != 0)) {
+                arg0->killCountdown    = 0;
+                work->child.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                kind                   = 2;
+                arg0->state           += 1;
             }
-            diverImpactBurst(coord, work->field_60, kind, 0x1300);
+            diverImpactBurst(coord, work->frames, kind, 0x1300);
             break;
     }
 }
@@ -2411,35 +2444,36 @@ loop:
 }
 
 /// Projects the four `corner` vertices through the view matrix and queues one
-/// semi-transparent textured quad shaded grey `shade` (half intensity on red).
+/// quad of the shadow blob texture, subtracted from the picture at strength
+/// `shade` (half that on red). A quad the projection clips is not drawn.
 static void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 shade)
 {
-    Actor100400TextQuadScratch* s;
-    POLY_FT4*                   poly;
+    _Actor00400GroundStainScratch* s;
+    POLY_FT4*                      poly;
 
-    s                          = (Actor100400TextQuadScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor100400TextQuadScratch));
+    s                          = SCRATCH_STACK_RESERVE_BLOCK(_Actor00400GroundStainScratch);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    s->depth = RotTransPers4(corner0, corner1, corner2, corner3, &s->screen0, &s->screen1, &s->screen2, &s->screen3,
-                             &s->perspective, &s->flags);
+    s->depth = RotTransPers4(corner0, corner1, corner2, corner3, &s->screenCorners[0], &s->screenCorners[1], &s->screenCorners[2], &s->screenCorners[3],
+                             &s->depthCue, &s->flags);
     if (s->flags >= 0) {
         poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setlen(poly, 9);
         poly->code                     = 0x2E;
-        GPU_PRIMITIVE_XY_WORD(poly, 0) = s->screen0;
-        GPU_PRIMITIVE_XY_WORD(poly, 1) = s->screen1;
-        GPU_PRIMITIVE_XY_WORD(poly, 2) = s->screen2;
-        GPU_PRIMITIVE_XY_WORD(poly, 3) = s->screen3;
+        GPU_PRIMITIVE_XY_WORD(poly, 0) = s->screenCorners[0];
+        GPU_PRIMITIVE_XY_WORD(poly, 1) = s->screenCorners[1];
+        GPU_PRIMITIVE_XY_WORD(poly, 2) = s->screenCorners[2];
+        GPU_PRIMITIVE_XY_WORD(poly, 3) = s->screenCorners[3];
         setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
         poly->tpage = 0x48;
         poly->clut  = 0x4283;
         setRGB0(poly, shade >> 1, shade, shade);
         addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor100400TextQuadScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor00400GroundStainScratch);
 }
 
 #include "../../shared/diver_turn_joint.inc.c"
@@ -2470,14 +2504,15 @@ static const TaskFuncTable8 Actor00400_D00038 = { {
 } };
 
 /// Applies the row of `Actor00400_D15F20` that matches the session's current
-/// area and room to the freshly allocated work block: the row can hide the root
-/// coordinate, override the waypoint set the spawn argument selects, hand the
-/// actor its record list and seed its height. Returns non-zero when the actor
-/// does not belong in this room - no row matched, or the matching row's `flags`
-/// bit 1 rejects it - which makes the entry state destroy the enemy instead.
+/// stage and area to the freshly allocated work block: the row can turn on the
+/// grid collision, pick the patrol ring the spawn argument selects, hand the
+/// actor the room's surface spots and seed its water level. Returns non-zero
+/// when the actor does not belong in this room - no row matched, or the
+/// matching row has `ACTOR_00400_AREA_CONFIG_NO_DIVER` - which makes the entry
+/// state destroy the enemy instead.
 static __inline__ s32 Actor00400_ApplyAreaConfig(Task* arg0)
 {
-    Actor100400AreaConfig* cfg;
+    _Actor00400AreaConfig* cfg;
     _Actor00400Work*       work;
     GameLocationKey*       ses;
     u16                    flags;
@@ -2485,23 +2520,23 @@ static __inline__ s32 Actor00400_ApplyAreaConfig(Task* arg0)
     work = arg0->work;
     ses  = &gGameSession->location.loc;
     cfg  = Actor00400_D15F20;
-    while (cfg->area != 0xFF) {
-        if ((ses->stage == cfg->area) && (ses->area == cfg->room)) {
+    while (cfg->stage != ACTOR_00400_AREA_CONFIG_END) {
+        if ((ses->stage == cfg->stage) && (ses->area == cfg->area)) {
             flags = cfg->flags;
-            if (flags & 1) {
+            if (flags & ACTOR_00400_AREA_CONFIG_NO_DIVER) {
                 return 1;
             }
-            if (flags & 2) {
+            if (flags & ACTOR_00400_AREA_CONFIG_GRID_COLLISION) {
                 work->gridCollision = 1;
             }
             if (cfg->waypointSets != NULL) {
                 work->waypoints = cfg->waypointSets[(arg0->spawnArg1.value >> 4) & 3];
             }
-            if (cfg->records != NULL) {
-                work->surfaceSpots = cfg->records;
+            if (cfg->surfaceSpots != NULL) {
+                work->surfaceSpots = cfg->surfaceSpots;
             }
-            if (cfg->height != NULL) {
-                work->waterLevel = (u16)*cfg->height;
+            if (cfg->waterLevel != NULL) {
+                work->waterLevel = (u16)*cfg->waterLevel;
             }
             return 0;
         }
@@ -2527,20 +2562,20 @@ static __inline__ void Actor00400_AttachHead(Task* arg0, Enemy* obj,
 
 static void Actor00400_Fn03920(Task* arg0)
 {
-    _Actor00400Work*     work;
-    _Actor00400Work*     w;
-    _Actor00400Work*     anim;
-    Enemy*               obj;
-    Actor100400QuadWork* quad;
-    Enemy*               quadOwner;
-    GfxCoord*            pos;
-    GfxCoord*            coord;
-    Task*                task;
-    s32                  failed;
-    s32                  nibble;
-    s32                  index;
-    u16                  y;
-    s32*                 spawnArg;
+    _Actor00400Work*            work;
+    _Actor00400Work*            w;
+    _Actor00400Work*            anim;
+    Enemy*                      obj;
+    _Actor00400GroundStainWork* stain;
+    Enemy*                      stainEnemy;
+    GfxCoord*                   pos;
+    GfxCoord*                   coord;
+    Task*                       task;
+    s32                         failed;
+    s32                         nibble;
+    s32                         index;
+    u16                         y;
+    s32*                        spawnArg;
 
     spawnArg              = &arg0->spawnArg1.value;
     gStageSceneMusicEntry = 0xB;
@@ -2599,31 +2634,31 @@ static void Actor00400_Fn03920(Task* arg0)
             w->state       = 0;
             w->subState    = 0;
             Gp_IncStateF0Ref(0);
-            obj->hp   = (s16)obj->hpMax / 8;
-            pos       = arg0->extra.tmd->coords;
-            quadOwner = arg0->spawnArg2.pointer;
-            y         = (u16)pos->coord.t[1];
-            task      = Task_SpawnFromTable(Actor00400_D16028, 2, 0, 0);
+            obj->hp    = (s16)obj->hpMax / 8;
+            pos        = arg0->extra.tmd->coords;
+            stainEnemy = arg0->spawnArg2.pointer;
+            y          = (u16)pos->coord.t[1];
+            task       = Task_SpawnFromTable(Actor00400_D16028, 2, 0, 0);
             if (task != NULL) {
-                quad = memCalloc(sizeof(Actor100400QuadWork), 0);
-                if (quad == NULL) {
+                stain = memCalloc(sizeof(_Actor00400GroundStainWork), 0);
+                if (stain == NULL) {
                     taskKill(task);
                 } else {
-                    task->work           = quad;
-                    quad->vertices[0].vx = (u16)pos->coord.t[0] - 0x5DC;
-                    quad->vertices[0].vy = y;
-                    quad->vertices[0].vz = (u16)pos->coord.t[2] - 0x5DC;
-                    quad->vertices[1].vx = (u16)pos->coord.t[0] + 0x5DC;
-                    quad->vertices[1].vy = y;
-                    quad->vertices[1].vz = (u16)pos->coord.t[2] - 0x5DC;
-                    quad->vertices[2].vx = (u16)pos->coord.t[0] - 0x5DC;
-                    quad->vertices[2].vy = y;
-                    quad->vertices[2].vz = (u16)pos->coord.t[2] + 0x5DC;
-                    quad->vertices[3].vx = (u16)pos->coord.t[0] + 0x5DC;
-                    quad->vertices[3].vy = y;
-                    quad->vertices[3].vz = (u16)pos->coord.t[2] + 0x5DC;
-                    quad->intensity      = 0xFF;
-                    quad->field_0        = quadOwner;
+                    task->work            = stain;
+                    stain->vertices[0].vx = (u16)pos->coord.t[0] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[0].vy = y;
+                    stain->vertices[0].vz = (u16)pos->coord.t[2] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[1].vx = (u16)pos->coord.t[0] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[1].vy = y;
+                    stain->vertices[1].vz = (u16)pos->coord.t[2] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[2].vx = (u16)pos->coord.t[0] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[2].vy = y;
+                    stain->vertices[2].vz = (u16)pos->coord.t[2] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[3].vx = (u16)pos->coord.t[0] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[3].vy = y;
+                    stain->vertices[3].vz = (u16)pos->coord.t[2] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->intensity      = 0xFF;
+                    stain->enemy          = stainEnemy;
                 }
             }
             break;
@@ -2974,7 +3009,7 @@ static void Actor00400_Fn04580(Task* arg0)
     Enemy*            obj  = arg0->spawnArg2.pointer;
     TmdObject*        ctx  = arg0->extra.tmd;
     TaskFuncTable10   fns;
-    Actor100400Mat    m;
+    GfxMatrix         m;
     GfxRotationWords* ia;
     _Actor00400Work*  w;
     _Actor00400Work*  w2;
@@ -3022,26 +3057,26 @@ static void Actor00400_Fn04580(Task* arg0)
             } while (i < ARRAY_SIZE(w->rig.slots));
             work->animStatus = work->rig.slots[1].status.fields.flags;
             Actor00400_Fn016A4(arg0, work->lookDisabled);
-            w2                            = arg0->work;
-            coord                         = arg0->extra.tmd->coords;
-            ia                            = &m.matrix.rotationWords;
-            m.matrix.rotationWords.m00M01 = ONE;
-            m.matrix.rotationWords.m02M10 = 0;
-            ia->m11M12                    = ONE;
-            m.matrix.rotationWords.m20M21 = 0;
-            ia->m22                       = ONE;
-            RotMatrixZ(w2->rotation.vz, &m.matrix.mat);
-            RotMatrixY(w2->rotation.vy, &m.matrix.mat);
+            w2                     = arg0->work;
+            coord                  = arg0->extra.tmd->coords;
+            ia                     = &m.rotationWords;
+            m.rotationWords.m00M01 = ONE;
+            m.rotationWords.m02M10 = 0;
+            ia->m11M12             = ONE;
+            m.rotationWords.m20M21 = 0;
+            ia->m22                = ONE;
+            RotMatrixZ(w2->rotation.vz, &m.mat);
+            RotMatrixY(w2->rotation.vy, &m.mat);
             dst                 = &coord->coord;
-            dst->m[0][0]        = m.matrix.mat.m[0][0];
-            dst->m[0][1]        = m.matrix.mat.m[0][1];
-            dst->m[0][2]        = m.matrix.mat.m[0][2];
-            dst->m[1][0]        = m.matrix.mat.m[1][0];
-            dst->m[1][1]        = m.matrix.mat.m[1][1];
-            dst->m[1][2]        = m.matrix.mat.m[1][2];
-            dst->m[2][0]        = m.matrix.mat.m[2][0];
-            dst->m[2][1]        = m.matrix.mat.m[2][1];
-            dst->m[2][2]        = m.matrix.mat.m[2][2];
+            dst->m[0][0]        = m.mat.m[0][0];
+            dst->m[0][1]        = m.mat.m[0][1];
+            dst->m[0][2]        = m.mat.m[0][2];
+            dst->m[1][0]        = m.mat.m[1][0];
+            dst->m[1][1]        = m.mat.m[1][1];
+            dst->m[1][2]        = m.mat.m[1][2];
+            dst->m[2][0]        = m.mat.m[2][0];
+            dst->m[2][1]        = m.mat.m[2][1];
+            dst->m[2][2]        = m.mat.m[2][2];
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Actor00400_Fn01B90(arg0);
             if ((s16)obj->hp <= 0) {
@@ -3201,8 +3236,8 @@ static void Actor00400_Fn04CF8(Task* arg0)
 }
 
 /// States `Actor00400_Fn04E18` dispatches on `_Actor00400Work::state`:
-/// `ACTOR_00400_SWIM_STATE_*` and the three recoil states.
-static const TaskFuncTable15 Actor00400_D000F8 = { {
+/// `ACTOR_00400_SWIM_STATE_*` and the three `ACTOR_00400_STATE_*`.
+static const _Actor00400SwimStateTable Actor00400_D000F8 = { {
     Actor00400_Fn07738,
     Actor00400_Fn077F4,
     Actor00400_Fn05728,
@@ -3220,6 +3255,64 @@ static const TaskFuncTable15 Actor00400_D000F8 = { {
     Actor00400_Fn09C84,
 } };
 
+/// Rebuilds the root coordinate's rotation from `_Actor00400Work::rotation`:
+/// the roll about Z, then the heading about Y.
+static inline void _actor00400ApplyRootRotation(Task* task)
+{
+    _Actor00400Work*  work;
+    GfxCoord*         coord;
+    GfxMatrix         m;
+    GfxRotationWords* ia;
+    MATRIX*           dst;
+
+    work                   = task->work;
+    coord                  = task->extra.tmd->coords;
+    ia                     = &m.rotationWords;
+    m.rotationWords.m00M01 = ONE;
+    m.rotationWords.m02M10 = 0;
+    ia->m11M12             = ONE;
+    m.rotationWords.m20M21 = 0;
+    ia->m22                = ONE;
+    RotMatrixZ(work->rotation.vz, &m.mat);
+    RotMatrixY(work->rotation.vy, &m.mat);
+    dst                 = &coord->coord;
+    dst->m[0][0]        = m.mat.m[0][0];
+    dst->m[0][1]        = m.mat.m[0][1];
+    dst->m[0][2]        = m.mat.m[0][2];
+    dst->m[1][0]        = m.mat.m[1][0];
+    dst->m[1][1]        = m.mat.m[1][1];
+    dst->m[1][2]        = m.mat.m[1][2];
+    dst->m[2][0]        = m.mat.m[2][0];
+    dst->m[2][1]        = m.mat.m[2][1];
+    dst->m[2][2]        = m.mat.m[2][2];
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Takes the enemy off the lock-on list while its target part is more than
+/// 0x190 below `_Actor00400Work::waterLevel`, and puts it back above that.
+static inline void _actor00400UpdateLockable(Task* task)
+{
+    _Actor00400Work* work;
+    TmdObject*       tmd;
+    Enemy*           enemy;
+    GfxCoord*        coord;
+    SVECTOR          pos;
+
+    work   = task->work;
+    tmd    = task->extra.tmd;
+    enemy  = task->spawnArg2.pointer;
+    coord  = &tmd->coords[work->targetPart];
+    pos.vx = 0;
+    pos.vy = 0;
+    pos.vz = 0;
+    coordLocalToWorld(coord, &pos);
+    if (work->waterLevel + 0x190 < pos.vy) {
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    } else {
+        enemy->node.state.parts.flags = 0;
+    }
+}
+
 /// Per-frame callback for the boss task. Same `gSceneCombatState.actorControl` frame gate as
 /// `Actor00400_Fn04580`, with the model's Y bobbed by two `rsin` terms and the
 /// display object re-pointed at the part coordinate `targetPart` selects; the
@@ -3227,28 +3320,19 @@ static const TaskFuncTable15 Actor00400_D000F8 = { {
 /// rooms of area 0x21.
 static void Actor00400_Fn04E18(Task* arg0)
 {
-    _Actor00400Work*  work   = arg0->work;
-    GfxCoord*         coord0 = arg0->extra.tmd->coords;
-    Enemy*            obj    = arg0->spawnArg2.pointer;
-    TmdObject*        ctx    = arg0->extra.tmd;
-    TaskFuncTable15   fns;
-    Actor100400Mat    m;
-    GfxRotationWords* ia;
-    _Actor00400Work*  w;
-    _Actor00400Work*  wA;
-    _Actor00400Work*  w2;
-    _Actor00400Work*  w3;
-    _Actor00400Work*  w4;
-    _Actor00400Work*  work2;
-    Enemy*            obj2;
-    TmdObject*        ctx2;
-    TmdObject*        ctx3;
-    TmdObject*        ctxN;
-    GameLocationKey*  sess;
-    GfxCoord*         coord;
-    GfxCoord*         coordN;
-    MATRIX*           dst;
-    s32               i;
+    _Actor00400Work*          work   = arg0->work;
+    GfxCoord*                 coord0 = arg0->extra.tmd->coords;
+    Enemy*                    obj    = arg0->spawnArg2.pointer;
+    TmdObject*                ctx    = arg0->extra.tmd;
+    _Actor00400SwimStateTable fns;
+    _Actor00400Work*          w;
+    _Actor00400Work*          wA;
+    _Actor00400Work*          w3;
+    _Actor00400Work*          work2;
+    TmdObject*                ctx2;
+    TmdObject*                ctx3;
+    GameLocationKey*          sess;
+    s32                       i;
 
     fns = Actor00400_D000F8;
     switch (gSceneCombatState.actorControl) {
@@ -3291,27 +3375,7 @@ static void Actor00400_Fn04E18(Task* arg0)
             } while (i < ARRAY_SIZE(w->rig.slots));
             work->animStatus = work->rig.slots[1].status.fields.flags;
             Actor00400_Fn02648(arg0, work->neckRetracted);
-            w2                            = arg0->work;
-            coord                         = arg0->extra.tmd->coords;
-            ia                            = &m.matrix.rotationWords;
-            m.matrix.rotationWords.m00M01 = ONE;
-            m.matrix.rotationWords.m02M10 = 0;
-            ia->m11M12                    = ONE;
-            m.matrix.rotationWords.m20M21 = 0;
-            ia->m22                       = ONE;
-            RotMatrixZ(w2->rotation.vz, &m.matrix.mat);
-            RotMatrixY(w2->rotation.vy, &m.matrix.mat);
-            dst                 = &coord->coord;
-            dst->m[0][0]        = m.matrix.mat.m[0][0];
-            dst->m[0][1]        = m.matrix.mat.m[0][1];
-            dst->m[0][2]        = m.matrix.mat.m[0][2];
-            dst->m[1][0]        = m.matrix.mat.m[1][0];
-            dst->m[1][1]        = m.matrix.mat.m[1][1];
-            dst->m[1][2]        = m.matrix.mat.m[1][2];
-            dst->m[2][0]        = m.matrix.mat.m[2][0];
-            dst->m[2][1]        = m.matrix.mat.m[2][1];
-            dst->m[2][2]        = m.matrix.mat.m[2][2];
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            _actor00400ApplyRootRotation(arg0);
             Actor00400_Fn01B90(arg0);
             if ((s16)obj->hp <= 0) {
                 w3           = arg0->work;
@@ -3329,19 +3393,7 @@ static void Actor00400_Fn04E18(Task* arg0)
             }
             obj->coord = &arg0->extra.tmd->coords[work->targetPart];
             if (work->state < ACTOR_00400_SWIM_STATE_TUNNEL_PATROL) {
-                w4       = arg0->work;
-                ctxN     = arg0->extra.tmd;
-                obj2     = arg0->spawnArg2.pointer;
-                coordN   = &ctxN->coords[w4->targetPart];
-                m.vec.vx = 0;
-                m.vec.vy = 0;
-                m.vec.vz = 0;
-                coordLocalToWorld(coordN, &m.vec);
-                if (w4->waterLevel + 0x190 < m.vec.vy) {
-                    obj2->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-                } else {
-                    obj2->node.state.parts.flags = 0;
-                }
+                _actor00400UpdateLockable(arg0);
             }
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
@@ -3775,23 +3827,24 @@ static void Actor00400_Fn06380(Task* arg0)
     }
 }
 
-/// Spawns the marker task from `Actor00400_D16028[1]` and hands it a 0x64-byte
-/// work block: coordinate 5 gives the task's root translation, and the view
-/// space span from coordinate 4's base to the same point raised by `height` -
-/// the per-enemy value `Actor00400_D1609C` selects - is stored in the work.
+/// Spawns the shot's task from `Actor00400_D16028[1]` and hands it a zeroed
+/// `_Actor00400ShotWork`: coordinate 5 gives the task's root translation, and
+/// the span from coordinate 4's origin to the point `height` along its Z axis -
+/// the speed `Actor00400_D1609C` holds for the enemy's placement row - becomes
+/// the shot's `velocity`.
 static inline void Actor00400_SpawnMarker(Task* arg0)
 {
-    AreaPlacement*         params;
-    Actor100400MarkerWork* marker;
-    GfxCoord*              coords;
-    GfxCoord*              origin;
-    GfxCoord*              span;
-    GfxCoord*              dst;
-    Task*                  task;
-    SVECTOR                pos;
-    SVECTOR                base;
-    SVECTOR                tip;
-    u16                    height;
+    AreaPlacement*       params;
+    _Actor00400ShotWork* shot;
+    GfxCoord*            coords;
+    GfxCoord*            origin;
+    GfxCoord*            span;
+    GfxCoord*            dst;
+    Task*                task;
+    SVECTOR              pos;
+    SVECTOR              base;
+    SVECTOR              tip;
+    u16                  height;
 
     params = ((Enemy*)arg0->spawnArg2.pointer)->place;
     if (params != NULL) {
@@ -3804,8 +3857,8 @@ static inline void Actor00400_SpawnMarker(Task* arg0)
     span   = &coords[4];
     task   = Task_SpawnFromTable(Actor00400_D16028, 1, 0, 0);
     if (task != NULL) {
-        marker = memCalloc(sizeof(Actor100400MarkerWork), false);
-        if (marker == NULL) {
+        shot = memCalloc(sizeof(_Actor00400ShotWork), false);
+        if (shot == NULL) {
             taskKill(task);
         } else {
             base.vx = 0;
@@ -3816,18 +3869,18 @@ static inline void Actor00400_SpawnMarker(Task* arg0)
             tip.vz  = height;
             coordLocalToWorld(span, &base);
             coordLocalToWorld(span, &tip);
-            task->work = marker;
+            task->work = shot;
             dst        = task->extra.tmd->coords;
             pos.vx     = 0;
             pos.vy     = 0;
             pos.vz     = 0;
             coordLocalToWorld(origin, &pos);
-            dst->coord.t[0]  = pos.vx;
-            dst->coord.t[1]  = pos.vy;
-            dst->coord.t[2]  = pos.vz;
-            marker->field_58 = tip.vx - base.vx;
-            marker->field_5A = tip.vy - base.vy;
-            marker->field_5C = tip.vz - base.vz;
+            dst->coord.t[0]   = pos.vx;
+            dst->coord.t[1]   = pos.vy;
+            dst->coord.t[2]   = pos.vz;
+            shot->velocity.vx = tip.vx - base.vx;
+            shot->velocity.vy = tip.vy - base.vy;
+            shot->velocity.vz = tip.vz - base.vz;
         }
     }
 }
@@ -3952,7 +4005,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
     Enemy*            obj              = arg0->spawnArg2.pointer;
     TmdObject*        ctx              = arg0->extra.tmd;
     void              (*fns[2])(Task*) = { Actor00400_Fn08A88, Actor00400_Fn08B40 };
-    Actor100400Mat    m;
+    GfxMatrix         m;
     GfxRotationWords* ia;
     _Actor00400Work*  w;
     _Actor00400Work*  w2;
@@ -3993,27 +4046,27 @@ static void Actor00400_Fn06B7C(Task* arg0)
                 animationTickSlot(&w->rig.anim, i);
                 i++;
             } while (i < ARRAY_SIZE(w->rig.slots));
-            work->animStatus              = work->rig.slots[1].status.fields.flags;
-            w2                            = arg0->work;
-            coord                         = arg0->extra.tmd->coords;
-            ia                            = &m.matrix.rotationWords;
-            m.matrix.rotationWords.m00M01 = ONE;
-            m.matrix.rotationWords.m02M10 = 0;
-            ia->m11M12                    = ONE;
-            m.matrix.rotationWords.m20M21 = 0;
-            ia->m22                       = ONE;
-            RotMatrixZ(w2->rotation.vz, &m.matrix.mat);
-            RotMatrixY(w2->rotation.vy, &m.matrix.mat);
+            work->animStatus       = work->rig.slots[1].status.fields.flags;
+            w2                     = arg0->work;
+            coord                  = arg0->extra.tmd->coords;
+            ia                     = &m.rotationWords;
+            m.rotationWords.m00M01 = ONE;
+            m.rotationWords.m02M10 = 0;
+            ia->m11M12             = ONE;
+            m.rotationWords.m20M21 = 0;
+            ia->m22                = ONE;
+            RotMatrixZ(w2->rotation.vz, &m.mat);
+            RotMatrixY(w2->rotation.vy, &m.mat);
             dst                 = &coord->coord;
-            dst->m[0][0]        = m.matrix.mat.m[0][0];
-            dst->m[0][1]        = m.matrix.mat.m[0][1];
-            dst->m[0][2]        = m.matrix.mat.m[0][2];
-            dst->m[1][0]        = m.matrix.mat.m[1][0];
-            dst->m[1][1]        = m.matrix.mat.m[1][1];
-            dst->m[1][2]        = m.matrix.mat.m[1][2];
-            dst->m[2][0]        = m.matrix.mat.m[2][0];
-            dst->m[2][1]        = m.matrix.mat.m[2][1];
-            dst->m[2][2]        = m.matrix.mat.m[2][2];
+            dst->m[0][0]        = m.mat.m[0][0];
+            dst->m[0][1]        = m.mat.m[0][1];
+            dst->m[0][2]        = m.mat.m[0][2];
+            dst->m[1][0]        = m.mat.m[1][0];
+            dst->m[1][1]        = m.mat.m[1][1];
+            dst->m[1][2]        = m.mat.m[1][2];
+            dst->m[2][0]        = m.mat.m[2][0];
+            dst->m[2][1]        = m.mat.m[2][1];
+            dst->m[2][2]        = m.mat.m[2][2];
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Actor00400_Fn01B90(arg0);
             if ((s16)obj->hp <= 0) {
@@ -4118,7 +4171,7 @@ static void Actor00400_Fn070C0(Task* arg0)
     Enemy*            obj              = arg0->spawnArg2.pointer;
     GfxCoord*         coord0           = ctx->coords;
     void              (*fns[2])(Task*) = { Actor00400_Fn0A468, Actor00400_Fn0A4BC };
-    Actor100400Mat    m;
+    GfxMatrix         m;
     GfxRotationWords* ia;
     _Actor00400Work*  w;
     _Actor00400Work*  w2;
@@ -4159,27 +4212,27 @@ static void Actor00400_Fn070C0(Task* arg0)
                 animationTickSlot(&w->rig.anim, i);
                 i++;
             } while (i < ARRAY_SIZE(w->rig.slots));
-            work->animStatus              = work->rig.slots[1].status.fields.flags;
-            w2                            = arg0->work;
-            coord                         = arg0->extra.tmd->coords;
-            ia                            = &m.matrix.rotationWords;
-            m.matrix.rotationWords.m00M01 = ONE;
-            m.matrix.rotationWords.m02M10 = 0;
-            ia->m11M12                    = ONE;
-            m.matrix.rotationWords.m20M21 = 0;
-            ia->m22                       = ONE;
-            RotMatrixZ(w2->rotation.vz, &m.matrix.mat);
-            RotMatrixY(w2->rotation.vy, &m.matrix.mat);
+            work->animStatus       = work->rig.slots[1].status.fields.flags;
+            w2                     = arg0->work;
+            coord                  = arg0->extra.tmd->coords;
+            ia                     = &m.rotationWords;
+            m.rotationWords.m00M01 = ONE;
+            m.rotationWords.m02M10 = 0;
+            ia->m11M12             = ONE;
+            m.rotationWords.m20M21 = 0;
+            ia->m22                = ONE;
+            RotMatrixZ(w2->rotation.vz, &m.mat);
+            RotMatrixY(w2->rotation.vy, &m.mat);
             dst                 = &coord->coord;
-            dst->m[0][0]        = m.matrix.mat.m[0][0];
-            dst->m[0][1]        = m.matrix.mat.m[0][1];
-            dst->m[0][2]        = m.matrix.mat.m[0][2];
-            dst->m[1][0]        = m.matrix.mat.m[1][0];
-            dst->m[1][1]        = m.matrix.mat.m[1][1];
-            dst->m[1][2]        = m.matrix.mat.m[1][2];
-            dst->m[2][0]        = m.matrix.mat.m[2][0];
-            dst->m[2][1]        = m.matrix.mat.m[2][1];
-            dst->m[2][2]        = m.matrix.mat.m[2][2];
+            dst->m[0][0]        = m.mat.m[0][0];
+            dst->m[0][1]        = m.mat.m[0][1];
+            dst->m[0][2]        = m.mat.m[0][2];
+            dst->m[1][0]        = m.mat.m[1][0];
+            dst->m[1][1]        = m.mat.m[1][1];
+            dst->m[1][2]        = m.mat.m[1][2];
+            dst->m[2][0]        = m.mat.m[2][0];
+            dst->m[2][1]        = m.mat.m[2][1];
+            dst->m[2][2]        = m.mat.m[2][2];
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Actor00400_Fn01B90(arg0);
             if ((s16)obj->hp <= 0) {
@@ -5731,18 +5784,18 @@ static void Actor00400_Fn0A034(Task* arg0)
 
 #include "../../shared/coord_math_local_to_world.inc.c"
 
-/// First kill-path state, entered the frame the marker task is spawned:
-/// `Actor00400_Fn02D48` walks it afterwards and `diverStrikeTeardown` retires it.
+/// First state of the shot's task, entered the frame the shot is spawned:
+/// `Actor00400_Fn02D48` flies it afterwards and `diverStrikeTeardown` retires it.
 ///
-/// `task->work` is the 0x64-byte `Actor100400MarkerWork` block
-/// `Actor00400_SpawnMarker` allocated, and `task->extra` the `TmdObject`
-/// whose `coords` is the coordinate the marker is drawn at. That coordinate is
-/// re-parented to `gGfxViewCoord` here, and the object is linked to it with its
-/// two `WorldCollisionContact` slots zeroed, so the state `Actor00400_Fn02D48` runs can report
-/// what the marker collides with. `field_5A` is seeded with the negative span
-/// the spawner's tip overshot by, and the object's draw scale with 0x100.
+/// `task->work` is the `_Actor00400ShotWork` block `Actor00400_SpawnMarker`
+/// allocated, and `task->extra` the `TmdObject` whose `coords` is the
+/// coordinate the shot is drawn at. That coordinate is re-parented to
+/// `gGfxViewCoord` here, and the sphere is linked on it with its two contacts
+/// cleared, so the state `Actor00400_Fn02D48` runs can report what the shot
+/// touches. The sphere's radius is 0x100, and the vertical speed the spawner
+/// stored is replaced by `ACTOR_00400_SHOT_LAUNCH_SPEED_Y`.
 ///
-/// The `task->extra` walk is repeated for `work->obj.coord` rather than reusing
+/// The `task->extra` walk is repeated for `work->child.obj.coord` rather than reusing
 /// `coord`: the original re-reads it, which is what the second `lw` chain in
 /// the target shows.
 ///
@@ -5756,29 +5809,29 @@ static void Actor00400_Fn0A034(Task* arg0)
 /// `REG_LIVE_LENGTH`".
 static void Actor00400_Fn0A190(Task* task)
 {
-    Actor100400MarkerWork* work;
-    GfxCoord*              coord;
+    _Actor00400ShotWork* work;
+    GfxCoord*            coord;
 
-    coord                      = task->extra.tmd->coords;
-    work                       = (Actor100400MarkerWork*)task->work;
-    task->killCountdown        = 0;
-    work->field_60             = 0;
-    coord->parent              = &gGfxViewCoord;
-    coord->composeStamp        = GRAPHICS_COORD_DIRTY;
-    work->obj.key              = Gp_PackPair(Actor00400_D0FDC0, 1);
-    work->obj.coord            = task->extra.tmd->coords;
-    work->obj.context.contacts = work->recs;
-    work->obj.pos.vx           = 0;
-    work->obj.pos.vy           = 0;
-    work->obj.pos.vz           = 0;
-    work->obj.radius           = 0x100;
-    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj);
-    Gp_InitRec18Table(work->recs, 2, 0);
-    work->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    coord                            = task->extra.tmd->coords;
+    work                             = task->work;
+    task->killCountdown              = 0;
+    work->frames                     = 0;
+    coord->parent                    = &gGfxViewCoord;
+    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+    work->child.obj.key              = Gp_PackPair(Actor00400_D0FDC0, 1);
+    work->child.obj.coord            = task->extra.tmd->coords;
+    work->child.obj.context.contacts = work->contacts;
+    work->child.obj.pos.vx           = 0;
+    work->child.obj.pos.vy           = 0;
+    work->child.obj.pos.vz           = 0;
+    work->child.obj.radius           = 0x100;
+    work->child.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->child.obj);
+    Gp_InitRec18Table(work->contacts, 2, 0);
+    work->child.obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_UpdateCoord(coord);
-    work->field_5A = -0x14;
-    diverImpactBurst(coord, (u16)work->field_60, 0, 0x1300);
+    work->velocity.vy = ACTOR_00400_SHOT_LAUNCH_SPEED_Y;
+    diverImpactBurst(coord, (u16)work->frames, 0, 0x1300);
     task->state++;
 }
 
@@ -5786,24 +5839,24 @@ static void Actor00400_Fn0A190(Task* task)
 
 static void Actor00400_Fn0A2F4(Task* arg0)
 {
-    Actor100400QuadWork* work;
-    Enemy*               object;
+    _Actor00400GroundStainWork* work;
+    Enemy*                      enemy;
 
-    work   = (Actor100400QuadWork*)arg0->work;
-    object = work->field_0;
+    work  = arg0->work;
+    enemy = work->enemy;
     Actor00400_Fn03318(&work->vertices[0], &work->vertices[1],
                        &work->vertices[2], &work->vertices[3], work->intensity);
-    if ((s16)object->hp <= 0) {
+    if ((s16)enemy->hp <= 0) {
         arg0->state++;
     }
 }
 
 static void Actor00400_Fn0A364(Task* arg0)
 {
-    Actor100400QuadWork* work;
-    u8                   intensity;
+    _Actor00400GroundStainWork* work;
+    u8                          intensity;
 
-    work = (Actor100400QuadWork*)arg0->work;
+    work = arg0->work;
     Actor00400_Fn03318(&work->vertices[0], &work->vertices[1],
                        &work->vertices[2], &work->vertices[3], work->intensity);
     intensity       = work->intensity - 1;

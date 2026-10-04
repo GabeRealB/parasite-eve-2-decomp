@@ -94104,7 +94104,7 @@ next:  addiu $a1, $a1, 0x14
        lhu  $a0, 0x0($a1)     # the value the body sign-extends
 ```
 
-Writing it with a cached local (`area = cfg->area; while (cfg->area != 0xFF)`)
+Writing it with a cached local (`stage = cfg->stage; while (cfg->stage != ACTOR_00400_AREA_CONFIG_END)`)
 produces one load plus a `sll` in the preheader *and* the latch, and only a
 `sra` in the body — one instruction longer and a different loop-carried value.
 
@@ -94118,8 +94118,8 @@ then carries `value << 16` instead of the value.
 **Fix.** Drop the local and read the field directly in both places:
 
 ```c
-for (cfg = Actor00400_D15F20; cfg->area != 0xFF; cfg++) {
-    if (ses->field_3 == cfg->area && ses->field_2 == cfg->room) { ... }
+for (cfg = Actor00400_D15F20; cfg->stage != ACTOR_00400_AREA_CONFIG_END; cfg++) {
+    if (ses->field_3 == cfg->stage && ses->field_2 == cfg->area) { ... }
 }
 ```
 
@@ -103300,12 +103300,12 @@ allocation follows from them:
 |---|---|---|---|---|
 | task pointer | 7 | 96 | 1458 | `$s2` |
 | coordinate | 5 | 68 | 1470 | `$s1` |
-| `&work->recs` | 3 | 22 | 1363 | `$s3` |
+| `&work->contacts` | 3 | 22 | 1363 | `$s3` |
 | work pointer | 16 | 78 | 8205 | `$s0` |
 
 Phase 1 (suggested-only) fails for all four: the only suggestions are `$a0`
 (from the arrival copy and the call argument setups) and `$a1` (from
-`&work->obj`), all call-used, so every call-crossing quantity falls to phase 2,
+`&work->child.obj`), all call-used, so every call-crossing quantity falls to phase 2,
 which is pure descending priority. The coordinate's 1470 beats the task
 pointer's 1458 by twelve units and takes `$s1`; swap those two numbers and the
 `$s0`-`$s3` assignment is the target's.
@@ -103315,7 +103315,7 @@ The fix is a statement reorder with no other edit: write `coord = ...` **before*
 
 ```c
     coord = ((Actor100400Ctx*)task->extra)->field_8;
-    work  = (Actor100400MarkerWork*)task->work;
+    work  = task->work;
 ```
 
 sched1 emits each load where the source order puts it, and that position *is*
