@@ -126876,11 +126876,13 @@ symbol:
     addiu v0,v0,%lo(D_...6B8+2)       sh    zero,2(v0)
     sh    zero,-0x2(v0)               sh    zero,%lo(D_...6B8)(v1)
 
-Giving the global a real two-field struct type and writing
-`D_...6B8.field_2 = 0;` / `.field_0 = 0;` emits the right-hand column, which is
-what the target has. Fix this before chasing the schedule: it was
-`delete 4->2, insert 5->3` on its own, and the leftover `sym+2` form keeps a
-redundant `addiu` alive that no statement reordering will remove.
+Giving the global a real type and writing the stores through it -
+`D_...6B8[1] = 0;` / `D_...6B8[0] = 0;` on the two-element `u16` array it is; a
+two-field struct's `.field_2` / `.field_0` compiles the same - emits the
+right-hand column, which is what the target has. Fix this before chasing the
+schedule: it was `delete 4->2, insert 5->3` on its own, and the leftover
+`sym+2` form keeps a redundant `addiu` alive that no statement reordering will
+remove.
 
 ## Read `.i.sched`; the first reordering from `MEM_IN_STRUCT_P` is in sched1, and the stores' anti-dependences carry most of it (ActorsShared80131e24Sub0, 2026-09-17)
 

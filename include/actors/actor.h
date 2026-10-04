@@ -374,7 +374,7 @@ STATIC_ASSERT_SIZEOF(ActorContactDeltaScratch, 0x38);
 /// unproven.
 typedef struct {
     byte                unknown_0[0x20];  // Reserved with the block and never accessed; role unproven
-    WorldCollisionDelta delta;            // Correction resolved from the contact records, in signed 16.16 units; then the player's position minus the root's on X and Z, in whole world units
+    WorldCollisionDelta delta;            // Correction resolved from the contact records, in signed 16.16 units; then the player's position minus the root's, in whole world units, on X and Z or on all three axes as the step measures its range
     byte                unknown_30[0x18]; // Reserved with the block and never accessed; role unproven
 } ActorContactDeltaWideScratch;
 STATIC_ASSERT_SIZEOF(ActorContactDeltaWideScratch, 0x48);

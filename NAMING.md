@@ -534,7 +534,7 @@ behaviour, awake stage, death phase and animation values use
 `SUCKLERCEPH_ANIM_`. `SucklercephContactsScratch` is the scratch block of its
 contact pass, private to that interface. The block of its drop's collision
 step is `ActorContactDeltaWideScratch` in `include/actors/actor.h`, public
-because `actor_521100` reserves the same block.
+because `actor_521100` and `actor_403600` reserve the same block.
 
 `viewFigure` owns the included figure parented to the view coordinate, shared
 by `actor_110300` and `actor_110800`. Its implementation interface is
