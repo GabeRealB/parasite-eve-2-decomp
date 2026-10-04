@@ -50,16 +50,6 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-/// Dual-width view of the animation rate the seeding body
-/// `func_actor_312200_80162FB4` copies into every slot's `AnimationSlot.rate`:
-/// the state handlers arm it as a halfword, the seeding body reads back only
-/// its low byte.
-typedef union Actor312200Rate {
-    /* 0x0 */ u16 half;
-    /* 0x0 */ u8  byte;
-} Actor312200Rate;
-STATIC_ASSERT_SIZEOF(Actor312200Rate, 0x2);
-
 /// Private work block of the actor 312200 task, hanging off `Task::work`,
 /// `memCalloc(sizeof(Actor312200Work), 0)` in the spawn handler.
 ///
@@ -103,16 +93,16 @@ typedef struct Actor312200Work {
     /* 0x890 */ s16              field_890;
     /* 0x892 */ u16              field_892;
     /* 0x894 */ u16              field_894;
-    /* 0x896 */ Actor312200Rate  field_896;
+    /* 0x896 */ u16              field_896;
     /* 0x898 */ byte             pad_898[0x2];
     /// Request state of the second animation context, laid out like the first:
     /// 2 seeds every slot and settles on 3.
-    /* 0x89A */ s16             field_89A;
-    /* 0x89C */ s16             field_89C;
-    /* 0x89E */ Actor312200Rate field_89E;
-    /* 0x8A0 */ s16             field_8A0;
-    /* 0x8A2 */ byte            pad_8A2[0x6];
-    /* 0x8A8 */ s32             field_8A8;
+    /* 0x89A */ s16  field_89A;
+    /* 0x89C */ s16  field_89C;
+    /* 0x89E */ u16  field_89E;
+    /* 0x8A0 */ s16  field_8A0;
+    /* 0x8A2 */ byte pad_8A2[0x6];
+    /* 0x8A8 */ s32  field_8A8;
     /// The two bytes the spawn handler arms next to the display node; they sit
     /// immediately before the 0x7DB record, so they are the actor's own copy of
     /// that state rather than part of a message. `field_8AD` is read back with
@@ -343,7 +333,7 @@ static void func_actor_312200_80162FB4(Task* task)
     if (work->field_88C == 1) {
         start = (Actor312200Work*)task->work;
         for (i = 1; i < 0x13; i++) {
-            start->rig.slots[i].rate = start->field_896.byte;
+            start->rig.slots[i].rate = start->field_896;
             animationSeekSlotWithBlend(&start->rig.anim, i, (s16)start->field_892, 0,
                                        D_actor_312200_80169F28[start->field_890][(s16)start->field_892]);
         }
@@ -353,7 +343,7 @@ static void func_actor_312200_80162FB4(Task* task)
     if (work->field_88C == 2) {
         reset = (Actor312200Work*)task->work;
         for (j = 1; j < 0x13; j++) {
-            reset->rig.slots[j].rate = reset->field_896.byte;
+            reset->rig.slots[j].rate = reset->field_896;
             animationResetSlot(&reset->rig.anim, j, (s16)reset->field_892);
         }
         reset->field_890 = reset->field_892;
@@ -363,11 +353,11 @@ static void func_actor_312200_80162FB4(Task* task)
         work->field_8A8 = 0;
     }
     if (work->field_89A == 2) {
-        second                 = (Actor312200Work*)task->work;
-        second->field_89E.half = 0x30;
-        second->field_8A0      = 0x500;
+        second            = (Actor312200Work*)task->work;
+        second->field_89E = 3 * ANIMATION_RATE_ONE;
+        second->field_8A0 = 0x500;
         for (k = 1; k < 0x13; k++) {
-            second->rig.slots[k].rate = second->field_89E.byte;
+            second->rig.slots[k].rate = second->field_89E;
             animationResetSlot(&second->anim2, k, (s16)second->field_89C);
         }
         work->field_89A = 3;
@@ -375,7 +365,7 @@ static void func_actor_312200_80162FB4(Task* task)
     work->field_894++;
     tick = (Actor312200Work*)task->work;
     for (m = 1; m < 0x13; m++) {
-        tick->rig.slots[m].rate = tick->field_896.byte;
+        tick->rig.slots[m].rate = tick->field_896;
         animationTickSlot(&tick->rig.anim, m);
     }
 }
@@ -425,9 +415,9 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
     enemy->reactionFlags          = 0;
     enemy->field_4D               = 0;
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_312200_80169F44, obj, work->rig.poses, work->rig.slots);
-    work->field_88C      = 2;
-    work->field_892      = 1;
-    work->field_896.half = 0x10;
+    work->field_88C = 2;
+    work->field_892 = 1;
+    work->field_896 = ANIMATION_RATE_ONE;
     func_actor_312200_80162FB4(task);
     node                   = &work->field_8BC;
     node->coord            = &task->extra.tmd->coords[3];
@@ -650,8 +640,8 @@ static void func_actor_312200_801637CC(Task* task)
 
     work = (Actor312200Work*)task->work;
     if (work->field_4 != 0) {
-        work->field_88C      = 2;
-        work->field_896.half = 0x10;
+        work->field_88C = 2;
+        work->field_896 = ANIMATION_RATE_ONE;
         func_actor_312200_80162FB4(task);
     }
     if ((s16)work->field_892 == 0x10 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
