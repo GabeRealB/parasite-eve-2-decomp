@@ -1,4 +1,5 @@
-/* Part of the library; see diver.h. Inline helpers the fragments use. */
+/* Part of the Diver library; see diver.h. Inline helpers the fragments and
+ * the packages' own states use. */
 
 /// Accumulate `arg0`'s parent chain into `arg1`: seed it with the node's own
 /// rotation, then pre-multiply by each (renormalised) ancestor up to but not
@@ -78,4 +79,22 @@ static __inline__ GfxCoord* diverLocalizeRotation(GfxCoord* arg0, MATRIX* arg1)
         }
     }
     return arg0;
+}
+
+/// Whether the clip the body slots play has ended: slot 1 reached its
+/// boundary, followed a jump or settled during the last frame's ticks, as the
+/// package's animation step copied into `animStatus`.
+///
+/// The three bits are tested singly and the work block is loaded afresh from
+/// the task; both are matching requirements.
+static __inline__ s32 diverClipEnded(Task* task)
+{
+    DiverWork* work = task->work;
+
+    if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
+        (work->animStatus & ANIMATION_SLOT_SETTLED)) {
+        return 1;
+    }
+    return 0;
 }

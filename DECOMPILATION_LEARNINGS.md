@@ -3879,7 +3879,10 @@ the member split (`base_1.c`, preprocessed
 `01e987369b28842bf141cdbadec42d1ac945647af4b36a4c14cdc356d0310c37`). That
 split was a union laying a `u32 word` view over the flags and the unrelated
 halfword after them; the three-test form on the plain field has since replaced
-it at all 18 sites of the file, and at the Sea Diver's three.
+it at all 18 sites of the file, and at the Sea Diver's three. Seventeen of
+those and the Sea Diver's three now make the test through the Diver library's
+inlined `diverClipEnded`; `Actor00400_Fn08908` is the eighteenth, the same test
+compiled out of line.
 
 The idiom is common here: `actors_shared_8013a0b0.c` and
 `actors_shared_8016974c.c` are this same body over their own flag unions, and
@@ -117031,7 +117034,7 @@ what decides the fold:
         next->animFrames = next->animFrames + 1;   /* stays addiu */
     }
     for (i = 1; i < 0xF; i++) {
-        animationTickSlot(&next->anim, i);
+        animationTickSlot(&next->rig.anim, i);
     }
 ```
 
@@ -117656,7 +117659,10 @@ register: the same three reads through three variables are three pseudos, and th
 two that stay inside a block get the scratch register on their own.
 
 The state change here still goes through the inlined `set_state`, which is a third
-variable and so a third pseudo -- it builds to the same 100.000%.
+variable and so a third pseudo -- it builds to the same 100.000%. The flags
+test has since gone the same way, into the inlined `diverClipEnded`: each
+helper's own `task->work` local is its own pseudo, so the function keeps one
+explicit reload, the tail's.
 
 ## A pointer local is what makes a *local* struct's stores register-relative (func_actor_206100_8014DA28, 2026-09-16)
 
@@ -140758,9 +140764,11 @@ second `if` for the pair keeps the loads but turns the tail into
 
 The three-test form also holds where the result is materialised first -
 `if (...) cond = 1; else cond = 0;` followed by `if (cond)` - which is how both
-Divers write it: it replaced the `fields.flags` / `word` status unions of
+Divers wrote it: it replaced the `fields.flags` / `word` status unions of
 `_Actor00400Work::animStatus` (18 sites) and `_Actor206100Work::animStatus` (3),
-leaving a plain `u16` beside the unrelated halfword that shared its word.
+leaving a plain `u16` beside the unrelated halfword that shared its word. That
+materialised flag was an inlined predicate expanded by hand; see "`cond = 1;
+else cond = 0;` after a fresh `task->work` load is an inlined predicate".
 
 Two adjacent `u8` fields tested for zero merge the same way:
 `work->jawPitchPhase == 0 && work->headPitchPhase == 0`, on the bytes at
@@ -147023,3 +147031,43 @@ The same pass over the block took two byte flags read as `(s8)work->flag` to
 fall speed read as `(s16)` to `s16`, which also made the `u16` local copying
 it unnecessary. Count the casts per member before trusting its signedness: a
 member cast at most of its reads was fitted to the minority.
+
+## `cond = 1; else cond = 0;` after a fresh `task->work` load is an inlined predicate (diverClipEnded, 2026-10-04)
+
+Both Divers tested "the clip ended" twenty times as
+
+```c
+    w = task->work;
+    if ((w->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (w->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (w->animStatus & ANIMATION_SLOT_SETTLED)) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) { ... }
+```
+
+A flag materialised only to be tested, behind a reload of a pointer the
+function already holds, is what an inlined `if (...) return 1; return 0;`
+leaves. One `static __inline__ s32 diverClipEnded(Task* task)` in
+`src/shared/diver_inlines.inc.c`, taking the task and loading the work block
+itself, replaced all twenty and both packages still match. The Bog Diver also
+carries the test out of line (`Actor00400_Fn08908`, an `s16` return), which is
+the other half of the evidence that it was a routine in the original.
+
+Two sites did not match on the mechanical substitution, and both failures are
+about the caller's pointer, not the helper:
+
+- `Actor00400_Fn096C0` uses its own `work` *after* the test. The hand-expanded
+  form had lent that variable to the test, so dropping the assignment left it
+  unset; the caller keeps `work = arg0->work;` and the helper makes its own
+  load beside it.
+- `Actor00400_Fn04A1C` had one `work2` serving an animation request on the
+  early-return path, the test and the state change. With the test's definition
+  gone the remaining two are one pseudo with two definitions in disjoint paths
+  and it allocates differently (8 words); a separate variable for the state
+  change restores the match. `Actor00400_Fn04900`, the same shape with the
+  request written through the function's first pointer, needed nothing.
+
+The helper has to be defined above every site (GCC 2.8.1 inlines only a body it
+has already seen), so its include position in each carrier is part of the
+change.

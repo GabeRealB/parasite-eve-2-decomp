@@ -251,82 +251,80 @@ enum {
 /// skeleton's coordinates: 0 the root, 1 the trunk, 2 and 3 the neck, 4 the
 /// head, 11 and 14 the tips of the arms.
 typedef struct {
-    AnimationContext      anim;                                   // animation playback of the model
-    AnimationSlot         slots[15];                              // one per model part; 1..14 play `animClip`, and slot 1's status tells when it ended
-    u8                    poses[15][ANIMATION_POSE_BUFFER_BYTES]; // blend pose of each slot
-    WorldCollisionBody    trunkBody;                              // sphere on part 1 that other bodies touch; its contacts carry the hits
-    WorldCollisionBody    headBody;                               // smaller sphere on part 4; shares `hitContacts`
-    WorldCollisionContact hitContacts[6];                         // contacts of `trunkBody` and `headBody`; also the enemy's hit records
-    WorldCollisionBody    gridBody;                               // sphere on the root, tested against the room grid while `gridCollision`
-    WorldCollisionContact gridContacts[6];                        // contacts of `gridBody`; their push-out moves the root
-    WorldCollisionBody    attackBody;                             // sphere on part 1 carrying the enemy's attack key; enabled only by a discharge out of the water
-    WorldCollisionContact attackContacts[3];                      // contacts of `attackBody`
-    byte                  field_544[0x2];                         // never accessed
-    u16                   lookYaw;                                // stranded: signed yaw of the look toward the target, spread over parts 2, 3 and 4 a third each
-    byte                  field_548[0x4];                         // never accessed
-    SVECTOR               prevRootPos;                            // root position at the start of the frame; its XZ is restored when the collision step reports a conflict
-    SVECTOR               rotation;                               // root rotation: `vy` heading, `vz` roll; `vx` is only ever cleared and never applied
-    byte                  field_55C[0x8];                         // never accessed
-    SVECTOR               armAnchor;                              // XZ the midpoint of the arm tips is held at through a crawl stride; moved with every push-out
-    SVECTOR               surfaceSpot;                            // XZ of the claimed entry of `surfaceSpots`; `vy` stays 0
-    SVECTOR               emergePos;                              // `surfaceSpot` as the emerge began; the root eases onto its XZ
-    MATRIX                colorMtx;                               // storage for the model's `TmdObject::colorMtx`
-    MATRIX                lightMtx;                               // storage for the model's `TmdObject::lightMtx`
-    MATRIX                savedRootMtx;                           // root matrix at the start of the stranded death's shrink; each frame rescales a copy of it
-    EffectSpawnArg        effectArg;                              // argument record of the hit and discharge effects, hung off part 1
-    SVECTOR               targetPos;                              // root position of the nearer of the player and the companion
-    SVECTOR               lowerNeckAngles;                        // Euler angles of part 2 as the neck retracted, eased to zero; eased back to the animation's on release
-    SVECTOR               upperNeckAngles;                        // the same for part 3
-    byte                  field_5FC[0xC];                         // never accessed
-    SVECTOR*              surfaceSpots;                           // the room's spots to emerge at, shared by its divers, or NULL: `pad` is 1 on a claimed entry and -1 ends the list; entry 0 is never searched
-    SVECTOR*              waypoints;                              // ring of eight points the patrol swims round, picked from the room's sets by the spawn argument; `vy` is the depth swum at
-    s32                   critChanceScale;                        // factor on the critical chance of the hits taken: 100 during a status hold, 0 for none
-    s16                   stateHistory[3];                        // ring of the states the last three decisions chose; three attacks or discharges running force the other choice
-    byte                  field_61A[0x2];                         // never accessed
-    s16                   hitCooldown;                            // frames before another hit is taken; set from the hit's id parameter 2
-    s16                   shrinkScaleY;                           // Y scale of the stranded death's shrink, 0x1000 = 1.0, less 0x40 a frame
-    s16                   field_620;                              // 0x1000 from the spawn; never read, role unproven
-    s16                   field_622;                              // 0x1000 from the spawn; never read, role unproven
-    s16                   animRequest;                            // `DIVER_ANIM_REQUEST_*`
-    s16                   animPlaying;                            // animation last applied to the slots
-    s16                   animClip;                               // requested animation: index into the package's animation bank
-    s16                   animFrames;                             // frames since `animClip` was applied; rescaled to the new rate when a blend re-requests the playing animation
-    u16                   animStatus;                             // slot 1's ANIMATION_SLOT_* results of the last frame's ticks; the states test this copy to learn their clip ended
-    s16                   bobPhase;                               // frame counter driving the root coordinate's vertical bob (64 frames a cycle, 16 units either way)
-    s16                   frameCount;                             // frames the diver has run, from a random start in water and from 0x174B stranded; paces the swim sound and is the phase of the flinch shake
-    s16                   animStep;                               // playback rate of slots 1..14; `ANIMATION_RATE_ONE` is normal speed
-    u16                   targetBearing;                          // heading from part 1 to `targetPos` relative to `rotation.vy`, 0..0xFFF
-    s16                   stateFrames;                            // frames spent in the current state or step
-    s16                   state;                                  // index into the state table of the current task state: `ACTOR_00400_*_STATE_*`, `ACTOR_00400_*_DEATH_*`
-    s16                   subState;                               // index into the step table of the current state
-    s16                   animBlend;                              // frames a blend request takes; cleared once a different animation has been blended into
-    s16                   goalY;                                  // Y the root eases a sixteenth of the way to each frame while in water
-    s16                   targetDistance;                         // horizontal distance from part 1 to `targetPos`
-    s16                   hitTaken;                               // 1 when a hit or a status tick dealt damage this frame; lets `hitReaction` be consumed
-    s16                   hitReaction;                            // `ACTOR_00400_HIT_REACTION_*` awaiting the state machine
-    s16                   attackFrames;                           // frames left of a spark discharge, 24 from its start; paces its sound and sparks, and out of the water enables `attackBody` for the last 22
-    s16                   shadowShade;                            // shade of the limb shadows during the stranded death: 0x80, less 7 a frame of the shrink
-    s16                   surfaceSpotIndex;                       // index of the claimed entry of `surfaceSpots`; 0 until the first claim
-    s16                   emergeCooldown;                         // frames before a dive may end in an emerge: 90 after an attack was declined or chosen three times running
-    s16                   waterLevel;                             // Y of the room's water surface, from the room's area row; 0 where the row gives none
-    s16                   shakeFrames;                            // frames left of the flinch shake, 10 from each flinch
-    s16                   neckPhase;                              // `ACTOR_00400_NECK_*`
-    s16                   neckScale;                              // Z scale of part 2, 0x1000 = 1.0: eased to 0x2AA while retracted and back on release; the head takes the inverse
-    byte                  field_656[0x2];                         // never accessed
-    u16                   floatOffset;                            // added to the goal height of the floating wounded spawn and of the death in water: 200 for that spawn, 0 otherwise
-    u8                    stateHistoryIndex;                      // entry of `stateHistory` the next decision writes
-    u8                    waypointIndex;                          // entry of `waypoints` being swum to, 0..7
-    u8                    strideCount;                            // crawl strides begun; its low bit alternates the stride's two sounds
-    u8                    wasHit;                                 // set by every hit that deals damage; never read
-    u8                    command;                                // last `ACTOR_00400_COMMAND_*` received; never cleared
-    u8                    ambientOff;                             // 1 on the tunnel introduction's diver: every colour update is followed by zeroing the model's background colour
-    u8                    neckRetracted;                          // 1 asks for the neck drawn in, as it is under water; 0 releases it
-    u8                    gridCollision;                          // 1 has `gridBody` tested against the room grid; read once, as the bodies are linked, by when spawn kind 0 and the area rows that ask for it have set it
-    byte                  field_662[0x1];                         // never accessed
-    u8                    suspended;                              // 1 while the room has the model hidden: the living and dying states do not run
-    u8                    targetPart;                             // part the enemy's target point and hit effects hang off: 4, or 1 during the status hold in water and on the wounded spawns
-    u8                    lookDisabled;                           // 1 during the stranded status hold: `lookYaw` only decays
-    u8                    inWater;                                // 1 in water, 0 stranded or lying wounded
+    ActorAnimRig15        rig;               // animation playback of the model, one slot per part; 1..14 play `animClip`, and slot 1's status tells when it ended
+    WorldCollisionBody    trunkBody;         // sphere on part 1 that other bodies touch; its contacts carry the hits
+    WorldCollisionBody    headBody;          // smaller sphere on part 4; shares `hitContacts`
+    WorldCollisionContact hitContacts[6];    // contacts of `trunkBody` and `headBody`; also the enemy's hit records
+    WorldCollisionBody    gridBody;          // sphere on the root, tested against the room grid while `gridCollision`
+    WorldCollisionContact gridContacts[6];   // contacts of `gridBody`; their push-out moves the root
+    WorldCollisionBody    attackBody;        // sphere on part 1 carrying the enemy's attack key; enabled only by a discharge out of the water
+    WorldCollisionContact attackContacts[3]; // contacts of `attackBody`
+    byte                  field_544[0x2];    // never accessed
+    u16                   lookYaw;           // stranded: signed yaw of the look toward the target, spread over parts 2, 3 and 4 a third each
+    byte                  field_548[0x4];    // never accessed
+    SVECTOR               prevRootPos;       // root position at the start of the frame; its XZ is restored when the collision step reports a conflict
+    SVECTOR               rotation;          // root rotation: `vy` heading, `vz` roll; `vx` is only ever cleared and never applied
+    byte                  field_55C[0x8];    // never accessed
+    SVECTOR               armAnchor;         // XZ the midpoint of the arm tips is held at through a crawl stride; moved with every push-out
+    SVECTOR               surfaceSpot;       // XZ of the claimed entry of `surfaceSpots`; `vy` stays 0
+    SVECTOR               emergePos;         // `surfaceSpot` as the emerge began; the root eases onto its XZ
+    MATRIX                colorMtx;          // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;          // storage for the model's `TmdObject::lightMtx`
+    MATRIX                savedRootMtx;      // root matrix at the start of the stranded death's shrink; each frame rescales a copy of it
+    EffectSpawnArg        effectArg;         // argument record of the hit and discharge effects, hung off part 1
+    SVECTOR               targetPos;         // root position of the nearer of the player and the companion
+    SVECTOR               lowerNeckAngles;   // Euler angles of part 2 as the neck retracted, eased to zero; eased back to the animation's on release
+    SVECTOR               upperNeckAngles;   // the same for part 3
+    byte                  field_5FC[0xC];    // never accessed
+    SVECTOR*              surfaceSpots;      // the room's spots to emerge at, shared by its divers, or NULL: `pad` is 1 on a claimed entry and -1 ends the list; entry 0 is never searched
+    SVECTOR*              waypoints;         // ring of eight points the patrol swims round, picked from the room's sets by the spawn argument; `vy` is the depth swum at
+    s32                   critChanceScale;   // factor on the critical chance of the hits taken: 100 during a status hold, 0 for none
+    s16                   stateHistory[3];   // ring of the states the last three decisions chose; three attacks or discharges running force the other choice
+    byte                  field_61A[0x2];    // never accessed
+    s16                   hitCooldown;       // frames before another hit is taken; set from the hit's id parameter 2
+    s16                   shrinkScaleY;      // Y scale of the stranded death's shrink, 0x1000 = 1.0, less 0x40 a frame
+    s16                   field_620;         // 0x1000 from the spawn; never read, role unproven
+    s16                   field_622;         // 0x1000 from the spawn; never read, role unproven
+    s16                   animRequest;       // `DIVER_ANIM_REQUEST_*`
+    s16                   animPlaying;       // animation last applied to the slots
+    s16                   animClip;          // requested animation: index into the package's animation bank
+    s16                   animFrames;        // frames since `animClip` was applied; rescaled to the new rate when a blend re-requests the playing animation
+    u16                   animStatus;        // slot 1's ANIMATION_SLOT_* results of the last frame's ticks; the states test this copy to learn their clip ended
+    s16                   bobPhase;          // frame counter driving the root coordinate's vertical bob (64 frames a cycle, 16 units either way)
+    s16                   frameCount;        // frames the diver has run, from a random start in water and from 0x174B stranded; paces the swim sound and is the phase of the flinch shake
+    s16                   animStep;          // playback rate of slots 1..14; `ANIMATION_RATE_ONE` is normal speed
+    u16                   targetBearing;     // heading from part 1 to `targetPos` relative to `rotation.vy`, 0..0xFFF
+    s16                   stateFrames;       // frames spent in the current state or step
+    s16                   state;             // index into the state table of the current task state: `ACTOR_00400_*_STATE_*`, `ACTOR_00400_*_DEATH_*`
+    s16                   subState;          // index into the step table of the current state
+    s16                   animBlend;         // frames a blend request takes; cleared once a different animation has been blended into
+    s16                   goalY;             // Y the root eases a sixteenth of the way to each frame while in water
+    s16                   targetDistance;    // horizontal distance from part 1 to `targetPos`
+    s16                   hitTaken;          // 1 when a hit or a status tick dealt damage this frame; lets `hitReaction` be consumed
+    s16                   hitReaction;       // `ACTOR_00400_HIT_REACTION_*` awaiting the state machine
+    s16                   attackFrames;      // frames left of a spark discharge, 24 from its start; paces its sound and sparks, and out of the water enables `attackBody` for the last 22
+    s16                   shadowShade;       // shade of the limb shadows during the stranded death: 0x80, less 7 a frame of the shrink
+    s16                   surfaceSpotIndex;  // index of the claimed entry of `surfaceSpots`; 0 until the first claim
+    s16                   emergeCooldown;    // frames before a dive may end in an emerge: 90 after an attack was declined or chosen three times running
+    s16                   waterLevel;        // Y of the room's water surface, from the room's area row; 0 where the row gives none
+    s16                   shakeFrames;       // frames left of the flinch shake, 10 from each flinch
+    s16                   neckPhase;         // `ACTOR_00400_NECK_*`
+    s16                   neckScale;         // Z scale of part 2, 0x1000 = 1.0: eased to 0x2AA while retracted and back on release; the head takes the inverse
+    byte                  field_656[0x2];    // never accessed
+    u16                   floatOffset;       // added to the goal height of the floating wounded spawn and of the death in water: 200 for that spawn, 0 otherwise
+    u8                    stateHistoryIndex; // entry of `stateHistory` the next decision writes
+    u8                    waypointIndex;     // entry of `waypoints` being swum to, 0..7
+    u8                    strideCount;       // crawl strides begun; its low bit alternates the stride's two sounds
+    u8                    wasHit;            // set by every hit that deals damage; never read
+    u8                    command;           // last `ACTOR_00400_COMMAND_*` received; never cleared
+    u8                    ambientOff;        // 1 on the tunnel introduction's diver: every colour update is followed by zeroing the model's background colour
+    u8                    neckRetracted;     // 1 asks for the neck drawn in, as it is under water; 0 releases it
+    u8                    gridCollision;     // 1 has `gridBody` tested against the room grid; read once, as the bodies are linked, by when spawn kind 0 and the area rows that ask for it have set it
+    byte                  field_662[0x1];    // never accessed
+    u8                    suspended;         // 1 while the room has the model hidden: the living and dying states do not run
+    u8                    targetPart;        // part the enemy's target point and hit effects hang off: 4, or 1 during the status hold in water and on the wounded spawns
+    u8                    lookDisabled;      // 1 during the stranded status hold: `lookYaw` only decays
+    u8                    inWater;           // 1 in water, 0 stranded or lying wounded
 } _Actor00400Work;
 STATIC_ASSERT_SIZEOF(_Actor00400Work, 0x668);
 
@@ -1340,7 +1338,7 @@ static void Actor00400_Fn00B48(Task* arg0)
     obj->hpMax                  = hp;
     obj->hp                     = hp;
     coord->parent               = &gGfxViewCoord;
-    animationInitContext(&work->anim, Actor00400_D1604C, ctx, work->poses, work->slots);
+    animationInitContext(&work->rig.anim, Actor00400_D1604C, ctx, work->rig.poses, work->rig.slots);
     Actor00400_Fn019B4(arg0);
     work->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 }
@@ -2790,8 +2788,8 @@ static void Actor00400_Fn03920(Task* arg0)
     } else if (anim->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
         anim->animFrames = (u16)anim->animFrames + 1;
     }
-    for (index = 1; index < ARRAY_SIZE(anim->slots); index++) {
-        animationTickSlot(&anim->anim, index);
+    for (index = 1; index < ARRAY_SIZE(anim->rig.slots); index++) {
+        animationTickSlot(&anim->rig.anim, index);
     }
     work->field_620 = 0x1000;
     work->field_622 = 0x1000;
@@ -2859,7 +2857,7 @@ static void Actor00400_Fn040DC(Task* arg0)
                 break;
             }
             fns.funcs[work->state](arg0);
-            work->animStatus = work->slots[1].status.fields.flags;
+            work->animStatus = work->rig.slots[1].status.fields.flags;
             if (work->hitReaction != 4) {
                 work->neckRetracted = 1;
                 Actor00400_Fn02648(arg0, 1);
@@ -2920,7 +2918,6 @@ static void Actor00400_Fn04414(Task* arg0)
     _Actor00400Work* w;
     _Actor00400Work* w2;
     s32              i;
-    s32              cond;
 
     work = arg0->work;
     w    = arg0->work;
@@ -2941,19 +2938,11 @@ static void Actor00400_Fn04414(Task* arg0)
     }
     i = 1;
     do {
-        animationTickSlot(&w->anim, i);
+        animationTickSlot(&w->rig.anim, i);
         i++;
-    } while (i < ARRAY_SIZE(w->slots));
+    } while (i < ARRAY_SIZE(w->rig.slots));
     if (arg0->spawnArg1.value != 7) {
-        w2 = arg0->work;
-        if ((w2->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (w2->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-            (w2->animStatus & ANIMATION_SLOT_SETTLED)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond == 0) {
+        if (!diverClipEnded(arg0)) {
             return;
         }
         w2              = arg0->work;
@@ -3029,10 +3018,10 @@ static void Actor00400_Fn04580(Task* arg0)
             }
             i = 1;
             do {
-                animationTickSlot(&w->anim, i);
+                animationTickSlot(&w->rig.anim, i);
                 i++;
-            } while (i < ARRAY_SIZE(w->slots));
-            work->animStatus = work->slots[1].status.fields.flags;
+            } while (i < ARRAY_SIZE(w->rig.slots));
+            work->animStatus = work->rig.slots[1].status.fields.flags;
             Actor00400_Fn016A4(arg0, work->lookDisabled);
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
@@ -3078,7 +3067,6 @@ static void Actor00400_Fn04900(Task* arg0)
     _Actor00400Work* work;
     _Actor00400Work* work2;
     s32              id;
-    s32              cond;
 
     work = arg0->work;
     if (work->hitTaken != 0 && work->hitReaction == ACTOR_00400_HIT_REACTION_LIGHT) {
@@ -3091,15 +3079,7 @@ static void Actor00400_Fn04900(Task* arg0)
         return;
     }
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
-        work2 = arg0->work;
-        if ((work2->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work2->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-            (work2->animStatus & ANIMATION_SLOT_SETTLED)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
+        if (diverClipEnded(arg0)) {
             work2           = arg0->work;
             work2->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
             work2->subState = 0;
@@ -3111,8 +3091,8 @@ static void Actor00400_Fn04A1C(Task* arg0)
 {
     _Actor00400Work* work;
     _Actor00400Work* work2;
+    _Actor00400Work* work3;
     s32              id;
-    s32              cond;
 
     work = arg0->work;
     if (work->hitTaken != 0 && work->hitReaction == ACTOR_00400_HIT_REACTION_HEAVY) {
@@ -3127,18 +3107,10 @@ static void Actor00400_Fn04A1C(Task* arg0)
         return;
     }
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
-        work2 = arg0->work;
-        if ((work2->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work2->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-            (work2->animStatus & ANIMATION_SLOT_SETTLED)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
-            work2           = arg0->work;
-            work2->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
-            work2->subState = 0;
+        if (diverClipEnded(arg0)) {
+            work3           = arg0->work;
+            work3->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
+            work3->subState = 0;
         }
     }
 }
@@ -3182,7 +3154,7 @@ static void Actor00400_Fn04B48(Task* arg0)
                 break;
             }
             fns.funcs[work->state](arg0);
-            work->animStatus = work->slots[1].status.fields.flags;
+            work->animStatus = work->rig.slots[1].status.fields.flags;
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
             ctx2  = arg0->extra.tmd;
@@ -3315,10 +3287,10 @@ static void Actor00400_Fn04E18(Task* arg0)
             }
             i = 1;
             do {
-                animationTickSlot(&w->anim, i);
+                animationTickSlot(&w->rig.anim, i);
                 i++;
-            } while (i < ARRAY_SIZE(w->slots));
-            work->animStatus = work->slots[1].status.fields.flags;
+            } while (i < ARRAY_SIZE(w->rig.slots));
+            work->animStatus = work->rig.slots[1].status.fields.flags;
             Actor00400_Fn02648(arg0, work->neckRetracted);
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
@@ -3439,11 +3411,9 @@ static void Actor00400_Fn05320(Task* arg0)
     _Actor00400Work* work;
     _Actor00400Work* w1;
     _Actor00400Work* w2;
-    _Actor00400Work* w4;
     _Actor00400Work* w5;
     GfxCoord*        coord;
     s8               armed;
-    s32              cond;
     s32              sound;
     s32              pan;
     s32              sound2;
@@ -3484,15 +3454,7 @@ static void Actor00400_Fn05320(Task* arg0)
         pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    w4 = arg0->work;
-    if ((w4->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (w4->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (w4->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    if (diverClipEnded(arg0)) {
         Actor00400_SpawnRing(arg0, work, coord);
         sound3 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040008;
         pan3   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -3734,7 +3696,6 @@ static void Actor00400_Fn060CC(Task* arg0)
     _Actor00400Work* work;
     _Actor00400Work* work2;
     s32              id;
-    s32              cond;
 
     work = arg0->work;
     if (work->hitTaken != 0 && work->hitReaction == ACTOR_00400_HIT_REACTION_LIGHT) {
@@ -3747,15 +3708,7 @@ static void Actor00400_Fn060CC(Task* arg0)
         return;
     }
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
-        work2 = arg0->work;
-        if ((work2->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work2->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-            (work2->animStatus & ANIMATION_SLOT_SETTLED)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
+        if (diverClipEnded(arg0)) {
             work2           = arg0->work;
             work2->state    = ACTOR_00400_SWIM_STATE_DECIDE;
             work2->subState = 0;
@@ -3886,7 +3839,6 @@ static void Actor00400_Fn064B0(Task* arg0)
     _Actor00400Work* work2;
     s32              id;
     s32              pan;
-    s32              cond;
 
     work = arg0->work;
     work->stateFrames++;
@@ -3899,15 +3851,7 @@ static void Actor00400_Fn064B0(Task* arg0)
     if (work->stateFrames == 0x2B) {
         Actor00400_SpawnMarker(arg0);
     }
-    work2 = arg0->work;
-    if ((work2->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (work2->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    if (diverClipEnded(arg0)) {
         work2           = arg0->work;
         work2->state    = ACTOR_00400_SWIM_STATE_DECIDE;
         work2->subState = 0;
@@ -3960,9 +3904,9 @@ static void Actor00400_Fn06798(Task* arg0)
         }
         i = 1;
         do {
-            animationTickSlot(&a->anim, i);
+            animationTickSlot(&a->rig.anim, i);
             i++;
-        } while (i < ARRAY_SIZE(a->slots));
+        } while (i < ARRAY_SIZE(a->rig.slots));
     }
     Actor00400_TurnToward(arg0, &work->waypoints[work->waypointIndex], 0x2C, 0x100);
     diverStepForward(arg0, 0x60, work->rotation.vy);
@@ -4047,10 +3991,10 @@ static void Actor00400_Fn06B7C(Task* arg0)
             }
             i = 1;
             do {
-                animationTickSlot(&w->anim, i);
+                animationTickSlot(&w->rig.anim, i);
                 i++;
-            } while (i < ARRAY_SIZE(w->slots));
-            work->animStatus              = work->slots[1].status.fields.flags;
+            } while (i < ARRAY_SIZE(w->rig.slots));
+            work->animStatus              = work->rig.slots[1].status.fields.flags;
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
             ia                            = &m.matrix.rotationWords;
@@ -4125,19 +4069,10 @@ static void Actor00400_Fn06EA4(Task* arg0)
 {
     _Actor00400Work* work;
     _Actor00400Work* work2;
-    s32              cond;
 
     work = arg0->work;
     if (Actor00400_ConsumeStateRequest(work) == 0) {
-        work = arg0->work;
-        if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-            (work->animStatus & ANIMATION_SLOT_SETTLED)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
+        if (diverClipEnded(arg0)) {
             work2              = arg0->work;
             work2->animBlend   = 8;
             work2->animStep    = 4;
@@ -4152,7 +4087,6 @@ static void Actor00400_Fn06F64(Task* arg0)
     _Actor00400Work* work;
     _Actor00400Work* work2;
     s32              id;
-    s32              cond;
 
     work = arg0->work;
     if (work->hitTaken != 0 && work->hitReaction == ACTOR_00400_HIT_REACTION_LIGHT) {
@@ -4166,15 +4100,7 @@ static void Actor00400_Fn06F64(Task* arg0)
         return;
     }
     if (Actor00400_ConsumeStateRequest(work) == 0) {
-        work = arg0->work;
-        if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-            (work->animStatus & ANIMATION_SLOT_SETTLED)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
+        if (diverClipEnded(arg0)) {
             work2           = arg0->work;
             work2->state    = 0;
             work2->subState = 0;
@@ -4231,10 +4157,10 @@ static void Actor00400_Fn070C0(Task* arg0)
             }
             i = 1;
             do {
-                animationTickSlot(&w->anim, i);
+                animationTickSlot(&w->rig.anim, i);
                 i++;
-            } while (i < ARRAY_SIZE(w->slots));
-            work->animStatus              = work->slots[1].status.fields.flags;
+            } while (i < ARRAY_SIZE(w->rig.slots));
+            work->animStatus              = work->rig.slots[1].status.fields.flags;
             w2                            = arg0->work;
             coord                         = arg0->extra.tmd->coords;
             ia                            = &m.matrix.rotationWords;
@@ -4277,25 +4203,15 @@ static void Actor00400_Fn070C0(Task* arg0)
 static void Actor00400_Fn07400(Task* arg0)
 {
     _Actor00400Work* work;
-    _Actor00400Work* work2;
     _Actor00400Work* work3;
     s32              phase;
-    s32              cond;
 
     work = arg0->work;
     if (Actor00400_ConsumeStateRequest(work) == 0) {
         phase             = (u16)work->stateFrames + 1;
         work->stateFrames = phase;
         work->goalY       = work->floatOffset + ((u16)work->waterLevel + ((rsin(phase << 16 >> 10) * 0x10) >> 10));
-        work2             = arg0->work;
-        if ((work2->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work2->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-            (work2->animStatus & ANIMATION_SLOT_SETTLED)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
+        if (diverClipEnded(arg0)) {
             work3              = arg0->work;
             work3->animBlend   = 8;
             work3->animStep    = 2;
@@ -4590,9 +4506,9 @@ static void Actor00400_Fn07CC4(Task* arg0)
     }
     i = 1;
     do {
-        animationTickSlot(&w->anim, i);
+        animationTickSlot(&w->rig.anim, i);
         i++;
-    } while (i < ARRAY_SIZE(w->slots));
+    } while (i < ARRAY_SIZE(w->rig.slots));
     if (work->stateFrames >= 0x3C) {
         work->state++;
     }
@@ -4885,17 +4801,17 @@ static void Actor00400_Fn08624(Task* arg0)
     if (work->animPlaying == work->animClip) {
         i = 1;
         do {
-            work->slots[i].rate = work->animStep;
-            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
+            work->rig.slots[i].rate = work->animStep;
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animClip, 0, work->animBlend);
             i++;
-        } while (i < ARRAY_SIZE(work->slots));
+        } while (i < ARRAY_SIZE(work->rig.slots));
     } else {
         i = 1;
         do {
-            work->slots[i].rate = work->animStep;
-            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
+            work->rig.slots[i].rate = work->animStep;
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animClip, 0, work->animBlend);
             i++;
-        } while (i < ARRAY_SIZE(work->slots));
+        } while (i < ARRAY_SIZE(work->rig.slots));
         work->animBlend = 0;
     }
     work->animPlaying = (u16)work->animClip;
@@ -4974,9 +4890,9 @@ static void Actor00400_Fn08814(Task* arg0)
     }
     i = 1;
     do {
-        animationTickSlot(&work->anim, i);
+        animationTickSlot(&work->rig.anim, i);
         i++;
-    } while (i < ARRAY_SIZE(work->slots));
+    } while (i < ARRAY_SIZE(work->rig.slots));
 }
 
 static void Actor00400_Fn088EC(Task* arg0, s16 arg1, s16 arg2, s16 arg3)
@@ -5124,8 +5040,8 @@ static void Actor00400_Fn08C54(Task* arg0)
         w->animFrames++;
     }
 
-    for (i = 1; i < ARRAY_SIZE(w->slots); i++) {
-        animationTickSlot(&w->anim, i);
+    for (i = 1; i < ARRAY_SIZE(w->rig.slots); i++) {
+        animationTickSlot(&w->rig.anim, i);
     }
 
     if (work->stateFrames >= 0x1E) {
@@ -5445,21 +5361,11 @@ static void Actor00400_Fn094DC(Task* arg0)
 
 static void Actor00400_Fn095D8(Task* arg0)
 {
-    s32              cond;
     _Actor00400Work* work;
-    _Actor00400Work* work2;
 
     work                = arg0->work;
     work->neckRetracted = 1;
-    work2               = arg0->work;
-    if ((work2->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (work2->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    if (diverClipEnded(arg0)) {
         work->subState = 1;
     }
 }
@@ -5488,18 +5394,10 @@ static void Actor00400_Fn0962C(Task* arg0)
 
 static void Actor00400_Fn096C0(Task* arg0)
 {
-    s32              cond;
     _Actor00400Work* work;
 
     work = arg0->work;
-    if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (work->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    if (diverClipEnded(arg0)) {
         work->subState = work->subState + 1;
     }
 }
@@ -5508,7 +5406,6 @@ static void Actor00400_Fn096C0(Task* arg0)
 
 static void Actor00400_Fn097C8(Task* arg0)
 {
-    s32              cond;
     s32              pan;
     s32              sound;
     _Actor00400Work* work;
@@ -5520,15 +5417,7 @@ static void Actor00400_Fn097C8(Task* arg0)
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    w = arg0->work;
-    if ((w->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (w->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (w->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    if (diverClipEnded(arg0)) {
         w           = arg0->work;
         w->state    = ACTOR_00400_SWIM_STATE_DECIDE;
         w->subState = 0;
@@ -5556,7 +5445,6 @@ static void Actor00400_Fn09924(Task* arg0)
 {
     _Actor00400Work* work;
     _Actor00400Work* w;
-    s32              cond;
     s32              mode;
 
     work = arg0->work;
@@ -5569,15 +5457,7 @@ static void Actor00400_Fn09924(Task* arg0)
         w->animClip    = 0x12;
         w->animRequest = mode;
     } else {
-        w = arg0->work;
-        if ((w->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (w->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-            (w->animStatus & ANIMATION_SLOT_SETTLED)) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
+        if (diverClipEnded(arg0)) {
             w              = arg0->work;
             w->animBlend   = 8;
             w->animStep    = ANIMATION_RATE_ONE;
@@ -6059,17 +5939,8 @@ static void Actor00400_Fn0A680(Task* arg0)
 static void Actor00400_Fn0A6B0(Task* arg0)
 {
     _Actor00400Work* work;
-    s32              cond;
 
-    work = arg0->work;
-    if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (work->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    if (diverClipEnded(arg0)) {
         work           = arg0->work;
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
@@ -6093,7 +5964,6 @@ static void Actor00400_Fn0A704(Task* arg0)
 static void Actor00400_Fn0A760(Task* arg0)
 {
     _Actor00400Work* work;
-    s32              cond;
 
     work = arg0->work;
     if (work->targetDistance < 0x3B4) {
@@ -6102,15 +5972,7 @@ static void Actor00400_Fn0A760(Task* arg0)
         return;
     }
     Actor00400_Fn00C84(arg0);
-    work = arg0->work;
-    if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (work->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    if (diverClipEnded(arg0)) {
         work           = arg0->work;
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
@@ -6133,17 +5995,8 @@ static void Actor00400_Fn0A7F0(Task* arg0)
 static void Actor00400_Fn0A82C(Task* arg0)
 {
     _Actor00400Work* work;
-    s32              cond;
 
-    work = arg0->work;
-    if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (work->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    if (diverClipEnded(arg0)) {
         work           = arg0->work;
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
@@ -6207,19 +6060,10 @@ static void Actor00400_Fn0AA40(Task* arg0)
 {
     _Actor00400Work* work;
     _Actor00400Work* w;
-    s32              cond;
 
     work = arg0->work;
     work->stateFrames++;
-    w = arg0->work;
-    if ((w->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (w->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (w->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    if (diverClipEnded(arg0)) {
         w              = arg0->work;
         w->animBlend   = 8;
         w->animStep    = ANIMATION_RATE_ONE;

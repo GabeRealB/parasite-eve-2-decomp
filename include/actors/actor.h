@@ -563,6 +563,23 @@ typedef struct {
 } ActorAnimRig18;
 STATIC_ASSERT_SIZEOF(ActorAnimRig18, 0x404);
 
+/// Caller-owned playback storage for fifteen slots.
+///
+/// The context borrows the model's part coordinates and is bound to this
+/// rig's slots and encoded-pose buffer. Both arrays stay live while playback
+/// uses them. Each slot has one pose entry of `ANIMATION_POSE_BUFFER_BYTES`.
+/// The entry holds that slot's encoding at its start: `AnimationPackedPose`
+/// (12 bytes) or `AnimationPackedRotation` (4 bytes). Playback stores no
+/// capacity, so a slot or pose index has to stay within these 15 entries.
+/// Slot 0 keeps its position in both arrays even where an owner drives only
+/// slots 1 to 14.
+typedef struct {
+    AnimationContext anim;                                   // Context bound to `slots`, `poses` and the model coordinates
+    AnimationSlot    slots[15];                              // Playback slot for one driven index
+    u8               poses[15][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose for the slot at the same index
+} ActorAnimRig15;
+STATIC_ASSERT_SIZEOF(ActorAnimRig15, 0x35C);
+
 /// Caller-owned playback storage for six slots.
 ///
 /// The context borrows the model's part coordinates and is bound to this

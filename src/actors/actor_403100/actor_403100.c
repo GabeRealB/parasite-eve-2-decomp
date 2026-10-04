@@ -6,6 +6,8 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor.h"
+
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -180,108 +182,104 @@ enum {
 /// The bytes named `field_XX` have no access anywhere in the package; whether
 /// they are members at all is unproven.
 typedef struct {
-    MATRIX  color;                                               // Colour matrix lent to the model
-    MATRIX  light;                                               // Light matrix lent to the model
-    MATRIX  savedRootMatrix;                                     // Root coordinate's matrix, kept across the low-health sequence
-    byte    field_60[0x20];
-    SVECTOR rotation;                                            // Rotation of the root (4096 a turn); only `vy`, the heading, is applied, wrapped to 12 bits
-    SVECTOR savedRotation;                                       // `rotation`, kept across the low-health sequence
-    SVECTOR playerPosition;                                      // Translation of the player's root coordinate, sampled each fight frame
-    SVECTOR aimTarget;                                           // Point the head turns toward: `playerPosition` unless the running step replaces it
-    SVECTOR forearmTurn;                                         // Euler angles added to the forearm's animated rotation
-    SVECTOR savedForearmTurn;                                    // `forearmTurn` of the hold pose kept while the pose is run ahead
-    SVECTOR headAim;                                             // Pitch, yaw and roll of the head relative to the body, applied in Z-X-Y order in place of its animated rotation
-    struct {
-        AnimationContext anim;                                   // Context bound to `slots`, `poses` and the model coordinates
-        AnimationSlot    slots[15];                              // Playback slot of the part at the same index; slots 1 to 14 are driven
-        u8               poses[15][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose for the slot at the same index
-    } rig;                                                       // Playback storage of the fifteen-part model
-    WorldCollisionBody    trunkBody;                             // Sphere of radius 0x800 at part 1 on list 2, receiving attacks into `hitContacts`
-    WorldCollisionContact initializedContacts[3];                // Initialized at setup and bound to no body
-    WorldCollisionBody    headBody;                              // Sphere ahead of the head on list 2, receiving attacks into `hitContacts`; radius 0x400, 0x500 while the player is held
-    WorldCollisionContact hitContacts[8];                        // Contacts of both receiving spheres, also lent to the enemy record; each frame's hits are read from them and cleared
-    WorldCollisionBody    handAttack;                            // Sphere of radius 0x3A0 on list 3 at the hand; a player contact sets `handTouchedPlayer`
-    WorldCollisionContact handContacts[1];                       // Contact of `handAttack`
-    WorldCollisionBody    forearmAttack;                         // Sphere of radius 0x3A0 on list 3 at the forearm; a player contact sets `forearmTouchedPlayer`
-    WorldCollisionContact forearmContacts[1];                    // Contact of `forearmAttack`
+    MATRIX                color;                  // Colour matrix lent to the model
+    MATRIX                light;                  // Light matrix lent to the model
+    MATRIX                savedRootMatrix;        // Root coordinate's matrix, kept across the low-health sequence
+    byte                  field_60[0x20];
+    SVECTOR               rotation;               // Rotation of the root (4096 a turn); only `vy`, the heading, is applied, wrapped to 12 bits
+    SVECTOR               savedRotation;          // `rotation`, kept across the low-health sequence
+    SVECTOR               playerPosition;         // Translation of the player's root coordinate, sampled each fight frame
+    SVECTOR               aimTarget;              // Point the head turns toward: `playerPosition` unless the running step replaces it
+    SVECTOR               forearmTurn;            // Euler angles added to the forearm's animated rotation
+    SVECTOR               savedForearmTurn;       // `forearmTurn` of the hold pose kept while the pose is run ahead
+    SVECTOR               headAim;                // Pitch, yaw and roll of the head relative to the body, applied in Z-X-Y order in place of its animated rotation
+    ActorAnimRig15        rig;                    // Playback storage of the fifteen-part model; slots 1 to 14 are driven
+    WorldCollisionBody    trunkBody;              // Sphere of radius 0x800 at part 1 on list 2, receiving attacks into `hitContacts`
+    WorldCollisionContact initializedContacts[3]; // Initialized at setup and bound to no body
+    WorldCollisionBody    headBody;               // Sphere ahead of the head on list 2, receiving attacks into `hitContacts`; radius 0x400, 0x500 while the player is held
+    WorldCollisionContact hitContacts[8];         // Contacts of both receiving spheres, also lent to the enemy record; each frame's hits are read from them and cleared
+    WorldCollisionBody    handAttack;             // Sphere of radius 0x3A0 on list 3 at the hand; a player contact sets `handTouchedPlayer`
+    WorldCollisionContact handContacts[1];        // Contact of `handAttack`
+    WorldCollisionBody    forearmAttack;          // Sphere of radius 0x3A0 on list 3 at the forearm; a player contact sets `forearmTouchedPlayer`
+    WorldCollisionContact forearmContacts[1];     // Contact of `forearmAttack`
     byte                  field_5CC[4];
-    s32                   fightFramesLeft;                       // Frames of the fight left (5400 at its start), counted down to -1; once negative, low health hands over to an event script instead of the low-health sequence
-    s32                   savedForearmX;                         // Forearm's X translation of the hold pose, kept while the pose is run ahead
-    s16                   defeatScale;                           // Scale of the root in the defeat sequence (4096 = 1.0)
-    s16                   animationRequest;                      // `ACTOR_403100_ANIMATION_REQUEST_*`, 0 before the first request
-    s16                   appliedAnimation;                      // Animation the slots were last started on
-    s16                   animationId;                           // Requested animation: index into the package's animation table
-    u16                   animationFrames;                       // Frames since the request was applied
-    s16                   animationRate;                         // Playback rate of slots 1 to 14; `ANIMATION_RATE_ONE` is normal speed, negative plays backwards
-    s16                   hitCooldown;                           // Frames before another hit is taken; set from the hit's id parameter 2
-    s16                   engageDelay;                           // Frames (30 from the fight's start) until the battle is flagged engaged, if the Burner still lives
-    s16                   jawPitchOffset;                        // Pitch added to the jaw's animated rotation by its kick
-    s16                   headPitchOffset;                       // Pitch added to the head by its kick
-    u16                   stateFrames;                           // Frames spent in the current step
-    s16                   auxFrames;                             // Second counter of the running step: cues played, frames since the walk clip restarted, or frames of forearm strokes
-    s16                   savedAuxFrames;                        // `auxFrames` of the hold pose, kept while the pose is run ahead
-    s16                   playerReactionStage;                   // Player's reaction to an arm hit (0 none, 1 hit clip held, 2 waiting for it to end, 3 waiting for the recovery clip)
-    s16                   playerReactionFrames;                  // Frames left of stage 1, 23 when the hit lands
-    s16                   walkStage;                             // Walk along the balcony (0 closing on the player's region, 1 finishing the stride then closing again, 4 finishing the stride then stopping, 5 stopped; 2 and 3 idle)
-    u16                   state;                                 // Index into the handler table of the current task state
-    u16                   subState;                              // Step of the current `state`, numbered separately by each
-    s16                   animationBlendFrames;                  // Frames a blend request takes; cleared when it is applied
-    s16                   shakeFrames;                           // Frames the screen still shakes vertically, harder above 15
-    s16                   stridePhase;                           // Phase of the walking stride (half a turn, 0..0x7FF, 0x20 a frame); the root bobs on its sine and a footfall sounds as it wraps
-    s16                   previousStridePhase;                   // `stridePhase` as the frame began
-    s16                   armPitch;                              // Rotation about X given the upper arm, in the root's frame
-    s16                   savedArmPitch;                         // `armPitch` of the hold pose, kept while the pose is run ahead
-    s16                   armYaw;                                // Rotation about Y given the upper arm, in the root's frame
-    s16                   savedArmYaw;                           // `armYaw` of the hold pose, kept while the pose is run ahead
-    s16                   hitColorFrames;                        // Frames until the hit tint returns to the default colour; 0 when idle
-    s16                   overlayX;                              // Screen X offset of the two foreground quads drawn while the player is held
-    s16                   overlayY;                              // Screen Y offset of the same quads
-    s16                   recentStates[3];                       // The last three attack states picked; a third of a kind in a row is swapped for another
-    s16                   sceneScale;                            // Scale of the root in the scripted scenes (4096 = 1.0)
+    s32                   fightFramesLeft;        // Frames of the fight left (5400 at its start), counted down to -1; once negative, low health hands over to an event script instead of the low-health sequence
+    s32                   savedForearmX;          // Forearm's X translation of the hold pose, kept while the pose is run ahead
+    s16                   defeatScale;            // Scale of the root in the defeat sequence (4096 = 1.0)
+    s16                   animationRequest;       // `ACTOR_403100_ANIMATION_REQUEST_*`, 0 before the first request
+    s16                   appliedAnimation;       // Animation the slots were last started on
+    s16                   animationId;            // Requested animation: index into the package's animation table
+    u16                   animationFrames;        // Frames since the request was applied
+    s16                   animationRate;          // Playback rate of slots 1 to 14; `ANIMATION_RATE_ONE` is normal speed, negative plays backwards
+    s16                   hitCooldown;            // Frames before another hit is taken; set from the hit's id parameter 2
+    s16                   engageDelay;            // Frames (30 from the fight's start) until the battle is flagged engaged, if the Burner still lives
+    s16                   jawPitchOffset;         // Pitch added to the jaw's animated rotation by its kick
+    s16                   headPitchOffset;        // Pitch added to the head by its kick
+    u16                   stateFrames;            // Frames spent in the current step
+    s16                   auxFrames;              // Second counter of the running step: cues played, frames since the walk clip restarted, or frames of forearm strokes
+    s16                   savedAuxFrames;         // `auxFrames` of the hold pose, kept while the pose is run ahead
+    s16                   playerReactionStage;    // Player's reaction to an arm hit (0 none, 1 hit clip held, 2 waiting for it to end, 3 waiting for the recovery clip)
+    s16                   playerReactionFrames;   // Frames left of stage 1, 23 when the hit lands
+    s16                   walkStage;              // Walk along the balcony (0 closing on the player's region, 1 finishing the stride then closing again, 4 finishing the stride then stopping, 5 stopped; 2 and 3 idle)
+    u16                   state;                  // Index into the handler table of the current task state
+    u16                   subState;               // Step of the current `state`, numbered separately by each
+    s16                   animationBlendFrames;   // Frames a blend request takes; cleared when it is applied
+    s16                   shakeFrames;            // Frames the screen still shakes vertically, harder above 15
+    s16                   stridePhase;            // Phase of the walking stride (half a turn, 0..0x7FF, 0x20 a frame); the root bobs on its sine and a footfall sounds as it wraps
+    s16                   previousStridePhase;    // `stridePhase` as the frame began
+    s16                   armPitch;               // Rotation about X given the upper arm, in the root's frame
+    s16                   savedArmPitch;          // `armPitch` of the hold pose, kept while the pose is run ahead
+    s16                   armYaw;                 // Rotation about Y given the upper arm, in the root's frame
+    s16                   savedArmYaw;            // `armYaw` of the hold pose, kept while the pose is run ahead
+    s16                   hitColorFrames;         // Frames until the hit tint returns to the default colour; 0 when idle
+    s16                   overlayX;               // Screen X offset of the two foreground quads drawn while the player is held
+    s16                   overlayY;               // Screen Y offset of the same quads
+    s16                   recentStates[3];        // The last three attack states picked; a third of a kind in a row is swapped for another
+    s16                   sceneScale;             // Scale of the root in the scripted scenes (4096 = 1.0)
     byte                  field_61A[2];
-    s16                   aimMode;                               // `ACTOR_403100_AIM_*`
-    s16                   jumpAcceleration;                      // Change of `jumpSpeed` per frame, itself stepped by 4
-    s16                   jumpSpeed;                             // Height the root gains per frame of the jump
-    s16                   savedView;                             // Camera view in use when the block was set up or the low-health sequence began; restored after the latter
+    s16                   aimMode;                // `ACTOR_403100_AIM_*`
+    s16                   jumpAcceleration;       // Change of `jumpSpeed` per frame, itself stepped by 4
+    s16                   jumpSpeed;              // Height the root gains per frame of the jump
+    s16                   savedView;              // Camera view in use when the block was set up or the low-health sequence began; restored after the latter
     byte                  field_624[2];
-    s16                   armYawTarget;                          // Yaw the arm swings toward: the head's as the swing began, kept within -0x160..0xD0
-    s16                   playerRegion;                          // Region of the balcony the player stands in (1 to 6, 0 outside all)
-    s16                   hitReaction;                           // Reaction the last hit asks for (0 none, 1 flinch, 2 stagger, 3 build-up stun)
-    s16                   walkSpeed;                             // Distance walked per frame
-    s16                   playerDistance;                        // Horizontal distance from the root to the player
-    s16                   hitDistance;                           // Horizontal distance from the player to its own offset from the root read in the head's frame; halved into the damage roll
-    s16                   field_632;                             // Cleared as the grab begins and as the hold ends; never read, role unproven
-    u16                   previousAnimationFlags;                // Slot 1's ANIMATION_SLOT_* results as the last running update's tick left them
-    s16                   flameLifetime;                         // Frames a flame puff lives (28 or 20); also how many slots of the flame pool the update walks
-    s16                   repromptDelay;                         // Frames until the held player is prompted for button presses again; 0 while a prompt runs
-    s16                   squeezeFrames;                         // Frames of the hold since its last damage; 180 deal the next
-    s16                   sectionDamaged[9];                     // Nonzero once the balcony section of that index has been switched to its damaged look
+    s16                   armYawTarget;           // Yaw the arm swings toward: the head's as the swing began, kept within -0x160..0xD0
+    s16                   playerRegion;           // Region of the balcony the player stands in (1 to 6, 0 outside all)
+    s16                   hitReaction;            // Reaction the last hit asks for (0 none, 1 flinch, 2 stagger, 3 build-up stun)
+    s16                   walkSpeed;              // Distance walked per frame
+    s16                   playerDistance;         // Horizontal distance from the root to the player
+    s16                   hitDistance;            // Horizontal distance from the player to its own offset from the root read in the head's frame; halved into the damage roll
+    s16                   field_632;              // Cleared as the grab begins and as the hold ends; never read, role unproven
+    u16                   previousAnimationFlags; // Slot 1's ANIMATION_SLOT_* results as the last running update's tick left them
+    s16                   flameLifetime;          // Frames a flame puff lives (28 or 20); also how many slots of the flame pool the update walks
+    s16                   repromptDelay;          // Frames until the held player is prompted for button presses again; 0 while a prompt runs
+    s16                   squeezeFrames;          // Frames of the hold since its last damage; 180 deal the next
+    s16                   sectionDamaged[9];      // Nonzero once the balcony section of that index has been switched to its damaged look
     byte                  field_64E[6];
-    s16                   playerDeathFrames;                     // Frames since the held player was killed
-    s16                   holdStartHp;                           // Burner's hit points as the hold began
-    s16                   bufferReleaseDelay;                    // Frames until the model's draw buffers are freed in a scripted scene; -1 when idle
-    s16                   aimYawStep;                            // Yaw step of `ACTOR_403100_AIM_TRACK_STEPPED` (8, or 16 at low health)
-    u8                    lowHealth;                             // 1 while hit points are under 35% of the maximum
-    s8                    playerAnimationId;                     // Animation last requested of the player from the package's table; never read
-    u8                    stateCounter;                          // Scratch of the current state: arm swings left, or prompts reissued during the hold
-    u8                    releaseRequested;                      // Set by message 2014: the player finished the prompted button presses or was killed
-    u8                    promptPending;                         // Set when the held player is due a new button prompt
-    u8                    phaseChangeDone;                       // Set once the low-health sequence has played, so that it plays once
+    s16                   playerDeathFrames;      // Frames since the held player was killed
+    s16                   holdStartHp;            // Burner's hit points as the hold began
+    s16                   bufferReleaseDelay;     // Frames until the model's draw buffers are freed in a scripted scene; -1 when idle
+    s16                   aimYawStep;             // Yaw step of `ACTOR_403100_AIM_TRACK_STEPPED` (8, or 16 at low health)
+    u8                    lowHealth;              // 1 while hit points are under 35% of the maximum
+    s8                    playerAnimationId;      // Animation last requested of the player from the package's table; never read
+    u8                    stateCounter;           // Scratch of the current state: arm swings left, or prompts reissued during the hold
+    u8                    releaseRequested;       // Set by message 2014: the player finished the prompted button presses or was killed
+    u8                    promptPending;          // Set when the held player is due a new button prompt
+    u8                    phaseChangeDone;        // Set once the low-health sequence has played, so that it plays once
     byte                  field_662[3];
-    u8                    jawPitchPhase;                         // ACTOR_403100_PITCH_PHASE_* of the kick added to the jaw's pitch
-    u8                    headPitchPhase;                        // ACTOR_403100_PITCH_PHASE_* of the kick added to the head's pitch
-    u8                    forearmStrokeDone;                     // 1 once the forearm has slid to the end of its current stroke; 0 from the stroke's start
-    u8                    handTouchedPlayer;                     // Latched when the claw or `handAttack` reaches the player; cleared by the step that acts on it
-    u8                    forearmTouchedPlayer;                  // Latched when the hand or `forearmAttack` reaches the player; cleared the same way
+    u8                    jawPitchPhase;          // ACTOR_403100_PITCH_PHASE_* of the kick added to the jaw's pitch
+    u8                    headPitchPhase;         // ACTOR_403100_PITCH_PHASE_* of the kick added to the head's pitch
+    u8                    forearmStrokeDone;      // 1 once the forearm has slid to the end of its current stroke; 0 from the stroke's start
+    u8                    handTouchedPlayer;      // Latched when the claw or `handAttack` reaches the player; cleared by the step that acts on it
+    u8                    forearmTouchedPlayer;   // Latched when the hand or `forearmAttack` reaches the player; cleared the same way
     byte                  field_66A[2];
-    s8                    hitTaken;                              // 1 when a hit or a status tick dealt damage this frame; lets `hitReaction` be consumed
-    u8                    recentStateCursor;                     // Entry of `recentStates` the next pick overwrites
-    u8                    swingConnected;                        // Set when a swing of the arm combo has hit the player
-    u8                    jawKickSound;                          // Sound the next jaw kick plays as it starts (0 none, 1 the Burner's sound 9, 2 its sound 2 or 5 at random)
-    u8                    playerKilled;                          // Set when an attack of the grab or the hold has killed the player
-    u8                    holdingPlayer;                         // Set from the grab until the player is let go; keeps the low-health sequence from starting
+    s8                    hitTaken;               // 1 when a hit or a status tick dealt damage this frame; lets `hitReaction` be consumed
+    u8                    recentStateCursor;      // Entry of `recentStates` the next pick overwrites
+    u8                    swingConnected;         // Set when a swing of the arm combo has hit the player
+    u8                    jawKickSound;           // Sound the next jaw kick plays as it starts (0 none, 1 the Burner's sound 9, 2 its sound 2 or 5 at random)
+    u8                    playerKilled;           // Set when an attack of the grab or the hold has killed the player
+    u8                    holdingPlayer;          // Set from the grab until the player is let go; keeps the low-health sequence from starting
     byte                  field_672;
-    u8                    vulnerable;                            // Set while the player is held and during the low-health sequence: hits are doubled and defeat is deferred
+    u8                    vulnerable;             // Set while the player is held and during the low-health sequence: hits are doubled and defeat is deferred
     byte                  field_674[4];
 } Actor403100Work;
 STATIC_ASSERT_SIZEOF(Actor403100Work, 0x678);

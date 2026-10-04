@@ -470,6 +470,13 @@ names its own work type `StalkerZebraIvoryWork` before including the fragments
 and spells the members they reach alike. Animation request and pending action
 values use `STALKER_ZEBRA_IVORY_ANIM_REQUEST_` and `STALKER_ZEBRA_IVORY_PENDING_`.
 
+`diver` owns the included strike child, impact sparks, joint turn and
+animation-request code shared by the Bog Diver (`actor_00400`) and the Sea
+Diver (`actor_206100`). Its implementation interface is `src/shared/diver.h`,
+one fragment per function. Each package names its own work type `DiverWork`
+before including the fragments and spells the members they reach alike; the
+header lists them. Animation request values use `DIVER_ANIM_REQUEST_`.
+
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
 `jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the

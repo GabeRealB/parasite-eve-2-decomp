@@ -8,14 +8,27 @@
  * used to twist body parts by a third of a yaw each, and its step-along-
  * heading helper.
  *
- * Each package names its work block `DiverWork` before including the
- * fragments that reach it; the two layouts differ, but both carry the
- * animation request (`animRequest`, a `DIVER_ANIM_REQUEST_*`, with `animClip`,
- * `animStep`, `animBlend` and `animPlaying`) and the sub-state index
- * `subState` the shared states use.
+ * `DiverWork` is the library's name for the carrier's task work block, the
+ * block its spawn state keeps at `Task::work`. It is a configuration binding
+ * rather than a type of this header: each package defines it as an alias of
+ * its own block (`_Actor00400Work` for the Bog Diver, `_Actor206100Work` for
+ * the Sea Diver) after this header and before the first fragment that reaches
+ * it. The two blocks differ in size and in where the members sit, so the
+ * fragments compile against each package's own layout; they require these
+ * members, spelled and typed alike in both:
+ *
+ *   `rig`          `ActorAnimRig15`  playback storage; slots 1 to 14 play the clip
+ *   `animRequest`  `s16`             a `DIVER_ANIM_REQUEST_*`
+ *   `animClip`     `s16`             requested clip, an index into the package's bank
+ *   `animStep`     `s16`             playback rate of the driven slots
+ *   `animBlend`    `s16`             frames a blend request takes
+ *   `animPlaying`  `s16`             clip last applied to the slots
+ *   `animStatus`   `u16`             slot 1's `ANIMATION_SLOT_*` results of the last tick
+ *   `subState`     `s16`             step of the current state
  *
  * Include this header in the prologue and each fragment at its function's
- * position.
+ * position. `diver_inlines.inc.c` has to precede every function that uses one
+ * of its helpers, since a helper defined later is called rather than inlined.
  */
 
 #ifndef SRC_SHARED_DIVER_H
@@ -53,5 +66,6 @@ void diverState7Enter(Task* arg0);
 
 static inline s32       diverAccumulateRotation(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2);
 static inline GfxCoord* diverLocalizeRotation(GfxCoord* arg0, MATRIX* arg1);
+static inline s32       diverClipEnded(Task* task);
 
 #endif /* SRC_SHARED_DIVER_H */

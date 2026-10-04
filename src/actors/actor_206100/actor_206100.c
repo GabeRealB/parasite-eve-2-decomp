@@ -10,6 +10,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor.h"
 #include "actors/waypoints.h"
 
 #include "gameplay/actor.h"
@@ -212,79 +213,77 @@ enum {
 /// numbered as the skeleton's coordinates, which is the Bog Diver's: 0 the
 /// root, 1 the trunk, 2 and 3 the neck, 4 the head and 5 the head's one child.
 typedef struct {
-    AnimationContext      anim;                                   // animation playback of the model
-    AnimationSlot         slots[15];                              // one per model part; 1..14 play `animClip`, and slot 1's status tells when it ended
-    u8                    poses[15][ANIMATION_POSE_BUFFER_BYTES]; // blend pose of each slot
-    u16                   lookPitch;                              // signed pitch of the head's look toward the target; an attack eases it to 0x400 while it charges
-    u16                   lookYaw;                                // signed yaw of the look toward the target, spread over parts 2, 3 and 4 a third each
-    u16                   lookRoll;                               // third angle of the look; only ever rewritten with its own value and never applied
-    byte                  field_362[0x2];                         // never accessed
-    WorldCollisionBody    trunkBody;                              // sphere on part 1 that other bodies touch; its contacts carry the hits
-    WorldCollisionContact hitContacts[6];                         // contacts of `trunkBody` and `headBody`; also the enemy's hit records
-    WorldCollisionBody    headBody;                               // smaller sphere on part 4; shares `hitContacts`
-    SVECTOR               prevRootPos;                            // root position at the start of the frame; its XZ is restored when a step ends more than 400 from the origin
-    SVECTOR               rotation;                               // root rotation: `vy` heading, `vz` roll; `vx` is only ever cleared and never applied
-    byte                  field_444[0x1C];                        // never accessed
-    MATRIX                colorMtx;                               // storage for the model's `TmdObject::colorMtx`
-    MATRIX                lightMtx;                               // storage for the model's `TmdObject::lightMtx`
-    byte                  field_4A0[0x20];                        // never accessed
-    EffectSpawnArg        effectArg;                              // argument record of the hit and discharge effects, hung off part 1
-    byte                  field_4C8[0x8];                         // never accessed
-    SVECTOR               targetPos;                              // root position of the nearer of the player and the companion
-    SVECTOR               lowerNeckAngles;                        // Euler angles of part 2 as the neck retracted, eased to zero
-    SVECTOR               upperNeckAngles;                        // the same for part 3
-    byte                  field_4E8[0xC];                         // never accessed
-    SVECTOR*              waypoints;                              // ring of eight points circled while Bog Divers are summoned and into the entrance; `vy` is the height swum at
-    Task*                 waveTask;                               // screen-wave task covering the entrance's change of place, kept to be killed; NULL when its spawn failed
-    byte                  field_4FC[0x8];                         // never accessed
-    s16                   hitCooldown;                            // frames before another hit is taken; set from the hit's id parameter 2
-    byte                  field_506[0x2];                         // never accessed
-    s16                   field_508;                              // 0x1000 from the spawn; never read, role unproven
-    s16                   field_50A;                              // 0x1000 from the spawn; never read, role unproven
-    s16                   animRequest;                            // `DIVER_ANIM_REQUEST_*`
-    s16                   animPlaying;                            // animation last applied to the slots
-    s16                   animClip;                               // requested animation: index into the package's animation bank
-    s16                   animFrames;                             // frames since `animClip` was applied; rescaled to the new rate when a blend re-requests the playing animation
-    u16                   animStatus;                             // slot 1's ANIMATION_SLOT_* results from the latest frame's ticks; the states test this copy to learn their clip ended
-    u16                   bobPhase;                               // counts the frames run before the death, wrapping; never read here - the Bog Diver's bob counter sits at this place in its block
-    u16                   frameCount;                             // counts the same frames beside `bobPhase`; never read here either
-    s16                   animStep;                               // playback rate of slots 1..14; `ANIMATION_RATE_ONE` is normal speed
-    s16                   playerBearing;                          // heading from the root to the player relative to `rotation.vy`, 0..0xFFF; never read
-    s16                   stateFrames;                            // frames spent in the current state or step; the entrance's white-out counts it up by 6 as its level
-    s16                   state;                                  // index into the state table of the current task state; `ACTOR_206100_FIGHT_STATE_*` during the fight
-    s16                   subState;                               // index into the step table of the current state
-    s16                   animBlend;                              // frames a blend request takes; cleared once a different animation has been blended into
-    s16                   goalY;                                  // Y the root eases a sixteenth of the way to each frame from the fight on; follows the waypoint's while circling
-    s16                   targetDistance;                         // horizontal distance from the root to `targetPos`
-    s16                   hitTaken;                               // 1 when a hit or a status tick dealt damage this frame; lets `hitReaction` be consumed
-    s16                   hitReaction;                            // `ACTOR_206100_HIT_REACTION_*` awaiting the state machine
-    s16                   attackFrames;                           // frames left of the spark discharge that opens an attack, 24 from its start; paces its sound and sparks
-    byte                  field_530[0x4];                         // never accessed
-    s16                   field_534;                              // counted down a frame during the fight while nonzero, but never set; role unproven
-    s16                   waterLevel;                             // Y of the room's water surface: the float height of the status hold and the death, and 400 under it the diver cannot be locked onto
-    byte                  field_538[0x2];                         // never accessed
-    s16                   neckPhase;                              // `ACTOR_206100_NECK_*`
-    s16                   neckScale;                              // Z scale of part 2, 0x1000 = 1.0: eased to 0x2AA while retracted and back on release; the head takes the inverse
-    s16                   modelScale;                             // uniform scale of the root, 0x1000 = 1.0; 0x1EAA from the spawn
-    s16                   part5Pitch;                             // pitch added to part 5 by a recoil: swung to -0x300, then back to 0
-    s16                   recoilPitch;                            // pitch a recoil throws the neck and head back by: a third each on parts 2 and 3, all of it on the head
-    s16                   recoilPeak;                             // `recoilPitch` the running recoil rises to: 0x135 light, 0x3A0 heavy
-    byte                  field_546[0x2];                         // never accessed
-    u8                    waypointIndex;                          // entry of `waypoints` being swum to, 0..7
-    byte                  field_549[0x2];                         // never accessed
-    u8                    wasHit;                                 // set by every hit that deals damage; never read
-    byte                  field_54C[0x1];                         // never accessed
-    u8                    neckRetracted;                          // 1 asks for the neck drawn in, as it is while circling; 0 releases it and lets the head look at the target
-    byte                  field_54E[0x1];                         // never accessed
-    u8                    waypointsSinceRoll;                     // waypoints reached since the count last wrapped, 0..5; while it is 0 the diver rolls
-    u8                    rolling;                                // 1 while `rotation.vz` turns 0x20 a frame, until it completes a turn
-    u8                    bogDiversSpawned;                       // Bog Divers summoned so far, at most 5; also the index of the next one's placement
-    u8                    bogDiversKilled;                        // summoned Bog Divers that have died; the fifth starts the fight
-    u8                    savedView;                              // the session's view index as the entrance's white-out replaced it; never read
-    u8                    recoilPhase;                            // of `recoilPitch` (0 settles to zero, 1 voices the hit, 2 rises to `recoilPeak`, 3 falls back)
-    u8                    shotRequested;                          // 1 has the frame's tail spawn a shot from the head; set on each of an attack's six cue frames
-    u8                    part5Phase;                             // of `part5Pitch` (0 settles to zero, 1 starts, 2 swings to -0x300, 3 swings back)
-    u8                    targetPart;                             // part the enemy's target point and hit effects hang off: 4, or 1 during the status hold
+    ActorAnimRig15        rig;                // animation playback of the model, one slot per part; 1..14 play `animClip`, and slot 1's status tells when it ended
+    u16                   lookPitch;          // signed pitch of the head's look toward the target; an attack eases it to 0x400 while it charges
+    u16                   lookYaw;            // signed yaw of the look toward the target, spread over parts 2, 3 and 4 a third each
+    u16                   lookRoll;           // third angle of the look; only ever rewritten with its own value and never applied
+    byte                  field_362[0x2];     // never accessed
+    WorldCollisionBody    trunkBody;          // sphere on part 1 that other bodies touch; its contacts carry the hits
+    WorldCollisionContact hitContacts[6];     // contacts of `trunkBody` and `headBody`; also the enemy's hit records
+    WorldCollisionBody    headBody;           // smaller sphere on part 4; shares `hitContacts`
+    SVECTOR               prevRootPos;        // root position at the start of the frame; its XZ is restored when a step ends more than 400 from the origin
+    SVECTOR               rotation;           // root rotation: `vy` heading, `vz` roll; `vx` is only ever cleared and never applied
+    byte                  field_444[0x1C];    // never accessed
+    MATRIX                colorMtx;           // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;           // storage for the model's `TmdObject::lightMtx`
+    byte                  field_4A0[0x20];    // never accessed
+    EffectSpawnArg        effectArg;          // argument record of the hit and discharge effects, hung off part 1
+    byte                  field_4C8[0x8];     // never accessed
+    SVECTOR               targetPos;          // root position of the nearer of the player and the companion
+    SVECTOR               lowerNeckAngles;    // Euler angles of part 2 as the neck retracted, eased to zero
+    SVECTOR               upperNeckAngles;    // the same for part 3
+    byte                  field_4E8[0xC];     // never accessed
+    SVECTOR*              waypoints;          // ring of eight points circled while Bog Divers are summoned and into the entrance; `vy` is the height swum at
+    Task*                 waveTask;           // screen-wave task covering the entrance's change of place, kept to be killed; NULL when its spawn failed
+    byte                  field_4FC[0x8];     // never accessed
+    s16                   hitCooldown;        // frames before another hit is taken; set from the hit's id parameter 2
+    byte                  field_506[0x2];     // never accessed
+    s16                   field_508;          // 0x1000 from the spawn; never read, role unproven
+    s16                   field_50A;          // 0x1000 from the spawn; never read, role unproven
+    s16                   animRequest;        // `DIVER_ANIM_REQUEST_*`
+    s16                   animPlaying;        // animation last applied to the slots
+    s16                   animClip;           // requested animation: index into the package's animation bank
+    s16                   animFrames;         // frames since `animClip` was applied; rescaled to the new rate when a blend re-requests the playing animation
+    u16                   animStatus;         // slot 1's ANIMATION_SLOT_* results from the latest frame's ticks; the states test this copy to learn their clip ended
+    u16                   bobPhase;           // counts the frames run before the death, wrapping; never read here - the Bog Diver's bob counter sits at this place in its block
+    u16                   frameCount;         // counts the same frames beside `bobPhase`; never read here either
+    s16                   animStep;           // playback rate of slots 1..14; `ANIMATION_RATE_ONE` is normal speed
+    s16                   playerBearing;      // heading from the root to the player relative to `rotation.vy`, 0..0xFFF; never read
+    s16                   stateFrames;        // frames spent in the current state or step; the entrance's white-out counts it up by 6 as its level
+    s16                   state;              // index into the state table of the current task state; `ACTOR_206100_FIGHT_STATE_*` during the fight
+    s16                   subState;           // index into the step table of the current state
+    s16                   animBlend;          // frames a blend request takes; cleared once a different animation has been blended into
+    s16                   goalY;              // Y the root eases a sixteenth of the way to each frame from the fight on; follows the waypoint's while circling
+    s16                   targetDistance;     // horizontal distance from the root to `targetPos`
+    s16                   hitTaken;           // 1 when a hit or a status tick dealt damage this frame; lets `hitReaction` be consumed
+    s16                   hitReaction;        // `ACTOR_206100_HIT_REACTION_*` awaiting the state machine
+    s16                   attackFrames;       // frames left of the spark discharge that opens an attack, 24 from its start; paces its sound and sparks
+    byte                  field_530[0x4];     // never accessed
+    s16                   field_534;          // counted down a frame during the fight while nonzero, but never set; role unproven
+    s16                   waterLevel;         // Y of the room's water surface: the float height of the status hold and the death, and 400 under it the diver cannot be locked onto
+    byte                  field_538[0x2];     // never accessed
+    s16                   neckPhase;          // `ACTOR_206100_NECK_*`
+    s16                   neckScale;          // Z scale of part 2, 0x1000 = 1.0: eased to 0x2AA while retracted and back on release; the head takes the inverse
+    s16                   modelScale;         // uniform scale of the root, 0x1000 = 1.0; 0x1EAA from the spawn
+    s16                   part5Pitch;         // pitch added to part 5 by a recoil: swung to -0x300, then back to 0
+    s16                   recoilPitch;        // pitch a recoil throws the neck and head back by: a third each on parts 2 and 3, all of it on the head
+    s16                   recoilPeak;         // `recoilPitch` the running recoil rises to: 0x135 light, 0x3A0 heavy
+    byte                  field_546[0x2];     // never accessed
+    u8                    waypointIndex;      // entry of `waypoints` being swum to, 0..7
+    byte                  field_549[0x2];     // never accessed
+    u8                    wasHit;             // set by every hit that deals damage; never read
+    byte                  field_54C[0x1];     // never accessed
+    u8                    neckRetracted;      // 1 asks for the neck drawn in, as it is while circling; 0 releases it and lets the head look at the target
+    byte                  field_54E[0x1];     // never accessed
+    u8                    waypointsSinceRoll; // waypoints reached since the count last wrapped, 0..5; while it is 0 the diver rolls
+    u8                    rolling;            // 1 while `rotation.vz` turns 0x20 a frame, until it completes a turn
+    u8                    bogDiversSpawned;   // Bog Divers summoned so far, at most 5; also the index of the next one's placement
+    u8                    bogDiversKilled;    // summoned Bog Divers that have died; the fifth starts the fight
+    u8                    savedView;          // the session's view index as the entrance's white-out replaced it; never read
+    u8                    recoilPhase;        // of `recoilPitch` (0 settles to zero, 1 voices the hit, 2 rises to `recoilPeak`, 3 falls back)
+    u8                    shotRequested;      // 1 has the frame's tail spawn a shot from the head; set on each of an attack's six cue frames
+    u8                    part5Phase;         // of `part5Pitch` (0 settles to zero, 1 starts, 2 swings to -0x300, 3 swings back)
+    u8                    targetPart;         // part the enemy's target point and hit effects hang off: 4, or 1 during the status hold
 } _Actor206100Work;
 STATIC_ASSERT_SIZEOF(_Actor206100Work, 0x558);
 
@@ -1136,7 +1135,7 @@ static void func_actor_206100_8014AF74(Task* task)
     enemy->hpMax                  = hp;
     enemy->hp                     = hp;
     coord->parent                 = &gGfxViewCoord;
-    animationInitContext(&work->anim, D_actor_206100_80158B24, tmd, work->poses, work->slots);
+    animationInitContext(&work->rig.anim, D_actor_206100_80158B24, tmd, work->rig.poses, work->rig.slots);
     func_actor_206100_8014F18C(task);
     work->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     work->targetPart  = 4;
@@ -1680,8 +1679,8 @@ static inline void _actor206100AnimUpdate(Task* task)
     } else if (kind == DIVER_ANIM_REQUEST_PLAYING) {
         work->animFrames = work->animFrames + 1;
     }
-    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-        animationTickSlot(&work->anim, i);
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+        animationTickSlot(&work->rig.anim, i);
     }
 }
 
@@ -1888,10 +1887,10 @@ static void func_actor_206100_8014C458(Task* task)
             } else if (state == DIVER_ANIM_REQUEST_PLAYING) {
                 anim->animFrames = anim->animFrames + 1;
             }
-            for (i = 1; i < ARRAY_SIZE(anim->slots); i++) {
-                animationTickSlot(&anim->anim, i);
+            for (i = 1; i < ARRAY_SIZE(anim->rig.slots); i++) {
+                animationTickSlot(&anim->rig.anim, i);
             }
-            work->animStatus = work->slots[1].status.fields.flags;
+            work->animStatus = work->rig.slots[1].status.fields.flags;
             func_actor_206100_8014B0AC(task, work->neckRetracted);
             func_actor_206100_8014E0C0(task);
             func_actor_206100_8014EC54(task);
@@ -2288,23 +2287,22 @@ static void func_actor_206100_8014CFF4(Task* task)
 ///   constants of the two sound blocks above are `CSE`'d into registers the
 ///   chain's own comparisons then reuse, which is why they live in callee-saved
 ///   `$s3` / `$s0` across the calls in between.
-/// - the three reads of `task->work` are three separate variables.  A single
-///   variable assigned in all three places is one pseudo with three
-///   definitions, and `global_alloc` homes the whole of it in one callee-saved
-///   register -- `$s0` for the flags test and the state change as well as the
-///   tail, which is the register only the tail's load crosses calls for.
-/// - the state change goes through the inlined `set_state`, the same reloading
-///   helper `func_actor_206100_8014D8E8` calls.
+/// - the reads of `task->work` after the first are separate loads: the
+///   clip-ended test and the state change each reload it inside their inlined
+///   helper (`diverClipEnded`, `set_state`), and the tail reloads it into
+///   `work`.  A single variable assigned in all three places is one pseudo
+///   with three definitions, and `global_alloc` homes the whole of it in one
+///   callee-saved register -- `$s0` for the flags test and the state change as
+///   well as the tail, which is the register only the tail's load crosses
+///   calls for.
 static void func_actor_206100_8014D14C(Task* task)
 {
     _Actor206100Work* sub = task->work;
     _Actor206100Work* work;
-    _Actor206100Work* next;
     GfxCoord*         coord;
     SVECTOR           vec;
     u16               ease;
     s32               pan;
-    s32               cond;
     s32               angle;
     s32               yaw;
     s32               limit;
@@ -2330,15 +2328,7 @@ static void func_actor_206100_8014D14C(Task* task)
         sub->stateFrames == 0x69 || sub->stateFrames == 0x70 || sub->stateFrames == 0x77) {
         sub->shotRequested = 1;
     }
-    next = task->work;
-    if ((next->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (next->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (next->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond != 0) {
+    if (diverClipEnded(task)) {
         SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
         set_state(task, ACTOR_206100_FIGHT_STATE_DIVE);
     }
@@ -2690,10 +2680,10 @@ static void func_actor_206100_8014DA28(Task* task)
             } else if (state == DIVER_ANIM_REQUEST_PLAYING) {
                 next->animFrames = next->animFrames + 1;
             }
-            for (i = 1; i < ARRAY_SIZE(next->slots); i++) {
-                animationTickSlot(&next->anim, i);
+            for (i = 1; i < ARRAY_SIZE(next->rig.slots); i++) {
+                animationTickSlot(&next->rig.anim, i);
             }
-            work->animStatus = work->slots[1].status.fields.flags;
+            work->animStatus = work->rig.slots[1].status.fields.flags;
             func_actor_206100_8014B0AC(task, work->neckRetracted);
             coord                       = task->extra.tmd->coords;
             sub                         = task->work;
@@ -3128,7 +3118,7 @@ static void func_actor_206100_8014E7D4(Task* task)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             states.funcs[work->state](task, &states);
-            work->animStatus  = work->slots[1].status.fields.flags;
+            work->animStatus  = work->rig.slots[1].status.fields.flags;
             coord->coord.t[0] = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
             coord->coord.t[2] = coord->coord.t[2] + (-coord->coord.t[2] >> 4);
             coord->coord.t[1] =
@@ -3182,8 +3172,8 @@ static void func_actor_206100_8014E964(Task* task, void* unusedTable)
     } else if (state == DIVER_ANIM_REQUEST_PLAYING) {
         next->animFrames = next->animFrames + 1;
     }
-    for (i = 1; i < ARRAY_SIZE(next->slots); i++) {
-        animationTickSlot(&next->anim, i);
+    for (i = 1; i < ARRAY_SIZE(next->rig.slots); i++) {
+        animationTickSlot(&next->rig.anim, i);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->stateFrames >= 0x32) {
@@ -3402,17 +3392,17 @@ static void func_actor_206100_8014F2F0(Task* arg0)
     if (work->animPlaying == work->animClip) {
         i = 1;
         do {
-            work->slots[i].rate = work->animStep;
-            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
+            work->rig.slots[i].rate = work->animStep;
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animClip, 0, work->animBlend);
             i++;
-        } while (i < ARRAY_SIZE(work->slots));
+        } while (i < ARRAY_SIZE(work->rig.slots));
     } else {
         i = 1;
         do {
-            work->slots[i].rate = work->animStep;
-            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
+            work->rig.slots[i].rate = work->animStep;
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animClip, 0, work->animBlend);
             i++;
-        } while (i < ARRAY_SIZE(work->slots));
+        } while (i < ARRAY_SIZE(work->rig.slots));
         work->animBlend = 0;
     }
     work->animPlaying = work->animClip;
@@ -3614,17 +3604,8 @@ static void func_actor_206100_8014F878(Task* task)
 static void func_actor_206100_8014F970(Task* task)
 {
     _Actor206100Work* work;
-    s32               cond;
 
-    work = task->work;
-    if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (work->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    if (diverClipEnded(task)) {
         work           = task->work;
         work->state    = ACTOR_206100_FIGHT_STATE_DIVE;
         work->subState = 0;
@@ -3649,7 +3630,6 @@ static void func_actor_206100_8014FA08(Task* task)
     u16               timer;
     _Actor206100Work* work;
     _Actor206100Work* next;
-    s32               cond;
 
     work              = task->work;
     timer             = work->stateFrames + 1;
@@ -3657,15 +3637,7 @@ static void func_actor_206100_8014FA08(Task* task)
     if ((s16)timer >= 0x1F) {
         work->targetPart = 1;
     }
-    next = task->work;
-    if ((next->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (next->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) ||
-        (next->animStatus & ANIMATION_SLOT_SETTLED)) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond != 0) {
+    if (diverClipEnded(task)) {
         next              = task->work;
         next->animBlend   = 8;
         next->animStep    = 8;
@@ -3794,8 +3766,8 @@ static void func_actor_206100_8014FCD4(Task* task, void* unusedTable)
     } else if (state == DIVER_ANIM_REQUEST_PLAYING) {
         next->animFrames = next->animFrames + 1;
     }
-    for (i = 1; i < ARRAY_SIZE(next->slots); i++) {
-        animationTickSlot(&next->anim, i);
+    for (i = 1; i < ARRAY_SIZE(next->rig.slots); i++) {
+        animationTickSlot(&next->rig.anim, i);
     }
     work->state = work->state + 1;
 }
