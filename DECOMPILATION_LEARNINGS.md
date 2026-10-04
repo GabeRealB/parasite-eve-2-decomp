@@ -58908,19 +58908,19 @@ emits it.** `func_actor_105100_801327B4` ends a run of three constant stores wit
 
 ```
 lui   v0, 0x2
-ori   v0, v0, 0x2800      /* field_594 = 0x2800 */
+ori   v0, v0, 0x2800      /* scale = 0x2800 */
 li    s1, 1               /* the shared constant 1 */
 sh    v0, 0x594(s0)
-sh    s1, 0x5A8(s0)       /* field_5A8 = 1 */
+sh    s1, 0x5A8(s0)       /* shield.fields.active = 1 */
 li    v0, 0xF
-sh    v0, 0x59E(s0)       /* field_59E = 0xF  */
+sh    v0, 0x59E(s0)       /* engageDelay = 0xF */
 ```
 
 Three fields are set to `1` here, so `1` is one pseudo used by three statements
 and CSE hoists its `li` to the first of them. Written in the order the target
 *stores* (`0x594`, `0x59E`, `0x5A8`, `0x59A`) the `li s1,1` lands against
-`0x59E`; written with the `field_5A8` statement moved directly after `field_594`
-it lands exactly where the target has it. So the source order is the place to
+`0x59E`; written with the `shield.fields.active` statement moved directly after
+`scale` it lands exactly where the target has it. So the source order is the place to
 fix a constant's `li`, even when the store it feeds is not the one that moved.
 
 ## A flag used twice becomes an extra `move`; re-test the expression instead
@@ -79062,7 +79062,7 @@ Preprocessed SHA256:
 
 ## A narrow `switch` discriminant that is also stored loads its halfword twice
 
-`switch (temp_v1)` on an `s16` `temp_v1`, with `field_58E = temp_v1;` in one
+`switch (temp_v1)` on an `s16` `temp_v1`, with `anim = temp_v1;` in one
 arm, emits `lh v1,0x598(s0)` for the tree and a second `lhu a1,0x598(s0)` for
 the store, then `sh a1` -- the same address loaded twice. Expanding the switch
 widens the index for the compares (`stmt.c` converts it when `cmp_optab` has no
@@ -79072,21 +79072,25 @@ still needs the raw HImode pseudo, so the two loads coexist. This is the
 rather than a compare; the fix is the same one:
 
 ```c
-s32 state = work->field_598; /* lh $v1 */
+s32 state = work->actionStep; /* lh $v1 */
 switch (state) {
 case 0: ...
 case 1:
-    work->field_58E = state; /* sh $v1 */
+    work->anim = state; /* sh $v1 */
 }
 ```
 
 `func_actor_105100_801361C4` (`base.c` 89.0%, `base_1.c` 100%). The same
-function reads `field_592` signed where the matched sibling
-`func_actor_105100_80136408` reads the same `u16` field unsigned for its `+=`,
-so the field must stay `u16`: a `(s16)` cast is a same-mode type no-op, and the
-promotion for `(s16)work->field_592 >= 0x1D` folds into a sign-extending `lh`
-plus `slti` exactly as a declared `s16` would. Cast at the use site rather than
-flipping a field another matched body depends on.
+function reads `animFrame` signed where the matched sibling
+`func_actor_105100_80136408` loads the same field with `lhu` for its `++`.
+That `lhu` says nothing about the field's signedness: an increment stored
+straight back truncates, so GCC loads zero-extended for `s16` and `u16` alike.
+The field was first kept `u16` on that reading, with `(s16)` at every compare
+-- a same-mode type no-op whose promotion folds into a sign-extending `lh` plus
+`slti` exactly as a declared `s16` does. Declared `s16`, every body in the
+overlay still matches with the casts gone, which is how the source reads now.
+Before casting at each use to protect a sibling's `lhu`, check whether that
+sibling only increments or copies the field.
 
 Compiler SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -79095,7 +79099,7 @@ Preprocessed SHA256:
 
 - `base.c` (89.0%, m2c): `cb3a0c05ea277fc5d3016d90e8285dcf0fd5b6cc67c2fd2b62ea0f3d462ba6a6`
 - `base_1.c` (100.000%): `d37273823c6906334d153ea160c718b8678fe7210331ae93931707ad88e93f9f`
-- `base_2.c` (100.000%, struct-typed, needs the `Actor105100Work` members `field_502`/`field_55C`/`field_596`/`field_598`/`field_5AA`/`field_5AC`/`field_5B4`/`field_5B6`/`field_5C2`): `0a16323da74cdf3ae1722254f7d40300cdf80a0fcfa800399620d93bd7ba8073`
+- `base_2.c` (100.000%, struct-typed, needs the `_Actor105100Work` members `strikeBody.flags`/`ringEffect`/`action`/`actionStep`/`shield.fields.cooldown`/`summonPhase`/`charging`/`chargeBroken`/`buildupPending`): `0a16323da74cdf3ae1722254f7d40300cdf80a0fcfa800399620d93bd7ba8073`
 
 Second instance, `func_actor_105100_80135F50` (`base.c` 92.833%, `base_1.c`
 100%): the m2c `s16 temp_a0` gives `lh a1` for the tree plus `lhu a0` for the
@@ -79125,7 +79129,7 @@ register:
 ```c
 rec = (Actor105100Rec*)arg1->field_1C;   /* the view the handler dispatches on */
 ...
-if ((count << 16) <= 0 || ((Actor105100Work*)rec)->field_24 != 0 || ...) {
+if ((count << 16) <= 0 || ((_Actor105100Work*)rec)->field_24 != 0 || ...) {
 ```
 
 The cleaner alternative, when the function needs most of the other view anyway,
@@ -116820,9 +116824,9 @@ file no longer declares it".
 
 ## A struct store's place in the final order is its priority, and that priority is an anti-dependence (func_actor_105100_8013329C, 2026-09-16)
 
-`func_actor_105100_8013329C` is the enemy's aim-reroll step: it advances the
-LCG, reads the new pose out of a 16-entry `u16` table, and steps a
-`field_5B2` interval counter. Four independent levers each moved the score, and
+`func_actor_105100_8013329C` is the enemy's idle action: it advances the
+LCG, reads the next action out of a 16-entry `u16` table, and steps the
+`summonCount` counter. Four independent levers each moved the score, and
 all four are about *where an instruction lands in sched1's output*.
 
 **Take the table pointer as a local, and index it.** The matched sibling
@@ -116858,15 +116862,19 @@ order. A store of a constant is a leaf: priority 1, issued last, placed first.
 in-struct varying store. A load through a symbol -- `lw gRandomLcgState` -- is the
 other side of that same exemption and contributes nothing. So the fix for a
 store that schedules too early is to make sure a varying-address load precedes
-it in the RTL; here that meant reading the pose *before* the `field_598` store
-(`var = tbl[...]; field_598 = 0; ...`) rather than writing the lookup last.
+it in the RTL; here that meant reading the table entry *before* the
+`actionStep` store (`var = tbl[...]; actionStep = 0; ...`) rather than writing
+the lookup last.
 
 **A whole read-modify-write statement can be split to place its two halves.**
 The counter had to load before the `sw` of the LCG state and store after the
-`field_598` store. `x = field; ... x = x + 1; field = x;` puts the load where
-the read is written and the store at the end of the block, which one
-`field++`-style statement cannot express. With the halves placed,
-`reorder` went to zero.
+`actionStep` store. `x = field; ... x = x + 1; field = x;` puts the load where
+the read is written and the store at the end of the block. With the halves
+placed, `reorder` went to zero. The split is a way to find the order, not a
+requirement of it: `work->summonCount++;` written as one statement between the
+`actionStep` store and the action store compiles to the same block, and that
+is what the source carries now. Once a split has matched, try the single
+statement at the position of the split's store.
 
 **sched1's launch bump beats priority.** `schedule_insn` sets the scheduled
 insn's priority to `LAUNCH_PRIORITY` (0x7f000001) and `adjust_priority` hands
@@ -116883,10 +116891,10 @@ into the *post*-scheduling form.
 register: case 0's 1/2 constant. Sharing one variable between case 0 and case 1
 makes the pseudo global, so `global_alloc` pins both uses to `$a0`; the target
 has `$v1` in case 0 and `$a0` in case 1, i.e. two pseudos. Reusing the *switch*
-variable (`state = 2; if (...) state = 1; work->field_598 = state;`) leaves the
-case-1 pose variable single-block for `lreg`, which then picks `$a0`, and the
+variable (`state = 2; if (...) state = 1; work->actionStep = state;`) leaves the
+case-1 `summon` variable single-block for `lreg`, which then picks `$a0`, and the
 switch variable keeps `$v1` from the dispatch. That reuse is this overlay's own
-style (`func_actor_105100_80135F50` writes `state = work->field_598` and uses
+style (`func_actor_105100_80135F50` writes `state = work->actionStep` and uses
 `state` inside the cases), which is why it reads naturally.
 
 ## A cast written inline at the call site is a call-crossing temp; through a local it is not
@@ -116941,23 +116949,23 @@ the expander, so the same source shape with the same expansion still moves.
 ## Among sibling stores, the alias-set-0 one is the one sched1 ranks to the head of the block (func_actor_105100_8013345C, 2026-09-17)
 
 `func_actor_105100_8013345C` opens with five constant stores into one
-`Actor105100Work` -- `field_58E` 3, then `field_59C`, `field_5AE`, `field_598`,
-`field_5AC` -- and the target has the `lw` of `gRandomLcgState` ahead of the whole
+`_Actor105100Work` -- `anim` 3, then `fireballTimer`, `childCount`, `actionStep`,
+`summonPhase` -- and the target has the `lw` of `gRandomLcgState` ahead of the whole
 run, the stores in source order behind it. A body that is otherwise finished
 (98.609%, `insert=1 delete=1`) emits exactly one instruction one slot early:
 `sh $zero, 0x59C($s1)` jumps ahead of that `lw`, and nothing else differs.
 
-`field_59C` was the one store still written m2c's way, because the header carried
-it as padding:
+`fireballTimer` was the one store still written m2c's way, because the header
+carried its halfword at 0x59C as padding:
 
 ```c
 M2C_FIELD(temp_s1, u16 *, 0x59C) = 0U;   /* (mem:HI (plus:SI (reg/v:SI 82) (const_int 1436))) */
-temp_s1->field_5AE = 0;                   /* (mem/s:HI (plus:SI (reg/v:SI 82) (const_int 1454))) */
+temp_s1->childCount = 0;                  /* (mem/s:HI (plus:SI (reg/v:SI 82) (const_int 1454))) */
 ```
 
 The `-da` `.rtl` dump prints the difference at once: every sibling store is
 `mem/s:HI`, this one is `mem:HI` with alias set 0. Giving it a real field --
-`/* 0x59C */ u16 field_59C;` in the overlay header, `work->field_59C = 0;` --
+a declared member at 0x59C in the overlay header, `work->fireballTimer = 0;` --
 turns it into `mem/s:HI`, and with no other edit the store drops back into
 source order: 100.000%, all penalties zero. `base_1.i.rtl` insn 33 and
 `base_2.i.rtl` insn 33 are the same insn but for that one flag.
@@ -136809,11 +136817,11 @@ state = enemy->field_40 - damage;
 enemy->field_40 = state;
 state <<= 16;
 if (state <= 0) {
-    state = 7;
+    state = ACTOR_105100_ACTION_DEFEATED;
 } else {
-    state = 6;
+    state = ACTOR_105100_ACTION_STAGGER;
 }
-work->field_596 = state;
+work->action = state;
 ```
 
 In base_3, sched/lreg UID 101 (in-place shift of r83) has REG_DEP_ANTI on
