@@ -32,34 +32,64 @@
 
 #include "overlay.h"
 
-/// Work block of the task `func_actor_521100_80136604` dispatches:
-/// `memCalloc(0x4B4, 0)` in its spawn state `func_actor_521100_80135DDC`, kept
-/// both in `Task::work` and in `D_actor_521100_8016A3D8`. It carries the
-/// model's `light` / `color` matrices, its animation context and slots, the
-/// step that selects the slot reseed, and the scale-in state the task's last
-/// state runs. The nineteen slots are the ones `func_actor_521100_80136724`
-/// ticks.
-typedef struct Actor521100Work4B4 {
-    /* 0x000 */ MATRIX         light;
-    /* 0x020 */ MATRIX         color;
-    /* 0x040 */ ActorAnimRig19 rig;
-    /* 0x47C */ s16            field_47C;    // actor step: 1 and 2 select the body to run, which then advances it to 3
-    /* 0x47E */ u16            field_47E;    // animation id currently playing
-    /* 0x480 */ u16            animId;       // animation id the slots are seeded with
-    /* 0x482 */ s16            field_482;    // cleared when a step body is started
-    /* 0x484 */ s16            field_484;    // scale-in step func_actor_521100_801360C4 switches on: 0 seeds, 1 shrinks, 2 is done
-    /* 0x486 */ u16            field_486;    // frames the shrink has run, counted to 0xA and 0xF by the step-1 body
-    /* 0x488 */ u16            field_488;    // scale the shrink applies, stepped down by 0x10 per frame from 0x1000
-    /* 0x48A */ byte           pad_48A[2];
-    /* 0x48C */ MATRIX         unscaledRoot; // root coordinate's local matrix as the shrink began, turned to `yaw`; each frame's scale is applied to a fresh copy of it
-    /* 0x4AC */ byte           pad_4AC[2];
-    /* 0x4AE */ s16            yaw;          // heading last given the root coordinate, 4096 to a turn
-    /* 0x4B0 */ byte           pad_4B0[2];
-    /* 0x4B2 */ s16            travel;       // frames of forward movement the walk has left
-} Actor521100Work4B4;
-STATIC_ASSERT_SIZEOF(Actor521100Work4B4, 0x4B4);
+/// Values of `_Actor521100AnmcWomanState::flattenStep`: how far the flatten
+/// that ends the woman has got.
+enum {
+    ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN  = 0, // Not started: the next frame turns the root to `yaw`, snapshots it and starts at full height
+    ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK = 1, // The height is lowered each frame
+    ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE   = 2, // The height has reached its floor: the model is left as it is and no longer animated
+};
 
-extern Actor521100Work4B4* D_actor_521100_8016A3D8;
+/// The animation request, the flatten and the walk the ANMC woman keeps right
+/// after her rig.
+///
+/// A play request stores the clip in `animId` and the reseed to perform in
+/// `state`; the update that performs it copies the clip to `appliedAnimId`.
+/// Clip ids index the woman's own animation table. A walk request leaves the
+/// heading it turned the root coordinate to in `yaw` and the frames of walking
+/// in `travel`.
+///
+/// The flatten is how the woman ends: her model is squashed along its Y axis,
+/// a little further each frame, while its light colour is scaled by the same
+/// factor with a random flicker. Each frame rebuilds the root coordinate from `unscaledRoot` and the
+/// current `flattenScaleY`, so the scale never compounds.
+///
+/// The members shared with `ActorEnemyState` sit where that type has them;
+/// the flatten occupies bytes it leaves unnamed. No access to `pad_30` or
+/// `pad_34` has been observed, and the block is allocated zeroed.
+typedef struct {
+    s16    state;         // Step of the animation (0 none, else `ACTOR_ENEMY_ANIM_BLEND`, `_RESET` or `_TICK`)
+    s16    appliedAnimId; // Clip the slots were last seeded with; recorded, never read
+    s16    animId;        // Clip the last play request selected
+    s16    field_6;       // Cleared by each play request; never read, role unproven
+    s16    flattenStep;   // `ACTOR_521100_ANMC_WOMAN_FLATTEN_*`
+    s16    flattenFrames; // Frames the flatten has shrunk for; the model turns semi-transparent at 10 and the burn effect is spawned at 15
+    s16    flattenScaleY; // Height of the flattening model, 4096 = full; lowered 0x10 a frame until it is 0x100 or less
+    MATRIX unscaledRoot;  // Root coordinate's local matrix as the flatten began, turned to `yaw`
+    byte   pad_30[0x2];
+    s16    yaw;           // Heading last given the root coordinate, 4096 to a turn
+    byte   pad_34[0x2];
+    s16    travel;        // Frames of forward movement the walk has left
+} _Actor521100AnmcWomanState;
+STATIC_ASSERT_SIZEOF(_Actor521100AnmcWomanState, 0x38);
+
+/// Work block of the ANMC woman, the scripted figure this package carries
+/// beside the golem: allocated zeroed at its full size by her task's spawn
+/// state and kept both at `Task::work` and in a global her message handlers
+/// reach it through.
+///
+/// The model object borrows `light` and `color` for as long as the block
+/// lives. Slots 1 to 18 of the rig are driven; slot 0, the root's, is never
+/// started.
+typedef struct {
+    MATRIX                     light; // Light-direction matrix lent to the model object
+    MATRIX                     color; // Light-colour matrix lent to the model object; the flatten scales it down
+    ActorAnimRig19             rig;   // Playback storage of the nineteen-part model
+    _Actor521100AnmcWomanState st;    // Animation request, flatten, heading and frames of walk left
+} _Actor521100AnmcWomanWork;
+STATIC_ASSERT_SIZEOF(_Actor521100AnmcWomanWork, 0x4B4);
+
+extern _Actor521100AnmcWomanWork* D_actor_521100_8016A3D8;
 
 /// Stack copy `func_actor_521100_80136604` makes before the indirect call.
 /// The copy itself moves only the 3 words of `D_actor_521100_80131E68`, but
@@ -389,7 +419,7 @@ EffectSpawnArg D_actor_521100_8016A3CC = { NULL, 320, 1 };
 
 u16 D_actor_521100_8016A3D4 = 5;
 
-Actor521100Work4B4* D_actor_521100_8016A3D8;
+_Actor521100AnmcWomanWork* D_actor_521100_8016A3D8;
 
 Task* D_actor_521100_8016A3DC;
 
@@ -450,16 +480,16 @@ s32 func_actor_521100_80135DC8(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 
 static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
 {
-    VECTOR              vec;
-    Actor521100Work4B4* mem;
-    Enemy*              enemy;
-    TmdObject*          obj;
-    GfxCoord*           coord;
+    VECTOR                     vec;
+    _Actor521100AnmcWomanWork* mem;
+    Enemy*                     enemy;
+    TmdObject*                 obj;
+    GfxCoord*                  coord;
 
     enemy                   = spawnArg2;
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
-    mem                     = memCalloc(0x4B4, 0);
+    mem                     = memCalloc(sizeof(_Actor521100AnmcWomanWork), 0);
     D_actor_521100_8016A3D8 = mem;
     task->work              = mem;
     if (mem == NULL) {
@@ -481,93 +511,97 @@ static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
     vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     Gp_AnimInitCtx(&D_actor_521100_8016A3D8->rig.anim, D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->rig.poses);
-    D_actor_521100_8016A3D8->animId    = 1;
-    D_actor_521100_8016A3D8->field_47C = 2;
+    D_actor_521100_8016A3D8->st.animId = 1;
+    D_actor_521100_8016A3D8->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable                     = D_actor_521100_8016A358;
     func_actor_521100_80135F2C(task);
     task->state += 1;
 }
 
-/// The actor's step body, run every frame while `field_47C` is 3. The two
-/// pending-animation states run their reseed body first and advance the step to
-/// 3, which is why they share the tail that stores it.
+/// The actor's step body, run every frame while `st.state` is
+/// `ACTOR_ENEMY_ANIM_TICK`. The two pending reseeds, `ACTOR_ENEMY_ANIM_BLEND`
+/// and `ACTOR_ENEMY_ANIM_RESET`, run their reseed body first and advance the
+/// step to `ACTOR_ENEMY_ANIM_TICK`, which is why they share the tail that
+/// stores it.
 ///
-/// Step 3 while a walk is in progress (`animId` is the walk clip and `travel`
-/// still has frames left) advances the root coordinate one step: 20 units
-/// along its local Z axis, the stride the walk-to handler divided the distance
-/// by, through `actorMoveForward`. The pause check the helper makes is why the
-/// step is skipped while the game is frozen - `travel` still ticks down, so a
-/// paused actor finishes its walk.
+/// The tick step while a walk is in progress (`st.animId` is the walk clip and
+/// `st.travel` still has frames left) advances the root coordinate one step:
+/// 20 units along its local Z axis, the stride the walk-to handler divided the
+/// distance by, through `actorMoveForward`. The pause check the helper makes
+/// is why the step is skipped while the game is frozen - `st.travel` still
+/// ticks down, so a paused actor finishes its walk.
 static void func_actor_521100_80135F2C(Task* task)
 {
-    Actor521100Work4B4* work;
-    s16                 animId;
+    _Actor521100AnmcWomanWork* work;
+    s16                        animId;
 
     work = D_actor_521100_8016A3D8;
-    if (work->field_47C == 1) {
+    if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         func_actor_521100_80136820();
-        D_actor_521100_8016A3D8->field_47C = 3;
+        D_actor_521100_8016A3D8->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (work->field_47C == 2) {
+    if (work->st.state == ACTOR_ENEMY_ANIM_RESET) {
         func_actor_521100_8013677C();
-        D_actor_521100_8016A3D8->field_47C = 3;
+        D_actor_521100_8016A3D8->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (work->field_47C == 3) {
-        animId = work->animId;
-        if (animId == 1 && work->travel != 0) {
+    if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
+        animId = work->st.animId;
+        if (animId == 1 && work->st.travel != 0) {
             actorMoveForward(task->extra.tmd->coords, 0x14);
-            D_actor_521100_8016A3D8->travel--;
+            D_actor_521100_8016A3D8->st.travel--;
         }
         func_actor_521100_80136724();
         return;
     }
 }
 /// State-2 body, the actor's last: it snapshots the attach coordinate onto a
-/// stack `GfxCoord` - the copy the shrink's effect is placed off - and
-/// runs the scale-in step `field_484`. Step 0 seeds the shrink (the step-1
-/// body `func_actor_521100_801368B0` scales by `field_488`, so the seed stores
-/// 0x1000 there, turns the root coordinate to `yaw` and snapshots its local
-/// matrix into `unscaledRoot`), step 1 runs that body and drops the 0x600A5
-/// effect once the counter reaches 0xF, and step 2 returns without animating.
-/// Every other step falls through to the slot tick and the colour step.
+/// stack `GfxCoord` - the copy the flatten's effect is placed off - and
+/// runs the flatten step `st.flattenStep`. `ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN`
+/// seeds the flatten (the shrink body `func_actor_521100_801368B0` scales by
+/// `st.flattenScaleY`, so the seed stores `ONE` there, turns the root
+/// coordinate to `st.yaw` and snapshots its local matrix into
+/// `st.unscaledRoot`), `ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK` runs that body
+/// and drops the 0x600A5 effect once `st.flattenFrames` reaches 0xF, and
+/// `ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE` returns without animating. The other
+/// two steps fall through to the slot tick and the colour step.
 static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
 {
-    GfxCoord            sp10;
-    TmdObject*          obj;
-    GfxCoord*           coord;
-    Actor521100Work4B4* work;
-    s32                 i;
+    GfxCoord                   sp10;
+    TmdObject*                 obj;
+    GfxCoord*                  coord;
+    _Actor521100AnmcWomanWork* work;
+    s32                        i;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    work  = (Actor521100Work4B4*)task->work;
+    work  = task->work;
     sp10  = *coord;
 
-    switch (work->field_484) {
-        case 0:
-            work->field_486 = 0;
-            work->field_488 = 0x1000;
-            gfxRotMatrixY(&coord->coord, work->yaw, GRAPHICS_ROTATION_REPLACE);
-            work->unscaledRoot = coord->coord;
-            work->field_484    = 1;
+    switch (work->st.flattenStep) {
+        case ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN:
+            work->st.flattenFrames = 0;
+            work->st.flattenScaleY = ONE;
+            gfxRotMatrixY(&coord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);
+            work->st.unscaledRoot = coord->coord;
+            work->st.flattenStep  = ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK;
             break;
 
-        case 1:
+        case ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK:
             func_actor_521100_801368B0(task);
-            work->field_486++;
-            if ((s16)work->field_486 == 0xA) {
+            work->st.flattenFrames++;
+            if (work->st.flattenFrames == 0xA) {
                 obj->flags = TMD_OBJECT_SEMI_TRANS;
             }
-            if ((s16)work->field_486 == 0xF) {
+            if (work->st.flattenFrames == 0xF) {
                 sp10.coord.t[0] -= 0x1F4;
                 sp10.coord.t[2] -= 0x64;
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, &sp10, 5, NULL);
             }
             break;
 
-        case 2:
+        case ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE:
             return;
     }
 
@@ -579,11 +613,11 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
 
     func_actor_521100_80136290(spawnArg2, task);
 }
-/// The scale-in's colour step: takes a 0x10-byte `VECTOR` off the scratch stack,
+/// The flatten's colour step: takes a 0x10-byte `VECTOR` off the scratch stack,
 /// fills it with the world position of the model's *second* attach coordinate
-/// (the one the shrink is scaling) and hands it to `Gp_UpdateActorColor` as the
+/// (the one the flatten is scaling) and hands it to `Gp_UpdateActorColor` as the
 /// colour target. The same draw then overwrites the three components with
-/// `field_488` scaled by the top half of three successive `gRandomLcgState` draws,
+/// `st.flattenScaleY` scaled by the top half of three successive `gRandomLcgState` draws,
 /// and `ScaleMatrixL` multiplies the work block's second matrix by it.
 ///
 /// Each draw reads `gRandomLcgState` back from the global: the initialiser's store
@@ -591,11 +625,11 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
 /// and each draw's value gets its own register.
 static void func_actor_521100_80136290(Enemy* arg0, Task* task)
 {
-    Actor521100Work4B4* work;
-    GfxCoord*           coord;
-    void**              scratch;
-    u8*                 head;
-    VECTOR*             block;
+    _Actor521100AnmcWomanWork* work;
+    GfxCoord*                  coord;
+    void**                     scratch;
+    u8*                        head;
+    VECTOR*                    block;
 
     coord                          = &task->extra.tmd->coords[1];
     scratch                        = SCRATCH_HEAD_ADDR;
@@ -609,11 +643,11 @@ static void func_actor_521100_80136290(Enemy* arg0, Task* task)
     Gp_UpdateActorColor(arg0, block, 0, 0);
     work            = D_actor_521100_8016A3D8;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    block->vx       = (s16)work->field_488 * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
+    block->vx       = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    block->vy       = (s16)work->field_488 * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
+    block->vy       = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    block->vz       = (s16)work->field_488 * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
+    block->vz       = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
     ScaleMatrixL(&work->color, block);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
@@ -688,7 +722,7 @@ void func_actor_521100_80136604(Task* arg0)
     sp.field_10             = 2;
     sp.field_11             = 9;
     sp.field_12             = 1;
-    D_actor_521100_8016A3D8 = (Actor521100Work4B4*)arg0->work;
+    D_actor_521100_8016A3D8 = arg0->work;
     sp.table.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
@@ -727,9 +761,9 @@ static void func_actor_521100_80136724(void)
     } while (i < 0x13);
 }
 
-/// Re-inits animation slots 1..0x12 from `animId`, forcing each slot's set
-/// index to 1 first, and latches that id into `field_47E` as the one now
-/// playing.
+/// Re-inits animation slots 1..0x12 from `st.animId`, forcing each slot's set
+/// index to 1 first, and latches that id into `st.appliedAnimId` as the one
+/// now playing.
 static void func_actor_521100_8013677C(void)
 {
     s32 i;
@@ -738,14 +772,14 @@ static void func_actor_521100_8013677C(void)
     do {
         D_actor_521100_8016A3D8->rig.slots[i].rate = 1;
         Gp_AnimInitSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i], i,
-                        (s16)D_actor_521100_8016A3D8->animId);
+                        D_actor_521100_8016A3D8->st.animId);
         i++;
     } while (i < 0x13);
-    D_actor_521100_8016A3D8->field_47E = D_actor_521100_8016A3D8->animId;
+    D_actor_521100_8016A3D8->st.appliedAnimId = D_actor_521100_8016A3D8->st.animId;
 }
 
-/// Reseeds animation slots 1..0x12 from `animId` and latches that id into
-/// `field_47E` as the one now playing.
+/// Reseeds animation slots 1..0x12 from `st.animId` and latches that id into
+/// `st.appliedAnimId` as the one now playing.
 static void func_actor_521100_80136820(void)
 {
     s32 i;
@@ -753,43 +787,45 @@ static void func_actor_521100_80136820(void)
     i = 1;
     do {
         func_800B3AA4(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i], i,
-                      (s16)D_actor_521100_8016A3D8->animId, 0, 8);
+                      D_actor_521100_8016A3D8->st.animId, 0, 8);
         i++;
     } while (i < 0x13);
-    D_actor_521100_8016A3D8->field_47E = D_actor_521100_8016A3D8->animId;
+    D_actor_521100_8016A3D8->st.appliedAnimId = D_actor_521100_8016A3D8->st.animId;
 }
 
-/// Scale-in step body, run while `field_484` is 1: takes an
-/// `ActorScaleScratch` block from the scratch stack, splats an identity
-/// rotation into it and hands it to `ScaleMatrix` with a
-/// `(0x1000, field_488, 0x1000)` vector, then restores the root coordinate's
-/// local matrix from `unscaledRoot`, the snapshot step 0 took, and multiplies
-/// the product into it, so the scale never compounds. The scale drops 0x10 a
-/// frame; under 0x101 the step advances to 2 and this body stops running.
+/// Flatten step body, run while `st.flattenStep` is
+/// `ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK`: takes an `ActorScaleScratch`
+/// block from the scratch stack, splats an identity rotation into it and hands
+/// it to `ScaleMatrix` with a `(ONE, st.flattenScaleY, ONE)` vector, then
+/// restores the root coordinate's local matrix from `st.unscaledRoot`, the
+/// snapshot the flatten's first step took, and multiplies the product into it,
+/// so the scale never compounds. The scale drops 0x10 a frame; under 0x101 the
+/// step advances to `ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE` and this body stops
+/// running.
 ///
 /// The scratch pointer is taken with a chained assignment on purpose: the
 /// store and the callee-saved copy are what put the extra `move $s0, $v0`
 /// between the `addiu` and the `sw` (and the `nop` in the load's delay slot).
 static void func_actor_521100_801368B0(Task* task)
 {
-    ActorScaleScratch*  head;
-    ActorScaleScratch*  scratch;
-    Actor521100Work4B4* work;
-    GfxCoord*           coord;
+    ActorScaleScratch*         head;
+    ActorScaleScratch*         scratch;
+    _Actor521100AnmcWomanWork* work;
+    GfxCoord*                  coord;
 
     head    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
     work    = task->work;
     scratch = (SCRATCH_STACK_CURSOR(ActorScaleScratch) = head - 1);
     coord   = task->extra.tmd->coords;
-    if ((s16)work->field_488 >= 0x101) {
-        work->field_488 = (u16)work->field_488 - 0x10;
+    if (work->st.flattenScaleY >= 0x101) {
+        work->st.flattenScaleY -= 0x10;
     } else {
-        work->field_484 = 2;
+        work->st.flattenStep = ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE;
     }
     scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = (s32)(s16)work->field_488;
+    scratch->scale.vy                    = work->st.flattenScaleY;
     scratch->scale.vz                    = ONE;
-    coord->coord                         = work->unscaledRoot;
+    coord->coord                         = work->st.unscaledRoot;
     scratch->matrix.rotationWords.m00M01 = ONE;
     scratch->matrix.rotationWords.m02M10 = 0;
     scratch->matrix.rotationWords.m11M12 = ONE;
@@ -806,10 +842,10 @@ s32 func_actor_521100_801369B8(Task* task, s32 arg1, AnimationPlayRequest* args,
     Task* dispatcher;
 
     if (args->animationId + 1 < 0xB) {
-        D_actor_521100_8016A3D8->animId    = (u16)args->animationId + 1;
-        dispatcher                         = D_actor_521100_8016A3DC;
-        D_actor_521100_8016A3D8->field_47C = 2;
-        D_actor_521100_8016A3D8->field_482 = 0;
+        D_actor_521100_8016A3D8->st.animId  = args->animationId + 1;
+        dispatcher                          = D_actor_521100_8016A3DC;
+        D_actor_521100_8016A3D8->st.state   = ACTOR_ENEMY_ANIM_RESET;
+        D_actor_521100_8016A3D8->st.field_6 = 0;
         func_actor_521100_80135F2C(dispatcher);
         return 0;
     }
@@ -837,15 +873,15 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2, s32 arg3)
 
 /// Message 0x7D4 handler in `D_actor_521100_8016A358`, placing the actor: only
 /// the yaw of the argument block's angles is used, kept in the work block's
-/// `yaw` and applied with `gfxRotMatrixY`, then the position becomes the root
+/// `st.yaw` and applied with `gfxRotMatrixY`, then the position becomes the root
 /// coordinate's translation and `composeStamp` is cleared.
 s32 func_actor_521100_80136A64(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord* coord;
     u16       yaw;
 
-    coord                        = task->extra.tmd->coords;
-    D_actor_521100_8016A3D8->yaw = yaw = placement->rot.vy;
+    coord                           = task->extra.tmd->coords;
+    D_actor_521100_8016A3D8->st.yaw = yaw = placement->rot.vy;
     gfxRotMatrixY(&coord->coord, (s16)yaw, GRAPHICS_ROTATION_REPLACE);
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
@@ -859,8 +895,8 @@ s32 func_actor_521100_80136A64(Task* task, s32 arg1, ActorTransform* placement, 
 /// at `Task::msgTable`. `msg->field_2` picks the sub-command: 0 puts the task
 /// back on its update state; 1 and 4 spawn one of the two companion tasks out
 /// of the `D_actor_521100_8016A388` desc table into `D_actor_521100_8016A3E0` /
-/// `D_actor_521100_8016A3E4`, leaving the state alone; 2 clears the scale-in
-/// step (`Actor521100Work4B4::field_484`) and sends the task to state 2, the
+/// `D_actor_521100_8016A3E4`, leaving the state alone; 2 clears the flatten
+/// step (`_Actor521100AnmcWomanState::flattenStep`) and sends the task to state 2, the
 /// teardown entry `func_actor_521100_801360C4`; 3 kills both companions and
 /// then falls into 0, sharing its state store.
 s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
@@ -871,8 +907,8 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
             break;
 
         case 2:
-            D_actor_521100_8016A3D8->field_484 = 0;
-            task->state                        = 2;
+            D_actor_521100_8016A3D8->st.flattenStep = ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN;
+            task->state                             = 2;
             break;
 
         case 3:
@@ -903,12 +939,12 @@ s32 func_actor_521100_80136BE8(Task* task, s32 arg1, ActorTransform* target, s32
     s32       dz;
     u16       yaw;
 
-    coord                        = task->extra.tmd->coords;
-    dx                           = target->pos.vx - coord->coord.t[0];
-    dz                           = target->pos.vz - coord->coord.t[2];
-    yaw                          = ratan2(dx, dz);
-    D_actor_521100_8016A3D8->yaw = yaw;
+    coord                           = task->extra.tmd->coords;
+    dx                              = target->pos.vx - coord->coord.t[0];
+    dz                              = target->pos.vz - coord->coord.t[2];
+    yaw                             = ratan2(dx, dz);
+    D_actor_521100_8016A3D8->st.yaw = yaw;
     gfxRotMatrixY(&coord->coord, (s16)yaw, GRAPHICS_ROTATION_REPLACE);
-    D_actor_521100_8016A3D8->travel = SquareRoot0(dx * dx + dz * dz) / 20;
+    D_actor_521100_8016A3D8->st.travel = SquareRoot0(dx * dx + dz * dz) / 20;
     return 0;
 }
