@@ -70,16 +70,20 @@ s32 func_actor_510900_8013BE84(Task*, s32, s32, s32);
 // Only the leading view ID is read; retain the following halfwords.
 extern u16 D_actor_510900_80167CE4[4];
 
-/// 0x10-byte scratch `func_actor_510900_80138F44` takes from the scratch stack
-/// to rebuild the collision face this actor occupies. `center` starts as the
-/// fixed local offset of the body's footprint and becomes that offset rotated
-/// into world space, translated by the actor coordinate and clamped to the
-/// grid; `rotated` receives each `rtv0` result in turn.
-typedef struct Actor510900GridScratch {
-    /* 0x00 */ SVECTOR center;
-    /* 0x08 */ SVECTOR rotated;
-} Actor510900GridScratch;
-STATIC_ASSERT_SIZEOF(Actor510900GridScratch, 0x10);
+/// Scratch block of the step that carries the golem's three wall faces in the
+/// room's collision grid to where the golem stands.
+///
+/// The faces are stored as twelve corners around an origin of their own, which
+/// lies at a fixed offset from the golem in the golem's axes. The step turns
+/// that offset by the golem's facing to place the origin in the world, then
+/// turns each corner the same way and adds the origin to it. Reserve one
+/// complete block and release it when the step is done. The fourth halfword of
+/// either vector is never written.
+typedef struct {
+    SVECTOR origin;  // The faces' origin: first its offset from the golem in the golem's axes, then its world position, held within 0x1770 of the world origin in X and Z
+    SVECTOR rotated; // Latest vector turned by the golem's facing: the origin's offset, then each corner in turn
+} _Actor510900GridFacesScratch;
+STATIC_ASSERT_SIZEOF(_Actor510900GridFacesScratch, 0x10);
 
 /// Values of `_Actor510900HelipadLightWork::state`. Light 2 also copies its
 /// state to `Actor510900Work::light2State` every frame.
@@ -249,18 +253,20 @@ typedef struct {
 } _Actor510900LapCorner;
 STATIC_ASSERT_SIZEOF(_Actor510900LapCorner, 0x4);
 
-/// The unit direction the side leaving that corner runs in.
-typedef struct Actor510900PatrolStep {
-    /* 0x0 */ s8 x;
-    /* 0x1 */ s8 z;
-} Actor510900PatrolStep;
-STATIC_ASSERT_SIZEOF(Actor510900PatrolStep, 0x2);
+/// The direction one side of the lap runs in, from its corner to the next:
+/// the world X and Z the golem covers per unit of distance along the side.
+/// Every side is parallel to an axis, so one member is 1 or -1 and the other 0.
+typedef struct {
+    s8 x; // World X covered per unit of distance along the side
+    s8 z; // World Z covered per unit of distance along the side
+} _Actor510900LapDirection;
+STATIC_ASSERT_SIZEOF(_Actor510900LapDirection, 0x2);
 
 /// The four corners of the lap, indexed by `Actor510900Work::lapSide`.
 extern _Actor510900LapCorner D_actor_510900_80167B84[4];
 
 /// The direction of each of its four sides, indexed the same way.
-extern Actor510900PatrolStep D_actor_510900_80167B94[4];
+extern _Actor510900LapDirection D_actor_510900_80167B94[4];
 
 /// `func_800FDB18` argument record the state-3 handler refreshes every sixth
 /// frame from the player's model coordinates.
@@ -649,7 +655,7 @@ _Actor510900LapCorner D_actor_510900_80167B84[4] = {
     { -6600, 6600 },
 };
 
-Actor510900PatrolStep D_actor_510900_80167B94[4] = {
+_Actor510900LapDirection D_actor_510900_80167B94[4] = {
     { 1, 0 },
     { 0, 1 },
     { -1, 0 },
@@ -2451,46 +2457,46 @@ static void func_actor_510900_80138D38(Task* arg0)
 }
 
 /// Rebuilds the three collision faces this actor occupies in the grid, at the
-/// body's current position and facing. `center` is the fixed local footprint
-/// offset rotated into world space, translated by the coordinate and clamped to
+/// body's current position and facing. `origin` is the faces' fixed offset from
+/// the body rotated into world space, translated by the coordinate and clamped to
 /// the grid extent; the twelve corners in `_gActor510900Collision35DBC` are rotated
 /// and offset from it into `Gp_GridParams->vertices`, and the three face normals
 /// in `_gActor510900Collision35DA4` are rotated in place into `field_4`.
 static void func_actor_510900_80138F44(Task* arg0)
 {
-    Actor510900GridScratch* scratch;
-    GfxCoord*               coord;
-    SVECTOR*                normals;
-    SVECTOR*                corners;
-    s32                     i;
+    _Actor510900GridFacesScratch* scratch;
+    GfxCoord*                     coord;
+    SVECTOR*                      normals;
+    SVECTOR*                      corners;
+    s32                           i;
 
-    scratch = (Actor510900GridScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor510900GridScratch));
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor510900GridFacesScratch);
     coord   = arg0->extra.tmd->coords;
     normals = Gp_GridParams->normals;
     corners = Gp_GridParams->vertices;
 
-    scratch->center.vx = -0x258;
-    scratch->center.vy = 0;
-    scratch->center.vz = 0x280;
+    scratch->origin.vx = -0x258;
+    scratch->origin.vy = 0;
+    scratch->origin.vz = 0x280;
 
     gte_SetRotMatrix(&coord->coord);
-    gte_ldv0(&scratch->center);
+    gte_ldv0(&scratch->origin);
     gte_rtv0();
     gte_stsv(&scratch->rotated);
 
-    scratch->center.vx = coord->coord.t[0] + scratch->rotated.vx;
-    scratch->center.vy = coord->coord.t[1] + scratch->rotated.vy;
-    scratch->center.vz = coord->coord.t[2] + scratch->rotated.vz;
+    scratch->origin.vx = coord->coord.t[0] + scratch->rotated.vx;
+    scratch->origin.vy = coord->coord.t[1] + scratch->rotated.vy;
+    scratch->origin.vz = coord->coord.t[2] + scratch->rotated.vz;
 
-    if (scratch->center.vx > 0x1770) {
-        scratch->center.vx = 0x1770;
-    } else if (scratch->center.vx < -0x1770) {
-        scratch->center.vx = -0x1770;
+    if (scratch->origin.vx > 0x1770) {
+        scratch->origin.vx = 0x1770;
+    } else if (scratch->origin.vx < -0x1770) {
+        scratch->origin.vx = -0x1770;
     }
-    if (scratch->center.vz > 0x1770) {
-        scratch->center.vz = 0x1770;
-    } else if (scratch->center.vz < -0x1770) {
-        scratch->center.vz = -0x1770;
+    if (scratch->origin.vz > 0x1770) {
+        scratch->origin.vz = 0x1770;
+    } else if (scratch->origin.vz < -0x1770) {
+        scratch->origin.vz = -0x1770;
     }
 
     for (i = 0; i < 12; i++) {
@@ -2498,9 +2504,9 @@ static void func_actor_510900_80138F44(Task* arg0)
         gte_ldv0(&_gActor510900Collision35DBC[i]);
         gte_rtv0();
         gte_stsv(&scratch->rotated);
-        corners[i].vx = scratch->rotated.vx + scratch->center.vx;
-        corners[i].vy = scratch->rotated.vy + scratch->center.vy;
-        corners[i].vz = scratch->rotated.vz + scratch->center.vz;
+        corners[i].vx = scratch->rotated.vx + scratch->origin.vx;
+        corners[i].vy = scratch->rotated.vy + scratch->origin.vy;
+        corners[i].vz = scratch->rotated.vz + scratch->origin.vz;
     }
 
     for (i = 0; i < 3; i++) {
@@ -2510,7 +2516,7 @@ static void func_actor_510900_80138F44(Task* arg0)
         gte_stsv(&normals[i]);
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor510900GridScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor510900GridFacesScratch);
 }
 
 /// Message 0x7D7 handler (entry in `D_actor_510900_80167A6C`). `arg2` picks
