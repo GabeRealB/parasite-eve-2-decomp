@@ -161,38 +161,52 @@ typedef struct {
 } _Actor02400Work;
 STATIC_ASSERT_SIZEOF(_Actor02400Work, 0x154);
 
-/// Work block of the projectile the main body spawns, hung off `Task::work` by
-/// its spawn handler (`memCalloc(0xB4)`).
-///
-/// `obj_0` and `obj_20` are its two collision bodies sharing the record
-/// `rec_40`, and `obj_58` the swept shape `pose_78`, whose table is `field_90`.
-/// `field_A8..field_AC` is the direction it travels, taken from the parent's
-/// Z axis. `field_B0` is the lifetime timer and `field_B2` the teardown phase.
-typedef struct Actor02400ChildWork {
-    /* 0x00 */ WorldCollisionBody    obj_0;
-    /* 0x20 */ WorldCollisionBody    obj_20;
-    /* 0x40 */ WorldCollisionContact rec_40;
-    /* 0x58 */ WorldCollisionBody    obj_58;
-    /* 0x78 */ WorldCollisionCapsule pose_78;
-    /* 0x90 */ WorldCollisionContact field_90;
-    /* 0xA8 */ s16                   field_A8;
-    /* 0xAA */ s16                   field_AA;
-    /* 0xAC */ s16                   field_AC;
-    /* 0xAE */ byte                  pad_AE[0x2];
-    /* 0xB0 */ u16                   field_B0;
-    /* 0xB2 */ s16                   field_B2;
-} Actor02400ChildWork;
-STATIC_ASSERT_SIZEOF(Actor02400ChildWork, 0xB4);
+/// Steps of the fireball's teardown state, in `_Actor02400FireballWork::teardownStep`.
+enum {
+    ACTOR_02400_FIREBALL_TEARDOWN_UNLINK = 0, // Unlinks the three bodies and arms the wait
+    ACTOR_02400_FIREBALL_TEARDOWN_WAIT   = 1, // Counts `timer` down, then destroys the enemy
+};
 
-/// Scratchpad block the model's scale is applied through: an identity `mat`
-/// scaled per axis by `scale`, and the coordinate's translation `t`, restored
-/// after the multiply.
-typedef struct Actor02400ScaleScratch {
-    /* 0x00 */ GfxMatrix mat;
-    /* 0x20 */ VECTOR    scale;
-    /* 0x30 */ VECTOR    t;
-} Actor02400ScaleScratch;
-STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
+/// Work block of the fireball the main body spawns at the end of a cast.
+///
+/// The spawn handler allocates it zeroed and keeps it at `Task::work`. The
+/// fireball has no model: its task carries one coordinate, which starts above
+/// the parent with the parent's rotation, is moved each frame along
+/// `direction` and is where the glow is drawn and all three bodies sit.
+///
+/// Two spheres at the coordinate's origin share one contact: one carries the
+/// variant's fireball attack to the player, the other strikes the room's
+/// enemies. A thin capsule trailing the fireball finds the room surface it
+/// has flown into. The flight ends, and the burst effect is spawned, on a
+/// contact of either sphere, on a surface that blocks probes, or when `timer`
+/// runs out.
+///
+/// No code reads or writes `direction.pad`; that the four halfwords are one
+/// `SVECTOR` rather than three components and an unused one is unproven.
+typedef struct {
+    WorldCollisionBody    playerStrikeBody;  // Sphere of radius 200 whose key carries the variant's fireball entry of the package's `DamageAttack` table to the player
+    WorldCollisionBody    enemyStrikeBody;   // Sphere of the same size on the list enemy bodies are tested against; its key, 0x22D2D or 0x22E2E by variant, is of the category enemies take damage from
+    WorldCollisionContact strikeContacts[1]; // Contact table both strike spheres share; an occupied entry ends the flight
+    WorldCollisionBody    wallBody;          // Keyless capsule body tested against the room grid, clipped at its first contact
+    WorldCollisionCapsule wallCapsule;       // Its shape: radius 1, from the coordinate's origin to 210 down its -Z
+    WorldCollisionContact wallContacts[1];   // The surface the capsule met; cleared each frame once read, since one that lets probes through does not stop the fireball
+    SVECTOR               direction;         // The parent's Z axis at spawn, 4096 per unit: the heading flown along on X and Z at 200 units a frame; `vy` is stored and never read
+    s16                   timer;             // Frames left: of the flight, from 90, and then of the teardown's wait, from 60
+    s16                   teardownStep;      // Step of the teardown state, an `ACTOR_02400_FIREBALL_TEARDOWN_` value
+} _Actor02400FireballWork;
+STATIC_ASSERT_SIZEOF(_Actor02400FireballWork, 0xB4);
+
+/// Scratch-stack block of the per-frame rescale of the main body's root.
+///
+/// One block serves one rescale and is released before the call returns. It
+/// is the family's rescale block followed by the root's translation, which is
+/// saved before the scale is multiplied into the coordinate and written back
+/// afterwards. `translation.pad` is never written.
+typedef struct {
+    ActorScaleScratch rescale;     // Identity rotation scaled per axis by the body's `scale`, then multiplied into the root
+    VECTOR            translation; // The root coordinate's translation on entry, in its parent's units
+} _Actor02400ScaleScratch;
+STATIC_ASSERT_SIZEOF(_Actor02400ScaleScratch, 0x40);
 
 extern DamageAttack Actor02400_BodyPairs[4];
 extern EnemyParams  Actor02400_Params0;
@@ -1071,37 +1085,37 @@ static void Actor02400_Fn01F74(Task* task)
 /// reach of `attackBody` follow the Y and Z scale.
 static void Actor02400_Fn0208C(Task* task)
 {
-    GfxCoord*               coord;
-    _Actor02400Work*        work;
-    Actor02400ScaleScratch* scratch;
-    Actor02400ScaleScratch* head;
+    GfxCoord*                coord;
+    _Actor02400Work*         work;
+    _Actor02400ScaleScratch* scratch;
+    _Actor02400ScaleScratch* head;
 
-    coord                                        = task->extra.tmd->coords;
-    work                                         = task->work;
-    work->baseMatrix                             = coord->coord;
-    head                                         = SCRATCH_STACK_CURSOR(Actor02400ScaleScratch);
-    scratch                                      = head - 1;
-    SCRATCH_STACK_CURSOR(Actor02400ScaleScratch) = scratch;
-    work->body.pos.vy                            = -0xC8000 / work->scale.vy;
-    work->attackBody.pos.vz                      = (work->scale.vz * 250) / 4096;
-    scratch->scale.vx                            = work->scale.vx;
-    scratch->scale.vy                            = work->scale.vy;
-    scratch->scale.vz                            = work->scale.vz;
-    scratch->t.vx                                = coord->coord.t[0];
-    scratch->t.vy                                = coord->coord.t[1];
-    scratch->t.vz                                = coord->coord.t[2];
-    coord->coord                                 = work->baseMatrix;
-    scratch->mat.rotationWords.m00M01            = ONE;
-    scratch->mat.rotationWords.m02M10            = 0;
-    scratch->mat.rotationWords.m11M12            = ONE;
-    scratch->mat.rotationWords.m20M21            = 0;
-    scratch->mat.rotationWords.m22               = ONE;
-    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->coord.t[0] = scratch->t.vx;
-    coord->coord.t[1] = scratch->t.vy;
-    SCRATCH_STACK_RELEASE_BLOCK(Actor02400ScaleScratch);
-    coord->coord.t[2]   = scratch->t.vz;
+    coord                                         = task->extra.tmd->coords;
+    work                                          = task->work;
+    work->baseMatrix                              = coord->coord;
+    head                                          = SCRATCH_STACK_CURSOR(_Actor02400ScaleScratch);
+    scratch                                       = head - 1;
+    SCRATCH_STACK_CURSOR(_Actor02400ScaleScratch) = scratch;
+    work->body.pos.vy                             = -0xC8000 / work->scale.vy;
+    work->attackBody.pos.vz                       = (work->scale.vz * 250) / 4096;
+    scratch->rescale.scale.vx                     = work->scale.vx;
+    scratch->rescale.scale.vy                     = work->scale.vy;
+    scratch->rescale.scale.vz                     = work->scale.vz;
+    scratch->translation.vx                       = coord->coord.t[0];
+    scratch->translation.vy                       = coord->coord.t[1];
+    scratch->translation.vz                       = coord->coord.t[2];
+    coord->coord                                  = work->baseMatrix;
+    scratch->rescale.matrix.rotationWords.m00M01  = ONE;
+    scratch->rescale.matrix.rotationWords.m02M10  = 0;
+    scratch->rescale.matrix.rotationWords.m11M12  = ONE;
+    scratch->rescale.matrix.rotationWords.m20M21  = 0;
+    scratch->rescale.matrix.rotationWords.m22     = ONE;
+    ScaleMatrix(&scratch->rescale.matrix.mat, &scratch->rescale.scale);
+    MulMatrix(&coord->coord, &scratch->rescale.matrix.mat);
+    coord->coord.t[0] = scratch->translation.vx;
+    coord->coord.t[1] = scratch->translation.vy;
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02400ScaleScratch);
+    coord->coord.t[2]   = scratch->translation.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -1301,17 +1315,17 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
 /// the parent and moves the task to state 1.
 static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
 {
-    _Actor02400Work*     parentWork;
-    Task*                parent;
-    Actor02400ChildWork* work;
-    ActorOffsetScratch*  scratch;
-    ActorOffsetScratch*  head;
-    GfxCoord*            objCoord;
-    GfxCoord*            objCoord2;
-    GfxCoord*            objCoord3;
-    SVECTOR*             offset;
-    GfxCoord*            coord;
-    GfxCoord*            parentCoord;
+    _Actor02400Work*         parentWork;
+    Task*                    parent;
+    _Actor02400FireballWork* work;
+    ActorOffsetScratch*      scratch;
+    ActorOffsetScratch*      head;
+    GfxCoord*                objCoord;
+    GfxCoord*                objCoord2;
+    GfxCoord*                objCoord3;
+    SVECTOR*                 offset;
+    GfxCoord*                coord;
+    GfxCoord*                parentCoord;
 
     head                                     = SCRATCH_STACK_CURSOR(ActorOffsetScratch);
     scratch                                  = head - 1;
@@ -1321,7 +1335,7 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     coord                                    = arg1->extra.tmd->coords;
     parentCoord                              = parent->extra.tmd->coords;
     parentWork                               = parent->work;
-    work                                     = memCalloc(0xB4, 0);
+    work                                     = memCalloc(sizeof(_Actor02400FireballWork), 0);
     if (work == NULL) {
         enemyDestroy(arg0, arg1);
         return;
@@ -1340,76 +1354,75 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     coord->coord.t[1]   = parentCoord->coord.t[1] + scratch->result.vy;
     coord->coord.t[2]   = parentCoord->coord.t[2] + scratch->result.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_A8      = parentCoord->coord.m[0][2];
-    work->field_AA      = parentCoord->coord.m[1][2];
-    work->field_AC      = parentCoord->coord.m[2][2];
+    work->direction.vx  = parentCoord->coord.m[0][2];
+    work->direction.vy  = parentCoord->coord.m[1][2];
+    work->direction.vz  = parentCoord->coord.m[2][2];
 
-    objCoord                     = arg1->extra.tmd->coords;
-    work->obj_0.context.contacts = &work->rec_40;
-    work->obj_0.pos.vx           = 0;
-    work->obj_0.pos.vy           = 0;
-    work->obj_0.pos.vz           = 0;
-    work->obj_0.coord            = objCoord;
-    work->obj_0.key              = Gp_PackPair(Actor02400_BodyPairs, (parentWork->variant * 2) | 1);
-    work->obj_0.radius           = 0xC8;
-    work->obj_0.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj_0);
-    Gp_InitRec18Table(&work->rec_40, 1, 0);
-    work->obj_0.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    objCoord2                     = arg1->extra.tmd->coords;
-    work->obj_20.context.contacts = &work->rec_40;
-    work->obj_20.pos.vx           = 0;
-    work->obj_20.pos.vy           = 0;
-    work->obj_20.pos.vz           = 0;
-    work->obj_20.coord            = objCoord2;
+    objCoord                                = arg1->extra.tmd->coords;
+    work->playerStrikeBody.context.contacts = work->strikeContacts;
+    work->playerStrikeBody.pos.vx           = 0;
+    work->playerStrikeBody.pos.vy           = 0;
+    work->playerStrikeBody.pos.vz           = 0;
+    work->playerStrikeBody.coord            = objCoord;
+    work->playerStrikeBody.key              = Gp_PackPair(Actor02400_BodyPairs, (parentWork->variant * 2) | 1);
+    work->playerStrikeBody.radius           = 0xC8;
+    work->playerStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->playerStrikeBody);
+    Gp_InitRec18Table(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
+    work->playerStrikeBody.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    objCoord2                              = arg1->extra.tmd->coords;
+    work->enemyStrikeBody.context.contacts = work->strikeContacts;
+    work->enemyStrikeBody.pos.vx           = 0;
+    work->enemyStrikeBody.pos.vy           = 0;
+    work->enemyStrikeBody.pos.vz           = 0;
+    work->enemyStrikeBody.coord            = objCoord2;
     if (parentWork->variant == 0) {
-        work->obj_20.key = 0x22D2D;
+        work->enemyStrikeBody.key = 0x22D2D;
     } else {
-        work->obj_20.key = 0x22E2E;
+        work->enemyStrikeBody.key = 0x22E2E;
     }
-    work->obj_20.radius = 0xC8;
-    work->obj_20.flags  = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(1, &work->obj_20);
+    work->enemyStrikeBody.radius = 0xC8;
+    work->enemyStrikeBody.flags  = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(1, &work->enemyStrikeBody);
 
-    work->pose_78.ends[1].vz     = -0xD2;
-    work->pose_78.end0Radius     = 1;
-    work->pose_78.end1Radius     = 1;
-    work->pose_78.ends[0].vx     = 0;
-    work->pose_78.ends[0].vy     = 0;
-    work->pose_78.ends[0].vz     = 0;
-    work->pose_78.ends[1].vx     = 0;
-    work->pose_78.ends[1].vy     = 0;
-    work->pose_78.contacts       = &work->field_90;
-    work->obj_20.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    objCoord3                    = arg1->extra.tmd->coords;
-    work->obj_58.context.capsule = &work->pose_78;
-    work->obj_58.pos.vx          = 0;
-    work->obj_58.pos.vy          = 0;
-    work->obj_58.pos.vz          = 0;
-    work->obj_58.key             = 0;
-    work->obj_58.radius          = 0;
-    work->obj_58.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->obj_58.coord           = objCoord3;
-    Gp_LinkObj(3, &work->obj_58);
-    Gp_InitRec18Table(&work->field_90, 1, 0);
-    work->field_B0      = 0x5A;
-    work->obj_58.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
+    work->wallCapsule.ends[1].vz   = -0xD2;
+    work->wallCapsule.end0Radius   = 1;
+    work->wallCapsule.end1Radius   = 1;
+    work->wallCapsule.ends[0].vx   = 0;
+    work->wallCapsule.ends[0].vy   = 0;
+    work->wallCapsule.ends[0].vz   = 0;
+    work->wallCapsule.ends[1].vx   = 0;
+    work->wallCapsule.ends[1].vy   = 0;
+    work->wallCapsule.contacts     = work->wallContacts;
+    work->enemyStrikeBody.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    objCoord3                      = arg1->extra.tmd->coords;
+    work->wallBody.context.capsule = &work->wallCapsule;
+    work->wallBody.pos.vx          = 0;
+    work->wallBody.pos.vy          = 0;
+    work->wallBody.pos.vz          = 0;
+    work->wallBody.key             = 0;
+    work->wallBody.radius          = 0;
+    work->wallBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    work->wallBody.coord           = objCoord3;
+    Gp_LinkObj(3, &work->wallBody);
+    Gp_InitRec18Table(work->wallContacts, ARRAY_SIZE(work->wallContacts), 0);
+    work->timer           = 90;
+    work->wallBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     taskDetachFromParent(arg1);
     arg1->state = 1;
     SCRATCH_STACK_RELEASE_BLOCK(ActorOffsetScratch);
 }
 
-/// Flight handler of the projectile: moves it along `field_A8` / `field_AC`
-/// and draws its glow. Once the lifetime `field_B0` runs out, its record is
+/// Flight handler of the projectile: moves it along `direction` on X and Z
+/// and draws its glow. Once the lifetime `timer` runs out, its record is
 /// hit, or its swept shape touches a surface whose room parameter blocks it,
 /// it spawns the burst effect and moves the task to state 2.
 static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
 {
-    Actor02400ChildWork* work;
-    GfxCoord*            coord;
-    s32                  rec;
-    s32                  spawn;
-    u16                  timer;
+    _Actor02400FireballWork* work;
+    GfxCoord*                coord;
+    s32                      rec;
+    s32                      spawn;
 
     coord = arg1->extra.tmd->coords;
     work  = arg1->work;
@@ -1422,25 +1435,24 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
-            coord->coord.t[0]  += (work->field_A8 * 0x19) >> 9;
-            coord->coord.t[2]  += (work->field_AC * 0x19) >> 9;
+            coord->coord.t[0]  += (work->direction.vx * 25) >> 9;
+            coord->coord.t[2]  += (work->direction.vz * 25) >> 9;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             fireballDrawGlow(coord, 0x100);
-            rec = work->field_90.key.value;
+            rec = work->wallContacts[0].key.value;
             if ((rec != 0) &&
                 (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
                                    [func_800E1B24(rec)]
                                        ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES)) {
                 spawn = 1;
             }
-            Gp_ClearRec18Occupied(&work->field_90);
-            timer          = work->field_B0 - 1;
-            work->field_B0 = timer;
-            if (((timer << 0x10) <= 0) || (work->rec_40.flags & 1) || (spawn != 0)) {
+            Gp_ClearRec18Occupied(work->wallContacts);
+            work->timer--;
+            if ((work->timer <= 0) || (work->strikeContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) || (spawn != 0)) {
                 Gp_SpawnEff(gRoomEffectOrangeBurst2Id, coord, 0, NULL);
-                arg1->state    = 2;
-                work->field_B2 = 0;
+                arg1->state        = 2;
+                work->teardownStep = ACTOR_02400_FIREBALL_TEARDOWN_UNLINK;
             }
             break;
     }
@@ -1686,26 +1698,25 @@ void Actor02400_Fn03358(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-/// Teardown handler of the projectile: phase 0 unlinks its three collision
-/// bodies and waits 60 frames, then phase 1 destroys the enemy.
+/// Teardown handler of the projectile: `UNLINK` unlinks its three collision
+/// bodies and arms a 60-frame wait, then `WAIT` counts it down and destroys
+/// the enemy.
 static void Actor02400_Fn033B4(Enemy* arg0, Task* arg1)
 {
-    Actor02400ChildWork* work;
-    u16                  temp_v0;
+    _Actor02400FireballWork* work;
 
     work = arg1->work;
-    switch (work->field_B2) {
-        case 0:
-            Gp_UnlinkObj(&work->obj_0);
-            Gp_UnlinkObj(&work->obj_20);
-            Gp_UnlinkObj(&work->obj_58);
-            work->field_B2 = 1;
-            work->field_B0 = 0x3C;
+    switch (work->teardownStep) {
+        case ACTOR_02400_FIREBALL_TEARDOWN_UNLINK:
+            Gp_UnlinkObj(&work->playerStrikeBody);
+            Gp_UnlinkObj(&work->enemyStrikeBody);
+            Gp_UnlinkObj(&work->wallBody);
+            work->teardownStep = ACTOR_02400_FIREBALL_TEARDOWN_WAIT;
+            work->timer        = 60;
             return;
-        case 1:
-            temp_v0        = work->field_B0 - 1;
-            work->field_B0 = temp_v0;
-            if ((temp_v0 << 0x10) <= 0) {
+        case ACTOR_02400_FIREBALL_TEARDOWN_WAIT:
+            work->timer--;
+            if (work->timer <= 0) {
                 enemyDestroy(arg0, arg1);
             }
             return;
