@@ -77,16 +77,21 @@ typedef struct _SndHeapBlockHeader {
 } _SndHeapBlockHeader;
 STATIC_ASSERT_SIZEOF(_SndHeapBlockHeader, 0x10);
 
-/// Per-frame audio callback list node (AudioTick_List sentinel + chain).
+/// One registration in the sound driver's list of per-update polls.
+///
+/// The list hangs from a sentinel node, `AudioTick_List`, of which only `next`
+/// is ever used: it addresses the first registration, and the sentinel's other
+/// members stay cleared. Each registration is a block of the sound heap, linked
+/// in ascending order of `id`, and no two in the list share an id.
 typedef struct _AudioTickNode {
-    /* 0x00 */ AudioTickPoll          poll;
-    /* 0x04 */ AudioTickOnRemove      onRemove;
-    /* 0x08 */ s16                    id;
-    /* 0x0C */ s32*                   arg;
-    /* 0x10 */ struct _AudioTickNode* prev;
-    /* 0x14 */ struct _AudioTickNode* next;
-} AudioTickNode;
-STATIC_ASSERT_SIZEOF(AudioTickNode, 0x18);
+    AudioTickPoll          poll;     // Called once per audio update with `arg`, or NULL; returning -1 unlinks the node
+    AudioTickOnRemove      onRemove; // Called once as the node is unlinked, or NULL
+    u16                    id;       // Unique sort key: the list ascends by it, and a node is unlinked by matching it
+    s32*                   arg;      // Registrant's pointer handed to `poll` unchanged, or NULL
+    struct _AudioTickNode* prev;     // Preceding node, or the sentinel; maintained but never read
+    struct _AudioTickNode* next;     // Following node, or NULL at the end of the list
+} _AudioTickNode;
+STATIC_ASSERT_SIZEOF(_AudioTickNode, 0x18);
 
 // Normalized audio gain and the two directions selected during ramp setup.
 enum {
@@ -109,7 +114,7 @@ static u8 D_8007A3A8[8];
 
 static u8 SndHeap_Buffer[SNDHEAP_SIZE];
 
-static AudioTickNode AudioTick_List;
+static _AudioTickNode AudioTick_List;
 
 static u32 AudioTick_Enabled;
 
@@ -153,7 +158,7 @@ static void AudioTick_Reset(void);
 
 static void AudioTick_Process(void);
 
-static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0);
+static _AudioTickNode* AudioTick_Remove(_AudioTickNode* arg0);
 
 TaskDesc D_80067828[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -710,12 +715,12 @@ void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2)
 
 s32 AudioTick_Insert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32* arg)
 {
-    AudioTickNode* node;
-    AudioTickNode* head;
-    AudioTickNode* p;
-    AudioTickNode* next;
-    u16            id16;
-    u16            key;
+    _AudioTickNode* node;
+    _AudioTickNode* head;
+    _AudioTickNode* p;
+    _AudioTickNode* next;
+    u16             id16;
+    u16             key;
 
     id16 = id;
     key  = id16;
@@ -724,7 +729,7 @@ s32 AudioTick_Insert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32
         return -1;
     }
     AudioTick_Enabled = 0;
-    node              = SndHeap_Malloc(sizeof(AudioTickNode));
+    node              = SndHeap_Malloc(sizeof(_AudioTickNode));
     if (node == NULL) {
         AudioTick_Enabled = 1;
         return -1;
@@ -733,8 +738,8 @@ s32 AudioTick_Insert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32
     node->onRemove = onRemove;
     node->id       = id16;
     node->arg      = arg;
-    node->prev     = 0;
-    node->next     = 0;
+    node->prev     = NULL;
+    node->next     = NULL;
 
     p = head;
     for (;;) {
@@ -742,16 +747,16 @@ s32 AudioTick_Insert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32
         if (next == NULL) {
             p->next           = node;
             node->prev        = p;
-            node->next        = 0;
+            node->next        = NULL;
             AudioTick_Enabled = 1;
             return 0;
         }
-        if ((u16)next->id == key) {
+        if (next->id == key) {
             SndHeap_Free(node);
             AudioTick_Enabled = 1;
             return -2;
         }
-        if (key < (u16)next->id) {
+        if (key < next->id) {
             node->next        = next;
             AudioTick_Enabled = 1;
             p->next->prev     = node;
@@ -928,17 +933,17 @@ static void AudioTick_Reset(void)
     AudioTick_List.poll     = NULL;
     AudioTick_List.onRemove = NULL;
     AudioTick_List.id       = 0;
-    AudioTick_List.arg      = 0;
+    AudioTick_List.arg      = NULL;
     AudioTick_List.next     = NULL;
-    AudioTick_List.prev     = 0;
+    AudioTick_List.prev     = NULL;
     AudioTick_Enabled       = 1;
 }
 
 static void AudioTick_Process(void)
 {
-    AudioTickNode* head;
-    AudioTickNode* node;
-    AudioTickPoll  poll;
+    _AudioTickNode* head;
+    _AudioTickNode* node;
+    AudioTickPoll   poll;
 
     head = &AudioTick_List;
     if (AudioTick_Enabled != 0) {
@@ -961,12 +966,12 @@ static void AudioTick_Process(void)
     }
 }
 
-static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0)
+static _AudioTickNode* AudioTick_Remove(_AudioTickNode* arg0)
 {
     AudioTickOnRemove onRemove;
-    AudioTickNode*    head;
-    AudioTickNode*    prev;
-    AudioTickNode*    curr;
+    _AudioTickNode*   head;
+    _AudioTickNode*   prev;
+    _AudioTickNode*   curr;
 
     head              = &AudioTick_List;
     onRemove          = arg0->onRemove;
@@ -976,19 +981,19 @@ static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0)
     }
 
     prev = head;
-    if (prev->next != 0) {
+    if (prev->next != NULL) {
         do {
             curr = prev->next;
-            if ((u16)curr->id == (u16)arg0->id) {
+            if (curr->id == arg0->id) {
                 prev->next = arg0->next;
-                if (arg0->next != 0) {
+                if (arg0->next != NULL) {
                     arg0->next->prev = prev;
                 }
                 AudioTick_Enabled = 1;
                 return prev->next;
             }
             prev = curr;
-        } while (prev->next != 0);
+        } while (prev->next != NULL);
     }
     AudioTick_Enabled = 1;
     return NULL;

@@ -11946,18 +11946,18 @@ path assigns `node = remove(node)` and the other does `node = node->next`),
 write:
 
 ```c
-node = (AudioTickNode*)head->field_14;
+node = head->next;
 while (1) {
     if (node == NULL) {
         break;
     }
     if (poll != NULL) {
-        if (poll(node->field_c) == -1) {
+        if (poll(node->arg) == -1) {
             node = AudioTick_Remove(node);
             continue;
         }
     }
-    node = (AudioTickNode*)node->field_14;
+    node = node->next;
 }
 ```
 
@@ -17147,11 +17147,11 @@ Write the store first, then re-read. Same-type pointers may alias, so GCC 2.8.1
 reloads:
 
 ```c
-prev->field_14 = arg0->field_14;
-if (arg0->field_14 != 0) {
-    ((AudioTickNode*)arg0->field_14)->field_10 = (s32)prev;
+prev->next = arg0->next;
+if (arg0->next != NULL) {
+    arg0->next->prev = prev;
 }
-return (AudioTickNode*)prev->field_14;
+return prev->next;
 ```
 
 Also assign `head = &sentinel` *before* any callback that may clobber
