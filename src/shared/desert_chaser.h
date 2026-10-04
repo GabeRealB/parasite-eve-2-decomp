@@ -86,6 +86,7 @@ STATIC_ASSERT_SIZEOF(DesertChaserContactPushStepStorage, 16);
  * it starts its lunge. */
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 #define DESERT_CHASER_CONTACTS         5
+#define DESERT_CHASER_AVOID_BEARINGS   16 /* bearings the avoid walk's scratch block holds */
 #define DESERT_CHASER_RUN_SEQUENCE     0
 #define DESERT_CHASER_STATE_TURN_RIGHT 8
 #define DESERT_CHASER_STATE_TURN_LEFT  9
@@ -101,6 +102,7 @@ STATIC_ASSERT_SIZEOF(DesertChaserContactPushStepStorage, 16);
 #define DESERT_CHASER_CLOSE_IN 2000
 #else
 #define DESERT_CHASER_CONTACTS         12
+#define DESERT_CHASER_AVOID_BEARINGS   8 /* half the regular build's, though its tables hold more contacts */
 #define DESERT_CHASER_RUN_SEQUENCE     1
 #define DESERT_CHASER_STATE_TURN_RIGHT 9
 #define DESERT_CHASER_STATE_TURN_LEFT  10
@@ -352,6 +354,38 @@ static __inline__ s16 desertChaserCapsuleTouchesGrid(Task* arg0)
     }
     return found;
 }
+#endif
+
+#if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
+/// Scratch-stack block of `desertChaserAvoidWalk`, which nudges the chaser's
+/// root away from the bodies its front sphere is touching.
+///
+/// The walk collects the bearing from `origin` of each contact of kind
+/// 0x10000, the category of the player's body, or 0x30000, the category enemy
+/// bodies carry; drops every pair of bearings more than 0x400 apart; and steps
+/// the coordinate a short way away from each bearing that survives. It is the
+/// `ActorContactSteerScratch` walk with one more word, `nonBlocking`, and a
+/// per-build number of bearings.
+typedef struct {
+    MATRIX   rot;                                   // Yaw rotation built for the current push, whose Z axis gives its direction
+    SVECTOR  dir;                                   // First the coordinate's normalised Y-axis column, then each push step
+    SVECTOR3 origin;                                // Coordinate's world translation, the point bearings are taken from
+    s32      kind;                                  // Current record's key masked to its kind half
+    s32      nonBlocking;                           // Bit 0x80 of the current record's key; a kind 0x10000 record sets `blocked` only while it is clear. What sets that key bit is unproven
+    s16      bearing[DESERT_CHASER_AVOID_BEARINGS]; // Bearings of the collected contact records
+    s8       kept[DESERT_CHASER_AVOID_BEARINGS];    // Per bearing: 1 until it falls more than 0x400 from another bearing
+    s16      heading;                               // Coordinate's heading in the plane the bearings are measured in
+    s16      diff;                                  // Wrapped difference between two bearings, then the push's yaw
+    u8       i;                                     // Outer cursor over records, then over bearings
+    u8       j;                                     // Inner cursor over the bearings paired with `i`
+    u8       count;                                 // Number of bearings collected
+    u8       blocked;                               // Set when a kind 0x10000 record without key bit 0x80 was seen; the walk's result
+} DesertChaserAvoidScratch;
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+STATIC_ASSERT_SIZEOF(DesertChaserAvoidScratch, 0x70);
+#else
+STATIC_ASSERT_SIZEOF(DesertChaserAvoidScratch, 0x58);
+#endif
 #endif
 
 /// 0x1C-byte block `func_actor_323000_801645A4` pushes on the scratch stack:

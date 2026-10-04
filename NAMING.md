@@ -463,7 +463,9 @@ binds `DESERT_CHASER_BUILD` before including it. `DesertChaserWork` is the
 task's work block, whose head the three builds share and whose tail each build
 declares for itself. Animation request values use
 `DESERT_CHASER_ANIM_REQUEST_`, and the armed builds' collision spheres are
-indexed by `DESERT_CHASER_SPHERE_`.
+indexed by `DESERT_CHASER_SPHERE_`. `DesertChaserAvoidScratch` is the scratch
+block of the armed builds' avoid walk, holding `DESERT_CHASER_AVOID_BEARINGS`
+bearings in each build.
 
 `stalkerZebraIvory` owns the included pose, animation-request and
 pending-action code shared by the Zebra Stalker (`actor_400600`) and the Ivory

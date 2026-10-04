@@ -83,24 +83,6 @@ typedef struct Actor421600DamageScratch {
 } Actor421600DamageScratch;
 STATIC_ASSERT_SIZEOF(Actor421600DamageScratch, 0x30);
 
-typedef struct Actor421600AvoidScratch {
-    /* 0x00 */ MATRIX   m;
-    /* 0x20 */ SVECTOR  dir;
-    /* 0x28 */ SVECTOR3 eye;
-    /* 0x2E */ byte     pad_2E[0x2];
-    /* 0x30 */ s32      kind;
-    /* 0x34 */ s32      flags;
-    /* 0x38 */ s16      angle[8];
-    /* 0x48 */ s8       ok[8];
-    /* 0x50 */ s16      face;
-    /* 0x52 */ s16      diff;
-    /* 0x54 */ u8       i;
-    /* 0x55 */ u8       j;
-    /* 0x56 */ u8       count;
-    /* 0x57 */ u8       blocked;
-} Actor421600AvoidScratch;
-STATIC_ASSERT_SIZEOF(Actor421600AvoidScratch, 0x58);
-
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// The contact routines' scratch position.
@@ -2217,46 +2199,43 @@ static void func_actor_421600_80133444(GfxCoord* coord)
 
 static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
-    u8*                      head;
-    Actor421600AvoidScratch* s;
-    s16                      diff;
+    DesertChaserAvoidScratch* s;
+    s16                       diff;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor421600AvoidScratch);
-    s                        = SCRATCH_STACK_CURSOR(Actor421600AvoidScratch);
+    s = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserAvoidScratch);
 
     s->blocked = 0;
     pos->vz    = 0;
     pos->vy    = 0;
     pos->vx    = 0;
 
-    Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x38));
-    VectorNormalSS((SVECTOR*)(head - 0x38), (SVECTOR*)(head - 0x38));
+    Gfx_MatrixCol1(&coord->workm, &s->dir);
+    VectorNormalSS(&s->dir, &s->dir);
 
     if (ABS(s->dir.vz) < 0x818) {
-        s->face = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
+        s->heading = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
     } else {
-        s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
+        s->heading = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
     }
 
-    s->eye.vx = (u16)coord->workm.t[0];
-    s->eye.vy = (u16)coord->workm.t[1];
-    s->eye.vz = (u16)coord->workm.t[2];
-    s->count  = 0;
+    s->origin.vx = (u16)coord->workm.t[0];
+    s->origin.vy = (u16)coord->workm.t[1];
+    s->origin.vz = (u16)coord->workm.t[2];
+    s->count     = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
         if (recs[s->i].key.value == 0) {
             break;
         }
-        s->kind  = recs[s->i].key.value & 0xFFFF0000;
-        s->flags = recs[s->i].key.value & 0x80;
+        s->kind        = recs[s->i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
+        s->nonBlocking = recs[s->i].key.value & 0x80;
         switch (s->kind) {
             case 0x10000:
-                if (s->flags == 0) {
+                if (s->nonBlocking == 0) {
                     s->blocked = 1;
                 }
             case 0x30000:
@@ -2266,31 +2245,31 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->bearing[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->origin);
         } else {
-            s->angle[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->bearing[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->origin);
         }
-        s->ok[s->count] = 1;
+        s->kept[s->count] = 1;
         s->count++;
-        if (s->count >= 8) {
+        if (s->count >= ARRAY_SIZE(s->bearing)) {
             break;
         }
     }
 
     for (s->i = 0; s->i < s->count; s->i++) {
         for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = actorWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
+            s->diff = actorWrapAngle((u16)s->bearing[s->i] - (u16)s->bearing[s->j]);
             if (abs(s->diff) > 0x400) {
-                s->ok[s->i] = 0;
-                s->ok[s->j] = 0;
+                s->kept[s->i] = 0;
+                s->kept[s->j] = 0;
             }
         }
-        if (s->ok[s->i] != 0) {
-            diff = ((u16)s->angle[s->i] - (u16)s->face) +
+        if (s->kept[s->i] != 0) {
+            diff = ((u16)s->bearing[s->i] - (u16)s->heading) +
                    ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
             s->diff = diff;
-            gfxRotMatrixY(&s->m, diff, 1);
-            gfxReadMatrixZAxis(&s->m, &s->dir);
+            gfxRotMatrixY(&s->rot, diff, 1);
+            gfxReadMatrixZAxis(&s->rot, &s->dir);
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
             gte_ldsv(&s->dir);
@@ -2303,7 +2282,7 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor421600AvoidScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(DesertChaserAvoidScratch);
     return s->blocked != 0;
 }
 

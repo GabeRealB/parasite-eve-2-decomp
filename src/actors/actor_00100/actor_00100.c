@@ -94,27 +94,6 @@ typedef struct Actor00100ProjectScratch {
 } Actor00100ProjectScratch;
 STATIC_ASSERT_SIZEOF(Actor00100ProjectScratch, 0x24);
 
-/// 0x70-byte scratch from the scratch stack used by `desertChaserAvoidWalk`, the
-/// 16-slot variant of the `ActorContact_Steer` walk. `flags` keeps the current
-/// record's `field_4` bit 0x80, which gates `blocked` for kind 0x10000.
-typedef struct Actor00100AvoidScratch16 {
-    /* 0x00 */ MATRIX   m;
-    /* 0x20 */ SVECTOR  dir;
-    /* 0x28 */ SVECTOR3 eye;
-    /* 0x2E */ byte     pad_2E[0x2];
-    /* 0x30 */ s32      kind;
-    /* 0x34 */ s32      flags;
-    /* 0x38 */ s16      angle[16];
-    /* 0x58 */ s8       ok[16];
-    /* 0x68 */ s16      face;
-    /* 0x6A */ s16      diff;
-    /* 0x6C */ u8       i;
-    /* 0x6D */ u8       j;
-    /* 0x6E */ u8       count;
-    /* 0x6F */ u8       blocked;
-} Actor00100AvoidScratch16;
-STATIC_ASSERT_SIZEOF(Actor00100AvoidScratch16, 0x70);
-
 /// One entry of `Actor00100_D00004`: a translation plus the yaw applied after
 /// it. The first component is signed, the rest are not (the code sign-extends
 /// them at the use site).
@@ -1450,19 +1429,17 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
     }
 }
 
-/// Collects bearings from the obstacles in `recs` into a 16-slot scratch and
-/// steps `coord` along each survivor. Same walk as `ActorContact_Steer`, but
-/// `blocked` is raised only for a kind 0x10000 record whose `key` bit 0x80
-/// is clear. The scratch is carved before the early-out, so that path leaks it.
+/// Collects bearings from the obstacles in `recs` into a
+/// `DesertChaserAvoidScratch` and steps `coord` along each survivor. Same walk
+/// as `ActorContact_Steer`, but `blocked` is raised only for a kind 0x10000
+/// record whose `key` bit 0x80 is clear. The scratch is carved before the
+/// early-out, so that path leaks it.
 static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
-    u8*                       head;
-    Actor00100AvoidScratch16* s;
+    DesertChaserAvoidScratch* s;
     s16                       diff;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor00100AvoidScratch16);
-    s                        = SCRATCH_STACK_CURSOR(Actor00100AvoidScratch16);
+    s = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserAvoidScratch);
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
@@ -1473,29 +1450,29 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
     pos->vy    = 0;
     pos->vx    = 0;
 
-    Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x50));
-    VectorNormalSS((SVECTOR*)(head - 0x50), (SVECTOR*)(head - 0x50));
+    Gfx_MatrixCol1(&coord->workm, &s->dir);
+    VectorNormalSS(&s->dir, &s->dir);
 
     if (ABS(s->dir.vz) < 0x818) {
-        s->face = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
+        s->heading = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
     } else {
-        s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
+        s->heading = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
     }
 
-    s->eye.vx = (u16)coord->workm.t[0];
-    s->eye.vy = (u16)coord->workm.t[1];
-    s->eye.vz = (u16)coord->workm.t[2];
-    s->count  = 0;
+    s->origin.vx = (u16)coord->workm.t[0];
+    s->origin.vy = (u16)coord->workm.t[1];
+    s->origin.vz = (u16)coord->workm.t[2];
+    s->count     = 0;
 
     for (s->i = 0; s->i < count; s->i++) {
         if (recs[s->i].key.value == 0) {
             break;
         }
-        s->kind  = recs[s->i].key.value & 0xFFFF0000;
-        s->flags = recs[s->i].key.value & 0x80;
+        s->kind        = recs[s->i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
+        s->nonBlocking = recs[s->i].key.value & 0x80;
         switch (s->kind) {
             case 0x10000:
-                if (s->flags == 0) {
+                if (s->nonBlocking == 0) {
                     s->blocked = 1;
                 }
             case 0x30000:
@@ -1505,31 +1482,31 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->bearing[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->origin);
         } else {
-            s->angle[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
+            s->bearing[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->origin);
         }
-        s->ok[s->count] = 1;
+        s->kept[s->count] = 1;
         s->count++;
-        if (s->count >= 16) {
+        if (s->count >= ARRAY_SIZE(s->bearing)) {
             break;
         }
     }
 
     for (s->i = 0; s->i < s->count; s->i++) {
         for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = actorWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
+            s->diff = actorWrapAngle((u16)s->bearing[s->i] - (u16)s->bearing[s->j]);
             if (abs(s->diff) > 0x400) {
-                s->ok[s->i] = 0;
-                s->ok[s->j] = 0;
+                s->kept[s->i] = 0;
+                s->kept[s->j] = 0;
             }
         }
-        if (s->ok[s->i] != 0) {
-            diff = ((u16)s->angle[s->i] - (u16)s->face) +
+        if (s->kept[s->i] != 0) {
+            diff = ((u16)s->bearing[s->i] - (u16)s->heading) +
                    ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
             s->diff = diff;
-            gfxRotMatrixY(&s->m, diff, 1);
-            gfxReadMatrixZAxis(&s->m, &s->dir);
+            gfxRotMatrixY(&s->rot, diff, 1);
+            gfxReadMatrixZAxis(&s->rot, &s->dir);
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
             gte_ldsv(&s->dir);
@@ -1542,7 +1519,7 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor00100AvoidScratch16));
+    SCRATCH_STACK_RELEASE_BLOCK(DesertChaserAvoidScratch);
     return s->blocked != 0;
 }
 
