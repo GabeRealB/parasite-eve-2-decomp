@@ -40,23 +40,6 @@
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
-/// Parameter block of `roomVariantResolveShelter`, the room-local
-/// resolver `func_neo_ark_eve_access_tunnel_8017D980` calls with one pointer as
-/// both its input and its output.
-///
-/// `field_0` is the code the resolver switches on, `field_2` passes through
-/// unchanged, `field_3` is the byte it writes, and a non-zero `field_5` makes it
-/// return without touching anything. The caller stages the block from the
-/// `RoomDeparture` it is about to publish and copies `field_3` back into it.
-typedef struct NaetUtilParam {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ u8  field_3;
-    /* 0x4 */ u8  field_4;
-    /* 0x5 */ u8  field_5;
-} NaetUtilParam;
-STATIC_ASSERT_SIZEOF(NaetUtilParam, 0x6);
-
 /// Scene id byte; the tunnel stamps 0x18 when it hands the save location off.
 
 /// Set when the tunnel's save is written to the memory card.
@@ -465,9 +448,9 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             return;
         case 4: {
             RoomDeparture  work;
-            NaetUtilParam  param;
+            RoomEventMsg   msg;
             RoomDeparture* wp;
-            s32            (*resolve)(NaetUtilParam*, NaetUtilParam*) = roomVariantResolveShelter;
+            s32            (*resolve)(RoomEventMsg*, RoomEventMsg*) = roomVariantResolveShelter;
 
             work.stage    = GAME_STAGE_MINE_SHELTER;
             work.area     = (u8)task->spawnArg1.value;
@@ -476,15 +459,16 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             work.sndEvent = 0;
             work.facing   = 0x800;
             Gp_MsgPlayerWeapon(0);
-            wp            = &work;
-            param.field_0 = wp->area;
-            param.field_2 = wp->warp;
-            param.field_3 = wp->room;
-            param.field_5 = 0;
-            resolve(&param, &param);
-            wp->area       = param.field_0;
-            wp->warp       = param.field_2;
-            wp->room       = param.field_3;
+            wp = &work;
+            // Let the stage's resolver replace the staged room with the variant game progress selects.
+            msg.areaId    = wp->area;
+            msg.warp      = wp->warp;
+            msg.room      = wp->room;
+            msg.queryOnly = ROOM_EVENT_EXECUTE;
+            resolve(&msg, &msg);
+            wp->area       = msg.areaId;
+            wp->warp       = msg.warp;
+            wp->room       = msg.room;
             gRoomDeparture = work;
             Task_SpawnFromTable(&D_neo_ark_eve_access_tunnel_8017EA88, 0, 0, 0);
             taskKill(task);

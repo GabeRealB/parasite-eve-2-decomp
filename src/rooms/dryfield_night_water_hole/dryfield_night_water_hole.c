@@ -71,34 +71,18 @@
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 
-/// Parameter block of `roomVariantResolveShelter`, the room-local
-/// resolver `func_dryfield_night_water_hole_8017DC28` calls with one pointer as
-/// both its input and its output.
+/// One surface-class replacement the room applies after its default records load.
 ///
-/// `field_0` is the code the resolver switches on: its jump table spans 2..0x2D
-/// and anything outside that range falls through untouched. `field_2` passes
-/// through unchanged, `field_3` is the byte the resolver writes, and `field_5`
-/// is a busy flag - non-zero makes the resolver return immediately without
-/// reading or writing anything else. The caller stages the block from the
-/// `RoomDeparture` it is about to publish and copies `field_3` back into it.
-typedef struct DnwhUtilParam {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ u8  field_3;
-    /* 0x4 */ u8  field_4;
-    /* 0x5 */ u8  field_5;
-} DnwhUtilParam;
-STATIC_ASSERT_SIZEOF(DnwhUtilParam, 0x6);
-
-/// One entry of the NULL-terminated override list
-/// `func_dryfield_night_water_hole_8017DE88` walks: the record the entry
-/// installs in the room's parameter table, `Gp_RoomParamTables[stage][room]`,
-/// and the slot it goes in.
-typedef struct DnwhParamOverride {
-    /* 0x0 */ WorldCollisionSurfaceProperties* rec;
-    /* 0x4 */ s32                              index;
-} DnwhParamOverride;
-STATIC_ASSERT_SIZEOF(DnwhParamOverride, 0x8);
+/// The room's list of these ends at the first entry whose `properties` is NULL.
+/// Applying an entry stores `properties` in the room's slot of the active
+/// stage's surface-property table and refreshes that class's cached
+/// `suppressPushback` flag, so later lookups of the class see the replacement.
+/// The records are this overlay's own and are borrowed only while it is loaded.
+typedef struct {
+    WorldCollisionSurfaceProperties* properties;   // Replacement record; NULL ends the list
+    s32                              surfaceClass; // Surface class it replaces (0..7)
+} _DryfieldNightWaterHoleSurfaceOverride;
+STATIC_ASSERT_SIZEOF(_DryfieldNightWaterHoleSurfaceOverride, 0x8);
 
 /// Resident task table the ending task is spawned from, descriptor 1.
 extern TaskDesc D_801351FC[];
@@ -132,7 +116,7 @@ extern SVECTOR D_dryfield_night_water_hole_801809D4[];
 /// model, compared against this frame's to measure how far each moved.
 extern SVECTOR D_dryfield_night_water_hole_801809F4[];
 /// Override list applied once nibble 0xB8 is set.
-extern DnwhParamOverride D_dryfield_night_water_hole_801835D8[];
+extern _DryfieldNightWaterHoleSurfaceOverride D_dryfield_night_water_hole_801835D8[];
 /// Cursor into the primitive area the room's water surface is written to,
 /// reset each frame to the half of that area belonging to the ordering table
 /// being built.
@@ -141,7 +125,7 @@ extern DnwhParamOverride D_dryfield_night_water_hole_801835D8[];
 extern RoomDeparture gRoomDeparture;
 
 static void func_dryfield_night_water_hole_8017DE20(Task* task);
-static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list);
+static void func_dryfield_night_water_hole_8017DE88(_DryfieldNightWaterHoleSurfaceOverride* list);
 
 extern WorldCollisionGrid         D_dryfield_night_water_hole_80180F50[1];
 extern WorldCollisionOccluder     D_dryfield_night_water_hole_80182D58[2];
@@ -1007,7 +991,7 @@ WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835D0[1] = {
     { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_hole_80183594 },
 };
 
-DnwhParamOverride D_dryfield_night_water_hole_801835D8[4] = {
+_DryfieldNightWaterHoleSurfaceOverride D_dryfield_night_water_hole_801835D8[4] = {
     { D_dryfield_night_water_hole_801835C8, 4 },
     { D_dryfield_night_water_hole_801835C8, 1 },
     { D_dryfield_night_water_hole_801835D0, 2 },
@@ -1114,13 +1098,12 @@ s32 func_dryfield_night_water_hole_8017DAD4(Task* task, s32 msgId, s32 arg2, s32
 s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     RoomDeparture work;
-    DnwhUtilParam param;
+    RoomEventMsg  msg;
 
     if (arg2 == 2) {
         if (GameFlag_GetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) != 0) {
             RoomDeparture* wp;
-            s32            (*resolve)(DnwhUtilParam*, DnwhUtilParam*) =
-                (s32 (*)(DnwhUtilParam*, DnwhUtilParam*))roomVariantResolveShelter;
+            s32            (*resolve)(RoomEventMsg*, RoomEventMsg*) = roomVariantResolveShelter;
 
             work.stage    = GAME_STAGE_MINE_SHELTER;
             work.area     = GAME_AREA_SHELTER_B4_WATER_SUPPLY;
@@ -1129,15 +1112,16 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
             work.sndEvent = 0x53200007;
             work.facing   = 0xC00;
             Gp_MsgPlayerWeapon(0);
-            wp            = &work;
-            param.field_0 = wp->area;
-            param.field_2 = wp->warp;
-            param.field_3 = wp->room;
-            param.field_5 = 0;
-            resolve(&param, &param);
-            wp->area       = param.field_0;
-            wp->warp       = param.field_2;
-            wp->room       = param.field_3;
+            wp = &work;
+            // Let the stage's resolver replace the staged room with the variant game progress selects.
+            msg.areaId    = wp->area;
+            msg.warp      = wp->warp;
+            msg.room      = wp->room;
+            msg.queryOnly = ROOM_EVENT_EXECUTE;
+            resolve(&msg, &msg);
+            wp->area       = msg.areaId;
+            wp->warp       = msg.warp;
+            wp->room       = msg.room;
             gRoomDeparture = work;
             Task_SpawnFromTable(&D_dryfield_night_water_hole_801805EC, 0, 0, 0);
         } else {
@@ -1191,17 +1175,17 @@ void func_dryfield_night_water_hole_8017DE30(Task* task)
 /// Applies the override list `func_dryfield_night_water_hole_8017D958` holds:
 /// each entry replaces a surface-class record and its cached `suppressPushback`
 /// flag in `Gp_RoomParams`. The list ends at the first NULL record.
-static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
+static void func_dryfield_night_water_hole_8017DE88(_DryfieldNightWaterHoleSurfaceOverride* list)
 {
     GameLocationKey*                  sess;
     s32                               i;
     WorldCollisionSurfaceProperties** surfaceProperties;
 
     sess = &gGameSession->location.loc;
-    for (i = 0; list[i].rec != 0; i++) {
-        surfaceProperties                = Gp_RoomParamTables[sess->stage - 1][sess->area - 1];
-        surfaceProperties[list[i].index] = list[i].rec;
-        Gp_RoomParams[list[i].index]     = surfaceProperties[list[i].index]->suppressPushback;
+    for (i = 0; list[i].properties != NULL; i++) {
+        surfaceProperties                       = Gp_RoomParamTables[sess->stage - 1][sess->area - 1];
+        surfaceProperties[list[i].surfaceClass] = list[i].properties;
+        Gp_RoomParams[list[i].surfaceClass]     = surfaceProperties[list[i].surfaceClass]->suppressPushback;
     }
 }
 

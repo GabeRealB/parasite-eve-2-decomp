@@ -121227,7 +121227,7 @@ Scratch `nonmatchings/func_dryfield_night_water_hole_8017DADC-vacuum`.
 
 `func_dryfield_night_water_hole_8017DE88` walks a NULL-terminated array of
 8-byte records and reads the `s32` at +4 twice. Spelled as a pointer walk
-(`for (p = list; p->rec != 0; p++)`) the build carries one register too many:
+(`for (p = list; p->properties != NULL; p++)`) the build carries one register too many:
 the preheader materializes `p + 4` (`addiu $a1,$a2,4`) and every iteration keeps
 it current (`addiu $a1,$a1,8`, which the scheduler pushes into the branch delay
 slot). The target has no such register - `lw $v0,4($a1)` twice, one walking
@@ -121238,7 +121238,7 @@ That register is `loop.c`'s: `find_mem_givs` records a `DEST_ADDR` giv for a
 add == 0`", so `MEM(p)` (the record field at offset 0) is skipped while
 `MEM(p + 4)` is recorded - and since the loop's biv is the pointer itself,
 reducing that giv needs a register of its own. The index form never offers that
-choice: `list[i].rec` and `list[i].index` are `base + 8*i` and `base + 8*i + 4`,
+choice: `list[i].properties` and `list[i].surfaceClass` are `base + 8*i` and `base + 8*i + 4`,
 two givs over the same integer biv, so `loop.c` strength-reduces them into a
 single walking pointer (`addu $a1,$a0,$zero` in the preheader) and leaves the
 +4 as a load displacement. Same instruction count, same loop, one register
@@ -121252,10 +121252,10 @@ not cosmetic: it moves the walk pointer into `$a1` and the session pointer into
 `$a2`, matching the target's whole allocation.
 
 ```c
-for (i = 0; list[i].rec != 0; i++) {              /* not  for (p = list; p->rec; p++) */
+for (i = 0; list[i].properties != NULL; i++) {    /* not  for (p = list; p->properties; p++) */
     surfaceProperties = Gp_RoomParamTables[sess->field_3 - 1][sess->field_2 - 1];
-    surfaceProperties[list[i].index] = list[i].rec;
-    Gp_RoomParams[list[i].index] = surfaceProperties[list[i].index]->suppressPushback;
+    surfaceProperties[list[i].surfaceClass] = list[i].properties;
+    Gp_RoomParams[list[i].surfaceClass] = surfaceProperties[list[i].surfaceClass]->suppressPushback;
 }
 ```
 
