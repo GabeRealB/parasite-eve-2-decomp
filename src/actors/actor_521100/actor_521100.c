@@ -60,14 +60,22 @@ s32 func_actor_521100_80135BEC(Task*, s32, s32, s32);
 
 s32 func_actor_521100_80135C14(Task*, s32, AnimationPlayRequest*, s32);
 
-typedef struct Actor521100FireScratch {
-    /* 0x00 */ VECTOR               pos;
-    /* 0x10 */ VECTOR               delta;
-    /* 0x20 */ SVECTOR              vec;
-    /* 0x28 */ AnimationPlayRequest msg;
-    /* 0x3C */ ActorTransform       aim;
-} Actor521100FireScratch;
-STATIC_ASSERT_SIZEOF(Actor521100FireScratch, 0x54);
+/// Scratch-stack block of the grab, reserved for one tick of that state.
+///
+/// It holds the payloads of the two messages the grab sends the player - the
+/// animation of the package's own player set, and the placement that walks the
+/// player to the hold and carries them through the throw - and the vectors the
+/// placement is worked out in. The player's task reads each payload while its
+/// message is dispatched and keeps neither address. No vector's fourth
+/// component is written.
+typedef struct {
+    VECTOR               worldVector;     // Long vector along the world axes: `localOffset` rotated through the golem's root. The seizure adds the root's position to make it the spot the player is held at, then overwrites it with the unit direction of `toHoldSpot` (4096 = 1.0) while the player is still short of the spot
+    VECTOR               toHoldSpot;      // Hold spot minus the player's position on X and Z, `vy` zero; a player further than 0x32 from the spot is placed 0x32 nearer to it, any other on it
+    SVECTOR              localOffset;     // Short vector in a model's own frame: the hold spot 0x4E2 ahead of the golem's root, the throw's sideways travel for the frame, or the offset the kill passes with the player's coordinate 4 when it spawns its effect
+    AnimationPlayRequest playerAnim;      // Animation of the package's player set the player is told to install and play at each stage of the grab
+    ActorTransform       playerPlacement; // Where `GAME_ACTOR_MESSAGE_PLACE` puts the player; of its angles only the yaw is ever nonzero
+} _Actor521100GrabScratch;
+STATIC_ASSERT_SIZEOF(_Actor521100GrabScratch, 0x54);
 
 extern s16 D_actor_521100_8015F570[];
 
@@ -103,19 +111,24 @@ extern u16 D_actor_521100_8015F5D4[];
 /// `D_actor_510900_80167968` and `D_actor_400100_*`.
 extern DamageAttack D_actor_521100_8015F550[4];
 
-/// One signed halfword choice in a three-row, two-choice transition table.
-/// The selector combines the row and random-column byte offsets before
-/// accessing this member. The member access also keeps GCC's structure-memory
-/// annotation, allowing the independent RNG write to retain its schedule.
-typedef struct Actor521100StateChoice {
-    s16 state;
-} Actor521100StateChoice;
-STATIC_ASSERT_SIZEOF(Actor521100StateChoice, 2);
+extern s16 D_actor_521100_8015F57C[16];
 
-extern s16                    D_actor_521100_8015F57C[16];
-extern Actor521100StateChoice D_actor_521100_8015F59C[6];
-extern s16                    D_actor_521100_8015F5A8[16];
-extern Actor521100StateChoice D_actor_521100_8015F5C8[6];
+/// The attack that follows one chosen twice running while the player is
+/// within 0x8FC: a row per `ACTOR_521100_ATTACK_*` that was repeated, a column
+/// per random bit. No row offers its own attack, and none the long slash.
+///
+/// Both choices start as `ACTOR_521100_ATTACK_NONE` and so agree on the first
+/// draw, whose row is then the one before the table: the last two entries of
+/// `D_actor_521100_8015F57C`, both the stance. Whether the original tables
+/// were laid out to be read that way is unproven.
+extern s16 D_actor_521100_8015F59C[3][2];
+
+extern s16 D_actor_521100_8015F5A8[16];
+
+/// The same table for a player further away, where the long slash is offered.
+/// Its first draw likewise reads the last two entries of
+/// `D_actor_521100_8015F5A8`, both the stance.
+extern s16 D_actor_521100_8015F5C8[3][2];
 
 extern u16 D_actor_521100_8015F614[];
 
@@ -1445,13 +1458,10 @@ s16 D_actor_521100_8015F57C[16] = {
     2,
 };
 
-Actor521100StateChoice D_actor_521100_8015F59C[6] = {
-    { 2 },
-    { 2 },
-    { 0 },
-    { 2 },
-    { 0 },
-    { 0 },
+s16 D_actor_521100_8015F59C[3][2] = {
+    { ACTOR_521100_ATTACK_STANCE, ACTOR_521100_ATTACK_STANCE },
+    { ACTOR_521100_ATTACK_SLASH, ACTOR_521100_ATTACK_STANCE },
+    { ACTOR_521100_ATTACK_SLASH, ACTOR_521100_ATTACK_SLASH },
 };
 
 s16 D_actor_521100_8015F5A8[16] = {
@@ -1473,13 +1483,10 @@ s16 D_actor_521100_8015F5A8[16] = {
     2,
 };
 
-Actor521100StateChoice D_actor_521100_8015F5C8[6] = {
-    { 1 },
-    { 2 },
-    { 0 },
-    { 2 },
-    { 0 },
-    { 1 },
+s16 D_actor_521100_8015F5C8[3][2] = {
+    { ACTOR_521100_ATTACK_LONG_SLASH, ACTOR_521100_ATTACK_STANCE },
+    { ACTOR_521100_ATTACK_SLASH, ACTOR_521100_ATTACK_STANCE },
+    { ACTOR_521100_ATTACK_SLASH, ACTOR_521100_ATTACK_LONG_SLASH },
 };
 
 u16 D_actor_521100_8015F5D4[16] = { 0 };
@@ -2135,21 +2142,17 @@ static s32 func_actor_521100_80132C70(Task* arg0)
 }
 static void func_actor_521100_80132DE8(Task* arg0)
 {
-    Actor521100Work*        work;
-    GfxCoord*               coord;
-    VECTOR*                 head;
-    VECTOR*                 vec;
-    Actor521100StateChoice* pairNear;
-    Actor521100StateChoice* pairFar;
-    s16*                    flatNear;
-    s16*                    flatFar;
-    u16                     prev;
-    u32                     rngPN;
-    u32                     rngPF;
-    u32                     rngFN;
-    u32                     rngFF;
-    s32                     packed;
-    s32                     next;
+    Actor521100Work* work;
+    GfxCoord*        coord;
+    VECTOR*          head;
+    VECTOR*          vec;
+    s16*             flatNear;
+    s16*             flatFar;
+    u16              prev;
+    u32              rngFN;
+    u32              rngFF;
+    s32              packed;
+    s32              next;
 
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
@@ -2169,10 +2172,7 @@ static void func_actor_521100_80132DE8(Task* arg0)
             if (((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) >= 2U) && (gGameSession->location.loc.view != 2)) {
                 if (work->playerDistance < 0x8FC) {
                     if (work->prevAttackChoice == work->attackChoice) {
-                        pairNear        = D_actor_521100_8015F59C;
-                        rngPN           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        gRandomLcgState = rngPN;
-                        next            = ((Actor521100StateChoice*)((u8*)pairNear + (work->attackChoice * 4 + ((rngPN >> 16) & 1) * 2)))->state;
+                        next = D_actor_521100_8015F59C[work->attackChoice][((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1];
                     } else {
                         flatNear        = D_actor_521100_8015F57C;
                         rngFN           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2181,10 +2181,7 @@ static void func_actor_521100_80132DE8(Task* arg0)
                     }
                 } else {
                     if (work->prevAttackChoice == work->attackChoice) {
-                        pairFar         = D_actor_521100_8015F5C8;
-                        rngPF           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        gRandomLcgState = rngPF;
-                        next            = ((Actor521100StateChoice*)((u8*)pairFar + (work->attackChoice * 4 + ((rngPF >> 16) & 1) * 2)))->state;
+                        next = D_actor_521100_8015F5C8[work->attackChoice][((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1];
                     } else {
                         flatFar         = D_actor_521100_8015F5A8;
                         rngFF           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2557,27 +2554,27 @@ static void func_actor_521100_801335B4(Task* arg0)
 
 static void func_actor_521100_801339B0(Task* arg0)
 {
-    Actor521100Work*        work;
-    GfxCoord*               coord;
-    GfxCoord*               pcoord;
-    Task*                   player;
-    Actor521100FireScratch* sc;
-    s32                     flag;
-    s32                     i;
-    s32                     snd;
-    s32                     absDiff;
-    s32                     angle;
-    s16                     state;
-    s16                     turn;
-    u16                     timer;
-    u32                     rng;
-    u16*                    tbl;
+    Actor521100Work*         work;
+    GfxCoord*                coord;
+    GfxCoord*                pcoord;
+    Task*                    player;
+    _Actor521100GrabScratch* scratch;
+    s32                      flag;
+    s32                      i;
+    s32                      snd;
+    s32                      absDiff;
+    s32                      angle;
+    s16                      state;
+    s16                      turn;
+    u16                      timer;
+    u32                      rng;
+    u16*                     tbl;
 
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    SCRATCH_STACK_RESERVE_BYTES(0x54);
-    sc = SCRATCH_STACK_CURSOR(Actor521100FireScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(_Actor521100GrabScratch);
+    scratch = SCRATCH_STACK_CURSOR(_Actor521100GrabScratch);
 
     switch (work->subState) {
         case 0:
@@ -2586,78 +2583,78 @@ static void func_actor_521100_801339B0(Task* arg0)
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (work->animationFrame == 0xC) {
-                flag                         = (gPlayerStatus.coordMtx->m[0][2] * coord->coord.m[0][2] + gPlayerStatus.coordMtx->m[1][2] * coord->coord.m[1][2] + gPlayerStatus.coordMtx->m[2][2] * coord->coord.m[2][2]);
-                work->grabFromFront          = (u32)flag >> 31;
-                sc->msg.source.sets          = D_actor_521100_8015F7CC;
-                sc->msg.animationId          = work->grabFromFront ? 2 : 6;
-                sc->msg.blend                = ANIMATION_BLEND_RESET;
-                sc->msg.blendFrames          = 0;
-                sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
+                flag                                     = (gPlayerStatus.coordMtx->m[0][2] * coord->coord.m[0][2] + gPlayerStatus.coordMtx->m[1][2] * coord->coord.m[1][2] + gPlayerStatus.coordMtx->m[2][2] * coord->coord.m[2][2]);
+                work->grabFromFront                      = (u32)flag >> 31;
+                scratch->playerAnim.source.sets          = D_actor_521100_8015F7CC;
+                scratch->playerAnim.animationId          = work->grabFromFront ? 2 : 6;
+                scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+                scratch->playerAnim.blendFrames          = 0;
+                scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
             } else if (work->animationFrame >= 0x2B) {
-                work->subState               = 1;
-                work->animationId            = 0xB;
-                work->stateCounter           = 0;
-                work->stateElapsed           = 0;
-                sc->msg.source.sets          = D_actor_521100_8015F7CC;
-                sc->msg.animationId          = work->grabFromFront ? 3 : 7;
-                sc->msg.blend                = ANIMATION_BLEND_RESET;
-                sc->msg.blendFrames          = 0;
-                sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
+                work->subState                           = 1;
+                work->animationId                        = 0xB;
+                work->stateCounter                       = 0;
+                work->stateElapsed                       = 0;
+                scratch->playerAnim.source.sets          = D_actor_521100_8015F7CC;
+                scratch->playerAnim.animationId          = work->grabFromFront ? 3 : 7;
+                scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+                scratch->playerAnim.blendFrames          = 0;
+                scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
             }
             if ((work->animationFrame >= 4) && (work->animationFrame <= 0xC)) {
-                sc->vec.vz = 0x4E2;
-                sc->vec.vx = 0;
-                sc->vec.vy = 0;
+                scratch->localOffset.vz = 0x4E2;
+                scratch->localOffset.vx = 0;
+                scratch->localOffset.vy = 0;
                 gte_SetRotMatrix(&coord->coord);
-                gte_ldv0(&sc->vec);
+                gte_ldv0(&scratch->localOffset);
                 gte_rtv0();
-                gte_stlvnl(&sc->pos);
-                sc->pos.vx   = coord->coord.t[0] + sc->pos.vx;
-                sc->pos.vy   = coord->coord.t[1] + sc->pos.vy;
-                sc->pos.vz   = coord->coord.t[2] + sc->pos.vz;
-                pcoord       = player->extra.tmd->coords;
-                sc->delta.vx = sc->pos.vx - pcoord->coord.t[0];
-                sc->delta.vy = 0;
-                sc->delta.vz = sc->pos.vz - pcoord->coord.t[2];
-                if ((SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x32) || (work->animationFrame == 0xC)) {
-                    sc->aim.pos.vx = sc->pos.vx;
-                    sc->aim.pos.vy = sc->pos.vy;
-                    sc->aim.pos.vz = sc->pos.vz;
+                gte_stlvnl(&scratch->worldVector);
+                scratch->worldVector.vx = coord->coord.t[0] + scratch->worldVector.vx;
+                scratch->worldVector.vy = coord->coord.t[1] + scratch->worldVector.vy;
+                scratch->worldVector.vz = coord->coord.t[2] + scratch->worldVector.vz;
+                pcoord                  = player->extra.tmd->coords;
+                scratch->toHoldSpot.vx  = scratch->worldVector.vx - pcoord->coord.t[0];
+                scratch->toHoldSpot.vy  = 0;
+                scratch->toHoldSpot.vz  = scratch->worldVector.vz - pcoord->coord.t[2];
+                if ((SquareRoot0((scratch->toHoldSpot.vx * scratch->toHoldSpot.vx) + (scratch->toHoldSpot.vz * scratch->toHoldSpot.vz)) < 0x32) || (work->animationFrame == 0xC)) {
+                    scratch->playerPlacement.pos.vx = scratch->worldVector.vx;
+                    scratch->playerPlacement.pos.vy = scratch->worldVector.vy;
+                    scratch->playerPlacement.pos.vz = scratch->worldVector.vz;
                 } else {
-                    VectorNormal(&sc->delta, &sc->pos);
-                    sc->aim.pos.vx = pcoord->coord.t[0] + ((sc->pos.vx * 0x32) >> 12);
-                    sc->aim.pos.vy = pcoord->coord.t[1] + ((sc->pos.vy * 0x32) >> 12);
-                    sc->aim.pos.vz = pcoord->coord.t[2] + ((sc->pos.vz * 0x32) >> 12);
+                    VectorNormal(&scratch->toHoldSpot, &scratch->worldVector);
+                    scratch->playerPlacement.pos.vx = pcoord->coord.t[0] + ((scratch->worldVector.vx * 0x32) >> 12);
+                    scratch->playerPlacement.pos.vy = pcoord->coord.t[1] + ((scratch->worldVector.vy * 0x32) >> 12);
+                    scratch->playerPlacement.pos.vz = pcoord->coord.t[2] + ((scratch->worldVector.vz * 0x32) >> 12);
                 }
-                angle          = ratan2(pcoord->coord.m[0][2], pcoord->coord.m[2][2]) & 0xFFF;
-                flag           = work->yaw - angle;
-                sc->aim.rot.vx = 0;
-                sc->aim.rot.vz = 0;
+                angle                           = ratan2(pcoord->coord.m[0][2], pcoord->coord.m[2][2]) & 0xFFF;
+                flag                            = work->yaw - angle;
+                scratch->playerPlacement.rot.vx = 0;
+                scratch->playerPlacement.rot.vz = 0;
                 if (work->animationFrame == 0xC) {
-                    sc->aim.rot.vy = work->yaw;
+                    scratch->playerPlacement.rot.vy = work->yaw;
                 } else {
                     absDiff = flag >= 0 ? flag : -flag;
                     if ((u32)(absDiff - 0x400) >= 0x801U) {
                         if (absDiff < 0x65) {
-                            sc->aim.rot.vy = work->yaw;
+                            scratch->playerPlacement.rot.vy = work->yaw;
                         } else if (flag > 0) {
-                            sc->aim.rot.vy = angle + 0x64;
+                            scratch->playerPlacement.rot.vy = angle + 0x64;
                         } else {
-                            sc->aim.rot.vy = angle - 0x64;
+                            scratch->playerPlacement.rot.vy = angle - 0x64;
                         }
                     } else {
                         if (absDiff < 0x65) {
-                            sc->aim.rot.vy = (work->yaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
+                            scratch->playerPlacement.rot.vy = (work->yaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
                         } else if (flag > 0) {
-                            sc->aim.rot.vy = angle - 0x64;
+                            scratch->playerPlacement.rot.vy = angle - 0x64;
                         } else {
-                            sc->aim.rot.vy = angle + 0x64;
+                            scratch->playerPlacement.rot.vy = angle + 0x64;
                         }
                     }
                 }
-                TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->aim, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &scratch->playerPlacement, 0);
             }
             break;
         case 1:
@@ -2669,14 +2666,14 @@ static void func_actor_521100_801339B0(Task* arg0)
             work->stateCounter = timer;
             if ((s16)timer <= 0) {
                 if (gPlayerStatus.hp <= D_actor_521100_8015F570[gSceneCombatState.difficulty]) {
-                    work->animationId            = 0x14;
-                    work->subState               = 5;
-                    sc->msg.source.sets          = D_actor_521100_8015F7CC;
-                    sc->msg.animationId          = work->grabFromFront ? 0xC : 0xD;
-                    sc->msg.blend                = ANIMATION_BLEND_RESET;
-                    sc->msg.blendFrames          = 0;
-                    sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
+                    work->animationId                        = 0x14;
+                    work->subState                           = 5;
+                    scratch->playerAnim.source.sets          = D_actor_521100_8015F7CC;
+                    scratch->playerAnim.animationId          = work->grabFromFront ? 0xC : 0xD;
+                    scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+                    scratch->playerAnim.blendFrames          = 0;
+                    scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
                     flag = 1;
                 } else {
                     work->stateCounter = 0x20;
@@ -2689,15 +2686,15 @@ static void func_actor_521100_801339B0(Task* arg0)
                     flag = work->grabFromFront == 1;
                 }
                 if (flag != 0) {
-                    work->subState               = 3;
-                    work->playerEscaped          = 0;
-                    work->animationFrame         = 0;
-                    sc->msg.source.sets          = D_actor_521100_8015F7CC;
-                    sc->msg.animationId          = 5;
-                    sc->msg.blend                = ANIMATION_BLEND_RESET;
-                    sc->msg.blendFrames          = 0;
-                    sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
+                    work->subState                           = 3;
+                    work->playerEscaped                      = 0;
+                    work->animationFrame                     = 0;
+                    scratch->playerAnim.source.sets          = D_actor_521100_8015F7CC;
+                    scratch->playerAnim.animationId          = 5;
+                    scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+                    scratch->playerAnim.blendFrames          = 0;
+                    scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
                 } else {
                     if (work->playerEscaped == 0) {
                         timer              = work->stateElapsed + 1;
@@ -2706,15 +2703,15 @@ static void func_actor_521100_801339B0(Task* arg0)
                             break;
                         }
                     }
-                    work->subState               = 2;
-                    work->animationId            = 0x13;
-                    work->playerEscaped          = 0;
-                    sc->msg.source.sets          = D_actor_521100_8015F7CC;
-                    sc->msg.animationId          = work->grabFromFront ? 9 : 0xA;
-                    sc->msg.blend                = ANIMATION_BLEND_RESET;
-                    sc->msg.blendFrames          = 0;
-                    sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
+                    work->subState                           = 2;
+                    work->animationId                        = 0x13;
+                    work->playerEscaped                      = 0;
+                    scratch->playerAnim.source.sets          = D_actor_521100_8015F7CC;
+                    scratch->playerAnim.animationId          = work->grabFromFront ? 9 : 0xA;
+                    scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+                    scratch->playerAnim.blendFrames          = 0;
+                    scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
                 }
             }
             break;
@@ -2730,24 +2727,24 @@ static void func_actor_521100_801339B0(Task* arg0)
             if (work->animationFrame < 0x45) {
                 for (i = 0; i < 0x11; i++) {
                     if (work->animationFrame < D_actor_521100_8015F80C[work->grabFromFront][i].field_0) {
-                        sc->vec.vx = D_actor_521100_8015F80C[work->grabFromFront][i].field_2;
+                        scratch->localOffset.vx = D_actor_521100_8015F80C[work->grabFromFront][i].field_2;
                         break;
                     }
                 }
-                sc->vec.vy = 0;
-                sc->vec.vz = 0;
+                scratch->localOffset.vy = 0;
+                scratch->localOffset.vz = 0;
                 gte_SetRotMatrix(&coord->coord);
-                gte_ldv0(&sc->vec);
+                gte_ldv0(&scratch->localOffset);
                 gte_rtv0();
-                gte_stlvnl(&sc->pos);
-                pcoord         = player->extra.tmd->coords;
-                sc->aim.pos.vx = pcoord->coord.t[0] + sc->pos.vx;
-                sc->aim.pos.vy = pcoord->coord.t[1] + sc->pos.vy;
-                sc->aim.pos.vz = pcoord->coord.t[2] + sc->pos.vz;
-                sc->aim.rot.vx = 0;
-                sc->aim.rot.vy = work->yaw;
-                sc->aim.rot.vz = 0;
-                TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->aim, 0);
+                gte_stlvnl(&scratch->worldVector);
+                pcoord                          = player->extra.tmd->coords;
+                scratch->playerPlacement.pos.vx = pcoord->coord.t[0] + scratch->worldVector.vx;
+                scratch->playerPlacement.pos.vy = pcoord->coord.t[1] + scratch->worldVector.vy;
+                scratch->playerPlacement.pos.vz = pcoord->coord.t[2] + scratch->worldVector.vz;
+                scratch->playerPlacement.rot.vx = 0;
+                scratch->playerPlacement.rot.vy = work->yaw;
+                scratch->playerPlacement.rot.vz = 0;
+                TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &scratch->playerPlacement, 0);
             }
             if (work->animationFrame == 0x23) {
                 Gp_SpawnEff(EFFECT_DUST_PUFF, player->extra.tmd->coords + 3, 0x80003400, NULL);
@@ -2755,12 +2752,12 @@ static void func_actor_521100_801339B0(Task* arg0)
                 Gp_SpawnEff(EFFECT_DUST_PUFF, player->extra.tmd->coords + 3, 0x80003400, NULL);
             }
             if (work->animationFrame == 0x45) {
-                sc->msg.source.sets          = D_actor_521100_8015F7CC;
-                sc->msg.animationId          = 0xB;
-                sc->msg.blend                = ANIMATION_BLEND_RESET;
-                sc->msg.blendFrames          = 0;
-                sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
+                scratch->playerAnim.source.sets          = D_actor_521100_8015F7CC;
+                scratch->playerAnim.animationId          = 0xB;
+                scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+                scratch->playerAnim.blendFrames          = 0;
+                scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
             }
             turn = 0;
             if (work->animationFrame < 0x5F) {
@@ -2768,14 +2765,14 @@ static void func_actor_521100_801339B0(Task* arg0)
             }
             work->forwardSpeed = turn;
             if (work->animationFrame == 0x6F) {
-                coord          = player->extra.tmd->coords;
-                sc->aim.pos.vx = coord->coord.t[0];
-                sc->aim.pos.vy = coord->coord.t[1];
-                sc->aim.pos.vz = coord->coord.t[2];
-                sc->aim.rot.vx = 0;
-                sc->aim.rot.vy = (work->yaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
-                sc->aim.rot.vz = 0;
-                TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->aim, 0);
+                coord                           = player->extra.tmd->coords;
+                scratch->playerPlacement.pos.vx = coord->coord.t[0];
+                scratch->playerPlacement.pos.vy = coord->coord.t[1];
+                scratch->playerPlacement.pos.vz = coord->coord.t[2];
+                scratch->playerPlacement.rot.vx = 0;
+                scratch->playerPlacement.rot.vy = (work->yaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
+                scratch->playerPlacement.rot.vz = 0;
+                TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &scratch->playerPlacement, 0);
             }
             if ((work->animationFrame >= 0x6F) && (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0)) {
                 taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
@@ -2796,14 +2793,14 @@ static void func_actor_521100_801339B0(Task* arg0)
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C000E;
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)worldCoordGetOriginAudioDepth(coord));
-                work->subState               = 4;
-                work->animationId            = 0xD;
-                sc->msg.source.sets          = D_actor_521100_8015F7CC;
-                sc->msg.animationId          = 4;
-                sc->msg.blend                = ANIMATION_BLEND_RESET;
-                sc->msg.blendFrames          = 0;
-                sc->msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->msg, 0);
+                work->subState                           = 4;
+                work->animationId                        = 0xD;
+                scratch->playerAnim.source.sets          = D_actor_521100_8015F7CC;
+                scratch->playerAnim.animationId          = 4;
+                scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+                scratch->playerAnim.blendFrames          = 0;
+                scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
             }
             break;
         case 4:
@@ -2823,10 +2820,10 @@ static void func_actor_521100_801339B0(Task* arg0)
                 work->stateCounter                = 0;
                 gGameSession->deathRestartDelay   = 0x5A;
                 gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
-                sc->vec.vx                        = 0;
-                sc->vec.vy                        = -0x96;
-                sc->vec.vz                        = 0xC8;
-                func_800FDB18(1, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 4, &sc->vec,
+                scratch->localOffset.vx           = 0;
+                scratch->localOffset.vy           = -0x96;
+                scratch->localOffset.vz           = 0xC8;
+                func_800FDB18(1, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 4, &scratch->localOffset,
                               &D_actor_521100_8015F804);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 taskMessageDispatch(player, 0x400, 0, 0);
@@ -2850,7 +2847,7 @@ static void func_actor_521100_801339B0(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x54);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor521100GrabScratch);
 }
 
 /// Step-4 body of the burn-out sequence, the fourth of the ones the dispatcher

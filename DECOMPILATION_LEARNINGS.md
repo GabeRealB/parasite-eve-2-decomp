@@ -147371,3 +147371,45 @@ the cut (`size:0xB8` twice) or the expected objects name the old symbol. When
 a storage wrapper's only access is one word, look for the same statement in a
 sibling package before keeping the wrapper, and test the offset against the
 sibling's table length.
+
+## A wrapper struct and `(u8*)table + row * 4 + bit * 2` hiding a two-dimensional table: index the global directly and draw inside the index (actor_521100, 2026-10-04)
+
+**Symptom.** A `[3][2]` table of `s16` was declared as six one-member structs
+and read through a pointer local with the byte offset summed by hand, a note
+beside it saying the member access was needed for the RNG store's schedule:
+
+```c
+pair            = D_table;
+rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+gRandomLcgState = rng;
+next            = ((Choice*)((u8*)pair + (work->row * 4 + ((rng >> 16) & 1) * 2)))->state;
+```
+
+The target sums the two scaled indices first and adds the table's address
+last (`sll row,2` / `addu bit*2,row*4` / `addu ,table`).
+
+**Cause.** Two separate things were being forced. The association is what a
+nonconstant `ARRAY_REF` on a *global* array gives: the address is a constant,
+so the expander keeps it outermost and sums the variable offsets first.
+Through a pointer local - `s16 (*p)[2]`, or `s16 (*p)[3][2]` with
+`(*p)[row][bit]` - the base is a register and the sum is
+`(p + row * 4) + bit * 2`, three instructions in the wrong order. A flat
+`s16[6]` indexed `[row * 2 + bit]` is not distributed at all
+(`sll 1` / `addu` / `sll 1`). And with the global indexed directly, a draw
+made in a statement of its own ahead of the read - kept in a local and stored,
+or assigned straight to `gRandomLcgState` and read back in the index -
+schedules `lui %hi(gRandomLcgState)` ahead of the increment's `ori` and the
+table's `lui`.
+
+**Fix.** Declare the table with its real shape and put the draw in the index:
+
+```c
+s16 D_table[3][2] = { ... };
+...
+next = D_table[work->row][((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1];
+```
+
+No wrapper, no pointer local, no cast. When a table read needs a hand-summed
+byte offset to match, try the plain multi-dimensional global first; when only
+the constant loads around an LCG draw are out of order, try the draw as an
+assignment expression at its point of use before reaching for a struct view.
