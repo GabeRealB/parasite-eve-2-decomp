@@ -26,11 +26,21 @@
 
 struct Actor503500Work;
 
-/// An attack of the boss, run once a frame from the frame it is picked.
+/// An attack of the boss: a routine the attack state calls once a frame, from
+/// the frame it is picked until it reports a result.
+///
+/// `task` is the boss's task and `work` the work block `task->work` points at.
+/// An attack keeps its progress in the block's `attackPhase`, `attackFrames`
+/// and `attackSlot`. The first two are zeroed on every change of state, so an
+/// attack always starts at phase 0; `attackSlot` is not, and holds the last
+/// attack's slot until this one commands its own.
 ///
 /// Returns 0 while the attack is still running. Any other result ends it and
-/// is the number of frames the boss then idles before picking again; an attack
-/// that cannot start returns 1, so the next pick follows almost at once.
+/// is stored as `attackDelay`, the count of frames the idle state waits out
+/// before the next pick. An attack may end on its first call, having commanded
+/// nothing because its slots were not ready; most then return 1, so the next
+/// pick follows almost at once. An attack interrupted by a change of state is
+/// not called again, and the next visit to the attack state picks afresh.
 typedef s32 (*Actor503500AttackFn)(Task* task, struct Actor503500Work* work);
 
 /// One entry of a weighted attack list, which a NULL `attack` ends.
