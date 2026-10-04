@@ -92,7 +92,7 @@ func_shelter_b2_pod_bottom_80181A48 = 0x80181A48; // type:func
 
 func_shelter_b2_pod_bottom_80181940 = 0x80181940; // type:func
 
-effectSpriteDriftTask = 0x8017D850; // type:func
+shelterB2PodBottomEffectSpriteDriftTask = 0x8017D850; // type:func
 
 func_shelter_b2_pod_bottom_80181B48 = 0x80181B48; // type:func
 

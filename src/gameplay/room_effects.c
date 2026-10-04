@@ -485,9 +485,9 @@ static void Gp_KillState1CTask(Task* arg0);
 static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2);
 
 // Retained effect slots without a proven owning room. See the local type audit.
-void func_8018345C(Task* task);
+void func_mist_parking_8018345C(Task* task);
 
-void func_8017FAAC(Task* task);
+void func_acropolis_east_elevator_hall_8017FAAC(Task* task);
 
 void func_8011D1E0(Task* task);
 
@@ -528,7 +528,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_west_elevator_hall_8017FE18, { NULL } },                // 0x020
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_east_elevator_hall_8017F5B4, { NULL } },                // 0x021
     { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallRedBeaconTask, { NULL } },                    // 0x022
-    { { { TASK_BODY_COORD, 0x70 } }, func_8017FAAC, { NULL } },                                             // 0x023
+    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_east_elevator_hall_8017FAAC, { NULL } },                // 0x023
     { { { TASK_BODY_COORD, 0x70 } }, func_hypervelocity_8011D1E8, { NULL } },                               // 0x024
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_west_elevator_hall_8017FFE4, { NULL } },                // 0x025
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_fountain_8017E014, { NULL } },                          // 0x026
@@ -539,7 +539,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask2B, { NULL } },                                           // 0x02B
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                   // 0x02C
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_square_801823DC, { NULL } },                            // 0x02D
-    { { { TASK_BODY_COORD, 0x70 } }, func_8018345C, { NULL } },                                             // 0x02E
+    { { { TASK_BODY_COORD, 0x70 } }, func_mist_parking_8018345C, { NULL } },                                // 0x02E
     { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_javelin_8011D1E4, { NULL } },                                // 0x02F
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask30, { NULL } },                                           // 0x030
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                   // 0x031
@@ -928,7 +928,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_loft_8017E090, { NULL } },                   // 0x1B0
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetPuffTask, { NULL } },                                // 0x1B1
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetPuffTask, { NULL } },                           // 0x1B2
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_8017D850, { NULL } },                       // 0x1B3
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEffectSpriteDriftTask, { NULL } },                   // 0x1B3
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantrySpriteDriftTask, { NULL } },                  // 0x1B4
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelEffectSpriteDriftTask, { NULL } },             // 0x1B5
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_r08_8017D5F8, { NULL } },                                // 0x1B6

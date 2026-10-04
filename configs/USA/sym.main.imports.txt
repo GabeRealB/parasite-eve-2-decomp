@@ -198,7 +198,7 @@ D_grenade_pistol_8012B5A4 = 0x8012B5A4; // absolute:True
 D_mm1_8012D444 = 0x8012D444; // absolute:True
 D_m4a1_grenade_8012E1FC = 0x8012E1FC; // absolute:True
 func_actor_800300_801625F4 = 0x801625F4; // type:func absolute:True owner=actor_800300
-func_actor_800200_801626EC = 0x801626EC; // type:func absolute:True
+func_actor_800200_801626EC = 0x801626EC; // type:func absolute:True owner=actor_800200 shared=actors
 func_actor_800100_80163CF0 = 0x80163CF0; // type:func absolute:True owner=actor_800100
 func_kyle_800102_801682B4 = 0x801682B4; // type:func absolute:True owner=kyle_800102
 gActor800300Model02CF4 = 0x8016885C; // absolute:True
@@ -213,9 +213,9 @@ D_kyle_800102_8016E0C0 = 0x8016E0C0; // absolute:True
 D_kyle_800104_8016E568 = 0x8016E568; // absolute:True
 D_kyle_800102_8016E93C = 0x8016E93C; // absolute:True
 D_kyle_800102_801775A8 = 0x801775A8; // absolute:True
-func_acropolis_fountain_8017DCD4 = 0x8017DCD4; // type:func absolute:True
+func_acropolis_fountain_8017DCD4 = 0x8017DCD4; // type:func absolute:True owner=acropolis_fountain shared=rooms
 func_acropolis_security_room_8017ED68 = 0x8017ED68; // type:func absolute:True owner=acropolis_security_room shared=rooms
-func_acropolis_helicopter_landing_pad_8017EF8C = 0x8017EF8C; // type:func absolute:True
+func_acropolis_helicopter_landing_pad_8017EF8C = 0x8017EF8C; // type:func absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 func_acropolis_bridge_8017F788 = 0x8017F788; // type:func absolute:True owner=acropolis_bridge
 func_acropolis_security_room_80180294 = 0x80180294; // type:func absolute:True owner=acropolis_security_room
 func_acropolis_cafeteria_80181E70 = 0x80181E70; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
@@ -308,4 +308,4 @@ D_80114B34 = 0x80114B34; // absolute:True size:0x48
 
 func_map_dryfield_80179954 = 0x80179954; // type:func absolute:True owner=map_dryfield shared=mapui
 
-func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // type:func absolute:True
+func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // type:func absolute:True owner=acropolis_plaza shared=rooms

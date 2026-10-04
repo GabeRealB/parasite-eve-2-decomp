@@ -31,7 +31,8 @@
 
 #include "rooms/room.h"
 // Exported instance: another image refers to this package's copy by name.
-#define effectSpriteRiseTask shelterB2PodBottomEffectSpriteRiseTask
+#define effectSpriteRiseTask  shelterB2PodBottomEffectSpriteRiseTask
+#define effectSpriteDriftTask shelterB2PodBottomEffectSpriteDriftTask
 #include "../../shared/effect_sprite.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);

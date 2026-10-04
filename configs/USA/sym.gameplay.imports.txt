@@ -370,7 +370,7 @@ D_map_dryfield_8017BD80 = 0x8017BD80; // absolute:True
 D_map_dryfield_full_8017D1CC = 0x8017D1CC; // absolute:True
 D_map_shelter_8017BD8C = 0x8017BD8C; // absolute:True
 D_map_neo_ark_8017CB0C = 0x8017CB0C; // absolute:True
-func_8017FAAC = 0x8017FAAC; // type:func absolute:True
+func_acropolis_east_elevator_hall_8017FAAC = 0x8017FAAC; // type:func absolute:True owner=acropolis_east_elevator_hall shared=rooms
 func_8011D1E0 = 0x8011D1E0; // type:func absolute:True
 D_map_akropolis_8017A8AC = 0x8017A8AC; // absolute:True
 D_map_dryfield_8017A6A4 = 0x8017A6A4; // absolute:True
@@ -1185,7 +1185,7 @@ func_shelter_b2_pod_access_tunnel_80182690 = 0x80182690; // type:func absolute:T
 
 func_shelter_b2_pod_access_tunnel_80182F78 = 0x80182F78; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
-func_shelter_b2_pod_bottom_8017D850 = 0x8017D850; // type:func absolute:True
+shelterB2PodBottomEffectSpriteDriftTask = 0x8017D850; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 
 func_shelter_b2_pod_bottom_8018016C = 0x8018016C; // type:func absolute:True owner=shelter_b2_pod_bottom
 
@@ -1789,7 +1789,7 @@ func_dryfield_water_tank_8017F084 = 0x8017F084; // type:func absolute:True owner
 
 func_dryfield_breezeway_8017FF7C = 0x8017FF7C; // type:func absolute:True owner=dryfield_breezeway shared=rooms
 
-factoryDayDrawGlows = 0x801825F0; // type:func absolute:True
+factoryDayDrawGlows = 0x801825F0; // type:func absolute:True owner=dryfield_factory shared=rooms
 
 func_dryfield_garage_8017DC68 = 0x8017DC68; // type:func absolute:True owner=dryfield_garage shared=rooms
 
@@ -1829,7 +1829,7 @@ func_dryfield_night_water_tank_8017DD8C = 0x8017DD8C; // type:func absolute:True
 
 func_dryfield_night_breezeway_8017E5BC = 0x8017E5BC; // type:func absolute:True owner=dryfield_night_breezeway shared=rooms
 
-factoryNightDrawGlows = 0x801825F0; // type:func absolute:True
+factoryNightDrawGlows = 0x801825F0; // type:func absolute:True owner=dryfield_night_factory shared=rooms
 
 func_dryfield_night_garage_80181518 = 0x80181518; // type:func absolute:True owner=dryfield_night_garage shared=rooms
 
@@ -1949,13 +1949,13 @@ func_shelter_b1_elevator_hall_8017F7D4 = 0x8017F7D4; // type:func absolute:True 
 
 func_acropolis_forked_road_8017E81C = 0x8017E81C; // type:func absolute:True owner=acropolis_forked_road shared=rooms
 
-func_acropolis_helicopter_landing_pad_801802E0 = 0x801802E0; // type:func absolute:True
+func_acropolis_helicopter_landing_pad_801802E0 = 0x801802E0; // type:func absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 
 func_neo_ark_forest_zone_8017DC20 = 0x8017DC20; // type:func absolute:True owner=neo_ark_forest_zone shared=rooms
 
-shelterB1PodServiceGantrySpriteDriftTask = 0x8017D8F4; // type:func absolute:True
+shelterB1PodServiceGantrySpriteDriftTask = 0x8017D8F4; // type:func absolute:True owner=shelter_b1_pod_service_gantry shared=rooms
 
-dryfieldR08SpriteDriftTask = 0x8017D8B4; // type:func absolute:True
+dryfieldR08SpriteDriftTask = 0x8017D8B4; // type:func absolute:True owner=dryfield_r08 shared=rooms
 
 func_shelter_b2_pod_bottom_8017EC78 = 0x8017EC78; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 
@@ -1965,7 +1965,7 @@ func_mist_shooting_gallery_80182064 = 0x80182064; // type:func absolute:True own
 
 func_neo_ark_woodland_path_8017ED00 = 0x8017ED00; // type:func absolute:True owner=neo_ark_woodland_path shared=rooms
 
-func_8018345C = 0x8018345C; // type:func absolute:True
+func_mist_parking_8018345C = 0x8018345C; // type:func absolute:True owner=mist_parking shared=rooms
 
 func_hypervelocity_8011F270 = 0x8011F270; // type:func absolute:True owner=hypervelocity
 
