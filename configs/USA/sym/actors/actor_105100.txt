@@ -89,9 +89,9 @@ D_actor_105100_80141380 = 0x80141380; // size:0x18 defined:True
 D_actor_105100_801414C8 = 0x801414C8; // size:0x18 defined:True
 D_actor_105100_801414E0 = 0x801414E0; // size:0x38 defined:True
 
-func_shelter_b6_training_room_8018294C = 0x8018294C; // absolute:True
+func_shelter_b6_training_room_8018294C = 0x8018294C; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_training_room_8017FC40 = 0x8017FC40; // absolute:True owner=shelter_b6_training_room
+func_shelter_b6_training_room_8017FC40 = 0x8017FC40; // type:func absolute:True owner=shelter_b6_training_room
 fireballDrawGlow = 0x80131EBC; // type:func
 fireballDrawGroundGlow = 0x80132414; // type:func
 fireballSpawnEmber = 0x80135CEC; // type:func

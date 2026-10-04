@@ -149,10 +149,10 @@ static const char D_mist_shooting_gallery_8017D844[];
 static const char D_mist_shooting_gallery_8017D850[];
 
 extern void func_actor_215100_8014A398(void);
-extern s32  func_8014AA54(RoomEventMsg* loc);
+extern s32  func_actor_215100_8014AA54(RoomEventMsg* loc);
 extern void func_actor_215100_8014AB6C(void);
 extern void func_actor_215100_8014AF0C(void);
-extern void func_8014C5E0(s32, s32, s32);
+extern void func_actor_215100_8014C5E0(s32, s32, s32);
 
 extern s32        D_8014D038;
 extern TaskDesc   D_8014E13C;
@@ -1861,7 +1861,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
 
     arg0->msgTable = D_mist_shooting_gallery_801850E8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    func_8014C5E0(0x340, 0, 2);
+    func_actor_215100_8014C5E0(0x340, 0, 2);
     if (GameFlag_GetNibble(GAME_FLAG_0ED) != 0) {
         Gp_MsgSlot4Chain(1, 0);
         var_a0 = 1;
@@ -1954,7 +1954,7 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src
         }
     }
     if (src->areaId == GAME_AREA_MIST_SHOOTING_GALLERY) {
-        if (dst->warp == 5 && func_8014AA54(src) == 2) {
+        if (dst->warp == 5 && func_actor_215100_8014AA54(src) == 2) {
             return 2;
         }
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {

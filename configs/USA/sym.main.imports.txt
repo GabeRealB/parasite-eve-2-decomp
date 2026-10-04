@@ -306,6 +306,6 @@ D_80400000 = 0x80400000; // absolute:True
 
 D_80114B34 = 0x80114B34; // absolute:True size:0x48
 
-func_map_dryfield_80179954 = 0x80179954; // absolute:True
+func_map_dryfield_80179954 = 0x80179954; // type:func absolute:True
 
-func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // absolute:True
+func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // type:func absolute:True

@@ -77,11 +77,11 @@ D_actor_121300_8013D41C = 0x8013D41C; // size:0x2 defined:True
 gScreenWaveColumns = 0x8013D420; // size:0x4E defined:True
 gScreenWaveRows = 0x8013D470; // size:0xB4 defined:True
 
-func_dryfield_r08_8017F334 = 0x8017F334; // absolute:True owner=dryfield_r08
+func_dryfield_r08_8017F334 = 0x8017F334; // type:func absolute:True owner=dryfield_r08
 
-func_dryfield_r08_8017F340 = 0x8017F340; // absolute:True
+func_dryfield_r08_8017F340 = 0x8017F340; // type:func absolute:True owner=dryfield_r08
 
-func_dryfield_r08_8017F438 = 0x8017F438; // absolute:True owner=dryfield_r08
+func_dryfield_r08_8017F438 = 0x8017F438; // type:func absolute:True owner=dryfield_r08
 screenWaveTask = 0x80131EB0; // type:func
 actorMsgPlaceYawPitchRoll = 0x8013411C; // type:func
 actorMsgSetDrawMode = 0x801341A8; // type:func

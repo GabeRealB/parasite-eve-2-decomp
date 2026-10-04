@@ -77,7 +77,7 @@ void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2);
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
-void    func_80132F58(s32 arg0);
+void    func_actor_503500_80132F58(s32 arg0);
 
 extern TaskDesc   D_8014B958;
 extern TaskDesc   D_8014B964;
@@ -2190,7 +2190,7 @@ static void func_shelter_r48_8017E1A4(Task* arg0)
 {
     arg0->msgTable = D_shelter_r48_80182FB8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    func_80132F58(0);
+    func_actor_503500_80132F58(0);
     func_800E8634(D_8014BD48, 0, D_8014C288);
     GameFlag_SetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 1);
     arg0->state = (s32)(arg0->state + 1);

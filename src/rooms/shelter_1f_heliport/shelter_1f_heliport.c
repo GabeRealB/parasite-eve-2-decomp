@@ -71,7 +71,7 @@ extern void func_8013230C(void);
 extern void func_801322A0(void);
 extern void func_80149E38(void);
 extern void func_80149E80(void);
-extern void func_80149EBC(void);
+extern void func_actor_260500_80149EBC(void);
 extern void func_actor_260400_80149FA4(void);
 
 extern TaskDesc D_80136CDC;
@@ -741,7 +741,7 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, s3
     switch (in->warp) {
         case 1:
             if (gGameSession->location.loc.variant == 1) {
-                func_80149EBC();
+                func_actor_260500_80149EBC();
             }
             if (gGameSession->location.loc.variant == 2) {
                 func_80149E38();

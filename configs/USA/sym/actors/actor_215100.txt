@@ -361,15 +361,15 @@ D_actor_215100_80152EAC = 0x80152EAC; // size:0x8C defined:True
 D_actor_215100_8015E678 = 0x8015E678; // size:0x8 defined:True
 D_actor_215100_8014CF6C = 0x8014CF6C; // size:0x18 defined:True
 
-func_mist_shooting_gallery_80180390 = 0x80180390; // absolute:True
+func_mist_shooting_gallery_80180390 = 0x80180390; // type:func absolute:True owner=mist_shooting_gallery
 
-func_mist_shooting_gallery_80180B34 = 0x80180B34; // absolute:True
+func_mist_shooting_gallery_80180B34 = 0x80180B34; // type:func absolute:True owner=mist_shooting_gallery
 
-func_mist_shooting_gallery_801811C0 = 0x801811C0; // absolute:True owner=mist_shooting_gallery
+func_mist_shooting_gallery_801811C0 = 0x801811C0; // type:func absolute:True owner=mist_shooting_gallery
 
-func_mist_shooting_gallery_801848B4 = 0x801848B4; // absolute:True owner=mist_shooting_gallery
+func_mist_shooting_gallery_801848B4 = 0x801848B4; // type:func absolute:True owner=mist_shooting_gallery
 
-func_mist_shooting_gallery_80184954 = 0x80184954; // absolute:True owner=mist_shooting_gallery
+func_mist_shooting_gallery_80184954 = 0x80184954; // type:func absolute:True owner=mist_shooting_gallery
 
 D_mist_shooting_gallery_80185384 = 0x80185384; // absolute:True
 
@@ -377,9 +377,9 @@ D_mist_shooting_gallery_801856B8 = 0x801856B8; // absolute:True
 
 D_mist_shooting_gallery_8018E0C4 = 0x8018E0C4; // absolute:True
 
-func_mist_shooting_gallery_8017DCAC = 0x8017DCAC; // absolute:True
+func_mist_shooting_gallery_8017DCAC = 0x8017DCAC; // type:func absolute:True
 
-func_mist_shooting_gallery_8017F95C = 0x8017F95C; // absolute:True
+func_mist_shooting_gallery_8017F95C = 0x8017F95C; // type:func absolute:True owner=mist_shooting_gallery
 CapCaption_RunSchedule = 0x8014AFAC; // type:func
 CapCaption_DrawCurrent = 0x8014B0D4; // type:func
 CapCaption_Relocate = 0x8014B1B0; // type:func

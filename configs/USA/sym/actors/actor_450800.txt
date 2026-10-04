@@ -224,8 +224,8 @@ gPairWalkMessages = 0x801539AC; // size:0x30 defined:True
 gPairWalkTasks = 0x801539DC; // size:0x18 defined:True
 gPairWalkAnimParams = 0x801539F4; // size:0x18 defined:True
 D_actor_450800_8013BA84 = 0x8013BA84; // size:0x1E0 defined:True
-func_shelter_b6_nursery_8017FFF4 = 0x8017FFF4; // absolute:True
-func_shelter_b6_nursery_80180038 = 0x80180038; // absolute:True
+func_shelter_b6_nursery_8017FFF4 = 0x8017FFF4; // type:func absolute:True
+func_shelter_b6_nursery_80180038 = 0x80180038; // type:func absolute:True
 D_actor_450800_8013AE90 = 0x8013AE90; // size:0x18 defined:True
 D_actor_450800_8013AEA8 = 0x8013AEA8; // size:0x18 defined:True
 D_actor_450800_8013AEC0 = 0x8013AEC0; // size:0x18 defined:True
@@ -467,7 +467,7 @@ D_actor_450800_8013968C = 0x8013968C; // size:0x14 defined:True
 D_actor_450800_801396A0 = 0x801396A0; // size:0x14 defined:True
 D_actor_450800_801396B4 = 0x801396B4; // size:0x14 defined:True
 
-func_shelter_b6_nursery_80182D14 = 0x80182D14; // absolute:True
+func_shelter_b6_nursery_80182D14 = 0x80182D14; // type:func absolute:True owner=shelter_b6_nursery
 pacedWalkTickAnim = 0x80132A1C; // type:func
 pacedWalkResetAnim = 0x80132A68; // type:func
 walkerDrawShadowShaded = 0x801328BC; // type:func

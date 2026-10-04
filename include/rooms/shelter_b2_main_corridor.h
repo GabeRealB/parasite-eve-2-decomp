@@ -49,7 +49,7 @@ void func_shelter_b2_main_corridor_8017E338(Task* task);
 
 void func_shelter_b2_main_corridor_8017EF24(Task* task);
 
-void func_shelter_b2_main_corridor_8017F3AC(Task* task);
+void waterDriftTaskNoUpdate(Task* task);
 
 void func_shelter_b2_main_corridor_8018094C(Task* task);
 

@@ -128,6 +128,20 @@ def record_generated_name(root: str, spec_name: str, new_name: str, source: str,
     if rel is None:
         return None
     addr = int(m.group(1), 16)
+    # A reference into another image is declared `absolute:True` in a symbol
+    # map already - the family's imports, or the image's own - and the sidecar
+    # pass rewrites that line. The name is then stored; adding an entry to the
+    # image's own map as well would declare, as that image's function, an
+    # address the image does not hold.
+    import glob
+    for other in glob.glob(os.path.join(root, "configs", version, "**", "*.txt"), recursive=True):
+        try:
+            text = open(other, errors="replace").read()
+        except OSError:
+            continue
+        if re.search(rf"^\s*(?:{re.escape(spec_name)}|{re.escape(new_name)})\s*=\s*{addr:#010x}\s*;[^\n]*absolute:True",
+                     text, re.IGNORECASE | re.MULTILINE):
+            return None
     path = os.path.join(root, rel)
     line = f"{new_name} = {addr:#010x};" + (" // type:func" if kind == "function" else "")
     if not dry_run:

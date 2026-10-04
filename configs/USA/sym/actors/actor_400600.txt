@@ -240,7 +240,7 @@ _gActor400600ZebraStalkerBurstArmLeft13064Stream = 0x80144D30; // size:0x154 def
 _gActor400600ZebraStalkerBurstArmLeft13064 = 0x80144E84; // size:0x24 defined:True
 D_actor_400600_80144EA8 = 0x80144EA8; // size:0x8 defined:True
 
-func_dryfield_night_junk_yard_8017D9B8 = 0x8017D9B8; // absolute:True
+func_dryfield_night_junk_yard_8017D9B8 = 0x8017D9B8; // type:func absolute:True owner=dryfield_night_junk_yard
 stalkerZebraIvoryTurnToward = 0x80139C00; // type:func
 stalkerZebraIvoryReadPartViewXZ = 0x80139DCC; // type:func
 stalkerZebraIvoryUpdateColor = 0x8013A2C0; // type:func

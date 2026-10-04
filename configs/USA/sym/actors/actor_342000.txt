@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_342000.
 
 // Referenced in another actor load slot, resident beside this one.
-func_80143490 = 0x80143490; // absolute:True
+func_80143490 = 0x80143490; // type:func absolute:True
 D_80144A74 = 0x80144A74; // absolute:True
 D_80144A7C = 0x80144A7C; // absolute:True
 gActor444000Actor403200Model10824 = 0x80146F68; // absolute:True
@@ -49,9 +49,9 @@ D_actor_342000_801647E8 = 0x801647E8; // size:0x10 defined:True
 
 D_shelter_b3_garbage_incinerator_801855DE = 0x801855DE; // absolute:True
 
-func_shelter_b3_garbage_incinerator_80180FE4 = 0x80180FE4; // absolute:True owner=shelter_b3_garbage_incinerator
+func_shelter_b3_garbage_incinerator_80180FE4 = 0x80180FE4; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 
-func_shelter_b3_garbage_incinerator_8018507C = 0x8018507C; // absolute:True
+func_shelter_b3_garbage_incinerator_8018507C = 0x8018507C; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 
 D_shelter_b3_garbage_incinerator_80187150 = 0x80187150; // absolute:True
 

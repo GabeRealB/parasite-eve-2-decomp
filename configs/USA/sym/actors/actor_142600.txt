@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_142600.
 D_actor_142600_80135E24 = 0x80135E24; // size:0xC defined:True
-enemyDestroy = 0x800B01F0; // absolute:True
+enemyDestroy = 0x800B01F0; // type:func absolute:True
 _gActor142600Animation00224Bank1 = 0x80131E24; // size:0x24 defined:True
 _gActor142600Animation00224Bank4 = 0x80131E48; // size:0x6C defined:True
 _gActor142600Animation00224Records = 0x80131EB4; // size:0x168 defined:True

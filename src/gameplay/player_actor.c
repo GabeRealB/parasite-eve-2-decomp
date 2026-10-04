@@ -702,7 +702,7 @@ void func_mp5a5_8011DDA4(Task* arg0);
 
 void func_gunblade_8011E040(Task* arg0);
 
-void func_8011E4F8(Task* arg0);
+void func_m4a1_pyke_8011E4F8(Task* arg0);
 
 void func_m4a1_hammer_8011E710(Task* arg0);
 
@@ -7108,7 +7108,7 @@ static const _PlayerActorWeaponAttacks D_800978BC = { {
     func_m4a1_hammer_8011E710,
     func_m4a1_bayonet_8011DA34,
     func_8011D1EC,
-    func_8011E4F8,
+    func_m4a1_pyke_8011E4F8,
     func_m4a1_javelin_8011F5D4,
     func_mp5a5_8011DDA4,
     func_mp5a5_8011DDA4,

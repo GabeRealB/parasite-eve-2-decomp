@@ -12,7 +12,7 @@ D_actor_143000_80135C38 = 0x80135C38; // size:0x8 defined:True
 D_actor_143000_80134558 = 0x80134558; // size:0xC defined:True
 D_actor_143000_80134564 = 0x80134564; // size:0xC defined:True
 func_shelter_b2_laboratory_801804FC = 0x801804FC; // type:func absolute:True owner=shelter_b2_laboratory
-func_800E6E44 = 0x800E6E44; // absolute:True
+func_800E6E44 = 0x800E6E44; // type:func absolute:True
 D_actor_143000_801345F8 = 0x801345F8; // size:0xC defined:True
 _gActor143000Animation02A20Bank1 = 0x80134604; // size:0x18 defined:True
 _gActor143000Animation02A20Bank4 = 0x8013461C; // size:0x68 defined:True
