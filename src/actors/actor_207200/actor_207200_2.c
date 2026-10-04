@@ -1706,10 +1706,10 @@ static void func_actor_207200_8014D77C(Task* task)
 
 /// Rebuilds the first coordinate node of the actor's model from the transform
 /// stored in `work->field_464`, scaled along Y by `work->field_49C` (its own
-/// angle field, decaying by 0x50 a frame while it sits above 0x200). The 0x30
-/// bytes that hold the scaling matrix and its `VECTOR` are borrowed from the
-/// scratchpad and released again; the node's `composeStamp` is cleared so the next
-/// `Gp_UpdateCoord` recomputes it.
+/// angle field, decaying by 0x50 a frame while it sits above 0x200). The
+/// `ActorScaleScratch` block that holds the scaling matrix and its `VECTOR` is
+/// borrowed from the scratch stack and released again; the node's
+/// `composeStamp` is cleared so the next `Gp_UpdateCoord` recomputes it.
 static void func_actor_207200_8014D7E8(Task* arg0)
 {
     GfxCoord*              coord;
@@ -1717,25 +1717,25 @@ static void func_actor_207200_8014D7E8(Task* arg0)
     ActorScaleScratch*     scratch;
     _Actor207200LargeWork* work;
 
-    head                       = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    work                       = arg0->work;
-    scratch                    = head - 1;
-    SCRATCH_STACK_CURSOR(void) = scratch;
-    coord                      = arg0->extra.tmd->coords;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = arg0->work;
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    coord                                   = arg0->extra.tmd->coords;
     if (work->field_49C >= 0x201) {
         work->field_49C = (u16)work->field_49C - 0x50;
     }
-    scratch->scale.vx                 = 0x1000;
-    scratch->scale.vy                 = (s32)work->field_49C;
-    scratch->scale.vz                 = 0x1000;
-    coord->coord                      = work->field_464;
-    scratch->mat.rotationWords.m00M01 = ONE;
-    scratch->mat.rotationWords.m02M10 = 0;
-    scratch->mat.rotationWords.m11M12 = ONE;
-    scratch->mat.rotationWords.m20M21 = 0;
-    scratch->mat.rotationWords.m22    = ONE;
-    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->mat.mat);
+    scratch->scale.vx                    = ONE;
+    scratch->scale.vy                    = (s32)work->field_49C;
+    scratch->scale.vz                    = ONE;
+    coord->coord                         = work->field_464;
+    scratch->matrix.rotationWords.m00M01 = ONE;
+    scratch->matrix.rotationWords.m02M10 = 0;
+    scratch->matrix.rotationWords.m11M12 = ONE;
+    scratch->matrix.rotationWords.m20M21 = 0;
+    scratch->matrix.rotationWords.m22    = ONE;
+    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

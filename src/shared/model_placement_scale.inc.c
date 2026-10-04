@@ -1,10 +1,10 @@
 /* Part of the model placement library; see model_placement.h. */
 
 /// Sets the model's root coordinate to `arg1` scaled by `arg2`, and marks it
-/// for recomputation. The scale is built in a 0x30-byte block borrowed from
-/// the scratchpad: an identity rotation is written word-wise and
-/// `ScaleMatrix` scales it, on all three axes when `arg3` is non-zero and on
-/// Y alone when it is zero.
+/// for recomputation. The scale is built in an `ActorScaleScratch` block
+/// borrowed from the scratch stack: an identity rotation is written word-wise
+/// and `ScaleMatrix` scales it, on all three axes when `arg3` is non-zero and
+/// on Y alone when it is zero.
 ///
 /// The scratchpad head is written twice, from two separate computations of
 /// `head - 0x30`. CSE cannot substitute a value that holds no register, so
@@ -24,9 +24,9 @@ void modelPlacementSetScaled(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
     coord                                   = arg0->extra.tmd->coords;
 
     if (arg3 == 0) {
-        blk->scale.vx = 0x1000;
+        blk->scale.vx = ONE;
         blk->scale.vy = arg2;
-        blk->scale.vz = 0x1000;
+        blk->scale.vz = ONE;
     } else {
         blk->scale.vx = arg2;
         blk->scale.vy = arg2;
@@ -35,14 +35,14 @@ void modelPlacementSetScaled(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3)
 
     coord->coord = *arg1;
 
-    blk->mat.rotationWords.m00M01 = ONE;
-    blk->mat.rotationWords.m02M10 = 0;
-    blk->mat.rotationWords.m11M12 = ONE;
-    blk->mat.rotationWords.m20M21 = 0;
-    blk->mat.rotationWords.m22    = ONE;
+    blk->matrix.rotationWords.m00M01 = ONE;
+    blk->matrix.rotationWords.m02M10 = 0;
+    blk->matrix.rotationWords.m11M12 = ONE;
+    blk->matrix.rotationWords.m20M21 = 0;
+    blk->matrix.rotationWords.m22    = ONE;
 
-    ScaleMatrix(&blk->mat.mat, &blk->scale);
-    MulMatrix(&coord->coord, &blk->mat.mat);
+    ScaleMatrix(&blk->matrix.mat, &blk->scale);
+    MulMatrix(&coord->coord, &blk->matrix.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

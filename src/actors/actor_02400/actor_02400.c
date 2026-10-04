@@ -1605,17 +1605,17 @@ static void Actor02400_Fn03278(Task* task)
     coord                                       = task->extra.tmd->coords;
     work                                        = task->work;
 
-    blk->scale.vx                 = 0x1000;
-    blk->scale.vy                 = work->field_12A;
-    blk->scale.vz                 = 0x1000;
-    coord->coord                  = work->field_100;
-    blk->mat.rotationWords.m00M01 = ONE;
-    blk->mat.rotationWords.m02M10 = 0;
-    blk->mat.rotationWords.m11M12 = ONE;
-    blk->mat.rotationWords.m20M21 = 0;
-    blk->mat.rotationWords.m22    = ONE;
-    ScaleMatrix(&blk->mat.mat, &blk->scale);
-    MulMatrix(&coord->coord, &blk->mat.mat);
+    blk->scale.vx                    = ONE;
+    blk->scale.vy                    = work->field_12A;
+    blk->scale.vz                    = ONE;
+    coord->coord                     = work->field_100;
+    blk->matrix.rotationWords.m00M01 = ONE;
+    blk->matrix.rotationWords.m02M10 = 0;
+    blk->matrix.rotationWords.m11M12 = ONE;
+    blk->matrix.rotationWords.m20M21 = 0;
+    blk->matrix.rotationWords.m22    = ONE;
+    ScaleMatrix(&blk->matrix.mat, &blk->scale);
+    MulMatrix(&coord->coord, &blk->matrix.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP_AT(scratch, ActorScaleScratch);
 }

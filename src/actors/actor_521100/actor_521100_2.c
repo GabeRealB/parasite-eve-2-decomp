@@ -767,45 +767,46 @@ static void func_actor_521100_80136820(void)
     D_actor_521100_8016A3D8->field_47E = D_actor_521100_8016A3D8->animId;
 }
 
-/// Scale-in step body, run while `field_484` is 1: takes a 0x30-byte scratch
-/// from the scratch stack, splats an identity rotation into it and hands it to
-/// `ScaleMatrix` with a `(0x1000, field_488, 0x1000)` vector, then multiplies
-/// the product into the attach coordinate whose rotation step 0 snapshotted
-/// into `field_48C`. The scale drops 0x10 a frame; under 0x101 the step
-/// advances to 2 and this body stops running.
+/// Scale-in step body, run while `field_484` is 1: takes an
+/// `ActorScaleScratch` block from the scratch stack, splats an identity
+/// rotation into it and hands it to `ScaleMatrix` with a
+/// `(0x1000, field_488, 0x1000)` vector, then multiplies the product into the
+/// attach coordinate whose rotation step 0 snapshotted into `field_48C`. The
+/// scale drops 0x10 a frame; under 0x101 the step advances to 2 and this body
+/// stops running.
 ///
 /// The scratch pointer is taken with a chained assignment on purpose: the
 /// store and the callee-saved copy are what put the extra `move $s0, $v0`
 /// between the `addiu` and the `sw` (and the `nop` in the load's delay slot).
 static void func_actor_521100_801368B0(Task* task)
 {
-    MATRIX*             head;
+    ActorScaleScratch*  head;
     ActorScaleScratch*  scratch;
     Actor521100Work4B4* work;
     GfxCoord*           coord;
 
-    head    = SCRATCH_STACK_CURSOR(MATRIX);
+    head    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
     work    = task->work;
-    scratch = (SCRATCH_STACK_CURSOR(void) = (ActorScaleScratch*)((u8*)head - 0x30));
+    scratch = (SCRATCH_STACK_CURSOR(ActorScaleScratch) = head - 1);
     coord   = task->extra.tmd->coords;
     if ((s16)work->field_488 >= 0x101) {
         work->field_488 = (u16)work->field_488 - 0x10;
     } else {
         work->field_484 = 2;
     }
-    scratch->scale.vx                 = 0x1000;
-    scratch->scale.vy                 = (s32)(s16)work->field_488;
-    scratch->scale.vz                 = 0x1000;
-    coord->coord                      = work->field_48C.mat;
-    scratch->mat.rotationWords.m00M01 = ONE;
-    scratch->mat.rotationWords.m02M10 = 0;
-    scratch->mat.rotationWords.m11M12 = ONE;
-    scratch->mat.rotationWords.m20M21 = 0;
-    scratch->mat.rotationWords.m22    = ONE;
-    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->mat.mat);
+    scratch->scale.vx                    = ONE;
+    scratch->scale.vy                    = (s32)(s16)work->field_488;
+    scratch->scale.vz                    = ONE;
+    coord->coord                         = work->field_48C.mat;
+    scratch->matrix.rotationWords.m00M01 = ONE;
+    scratch->matrix.rotationWords.m02M10 = 0;
+    scratch->matrix.rotationWords.m11M12 = ONE;
+    scratch->matrix.rotationWords.m20M21 = 0;
+    scratch->matrix.rotationWords.m22    = ONE;
+    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 /// Starts the actor's scripted animation selected by the request.
 s32 func_actor_521100_801369B8(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)

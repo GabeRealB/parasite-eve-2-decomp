@@ -2,8 +2,8 @@
 
 /// Rebuilds the second enemy's root coordinate from the matrix saved in
 /// `field_264`, scaled along Y by `field_2A0`, which decays by 0x50 a frame
-/// while above 0x200. The scaling matrix and its vector are staged in 0x30
-/// bytes of the scratch stack; the node's `composeStamp` is cleared so the next
+/// while above 0x200. The scaling matrix and its vector are staged in an
+/// `ActorScaleScratch` block; the node's `composeStamp` is cleared so the next
 /// `Gp_UpdateCoord` recomputes it.
 void skullStalkerFlatten(Task* arg0)
 {
@@ -20,17 +20,17 @@ void skullStalkerFlatten(Task* arg0)
     if (work->field_2A0 >= 0x201) {
         work->field_2A0 = (u16)work->field_2A0 - 0x50;
     }
-    scratch->scale.vx                 = 0x1000;
-    scratch->scale.vy                 = (s32)work->field_2A0;
-    scratch->scale.vz                 = 0x1000;
-    coord->coord                      = work->field_264;
-    scratch->mat.rotationWords.m00M01 = ONE;
-    scratch->mat.rotationWords.m02M10 = 0;
-    scratch->mat.rotationWords.m11M12 = ONE;
-    scratch->mat.rotationWords.m20M21 = 0;
-    scratch->mat.rotationWords.m22    = ONE;
-    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->mat.mat);
+    scratch->scale.vx                    = ONE;
+    scratch->scale.vy                    = (s32)work->field_2A0;
+    scratch->scale.vz                    = ONE;
+    coord->coord                         = work->field_264;
+    scratch->matrix.rotationWords.m00M01 = ONE;
+    scratch->matrix.rotationWords.m02M10 = 0;
+    scratch->matrix.rotationWords.m11M12 = ONE;
+    scratch->matrix.rotationWords.m20M21 = 0;
+    scratch->matrix.rotationWords.m22    = ONE;
+    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

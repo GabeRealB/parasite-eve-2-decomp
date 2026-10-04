@@ -127,11 +127,17 @@ typedef struct ActorScratchStack {
 } ActorScratchStack;
 STATIC_ASSERT_SIZEOF(ActorScratchStack, 0x4);
 
-/// Scaling a coordinate's rotation: an identity matrix scaled by `scale`,
-/// then multiplied into the coordinate.
-typedef struct ActorScaleScratch {
-    GfxMatrix mat;
-    VECTOR    scale;
+/// The scratch-stack block of a model rescale, which multiplies a per-axis
+/// scale into a coordinate's rotation.
+///
+/// One block serves one rescale: it is reserved, an identity rotation is
+/// written into it and scaled, and it is released once that has been
+/// multiplied into the coordinate. The multiply changes the coordinate's
+/// rotation only. A routine that rescales every frame first sets the
+/// coordinate from an unscaled matrix, so the scale does not compound.
+typedef struct {
+    GfxMatrix matrix; // Identity rotation, written word-wise, then scaled in place; its translation is never set or read
+    VECTOR    scale;  // Factor for each axis, 4096 = 1.0
 } ActorScaleScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleScratch, 0x30);
 
