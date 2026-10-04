@@ -81798,9 +81798,9 @@ over a `u16 state`. Two loads of one field at
 different signedness are one *cast*, not a type conflict, and the `u16`
 increment is the half that must survive: `addiu` + `sh` compiled from it.
 
-Worked example: `Actor141000Work::field_C` is the state index
+Worked example: `Actor141000CtrlWork::state` is the state index
 `func_actor_141000_80132D3C` (still `INCLUDE_ASM`) dispatches through, and
-`field_E` the per-state frame counter, in
+`ticks` the per-state frame counter, in
 `func_actor_141000_80132EB0`. Input `base_1.i`
 `279709c8584b488114b24c88d0c6f01e665d0269628f0f0da14500e489a27dca`.
 
@@ -81865,14 +81865,14 @@ are two tasks**, so the nearest matched sibling is not evidence of ownership.
 Follow the dispatch chain: `D_actor_141000_80131E30` is
 `{80132C7C, 80132D3C, taskKill}` - the controller - and `80132D3C` dispatches
 `work + 0xC` through a *second* table, `D_actor_141000_80131E3C`, while the
-0x4CC `Actor141000Work` belongs to a third task whose table
+0x4CC `_Actor141000AyaBreaWork` belongs to a third task whose table
 `D_actor_141000_80131E4C` = `{8013392C, …}` is entered from `801338C0` by
 `task->state` as well. The controller's 0x10 block is therefore a type of its
 own.
 
 The two already-matched handlers `func_actor_141000_80132E24` and
-`func_actor_141000_80132EB0` reach that same block as `(Actor141000Work*)`,
-because it shares `Actor141000Work`'s `scale`/`state`/`ticks` halfword triple at
+`func_actor_141000_80132EB0` reach that same block as `(_Actor141000AyaBreaWork*)`,
+because it shares `_Actor141000AyaBreaWork`'s `scale`/`state`/`ticks` halfword triple at
 0xA/0xC/0xE. Record that in the new type's doc comment and leave them alone: a
 header addition is additive and cannot move a matched body, whereas editing the
 sibling's `.c` is one of the ways a matched function gets lost.
@@ -81941,7 +81941,7 @@ handlers.funcs[(s16)work->field_4C2](arg0);
 work->field_4C2 = work->field_4C2 + 1;
 ```
 
-`Actor141000Work`'s 0x4C2 is the worked example: `func_actor_141000_80133A00`
+`_Actor141000AyaBreaWork::walk.motionStep` is the worked example: `func_actor_141000_80133A00`
 indexes `D_actor_141000_80131E58` with it while `func_actor_141000_80133B28`
 bumps it. Changing the field to `u16` and adding the cast in the dispatcher
 keeps both matching; `actor_341700` 0x422 and `actor_403100` 0x5FA are the same

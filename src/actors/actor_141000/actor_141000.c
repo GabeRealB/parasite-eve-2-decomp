@@ -51,21 +51,39 @@ typedef struct Actor141000Proj {
 } Actor141000Proj;
 STATIC_ASSERT_SIZEOF(Actor141000Proj, 0x8);
 
-/// Work block of the overlay's walker, allocated zeroed by its spawn routine
-/// and kept at `Task::work`: a nineteen-part rig, the model state and walk
-/// state, and the texture upload the overlay runs alongside the walk.
-typedef struct Actor141000Work {
-    ActorAnimRig19   rig;
-    ActorModelState  model;
-    ActorWalkState   walk;
-    /* 0x4C4 */ u16  field_4C4; // source rect the upload countdown at 0x4C6 reloads from
-    /* 0x4C6 */ u16  field_4C6; // upload countdown; `func_actor_141000_801335D4` runs it down and an underflow starts the next upload
-    /* 0x4C8 */ s8   field_4C8; // variant the 0x7DB handler latches; 0 picks anim 10, non-zero anim 2
-    /* 0x4C9 */ s8   field_4C9;
-    /* 0x4CA */ s8   field_4CA; // upload step the switch at 0x801335D4 dispatches on
-    /* 0x4CB */ byte pad_4CB;
-} Actor141000Work;
-STATIC_ASSERT_SIZEOF(Actor141000Work, 0x4CC);
+/// `_Actor141000AyaBreaWork::blinkStep`: the eye image the blink posts next.
+///
+/// A blink posts the closed, half-open and open eyes in turn, so the eyes are
+/// seen opening; nothing posts a closing frame before them.
+enum {
+    ACTOR_141000_BLINK_NONE   = 0, // No blink in progress
+    ACTOR_141000_BLINK_CLOSED = 1, // The closed eyes are posted next
+    ACTOR_141000_BLINK_HALF   = 2, // The half-open eyes are posted next
+    ACTOR_141000_BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
+};
+
+/// Work block of Aya Brea's body, the package's scripted walker.
+///
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens as `ActorMotion19WalkWork` does - the
+/// nineteen-part rig, the model state and the walk a room script sends the
+/// actor on - and the model object borrows `model.light` and `model.color`
+/// for as long as the block lives.
+///
+/// What follows is the package's own: the pace of the walk, the blink that
+/// swaps the eye texture of the face, and the delayed free of the model's
+/// buffers once the model has been hidden.
+typedef struct {
+    ActorAnimRig19  rig;             // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    ActorModelState model;           // Clip and bank the rig plays, and the matrices the model is lit with
+    ActorWalkState  walk;            // Destination, closing rotation, per-frame velocity and step of the walk in progress
+    s16             blinkFrameDelay; // Value `blinkCountdown` restarts from after the closed and the half-open eyes: each is shown for this many ticks plus one
+    s16             blinkCountdown;  // Ticks left before the blink posts its next eye image, which the tick taking it below 0 does; not reset as a blink starts or ends
+    s8              fastPace;        // Pace of the walks that follow, set by an actor command (0 half the per-frame displacement and default start clip 10, 1 the full displacement and clip 2)
+    s8              freeCountdown;   // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    s8              blinkStep;       // Eye image the blink posts next (0 `ACTOR_141000_BLINK_NONE`, else `_CLOSED`, `_HALF` or `_OPEN`)
+} _Actor141000AyaBreaWork;
+STATIC_ASSERT_SIZEOF(_Actor141000AyaBreaWork, 0x4CC);
 
 /// Work block of the overlay's controller task, allocated zeroed by its spawn
 /// state and kept at `Task::work`.
@@ -107,7 +125,7 @@ extern SVECTOR D_actor_141000_801348A8[];
 extern TaskDesc D_actor_141000_801348D8[];
 
 /// The texture uploads `func_actor_141000_801335D4` walks, one per value of
-/// `Actor141000Work::field_4CA`, and `func_actor_141000_80133FA8` picks from:
+/// `_Actor141000AyaBreaWork::blinkStep`, and `func_actor_141000_80133FA8` picks from:
 /// each a terminated `GpuImageUpload` list whose `destination` carries the VRAM
 /// rectangle and whose `pixels` points at the packed texture words.
 
@@ -181,7 +199,7 @@ static const TaskFuncTable3 D_actor_141000_80131E4C = { {
 } };
 
 /// The model actor's four main-body states, dispatched by
-/// `func_actor_141000_80133A00` through `Actor141000Work::walk.motionStep`.
+/// `func_actor_141000_80133A00` through `_Actor141000AyaBreaWork::walk.motionStep`.
 static const TaskFuncTable4 D_actor_141000_80131E58 = { {
     func_actor_141000_80133A68,
     func_actor_141000_80133B28,
@@ -190,8 +208,8 @@ static const TaskFuncTable4 D_actor_141000_80131E58 = { {
 } };
 
 /// The local-space offset the main body's state 1 (`func_actor_141000_80133B28`)
-/// rotates into `Actor141000Work::step`: straight ahead along the part's own
-/// axis, halved first while `field_4C8` is clear.
+/// rotates into `_Actor141000AyaBreaWork::walk.velocity`: straight ahead along the
+/// part's own axis, halved first while `fastPace` is clear.
 static const VECTOR D_actor_141000_80131E68 = { 0, 0, 0x300000 };
 
 static u32     _gActor141000Model0230CPartVerts[1];
@@ -2247,15 +2265,15 @@ static void func_actor_141000_80133260(Task* arg0)
 /// Per-frame tick of the model actor: runs the motion handler `walk.motion` selects, steps the 16.16 accumulators
 /// by `velocity` and moves the coordinate by their integer part, ticks the
 /// animation slots and ground shadow while visible, runs the texture-upload
-/// state, and counts `field_4C9` down to the buffer free.
+/// state, and counts `freeCountdown` down to the buffer free.
 static void func_actor_141000_801332A0(Task* task)
 {
-    TmdObject*       ext      = task->extra.tmd;
-    Actor141000Work* work     = (Actor141000Work*)task->work;
-    TaskFunc         funcs[2] = { func_actor_141000_801339F8, func_actor_141000_80133A00 };
-    VECTOR3          pos;
-    GfxCoord*        coord;
-    s32              i;
+    TmdObject*               ext      = task->extra.tmd;
+    _Actor141000AyaBreaWork* work     = task->work;
+    TaskFunc                 funcs[2] = { func_actor_141000_801339F8, func_actor_141000_80133A00 };
+    VECTOR3                  pos;
+    GfxCoord*                coord;
+    s32                      i;
 
     funcs[work->walk.motion](task);
     coord                     = task->extra.tmd->coords;
@@ -2283,57 +2301,58 @@ static void func_actor_141000_801332A0(Task* task)
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     func_actor_141000_801335D4(task);
-    if (work->field_4C9 >= 0) {
-        if (work->field_4C9 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(ext);
         }
-        work->field_4C9--;
+        work->freeCountdown--;
     }
 }
 
 #include "../../shared/actor_motion_arrive19.inc.c"
 
-/// Texture-upload state of the enemy actor: runs the countdown at
-/// `Actor141000Work::field_4C6` down one a frame while `field_4CA` names the
-/// upload in progress, and on the frame it underflows posts that step's image
-/// over the 0x19x0x14 rect at 0x10 -- reloading the countdown from `field_4C4`
-/// and advancing `field_4CA` for steps 1 and 2, or clearing `field_4CA` and
-/// starting over for step 3. Steps 1 and 2 share their whole tail, which is
-/// what makes the compiler emit one copy of it that step 1 jumps into; step 3
-/// only differs in clearing the step instead of advancing it.
+/// Blink state of the actor: runs `_Actor141000AyaBreaWork::blinkCountdown`
+/// down one a frame while `blinkStep` names the eye image due next, and on the
+/// frame it goes below zero posts that image over the 0x19x0x14 eye rect at
+/// (0, 0x40) -- restarting the countdown from `blinkFrameDelay` and advancing
+/// `blinkStep` after the closed and half-open eyes, or clearing `blinkStep`
+/// after the open ones, which ends the blink. The first two steps share their
+/// whole tail, which is what makes the compiler emit one copy of it that the
+/// first jumps into; the last only differs in clearing the step instead of
+/// advancing it.
 static void func_actor_141000_801335D4(Task* arg0)
 {
-    Actor141000Work* work;
-    RECT             rect;
+    _Actor141000AyaBreaWork* work;
+    RECT                     rect;
 
-    work   = (Actor141000Work*)arg0->work;
+    work   = arg0->work;
     rect.x = 0;
     rect.y = 0x40;
     rect.w = 0x19;
     rect.h = 0x14;
 
-    switch (work->field_4CA) {
-        case 1:
-            work->field_4C6 = work->field_4C6 - 1;
-            if ((s16)work->field_4C6 < 0) {
+    switch (work->blinkStep) {
+        case ACTOR_141000_BLINK_CLOSED:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
                 Gp_LoadActorImage(arg0, &D_actor_141000_8013D28C[0], &rect);
-                work->field_4C6 = work->field_4C4;
-                work->field_4CA = work->field_4CA + 1;
+                work->blinkCountdown = work->blinkFrameDelay;
+                work->blinkStep      = work->blinkStep + 1;
             }
             break;
-        case 2:
-            work->field_4C6 = work->field_4C6 - 1;
-            if ((s16)work->field_4C6 < 0) {
+        case ACTOR_141000_BLINK_HALF:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
                 Gp_LoadActorImage(arg0, &D_actor_141000_8013CE84[0], &rect);
-                work->field_4C6 = work->field_4C4;
-                work->field_4CA = work->field_4CA + 1;
+                work->blinkCountdown = work->blinkFrameDelay;
+                work->blinkStep      = work->blinkStep + 1;
             }
             break;
-        case 3:
-            work->field_4C6 = work->field_4C6 - 1;
-            if ((s16)work->field_4C6 < 0) {
+        case ACTOR_141000_BLINK_OPEN:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
                 Gp_LoadActorImage(arg0, &D_actor_141000_8013CA7C[0], &rect);
-                work->field_4CA = 0;
+                work->blinkStep = ACTOR_141000_BLINK_NONE;
             }
             break;
     }
@@ -2341,19 +2360,19 @@ static void func_actor_141000_801335D4(Task* arg0)
 
 /// Placement handler: stores the spawn position and rotation, resets the body
 /// state, then applies a start preset exactly as `actorMotionPlayAnim19`
-/// does (inlined here). The default anim id is chosen by the `field_4C8`
-/// variant; writing it as an if/else into the preset (not a ternary) is what
-/// keeps CSE from reusing the earlier constant 1 for the `model.nextAnimId` store.
+/// does (inlined here). The default anim id is chosen by `fastPace`; writing
+/// it as an if/else into the preset (not a ternary) is what keeps CSE from
+/// reusing the earlier constant 1 for the `model.nextAnimId` store.
 s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
-    Actor141000Work*      work;
-    Actor141000Work*      w;
-    AnimationPlayRequest  preset;
-    AnimationPlayRequest* msg;
-    s32                   i;
-    TmdObject*            ext;
+    _Actor141000AyaBreaWork* work;
+    _Actor141000AyaBreaWork* w;
+    AnimationPlayRequest     preset;
+    AnimationPlayRequest*    msg;
+    s32                      i;
+    TmdObject*               ext;
 
-    w                    = (Actor141000Work*)task->work;
+    w                    = task->work;
     w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
     w->walk.motionStep   = 0;
     w->walk.target.vx    = place->pos.vx;
@@ -2367,7 +2386,7 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, Acto
         preset.animationId  = anim->animationId;
         w->model.nextAnimId = anim->nextAnimId;
     } else {
-        if (w->field_4C8 != 0) {
+        if (w->fastPace != 0) {
             preset.animationId = 2;
         } else {
             preset.animationId = 0xA;
@@ -2379,7 +2398,7 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, Acto
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     msg  = &preset;
-    work = (Actor141000Work*)task->work;
+    work = task->work;
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
@@ -2427,9 +2446,9 @@ void func_actor_141000_801338C0(Task* task)
 /// instead of leaving a half-built actor behind.
 static void func_actor_141000_8013392C(Task* arg0)
 {
-    Actor141000Work* work;
+    _Actor141000AyaBreaWork* work;
 
-    work = memCalloc(sizeof(Actor141000Work), false);
+    work = memCalloc(sizeof(_Actor141000AyaBreaWork), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
@@ -2438,7 +2457,7 @@ static void func_actor_141000_8013392C(Task* arg0)
     arg0->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->field_4C9          = -1;
+    work->freeCountdown      = -1;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
@@ -2459,11 +2478,11 @@ static void func_actor_141000_801339BC(Task* arg0)
 
 static void func_actor_141000_801339DC(Task* arg0)
 {
-    TmdObject*       ext;
-    Actor141000Work* work;
+    TmdObject*               ext;
+    _Actor141000AyaBreaWork* work;
 
     ext           = arg0->extra.tmd;
-    work          = (Actor141000Work*)arg0->work;
+    work          = arg0->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -2475,10 +2494,10 @@ static void func_actor_141000_801339F8(Task* arg0)
 /// Dispatches the actor's four main-body handlers by state.
 static void func_actor_141000_80133A00(Task* arg0)
 {
-    TaskFuncTable4   handlers;
-    Actor141000Work* work;
+    TaskFuncTable4           handlers;
+    _Actor141000AyaBreaWork* work;
 
-    work     = (Actor141000Work*)arg0->work;
+    work     = arg0->work;
     handlers = D_actor_141000_80131E58;
     handlers.funcs[work->walk.motionStep](arg0);
 }
@@ -2490,13 +2509,13 @@ static void func_actor_141000_80133A00(Task* arg0)
 /// `composeStamp` so the world matrix is recomputed and advances the state.
 static void func_actor_141000_80133A68(Task* task)
 {
-    Actor141000Work* work;
-    GfxCoord*        coord;
-    VECTOR           delta;
-    SVECTOR          dir;
-    SVECTOR          rot;
+    _Actor141000AyaBreaWork* work;
+    GfxCoord*                coord;
+    VECTOR                   delta;
+    SVECTOR                  dir;
+    SVECTOR                  rot;
 
-    work  = (Actor141000Work*)task->work;
+    work  = task->work;
     coord = task->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
@@ -2519,21 +2538,21 @@ static void func_actor_141000_80133A68(Task* task)
 /// State 1 of the actor's main-body table `D_actor_141000_80131E58`, the step
 /// after the turn-to-face state. Rotates the constant
 /// local-space offset `D_actor_141000_80131E68` through the root part's matrix
-/// into `work->walk.velocity`, halving it first while `field_4C8` is clear -- the
-/// variant `func_actor_141000_80133F6C` latches through message 0x7DB -- then
+/// into `work->walk.velocity`, halving it first while `fastPace` is clear -- the
+/// pace `func_actor_141000_80133F6C` latches through message 0x7DB -- then
 /// seeds `walk.lastDistance` with `ACTOR_WALK_DISTANCE_NONE` and advances the
 /// state.
 static void func_actor_141000_80133B28(Task* arg0)
 {
-    Actor141000Work* work;
-    GfxCoord*        coord;
-    VECTOR           vec;
+    _Actor141000AyaBreaWork* work;
+    GfxCoord*                coord;
+    VECTOR                   vec;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor141000Work*)arg0->work;
+    work  = arg0->work;
 
     vec = D_actor_141000_80131E68;
-    if (work->field_4C8 == 0) {
+    if (work->fastPace == 0) {
         vec.vx >>= 1;
         vec.vy >>= 1;
         vec.vz >>= 1;
@@ -2555,16 +2574,16 @@ static void func_actor_141000_80133B28(Task* arg0)
 /// rebuilt as the identity matrix rotated by `vec`.
 static void func_actor_141000_80133BD8(Task* arg0)
 {
-    Actor141000Work*     work;
-    GfxRotationWords*    words;
-    GfxCoord*            coord;
-    SVECTOR              vec;
-    AnimationPlayRequest preset;
-    s32                  vy;
-    s16                  diff;
+    _Actor141000AyaBreaWork* work;
+    GfxRotationWords*        words;
+    GfxCoord*                coord;
+    SVECTOR                  vec;
+    AnimationPlayRequest     preset;
+    s32                      vy;
+    s16                      diff;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor141000Work*)arg0->work;
+    work  = arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
     diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
@@ -2605,7 +2624,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`.
 /// Mode 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 1 shows it,
 /// allocates the buffers and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 2 hides it,
-/// sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and latches the mode into `field_4C9`,
+/// sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts `freeCountdown` at two ticks,
 /// and 3 shows it while setting `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything else
 /// returns 1 and leaves the object alone; the handled modes return 0.
 s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode, s32 arg3)
@@ -2626,9 +2645,9 @@ s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((Actor141000Work*)task->work)->field_4C9 = mode;
-            obj->flags                               |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags                                           |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((_Actor141000AyaBreaWork*)task->work)->freeCountdown = mode;
+            obj->flags                                           |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2643,15 +2662,15 @@ s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode, s32 arg3)
 
 s32 func_actor_141000_80133F6C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor141000Work* work;
+    _Actor141000AyaBreaWork* work;
 
-    work = (Actor141000Work*)task->work;
+    work = task->work;
     switch (msg->command) {
         case 1:
-            work->field_4C8 = 0;
+            work->fastPace = 0;
             break;
         case 2:
-            work->field_4C8 = 1;
+            work->fastPace = 1;
             break;
     }
     return 0;
@@ -2660,8 +2679,8 @@ s32 func_actor_141000_80133F6C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 /// Image-load handler: picks one of the overlay's texture uploads by `mode`
 /// and posts it through `Gp_LoadActorImage` over a scratch `RECT` -- the
 /// 0x19x0x14 rect at (0, 0x40) for modes 0-3, the 0xEx0x14 rect at (0xC, 0x60)
-/// for 4 and 5. Mode 3 also arms the work block's upload step and countdown
-/// source. Unknown modes load nothing and return 0.
+/// for 4 and 5. Mode 3 also starts a blink, `blinkStep` at the closed eyes and
+/// `blinkFrameDelay` at 1. Unknown modes load nothing and return 0.
 s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
     RECT            rect;
@@ -2685,13 +2704,13 @@ s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode, s32 arg3)
             rect.h = 0x14;
             break;
         case 3:
-            uploadList                                = &D_actor_141000_8013D72C[0];
-            rect.y                                    = 0x40;
-            rect.w                                    = 0x19;
-            rect.x                                    = 0;
-            rect.h                                    = 0x14;
-            ((Actor141000Work*)task->work)->field_4CA = 1;
-            ((Actor141000Work*)task->work)->field_4C4 = 1;
+            uploadList                                              = &D_actor_141000_8013D72C[0];
+            rect.y                                                  = 0x40;
+            rect.w                                                  = 0x19;
+            rect.x                                                  = 0;
+            rect.h                                                  = 0x14;
+            ((_Actor141000AyaBreaWork*)task->work)->blinkStep       = ACTOR_141000_BLINK_CLOSED;
+            ((_Actor141000AyaBreaWork*)task->work)->blinkFrameDelay = 1;
             break;
         case 4:
             uploadList = &D_actor_141000_8013D72C[0];
