@@ -112,18 +112,24 @@ typedef struct {
 } _EffectDeathFlameScratch;
 STATIC_ASSERT_SIZEOF(_EffectDeathFlameScratch, 0x78);
 
-/// 0x10-byte scratch from the scratch stack used by `func_8010133C`.
-/// `field_0` / `field_4` are the outer/inner loop counters. `field_8` is
-/// a color word (`0x808008`, then `0x37A78`). `field_C` / `field_E` are
-/// stepped s16 coordinates (`x += 0x40`, `y -= 0x50`).
-typedef struct _GpScratch10 {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s16 field_C;
-    /* 0x0E */ s16 field_E;
-} GpScratch10;
-STATIC_ASSERT_SIZEOF(GpScratch10, 0x10);
+/// Scratch for walking a two-row, three-column grid of text cells.
+///
+/// The block holds the cell indices together with the colour and pen
+/// position the text of the current cell would take. The routine that
+/// reserves it only steps these values and draws nothing, so the colour and
+/// the pen are written and never read: that they are text style is read from
+/// the values stored, the two colours being the ones text requests use
+/// elsewhere and the row tops and column pitch fitting screen-centred pixel
+/// coordinates. The block is reserved on the scratch stack for the walk and
+/// released before the routine returns. It is not cleared.
+typedef struct {
+    s32 row;      // Row being walked (0 first, 1 second)
+    s32 column;   // Column being walked within the row, 0..2
+    u32 colorRgb; // Text modulation RGB of the row in bits 0..23, red in the low byte, as in `TextDrawReq`; one colour for the first row, another after it
+    s16 penX;     // Horizontal pen: restarts one column pitch before the first column on each row and advances a pitch per cell
+    s16 penY;     // Vertical pen: set to the row's start before each row, then lowered by a fixed step per cell; the purpose of that step is unproven
+} _PlayerActorTextGridScratch;
+STATIC_ASSERT_SIZEOF(_PlayerActorTextGridScratch, 0x10);
 
 /// Scratch for choosing the shortest signed turn between two angles.
 ///
@@ -4685,31 +4691,31 @@ s32 func_801011D0(GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* ar
 
 static void func_8010133C(void)
 {
-    void**       scratch;
-    u8*          head;
-    GpScratch10* tmp;
-    GpScratch10* s;
-    s32          color;
+    void**                       scratch;
+    _PlayerActorTextGridScratch* head;
+    _PlayerActorTextGridScratch* block;
+    _PlayerActorTextGridScratch* grid;
+    s32                          color;
 
-    scratch                               = SCRATCH_HEAD_ADDR;
-    color                                 = 0x808008;
-    head                                  = SCRATCH_HEAD_AT(scratch, u8);
-    tmp                                   = (GpScratch10*)(head - 0x10);
-    SCRATCH_HEAD_AT(scratch, GpScratch10) = tmp;
-    s                                     = tmp;
-    s->field_8                            = color;
-    s->field_E                            = -0x58;
-    for (s->field_0 = 0; s->field_0 < 2; s->field_0++) {
-        s->field_4 = 0;
-        s->field_C = -0x40;
-        for (; s->field_4 < 3; s->field_4++) {
-            s->field_C += 0x40;
-            s->field_E -= 0x50;
+    scratch                                               = SCRATCH_HEAD_ADDR;
+    color                                                 = 0x808008;
+    head                                                  = SCRATCH_HEAD_AT(scratch, _PlayerActorTextGridScratch);
+    block                                                 = head - 1;
+    SCRATCH_HEAD_AT(scratch, _PlayerActorTextGridScratch) = block;
+    grid                                                  = block;
+    grid->colorRgb                                        = color;
+    grid->penY                                            = -0x58;
+    for (grid->row = 0; grid->row < 2; grid->row++) {
+        grid->column = 0;
+        grid->penX   = -0x40;
+        for (; grid->column < 3; grid->column++) {
+            grid->penX += 0x40;
+            grid->penY -= 0x50;
         }
-        s->field_8 = 0x37A78;
-        s->field_E = 8;
+        grid->colorRgb = 0x37A78;
+        grid->penY     = 8;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorTextGridScratch);
 }
 
 static void Gp_PlayerWorkState2(Task* arg0)

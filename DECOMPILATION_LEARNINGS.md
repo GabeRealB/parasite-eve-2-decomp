@@ -29257,13 +29257,16 @@ move  a0, v0
 lets the add live in `$v0` while `$a0` is still the arena pointer:
 
 ```c
-scratch  = SCRATCH_STACK_CURSOR_SLOT;
-color    = 0x808008;          /* named local → $a1 */
-head     = *scratch;
-tmp      = (T*)(head - 0x10);
-*scratch = tmp;
-s        = tmp;               /* move a0, v0 */
+scratch                     = SCRATCH_HEAD_ADDR;
+color                       = 0x808008;  /* named local → $a1 */
+head                        = SCRATCH_HEAD_AT(scratch, T);
+tmp                         = head - 1;  /* sizeof(T) is the N above */
+SCRATCH_HEAD_AT(scratch, T) = tmp;
+s                           = tmp;       /* move a0, v0 */
 ```
+
+`head` is a `T*` here; a `u8*` head with `tmp = (T*)(head - N)` compiles the
+same, so the cast buys nothing.
 
 Free by rematerialising `*SCRATCH_STACK_CURSOR_SLOT` — `$a0` now holds `s`,
 so a saved `scratch` local would need another register. `func_8010133C`
