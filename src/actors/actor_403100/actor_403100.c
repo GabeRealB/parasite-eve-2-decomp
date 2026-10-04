@@ -88,18 +88,23 @@ typedef struct Actor403100QuadEntry {
 } Actor403100QuadEntry;
 STATIC_ASSERT_SIZEOF(Actor403100QuadEntry, 0x14);
 
-/// One entry of a region table: a rectangle on the floor from (`x`, `y`) -
-/// `y` being the Z coordinate - spanning `w` along X and `h` along Z, and the
-/// value a lookup returns for a point inside it. A table ends at an entry
-/// whose `value` is -1.
-typedef struct Actor403100RectEntry {
-    /* 0x00 */ s16 x;
-    /* 0x02 */ s16 y;
-    /* 0x04 */ s16 w;
-    /* 0x06 */ s16 h;
-    /* 0x08 */ s32 value;
-} Actor403100RectEntry;
-STATIC_ASSERT_SIZEOF(Actor403100RectEntry, 0xC);
+/// Ends a `_Actor403100Zone` table, in the `id` of its last entry.
+enum { ACTOR_403100_ZONE_END = -1 };
+
+/// One entry of a zone table: a rectangle of the balcony floor and the id a
+/// lookup returns for a point inside it.
+///
+/// A lookup takes the first entry containing the point, both far edges
+/// included, and answers 0 when none does, so 0 is never a zone's id. This is
+/// the layout of `ActorZone` with a 32-bit id.
+typedef struct {
+    s16 x;     // Near corner along world X
+    s16 z;     // Near corner along world Z
+    s16 width; // Extent along X
+    s16 depth; // Extent along Z
+    s32 id;    // Value returned for a point inside, or ACTOR_403100_ZONE_END
+} _Actor403100Zone;
+STATIC_ASSERT_SIZEOF(_Actor403100Zone, 0xC);
 
 extern EnemyParams D_actor_403100_8014762C;
 
@@ -335,9 +340,9 @@ static void func_actor_403100_8013ED48(Task* task);
 typedef struct {
     void (*funcs[4])(void);
 } Actor403100VoidTable4;
-extern Actor403100RectEntry D_actor_403100_80155638[];
-extern EvsCommand           D_80166098[];
-static s32                  func_actor_403100_8013D9C4(s16 x, s16 z, Actor403100RectEntry* regions);
+extern _Actor403100Zone D_actor_403100_80155638[];
+extern EvsCommand       D_80166098[];
+static s32              func_actor_403100_8013D9C4(s16 x, s16 z, _Actor403100Zone* zone);
 
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -350,7 +355,7 @@ STATIC_ASSERT_SIZEOF(Actor403100Storage57B0, 48);
 
 extern Actor403100Storage57B0 D_actor_403100_801557B0;
 
-extern Actor403100RectEntry D_actor_403100_80155698[];
+extern _Actor403100Zone D_actor_403100_80155698[];
 
 static AnimationSet _gActor403100Animation1AF4C;
 static AnimationSet _gActor403100Animation1BB74;
@@ -3064,7 +3069,7 @@ TaskDesc D_actor_403100_80155624 = { { { TASK_BODY_COORD, 96 } }, func_actor_403
 
 EffectSpawnArg D_actor_403100_80155630 = { NULL, 1536, 3 };
 
-Actor403100RectEntry D_actor_403100_80155638[8] = {
+_Actor403100Zone D_actor_403100_80155638[8] = {
     { -7100, 9200, 3600, 1900, 1 },
     { -7100, 6450, 1900, 2750, 1 },
     { -3500, 9200, 3500, 1900, 5 },
@@ -3072,17 +3077,17 @@ Actor403100RectEntry D_actor_403100_80155638[8] = {
     { -7100, -5100, 1900, 4100, 4 },
     { -0x32C8, 900, 4000, 2200, 2 },
     { -9000, 900, 1900, 2200, 6 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, ACTOR_403100_ZONE_END },
 };
 
-Actor403100RectEntry D_actor_403100_80155698[7] = {
+_Actor403100Zone D_actor_403100_80155698[7] = {
     { -2000, 9200, 2000, 1900, 3 },
     { -5500, 9200, 3500, 1900, 4 },
     { -7100, 5900, 3000, 3400, 5 },
     { -7100, 2900, 3000, 3400, 6 },
     { -7100, -100, 3000, 3400, 7 },
     { -7100, -3400, 3000, 3700, 8 },
-    { 0, 0, 0, 0, -1 },
+    { 0, 0, 0, 0, ACTOR_403100_ZONE_END },
 };
 
 // Message-table callbacks use the argument views required by this TU.
@@ -3409,11 +3414,11 @@ static s32             func_actor_403100_8013E450(GfxCoord* arg0, MATRIX* arg1, 
 
 static __inline__ s32 Actor403100_FindRegion(s16 x, s16 z)
 {
-    Actor403100RectEntry* region;
-    for (region = D_actor_403100_80155698; region->value != -1; region++) {
-        if (x >= region->x && x <= region->x + region->w &&
-            z >= region->y && z <= region->y + region->h) {
-            return region->value;
+    _Actor403100Zone* zone;
+    for (zone = D_actor_403100_80155698; zone->id != ACTOR_403100_ZONE_END; zone++) {
+        if (x >= zone->x && x <= zone->x + zone->width &&
+            z >= zone->z && z <= zone->z + zone->depth) {
+            return zone->id;
         }
     }
     return 0;
@@ -3421,10 +3426,10 @@ static __inline__ s32 Actor403100_FindRegion(s16 x, s16 z)
 
 static __inline__ s32 Actor403100_FindEffectRegion(s16 x, s16 z)
 {
-    Actor403100RectEntry* region;
-    for (region = D_actor_403100_80155638; region->value != -1; region++) {
-        if (x >= region->x && x <= region->x + region->w && z >= region->y && z <= region->y + region->h)
-            return region->value;
+    _Actor403100Zone* zone;
+    for (zone = D_actor_403100_80155638; zone->id != ACTOR_403100_ZONE_END; zone++) {
+        if (x >= zone->x && x <= zone->x + zone->width && z >= zone->z && z <= zone->z + zone->depth)
+            return zone->id;
     }
     return 0;
 }
@@ -8177,14 +8182,14 @@ static void func_actor_403100_8013D8F4(Task* arg0)
     D_actor_403100_80155808->state    = 9;
     D_actor_403100_80155808->subState = 0;
 }
-static s32 func_actor_403100_8013D9C4(s16 x, s16 y, Actor403100RectEntry* entry)
+static s32 func_actor_403100_8013D9C4(s16 x, s16 y, _Actor403100Zone* zone)
 {
-    while (entry->value != -1) {
-        if (x >= entry->x && entry->x + entry->w >= x &&
-            y >= entry->y && entry->y + entry->h >= y) {
-            return entry->value;
+    while (zone->id != ACTOR_403100_ZONE_END) {
+        if (x >= zone->x && zone->x + zone->width >= x &&
+            y >= zone->z && zone->z + zone->depth >= y) {
+            return zone->id;
         }
-        entry++;
+        zone++;
     }
     return 0;
 }
