@@ -46,39 +46,93 @@
 
 #include "rooms/shelter_b6_training_room.h"
 
-/// Work block of the actor's own task, allocated by its spawn handler
-/// `func_actor_205200_8014BAE8`. It opens with the model's animation context
-/// and its 19 playback slots and pose buffer, followed by the model's colour
-/// and light matrices, the two collision objects the teardown handler
-/// `func_actor_205200_8014C924` unlinks, and the state of the charge and
-/// attack sub-states.
-typedef struct Actor205200Work {
-    /* 0x000 */ ActorAnimRig19        rig;
-    /* 0x43C */ MATRIX                field_43C; // color matrix, `TmdObject.colorMtx`
-    /* 0x45C */ MATRIX                field_45C; // light matrix, `TmdObject.lightMtx`
-    /* 0x47C */ WorldCollisionBody    field_47C;
-    /* 0x49C */ WorldCollisionContact field_49C[3];
-    /* 0x4E4 */ WorldCollisionBody    field_4E4;
-    /* 0x504 */ WorldCollisionContact field_504;
-    /* 0x51C */ byte                  pad_51C[0x38];
-    /* 0x554 */ EffectSpawnArg        field_554; // record the charge's hit effect is spawned with
-    /* 0x55C */ byte                  pad_55C[0x20];
-    /* 0x57C */ s16                   field_57C;
-    /* 0x57E */ s16                   field_57E; // animation id the work is playing
-    /* 0x580 */ u16                   field_580; // id the helper slots last saw
-    /* 0x582 */ u16                   field_582; // frames spent on the current id
-    /* 0x584 */ s16                   field_584; // sub-state `func_actor_205200_8014C67C` dispatches on: 0 runs the idle handler, 1 the charge handler
-    /* 0x586 */ s16                   field_586; // sub-state of the charge handler `func_actor_205200_8014C748`, which arms it to 1 and clears it again
-    /* 0x588 */ s16                   field_588; // non-zero while the attack body `func_actor_205200_8014C0C0` is running; the body clears it when it finishes
-    /* 0x58A */ s16                   field_58A; // state of the attack body `func_actor_205200_8014C0C0`
-    /* 0x58C */ u16                   field_58C; // its frame counter
-    /* 0x58E */ s16                   field_58E; // sign of the player offset dotted with the player's facing axis
-    /* 0x590 */ s16                   field_590; // loaded with 600 by the charge handler `func_actor_205200_8014C748` when it finishes
-    /* 0x592 */ s16                   field_592; // countdown to the next random roll in `func_actor_205200_8014BF28`
-    /* 0x594 */ s16                   field_594; // raised by message 0x7DB; pushes the actor to state 2
-    /* 0x596 */ s16                   field_596; // placement mode; selects the tick `func_actor_205200_8014C67C` runs: zero goes to `func_shelter_b6_corridor_8017EBA4`, non-zero to `func_shelter_b6_training_room_80181930`
-} Actor205200Work;
-STATIC_ASSERT_SIZEOF(Actor205200Work, 0x598);
+/// Values of `_Actor205200Work::anim`: indices into the package's
+/// animation-set table.
+enum {
+    ACTOR_205200_ANIM_IDLE         = 1, // between the others; the slots are reset on it at spawn
+    ACTOR_205200_ANIM_HEAL         = 2, // answer to the paired enemy's heal request: 84 ticks, the heal is signalled on tick 60
+    ACTOR_205200_ANIM_HIT_REACTION = 3, // `ACTION_HIT_REACTION`: 35 ticks
+    ACTOR_205200_ANIM_FIDGET       = 5  // drawn at random while idle: 64 ticks
+};
+
+/// Values of `_Actor205200Work::action`.
+enum {
+    ACTOR_205200_ACTION_IDLE         = 0, // waits, fidgets and answers the paired enemy's heal requests
+    ACTOR_205200_ACTION_HIT_REACTION = 1  // reacts to a hit and has the paired enemy reset
+};
+
+/// Values of `_Actor205200Work::actionStep` under `ACTOR_205200_ACTION_IDLE`.
+enum {
+    ACTOR_205200_IDLE_READY      = 0, // a pending heal request is taken; the fidget draw runs
+    ACTOR_205200_IDLE_HEAL_BEGIN = 1, // starts the heal animation
+    ACTOR_205200_IDLE_HEAL       = 2, // the heal animation plays
+    ACTOR_205200_IDLE_COOLDOWN   = 3, // `healCooldown` runs down and heal requests stay pending; the fidget draw runs
+    ACTOR_205200_IDLE_FIDGET     = 4  // the fidget animation plays, then `COOLDOWN` or `READY` follows
+};
+
+/// Values of `_Actor205200Work::actionStep` under
+/// `ACTOR_205200_ACTION_HIT_REACTION`. The action ends by returning to
+/// `ACTOR_205200_ACTION_IDLE` at `ACTOR_205200_IDLE_COOLDOWN`.
+enum {
+    ACTOR_205200_HIT_REACTION_BEGIN = 0, // starts the animation and raises the paired enemy's reset request
+    ACTOR_205200_HIT_REACTION_WAIT  = 1  // the animation plays
+};
+
+/// Values of `_Actor205200Work::knockbackStep`.
+enum {
+    ACTOR_205200_KNOCKBACK_BEGIN = 0, // starts the player's first animation with its rumble, sound and effect
+    ACTOR_205200_KNOCKBACK_PUSH  = 1, // moves the player away for 16 ticks, then starts the second animation
+    ACTOR_205200_KNOCKBACK_END   = 2  // waits for the second animation to end and releases the player
+};
+
+/// Values of `_Actor205200Work::room`: the room the actor was placed in.
+enum {
+    ACTOR_205200_ROOM_CORRIDOR      = 0, // Shelter B6 corridor
+    ACTOR_205200_ROOM_TRAINING_ROOM = 1  // Shelter B6 training room
+};
+
+/// Ticks `_Actor205200Work::healCooldown` is loaded with when a heal or a hit
+/// reaction ends.
+enum { ACTOR_205200_HEAL_COOLDOWN = 600 };
+
+/// Work block of the package's enemy task.
+///
+/// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
+/// holds the animation rig, storage for the model's matrices, two collision
+/// spheres with their contact tables, and the state the per-frame tick runs
+/// the actor with. Timers count ticks.
+///
+/// The actor takes no damage and does not move. It is the partner of actor
+/// 105100 in `gSceneCombatState.pairedEnemySignals`: it answers that enemy's
+/// heal requests, and a hit it reacts to makes that enemy reset. A player
+/// character touching it is knocked back.
+typedef struct {
+    ActorAnimRig19        rig;                 // playback of the model's parts; slots 1 to 18 are driven
+    MATRIX                colorMtx;            // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;            // storage for the model's `TmdObject::lightMtx`
+    WorldCollisionBody    hitBody;             // sphere of radius 300 on the model's root, 300 up, that takes the hits
+    WorldCollisionContact hitContacts[3];      // contacts of `hitBody`; also the enemy's hit records
+    WorldCollisionBody    touchBody;           // sphere on the model's root that senses what touches the actor; `room` picks its centre and radius
+    WorldCollisionContact touchContacts[1];    // contacts of `touchBody`; a player character's body in it starts the knockback
+    byte                  unknown_51C[0x38];   // No access found; role unproven
+    EffectSpawnArg        hitEffectArg;        // argument record of the effect a landed hit spawns, hung off the model's part 3
+    byte                  unknown_55C[0x20];   // No access found; role unproven
+    s16                   hitCooldown;         // ticks further hits are ignored for, set by a hit whose id asks for it
+    s16                   anim;                // `ACTOR_205200_ANIM_*` the actions ask for; 0 from spawn until the first request
+    s16                   playingAnim;         // `anim` the slots were last started on
+    s16                   animFrame;           // ticks since `playingAnim` was started
+    s16                   action;              // `ACTOR_205200_ACTION_*`
+    s16                   actionStep;          // stage of the running action: `ACTOR_205200_IDLE_*` or `ACTOR_205200_HIT_REACTION_*`
+    s16                   knockbackActive;     // 1 from the player touching `touchBody` until the knockback has ended (0 otherwise)
+    s16                   knockbackStep;       // `ACTOR_205200_KNOCKBACK_*`
+    s16                   knockbackFrame;      // ticks in the knockback's current stage
+    s16                   knockbackFromBehind; // 1 when the player touched the actor while facing away from it, which picks the knockback's animations and facing (0 otherwise)
+    s16                   healCooldown;        // ticks before a heal request is answered again: 600 from the end of a heal or of a hit reaction
+    s16                   fidgetTimer;         // ticks until the next draw for the fidget animation, 15 to 46 between draws
+    s16                   destroyRequested;    // 1 once an actor command has asked for the actor's teardown (0 otherwise)
+    s16                   room;                // `ACTOR_205200_ROOM_*`, copied from the placement's `mode`; picks the touch sphere, the room's own tick and the knockback's effect and sound
+} _Actor205200Work;
+STATIC_ASSERT_SIZEOF(_Actor205200Work, 0x598);
 
 /// Animation block the attack body hands the player with message 0x3F4.
 extern AnimationSet* D_actor_205200_80156800[5];
@@ -345,18 +399,19 @@ POLY_FT4 gScreenWaveGrid[2][30][8];
 ScreenWaveCtx D_actor_205200_8015B458;
 
 /// Spawn handler: allocates the work block, binds the model's matrices to it,
-/// starts animation slots 1..18 and links the two render objects, whose
-/// second one takes its offset and range from the spawn place's `field_2`.
+/// resets animation slots 1..18 on the idle animation and links the hit and
+/// touch spheres, the second of which takes its centre and radius from the
+/// placement's `mode`, kept as `_Actor205200Work::room`.
 static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
 {
-    TmdObject*       tmd;
-    GfxCoord*        coords;
-    Actor205200Work* work;
-    s32              i;
+    TmdObject*        tmd;
+    GfxCoord*         coords;
+    _Actor205200Work* work;
+    s32               i;
 
     tmd    = task->extra.tmd;
     coords = tmd->coords;
-    work   = memCalloc(sizeof(Actor205200Work), 0);
+    work   = memCalloc(sizeof(_Actor205200Work), 0);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -364,8 +419,8 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     task->work           = work;
     tmd->flags           = 0;
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    tmd->lightMtx        = &work->field_45C;
-    tmd->colorMtx        = &work->field_43C;
+    tmd->lightMtx        = &work->lightMtx;
+    tmd->colorMtx        = &work->colorMtx;
     enemy->field_4       = &coords->coord;
     enemy->field_48      = 0;
     Gp_LinkNode(&enemy->node);
@@ -374,69 +429,69 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->recs                   = work->field_49C;
+    enemy->recs                   = work->hitContacts;
     enemy->param                  = NULL;
     enemy->hp                     = 0;
-    work->field_554.coord         = &task->extra.tmd->coords[3];
-    work->field_554.spawnArgLo    = 0x200;
-    work->field_554.spawnArgHi    = 1;
+    work->hitEffectArg.coord      = &task->extra.tmd->coords[3];
+    work->hitEffectArg.spawnArgLo = 0x200;
+    work->hitEffectArg.spawnArgHi = 1;
     animationInitContext(&work->rig.anim, D_actor_205200_801567E8, tmd, work->rig.poses, work->rig.slots);
     i = 1;
     do {
-        animationResetSlot(&work->rig.anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, ACTOR_205200_ANIM_IDLE);
         i++;
-    } while (i < 0x13);
-    work->field_596                  = enemy->place->mode;
-    work->field_47C.pos.vy           = -300;
-    work->field_47C.coord            = coords;
-    work->field_47C.context.contacts = work->field_49C;
-    work->field_47C.pos.vx           = 0;
-    work->field_47C.pos.vz           = 0;
-    work->field_47C.key              = 0x3003C;
-    work->field_47C.radius           = 300;
-    work->field_47C.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->field_47C);
-    Gp_InitRec18Table(work->field_49C, 3, 0);
-    work->field_47C.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    work->field_4E4.coord            = coords;
-    work->field_4E4.context.contacts = &work->field_504;
-    work->field_4E4.pos.vx           = D_actor_205200_801567B4[work->field_596].vx;
-    work->field_4E4.pos.vy           = D_actor_205200_801567B4[work->field_596].vy;
-    work->field_4E4.pos.vz           = D_actor_205200_801567B4[work->field_596].vz;
-    work->field_4E4.key              = 0;
-    work->field_4E4.radius           = D_actor_205200_801567B0[work->field_596];
-    work->field_4E4.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->field_4E4);
-    Gp_InitRec18Table(&work->field_504, 1, 0);
-    work->field_4E4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    } while (i < ARRAY_SIZE(work->rig.slots));
+    work->room                     = enemy->place->mode;
+    work->hitBody.pos.vy           = -300;
+    work->hitBody.coord            = coords;
+    work->hitBody.context.contacts = work->hitContacts;
+    work->hitBody.pos.vx           = 0;
+    work->hitBody.pos.vz           = 0;
+    work->hitBody.key              = 0x3003C;
+    work->hitBody.radius           = 300;
+    work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work->hitBody);
+    Gp_InitRec18Table(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
+    work->hitBody.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->touchBody.coord            = coords;
+    work->touchBody.context.contacts = work->touchContacts;
+    work->touchBody.pos.vx           = D_actor_205200_801567B4[work->room].vx;
+    work->touchBody.pos.vy           = D_actor_205200_801567B4[work->room].vy;
+    work->touchBody.pos.vz           = D_actor_205200_801567B4[work->room].vz;
+    work->touchBody.key              = 0;
+    work->touchBody.radius           = D_actor_205200_801567B0[work->room];
+    work->touchBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work->touchBody);
+    Gp_InitRec18Table(work->touchContacts, ARRAY_SIZE(work->touchContacts), 0);
+    work->touchBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     task->msgTable         = D_actor_205200_801567D0;
     task->state            = 1;
 }
 
 static void func_actor_205200_8014BD4C(Task* arg0)
 {
-    Actor205200Work* work;
-    s32              i;
-    s32              found;
-    s32              last;
-    s32              n;
+    _Actor205200Work* work;
+    s32               i;
+    s32               found;
+    s32               last;
+    s32               n;
 
     found = 0;
     work  = arg0->work;
     last  = 0;
     SCRATCH_STACK_RESERVE_BYTES(0x10);
-    if (work->field_57C != 0) {
-        if (--work->field_57C <= 0) {
-            work->field_57C = 0;
+    if (work->hitCooldown != 0) {
+        if (--work->hitCooldown <= 0) {
+            work->hitCooldown = 0;
         }
-        if (work->field_57C != 0) {
+        if (work->hitCooldown != 0) {
             goto end;
         }
     }
-    for (i = 0; i < 3; i++) {
-        if ((work->field_49C[i].key.value & 0xFFFF0000) == 0x20000) {
+    for (i = 0; i < ARRAY_SIZE(work->hitContacts); i++) {
+        if ((work->hitContacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x20000) {
             func_800DA6E8(&((Enemy*)arg0->spawnArg2.pointer)->node, 0, 0);
-            switch (Gp_GetIdParam0(work->field_49C[i].key.value) & 0xFFFF) {
+            switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
                 case 1:
                     found = 1;
                     break;
@@ -446,98 +501,106 @@ static void func_actor_205200_8014BD4C(Task* arg0)
             if (found == 0) {
                 break;
             }
-            work->field_584 = 1;
-            work->field_586 = 0;
-            if (last != work->field_49C[i].key.value) {
-                last = work->field_49C[i].key.value;
+            work->action     = ACTOR_205200_ACTION_HIT_REACTION;
+            work->actionStep = ACTOR_205200_HIT_REACTION_BEGIN;
+            if (last != work->hitContacts[i].key.value) {
+                last = work->hitContacts[i].key.value;
                 func_800FDB18(Gp_GetIdParam1(last) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL,
-                              &work->field_554);
+                              &work->hitEffectArg);
             }
-            if ((n = Gp_GetIdParam2(work->field_49C[i].key.value)) > 0) {
-                work->field_57C = n;
+            if ((n = Gp_GetIdParam2(work->hitContacts[i].key.value)) > 0) {
+                work->hitCooldown = n;
             }
         }
     }
 end:
-    Gp_ClearRec18Occupied(work->field_49C);
-    if (work->field_504.flags & 1) {
-        if ((work->field_504.key.value & 0xFFFF0000) == 0x10000 && gPlayerStatus.hp > 0) {
-            work->field_588    = 1;
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    Gp_ClearRec18Occupied(work->hitContacts);
+    if (work->touchContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+        if ((work->touchContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000 && gPlayerStatus.hp > 0) {
+            work->knockbackActive = 1;
+            Gp_StateC08.flags    |= ATTACHMENT_FLAG_EVENT_LOCK;
         }
-        Gp_ClearRec18Occupied(&work->field_504);
+        Gp_ClearRec18Occupied(work->touchContacts);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// Charge-handler sub-state machine. States 0 and 3 share a random roll: every
-/// 15-46 frames a 1-in-8 draw switches to state 4 with animation 5. State 2
-/// waits out the animation, raising bit 2 of `gSceneCombatState.pairedEnemySignals` on frame 60,
-/// and state 4 returns to 3 while the `field_590` cooldown is still running.
+/// `ACTOR_205200_ACTION_IDLE`, stepped by `actionStep`. `IDLE_READY` takes a
+/// pending heal request and `IDLE_COOLDOWN` runs `healCooldown` down first;
+/// both share the fidget draw: every 15-46 ticks a 1-in-8 draw starts
+/// `IDLE_FIDGET`, which also replaces a heal request taken on the same tick.
+/// `IDLE_HEAL` plays the heal animation, raising
+/// `SCENE_COMBAT_PAIRED_HEAL_READY` on tick 60 and starting the cooldown on
+/// tick 84. `IDLE_FIDGET` returns to `IDLE_COOLDOWN` while `healCooldown` is
+/// still running and to `IDLE_READY` otherwise.
 static void func_actor_205200_8014BF28(Task* arg0)
 {
-    Actor205200Work* work;
-    s16              next;
+    _Actor205200Work* work;
+    s16               next;
 
     work = arg0->work;
-    switch (work->field_586) {
-        case 0:
+    switch (work->actionStep) {
+        case ACTOR_205200_IDLE_READY:
             if (gSceneCombatState.pairedEnemySignals & SCENE_COMBAT_PAIRED_HEAL_REQUEST) {
                 gSceneCombatState.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_HEAL_REQUEST);
-                work->field_586                       = 1;
+                work->actionStep                      = ACTOR_205200_IDLE_HEAL_BEGIN;
             }
         tick:
-            if (--work->field_592 <= 0) {
-                work->field_592 = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F) + 0xF;
+            if (--work->fidgetTimer <= 0) {
+                work->fidgetTimer = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F) + 0xF;
                 if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 7)) {
-                    work->field_586 = 4;
-                    work->field_57E = 5;
+                    work->actionStep = ACTOR_205200_IDLE_FIDGET;
+                    work->anim       = ACTOR_205200_ANIM_FIDGET;
                 }
             }
             break;
-        case 1:
-            work->field_57E = 2;
-            work->field_586 = 2;
+        case ACTOR_205200_IDLE_HEAL_BEGIN:
+            work->anim       = ACTOR_205200_ANIM_HEAL;
+            work->actionStep = ACTOR_205200_IDLE_HEAL;
             break;
-        case 2:
-            if ((s16)work->field_582 == 0x3C) {
+        case ACTOR_205200_IDLE_HEAL:
+            if (work->animFrame == 0x3C) {
                 gSceneCombatState.pairedEnemySignals |= SCENE_COMBAT_PAIRED_HEAL_READY;
             }
-            if ((s16)work->field_582 >= 0x54) {
-                work->field_57E = 1;
-                work->field_586 = 3;
-                work->field_590 = 0x258;
+            if (work->animFrame >= 0x54) {
+                work->anim         = ACTOR_205200_ANIM_IDLE;
+                work->actionStep   = ACTOR_205200_IDLE_COOLDOWN;
+                work->healCooldown = ACTOR_205200_HEAL_COOLDOWN;
             }
             break;
-        case 3:
-            if (--work->field_590 <= 0) {
-                work->field_586 = 0;
+        case ACTOR_205200_IDLE_COOLDOWN:
+            if (--work->healCooldown <= 0) {
+                work->actionStep = ACTOR_205200_IDLE_READY;
             }
             goto tick;
-        case 4:
-            if ((s16)work->field_582 >= 0x40) {
-                next = 0;
-                if (work->field_590 > 0) {
-                    next = 3;
+        case ACTOR_205200_IDLE_FIDGET:
+            if (work->animFrame >= 0x40) {
+                next = ACTOR_205200_IDLE_READY;
+                if (work->healCooldown > 0) {
+                    next = ACTOR_205200_IDLE_COOLDOWN;
                 }
-                work->field_586 = next;
-                work->field_57E = 1;
+                work->actionStep = next;
+                work->anim       = ACTOR_205200_ANIM_IDLE;
             }
             break;
     }
 }
 
-/// The attack body, run while `field_588` is set. It carves an
-/// `ActorAttackScratch` from the scratch stack and steps `field_58A`:
-/// state 0 records which side of the player it is on (`field_58E`), plays its grab
-/// animation and spawns the effect; state 1 drags the player towards the actor
-/// for 0x10 frames and hands over after 0x1E/0x20; state 2 waits for the
-/// animation to finish and clears `field_588`. The duplicated calls in the
-/// `field_596` arms are what the target's shared tails need: jump2's
+/// The knockback, run while `knockbackActive` is set. It carves an
+/// `ActorAttackScratch` from the scratch stack and steps `knockbackStep`.
+/// `KNOCKBACK_BEGIN` records in `knockbackFromBehind` whether the player
+/// faces away from the actor, starts the player's first animation and spawns
+/// the room's effect on the player; a player already in scripted mode ends
+/// the knockback instead. `KNOCKBACK_PUSH` moves the player 100 units a tick
+/// directly away from the actor for 16 ticks, facing the actor or away from
+/// it as recorded, and starts the second animation after 30 ticks from
+/// behind or 32 from the front. `KNOCKBACK_END` waits for that animation to
+/// finish, releases the player and clears `knockbackActive`. The duplicated
+/// calls in the `room` arms are what the target's shared tails need: jump2's
 /// cross-jumping merges them, where a variable or ternary is hoisted instead.
 static void func_actor_205200_8014C0C0(Task* arg0)
 {
-    Actor205200Work*    work;
+    _Actor205200Work*   work;
     GfxCoord*           coord;
     Task*               player;
     GfxCoord*           target;
@@ -554,38 +617,38 @@ static void func_actor_205200_8014C0C0(Task* arg0)
     coord                      = arg0->extra.tmd->coords;
     target                     = player->extra.tmd->coords;
 
-    switch (work->field_58A) {
-        case 0:
+    switch (work->knockbackStep) {
+        case ACTOR_205200_KNOCKBACK_BEGIN:
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 scratch->delta.vx                  = target->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vy                  = 0;
                 scratch->delta.vz                  = target->coord.t[2] - coord->coord.t[2];
-                work->field_58E                    = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
+                work->knockbackFromBehind          = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
                 scratch->anim.source.sets          = D_actor_205200_80156800;
-                scratch->anim.animationId          = work->field_58E + 1;
+                scratch->anim.animationId          = work->knockbackFromBehind + 1;
                 scratch->anim.blend                = ANIMATION_BLEND_RESET;
                 scratch->anim.blendFrames          = 0;
                 scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, scratch, 0);
-                work->field_58A = 1;
-                work->field_58C = 0;
+                work->knockbackStep  = ACTOR_205200_KNOCKBACK_PUSH;
+                work->knockbackFrame = 0;
                 Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
                 SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 scratch->dir.vx = 0;
                 scratch->dir.vy = -1000;
                 scratch->dir.vz = 0;
-                if (work->field_596 == 0) {
+                if (work->room == ACTOR_205200_ROOM_CORRIDOR) {
                     Gp_SpawnEff(EFFECT_SHELTER_B6_CORRIDOR_PLAYER_HIT_RING, player->extra.tmd->coords, 0, &scratch->dir);
                 } else {
                     Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, player->extra.tmd->coords, 0, &scratch->dir);
                 }
             } else {
-                work->field_588 = 0;
+                work->knockbackActive = 0;
             }
             break;
-        case 1:
-            if ((s16)work->field_58C < 0x10) {
+        case ACTOR_205200_KNOCKBACK_PUSH:
+            if (work->knockbackFrame < 0x10) {
                 scratch->delta.vx = target->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vy = target->coord.t[1] - coord->coord.t[1];
                 scratch->delta.vz = target->coord.t[2] - coord->coord.t[2];
@@ -594,7 +657,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 scratch->place.pos.vy = 0;
                 scratch->place.pos.vz = target->coord.t[2] + ((scratch->dir.vz * 25) >> 10);
                 scratch->place.rot.vx = 0;
-                if (work->field_58E == 0) {
+                if (work->knockbackFromBehind == 0) {
                     scratch->place.rot.vy = (ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
                 } else {
                     scratch->place.rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
@@ -602,8 +665,8 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 scratch->place.rot.vz = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &scratch->place, 0);
             }
-            if ((s16)work->field_58C == 0x10) {
-                if (work->field_596 == 0) {
+            if (work->knockbackFrame == 0x10) {
+                if (work->room == ACTOR_205200_ROOM_CORRIDOR) {
                     sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55180002;
                     SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 } else {
@@ -611,25 +674,25 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                     SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
-            count = (s16)++work->field_58C;
-            if ((work->field_58E != 0 && count >= 0x1E) || (work->field_58E == 0 && count >= 0x20)) {
+            count = ++work->knockbackFrame;
+            if ((work->knockbackFromBehind != 0 && count >= 0x1E) || (work->knockbackFromBehind == 0 && count >= 0x20)) {
                 scratch->anim.source.sets          = D_actor_205200_80156800;
-                scratch->anim.animationId          = work->field_58E + 3;
+                scratch->anim.animationId          = work->knockbackFromBehind + 3;
                 scratch->anim.blend                = ANIMATION_BLEND_RESET;
                 scratch->anim.blendFrames          = 0;
                 scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, scratch, 0);
-                work->field_58A = 2;
-                work->field_58C = 0;
+                work->knockbackStep  = ACTOR_205200_KNOCKBACK_END;
+                work->knockbackFrame = 0;
             }
             break;
-        case 2:
-            if ((s16)++work->field_58C >= 0x25) {
+        case ACTOR_205200_KNOCKBACK_END:
+            if (++work->knockbackFrame >= 0x25) {
                 if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                     taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                    work->field_58A = 0;
-                    work->field_58C = 0;
-                    work->field_588 = 0;
+                    work->knockbackStep   = ACTOR_205200_KNOCKBACK_BEGIN;
+                    work->knockbackFrame  = 0;
+                    work->knockbackActive = 0;
                 }
             }
             break;
@@ -650,10 +713,10 @@ static void func_actor_205200_8014C540(Task* arg0)
 
 static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1)
 {
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    Actor205200Work* work;
-    s32              state;
+    GfxCoord*         coord;
+    TmdObject*        obj;
+    _Actor205200Work* work;
+    s32               state;
 
     work  = arg1->work;
     obj   = arg1->extra.tmd;
@@ -661,7 +724,7 @@ static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1)
     if (gGameSession->eventState != 0) {
         return;
     }
-    if (work->field_594 != 0) {
+    if (work->destroyRequested != 0) {
         arg1->state = 2;
         return;
     }
@@ -699,87 +762,88 @@ case1:
 }
 
 /// Per-frame tick of the live state, run from `func_actor_205200_8014C59C`'s
-/// shared body. Bit 0 of `gSceneCombatState.pairedEnemySignals` is a one-shot re-arm: it clears
-/// itself and drops the actor back to sub-state 1 with the sub-state-0x586
-/// counter restarted, which is what `func_actor_205200_8014C748` drives. The
-/// sub-state at 0x584 then picks the idle or the charge handler, the halfword at
-/// 0x596 which of the two shared ticks follows, and the flag at 0x588 keeps the
-/// attack body running until that body clears it itself.
+/// shared body. Bit 0 of `gSceneCombatState.pairedEnemySignals` is a one-shot
+/// request: it is cleared here and starts `ACTOR_205200_ACTION_HIT_REACTION`
+/// from its first step, as a hit does. `action` then picks the idle or the
+/// hit-reaction handler, `room` which of the two rooms' own ticks follows, and
+/// `knockbackActive` keeps the knockback running until that body clears it
+/// itself.
 static void func_actor_205200_8014C67C(Task* arg0)
 {
-    Actor205200Work* work;
+    _Actor205200Work* work;
 
     work = arg0->work;
     if (gSceneCombatState.pairedEnemySignals & SCENE_COMBAT_PAIRED_CHARGE_REQUEST) {
         gSceneCombatState.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_CHARGE_REQUEST);
-        work->field_584                       = 1;
-        work->field_586                       = 0;
+        work->action                          = ACTOR_205200_ACTION_HIT_REACTION;
+        work->actionStep                      = ACTOR_205200_HIT_REACTION_BEGIN;
     }
-    switch (work->field_584) {
-        case 0:
+    switch (work->action) {
+        case ACTOR_205200_ACTION_IDLE:
             func_actor_205200_8014BF28(arg0);
             break;
-        case 1:
+        case ACTOR_205200_ACTION_HIT_REACTION:
             func_actor_205200_8014C748(arg0);
             break;
     }
-    if (work->field_596 == 0) {
+    if (work->room == ACTOR_205200_ROOM_CORRIDOR) {
         func_shelter_b6_corridor_8017EBA4(arg0);
     } else {
         func_shelter_b6_training_room_80181930(arg0);
     }
-    if (work->field_588 != 0) {
+    if (work->knockbackActive != 0) {
         func_actor_205200_8014C0C0(arg0);
     }
 }
 
-/// Charge handler, sub-state 1 of `func_actor_205200_8014C67C`. On entry it
-/// switches the animation to id 3 and raises bit 3 of `gSceneCombatState.pairedEnemySignals`;
-/// once the frame counter reaches 35 it plays id 1, parks the charge sub-state
-/// at 3, drops back to the idle handler and loads 600 into `field_590`.
+/// `ACTOR_205200_ACTION_HIT_REACTION`, stepped by `actionStep`. On entry it
+/// asks for the hit-reaction animation and raises
+/// `SCENE_COMBAT_PAIRED_RESET_REQUEST`; once that animation has played 35
+/// ticks it asks for the idle one and returns to `ACTOR_205200_ACTION_IDLE`
+/// at `ACTOR_205200_IDLE_COOLDOWN` with `healCooldown` restarted.
 static void func_actor_205200_8014C748(Task* arg0)
 {
-    Actor205200Work* work;
-    s16              state;
+    _Actor205200Work* work;
+    s16               state;
 
     work  = arg0->work;
-    state = work->field_586;
+    state = work->actionStep;
     switch (state) {
-        case 0:
-            work->field_57E                       = 3;
-            work->field_586                       = 1;
+        case ACTOR_205200_HIT_REACTION_BEGIN:
+            work->anim                            = ACTOR_205200_ANIM_HIT_REACTION;
+            work->actionStep                      = ACTOR_205200_HIT_REACTION_WAIT;
             gSceneCombatState.pairedEnemySignals |= SCENE_COMBAT_PAIRED_RESET_REQUEST;
             return;
-        case 1:
-            if ((s16)work->field_582 >= 0x23) {
-                work->field_586 = 3;
-                work->field_57E = 1;
-                work->field_584 = 0;
-                work->field_590 = 0x258;
+        case ACTOR_205200_HIT_REACTION_WAIT:
+            if (work->animFrame >= 0x23) {
+                work->actionStep   = ACTOR_205200_IDLE_COOLDOWN;
+                work->anim         = ACTOR_205200_ANIM_IDLE;
+                work->action       = ACTOR_205200_ACTION_IDLE;
+                work->healCooldown = ACTOR_205200_HEAL_COOLDOWN;
             }
             return;
     }
 }
 
-/// Keeps the work's animation id bound to its helper slots. When the id has
-/// changed since the last tick the remembered id follows it, the frame counter
-/// at 0x582 restarts and every slot 1..18 is pointed at the new id at weight 8;
-/// otherwise the counter ticks and the slots are simply advanced.
+/// Keeps the rig's slots on the animation the actions ask for. When `anim`
+/// differs from `playingAnim` the latter follows it, `animFrame` restarts and
+/// every slot 1..18 is pointed at the new animation with an 8-frame blend;
+/// otherwise `animFrame` counts and the slots are simply advanced.
 static void func_actor_205200_8014C7CC(Task* arg0)
 {
-    Actor205200Work* work;
-    s32              i;
+    _Actor205200Work* work;
+    s32               i;
 
     work = arg0->work;
-    if (work->field_57E != (s16)work->field_580) {
-        work->field_580 = work->field_57E;
-        work->field_582 = 0;
-        for (i = 1; i < 0x13; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_57E, 0, 8);
+    if (work->anim != work->playingAnim) {
+        work->playingAnim = work->anim;
+        work->animFrame   = 0;
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->anim, 0, 8);
         }
     } else {
-        work->field_582++;
-        for (i = 1; i < 0x13; i++) {
+        work->animFrame++;
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
@@ -818,12 +882,12 @@ static void func_actor_205200_8014C8D4(Task* arg0)
 /// collision objects, then destroys the enemy.
 static void func_actor_205200_8014C924(Enemy* arg0, Task* arg1)
 {
-    Actor205200Work* work;
+    _Actor205200Work* work;
 
     work = arg1->work;
     worldTargetUnlinkNode(&arg0->node);
-    Gp_UnlinkObj(&work->field_47C);
-    Gp_UnlinkObj(&work->field_4E4);
+    Gp_UnlinkObj(&work->hitBody);
+    Gp_UnlinkObj(&work->touchBody);
     enemyDestroy(arg0, arg1);
 }
 
@@ -844,16 +908,16 @@ s32 func_actor_205200_8014C980(Task* task, s32 msgId, s32 arg2, s32 arg3)
 }
 
 /// Message 0x7DB handler, listed in `D_actor_205200_801567D0` next to the
-/// 0x7D5 one. A non-zero payload halfword sets `Actor205200Work.field_594`, the
+/// 0x7D5 one. A non-zero command sets `_Actor205200Work::destroyRequested`, the
 /// flag `func_actor_205200_8014C59C` tests to push the actor to state 2.
 /// Nothing reads the opcode itself, hence `arg1`.
 s32 func_actor_205200_8014C9A0(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
-    Actor205200Work* work;
+    _Actor205200Work* work;
 
     work = arg0->work;
     if (request->command != 0) {
-        work->field_594 = 1;
+        work->destroyRequested = 1;
     }
     return 0;
 }
