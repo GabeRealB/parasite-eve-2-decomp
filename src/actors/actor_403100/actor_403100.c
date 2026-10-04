@@ -101,21 +101,31 @@ STATIC_ASSERT_SIZEOF(Actor403100RectEntry, 0xC);
 
 extern EnemyParams D_actor_403100_8014762C;
 
-typedef struct Actor403100Entry {
-    /* 0x00 */ s16                   active;
-    /* 0x02 */ s16                   age;
-    /* 0x04 */ s16                   frame;
-    /* 0x06 */ SVECTOR               delta;
-    /* 0x0E */ SVECTOR               position;
-    /* 0x16 */ u8                    pad_16[0xA];
-    /* 0x20 */ GfxCoord              coord;
-    /* 0x70 */ WorldCollisionBody    obj;
-    /* 0x90 */ WorldCollisionContact records[4];
-} Actor403100Entry;
-STATIC_ASSERT_SIZEOF(Actor403100Entry, 0xF0);
+/// One puff of the flame the Burner breathes.
+///
+/// A puff leaves the head with a velocity fixed at that moment, drifts along
+/// it and grows with age while drawn as a screen-facing sprite. Its sphere
+/// carries the flame's attack to whatever it touches; a puff whose contact
+/// table holds a contact stops advancing and rises instead.
+///
+/// Slots are handed out lowest first and the update relies on that: it walks
+/// only the first `Actor403100Work::flameLifetime` slots, which hold every
+/// live puff while no more than one is emitted per frame of ageing.
+typedef struct {
+    s16                   active;       // 1 while the puff is alive and its body linked; 0 for a free slot
+    s16                   age;          // Running frames lived; the puff is released at `Actor403100Work::flameLifetime`
+    s16                   spriteStep;   // Animation step of the sprite: starts at a random 0..15 and advances with `age`
+    SVECTOR               velocity;     // World-space movement per frame
+    SVECTOR               position;     // World-space centre
+    byte                  field_16[10]; // Never accessed; role unproven
+    GfxCoord              coord;        // World placement of `body`: identity rotation, translation following `position`
+    WorldCollisionBody    body;         // Damaging sphere at the centre; its radius is a third of the drawn size
+    WorldCollisionContact contacts[4];  // Contact table of `body`
+} _Actor403100Flame;
+STATIC_ASSERT_SIZEOF(_Actor403100Flame, 0xF0);
 
-extern s16              D_actor_403100_80155810;
-extern Actor403100Entry D_actor_403100_80155814[28];
+extern s16               D_actor_403100_80155810;
+extern _Actor403100Flame D_actor_403100_80155814[28];
 
 /// Values of `Actor403100Work::jawPitchPhase` and `headPitchPhase`.
 ///
@@ -242,7 +252,7 @@ typedef struct {
     s16                   hitDistance;                           // Horizontal distance from the player to its own offset from the root read in the head's frame; halved into the damage roll
     s16                   field_632;                             // Cleared as the grab begins and as the hold ends; never read, role unproven
     u16                   previousAnimationFlags;                // Slot 1's ANIMATION_SLOT_* results as the last running update's tick left them
-    s16                   entryLifetime;                         // Frames a pooled entry lives (28 or 20); also how many pool slots the update walks
+    s16                   flameLifetime;                         // Frames a flame puff lives (28 or 20); also how many slots of the flame pool the update walks
     s16                   repromptDelay;                         // Frames until the held player is prompted for button presses again; 0 while a prompt runs
     s16                   squeezeFrames;                         // Frames of the hold since its last damage; 180 deal the next
     s16                   sectionDamaged[9];                     // Nonzero once the balcony section of that index has been switched to its damaged look
@@ -3154,7 +3164,7 @@ Enemy* D_actor_403100_8015580C = NULL;
 
 s16 D_actor_403100_80155810 = 0;
 
-Actor403100Entry D_actor_403100_80155814[28] = { 0 };
+_Actor403100Flame D_actor_403100_80155814[28] = { 0 };
 
 /// Overlay-wide work block; `Task::extra` is a `TmdObject` whose `coords` is
 /// this actor's `GfxCoord`.
@@ -3529,8 +3539,8 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
     GfxCoord*              joint;
     s32                    i;
     u32                    random;
-    WorldCollisionContact* records;
-    WorldCollisionBody*    obj;
+    WorldCollisionContact* contacts;
+    WorldCollisionBody*    body;
     GfxCoord*              coord;
 
     i      = 0;
@@ -3539,49 +3549,49 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
     end.vx = arg1->vx + arg2->vx;
     end.vy = arg1->vy + arg2->vy;
     end.vz = arg1->vz + arg2->vz;
-    for (; i < 0x1C; i++) {
+    for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (D_actor_403100_80155814[i].active == 0) {
-            coord                             = &D_actor_403100_80155814[i].coord;
-            D_actor_403100_80155814[i].active = 1;
-            D_actor_403100_80155814[i].age    = 0;
-            random                            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                   = random;
-            D_actor_403100_80155814[i].frame  = (s16)((random >> 0x10) & 0xF);
+            coord                                 = &D_actor_403100_80155814[i].coord;
+            D_actor_403100_80155814[i].active     = 1;
+            D_actor_403100_80155814[i].age        = 0;
+            random                                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                       = random;
+            D_actor_403100_80155814[i].spriteStep = (s16)((random >> 0x10) & 0xF);
             coordLocalToWorld(joint, arg1);
             identity = &matrix;
             coordLocalToWorld(joint, &end);
-            D_actor_403100_80155814[i].delta.vx             = (s16)(end.vx - arg1->vx);
-            D_actor_403100_80155814[i].delta.vy             = (s16)(end.vy - arg1->vy);
-            D_actor_403100_80155814[i].delta.vz             = (s16)(end.vz - arg1->vz);
-            D_actor_403100_80155814[i].position.vx          = (u16)arg1->vx;
-            D_actor_403100_80155814[i].position.vy          = (u16)arg1->vy;
-            D_actor_403100_80155814[i].position.vz          = (u16)arg1->vz;
-            D_actor_403100_80155814[i].coord.parent         = &gGfxViewCoord;
-            matrix.rotationWords.m00M01                     = ONE;
-            matrix.rotationWords.m02M10                     = 0;
-            identity->rotationWords.m11M12                  = ONE;
-            matrix.rotationWords.m20M21                     = 0;
-            identity->rotationWords.m22                     = ONE;
-            matrix.mat.t[0]                                 = (s32)(s16)arg1->vx;
-            matrix.mat.t[1]                                 = (s32)(s16)arg1->vy;
-            records                                         = D_actor_403100_80155814[i].records;
-            matrix.mat.t[2]                                 = (s32)(s16)arg1->vz;
-            D_actor_403100_80155814[i].coord.coord          = matrix.mat;
-            D_actor_403100_80155814[i].obj.coord            = coord;
-            D_actor_403100_80155814[i].obj.context.contacts = records;
-            D_actor_403100_80155814[i].obj.pos.vx           = 0;
-            D_actor_403100_80155814[i].obj.pos.vy           = 0;
-            D_actor_403100_80155814[i].obj.pos.vz           = 0;
-            D_actor_403100_80155814[i].obj.key              = Gp_PackPair(D_actor_403100_80147614, 1);
-            D_actor_403100_80155814[i].obj.radius           = 0x32;
-            D_actor_403100_80155814[i].obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-            obj                                             = &D_actor_403100_80155814[i].obj;
-            Gp_LinkObj(3, obj);
-            Gp_InitRec18Table(records, 4, 0);
+            D_actor_403100_80155814[i].velocity.vx           = (s16)(end.vx - arg1->vx);
+            D_actor_403100_80155814[i].velocity.vy           = (s16)(end.vy - arg1->vy);
+            D_actor_403100_80155814[i].velocity.vz           = (s16)(end.vz - arg1->vz);
+            D_actor_403100_80155814[i].position.vx           = (u16)arg1->vx;
+            D_actor_403100_80155814[i].position.vy           = (u16)arg1->vy;
+            D_actor_403100_80155814[i].position.vz           = (u16)arg1->vz;
+            D_actor_403100_80155814[i].coord.parent          = &gGfxViewCoord;
+            matrix.rotationWords.m00M01                      = ONE;
+            matrix.rotationWords.m02M10                      = 0;
+            identity->rotationWords.m11M12                   = ONE;
+            matrix.rotationWords.m20M21                      = 0;
+            identity->rotationWords.m22                      = ONE;
+            matrix.mat.t[0]                                  = (s32)(s16)arg1->vx;
+            matrix.mat.t[1]                                  = (s32)(s16)arg1->vy;
+            contacts                                         = D_actor_403100_80155814[i].contacts;
+            matrix.mat.t[2]                                  = (s32)(s16)arg1->vz;
+            D_actor_403100_80155814[i].coord.coord           = matrix.mat;
+            D_actor_403100_80155814[i].body.coord            = coord;
+            D_actor_403100_80155814[i].body.context.contacts = contacts;
+            D_actor_403100_80155814[i].body.pos.vx           = 0;
+            D_actor_403100_80155814[i].body.pos.vy           = 0;
+            D_actor_403100_80155814[i].body.pos.vz           = 0;
+            D_actor_403100_80155814[i].body.key              = Gp_PackPair(D_actor_403100_80147614, 1);
+            D_actor_403100_80155814[i].body.radius           = 0x32;
+            D_actor_403100_80155814[i].body.flags            = WORLD_COLLISION_BODY_SPHERE;
+            body                                             = &D_actor_403100_80155814[i].body;
+            Gp_LinkObj(3, body);
+            Gp_InitRec18Table(contacts, ARRAY_SIZE(D_actor_403100_80155814[i].contacts), 0);
             if ((mode << 0x10) == 0) {
-                obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+                body->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             } else {
-                obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                body->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             Gp_UpdateCoord(&D_actor_403100_80155814[i].coord);
             D_actor_403100_80155814[i].coord.composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4199,10 +4209,10 @@ static void func_actor_403100_80133C94(Task* task)
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
     D_actor_403100_80155810 = 0;
-    for (i = 0; i < 28; i++) {
+    for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (D_actor_403100_80155814[i].active != 0) {
             D_actor_403100_80155814[i].active = 0;
-            Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
+            Gp_UnlinkObj(&D_actor_403100_80155814[i].body);
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
@@ -4450,81 +4460,81 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
     s32                 collision;
     s32                 i;
     s32                 j;
-    Actor403100Entry*   entry;
+    _Actor403100Flame*  flame;
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    for (i = 0; i < D_actor_403100_80155808->entryLifetime; i++) {
-        entry = &D_actor_403100_80155814[i];
-        if (entry->active == 0) {
+    for (i = 0; i < D_actor_403100_80155808->flameLifetime; i++) {
+        flame = &D_actor_403100_80155814[i];
+        if (flame->active == 0) {
             continue;
         }
         if (D_actor_403100_80155808->sectionDamaged[2] == 0 &&
-            Actor403100_FindEffectRegion(entry->position.vx, entry->position.vz) == 2) {
+            Actor403100_FindEffectRegion(flame->position.vx, flame->position.vz) == 2) {
             func_dryfield_night_motel_balcony_8017E250(2, 1);
             D_actor_403100_80155808->sectionDamaged[2] = 1;
         }
-        pos.vx = entry->position.vx;
-        pos.vy = entry->position.vy;
-        pos.vz = entry->position.vz;
+        pos.vx = flame->position.vx;
+        pos.vy = flame->position.vy;
+        pos.vz = flame->position.vz;
         gte_ldv0(&pos);
         gte_rtps();
         gte_stsxy(&screen);
         gte_stflg(&flag);
         gte_stszotz(&depth);
         if ((s16)D_actor_403100_80155808->state == 5) {
-            growth = entry->age * 0xF0 + 0x90;
+            growth = flame->age * 0xF0 + 0x90;
             size   = baseSize + growth;
         } else {
-            growth = entry->age * 0x3C + 0x90;
+            growth = flame->age * 0x3C + 0x90;
             size   = baseSize + growth;
         }
         if (flag >= 0) {
-            func_dryfield_night_motel_balcony_8017F6C8(screen, (depth << 0xC) >> 0x10, (s16)((size << 0x10 >> 1) / (depth * 4)), entry->frame);
+            func_dryfield_night_motel_balcony_8017F6C8(screen, (depth << 0xC) >> 0x10, (s16)((size << 0x10 >> 1) / (depth * 4)), flame->spriteStep);
         } else {
-            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), WORLD_COLLISION_BODY_GRID_ENABLED);
+            _actor403100SetObjFlags(&D_actor_403100_80155814[i].body, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), WORLD_COLLISION_BODY_GRID_ENABLED);
         }
         if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-            if (Gp_FindRec18(entry->obj.context.contacts, 0) != 0) {
-                for (j = 0; j < 4; j++) {
-                    if ((D_actor_403100_80155814[i].records[j].key.value & 0xFFFF0000) == 0x10000 && D_actor_403100_80155810 == 0) {
+            if (Gp_FindRec18(flame->body.context.contacts, 0) != 0) {
+                for (j = 0; j < ARRAY_SIZE(flame->contacts); j++) {
+                    if ((D_actor_403100_80155814[i].contacts[j].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000 && D_actor_403100_80155810 == 0) {
                         D_actor_403100_80155810 = 0xA;
                     }
                 }
             }
-            collision = func_800E0C10(D_actor_403100_80155814[i].records, &delta, 4, 0);
+            collision = func_800E0C10(D_actor_403100_80155814[i].contacts, &delta, ARRAY_SIZE(flame->contacts), 0);
             if (collision == 0) {
-                entry->position.vx += entry->delta.vx;
-                entry->position.vy += entry->delta.vy;
-                entry->position.vz += entry->delta.vz;
+                flame->position.vx += flame->velocity.vx;
+                flame->position.vy += flame->velocity.vy;
+                flame->position.vz += flame->velocity.vz;
             } else if (collision >= 0) {
                 if (collision < 3) {
-                    D_actor_403100_80155814[i].position.vy -= 0x100 + D_actor_403100_80155814[i].delta.vy;
+                    D_actor_403100_80155814[i].position.vy -= 0x100 + D_actor_403100_80155814[i].velocity.vy;
                 }
             }
             Gp_UpdateCoord(&D_actor_403100_80155814[i].coord);
-            entry->coord.coord.t[0]   = entry->position.vx;
-            entry->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            entry->coord.coord.t[1]   = entry->position.vy;
-            entry->coord.coord.t[2]   = entry->position.vz;
-            entry->obj.radius         = size / 3;
+            flame->coord.coord.t[0]   = flame->position.vx;
+            flame->coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            flame->coord.coord.t[1]   = flame->position.vy;
+            flame->coord.coord.t[2]   = flame->position.vz;
+            flame->body.radius        = size / 3;
             if (D_actor_403100_80155810 == 0) {
-                _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, WORLD_COLLISION_BODY_FLAGS_MASK, WORLD_COLLISION_BODY_PAIR_ENABLED);
+                _actor403100SetObjFlags(&D_actor_403100_80155814[i].body, WORLD_COLLISION_BODY_FLAGS_MASK, WORLD_COLLISION_BODY_PAIR_ENABLED);
             } else {
-                _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), 0);
+                _actor403100SetObjFlags(&D_actor_403100_80155814[i].body, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), 0);
             }
-            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, WORLD_COLLISION_BODY_FLAGS_MASK, WORLD_COLLISION_BODY_GRID_ENABLED);
-            Gp_ClearRec18Occupied(D_actor_403100_80155814[i].records);
-            entry->age++;
-            entry->frame++;
-            if (entry->age == D_actor_403100_80155808->entryLifetime) {
-                entry->active = 0;
-                Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
+            _actor403100SetObjFlags(&D_actor_403100_80155814[i].body, WORLD_COLLISION_BODY_FLAGS_MASK, WORLD_COLLISION_BODY_GRID_ENABLED);
+            Gp_ClearRec18Occupied(D_actor_403100_80155814[i].contacts);
+            flame->age++;
+            flame->spriteStep++;
+            if (flame->age == D_actor_403100_80155808->flameLifetime) {
+                flame->active = 0;
+                Gp_UnlinkObj(&D_actor_403100_80155814[i].body);
             }
         } else {
-            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)), 0);
+            _actor403100SetObjFlags(&D_actor_403100_80155814[i].body, (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)), 0);
         }
     }
     if (D_actor_403100_80155810 != 0) {
@@ -4679,10 +4689,10 @@ static void func_actor_403100_8013539C(Task* arg0)
 
     D_actor_403100_80155810 = 0;
     coord                   = arg0->extra.tmd->coords;
-    for (i = 0; i < 28; i++) {
+    for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (D_actor_403100_80155814[i].active != 0) {
             D_actor_403100_80155814[i].active = 0;
-            Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
+            Gp_UnlinkObj(&D_actor_403100_80155814[i].body);
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
@@ -4730,11 +4740,11 @@ static void func_actor_403100_801355D4(Task* arg0)
     D_actor_403100_80155810                = 0;
     coord                                  = arg0->extra.tmd->coords;
     D_actor_403100_80155808->aimMode       = ACTOR_403100_AIM_TRACK_FAST;
-    D_actor_403100_80155808->entryLifetime = 0x1C;
-    for (i = 0; i < 28; i++) {
+    D_actor_403100_80155808->flameLifetime = 0x1C;
+    for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (D_actor_403100_80155814[i].active != 0) {
             D_actor_403100_80155814[i].active = 0;
-            Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
+            Gp_UnlinkObj(&D_actor_403100_80155814[i].body);
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
@@ -4818,10 +4828,10 @@ static void func_actor_403100_801359DC(Task* arg0)
     D_actor_403100_80155810 = 0;
     coord                   = arg0->extra.tmd->coords;
     joint                   = &coord[6];
-    for (i = 0; i < 28; i++) {
+    for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
         if (D_actor_403100_80155814[i].active != 0) {
             D_actor_403100_80155814[i].active = 0;
-            Gp_UnlinkObj(&D_actor_403100_80155814[i].obj);
+            Gp_UnlinkObj(&D_actor_403100_80155814[i].body);
         }
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
@@ -5131,7 +5141,7 @@ static void func_actor_403100_80136610(Task* arg0)
     func_actor_403100_801327CC(arg0);
     coord->parent = &gGfxViewCoord;
     func_actor_403100_80132320(arg0);
-    for (i = 27; i >= 0; i--) {
+    for (i = ARRAY_SIZE(D_actor_403100_80155814) - 1; i >= 0; i--) {
         D_actor_403100_80155814[i].active = 0;
     }
     func_dryfield_night_motel_balcony_8017E4B8();
@@ -5462,8 +5472,8 @@ static void func_actor_403100_80136830(Task* arg0)
 }
 static void func_actor_403100_8013712C(Task* arg0)
 {
-    Actor403100Entry*   entries;
-    WorldCollisionBody* obj;
+    _Actor403100Flame*  flames;
+    WorldCollisionBody* body;
     s32                 i;
     GfxCoord*           coord;
     Actor403100Work*    work;
@@ -5475,8 +5485,8 @@ static void func_actor_403100_8013712C(Task* arg0)
     D_actor_403100_80155808->stridePhase            = 0;
     (Gp_IncStateF0Ref)(0);
     i                                        = 0;
-    entries                                  = D_actor_403100_80155814;
-    obj                                      = &entries->obj;
+    flames                                   = D_actor_403100_80155814;
+    body                                     = &flames->body;
     work                                     = *(Actor403100Work* volatile*)&D_actor_403100_80155808;
     coord->coord.t[0]                        = -0x44C;
     coord->coord.t[2]                        = 0x980;
@@ -5490,15 +5500,15 @@ static void func_actor_403100_8013712C(Task* arg0)
     work->rotation.vz                        = 0;
     work->animationRequest                   = ACTOR_403100_ANIMATION_REQUEST_RESET;
     work->stateFrames                        = 0;
-    for (; i < 0x1C; i++) {
-        if (entries[i].active != 0) {
-            entries[i].active = 0;
-            Gp_UnlinkObj(obj);
+    for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
+        if (flames[i].active != 0) {
+            flames[i].active = 0;
+            Gp_UnlinkObj(body);
         }
-        /* The collision body walks as its own pointer, one entry at a time:
-           spelled `&entries[i].obj` it folds into the walk of `entries[i]`,
+        /* The collision body walks as its own pointer, one flame at a time:
+           spelled `&flames[i].body` it folds into the walk of `flames[i]`,
            and the ROM keeps the two apart. */
-        obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
+        body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     D_actor_403100_80155808->subState += 1;
@@ -5828,9 +5838,9 @@ static void func_actor_403100_80137DC4(Task* arg0)
 }
 static void func_actor_403100_80137F4C(Task* task)
 {
-    Actor403100Entry*   entry;
-    WorldCollisionBody* obj;
-    Actor403100Entry*   entries;
+    _Actor403100Flame*  flame;
+    WorldCollisionBody* body;
+    _Actor403100Flame*  flames;
     s32                 i;
 
     D_actor_403100_80155808->walkStage = 0;
@@ -5840,18 +5850,18 @@ static void func_actor_403100_80137F4C(Task* task)
         D_actor_403100_80155808->walkSpeed = 0x30;
     }
     i                                      = 0;
-    entries                                = D_actor_403100_80155814;
-    obj                                    = &D_actor_403100_80155814->obj;
-    entry                                  = entries;
+    flames                                 = D_actor_403100_80155814;
+    body                                   = &D_actor_403100_80155814->body;
+    flame                                  = flames;
     D_actor_403100_80155810                = 0;
-    D_actor_403100_80155808->entryLifetime = 0x14;
-    for (; i < 0x1C; i++) {
-        if (entry->active != 0) {
-            entry->active = 0;
-            Gp_UnlinkObj(obj);
+    D_actor_403100_80155808->flameLifetime = 0x14;
+    for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
+        if (flame->active != 0) {
+            flame->active = 0;
+            Gp_UnlinkObj(body);
         }
-        obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
-        entry++;
+        body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
+        flame++;
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
@@ -6396,9 +6406,9 @@ static void func_actor_403100_8013922C(Task* arg0)
 }
 static void func_actor_403100_801395EC(Task* arg0)
 {
-    Actor403100Entry*   entry;
-    Actor403100Entry*   entries;
-    WorldCollisionBody* obj;
+    _Actor403100Flame*  flame;
+    _Actor403100Flame*  flames;
+    WorldCollisionBody* body;
     s32                 x;
     s32                 i;
     u16                 frame;
@@ -6424,9 +6434,9 @@ static void func_actor_403100_801395EC(Task* arg0)
     D_actor_403100_80155808->stateFrames = frame;
     i                                    = 0;
     if (((s32)(frame << 0x10) >> 0x10) >= 0x1F) {
-        entries                                                    = D_actor_403100_80155814;
-        obj                                                        = &entries->obj;
-        entry                                                      = entries;
+        flames                                                     = D_actor_403100_80155814;
+        body                                                       = &flames->body;
+        flame                                                      = flames;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
         coords->coord.t[1]                                         = -0x1388;
         D_actor_403100_80155808->jawPitchOffset                    = 0;
@@ -6438,7 +6448,7 @@ static void func_actor_403100_801395EC(Task* arg0)
         part->coord.t[0]                                           = -0x877;
         D_actor_403100_80155808->animationId                       = 7;
         D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        D_actor_403100_80155808->entryLifetime                     = 0x14;
+        D_actor_403100_80155808->flameLifetime                     = 0x14;
         D_actor_403100_80155808->headAim.vy                        = 0x200;
         D_actor_403100_80155808->stateFrames                       = 0;
         D_actor_403100_80155808->animationRate                     = ANIMATION_RATE_ONE;
@@ -6454,14 +6464,14 @@ static void func_actor_403100_801395EC(Task* arg0)
         D_actor_403100_80155808->rotation.vy                       = 0xA00;
         D_actor_403100_80155808->rotation.vz                       = 0;
         do {
-            if (entry->active != 0) {
-                entry->active = 0;
-                Gp_UnlinkObj(obj);
+            if (flame->active != 0) {
+                flame->active = 0;
+                Gp_UnlinkObj(body);
             }
-            obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
-            i  += 1;
-            entry++;
-        } while (i < 0x1C);
+            body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
+            i   += 1;
+            flame++;
+        } while (i < ARRAY_SIZE(D_actor_403100_80155814));
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     }
 }
@@ -6777,26 +6787,26 @@ static void func_actor_403100_8013A254(Task* task)
 }
 static void func_actor_403100_8013A4C8(Task* arg0)
 {
-    Actor403100Entry*   entries;
-    WorldCollisionBody* obj;
+    _Actor403100Flame*  flames;
+    WorldCollisionBody* body;
     s32                 i;
     Actor403100Work*    work;
 
     i                                          = 0;
-    entries                                    = D_actor_403100_80155814;
-    obj                                        = &entries->obj;
+    flames                                     = D_actor_403100_80155814;
+    body                                       = &flames->body;
     arg0->extra.tmd->otOffset                  = 0x1F;
     work                                       = *(Actor403100Work* volatile*)&D_actor_403100_80155808;
     (*(volatile s16*)&D_actor_403100_80155810) = 0;
     work->walkSpeed                            = 0x30;
     work->walkStage                            = 0;
-    work->entryLifetime                        = 0x1C;
-    for (; i < 0x1C; i++) {
-        if (entries[i].active != 0) {
-            entries[i].active = 0;
-            Gp_UnlinkObj(obj);
+    work->flameLifetime                        = 0x1C;
+    for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
+        if (flames[i].active != 0) {
+            flames[i].active = 0;
+            Gp_UnlinkObj(body);
         }
-        obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
+        body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
@@ -7052,10 +7062,10 @@ static void func_actor_403100_8013AE28(Task* task)
 }
 static void func_actor_403100_8013B128(Task* arg0)
 {
-    Actor403100Entry*   entries;
+    _Actor403100Flame*  flames;
     Actor403100Work*    work;
     Actor403100Work*    finalWork;
-    WorldCollisionBody* obj;
+    WorldCollisionBody* body;
     s32                 sound;
     s32                 i;
     s32                 pan;
@@ -7078,15 +7088,15 @@ static void func_actor_403100_8013B128(Task* arg0)
         return;
     }
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
-    entries                 = D_actor_403100_80155814;
-    obj                     = &entries->obj;
+    flames                  = D_actor_403100_80155814;
+    body                    = &flames->body;
     D_actor_403100_80155810 = 0;
-    for (; i < 0x1C; i++) {
-        if (entries[i].active != 0) {
-            entries[i].active = 0;
-            Gp_UnlinkObj(obj);
+    for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
+        if (flames[i].active != 0) {
+            flames[i].active = 0;
+            Gp_UnlinkObj(body);
         }
-        obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
+        body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 1);
     D_actor_403100_80155808->savedView                         = gGameSession->location.loc.view;

@@ -134290,7 +134290,7 @@ this, and only the last is source-controlled:
   sequence) is not a REG, so `(u8*)&SYM + offset` already emits `(offset, base)`
   while `(u8*)var + offset` does not.
 * To move a variable base behind the offset, make the addition an **integer**
-  one with the offset on the left: `(Actor403100Entry*)(offset + (u32)var)`.
+  one with the offset on the left: `(_Actor403100Flame*)(offset + (u32)var)`.
   Integer operand order survives to the RTL, and because the variable is still
   read it keeps its hoisted register, which the symbol form does not (that form
   lets it die and rematerialises the address per site).
