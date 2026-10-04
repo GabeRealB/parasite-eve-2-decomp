@@ -45,44 +45,60 @@
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 
-/// Work block allocated by `func_actor_361100_80162D28` and
-/// `func_actor_361100_80163410` (`memCalloc(0x4A4)`)
-/// and parked in that task's `Task::work` slot. `func_actor_361100_80162E04` and
-/// `func_actor_361100_801634B4` republish the two matrices
-/// onto `TmdObject::lightMtx` / `colorMtx`, the light/colour pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
+/// Work block of the actor drawn with `_gActor361100Model06038`, the first of
+/// the package's two scripted models.
 ///
-/// The size is the allocation, and the fields below are the ones the inits
-/// seed: the three `sb` bytes at 0x43D/0x43E/0x4A2 are set to -1, and
-/// `func_actor_361100_80162D28` also clears the three words at 0x480..0x488.
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens with the head the nineteen-part play handler
+/// runs on (`ActorMotion19PlayWork`), and the model object borrows
+/// `model.light` and `model.color` for as long as the block lives.
 ///
-/// The six words at 0x480..0x498 are two groups of three, four bytes apart
-/// within a group and twelve between them: `func_actor_361100_801630D4` writes
-/// only the 0x490 group, `func_actor_361100_80162F58` clears both, and the two
-/// words that fall between them (0x48C, 0x49C) are never touched by anything in
-/// this overlay, which is the `pad` slot of a `VECTOR` apiece.
+/// What follows moves the model in a straight line: each tick adds `velocity`
+/// to `carry` and moves the root coordinate by the whole units that makes. A
+/// move command sets `velocity` to a displacement divided by a frame count and
+/// `moveFrames` to that count; placing the actor stops the move.
 ///
-/// `field_4A0` is the halfword the 0x7DB handler `func_actor_361100_80163750`
-/// arms alongside the first group, next door to the byte
-/// `func_actor_361100_80163670` writes.
+/// The layout is `_Actor361100AyaBreaWork`'s with the velocity and the carry
+/// in each other's place. No code reads or writes the word after `carry`, the
+/// fourth word of `velocity`, or `pad_4A3`.
+typedef struct {
+    ActorAnimRig19  rig;           // Playback storage of the nineteen-part model; slots 1 to 18 are driven
+    ActorModelState model;         // Clip and bank the rig plays, and the matrices the model is lit with
+    Fixed16         carry[3];      // X, Y and Z displacement not yet applied; only the fractions survive a tick
+    byte            pad_48C[0x4];
+    VECTOR          velocity;      // Displacement added each tick, in signed 16.16 units; zero while standing
+    s16             moveFrames;    // Ticks the move still has to run; the tick finding 0 applies `velocity` once more, clears it and leaves -1
+    s8              freeCountdown; // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    byte            pad_4A3[0x1];
+} _Actor361100Model06038Work;
+STATIC_ASSERT_SIZEOF(_Actor361100Model06038Work, 0x4A4);
+
+/// Work block of Aya Brea's body, the second of the package's two scripted
+/// models.
 ///
-/// The block opens with the model's rig and model state.
-typedef struct Actor361100Work {
-    ActorAnimRig19   rig;
-    ActorModelState  model;
-    /* 0x480 */ s32  field_480;
-    /* 0x484 */ s32  field_484;
-    /* 0x488 */ s32  field_488;
-    /* 0x48C */ byte pad_48C[0x4];
-    /* 0x490 */ s32  field_490;
-    /* 0x494 */ s32  field_494;
-    /* 0x498 */ s32  field_498;
-    /* 0x49C */ byte pad_49C[0x4];
-    /* 0x4A0 */ s16  field_4A0;
-    /* 0x4A2 */ s8   field_4A2;
-    /* 0x4A3 */ byte pad_4A3[0x1];
-} Actor361100Work;
-STATIC_ASSERT_SIZEOF(Actor361100Work, 0x4A4);
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens with the model's nineteen-part rig and model
+/// state, and the model object borrows `model.light` and `model.color` for as
+/// long as the block lives.
+///
+/// What follows moves the model in a straight line: each tick adds `velocity`
+/// to `carry` and moves the root coordinate by the whole units that makes. A
+/// move command sets `velocity` to a displacement divided by a frame count and
+/// `moveFrames` to that count.
+///
+/// No code reads or writes the fourth word of `velocity`, `pad_49C` or
+/// `pad_4A3`.
+typedef struct {
+    ActorAnimRig19  rig;           // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    ActorModelState model;         // Clip and bank the rig plays, and the matrices the model is lit with
+    VECTOR          velocity;      // Displacement added each tick, in signed 16.16 units; zero while standing
+    Fixed16         carry[3];      // X, Y and Z displacement not yet applied; only the fractions survive a tick
+    byte            pad_49C[0x4];
+    s16             moveFrames;    // Ticks the move still has to run; the tick finding 1 applies `velocity` a last time and clears it (0 no move)
+    s8              freeCountdown; // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    byte            pad_4A3[0x1];
+} _Actor361100AyaBreaWork;
+STATIC_ASSERT_SIZEOF(_Actor361100AyaBreaWork, 0x4A4);
 
 extern Task* D_actor_361100_80171BE0;
 
@@ -1462,44 +1478,44 @@ static void func_actor_361100_80162B0C(void)
     D_actor_361100_80171BE0 = 0;
 }
 
-/// Per-frame tick of the armed variant: integrates the 16.16 accumulator at
-/// 0x480 three words at a time into the root part's local translation -- whole
-/// part onto `coord.t`, then it is truncated back to its fraction -- runs the
-/// `field_4A0` countdown that zeroes the 0x490 step while it is at 0, ticks the
-/// animation slots once `model.ticking` has latched, and while the part is visible
-/// rebuilds its world matrix and hands the result to `Gp_UpdateActorColor`.
-/// `field_4A2` counts the root part's buffers down to the free.
+/// Per-frame tick of the first model: adds `velocity` to `carry` and moves the
+/// root part's local translation by the whole units that makes, keeping the
+/// fractions -- runs the `moveFrames` countdown that zeroes `velocity` while it
+/// is at 0, ticks the animation slots once `model.ticking` has latched, and
+/// while the part is visible rebuilds its world matrix and hands the result to
+/// `Gp_UpdateActorColor`. `freeCountdown` counts the model's buffers down to
+/// the free.
 ///
-/// The twin of `func_actor_361100_801631C4` with the two groups swapped: that
-/// one integrates the 0x490 group `func_actor_361100_801630D4` arms and draws
-/// a ground shadow under the second part, this one the 0x480 group
-/// `func_actor_361100_80163750` arms.
+/// The twin of `func_actor_361100_801631C4`, which moves Aya's body the same
+/// way from a work block that keeps `velocity` and `carry` in the other order,
+/// stops its move a tick earlier and draws a ground shadow under the second
+/// part.
 static void func_actor_361100_80162B18(Task* task)
 {
-    TmdObject*       ext  = task->extra.tmd;
-    Actor361100Work* work = (Actor361100Work*)task->work;
-    GfxCoord*        coord;
-    VECTOR           pos;
-    s32              i;
+    TmdObject*                  ext  = task->extra.tmd;
+    _Actor361100Model06038Work* work = (_Actor361100Model06038Work*)task->work;
+    GfxCoord*                   coord;
+    VECTOR                      pos;
+    s32                         i;
 
-    coord               = ext->coords;
-    work->field_480    += work->field_490;
-    work->field_484    += work->field_494;
-    work->field_488    += work->field_498;
-    coord->coord.t[0]  += (s16)(work->field_480 >> 16);
-    coord->coord.t[1]  += (s16)(work->field_484 >> 16);
-    coord->coord.t[2]  += (s16)(work->field_488 >> 16);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_480     = (u16)work->field_480;
-    work->field_484     = (u16)work->field_484;
-    work->field_488     = (u16)work->field_488;
-    if (work->field_4A0 >= 0) {
-        if (work->field_4A0 == 0) {
-            work->field_490 = 0;
-            work->field_494 = 0;
-            work->field_498 = 0;
+    coord                = ext->coords;
+    work->carry[0].word += work->velocity.vx;
+    work->carry[1].word += work->velocity.vy;
+    work->carry[2].word += work->velocity.vz;
+    coord->coord.t[0]   += work->carry[0].halves.integer;
+    coord->coord.t[1]   += work->carry[1].halves.integer;
+    coord->coord.t[2]   += work->carry[2].halves.integer;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    work->carry[0].word  = work->carry[0].halves.fraction;
+    work->carry[1].word  = work->carry[1].halves.fraction;
+    work->carry[2].word  = work->carry[2].halves.fraction;
+    if (work->moveFrames >= 0) {
+        if (work->moveFrames == 0) {
+            work->velocity.vx = 0;
+            work->velocity.vy = 0;
+            work->velocity.vz = 0;
         }
-        work->field_4A0--;
+        work->moveFrames--;
     }
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
@@ -1514,11 +1530,11 @@ static void func_actor_361100_80162B18(Task* task)
         pos.vz = coord->workm.t[2];
         Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
     }
-    if (work->field_4A2 >= 0) {
-        if (work->field_4A2 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(ext);
         }
-        work->field_4A2--;
+        work->freeCountdown--;
     }
 }
 
@@ -1536,33 +1552,33 @@ void func_actor_361100_80162CBC(Task* task)
 }
 
 /// Spawn callback: allocates the work block into `Task::work`, seeds the
-/// three -1 bytes, clears the first vector accumulator and arms the spawn
+/// three -1 bytes, clears `carry` and arms the spawn
 /// argument `Enemy` with the coordinate's root matrix, then enters the
 /// `func_actor_361100_80162E04` state with `D_actor_361100_8016BAF0`
 /// installed at `Task::msgTable`. The task exits through
 /// `func_actor_361100_80162DE4` if the allocation fails.
 static void func_actor_361100_80162D28(Task* arg0)
 {
-    Actor361100Work* work;
-    GfxCoord*        coord;
-    Enemy*           enemy;
+    _Actor361100Model06038Work* work;
+    GfxCoord*                   coord;
+    Enemy*                      enemy;
 
     coord = arg0->extra.tmd->coords;
     enemy = arg0->spawnArg2.pointer;
 
-    work = memCalloc(sizeof(Actor361100Work), false);
+    work = memCalloc(sizeof(_Actor361100Model06038Work), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
     }
 
-    arg0->work         = work;
-    work->model.animId = ACTOR_MODEL_STATE_NONE;
-    work->model.bank   = ACTOR_MODEL_STATE_NONE;
-    work->field_4A2    = -1;
-    work->field_480    = 0;
-    work->field_484    = 0;
-    work->field_488    = 0;
+    arg0->work          = work;
+    work->model.animId  = ACTOR_MODEL_STATE_NONE;
+    work->model.bank    = ACTOR_MODEL_STATE_NONE;
+    work->freeCountdown = -1;
+    work->carry[0].word = 0;
+    work->carry[1].word = 0;
+    work->carry[2].word = 0;
 
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
@@ -1582,10 +1598,10 @@ static void func_actor_361100_80162DE4(Task* arg0)
 
 static void func_actor_361100_80162E04(Task* arg0)
 {
-    TmdObject*       ext;
-    Actor361100Work* work;
+    TmdObject*                  ext;
+    _Actor361100Model06038Work* work;
 
-    work          = (Actor361100Work*)arg0->work;
+    work          = (_Actor361100Model06038Work*)arg0->work;
     ext           = arg0->extra.tmd;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
@@ -1597,14 +1613,14 @@ static void func_actor_361100_80162E04(Task* arg0)
 /// into the root part's local matrix, stores its Euler angles in the
 /// coordinate's own `rot` slot and rebuilds the rotation from them with
 /// `RotMatrixZYX`. Clearing `composeStamp` makes `actorRenderComposeCoordChain` recompute the
-/// composed matrix from it, and the six words the body then clears are the work
-/// block's two vector accumulators.
+/// composed matrix from it, and clearing `carry` and `velocity` stops the move
+/// in progress.
 s32 func_actor_361100_80162F58(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
-    GfxCoord*        coord;
-    Actor361100Work* work;
+    GfxCoord*                   coord;
+    _Actor361100Model06038Work* work;
 
-    work                = (Actor361100Work*)task->work;
+    work                = (_Actor361100Model06038Work*)task->work;
     coord               = task->extra.tmd->coords;
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
@@ -1614,12 +1630,12 @@ s32 func_actor_361100_80162F58(Task* task, s32 arg1, ActorTransform* placement, 
     coord->param.rot.vz = placement->rot.vz;
     RotMatrixZYX(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_480     = 0;
-    work->field_484     = 0;
-    work->field_488     = 0;
-    work->field_490     = 0;
-    work->field_494     = 0;
-    work->field_498     = 0;
+    work->carry[0].word = 0;
+    work->carry[1].word = 0;
+    work->carry[2].word = 0;
+    work->velocity.vx   = 0;
+    work->velocity.vy   = 0;
+    work->velocity.vz   = 0;
     return 0;
 }
 
@@ -1641,9 +1657,9 @@ s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((Actor361100Work*)task->work)->field_4A2 = mode;
-            obj->flags                               |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags                                              |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((_Actor361100Model06038Work*)task->work)->freeCountdown = mode;
+            obj->flags                                              |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1659,38 +1675,38 @@ s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// Message 0x7DB handler, listed in `D_actor_361100_8016BAF0` -- the table
 /// `func_actor_361100_80162D28` installs at `Task::msgTable`, and the twin of
 /// `D_actor_361100_80171BB8` where `func_actor_361100_80163750` serves the same
-/// id. 0 parks the actor, clearing the work block's second vector accumulator;
-/// 1, 2 and 3 arm it with one of three preset vectors and the halfword at
-/// `field_4A0`; every other sub-command exits the task through its own
-/// `Task::exitCallback`.
+/// id. 0 parks the actor, clearing `velocity`; 1, 2 and 3 start one of three
+/// preset moves, setting `velocity` to the move's displacement divided by its
+/// frame count and `moveFrames` to that count; every other sub-command exits
+/// the task through its own `Task::exitCallback`.
 s32 func_actor_361100_801630D4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor361100Work* work;
+    _Actor361100Model06038Work* work;
 
-    work = (Actor361100Work*)task->work;
+    work = (_Actor361100Model06038Work*)task->work;
     switch (msg->command) {
         case 0:
-            work->field_490 = 0;
-            work->field_494 = 0;
-            work->field_498 = 0;
+            work->velocity.vx = 0;
+            work->velocity.vy = 0;
+            work->velocity.vz = 0;
             break;
         case 1:
-            work->field_490 = 0xFFF6CCCD;
-            work->field_494 = 0xFEC13334;
-            work->field_498 = 0xB9999;
-            work->field_4A0 = 0x19;
+            work->velocity.vx = -230 * 0x10000 / 25;
+            work->velocity.vy = -7970 * 0x10000 / 25;
+            work->velocity.vz = 290 * 0x10000 / 25;
+            work->moveFrames  = 25;
             break;
         case 2:
-            work->field_490 = 0xFFCC13B2;
-            work->field_494 = 0xFF559D8A;
-            work->field_498 = 0x1C7627;
-            work->field_4A0 = 0x1A;
+            work->velocity.vx = -1350 * 0x10000 / 26;
+            work->velocity.vy = -4430 * 0x10000 / 26;
+            work->velocity.vz = 740 * 0x10000 / 26;
+            work->moveFrames  = 26;
             break;
         case 3:
-            work->field_490 = 0x606DB6;
-            work->field_494 = 0x1C4DB6D;
-            work->field_498 = 0xFED84925;
-            work->field_4A0 = 0xE;
+            work->velocity.vx = 1350 * 0x10000 / 14;
+            work->velocity.vy = 6340 * 0x10000 / 14;
+            work->velocity.vz = -4140 * 0x10000 / 14;
+            work->moveFrames  = 14;
             break;
         default:
             task->exitCallback(task);
@@ -1699,41 +1715,41 @@ s32 func_actor_361100_801630D4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
     return 0;
 }
 
-/// Per-frame tick of the actor: integrates the 16.16 accumulator at 0x490
-/// three words at a time into the root part's local translation -- whole part
-/// onto `coord.t`, then it is truncated back to its fraction -- runs the
-/// `field_4A0` countdown that zeroes the 0x480 step while it is at 1, ticks the
-/// animation slots once `model.ticking` has latched, and while the part is visible
-/// draws its ground shadow, rebuilds the second part's world matrix from it and
-/// re-ranks it through `func_800D7A9C`. `field_4A2` counts the second part's
-/// buffers down to the free. Every use of the second part's coordinate
-/// (`TmdObject::coords[1]`) is re-read from `task`, not cached.
+/// Per-frame tick of Aya's body: adds `velocity` to `carry` and moves the root
+/// part's local translation by the whole units that makes, keeping the
+/// fractions -- runs the `moveFrames` countdown that zeroes `velocity` while it
+/// is at 1, ticks the animation slots once `model.ticking` has latched, and
+/// while the part is visible draws its ground shadow, rebuilds the second
+/// part's world matrix from it and re-ranks it through `func_800D7A9C`.
+/// `freeCountdown` counts the model's buffers down to the free. Every use of
+/// the second part's coordinate (`TmdObject::coords[1]`) is re-read from
+/// `task`, not cached.
 static void func_actor_361100_801631C4(Task* task)
 {
-    TmdObject*       ext  = task->extra.tmd;
-    Actor361100Work* work = (Actor361100Work*)task->work;
-    GfxCoord*        coord;
-    VECTOR3          pos;
-    s32              i;
+    TmdObject*               ext  = task->extra.tmd;
+    _Actor361100AyaBreaWork* work = (_Actor361100AyaBreaWork*)task->work;
+    GfxCoord*                coord;
+    VECTOR3                  pos;
+    s32                      i;
 
-    coord               = ext->coords;
-    work->field_490    += work->field_480;
-    work->field_494    += work->field_484;
-    work->field_498    += work->field_488;
-    coord->coord.t[0]  += (s16)(work->field_490 >> 16);
-    coord->coord.t[1]  += (s16)(work->field_494 >> 16);
-    coord->coord.t[2]  += (s16)(work->field_498 >> 16);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_490     = (u16)work->field_490;
-    work->field_494     = (u16)work->field_494;
-    work->field_498     = (u16)work->field_498;
-    if (work->field_4A0 > 0) {
-        if (work->field_4A0 == 1) {
-            work->field_480 = 0;
-            work->field_484 = 0;
-            work->field_488 = 0;
+    coord                = ext->coords;
+    work->carry[0].word += work->velocity.vx;
+    work->carry[1].word += work->velocity.vy;
+    work->carry[2].word += work->velocity.vz;
+    coord->coord.t[0]   += work->carry[0].halves.integer;
+    coord->coord.t[1]   += work->carry[1].halves.integer;
+    coord->coord.t[2]   += work->carry[2].halves.integer;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    work->carry[0].word  = work->carry[0].halves.fraction;
+    work->carry[1].word  = work->carry[1].halves.fraction;
+    work->carry[2].word  = work->carry[2].halves.fraction;
+    if (work->moveFrames > 0) {
+        if (work->moveFrames == 1) {
+            work->velocity.vx = 0;
+            work->velocity.vy = 0;
+            work->velocity.vz = 0;
         }
-        work->field_4A0--;
+        work->moveFrames--;
     }
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
@@ -1748,11 +1764,11 @@ static void func_actor_361100_801631C4(Task* task)
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
-    if (work->field_4A2 >= 0) {
-        if (work->field_4A2 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(ext);
         }
-        work->field_4A2--;
+        work->freeCountdown--;
     }
 }
 
@@ -1771,18 +1787,18 @@ void func_actor_361100_801633A4(Task* task)
 
 static void func_actor_361100_80163410(Task* arg0)
 {
-    Actor361100Work* work;
+    _Actor361100AyaBreaWork* work;
 
-    work = memCalloc(sizeof(Actor361100Work), false);
+    work = memCalloc(sizeof(_Actor361100AyaBreaWork), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
     }
 
-    arg0->work         = work;
-    work->model.animId = ACTOR_MODEL_STATE_NONE;
-    work->model.bank   = ACTOR_MODEL_STATE_NONE;
-    work->field_4A2    = -1;
+    arg0->work          = work;
+    work->model.animId  = ACTOR_MODEL_STATE_NONE;
+    work->model.bank    = ACTOR_MODEL_STATE_NONE;
+    work->freeCountdown = -1;
     func_actor_361100_801634B4(arg0);
     arg0->msgTable     = D_actor_361100_80171BB8;
     arg0->exitCallback = func_actor_361100_80163494;
@@ -1796,11 +1812,11 @@ static void func_actor_361100_80163494(Task* arg0)
 
 static void func_actor_361100_801634B4(Task* arg0)
 {
-    TmdObject*       ext;
-    Actor361100Work* work;
+    TmdObject*               ext;
+    _Actor361100AyaBreaWork* work;
 
     ext           = arg0->extra.tmd;
-    work          = (Actor361100Work*)arg0->work;
+    work          = (_Actor361100AyaBreaWork*)arg0->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -1812,11 +1828,11 @@ static void func_actor_361100_801634B4(Task* arg0)
 /// otherwise resets the slots before ticking them.
 s32 func_actor_361100_801634D0(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
-    Actor361100Work* work;
-    TmdObject*       ext;
-    s32              i;
+    _Actor361100AyaBreaWork* work;
+    TmdObject*               ext;
+    s32                      i;
 
-    work = (Actor361100Work*)task->work;
+    work = (_Actor361100AyaBreaWork*)task->work;
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
@@ -1861,9 +1877,9 @@ s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((Actor361100Work*)task->work)->field_4A2 = mode;
-            obj->flags                               |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags                                           |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((_Actor361100AyaBreaWork*)task->work)->freeCountdown = mode;
+            obj->flags                                           |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1877,27 +1893,28 @@ s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode, s32 arg3)
 }
 
 /// Message 0x7DB handler, listed in `D_actor_361100_80171BB8`, the table the
-/// task installs at `Task::msgTable`. 0 parks the actor, clearing the work
-/// block's first vector accumulator; 1 arms it, dropping 0x2D000 into the
-/// accumulator's middle word and 0xA0 into `field_4A0`; every other sub-command
-/// exits the task through its own `Task::exitCallback`.
+/// task installs at `Task::msgTable`. 0 parks the actor, clearing `velocity`
+/// and `moveFrames`; 1 starts the one preset move, 450 units along +Y over 160
+/// frames, setting `velocity` to that displacement divided by the frame count
+/// and `moveFrames` to the count; every other sub-command exits the task
+/// through its own `Task::exitCallback`.
 s32 func_actor_361100_80163750(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
-    Actor361100Work* work;
+    _Actor361100AyaBreaWork* work;
 
-    work = (Actor361100Work*)task->work;
+    work = (_Actor361100AyaBreaWork*)task->work;
     switch (msg->command) {
         case 0:
-            work->field_480 = 0;
-            work->field_484 = 0;
-            work->field_488 = 0;
-            work->field_4A0 = 0;
+            work->velocity.vx = 0;
+            work->velocity.vy = 0;
+            work->velocity.vz = 0;
+            work->moveFrames  = 0;
             break;
         case 1:
-            work->field_484 = 0x2D000;
-            work->field_480 = 0;
-            work->field_488 = 0;
-            work->field_4A0 = 0xA0;
+            work->velocity.vy = 450 * 0x10000 / 160;
+            work->velocity.vx = 0;
+            work->velocity.vz = 0;
+            work->moveFrames  = 160;
             break;
         default:
             task->exitCallback(task);

@@ -49212,7 +49212,7 @@ the field itself so the load keeps one use:
 
 ```c
 s32 func_actor_361100_80163750(Task* task, s32 msgId, ActorCommand* msg) {
-    work = (Actor361100Work*)task->work;
+    work = (_Actor361100AyaBreaWork*)task->work;
     switch (msg->command) { ...; default: task->exitCallback(task); }
     return 0;
 }
@@ -83380,16 +83380,16 @@ block back out of the binary, not the shape that produced it.
 
 **Fix.** Repeat the identical statements in every case and let the compiler
 re-derive the sharing. The store order matters: written
-`field_490; field_494; field_498; field_4A0` the suffix that survives the
-merge is the last three, leaving the `0x498` store inside each case and the
-`field_4A0` store in the tail's jump delay slot — exactly the target.
+`velocity.vx; velocity.vy; velocity.vz; moveFrames` the suffix that survives
+the merge is the last three, leaving the `0x498` store inside each case and the
+`moveFrames` store in the tail's jump delay slot — exactly the target.
 
 ```c
 case 1:
-    work->field_490 = 0xFFF6CCCD;
-    work->field_494 = 0xFEC13334;
-    work->field_498 = 0xB9999;
-    work->field_4A0 = 0x19;
+    work->velocity.vx = -230 * 0x10000 / 25;
+    work->velocity.vy = -7970 * 0x10000 / 25;
+    work->velocity.vz = 290 * 0x10000 / 25;
+    work->moveFrames  = 25;
     break;
 ```
 
