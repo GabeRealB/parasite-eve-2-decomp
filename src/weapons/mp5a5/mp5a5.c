@@ -50,10 +50,18 @@
 #error "WEAPON_ID is a per-package build parameter"
 #endif
 
+/* gameplay's weapon table names each package's attack handler, so each build of
+ * this source gives the handler its own package's name. */
+#if WEAPON_ID == 0x1F
+#define func_mp5a5_8011DDA4 func_mp5a5_p1_8011DDA4
+#elif WEAPON_ID == 0x20
+#define func_mp5a5_8011DDA4 func_mp5a5_p2_8011DDA4
+#endif
+
 /// Muzzle offset of the weapon, in the firing hand's coordinate frame.
 static SVECTOR _gMuzzleOffset = { 0, 0x240, 0x40, 0 };
 
-static void func_mp5a5_8011DDA4(Task* arg0);
+void func_mp5a5_8011DDA4(Task* arg0);
 
 #include "../../shared/muzzle_flash_task.inc.c"
 
@@ -91,7 +99,7 @@ void func_mp5a5_8011D1E0(Task* task)
 /// effect under the weapon task. States 4/5 pick the lock-on target once (only
 /// while still below 6) and state 6 loops back to `fire` while the trigger is
 /// held, the ammo check passes and the burst timer has run out.
-static void func_mp5a5_8011DDA4(Task* arg0)
+void func_mp5a5_8011DDA4(Task* arg0)
 {
     GameActor*             actor;
     GfxCoord*              coord;

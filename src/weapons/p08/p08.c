@@ -28,9 +28,17 @@
 #error "WEAPON_ID, P08_FLASH_EFFECT, P08_FLASH_WEAPON and P08_FIELD_940 are per-package build parameters"
 #endif
 
-static void func_p08_8011D1D8(Task* arg0);
+/* gameplay's weapon table names each package's attack handler, so each build of
+ * this source gives the handler its own package's name. */
+#if WEAPON_ID == 0x1
+#define func_p08_8011D1D8 func_p08_snail_8011D1D8
+#elif WEAPON_ID == 0x9
+#define func_p08_8011D1D8 func_mongoose_8011D1D8
+#endif
 
-static void func_p08_8011D1D8(Task* arg0)
+void func_p08_8011D1D8(Task* arg0);
+
+void func_p08_8011D1D8(Task* arg0)
 {
     GameActor* actor;
     GfxCoord*  coord;

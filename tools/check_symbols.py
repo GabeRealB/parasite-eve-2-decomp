@@ -590,7 +590,10 @@ def main() -> None:
             continue
         per_owner = defaultdict(set)
         for d in ds:
-            per_owner[canon(d.owner)].add(d.name)
+            # The packages of one entry are one image for names that are file
+            # offsets, but a reference that names its owner means that one
+            # package: its copy of an exported function has its own name.
+            per_owner[d.owner if d.attrs.get('owner') == d.owner else canon(d.owner)].add(d.name)
         for owner, ns in sorted(per_owner.items()):
             # A shared slot holds a different image at each load, so two names
             # imported into it at one address may well mean different things.

@@ -23,6 +23,14 @@
 #error "WEAPON_ID is a per-package build parameter"
 #endif
 
+/* gameplay's weapon table names each package's attack handler, so each build of
+ * this source gives the handler its own package's name. */
+#if WEAPON_ID == 0x14
+#define func_m4a1_8011D1C4 func_m4a1_p1_8011D1C4
+#elif WEAPON_ID == 0x15
+#define func_m4a1_8011D1C4 func_m4a1_p2_8011D1C4
+#endif
+
 void func_m4a1_8011D1C4(Task* arg0);
 
 void func_m4a1_8011D1C4(Task* arg0)

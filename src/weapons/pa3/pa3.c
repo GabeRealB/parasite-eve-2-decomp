@@ -31,6 +31,12 @@
 #error "WEAPON_ID and PA3_FIELD_979 are per-package build parameters"
 #endif
 
+/* gameplay's weapon table names each package's attack handler, so each build of
+ * this source gives the handler its own package's name. */
+#if WEAPON_ID == 0xE
+#define func_pa3_8011D1DC func_sp12_8011D1DC
+#endif
+
 void func_pa3_8011D1DC(Task* arg0);
 
 /// Per-frame firing state machine for the shotgun. Case 0 arms the shot -

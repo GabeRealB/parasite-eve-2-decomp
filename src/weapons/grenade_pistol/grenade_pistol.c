@@ -58,11 +58,17 @@
 #error "GRENADE_VARIANT is a per-package build parameter"
 #endif
 
+/* gameplay's weapon table names each package's attack handler, so each build of
+ * this source gives the handler its own package's name. */
+#if GRENADE_VARIANT == 1
+#define func_grenade_pistol_8011D1D4 func_mm1_8011D1D4
+#endif
+
 /// The weapon's index. It also keys the firing sound and the shot effect.
 
-static void func_grenade_pistol_8011D1D4(Task* arg0);
+void func_grenade_pistol_8011D1D4(Task* arg0);
 
-static void func_grenade_pistol_8011D1D4(Task* arg0)
+void func_grenade_pistol_8011D1D4(Task* arg0)
 {
     GameActor* actor;
     s32        anim;
