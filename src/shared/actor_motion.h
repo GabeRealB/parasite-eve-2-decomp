@@ -33,12 +33,35 @@ typedef struct ActorMotionWork {
     ActorWalkState  walk;
 } ActorMotionWork;
 
-/// The same head for the nineteen-part walkers, which the 19 variants run on.
-typedef struct ActorMotion19Work {
-    ActorAnimRig19  rig;
-    ActorModelState model;
-    ActorWalkState  walk;
-} ActorMotion19Work;
+/// What `actorMotionPlayAnim19` needs of the work block at `Task::work`: the
+/// nineteen-part rig it binds and seeds, and the model state recording what
+/// the rig plays.
+///
+/// Every package that installs the handler opens its work block with these
+/// two members. What follows is the package's own and the handler does not
+/// reach it: a walker keeps its walk state there (`ActorMotion19WalkWork`),
+/// while an actor that only plays clips keeps other state or ends the block
+/// soon after.
+typedef struct {
+    ActorAnimRig19  rig;   // Playback storage of the nineteen-part model; the handler drives slots 1 to 18
+    ActorModelState model; // Bank the rig is bound to and the clip its slots were last seeded with
+} ActorMotion19PlayWork;
+STATIC_ASSERT_SIZEOF(ActorMotion19PlayWork, 0x480);
+
+/// What `actorMotionArrive19` needs of the work block at `Task::work`: the
+/// head of a nineteen-part scripted walker, `ActorMotion19PlayWork` with the
+/// walk state directly after it.
+///
+/// The arrival step plays the walk's closing clip through
+/// `actorMotionPlayAnim19`, which views the same block as
+/// `ActorMotion19PlayWork`, so the first two members are laid out as that
+/// type's. What follows `walk` is the package's own.
+typedef struct {
+    ActorAnimRig19  rig;   // Playback storage of the nineteen-part model
+    ActorModelState model; // What the rig plays; `nextAnimId` is the clip the walk changes to on arrival
+    ActorWalkState  walk;  // Destination, per-frame velocity and step of the walk in progress
+} ActorMotion19WalkWork;
+STATIC_ASSERT_SIZEOF(ActorMotion19WalkWork, 0x4C4);
 
 void actorMotionArrive(Task* arg0);
 void actorMotionFaceTarget(Task* task);

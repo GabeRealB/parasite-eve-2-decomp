@@ -7,14 +7,14 @@
 /// the distance as the new `lastDistance`.
 void actorMotionArrive19(Task* arg0)
 {
-    ActorMotion19Work*   work;
-    GfxCoord*            coord;
-    SVECTOR              d;
-    s32                  dx;
-    s32                  dz;
-    AnimationPlayRequest preset;
+    ActorMotion19WalkWork* work;
+    GfxCoord*              coord;
+    SVECTOR                d;
+    s32                    dx;
+    s32                    dz;
+    AnimationPlayRequest   preset;
 
-    work  = (ActorMotion19Work*)arg0->work;
+    work  = (ActorMotion19WalkWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
     if (work->walk.target.vx - coord->coord.t[0] >= 0) {
         dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];

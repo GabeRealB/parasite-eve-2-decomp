@@ -57,7 +57,7 @@
 ///
 /// The task's spawn state allocates it zeroed and keeps it at `Task::work`
 /// for the task's life. It opens with the head the nineteen-part actor motion
-/// handlers run on (`ActorMotion19Work`), so the room script places Flint,
+/// handlers run on (`ActorMotion19WalkWork`), so the room script places Flint,
 /// plays his clips and walks him from point to point with the same messages
 /// it sends Douglas. The model object borrows `model.light` and `model.color`
 /// for as long as the block lives.
