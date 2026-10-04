@@ -231,7 +231,21 @@ typedef struct {
 } _MidiSong;
 STATIC_ASSERT_SIZEOF(_MidiSong, 0x5DC);
 
-typedef u8* (*MidiHandler)(s32, u8*, _MidiSong*, _MidiTrack*);
+/// Decoder for one class of MIDI track event, chosen by the status byte's high nibble.
+///
+/// `status` is the event's status byte: the high nibble is the event class
+/// (0x8..0xF) and, for a channel event, the low nibble is the channel (0..15).
+/// `event` addresses that byte in the song's borrowed sequence image, so the
+/// event's data starts at `event[1]`. Where the stream omits the status byte,
+/// the caller supplies one and passes the address one byte before the data,
+/// which keeps those offsets. `song` holds the channel controls, voice slots
+/// and tempo the event acts on; `track` is the track being advanced, for
+/// events that change its own control flow.
+///
+/// Returns the cursor the track's next delta time is read from, which a loop,
+/// call or return places elsewhere in the image, or `NULL` when the event
+/// cannot be decoded, which stops the song.
+typedef u8* (*_MidiEventHandler)(s32 status, u8* event, _MidiSong* song, _MidiTrack* track);
 
 /* Define BSS before API headers to preserve first-declaration order. */
 /// Permission for the audio interrupt to drain deferred sound events (0 defer, 1 process).
@@ -319,7 +333,7 @@ volatile u8 D_80082136;
 
 extern void (*SndEvt_Handlers[])(SndEvt*);
 
-static MidiHandler Midi_EventFns[];
+static _MidiEventHandler Midi_EventFns[];
 
 static volatile s32 D_800689E8;
 
@@ -456,7 +470,7 @@ void (*SndEvt_Handlers[])(SndEvt*) = {
     SndEvt_HandleKeyOffMatching,  // SOUND_EVENT_SCRIPT_KEY_OFF
 };
 
-static MidiHandler Midi_EventFns[] = {
+static _MidiEventHandler Midi_EventFns[] = {
     Midi_KeyOffChannel,
     Midi_Event1,
     Midi_IncPtr,
