@@ -46,11 +46,18 @@ typedef struct Actor02100Fn00048Scratch {
 } Actor02100Fn00048Scratch;
 STATIC_ASSERT_SIZEOF(Actor02100Fn00048Scratch, 0x28);
 
-typedef struct Actor02100Fn014E4Scratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR shortVec;
-} Actor02100Fn014E4Scratch;
-STATIC_ASSERT_SIZEOF(Actor02100Fn014E4Scratch, 0x18);
+/// 0x18-byte block the watcher's routines take from the scratch stack when they
+/// need a vector or two to work in: one of each width a GTE rotation works
+/// between.
+///
+/// The block is reserved and released within one routine and carries nothing
+/// from one use to the next, so each use gives the members its own meaning. The
+/// routines that rebuild the beam's end point only fill `shortVec`.
+typedef struct {
+    VECTOR  vec;      // 32-bit vector: a view-space point (the muzzle, the target), or an offset whose length is taken (to the attacking player, from the muzzle to the strike contact); an enemy target's lock position is received in its three components
+    SVECTOR shortVec; // 16-bit vector: a GTE rotation's input (the muzzle offset, the beam length along the forward axis, an enemy's lock position), or an effect's spawn offset from the watcher's coordinate
+} _Actor02100VectorScratch;
+STATIC_ASSERT_SIZEOF(_Actor02100VectorScratch, 0x18);
 
 typedef struct Actor02100Fn011C4Scratch {
     /* 0x00 */ VECTOR  transformed;
@@ -645,13 +652,12 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
 
 static void Actor02100_Fn004C4(Task* arg0)
 {
-    Actor02100Fn014E4Scratch*        scratch;
+    _Actor02100VectorScratch*        scratch;
     _Actor02100Work*                 work;
     Enemy*                           enemy;
     GfxCoord*                        coord;
     GfxCoord*                        src;
     WorldCollisionSurfaceProperties* surface;
-    u8*                              head;
     s32                              damage;
     s32                              stun;
     s32                              sound;
@@ -659,12 +665,10 @@ static void Actor02100_Fn004C4(Task* arg0)
     s32                              depth;
     s32                              index;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x18;
-    scratch                  = SCRATCH_STACK_CURSOR(Actor02100Fn014E4Scratch);
-    coord                    = arg0->extra.tmd->coords;
-    work                     = arg0->work;
-    enemy                    = arg0->spawnArg2.pointer;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100VectorScratch);
+    coord   = arg0->extra.tmd->coords;
+    work    = arg0->work;
+    enemy   = arg0->spawnArg2.pointer;
 
     if (work->hitCooldown != 0) {
         work->hitCooldown--;
@@ -783,7 +787,7 @@ static void Actor02100_Fn004C4(Task* arg0)
     }
 
     Gp_ClearRec18Occupied(work->strikeContacts);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
 }
 
 /// Stops the looping effect, clears the offset vector and starts the tail
@@ -1109,13 +1113,12 @@ static void Actor02100_Fn011C4(Task* arg0)
 
 static s32 Actor02100_Fn014E4(Task* arg0)
 {
-    Actor02100Fn014E4Scratch* scratch;
+    _Actor02100VectorScratch* scratch;
     _Actor02100Work*          work;
     GfxCoord*                 coord;
     GfxCoord*                 targetCoord;
     VECTOR*                   vec;
     WorldTargetNode*          lock;
-    u8*                       head;
     s32                       result;
     s32                       state;
 
@@ -1126,11 +1129,9 @@ static s32 Actor02100_Fn014E4(Task* arg0)
         return result;
     }
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    scratch                  = (Actor02100Fn014E4Scratch*)(head - 0x18);
-    SCRATCH_STACK_CURSOR(u8) = (u8*)scratch;
-    vec                      = &scratch->vec;
-    state                    = work->targetKind;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100VectorScratch);
+    vec     = &scratch->vec;
+    state   = work->targetKind;
     if (state == ACTOR_02100_TARGET_PLAYER) {
         goto case1;
     }
@@ -1160,10 +1161,12 @@ case2:
         goto cleanup;
     }
     lock = &((Enemy*)work->target->spawnArg2.pointer)->node;
+    // The lock position is written over the three components of `vec`, then
+    // narrowed for the GTE and rotated back into `vec` in view space.
     Gp_GetLockPos(lock, (VECTOR3*)&scratch->vec);
-    scratch->shortVec.vx = (u16)scratch->vec.vx;
-    scratch->shortVec.vy = (u16)scratch->vec.vy;
-    scratch->shortVec.vz = (u16)scratch->vec.vz;
+    scratch->shortVec.vx = scratch->vec.vx;
+    scratch->shortVec.vy = scratch->vec.vy;
+    scratch->shortVec.vz = scratch->vec.vz;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&scratch->shortVec);
     gte_rtv0();
@@ -1175,7 +1178,7 @@ case2:
     result = 1;
 
 cleanup:
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
     return result;
 }
 
@@ -1194,7 +1197,7 @@ cleanup:
 static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
 {
     Actor02100Fn01FF0Scratch* scratch;
-    Actor02100Fn014E4Scratch* shortScratch;
+    _Actor02100VectorScratch* shortScratch;
     _Actor02100Work*          work;
     _Actor02100Work*          nextWork;
     _Actor02100Work*          nextWork2;
@@ -1226,15 +1229,17 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     scratch->transformed.vz = work->targetPos.vz - scratch->delta.vz;
     Gp_OrientAlong(&scratch->transformed, &work->aim, 0);
 
+    // Release the aim block and reserve a vector block in its place for the
+    // beam's end point.
     head1                      = SCRATCH_STACK_CURSOR(u8);
     nextWork                   = arg0->work;
-    shortScratch               = (Actor02100Fn014E4Scratch*)(head1 + 0x10);
+    shortScratch               = (_Actor02100VectorScratch*)(head1 + sizeof(Actor02100Fn01FF0Scratch) - sizeof(_Actor02100VectorScratch));
     nextWork->beamPoints[0].vx = 0;
     nextWork->beamPoints[0].vy = 0;
     nextWork->beamPoints[0].vz = ACTOR_02100_MUZZLE_OFFSET;
     shortScratch->shortVec.vx  = 0;
     shortScratch->shortVec.vy  = 0;
-    SCRATCH_STACK_CURSOR(u8)   = head1 + 0x28;
+    SCRATCH_STACK_CURSOR(u8)   = head1 + sizeof(Actor02100Fn01FF0Scratch);
     shortScratch->shortVec.vz  = nextWork->beamLength;
     SCRATCH_STACK_CURSOR(u8)   = (u8*)shortScratch;
     gte_SetRotMatrix(&nextWork->aim);
@@ -1243,9 +1248,10 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     gte_stsv(&nextWork->beamPoints[1]);
     nextWork->beamPoints[1].vz += ACTOR_02100_MUZZLE_OFFSET;
 
+    // Release the vector block and reserve the far point's input in its place.
     head2                    = SCRATCH_STACK_CURSOR(u8);
-    shortVec                 = (SVECTOR*)(head2 + 0x10);
-    SCRATCH_STACK_CURSOR(u8) = head2 + 0x18;
+    shortVec                 = (SVECTOR*)(head2 + sizeof(_Actor02100VectorScratch) - sizeof(SVECTOR));
+    SCRATCH_STACK_CURSOR(u8) = head2 + sizeof(_Actor02100VectorScratch);
     nextWork2                = arg0->work;
     SCRATCH_STACK_CURSOR(u8) = (u8*)shortVec;
     shortVec->vx             = 0;
@@ -1288,7 +1294,7 @@ static __inline__ void _actor02100StoreNearVector(_Actor02100Work* work)
 {
     gte_stsv(&work->beamPoints[1]);
     work->beamPoints[1].vz += ACTOR_02100_MUZZLE_OFFSET;
-    SCRATCH_STACK_RELEASE_BLOCK(Actor02100Fn014E4Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
 }
 
 /// Rebuilds the same two direction vectors as `Actor02100_AimAndBuildVectors`
@@ -1299,8 +1305,8 @@ static __inline__ void _actor02100StoreNearVector(_Actor02100Work* work)
 /// `Actor02100_SetVector`.
 static __inline__ void Actor02100_BuildVectors(Task* arg0, _Actor02100Work* currentWork)
 {
-    Actor02100Fn014E4Scratch* scratch;
-    Actor02100Fn014E4Scratch* scratch2;
+    _Actor02100VectorScratch* scratch;
+    _Actor02100VectorScratch* scratch2;
     _Actor02100Work*          work;
     u8*                       head;
 
@@ -1308,7 +1314,7 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, _Actor02100Work* curr
         work                     = arg0->work;
         work->beamPoints[0].vz   = ACTOR_02100_MUZZLE_OFFSET;
         head                     = SCRATCH_STACK_CURSOR(u8);
-        scratch                  = (Actor02100Fn014E4Scratch*)(head - 0x18);
+        scratch                  = (_Actor02100VectorScratch*)(head - sizeof(_Actor02100VectorScratch));
         work->beamPoints[0].vx   = 0;
         work->beamPoints[0].vy   = 0;
         scratch->shortVec.vx     = 0;
@@ -1316,7 +1322,9 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, _Actor02100Work* curr
         SCRATCH_STACK_CURSOR(u8) = (u8*)scratch;
         scratch->shortVec.vz     = work->beamLength;
         gte_SetRotMatrix(&work->aim);
-        head -= 8;
+        // The input is addressed through `head`: reusing that variable is what
+        // keeps the address in the cursor's register.
+        head = (u8*)&scratch->shortVec;
         gte_ldv0((SVECTOR*)head);
         gte_rtv0();
         _actor02100StoreNearVector(work);
@@ -1324,7 +1332,7 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, _Actor02100Work* curr
         work                     = arg0->work;
         work->beamPoints[0].vz   = ACTOR_02100_MUZZLE_OFFSET;
         head                     = SCRATCH_STACK_CURSOR(u8);
-        scratch2                 = (Actor02100Fn014E4Scratch*)(head - 0x18);
+        scratch2                 = (_Actor02100VectorScratch*)(head - sizeof(_Actor02100VectorScratch));
         work->beamPoints[0].vx   = 0;
         work->beamPoints[0].vy   = 0;
         scratch2->shortVec.vx    = 0;
@@ -1332,7 +1340,7 @@ static __inline__ void Actor02100_BuildVectors(Task* arg0, _Actor02100Work* curr
         SCRATCH_STACK_CURSOR(u8) = (u8*)scratch2;
         scratch2->shortVec.vz    = work->beamLength;
         gte_SetRotMatrix(&work->aim);
-        head -= 8;
+        head = (u8*)&scratch2->shortVec;
         gte_ldv0((SVECTOR*)head);
         gte_rtv0();
         _actor02100StoreNearVector(work);
@@ -1527,11 +1535,11 @@ static __inline__ void Actor02100_OrientScratch(Task* arg0)
 /// offset it starts from.
 static __inline__ void Actor02100_UpdateVectors(Task* arg0)
 {
-    Actor02100Fn014E4Scratch* scratch;
+    _Actor02100VectorScratch* scratch;
     _Actor02100Work*          work;
 
     work                   = arg0->work;
-    scratch                = SCRATCH_STACK_RESERVE_BLOCK(Actor02100Fn014E4Scratch);
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100VectorScratch);
     work->beamPoints[0].vx = 0;
     work->beamPoints[0].vy = 0;
     work->beamPoints[0].vz = ACTOR_02100_MUZZLE_OFFSET;
@@ -1543,7 +1551,7 @@ static __inline__ void Actor02100_UpdateVectors(Task* arg0)
     gte_rtv0();
     gte_stsv(&work->beamPoints[1]);
     work->beamPoints[1].vz += ACTOR_02100_MUZZLE_OFFSET;
-    SCRATCH_STACK_RELEASE_BLOCK(Actor02100Fn014E4Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
     Actor02100_SetVector(arg0);
 }
 
