@@ -20,7 +20,7 @@ void desertChaserSpawn(Enemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    mem        = memCalloc(0x934, 0);
+    mem        = memCalloc(sizeof(DesertChaserWork), 0);
     work       = mem;
     task->work = mem;
     if (mem == NULL) {
@@ -28,10 +28,10 @@ void desertChaserSpawn(Enemy* enemy, Task* task)
         return;
     }
     task->exitCallback = desertChaserExit;
-    work2              = (DesertChaserWork*)task->work;
+    work2              = task->work;
     tmd                = task->extra.tmd;
-    tmd->lightMtx      = &work2->light;
-    tmd->colorMtx      = &work2->color;
+    tmd->lightMtx      = &work2->lightMtx;
+    tmd->colorMtx      = &work2->colorMtx;
     enemy->field_4     = &task->extra.tmd->coords->coord;
     enemy->field_48    = 0;
     enemy->bodyPos.vx  = 0;
@@ -44,15 +44,15 @@ void desertChaserSpawn(Enemy* enemy, Task* task)
     enemy->reactionFlags          = 0;
     enemy->hp                     = 0;
     enemy->recs                   = 0;
-    animationInitContext(&work->anim, (AnimationSet**)gRigAnimSource, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
-    animationInitContext(&work->blendAnim, (AnimationSet**)gRigAnimSource, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->blendPoses, work->blendSlots);
-    work->field_828 = 2;
-    work->field_82E = 1;
-    work->field_82A = 0;
-    work->field_844 = 0;
-    work->field_840 = 0;
-    work->field_834 = 0x10;
-    work->field_832 = 0x10;
+    animationInitContext(&work->rig.anim, (AnimationSet**)gRigAnimSource, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->blend.anim, (AnimationSet**)gRigAnimSource, obj, work->blend.poses, work->blend.slots);
+    work->animRequest   = DESERT_CHASER_ANIM_REQUEST_RESET;
+    work->animId        = 1;
+    work->blendActive   = 0;
+    work->lookYaw       = 0;
+    work->lookYawTarget = 0;
+    work->baseRate      = 0x10;
+    work->animRate      = 0x10;
     desertChaserAnimTick(task);
     task->msgTable      = gRigMessages;
     coord->parent       = &gGfxViewCoord;
@@ -65,6 +65,6 @@ void desertChaserSpawn(Enemy* enemy, Task* task)
     gRigEffectRec.value.coord      = task->extra.tmd->coords;
     gRigEffectRec.value.spawnArgLo = 0x100;
     gRigEffectRec.value.spawnArgHi = 2;
-    work->field_0                  = 0;
+    work->state                    = 0;
     task->state++;
 }

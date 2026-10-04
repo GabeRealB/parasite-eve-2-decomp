@@ -1022,8 +1022,8 @@ case 3: `if ((a != c1) && (a != c2) && ...) { state write } return 1;`
 
 What worked, in each case:
 
-* **case 1** - the arms must carry `work->field_2 = -1;` **inline** and `goto` the
-  *shared tail*, with the D-fail path's `work->field_0 = 0;` as its own
+* **case 1** - the arms must carry `work->prevState = -1;` **inline** and `goto` the
+  *shared tail*, with the D-fail path's `work->state = 0;` as its own
   fall-into-the-tail block. Then each arm's jump targets the tail and phase 1
   walks back from it against the code before the label: it matches
   `[sh v0,2(s0)]` and `[li v0,-1]` and **stops on `[sh v0,0(s0)]` (arm) against
@@ -1588,7 +1588,7 @@ in **both** arms, even though the arms are then textually identical, restores
 the 4-block topology and is 100%:
 
 ```c
-        work->field_840 = 0;
+        work->lookYawTarget = 0;
         func_actor_323400_80163B58(task);
     } else {
         func_actor_323400_80163B58(task);
@@ -27855,7 +27855,7 @@ A signed field needs no staging: the literal already fits.
 
 Staging through a variable that already holds a live value does **not** work, and
 fails in a way that looks like an allocation problem rather than a typing one.
-`func_actor_421600_8013E8AC` halves the `u16` `field_832` into `value`, stores
+`func_actor_421600_8013E8AC` halves the `u16` `animRate` into `value`, stores
 it, then stores `-0x10` to the same field when `value == 1`. Staging the `-0x10`
 through that same `value` gives the right immediate in the wrong register —
 `li v1,-0x10` where the target has `li v0,-0x10` (`regs=2`, 99.87%) — because
@@ -27863,11 +27863,11 @@ local-alloc has already homed that pseudo for its earlier lifetime, so the
 second store reuses the home instead of taking a fresh `$v0`.
 
 ```c
-value           = (s16)work->field_832 / 2;
-work->field_832 = (u16)value;
+value           = (s16)work->animRate / 2;
+work->animRate = (u16)value;
 magnitude       = 0x10U;              /* fresh u32 -> $v0 */
 if (value == 1) {
-    work->field_832 = -magnitude;     /* addiu v0,zero,-0x10 / sh v0 */
+    work->animRate = -magnitude;     /* addiu v0,zero,-0x10 / sh v0 */
 }
 ```
 
@@ -44413,7 +44413,7 @@ to locals before the label:
 
 ```c
 svp = &sv; vecp = &vec; fp = &flag0; view0 = &gGfxViewCoord;
-out = &work->field_8A8;
+out = &work->burnPosFront;
 loop0:
     if (p->parent == NULL) { goto done0; }
     if (p == view0) { out->vx = sv.vx; ...; goto done0; }
@@ -80297,8 +80297,8 @@ Evidence: `tools/permuter_findings/Actor00100_Fn09724/`, session
 
 ## Actor00100_Fn06654: initialization order survives both schedulers
 
-An isolated permuter change moved `work->field_828 = 1` before
-`work->field_82E = 5`. Controlled normal-style candidate `base_2.c` reproduced
+An isolated permuter change moved `work->animRequest = 1` before
+`work->animId = 5`. Controlled normal-style candidate `base_2.c` reproduced
 distance 410 → 200 while preserving the call-crossing constant one in s0.
 Sched1 releases each definition after its first store in backward scheduling;
 changing store order changes definition order. Sched2 retains priority 2 for
@@ -80308,7 +80308,7 @@ The one live range grows from 94 to 98 insns without changing its register.
 This is evidence for this specific dependency/order intervention, not a claim
 that source order alone determines scheduling. Inspect selection and allocation
 separately. The final residual lhu was the existing load-site type rule:
-`field_82E` is u16; an s32 local alone does not help, `(s16)` at the load does.
+`animId` is u16; an s32 local alone does not help, `(s16)` at the load does.
 
 Bundled compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Preprocessed inputs: base_1 961b8da0151ada45afbb8a25062b685bdd6d24fdeb8c10ddf2e415f34063a2d1,
@@ -85923,7 +85923,7 @@ signature. Its two arguments are used as
 
 ```
 lw   v0, 0x1C(a1)     # arg1->field_1C
-lh   v0, 0x4(v0)      #   ->field_4
+lh   v0, 0x4(v0)      #   ->stateEntered
 beqz v0, .L
 lw   v1, 0x2C(a1)     # arg1->field_2C
 sb   v0, 0x14(a0)     # arg0->field_14 = 1
@@ -97107,13 +97107,13 @@ state local and let the arms reassign it, so the test reads X and the fold's
 "nothing in the test modifies B or X" guard fails:
 
 ```c
-state = work->actorId.word & DESERT_CHASER_COMMAND_MASK;
+state = work->lastCommand.word & DESERT_CHASER_COMMAND_MASK;
 if (state == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
     state = 5;
 } else {
     state = 2;
 }
-work->field_0 = state;
+work->state = state;
 ```
 
 The else arm keeps its own basic block, so `state` is born *at the `and`* -- by
@@ -99326,7 +99326,7 @@ temptation is to read it as a register problem.
 The source wrote the call in both arms:
 
 ```c
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         ...
         func_actor_323000_80163A30(task);
     } else {
@@ -99372,7 +99372,7 @@ The seed had copied the halfword into a local and switched on that:
     u16 mode;
     ...
     mode = msg->mode;
-    switch (mode) { ...; case 3: work->field_0 = mode; ... }
+    switch (mode) { ...; case 3: work->state = mode; ... }
 ```
 
 A `u16` local is an object in HImode: the assignment truncates, and every later
@@ -99382,7 +99382,7 @@ use re-extends it out of the register, which is `zero_extendhisi2/1` - the
 `lhu` keeps a single SImode use (`zero_extendhisi2/2`) and no mask exists:
 
 ```c
-    switch (msg->mode) { ...; case 3: work->field_0 = msg->mode; ... }
+    switch (msg->mode) { ...; case 3: work->state = msg->mode; ... }
 ```
 
 The second read costs nothing: CSE reuses the load, since nothing stores to
@@ -102653,7 +102653,7 @@ with blocks, predicates and counts all matching.
 **Cause.** The obvious C names the same temp in both arms:
 
 ```c
-    if (work->field_4 != 0) { obj = (TmdObject*)task->extra; … }
+    if (work->stateEntered != 0) { obj = (TmdObject*)task->extra; … }
     else                    { tick(task); obj = (TmdObject*)task->extra; obj->coords->composeStamp = 0; }
 ```
 
@@ -103493,7 +103493,7 @@ scratch `nonmatchings/Actor00100_Fn00E58-vacuum`.
 
 ## `if (x == C) x = C;` keeps its store and reuses the register that holds x (Actor00100_Fn00E58, 2026-09-16)
 
-m2c rendered an arm's self-assignment as `work->field_0 = work->field_0;`, which
+m2c rendered an arm's self-assignment as `work->state = work->state;`, which
 GCC deletes outright — the load survives as a dead `lhu` and the arm's body
 disappears from the object. The target keeps it:
 
@@ -103512,8 +103512,8 @@ materializing a second copy:
 
 ```c
     case 2:
-        if (work->field_0 == 0x26) {
-            work->field_0 = 0x26;
+        if (work->state == 0x26) {
+            work->state = 0x26;
         }
         break;
 ```
@@ -110835,9 +110835,9 @@ merge-block flag copy in `Actor00400_Fn09124`, one register over.
 ```c
     if (work->field_68 & 0x100) {
         if (enemy->hp > 0) {
-            if (enemy->reactionFlags & 2) { work->field_0 = 4; }
-            else                     { work->field_0 = 0x24; }
-        } else                       { work->field_0 = 0x15; }
+            if (enemy->reactionFlags & 2) { work->state = 4; }
+            else                     { work->state = 0x24; }
+        } else                       { work->state = 0x15; }
     }
 ```
 
@@ -111022,10 +111022,10 @@ that is what was written first (99.915%, `regs=3`):
 ```c
 if (work->field_68 & 0x100) {
     state = 0x1F;                                     /* -> $a1, not $v0 */
-    if ((work->actorId.word & DESERT_CHASER_COMMAND_MASK) == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
+    if ((work->lastCommand.word & DESERT_CHASER_COMMAND_MASK) == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
         state = 5;
     }
-    work->field_0 = state;
+    work->state = state;
 }
 ```
 
@@ -111036,13 +111036,13 @@ the same variable makes the pseudo the one the `and` already wrote, so both
 constants land in `$v0` and the store reads it:
 
 ```c
-state = work->actorId.word & DESERT_CHASER_COMMAND_MASK;
+state = work->lastCommand.word & DESERT_CHASER_COMMAND_MASK;
 if (state == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
     state = 5;
 } else {
     state = 0x1F;
 }
-work->field_0 = state;
+work->state = state;
 ```
 
 The sibling `func_actor_421600_8013E9D8` in the same TU does the same E90 test
@@ -111062,7 +111062,7 @@ Scratch `nonmatchings/func_actor_421600_8013848C-vacuum`.
 
 ## A constant stored into one field from every arm is a *single* store the allocator colours - do not write a carrier variable (func_actor_421600_8013947C, 2026-09-16)
 
-`work->field_0` is set from three arms at the tail of `func_actor_421600_8013947C`
+`work->state` is set from three arms at the tail of `func_actor_421600_8013947C`
 (`= 4` when `field_40 > 0 && field_4C & 2`, `= 0x11` when `field_40 > 0` alone,
 `= 0x15` otherwise). Written that way it compiles to one `sh $v0,0($s2)` fed by
 `li $v0,0x15` in the `blez` delay slot, `li $v0,4` in the `bnez` delay slot and
@@ -111088,7 +111088,7 @@ The carrier is worse for two independent reasons:
   not help - the merged tail block is where all three assignments end up.
 
 Read the sibling first: `func_actor_421600_8013EC28` in the same TU has the
-identical tail (same field, same three constants, `field_82E == 0xA` gating it)
+identical tail (same field, same three constants, `animId == 0xA` gating it)
 and is matched with plain per-arm stores, which is where this shape came from.
 The same two mechanisms explain the earlier `s0`/`s1` swap in this function:
 `sound` and `pan` were each assigned in *both* event blocks, so they were
@@ -124562,13 +124562,13 @@ The tail of this spawn handler seeds a run of halfwords in the work block and
 the ROM stores them in *address* order -- `sh $v0,0x82E` before `sh $s0,0x828`
 -- while materialising their constants the other way round: `li $s0,2` first,
 then `li $v0,1`. Reading the store order as the C order (m2c's
-`field_82E = 1; field_828 = 2;`) leaves exactly those two `li`s swapped, one
+`animId = 1; animRequest = 2;`) leaves exactly those two `li`s swapped, one
 instruction of `regs` at 99.843%, and swapping the two statements is the whole
 fix:
 
 ```c
-    work->field_828 = 2;
-    work->field_82E = 1;
+    work->animRequest = 2;
+    work->animId = 1;
 ```
 
 The stores move because the scheduler ranks them apart: the one whose register
@@ -138242,7 +138242,7 @@ base_3.i `0a465d23090c04fb83193ccc5c4d60382b13b8c67c11906122dfbf101de1a23a`. Com
 
 An empty read/write asm used between a state constant and its store prevented
 three switch ranges from merging, preserving both required delay slots. Yet
-`s16 state = 0x26; SOFT_TOUCH_REG(state); work->field_0 = state;` used t0
+`s16 state = 0x26; SOFT_TOUCH_REG(state); work->state = state;` used t0
 instead of v0. In base_7.combine UID 341, the destination was already
 `mem/s:HI(r81)` and the asm input was constant 38: no state pseudo remained
 for local/global allocation. Reload requested a scratch register for this

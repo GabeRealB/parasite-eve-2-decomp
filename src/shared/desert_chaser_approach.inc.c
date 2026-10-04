@@ -28,7 +28,7 @@ void desertChaserApproach(Task* arg0)
 #if !DESERT_CHASER_RUN_SEQUENCE
     ctx = arg0->spawnArg2.pointer; /* also read by the look-around below */
 #endif
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
 #if DESERT_CHASER_RUN_SEQUENCE
         ctx = arg0->spawnArg2.pointer;
 #endif
@@ -36,67 +36,67 @@ void desertChaserApproach(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].body.radius = 0x19C;
-        work->field_828           = 1;
+        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
+        work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
 #if DESERT_CHASER_RUN_SEQUENCE
-        work->field_832 = DESERT_CHASER_SLOT_RATE(work);
+        work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
-        work->field_82A           = 0;
-        work->field_82E           = 0;
-        work->field_83E           = 0;
-        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->blendActive                                    = 0;
+        work->animId                                         = 0;
+        work->waistYawTarget                                 = 0;
+        work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 #if !DESERT_CHASER_RUN_SEQUENCE
-        work->field_832 = DESERT_CHASER_SLOT_RATE(work);
+        work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
         desertChaserAnimTick(arg0);
         desertChaserAnimTick(arg0);
-        work->field_6                      = 0;
-        work->capsuleBody.shape.ends[1].vz = 0x26C;
+        work->stateTimer                 = 0;
+        work->wallProbe.shape.ends[1].vz = 0x26C;
         return;
     }
     head              = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     scratch           = (SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1);
-    move              = (DesertChaserWork*)work;
-    head[-1].delta.vx = move->field_C[move->field_14].x - arg0->extra.tmd->coords->coord.t[0];
+    move              = work;
+    head[-1].delta.vx = move->patrolPoints[move->patrolTarget].x - arg0->extra.tmd->coords->coord.t[0];
     scratch->delta.vy = 0;
-    scratch->delta.vz = move->field_C[move->field_14].z - arg0->extra.tmd->coords->coord.t[2];
-    if (!actorOutsideRadius(&scratch->delta, 0xA0) || work->field_6 >= 0x15) {
-        if (move->field_14 == 0)
-            move->field_14 = 1;
+    scratch->delta.vz = move->patrolPoints[move->patrolTarget].z - arg0->extra.tmd->coords->coord.t[2];
+    if (!actorOutsideRadius(&scratch->delta, 0xA0) || work->stateTimer >= 0x15) {
+        if (move->patrolTarget == 0)
+            move->patrolTarget = 1;
         else
-            move->field_14 = 0;
-        work->field_6 = 0;
+            move->patrolTarget = 0;
+        work->stateTimer = 0;
     }
     desertChaserAnimTick(arg0);
-    coord           = arg0->extra.tmd->coords;
-    angle           = ratan2(scratch->delta.vx, scratch->delta.vz);
-    delta           = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    value           = actorNormalizeYaw(delta);
-    scratch->angle  = value;
-    work->field_840 = value;
+    coord               = arg0->extra.tmd->coords;
+    angle               = ratan2(scratch->delta.vx, scratch->delta.vz);
+    delta               = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    value               = actorNormalizeYaw(delta);
+    scratch->angle      = value;
+    work->lookYawTarget = value;
     if (scratch->angle >= 0x11)
         scratch->angle = 0x10;
     if (scratch->angle < -0x10)
         scratch->angle = -0x10;
-    work->field_83E = scratch->angle;
-    turnCoord       = arg0->extra.tmd->coords;
-    yaw             = (u16)scratch->angle + ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]);
-    scratch->angle  = yaw;
+    work->waistYawTarget = scratch->angle;
+    turnCoord            = arg0->extra.tmd->coords;
+    yaw                  = (u16)scratch->angle + ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]);
+    scratch->angle       = yaw;
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, yaw, 1);
-    records = work->objs[0].contacts;
-    if (work->field_82A == 0) {
+    records = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
+    if (work->blendActive == 0) {
         if (desertChaserCapsuleTouchesGrid(arg0)) {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         } else {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         }
-        records = work->objs[0].contacts;
+        records = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     }
-    ActorContact_Steer(arg0->extra.tmd->coords, records, ARRAY_SIZE(work->objs[0].contacts), &scratch->delta);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts)) == 1) {
-        magnitude = abs(work->field_840);
+    ActorContact_Steer(arg0->extra.tmd->coords, records, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->delta);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) == 1) {
+        magnitude = abs(work->lookYawTarget);
         if (magnitude < 0x80)
-            work->field_6 += 1;
+            work->stateTimer += 1;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 #if !DESERT_CHASER_RUN_SEQUENCE
@@ -128,7 +128,7 @@ void desertChaserApproach(Task* arg0)
         }
 #if !DESERT_CHASER_RUN_SEQUENCE
         if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE)
-            work->field_0 = 0x26;
+            work->state = 0x26;
 #endif
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);

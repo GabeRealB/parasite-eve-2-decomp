@@ -11,7 +11,7 @@ void desertChaserHitEffect(Task* arg0, s16 arg1, s32 arg2)
 
     sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     mag  = (arg1 >= 0) ? arg1 : -arg1;
-    work = (DesertChaserWork*)((DesertChaserWork*)arg0->work);
+    work = arg0->work;
     if (mag < 0x200) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 3) {
@@ -59,10 +59,10 @@ void desertChaserHitEffect(Task* arg0, s16 arg1, s32 arg2)
             *sc = gDesertChaserHitOffsets[11];
         }
     }
-    work->field_890.coord      = &arg0->extra.tmd->coords[sc->pad];
-    work->field_890.spawnArgLo = 0x100;
-    work->field_890.spawnArgHi = 2;
-    work->hitPos               = *sc;
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->hitPos, &work->field_890);
+    work->effectArg.coord      = &arg0->extra.tmd->coords[sc->pad];
+    work->effectArg.spawnArgLo = 0x100;
+    work->effectArg.spawnArgHi = 2;
+    work->hitOffset            = *sc;
+    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->hitOffset, &work->effectArg);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

@@ -1,14 +1,15 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
-/// Per-frame animation tick. Seeds the slots when `field_828` asks for it
-/// (1 from the per-state table `gDesertChaserClipStartFrames`, 2 by resetting to
-/// `field_82E`), seeds the blend context when `field_836` is 2, then ticks
-/// the slots - blended through `desertChaserBlendTick` while `field_82A`
-/// is set. It eases `field_844` toward `field_840` and spreads it over the
-/// body joints 2-4, eases `field_842` toward `field_83E` for joint 10, and
-/// plays the sound `desertChaserAnimCues` returns, panned at the root.
-/// The blend context and the cue step are each build's own. The armed builds
-/// also tip joint 4 forward in state 0x26 while no clip is queued, and the
+/// Per-frame animation tick. Seeds the slots when `animRequest` asks for it
+/// (`BLEND` with the length `gDesertChaserClipStartFrames` gives the
+/// transition, `RESET` by restarting on `animId`), seeds the blend rig when
+/// `blendRequest` is `RESET`, then ticks the slots - blended through
+/// `desertChaserBlendTick` while `blendActive` is set. It eases `lookYaw`
+/// toward `lookYawTarget` and spreads it over the neck parts 2-4, eases
+/// `waistYaw` toward `waistYawTarget` and turns the waist, part 10, against
+/// it, and plays the sound `desertChaserAnimCues` returns, panned at the root.
+/// The blend tick and the cue step are each build's own. The armed builds
+/// also tip part 4 forward in state 0x26 while no clip is queued, and the
 /// regular build adds the placement index to the cue's sound id.
 void desertChaserAnimTick(Task* task)
 {
@@ -50,89 +51,89 @@ void desertChaserAnimTick(Task* task)
 #endif
     s32 pan;
 
-    work  = (DesertChaserWork*)task->work;
-    state = work->field_828;
-    if (state == 1) {
-        if (work->field_82C != work->field_82E) {
+    work  = task->work;
+    state = work->animRequest;
+    if (state == DESERT_CHASER_ANIM_REQUEST_BLEND) {
+        if (work->appliedAnim != work->animId) {
             seekWork  = work;
             seekIndex = 1;
             table     = (u32)gDesertChaserClipStartFrames;
             do {
-                seekSlotIndex               = seekIndex;
-                work->slots[seekIndex].rate = seekWork->field_832;
-                animation                   = seekWork->field_82E;
-                index                       = seekWork->field_82C * DESERT_CHASER_CLIP_COUNT;
-                animationSeekSlotWithBlend(&seekWork->anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
+                seekSlotIndex                   = seekIndex;
+                work->rig.slots[seekIndex].rate = seekWork->animRate;
+                animation                       = seekWork->animId;
+                index                           = seekWork->appliedAnim * DESERT_CHASER_CLIP_COUNT;
+                animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x12);
-            seekWork->field_82C = seekWork->field_82E;
+            seekWork->appliedAnim = seekWork->animId;
         }
-        work->field_828 = 3;
-        work->field_830 = 0;
-        memFillBytes(work->field_848, 0U, sizeof(work->field_848));
-    } else if (state == 2) {
+        work->animRequest = DESERT_CHASER_ANIM_REQUEST_PLAYING;
+        work->animFrames  = 0;
+        memFillBytes(work->lastCueFrames, 0U, sizeof(work->lastCueFrames));
+    } else if (state == DESERT_CHASER_ANIM_REQUEST_RESET) {
         resetWork  = work;
         resetIndex = 1;
         do {
-            resetSlotIndex               = resetIndex;
-            work->slots[resetIndex].rate = resetWork->field_832;
-            animationResetSlot(&resetWork->anim, resetSlotIndex, resetWork->field_82E);
+            resetSlotIndex                   = resetIndex;
+            work->rig.slots[resetIndex].rate = resetWork->animRate;
+            animationResetSlot(&resetWork->rig.anim, resetSlotIndex, resetWork->animId);
             resetIndex += 1;
         } while (resetIndex < 0x12);
-        resetWork->field_82C = resetWork->field_82E;
-        work->field_828      = 3;
-        work->field_830      = 0U;
-        memFillBytes(work->field_848, 0U, sizeof(work->field_848));
+        resetWork->appliedAnim = resetWork->animId;
+        work->animRequest      = DESERT_CHASER_ANIM_REQUEST_PLAYING;
+        work->animFrames       = 0U;
+        memFillBytes(work->lastCueFrames, 0U, sizeof(work->lastCueFrames));
     }
-    if (work->field_836 == 2) {
-        secondaryWork  = (DesertChaserWork*)task->work;
+    if (work->blendRequest == DESERT_CHASER_ANIM_REQUEST_RESET) {
+        secondaryWork  = task->work;
         secondaryIndex = 1;
 #if DESERT_CHASER_BLEND_RATE_RESET
-        secondaryWork->field_83A = 0x20;
-        secondaryWork->field_83C = 0x800;
+        secondaryWork->blendRate   = 0x20;
+        secondaryWork->blendWeight = 0x800;
 #endif
         do {
-            secondarySlotIndex                        = secondaryIndex;
-            secondaryWork->slots[secondaryIndex].rate = secondaryWork->field_83A;
-            animationResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, secondaryWork->field_838);
+            secondarySlotIndex                            = secondaryIndex;
+            secondaryWork->rig.slots[secondaryIndex].rate = secondaryWork->blendRate;
+            animationResetSlot(&secondaryWork->blend.anim, secondarySlotIndex, secondaryWork->blendAnimId);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x12);
-        work->field_836 = 3;
+        work->blendRequest = DESERT_CHASER_ANIM_REQUEST_PLAYING;
     }
-    work->field_830 = (u16)(work->field_830 + 1);
-    if (work->field_82A == 0) {
-        tickWork  = (DesertChaserWork*)task->work;
+    work->animFrames = (u16)(work->animFrames + 1);
+    if (work->blendActive == 0) {
+        tickWork  = task->work;
         tickIndex = 1;
         do {
-            tickSlotIndex                   = tickIndex;
-            tickWork->slots[tickIndex].rate = tickWork->field_832;
-            animationTickSlot(&tickWork->anim, tickSlotIndex);
+            tickSlotIndex                       = tickIndex;
+            tickWork->rig.slots[tickIndex].rate = tickWork->animRate;
+            animationTickSlot(&tickWork->rig.anim, tickSlotIndex);
             tickIndex += 1;
         } while (tickIndex < 0x12);
     } else {
         desertChaserBlendTick(task);
-        if (work->blendSlots[1].status.fields.flags & DESERT_CHASER_BLEND_DONE) {
-            work->field_82A = 0;
+        if (work->blend.slots[1].status.fields.flags & DESERT_CHASER_BLEND_DONE) {
+            work->blendActive = 0;
         }
     }
-    targetAngle      = work->field_840;
-    currentAngle     = work->field_844;
-    targetAngleBits  = (u16)work->field_840;
-    currentAngleBits = (u16)work->field_844;
+    targetAngle      = work->lookYawTarget;
+    currentAngle     = work->lookYaw;
+    targetAngleBits  = (u16)work->lookYawTarget;
+    currentAngleBits = (u16)work->lookYaw;
     if (currentAngle < targetAngle) {
         if ((targetAngle - currentAngle) >= 0x72) {
-            work->field_844 = currentAngleBits + 0x71;
+            work->lookYaw = currentAngleBits + 0x71;
         } else {
             goto snap;
         }
     } else if ((currentAngle - targetAngle) >= 0x72) {
-        work->field_844 = currentAngleBits - 0x71;
+        work->lookYaw = currentAngleBits - 0x71;
     } else {
     snap:
-        work->field_844 = targetAngleBits;
+        work->lookYaw = targetAngleBits;
     }
-    angle        = work->field_844;
-    clampedAngle = (u16)work->field_844;
+    angle        = work->lookYaw;
+    clampedAngle = (u16)work->lookYaw;
     if (angle != 0) {
         if (angle >= 0x501) {
             clampedAngle = 0x500;
@@ -149,14 +150,14 @@ void desertChaserAnimTick(Task* task)
         task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
 #if DESERT_CHASER_STATE26_TILT
-    if ((work->field_82E == 0) && (work->field_0 == 0x26)) {
+    if ((work->animId == 0) && (work->state == 0x26)) {
         gfxRotMatrixX(&task->extra.tmd->coords[4].coord, 0x280, GRAPHICS_ROTATION_COMPOSE);
         task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&task->extra.tmd->coords[4]);
     }
 #endif
-    turnWork     = (DesertChaserWork*)task->work;
-    targetTurn   = (u16)turnWork->field_83E;
+    turnWork     = task->work;
+    targetTurn   = (u16)turnWork->waistYawTarget;
     originalTurn = targetTurn;
     if ((s16)targetTurn >= 0x201) {
         targetTurn = 0x200;
@@ -165,28 +166,28 @@ void desertChaserAnimTick(Task* task)
         targetTurn = -0x200;
     }
     signedTurn  = (s16)targetTurn;
-    currentTurn = turnWork->field_842;
+    currentTurn = turnWork->waistYaw;
     if (currentTurn < signedTurn) {
         if ((signedTurn - currentTurn) >= 0xD) {
-            turnWork->field_842 = (s16)((u16)turnWork->field_842 + 0xC);
+            turnWork->waistYaw = (s16)((u16)turnWork->waistYaw + 0xC);
         } else {
-            turnWork->field_842 = (s16)targetTurn;
+            turnWork->waistYaw = (s16)targetTurn;
         }
     }
-    updatedTurn     = turnWork->field_842;
-    updatedTurnBits = (u16)turnWork->field_842;
+    updatedTurn     = turnWork->waistYaw;
+    updatedTurnBits = (u16)turnWork->waistYaw;
     if ((s16)targetTurn < updatedTurn) {
         delta = updatedTurn - (s16)targetTurn;
         if (delta < 0) {
             delta = -delta;
         }
         if (delta >= 0xD) {
-            turnWork->field_842 = (s16)(updatedTurnBits - 0xC);
+            turnWork->waistYaw = (s16)(updatedTurnBits - 0xC);
         } else {
-            turnWork->field_842 = (s16)targetTurn;
+            turnWork->waistYaw = (s16)targetTurn;
         }
     }
-    ActorContact_TurnJoint(&task->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
+    ActorContact_TurnJoint(&task->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->waistYaw * -1));
     task->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
     sound                                    = desertChaserAnimCues(task, work);
     if (sound != 0) {

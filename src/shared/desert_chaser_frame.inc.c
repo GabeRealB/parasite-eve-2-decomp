@@ -2,7 +2,7 @@
 
 /// Per-frame driver of the live actor: brings the model root's coordinate up
 /// to date, takes its world position as the actor colour, flags a state change
-/// in `field_4`, and runs the state handler `field_0` selects from a stack copy
+/// in `stateEntered`, and runs the state handler `state` selects from a stack copy
 /// of `gDesertChaserStates`. Afterwards it walks the origin of the model's
 /// third part coordinate up to `gGfxViewCoord` and stores it as the enemy's
 /// local position, parented to the view.
@@ -15,7 +15,7 @@ void desertChaserFrameState(Enemy* enemy, Task* task)
     GfxCoord*                walker;
     SVECTOR*                 pos;
 
-    work = (DesertChaserWork*)task->work;
+    work = task->work;
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     sp                                    = gDesertChaserStates;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -27,13 +27,13 @@ void desertChaserFrameState(Enemy* enemy, Task* task)
     scratch->pos.vy = task->extra.tmd->coords->workm.t[1];
     scratch->pos.vz = task->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &scratch->pos, 0, 0);
-    if (work->field_2 != work->field_0) {
-        work->field_4 = 1;
+    if (work->prevState != work->state) {
+        work->stateEntered = 1;
     } else {
-        work->field_4 = 0;
+        work->stateEntered = 0;
     }
-    work->field_2 = work->field_0;
-    sp.funcs[work->field_0](enemy, task);
+    work->prevState = work->state;
+    sp.funcs[work->state](enemy, task);
     scratch->local.vx = 0;
     scratch->local.vy = 0;
     scratch->local.vz = 0;

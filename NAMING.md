@@ -449,6 +449,16 @@ use `MAD_CHASER_ANIM_REQUEST_`, `MAD_CHASER_HIT_REACTION_` and
 `MAD_CHASER_COMMAND_`. The scripted waves that spawn the enemy are the separate
 `src/shared/mad_chaser_waves.h`.
 
+`desertChaser` owns the included Desert Chaser enemy, one source built three
+ways: the cutscene build (`actor_323000`, `actor_323400`), the regular build
+(`actor_00100`) and the Water Tower build (`actor_421600`). Its implementation
+interface is `src/shared/desert_chaser.h`, one fragment per function; a carrier
+binds `DESERT_CHASER_BUILD` before including it. `DesertChaserWork` is the
+task's work block, whose head the three builds share and whose tail each build
+declares for itself. Animation request values use
+`DESERT_CHASER_ANIM_REQUEST_`, and the armed builds' collision spheres are
+indexed by `DESERT_CHASER_SPHERE_`.
+
 `stalkerZebraIvory` owns the included pose, animation-request and
 pending-action code shared by the Zebra Stalker (`actor_400600`) and the Ivory
 Stalker (`actor_405800`). Its implementation interface is

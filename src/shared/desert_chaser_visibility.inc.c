@@ -11,26 +11,26 @@ s32 desertChaserSetVisibility(Task* task, s32 arg1, s32 arg2, s32 arg3)
     DesertChaserWork* work;
 
     obj  = task->extra.tmd;
-    work = (DesertChaserWork*)task->work;
+    work = task->work;
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
-            work->field_0 = 0;
+            work->state = 0;
             break;
         case 1:
             obj->flags = 0;
             Tmd_AllocBuffers(obj);
-            work->field_0 = 2;
+            work->state = 2;
             break;
         case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->state = 0;
             break;
         case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags  = 0;
+            work->state = 0;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;

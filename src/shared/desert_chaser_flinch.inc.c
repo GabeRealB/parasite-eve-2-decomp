@@ -11,35 +11,35 @@ void desertChaserFlinch(Task* arg0)
 
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         obj = arg0->extra.tmd;
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->hitFlag = 0;
 #endif
-        obj->flags                  = 0;
-        work->objs[0].body.radius   = 0x19C;
-        work->objs[2].body.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        ctx->node.state.parts.flags = 0;
-        work->field_828             = 1;
-        work->field_82E             = 0xA;
-        work->field_832             = DESERT_CHASER_SLOT_RATE(work);
-        work->field_844             = 0;
-        work->field_840             = 0;
-        work->field_83E             = 0;
+        obj->flags                                            = 0;
+        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
+        work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        ctx->node.state.parts.flags                           = 0;
+        work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
+        work->animId                                          = 0xA;
+        work->animRate                                        = DESERT_CHASER_SLOT_RATE(work);
+        work->lookYaw                                         = 0;
+        work->lookYawTarget                                   = 0;
+        work->waistYawTarget                                  = 0;
         if (ctx->hp <= 0) {
             Gp_SetStateF0Byte3(1);
         }
     }
     desertChaserAnimTick(arg0);
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) && (work->field_82E == 0xA)) {
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) && (work->animId == 0xA)) {
         if (ctx->hp > 0) {
             if (ctx->reactionFlags & ENEMY_REACTION_BUILDUP) {
-                work->field_0 = 4;
+                work->state = 4;
             } else {
-                work->field_0 = 0x11;
+                work->state = 0x11;
             }
         } else {
-            work->field_0 = 0x15;
+            work->state = 0x15;
         }
     }
 }

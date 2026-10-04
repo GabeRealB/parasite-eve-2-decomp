@@ -1,7 +1,7 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
 /// Wandering between its waypoints while it watches for the player. Once its
-/// watch delay (poseYawPrev) has run out and it has wandered past poseVz
+/// hold-off (`chaseHoldoff`) has run out and it has wandered past `roamLookDelay`
 /// frames, it starts the chase (0x1C) when the player is within 1500, within
 /// 8000 and less than 0x300 off its heading after 0x1C3 frames, or when the
 /// player's heading is more than 0x600 off the bearing to the chaser. The
@@ -66,7 +66,7 @@ void desertChaserRoam(Task* arg0)
 #if !DESERT_CHASER_RUN_SEQUENCE
     ctx = arg0->spawnArg2.pointer; /* also read by the look-around below */
 #endif
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         head    = SCRATCH_STACK_CURSOR(ActorMoveScratch);
         obj     = arg0->extra.tmd;
         scratch = (SCRATCH_STACK_CURSOR(ActorMoveScratch) = head - 1);
@@ -76,30 +76,30 @@ void desertChaserRoam(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->objs[0].body.radius = 0x19C;
-        work->field_828           = 1;
+        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
+        work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
 #if DESERT_CHASER_RUN_SEQUENCE
-        work->field_832 = DESERT_CHASER_SLOT_RATE(work);
+        work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
-        work->field_82A           = 0;
-        work->field_82E           = 0;
-        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->blendActive                                    = 0;
+        work->animId                                         = 0;
+        work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 #if !DESERT_CHASER_RUN_SEQUENCE
-        work->field_832 = DESERT_CHASER_SLOT_RATE(work);
+        work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
         desertChaserAnimTick(arg0);
         desertChaserAnimTick(arg0);
-        work->field_6   = 0;
-        work->field_8   = 0;
-        coord           = arg0->extra.tmd->coords;
-        head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
-        scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-        z               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-        scratch->vec.vz = z;
-        facing          = arg0->extra.tmd->coords;
-        angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
-        delta1          = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-        wrapped         = delta1;
+        work->stateTimer   = 0;
+        work->stateCounter = 0;
+        coord              = arg0->extra.tmd->coords;
+        head[-1].vec.vx    = (s16)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
+        scratch->vec.vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+        z                  = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+        scratch->vec.vz    = z;
+        facing             = arg0->extra.tmd->coords;
+        angle              = ratan2((s32)head[-1].vec.vx, (s32)z);
+        delta1             = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
+        wrapped            = delta1;
         if (delta1 < 0) {
         wrapNegative:
             if (wrapped < -0x800) {
@@ -113,8 +113,8 @@ void desertChaserRoam(Task* arg0)
                 goto wrapPositive;
             }
         }
-        work->field_840 = wrapped;
-        matrix          = &scratch->matrix;
+        work->lookYawTarget = wrapped;
+        matrix              = &scratch->matrix;
         gfxRotMatrixY(matrix, (s16)ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz) + 0x3E8, 1);
         gfxReadMatrixZAxis(matrix, &scratch->vec);
         VectorNormalSS(&scratch->vec, &scratch->vec);
@@ -122,25 +122,25 @@ void desertChaserRoam(Task* arg0)
         gte_ldsv(&scratch->vec);
         gte_gpf12();
         gte_stsv(&scratch->vec);
-        work->field_14     = 0;
-        work->field_C[0].x = (s16)((u16)scratch->vec.vx + arg0->extra.tmd->coords->coord.t[0]);
+        work->patrolTarget      = 0;
+        work->patrolPoints[0].x = (s16)((u16)scratch->vec.vx + arg0->extra.tmd->coords->coord.t[0]);
         SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
-        work->field_C[0].z                 = (s16)((u16)scratch->vec.vz + arg0->extra.tmd->coords->coord.t[2]);
-        work->capsuleBody.shape.ends[1].vz = 0x26C;
+        work->patrolPoints[0].z          = (s16)((u16)scratch->vec.vz + arg0->extra.tmd->coords->coord.t[2]);
+        work->wallProbe.shape.ends[1].vz = 0x26C;
         return;
     }
-    work->field_8      += 1;
+    work->stateCounter += 1;
     head2               = SCRATCH_STACK_CURSOR(ActorMoveScratch);
     scratch             = (SCRATCH_STACK_CURSOR(ActorMoveScratch) = head2 - 1);
-    head2[-1].vec.vx    = (s16)(work->field_C[work->field_14].x - arg0->extra.tmd->coords->coord.t[0]);
+    head2[-1].vec.vx    = (s16)(work->patrolPoints[work->patrolTarget].x - arg0->extra.tmd->coords->coord.t[0]);
     scratch->vec.vy     = 0;
-    scratch->vec.vz     = work->field_C[work->field_14].z - arg0->extra.tmd->coords->coord.t[2];
+    scratch->vec.vz     = work->patrolPoints[work->patrolTarget].z - arg0->extra.tmd->coords->coord.t[2];
     coord2              = arg0->extra.tmd->coords;
     head2[-1].target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0]);
     target              = &head2[-1].target;
     target->vy          = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
     target->vz          = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
-    if (!actorOutsideRadius(&scratch->vec, 0xA0) || work->field_6 >= 0x15) {
+    if (!actorOutsideRadius(&scratch->vec, 0xA0) || work->stateTimer >= 0x15) {
         facing2  = arg0->extra.tmd->coords;
         angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
         delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
@@ -158,13 +158,13 @@ void desertChaserRoam(Task* arg0)
                 goto wrapPositive2;
             }
         }
-        work->field_840 = wrapped2;
-        if (work->field_14 == 0) {
+        work->lookYawTarget = wrapped2;
+        if (work->patrolTarget == 0) {
             gfxRotMatrixY(&scratch->matrix, (s16)ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) - 0x2EE, 1);
-            work->field_14 = 1;
+            work->patrolTarget = 1;
         } else {
             gfxRotMatrixY(&scratch->matrix, (s16)ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) + 0x2EE, 1);
-            work->field_14 = 0;
+            work->patrolTarget = 0;
         }
         direction = &scratch->target;
         gfxReadMatrixZAxis(&scratch->matrix, direction);
@@ -173,9 +173,9 @@ void desertChaserRoam(Task* arg0)
         gte_ldsv(direction);
         gte_gpf12();
         gte_stsv(direction);
-        work->field_C[work->field_14].x = (s16)((u16)scratch->target.vx + arg0->extra.tmd->coords->coord.t[0]);
-        work->field_C[work->field_14].z = (s16)((u16)scratch->target.vz + arg0->extra.tmd->coords->coord.t[2]);
-        work->field_6                   = 0;
+        work->patrolPoints[work->patrolTarget].x = (s16)((u16)scratch->target.vx + arg0->extra.tmd->coords->coord.t[0]);
+        work->patrolPoints[work->patrolTarget].z = (s16)((u16)scratch->target.vz + arg0->extra.tmd->coords->coord.t[2]);
+        work->stateTimer                         = 0;
     }
     desertChaserAnimTick(arg0);
     facing3  = arg0->extra.tmd->coords;
@@ -195,11 +195,11 @@ void desertChaserRoam(Task* arg0)
             goto wrapPositive3;
         }
     }
-    work->field_840 = wrapped3;
-    facing4         = arg0->extra.tmd->coords;
-    angle4          = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
-    delta4          = angle4 - ratan2((s32)-facing4->coord.m[2][0], (s32)facing4->coord.m[2][2]);
-    wrapped4        = delta4;
+    work->lookYawTarget = wrapped3;
+    facing4             = arg0->extra.tmd->coords;
+    angle4              = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
+    delta4              = angle4 - ratan2((s32)-facing4->coord.m[2][0], (s32)facing4->coord.m[2][2]);
+    wrapped4            = delta4;
     if (delta4 < 0) {
     wrapNegative4:
         if (wrapped4 < -0x800) {
@@ -219,7 +219,7 @@ void desertChaserRoam(Task* arg0)
     unsignedDelta     = (u16)scratch->delta;
     magnitude         = abs(scratch->delta);
     if (magnitude >= 0x601) {
-        targetDelta     = work->field_840;
+        targetDelta     = work->lookYawTarget;
         targetMagnitude = abs(targetDelta);
         if ((targetMagnitude >= 0x101) && ((targetDelta * delta) < 0)) {
             adjustedDelta = unsignedDelta - 0x1000;
@@ -235,25 +235,25 @@ void desertChaserRoam(Task* arg0)
     if (scratch->delta < -0x20) {
         scratch->delta = -0x20;
     }
-    work->field_83E = scratch->delta * 0x10;
-    turnCoord       = arg0->extra.tmd->coords;
-    yaw             = (u16)scratch->delta + ratan2((s32)-turnCoord->coord.m[2][0], (s32)turnCoord->coord.m[2][2]);
-    scratch->delta  = yaw;
+    work->waistYawTarget = scratch->delta * 0x10;
+    turnCoord            = arg0->extra.tmd->coords;
+    yaw                  = (u16)scratch->delta + ratan2((s32)-turnCoord->coord.m[2][0], (s32)turnCoord->coord.m[2][2]);
+    scratch->delta       = yaw;
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
-    record = work->objs[0].contacts;
-    if (work->field_82A == 0) {
+    record = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
+    if (work->blendActive == 0) {
         if (desertChaserCapsuleTouchesGrid(arg0)) {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         } else {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         }
-        record = work->objs[0].contacts;
+        record = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     }
-    ActorContact_Steer(arg0->extra.tmd->coords, record, ARRAY_SIZE(work->objs[0].contacts), &scratch->vec);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts)) == 1) {
+    ActorContact_Steer(arg0->extra.tmd->coords, record, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->vec);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) == 1) {
         originalMagnitude = abs(scratch->original);
         if (originalMagnitude < 0x20) {
-            work->field_6 += 1;
+            work->stateTimer += 1;
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -266,15 +266,15 @@ void desertChaserRoam(Task* arg0)
         target2            = &scratch->target;
         target2->vy        = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
         target2->vz        = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
-        if (work->field_8 > work->poseVz) {
-            if (work->poseYawPrev <= 0) {
+        if (work->stateCounter > work->roamLookDelay) {
+            if (work->chaseHoldoff <= 0) {
 #if !DESERT_CHASER_RUN_SEQUENCE
                 /* each chaser looks on its own frame of fifteen */
                 if ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == (gDisplayState.animFrame % 15))
 #endif
                 {
                     if (actorOutsideRadius(&scratch->target, radius)) {
-                        if (!actorOutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
+                        if (!actorOutsideRadius(&scratch->target, 0x1F40) && work->stateCounter >= 0x1C3) {
                             facing5  = arg0->extra.tmd->coords;
                             angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
                             delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
@@ -301,7 +301,7 @@ void desertChaserRoam(Task* arg0)
                         }
                     } else {
                     changeState:
-                        work->field_0 = 0x1C;
+                        work->state = 0x1C;
                     }
                     playerX            = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
                     scratch->playerYaw = ratan2((s32)playerX, (s32)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
@@ -332,20 +332,20 @@ void desertChaserRoam(Task* arg0)
                         || (Gp_NodeSlotMask(&ctx->node) == 0)
 #endif
                     ) {
-                        work->field_0 = 0x1C;
+                        work->state = 0x1C;
                     }
                 }
             }
 #if DESERT_CHASER_RUN_SEQUENCE
             else {
-                work->poseYawPrev -= 1;
+                work->chaseHoldoff -= 1;
             }
 #endif
         }
     }
 #if !DESERT_CHASER_RUN_SEQUENCE
-    if ((work->poseYawPrev <= 0) && (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE)) {
-        work->field_0 = 0x1C;
+    if ((work->chaseHoldoff <= 0) && (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE)) {
+        work->state = 0x1C;
     }
 #else
     func_actor_421600_80133334(arg0->extra.tmd->coords);

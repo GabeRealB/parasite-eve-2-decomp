@@ -70,7 +70,7 @@ extern EnemyParams gRigParams;
 static DesertChaserContactPushStepStorage ActorContact_ScratchPosition;
 
 /// Per-state animation table `desertChaserAnimTick` reads when it
-/// re-seeds the slots: 0x2D bytes per `field_82C`, indexed by `field_82E`.
+/// re-seeds the slots: 0x2D bytes per `appliedAnim`, indexed by `animId`.
 extern s8 gDesertChaserClipStartFrames[];
 
 /// Psy-Q `RotMatrixY`.
@@ -79,7 +79,7 @@ static void func_actor_323000_8016409C(Enemy* enemy, Task* task);
 static void func_actor_323000_8016420C(Enemy* enemy, Task* task);
 static void func_actor_323000_80164C58(Enemy* enemy, Task* task);
 
-/// State handlers `desertChaserFrameState` runs by `DesertChaserWork::field_0`.
+/// State handlers `desertChaserFrameState` runs by `DesertChaserWork::state`.
 #include "../../shared/actor_contacts.h"
 
 static const EnemyTaskFuncTable4 gDesertChaserStates = {
@@ -3027,11 +3027,11 @@ static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2);
 
 #include "../../shared/desert_chaser_blend_tick.inc.c"
 
-/// Effect and sound step of the tick: for the clip in `field_82E`, watches
+/// Effect and sound step of the tick: for the clip in `animId`, watches
 /// the clip each relevant slot plays, and the first frame one reaches a
 /// watched value spawns effect 0x60054 at the matching coordinate and returns
 /// the `SndEvt_EnqueueType6` id to play (0 where only effects fire).
-/// `field_848` remembers each slot's last clip so the step fires once; it is
+/// `lastCueFrames` remembers each slot's last clip so the step fires once; it is
 /// cleared when none of the watched clips is playing.
 s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
 {
@@ -3039,138 +3039,138 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
     s32     reset;
 
     reset = 1;
-    switch (work->field_82E) {
+    switch (work->animId) {
         case 0: {
-            s32 clip = work->slots[9].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            s32 clip = work->rig.slots[9].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
 
             if (clip == 0x58) {
-                old = work->field_848[9];
+                old = work->lastCueFrames[9];
                 if (old != clip) {
-                    work->field_848[9] = clip;
-                    vec.vx             = -500;
-                    vec.vz             = 200;
-                    vec.vy             = 650;
+                    work->lastCueFrames[9] = clip;
+                    vec.vx                 = -500;
+                    vec.vz                 = 200;
+                    vec.vy                 = 650;
                     Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80002220, &vec);
                     return 0x40010002;
                 }
-                work->field_848[9] = old;
-                reset              = 0;
+                work->lastCueFrames[9] = old;
+                reset                  = 0;
             }
         }
             {
-                s32 clip = work->slots[7].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 clip = work->rig.slots[7].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0x3E) {
-                    old = work->field_848[7];
+                    old = work->lastCueFrames[7];
                     if (old != clip) {
-                        work->field_848[7] = clip;
-                        vec.vx             = -1000;
-                        vec.vz             = 200;
-                        vec.vy             = 650;
+                        work->lastCueFrames[7] = clip;
+                        vec.vx                 = -1000;
+                        vec.vz                 = 200;
+                        vec.vy                 = 650;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002220, &vec);
                         return 0x40010001;
                     }
-                    work->field_848[7] = old;
-                    reset              = 0;
+                    work->lastCueFrames[7] = old;
+                    reset                  = 0;
                 }
             }
             {
-                s32 clip = work->slots[14].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 clip = work->rig.slots[14].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0x84) {
-                    old = work->field_848[14];
+                    old = work->lastCueFrames[14];
                     if (old != clip) {
-                        work->field_848[14] = clip;
-                        vec.vz              = 0;
-                        vec.vx              = 0;
-                        vec.vy              = 600;
+                        work->lastCueFrames[14] = clip;
+                        vec.vz                  = 0;
+                        vec.vx                  = 0;
+                        vec.vy                  = 600;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80002220, &vec);
                         return 0x40010002;
                     }
-                    work->field_848[14] = old;
-                    reset               = 0;
+                    work->lastCueFrames[14] = old;
+                    reset                   = 0;
                 }
             }
             {
-                s32 clip = work->slots[17].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 clip = work->rig.slots[17].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0xA9) {
-                    old = work->field_848[17];
+                    old = work->lastCueFrames[17];
                     if (old != clip) {
-                        work->field_848[17] = clip;
-                        vec.vz              = 0;
-                        vec.vx              = 0;
-                        vec.vy              = 600;
+                        work->lastCueFrames[17] = clip;
+                        vec.vz                  = 0;
+                        vec.vx                  = 0;
+                        vec.vy                  = 600;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80002220, &vec);
                         return 0x40010001;
                     }
-                    work->field_848[17] = old;
-                    reset               = 0;
+                    work->lastCueFrames[17] = old;
+                    reset                   = 0;
                 }
             }
             break;
         case 10: {
-            s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
 
             if (clip == 0x9) {
-                old = work->field_848[1];
+                old = work->lastCueFrames[1];
                 if (old != clip) {
-                    work->field_848[1] = clip;
-                    vec.vz             = 0;
-                    vec.vx             = 0;
-                    vec.vy             = 0;
+                    work->lastCueFrames[1] = clip;
+                    vec.vz                 = 0;
+                    vec.vx                 = 0;
+                    vec.vy                 = 0;
                     Gp_SpawnEff(EFFECT_DUST_PUFF, task->extra.tmd->coords, 0x80004A00, &vec);
                     return 0x40010005;
                 }
-                work->field_848[1] = old;
-                reset              = 0;
+                work->lastCueFrames[1] = old;
+                reset                  = 0;
             }
         } break;
         case 3: {
-            s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
 
             if (clip == 0x4) {
                 reset = 0;
-                old   = work->field_848[1];
+                old   = work->lastCueFrames[1];
                 if (old != clip) {
-                    work->field_848[1] = clip;
+                    work->lastCueFrames[1] = clip;
                     return 0x40010004;
                 }
-                work->field_848[1] = old;
+                work->lastCueFrames[1] = old;
             }
         }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0x8) {
-                    old = work->field_848[1];
+                    old = work->lastCueFrames[1];
                     if (old != clip) {
-                        work->field_848[1] = clip;
+                        work->lastCueFrames[1] = clip;
                         return 0x40010003;
                     }
-                    work->field_848[1] = old;
-                    reset              = 0;
+                    work->lastCueFrames[1] = old;
+                    reset                  = 0;
                 }
             }
             break;
         case 6: {
-            s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             s32 old;
 
             if (clip == 0x6) {
-                old = work->field_848[1];
+                old = work->lastCueFrames[1];
                 if (old != clip) {
-                    work->field_848[1] = clip;
-                    vec.vx             = -500;
-                    vec.vz             = 200;
-                    vec.vy             = 650;
+                    work->lastCueFrames[1] = clip;
+                    vec.vx                 = -500;
+                    vec.vz                 = 200;
+                    vec.vy                 = 650;
                     Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80003200, &vec);
                     vec.vx = -1000;
                     vec.vz = 200;
@@ -3178,21 +3178,21 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                     Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80003200, &vec);
                     return 0;
                 }
-                work->field_848[1] = old;
-                reset              = 0;
+                work->lastCueFrames[1] = old;
+                reset                  = 0;
             }
         }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0xB) {
-                    old = work->field_848[1];
+                    old = work->lastCueFrames[1];
                     if (old != clip) {
-                        work->field_848[1] = clip;
-                        vec.vz             = 0;
-                        vec.vx             = 0;
-                        vec.vy             = 600;
+                        work->lastCueFrames[1] = clip;
+                        vec.vz                 = 0;
+                        vec.vx                 = 0;
+                        vec.vy                 = 600;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80004480, &vec);
                         vec.vz = 0;
                         vec.vx = 0;
@@ -3200,21 +3200,21 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80004480, &vec);
                         return 0;
                     }
-                    work->field_848[1] = old;
-                    reset              = 0;
+                    work->lastCueFrames[1] = old;
+                    reset                  = 0;
                 }
             }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0xC) {
-                    old = work->field_848[1];
+                    old = work->lastCueFrames[1];
                     if (old != clip) {
-                        work->field_848[1] = clip;
-                        vec.vx             = -500;
-                        vec.vz             = 200;
-                        vec.vy             = 650;
+                        work->lastCueFrames[1] = clip;
+                        vec.vx                 = -500;
+                        vec.vz                 = 200;
+                        vec.vy                 = 650;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80002200, &vec);
                         vec.vx = -1000;
                         vec.vz = 200;
@@ -3230,21 +3230,21 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80003340, &vec);
                         return 0;
                     }
-                    work->field_848[1] = old;
-                    reset              = 0;
+                    work->lastCueFrames[1] = old;
+                    reset                  = 0;
                 }
             }
             {
-                s32 clip = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 s32 old;
 
                 if (clip == 0xD) {
-                    old = work->field_848[1];
+                    old = work->lastCueFrames[1];
                     if (old != clip) {
-                        work->field_848[1] = clip;
-                        vec.vz             = 0;
-                        vec.vx             = 0;
-                        vec.vy             = 600;
+                        work->lastCueFrames[1] = clip;
+                        vec.vz                 = 0;
+                        vec.vx                 = 0;
+                        vec.vy                 = 600;
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80002200, &vec);
                         vec.vz = 0;
                         vec.vx = 0;
@@ -3252,14 +3252,14 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80002300, &vec);
                         return 0;
                     }
-                    work->field_848[1] = old;
-                    reset              = 0;
+                    work->lastCueFrames[1] = old;
+                    reset                  = 0;
                 }
             }
             break;
     }
     if (reset == 1) {
-        memFillBytes(work->field_848, 0, sizeof(work->field_848));
+        memFillBytes(work->lastCueFrames, 0, sizeof(work->lastCueFrames));
     }
     return 0;
 }
@@ -3279,35 +3279,35 @@ static void func_actor_323000_8016409C(Enemy* enemy, Task* task)
     TmdObject*        obj;
     SVECTOR           sp10;
 
-    work = (DesertChaserWork*)task->work;
-    if (work->field_4 != 0) {
+    work = task->work;
+    if (work->stateEntered != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = 0;
         obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
-        work->field_832 = 0x10;
-        work->field_828 = 2;
-        work->field_83E = 0;
-        work->field_840 = 0;
+        work->animRate       = 0x10;
+        work->animRequest    = DESERT_CHASER_ANIM_REQUEST_RESET;
+        work->waistYawTarget = 0;
+        work->lookYawTarget  = 0;
         desertChaserAnimTick(task);
         return;
     }
     desertChaserAnimTick(task);
-    if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        if (work->field_82E == 0xF) {
-            work->field_828 = 2;
-            work->field_82E = 0x10;
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        if (work->animId == 0xF) {
+            work->animRequest = DESERT_CHASER_ANIM_REQUEST_RESET;
+            work->animId      = 0x10;
         }
         desertChaserAnimTick(task);
     }
-    if (work->field_82E == 0xE) {
-        if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 7 || (work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 9) {
+    if (work->animId == 0xE) {
+        if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 7 || (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 9) {
             sp10.vx = -0x3E8;
             sp10.vz = 0xC8;
             sp10.vy = 0x28A;
             Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002300, &sp10);
         }
-        if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 8) {
+        if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 8) {
             sp10.vx = -0x3E8;
             sp10.vz = 0xC8;
             sp10.vy = 0x28A;
@@ -3330,23 +3330,23 @@ static void func_actor_323000_8016420C(Enemy* enemy, Task* task)
     SVECTOR           ofs2;
     SVECTOR           ofs;
 
-    work = (DesertChaserWork*)task->work;
-    if (work->field_4 != 0) {
+    work = task->work;
+    if (work->stateEntered != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
-        work->field_832 = 0x10;
-        work->field_82E = 0xE;
-        work->field_828 = 2;
-        work->field_83E = 0;
-        work->field_840 = 0;
-        work->field_6   = 0;
+        work->animRate       = 0x10;
+        work->animId         = 0xE;
+        work->animRequest    = DESERT_CHASER_ANIM_REQUEST_RESET;
+        work->waistYawTarget = 0;
+        work->lookYawTarget  = 0;
+        work->stateTimer     = 0;
         desertChaserAnimTick(task);
         return;
     }
     desertChaserAnimTick(task);
-    switch (++work->field_6) {
+    switch (++work->stateTimer) {
         case 29: {
             SVECTOR* p = &ofs;
             p->vx      = -0x1F4;
@@ -3428,23 +3428,23 @@ s32 func_actor_323000_80164A54(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 {
     DesertChaserWork* work;
 
-    work = (DesertChaserWork*)task->work;
+    work = task->work;
 
-    work->field_91C = msg->context.loc.stage;
-    work->field_91D = msg->context.loc.area;
-    work->field_91E = (u8)msg->command;
+    work->commandBytes[0] = msg->context.loc.stage;
+    work->commandBytes[1] = msg->context.loc.area;
+    work->commandBytes[2] = (u8)msg->command;
 
     if (msg->context.key == 0x202) {
         switch (msg->command) {
             case 1:
-                work->field_0 = 2;
+                work->state = 2;
                 break;
             case 0:
             case 2:
-                work->field_0 = 0;
+                work->state = 0;
                 break;
             case 3:
-                work->field_0 = msg->command;
+                work->state = msg->command;
                 break;
         }
     }
@@ -3504,18 +3504,18 @@ static void func_actor_323000_80164C58(Enemy* enemy, Task* task)
     TmdObject*        obj;
     SVECTOR           unused; // never referenced; only reserves the frame slot the ROM has
 
-    work = (DesertChaserWork*)task->work;
-    if (work->field_4 != 0) {
+    work = task->work;
+    if (work->stateEntered != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
-        work->field_832 = 0x10;
-        work->field_82E = 0xD;
-        work->field_828 = 2;
-        work->field_83E = 0;
-        work->field_840 = 0;
-        work->field_6   = 0;
+        work->animRate       = 0x10;
+        work->animId         = 0xD;
+        work->animRequest    = DESERT_CHASER_ANIM_REQUEST_RESET;
+        work->waistYawTarget = 0;
+        work->lookYawTarget  = 0;
+        work->stateTimer     = 0;
         desertChaserAnimTick(task);
     } else {
         desertChaserAnimTick(task);

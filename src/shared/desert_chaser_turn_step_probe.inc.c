@@ -24,21 +24,21 @@ void desertChaserTurnStepProbe(Task* arg0)
     scratch = (SCRATCH_STACK_CURSOR(ActorTurnStepScratch) = head - 1);
     work    = arg0->work;
     ctx     = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         obj = arg0->extra.tmd;
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->hitFlag = 0;
 #endif
-        obj->flags                  = 0;
-        work->objs[0].body.radius   = 0x19C;
-        work->objs[2].body.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        ctx->node.state.parts.flags = 0;
-        work->field_828             = 1;
-        work->field_82E             = DESERT_CHASER_CLIP_TURN_PROBE;
-        work->field_832             = 0x10;
-        work->field_6               = 0;
+        obj->flags                                            = 0;
+        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
+        work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        ctx->node.state.parts.flags                           = 0;
+        work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
+        work->animId                                          = DESERT_CHASER_CLIP_TURN_PROBE;
+        work->animRate                                        = 0x10;
+        work->stateTimer                                      = 0;
     }
-    work->field_6 += 1;
+    work->stateTimer += 1;
     desertChaserAnimTick(arg0);
     targetCoord     = arg0->extra.tmd->coords;
     head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
@@ -62,16 +62,16 @@ void desertChaserTurnStepProbe(Task* arg0)
             goto wrapPositive;
         }
     }
-    firstDelta      = wrapped;
-    scratch->delta  = (s16)firstDelta;
-    work->field_840 = (u16)firstDelta;
+    firstDelta          = wrapped;
+    scratch->delta      = (s16)firstDelta;
+    work->lookYawTarget = (u16)firstDelta;
     if (scratch->delta > 0) {
         if (abs(scratch->delta) >= 0x401) {
-            work->field_840 = firstDelta - 0x800;
-            scratch->delta -= 0x800;
+            work->lookYawTarget = firstDelta - 0x800;
+            scratch->delta     -= 0x800;
         }
     }
-    steps          = 0x1E - work->field_6;
+    steps          = 0x1E - work->stateTimer;
     scratch->steps = steps;
     if (steps == 0) {
         scratch->steps = 1;
@@ -91,15 +91,15 @@ void desertChaserTurnStepProbe(Task* arg0)
     coord2              = arg0->extra.tmd->coords;
     coord2->coord.t[2] += scratch->vec.vz;
     actorMoveForward(arg0->extra.tmd->coords, -8);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, ARRAY_SIZE(work->objs[2].contacts));
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
 #if DESERT_CHASER_RUN_SEQUENCE
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 #endif
     if (abs(scratch->delta) < 0x20) {
-        work->field_0 = 0x1C;
+        work->state = 0x1C;
     }
-    if (work->slots[1].status.fields.flags & 0x100) {
-        work->field_0 = 0x1C;
+    if (work->rig.slots[1].status.fields.flags & 0x100) {
+        work->state = 0x1C;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnStepScratch);
 }

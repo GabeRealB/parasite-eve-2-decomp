@@ -10,34 +10,34 @@ void desertChaserStunned(Task* arg0)
 
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         obj                         = arg0->extra.tmd;
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-        work->field_82E           = DESERT_CHASER_CLIP_STUNNED;
-        work->field_828           = 2;
-        work->field_832           = 0x10;
-        work->objs[2].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->animId                                         = DESERT_CHASER_CLIP_STUNNED;
+        work->animRequest                                    = DESERT_CHASER_ANIM_REQUEST_RESET;
+        work->animRate                                       = 0x10;
+        work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         do {
             desertChaserAnimTick(arg0);
-        } while ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) != 0xC);
-        work->field_832 = 0x20;
+        } while ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) != 0xC);
+        work->animRate = 0x20;
         return;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    value                                 = (s16)work->field_832 / 2;
-    work->field_832                       = (u16)value;
+    value                                 = (s16)work->animRate / 2;
+    work->animRate                        = (u16)value;
     magnitude                             = 0x10U;
     if (value == 1) {
-        work->field_832 = -magnitude;
+        work->animRate = -magnitude;
     }
-    if ((s16)work->field_832 == -1) {
-        work->field_832 = 0x10;
+    if ((s16)work->animRate == -1) {
+        work->animRate = 0x10;
     }
     desertChaserAnimTick(arg0);
     if (Gp_TickObjFlag2(ctx) == 1) {
         ctx->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
-        work->field_0       = 0x24;
+        work->state         = 0x24;
     }
 }
