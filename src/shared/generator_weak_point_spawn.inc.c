@@ -1,25 +1,25 @@
 /* Part of the Generator library; see generator.h. */
 
-/// Spawn state of the enemy: allocates the 0x48-byte part object, seeds its
-/// coordinate's translation from the sub-state's entry in
+/// Spawn state of the enemy: allocates its `GeneratorLifeSupportWork`, seeds its
+/// coordinate's translation from the kind's entry in
 /// `gGeneratorLifeSupportPos`, links it into `Gp_ObjLists[2]`, and raises one of
 /// the two per-enemy death flags. A failed allocation tears the enemy down
 /// instead and leaves the task on this handler; otherwise the task moves to the
 /// tick handler (`state` 1).
 void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
 {
-    TmdObject*             obj;
-    GeneratorWork*         work;
-    GeneratorPart*         part;
-    GfxCoord*              coord;
-    WorldCollisionContact* rec18;
-    s32                    flag;
-    u16                    type;
+    TmdObject*                obj;
+    GeneratorWork*            work;
+    GeneratorLifeSupportWork* part;
+    GfxCoord*                 coord;
+    WorldCollisionContact*    contacts;
+    s32                       flag;
+    u16                       type;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
     work  = arg1->parent->work;
-    part  = memCalloc(0x48, 0);
+    part  = memCalloc(sizeof(GeneratorLifeSupportWork), 0);
     if (part == NULL) {
         enemyDestroy(arg0, arg1);
         return;
@@ -33,30 +33,30 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
     Gp_LinkNode(&arg0->node);
-    rec18                      = part->rec18;
-    arg0->coord                = coord;
-    arg0->bodyPos.vx           = 0;
-    arg0->bodyPos.vy           = 0;
-    arg0->bodyPos.vz           = 0;
-    arg0->param                = &gGeneratorLifeSupportParams;
-    arg0->recs                 = rec18;
-    arg0->hp                   = gGeneratorLifeSupportParams.hpMax;
-    part->field_38.spawnArgLo  = 0x500;
-    part->field_38.coord       = coord;
-    part->field_38.spawnArgHi  = 2;
-    part->obj.coord            = coord;
-    part->obj.context.contacts = rec18;
-    part->obj.pos.vx           = 0;
-    part->obj.pos.vy           = 0;
-    part->obj.pos.vz           = 0;
-    part->obj.key              = ((GeneratorWork*)arg1->parent->work)->rootBody.key;
-    part->obj.radius           = 0xC8;
-    part->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &part->obj);
-    Gp_InitRec18Table(rec18, 1, 0);
-    part->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    type             = work->kind;
-    part->field_46   = type;
+    contacts                    = part->contacts;
+    arg0->coord                 = coord;
+    arg0->bodyPos.vx            = 0;
+    arg0->bodyPos.vy            = 0;
+    arg0->bodyPos.vz            = 0;
+    arg0->param                 = &gGeneratorLifeSupportParams;
+    arg0->recs                  = contacts;
+    arg0->hp                    = gGeneratorLifeSupportParams.hpMax;
+    part->effectArg.spawnArgLo  = 0x500;
+    part->effectArg.coord       = coord;
+    part->effectArg.spawnArgHi  = 2;
+    part->body.coord            = coord;
+    part->body.context.contacts = contacts;
+    part->body.pos.vx           = 0;
+    part->body.pos.vy           = 0;
+    part->body.pos.vz           = 0;
+    part->body.key              = ((GeneratorWork*)arg1->parent->work)->rootBody.key;
+    part->body.radius           = 0xC8;
+    part->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &part->body);
+    Gp_InitRec18Table(contacts, ARRAY_SIZE(part->contacts), 0);
+    part->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    type              = work->kind;
+    part->kind        = type;
     if ((type << 0x10) == 0) {
         func_neo_ark_power_plant_2_8017FD88(1);
         flag = 0x147;

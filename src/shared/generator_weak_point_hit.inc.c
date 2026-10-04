@@ -5,15 +5,15 @@
 /// `lifeSupportDestroyed`, spawns the burst effects and plays the break sound.
 void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
 {
-    VECTOR*        vec;
-    GeneratorPart* part;
-    GfxCoord*      coord;
-    s32            damage;
-    s32            snd;
-    s32            hitTime;
+    VECTOR*                   vec;
+    GeneratorLifeSupportWork* part;
+    GfxCoord*                 coord;
+    s32                       damage;
+    s32                       snd;
+    s32                       hitTime;
 
     coord = arg1->extra.tmd->coords;
-    part  = (GeneratorPart*)arg1->work;
+    part  = arg1->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             return;
@@ -25,24 +25,24 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
             return;
     }
     vec = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
-    if (part->field_40 != 0) {
-        part->field_40--;
-        if (part->field_40 <= 0) {
-            part->field_40 = 0;
+    if (part->hitCooldown != 0) {
+        part->hitCooldown--;
+        if (part->hitCooldown <= 0) {
+            part->hitCooldown = 0;
         }
     }
-    if (part->field_44 != 0) {
-        part->field_44--;
+    if (part->hitEffectCooldown != 0) {
+        part->hitEffectCooldown--;
     }
-    if (part->field_40 == 0 && (part->rec18[0].key.value & 0xFFFF0000) == 0x20000) {
-        if (part->rec18[0].key.value & 0x8000) {
+    if (part->hitCooldown == 0 && (part->contacts[0].key.value & 0xFFFF0000) == 0x20000) {
+        if (part->contacts[0].key.value & 0x8000) {
             func_800DA6E8(&arg0->node, 0, 0);
         } else {
             vec->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
             vec->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage  = Gp_ComputeDamage(part->rec18[0].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
-            if (Gp_RollEnemyChance(arg0, part->rec18[0].key.value, 0) != 0) {
+            damage  = Gp_ComputeDamage(part->contacts[0].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
+            if (Gp_RollEnemyChance(arg0, part->contacts[0].key.value, 0) != 0) {
                 damage *= 4;
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
             }
@@ -50,7 +50,7 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
             arg0->hp -= damage;
             if (arg0->hp <= 0) {
                 arg1->state                                                = 2;
-                part->field_42                                             = 0;
+                part->teardownFrames                                       = 0;
                 ((GeneratorWork*)arg1->parent->work)->lifeSupportDestroyed = 1;
                 Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x10002400, NULL);
                 Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32FF1400, NULL);
@@ -58,16 +58,16 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
                 snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (damage > 0) {
-                if (part->field_44 == 0) {
-                    if ((Gp_GetIdParam0(part->rec18[0].key.value) & 0xFFFF) == 7) {
-                        func_800FDB18(3, coord, NULL, &part->field_38);
+                if (part->hitEffectCooldown == 0) {
+                    if ((Gp_GetIdParam0(part->contacts[0].key.value) & 0xFFFF) == 7) {
+                        func_800FDB18(3, coord, NULL, &part->effectArg);
                     }
-                    func_800FDB18(7, coord, NULL, &part->field_38);
-                    part->field_44 = 10;
+                    func_800FDB18(7, coord, NULL, &part->effectArg);
+                    part->hitEffectCooldown = 10;
                 }
-                hitTime = Gp_GetIdParam2(part->rec18[0].key.value);
+                hitTime = Gp_GetIdParam2(part->contacts[0].key.value);
                 if (hitTime > 0) {
-                    part->field_40 = hitTime;
+                    part->hitCooldown = hitTime;
                 }
                 snd  = gGeneratorSoundIds[0];
                 snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
@@ -75,6 +75,6 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
             }
         }
     }
-    Gp_ClearRec18Occupied(part->rec18);
+    Gp_ClearRec18Occupied(part->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }

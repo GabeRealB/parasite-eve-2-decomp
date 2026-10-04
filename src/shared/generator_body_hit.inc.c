@@ -1,5 +1,13 @@
 /* Part of the Generator library; see generator.h. */
 
+/// Scratch-stack block of the body's hit handler, reserved for the length of
+/// the call.
+typedef struct {
+    VECTOR  toPlayer;     // the player's position less the body's root, the range a hit's damage is computed from
+    SVECTOR effectOffset; // where a hit effect appears, as an offset from the body's root: the kind's entry of the hit-effect offsets
+} _GeneratorBodyHitScratch;
+STATIC_ASSERT_SIZEOF(_GeneratorBodyHitScratch, 0x18);
+
 /// Hit handler of the main body, the first step of the tick. After the
 /// cooldown `hitCooldown` has run out, each of the two contact records the
 /// player's attack claimed deals damage by distance: a tenth of it while the
@@ -12,17 +20,17 @@
 /// and plays the hit sound.
 void generatorBodyHit(Task* arg0)
 {
-    GeneratorScratch* scr;
-    GeneratorWork*    work;
-    Enemy*            enemy;
-    GfxCoord*         coord;
-    s32               damage;
-    s32               lastId;
-    s32               val;
-    s32               snd;
-    s32               i;
+    _GeneratorBodyHitScratch* scr;
+    GeneratorWork*            work;
+    Enemy*                    enemy;
+    GfxCoord*                 coord;
+    s32                       damage;
+    s32                       lastId;
+    s32                       val;
+    s32                       snd;
+    s32                       i;
 
-    scr    = SCRATCH_STACK_RESERVE_BLOCK(GeneratorScratch);
+    scr    = SCRATCH_STACK_RESERVE_BLOCK(_GeneratorBodyHitScratch);
     coord  = arg0->extra.tmd->coords;
     work   = arg0->work;
     enemy  = arg0->spawnArg2.pointer;
@@ -40,18 +48,18 @@ void generatorBodyHit(Task* arg0)
         if ((work->contacts[i].key.value & 0xFFFF0000) != 0x20000) {
             continue;
         }
-        scr->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-        scr->delta.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-        scr->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-        damage        = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0(scr->delta.vx * scr->delta.vx + scr->delta.vy * scr->delta.vy + scr->delta.vz * scr->delta.vz), 0, 0);
+        scr->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+        scr->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+        scr->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+        damage           = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0(scr->toPlayer.vx * scr->toPlayer.vx + scr->toPlayer.vy * scr->toPlayer.vy + scr->toPlayer.vz * scr->toPlayer.vz), 0, 0);
         if (work->lifeSupportDestroyed == 0) {
             damage /= 10;
         } else if (Gp_RollEnemyChance(enemy, work->contacts[i].key.value, 0) != 0) {
-            damage     *= 4;
-            scr->ofs.vx = gGeneratorHitEffectOffsets[work->kind].vx;
-            scr->ofs.vy = gGeneratorHitEffectOffsets[work->kind].vy;
-            scr->ofs.vz = gGeneratorHitEffectOffsets[work->kind].vz;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &scr->ofs);
+            damage              *= 4;
+            scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
+            scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
+            scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &scr->effectOffset);
         }
         func_800DA6E8(&enemy->node, damage, 0);
         func_800E2C78(enemy, work->contacts[i].key.value, damage, 0);
@@ -72,15 +80,15 @@ void generatorBodyHit(Task* arg0)
             work->animSet     = GENERATOR_ANIM_HIT;
         }
         if (lastId != work->contacts[i].key.value) {
-            lastId      = work->contacts[i].key.value;
-            val         = Gp_GetIdParam1(lastId) & 0xFFFF;
-            scr->ofs.vx = gGeneratorHitEffectOffsets[work->kind].vx;
-            scr->ofs.vy = gGeneratorHitEffectOffsets[work->kind].vy;
-            scr->ofs.vz = gGeneratorHitEffectOffsets[work->kind].vz;
+            lastId               = work->contacts[i].key.value;
+            val                  = Gp_GetIdParam1(lastId) & 0xFFFF;
+            scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
+            scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
+            scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
             if (val == 3) {
-                Gp_SpawnEff(EFFECT_HIT_BLAST, coord, work->effectArg.spawnArgLo | (work->effectArg.spawnArgHi << 16), &scr->ofs);
+                Gp_SpawnEff(EFFECT_HIT_BLAST, coord, work->effectArg.spawnArgLo | (work->effectArg.spawnArgHi << 16), &scr->effectOffset);
             } else {
-                func_800FDB18((u16)val, coord, &scr->ofs, &work->effectArg);
+                func_800FDB18((u16)val, coord, &scr->effectOffset, &work->effectArg);
             }
         }
         val = Gp_GetIdParam2(work->contacts[i].key.value);
@@ -92,5 +100,5 @@ void generatorBodyHit(Task* arg0)
     }
 end:
     Gp_ClearRec18Occupied(work->contacts);
-    SCRATCH_STACK_RELEASE_BLOCK(GeneratorScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GeneratorBodyHitScratch);
 }

@@ -11,7 +11,7 @@
 /// high nibble of `Enemy::placeKey`; state 1 (entered on a hit) walks
 /// `gGeneratorHitPulse` and moves to state 2 on its terminator; state 2
 /// returns to pose 1 and state 0 once the pose has run 0x23 frames past its
-/// entry of `gGeneratorPoseStartFrames`. The row's `field_2` is the scale
+/// entry of `gGeneratorPoseStartFrames`. The row's `scale` is the scale
 /// `modelPlacementSetScaled` applies to the saved coordinate matrix
 /// `unscaledMtx`, 0x1000 when no row was read, and while the session's
 /// `viewReady` is 1 the per-view row of `gGeneratorViewSound` is enqueued
@@ -26,12 +26,12 @@ void generatorPulse(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    scale = 0x1000;
+    scale = ONE;
     switch (work->pulseState) {
         case GENERATOR_PULSE_IDLE:
             if (work->pulseTimer <= 0) {
-                scale = gGeneratorIdlePulse[work->stateFrames].field_2;
-                if (gGeneratorIdlePulse[work->stateFrames].field_0 != 0) {
+                scale = gGeneratorIdlePulse[work->stateFrames].scale;
+                if (gGeneratorIdlePulse[work->stateFrames].last != 0) {
                     work->stateFrames = 0;
                     gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->pulseTimer  = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
@@ -47,8 +47,8 @@ void generatorPulse(Task* arg0)
             }
             break;
         case GENERATOR_PULSE_HIT:
-            scale = gGeneratorHitPulse[work->stateFrames].field_2;
-            if (gGeneratorHitPulse[work->stateFrames].field_0 != 0) {
+            scale = gGeneratorHitPulse[work->stateFrames].scale;
+            if (gGeneratorHitPulse[work->stateFrames].last != 0) {
                 work->stateFrames = 0;
                 work->pulseState  = GENERATOR_PULSE_HIT_RECOVER;
                 gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -66,7 +66,7 @@ void generatorPulse(Task* arg0)
     }
     modelPlacementSetScaled(arg0, &work->unscaledMtx, scale, 1);
     if (gGameSession->viewReady == 1) {
-        SndEvt_EnqueueTypeA(work->runningSoundId, gGeneratorViewSound[gGameSession->location.loc.view].field_0,
-                            gGeneratorViewSound[gGameSession->location.loc.view].field_2);
+        SndEvt_EnqueueTypeA(work->runningSoundId, (s8)gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
+                            (s8)gGeneratorViewSound[gGameSession->location.loc.view].attenuation);
     }
 }

@@ -90,8 +90,8 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     }
     sound                = gGeneratorSpawnSound | ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     work->runningSoundId = sound;
-    SndEvt_EnqueueType6(sound, gGeneratorViewSound[gGameSession->location.loc.view].field_0,
-                        gGeneratorViewSound[gGameSession->location.loc.view].field_2);
+    SndEvt_EnqueueType6(sound, (s8)gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
+                        (s8)gGeneratorViewSound[gGameSession->location.loc.view].attenuation);
     arg1->msgTable = gGeneratorMessages;
     arg1->state    = 1;
 }

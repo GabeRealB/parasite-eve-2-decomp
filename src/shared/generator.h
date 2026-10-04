@@ -110,53 +110,51 @@ typedef struct {
 } GeneratorWork;
 STATIC_ASSERT_SIZEOF(GeneratorWork, 0x340);
 
-/// One row of that enemy's clip tables: a nonzero `field_0` ends the clip and
-/// `field_2` is the row's scale.
-typedef struct GeneratorClip {
-    s16 field_0;
-    u16 field_2;
-} GeneratorClip;
-STATIC_ASSERT_SIZEOF(GeneratorClip, 0x4);
+/// One frame of a scale pulse clip of the body.
+///
+/// A clip is an array of these played a row per frame; the body's root matrix
+/// is rescaled by each row in turn. The row flagged `last` is still applied.
+typedef struct {
+    s16 last;  // nonzero on the clip's final frame
+    s16 scale; // uniform scale of the body for this frame, 0x1000 = 1.0
+} GeneratorPulseFrame;
+STATIC_ASSERT_SIZEOF(GeneratorPulseFrame, 0x4);
 
-/// Part object that enemy's spawn allocates and keeps at the part task's
-/// `Task::work`: a linked collision node with its single record, and the
-/// record the part's death effect is spawned with.
-typedef struct GeneratorPart {
-    WorldCollisionBody    obj;
-    WorldCollisionContact rec18[1];
-    EffectSpawnArg        field_38; // record this part's death effect is spawned with
-    s16                   field_40;
-    u16                   field_42;
-    s16                   field_44;
-    s16                   field_46;
-} GeneratorPart;
-STATIC_ASSERT_SIZEOF(GeneratorPart, 0x48);
+/// Work block of the Life Support part.
+///
+/// The part's spawn handler allocates it zeroed and keeps it at `Task::work`.
+/// The part has no model of its own: it is a collision sphere on the task's
+/// coordinate with its one contact record, the argument record of its hit
+/// effects, and the timers of its hit and teardown handlers.
+typedef struct {
+    WorldCollisionBody    body;              // sphere of radius 200 at the part's coordinate; takes the key of the body's `GeneratorWork::rootBody`
+    WorldCollisionContact contacts[1];       // contact of `body`; also the part enemy's hit records
+    EffectSpawnArg        effectArg;         // argument record of the effects a hit the part survives spawns
+    s16                   hitCooldown;       // frames before another hit is taken; set from the hit's id parameter 2
+    s16                   teardownFrames;    // frames since the part was destroyed; its task ends at 0x3D
+    s16                   hitEffectCooldown; // frames before a hit spawns its effects again, ten after each
+    s16                   kind;              // `GeneratorWork::kind` of the body, taken at the spawn
+} GeneratorLifeSupportWork;
+STATIC_ASSERT_SIZEOF(GeneratorLifeSupportWork, 0x48);
 
-/// Scratch-pad block of that enemy's hit handler: the offset from the player
-/// and the offset the hit effect is spawned at.
-typedef struct GeneratorScratch {
-    VECTOR  delta;
-    SVECTOR ofs;
-} GeneratorScratch;
-STATIC_ASSERT_SIZEOF(GeneratorScratch, 0x18);
+/// Position of the Life Support part of one generator kind.
+typedef struct {
+    s16 x; // world X of the part's coordinate
+    s16 y; // world Y
+    s16 z; // world Z
+} GeneratorLifeSupportPos;
+STATIC_ASSERT_SIZEOF(GeneratorLifeSupportPos, 0x6);
 
-/// A spawn position of that enemy, one per sub-state.
-typedef struct GeneratorSpawnPos {
-    s16 x;
-    s16 y;
-    s16 z;
-} GeneratorSpawnPos;
-STATIC_ASSERT_SIZEOF(GeneratorSpawnPos, 0x6);
-
-/// One row of that enemy's per-area sound table: the two parameters its
-/// sound event is queued with.
-typedef struct GeneratorSndRow {
-    s8 field_0;
-    s8 pad_1;
-    s8 field_2;
-    s8 pad_3;
-} GeneratorSndRow;
-STATIC_ASSERT_SIZEOF(GeneratorSndRow, 0x4);
+/// Placement of the body's running sound in one view of the room.
+///
+/// The body never moves and the room's cameras are fixed, so the sound's
+/// position is tabulated per view rather than projected: a table of these is
+/// indexed by the session's 1-based view number.
+typedef struct {
+    s16 panOffset;   // stereo pan offset of the sound in this view; only the low byte is read
+    s16 attenuation; // attenuation of the sound in this view; only the low byte is read
+} GeneratorViewSound;
+STATIC_ASSERT_SIZEOF(GeneratorViewSound, 0x4);
 
 void generatorSpawn(Enemy* arg0, Task* arg1);
 void generatorBodyHit(Task* arg0);

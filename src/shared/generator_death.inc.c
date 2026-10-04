@@ -17,25 +17,25 @@
 /// sequence has ended and the release has run.
 void generatorDeathState(Enemy* arg0, Task* arg1)
 {
-    SVECTOR        ofs;
-    VECTOR         pos;
-    TmdObject*     obj;
-    GeneratorWork* work;
-    GfxCoord*      coord;
-    GfxCoord*      tmp;
-    GeneratorClip* clip;
-    u16            scale;
-    s32            r;
-    s8             flag;
-    s32            x;
-    s32            z;
-    s32            x2;
-    s32            z2;
+    SVECTOR              ofs;
+    VECTOR               pos;
+    TmdObject*           obj;
+    GeneratorWork*       work;
+    GfxCoord*            coord;
+    GfxCoord*            tmp;
+    GeneratorPulseFrame* frame;
+    u16                  scale;
+    s32                  r;
+    s8                   flag;
+    s32                  x;
+    s32                  z;
+    s32                  x2;
+    s32                  z2;
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
     coord = obj->coords;
-    scale = 0x1000;
+    scale = ONE;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             pos.vx = coord->workm.t[0];
@@ -94,9 +94,9 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                     scale = work->shrinkScale;
                     break;
                 case GENERATOR_PULSE_HIT:
-                    clip  = &gGeneratorHitPulse[work->pulseTimer];
-                    scale = (work->shrinkScale * (s16)clip->field_2) >> 12;
-                    if (clip->field_0 != 0) {
+                    frame = &gGeneratorHitPulse[work->pulseTimer];
+                    scale = (work->shrinkScale * frame->scale) >> 12;
+                    if (frame->last != 0) {
                         work->pulseState = GENERATOR_PULSE_IDLE;
                         gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->pulseTimer = ((gRandomLcgState >> 16) & 0xF) + 0xA;

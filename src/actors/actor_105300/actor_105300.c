@@ -50,13 +50,13 @@
 #define GENERATOR_KIND GENERATOR_BETA
 #include "../../shared/generator.h"
 
-extern EnemyParams       gGeneratorLifeSupportParams;
-extern GeneratorSpawnPos gGeneratorLifeSupportPos[2];
-extern GeneratorClip     gGeneratorIdlePulse[];
-extern GeneratorSndRow   gGeneratorViewSound[];
-extern u32               gGeneratorPulseSoundId;
-extern s32               gGeneratorSoundIds[3];
-extern SVECTOR           gGeneratorHitEffectOffsets[];
+extern EnemyParams             gGeneratorLifeSupportParams;
+extern GeneratorLifeSupportPos gGeneratorLifeSupportPos[2];
+extern GeneratorPulseFrame     gGeneratorIdlePulse[];
+extern GeneratorViewSound      gGeneratorViewSound[];
+extern u32                     gGeneratorPulseSoundId;
+extern s32                     gGeneratorSoundIds[3];
+extern SVECTOR                 gGeneratorHitEffectOffsets[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
@@ -69,9 +69,9 @@ extern TaskDesc      gGeneratorTasks[2];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-extern GeneratorClip gGeneratorHitPulse[];
-extern s16           gGeneratorPoseStartFrames[];
-extern s16           gGeneratorReleaseIds[];
+extern GeneratorPulseFrame gGeneratorHitPulse[];
+extern s16                 gGeneratorPoseStartFrames[];
+extern s16                 gGeneratorReleaseIds[];
 
 static AnimationSet _gActor105300Animation0ABB0;
 static AnimationSet _gActor105300Animation0B06C;
@@ -91,7 +91,7 @@ s16 gGeneratorPoseStartFrames[4] = {
     4,
 };
 
-GeneratorSpawnPos gGeneratorLifeSupportPos[2] = {
+GeneratorLifeSupportPos gGeneratorLifeSupportPos[2] = {
     { 6140, -6090, -8500 },
     { 1865, -1095, -4500 },
 };
@@ -223,23 +223,23 @@ u32 gGeneratorPulseSoundId = 0x55100008;
 
 u32 gGeneratorSpawnSound = 0x55100009;
 
-GeneratorSndRow gGeneratorViewSound[7] = {
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 15, 0, 76, 0 },
-    { -15, -1, 70, 0 },
-    { -14, -1, 64, 0 },
-    { -15, -1, 38, 0 },
-    { 12, 0, 38, 0 },
+GeneratorViewSound gGeneratorViewSound[7] = {
+    { 0, 0 },
+    { 0, 0 },
+    { 15, 76 },
+    { -15, 70 },
+    { -14, 64 },
+    { -15, 38 },
+    { 12, 38 },
 };
 
-GeneratorClip gGeneratorIdlePulse[3] = {
+GeneratorPulseFrame gGeneratorIdlePulse[3] = {
     { 0, 4032 },
     { 0, 4096 },
     { 1, 4160 },
 };
 
-GeneratorClip gGeneratorHitPulse[4] = {
+GeneratorPulseFrame gGeneratorHitPulse[4] = {
     { 0, 3968 },
     { 0, 3840 },
     { 0, 4096 },
