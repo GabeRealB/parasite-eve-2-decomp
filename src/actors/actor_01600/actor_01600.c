@@ -303,16 +303,20 @@ typedef struct Actor01600RotScratch {
 } Actor01600RotScratch;
 STATIC_ASSERT_SIZEOF(Actor01600RotScratch, 0x18);
 
-/// 0x30-byte scratch from the scratch stack used by `Actor01600_Fn04C64`: `vec`
-/// takes (0, 0, `distance`), `mat` the yaw rotation `RotMatrixY` builds from
-/// the work block's `probeYaw`, and `out` the `vec` turned by it - the
-/// far end the actor stores in `pathProbe.shape.ends[0]`.
-typedef struct Actor01600YawScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ SVECTOR out;
-    /* 0x10 */ MATRIX  mat;
-} Actor01600YawScratch;
-STATIC_ASSERT_SIZEOF(Actor01600YawScratch, 0x30);
+/// The scratch-stack block the scavenger aims its path probe in: the probe's
+/// length laid along the scavenger's facing, the turn about Y to the probe's
+/// yaw, and the length after that turn.
+///
+/// One block serves one aiming and nothing carries over to the next: it is
+/// reserved, the turned length is copied to the far end of the probe's
+/// capsule, and it is released. Both vectors are offsets in the frame of the
+/// model's root, which the probe rides, in world coordinate units.
+typedef struct {
+    SVECTOR   reach;    // (0, 0, length) of the probe before the turn; `pad` is never written
+    SVECTOR   farEnd;   // `reach` turned by `rotation`. Its `vx` and `vz` become the capsule's far end; `vy` stays 0 and is not read, and `pad` is never written
+    GfxMatrix rotation; // Identity, written word-wise, then turned about Y by the probe's yaw, 4096 to the turn; its translation is never set or read
+} _Actor01600PathProbeAimScratch;
+STATIC_ASSERT_SIZEOF(_Actor01600PathProbeAimScratch, 0x30);
 
 /// Index of the `gPlayerActorTasks` actor nearer to `arg0`, or 0 when slot 0 is
 /// empty (or slot 1 is at least as far). The distance is planar: the Y
@@ -3761,36 +3765,33 @@ static void Actor01600_Fn04AD8(Task* arg0)
     Gp_UpdateCoord(&work->targetAnchor);
 }
 
-/// Allocates the yaw scratch, updates `probeYaw` either by `angle` (clamped
+/// Reserves a `_Actor01600PathProbeAimScratch`, updates `probeYaw` either by `angle` (clamped
 /// into (-0x800, 0x801]) or, when `angle` is 0, by its own 0x71 / 0xA step -
 /// returning 1 once the degree counter `sweepDegrees` passes a full turn - then
 /// turns (0, 0, `distance`) by the resulting yaw into `pathProbe.shape.ends[0]`
 /// and, on a sweep step, extends or closes the clear arc `clearArcs[clearArcCount]`.
 static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
 {
-    Actor01600YawScratch* allocated;
-    Actor01600YawScratch* scratch;
-    _Actor01600Work*      work;
-    MATRIX*               m;
-    SVECTOR*              out;
-    s16                   temp_v0_3;
-    s16                   temp_v0_4;
-    s16                   temp_v0_5;
-    s16                   temp_v1_2;
-    s16                   var_v0;
-    s16                   var_v0_2;
-    s32                   scaled;
-    s32                   startYaw;
-    s32                   var_s4;
+    _Actor01600PathProbeAimScratch* scratch;
+    _Actor01600Work*                work;
+    GfxMatrix*                      rotation;
+    SVECTOR*                        farEnd;
+    s16                             temp_v0_3;
+    s16                             temp_v0_4;
+    s16                             temp_v0_5;
+    s16                             temp_v1_2;
+    s16                             var_v0;
+    s16                             var_v0_2;
+    s32                             scaled;
+    s32                             startYaw;
+    s32                             var_s4;
 
-    var_s4                                     = 0;
-    allocated                                  = SCRATCH_STACK_CURSOR(Actor01600YawScratch) - 1;
-    work                                       = arg0->work;
-    SCRATCH_STACK_CURSOR(Actor01600YawScratch) = allocated;
-    scratch                                    = allocated;
-    scratch->vec.vx                            = 0;
-    scratch->vec.vy                            = 0;
-    scratch->vec.vz                            = (s16)distance;
+    var_s4            = 0;
+    work              = arg0->work;
+    scratch           = SCRATCH_STACK_RESERVE_BLOCK(_Actor01600PathProbeAimScratch);
+    scratch->reach.vx = 0;
+    scratch->reach.vy = 0;
+    scratch->reach.vz = distance;
     if (angle == 0) {
         temp_v1_2          = (u16)work->sweepDegrees + 0xA;
         scaled             = temp_v1_2 << 0x10;
@@ -3811,20 +3812,21 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
         work->probeYaw = var_v0;
     block_6:;
     }
-    m                    = &scratch->mat;
-    MATRIX_PAIR(m, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = 0x1000;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = 0x1000;
-    RotMatrixY(work->probeYaw, m);
-    out = &scratch->out;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&scratch->vec);
+    // Turn the probe's length about Y to its yaw; the turned length is the capsule's far end.
+    rotation                       = &scratch->rotation;
+    rotation->rotationWords.m00M01 = ONE;
+    rotation->rotationWords.m02M10 = 0;
+    rotation->rotationWords.m11M12 = ONE;
+    rotation->rotationWords.m20M21 = 0;
+    rotation->rotationWords.m22    = ONE;
+    RotMatrixY(work->probeYaw, &rotation->mat);
+    farEnd = &scratch->farEnd;
+    gte_SetRotMatrix(&rotation->mat);
+    gte_ldv0(&scratch->reach);
     gte_rtv0();
-    gte_stsv(out);
-    work->pathProbe.shape.ends[0].vx = (s16)scratch->out.vx;
-    work->pathProbe.shape.ends[0].vz = (s16)scratch->out.vz;
+    gte_stsv(farEnd);
+    work->pathProbe.shape.ends[0].vx = scratch->farEnd.vx;
+    work->pathProbe.shape.ends[0].vz = scratch->farEnd.vz;
     if (work->pathProbe.contacts[0].key.parts.kind != (WORLD_COLLISION_CONTACT_GRID >> 16)) {
         if (angle == 0) {
             temp_v0_3 = work->clearArcCount;
@@ -3858,7 +3860,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
         }
     }
     Gp_ClearRec18Occupied(work->pathProbe.contacts);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor01600YawScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor01600PathProbeAimScratch);
     return var_s4;
 }
 
