@@ -99895,8 +99895,8 @@ declaration is `void func_actor_107000_80136094(Task* index, s32 value);`.
 
 Evidence: scratch `nonmatchings/func_actor_107000_8013844C-vacuum/`, `base.c`
 `4fafd10c…` (m2c seed, 100.000%) and `base_1.c` (struct port, 100.000%, same
-assembly sha256); `include/actors/actor_107000.h` gained `field_36A`/`field_36E`
-inside the work's former `pad_2DA`, offsets 0x36A/0x36E unchanged either side.
+assembly sha256); `include/actors/actor_107000.h` gained the work's `state`/`stateFrames`
+(then spelled by offset) inside its former `pad_2DA`, offsets 0x36A/0x36E unchanged either side.
 The `overlay_dup_index.py promote` for this body is refused - its callee
 `func_actor_107000_80136094` is overlay-local, so the `actor_207000` copy cannot
 share the object.
@@ -115758,7 +115758,7 @@ statements are in a different order than retail's, and the fix is to move
 statements, not to pin.
 
 `func_actor_107000_80136E88` walked 77.4% -> 93.9% (m2c raw offsets -> the
-`Actor107000Spawn2Work` struct) and then lost only 5 reordered insns across two
+`_Actor07000SlouchWork` struct) and then lost only 5 reordered insns across two
 blocks. Three statement moves closed it:
 
 1. **A load between two stores is only reachable if the load's statement is
@@ -115769,7 +115769,7 @@ blocks. Three statement moves closed it:
 
    ```c
    arg0->field_50 = &D_actor_107000_80139EA0;
-   arg0->field_54 = (s32)&work->field_24C[0];
+   arg0->field_54 = (s32)&work->contacts[0];
    arg0->field_40 = D_actor_107000_80139EA0.field_4;
    ```
 
@@ -115781,9 +115781,9 @@ blocks. Three statement moves closed it:
    order is per-function, so do not carry it over.
 
 2. **Which statement first names a CSE'd address decides where its `addiu` lands.**
-   `work->field_214` is named twice (`field_1FC.contacts = work->field_214;` and
-   `Gp_InitRec18Table(work->field_214, 1, 0)`), so CSE materialises one `addiu`.
-   With `obj1.context.capsule = &work->field_1FC;` written first, that `addiu`
+   `work->senseContacts` is named twice (`senseCapsule.contacts = work->senseContacts;` and
+   `Gp_InitRec18Table(work->senseContacts, 1, 0)`), so CSE materialises one `addiu`.
+   With `senseBody.context.capsule = &work->senseCapsule;` written first, that `addiu`
    sits one slot too late and the last insn lands after `addiu v0, s2, 0x1FC`
    instead of before `sh v0, 0x20E`. Moving the `contacts` assignment above the
    `context.capsule` assignment moved it one slot earlier and the function went to
