@@ -23,20 +23,9 @@
 #error "WEAPON_ID is a per-package build parameter"
 #endif
 
-/* gameplay's weapon table names each package's attack handler, and main each
- * package's model, so each build of this source gives both its own package's
- * name. */
-#if WEAPON_ID == 0x14
-#define func_m4a1_8011D1C4 func_m4a1_p1_8011D1C4
-#define D_m4a1_8011DEC4    D_m4a1_p1_8011DEC4
-#elif WEAPON_ID == 0x15
-#define func_m4a1_8011D1C4 func_m4a1_p2_8011D1C4
-#define D_m4a1_8011DEC4    D_m4a1_p2_8011DEC4
-#endif
+void SLOT_FUNC(8011D1C4)(Task* arg0);
 
-void func_m4a1_8011D1C4(Task* arg0);
-
-void func_m4a1_8011D1C4(Task* arg0)
+void SLOT_FUNC(8011D1C4)(Task* arg0)
 {
     GameActor* actor;
     GfxCoord*  coord;
@@ -153,7 +142,7 @@ static u32 _gM4a1Model006ACStream[406] = {
 #include "assets/m4a1_model_006AC_stream.inc"
 };
 
-TmdSource D_m4a1_8011DEC4 = {
+TmdSource SLOT_DATA(8011DEC4) = {
     0,
     2940,
     0,

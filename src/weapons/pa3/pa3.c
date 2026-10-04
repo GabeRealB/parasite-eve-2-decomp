@@ -31,13 +31,7 @@
 #error "WEAPON_ID and PA3_FIELD_979 are per-package build parameters"
 #endif
 
-/* gameplay's weapon table names each package's attack handler, so each build of
- * this source gives the handler its own package's name. */
-#if WEAPON_ID == 0xE
-#define func_pa3_8011D1DC func_sp12_8011D1DC
-#endif
-
-void func_pa3_8011D1DC(Task* arg0);
+void SLOT_FUNC(8011D1DC)(Task* arg0);
 
 /// Per-frame firing state machine for the shotgun. Case 0 arms the shot -
 /// clearing the recoil counters, priming the `field_979` grace at `PA3_FIELD_979` and the
@@ -50,7 +44,7 @@ void func_pa3_8011D1DC(Task* arg0);
 /// the actor's own contact point on the 0xE variant. Case 4 runs out the
 /// `field_934` delay before playing the pump-action sound, and case 5 runs out
 /// the `field_979` grace and otherwise hands back to `func_80106550`.
-void func_pa3_8011D1DC(Task* arg0)
+void SLOT_FUNC(8011D1DC)(Task* arg0)
 {
     GameActor* actor;
     GfxCoord*  coord;

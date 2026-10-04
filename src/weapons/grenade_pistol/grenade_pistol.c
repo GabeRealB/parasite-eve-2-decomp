@@ -41,16 +41,6 @@
 
 #define GRENADE_WEAPON (0xB + GRENADE_VARIANT)
 
-#define SLOT_FUNC__(prefix, addr) func_##prefix##_##addr
-
-#define SLOT_FUNC_(prefix, addr) SLOT_FUNC__(prefix, addr)
-
-/// Name of a public symbol in a source several packages are built from: the
-/// package's SLOT_PREFIX (declared in the overlay manifest) in place of a fixed
-/// package name, so each build exports its own. `SLOT_FUNC(8011DBD0)` is
-/// `func_mm1_8011DBD0` in the MM1's build.
-#define SLOT_FUNC(addr) SLOT_FUNC_(SLOT_PREFIX, addr)
-
 /// Which weapon this build is: 0 for the Grenade Pistol, 1 for the MM1. The two
 /// packages are this source built once each, and each declares its variant in
 /// the manifest. Both carry the other's row of the per-projectile tables.
@@ -58,17 +48,11 @@
 #error "GRENADE_VARIANT is a per-package build parameter"
 #endif
 
-/* gameplay's weapon table names each package's attack handler, so each build of
- * this source gives the handler its own package's name. */
-#if GRENADE_VARIANT == 1
-#define func_grenade_pistol_8011D1D4 func_mm1_8011D1D4
-#endif
-
 /// The weapon's index. It also keys the firing sound and the shot effect.
 
-void func_grenade_pistol_8011D1D4(Task* arg0);
+void SLOT_FUNC(8011D1D4)(Task* arg0);
 
-void func_grenade_pistol_8011D1D4(Task* arg0)
+void SLOT_FUNC(8011D1D4)(Task* arg0)
 {
     GameActor* actor;
     s32        anim;
