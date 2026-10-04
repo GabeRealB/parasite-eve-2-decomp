@@ -22,18 +22,26 @@
 #include "main/session.h"
 #include "main/task_types.h"
 
-/// 0x28-byte scratch from the scratch stack used by `Gp_FindNearestSlot`.
-/// `local` is the collider's `ends[1]` plus `WorldCollisionBody.pos`,
-/// rotated by `coord->workm`. `vec` is that GTE output (then overwritten
-/// with per-slot XYZ deltas). `world` is `vec + workm.t`.
-typedef struct _GpNearScratch {
-    /* 0x00 */ VECTOR3 vec;
-    /* 0x0C */ s32     pad_C;
-    /* 0x10 */ VECTOR3 world;
-    /* 0x1C */ s32     pad_1C;
-    /* 0x20 */ SVECTOR local;
-} GpNearScratch;
-STATIC_ASSERT_SIZEOF(GpNearScratch, 0x28);
+/// Scratch-stack workspace for finding the contact nearest a capsule body's second endpoint.
+///
+/// The endpoint is the capsule's `ends[1]` offset plus the body's position,
+/// each component truncated to a signed halfword, in the body's own frame and
+/// in game-coordinate units. The body's cached transform rotates it and the
+/// transform's translation places it in the world. The vector that held the
+/// rotated endpoint then takes, for each contact measured, that contact's
+/// point minus the placed endpoint; the length of that difference is the
+/// distance compared. The block is reserved uninitialized for one search and
+/// released before it returns. The SDK vectors' fourth components are never
+/// written, and nothing uses them.
+typedef struct {
+    union {
+        VECTOR rotatedEndpoint; // Local endpoint after the body's rotation, before its translation
+        VECTOR contactDelta;    // Contact point minus the placed endpoint, for the entry being measured
+    } work;
+    VECTOR  worldEndpoint;      // Endpoint 1 placed in the world: rotated, then translated
+    SVECTOR localEndpoint;      // Endpoint 1 in the body's frame: capsule offset plus the body's position
+} _WorldCollisionNearestContactScratch;
+STATIC_ASSERT_SIZEOF(_WorldCollisionNearestContactScratch, 0x28);
 
 /// Grid-normal Y below which a face counts as a floor.
 ///
@@ -658,46 +666,45 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 a
 
 static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
 {
-    u8*                    head;
-    GpNearScratch*         block;
-    WorldCollisionCapsule* rec;
-    WorldCollisionContact* slot;
-    s32                    minDist;
-    s32                    index;
-    s32                    best;
-    s32                    dx;
-    s32                    dy;
-    s32                    dz;
-    s32                    dist;
+    _WorldCollisionNearestContactScratch* scratch;
+    WorldCollisionCapsule*                rec;
+    WorldCollisionContact*                slot;
+    s32                                   minDist;
+    s32                                   index;
+    s32                                   best;
+    s32                                   dx;
+    s32                                   dy;
+    s32                                   dz;
+    s32                                   dist;
 
-    minDist                    = -1;
-    index                      = 0;
-    best                       = index;
-    rec                        = arg0->context.capsule;
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    slot                       = rec->contacts;
-    SCRATCH_STACK_CURSOR(void) = (void*)(head - 0x28);
-    block                      = (GpNearScratch*)(head - 0x28);
+    minDist = -1;
+    index   = 0;
+    best    = index;
+    rec     = arg0->context.capsule;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionNearestContactScratch);
+    slot    = rec->contacts;
+    // Place the capsule's second endpoint in the world: rotate it, then add the translation.
     gte_SetRotMatrix(&arg0->coord->workm);
-    block->local.vx = (u16)rec->ends[1].vx + (u16)arg0->pos.vx;
-    block->local.vy = (u16)rec->ends[1].vy + (u16)arg0->pos.vy;
-    block->local.vz = (u16)rec->ends[1].vz + (u16)arg0->pos.vz;
-    gte_ldv0((SVECTOR*)(head - 8));
+    scratch->localEndpoint.vx = (u16)rec->ends[1].vx + (u16)arg0->pos.vx;
+    scratch->localEndpoint.vy = (u16)rec->ends[1].vy + (u16)arg0->pos.vy;
+    scratch->localEndpoint.vz = (u16)rec->ends[1].vz + (u16)arg0->pos.vz;
+    gte_ldv0(&scratch->localEndpoint);
     gte_rtv0();
-    gte_stlvnl(block);
-    block->world.vx = ((VECTOR3*)(head - 0x28))->vx + (arg0->coord)->workm.t[0];
-    block->world.vy = block->vec.vy + (arg0->coord)->workm.t[1];
-    block->world.vz = block->vec.vz + (arg0->coord)->workm.t[2];
+    gte_stlvnl(&scratch->work.rotatedEndpoint);
+    scratch->worldEndpoint.vx = scratch->work.rotatedEndpoint.vx + (arg0->coord)->workm.t[0];
+    scratch->worldEndpoint.vy = scratch->work.rotatedEndpoint.vy + (arg0->coord)->workm.t[1];
+    scratch->worldEndpoint.vz = scratch->work.rotatedEndpoint.vz + (arg0->coord)->workm.t[2];
 
+    // Measure every occupied contact of the requested kind from that endpoint.
     for (;;) {
         if ((slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == arg1)) {
-            dx            = slot->point.vx - block->world.vx;
-            block->vec.vx = dx;
-            dy            = slot->point.vy - block->world.vy;
-            block->vec.vy = dy;
-            dz            = slot->point.vz - block->world.vz;
-            block->vec.vz = dz;
-            dist          = SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
+            dx                            = slot->point.vx - scratch->worldEndpoint.vx;
+            scratch->work.contactDelta.vx = dx;
+            dy                            = slot->point.vy - scratch->worldEndpoint.vy;
+            scratch->work.contactDelta.vy = dy;
+            dz                            = slot->point.vz - scratch->worldEndpoint.vz;
+            scratch->work.contactDelta.vz = dz;
+            dist                          = SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
             if ((u32)dist < (u32)minDist) {
                 minDist = dist;
                 best    = index + 1;
@@ -710,7 +717,7 @@ static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
         index++;
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionNearestContactScratch);
     return best;
 }
 

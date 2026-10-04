@@ -35166,35 +35166,48 @@ Keep the `%lo` addiu as asm so it retains its reloc. `0x8007` is
 `%hi(gMcSaveData+0x5BC)` (`gMcSaveData` is `0x80072168`). `Gp_SelectArmorMenuTask`
 is the example.
 
-## Store scratch `head - N` through `$v1`, barrier, then copy to the s-reg
+## A typed scratch reservation stores `head - N` through `$v1` and reaches some members through the old cursor
 
-A GTE helper that keeps the allocated scratch in `$s0` across a later call
-wants the new head stored from `$v1` and `move s0, v1` in the next
-independent load delay (`lw field_8` of `&coord->workm`):
+A GTE helper that keeps the reserved scratch block in `$s0` across a later
+call stores the new cursor from `$v1` and copies it to `$s0` in the next
+independent load delay (`lw` of the `coord` whose `workm` feeds
+`gte_SetRotMatrix`). The old cursor stays live in `$a2`:
 
 ```
+lw     a2, 0(v0)
 addiu  v1, a2, -0x28
 sw     v1, 0(v0)
 lw     v0, 8(a0)
 move   s0, v1
 addiu  v0, v0, 0x24
+...
+addiu  v0, a2, -0x8        # &scratch->localEndpoint, for gte_ldv0
+...
+lw     v0, -0x28(a2)       # scratch->work.rotatedEndpoint.vx
+lw     v0, 0x4(s0)         # scratch->work.rotatedEndpoint.vy
 ```
 
-`block = *scratch = (head - N)` computes into `$s0` (`addiu s0` / `sw s0`).
-Assigning `block` after `gte_SetRotMatrix` cannot hoist that copy above the
-volatile GTE asm. Store first, memory-barrier, then copy so the move can
-sit in the `&workm` address load:
+None of that needs a `u8* head` local, a memory barrier or a byte-offset
+cast. `SCRATCH_STACK_RESERVE_BLOCK` and plain member accesses compile to it:
+the compiler still has the block as `head - N`, so it addresses the member at
+offset 0 and the vector handed to the GTE load as displacements from the
+register that holds the old cursor, and leaves the other members on `$s0`.
 
 ```c
-*scratch = (void*)(head - 0x28);
-__asm__ volatile("" ::: "memory");
-block = (GpNearScratch*)(head - 0x28);
-gte_SetRotMatrix(&((GfxCoord*)arg0->field_8)->workm);
+scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionNearestContactScratch);
+slot    = rec->contacts;
+gte_SetRotMatrix(&arg0->coord->workm);
+...
+gte_ldv0(&scratch->localEndpoint);
+gte_rtv0();
+gte_stlvnl(&scratch->work.rotatedEndpoint);
+scratch->worldEndpoint.vx = scratch->work.rotatedEndpoint.vx + (arg0->coord)->workm.t[0];
 ```
 
-Pin scratch to `$v0` with the existing `lui`/`ori` fake dependency so the
-alloc temp lands in `$v1` and `head` stays in `$a2`. `Gp_FindNearestSlot` is
-the example.
+A `-0x28($a2)` or `addiu ..., a2, -0x8` in the target is therefore not
+evidence that the source spelled `head - 0x28` or `head - 8`. Try the typed
+reservation first. `Gp_FindNearestSlot` is the example; `Gp_OrientAlong`
+shows the same at offset 0.
 
 ## `n = id < K; if (n) goto store` so slti dest is the count, plus `asm("")` to keep `bnez`
 
