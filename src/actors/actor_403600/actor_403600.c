@@ -1873,7 +1873,7 @@ block_22:
                         setlen((POLY_FT4*)shared, 9);
                         GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)shared), 0) = temp_v1_13;
                         ((POLY_FT4*)shared)->code                        = 0x2E;
-                        ACTOR_403600_LINK_PRIMITIVE((u_long*)(((((u32)scratch->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + (s32)gGpuCurrentOt),
+                        ACTOR_403600_LINK_PRIMITIVE(&gGpuCurrentOt[((u32)scratch->otz << ds->otDepthShift) >> 4 & 0x3FF],
                                                     (POLY_FT4*)shared);
                     }
                 }

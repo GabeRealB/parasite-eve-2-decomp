@@ -841,7 +841,7 @@ static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
             line->y1 = block->screenY;
             line->x2 = block->screenX - (block->screenExtent * t1);
             line->y2 = block->screenY + (block->screenExtent * t2);
-            addPrim(((u_long*)((((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
+            addPrim((&gGpuCurrentOt[((u32)block->depth << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->depth);
             i = t2;

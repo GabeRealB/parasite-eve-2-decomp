@@ -1488,7 +1488,7 @@ static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32
             line->y1 = block->screenPos.vy;
             line->x2 = block->screenPos.vx - (block->halfExtent * t);
             line->y2 = block->screenPos.vy + (block->halfExtent * t2);
-            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
+            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
             i = t2;

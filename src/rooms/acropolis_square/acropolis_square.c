@@ -1989,7 +1989,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->x3            = blk->screenPos.vx + blk->outerRadius;
                 prim->y0 = prim->y2 = prim->y3 = blk->screenPos.vy;
                 prim->y1                       = (blk->screenPos.vy - blk->outerRadius) + blk->outerRadius * (i + i);
-                addPrim(((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
+                addPrim((&gGpuCurrentOt[((u32)blk->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
                         prim);
                 gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
             }

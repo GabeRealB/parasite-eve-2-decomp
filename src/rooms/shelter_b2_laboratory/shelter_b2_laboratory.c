@@ -1520,7 +1520,7 @@ static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg
             line->y1 = block->sy;
             line->x2 = block->sx - (block->radius * t1);
             line->y2 = block->sy + (block->radius * t2);
-            addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
+            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
             i = t2;
