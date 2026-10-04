@@ -67910,7 +67910,7 @@ reasoning about the allocator.
 value. Written as a ternary it reached 99.79% with `regs=3` and nothing else:
 
 ```c
-work->field_0 = taskMessageDispatch(...) == 0 ? 5 : 0xD;   /* $v1 */
+work->state = taskMessageDispatch(...) == 0 ? 5 : 0xD;   /* $v1 */
 ```
 
 ```
@@ -97426,7 +97426,7 @@ work field and then ORs a bit into the first field again:
 
 ```
 sh    $zero, 0xC($v1)     # obj->field_C = 0
-sh    $zero, 0x0($a0)     # work->field_0 = 0
+sh    $zero, 0x0($a0)     # work->state = 0
 lhu   $v0, 0xC($v1)       # ... and read it back
 ori   $v0, $v0, 4
 sh    $v0, 0xC($v1)
@@ -97461,7 +97461,7 @@ Two consequences for matching. A target's "redundant" reload of a field it just
 wrote is evidence about statement *order*, not a codegen quirk - look for the
 store that separates them, and reproduce the order rather than folding it by
 hand. And when the fold *is* expected, check that nothing was left between the
-two halves: this case needed `obj->field_C = 0;` and `work->field_0 = 0;` in
+two halves: this case needed `obj->field_C = 0;` and `work->state = 0;` in
 that order, with the `|= 4` last.
 
 ## The register a value arrives in names its parameter index; m2c can undercount parameters (func_actor_204000_801503B0, 2026-09-16)
@@ -105685,7 +105685,7 @@ test inverted so its last compare is not a `goto check` next to that label:
     not15:
         if (v == 0x11) goto check;
     clear:
-        arg0->field_474 = 0;
+        arg0->lastSoundCueIndex = 0;
         break;
     case 3:
         ...
@@ -105699,7 +105699,7 @@ retargeting to `end`, which reproduces the second copy. Writing case 3 as
 `if (v == 0xD || v == 0x12) goto check; goto clear;` instead lets the jump to
 `clear` cross-jump its own `beq` against case 2's (`j <case 2 beq>`).
 
-Also in this function: a `u16 id` masked from `field_4A & 0x3FF` plus an explicit
+Also in this function: a `u16 id` masked from `rig.slots[1].currentPose.indices.recordIndex & 0x3FF` plus an explicit
 `s32 v = id;` used for every compare swapped the two `andi` registers into place
 (`a1` = masked, `v1` = extension); with the implicit extension the u16 pseudo had
 more refs and won `v1`.
@@ -105733,12 +105733,12 @@ copy is ever emitted.
 Fix: take the parameter and immediately copy it into a local in the helper.
 
 ```c
-static __inline__ void ResetSlots(Actor104000Work* arg0)
+static __inline__ void ResetSlots(_Actor04000Work* arg0)
 {
-    Actor104000Work* work = arg0;   /* this copy is the `move s0,s3` */
+    _Actor04000Work* work = arg0;   /* this copy is the `move s0,s3` */
     s32 i;
     for (i = 1; i < 6; i++) { ... work->... }
-    work->field_172 = work->field_174;
+    work->driver.playingSet = work->driver.requestedSet;
 }
 ```
 
@@ -146985,3 +146985,27 @@ itself matches as well. No word view of the bitfield is needed.
 The same conversion needs `&&` over two bits of the word written as nested
 `if`s (the `fold_truthop` entries above): `CdReady_Poll`'s
 `cancelled && !firstPoll` otherwise becomes `(word & 6) == 4`.
+
+## A `u16` counter fitted to two reads dresses every other one: try the member signed before keeping `(s16)` casts (`_Actor04000Work::stateFrame`, 2026-10-04)
+
+**Symptom.** A state's tick counter was declared `u16`, and its file matched
+with 22 `(s16)work->stateFrame` reads, three
+`switch ((s16)(work->stateFrame - K))` with zero-based cases, and five
+`(u16)(work->stateFrame - A) < N` tests.
+
+**Cause.** Only two reads, both in one function, need the zero-extending
+load: `(u32)(work->stateFrame - 4) < 8` is `lhu; addiu -4; sltiu 8`, and a
+signed member turns that `lhu` into `lh`. Everything else was the `u16`
+leaking. m2c writes a dense switch and a range test in the biased form the
+compiler lowers them to, and that form compiles back unchanged whatever the
+member's signedness is, so nothing ever flags it.
+
+**Fix.** Declare the member `s16`, drop the read casts, and keep the unsigned
+view where it is real: `(u32)((u16)work->stateFrame - 4) < 8`. The biased
+forms then go back to source and still match: `switch (work->stateFrame)` with
+`case 0x5B:` and up, and `work->stateFrame >= 0x17 && work->stateFrame < 0x5B`.
+The same pass over the block took two byte flags read as `(s8)work->flag` to
+`s8` (`work->missedLunges = (u8)(work->missedLunges + 1)` became `++`) and a
+fall speed read as `(s16)` to `s16`, which also made the `u16` local copying
+it unnecessary. Count the casts per member before trusting its signedness: a
+member cast at most of its reads was fitted to the minority.
