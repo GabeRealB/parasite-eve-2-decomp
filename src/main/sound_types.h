@@ -8,7 +8,26 @@
 
 #include "main/sound_types.h"
 
-/// Per-frame audio callback; return -1 to remove the registration.
+/// A routine the sound driver calls once per audio update for as long as it
+/// stays registered.
+///
+/// `arg` is the pointer supplied with the poll at registration, handed back
+/// unchanged on every call. The driver never reads or frees what it points
+/// to, and it is NULL for a poll that keeps its state elsewhere. Returning -1
+/// ends the registration: the poll is not called again, and its
+/// `AudioTickOnRemove` runs if it has one. Any other result keeps it.
+///
+/// An audio update is one vertical blank, or one of the extra timer updates
+/// of PAL mode, so a poll runs in interrupt context. Polls are called in
+/// ascending order of their registration ids, after the voices have been
+/// ticked; SPU attribute changes a poll queues are sent at the end of the
+/// same update. An update that arrives while a registration is being added
+/// or removed calls no poll at all.
+///
+/// The game registers three: the MIDI sequencer and the sound-script driver,
+/// which never leave and take no argument, and a one-shot that counts the
+/// updates since the sound system started in the `s32` its argument points
+/// to, then raises the reverb depth from zero and leaves.
 typedef s32 (*AudioTickPoll)(s32* arg);
 
 /// Notifies a per-frame audio callback's owner that its registration has ended.

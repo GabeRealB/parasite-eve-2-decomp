@@ -925,7 +925,7 @@ static s32 Spu_TimerReentryWork(void)
 
 static void AudioTick_Reset(void)
 {
-    AudioTick_List.poll     = 0;
+    AudioTick_List.poll     = NULL;
     AudioTick_List.onRemove = NULL;
     AudioTick_List.id       = 0;
     AudioTick_List.arg      = 0;
@@ -938,7 +938,7 @@ static void AudioTick_Process(void)
 {
     AudioTickNode* head;
     AudioTickNode* node;
-    AudioTickPoll  callback;
+    AudioTickPoll  poll;
 
     head = &AudioTick_List;
     if (AudioTick_Enabled != 0) {
@@ -948,9 +948,9 @@ static void AudioTick_Process(void)
                 if (node == NULL) {
                     break;
                 }
-                callback = node->poll;
-                if (callback != NULL) {
-                    if (callback(node->arg) == -1) {
+                poll = node->poll;
+                if (poll != NULL) {
+                    if (poll(node->arg) == -1) {
                         node = AudioTick_Remove(node);
                         continue;
                     }

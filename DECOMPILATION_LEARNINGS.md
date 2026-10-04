@@ -11951,8 +11951,8 @@ while (1) {
     if (node == NULL) {
         break;
     }
-    if (callback != NULL) {
-        if (callback(node->field_c) == -1) {
+    if (poll != NULL) {
+        if (poll(node->field_c) == -1) {
             node = AudioTick_Remove(node);
             continue;
         }
