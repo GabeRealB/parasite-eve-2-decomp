@@ -1677,35 +1677,35 @@ D_shelter_r49_8017DD74 = 0x8017DD74; // absolute:True
 
 D_mist_shooting_gallery_80185000 = 0x80185000; // absolute:True
 
-func_acropolis_square_80180804 = 0x80180804; // type:func absolute:True
+func_acropolis_square_80180804 = 0x80180804; // type:func absolute:True owner=acropolis_square shared=rooms
 
 func_acropolis_fire_escape_8017EA68 = 0x8017EA68; // type:func absolute:True owner=acropolis_fire_escape
 
 func_mist_parking_80181468 = 0x80181468; // type:func absolute:True owner=mist_parking
 
-func_dryfield_gas_station_8017EA90 = 0x8017EA90; // type:func absolute:True
+func_dryfield_gas_station_8017EA90 = 0x8017EA90; // type:func absolute:True owner=dryfield_gas_station shared=rooms
 
 func_dryfield_motel_lobby_8017E9E8 = 0x8017E9E8; // type:func absolute:True owner=dryfield_motel_lobby
 
 func_dryfield_trailer_coach_80181364 = 0x80181364; // type:func absolute:True owner=dryfield_trailer_coach
 
-func_dryfield_motel_room_6_8017EA58 = 0x8017EA58; // type:func absolute:True
+func_dryfield_motel_room_6_8017EA58 = 0x8017EA58; // type:func absolute:True owner=dryfield_motel_room_6 shared=rooms
 
-func_dryfield_night_gas_station_8017E9F8 = 0x8017E9F8; // type:func absolute:True
+func_dryfield_night_gas_station_8017E9F8 = 0x8017E9F8; // type:func absolute:True owner=dryfield_night_gas_station shared=rooms
 
-func_dryfield_night_motel_lobby_8017EAE0 = 0x8017EAE0; // type:func absolute:True
+func_dryfield_night_motel_lobby_8017EAE0 = 0x8017EAE0; // type:func absolute:True owner=dryfield_night_motel_lobby shared=rooms
 
-func_dryfield_night_trailer_coach_8018138C = 0x8018138C; // type:func absolute:True
+func_dryfield_night_trailer_coach_8018138C = 0x8018138C; // type:func absolute:True owner=dryfield_night_trailer_coach shared=rooms
 
-func_dryfield_night_motel_room_6_8017EA74 = 0x8017EA74; // type:func absolute:True
+func_dryfield_night_motel_room_6_8017EA74 = 0x8017EA74; // type:func absolute:True owner=dryfield_night_motel_room_6 shared=rooms
 
-func_mine_refuge_8017EA78 = 0x8017EA78; // type:func absolute:True
+func_mine_refuge_8017EA78 = 0x8017EA78; // type:func absolute:True owner=mine_refuge shared=rooms
 
 func_shelter_b1_sterilization_room_8017EB2C = 0x8017EB2C; // type:func absolute:True owner=shelter_b1_sterilization_room
 
 func_shelter_b1_underground_parking_8017EDE8 = 0x8017EDE8; // type:func absolute:True owner=shelter_b1_underground_parking
 
-func_shelter_b2_laboratory_8017EAB4 = 0x8017EAB4; // type:func absolute:True
+func_shelter_b2_laboratory_8017EAB4 = 0x8017EAB4; // type:func absolute:True owner=shelter_b2_laboratory shared=rooms
 
 func_shelter_b3_incinerator_control_room_8017EA64 = 0x8017EA64; // type:func absolute:True owner=shelter_b3_incinerator_control_room
 
@@ -1713,13 +1713,13 @@ func_shelter_r47_8017EC04 = 0x8017EC04; // type:func absolute:True owner=shelter
 
 func_shelter_b6_nursery_8017EAC4 = 0x8017EAC4; // type:func absolute:True owner=shelter_b6_nursery
 
-func_shelter_1f_tent_8017EA60 = 0x8017EA60; // type:func absolute:True
+func_shelter_1f_tent_8017EA60 = 0x8017EA60; // type:func absolute:True owner=shelter_1f_tent shared=rooms
 
-func_mist_shooting_gallery_8017FBD8 = 0x8017FBD8; // type:func absolute:True
+func_mist_shooting_gallery_8017FBD8 = 0x8017FBD8; // type:func absolute:True owner=mist_shooting_gallery shared=rooms
 
-func_acropolis_square_8017F41C = 0x8017F41C; // type:func absolute:True
+func_acropolis_square_8017F41C = 0x8017F41C; // type:func absolute:True owner=acropolis_square shared=rooms
 
-func_acropolis_east_elevator_hall_8017F2F8 = 0x8017F2F8; // type:func absolute:True
+func_acropolis_east_elevator_hall_8017F2F8 = 0x8017F2F8; // type:func absolute:True owner=acropolis_east_elevator_hall shared=rooms
 
 func_acropolis_west_elevator_hall_8017F304 = 0x8017F304; // type:func absolute:True owner=acropolis_west_elevator_hall
 

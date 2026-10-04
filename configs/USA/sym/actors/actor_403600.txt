@@ -200,7 +200,7 @@ D_actor_403600_801606B8 = 0x801606B8; // size:0x4 defined:True
 D_actor_403600_801606BC = 0x801606BC; // size:0x24 defined:True
 D_actor_403600_801420D4 = 0x801420D4; // size:0x14 defined:True
 
-func_shelter_b2_pod_bottom_80181A48 = 0x80181A48; // type:func absolute:True
+func_shelter_b2_pod_bottom_80181A48 = 0x80181A48; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 
 func_shelter_b2_pod_bottom_80181940 = 0x80181940; // type:func absolute:True
 

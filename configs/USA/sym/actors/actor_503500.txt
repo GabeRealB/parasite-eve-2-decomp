@@ -471,7 +471,7 @@ D_actor_503500_8016EA2C = 0x8016EA2C; // size:0x28 defined:True
 
 D_shelter_r48_80183EEC = 0x80183EEC; // absolute:True
 
-func_shelter_r48_8017E27C = 0x8017E27C; // type:func absolute:True
+func_shelter_r48_8017E27C = 0x8017E27C; // type:func absolute:True owner=shelter_r48 shared=rooms
 actorMotionPlayAnim19 = 0x8014652C; // type:func
 bezierCurveEvaluate = 0x8013A7B0; // type:func allow_duplicated:True
 bezierCurveCoefficients = 0x8013AC6C; // type:func allow_duplicated:True

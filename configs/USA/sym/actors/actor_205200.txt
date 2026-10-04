@@ -78,7 +78,7 @@ func_shelter_b6_training_room_80181930 = 0x80181930; // type:func absolute:True 
 
 func_shelter_b6_training_room_80182A14 = 0x80182A14; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_corridor_8017EBA4 = 0x8017EBA4; // type:func absolute:True
+func_shelter_b6_corridor_8017EBA4 = 0x8017EBA4; // type:func absolute:True owner=shelter_b6_corridor shared=rooms
 
 func_shelter_b6_corridor_8017EE08 = 0x8017EE08; // type:func absolute:True
 screenWaveGridTask = 0x80149E54; // type:func

@@ -667,5 +667,5 @@ _gActor560800Animation3CBE0 = 0x8016EA00; // size:0x28 defined:True
 D_actor_560800_8016EA28 = 0x8016EA28; // size:0x18 defined:True
 D_actor_560800_8016EA40 = 0x8016EA40; // size:0x34 defined:True
 
-func_shelter_b1_pod_service_gantry_8017F450 = 0x8017F450; // type:func absolute:True
+func_shelter_b1_pod_service_gantry_8017F450 = 0x8017F450; // type:func absolute:True owner=shelter_b1_pod_service_gantry shared=rooms
 actorMsgPlaceYawPitchRoll = 0x801361F4; // type:func
