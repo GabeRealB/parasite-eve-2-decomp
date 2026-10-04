@@ -446,8 +446,11 @@ stages is a plain `SVECTOR`.
 `src/shared/mad_chaser.h`, one fragment per function. `MadChaserWork` is the
 task's work block; its animation request, hit reaction and room command values
 use `MAD_CHASER_ANIM_REQUEST_`, `MAD_CHASER_HIT_REACTION_` and
-`MAD_CHASER_COMMAND_`. The scripted waves that spawn the enemy are the separate
-`src/shared/mad_chaser_waves.h`.
+`MAD_CHASER_COMMAND_`. `MadChaserLimbShadowScratch` is the scratch block of one
+limb shadow quad: both parts' world transforms and positions, the four corners,
+their projection, and the half span the quad overhangs each end by, which this
+drawer keeps in the block. The scripted waves that spawn the enemy are the
+separate `src/shared/mad_chaser_waves.h`.
 The place a wave's enemy enters the room is an `OverlayEncounterSpot`, declared in
 `include/overlay.h` beside `OverlayEncounterSlot`: the two Shelter B3 rooms define
 the tables, and both the Mad Chaser and the Sucklerceph read them.

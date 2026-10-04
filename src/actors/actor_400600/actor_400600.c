@@ -195,7 +195,8 @@ typedef _Actor400600ZebraStalkerWork StalkerZebraIvoryWork;
 
 /// 0x3C-byte scratchpad frame `func_actor_400600_801383E4` carves off
 /// the scratch stack: the four widened corners of the quad and
-/// `RotTransPers4`'s outputs. Same tail as `ActorsShared80163354Scratch`.
+/// `RotTransPers4`'s outputs. The corners, outputs and depth of
+/// `MadChaserLimbShadowScratch`, without what precedes and follows them there.
 typedef struct Actor400600QuadScratch {
     /* 0x00 */ SVECTOR corner0;
     /* 0x08 */ SVECTOR corner1;

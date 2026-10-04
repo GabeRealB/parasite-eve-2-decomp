@@ -7,8 +7,6 @@
 #include "common.h"
 #include "gte.h"
 
-#include "actors/actors_shared_80163354.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"

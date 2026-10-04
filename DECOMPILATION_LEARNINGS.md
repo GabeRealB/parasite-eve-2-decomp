@@ -68543,7 +68543,7 @@ reorders against every other. A load from a *different* struct, such as a
 scratch block of `RotTransPers4` outputs, conflicts with any `u8` store, because
 char aliases everything. So in `ActorsShared80163354`, the ROM's
 `lw a2, 0x7C(s4)` ahead of the UV `sb`s, with its `sw a2, 0x20(a0)` after
-`setRGB0`, means `*(s32*)&poly->x3 = s->screen3` was written *before*
+`setRGB0`, means `*(s32*)&poly->x3 = s->screenCorners[3]` was written *before*
 `setUV4`: the load is pinned above the byte stores and the store sinks.
 Writing it after `setRGB0` (matching the store's position) or putting
 `tpage` / `clut` between the `x0..x2` copies scored 96.4-96.5%. Writing the four
@@ -93230,7 +93230,7 @@ named `RotTransPers4`, and `grep -rn RotTransPers4 src/` found six matched call
 sites - one of which, `ActorsShared80163354` in
 `src/actors/lib/actors_shared_80163354.c`, ends in exactly the same
 `POLY_FT4` tail: `setlen(poly, 9)`, `poly->code = 0x2E`, the four
-`*(s32*)&poly->xN = s->screenN` stores, the same `setUV4` constants, `tpage`
+`*(s32*)&poly->xN = s->screenCorners[N]` stores, the same `setUV4` constants, `tpage`
 `0x48`, `clut` `0x4283`, `setRGB0`, and
 
 ```c

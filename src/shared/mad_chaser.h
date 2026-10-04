@@ -116,6 +116,32 @@ typedef struct {
 } MadChaserWork;
 STATIC_ASSERT_SIZEOF(MadChaserWork, 0x454);
 
+/// Scratch-stack workspace of `madChaserDrawLimbShadow`, one shadow quad.
+///
+/// Everything up to the projection is in world space, the frame under the
+/// view coordinate. `corners` lie flat at the shadow's height in GPU quad
+/// strip order: 0 and 1 either side of the first part, 2 and 3 either side of
+/// the second, each pair pushed outwards along the limb by the half span so
+/// the quad is twice as long as the limb. `screenCorners`, `depthCue` and
+/// `flag` are `RotTransPers4`'s outputs for those four corners.
+///
+/// Reserve one complete block and release it after drawing; nothing in it
+/// outlives the call.
+typedef struct {
+    MATRIX  firstMatrix;      // first part's transform relative to the view coordinate; only its translation is read
+    MATRIX  secondMatrix;     // second part's transform relative to the view coordinate; only its translation is read
+    SVECTOR firstPos;         // first part's X and Z, with `vy` the shadow's height
+    SVECTOR secondPos;        // second part's X and Z, with `vy` the shadow's height
+    SVECTOR corners[4];       // the quad's corners
+    long    screenCorners[4]; // projected corners: screen X in bits 0..15, Y in bits 16..31, copied whole into the primitive
+    long    depthCue;         // depth-cueing interpolation value of the projection; never read
+    long    flag;             // GTE FLAG word of the projection; a set bit 31 drops the quad
+    s32     depth;            // last corner's screen Z / 4, which picks the ordering-table entry
+    s16     halfSpanX;        // half the X offset from the second part to the first
+    s16     halfSpanZ;        // half the Z offset from the second part to the first
+} MadChaserLimbShadowScratch;
+STATIC_ASSERT_SIZEOF(MadChaserLimbShadowScratch, 0x90);
+
 void madChaserTwistSpine(Task* arg0);
 void madChaserLinkBodies(Task* arg0);
 void madChaserPinPart(Task* arg0, s16 part, SVECTOR3* pos);
