@@ -193,24 +193,31 @@ STATIC_ASSERT_SIZEOF(_Actor400600ZebraStalkerWork, 0x770);
 /// this package's own. `stalker_zebra_ivory.h` lists the members they reach.
 typedef _Actor400600ZebraStalkerWork StalkerZebraIvoryWork;
 
-/// 0x3C-byte scratchpad frame `func_actor_400600_801383E4` carves off
-/// the scratch stack: the four widened corners of the quad and
-/// `RotTransPers4`'s outputs. The corners, outputs and depth of
-/// `MadChaserLimbShadowScratch`, without what precedes and follows them there.
-typedef struct Actor400600QuadScratch {
-    /* 0x00 */ SVECTOR corner0;
-    /* 0x08 */ SVECTOR corner1;
-    /* 0x10 */ SVECTOR corner2;
-    /* 0x18 */ SVECTOR corner3;
-    /* 0x20 */ long    screen0;
-    /* 0x24 */ long    screen1;
-    /* 0x28 */ long    screen2;
-    /* 0x2C */ long    screen3;
-    /* 0x30 */ long    perspective;
-    /* 0x34 */ long    flags;
-    /* 0x38 */ s32     depth;
-} Actor400600QuadScratch;
-STATIC_ASSERT_SIZEOF(Actor400600QuadScratch, 0x3C);
+/// Scratch-stack block of one floor limb shadow quad: the corners of the
+/// subtractive textured quad laid under the segment between two points, and
+/// their projection.
+///
+/// `corners` are in world space, the frame under the view coordinate, in GPU
+/// quad strip order: 0 and 1 either side of the first point, 2 and 3 either
+/// side of the second, each pair at its point's height and pushed outwards
+/// along the segment by half its length, so the quad is twice as long as the
+/// segment. `screenCorners`, `depthCue` and `flag` are `RotTransPers4`'s
+/// outputs for those four corners.
+///
+/// It is `ActorLimbShadowScratch` without the part transforms and positions:
+/// the floor shadow stages every part's position once, outside the block, and
+/// hands the drawer the two ends of each segment.
+///
+/// Reserve one block for a segment and release it once the quad is queued;
+/// nothing in it outlives the call.
+typedef struct {
+    SVECTOR corners[4];       // The quad's corners; `pad` is never written
+    long    screenCorners[4]; // Projected corners: screen X in bits 0..15, Y in bits 16..31, copied whole into the primitive
+    long    depthCue;         // Depth-cueing interpolation value of the projection; never read
+    long    flag;             // GTE FLAG word of the projection; a set bit 31 drops the quad
+    s32     depth;            // Last corner's screen Z / 4, which picks the ordering-table entry
+} _Actor400600LimbShadowQuadScratch;
+STATIC_ASSERT_SIZEOF(_Actor400600LimbShadowQuadScratch, 0x3C);
 
 extern ActorZone D_actor_400600_80151B40[];
 
@@ -4022,50 +4029,50 @@ static void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2)
 /// `ActorsShared80163354`, taking view-space points instead of joints.
 static void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, u8 shade)
 {
-    Actor400600QuadScratch* s;
-    s16                     angle;
-    s32                     halfX;
-    s32                     halfZ;
-    POLY_FT4*               poly;
+    _Actor400600LimbShadowQuadScratch* s;
+    s16                                angle;
+    s32                                halfX;
+    s32                                halfZ;
+    POLY_FT4*                          poly;
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    s                          = (Actor400600QuadScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor400600QuadScratch));
+    s                          = SCRATCH_STACK_RESERVE_BLOCK(_Actor400600LimbShadowQuadScratch);
     Gp_UpdateCoord(&gGfxViewCoord);
-    angle         = ratan2(arg1->vx - arg0->vx, arg1->vz - arg0->vz);
-    halfX         = (arg0->vx - arg1->vx) / 2;
-    halfZ         = (arg0->vz - arg1->vz) / 2;
-    s->corner0.vx = halfX + (arg0->vx - ((s32)(rcos(angle) * width) >> 0xC));
-    s->corner0.vy = arg0->vy;
-    s->corner0.vz = halfZ + (arg0->vz + ((s32)(rsin(angle) * width) >> 0xC));
-    s->corner1.vx = halfX + (arg0->vx + ((s32)(rcos(angle) * width) >> 0xC));
-    s->corner1.vy = arg0->vy;
-    s->corner1.vz = halfZ + (arg0->vz - ((s32)(rsin(angle) * width) >> 0xC));
-    s->corner2.vx = (arg1->vx - ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
-    s->corner2.vy = arg1->vy;
-    s->corner2.vz = (arg1->vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-    s->corner3.vx = (arg1->vx + ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
-    s->corner3.vy = arg1->vy;
-    s->corner3.vz = (arg1->vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+    angle            = ratan2(arg1->vx - arg0->vx, arg1->vz - arg0->vz);
+    halfX            = (arg0->vx - arg1->vx) / 2;
+    halfZ            = (arg0->vz - arg1->vz) / 2;
+    s->corners[0].vx = halfX + (arg0->vx - ((s32)(rcos(angle) * width) >> 0xC));
+    s->corners[0].vy = arg0->vy;
+    s->corners[0].vz = halfZ + (arg0->vz + ((s32)(rsin(angle) * width) >> 0xC));
+    s->corners[1].vx = halfX + (arg0->vx + ((s32)(rcos(angle) * width) >> 0xC));
+    s->corners[1].vy = arg0->vy;
+    s->corners[1].vz = halfZ + (arg0->vz - ((s32)(rsin(angle) * width) >> 0xC));
+    s->corners[2].vx = (arg1->vx - ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
+    s->corners[2].vy = arg1->vy;
+    s->corners[2].vz = (arg1->vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
+    s->corners[3].vx = (arg1->vx + ((s32)(rcos(angle) * width) >> 0xC)) - halfX;
+    s->corners[3].vy = arg1->vy;
+    s->corners[3].vz = (arg1->vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
-                             &s->screen2, &s->screen3, &s->perspective, &s->flags);
-    if (s->flags >= 0) {
+    s->depth = RotTransPers4(&s->corners[0], &s->corners[1], &s->corners[2], &s->corners[3], &s->screenCorners[0], &s->screenCorners[1],
+                             &s->screenCorners[2], &s->screenCorners[3], &s->depthCue, &s->flag);
+    if (s->flag >= 0) {
         poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setlen(poly, 9);
         poly->code                     = 0x2E;
-        GPU_PRIMITIVE_XY_WORD(poly, 0) = s->screen0;
-        GPU_PRIMITIVE_XY_WORD(poly, 1) = s->screen1;
-        GPU_PRIMITIVE_XY_WORD(poly, 2) = s->screen2;
-        GPU_PRIMITIVE_XY_WORD(poly, 3) = s->screen3;
+        GPU_PRIMITIVE_XY_WORD(poly, 0) = s->screenCorners[0];
+        GPU_PRIMITIVE_XY_WORD(poly, 1) = s->screenCorners[1];
+        GPU_PRIMITIVE_XY_WORD(poly, 2) = s->screenCorners[2];
+        GPU_PRIMITIVE_XY_WORD(poly, 3) = s->screenCorners[3];
         setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
         poly->tpage = 0x48;
         poly->clut  = 0x4283;
         setRGB0(poly, shade, shade, shade);
         addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor400600QuadScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor400600LimbShadowQuadScratch);
 }
 
 /// Copies this actor's model flags onto both child tasks' models and, for a
