@@ -112,6 +112,7 @@ extern Task* D_acropolis_west_elevator_hall_80186AE4[];
 /// 0 requires `planar_reflection_rodata.inc.c` before the shared implementation.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 0
 #include "../../shared/planar_reflection.h"
+#include "../../shared/red_beacon.h"
 
 static void func_acropolis_west_elevator_hall_8017F354(Task* task);
 static void func_acropolis_west_elevator_hall_8017F568(Task* arg0);
@@ -1380,15 +1381,15 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
         case 1:
             if (gGameSession->location.loc.view == 2) {
                 pos = D_acropolis_west_elevator_hall_8017D5EC;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, 0x1804, &pos);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x18), &pos);
                 pos.vx = -0x1800;
                 pos.vy = -0x4F0;
                 pos.vz = -0x600;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, 0x803, &pos);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0x8), &pos);
                 pos.vx = -0x1800;
                 pos.vy = -0x4F0;
                 pos.vz = -0x2C0;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, 0x803, &pos);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0x8), &pos);
             }
             if (gGameSession->location.loc.view == 5) {
                 altPos = D_acropolis_west_elevator_hall_8017D5F4;

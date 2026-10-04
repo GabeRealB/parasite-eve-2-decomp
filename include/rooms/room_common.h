@@ -22,18 +22,6 @@ typedef struct {
 } RoomFadeStorage;
 STATIC_ASSERT_SIZEOF(RoomFadeStorage, 8);
 
-/// Screen rectangle outlined by `Room_Draw26`: the corners it draws are
-/// (`x`, `y`) and (`x + w`, `y + h`), so `w` and `h` are extents rather than a
-/// second corner. The fields are unsigned because the drawer loads every one
-/// of them with `lhu`.
-typedef struct RoomRect {
-    /* 0x0 */ u16 x;
-    /* 0x2 */ u16 y;
-    /* 0x4 */ u16 w;
-    /* 0x6 */ u16 h;
-} RoomRect;
-STATIC_ASSERT_SIZEOF(RoomRect, 0x8);
-
 /// Work block of a room task that asks the player to choose between two options.
 ///
 /// The task allocates it, parks it in `Task::work` and passes `request` to
@@ -153,16 +141,6 @@ typedef struct {
     DVECTOR screenPos;  // Projected centre in screen pixels, stored as one GTE word
 } RoomGlowSpriteScratch;
 STATIC_ASSERT_SIZEOF(RoomGlowSpriteScratch, 0x14);
-
-/// Overlay of `Task::spawnArg1` for that task: `phase` steps the shaft's
-/// pulsing red channel off the global frame counter, `height` is the length
-/// the two halves are drawn at before the `1 / otz` divide.
-typedef struct _RoomShaftArg {
-    /* 0x0 */ u8   phase;
-    /* 0x1 */ u8   height;
-    /* 0x2 */ byte pad_2[2];
-} RoomShaftArg;
-STATIC_ASSERT_SIZEOF(RoomShaftArg, 0x4);
 
 /// Scratch-stack block for drawing a radial glow around one projected point.
 ///

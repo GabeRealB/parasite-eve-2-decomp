@@ -1978,7 +1978,7 @@ Task* D_acropolis_security_room_801855AC;
 
 SVECTOR ActorContact_ScratchPosition;
 
-static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8 b);
+static void func_acropolis_security_room_8017DE80(ActionPromptRect* rect, u8 r, u8 g, u8 b);
 static void func_acropolis_security_room_8017F1BC(Task* task);
 static void func_acropolis_security_room_8017F300(Task* task);
 static void func_acropolis_security_room_80182574(Task* task);
@@ -2293,7 +2293,7 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
 /// spanning (`x`, `y`) to (`x + w`, `y + h`) -- each linked into
 /// `gGpuCurrentOt[3]`. Nothing in the overlay calls it; it is the debug box
 /// drawer for the hotspot rectangles.
-static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8 b)
+static void func_acropolis_security_room_8017DE80(ActionPromptRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 

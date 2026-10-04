@@ -82,6 +82,7 @@ static TaskDesc D_acropolis_east_elevator_hall_8017FC90[];
 /// 0 requires `planar_reflection_rodata.inc.c` before the shared implementation.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 0
 #include "../../shared/planar_reflection.h"
+#include "../../shared/red_beacon.h"
 
 static void func_acropolis_east_elevator_hall_8017F478(Task* task);
 static void func_acropolis_east_elevator_hall_8017F4E8(Task* task);
@@ -827,27 +828,27 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
             if (gGameSession->location.loc.view == 2) {
                 SVECTOR vec = D_acropolis_east_elevator_hall_8017D5E8;
 
-                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, 0xC03, &vec);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0xC), &vec);
                 vec.vx = 0x1600;
                 vec.vy = -0x985;
                 vec.vz = 0x55;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, 0xC03, &vec);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0xC), &vec);
                 vec.vx = 0x1600;
                 vec.vy = -0xA81;
                 vec.vz = -0x1CA;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, 0x1204, &vec);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x12), &vec);
                 vec.vx = 0x1600;
                 vec.vy = -0xA93;
                 vec.vz = -0x61C;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, 0x1204, &vec);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x12), &vec);
                 vec.vx = 0x1600;
                 vec.vy = -0x460;
                 vec.vz = -0x1A1;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, 0x1204, &vec);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x12), &vec);
                 vec.vx = 0x1600;
                 vec.vy = -0x449;
                 vec.vz = -0x635;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, 0x1204, &vec);
+                Gp_SpawnEff(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x12), &vec);
             }
             break;
     }

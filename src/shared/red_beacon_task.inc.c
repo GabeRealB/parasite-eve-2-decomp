@@ -3,10 +3,10 @@
 /// Draws one frame of a pair of red-shaded gradient quads and then retires
 /// the task. The task coordinate's origin is projected once through
 /// `GsWSMATRIX` (`RTPS`) into a `RoomGlowSpriteScratch` block; anything
-/// nearer than `otz` 0x11 is not drawn. The red level pulses with the global
-/// counter `gDisplayState.animFrame` times `spawnArg1`'s low byte, folded into a 0..0x80
-/// triangle; `spawnArg1`'s second byte sets the quads' extent, divided by
-/// `otz` so they shrink with distance.
+/// nearer than `otz` 0x11 is not drawn. `spawnArg1` is a `RedBeaconArg`: the
+/// red level pulses with the global counter `gDisplayState.animFrame` times
+/// its `pulseRate`, folded into a 0..0x80 triangle, and its `size` sets the
+/// quads' extent, divided by `otz` so they shrink with distance.
 void redBeaconTask(Task* arg0)
 {
     RoomGlowSpriteScratch* block;
@@ -33,14 +33,14 @@ void redBeaconTask(Task* arg0)
     gte_stsxy(&block->screenPos);
     gte_stszotz(&block->otz);
     if (block->otz >= 0x11) {
-        pulse = gDisplayState.animFrame * ((RoomShaftArg*)&arg0->spawnArg1.value)->phase;
+        pulse = gDisplayState.animFrame * ((RedBeaconArg*)&arg0->spawnArg1)->pulseRate;
         if (pulse & 0x80) {
             level = 0x80 - (pulse & 0x7F);
         } else {
             level = pulse & 0x7F;
         }
         red               = level;
-        block->halfExtent = (((RoomShaftArg*)&arg0->spawnArg1.value)->height << 9) / block->otz;
+        block->halfExtent = (((RedBeaconArg*)&arg0->spawnArg1)->size << 9) / block->otz;
         for (i = 0; i < 2; i++) {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;

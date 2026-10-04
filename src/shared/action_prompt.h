@@ -17,13 +17,28 @@
 
 #include "gameplay/action_prompt.h"
 
-#include "rooms/room_common.h"
+/// Rectangle the action prompt's outline drawer takes: a left and top edge
+/// with a width and height, in the center-origin screen pixels of an
+/// `ActionPromptHotspot`.
+///
+/// It is the unsigned reading of a hotspot's first four fields, and callers
+/// pass a hotspot entry through it. The drawer only adds the fields and stores
+/// the low 16 bits on a line's signed vertices, so a negative hotspot
+/// coordinate arrives at the line unchanged. The outline spans (`x`, `y`) to
+/// (`x + w`, `y + h`).
+typedef struct {
+    u16 x; // Left edge, pixels from the screen center; the low 16 bits of a signed coordinate
+    u16 y; // Top edge, pixels from the screen center, increasing downward; also the low 16 bits
+    u16 w; // Width in pixels
+    u16 h; // Height in pixels
+} ActionPromptRect;
+STATIC_ASSERT_SIZEOF(ActionPromptRect, 0x8);
 
 void actionPromptReset(Task* task);
 void actionPromptMoveCursors(Task* task);
 void actionPromptDrawCursor(s32 x, s32 y, s32 variant);
 s32  actionPromptHitTest(ActionPromptHotspot* table, s16 x, s16 y);
-void actionPromptOutlineRect(RoomRect* rect, u8 r, u8 g, u8 b);
+void actionPromptOutlineRect(ActionPromptRect* rect, u8 r, u8 g, u8 b);
 void actionPromptEventEnd(Task* task);
 
 #endif /* SRC_SHARED_ACTION_PROMPT_H */

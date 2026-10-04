@@ -2,7 +2,7 @@
 
 /// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2`s - top, right,
 /// bottom and left edge - each linked into `gGpuCurrentOt[1]`.
-void actionPromptOutlineRect(RoomRect* rect, u8 r, u8 g, u8 b)
+void actionPromptOutlineRect(ActionPromptRect* rect, u8 r, u8 g, u8 b)
 {
     LINE_F2* line;
 

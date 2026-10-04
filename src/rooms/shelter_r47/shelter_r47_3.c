@@ -1651,7 +1651,7 @@ u8 D_shelter_r47_8018A697;
 
 RoomCutsceneRec D_shelter_r47_8018A698;
 
-static void func_shelter_r47_8018489C(RoomRect* rect, u8 r, u8 g, u8 b);
+static void func_shelter_r47_8018489C(ActionPromptRect* rect, u8 r, u8 g, u8 b);
 
 /// State-0 entry of the map terminal. It allocates the `ShelterR47MapTerminalWork`
 /// work, spawns the companion task from `D_shelter_r47_8018760C`, picks the
