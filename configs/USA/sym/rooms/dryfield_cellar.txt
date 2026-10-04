@@ -48,7 +48,7 @@ D_dryfield_cellar_80180ACC = 0x80180ACC; // size:0x60 defined:True
 D_dryfield_cellar_80180B2C = 0x80180B2C; // size:0xC defined:True
 D_dryfield_cellar_80180B38 = 0x80180B38; // size:0x8 defined:True
 D_dryfield_cellar_80180B40 = 0x80180B40; // size:0x20 defined:True
-D_80139DAC = 0x80139DAC; // absolute:True
+D_actor_103700_80139DAC = 0x80139DAC; // absolute:True owner=actor_103700
 D_80150C80 = 0x80150C80; // absolute:True
 D_map_dryfield_8017BC14 = 0x8017BC14; // absolute:True owner=map_dryfield
 

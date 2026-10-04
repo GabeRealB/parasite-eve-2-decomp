@@ -187,8 +187,8 @@ extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186D20[7];
 extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186F34[9];
 extern WorldCoordRoomLights   D_shelter_b4_reservoir_80186AA8[1];
 extern TaskDesc               Actor04400_D107E4;
-extern TaskDesc               D_80147E48;
-extern TaskDesc               D_801575F0;
+extern TaskDesc               D_actor_100400_80147E48;
+extern TaskDesc               D_actor_207000_801575F0;
 
 s32  func_shelter_b4_reservoir_8017E25C(Task*, s32, s32, s32);
 s32  func_shelter_b4_reservoir_8017E264(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -807,7 +807,7 @@ WorldCollisionTrigger D_shelter_b4_reservoir_80186F34[9] = {
 };
 
 AreaResource D_shelter_b4_reservoir_801871E0[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -819,14 +819,14 @@ AreaResource D_shelter_b4_reservoir_801871F8[4] = {
 };
 
 AreaResource D_shelter_b4_reservoir_80187228[4] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_801575F0 },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_80151E60 },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102400_8013647C },
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207000_801575F0 },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_actor_207000_80151E60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_reservoir_80187258[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

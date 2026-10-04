@@ -63,7 +63,7 @@ extern AreaResource D_neo_ark_island_80183F0C[2];
 extern AreaResource D_neo_ark_island_80183F24[1];
 extern AreaResource D_neo_ark_island_80183F30[2];
 
-extern TaskDesc D_80147E48;
+extern TaskDesc D_actor_100400_80147E48;
 
 // Height override read by the shared waypoint actor.
 s16 D_neo_ark_island_80181C24 = 300;
@@ -475,17 +475,17 @@ WorldCollisionTrigger D_neo_ark_island_80183DF8[3] = {
 };
 
 AreaResource D_neo_ark_island_80183EDC[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_island_80183EF4[2] = {
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_201100_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_island_80183F0C[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

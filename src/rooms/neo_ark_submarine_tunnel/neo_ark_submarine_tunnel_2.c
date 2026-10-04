@@ -51,7 +51,7 @@ extern WorldCollisionTrigger  D_neo_ark_submarine_tunnel_80187248[6];
 extern WorldCollisionTrigger  D_neo_ark_submarine_tunnel_801874D8[11];
 extern WorldCoordRoomLights   D_neo_ark_submarine_tunnel_80187230[1];
 
-extern TaskDesc D_80147E48;
+extern TaskDesc D_actor_100400_80147E48;
 
 u8 D_neo_ark_submarine_tunnel_80181DF0 = 0;
 
@@ -1180,12 +1180,12 @@ WorldCollisionTrigger D_neo_ark_submarine_tunnel_80187248[6] = {
 };
 
 AreaResource D_neo_ark_submarine_tunnel_80187410[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_100400_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_submarine_tunnel_80187428[2] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_102400_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

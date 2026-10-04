@@ -47,7 +47,7 @@ typedef struct {
 } _Actor342400CullZone;
 STATIC_ASSERT_SIZEOF(_Actor342400CullZone, 0x4);
 
-extern TaskDesc D_801575F0; // absolute, spawned by func_actor_342400_80162DA0
+extern TaskDesc D_actor_207000_801575F0; // absolute, spawned by func_actor_342400_80162DA0
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry     D_actor_342400_8016BF48[2]; // stored into `Task::msgTable` by func_actor_342400_801628F0
@@ -628,7 +628,7 @@ static void func_actor_342400_80162DA0(Task* arg0)
     work = memCalloc(8, 0);
     if (work != NULL) {
         arg0->work = work;
-        enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, 0);
+        enemy      = Gp_SpawnEnemyFromTable(&D_actor_207000_801575F0, 2, 0, 0);
         if (enemy != NULL) {
             gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
             work->enemy                                                    = enemy;

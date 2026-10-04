@@ -332,7 +332,7 @@ AreaResource D_neo_ark_north_promenade_8018302C[2] = {
 };
 
 AreaResource D_neo_ark_north_promenade_80183044[2] = {
-    { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801482C0 },
+    { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_105600_801482C0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

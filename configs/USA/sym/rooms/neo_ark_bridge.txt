@@ -53,10 +53,10 @@ D_neo_ark_bridge_80184BBC = 0x80184BBC; // size:0x8 defined:True
 D_neo_ark_bridge_80184BC4 = 0x80184BC4; // size:0x8 defined:True
 D_neo_ark_bridge_80184BCC = 0x80184BCC; // size:0x8 defined:True
 D_neo_ark_bridge_80184BD4 = 0x80184BD4; // size:0x20 defined:True
-D_80147AB8 = 0x80147AB8; // absolute:True
-D_80147E48 = 0x80147E48; // absolute:True
-D_8014FD74 = 0x8014FD74; // absolute:True
-D_8015F400 = 0x8015F400; // absolute:True
+D_actor_102300_80147AB8 = 0x80147AB8; // absolute:True owner=actor_102300
+D_actor_100400_80147E48 = 0x80147E48; // absolute:True owner=actor_100400
+D_actor_203800_8014FD74 = 0x8014FD74; // absolute:True owner=actor_203800
+D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
 D_map_neo_ark_8017C1D0 = 0x8017C1D0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C210 = 0x8017C210; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C270 = 0x8017C270; // absolute:True owner=map_neo_ark

@@ -64,13 +64,13 @@ D_shelter_b2_breeding_room_801847EC = 0x801847EC; // size:0x8 defined:True
 D_shelter_b2_breeding_room_801847F4 = 0x801847F4; // size:0x20 defined:True
 gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
-D_8014E47C = 0x8014E47C; // absolute:True
+D_actor_202400_8014E47C = 0x8014E47C; // absolute:True owner=actor_202400
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
-D_8014FD74 = 0x8014FD74; // absolute:True
+D_actor_203800_8014FD74 = 0x8014FD74; // absolute:True owner=actor_203800
 D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
 D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
 D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200
-D_801575F0 = 0x801575F0; // absolute:True
+D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
 gShelterB2BreedingRoomModel02E04 = 0x801803F0; // size:0x24 defined:True
 _gShelterB2BreedingRoomModel02E04Skeleton = 0x8018037C; // size:0x24 defined:True
 _gShelterB2BreedingRoomModel02E04PartVerts = 0x801803A0; // size:0x4 defined:True

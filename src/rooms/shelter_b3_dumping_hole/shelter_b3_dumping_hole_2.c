@@ -417,7 +417,7 @@ static s32      CapCaption_Data_801545E4;
 static s32      CapCaption_Data_801545E8;
 static TaskDesc CapCaption_Data_801544FC;
 extern TaskDesc Actor04400_D107E4;
-extern TaskDesc D_801575F0;
+extern TaskDesc D_actor_207000_801575F0;
 static TaskDesc CapCaption_Data_80154508;
 
 /// Encounter controller's message table, installed in `Task::msgTable`.
@@ -1820,8 +1820,8 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EB90[2] = {
 
 AreaResource D_shelter_b3_dumping_hole_8018EBB0[5] = {
     { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 1, { 0, 0 }, &Actor04400_D107E4 },
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_801575F0 },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_80151E60 },
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_actor_207000_801575F0 },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_actor_207000_80151E60 },
     { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, D_actor_342100_80164B78 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -3657,7 +3657,7 @@ static void func_shelter_b3_dumping_hole_80183218(u8 arg0)
     }
 }
 
-/// Spawns the two enemies of one slot from the `D_80151E60` table, numbering
+/// Spawns the two enemies of one slot from the `D_actor_207000_80151E60` table, numbering
 /// them from the spawn counter, and marks the slot live. Actor 342400 carries
 /// the same body.
 static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
@@ -3672,8 +3672,8 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
         goto kill;
     }
     arg0->work   = work;
-    work->enemy0 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
-    work->enemy1 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
+    work->enemy0 = Gp_SpawnEnemyFromTable(&D_actor_207000_80151E60, 1, 1, 0);
+    work->enemy1 = Gp_SpawnEnemyFromTable(&D_actor_207000_80151E60, 1, 1, 0);
     if (work->enemy0 == NULL && work->enemy1 == NULL) {
     kill:
         taskKill(arg0);
@@ -3768,7 +3768,7 @@ static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
     func_shelter_b3_dumping_hole_80183A98,
 } };
 
-/// States of a slot task holding one enemy from `D_801575F0`: spawn it, after
+/// States of a slot task holding one enemy from `D_actor_207000_801575F0`: spawn it, after
 /// a delay switch its palette and send it message 0x7DB, then wait for its hit
 /// points to run out.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
@@ -3777,7 +3777,7 @@ static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
     func_shelter_b3_dumping_hole_80183C38,
 } };
 
-/// States of a slot task holding a pair of enemies from `D_80151E60`: spawn
+/// States of a slot task holding a pair of enemies from `D_actor_207000_80151E60`: spawn
 /// them, one idle frame, send the first message 0x7DB, send the second the
 /// same after a delay, then wait until both are gone.
 static const TaskFuncTable5 D_shelter_b3_dumping_hole_8017D67C = { {
@@ -3950,7 +3950,7 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
     if (work != NULL) {
         Enemy* enemy;
         arg0->work = work;
-        enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, NULL);
+        enemy      = Gp_SpawnEnemyFromTable(&D_actor_207000_801575F0, 2, 0, NULL);
         if (enemy != NULL) {
             u16 idx;
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;

@@ -42,9 +42,9 @@ D_neo_ark_island_80183EF4 = 0x80183EF4; // size:0x18 defined:True
 D_neo_ark_island_80183F0C = 0x80183F0C; // size:0x18 defined:True
 D_neo_ark_island_80183F24 = 0x80183F24; // size:0xC defined:True
 D_neo_ark_island_80183F30 = 0x80183F30; // size:0x18 defined:True
-D_80147E48 = 0x80147E48; // absolute:True
+D_actor_100400_80147E48 = 0x80147E48; // absolute:True owner=actor_100400
 gGolemPawnRookTasks = 0x801491F8; // absolute:True owner=actor_105700
-D_8015F400 = 0x8015F400; // absolute:True
+D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
 D_neo_ark_island_80181BB4 = 0x80181BB4; // size:0x70 defined:True
 RoomFx_TrailOffsets = 0x80181B84; // size:0x10 defined:True
 D_neo_ark_island_80181C24 = 0x80181C24; // size:0x2 defined:True

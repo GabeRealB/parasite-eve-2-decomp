@@ -929,7 +929,7 @@ AreaResource D_dryfield_motel_room_1_80181420[3] = {
 
 AreaResource D_dryfield_motel_room_1_80181444[3] = {
     { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_401800_80155AC4 },
-    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016E500 },
+    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_304000_8016E500 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

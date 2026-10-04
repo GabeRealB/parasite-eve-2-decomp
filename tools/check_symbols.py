@@ -268,7 +268,18 @@ def has_explicit_owner(d: Decl, symbols_at, ranges) -> bool:
     if d.attrs.get('absolute', '').lower() != 'true' or owner not in ranges or owner not in symbols_at:
         return False
     lo, hi = ranges[owner]
-    return lo <= d.addr <= hi and any(n == d.name for n, _ in symbols_at[owner].get(d.addr, ()))
+    here = symbols_at[owner].get(d.addr, ())
+    return lo <= d.addr <= hi and (any(n == d.name for n, _ in here) or (bool(here) and d.name in slot_copy_names(owner, d.addr)))
+
+
+def slot_copy_names(owner: str, addr: int) -> tuple[str, str]:
+    """What a reference may call an object of one slot copy of a multi-slot source.
+
+    The copies of one source carry the same symbol names, so a reference cannot
+    use that name once an image refers to two copies. It names the package and
+    the address instead, the form a placeholder takes.
+    """
+    return (f'D_{owner}_{addr:08X}', f'func_{owner}_{addr:08X}')
 
 
 def main() -> None:
@@ -482,8 +493,9 @@ def main() -> None:
             # With every image's data defined in C, each object starts a
             # symbol, so "no other image starts one here" holds for data as it
             # does for functions.
-            (assign if new == name else renames).append((w, name, new, owner))
-            what = f'one candidate: {owner}' + ('' if new == name else f', which calls it {new}')
+            named = new == name or (canon(owner) != owner and name in slot_copy_names(owner, addr))
+            (assign if named else renames).append((w, name, new, owner))
+            what = f'one candidate: {owner}' + ('' if named else f', which calls it {new}')
         elif not u['cands']:
             what = 'no image defines anything there'
         else:

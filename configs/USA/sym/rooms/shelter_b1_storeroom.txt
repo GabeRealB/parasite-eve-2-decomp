@@ -50,11 +50,11 @@ D_shelter_b1_storeroom_80186DD0 = 0x80186DD0; // size:0xC defined:True
 D_shelter_b1_storeroom_80186DDC = 0x80186DDC; // size:0x8 defined:True
 D_shelter_b1_storeroom_80186DE4 = 0x80186DE4; // size:0x8 defined:True
 D_shelter_b1_storeroom_80186DEC = 0x80186DEC; // size:0x20 defined:True
-D_8013647C = 0x8013647C; // absolute:True
+D_actor_102400_8013647C = 0x8013647C; // absolute:True owner=actor_102400
 Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_80148110 = 0x80148110; // absolute:True
 D_actor_401800_80155AC4 = 0x80155AC4; // absolute:True owner=actor_401800
-D_801602C0 = 0x801602C0; // absolute:True
+D_actor_205600_801602C0 = 0x801602C0; // absolute:True owner=actor_205600
 D_actor_300700_801693AC = 0x801693AC; // absolute:True owner=actor_300700
 RoomFx_TrailOffsets = 0x80184B34; // size:0x10 defined:True
 

@@ -44,14 +44,14 @@ D_shelter_b2_south_maintenance_walkway_801838AC = 0x801838AC; // size:0x8 define
 D_shelter_b2_south_maintenance_walkway_801838B4 = 0x801838B4; // size:0x20 defined:True
 gRoomEventFade = 0x801838D4; // size:0x8 defined:True
 D_80135C30 = 0x80135C30; // absolute:True
-D_8013647C = 0x8013647C; // absolute:True
+D_actor_102400_8013647C = 0x8013647C; // absolute:True owner=actor_102400
 Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
-D_80147400 = 0x80147400; // absolute:True
-D_8014E47C = 0x8014E47C; // absolute:True
+D_actor_101100_80147400 = 0x80147400; // absolute:True owner=actor_101100
+D_actor_202400_8014E47C = 0x8014E47C; // absolute:True owner=actor_202400
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
 D_801528DC = 0x801528DC; // absolute:True
 D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
-D_8015FAB8 = 0x8015FAB8; // absolute:True
+D_actor_202300_8015FAB8 = 0x8015FAB8; // absolute:True owner=actor_202300
 RoomFx_TrailOffsets = 0x80182620; // size:0x10 defined:True
 gRoomEventMsg = 0x801838DC; // size:0x8 defined:True
 gRoomEventActive = 0x801838E4; // size:0x8 defined:True

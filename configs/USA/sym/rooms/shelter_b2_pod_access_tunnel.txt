@@ -55,12 +55,12 @@ D_shelter_b2_pod_access_tunnel_80185664 = 0x80185664; // size:0x3C defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80135C30 = 0x80135C30; // absolute:True
 gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
-D_80147AB8 = 0x80147AB8; // absolute:True
+D_actor_102300_80147AB8 = 0x80147AB8; // absolute:True owner=actor_102300
 D_80148110 = 0x80148110; // absolute:True
 D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
-D_8015F400 = 0x8015F400; // absolute:True
-D_8015FAB8 = 0x8015FAB8; // absolute:True
-D_801602C0 = 0x801602C0; // absolute:True
+D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
+D_actor_202300_8015FAB8 = 0x8015FAB8; // absolute:True owner=actor_202300
+D_actor_205600_801602C0 = 0x801602C0; // absolute:True owner=actor_205600
 D_shelter_b2_pod_access_tunnel_801856AC = 0x801856AC; // size:0xC defined:True
 D_shelter_b2_pod_access_tunnel_801856B8 = 0x801856B8; // size:0x8 defined:True
 D_shelter_b2_pod_access_tunnel_801856C0 = 0x801856C0; // size:0x8 defined:True

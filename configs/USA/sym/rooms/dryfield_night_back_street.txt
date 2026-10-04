@@ -39,7 +39,7 @@ D_dryfield_night_back_street_8018160C = 0x8018160C; // size:0x8 defined:True
 D_dryfield_night_back_street_80181614 = 0x80181614; // size:0x8 defined:True
 D_dryfield_night_back_street_8018161C = 0x8018161C; // size:0x20 defined:True
 D_801379A8 = 0x801379A8; // absolute:True
-D_80139DAC = 0x80139DAC; // absolute:True
+D_actor_103700_80139DAC = 0x80139DAC; // absolute:True owner=actor_103700
 gGolemPawnRookTasks = 0x801491F8; // absolute:True owner=actor_105700
 D_8014D8A4 = 0x8014D8A4; // absolute:True
 D_actor_300700_80165B88 = 0x80165B88; // absolute:True owner=actor_300700

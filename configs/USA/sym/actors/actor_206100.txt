@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_206100.
 
 // Referenced in another actor load slot, resident beside this one.
-D_80147E48 = 0x80147E48; // absolute:True
+D_actor_100400_80147E48 = 0x80147E48; // absolute:True owner=actor_100400
 D_actor_206100_80155134 = 0x80155134; // size:0x60 defined:True
 D_actor_206100_80155194 = 0x80155194; // size:0x4 defined:True
 D_actor_206100_80155198 = 0x80155198; // size:0x10 defined:True

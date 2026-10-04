@@ -47,13 +47,13 @@ D_shelter_b1_north_maintenance_walkway_80185B44 = 0x80185B44; // size:0x8 define
 D_shelter_b1_north_maintenance_walkway_80185B4C = 0x80185B4C; // size:0x20 defined:True
 gRoomEventFade = 0x80185B6C; // size:0x8 defined:True
 D_80135C30 = 0x80135C30; // absolute:True
-D_8013F5F0 = 0x8013F5F0; // absolute:True
-D_80147400 = 0x80147400; // absolute:True
+D_actor_107000_8013F5F0 = 0x8013F5F0; // absolute:True owner=actor_107000
+D_actor_101100_80147400 = 0x80147400; // absolute:True owner=actor_101100
 D_80148110 = 0x80148110; // absolute:True
-D_8014E47C = 0x8014E47C; // absolute:True
+D_actor_202400_8014E47C = 0x8014E47C; // absolute:True owner=actor_202400
 Actor04600_D05878 = 0x8014F698; // absolute:True owner=actor_204600
 D_801502BC = 0x801502BC; // absolute:True
-D_801611F8 = 0x801611F8; // absolute:True
+D_actor_205700_801611F8 = 0x801611F8; // absolute:True owner=actor_205700
 RoomFx_TrailOffsets = 0x80184B64; // size:0x10 defined:True
 _gRoomEffectHaloShades = 0x80184B50; // size:0x14 defined:True
 gRoomEventStagedMsg = 0x80185B74; // size:0x8 defined:True

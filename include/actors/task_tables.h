@@ -11,7 +11,7 @@ extern TaskDesc D_80135C30[];
 
 extern TaskDesc D_actor_142600_80135E24;
 
-extern TaskDesc D_8013647C[];
+extern TaskDesc D_actor_102400_8013647C[];
 
 extern TaskDesc D_actor_123200_80137234;
 
@@ -23,7 +23,7 @@ extern TaskDesc D_801379A8[];
 
 extern TaskDesc D_80137A60[];
 
-extern TaskDesc D_80137D74[];
+extern TaskDesc D_actor_103800_80137D74[];
 
 extern TaskDesc Actor04600_D0649C;
 
@@ -35,9 +35,9 @@ extern TaskDesc Actor00700_D075A8;
 
 extern TaskDesc D_actor_511000_80139924[];
 
-extern TaskDesc D_80139DAC[];
+extern TaskDesc D_actor_103700_80139DAC[];
 
-extern TaskDesc D_80139E60[];
+extern TaskDesc D_actor_107000_80139E60[];
 
 extern TaskDesc D_80139EDC[];
 
@@ -83,7 +83,7 @@ extern TaskDesc D_8013E748[];
 
 extern TaskDesc D_8013EF68[];
 
-extern TaskDesc D_8013F5F0[];
+extern TaskDesc D_actor_107000_8013F5F0[];
 
 extern TaskDesc D_actor_451100_8013F734;
 
@@ -113,9 +113,9 @@ extern TaskDesc gPairWalkTasks[];
 
 extern TaskDesc D_actor_511000_801472E8[];
 
-extern TaskDesc D_80147400[];
+extern TaskDesc D_actor_101100_80147400[];
 
-extern TaskDesc D_80147AB8[];
+extern TaskDesc D_actor_102300_80147AB8[];
 
 extern TaskDesc Actor02000_D15FD0[];
 
@@ -123,11 +123,11 @@ extern TaskDesc D_80148110[];
 
 extern TaskDesc D_80148118[];
 
-extern TaskDesc D_801482C0[];
+extern TaskDesc D_actor_105600_801482C0[];
 
 extern TaskDesc D_actor_110600_80148670;
 
-extern TaskDesc D_80149120[];
+extern TaskDesc D_actor_101900_80149120[];
 
 extern TaskDesc gGolemPawnRookTasks[];
 
@@ -139,7 +139,7 @@ extern TaskDesc D_actor_205200_8014CA60[];
 
 extern TaskDesc D_8014DC30[];
 
-extern TaskDesc D_8014E47C[];
+extern TaskDesc D_actor_202400_8014E47C[];
 
 extern TaskDesc D_actor_451100_8014E6E4[];
 
@@ -149,7 +149,7 @@ extern TaskDesc Actor04600_D05878;
 
 extern TaskDesc D_8014F9A8[];
 
-extern TaskDesc D_8014FD74[];
+extern TaskDesc D_actor_203800_8014FD74[];
 
 extern TaskDesc D_801502BC[];
 
@@ -169,7 +169,7 @@ extern TaskDesc D_8015152C[];
 
 extern TaskDesc D_actor_400600_80151B10;
 
-extern TaskDesc D_80151DAC[];
+extern TaskDesc D_actor_203700_80151DAC[];
 
 extern TaskDesc D_actor_213100_801521A8[];
 
@@ -199,7 +199,7 @@ extern TaskDesc D_8015560C[];
 
 extern TaskDesc D_actor_401800_80155AC4;
 
-extern TaskDesc D_80156500[];
+extern TaskDesc D_actor_204000_80156500[];
 
 extern TaskDesc D_actor_205200_801567C4;
 
@@ -225,25 +225,25 @@ extern TaskDesc Actor01600_D127BC;
 
 extern TaskDesc D_actor_215100_8015E5D0[];
 
-extern TaskDesc D_8015F400[];
+extern TaskDesc D_actor_201100_8015F400[];
 
 extern TaskDesc D_actor_521100_8015F6E4[];
 
 extern TaskDesc D_8015F8D0[];
 
-extern TaskDesc D_8015FAB8[];
+extern TaskDesc D_actor_202300_8015FAB8[];
 
 extern TaskDesc Actor02000_D15FD0[];
 
-extern TaskDesc D_8015FE48[];
+extern TaskDesc D_actor_200400_8015FE48[];
 
 extern TaskDesc D_80160110[];
 
-extern TaskDesc D_801602C0[];
+extern TaskDesc D_actor_205600_801602C0[];
 
 extern TaskDesc D_actor_403600_80160514[];
 
-extern TaskDesc D_801611F8[];
+extern TaskDesc D_actor_205700_801611F8[];
 
 extern TaskDesc D_actor_444000_80161854;
 
@@ -277,7 +277,7 @@ extern TaskDesc Actor01500_D0A008;
 
 extern TaskDesc D_actor_317000_8016CF44;
 
-extern TaskDesc D_8016E500[];
+extern TaskDesc D_actor_304000_8016E500[];
 
 extern TaskDesc D_actor_503500_8016E924[];
 
@@ -309,11 +309,11 @@ extern TaskDesc D_actor_341700_80176354;
 
 extern TaskDesc D_80176524[];
 
-extern TaskDesc D_80177400[];
+extern TaskDesc D_actor_301100_80177400[];
 
 extern TaskDesc D_80177DF0[];
 
-extern TaskDesc D_80179120[];
+extern TaskDesc D_actor_301900_80179120[];
 
 extern TaskDesc D_actor_310600_801796A4[];
 

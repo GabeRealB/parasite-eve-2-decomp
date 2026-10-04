@@ -46,7 +46,7 @@ D_mine_tunnel_80180324 = 0x80180324; // size:0x8 defined:True
 D_mine_tunnel_8018032C = 0x8018032C; // size:0x20 defined:True
 D_801379A8 = 0x801379A8; // absolute:True
 D_801445DC = 0x801445DC; // absolute:True
-D_80151DAC = 0x80151DAC; // absolute:True
+D_actor_203700_80151DAC = 0x80151DAC; // absolute:True owner=actor_203700
 D_80153E28 = 0x80153E28; // absolute:True
 D_mine_tunnel_8017DFEC = 0x8017DFEC; // size:0x8 defined:True
 D_mine_tunnel_8017DFF4 = 0x8017DFF4; // size:0x8 defined:True

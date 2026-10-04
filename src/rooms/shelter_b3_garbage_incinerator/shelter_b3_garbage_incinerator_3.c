@@ -94,7 +94,7 @@ extern u16 D_shelter_b3_garbage_incinerator_8018FBFC[][4];
 extern u16 D_shelter_b3_garbage_incinerator_8018FBCC[][4];
 
 // Indexed views below share one contiguous table.
-extern TaskDesc D_801575F0;
+extern TaskDesc D_actor_207000_801575F0;
 extern TaskDesc D_shelter_b3_garbage_incinerator_8018FAC0[2];
 void            func_shelter_b3_garbage_incinerator_80184D84(Task*);
 void            func_shelter_b3_garbage_incinerator_80184ECC(Task*);
@@ -1700,8 +1700,8 @@ AreaPlacement D_shelter_b3_garbage_incinerator_8018F92C[4] = {
 };
 
 AreaResource D_shelter_b3_garbage_incinerator_8018F96C[4] = {
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_801575F0 },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_80151E60 },
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_actor_207000_801575F0 },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_actor_207000_80151E60 },
     { 44, 424, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, D_actor_342400_80173A54 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

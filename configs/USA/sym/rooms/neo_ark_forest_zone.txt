@@ -57,10 +57,10 @@ D_neo_ark_forest_zone_80182CDC = 0x80182CDC; // size:0x8 defined:True
 D_neo_ark_forest_zone_80182CE4 = 0x80182CE4; // size:0x20 defined:True
 D_neo_ark_forest_zone_80182D04 = 0x80182D04; // size:0x18 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_80137D74 = 0x80137D74; // absolute:True
+D_actor_103800_80137D74 = 0x80137D74; // absolute:True owner=actor_103800
 Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_actor_401300_80158A18 = 0x80158A18; // absolute:True owner=actor_401300
-D_801602C0 = 0x801602C0; // absolute:True
+D_actor_205600_801602C0 = 0x801602C0; // absolute:True owner=actor_205600
 D_actor_356100_80173294 = 0x80173294; // absolute:True owner=actor_356100
 D_80177DF0 = 0x80177DF0; // absolute:True
 D_map_neo_ark_8017B190 = 0x8017B190; // absolute:True owner=map_neo_ark

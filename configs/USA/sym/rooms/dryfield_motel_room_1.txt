@@ -59,7 +59,7 @@ D_actor_123200_80137234 = 0x80137234; // absolute:True owner=actor_123200
 D_80150E98 = 0x80150E98; // absolute:True
 D_actor_401800_80155AC4 = 0x80155AC4; // absolute:True owner=actor_401800
 D_80168E98 = 0x80168E98; // absolute:True
-D_8016E500 = 0x8016E500; // absolute:True
+D_actor_304000_8016E500 = 0x8016E500; // absolute:True owner=actor_304000
 D_map_dryfield_8017AF94 = 0x8017AF94; // absolute:True owner=map_dryfield
 D_map_dryfield_8017AFA4 = 0x8017AFA4; // absolute:True owner=map_dryfield
 D_map_dryfield_8017B004 = 0x8017B004; // absolute:True owner=map_dryfield

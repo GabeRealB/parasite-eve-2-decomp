@@ -60,9 +60,9 @@ D_shelter_b4_water_supply_80184E04 = 0x80184E04; // size:0x8 defined:True
 D_shelter_b4_water_supply_80184E0C = 0x80184E0C; // size:0x8 defined:True
 D_shelter_b4_water_supply_80184E14 = 0x80184E14; // size:0x20 defined:True
 D_shelter_b4_water_supply_80184E34 = 0x80184E34; // size:0x8 defined:True
-D_8013647C = 0x8013647C; // absolute:True
-D_8013F5F0 = 0x8013F5F0; // absolute:True
-D_80147E48 = 0x80147E48; // absolute:True
+D_actor_102400_8013647C = 0x8013647C; // absolute:True owner=actor_102400
+D_actor_107000_8013F5F0 = 0x8013F5F0; // absolute:True owner=actor_107000
+D_actor_100400_80147E48 = 0x80147E48; // absolute:True owner=actor_100400
 D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
 D_shelter_b4_water_supply_80184E3C = 0x80184E3C; // size:0x8 defined:True
 gRoomDeparture = 0x80184E44; // size:0xC defined:True

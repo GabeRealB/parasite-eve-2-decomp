@@ -92,7 +92,7 @@ D_neo_ark_shrine_80186844 = 0x80186844; // size:0x20 defined:True
 D_neo_ark_shrine_80186864 = 0x80186864; // size:0x4 defined:True
 D_neo_ark_shrine_80186868 = 0x80186868; // size:0x2 defined:True
 D_801379A8 = 0x801379A8; // absolute:True
-D_80137D74 = 0x80137D74; // absolute:True
+D_actor_103800_80137D74 = 0x80137D74; // absolute:True owner=actor_103800
 Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_8014F9A8 = 0x8014F9A8; // absolute:True
 D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900

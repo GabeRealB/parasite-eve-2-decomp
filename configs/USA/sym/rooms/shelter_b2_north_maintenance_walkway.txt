@@ -51,13 +51,13 @@ D_shelter_b2_north_maintenance_walkway_80186074 = 0x80186074; // size:0x30 defin
 D_shelter_b2_north_maintenance_walkway_801860A4 = 0x801860A4; // size:0x24 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80135C30 = 0x80135C30; // absolute:True
-D_8013F5F0 = 0x8013F5F0; // absolute:True
+D_actor_107000_8013F5F0 = 0x8013F5F0; // absolute:True owner=actor_107000
 Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
-D_80147400 = 0x80147400; // absolute:True
+D_actor_101100_80147400 = 0x80147400; // absolute:True owner=actor_101100
 D_80148110 = 0x80148110; // absolute:True
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
 D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
-D_801575F0 = 0x801575F0; // absolute:True
+D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
 Actor02000_D15FD0 = 0x8015FDF0; // absolute:True owner=actor_202000
 D_actor_341300_80165208 = 0x80165208; // absolute:True owner=actor_341300
 RoomFx_TrailOffsets = 0x80183C4C; // size:0x10 defined:True

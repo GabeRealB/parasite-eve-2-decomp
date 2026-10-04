@@ -134,7 +134,7 @@ D_shelter_b3_garbage_incinerator_8018FB3C = 0x8018FB3C; // size:0x8 defined:True
 D_shelter_b3_garbage_incinerator_8018FB44 = 0x8018FB44; // size:0x8 defined:True
 D_shelter_b3_garbage_incinerator_8018FB4C = 0x8018FB4C; // size:0x20 defined:True
 D_shelter_b3_garbage_incinerator_8018FB6C = 0x8018FB6C; // size:0x5C defined:True
-D_801575F0 = 0x801575F0; // absolute:True
+D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
 D_actor_444000_80161854 = 0x80161854; // absolute:True owner=actor_444000
 D_actor_342400_80173A54 = 0x80173A54; // absolute:True owner=actor_342400
 D_shelter_b3_garbage_incinerator_80187184 = 0x80187184; // size:0xC defined:True

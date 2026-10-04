@@ -54,7 +54,7 @@ D_dryfield_night_dilapidated_house_8018A0DC = 0x8018A0DC; // size:0x8 defined:Tr
 D_dryfield_night_dilapidated_house_8018A0E4 = 0x8018A0E4; // size:0x20 defined:True
 D_801379A8 = 0x801379A8; // absolute:True
 D_801445DC = 0x801445DC; // absolute:True
-D_80156500 = 0x80156500; // absolute:True
+D_actor_204000_80156500 = 0x80156500; // absolute:True owner=actor_204000
 D_map_dryfield_full_8017B558 = 0x8017B558; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017B5D8 = 0x8017B5D8; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017B648 = 0x8017B648; // absolute:True owner=map_dryfield_full

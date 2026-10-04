@@ -564,7 +564,7 @@ WorldCollisionTrigger D_dryfield_night_breezeway_801802A0[3] = {
 };
 
 AreaResource D_dryfield_night_breezeway_80180384[2] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_103700_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -102,7 +102,7 @@ D_mine_forked_tunnel_801855B0 = 0x801855B0; // size:0x8 defined:True
 D_mine_forked_tunnel_801855B8 = 0x801855B8; // size:0x8 defined:True
 D_mine_forked_tunnel_801855C0 = 0x801855C0; // size:0x20 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_80139DAC = 0x80139DAC; // absolute:True
+D_actor_103700_80139DAC = 0x80139DAC; // absolute:True owner=actor_103700
 D_8014F9A8 = 0x8014F9A8; // absolute:True
 Actor01600_D127BC = 0x8015C5DC; // absolute:True owner=actor_201600
 D_actor_300700_80165B88 = 0x80165B88; // absolute:True owner=actor_300700

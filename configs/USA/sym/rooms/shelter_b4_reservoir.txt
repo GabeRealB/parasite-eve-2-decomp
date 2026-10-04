@@ -58,12 +58,12 @@ D_shelter_b4_reservoir_801872E0 = 0x801872E0; // size:0x40 defined:True
 D_shelter_b4_reservoir_80187320 = 0x80187320; // size:0x30 defined:True
 D_shelter_b4_reservoir_80187350 = 0x80187350; // size:0x60 defined:True
 D_shelter_b4_reservoir_801873B0 = 0x801873B0; // size:0x78 defined:True
-D_8013647C = 0x8013647C; // absolute:True
+D_actor_102400_8013647C = 0x8013647C; // absolute:True owner=actor_102400
 Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
-D_80147E48 = 0x80147E48; // absolute:True
+D_actor_100400_80147E48 = 0x80147E48; // absolute:True owner=actor_100400
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
 D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
-D_801575F0 = 0x801575F0; // absolute:True
+D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
 gScreenWaveTaskDesc = 0x80184724; // size:0x18 defined:True
 gScreenWaveRamp = 0x8018473C; // size:0x4 defined:True
 _gShelterB4ReservoirModel07220Skeleton = 0x80184740; // size:0x24 defined:True

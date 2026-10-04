@@ -1,8 +1,8 @@
 // Overlay-local symbols for actor_342400.
 
 // Referenced in another actor load slot, resident beside this one.
-D_80151E60 = 0x80151E60; // absolute:True
-D_801575F0 = 0x801575F0; // absolute:True
+D_actor_207000_80151E60 = 0x80151E60; // absolute:True owner=actor_207000
+D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
 gMadChaserWaveSlots = 0x8016BF58; // size:0x88 defined:True
 gMadChaserAnimStance = 0x80173A84; // size:0x14 defined:True
 gMadChaserSettleAnims = 0x80173A98; // size:0x14 defined:True

@@ -69,7 +69,7 @@ D_mine_gorge_8018362C = 0x8018362C; // size:0x8 defined:True
 D_mine_gorge_80183634 = 0x80183634; // size:0x8 defined:True
 D_mine_gorge_8018363C = 0x8018363C; // size:0x8 defined:True
 D_mine_gorge_80183644 = 0x80183644; // size:0x20 defined:True
-D_80139DAC = 0x80139DAC; // absolute:True
+D_actor_103700_80139DAC = 0x80139DAC; // absolute:True owner=actor_103700
 Actor01500_D0A008 = 0x8013BE28; // absolute:True owner=actor_101500
 Actor00700_D075A8 = 0x801513C8; // absolute:True owner=actor_200700
 D_mine_gorge_8017E2C8 = 0x8017E2C8; // size:0x14 defined:True

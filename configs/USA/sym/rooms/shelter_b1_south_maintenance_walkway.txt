@@ -42,9 +42,9 @@ D_shelter_b1_south_maintenance_walkway_8018360C = 0x8018360C; // size:0x8 define
 D_shelter_b1_south_maintenance_walkway_80183614 = 0x80183614; // size:0x20 defined:True
 gRoomEventFade = 0x80183634; // size:0x8 defined:True
 D_80135C30 = 0x80135C30; // absolute:True
-D_8013647C = 0x8013647C; // absolute:True
-D_80147400 = 0x80147400; // absolute:True
-D_8014E47C = 0x8014E47C; // absolute:True
+D_actor_102400_8013647C = 0x8013647C; // absolute:True owner=actor_102400
+D_actor_101100_80147400 = 0x80147400; // absolute:True owner=actor_101100
+D_actor_202400_8014E47C = 0x8014E47C; // absolute:True owner=actor_202400
 D_80150C80 = 0x80150C80; // absolute:True
 D_801528D4 = 0x801528D4; // absolute:True
 Actor02000_D15FD0 = 0x8015FDF0; // absolute:True owner=actor_202000

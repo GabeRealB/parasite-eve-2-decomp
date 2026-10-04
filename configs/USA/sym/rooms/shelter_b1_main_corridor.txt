@@ -62,11 +62,11 @@ gRoomEventFade = 0x80185D24; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80135C30 = 0x80135C30; // absolute:True
 D_80148110 = 0x80148110; // absolute:True
-D_801482C0 = 0x801482C0; // absolute:True
+D_actor_105600_801482C0 = 0x801482C0; // absolute:True owner=actor_105600
 D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
 D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200
-D_8015F400 = 0x8015F400; // absolute:True
-D_801611F8 = 0x801611F8; // absolute:True
+D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
+D_actor_205700_801611F8 = 0x801611F8; // absolute:True owner=actor_205700
 gRoomEventMsg = 0x80185D2C; // size:0x8 defined:True
 gRoomEventActive = 0x80185D34; // size:0x8 defined:True
 gRoomEventStagedMsg = 0x80185D3C; // size:0x8 defined:True

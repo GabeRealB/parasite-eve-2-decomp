@@ -51,10 +51,10 @@ D_neo_ark_power_plant_1_80181B9C = 0x80181B9C; // size:0xC defined:True
 D_neo_ark_power_plant_1_80181BA8 = 0x80181BA8; // size:0xC defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_801379A8 = 0x801379A8; // absolute:True
-D_80137D74 = 0x80137D74; // absolute:True
+D_actor_103800_80137D74 = 0x80137D74; // absolute:True owner=actor_103800
 D_8013CEA0 = 0x8013CEA0; // absolute:True
 D_8014DC30 = 0x8014DC30; // absolute:True
-D_8014FD74 = 0x8014FD74; // absolute:True
+D_actor_203800_8014FD74 = 0x8014FD74; // absolute:True owner=actor_203800
 D_map_neo_ark_8017B8D0 = 0x8017B8D0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017B950 = 0x8017B950; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017B9E0 = 0x8017B9E0; // absolute:True owner=map_neo_ark
