@@ -459,8 +459,9 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             work.sndEvent = 0;
             work.facing   = 0x800;
             Gp_MsgPlayerWeapon(0);
-            wp = &work;
-            // Let the stage's resolver replace the staged room with the variant game progress selects.
+            // The destination room depends on game progress: run the departure's
+            // selectors through the stage's resolver, request and reply in one record.
+            wp            = &work;
             msg.areaId    = wp->area;
             msg.warp      = wp->warp;
             msg.room      = wp->room;
