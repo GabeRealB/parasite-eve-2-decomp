@@ -73208,9 +73208,9 @@ default — moves the pivot to 1 and matches exactly:
 
 ```c
 switch (event->words[1]) {
-    case 9: work->field_0 = 0; break;
-    case 1: work->field_0 = 2; break;
-    case 2: work->field_0 = 0; break;
+    case 9: work->state = 0; break;
+    case 1: work->state = 2; break;
+    case 2: work->state = 0; break;
     case 0: break;
 }
 ```
@@ -102555,7 +102555,7 @@ parameters by *register index*), but as a C declaration it is the second
 parameter, so the switch value that really arrives in `$a2` was read from `$a1`.
 
 The `s16` is the second half of the artifact: the value's only uses are
-halfword stores (`work->field_0 = arg2` becomes `sh s0,0(s1)`), and m2c narrows a
+halfword stores (`work->state = arg2` becomes `sh s0,0(s1)`), and m2c narrows a
 parameter to the width its uses imply. So the seed signed-extended a value the
 original never touched, and `insert=2` is exactly that `sll`/`sra` pair:
 
@@ -126612,10 +126612,10 @@ order with the shared body after the switch reproduces the target's layout:
 ```c
 switch (D_801153F4) {
     case 0:                       /* falls through to the shared body */
-        if (work->field_0 != 0) { obj->field_C = 0; }
+        if (work->state != 0) { obj->field_C = 0; }
         break;
     case 1:
-        if (work->field_0 != 0) { obj->field_C = 0; }
+        if (work->state != 0) { obj->field_C = 0; }
         return;                   /* its own arm, straight to the epilogue */
     case 2:
         obj->field_C = 0x80;
@@ -130066,6 +130066,9 @@ if (placementParity == 1) {
     work->driver.rate += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT; /* CSEs to the raw srl */
 } else {
     work->driver.rate -= placementIndex >> 1;  /* reads the masked value */
+    work->driver.rate += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;   /* CSEs to the raw srl */
+} else {
+    work->driver.rate -= placementIndex >> 1;    /* reads the masked value */
 }
 ```
 

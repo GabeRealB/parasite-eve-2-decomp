@@ -40,60 +40,74 @@
 #include "overlay.h"
 #include "../../shared/coord_math.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/anim_driver.h"
 
-/// The actor's per-instance work block, allocated by the spawn state and
-/// reached through `Task::work`. Only the fields the actor's code touches are
-/// modelled: the state word and its change latch, the animation rig, the
-/// motion fields `animDriverTick` drives, the bytes a
-/// message handler copies out of its event packet, the spawn and target
-/// positions, the model's light and colour matrices and the park latch.
-typedef struct Actor223600Work {
-    /* 0x000 */ s16           field_0; ///< state
-    /* 0x002 */ s16           field_2; ///< state at the previous dispatch
-    /* 0x004 */ s16           field_4; ///< set when `field_0` moved away from `field_2`
-    /* 0x006 */ s16           field_6; ///< frames spent in the approach state
-    /* 0x008 */ s16           field_8;
-    /* 0x00A */ byte          pad_A[0x2];
-    /* 0x00C */ ActorAnimRig6 rig; ///< playback of the model's parts; the animation driver runs slots 1 to 5
-    /* 0x170 */ s16           field_170;
-    /* 0x172 */ s16           field_172;
-    /* 0x174 */ s16           field_174; ///< motion state
-    /* 0x176 */ u16           field_176;
-    /* 0x178 */ s16           field_178;
-    /* 0x17A */ s16           field_17A; ///< frames since the motion last restarted
-    /* 0x17C */ s16           field_17C; ///< frames since then on which rig slot 1 followed a control jump
-    /* 0x17E */ s16           field_17E;
-    /* 0x180 */ u8            field_180;
-    /* 0x181 */ u8            field_181;
-    /* 0x182 */ u8            field_182;
-    /* 0x183 */ byte          pad_183[0x1];
-    /* 0x184 */ u16           field_184;
-    /* 0x186 */ u16           field_186;
-    /* 0x188 */ byte          pad_188[0xC];
-    /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
-    /// handler samples the low 16 bits of each local translation component.
-    /* 0x194 */ u16  field_194;
-    /* 0x196 */ u16  field_196;
-    /* 0x198 */ u16  field_198;
-    /* 0x19A */ byte pad_19A[0x2];
-    /// Target the approach state steers towards: world X in `field_19C` and
-    /// world Z in `field_1A0`, both seeded from the spawn point.
-    /* 0x19C */ u16    field_19C;
-    /* 0x19E */ s16    field_19E;
-    /* 0x1A0 */ u16    field_1A0;
-    /* 0x1A2 */ byte   pad_1A2[0x6];
-    /* 0x1A8 */ MATRIX field_1A8; ///< installed at `TmdObject.lightMtx`
-    /* 0x1C8 */ MATRIX field_1C8; ///< installed at `TmdObject.colorMtx`
-    /* 0x1E8 */ byte   pad_1E8[0x20];
-    /* 0x208 */ u16    field_208; ///< animation id that last raised the reaction
-    /* 0x20A */ byte   pad_20A[0x2];
-    /* 0x20C */ s8     field_20C; ///< 1 while the model's coordinate is zeroed
-    /* 0x20D */ byte   pad_20D[0x5];
-    /// Per-frame height step the parked state adds to the model's world Y,
-    /// seeded by the motion the tick enters and retuned as it advances.
-    /* 0x212 */ s16 field_212;
-} Actor223600Work;
-STATIC_ASSERT_SIZEOF(Actor223600Work, 0x214);
+/// Values of `_Actor223600Work::state`: the index of the handler the per-frame
+/// tick runs.
+///
+/// Animation numbers are indices into the package's animation-set table, and a
+/// placement is the enemy's placement index, the part of `Enemy::placeKey`
+/// above `ENEMY_PLACE_INDEX_SHIFT`. No state ends of its own accord: the
+/// model-draw message selects `WALK` or `HIDDEN`, and the actor commands of
+/// stage 2, area 3 select `DROP_IN` or `HIDDEN`.
+enum {
+    ACTOR_223600_STATE_HIDDEN  = 0, // not drawn, not lockable
+    ACTOR_223600_STATE_WALK    = 1, // from a start point fixed per placement (0 and 1; others stay where they are), walks on animation 2 toward `walkTarget`, turning at most 0x10 a tick
+    ACTOR_223600_STATE_DROP_IN = 2  // from a point above the floor fixed per placement, falls to the floor on animation 14 and plays the landing on animation 15
+};
+
+/// Work block of the package's enemy task.
+///
+/// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
+/// holds the state machine, the animation rig and its driver's state, the
+/// point the walk heads for, and storage for the model's matrices.
+///
+/// Everything up to and including `driver` is laid out as `AnimDriverWork`,
+/// through which the shared animation driver reaches the block: its
+/// `carrierState` bytes are the five words and the gap ahead of `rig` here. A
+/// cue index is the low ten bits of the record a slot's current pose names
+/// (`ANIMATION_POSE_CUE_INDEX_MASK`). World Y grows downward, so a fall adds
+/// to it.
+typedef struct {
+    s16           state;        // `ACTOR_223600_STATE_*`
+    s16           prevState;    // `state` the tick last ran; -1 from spawn, so the first tick enters `state` afresh
+    s16           stateEntered; // 1 on the first tick of a state, when the handler sets itself up (0 otherwise)
+    s16           stateFrame;   // tick counter of the running state: `WALK` counts up from 0 and never reads it; `DROP_IN` starts it at a value fixed per placement, times the drop by it and restarts it at 0 for the landing
+    s16           field_8;      // cleared at spawn and never accessed again; role unproven
+    byte          pad_A[2];     // never accessed
+    ActorAnimRig6 rig;          // playback of the model's parts; slot 1's status and cue index time the sound cues
+    struct {
+        s16 state;              // `ANIM_DRIVER_STATE_*` (0 idle, 1 or 2 restart requested, 3 playing)
+        s16 playingSet;         // animation the slots were last restarted on
+        s16 requestedSet;       // animation the next restart plays; also what the sound cues and the phases of `DROP_IN` are keyed on
+        s16 rate;               // playback rate in sixteenths of a frame per tick; from spawn 16 plus the placement index (odd placements) or minus half of it (even), until `DROP_IN` sets its own
+        s16 rateBias;           // added to `rate`; always 0 here
+        s16 tickCount;          // advancing ticks since the last restart
+        s16 jumpCount;          // of those, ticks on which slot 1 followed a control jump: loops of a looping animation
+    } driver;                   // the animation driver's state, member for member `AnimDriverWork`'s
+    s16     field_17E;          // cleared at spawn and never accessed again; role unproven
+    u8      lastCommandStage;   // stage tag of the last actor command received, whatever its namespace; never read
+    u8      lastCommandArea;    // area tag of that command; never read
+    u8      lastCommand;        // low byte of that command's selector; never read
+    byte    pad_183[1];         // never accessed
+    u16     field_184;          // 5 at spawn, offset by the placement index the way `driver.rate` is; never accessed again; role unproven
+    u16     field_186;          // 20 at spawn, offset the same way; never accessed again; role unproven
+    byte    pad_188[0xC];       // never accessed
+    SVECTOR spawnPos;           // root position at spawn; never read
+    SVECTOR walkTarget;         // point `WALK` heads for, set on entering it; only X and Z are used
+    byte    pad_1A4[4];         // never accessed
+    MATRIX  lightMtx;           // storage for the model's `TmdObject::lightMtx`
+    MATRIX  colorMtx;           // storage for the model's `TmdObject::colorMtx`
+    byte    pad_1E8[0x20];      // never accessed
+    u16     lastSoundCueIndex;  // slot 1's cue index when the cue sound of animation 2 or 3 last fired, so a held cue sounds once; 0 on any other cue
+    byte    pad_20A[2];         // never accessed
+    s8      relightPending;     // 1 when the last tick left the root coordinate awaiting composition (it moved, or the view changed); the next tick then rebuilds `colorMtx` from the room lights (0 otherwise)
+    byte    pad_20D[5];         // never accessed
+    s16     fallSpeed;          // base downward step per tick of the fall in `DROP_IN`, fixed per placement on entry; each tick adjusts it by a term that grows with `stateFrame`
+} _Actor223600Work;
+STATIC_ASSERT_SIZEOF(_Actor223600Work, 0x214);
+STATIC_ASSERT(OFFSET_OF(_Actor223600Work, rig) == OFFSET_OF(AnimDriverWork, rig), Actor223600Work_rig);
+STATIC_ASSERT(OFFSET_OF(_Actor223600Work, driver) == OFFSET_OF(AnimDriverWork, state), Actor223600Work_driver);
 
 /// 0xC-byte scratch taken from `0x1F8003FC` by the approach state: the XZ
 /// offset from the model to its target, and the yaw step derived from it.
@@ -148,7 +162,6 @@ s32 func_actor_223600_8014CC04(Task*, s32, s32, s32);
 s32 func_actor_223600_8014CCD4(Task*, s32, Actor223600Event*, s32);
 
 #include "../../shared/actor_contacts.h"
-#include "../../shared/anim_driver.h"
 
 DamageAttack D_actor_223600_8014CFC8[1] = {
     { 24, 7 },
@@ -836,7 +849,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 EffectSpawnArg D_actor_223600_80150B5C = { 0 };
 
-static s32             func_actor_223600_8014B464(Actor223600Work* arg0);
+static s32             func_actor_223600_8014B464(_Actor223600Work* arg0);
 static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount);
 static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount);
 static void            func_actor_223600_8014B540(Enemy* enemy, Task* task);
@@ -850,17 +863,17 @@ static void            func_actor_223600_8014CA00(Enemy* enemy, Task* task);
 
 #include "../../shared/anim_driver_tick.inc.c"
 
-/// In motion states 2 and 3, reports 0x400C0001 the first time rig slot 1's
-/// cue index reaches one of that state's trigger ids (latched in
-/// `field_208`); in state 5, 0x400C0005 while slot 1 reports
-/// `ANIMATION_SLOT_FOLLOWED_JUMP`.
+/// On animations 2 and 3 (`driver.requestedSet`), reports 0x400C0001 the first
+/// time rig slot 1's cue index reaches one of that animation's trigger values
+/// (latched in `lastSoundCueIndex`); on animation 5, 0x400C0005 while slot 1
+/// reports `ANIMATION_SLOT_FOLLOWED_JUMP`.
 /// Returns 0 otherwise.
-static s32 func_actor_223600_8014B464(Actor223600Work* arg0)
+static s32 func_actor_223600_8014B464(_Actor223600Work* arg0)
 {
     u16 id;
     s32 v;
 
-    switch (arg0->field_174) {
+    switch (arg0->driver.requestedSet) {
         case 2:
             id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             v  = id;
@@ -868,17 +881,17 @@ static s32 func_actor_223600_8014B464(Actor223600Work* arg0)
                 goto not15;
             }
         check:
-            if (arg0->field_208 == v) {
+            if (arg0->lastSoundCueIndex == v) {
                 goto same;
             }
-            arg0->field_208 = id;
+            arg0->lastSoundCueIndex = id;
             return 0x400C0001;
         not15:
             if (v == 0x11) {
                 goto check;
             }
         clear:
-            arg0->field_208 = 0;
+            arg0->lastSoundCueIndex = 0;
             break;
         case 3:
             id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
@@ -888,7 +901,7 @@ static s32 func_actor_223600_8014B464(Actor223600Work* arg0)
             }
             goto check;
         same:
-            arg0->field_208 = id;
+            arg0->lastSoundCueIndex = id;
             break;
         case 5:
             if (arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
@@ -939,24 +952,24 @@ static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount)
 /// part 2 of the model's coordinate array. HP and max HP both come from
 /// `D_actor_223600_8014CFCC`, which also picks the opening motion through
 /// `animDriverTick`. The placement index in `Enemy::placeKey` biases the
-/// initial values in `field_176`, `field_184` and `field_186`: odd indices
+/// initial values in `driver.rate`, `field_184` and `field_186`: odd indices
 /// add the index, even indices subtract half of it. The model's world
-/// position is sampled into `field_194`..`field_198` and its facing is
+/// position is sampled into `spawnPos` and its facing is
 /// normalised and scaled on the GTE, and the instance is published as the
 /// overlay's anchor `D_actor_223600_80150B5C`.
 static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
 {
-    SVECTOR          dir;
-    Actor223600Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    u32              placementIndex;
-    u32              placementParity;
-    s32              hp;
+    SVECTOR           dir;
+    _Actor223600Work* work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
+    u32               placementIndex;
+    u32               placementParity;
+    s32               hp;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    work       = memCalloc(sizeof(Actor223600Work), false);
+    work       = memCalloc(sizeof(_Actor223600Work), false);
     task->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
@@ -984,15 +997,15 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     enemy->hpMax                  = hp;
     enemy->hp                     = hp;
 
-    work->field_174 = 1;
-    work->field_170 = 2;
-    work->field_176 = 0x10;
-    work->field_178 = 0;
+    work->driver.requestedSet = 1;
+    work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
+    work->driver.rate         = ANIMATION_RATE_ONE;
+    work->driver.rateBias     = 0;
     animDriverTick(task);
     work->field_17E     = 0;
     work->field_8       = 0;
-    obj->lightMtx       = &work->field_1A8;
-    obj->colorMtx       = &work->field_1C8;
+    obj->lightMtx       = &work->lightMtx;
+    obj->colorMtx       = &work->colorMtx;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->field_184     = 5;
     work->field_186     = 0x14;
@@ -1000,25 +1013,25 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     placementIndex  = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
     placementParity = placementIndex & 1;
     if (placementParity == 1) {
-        work->field_176 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        work->field_186 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        work->field_184 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->driver.rate += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_186   += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_184   += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     } else {
-        work->field_176 -= placementIndex >> 1;
-        work->field_186 -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
-        work->field_184 -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
+        work->driver.rate -= placementIndex >> 1;
+        work->field_186   -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
+        work->field_184   -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
     }
 
-    work->field_194 = (u16)task->extra.tmd->coords->coord.t[0];
-    work->field_196 = (u16)task->extra.tmd->coords->coord.t[1];
-    work->field_198 = (u16)task->extra.tmd->coords->coord.t[2];
+    work->spawnPos.vx = task->extra.tmd->coords->coord.t[0];
+    work->spawnPos.vy = task->extra.tmd->coords->coord.t[1];
+    work->spawnPos.vz = task->extra.tmd->coords->coord.t[2];
 
     gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     Actor223600_ScaleForward(&dir, 0x3E8);
 
-    work->field_0 = 0;
-    work->field_2 = -1;
+    work->state     = ACTOR_223600_STATE_HIDDEN;
+    work->prevState = -1;
 
     D_actor_223600_80150B5C.coord      = task->extra.tmd->coords;
     D_actor_223600_80150B5C.spawnArgLo = 0x100;
@@ -1026,32 +1039,32 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     task->state++;
 }
 
-/// Approach state of this enemy. On the frame it is entered (`field_4` set) it
-/// allocates the model's draw buffers, seeds the target position in
-/// `field_19C`/`field_1A0`, writes the starting world position for this
-/// context's top `field_8` nibble -- two spawn points, a third leaving the
-/// coordinate alone -- faces the model down +Z and restarts its motion. On
-/// every later frame it counts the frame in `field_6`, turns the model by up to
+/// `ACTOR_223600_STATE_WALK`. On the frame it is entered (`stateEntered` set) it
+/// allocates the model's draw buffers, sets the target position in
+/// `walkTarget`, writes the starting world position for this enemy's
+/// placement index -- two start points, any other index leaving the
+/// coordinate alone -- faces the model down +Z and restarts animation 2. On
+/// every later frame it counts the frame in `stateFrame`, turns the model by up to
 /// 0x10 towards the target (the clamped yaw kept in the scratch block) and
 /// walks it 5 units forward.
 static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
 {
-    Actor223600Work* work;
-    Actor223600Turn* head;
-    Actor223600Turn* turn;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    u32              mode;
+    _Actor223600Work* work;
+    Actor223600Turn*  head;
+    Actor223600Turn*  turn;
+    GfxCoord*         coord;
+    TmdObject*        obj;
+    u32               mode;
 
-    work = (Actor223600Work*)task->work;
-    if (work->field_4 != 0) {
+    work = task->work;
+    if (work->stateEntered != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
-        work->field_19C = 0x115D;
-        work->field_19E = 1;
-        work->field_1A0 = 0x12D5;
+        work->walkTarget.vx = 0x115D;
+        work->walkTarget.vy = 1;
+        work->walkTarget.vz = 0x12D5;
 
         mode = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         switch (mode) {
@@ -1067,21 +1080,21 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
                 break;
         }
         gfxRotMatrixY(&task->extra.tmd->coords->coord, 0, 1);
-        work->field_174 = 2;
-        work->field_170 = 2;
+        work->driver.requestedSet = 2;
+        work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
         animDriverTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->field_6                         = 0;
+        work->stateFrame                      = 0;
         return;
     }
 
-    work->field_6++;
+    work->stateFrame++;
     head                                  = SCRATCH_STACK_CURSOR(Actor223600Turn);
-    head[-1].dx                           = work->field_19C - (u16)task->extra.tmd->coords->coord.t[0];
+    head[-1].dx                           = work->walkTarget.vx - task->extra.tmd->coords->coord.t[0];
     SCRATCH_STACK_CURSOR(Actor223600Turn) = head - 1;
     turn                                  = head - 1;
     turn->dy                              = 0;
-    turn->dz                              = work->field_1A0 - (u16)task->extra.tmd->coords->coord.t[2];
+    turn->dz                              = work->walkTarget.vz - task->extra.tmd->coords->coord.t[2];
 
     coord     = task->extra.tmd->coords;
     turn->yaw = actorNormalizeYaw(ratan2(head[-1].dx, turn->dz) -
@@ -1101,25 +1114,25 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Parked state of this enemy. On the frame it is entered (`field_4` set) it
-/// allocates the model's draw buffers and drops the model at the spawn point
-/// the context's top `field_8` nibble selects -- two of them just face the
-/// model and hand it to motion state 2, while the third steps it forward and
-/// spins up motion state 0xE, waiting out the restart until rig slot 1 reports
+/// `ACTOR_223600_STATE_DROP_IN`. On the frame it is entered (`stateEntered` set)
+/// it allocates the model's draw buffers and puts the model above the floor at
+/// the point the enemy's placement index selects -- two of them just face the
+/// model and start animation 2, while the third steps it forward and
+/// starts animation 0xE, advancing it until rig slot 1 reports
 /// `ANIMATION_SLOT_REACHED_BOUNDARY`. Every later frame it runs one step of the
-/// motion the work block's `field_174` names: 0xE raises the model by `field_212` a frame,
-/// stepping it forward while the frame counter is inside the walk window, and
+/// animation `driver.requestedSet` names: 0xE lowers the model by about `fallSpeed` a frame
+/// from frame 0x28 of `stateFrame`, stepping it forward while the counter is inside the walk window, and
 /// hands over to 0xF once the model's world Y goes positive; 0xF walks the
 /// coordinate along its own axes on the GTE and swings part 1 through the
 /// flourish, in a longer form for the nibble-0 context than for the others;
-/// state 2 only widens `field_176`. The scratch block comes off
+/// animation 2 only doubles `driver.rate` until `stateFrame` reaches 0 and 0xE takes over. The scratch block comes off
 /// the scratch stack under three names -- `head`, whose negative index the
 /// world-X step reads, `vec`, which the column and normalise calls take, and
 /// `gte`, which the GTE round trip reads back -- and the two the scratch stack
 /// pointers are the carve and the release, each materialised where it is used.
 static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
 {
-    Actor223600Work*  work;
+    _Actor223600Work* work;
     Actor223600Turn** push;
     Actor223600Turn** pop;
     Actor223600Turn*  head;
@@ -1127,11 +1140,10 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
     SVECTOR*          gte;
     TmdObject*        obj;
     s32               mode;
-    s32               state;
     s16               frame;
 
-    work = (Actor223600Work*)task->work;
-    if (work->field_4 != 0) {
+    work = task->work;
+    if (work->stateEntered != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
@@ -1143,20 +1155,20 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 task->extra.tmd->coords->coord.t[1] = -0x384;
                 task->extra.tmd->coords->coord.t[2] = 0x1590;
                 gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x7D0, 1);
-                work->field_6   = -0xA;
-                work->field_212 = 0xB4;
-                work->field_174 = 2;
-                work->field_170 = 2;
+                work->stateFrame          = -0xA;
+                work->fallSpeed           = 0xB4;
+                work->driver.requestedSet = 2;
+                work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
                 break;
             case 1:
                 task->extra.tmd->coords->coord.t[0] = 0x12C;
                 task->extra.tmd->coords->coord.t[1] = -0x4C4;
                 task->extra.tmd->coords->coord.t[2] = 0x1194;
                 gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x3E8, 1);
-                work->field_212 = 0xBE;
-                work->field_6   = 0;
-                work->field_174 = 2;
-                work->field_170 = 2;
+                work->fallSpeed           = 0xBE;
+                work->stateFrame          = 0;
+                work->driver.requestedSet = 2;
+                work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
                 break;
             case 2:
                 task->extra.tmd->coords->coord.t[0] = 0x104A;
@@ -1164,16 +1176,16 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 task->extra.tmd->coords->coord.t[2] = 0xFE6;
                 gfxRotMatrixY(&task->extra.tmd->coords->coord, -0x400, 1);
                 Actor223600_MoveForward(task->extra.tmd->coords, 0x15E);
-                work->field_6   = 0x3C;
-                work->field_212 = 0x50;
-                work->field_176 = 0x40;
-                work->field_174 = 0xE;
-                work->field_170 = mode;
+                work->stateFrame          = 0x3C;
+                work->fallSpeed           = 0x50;
+                work->driver.rate         = 4 * ANIMATION_RATE_ONE;
+                work->driver.requestedSet = 0xE;
+                work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
                 do {
                     animDriverTick(task);
                 } while ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) == 0);
-                work->field_176 = 0x10;
-                work->field_212 = 0x46;
+                work->driver.rate = ANIMATION_RATE_ONE;
+                work->fallSpeed   = 0x46;
                 break;
         }
         animDriverTick(task);
@@ -1181,11 +1193,10 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
         return;
     }
 
-    if (work->field_6 == 0) {
-        state = work->field_174;
-        if (state == 2) {
-            work->field_174 = 0xE;
-            work->field_170 = state;
+    if (work->stateFrame == 0) {
+        if (work->driver.requestedSet == 2) {
+            work->driver.requestedSet = 0xE;
+            work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
         }
     }
     animDriverTick(task);
@@ -1196,40 +1207,40 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
     gte                                    = (SVECTOR*)(head - 1);
     SCRATCH_HEAD_AT(push, Actor223600Turn) = head - 1;
 
-    switch (work->field_174) {
+    switch (work->driver.requestedSet) {
         case 0xE:
-            work->field_176 = 0x10;
+            work->driver.rate = ANIMATION_RATE_ONE;
             if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) != 2) {
-                if (work->field_6 < 0x32) {
-                    if (work->field_6 >= 0x28) {
+                if (work->stateFrame < 0x32) {
+                    if (work->stateFrame >= 0x28) {
                         Actor223600_MoveForward(task->extra.tmd->coords, 0x16);
-                    } else if (work->field_6 >= 0x23) {
+                    } else if (work->stateFrame >= 0x23) {
                         Actor223600_MoveForward(task->extra.tmd->coords, 0xA);
-                    } else if (work->field_6 >= 0x13) {
+                    } else if (work->stateFrame >= 0x13) {
                         Actor223600_MoveForward(task->extra.tmd->coords, 0xA);
                     }
                 }
             }
-            frame = (u16)work->field_6;
+            frame = work->stateFrame;
             if (frame >= 0x28) {
                 if ((u16)(frame % 5) < 2) {
-                    task->extra.tmd->coords->coord.t[1] += work->field_212 - (frame - 0x28) / 4;
+                    task->extra.tmd->coords->coord.t[1] += work->fallSpeed - (frame - 0x28) / 4;
                 } else {
-                    task->extra.tmd->coords->coord.t[1] += work->field_212 + (frame - 0x28) / 2;
+                    task->extra.tmd->coords->coord.t[1] += work->fallSpeed + (frame - 0x28) / 2;
                 }
                 if (task->extra.tmd->coords->coord.t[1] >= 2) {
                     task->extra.tmd->coords->coord.t[1] = 1;
                 }
             }
             if (task->extra.tmd->coords->coord.t[1] > 0) {
-                work->field_174 = 0xF;
-                work->field_170 = 2;
-                work->field_6   = 0;
+                work->driver.requestedSet = 0xF;
+                work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
+                work->stateFrame          = 0;
             }
             break;
         case 0xF:
-            work->field_176 = 0x10;
-            if (work->field_6 < 0xB) {
+            work->driver.rate = ANIMATION_RATE_ONE;
+            if (work->stateFrame < 0xB) {
                 gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, vec);
                 VectorNormalSS(vec, vec);
                 gte_lddp(0x23);
@@ -1240,7 +1251,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 task->extra.tmd->coords->coord.t[1] += vec->vy;
                 task->extra.tmd->coords->coord.t[2] += vec->vz;
             }
-            if ((u32)((u16)work->field_6 - 5) < 9) {
+            if (work->stateFrame >= 5 && work->stateFrame < 0xE) {
                 Gfx_MatrixCol1(&task->extra.tmd->coords->coord, vec);
                 VectorNormalSS(vec, vec);
                 gte_lddp(-0x14);
@@ -1251,10 +1262,10 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 task->extra.tmd->coords->coord.t[1] += vec->vy;
                 task->extra.tmd->coords->coord.t[2] += vec->vz;
                 gfxRotMatrixX(&task->extra.tmd->coords[1].coord,
-                              -((work->field_6 - 4) * 0xCC), GRAPHICS_ROTATION_COMPOSE);
+                              -((work->stateFrame - 4) * 0xCC), GRAPHICS_ROTATION_COMPOSE);
             }
             if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
-                if ((u32)((u16)work->field_6 - 0xE) < 0x17) {
+                if (work->stateFrame >= 0xE && work->stateFrame < 0x25) {
                     Gfx_MatrixCol1(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
                     gte_lddp(0xB);
@@ -1270,7 +1281,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                     gte_ldsv(gte);
                     gte_gpf12();
                     gte_stsv(gte);
-                    switch ((s16)((u16)work->field_6 - 0xF)) {
+                    switch ((s16)(work->stateFrame - 0xF)) {
                         case 0:
                         case 1:
                         case 3:
@@ -1283,7 +1294,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                             task->extra.tmd->coords->coord.t[2] -= gte->vz;
                             gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
                             gfxRotMatrixZ(&task->extra.tmd->coords[1].coord,
-                                          (work->field_6 - 0xD) * 0x55 - 0x6E, GRAPHICS_ROTATION_COMPOSE);
+                                          (work->stateFrame - 0xD) * 0x55 - 0x6E, GRAPHICS_ROTATION_COMPOSE);
                             break;
                         default:
                             task->extra.tmd->coords->coord.t[0] += gte->vx;
@@ -1291,16 +1302,16 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                             task->extra.tmd->coords->coord.t[2] += gte->vz;
                             gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
                             gfxRotMatrixZ(&task->extra.tmd->coords[1].coord,
-                                          (work->field_6 - 0xD) * 0x55, GRAPHICS_ROTATION_COMPOSE);
+                                          (work->stateFrame - 0xD) * 0x55, GRAPHICS_ROTATION_COMPOSE);
                             break;
                     }
                 }
-                if (work->field_6 >= 0x25) {
+                if (work->stateFrame >= 0x25) {
                     gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
                     gfxRotMatrixZ(&task->extra.tmd->coords[1].coord, 0x800, GRAPHICS_ROTATION_COMPOSE);
                 }
             } else {
-                if ((u32)((u16)work->field_6 - 0xE) < 0x10) {
+                if (work->stateFrame >= 0xE && work->stateFrame < 0x1E) {
                     Gfx_MatrixCol1(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
                     gte_lddp(0xB);
@@ -1321,27 +1332,27 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                     task->extra.tmd->coords->coord.t[2] += vec->vz;
                     gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
                     gfxRotMatrixZ(&task->extra.tmd->coords[1].coord,
-                                  (work->field_6 - 0xD) * 0x78, GRAPHICS_ROTATION_COMPOSE);
+                                  (work->stateFrame - 0xD) * 0x78, GRAPHICS_ROTATION_COMPOSE);
                 }
-                if (work->field_6 >= 0x1E) {
+                if (work->stateFrame >= 0x1E) {
                     gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
                     gfxRotMatrixZ(&task->extra.tmd->coords[1].coord, 0x800, GRAPHICS_ROTATION_COMPOSE);
                 }
             }
             break;
         case 2:
-            work->field_176 = 0x20;
+            work->driver.rate = 2 * ANIMATION_RATE_ONE;
             break;
     }
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     pop                                   = (Actor223600Turn**)SCRATCH_HEAD_ADDR;
     SCRATCH_POP_AT(pop, Actor223600Turn);
-    work->field_6++;
+    work->stateFrame++;
 }
 
 /// The three state handlers the tick below picks between by the work block's
-/// state word, copied onto the stack before the call. The copy is a three-word
+/// `state` (`ACTOR_223600_STATE_*`), copied onto the stack before the call. The copy is a three-word
 /// block move out of the unit's `.rodata`, which is why the table is a rodata
 /// object rather than a local initialiser.
 static const EnemyTaskFuncTable3 D_actor_223600_80149E4C = {
@@ -1354,34 +1365,35 @@ static const EnemyTaskFuncTable3 D_actor_223600_80149E4C = {
 
 /// Per-frame tick of this enemy, entry 1 of `D_actor_223600_80149E58`. The
 /// game mode word selects a one-shot arm first: mode 0 clears the model's
-/// `field_C` when the work block's state is nonzero and then carries on, mode 1
+/// `field_C` when the work block's state is not `ACTOR_223600_STATE_HIDDEN` and then carries on, mode 1
 /// does the same and returns, and mode 2 forces `field_C` to 0x80 and returns.
-/// The common path records the state change in `field_4` and the dispatched
-/// state in `field_2`, runs the state handler from `D_actor_223600_80149E4C`,
+/// The common path records the state change in `stateEntered` and the dispatched
+/// state in `prevState`, runs the state handler from `D_actor_223600_80149E4C`,
 /// turns the animation latch `func_actor_223600_8014B464` raises into a
 /// `SndEvt_EnqueueType6` cue -- the top nibble of the enemy's `placeKey` in
-/// bits 8-11, with the model's pan and depth -- and finally re-parks the model
-/// through `func_800D7A9C` while `field_20C` is set, latching `field_20C` once
-/// the session's `viewReady` or a dirty coordinate arrives.
+/// bits 8-11, with the model's pan and depth -- and finally relights the model
+/// through `func_800D7A9C` while `relightPending` is set, setting
+/// `relightPending` again when the session's `viewReady` or the state handler
+/// left the root coordinate dirty.
 static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
 {
-    Actor223600Work*    work;
+    _Actor223600Work*   work;
     EnemyTaskFuncTable3 fns;
     s32                 reaction;
     s32                 cue;
     s32                 pan;
 
-    work = (Actor223600Work*)task->work;
+    work = task->work;
     fns  = D_actor_223600_80149E4C;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            if (work->field_0 != 0) {
+            if (work->state != ACTOR_223600_STATE_HIDDEN) {
                 task->extra.tmd->flags = 0;
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            if (work->field_0 != 0) {
+            if (work->state != ACTOR_223600_STATE_HIDDEN) {
                 task->extra.tmd->flags = 0;
             }
             return;
@@ -1390,13 +1402,13 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
             return;
     }
 
-    if (work->field_2 != work->field_0) {
-        work->field_4 = 1;
+    if (work->prevState != work->state) {
+        work->stateEntered = 1;
     } else {
-        work->field_4 = 0;
+        work->stateEntered = 0;
     }
-    work->field_2 = (u16)work->field_0;
-    fns.funcs[work->field_0](enemy, task);
+    work->prevState = work->state;
+    fns.funcs[work->state](enemy, task);
 
     reaction = func_actor_223600_8014B464(work);
     if (reaction != 0) {
@@ -1406,7 +1418,7 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
             cue, pan,
             (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    if (work->field_20C != 0) {
+    if (work->relightPending != 0) {
         func_800D7A9C(task->extra.tmd,
                       (VECTOR*)task->extra.tmd->coords->workm.t, 0, 3);
     }
@@ -1414,10 +1426,10 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (task->extra.tmd->coords->composeStamp == GRAPHICS_COORD_DIRTY) {
-        work->field_20C = 1;
+        work->relightPending = 1;
         return;
     }
-    work->field_20C = 0;
+    work->relightPending = 0;
 }
 
 /// The enemy's three task states -- spawn, per-frame tick and teardown -- which
@@ -1431,60 +1443,63 @@ static const EnemyTaskFuncTable3 D_actor_223600_80149E58 = {
 };
 
 /// Message handler (id 0x7D5 in `D_actor_223600_80150B28`). Drives the model's
-/// `field_C` flag word and the work block's state word from `arg2`: 0 sets 0x80
+/// `field_C` flag word and the work block's `state` from `arg2`: 0 sets 0x80
 /// and rewrites the buffers, 1 clears it and rewrites the buffers, 2 sets bit
-/// 2, and 3 clears then sets bit 2. Only case 1 keeps `arg2` as the state.
+/// 2, and 3 clears then sets bit 2. 0 and 1 select `ACTOR_223600_STATE_WALK`,
+/// 2 and 3 `ACTOR_223600_STATE_HIDDEN`.
 s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
-    TmdObject*       obj  = task->extra.tmd;
-    Actor223600Work* work = (Actor223600Work*)task->work;
+    TmdObject*        obj  = task->extra.tmd;
+    _Actor223600Work* work = task->work;
 
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
-            work->field_0 = 1;
+            work->state = ACTOR_223600_STATE_WALK;
             break;
         case 1:
             obj->flags = 0;
             Tmd_AllocBuffers(obj);
-            work->field_0 = arg2;
+            work->state = ACTOR_223600_STATE_WALK;
             break;
         case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->state = ACTOR_223600_STATE_HIDDEN;
             break;
         case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags  = 0;
+            work->state = ACTOR_223600_STATE_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
 }
 
 /// Message handler (id 0x7DB in `D_actor_223600_80150B28`). Copies the first
-/// three bytes of the event packet into the work block, then, for command word
-/// 0x302, drives the work block's state word from the packet's sub-command: 1
-/// selects 2, 2 and 9 select 0, and 0 is a no-op.
+/// three bytes of the event packet into `lastCommandStage`, `lastCommandArea`
+/// and `lastCommand`, then, for command word 0x302, drives the work block's
+/// `state` from the packet's sub-command: 1 selects
+/// `ACTOR_223600_STATE_DROP_IN`, 2 and 9 select `ACTOR_223600_STATE_HIDDEN`,
+/// and 0 is a no-op.
 s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event, s32 arg3)
 {
-    Actor223600Work* work;
+    _Actor223600Work* work;
 
-    work            = (Actor223600Work*)task->work;
-    work->field_180 = event->bytes[0];
-    work->field_181 = event->bytes[1];
-    work->field_182 = event->bytes[2];
+    work                   = task->work;
+    work->lastCommandStage = event->bytes[0];
+    work->lastCommandArea  = event->bytes[1];
+    work->lastCommand      = event->bytes[2];
     if (event->words[0] == 0x302) {
         switch (event->words[1]) {
             case 9:
-                work->field_0 = 0;
+                work->state = ACTOR_223600_STATE_HIDDEN;
                 break;
             case 1:
-                work->field_0 = 2;
+                work->state = ACTOR_223600_STATE_DROP_IN;
                 break;
             case 2:
-                work->field_0 = 0;
+                work->state = ACTOR_223600_STATE_HIDDEN;
                 break;
             case 0:
                 break;
@@ -1497,14 +1512,16 @@ s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event, s3
 
 #include "../../shared/coord_math_yaw_scale.inc.c"
 
-/// Idle state of this enemy (entry 0 of `D_actor_223600_80149E4C`). On the
-/// frame the state is entered (`field_4` set) it marks the enemy not lockable
+/// `ACTOR_223600_STATE_HIDDEN` (entry 0 of `D_actor_223600_80149E4C`). On the
+/// frame the state is entered (`stateEntered` set) it marks the enemy not lockable
 /// and sets the model's flags to 0x80; it does nothing on later frames.
 static void func_actor_223600_8014CF3C(Enemy* arg0, Task* arg1)
 {
-    TmdObject* model;
+    _Actor223600Work* work;
+    TmdObject*        model;
 
-    if (((Actor223600Work*)arg1->work)->field_4 != 0) {
+    work = arg1->work;
+    if (work->stateEntered != 0) {
         model                        = arg1->extra.tmd;
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         model->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
