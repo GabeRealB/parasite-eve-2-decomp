@@ -107297,7 +107297,7 @@ GCC keeps those four stores independent, so the object comes out as
 groups the loads: `lw $t0..$t3` from the source, then `sw $t0..$t3` to the
 destination, in one 0x10-byte block per iteration. Rewriting the two copies in
 `func_actor_521100_801360C4` as `sp10 = *coord;` and
-`work->field_48C = coord->coord;` took the seed from 49.312% to 98.261% in one
+`work->unscaledRoot = coord->coord;` took the seed from 49.312% to 98.261% in one
 edit, with the structure diagnostic a full match.
 
 The copy size also names the source type, which is worth checking before

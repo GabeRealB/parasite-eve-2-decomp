@@ -32,18 +32,6 @@
 
 #include "overlay.h"
 
-/// The attach coordinate's rotation as the scale-in step snapshots it, and the
-/// cache the "walk to" placement opcode writes beside it: the heading it
-/// applied to the root coordinate and the remaining distance, scaled by 20.
-typedef struct Actor521100AttachRot {
-    /* 0x00 */ MATRIX mat;
-    /* 0x20 */ byte   pad_20[2];
-    /* 0x22 */ u16    yaw;
-    /* 0x24 */ byte   pad_24[2];
-    /* 0x26 */ s16    travel;
-} Actor521100AttachRot;
-STATIC_ASSERT_SIZEOF(Actor521100AttachRot, 0x28);
-
 /// Work block of the task `func_actor_521100_80136604` dispatches:
 /// `memCalloc(0x4B4, 0)` in its spawn state `func_actor_521100_80135DDC`, kept
 /// both in `Task::work` and in `D_actor_521100_8016A3D8`. It carries the
@@ -52,18 +40,22 @@ STATIC_ASSERT_SIZEOF(Actor521100AttachRot, 0x28);
 /// state runs. The nineteen slots are the ones `func_actor_521100_80136724`
 /// ticks.
 typedef struct Actor521100Work4B4 {
-    /* 0x000 */ MATRIX               light;
-    /* 0x020 */ MATRIX               color;
-    /* 0x040 */ ActorAnimRig19       rig;
-    /* 0x47C */ s16                  field_47C; // actor step: 1 and 2 select the body to run, which then advances it to 3
-    /* 0x47E */ u16                  field_47E; // animation id currently playing
-    /* 0x480 */ u16                  animId;    // animation id the slots are seeded with
-    /* 0x482 */ s16                  field_482; // cleared when a step body is started
-    /* 0x484 */ s16                  field_484; // scale-in step func_actor_521100_801360C4 switches on: 0 seeds, 1 shrinks, 2 is done
-    /* 0x486 */ u16                  field_486; // frames the shrink has run, counted to 0xA and 0xF by the step-1 body
-    /* 0x488 */ u16                  field_488; // scale the shrink applies, stepped down by 0x10 per frame from 0x1000
-    /* 0x48A */ byte                 pad_48A[2];
-    /* 0x48C */ Actor521100AttachRot field_48C;
+    /* 0x000 */ MATRIX         light;
+    /* 0x020 */ MATRIX         color;
+    /* 0x040 */ ActorAnimRig19 rig;
+    /* 0x47C */ s16            field_47C;    // actor step: 1 and 2 select the body to run, which then advances it to 3
+    /* 0x47E */ u16            field_47E;    // animation id currently playing
+    /* 0x480 */ u16            animId;       // animation id the slots are seeded with
+    /* 0x482 */ s16            field_482;    // cleared when a step body is started
+    /* 0x484 */ s16            field_484;    // scale-in step func_actor_521100_801360C4 switches on: 0 seeds, 1 shrinks, 2 is done
+    /* 0x486 */ u16            field_486;    // frames the shrink has run, counted to 0xA and 0xF by the step-1 body
+    /* 0x488 */ u16            field_488;    // scale the shrink applies, stepped down by 0x10 per frame from 0x1000
+    /* 0x48A */ byte           pad_48A[2];
+    /* 0x48C */ MATRIX         unscaledRoot; // root coordinate's local matrix as the shrink began, turned to `yaw`; each frame's scale is applied to a fresh copy of it
+    /* 0x4AC */ byte           pad_4AC[2];
+    /* 0x4AE */ s16            yaw;          // heading last given the root coordinate, 4096 to a turn
+    /* 0x4B0 */ byte           pad_4B0[2];
+    /* 0x4B2 */ s16            travel;       // frames of forward movement the walk has left
 } Actor521100Work4B4;
 STATIC_ASSERT_SIZEOF(Actor521100Work4B4, 0x4B4);
 
@@ -500,11 +492,11 @@ static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
 /// pending-animation states run their reseed body first and advance the step to
 /// 3, which is why they share the tail that stores it.
 ///
-/// Step 3 while the walk-to cache is armed (`animId` is the walk clip and
-/// `travel` still has distance left) advances the attach coordinate one step:
-/// 20 units along its local Z axis, the scale `travel` is counted in, through
-/// `actorMoveForward`. The pause check the helper makes is why the step
-/// is skipped while the game is frozen - `travel` still ticks down, so a
+/// Step 3 while a walk is in progress (`animId` is the walk clip and `travel`
+/// still has frames left) advances the root coordinate one step: 20 units
+/// along its local Z axis, the stride the walk-to handler divided the distance
+/// by, through `actorMoveForward`. The pause check the helper makes is why the
+/// step is skipped while the game is frozen - `travel` still ticks down, so a
 /// paused actor finishes its walk.
 static void func_actor_521100_80135F2C(Task* task)
 {
@@ -524,9 +516,9 @@ static void func_actor_521100_80135F2C(Task* task)
     }
     if (work->field_47C == 3) {
         animId = work->animId;
-        if (animId == 1 && work->field_48C.travel != 0) {
+        if (animId == 1 && work->travel != 0) {
             actorMoveForward(task->extra.tmd->coords, 0x14);
-            D_actor_521100_8016A3D8->field_48C.travel = (u16)D_actor_521100_8016A3D8->field_48C.travel - 1;
+            D_actor_521100_8016A3D8->travel--;
         }
         func_actor_521100_80136724();
         return;
@@ -536,10 +528,10 @@ static void func_actor_521100_80135F2C(Task* task)
 /// stack `GfxCoord` - the copy the shrink's effect is placed off - and
 /// runs the scale-in step `field_484`. Step 0 seeds the shrink (the step-1
 /// body `func_actor_521100_801368B0` scales by `field_488`, so the seed stores
-/// 0x1000 there and snapshots the coordinate's rotation into `field_48C`),
-/// step 1 runs that body and drops the 0x600A5 effect once the counter reaches
-/// 0xF, and step 2 returns without animating. Every other step falls through
-/// to the slot tick and the colour step.
+/// 0x1000 there, turns the root coordinate to `yaw` and snapshots its local
+/// matrix into `unscaledRoot`), step 1 runs that body and drops the 0x600A5
+/// effect once the counter reaches 0xF, and step 2 returns without animating.
+/// Every other step falls through to the slot tick and the colour step.
 static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
 {
     GfxCoord            sp10;
@@ -557,9 +549,9 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
         case 0:
             work->field_486 = 0;
             work->field_488 = 0x1000;
-            gfxRotMatrixY(&coord->coord, (s16)work->field_48C.yaw, 1);
-            work->field_48C.mat = coord->coord;
-            work->field_484     = 1;
+            gfxRotMatrixY(&coord->coord, work->yaw, GRAPHICS_ROTATION_REPLACE);
+            work->unscaledRoot = coord->coord;
+            work->field_484    = 1;
             break;
 
         case 1:
@@ -770,10 +762,10 @@ static void func_actor_521100_80136820(void)
 /// Scale-in step body, run while `field_484` is 1: takes an
 /// `ActorScaleScratch` block from the scratch stack, splats an identity
 /// rotation into it and hands it to `ScaleMatrix` with a
-/// `(0x1000, field_488, 0x1000)` vector, then multiplies the product into the
-/// attach coordinate whose rotation step 0 snapshotted into `field_48C`. The
-/// scale drops 0x10 a frame; under 0x101 the step advances to 2 and this body
-/// stops running.
+/// `(0x1000, field_488, 0x1000)` vector, then restores the root coordinate's
+/// local matrix from `unscaledRoot`, the snapshot step 0 took, and multiplies
+/// the product into it, so the scale never compounds. The scale drops 0x10 a
+/// frame; under 0x101 the step advances to 2 and this body stops running.
 ///
 /// The scratch pointer is taken with a chained assignment on purpose: the
 /// store and the callee-saved copy are what put the extra `move $s0, $v0`
@@ -797,7 +789,7 @@ static void func_actor_521100_801368B0(Task* task)
     scratch->scale.vx                    = ONE;
     scratch->scale.vy                    = (s32)(s16)work->field_488;
     scratch->scale.vz                    = ONE;
-    coord->coord                         = work->field_48C.mat;
+    coord->coord                         = work->unscaledRoot;
     scratch->matrix.rotationWords.m00M01 = ONE;
     scratch->matrix.rotationWords.m02M10 = 0;
     scratch->matrix.rotationWords.m11M12 = ONE;
@@ -844,17 +836,17 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2, s32 arg3)
 }
 
 /// Message 0x7D4 handler in `D_actor_521100_8016A358`, placing the actor: only
-/// the yaw of the argument block's angles is used, cached in the work block's
-/// `field_48C.yaw` and applied with `gfxRotMatrixY`, then the position becomes
-/// the root coordinate's translation and `composeStamp` is cleared.
+/// the yaw of the argument block's angles is used, kept in the work block's
+/// `yaw` and applied with `gfxRotMatrixY`, then the position becomes the root
+/// coordinate's translation and `composeStamp` is cleared.
 s32 func_actor_521100_80136A64(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord* coord;
     u16       yaw;
 
-    coord                                  = task->extra.tmd->coords;
-    D_actor_521100_8016A3D8->field_48C.yaw = yaw = placement->rot.vy;
-    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
+    coord                        = task->extra.tmd->coords;
+    D_actor_521100_8016A3D8->yaw = yaw = placement->rot.vy;
+    gfxRotMatrixY(&coord->coord, (s16)yaw, GRAPHICS_ROTATION_REPLACE);
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;
@@ -911,12 +903,12 @@ s32 func_actor_521100_80136BE8(Task* task, s32 arg1, ActorTransform* target, s32
     s32       dz;
     u16       yaw;
 
-    coord                                  = task->extra.tmd->coords;
-    dx                                     = target->pos.vx - coord->coord.t[0];
-    dz                                     = target->pos.vz - coord->coord.t[2];
-    yaw                                    = ratan2(dx, dz);
-    D_actor_521100_8016A3D8->field_48C.yaw = yaw;
-    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
-    D_actor_521100_8016A3D8->field_48C.travel = SquareRoot0(dx * dx + dz * dz) / 20;
+    coord                        = task->extra.tmd->coords;
+    dx                           = target->pos.vx - coord->coord.t[0];
+    dz                           = target->pos.vz - coord->coord.t[2];
+    yaw                          = ratan2(dx, dz);
+    D_actor_521100_8016A3D8->yaw = yaw;
+    gfxRotMatrixY(&coord->coord, (s16)yaw, GRAPHICS_ROTATION_REPLACE);
+    D_actor_521100_8016A3D8->travel = SquareRoot0(dx * dx + dz * dz) / 20;
     return 0;
 }
