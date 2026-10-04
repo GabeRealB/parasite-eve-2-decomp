@@ -350,21 +350,21 @@ AnimationPlayRequest D_actor_503500_8016EAE8[18] = {
 
 SVECTOR D_actor_503500_8016EC50 = { 0, -500, 1600, 0 };
 
-Actor503500Step D_actor_503500_8016EC58[4] = {
+Actor503500AttackChoice D_actor_503500_8016EC58[4] = {
     { func_actor_503500_8013667C, 127 },
     { func_actor_503500_80133BF4, 79 },
     { func_actor_503500_8013680C, 47 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EC78[4] = {
+Actor503500AttackChoice D_actor_503500_8016EC78[4] = {
     { func_actor_503500_80133BF4, 127 },
     { func_actor_503500_80136770, 79 },
     { func_actor_503500_8013680C, 47 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EC98[5] = {
+Actor503500AttackChoice D_actor_503500_8016EC98[5] = {
     { func_actor_503500_80136770, 79 },
     { func_actor_503500_80134284, 63 },
     { func_actor_503500_8013656C, 47 },
@@ -372,52 +372,52 @@ Actor503500Step D_actor_503500_8016EC98[5] = {
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016ECC0[3] = {
+Actor503500AttackChoice D_actor_503500_8016ECC0[3] = {
     { func_actor_503500_8013667C, 159 },
     { func_actor_503500_8013680C, 95 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016ECD8[3] = {
+Actor503500AttackChoice D_actor_503500_8016ECD8[3] = {
     { func_actor_503500_8013680C, 159 },
     { func_actor_503500_80136770, 95 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016ECF0[4] = {
+Actor503500AttackChoice D_actor_503500_8016ECF0[4] = {
     { func_actor_503500_8013680C, 111 },
     { func_actor_503500_80134284, 79 },
     { func_actor_503500_80136770, 63 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016ED10[4] = {
+Actor503500AttackChoice D_actor_503500_8016ED10[4] = {
     { func_actor_503500_80134284, 159 },
     { func_actor_503500_8013656C, 63 },
     { func_actor_503500_80136770, 31 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016ED30[4] = {
+Actor503500AttackChoice D_actor_503500_8016ED30[4] = {
     { func_actor_503500_80136948, 95 },
     { func_actor_503500_8013667C, 95 },
     { func_actor_503500_8013680C, 63 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016ED50[3] = {
+Actor503500AttackChoice D_actor_503500_8016ED50[3] = {
     { func_actor_503500_8013680C, 159 },
     { func_actor_503500_80134284, 95 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016ED68[3] = {
+Actor503500AttackChoice D_actor_503500_8016ED68[3] = {
     { func_actor_503500_80134284, 223 },
     { func_actor_503500_8013680C, 31 },
     { NULL, 0 },
 };
 
-Actor503500Step* D_actor_503500_8016ED80[4] = {
+Actor503500AttackChoice* D_actor_503500_8016ED80[4] = {
     D_actor_503500_8016EC58,
     D_actor_503500_8016EC78,
     D_actor_503500_8016EC78,
@@ -431,7 +431,7 @@ s16 D_actor_503500_8016ED90[4] = {
     2048,
 };
 
-Actor503500Step* D_actor_503500_8016ED98[4] = {
+Actor503500AttackChoice* D_actor_503500_8016ED98[4] = {
     D_actor_503500_8016ECC0,
     D_actor_503500_8016ECD8,
     D_actor_503500_8016ECF0,
@@ -445,7 +445,7 @@ s16 D_actor_503500_8016EDA8[4] = {
     2048,
 };
 
-Actor503500Step* D_actor_503500_8016EDB0[4] = {
+Actor503500AttackChoice* D_actor_503500_8016EDB0[4] = {
     D_actor_503500_8016ED30,
     D_actor_503500_8016ED50,
     D_actor_503500_8016ED50,
@@ -459,69 +459,69 @@ s16 D_actor_503500_8016EDC0[4] = {
     2048,
 };
 
-Actor503500Step D_actor_503500_8016EDC8[4] = {
+Actor503500AttackChoice D_actor_503500_8016EDC8[4] = {
     { func_actor_503500_801364D0, 111 },
     { func_actor_503500_8013667C, 111 },
     { func_actor_503500_80133BF4, 31 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EDE8[3] = {
+Actor503500AttackChoice D_actor_503500_8016EDE8[3] = {
     { func_actor_503500_8013667C, 159 },
     { func_actor_503500_80133BF4, 95 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EE00[2] = {
+Actor503500AttackChoice D_actor_503500_8016EE00[2] = {
     { func_actor_503500_8013656C, 255 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EE10[3] = {
+Actor503500AttackChoice D_actor_503500_8016EE10[3] = {
     { func_actor_503500_801364D0, 127 },
     { func_actor_503500_8013667C, 127 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EE28[3] = {
+Actor503500AttackChoice D_actor_503500_8016EE28[3] = {
     { func_actor_503500_8013680C, 159 },
     { func_actor_503500_80136770, 95 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EE40[4] = {
+Actor503500AttackChoice D_actor_503500_8016EE40[4] = {
     { func_actor_503500_8013680C, 95 },
     { func_actor_503500_80134284, 79 },
     { func_actor_503500_80136770, 63 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EE60[4] = {
+Actor503500AttackChoice D_actor_503500_8016EE60[4] = {
     { func_actor_503500_80134284, 159 },
     { func_actor_503500_8013656C, 63 },
     { func_actor_503500_80136770, 31 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EE80[3] = {
+Actor503500AttackChoice D_actor_503500_8016EE80[3] = {
     { func_actor_503500_801364D0, 127 },
     { func_actor_503500_80136948, 127 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EE98[3] = {
+Actor503500AttackChoice D_actor_503500_8016EE98[3] = {
     { func_actor_503500_8013680C, 159 },
     { func_actor_503500_80134284, 95 },
     { NULL, 0 },
 };
 
-Actor503500Step D_actor_503500_8016EEB0[3] = {
+Actor503500AttackChoice D_actor_503500_8016EEB0[3] = {
     { func_actor_503500_80134284, 127 },
     { func_actor_503500_8013656C, 127 },
     { NULL, 0 },
 };
 
-Actor503500Step* D_actor_503500_8016EEC8[4] = {
+Actor503500AttackChoice* D_actor_503500_8016EEC8[4] = {
     D_actor_503500_8016EDC8,
     D_actor_503500_8016EDE8,
     D_actor_503500_8016EDE8,
@@ -535,7 +535,7 @@ s16 D_actor_503500_8016EED8[4] = {
     2048,
 };
 
-Actor503500Step* D_actor_503500_8016EEE0[4] = {
+Actor503500AttackChoice* D_actor_503500_8016EEE0[4] = {
     D_actor_503500_8016EE10,
     D_actor_503500_8016EE28,
     D_actor_503500_8016EE40,
@@ -549,7 +549,7 @@ s16 D_actor_503500_8016EEF0[4] = {
     2048,
 };
 
-Actor503500Step* D_actor_503500_8016EEF8[4] = {
+Actor503500AttackChoice* D_actor_503500_8016EEF8[4] = {
     D_actor_503500_8016EE80,
     D_actor_503500_8016EE98,
     D_actor_503500_8016EE98,
@@ -563,7 +563,7 @@ s16 D_actor_503500_8016EF08[4] = {
     2048,
 };
 
-Actor503500Step** D_actor_503500_8016EF10[2][3] = {
+Actor503500AttackChoice** D_actor_503500_8016EF10[2][3] = {
     { D_actor_503500_8016ED80, D_actor_503500_8016ED98, D_actor_503500_8016EDB0 },
     { D_actor_503500_8016EEC8, D_actor_503500_8016EEE0, D_actor_503500_8016EEF8 },
 };

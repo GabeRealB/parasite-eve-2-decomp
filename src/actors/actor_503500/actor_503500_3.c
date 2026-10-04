@@ -555,23 +555,24 @@ static s32 func_actor_503500_80133684(Task* arg0)
 /// Boss attack picker. Every frame it stores the player's yaw
 /// relative to the boss (wrapped into [-0x800, 0x800)) in `playerBearing`. Step 0
 /// updates the height band `heightBand` from the target's Y with hysteresis,
-/// buckets `|yaw|` into `bearingBand`, then walks that bucket's weighted list
-/// until the running weight reaches the random byte in `randomRoll`, stores
-/// the chosen step in `runningAttack` and runs it at once. Step 1 keeps running
+/// buckets `|yaw|` into `bearingBand`, then walks that band's
+/// `Actor503500AttackChoice` list until the running weight reaches the random
+/// byte in `randomRoll`, stores
+/// the chosen attack in `runningAttack` and runs it at once. Step 1 keeps running
 /// it. A non-zero result, an empty list (0x1E) or running off the end of the
 /// list (0xF) goes to `attackDelay` after `func_actor_503500_80136EFC(arg0, 0)`.
 static void func_actor_503500_801338E8(Task* arg0)
 {
-    Actor503500Work* work;
-    GfxCoord*        coord;
-    Actor503500Step* step;
-    s32              bit;
-    s16*             thr;
-    s32              angle;
-    s32              absAngle;
-    u32              sum;
-    u32              r;
-    s32              ret;
+    Actor503500Work*         work;
+    GfxCoord*                coord;
+    Actor503500AttackChoice* choice;
+    s32                      bit;
+    s16*                     thr;
+    s32                      angle;
+    s32                      absAngle;
+    u32                      sum;
+    u32                      r;
+    s32                      ret;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -610,21 +611,21 @@ static void func_actor_503500_801338E8(Task* arg0)
             absAngle = abs(angle);
             for (work->bearingBand = 0; *thr++ < absAngle; work->bearingBand++) {
             }
-            bit  = (work->progressFlags >> 3) & 1;
-            step = D_actor_503500_8016EF10[bit][work->heightBand][work->bearingBand];
-            r    = (u8)work->randomRoll;
-            if (step->fn != NULL) {
-                sum = step->weight;
+            bit    = (work->progressFlags >> 3) & 1;
+            choice = D_actor_503500_8016EF10[bit][work->heightBand][work->bearingBand];
+            r      = (u8)work->randomRoll;
+            if (choice->attack != NULL) {
+                sum = choice->weight;
                 while (sum < r) {
-                    if (step[1].fn == NULL) {
+                    if (choice[1].attack == NULL) {
                         func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
                         work->attackDelay = 0xF;
                         return;
                     }
-                    step++;
-                    sum += step->weight;
+                    choice++;
+                    sum += choice->weight;
                 }
-                work->runningAttack = step->fn;
+                work->runningAttack = choice->attack;
                 work->stateStep++;
             } else {
                 func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
@@ -651,7 +652,7 @@ static void func_actor_503500_801338E8(Task* arg0)
 /// slot is ready. State 1 waits for the chosen slot (`attackSlot`) to finish
 /// dying. Returns 1 while no slot is ready, 0 the frame the request is issued
 /// or while waiting, and 1 once the slot has gone quiet. `arg0` is passed
-/// through the step table and ignored here.
+/// through the attack list and ignored here.
 s32 func_actor_503500_80133BF4(Task* arg0, Actor503500Work* work)
 {
     s32 ret;
@@ -2042,7 +2043,7 @@ static void func_actor_503500_80136450(Task* arg0)
 /// ready and then asks it to die, state 1 waits for that death to finish.
 /// Returns the number of frames the script should wait -- 1 while still busy,
 /// 0 the frame the request is issued, 0x1E once the slot has gone quiet.
-/// `arg0` is passed by every caller through the step table and ignored here.
+/// `arg0` is passed by every caller through the attack list and ignored here.
 s32 func_actor_503500_801364D0(Task* arg0, Actor503500Work* work)
 {
     s32 ret;
@@ -2149,7 +2150,7 @@ s32 func_actor_503500_8013667C(Task* arg0, Actor503500Work* work)
 /// ready and then asks it to die, state 1 waits for that death to finish.
 /// Returns the number of frames the script should wait -- 1 while still busy,
 /// 0 the frame the request is issued, 0x96 once the slot has gone quiet.
-/// `arg0` is passed by every caller through the step table and ignored here.
+/// `arg0` is passed by every caller through the attack list and ignored here.
 s32 func_actor_503500_80136770(Task* arg0, Actor503500Work* work)
 {
     s32 ret;
@@ -2224,7 +2225,7 @@ s32 func_actor_503500_8013680C(Task* arg0, Actor503500Work* work)
 /// ready and then asks it to die, state 1 waits for that death to finish.
 /// Returns the number of frames the script should wait -- 1 while still busy,
 /// 0 the frame the request is issued, 0x1E once the slot has gone quiet.
-/// `arg0` is passed by every caller through the step table and ignored here.
+/// `arg0` is passed by every caller through the attack list and ignored here.
 s32 func_actor_503500_80136948(Task* arg0, Actor503500Work* work)
 {
     s32 ret;

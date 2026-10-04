@@ -70023,7 +70023,7 @@ places them later, and the tied quantity outranks the `lb`. That gives 100%:
 
 ```c
 bit  = (work->progressFlags >> 3) & 1;           /* only on the lookup that needs it */
-step = D_actor_503500_8016EF10[bit][work->heightBand][work->bearingBand];
+choice = D_actor_503500_8016EF10[bit][work->heightBand][work->bearingBand];
 ```
 
 Doing the same to the first lookup broke it (96%). Other things that did not

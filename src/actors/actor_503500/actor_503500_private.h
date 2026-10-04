@@ -25,15 +25,26 @@
 #include "main/task_types.h"
 
 struct Actor503500Work;
-struct Task;
 
-/// One weighted entry of a boss attack list: `func_actor_503500_801338E8`
-/// walks the list summing `weight` until it passes a random byte, then runs
-/// `fn` every frame until it returns non-zero. A NULL `fn` ends the list.
-typedef struct Actor503500Step {
-    s32 (*fn)(struct Task*, struct Actor503500Work*);
-    u32 weight;
-} Actor503500Step;
+/// An attack of the boss, run once a frame from the frame it is picked.
+///
+/// Returns 0 while the attack is still running. Any other result ends it and
+/// is the number of frames the boss then idles before picking again; an attack
+/// that cannot start returns 1, so the next pick follows almost at once.
+typedef s32 (*Actor503500AttackFn)(Task* task, struct Actor503500Work* work);
+
+/// One entry of a weighted attack list, which a NULL `attack` ends.
+///
+/// The boss keeps one list for each band of the player's height and bearing,
+/// in two sets it changes between once in the fight. Picking walks the list
+/// with a random byte, taking the first entry at which the weights summed so
+/// far reach it. A list's weights may total less than 255: a roll above the
+/// total picks nothing, and the boss idles briefly instead.
+typedef struct {
+    Actor503500AttackFn attack; // Attack this entry picks; NULL in the entry closing the list
+    u32                 weight; // Width of the entry's share of the 0-255 roll
+} Actor503500AttackChoice;
+STATIC_ASSERT_SIZEOF(Actor503500AttackChoice, 0x8);
 
 /// A signed 16.16 fixed-point XYZ vector with fixed-point and SDK vector views.
 ///
@@ -108,51 +119,51 @@ typedef struct Actor503500Work {
     /// because slot 4, 5 or 1 was lost. Bit 3 records that the room has been
     /// sent its actor event for the slots lost so far; it also selects the
     /// second attack table.
-    u32    progressFlags;
-    s32    (*runningAttack)(struct Task*, struct Actor503500Work*); // Attack picked for this visit to the attack state
-    MATRIX unscaledRotation;                                        // Root rotation saved on entering the collapse; only the rotation is kept
-    Task*  scriptedEffectTask;                                      // Effect task the scripted sequence spawns on part 3 and ends itself; NULL if none
-    s32    walkSpeed;                                               // Speed along the facing, 16.16 units per frame; negative walks backward
-    s32    walkSpeedLimit;                                          // Top walk speed, 16.16; a thirty-second of it is the per-frame acceleration
-    s32    turnSpeed;                                               // Yaw rate in 16.16 angle units per frame
-    s32    scaledParts;                                             // Bit N set while model part N (5, 11 or 16) is being scaled
-    s16    state;                                                   // An `Actor503500State`
-    u16    stunAnimationTimer;                                      // Frames until the stunned state restarts its animation
-    s16    hitCooldown;                                             // Frames during which further hits on the boss are ignored
-    s16    yaw;                                                     // Facing, in 4096ths of a turn
-    s16    targetYaw;                                               // Facing to turn toward: the bearing to the player plus `targetYawOffset`
-    s16    playerBearing;                                           // Bearing to the player relative to `yaw`, in [-0x800, 0x800)
-    s16    stateFrames;                                             // Frames counted by the current state's step
-    s16    attackFrames;                                            // Frames an attack has waited on its slot
-    s16    selfAttackFrames;                                        // Frames counted by the current phase of the boss's own attack
-    s16    attackSlot;                                              // Slot the running attack commanded
-    byte   pad_7C4[0x4];                                            // No access found; role unproven
-    u16    randomRoll;                                              // High half of the random state, drawn once a frame
-    s16    attackDelay;                                             // Frames the idle state waits before attacking; an attack's result reloads it
-    s16    targetableDelay;                                         // Frames until `targetablePending` is applied; 0 when nothing is pending
-    s16    collapseScaleY;                                          // Vertical scale during the collapse, 0x1000 down to 0x200
-    s16    savedYaw;                                                // `yaw` saved and restored with `savedRootCoord`
-    s16    targetYawOffset;                                         // Added to the player's bearing to give `targetYaw`; 0 faces the player
-    s8     animationStarted;                                        // 1 once the slots have been played and ticked since the rig was last bound
-    s8     animationId;                                             // Animation last requested, -1 before the first
-    s8     animationSourceIndex;                                    // Set-table index the rig is bound to, -1 before the first request
-    byte   pad_7D7[0x1];                                            // No access found; role unproven
-    s8     advancing;                                               // 1 while the walk accelerates toward its limit, 0 while it slows to a stop
-    s8     bufferFreeCountdown;                                     // Frames until the model's buffers are freed after it is hidden; negative when idle
-    u8     stateStep;                                               // Step within the current state, restarted on every state change
-    u8     attackPhase;                                             // Phase of the running attack (0 issue the command, 1 wait for the slot)
-    s8     heightBand;                                              // Band of the player's Y (0 most negative to 2 least), switched with hysteresis
-    s8     previousHeightBand;                                      // `heightBand` before the latest attack was picked
-    s8     bearingBand;                                             // Band of the `playerBearing` magnitude the latest attack was picked from
-    s8     previousBearingBand;                                     // `bearingBand` before that pick
-    s8     selfAttackCommand;                                       // Command given to slot 0; nonzero while the boss runs its own attack
-    s8     selfAttackPhase;                                         // Phase of the boss's own attack
-    s8     targetablePending;                                       // Whether the boss becomes a target (1) or stops being one (0) when the delay ends
-    s8     rootCoordRestored;                                       // 1 once actor command 5 has put `savedRootCoord` back
-    s8     controlPaused;                                           // 1 while scene actor control 1 (paused, still drawn) has been applied
-    s8     controlHidden;                                           // 1 while scene actor control 2 (hidden) has been applied
-    s8     defeated;                                                // 1 once a hit has exhausted the boss's health
-    s8     mutedForMenu;                                            // 1 while the boss's sounds are muted for a pending menu
+    u32                 progressFlags;
+    Actor503500AttackFn runningAttack;        // Attack picked for this visit to the attack state
+    MATRIX              unscaledRotation;     // Root rotation saved on entering the collapse; only the rotation is kept
+    Task*               scriptedEffectTask;   // Effect task the scripted sequence spawns on part 3 and ends itself; NULL if none
+    s32                 walkSpeed;            // Speed along the facing, 16.16 units per frame; negative walks backward
+    s32                 walkSpeedLimit;       // Top walk speed, 16.16; a thirty-second of it is the per-frame acceleration
+    s32                 turnSpeed;            // Yaw rate in 16.16 angle units per frame
+    s32                 scaledParts;          // Bit N set while model part N (5, 11 or 16) is being scaled
+    s16                 state;                // An `Actor503500State`
+    u16                 stunAnimationTimer;   // Frames until the stunned state restarts its animation
+    s16                 hitCooldown;          // Frames during which further hits on the boss are ignored
+    s16                 yaw;                  // Facing, in 4096ths of a turn
+    s16                 targetYaw;            // Facing to turn toward: the bearing to the player plus `targetYawOffset`
+    s16                 playerBearing;        // Bearing to the player relative to `yaw`, in [-0x800, 0x800)
+    s16                 stateFrames;          // Frames counted by the current state's step
+    s16                 attackFrames;         // Frames an attack has waited on its slot
+    s16                 selfAttackFrames;     // Frames counted by the current phase of the boss's own attack
+    s16                 attackSlot;           // Slot the running attack commanded
+    byte                pad_7C4[0x4];         // No access found; role unproven
+    u16                 randomRoll;           // High half of the random state, drawn once a frame
+    s16                 attackDelay;          // Frames the idle state waits before attacking; an attack's result reloads it
+    s16                 targetableDelay;      // Frames until `targetablePending` is applied; 0 when nothing is pending
+    s16                 collapseScaleY;       // Vertical scale during the collapse, 0x1000 down to 0x200
+    s16                 savedYaw;             // `yaw` saved and restored with `savedRootCoord`
+    s16                 targetYawOffset;      // Added to the player's bearing to give `targetYaw`; 0 faces the player
+    s8                  animationStarted;     // 1 once the slots have been played and ticked since the rig was last bound
+    s8                  animationId;          // Animation last requested, -1 before the first
+    s8                  animationSourceIndex; // Set-table index the rig is bound to, -1 before the first request
+    byte                pad_7D7[0x1];         // No access found; role unproven
+    s8                  advancing;            // 1 while the walk accelerates toward its limit, 0 while it slows to a stop
+    s8                  bufferFreeCountdown;  // Frames until the model's buffers are freed after it is hidden; negative when idle
+    u8                  stateStep;            // Step within the current state, restarted on every state change
+    u8                  attackPhase;          // Phase of the running attack (0 issue the command, 1 wait for the slot)
+    s8                  heightBand;           // Band of the player's Y (0 most negative to 2 least), switched with hysteresis
+    s8                  previousHeightBand;   // `heightBand` before the latest attack was picked
+    s8                  bearingBand;          // Band of the `playerBearing` magnitude the latest attack was picked from
+    s8                  previousBearingBand;  // `bearingBand` before that pick
+    s8                  selfAttackCommand;    // Command given to slot 0; nonzero while the boss runs its own attack
+    s8                  selfAttackPhase;      // Phase of the boss's own attack
+    s8                  targetablePending;    // Whether the boss becomes a target (1) or stops being one (0) when the delay ends
+    s8                  rootCoordRestored;    // 1 once actor command 5 has put `savedRootCoord` back
+    s8                  controlPaused;        // 1 while scene actor control 1 (paused, still drawn) has been applied
+    s8                  controlHidden;        // 1 while scene actor control 2 (hidden) has been applied
+    s8                  defeated;             // 1 once a hit has exhausted the boss's health
+    s8                  mutedForMenu;         // 1 while the boss's sounds are muted for a pending menu
 } Actor503500Work;
 STATIC_ASSERT_SIZEOF(Actor503500Work, 0x7E8);
 
@@ -237,7 +248,7 @@ extern AnimationPlayRequest D_actor_503500_8016EAD4;
 
 extern SVECTOR D_actor_503500_8016EC50;
 
-extern Actor503500Step** D_actor_503500_8016EF10[2][3];
+extern Actor503500AttackChoice** D_actor_503500_8016EF10[2][3];
 
 extern s16* D_actor_503500_8016EF28[2][3];
 
