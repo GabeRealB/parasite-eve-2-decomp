@@ -13,28 +13,28 @@
 /// body's 0x8000 bit.
 void sucklercephContacts(Task* arg0)
 {
-    Enemy*                 enemy;
-    WorldCollisionContact* effectRec;
-    s32                    effect;
-    s32                    pushY;
-    s32                    movement;
-    s32                    dx;
-    s32                    dz;
-    s32                    wallDx;
-    s32                    wallDz;
-    s16                    hitCooldown;
-    s32                    distance;
-    u32                    damage;
-    SucklercephWork*       work;
-    GfxCoord*              coord;
-    ActorContactFrame*     scratch;
-    s32                    i;
+    Enemy*                      enemy;
+    WorldCollisionContact*      effectRec;
+    s32                         effect;
+    s32                         pushY;
+    s32                         movement;
+    s32                         dx;
+    s32                         dz;
+    s32                         wallDx;
+    s32                         wallDz;
+    s16                         hitCooldown;
+    s32                         distance;
+    u32                         damage;
+    SucklercephWork*            work;
+    GfxCoord*                   coord;
+    SucklercephContactsScratch* scratch;
+    s32                         i;
 
     work     = arg0->work;
-    scratch  = (ActorContactFrame*)SCRATCH_STACK_RESERVE_BYTES(0x4C);
+    scratch  = SCRATCH_STACK_RESERVE_BLOCK(SucklercephContactsScratch);
     coord    = arg0->extra.tmd->coords;
     enemy    = arg0->spawnArg2.pointer;
-    movement = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), &scratch->result);
+    movement = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), &scratch->gridKeyMask);
     switch (movement) {
         case 0:
             break;
@@ -140,5 +140,5 @@ void sucklercephContacts(Task* arg0)
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(effectRec);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x4C);
+    SCRATCH_STACK_RELEASE_BLOCK(SucklercephContactsScratch);
 }

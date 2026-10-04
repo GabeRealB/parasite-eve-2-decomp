@@ -2272,8 +2272,8 @@ static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1)
     s16                    i;
 
     work = arg1->work;
-    sc   = (ActorHitTakenScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorHitTakenScratch));
-    pos  = &sc->pos;
+    sc   = SCRATCH_STACK_RESERVE_BLOCK(ActorHitTakenScratch);
+    pos  = &sc->hitPos;
     recs = work->hitContacts;
     i    = 0;
     mask = 0xFFFF0000;
@@ -2296,29 +2296,29 @@ scan:
 missed:
     id = 0;
 found:
-    sc->id = id;
+    sc->hitKey = id;
 
     if (id != 0) {
-        sc->dmg                               = Gp_ComputeDamage(sc->id, 0, 0, 0x1000);
+        sc->damage                            = Gp_ComputeDamage(sc->hitKey, 0, 0, 0x1000);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg1->extra.tmd->coords);
-        sc->d.vx = arg1->extra.tmd->coords->workm.t[0];
-        sc->d.vy = arg1->extra.tmd->coords->workm.t[1];
-        sc->d.vz = arg1->extra.tmd->coords->workm.t[2];
-        sc->d.vx = sc->pos.vx - arg1->extra.tmd->coords->workm.t[0];
-        sc->d.vy = sc->pos.vy - arg1->extra.tmd->coords->workm.t[1];
-        sc->d.vz = sc->pos.vz - arg1->extra.tmd->coords->workm.t[2];
-        angle    = ratan2(sc->d.vx, sc->d.vz) -
+        sc->hitOffset.vx = arg1->extra.tmd->coords->workm.t[0];
+        sc->hitOffset.vy = arg1->extra.tmd->coords->workm.t[1];
+        sc->hitOffset.vz = arg1->extra.tmd->coords->workm.t[2];
+        sc->hitOffset.vx = sc->hitPos.vx - arg1->extra.tmd->coords->workm.t[0];
+        sc->hitOffset.vy = sc->hitPos.vy - arg1->extra.tmd->coords->workm.t[1];
+        sc->hitOffset.vz = sc->hitPos.vz - arg1->extra.tmd->coords->workm.t[2];
+        angle            = ratan2(sc->hitOffset.vx, sc->hitOffset.vz) -
                 ratan2(-arg1->extra.tmd->coords->workm.m[2][0], arg1->extra.tmd->coords->workm.m[2][2]);
-        sc->angle = angle;
-        sc->angle = actorWrapAngle(angle);
-        Actor04000_Fn03D30(arg1, sc->angle, sc->id);
+        sc->hitYaw = angle;
+        sc->hitYaw = actorWrapAngle(angle);
+        Actor04000_Fn03D30(arg1, sc->hitYaw, sc->hitKey);
         snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280003;
         pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
         SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
-        func_800E2C78(arg0, sc->id, sc->dmg, 0);
-        func_800DA6E8(&arg0->node, sc->dmg, 0);
-        arg0->hp -= sc->dmg;
+        func_800E2C78(arg0, sc->hitKey, sc->damage, 0);
+        func_800DA6E8(&arg0->node, sc->damage, 0);
+        arg0->hp -= sc->damage;
         if (arg0->hp <= 0) {
             work->state = ACTOR_04000_STATE_DEATH_BURST;
         }
@@ -2329,7 +2329,7 @@ found:
             work->holdingPlayer = 0;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorHitTakenScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorHitTakenScratch);
 }
 
 /// Patrol state: restarts the actor when `stateEntered` is set; otherwise turns the

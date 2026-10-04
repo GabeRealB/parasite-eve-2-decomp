@@ -86336,7 +86336,7 @@ a front-end conversion, not a `combine` or peephole fold.
 
 Pick the width from the *store* and leave the load alone: declaring the source
 `u16` kills the `lw`/`slti` pair, and declaring the destination `s32` kills the
-`lhu`. `actor_110300`'s handler reads `AnimationPlayRequest` into `Actor110300Work` the
+`lhu`. `actor_110300`'s handler reads `AnimationPlayRequest` into `ViewFigureWork` the
 same way, one animation id apart.
 
 Inputs: `base_1.i` (100.000%)

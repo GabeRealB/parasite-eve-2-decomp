@@ -1619,7 +1619,7 @@ static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
 }
 
 /// The knockback, run while `knockbackActive` is set. It carves an
-/// `ActorAttackScratch` from the scratch stack and steps `knockbackStep`:
+/// `ActorPlayerKnockbackScratch` from the scratch stack and steps `knockbackStep`:
 /// stage 0 records whether the player faces away from the actor
 /// (`knockbackFromBehind`), starts the player's first animation for that side
 /// and spawns the flash; stage 1 pushes the player away from the actor for
@@ -1628,66 +1628,63 @@ static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
 /// `knockbackActive`. A player already in scripted mode cancels it at stage 0.
 static void func_actor_105100_80133CE4(Task* arg0)
 {
-    _Actor105100Work*   work;
-    GfxCoord*           coord;
-    Task*               player;
-    GfxCoord*           target;
-    ActorAttackScratch* scratch;
-    void*               head;
-    s32                 sound;
-    s32                 count;
+    _Actor105100Work*            work;
+    GfxCoord*                    coord;
+    Task*                        player;
+    GfxCoord*                    target;
+    ActorPlayerKnockbackScratch* scratch;
+    s32                          sound;
+    s32                          count;
 
-    work                       = arg0->work;
-    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(ActorAttackScratch);
-    scratch                    = SCRATCH_STACK_CURSOR(ActorAttackScratch);
-    coord                      = arg0->extra.tmd->coords;
-    target                     = player->extra.tmd->coords;
+    work    = arg0->work;
+    player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorPlayerKnockbackScratch);
+    coord   = arg0->extra.tmd->coords;
+    target  = player->extra.tmd->coords;
 
     switch (work->knockbackStep) {
         case 0:
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
-                scratch->delta.vx                  = target->coord.t[0] - coord->coord.t[0];
-                scratch->delta.vy                  = 0;
-                scratch->delta.vz                  = target->coord.t[2] - coord->coord.t[2];
-                work->knockbackFromBehind          = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
-                scratch->anim.source.sets          = _gActor105100PlayerAnimationSets;
-                scratch->anim.animationId          = work->knockbackFromBehind + 1;
-                scratch->anim.blend                = ANIMATION_BLEND_RESET;
-                scratch->anim.blendFrames          = 0;
-                scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, scratch, 0);
+                scratch->toPlayer.vx                     = target->coord.t[0] - coord->coord.t[0];
+                scratch->toPlayer.vy                     = 0;
+                scratch->toPlayer.vz                     = target->coord.t[2] - coord->coord.t[2];
+                work->knockbackFromBehind                = (scratch->toPlayer.vx * target->coord.m[0][2] + scratch->toPlayer.vz * target->coord.m[2][2]) > 0;
+                scratch->playerAnim.source.sets          = _gActor105100PlayerAnimationSets;
+                scratch->playerAnim.animationId          = work->knockbackFromBehind + 1;
+                scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+                scratch->playerAnim.blendFrames          = 0;
+                scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &scratch->playerAnim, 0);
                 work->knockbackStep  = 1;
                 work->knockbackFrame = 0;
                 Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
                 SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                scratch->dir.vx = 0;
-                scratch->dir.vy = -1000;
-                scratch->dir.vz = 0;
-                Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, player->extra.tmd->coords, 0, &scratch->dir);
+                scratch->pushDirection.vx = 0;
+                scratch->pushDirection.vy = -1000;
+                scratch->pushDirection.vz = 0;
+                Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, player->extra.tmd->coords, 0, &scratch->pushDirection);
             } else {
                 work->knockbackActive = 0;
             }
             break;
         case 1:
             if (work->knockbackFrame < 0x10) {
-                scratch->delta.vx = target->coord.t[0] - coord->coord.t[0];
-                scratch->delta.vy = target->coord.t[1] - coord->coord.t[1];
-                scratch->delta.vz = target->coord.t[2] - coord->coord.t[2];
-                VectorNormalS(&scratch->delta, &scratch->dir);
-                scratch->place.pos.vx = target->coord.t[0] + ((scratch->dir.vx * 25) >> 10);
-                scratch->place.pos.vy = 0;
-                scratch->place.pos.vz = target->coord.t[2] + ((scratch->dir.vz * 25) >> 10);
-                scratch->place.rot.vx = 0;
+                scratch->toPlayer.vx = target->coord.t[0] - coord->coord.t[0];
+                scratch->toPlayer.vy = target->coord.t[1] - coord->coord.t[1];
+                scratch->toPlayer.vz = target->coord.t[2] - coord->coord.t[2];
+                VectorNormalS(&scratch->toPlayer, &scratch->pushDirection);
+                scratch->playerPlacement.pos.vx = target->coord.t[0] + ((scratch->pushDirection.vx * 25) >> 10);
+                scratch->playerPlacement.pos.vy = 0;
+                scratch->playerPlacement.pos.vz = target->coord.t[2] + ((scratch->pushDirection.vz * 25) >> 10);
+                scratch->playerPlacement.rot.vx = 0;
                 if (work->knockbackFromBehind == 0) {
-                    scratch->place.rot.vy = (ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
+                    scratch->playerPlacement.rot.vy = (ratan2((s16)scratch->toPlayer.vx, (s16)scratch->toPlayer.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
                 } else {
-                    scratch->place.rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+                    scratch->playerPlacement.rot.vy = ratan2((s16)scratch->toPlayer.vx, (s16)scratch->toPlayer.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
                 }
-                scratch->place.rot.vz = 0;
-                TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &scratch->place, 0);
+                scratch->playerPlacement.rot.vz = 0;
+                TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &scratch->playerPlacement, 0);
             }
             if (work->knockbackFrame == 0x10) {
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55190003;
@@ -1695,12 +1692,12 @@ static void func_actor_105100_80133CE4(Task* arg0)
             }
             count = ++work->knockbackFrame;
             if ((work->knockbackFromBehind != 0 && count >= 0x1E) || (work->knockbackFromBehind == 0 && count >= 0x20)) {
-                scratch->anim.source.sets          = _gActor105100PlayerAnimationSets;
-                scratch->anim.animationId          = work->knockbackFromBehind + 3;
-                scratch->anim.blend                = ANIMATION_BLEND_RESET;
-                scratch->anim.blendFrames          = 0;
-                scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, scratch, 0);
+                scratch->playerAnim.source.sets          = _gActor105100PlayerAnimationSets;
+                scratch->playerAnim.animationId          = work->knockbackFromBehind + 3;
+                scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+                scratch->playerAnim.blendFrames          = 0;
+                scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &scratch->playerAnim, 0);
                 work->knockbackStep  = 2;
                 work->knockbackFrame = 0;
             }
@@ -1716,7 +1713,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorAttackScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorPlayerKnockbackScratch);
 }
 
 static void func_actor_105100_80134130(Task* arg0)

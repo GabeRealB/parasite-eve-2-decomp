@@ -457,6 +457,51 @@ typedef struct {
     byte    unknown_E[2]; // Reserved with the block and never accessed; role unproven
 } DesertChaserTurnStepScratch;
 STATIC_ASSERT_SIZEOF(DesertChaserTurnStepScratch, 0x10);
+
+/// Scratch-stack block of the armed chaser's roam, in which it walks back and
+/// forth between two patrol points while it watches for the player.
+///
+/// The roam reserves one block a tick and releases it before it returns;
+/// the patrol points themselves are kept in the work block. On the tick that
+/// enters the state it places the first point 1000 units from the root, off
+/// to one side of the player. Every later tick it turns a limited step toward
+/// the current point and walks, and when it arrives, or has been pushed about
+/// for 21 ticks while facing the point, it places the other point 2000 units
+/// away, to alternate sides of the player. The look that ends the roam
+/// measures the player's range from `toPlayer` and compares which way the
+/// player faces with where the chaser stands. Angles are 4096ths of a turn,
+/// and a wrapped one lies in [-0x800, 0x800].
+typedef struct {
+    SVECTOR toPatrolPoint; // Current patrol point's position minus the root's on X and Z, with `vy` zero; then lent to the steer round obstacles, which leaves the displacement it moved the chaser by, and the look takes its bearing from that. On the entering tick: the player's offset, then the root's offset to the first point
+    SVECTOR toPlayer;      // Player's position minus the root's, world units. A tick that places a patrol point overwrites it with the root's offset to that point, and the look refills it
+    MATRIX  rotation;      // Turn about Y to the player's bearing swung to one side, by 0x3E8 on the entering tick and 0x2EE afterwards; its Z axis is the direction of the point being placed. Its translation is never set or read
+    s16     turn;          // Wrapped turn from the facing to the patrol point; taken the other way round when it is past 0x600 and the player lies on the opposite side, limited to 0x20, then added to the heading: the yaw the root's rotation is rebuilt at. The look reuses it for the bearing of `toPatrolPoint` off the facing
+    s16     fullTurn;      // `turn` as first measured, before it is redirected and limited; under 0x20 while the chaser faces its patrol point
+    s16     yawFromPlayer; // Bearing from the player to the chaser, wrapped: the reverse of `toPlayer`'s
+    s16     playerYaw;     // Heading the player faces; more than 0x600 from `yawFromPlayer` when the player has its back to the chaser
+} DesertChaserRoamScratch;
+STATIC_ASSERT_SIZEOF(DesertChaserRoamScratch, 0x38);
+
+/// Scratch-stack block of the armed chaser's pursuit, reserved on every tick
+/// but the one that enters the state.
+///
+/// The pursuit turns toward where it last saw the player, then lunges. While
+/// lunging it catches a player its front sphere touches who is nearly dead
+/// ahead: it faces the player toward or away from itself, takes the damage
+/// and starts the player's caught animation. The block holds the angles of
+/// that tick and is released before the pursuit returns. Angles are 4096ths
+/// of a turn, and a wrapped one lies in [-0x800, 0x800].
+typedef struct {
+    SVECTOR offset;            // Lent to the avoid walk first, which leaves the displacement it moved the chaser by. Then the player's position minus the root's, world units. During a catch: the root's Z axis, which is the facing, then that axis reversed on X and Z with `vy` zeroed; `pad` is never written
+    u32     pushLengthSquared; // Squared X and Z length of the correction the root sphere's grid contacts moved the chaser by that tick, world units; a lunge the grid pushes back by more than 60 units is broken off
+    s16     playerTurn;        // Wrapped turn from the player's heading to the reverse of the chaser's facing: under a quarter turn when the player faces the chaser, so is caught from the front
+    u16     catchYaw;          // Bearing of the player off the facing, wrapped; a catch needs it under 0x180. Then the heading the caught player is placed at: opposite the chaser's facing, or along it when caught from behind
+    s16     turn;              // Wrapped turn from the facing to the player's remembered offset, limited to 0x40 a tick, then added to the heading: the yaw the root's rotation is rebuilt at while it winds up
+    s16     playerBearing;     // Wrapped turn from the facing to the player that tick; once the windup has run its ticks the lunge starts when it is under 0x80, and a lunge is abandoned past 0x600
+    s16     playerKilled;      // Reply to the damage sent to the player: 1 when it took the player's last health. Not written by a run-sequence chaser that has no health left, which then reads what the scratch stack held
+    byte    unknown_16[0x2];   // Reserved with the block and never accessed; role unproven
+} DesertChaserPursueScratch;
+STATIC_ASSERT_SIZEOF(DesertChaserPursueScratch, 0x18);
 #endif
 
 /// 0x1C-byte block `func_actor_323000_801645A4` pushes on the scratch stack:

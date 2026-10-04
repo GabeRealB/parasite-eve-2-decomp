@@ -865,27 +865,27 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
 /// `ACTION_RETREAT`, or into `ACTION_RELEASE` while it holds the player.
 static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
 {
-    ActorPushFrame*  scratch;
-    GfxCoord*        coord;
-    GfxCoord*        src;
-    _Actor03700Work* work;
-    s32              push;
-    s32              reach;
-    s32              res;
-    s32              i;
-    s32              z;
-    s32              val;
-    s32              ex;
-    s32              ey;
-    s32              ez;
-    s32              broke;
-    u32              id;
-    u32              damage;
+    ActorContactOverlapPushScratch* scratch;
+    GfxCoord*                       coord;
+    GfxCoord*                       src;
+    _Actor03700Work*                work;
+    s32                             push;
+    s32                             reach;
+    s32                             res;
+    s32                             i;
+    s32                             z;
+    s32                             val;
+    s32                             ex;
+    s32                             ey;
+    s32                             ez;
+    s32                             broke;
+    u32                             id;
+    u32                             damage;
 
     push    = 0;
     broke   = 0;
     work    = task->work;
-    scratch = (ActorPushFrame*)SCRATCH_STACK_RESERVE_BYTES(0x58);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
     coord   = task->extra.tmd->coords;
     res     = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL);
     if (res == 1)
@@ -928,7 +928,7 @@ move_done:
                 if (push < reach) {
                     push = reach;
                     VectorNormal(&scratch->delta.vector, &scratch->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
                 }
                 break;
             case 2:
@@ -977,11 +977,11 @@ move_done:
         }
     } while (++i < ARRAY_SIZE(work->contacts));
     if (push > 0) {
-        coord->coord.t[0] += (push * scratch->dir.vx) >> 12;
-        coord->coord.t[2] += (push * scratch->dir.vz) >> 12;
+        coord->coord.t[0] += (push * scratch->pushDirection.vx) >> 12;
+        coord->coord.t[2] += (push * scratch->pushDirection.vz) >> 12;
     }
     Gp_ClearRec18Occupied(work->contacts);
-    SCRATCH_STACK_RELEASE_BYTES(0x58);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactOverlapPushScratch);
 }
 
 /// The tick's action dispatcher: runs the handler for the work block's

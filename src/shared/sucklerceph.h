@@ -120,6 +120,31 @@ typedef struct {
 } SucklercephWork;
 STATIC_ASSERT_SIZEOF(SucklercephWork, 0x2E4);
 
+/// Scratch-stack block of the Sucklerceph's contact pass.
+///
+/// The pass reserves one block a frame. It has the push-back of the room's
+/// collision grid resolved from the contact records into `delta` and adds the
+/// whole units of that correction to the root. `delta` then takes the offset
+/// to the player, whose X and Z length is both the range that sets off the
+/// swelling and the range a hit's damage is worked out for. For each contact
+/// with another enemy's body, kind 0x30000, it takes the offset from that
+/// body's centre, which is normalised into `normal` and turned back into
+/// `delta` in the frame of the collision grid's coordinate; a crawling
+/// Sucklerceph is pushed along it by the depth of the overlap. The block is
+/// released before the pass returns.
+///
+/// The block opens as `ActorContactDeltaScratch` does. No pass touches the
+/// bytes either side of `delta`, so what they were laid out to hold is
+/// unproven.
+typedef struct {
+    byte                unknown_0[0x20]; // Reserved with the block and never accessed; role unproven
+    WorldCollisionDelta delta;           // Correction resolved from the contact records, in signed 16.16 units; then, in whole world units, the offset to the player or from the centre of the body being tested; then `normal` in the grid coordinate's frame, 4096 = 1.0
+    byte                unknown_30[0x8]; // Reserved with the block and never accessed; role unproven
+    VECTOR              normal;          // Offset from the body being tested, normalised: away from that body, 4096 = 1.0
+    s32                 gridKeyMask;     // One bit for each grid contact the correction was resolved from, at the position the low five bits of its key select; stored, never read
+} SucklercephContactsScratch;
+STATIC_ASSERT_SIZEOF(SucklercephContactsScratch, 0x4C);
+
 void sucklercephSpawnState(Enemy* arg0, Task* arg1);
 void sucklercephReactionDispatch(Task* arg0);
 void sucklercephDormantTick(Task* arg0);

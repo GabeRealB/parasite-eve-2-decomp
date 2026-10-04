@@ -16,7 +16,26 @@
 
 #include "types.h"
 
+#include "actors/actor.h"
+
 #include "main/task_types.h"
+
+/// Work block of a view figure's task.
+///
+/// The spawn state allocates it zeroed at its full size, keeps it at
+/// `Task::work` and publishes it through the package's work pointer, which
+/// the library reaches it by from then on. The figure is placed by its
+/// parent coordinate and never walks, so of `st` only the animation request
+/// is used: the heading and the walk stay zero.
+///
+/// Nothing in the library or its packages touches the bytes after `st`, so
+/// what the allocation's tail was laid out to hold is unproven.
+typedef struct {
+    ActorAnimRig20  rig;               // Playback storage of the twenty-part body model; every slot is seeded and ticked
+    ActorEnemyState st;                // Animation request, and the record a sound was last cued for in the package that cues footsteps
+    byte            unknown_4AC[0xB0]; // Allocated zeroed and never accessed; role unproven
+} ViewFigureWork;
+STATIC_ASSERT_SIZEOF(ViewFigureWork, 0x55C);
 
 void viewFigureSpawnState(Enemy* enemy, Task* task);
 void viewFigureStepAnim(Task* task);

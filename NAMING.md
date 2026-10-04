@@ -490,7 +490,8 @@ indexed by `DESERT_CHASER_SPHERE_`. `DesertChaserAvoidScratch` is the scratch
 block of the armed builds' avoid walk, holding `DESERT_CHASER_AVOID_BEARINGS`
 bearings in each build, `DesertChaserDamageScratch` the block of their
 damage step and `DesertChaserTurnStepScratch` the block of their two turn-step
-states. `DesertChaserStateTable` holds an armed package's
+states. `DesertChaserRoamScratch` and `DesertChaserPursueScratch` are the
+blocks of their roam and their pursuit. `DesertChaserStateTable` holds an armed package's
 `DESERT_CHASER_STATE_COUNT` state handlers, and `DesertChaserVariant` is one of
 the four tunings both armed packages define and the spawn argument picks from.
 
@@ -526,7 +527,25 @@ header lists them. Animation request values use `DIVER_ANIM_REQUEST_`.
 fragment per function. `SucklercephWork` is the task's work block; its
 behaviour, awake stage, death phase and animation values use
 `SUCKLERCEPH_STATE_`, `SUCKLERCEPH_AWAKE_STAGE_`, `SUCKLERCEPH_DEATH_PHASE_` and
-`SUCKLERCEPH_ANIM_`.
+`SUCKLERCEPH_ANIM_`. `SucklercephContactsScratch` is the scratch block of its
+contact pass, private to that interface. The block of its drop's collision
+step is `ActorContactDeltaWideScratch` in `include/actors/actor.h`, public
+because `actor_521100` reserves the same block.
+
+`viewFigure` owns the included figure parented to the view coordinate, shared
+by `actor_110300` and `actor_110800`. Its implementation interface is
+`src/shared/view_figure.h`, which declares the task's work block
+`ViewFigureWork`.
+
+Scratch blocks that packages reserve in functions of their own stay in
+`include/actors/actor.h`. `ActorContactDeltaScratch`,
+`ActorContactDeltaWideScratch` and `ActorContactOverlapPushScratch` open with
+the same 0x20 untouched bytes and keep the collision grid's correction after
+them; the last is the block `ActorOverlapPushScratch` serves without that
+lead. `ActorPlayerKnockbackScratch` is the block of the knockback
+`actor_105100` and `actor_205200` step the player through, and
+`ActorHitTakenScratch` that of the hit check `actor_01200` and `actor_04000`
+turn toward a hit with.
 
 `moth` owns the included Moth enemy shared by `actor_00700` (packages
 `actor_100700` and `actor_200700`) and `actor_300700`. Its implementation

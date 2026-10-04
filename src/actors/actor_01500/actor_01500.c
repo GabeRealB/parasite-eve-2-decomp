@@ -980,13 +980,13 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
 /// contact of `attackBody` disarms it and sets `attackLanded`.
 static void Actor01500_Fn004EC(Task* actor)
 {
-    _Actor01500Work*       work;
-    ActorPushFrame*        frame;
-    s32                    push;
-    VECTOR*                normal;
-    GfxCoord*              coord;
-    GfxCoord*              sourceCoord;
-    WorldCollisionContact* effectRec;
+    _Actor01500Work*                work;
+    ActorContactOverlapPushScratch* frame;
+    s32                             push;
+    VECTOR*                         normal;
+    GfxCoord*                       coord;
+    GfxCoord*                       sourceCoord;
+    WorldCollisionContact*          effectRec;
 
     s32 result;
     s32 i;
@@ -1006,8 +1006,8 @@ static void Actor01500_Fn004EC(Task* actor)
     push   = 0;
     lastId = 0;
     work   = actor->work;
-    SCRATCH_STACK_RESERVE_BLOCK(ActorPushFrame);
-    frame  = SCRATCH_STACK_CURSOR(ActorPushFrame);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
+    frame  = SCRATCH_STACK_CURSOR(ActorContactOverlapPushScratch);
     coord  = actor->extra.tmd->coords;
     result = func_800E0C10(work->roomContacts, &frame->delta, ARRAY_SIZE(work->roomContacts), NULL);
     if (result != 0) {
@@ -1021,9 +1021,9 @@ static void Actor01500_Fn004EC(Task* actor)
             work->timer           = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
             for (i = 0; i < ARRAY_SIZE(work->roomContacts); i++) {
                 if ((work->roomContacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
-                    frame->dx       = work->roomContacts[i].response.direction.vx;
-                    frame->dz       = work->roomContacts[i].response.direction.vz;
-                    work->targetYaw = (ratan2(frame->dx, frame->dz) + 0x800) & 0xFFF;
+                    frame->gridNormalX = work->roomContacts[i].response.direction.vx;
+                    frame->gridNormalZ = work->roomContacts[i].response.direction.vz;
+                    work->targetYaw    = (ratan2(frame->gridNormalX, frame->gridNormalZ) + 0x800) & 0xFFF;
                     break;
                 }
             }
@@ -1130,14 +1130,14 @@ static void Actor01500_Fn004EC(Task* actor)
                 if (push < depth) {
                     push = depth;
                     VectorNormal(&frame->delta.vector, normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->pushDirection);
                 }
                 break;
         }
     }
     if (push > 0) {
-        coord->coord.t[0] += (s32)(push * frame->dir.vx) >> 0xC;
-        coord->coord.t[2] += (s32)(push * frame->dir.vz) >> 0xC;
+        coord->coord.t[0] += (s32)(push * frame->pushDirection.vx) >> 0xC;
+        coord->coord.t[2] += (s32)(push * frame->pushDirection.vz) >> 0xC;
     }
     Gp_ClearRec18Occupied(work->contacts);
     effectRec = work->attackContacts;
@@ -1146,7 +1146,7 @@ static void Actor01500_Fn004EC(Task* actor)
         Gp_ClearRec18Occupied(effectRec);
         work->attackLanded = 1;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorPushFrame);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactOverlapPushScratch);
 }
 
 static void Actor01500_Fn00AFC(Task* actor, s32 damage)

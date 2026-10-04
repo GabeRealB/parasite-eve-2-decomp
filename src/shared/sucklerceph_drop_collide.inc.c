@@ -8,13 +8,13 @@
 /// The table is released either way.
 void sucklercephDropCollide(Task* arg0)
 {
-    ActorDeltaFrame48* scratch;
-    SucklercephWork*   work;
-    GfxCoord*          coord;
-    s32                movement;
+    ActorContactDeltaWideScratch* scratch;
+    SucklercephWork*              work;
+    GfxCoord*                     coord;
+    s32                           movement;
 
     work     = arg0->work;
-    scratch  = (ActorDeltaFrame48*)SCRATCH_STACK_RESERVE_BYTES(0x48);
+    scratch  = SCRATCH_STACK_RESERVE_BLOCK(ActorContactDeltaWideScratch);
     coord    = arg0->extra.tmd->coords;
     movement = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL);
     switch (movement) {
@@ -37,5 +37,5 @@ void sucklercephDropCollide(Task* arg0)
             break;
     }
     Gp_ClearRec18Occupied(work->contacts);
-    SCRATCH_STACK_RELEASE_BYTES(0x48);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactDeltaWideScratch);
 }

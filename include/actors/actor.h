@@ -192,21 +192,6 @@ typedef struct {
 } ActorScaleRotScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleRotScratch, 0x34);
 
-/// The scratch-pad block of a facing check against the player: the offset to
-/// the player, its squared length, the player's yaw and the bearing of the
-/// contact, the turn and the yaw it aims for, and the reply the player's
-/// contact message came back with.
-typedef struct ActorFacingScratch {
-    s16 vx, vy, vz, pad;
-    u32 distanceSquared;
-    s16 playerYaw;
-    u16 contactYaw;
-    s16 turnYaw, targetYaw;
-    s16 messageResult;
-    s16 pad16;
-} ActorFacingScratch;
-STATIC_ASSERT_SIZEOF(ActorFacingScratch, 0x18);
-
 /// The scratch-stack block of a state body that turns an actor a limited step
 /// toward a target each frame: the offset to the target and the yaw worked out
 /// from it.
@@ -342,21 +327,6 @@ typedef struct {
 } ActorScreenQuadScratch;
 STATIC_ASSERT_SIZEOF(ActorScreenQuadScratch, 0x28);
 
-/// Picking the next point to walk to relative to the player: the offset to
-/// the player, turned and scaled into a step toward the new point, the
-/// target, the matrix the turn is built in, and the turn with the yaws it is
-/// worked out from.
-typedef struct ActorMoveScratch {
-    SVECTOR vec;
-    SVECTOR target;
-    MATRIX  matrix;
-    s16     delta;
-    s16     original;
-    s16     yaw;
-    s16     playerYaw;
-} ActorMoveScratch;
-STATIC_ASSERT_SIZEOF(ActorMoveScratch, 0x38);
-
 /// Scratch-stack block of a contact step that keeps a single vector: the
 /// correction resolved from an actor's contact records.
 ///
@@ -377,43 +347,55 @@ typedef struct {
 } ActorContactDeltaScratch;
 STATIC_ASSERT_SIZEOF(ActorContactDeltaScratch, 0x38);
 
-/// The same frame at 0x48 bytes, for the steps that take the larger block.
-typedef struct ActorDeltaFrame48 {
-    byte                pad_0[0x20];
-    WorldCollisionDelta delta;
-    byte                pad_30[0x18];
-} ActorDeltaFrame48;
-STATIC_ASSERT_SIZEOF(ActorDeltaFrame48, 0x48);
+/// Scratch-stack block of a contact step that keeps a single vector, in the
+/// larger of the two reservations such a step makes.
+///
+/// It is used exactly as `ActorContactDeltaScratch` is: the step has the
+/// push-back of the room's collision grid resolved from its contact records
+/// into `delta`, adds the whole units of that correction to the actor's root,
+/// and a step that goes on to take hits reuses `delta` for the offset from
+/// the root to the player. The block is released before the step returns.
+///
+/// The two blocks differ only in how many bytes follow `delta`, none of
+/// which a step touches, so what the longer tail was laid out to hold is
+/// unproven.
+typedef struct {
+    byte                unknown_0[0x20];  // Reserved with the block and never accessed; role unproven
+    WorldCollisionDelta delta;            // Correction resolved from the contact records, in signed 16.16 units; then the player's position minus the root's on X and Z, in whole world units
+    byte                unknown_30[0x18]; // Reserved with the block and never accessed; role unproven
+} ActorContactDeltaWideScratch;
+STATIC_ASSERT_SIZEOF(ActorContactDeltaWideScratch, 0x48);
 
-/// The scratch-pad frame of a wall contact: `delta` receives the
-/// `func_800E0C10` push-back and is then reused for offsets, `normal` is the
-/// normalised wall offset, and `result` the word `func_800E0C10` reports
-/// through its last argument.
-typedef struct ActorContactFrame {
-    byte                pad_0[0x20];
-    WorldCollisionDelta delta;
-    byte                pad_30[0x8];
-    VECTOR              normal;
-    s32                 result;
-} ActorContactFrame;
-STATIC_ASSERT_SIZEOF(ActorContactFrame, 0x4C);
-
-/// The scratch-pad frame of a push against the collision grid: `delta`
-/// receives the `func_800E0C10` push-back and is then reused for each
-/// record's offset, `normal` is that offset normalised, and `dir` the normal
-/// brought into the grid's frame. `dx` and `dz` are the contact record's
-/// normal, staged for the bearing some actors take from it.
-typedef struct ActorPushFrame {
-    byte                pad_0[0x20];
-    WorldCollisionDelta delta;
-    VECTOR              normal;
-    VECTOR              dir;
-    s16                 dx;
-    byte                pad_52[0x2];
-    s16                 dz;
-    byte                pad_56[0x2];
-} ActorPushFrame;
-STATIC_ASSERT_SIZEOF(ActorPushFrame, 0x58);
+/// Scratch-stack block of an enemy's contact pass, which ends by pushing the
+/// enemy out of the body it overlaps most.
+///
+/// The pass is the one `ActorOverlapPushScratch` serves, in a block that
+/// opens as `ActorContactDeltaScratch` does. It has the push-back of the
+/// room's collision grid resolved from the grid contacts into `delta` and
+/// adds the whole units of that correction to the root, then walks the body's
+/// contact records, reusing `delta` for each. A damaging contact, kind
+/// 0x20000, takes the offset to the attacking player, whose length is the
+/// range the damage is worked out for. A contact with a body the package
+/// yields to -- a player's, kind 0x10000, or an enemy's, kind 0x30000 --
+/// takes the offset from that body's centre; the overlap is the record's
+/// summed radii less that offset's length. The deepest overlap leaves its
+/// direction in `normal` and `pushDirection`, and once the walk is over the
+/// root is moved that deep along `pushDirection` on X and Z. The block is
+/// released before the pass returns.
+///
+/// No pass touches the leading bytes or the halfword after each of the last
+/// two members, so what they were laid out to hold is unproven.
+typedef struct {
+    byte                unknown_0[0x20]; // Reserved with the block and never accessed; role unproven
+    WorldCollisionDelta delta;           // Correction resolved from the grid contacts, in signed 16.16 units; then, in whole world units, the offset to the attacker or from the centre of the body being tested
+    VECTOR              normal;          // `delta` of the deepest overlap met so far, normalised: away from that body, 4096 = 1.0
+    VECTOR              pushDirection;   // `normal` turned into the frame of the collision grid's coordinate; the root is pushed along its X and Z
+    s16                 gridNormalX;     // X of the first grid contact's push-back direction, 4096 = 1.0; staged by a pass that turns its enemy to face the wall it met, whose yaw is the reverse of this direction's bearing
+    byte                unknown_52[0x2]; // Reserved with the block and never accessed; role unproven
+    s16                 gridNormalZ;     // Z of the same direction
+    byte                unknown_56[0x2]; // Reserved with the block and never accessed; role unproven
+} ActorContactOverlapPushScratch;
+STATIC_ASSERT_SIZEOF(ActorContactOverlapPushScratch, 0x58);
 
 /// Scratch-stack block of a small enemy's contact pass, which ends by pushing
 /// the enemy out of the body it overlaps most.
@@ -437,16 +419,25 @@ typedef struct {
 } ActorOverlapPushScratch;
 STATIC_ASSERT_SIZEOF(ActorOverlapPushScratch, 0x30);
 
-/// The scratch-pad block of an attack that pulls the player in: the
-/// animation argument sent with message 0x3F4, the placement sent with
-/// message 0x3E9, and the offset to the player with its normalised direction.
-typedef struct ActorAttackScratch {
-    AnimationPlayRequest anim;
-    ActorTransform       place;
-    VECTOR               delta;
-    SVECTOR              dir;
-} ActorAttackScratch;
-STATIC_ASSERT_SIZEOF(ActorAttackScratch, 0x44);
+/// Scratch-stack block of an enemy's knockback of the player, a scripted
+/// sequence the enemy's task steps once a tick.
+///
+/// Each tick of the sequence reserves one block and releases it before
+/// returning; what has to last from tick to tick is kept in the enemy's work
+/// block. The first tick decides whether the player is struck from behind,
+/// starts the matching animation of the package's own set on the player and
+/// spawns the hit effect. For sixteen ticks after that the player is placed a
+/// step further from the enemy, turned to face it or away from it as first
+/// decided, and a second animation follows. The player's task reads
+/// `playerAnim` and `playerPlacement` while the message that carries each is
+/// dispatched, and keeps neither address.
+typedef struct {
+    AnimationPlayRequest playerAnim;      // Animation of the package's player set the player's task is told to install and play
+    ActorTransform       playerPlacement; // Where `GAME_ACTOR_MESSAGE_PLACE` puts the player that tick: 100 units further along `pushDirection` on X and Z, at height 0, with yaw toward the enemy or away from it
+    VECTOR               toPlayer;        // Player's position minus the enemy's root, world units; `vy` is zero on the tick that tests which side the player is struck from, and `pad` is never written
+    SVECTOR              pushDirection;   // `toPlayer` normalised, 4096 = 1.0: the way the player is pushed. The first tick borrows it for the hit effect's offset from the player's coordinate instead; `pad` is never written
+} ActorPlayerKnockbackScratch;
+STATIC_ASSERT_SIZEOF(ActorPlayerKnockbackScratch, 0x44);
 
 /// The scratch-pad block of a point placed relative to a coordinate: `offset`
 /// in the coordinate's frame, and `result` the world position it is rotated
@@ -457,16 +448,21 @@ typedef struct ActorOffsetScratch {
 } ActorOffsetScratch;
 STATIC_ASSERT_SIZEOF(ActorOffsetScratch, 0x18);
 
-/// The scratch-pad block of a hit the actor takes: `d` is the position of the
-/// first contact record of the attacking kind, `pos` its offset from the
-/// model's origin, `id` the attack, `dmg` the damage worked out from it and
-/// `angle` the hit's yaw relative to the model's facing.
-typedef struct ActorHitTakenScratch {
-    SVECTOR d;
-    SVECTOR pos;
-    s32     id;
-    u16     dmg;
-    s16     angle;
+/// Scratch-stack block of the hit check of an enemy that turns toward what
+/// hit it.
+///
+/// The check reserves one block a frame and looks through the enemy's hit
+/// contacts for the first damaging one, kind 0x20000, stopping at a record
+/// with no key. When it finds one it rolls the damage, works out which way
+/// the hit lies from the model's facing, hands that turn and the key to the
+/// package's reaction and takes the damage off the enemy's health. The block
+/// is released before the check returns. Angles are 4096ths of a turn.
+typedef struct {
+    SVECTOR hitOffset; // `hitPos` minus the root's composed translation; `vx` and `vz` give the hit's bearing. The root's translation is staged here first; `pad` is never written
+    SVECTOR hitPos;    // Point of the contact found; `pad` is never written
+    s32     hitKey;    // Key of the contact found: the kind over the attack's packed id; 0 when no record holds a damaging contact
+    u16     damage;    // Damage rolled for the attack at range 0
+    s16     hitYaw;    // Bearing of `hitOffset` off the model's facing, wrapped to [-0x800, 0x800]
 } ActorHitTakenScratch;
 STATIC_ASSERT_SIZEOF(ActorHitTakenScratch, 0x18);
 
@@ -955,17 +951,6 @@ typedef struct {
     s32             freeCountdown; // Ticks left before the body model's buffers are freed, which the tick finding 0 does (-1 no free pending)
 } KyleMadiganWalkerWork;
 STATIC_ASSERT_SIZEOF(KyleMadiganWalkerWork, 0x50C);
-
-/// Work block of the animated actor whose code actor_110300 and actor_110800
-/// both carry, reached through a global the spawn publishes: the rig at the
-/// front and the animation state after it. `st.cueRecord` is the animation
-/// record slot 19 or 16 last cued a sound for, which only actor_110800 uses.
-typedef struct Actor110300Work {
-    ActorAnimRig20  rig;
-    ActorEnemyState st;
-    byte            pad_4AC[0xB0];
-} Actor110300Work;
-STATIC_ASSERT_SIZEOF(Actor110300Work, 0x55C);
 
 /// Bearing of `other` from `self`, measured in `self`'s own frame and folded
 /// into -0x800..0x800. The offset between the two world positions is written

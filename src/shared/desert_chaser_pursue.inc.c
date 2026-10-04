@@ -23,20 +23,20 @@ void desertChaserPursue(Task* arg0)
 #if DESERT_CHASER_RUN_SEQUENCE
     SVECTOR effect;
 #endif
-    DesertChaserWork*   work;
-    Enemy*              ctx;
-    GfxCoord*           coord;
-    GfxCoord*           facing;
-    TmdObject*          obj;
-    ActorFacingScratch* scratch;
-    Task*               player;
-    GameActor*          playerWork;
-    s16                 dz;
-    s16                 turn;
-    s32                 initialYaw;
-    s32                 yaw;
-    u16                 contactYaw;
-    u32                 distanceSquared;
+    DesertChaserWork*          work;
+    Enemy*                     ctx;
+    GfxCoord*                  coord;
+    GfxCoord*                  facing;
+    TmdObject*                 obj;
+    DesertChaserPursueScratch* scratch;
+    Task*                      player;
+    GameActor*                 playerWork;
+    s16                        dz;
+    s16                        turn;
+    s32                        initialYaw;
+    s32                        yaw;
+    u16                        contactYaw;
+    u32                        distanceSquared;
 #if !DESERT_CHASER_RUN_SEQUENCE
     s16 nextState;
 #endif
@@ -82,16 +82,16 @@ void desertChaserPursue(Task* arg0)
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &work->broadcast, ACTOR_COMMAND_MESSAGE_APPLY);
         return;
     }
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorFacingScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserPursueScratch);
     if (work->animId == 3) {
         work->stateTimer += 1;
     }
     if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) && (work->stateTimer >= 0xB)) {
-        distanceSquared          = ActorContact_ScratchPosition.vx * ActorContact_ScratchPosition.vx;
-        scratch->distanceSquared = distanceSquared;
-        scratch->distanceSquared = distanceSquared + ActorContact_ScratchPosition.vz * ActorContact_ScratchPosition.vz;
-        yaw                      = actorYawTo(arg0->extra.tmd->coords, ActorContact_ScratchPosition.vx, ActorContact_ScratchPosition.vz);
-        if ((abs(yaw) >= 0x601) && (scratch->distanceSquared >= 0xE11U)) {
+        distanceSquared            = ActorContact_ScratchPosition.vx * ActorContact_ScratchPosition.vx;
+        scratch->pushLengthSquared = distanceSquared;
+        scratch->pushLengthSquared = distanceSquared + ActorContact_ScratchPosition.vz * ActorContact_ScratchPosition.vz;
+        yaw                        = actorYawTo(arg0->extra.tmd->coords, ActorContact_ScratchPosition.vx, ActorContact_ScratchPosition.vz);
+        if ((abs(yaw) >= 0x601) && (scratch->pushLengthSquared >= 0xE11U)) {
 #if !DESERT_CHASER_RUN_SEQUENCE
             if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && Actor00100_InRegion(arg0)) {
                 if (Actor00100_FacingAway(arg0->extra.tmd->coords)) {
@@ -106,42 +106,42 @@ void desertChaserPursue(Task* arg0)
             }
         }
     }
-    if (((desertChaserAvoidWalk(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), (SVECTOR*)scratch) << 0x10) != 0) &&
+    if (((desertChaserAvoidWalk(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->offset) << 0x10) != 0) &&
         (work->animId == 3) && (playerWork->mode != GAME_ACTOR_MODE_SCRIPTED)) {
         work->playerButtonHold.pressCount = 0x80;
         coord                             = arg0->extra.tmd->coords;
-        scratch->vx                       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-        scratch->vy                       = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+        scratch->offset.vx                = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+        scratch->offset.vy                = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
         dz                                = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-        scratch->vz                       = dz;
-        scratch->contactYaw               = ratan2(scratch->vx, dz);
+        scratch->offset.vz                = dz;
+        scratch->catchYaw                 = ratan2(scratch->offset.vx, dz);
         facing                            = arg0->extra.tmd->coords;
-        contactYaw                        = scratch->contactYaw - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-        scratch->contactYaw               = contactYaw;
+        contactYaw                        = scratch->catchYaw - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        scratch->catchYaw                 = contactYaw;
         yaw                               = actorNormalizeYaw(contactYaw);
-        scratch->contactYaw               = yaw;
+        scratch->catchYaw                 = yaw;
         if (abs(yaw) < 0x180) {
 #if !DESERT_CHASER_RUN_SEQUENCE
             printf("EM01 PLAYER WORK %d, %d\n", playerWork->mode, playerWork->state);
 #endif
             if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
-                gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, (SVECTOR*)scratch);
-                contactYaw          = ratan2(scratch->vx, scratch->vz) + 0x800;
-                scratch->contactYaw = contactYaw;
-                scratch->contactYaw = actorNormalizeYaw(contactYaw);
-                scratch->turnYaw    = actorYawTo(arg0->extra.tmd->coords, scratch->vx, scratch->vz);
-                scratch->vy         = 0;
-                scratch->vx         = -scratch->vx;
-                scratch->vz         = -scratch->vz;
-                scratch->playerYaw  = actorYawTo(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords, scratch->vx, scratch->vz);
-                if (abs(scratch->playerYaw) < 0x400) {
+                gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &scratch->offset);
+                contactYaw          = ratan2(scratch->offset.vx, scratch->offset.vz) + 0x800;
+                scratch->catchYaw   = contactYaw;
+                scratch->catchYaw   = actorNormalizeYaw(contactYaw);
+                scratch->turn       = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+                scratch->offset.vy  = 0;
+                scratch->offset.vx  = -scratch->offset.vx;
+                scratch->offset.vz  = -scratch->offset.vz;
+                scratch->playerTurn = actorYawTo(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+                if (abs(scratch->playerTurn) < 0x400) {
                     work->playerAnim.source.sets = gDesertChaserFrontAnim;
                 } else {
                     work->playerAnim.source.sets = gDesertChaserRearAnim;
-                    scratch->contactYaw          = scratch->contactYaw + 0x800;
+                    scratch->catchYaw            = scratch->catchYaw + 0x800;
                 }
                 work->playerPlacement.rot.vx = 0;
-                work->playerPlacement.rot.vy = scratch->contactYaw;
+                work->playerPlacement.rot.vy = scratch->catchYaw;
                 work->playerPlacement.rot.vz = 0;
                 work->playerPlacement.pos.vx = player->extra.tmd->coords->coord.t[0];
                 work->playerPlacement.pos.vy = player->extra.tmd->coords->coord.t[1];
@@ -152,13 +152,13 @@ void desertChaserPursue(Task* arg0)
                     if (ctx->hp > 0)
 #endif
                     {
-                        if (abs(scratch->playerYaw) < 0x400) {
-                            scratch->messageResult = actorPlayerContactMessage(ctx, 2);
+                        if (abs(scratch->playerTurn) < 0x400) {
+                            scratch->playerKilled = actorPlayerContactMessage(ctx, 2);
                         } else {
-                            scratch->messageResult = actorPlayerContactMessage(ctx, 3);
+                            scratch->playerKilled = actorPlayerContactMessage(ctx, 3);
                         }
                     }
-                    if (scratch->messageResult != 1) {
+                    if (scratch->playerKilled != 1) {
                         work->playerAnim.animationId       = 3;
                         work->playerAnim.blend             = ANIMATION_BLEND_RESET;
                         work->playerAnim.blendFrames       = 0;
@@ -182,13 +182,13 @@ void desertChaserPursue(Task* arg0)
                     if (ctx->hp > 0)
 #endif
                     {
-                        if (abs(scratch->playerYaw) < 0x400) {
-                            scratch->messageResult = actorPlayerContactMessage(ctx, 0);
+                        if (abs(scratch->playerTurn) < 0x400) {
+                            scratch->playerKilled = actorPlayerContactMessage(ctx, 0);
                         } else {
-                            scratch->messageResult = actorPlayerContactMessage(ctx, 1);
+                            scratch->playerKilled = actorPlayerContactMessage(ctx, 1);
                         }
                     }
-                    if (scratch->messageResult == 1) {
+                    if (scratch->playerKilled == 1) {
                         ((GameActor*)player->work)->state = 0xA;
                     }
                     work->playerAnim.animationId       = 1;
@@ -211,27 +211,27 @@ void desertChaserPursue(Task* arg0)
                 }
             }
         }
-        scratch->targetYaw = actorPositionYaw(arg0, (SVECTOR*)scratch, &gPlayerStatus);
+        scratch->playerBearing = actorPositionYaw(arg0, &scratch->offset, &gPlayerStatus);
     } else {
-        yaw                = actorPositionYaw(arg0, (SVECTOR*)scratch, &gPlayerStatus);
-        scratch->targetYaw = yaw;
+        yaw                    = actorPositionYaw(arg0, &scratch->offset, &gPlayerStatus);
+        scratch->playerBearing = yaw;
         if ((abs(yaw) >= 0x601) && (work->animId == 3)) {
             work->state = 0x1D;
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    scratch->turnYaw                      = actorYawTo(arg0->extra.tmd->coords, work->playerDelta.vx, work->playerDelta.vz);
+    scratch->turn                         = actorYawTo(arg0->extra.tmd->coords, work->playerDelta.vx, work->playerDelta.vz);
     desertChaserAnimTick(arg0);
     if (work->animId == 2) {
-        if (scratch->turnYaw >= 0x41) {
-            scratch->turnYaw = 0x40;
+        if (scratch->turn >= 0x41) {
+            scratch->turn = 0x40;
         }
-        if (scratch->turnYaw < -0x40) {
-            scratch->turnYaw = -0x40;
+        if (scratch->turn < -0x40) {
+            scratch->turn = -0x40;
         }
-        facing           = arg0->extra.tmd->coords;
-        turn             = (u16)scratch->turnYaw + ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-        scratch->turnYaw = turn;
+        facing        = arg0->extra.tmd->coords;
+        turn          = (u16)scratch->turn + ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        scratch->turn = turn;
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
@@ -250,7 +250,7 @@ void desertChaserPursue(Task* arg0)
     if (work->stateCounter > work->windupFrames) {
         state = work->animId;
         if (state == 2) {
-            if ((abs(scratch->targetYaw) < 0x80) || (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+            if ((abs(scratch->playerBearing) < 0x80) || (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
                 work->animId      = 3;
                 work->animRequest = state;
                 pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -264,7 +264,7 @@ void desertChaserPursue(Task* arg0)
             }
         }
     }
-    if ((work->stateCounter < 0xF) || (abs(scratch->targetYaw) >= 0x81)) {
+    if ((work->stateCounter < 0xF) || (abs(scratch->playerBearing) >= 0x81)) {
         if (work->animId == 2) {
             work->playerDelta.vx = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
             work->playerDelta.vy = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
@@ -315,7 +315,7 @@ void desertChaserPursue(Task* arg0)
             Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[effectJoint], effectFlags | 0x80000000, &DESERT_CHASER_FX_OFFSET);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorFacingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(DesertChaserPursueScratch);
 }
 
 #undef DESERT_CHASER_FX_OFFSET

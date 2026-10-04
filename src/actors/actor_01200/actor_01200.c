@@ -1309,8 +1309,8 @@ static void Actor01200_Fn02918(Enemy* arg0, Task* arg1)
     s16                    i;
 
     work = arg1->work;
-    sc   = (ActorHitTakenScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorHitTakenScratch));
-    pos  = &sc->pos;
+    sc   = SCRATCH_STACK_RESERVE_BLOCK(ActorHitTakenScratch);
+    pos  = &sc->hitPos;
     recs = work->hitContacts;
     i    = 0;
     mask = 0xFFFF0000;
@@ -1333,31 +1333,31 @@ scan:
 missed:
     id = 0;
 found:
-    sc->id = id;
+    sc->hitKey = id;
 
     if (id != 0) {
-        sc->dmg                               = Gp_ComputeDamage(sc->id, 0, 0, 0x1000);
+        sc->damage                            = Gp_ComputeDamage(sc->hitKey, 0, 0, 0x1000);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg1->extra.tmd->coords);
-        sc->d.vx = arg1->extra.tmd->coords->workm.t[0];
-        sc->d.vy = arg1->extra.tmd->coords->workm.t[1];
-        sc->d.vz = arg1->extra.tmd->coords->workm.t[2];
-        sc->d.vx = sc->pos.vx - arg1->extra.tmd->coords->workm.t[0];
-        sc->d.vy = sc->pos.vy - arg1->extra.tmd->coords->workm.t[1];
-        sc->d.vz = sc->pos.vz - arg1->extra.tmd->coords->workm.t[2];
-        angle    = ratan2(sc->d.vx, sc->d.vz) -
+        sc->hitOffset.vx = arg1->extra.tmd->coords->workm.t[0];
+        sc->hitOffset.vy = arg1->extra.tmd->coords->workm.t[1];
+        sc->hitOffset.vz = arg1->extra.tmd->coords->workm.t[2];
+        sc->hitOffset.vx = sc->hitPos.vx - arg1->extra.tmd->coords->workm.t[0];
+        sc->hitOffset.vy = sc->hitPos.vy - arg1->extra.tmd->coords->workm.t[1];
+        sc->hitOffset.vz = sc->hitPos.vz - arg1->extra.tmd->coords->workm.t[2];
+        angle            = ratan2(sc->hitOffset.vx, sc->hitOffset.vz) -
                 ratan2(-arg1->extra.tmd->coords->workm.m[2][0], arg1->extra.tmd->coords->workm.m[2][2]);
-        sc->angle = angle;
-        sc->angle = actorWrapAngle(angle);
-        Actor01200_Fn026A0(arg1, sc->angle, sc->id);
-        func_800DA6E8(&arg0->node, sc->dmg, 0);
-        arg0->hp -= sc->dmg;
+        sc->hitYaw = angle;
+        sc->hitYaw = actorWrapAngle(angle);
+        Actor01200_Fn026A0(arg1, sc->hitYaw, sc->hitKey);
+        func_800DA6E8(&arg0->node, sc->damage, 0);
+        arg0->hp -= sc->damage;
         if (arg0->hp <= 0) {
             arg0->spawnState = 0;
             work->state      = ACTOR_01200_STATE_DEATH_BURST;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorHitTakenScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorHitTakenScratch);
 }
 
 /// `ACTOR_01200_STATE_PATROL`: walk between the two `patrolPoints`: turn at most

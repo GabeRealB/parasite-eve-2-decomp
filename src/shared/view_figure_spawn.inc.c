@@ -16,7 +16,7 @@ void viewFigureSpawnState(Enemy* enemy, Task* task)
 
     obj             = task->extra.tmd;
     coord           = obj->coords;
-    work            = memCalloc(sizeof(Actor110300Work), 0);
+    work            = memCalloc(sizeof(ViewFigureWork), 0);
     gViewFigureWork = work;
     task->work      = work;
     if (work == NULL) {

@@ -461,30 +461,30 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
 /// variant's MP.
 static void Actor02400_Fn00C08(Task* task)
 {
-    ActorPushFrame*  scratch;
-    GfxCoord*        coord;
-    GfxCoord*        src;
-    _Actor02400Work* work;
-    Enemy*           enemy;
-    s32              push;
-    s32              reach;
-    s32              val;
-    s32              res;
-    s32              i;
-    s32              z;
-    s32              kind;
-    s32              param;
-    s32              damage;
-    s32              lastId;
-    s16              dmg;
-    s32              sndId;
-    s32              pan;
-    s32              stun;
+    ActorContactOverlapPushScratch* scratch;
+    GfxCoord*                       coord;
+    GfxCoord*                       src;
+    _Actor02400Work*                work;
+    Enemy*                          enemy;
+    s32                             push;
+    s32                             reach;
+    s32                             val;
+    s32                             res;
+    s32                             i;
+    s32                             z;
+    s32                             kind;
+    s32                             param;
+    s32                             damage;
+    s32                             lastId;
+    s16                             dmg;
+    s32                             sndId;
+    s32                             pan;
+    s32                             stun;
 
     push    = 0;
     lastId  = 0;
     work    = task->work;
-    scratch = (ActorPushFrame*)SCRATCH_STACK_RESERVE_BYTES(0x58);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
     coord   = task->extra.tmd->coords;
     enemy   = task->spawnArg2.pointer;
     res     = func_800E0C10(work->bodyContacts, &scratch->delta, ARRAY_SIZE(work->bodyContacts), NULL);
@@ -641,14 +641,14 @@ move_done:
                 if (push < reach) {
                     push = reach;
                     VectorNormal(&scratch->delta.vector, &scratch->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
                 }
                 break;
         }
     } while (++i < (s32)ARRAY_SIZE(work->bodyContacts));
     if (push > 0) {
-        coord->coord.t[0] += (push * scratch->dir.vx) >> 12;
-        coord->coord.t[2] += (push * scratch->dir.vz) >> 12;
+        coord->coord.t[0] += (push * scratch->pushDirection.vx) >> 12;
+        coord->coord.t[2] += (push * scratch->pushDirection.vz) >> 12;
     }
     Gp_ClearRec18Occupied(work->bodyContacts);
     // The attack body touched the player: disable it until the body crawls again and take the MP.
@@ -664,7 +664,7 @@ move_done:
             work->staggerDamage = 0;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x58);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactOverlapPushScratch);
 }
 
 /// The projectile's state handlers, run by `Actor02400_Fn03358` for the task's

@@ -24,7 +24,7 @@
 
 /// The block above, published by `func_actor_110800_801322A0` from the task's
 /// `Task::work`.
-extern Actor110300Work* gViewFigureWork;
+extern ViewFigureWork* gViewFigureWork;
 
 /// The actor's own task, stored by the step-0 handler. The message handlers
 /// drive the step dispatcher and the model through it, and
@@ -271,7 +271,7 @@ u8 gViewFigureAnimSets[28] = {
     0,
 };
 
-Actor110300Work* gViewFigureWork;
+ViewFigureWork* gViewFigureWork;
 
 Task* gActorSelfTask;
 

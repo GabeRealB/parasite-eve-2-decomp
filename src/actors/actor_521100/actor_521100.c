@@ -1777,39 +1777,39 @@ static __inline__ s32 Actor521100_GetHitType(s32 key)
 
 static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
 {
-    ActorDeltaFrame48* scratch;
-    Actor521100Work*   work;
-    Enemy*             enemy;
-    GfxCoord*          coord;
-    u32                lastId;
-    u32                sound;
-    u32                kind;
-    u32                damage;
-    u32                rng;
-    u32                rng2;
-    u32                r;
-    s32                result;
-    s32                dx;
-    s32                coordX;
-    s32                dz;
-    s32                absDiff;
-    s32                r2;
-    s32                angle;
-    s32                angle2;
-    s32                hitType;
-    s32                i;
-    s16                diff;
-    s16                wrap;
-    s16                cooldown;
-    s32                pan;
-    s32                pan1;
-    s32                pan2;
-    s32                depth;
-    s16                wait;
+    ActorContactDeltaWideScratch* scratch;
+    Actor521100Work*              work;
+    Enemy*                        enemy;
+    GfxCoord*                     coord;
+    u32                           lastId;
+    u32                           sound;
+    u32                           kind;
+    u32                           damage;
+    u32                           rng;
+    u32                           rng2;
+    u32                           r;
+    s32                           result;
+    s32                           dx;
+    s32                           coordX;
+    s32                           dz;
+    s32                           absDiff;
+    s32                           r2;
+    s32                           angle;
+    s32                           angle2;
+    s32                           hitType;
+    s32                           i;
+    s16                           diff;
+    s16                           wrap;
+    s16                           cooldown;
+    s32                           pan;
+    s32                           pan1;
+    s32                           pan2;
+    s32                           depth;
+    s16                           wait;
 
     lastId  = 0;
     work    = arg0->work;
-    scratch = (ActorDeltaFrame48*)SCRATCH_STACK_RESERVE_BYTES(0x48);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorContactDeltaWideScratch);
     coord   = arg0->extra.tmd->coords;
     enemy   = arg0->spawnArg2.pointer;
     result  = func_800E0C10(work->groundContacts, &scratch->delta, ARRAY_SIZE(work->groundContacts), NULL);
@@ -1974,7 +1974,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
             enemy->hp = 1;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x48);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactDeltaWideScratch);
 }
 
 static void func_actor_521100_80132958(Task* arg0)
