@@ -371,7 +371,7 @@ D_map_dryfield_full_8017D1CC = 0x8017D1CC; // absolute:True
 D_map_shelter_8017BD8C = 0x8017BD8C; // absolute:True
 D_map_neo_ark_8017CB0C = 0x8017CB0C; // absolute:True
 func_acropolis_east_elevator_hall_8017FAAC = 0x8017FAAC; // type:func absolute:True owner=acropolis_east_elevator_hall shared=rooms
-func_8011D1E0 = 0x8011D1E0; // type:func absolute:True
+func_8011D1E0 = 0x8011D1E0; // type:func absolute:True shared=weapons
 D_map_akropolis_8017A8AC = 0x8017A8AC; // absolute:True
 D_map_dryfield_8017A6A4 = 0x8017A6A4; // absolute:True
 D_map_dryfield_full_8017A5AC = 0x8017A5AC; // absolute:True
@@ -661,7 +661,6 @@ func_dryfield_back_street_8017E434 = 0x8017E434; // type:func absolute:True owne
 
 func_dryfield_back_street_8017ED1C = 0x8017ED1C; // type:func absolute:True owner=dryfield_back_street
 
-func_dryfield_breezeway_8017DC3C = 0x8017DC3C; // type:func absolute:True
 
 func_dryfield_breezeway_80181264 = 0x80181264; // type:func absolute:True owner=dryfield_breezeway shared=rooms
 
@@ -715,7 +714,6 @@ func_dryfield_night_dilapidated_house_8017E670 = 0x8017E670; // type:func absolu
 
 func_dryfield_night_driveway_8017DD8C = 0x8017DD8C; // type:func absolute:True owner=dryfield_night_driveway shared=rooms
 
-func_dryfield_night_garage_801807E4 = 0x801807E4; // type:func absolute:True
 
 func_dryfield_night_gas_station_80180E9C = 0x80180E9C; // type:func absolute:True owner=dryfield_night_gas_station
 
@@ -2091,6 +2089,6 @@ ofudaEffectTask = 0x8012EF34; // type:func absolute:True owner=ofuda shared=pe
 
 flareEffectTask = 0x8012EF34; // type:func absolute:True owner=flare shared=pe
 
-func_m4a1_hammer_8011D1E0 = 0x8011D1E0; // type:func absolute:True
+func_m4a1_hammer_8011D1E0 = 0x8011D1E0; // type:func absolute:True owner=m4a1_hammer shared=weapons
 
 func_lifedrain_8012FAF8 = 0x8012FAF8; // type:func absolute:True owner=lifedrain shared=pe
