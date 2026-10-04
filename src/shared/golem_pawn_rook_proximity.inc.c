@@ -2,7 +2,7 @@
 
 /// Proximity check of the approach states. Measures the player's horizontal
 /// distance from the root coordinate through a 0x10-byte scratch stack
-/// block: under 0x5DC one of `gSceneCombatState.signals.bytes.actionFlags`'s bit groups raises `field_6B2`;
+/// block: under 0x5DC one of `gSceneCombatState.signals.bytes.actionFlags`'s bit groups raises `playerSpotted`;
 /// past it the other two (the second only within 0xBB8) put the enemy into
 /// animation 4 and state 1.
 void golemPawnRookCheckProximity(Task* arg0)
@@ -30,7 +30,7 @@ void golemPawnRookCheckProximity(Task* arg0)
     distance                     = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
         if (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_PE_CAST_OTHER | SCENE_COMBAT_ACTION_FOOTSTEP)) {
-            work->field_6B2 = 1;
+            work->playerSpotted = 1;
         }
     } else {
         if (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
@@ -40,11 +40,11 @@ void golemPawnRookCheckProximity(Task* arg0)
             trigger = 1;
         }
         if (trigger != 0) {
-            work->field_694 = 4;
-            work->field_69C = 0;
-            work->field_69E = 0;
-            work->field_6AE = 0;
-            work->field_6A8 = 1;
+            work->anim         = 4;
+            work->forwardSpeed = 0;
+            work->turnRate     = 0;
+            work->timer        = 0;
+            work->step         = 1;
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);

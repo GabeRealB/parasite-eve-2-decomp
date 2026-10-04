@@ -1,11 +1,11 @@
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Entry 0xD of the `field_6A6` table. State 0 arms the reaction: `field_6AA`
+/// Entry 0xD of the `behavior` table. State 0 arms the reaction: `hitFromFront`
 /// picks animation 0x16 with a 0x42-frame budget or 0x1A with 0x31 frames,
-/// the second body node's pose and radius are parked and its 0x4000 flag
-/// raised, the third node's dropped, and the enemy's `reactionFlags` cleared.
-/// State 1 plays the voice cues of the animation `field_6B8` selects at its
-/// frame marks and, when the `field_6AE` budget runs out, hands the task over
+/// `hurtBody`'s offset and radius are parked and its 0x4000 flag raised,
+/// `groundBody`'s dropped, and the enemy's `reactionFlags` cleared.
+/// State 1 plays the voice cues of the animation `downedPose` selects at its
+/// frame marks and, when the `timer` budget runs out, hands the task over
 /// to state 2.
 void golemPawnRookCollapseState(Task* arg0)
 {
@@ -16,69 +16,69 @@ void golemPawnRookCollapseState(Task* arg0)
 
     work  = arg0->work;
     self  = arg0->extra.tmd->coords;
-    state = work->field_6A8;
+    state = work->step;
 
     switch (state) {
         case 0:
-            if (work->field_6AA == 0) {
-                work->field_694        = 0x16;
-                work->field_6A8        = 1;
-                work->field_6B8        = 1;
-                work->field_6AE        = 0x42;
-                work->field_4CC.pos.vz = -0xA7;
+            if (work->hitFromFront == 0) {
+                work->anim            = 0x16;
+                work->step            = 1;
+                work->downedPose      = 1;
+                work->timer           = 0x42;
+                work->hurtBody.pos.vz = -0xA7;
             } else {
-                work->field_694        = 0x1A;
-                work->field_6A8        = 1;
-                work->field_6B8        = 2;
-                work->field_6AE        = 0x31;
-                work->field_4CC.pos.vz = 0x109;
+                work->anim            = 0x1A;
+                work->step            = 1;
+                work->downedPose      = 2;
+                work->timer           = 0x31;
+                work->hurtBody.pos.vz = 0x109;
             }
-            work->field_4CC.radius                           = 0x15E;
-            work->field_69C                                  = 0;
-            work->field_69E                                  = 0;
-            work->field_6DE                                  = 1;
-            work->field_4CC.flags                           |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            work->field_564.flags                           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+            work->hurtBody.radius                            = 0x15E;
+            work->forwardSpeed                               = 0;
+            work->turnRate                                   = 0;
+            work->knockdownStage                             = 1;
+            work->hurtBody.flags                            |= WORLD_COLLISION_BODY_GRID_ENABLED;
+            work->groundBody.flags                          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags = 0;
-            work->field_6D4                                  = 1;
+            work->fallingDown                                = 1;
             break;
         case 1:
-            if (work->field_6DE == 1) {
-                work->field_6DE = 2;
+            if (work->knockdownStage == 1) {
+                work->knockdownStage = 2;
             }
-            if (work->field_6B8 == 1) {
-                if (work->field_698 == 0x14) {
+            if (work->downedPose == 1) {
+                if (work->animFrame == 0x14) {
                     s32 pan;
 
-                    snd = gGolemPawnRookVoiceCues[work->field_6D6 + 0xC] |
+                    snd = gGolemPawnRookVoiceCues[work->soundSet + 0xC] |
                           ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)worldCoordGetOriginAudioPan(self);
 
                     SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
                 }
-                if (work->field_698 == 0x2C) {
+                if (work->animFrame == 0x2C) {
                     s32 pan;
 
-                    snd = gGolemPawnRookVoiceCues[work->field_6D6 + 8] |
+                    snd = gGolemPawnRookVoiceCues[work->soundSet + 8] |
                           ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)worldCoordGetOriginAudioPan(self);
 
                     SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
                 }
-            } else if (work->field_698 == 0x19) {
+            } else if (work->animFrame == 0x19) {
                 s32 pan;
 
-                snd = gGolemPawnRookVoiceCues[work->field_6D6 + 8] |
+                snd = gGolemPawnRookVoiceCues[work->soundSet + 8] |
                       ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)worldCoordGetOriginAudioPan(self);
 
                 SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
             }
-            work->field_6AE--;
-            if (work->field_6AE <= 0) {
-                arg0->state     = 2;
-                work->field_6A8 = 0;
-                work->field_6D4 = 0;
+            work->timer--;
+            if (work->timer <= 0) {
+                arg0->state       = 2;
+                work->step        = 0;
+                work->fallingDown = 0;
             }
             break;
     }

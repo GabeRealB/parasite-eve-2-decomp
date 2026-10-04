@@ -16,12 +16,12 @@ void golemPawnRookBurstPartSpawn(Enemy* arg0, Task* task)
     obj          = task->extra.tmd;
     parentCoords = parent->extra.tmd->coords;
     coord        = obj->coords;
-    work         = (GolemPawnRookWork*)parent->work;
+    work         = parent->work;
 
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->parent       = &parentCoords[11];
-    obj->lightMtx       = &work->field_45C;
+    obj->lightMtx       = &work->lightMtx;
     obj->flags          = 0;
-    obj->colorMtx       = &work->field_43C;
+    obj->colorMtx       = &work->colorMtx;
     task->state         = 1;
 }

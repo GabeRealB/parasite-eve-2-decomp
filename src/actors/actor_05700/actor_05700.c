@@ -57,11 +57,11 @@
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_GRENADE_LAUNCHER
 #include "../../shared/golem_pawn_rook.h"
 
-/// Sound ids this actor's cues play, indexed by `GolemPawnRookWork.field_6D6`
-/// (row `field_6D6` starts at the second word, the `- 1` in the body).
+/// Sound ids this actor's cues play, indexed by `GolemPawnRookWork.soundSet`
+/// (row `soundSet` starts at the second word, the `- 1` in the body).
 extern s32 gGolemPawnRookVoiceCues[];
 
-/// Per-animation frame marks: row `field_694` holds the frame the 0x1C, 0x28
+/// Per-animation frame marks: row `anim` holds the frame the 0x1C, 0x28
 /// and 0x7A marks of `golemPawnRookLungeStrikeState` are measured from.
 extern s16 gGolemPawnRookAnimBlendFrames[];
 
@@ -1265,7 +1265,7 @@ extern AnimationSet* gGolemPawnRookAnimSets[31];
 
 /// The actor's spawn table: entry 3 is the model child re-skinned with the
 /// placement's texture page, entry 1 the effect child, and the whole table
-/// is kept in `field_66C` for later spawns.
+/// is kept in `taskTable` for later spawns.
 extern TaskDesc gGolemPawnRookTasks[];
 
 /// Per-stage tables of per-area CD cue ids; a NULL stage has no cue.
@@ -1274,7 +1274,7 @@ extern u16* gGolemPawnRookAreaParams[];
 /// Enemy parameter record the spawn hands to its `Enemy`.
 extern EnemyParams gGolemPawnRookParams[];
 
-/// Per-state handlers of the approach cycle, indexed by `field_6A6`.
+/// Per-state handlers of the approach cycle, indexed by `behavior`.
 extern TaskFunc gGolemPawnRookStates[];
 
 /// Sound id the spawn cue is played against; the low byte comes from the

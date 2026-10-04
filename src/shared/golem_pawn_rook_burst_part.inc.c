@@ -19,7 +19,7 @@ void golemPawnRookBurstPartTick(Enemy* arg0, Task* arg1)
     work       = owner->work;
     coord      = obj->coords;
     obj->flags = ownerObj->flags;
-    state      = work->field_6D2;
+    state      = work->shieldBreakStep;
 
     switch (state) {
         case 0:
@@ -30,8 +30,8 @@ void golemPawnRookBurstPartTick(Enemy* arg0, Task* arg1)
             Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
             Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
             Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x02002600, NULL);
-            work->field_6D2 = 2;
-            snd             = gGolemPawnRookBurstCue |
+            work->shieldBreakStep = 2;
+            snd                   = gGolemPawnRookBurstCue |
                   ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             pan = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));

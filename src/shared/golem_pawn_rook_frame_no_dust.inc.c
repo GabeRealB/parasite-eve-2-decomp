@@ -2,11 +2,11 @@
 
 /// Per-frame tick of the packages without the dust effect: obeys
 /// `gSceneCombatState.actorControl`, applies a pending reaction, runs the hit
-/// tick and the `field_6A6` state handler, turns toward `field_6A4` while
-/// `field_69E` is set, steps the root, ticks the animation, decays the hit tilt
-/// while `field_6B4` is set, plays the voice cues, marks the root and part 3
+/// tick and the `behavior` state handler, turns toward `targetYaw` while
+/// `turnRate` is set, steps the root, ticks the animation, decays the hit tilt
+/// while `hitTiltActive` is set, plays the voice cues, marks the root and part 3
 /// dirty and draws. The same body as `golemPawnRookFrameState` without its
-/// `field_6C4` dust spawn.
+/// `screamCharges` dust spawn.
 void golemPawnRookFrameStateNoDust(Enemy* ctx, Task* actor)
 {
     TmdObject*         model;
@@ -34,13 +34,13 @@ void golemPawnRookFrameStateNoDust(Enemy* ctx, Task* actor)
         golemPawnRookApplyReaction(actor);
     }
     golemPawnRookTakeHits(actor);
-    gGolemPawnRookStates[work->field_6A6](actor);
-    if (work->field_69E != 0) {
+    gGolemPawnRookStates[work->behavior](actor);
+    if (work->turnRate != 0) {
         golemPawnRookTurnTowardTarget(actor);
     }
     golemPawnRookStepRoot(actor);
     golemPawnRookTickAnim(actor);
-    if (work->field_6B4 != 0) {
+    if (work->hitTiltActive != 0) {
         golemPawnRookDecayHitTilt(actor);
     }
     golemPawnRookPlayAnimCues(actor);

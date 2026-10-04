@@ -2,7 +2,7 @@
 
 /* Part of the library; see golem_pawn_rook.h. Inline helpers the fragments use. */
 
-/// Every third frame while `field_6C4` is clear, kicks a dust effect off the
+/// Every third frame while `screamCharges` is clear, kicks a dust effect off the
 /// fourth body coordinate with a random upward velocity.
 static __inline__ void golemPawnRookSpawnDust(Task* actor)
 {
@@ -14,8 +14,8 @@ static __inline__ void golemPawnRookSpawnDust(Task* actor)
     head                          = SCRATCH_STACK_CURSOR(SVECTOR);
     rot                           = head - 1;
     SCRATCH_STACK_CURSOR(SVECTOR) = rot;
-    if (++work->field_6B0 >= 3) {
-        work->field_6B0 = 0;
+    if (++work->dustTimer >= 3) {
+        work->dustTimer = 0;
         head[-1].vx     = 0;
         rot->vz         = 0;
         rot->vy         = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1FF);
@@ -24,9 +24,9 @@ static __inline__ void golemPawnRookSpawnDust(Task* actor)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-/// Takes a pending reaction: while `field_6B8` is 0, bit 1 of the spawn
+/// Takes a pending reaction: while `downedPose` is 0, bit 1 of the spawn
 /// context's `reactionFlags` is cleared and the enemy switches to entry 0xA of
-/// the `field_6A6` table with animation 0x14.
+/// the `behavior` table with animation 0x14.
 static inline void golemPawnRookApplyReaction(Task* actor)
 {
     Enemy*             spawn;
@@ -36,36 +36,36 @@ static inline void golemPawnRookApplyReaction(Task* actor)
     spawn = actor->spawnArg2.pointer;
     flags = spawn->reactionFlags;
     work  = actor->work;
-    if ((flags & ENEMY_REACTION_BUILDUP) && (work->field_6B8 == 0)) {
+    if ((flags & ENEMY_REACTION_BUILDUP) && (work->downedPose == 0)) {
         spawn->reactionFlags = flags & ENEMY_REACTION_BUILDUP_CLEAR;
-        work->field_6A6      = 0xA;
-        work->field_694      = 0x14;
-        work->field_6A8      = 0;
-        work->field_6E0      = 1;
+        work->behavior       = GOLEM_PAWN_ROOK_BEHAVIOR_BUILDUP;
+        work->anim           = 0x14;
+        work->step           = 0;
+        work->buildupActive  = 1;
     }
 }
 
-/// Saves the root coordinate's translation in `field_678`..`field_680`, then
-/// moves it `field_69C` along its facing, raising it by 0x80 while `field_6DE`
+/// Saves the root coordinate's translation in `prevRootPos`, then
+/// moves it `forwardSpeed` along its facing, raising it by 0x80 while `knockdownStage`
 /// is below 2.
 static inline void golemPawnRookStepRoot(Task* actor)
 {
     GfxCoord*          coord;
     GolemPawnRookWork* work;
 
-    coord              = actor->extra.tmd->coords;
-    work               = actor->work;
-    work->field_678    = coord->coord.t[0];
-    work->field_67C    = coord->coord.t[1];
-    work->field_680    = coord->coord.t[2];
-    coord->coord.t[0] += (s32)(coord->coord.m[0][2] * work->field_69C) >> 0xC;
-    if (work->field_6DE < 2) {
+    coord                = actor->extra.tmd->coords;
+    work                 = actor->work;
+    work->prevRootPos.vx = coord->coord.t[0];
+    work->prevRootPos.vy = coord->coord.t[1];
+    work->prevRootPos.vz = coord->coord.t[2];
+    coord->coord.t[0]   += (s32)(coord->coord.m[0][2] * work->forwardSpeed) >> 0xC;
+    if (work->knockdownStage < 2) {
         coord->coord.t[1] += 0x80;
     }
-    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_69C) >> 0xC;
+    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->forwardSpeed) >> 0xC;
 }
 
-/// Advances animation slots 1..0x12 by one frame, or, when `field_694` names a
+/// Advances animation slots 1..0x12 by one frame, or, when `anim` names a
 /// new animation, restarts the frame count and cross-fades every slot to it
 /// over the animation's `gGolemPawnRookAnimBlendFrames` duration.
 static inline void golemPawnRookTickAnim(Task* actor)
@@ -75,15 +75,15 @@ static inline void golemPawnRookTickAnim(Task* actor)
     s32                i;
 
     work = actor->work;
-    if (work->field_694 != work->field_696) {
-        work->field_696 = work->field_694;
-        work->field_698 = 0;
-        duration        = gGolemPawnRookAnimBlendFrames[work->field_694];
+    if (work->anim != work->playingAnim) {
+        work->playingAnim = work->anim;
+        work->animFrame   = 0;
+        duration          = gGolemPawnRookAnimBlendFrames[work->anim];
         for (i = 1; i < 0x13; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_694, 0, duration);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->anim, 0, duration);
         }
     } else {
-        work->field_698++;
+        work->animFrame++;
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);
         }

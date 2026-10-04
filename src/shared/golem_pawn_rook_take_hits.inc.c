@@ -1,11 +1,11 @@
 /* Part of the Pawn/Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Hit and push tick. Applies the `field_584` / `field_4EC` collision deltas
-/// to the root coordinate, then walks the five `field_4EC` records: kind 2 is a
-/// weapon hit (damage, crit roll, the `field_6D0` weak-point budget, and the
-/// reaction animation picked into `field_6A6`), kind 3 a push-out whose
+/// Hit and push tick. Applies the `groundContacts` / `hurtContacts` collision deltas
+/// to the root coordinate, then walks the `hurtContacts` records: kind 2 is a
+/// weapon hit (damage, crit roll, the `shieldHp` shield budget, and the
+/// reaction animation picked into `behavior`), kind 3 a push-out whose
 /// deepest overlap is applied to the root after the loop. Finally raises
-/// `field_6B2` when the player's segment test against `field_4B4` fails.
+/// `playerSpotted` when the player's segment test against `sightContacts` fails.
 void golemPawnRookTakeHits(Task* arg0)
 {
     s32                      result;
@@ -44,7 +44,7 @@ void golemPawnRookTakeHits(Task* arg0)
     scratch = SCRATCH_STACK_CURSOR(GolemPawnRookHitScratch);
     enemy   = arg0->spawnArg2.pointer;
 
-    switch (func_800E0C10(work->field_584, &head[-1].delta, 4, NULL)) {
+    switch (func_800E0C10(work->groundContacts, &head[-1].delta, ARRAY_SIZE(work->groundContacts), NULL)) {
         case 0:
             break;
         case 1:
@@ -53,15 +53,15 @@ void golemPawnRookTakeHits(Task* arg0)
             self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
         case 2:
-            self->coord.t[0] = work->field_678;
-            self->coord.t[1] = work->field_67C;
-            self->coord.t[2] = work->field_680;
+            self->coord.t[0] = work->prevRootPos.vx;
+            self->coord.t[1] = work->prevRootPos.vy;
+            self->coord.t[2] = work->prevRootPos.vz;
             break;
     }
-    Gp_ClearRec18Occupied(work->field_584);
+    Gp_ClearRec18Occupied(work->groundContacts);
 
-    if (work->field_4CC.flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
-        switch (func_800E0C10(work->field_4EC, &scratch->delta, 5, NULL)) {
+    if (work->hurtBody.flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
+        switch (func_800E0C10(work->hurtContacts, &scratch->delta, ARRAY_SIZE(work->hurtContacts), NULL)) {
             case 0:
                 break;
             case 1:
@@ -69,114 +69,114 @@ void golemPawnRookTakeHits(Task* arg0)
                 self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
                 break;
             case 2:
-                self->coord.t[0] = work->field_678;
-                self->coord.t[2] = work->field_680;
+                self->coord.t[0] = work->prevRootPos.vx;
+                self->coord.t[2] = work->prevRootPos.vz;
                 break;
         }
     }
 
-    if (work->field_69A != 0) {
-        if (--work->field_69A <= 0) {
-            work->field_69A = 0;
+    if (work->hitCooldown != 0) {
+        if (--work->hitCooldown <= 0) {
+            work->hitCooldown = 0;
         }
     }
 
-    for (i = 0; i < 5; i++) {
-        switch ((u32)work->field_4EC[i].key.value >> 16) {
+    for (i = 0; i < ARRAY_SIZE(work->hurtContacts); i++) {
+        switch ((u32)work->hurtContacts[i].key.value >> 16) {
             case 0:
             case 1:
                 break;
             case 2:
-                if (work->field_69A != 0) {
+                if (work->hitCooldown != 0) {
                     break;
                 }
-                other                    = gPlayerActorTasks[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
+                other                    = gPlayerActorTasks[((u32)work->hurtContacts[i].key.value >> 7) & 1]->extra.tmd->coords;
                 scratch->delta.vector.vx = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vector.vy = other->coord.t[1] - self->coord.t[1];
                 dz                       = other->coord.t[2] - self->coord.t[2];
                 scratch->delta.vector.vz = dz;
                 val                      = (scratch->delta.vector.vx * self->coord.m[0][2]) + (scratch->delta.vector.vy * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
-                work->field_6AA          = val >= 0;
-                damage                   = Gp_ComputeDamage(work->field_4EC[i].key.value,
+                work->hitFromFront       = val >= 0;
+                damage                   = Gp_ComputeDamage(work->hurtContacts[i].key.value,
                                                             SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)),
                                                             0, 0);
-                kind                     = Gp_GetIdParam0(work->field_4EC[i].key.value);
-                if (work->field_6CE != 0 && work->field_6AA == 1 && work->field_6B8 == 0) {
-                    if (work->field_4EC[i].key.value & 0x8000) {
-                        if (gGolemPawnRookWeakSpotHitsFlagged[work->field_4EC[i].key.value & 0x7F] != 0) {
-                            hit              = 1;
-                            work->field_6D0 -= damage;
+                kind                     = Gp_GetIdParam0(work->hurtContacts[i].key.value);
+                if (work->shieldRaised != 0 && work->hitFromFront == 1 && work->downedPose == 0) {
+                    if (work->hurtContacts[i].key.value & 0x8000) {
+                        if (gGolemPawnRookWeakSpotHitsFlagged[work->hurtContacts[i].key.value & 0x7F] != 0) {
+                            hit             = 1;
+                            work->shieldHp -= damage;
                         }
-                    } else if (gGolemPawnRookWeakSpotHits[work->field_4EC[i].key.value & 0x7F] != 0) {
-                        hit              = 1;
-                        work->field_6D0 -= damage;
+                    } else if (gGolemPawnRookWeakSpotHits[work->hurtContacts[i].key.value & 0x7F] != 0) {
+                        hit             = 1;
+                        work->shieldHp -= damage;
                     }
                     if (hit == 1) {
-                        if (work->field_6D0 <= 0) {
-                            work->field_6A6        = 9;
-                            work->field_6CE        = 0;
-                            work->field_6D2        = 1;
-                            work->field_6A8        = 0;
-                            work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                            if (work->field_690 != NULL) {
-                                work->field_690->task->state = 3;
-                                work->field_690              = NULL;
+                        if (work->shieldHp <= 0) {
+                            work->behavior          = GOLEM_PAWN_ROOK_BEHAVIOR_RECOIL;
+                            work->shieldRaised      = 0;
+                            work->shieldBreakStep   = 1;
+                            work->step              = 0;
+                            work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                            if (work->screamEffect != NULL) {
+                                work->screamEffect->task->state = 3;
+                                work->screamEffect              = NULL;
                             }
                         }
                         func_800DA6E8(&enemy->node, 0, 0);
-                        cooldown = Gp_GetIdParam2(work->field_4EC[i].key.value);
+                        cooldown = Gp_GetIdParam2(work->hurtContacts[i].key.value);
                         if (cooldown > 0) {
-                            work->field_69A = cooldown;
+                            work->hitCooldown = cooldown;
                         }
                         break;
                     }
                 } else {
-                    work->field_6CE = 0;
+                    work->shieldRaised = 0;
                     if ((kind & 0xFFFF) == 5) {
                         damage *= 2;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
                     }
                 }
-                if (Gp_RollEnemyChance(enemy, work->field_4EC[i].key.value, 0) != 0) {
+                if (Gp_RollEnemyChance(enemy, work->hurtContacts[i].key.value, 0) != 0) {
                     damage *= 4;
                     if ((kind & 0xFFFF) != 5) {
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
-                    if (work->field_6E0 == 0) {
+                    if (work->buildupActive == 0) {
                         result = 1;
                     }
                 }
-                if (work->field_6C4 != 0 && (work->field_4EC[i].key.value & 0x8000)) {
+                if (work->screamCharges != 0 && (work->hurtContacts[i].key.value & 0x8000)) {
                     damage >>= 2;
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
-                func_800E2C78(enemy, work->field_4EC[i].key.value, damage, 0);
+                func_800E2C78(enemy, work->hurtContacts[i].key.value, damage, 0);
                 enemy->hp -= damage;
                 if (enemy->hp <= 0) {
-                    if (work->field_6B8 == 0) {
+                    if (work->downedPose == 0) {
                         result = 5;
                     } else {
                         result = 6;
                     }
                 } else if (max = enemy->param->hpMax, enemy->hp < GOLEM_PAWN_ROOK_LOW_HP(max)) {
-                    if (work->field_6B8 == 0) {
+                    if (work->downedPose == 0) {
                         result = 3;
                     } else {
                         result = 4;
                     }
                 }
-                if (work->field_6CC != 0 || work->field_6C2 != 0) {
-                    work->field_6B6 += damage;
+                if (work->attackActive != 0 || work->screamActive != 0) {
+                    work->interruptDamage += damage;
                 }
                 switch (kind & 0xFFFF) {
                     case 1:
-                        if (work->field_6C4 == 0 && work->field_6B8 == 0 && result < 3 && work->field_6E0 == 0) {
+                        if (work->screamCharges == 0 && work->downedPose == 0 && result < 3 && work->buildupActive == 0) {
                             result = 2;
                         }
                         break;
                     case 2:
-                        if (work->field_6C4 == 0 && work->field_6B8 == 0 && result < 3) {
-                            Gp_SetObjFlag2(enemy, work->field_4EC[i].key.value, 0);
+                        if (work->screamCharges == 0 && work->downedPose == 0 && result < 3) {
+                            Gp_SetObjFlag2(enemy, work->hurtContacts[i].key.value, 0);
                             result = 1;
                         }
                         break;
@@ -190,24 +190,24 @@ void golemPawnRookTakeHits(Task* arg0)
                     case 9:
                         break;
                 }
-                if (lastId != work->field_4EC[i].key.value) {
-                    lastId             = work->field_4EC[i].key.value;
+                if (lastId != work->hurtContacts[i].key.value) {
+                    lastId             = work->hurtContacts[i].key.value;
                     scratch->effOfs.vx = 0;
                     scratch->effOfs.vy = 0;
-                    scratch->effOfs.vz = (work->field_6AA == 1) ? 0x12C : -0x96;
-                    func_800FDB18(Gp_GetIdParam1(work->field_4EC[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[3],
-                                  &scratch->effOfs, &work->field_670);
+                    scratch->effOfs.vz = (work->hitFromFront == 1) ? 0x12C : -0x96;
+                    func_800FDB18(Gp_GetIdParam1(work->hurtContacts[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[3],
+                                  &scratch->effOfs, &work->hitEffectArg);
                 }
-                cooldown = Gp_GetIdParam2(work->field_4EC[i].key.value);
+                cooldown = Gp_GetIdParam2(work->hurtContacts[i].key.value);
                 if (cooldown > 0) {
-                    work->field_69A = cooldown;
+                    work->hitCooldown = cooldown;
                 }
                 switch (result) {
                     case 0:
-                        if (work->field_6A6 < 2) {
-                            work->field_694 = 2;
-                            work->field_6A6 = 2;
-                            work->field_6A8 = 0;
+                        if (work->behavior < GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE) {
+                            work->anim     = 2;
+                            work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE;
+                            work->step     = 0;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         rng             = gRandomLcgState >> 16;
@@ -215,62 +215,62 @@ void golemPawnRookTakeHits(Task* arg0)
                         if (!(rng & 1)) {
                             tilt = -tilt;
                         }
-                        work->field_688.vx = tilt;
-                        byte1              = (s16)rng >> 8;
-                        val                = (byte1 & 0x7F) + 0x40;
+                        work->hitTilt.vx = tilt;
+                        byte1            = (s16)rng >> 8;
+                        val              = (byte1 & 0x7F) + 0x40;
                         if (!(byte1 & 1)) {
                             val = -val;
                         }
-                        work->field_688.vy = val;
-                        work->field_6B4    = 1;
+                        work->hitTilt.vy    = val;
+                        work->hitTiltActive = 1;
                         break;
                     case 1:
-                        work->field_6A6        = 8;
-                        work->field_6A8        = 0;
-                        work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                        work->behavior          = GOLEM_PAWN_ROOK_BEHAVIOR_STAGGER;
+                        work->step              = 0;
+                        work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
                     case 2:
-                        work->field_6A6        = 9;
-                        work->field_6A8        = 0;
-                        work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                        work->behavior          = GOLEM_PAWN_ROOK_BEHAVIOR_RECOIL;
+                        work->step              = 0;
+                        work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
                     case 3:
-                        work->field_6A6        = 0xB;
-                        work->field_6A8        = 0;
-                        work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                        work->behavior          = GOLEM_PAWN_ROOK_BEHAVIOR_KNOCKDOWN;
+                        work->step              = 0;
+                        work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
                     case 4:
-                        if (work->field_6D4 == 0) {
-                            work->field_6A6 = 0xC;
-                            work->field_6A8 = 0;
+                        if (work->fallingDown == 0) {
+                            work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_HIT;
+                            work->step     = 0;
                         }
                         break;
                     case 5:
-                        work->field_6A6        = 0xD;
-                        work->field_6A8        = 0;
-                        work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                        work->behavior          = GOLEM_PAWN_ROOK_BEHAVIOR_COLLAPSE;
+                        work->step              = 0;
+                        work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
                     case 6:
-                        if (work->field_6D4 == 0) {
-                            work->field_6A6 = 0xE;
-                            work->field_6A8 = 0;
+                        if (work->fallingDown == 0) {
+                            work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_DEATH;
+                            work->step     = 0;
                         }
                         break;
                 }
-                if (result != 0 && work->field_690 != NULL) {
-                    work->field_690->task->state = 3;
-                    work->field_690              = NULL;
+                if (result != 0 && work->screamEffect != NULL) {
+                    work->screamEffect->task->state = 3;
+                    work->screamEffect              = NULL;
                 }
                 break;
             case 3:
                 part                     = &arg0->extra.tmd->coords[3];
-                x                        = part->workm.t[0] - work->field_4EC[i].point.vx;
+                x                        = part->workm.t[0] - work->hurtContacts[i].point.vx;
                 scratch->delta.vector.vx = x;
-                y                        = part->workm.t[1] - work->field_4EC[i].point.vy;
+                y                        = part->workm.t[1] - work->hurtContacts[i].point.vy;
                 scratch->delta.vector.vy = y;
-                z                        = part->workm.t[2] - work->field_4EC[i].point.vz;
+                z                        = part->workm.t[2] - work->hurtContacts[i].point.vz;
                 scratch->delta.vector.vz = z;
-                push                     = work->field_4EC[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
+                push                     = work->hurtContacts[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
                 clamped                  = push;
                 if (push <= 0) {
                     clamped = 0;
@@ -289,13 +289,13 @@ void golemPawnRookTakeHits(Task* arg0)
         self->coord.t[0] += (maxPush * scratch->push.vx) >> 12;
         self->coord.t[2] += (maxPush * scratch->push.vz) >> 12;
     }
-    Gp_ClearRec18Occupied(work->field_4EC);
-    if (work->field_604[0].flags & 1) {
-        work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(work->field_604);
+    Gp_ClearRec18Occupied(work->hurtContacts);
+    if (work->strikeContacts[0].flags & 1) {
+        work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        Gp_ClearRec18Occupied(work->strikeContacts);
     }
-    work->field_6B2 = 0;
-    if (Gp_CountRec18Hi(work->field_4B4, 0x10000) != 0) {
+    work->playerSpotted = 0;
+    if (Gp_CountRec18Hi(work->sightContacts, 0x10000) != 0) {
         part               = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4];
         scratch->effOfs.vx = part->workm.t[0];
         scratch->effOfs.vy = part->workm.t[1];
@@ -304,9 +304,9 @@ void golemPawnRookTakeHits(Task* arg0)
         scratch->target.vy = self->workm.t[1];
         scratch->target.vz = self->workm.t[2];
         if (detectSegmentHitsWall(&scratch->effOfs, &scratch->target) == 0) {
-            work->field_6B2 = 1;
+            work->playerSpotted = 1;
         }
     }
-    Gp_ClearRec18Occupied(work->field_4B4);
+    Gp_ClearRec18Occupied(work->sightContacts);
     SCRATCH_STACK_RELEASE_BYTES(0x40);
 }

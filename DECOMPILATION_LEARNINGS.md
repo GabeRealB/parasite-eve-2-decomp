@@ -4738,8 +4738,8 @@ join:
    jal  SndEvt_EnqueueType6
 ```
 
-`if (work->field_698 == 0x2C) { snd = T[..+8] | ...; call; }` and
-`else if (work->field_698 == 0x19) { snd = T[..+8] | ...; call; }` are two
+`if (work->animFrame == 0x2C) { snd = T[..+8] | ...; call; }` and
+`else if (work->animFrame == 0x19) { snd = T[..+8] | ...; call; }` are two
 textually identical blocks, and GCC 2.8.1 cross-jumps them into the single
 tail above - including hoisting each branch's differing constant into `$v0` so
 the *compare* merges as well. The same source shape in case 0
@@ -45211,11 +45211,11 @@ and the later `next = field` reloads with `lhu`, so GCC never keeps `ang` in
 field `s16` like the other copies; keep the unsigned load in the sibling with a
 `(u16)` cast (`raw = want - (u16)work->field_388`).
 
-`Actor02000_Fn0150C` is the same helper with an extra `field_694 == 3` arm
+`Actor02000_Fn0150C` is the same helper with an extra `anim == 3` arm
 that always subtracts. Vacuum still picks the two-instruction `j L01648` /
 `addu v0, v0, a0` splat cut (`Actor02000_L015C8`) as "easy"; match the whole
 `Fn0150C`…`L0164C` span. The extra compare needs a second, unsigned step load
-(`ustep = (u16)work->field_69E` next to the signed `step`, so GCC emits `lh a0`
+(`ustep = (u16)work->turnRate` next to the signed `step`, so GCC emits `lh a0`
 / `lhu a3` in the short-path block) and a **separate** wrap-path step local
 (`wstep`). Reusing one `step` across both arms conflicts with the 32-bit
 `want - ang` copy, so that copy loses `$a0` and combine writes `subu a0` /
@@ -45388,10 +45388,10 @@ A body that repeats the same "build id, read pan, enqueue" block two or three
 times wants one temp per block, not one temp shared by all of them:
 
 ```c
-if (work->field_698 == 0x14) {
+if (work->animFrame == 0x14) {
     s32 pan;                       /* block-scoped: one allocno per arm */
 
-    snd = Table[work->field_6D6 + 0xC] | ((ctx->field_8 >> 12) << 8);
+    snd = Table[work->soundSet + 0xC] | ((ctx->field_8 >> 12) << 8);
     pan = (s8)worldCoordGetOriginAudioPan(self);
     SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
 }
@@ -47486,9 +47486,9 @@ writes it back to another `s16` field:
 
 ```c
 s16 next;                 /* BAD */
-next = work->field_6B8;
-if (next == 1) { work->field_694 = 0x17; work->field_6A8 = next; }
-else           { work->field_694 = 0x1B; work->field_6A8 = 2; }
+next = work->downedPose;
+if (next == 1) { work->anim = 0x17; work->step = next; }
+else           { work->anim = 0x1B; work->step = 2; }
 ```
 
 The compare wants a sign-extended value and the store only wants the low half,
@@ -47882,10 +47882,10 @@ local so the pseudo dies at the add and ties to the loaded register:
 
 ```c
 partsA                  = actor->field_2C->field_8;
-work->field_47C.field_C = &work->field_49C;
+work->sightBody.field_C = &work->sightCapsule;
 /* … */
-work->field_47C.field_8 = &partsA[4];
-Gp_LinkObj(3, &work->field_47C);
+work->sightBody.field_8 = &partsA[4];
+Gp_LinkObj(3, &work->sightBody);
 ```
 
 `Actor02000_Fn0251C` links four objects this way; sharing one local across all
@@ -80288,8 +80288,8 @@ before build. No tracer or register pins used.
 ## An m2c seed scaled by 4 too much means the source is a 4-byte-element array, not a `s32*` field
 
 `func_actor_105700_801336FC` reads two sound ids out of a per-overlay table
-(`D_actor_105700_80149004`) at `base + field_6D6 * 8 - 4` and
-`base + field_6D6 * 8`. m2c typed the symbol as an `s32` object and wrote the
+(`D_actor_105700_80149004`) at `base + soundSet * 8 - 4` and
+`base + soundSet * 8`. m2c typed the symbol as an `s32` object and wrote the
 index as a field of a pointer:
 
 ```c
@@ -80307,11 +80307,11 @@ fold the `-1` into the offset:
 
 ```c
 extern s32 D_actor_105700_80149004[];
-snd = D_actor_105700_80149004[work->field_6D6 * 2 - 1] | (...);
-snd = D_actor_105700_80149004[work->field_6D6 * 2]     | (...);
+snd = D_actor_105700_80149004[work->soundSet * 2 - 1] | (...);
+snd = D_actor_105700_80149004[work->soundSet * 2]     | (...);
 ```
 
-Same shape here as `Actor02000_D15DEC[work->field_6D6 * 2 - 1]` in
+Same shape here as `Actor02000_D15DEC[work->soundSet * 2 - 1]` in
 `src/actors/lib/actor_102000_text.c`, which is the idiom to copy whenever a
 copy of this body turns up in another actor overlay.
 
@@ -80539,7 +80539,7 @@ Inputs: `base_1.c` … `base_4.c` (100%).
 
 `func_actor_105700_80136C4C` is one of six copies of `Actor02000_Fn033D4`
 (`actor_102000`, `src/actors/lib/actor_102000_text.c`), whose matched C declares
-`s32 state` / `s32 next` for the `work->field_6A8` / `field_6AA` halfwords.
+`s32 state` / `s32 next` for the `work->step` / `hitFromFront` halfwords.
 Porting its statements but narrowing the locals to the fields' own `s16` width
 compiles back to the m2c seed's assembly (89.90%), not to the target:
 
@@ -80553,7 +80553,7 @@ beq  a0,a1,…              lhu  a1,0x6a8(v1)
 
 Each halfword read becomes a *pair*: the sign-extending `lh` feeds the `switch`
 comparison, the zero-extending `lhu` feeds the value a later arm stores back
-(case 2 stores `state` into `field_694` / `field_6A6`). With an `s32` local the
+(case 2 stores `state` into `anim` / `behavior`). With an `s32` local the
 value is one SImode pseudo and the single `lh` serves both uses; the extra
 `lhu` also occupies `$a1`, which pushes the constant `1` out to `$a2`.
 
@@ -102825,7 +102825,7 @@ more than one class is worth checking instruction-by-instruction against
 your overlay's own structs and includes, is the match. Here that is the whole
 job: 81.359% -> 100.000% in two builds, the only change being m2c's signature
 folded into the sibling's `(void* index, Task* task)` and the sibling's
-`count = (u16)work->field_6D8 - 1` in place of m2c's `M2C_FIELD` form.
+`count = (u16)work->swordTrailDelay - 1` in place of m2c's `M2C_FIELD` form.
 
 **Promote before writing the body, and delete both `INCLUDE_ASM` lines by
 hand.** `promote` writes the manifest span and both sym maps and says "splat
@@ -117901,7 +117901,7 @@ input-only form before `TOUCH_REG`.
 
 ### A lone intermediate in the "wrong" scratch register: reuse a multi-set local so global-alloc places it (func_actor_105700_80131ED0, 2026-09-17)
 
-The facing test `work->field_6AA = dot >= 0` over a three-term dot product scored
+The facing test `work->hitFromFront = dot >= 0` over a three-term dot product scored
 99.985% with one exchange: retail `addu v1,v0,t2; nor v0,zero,v1`, ours
 `addu v0,v0,t2; nor v0,zero,v0`. Every expression shape (`>= 0`, `(u32)~x >> 31`,
 `!(x < 0)`, ternary, reordered terms, a fresh block-local `dot`) kept the sum tied
@@ -127359,7 +127359,7 @@ Inputs: scratch `nonmatchings/func_actor_403900_801347F4-vacuum`. `base.c` (m2c)
 It needs `include/actors/actor_403900.h`, whose work-block fields are the same
 shapes the `actor_402200` header names - per-overlay work structs with matching
 layouts are the family's existing pattern (`actor_105700` carries its own
-`field_6CE`). Compiler SHA256
+`shieldRaised` at the offset of that family's `field_6CE`). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 ## A `lui` can be emitted *above* a preceding load: sched's hazard swap prefers loads/stores, and the block is emitted in the reverse of its scheduling order (func_actor_312200_80163370, 2026-09-17)
 
@@ -130577,14 +130577,14 @@ Inputs: base_1.c (ternary, 93.786%) vs base_3.c (100%),
 `func_actor_105600_80135744` is `Actor02000_Fn0251C` of `actor_102000` with one
 extra `Gp_LinkObj` block. That sibling opens its switch with the familiar
 `one = 1; kind = ctx->field_4B; if (kind == one) …` idiom, which puts 1 in a
-callee-saved register so the compare and the two `field_694` / `field_6A6`
+callee-saved register so the compare and the two `anim` / `behavior`
 stores share it. Porting the body and writing the *new* block's two `= 1`
 fields as `= one` as well cost one extra saved register and the two
 instructions that spill and restore it — 99.042%, `regs=27`, `insert=2`:
 
 ```c
-work->field_63C.field_10 = one;   /* keeps `one` live to the end of case 0 */
-work->field_63C.field_12 = one;   /* $s7 saved and restored for it */
+work->laserCapsule.field_10 = one;   /* keeps `one` live to the end of case 0 */
+work->laserCapsule.field_12 = one;   /* $s7 saved and restored for it */
 ```
 
 In the ROM `one` dies right after `sh $s0, 0x6A6($s3)`, so `$s0` is free again
@@ -130594,8 +130594,8 @@ stores of the intervening list nodes. Writing the literal restores exactly
 that, and the function matched on the next build:
 
 ```c
-work->field_63C.field_10 = 1;
-work->field_63C.field_12 = 1;
+work->laserCapsule.field_10 = 1;
+work->laserCapsule.field_12 = 1;
 ```
 
 The general rule: a `one`-style local exists to tie together the few uses the
@@ -130998,18 +130998,18 @@ allocation plus the *merged* seed's delay slot.
 
 ```c
 near = SquareRoot0((dx * dx) + (dz * dz)) < 0x5DC;   /* or: ... ; flag = near != 0; */
-if (work->field_6B6 < 0x4C) {
+if (work->interruptDamage < 0x4C) {
     if (near) {
 ```
 
-That materialises the *boolean* as a pseudo that is live across the `field_6B6`
+That materialises the *boolean* as a pseudo that is live across the `interruptDamage`
 test - so it conflicts with `$v1` (which that test uses) and, once the merged
 seed also gave it case 0's `$v0` conflict, with both. The original keeps the raw
 call result and writes the comparison where it is used:
 
 ```c
 dist = SquareRoot0((dx1 * dx1) + (dz1 * dz1));
-if (work->field_6B6 < 0x4C) {
+if (work->interruptDamage < 0x4C) {
     if (dist < 0x5DC) {
 ```
 

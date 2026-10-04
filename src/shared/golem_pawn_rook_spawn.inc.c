@@ -1,6 +1,6 @@
 /* Part of the Pawn/Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Spawn handler of the approach cycle: allocates the 0x6E4-byte work block,
+/// Spawn handler of the approach cycle: allocates the `GolemPawnRookWork` block,
 /// binds the animation set and reseeds the nineteen slots, then starts the
 /// companion enemy whose model takes its texture page and CLUT row from the
 /// current room's area record. `Enemy::spawnState` picks how much of that is
@@ -30,21 +30,21 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
 
     obj   = actor->extra.tmd;
     coord = obj->coords;
-    work  = memCalloc(0x6E4, 0);
+    work  = memCalloc(sizeof(GolemPawnRookWork), 0);
     if (work == NULL) {
         enemyDestroy(ctx, actor);
         return;
     }
-    actor->work                = work;
-    obj->flags                 = 0;
-    coord->composeStamp        = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx              = &work->field_45C;
-    obj->colorMtx              = &work->field_43C;
-    work->field_6CA            = GOLEM_PAWN_ROOK_ID;
-    work->field_66C            = gGolemPawnRookTasks;
-    work->field_670.coord      = &actor->extra.tmd->coords[3];
-    work->field_670.spawnArgLo = 0x500;
-    work->field_670.spawnArgHi = 2;
+    actor->work                   = work;
+    obj->flags                    = 0;
+    coord->composeStamp           = GRAPHICS_COORD_DIRTY;
+    obj->lightMtx                 = &work->lightMtx;
+    obj->colorMtx                 = &work->colorMtx;
+    work->actorId                 = GOLEM_PAWN_ROOK_ID;
+    work->taskTable               = gGolemPawnRookTasks;
+    work->hitEffectArg.coord      = &actor->extra.tmd->coords[3];
+    work->hitEffectArg.spawnArgLo = 0x500;
+    work->hitEffectArg.spawnArgHi = 2;
     animationInitContext(&work->rig.anim, gGolemPawnRookAnimSets, obj, work->rig.poses, work->rig.slots);
     for (i = 1; i < 0x13; i++) {
         animationResetSlot(&work->rig.anim, i, 1);
@@ -65,29 +65,29 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
             ctx->bodyPos.vy = 0;
             ctx->bodyPos.vz = 0;
             ctx->param      = gGolemPawnRookParams;
-            ctx->recs       = work->field_4EC;
+            ctx->recs       = work->hurtContacts;
             ctx->coord      = &parts[3];
             ctx->hp         = gGolemPawnRookParams->hpMax;
             Gp_IncStateF0Ref(0);
-            work->field_6AC = ctx->place->mode & 1;
-            if (work->field_6AC == 0) {
-                work->field_694 = 1;
-                work->field_6A6 = 0;
+            work->patrols = ctx->place->mode & 1;
+            if (work->patrols == 0) {
+                work->anim     = 1;
+                work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_IDLE;
             } else {
-                work->field_694 = 2;
-                work->field_6A6 = 1;
-                param           = ctx->place->variant;
-                work->field_6DA = param * 1000;
+                work->anim               = 2;
+                work->behavior           = GOLEM_PAWN_ROOK_BEHAVIOR_PATROL;
+                param                    = ctx->place->variant;
+                work->patrolDistanceLeft = param * 1000;
             }
 
             tbl = gGolemPawnRookAreaParams[gGameSession->location.loc.stage];
             if (tbl != NULL) {
-                work->field_6D6 = tbl[gGameSession->location.loc.area];
+                work->soundSet = tbl[gGameSession->location.loc.area];
             }
-            if (work->field_6D6 != 0) {
+            if (work->soundSet != 0) {
                 param1[3] = 0;
                 param1[2] = 0xA;
-                param1[0] = work->field_6D6;
+                param1[0] = work->soundSet;
                 param2[0] = GOLEM_PAWN_ROOK_ID;
                 param2[3] = 0;
                 param2[2] = 0;
@@ -96,106 +96,106 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
             }
 
 #if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
-            work->field_6D0 = 0xFA;
+            work->shieldHp = 0xFA;
 #endif
-            work->field_49C.ends[0].vz = 0x1F40;
-            work->field_49C.end0Radius = 0x3E8;
-            work->field_49C.ends[0].vx = 0;
-            work->field_49C.ends[0].vy = 0;
-            work->field_49C.ends[1].vx = 0;
-            work->field_49C.ends[1].vy = 0;
-            work->field_49C.ends[1].vz = 0;
-            work->field_49C.end1Radius = 0x5DC;
-            work->field_49C.contacts   = work->field_4B4;
+            work->sightCapsule.ends[0].vz = 0x1F40;
+            work->sightCapsule.end0Radius = 0x3E8;
+            work->sightCapsule.ends[0].vx = 0;
+            work->sightCapsule.ends[0].vy = 0;
+            work->sightCapsule.ends[1].vx = 0;
+            work->sightCapsule.ends[1].vy = 0;
+            work->sightCapsule.ends[1].vz = 0;
+            work->sightCapsule.end1Radius = 0x5DC;
+            work->sightCapsule.contacts   = work->sightContacts;
 #if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
-            lcg             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->field_6C4 = ((lcg >> 16) & 1) + 1;
-            gRandomLcgState = lcg;
+            lcg                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->screamCharges = ((lcg >> 16) & 1) + 1;
+            gRandomLcgState     = lcg;
 #endif
             partsA                          = actor->extra.tmd->coords;
-            work->field_47C.context.capsule = &work->field_49C;
-            work->field_47C.pos.vx          = 0;
-            work->field_47C.pos.vy          = 0;
-            work->field_47C.pos.vz          = 0;
-            work->field_47C.key             = 0;
-            work->field_47C.radius          = 0;
-            work->field_47C.flags           = WORLD_COLLISION_BODY_CAPSULE;
-            work->field_47C.coord           = &partsA[4];
-            Gp_LinkObj(3, &work->field_47C);
-            Gp_InitRec18Table(work->field_4B4, 1, 0);
-            work->field_47C.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->sightBody.context.capsule = &work->sightCapsule;
+            work->sightBody.pos.vx          = 0;
+            work->sightBody.pos.vy          = 0;
+            work->sightBody.pos.vz          = 0;
+            work->sightBody.key             = 0;
+            work->sightBody.radius          = 0;
+            work->sightBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
+            work->sightBody.coord           = &partsA[4];
+            Gp_LinkObj(3, &work->sightBody);
+            Gp_InitRec18Table(work->sightContacts, ARRAY_SIZE(work->sightContacts), 0);
+            work->sightBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-            partsB                           = actor->extra.tmd->coords;
-            work->field_4CC.context.contacts = work->field_4EC;
-            work->field_4CC.pos.vx           = 0;
-            work->field_4CC.pos.vy           = 0;
-            work->field_4CC.pos.vz           = 0;
-            work->field_4CC.key              = 0x30000 | GOLEM_PAWN_ROOK_ID;
-            work->field_4CC.radius           = 0x190;
-            work->field_4CC.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->field_4CC.coord            = &partsB[3];
-            Gp_LinkObj(2, &work->field_4CC);
-            Gp_InitRec18Table(work->field_4EC, 5, 0);
-            work->field_4CC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            partsB                          = actor->extra.tmd->coords;
+            work->hurtBody.context.contacts = work->hurtContacts;
+            work->hurtBody.pos.vx           = 0;
+            work->hurtBody.pos.vy           = 0;
+            work->hurtBody.pos.vz           = 0;
+            work->hurtBody.key              = 0x30000 | GOLEM_PAWN_ROOK_ID;
+            work->hurtBody.radius           = 0x190;
+            work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->hurtBody.coord            = &partsB[3];
+            Gp_LinkObj(2, &work->hurtBody);
+            Gp_InitRec18Table(work->hurtContacts, ARRAY_SIZE(work->hurtContacts), 0);
+            work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-            partsC                           = actor->extra.tmd->coords;
-            work->field_564.pos.vy           = -0x226;
-            work->field_564.context.contacts = work->field_584;
-            work->field_564.pos.vx           = 0;
-            work->field_564.pos.vz           = 0;
-            work->field_564.key              = 0;
-            work->field_564.radius           = 0x226;
-            work->field_564.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->field_564.coord            = partsC;
-            Gp_LinkObj(2, &work->field_564);
-            Gp_InitRec18Table(work->field_584, 4, 0);
-            work->field_564.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
+            partsC                            = actor->extra.tmd->coords;
+            work->groundBody.pos.vy           = -0x226;
+            work->groundBody.context.contacts = work->groundContacts;
+            work->groundBody.pos.vx           = 0;
+            work->groundBody.pos.vz           = 0;
+            work->groundBody.key              = 0;
+            work->groundBody.radius           = 0x226;
+            work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->groundBody.coord            = partsC;
+            Gp_LinkObj(2, &work->groundBody);
+            Gp_InitRec18Table(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
+            work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
 
-            effParts                         = eff->task->extra.tmd->coords;
-            work->field_5E4.context.contacts = work->field_604;
-            work->field_5E4.pos.vx           = 0;
-            work->field_5E4.pos.vy           = 0x1F4;
-            work->field_5E4.pos.vz           = 0;
-            work->field_5E4.key              = 0;
-            work->field_5E4.radius           = 0x1F4;
-            work->field_5E4.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->field_5E4.coord            = effParts;
-            Gp_LinkObj(3, &work->field_5E4);
-            Gp_InitRec18Table(work->field_604, 1, 0);
-            work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            effParts                          = eff->task->extra.tmd->coords;
+            work->strikeBody.context.contacts = work->strikeContacts;
+            work->strikeBody.pos.vx           = 0;
+            work->strikeBody.pos.vy           = 0x1F4;
+            work->strikeBody.pos.vz           = 0;
+            work->strikeBody.key              = 0;
+            work->strikeBody.radius           = 0x1F4;
+            work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->strikeBody.coord            = effParts;
+            Gp_LinkObj(3, &work->strikeBody);
+            Gp_InitRec18Table(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
+            work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-            work->field_63C.ends[0].vx      = 0;
-            work->field_63C.ends[0].vy      = 0;
-            work->field_63C.ends[0].vz      = 0;
-            work->field_63C.ends[1].vx      = 0;
-            work->field_63C.ends[1].vy      = 0;
-            work->field_63C.ends[1].vz      = 0;
-            work->field_63C.end0Radius      = 1;
-            work->field_63C.end1Radius      = 1;
-            work->field_63C.contacts        = work->field_654;
+            work->laserCapsule.ends[0].vx   = 0;
+            work->laserCapsule.ends[0].vy   = 0;
+            work->laserCapsule.ends[0].vz   = 0;
+            work->laserCapsule.ends[1].vx   = 0;
+            work->laserCapsule.ends[1].vy   = 0;
+            work->laserCapsule.ends[1].vz   = 0;
+            work->laserCapsule.end0Radius   = 1;
+            work->laserCapsule.end1Radius   = 1;
+            work->laserCapsule.contacts     = work->laserContacts;
             partsD                          = actor->extra.tmd->coords;
-            work->field_61C.context.capsule = &work->field_63C;
-            work->field_61C.pos.vx          = 0;
-            work->field_61C.pos.vy          = 0;
-            work->field_61C.pos.vz          = 0;
-            work->field_61C.key             = 0;
-            work->field_61C.radius          = 0;
-            work->field_61C.flags           = WORLD_COLLISION_BODY_CAPSULE;
-            work->field_61C.coord           = partsD;
-            Gp_LinkObj(3, &work->field_61C);
-            Gp_InitRec18Table(work->field_654, 1, 0);
-            work->field_61C.flags = (work->field_61C.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT);
+            work->laserBody.context.capsule = &work->laserCapsule;
+            work->laserBody.pos.vx          = 0;
+            work->laserBody.pos.vy          = 0;
+            work->laserBody.pos.vz          = 0;
+            work->laserBody.key             = 0;
+            work->laserBody.radius          = 0;
+            work->laserBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
+            work->laserBody.coord           = partsD;
+            Gp_LinkObj(3, &work->laserBody);
+            Gp_InitRec18Table(work->laserContacts, ARRAY_SIZE(work->laserContacts), 0);
+            work->laserBody.flags = (work->laserBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT);
             actor->state          = 1;
             break;
         case 1:
-            work->field_694 = 0x19;
-            work->field_6A8 = 2;
-            actor->state    = 2;
+            work->anim   = 0x19;
+            work->step   = 2;
+            actor->state = 2;
             break;
         case 2:
-            work->field_694 = 0x1D;
-            work->field_6A8 = 2;
-            actor->state    = 2;
+            work->anim   = 0x1D;
+            work->step   = 2;
+            actor->state = 2;
             break;
     }
 }

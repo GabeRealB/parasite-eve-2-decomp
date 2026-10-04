@@ -48,10 +48,10 @@
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_BEAM_SWORD
 #include "../../shared/golem_pawn_rook.h"
 
-/// First frame of each animation, indexed by `GolemPawnRookWork::field_694`;
+/// First frame of each animation, indexed by `GolemPawnRookWork::anim`;
 /// the state handlers offset it to get the frames their cues fire on.
 extern s16 gGolemPawnRookAnimBlendFrames[];
-/// The `Gp_PackPair` entry the lunge parks in the work block's 0x5E4 node.
+/// The `Gp_PackPair` entry the lunge parks in the work block's `strikeBody`.
 extern DamageAttack gGolemPawnRookAttacks[5];
 /// Base sound id of the lunge cue, ORed with the enemy's id nibble.
 // Only the leading value has established accesses. Preserve the following
@@ -81,13 +81,13 @@ extern AnimationSet* Actor02300_D15CBC[31];
 extern s16 gGolemPawnRookWeakSpotHits[];
 extern s16 gGolemPawnRookWeakSpotHitsFlagged[];
 
-/// Voice-cue sound ids, indexed from `GolemPawnRookWork::field_6D6`.
+/// Voice-cue sound ids, indexed from `GolemPawnRookWork::soundSet`.
 extern s32 gGolemPawnRookVoiceCues[];
 /// Sound ids of the burst state's two cues.
 extern s32 gGolemPawnRookScreamCue;
 extern s32 gGolemPawnRookSilenceCue;
 
-/// Handlers of the `GolemPawnRookWork::field_6A6` states, one per entry.
+/// Handlers of the `GolemPawnRookWork::behavior` states, one per entry.
 extern TaskFunc gGolemPawnRookStates[];
 
 /// Sound id of the part-11 child's cue, ORed with the enemy's id nibble.
@@ -1227,7 +1227,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor);
 
 #include "../../shared/golem_pawn_rook_silence_scream.inc.c"
 
-/// Spawn/setup state for this enemy. Allocates the 0x6E4 work block, wires the
+/// Spawn/setup state for this enemy. Allocates the `GolemPawnRookWork` block, wires the
 /// model object to the block's own light/colour matrices, primes the nineteen
 /// animation slots, then spawns the two companion enemies from the overlay's
 /// table (entries 2 and 1) and points each one's model at the texture page and
@@ -1236,7 +1236,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor);
 /// `Enemy::spawnState` then picks how the enemy starts: 0 builds the full
 /// object set -- the four `WorldCollisionBody` nodes with their `WorldCollisionContact` tables, the voice
 /// cue looked up per room in `Actor02300_D15C80`, and the coin-flip in
-/// `field_6C4` drawn from `gRandomLcgState` -- while 1 and 2 only prime the
+/// `screamCharges` drawn from `gRandomLcgState` -- while 1 and 2 only prime the
 /// animation state and hand straight on to the next task state.
 static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
 {
@@ -1259,21 +1259,21 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
 
     obj   = actor->extra.tmd;
     coord = obj->coords;
-    work  = memCalloc(0x6E4, 0);
+    work  = memCalloc(sizeof(GolemPawnRookWork), 0);
     if (work == NULL) {
         enemyDestroy(enemy, actor);
         return;
     }
-    actor->work                = work;
-    obj->flags                 = 0;
-    coord->composeStamp        = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx              = &work->field_45C;
-    obj->colorMtx              = &work->field_43C;
-    work->field_6CA            = 0x17;
-    work->field_66C            = Actor02300_D15C98;
-    work->field_670.coord      = &actor->extra.tmd->coords[3];
-    work->field_670.spawnArgLo = 0x500;
-    work->field_670.spawnArgHi = 2;
+    actor->work                   = work;
+    obj->flags                    = 0;
+    coord->composeStamp           = GRAPHICS_COORD_DIRTY;
+    obj->lightMtx                 = &work->lightMtx;
+    obj->colorMtx                 = &work->colorMtx;
+    work->actorId                 = 0x17;
+    work->taskTable               = Actor02300_D15C98;
+    work->hitEffectArg.coord      = &actor->extra.tmd->coords[3];
+    work->hitEffectArg.spawnArgLo = 0x500;
+    work->hitEffectArg.spawnArgHi = 2;
     animationInitContext(&work->rig.anim, Actor02300_D15CBC, obj, work->rig.poses, work->rig.slots);
     for (i = 1; i < 0x13; i++) {
         animationResetSlot(&work->rig.anim, i, 1);
@@ -1294,29 +1294,29 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
             enemy->bodyPos.vy = 0;
             enemy->bodyPos.vz = 0;
             enemy->param      = &Actor02300_D159D8;
-            enemy->recs       = work->field_4EC;
+            enemy->recs       = work->hurtContacts;
             enemy->coord      = &parts[3];
             enemy->hp         = Actor02300_D159D8.hpMax;
             Gp_IncStateF0Ref(0);
-            work->field_6AC = enemy->place->mode & 1;
-            if (work->field_6AC == 0) {
-                work->field_694 = 1;
-                work->field_6A6 = 0;
+            work->patrols = enemy->place->mode & 1;
+            if (work->patrols == 0) {
+                work->anim     = 1;
+                work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_IDLE;
             } else {
-                work->field_694 = 2;
-                work->field_6A6 = 1;
-                param           = enemy->place->variant;
-                work->field_6DA = param * 1000;
+                work->anim               = 2;
+                work->behavior           = GOLEM_PAWN_ROOK_BEHAVIOR_PATROL;
+                param                    = enemy->place->variant;
+                work->patrolDistanceLeft = param * 1000;
             }
 
             tbl = Actor02300_D15C80[gGameSession->location.loc.stage];
             if (tbl != NULL) {
-                work->field_6D6 = tbl[gGameSession->location.loc.area];
+                work->soundSet = tbl[gGameSession->location.loc.area];
             }
-            if (work->field_6D6 != 0) {
+            if (work->soundSet != 0) {
                 param1[3] = 0;
                 param1[2] = 0xA;
-                param1[0] = work->field_6D6;
+                param1[0] = work->soundSet;
                 param2[0] = 0x17;
                 param2[3] = 0;
                 param2[2] = 0;
@@ -1324,83 +1324,83 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
                 CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             }
 
-            work->field_6D0                 = 0xFA;
-            work->field_49C.ends[0].vz      = 0x1F40;
-            work->field_49C.end0Radius      = 0x3E8;
-            work->field_49C.end1Radius      = 0x5DC;
-            work->field_49C.ends[0].vx      = 0;
-            work->field_49C.ends[0].vy      = 0;
-            work->field_49C.ends[1].vx      = 0;
-            work->field_49C.ends[1].vy      = 0;
-            work->field_49C.ends[1].vz      = 0;
-            work->field_49C.contacts        = work->field_4B4;
+            work->shieldHp                  = 0xFA;
+            work->sightCapsule.ends[0].vz   = 0x1F40;
+            work->sightCapsule.end0Radius   = 0x3E8;
+            work->sightCapsule.end1Radius   = 0x5DC;
+            work->sightCapsule.ends[0].vx   = 0;
+            work->sightCapsule.ends[0].vy   = 0;
+            work->sightCapsule.ends[1].vx   = 0;
+            work->sightCapsule.ends[1].vy   = 0;
+            work->sightCapsule.ends[1].vz   = 0;
+            work->sightCapsule.contacts     = work->sightContacts;
             lcg                             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            work->field_6C4                 = ((lcg >> 16) & 1) + 1;
+            work->screamCharges             = ((lcg >> 16) & 1) + 1;
             gRandomLcgState                 = lcg;
             partsA                          = actor->extra.tmd->coords;
-            work->field_47C.context.capsule = &work->field_49C;
-            work->field_47C.pos.vx          = 0;
-            work->field_47C.pos.vy          = 0;
-            work->field_47C.pos.vz          = 0;
-            work->field_47C.key             = 0;
-            work->field_47C.radius          = 0;
-            work->field_47C.flags           = WORLD_COLLISION_BODY_CAPSULE;
-            work->field_47C.coord           = &partsA[4];
-            Gp_LinkObj(3, &work->field_47C);
-            Gp_InitRec18Table(work->field_4B4, 1, 0);
-            work->field_47C.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->sightBody.context.capsule = &work->sightCapsule;
+            work->sightBody.pos.vx          = 0;
+            work->sightBody.pos.vy          = 0;
+            work->sightBody.pos.vz          = 0;
+            work->sightBody.key             = 0;
+            work->sightBody.radius          = 0;
+            work->sightBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
+            work->sightBody.coord           = &partsA[4];
+            Gp_LinkObj(3, &work->sightBody);
+            Gp_InitRec18Table(work->sightContacts, ARRAY_SIZE(work->sightContacts), 0);
+            work->sightBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-            partsB                           = actor->extra.tmd->coords;
-            work->field_4CC.context.contacts = work->field_4EC;
-            work->field_4CC.pos.vx           = 0;
-            work->field_4CC.pos.vy           = 0;
-            work->field_4CC.pos.vz           = 0;
-            work->field_4CC.key              = 0x30017;
-            work->field_4CC.radius           = 0x190;
-            work->field_4CC.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->field_4CC.coord            = &partsB[3];
-            Gp_LinkObj(2, &work->field_4CC);
-            Gp_InitRec18Table(work->field_4EC, 5, 0);
-            work->field_4CC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            partsB                          = actor->extra.tmd->coords;
+            work->hurtBody.context.contacts = work->hurtContacts;
+            work->hurtBody.pos.vx           = 0;
+            work->hurtBody.pos.vy           = 0;
+            work->hurtBody.pos.vz           = 0;
+            work->hurtBody.key              = 0x30017;
+            work->hurtBody.radius           = 0x190;
+            work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->hurtBody.coord            = &partsB[3];
+            Gp_LinkObj(2, &work->hurtBody);
+            Gp_InitRec18Table(work->hurtContacts, ARRAY_SIZE(work->hurtContacts), 0);
+            work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-            partsC                           = actor->extra.tmd->coords;
-            work->field_564.pos.vy           = -0x226;
-            work->field_564.context.contacts = work->field_584;
-            work->field_564.pos.vx           = 0;
-            work->field_564.pos.vz           = 0;
-            work->field_564.key              = 0;
-            work->field_564.radius           = 0x226;
-            work->field_564.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->field_564.coord            = partsC;
-            Gp_LinkObj(2, &work->field_564);
-            Gp_InitRec18Table(work->field_584, 4, 0);
-            work->field_564.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
+            partsC                            = actor->extra.tmd->coords;
+            work->groundBody.pos.vy           = -0x226;
+            work->groundBody.context.contacts = work->groundContacts;
+            work->groundBody.pos.vx           = 0;
+            work->groundBody.pos.vz           = 0;
+            work->groundBody.key              = 0;
+            work->groundBody.radius           = 0x226;
+            work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->groundBody.coord            = partsC;
+            Gp_LinkObj(2, &work->groundBody);
+            Gp_InitRec18Table(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
+            work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
 
-            effParts                         = eff2->task->extra.tmd->coords;
-            work->field_5E4.context.contacts = work->field_604;
-            work->field_5E4.pos.vx           = 0;
-            work->field_5E4.pos.vy           = 0x1F4;
-            work->field_5E4.pos.vz           = 0;
-            work->field_5E4.key              = 0;
-            work->field_5E4.radius           = 0x1F4;
-            work->field_5E4.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->field_5E4.coord            = effParts;
-            Gp_LinkObj(3, &work->field_5E4);
-            Gp_InitRec18Table(work->field_604, 1, 0);
-            work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            actor->state           = 1;
+            effParts                          = eff2->task->extra.tmd->coords;
+            work->strikeBody.context.contacts = work->strikeContacts;
+            work->strikeBody.pos.vx           = 0;
+            work->strikeBody.pos.vy           = 0x1F4;
+            work->strikeBody.pos.vz           = 0;
+            work->strikeBody.key              = 0;
+            work->strikeBody.radius           = 0x1F4;
+            work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->strikeBody.coord            = effParts;
+            Gp_LinkObj(3, &work->strikeBody);
+            Gp_InitRec18Table(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
+            work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            actor->state            = 1;
             break;
 
         case 1:
-            work->field_694 = 0x19;
-            work->field_6A8 = 2;
-            actor->state    = 2;
+            work->anim   = 0x19;
+            work->step   = 2;
+            actor->state = 2;
             break;
 
         case 2:
-            work->field_694 = 0x1D;
-            work->field_6A8 = 2;
-            actor->state    = 2;
+            work->anim   = 0x1D;
+            work->step   = 2;
+            actor->state = 2;
             break;
     }
 }

@@ -77,7 +77,7 @@ extern AnimationSet* gGolemPawnRookAnimSets[31];
 /// in.
 extern s32 gGolemPawnRookShotSound;
 
-/// Frame counts of the actor's animations, indexed by `GolemPawnRookWork.field_694`.
+/// Frame counts of the actor's animations, indexed by `GolemPawnRookWork.anim`.
 extern s16 gGolemPawnRookAnimBlendFrames[];
 
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
@@ -85,10 +85,10 @@ extern s16 gGolemPawnRookAnimBlendFrames[];
 extern s16 gGolemPawnRookWeakPointWeapons[];
 extern s16 gGolemPawnRookWeakPointPe[];
 
-/// Sound ids of the actor's cues, indexed from `GolemPawnRookWork.field_6D6`.
+/// Sound ids of the actor's cues, indexed from `GolemPawnRookWork.soundSet`.
 extern s32 gGolemPawnRookVoiceCues[];
 
-/// The approach cycle's per-state handlers, indexed by `GolemPawnRookWork.field_6A6`.
+/// The approach cycle's per-state handlers, indexed by `GolemPawnRookWork.behavior`.
 extern TaskFunc gGolemPawnRookStates[];
 
 static AnimationSet _gActor05600Actor105600Animation0B3CC;
@@ -1227,7 +1227,7 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
 #include "../../shared/golem_pawn_rook_inlines.inc.c"
 
-/// Saves the root coordinate's translation in `field_678`..`field_680`, then
+/// Saves the root coordinate's translation in `prevRootPos`, then
 /// Updates the enemy's colour from `coord`'s world position and draws the
 #include "../../shared/golem_pawn_rook_frame_no_dust.inc.c"
 

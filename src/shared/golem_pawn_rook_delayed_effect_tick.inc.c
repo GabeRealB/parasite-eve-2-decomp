@@ -2,7 +2,7 @@
 
 /// Per-frame state of the child task `golemPawnRookDelayedEffectSpawn` sets up. It mirrors
 /// the enemy's model flags onto its own model and drains the enemy's
-/// `field_6D8` countdown; on the frame it reaches zero it spawns a
+/// `swordTrailDelay` countdown; on the frame it reaches zero it spawns a
 /// `Gp_SpawnEff` effect at part 7 of the enemy's coordinate array and
 /// reparents the effect's task to this child. `arg0` is the spawn context
 /// every state handler takes and is unused here.
@@ -14,11 +14,11 @@ void golemPawnRookDelayedEffectTick(Enemy* arg0, Task* task)
     s16                count;
 
     parent                 = task->parent;
-    work                   = (GolemPawnRookWork*)parent->work;
+    work                   = parent->work;
     task->extra.tmd->flags = (u16)parent->extra.tmd->flags;
-    if (work->field_6D8 > 0) {
-        count           = (u16)work->field_6D8 - 1;
-        work->field_6D8 = count;
+    if (work->swordTrailDelay > 0) {
+        count                 = (u16)work->swordTrailDelay - 1;
+        work->swordTrailDelay = count;
         if (count == 0) {
             effect = Gp_SpawnEff(gRoomEffectTwinTrailId | 0x80000000,
                                  &task->parent->extra.tmd->coords[7], 0, NULL);

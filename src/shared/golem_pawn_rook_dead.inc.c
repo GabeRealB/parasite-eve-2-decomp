@@ -6,7 +6,7 @@
 /// `gSceneCombatState.actorControl` gates it: 1 only redraws and 2 hides the model and its lock-on
 /// node, both returning; 0 shows them and runs the states. State 0 unlinks the enemy's lock-on
 /// node and collision bodies, releases its state-F0 slot, settles on the idle
-/// `field_6B8` selects, files the pose with `Gp_SaveEnemyPose` so the enemy is
+/// `downedPose` selects, files the pose with `Gp_SaveEnemyPose` so the enemy is
 /// restored in that pose, and raises `gSceneCombatState.golemPawnRookDeathAlert`. State 1 spawns a spark
 /// every fourth frame. Either way the animation slots advance or are reseeded
 /// and the model is drawn with its ground shadow.
@@ -53,30 +53,30 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    switch (work->field_6A8) {
+    switch (work->step) {
         case 0:
             arg0->recs = 0;
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj(&work->field_47C);
-            Gp_UnlinkObj(&work->field_564);
-            Gp_UnlinkObj(&work->field_4CC);
-            Gp_UnlinkObj(&work->field_5E4);
-            if ((u32)((u16)work->field_6CA - 0x38) < 2U) {
-                Gp_UnlinkObj(&work->field_61C);
+            Gp_UnlinkObj(&work->sightBody);
+            Gp_UnlinkObj(&work->groundBody);
+            Gp_UnlinkObj(&work->hurtBody);
+            Gp_UnlinkObj(&work->strikeBody);
+            if ((u32)((u16)work->actorId - 0x38) < 2U) {
+                Gp_UnlinkObj(&work->laserBody);
             }
-            Gp_ReleaseStateF0Add(arg1, work->field_6CA);
+            Gp_ReleaseStateF0Add(arg1, work->actorId);
             anim = 0x1D;
-            if (work->field_6B8 == 1) {
+            if (work->downedPose == 1) {
                 anim = 0x19;
             }
-            work->field_694  = anim;
-            work->field_6A8  = 1;
-            arg0->spawnState = (u8)work->field_6B8;
+            work->anim       = anim;
+            work->step       = 1;
+            arg0->spawnState = (u8)work->downedPose;
             Gp_SaveEnemyPose(arg0);
             gSceneCombatState.golemPawnRookDeathAlert = 1;
             break;
         case 1:
-            if (!(work->field_698 & 3)) {
+            if (!(work->animFrame & 3)) {
                 scratch->vx     = 0;
                 scratch->vz     = 0;
                 random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -87,16 +87,16 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
             break;
     }
     animWork = arg1->work;
-    if (animWork->field_694 != animWork->field_696) {
-        animWork->field_696 = (s16)(u16)animWork->field_694;
-        animWork->field_698 = 0U;
-        duration            = gGolemPawnRookAnimBlendFrames[animWork->field_694];
+    if (animWork->anim != animWork->playingAnim) {
+        animWork->playingAnim = (s16)(u16)animWork->anim;
+        animWork->animFrame   = 0U;
+        duration              = gGolemPawnRookAnimBlendFrames[animWork->anim];
         for (i = 1; i < 0x13; i++) {
-            animationSeekSlotWithBlend(&animWork->rig.anim, i, animWork->field_694, 0, duration);
+            animationSeekSlotWithBlend(&animWork->rig.anim, i, animWork->anim, 0, duration);
         }
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
-        animWork->field_698++;
+        animWork->animFrame++;
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&animWork->rig.anim, i);
         }

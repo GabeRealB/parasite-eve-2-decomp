@@ -30,20 +30,20 @@ void golemPawnRookFrameState(Enemy* ctx, Task* actor)
         golemPawnRookApplyReaction(actor);
     }
     golemPawnRookTakeHits(actor);
-    gGolemPawnRookStates[work->field_6A6](actor);
-    if (work->field_69E != 0) {
+    gGolemPawnRookStates[work->behavior](actor);
+    if (work->turnRate != 0) {
         golemPawnRookTurnTowardTarget(actor);
     }
     golemPawnRookStepRoot(actor);
     golemPawnRookTickAnim(actor);
-    if (work->field_6B4 != 0) {
+    if (work->hitTiltActive != 0) {
         golemPawnRookDecayHitTilt(actor);
     }
     golemPawnRookPlayAnimCues(actor);
     coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
     actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    if (work->field_6C4 == 0) {
+    if (work->screamCharges == 0) {
         golemPawnRookSpawnDust(actor);
     }
     golemPawnRookDraw(actor, coord);
