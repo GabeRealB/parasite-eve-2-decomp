@@ -246,31 +246,28 @@ typedef struct {
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
-/// Event record `func_actor_403000_801324EC` dispatches on: `w[0]` is the
-/// event kind (only 0x204 is handled) and `w[1]` its sub-code, and the first
-/// three bytes are also copied raw into `Actor403000Work::lastCommandStage`..`lastCommandId`.
-/// The record delivered is an `ActorCommand`.
-typedef union Actor403000Event {
-    u8  b[3];
-    u16 w[2];
-} Actor403000Event;
-
-/// 0x34-byte scratch from the scratch stack used by
-/// `func_actor_403000_80134F44`: `pos` and `id` are the first damage record
-/// found on the four hit tables, `d`/`dist` the player's offset from the model
-/// and its length, `rel` the hit position relative to the model, `damage` the
-/// amount taken and `angle` the wrapped heading of the hit.
-typedef struct Actor403000DamageScratch {
-    /* 0x00 */ VECTOR  d;
-    /* 0x10 */ SVECTOR rel;
-    /* 0x18 */ SVECTOR pos;
-    /* 0x20 */ s32     id;
-    /* 0x24 */ u32     damage;
-    /* 0x28 */ s32     dist;
-    /* 0x2C */ s16     angle;
-    /* 0x2E */ byte    pad_2E[0x6];
-} Actor403000DamageScratch;
-STATIC_ASSERT_SIZEOF(Actor403000DamageScratch, 0x34);
+/// Scratch-stack block of the damage step, which runs each frame the actor has
+/// health left and no hit cooldown running.
+///
+/// The step looks for a damaging contact, kind 0x20000, on the torso, hind and
+/// neck spheres and then the head capsule, and keeps the first. The blast of a
+/// room target destroyed nearby is applied first, as a fixed 400 with no key,
+/// and discards the contact found that frame. A contact's damage is rolled for
+/// the player's range, taken off the enemy's health and its bearing off the
+/// facing handed to the hit reaction. The damage-over-time tick that follows
+/// reuses `damage` alone. The block is released before the step returns.
+/// Angles are 4096ths of a turn.
+typedef struct {
+    VECTOR  playerDelta;     // Player's position minus the actor's, world units; `pad` is never written
+    SVECTOR hitOffset;       // `hitPos` minus the root's composed translation; `vx` and `vz` give the hit's bearing, and `pad` is never written
+    SVECTOR hitPos;          // Point of the contact found; `pad` is never written
+    s32     hitKey;          // Key of the contact found: the kind over the attack's packed id; 0 when no body holds a damaging contact, and after a blast
+    u32     damage;          // Damage being applied: 400 for a blast; the roll for `playerDistance`, times 4 on a critical roll, for a contact; then a quarter of the over-time tick's
+    s32     playerDistance;  // Length of `playerDelta`, the range a contact's damage is rolled for
+    s16     hitYaw;          // Bearing of `hitOffset` off the actor's facing, wrapped to [-0x800, 0x800]
+    byte    unknown_2E[0x6]; // Reserved with the block and never accessed; role unproven
+} _Actor403000DamageScratch;
+STATIC_ASSERT_SIZEOF(_Actor403000DamageScratch, 0x34);
 
 /// Scratch-stack block of a state body that acts by where the player is: the
 /// player's offset and range, a working vector, the yaws worked out from them,
@@ -344,48 +341,67 @@ typedef union {
 } _Actor403000ScreenPoint;
 STATIC_ASSERT_SIZEOF(_Actor403000ScreenPoint, 0x4);
 
-/// 0xB4-byte trail scratch block: a parented coordinate, its view-space origin,
-/// and the current/previous projected point used to draw the trail segments.
-/// `func_actor_403000_80132AE0` returns it to the scratch stack;
-/// `func_actor_403000_801330D4` only updates the point history and keeps it.
-typedef struct Actor403000TrailScratch {
-    /* 0x00 */ GfxCoord                coord;
-    /* 0x50 */ byte                    pad_50[0x18];
-    /* 0x68 */ SVECTOR                 pos;
-    /* 0x70 */ _Actor403000ScreenPoint sxy;
-    /* 0x74 */ _Actor403000ScreenPoint prevSxy;
-    /* 0x78 */ s32                     p;
-    /* 0x7C */ s32                     flag;
-    /* 0x80 */ s32                     otz;
-    /* 0x84 */ byte                    pad_84[0x4];
-    /* 0x88 */ s32                     prevFlag;
-    /* 0x8C */ SVECTOR                 normal;
-    /* 0x94 */ byte                    pad_94[0x20];
-} Actor403000TrailScratch;
-STATIC_ASSERT_SIZEOF(Actor403000TrailScratch, 0xB4);
+/// Scratch-stack block of the ribbon trailing from the actor's flare: the
+/// point the trail leaves from, then the projection of one history point
+/// after another into the ribbon's quads.
+///
+/// A block serves one call. `emitter` is hung from the joint the flare is
+/// drawn on, at the flare's offset, and its origin in world space becomes the
+/// newest of the 18 history points. Each history point is then projected and
+/// joined to the one before it by a quad as wide as `edgeOffset` either side.
+/// A point whose projection reports an error ends the run of quads, and the
+/// first point only seeds `prevScreen`. The routine that records a point
+/// without drawing uses `emitter` and `emitterPos` alone and returns without
+/// releasing its block, which stays reserved until the main loop resets the
+/// scratch stack for the next frame.
+typedef struct {
+    GfxCoord                emitter;             // Coordinate the trail leaves from: identity rotation, the flare's offset as translation, parented to the flare's joint
+    byte                    unknown_50[0x18];    // Reserved with the block and never accessed; role unproven
+    SVECTOR                 emitterPos;          // `emitter`'s origin carried up the parent chain into world space; left zero when the chain does not reach the view coordinate. `pad` is never written
+    _Actor403000ScreenPoint screen;              // Projection of the history point being drawn
+    _Actor403000ScreenPoint prevScreen;          // `screen` of the history point before it
+    s32                     depthCue;            // Depth-cue factor of the projection; stored and never read
+    s32                     projectionFlags;     // GTE flag word of the projection; negative when it reports an error
+    s32                     otz;                 // A quarter of the projected point's screen Z: scales the ribbon's width and picks its ordering-table slot
+    byte                    unknown_84[0x4];     // Reserved with the block and never accessed; role unproven
+    s32                     prevProjectionFlags; // `projectionFlags` of the history point before it; a quad is drawn only when neither is negative
+    SVECTOR                 edgeOffset;          // Screen offset from `screen` to the ribbon's edges: the segment's perpendicular at length 0x1000, scaled to 50 world units at the point's depth when `otz` is positive
+    byte                    unknown_94[0x20];    // Reserved with the block and never accessed; role unproven
+} _Actor403000TrailScratch;
+STATIC_ASSERT_SIZEOF(_Actor403000TrailScratch, 0xB4);
 
-/// 0x38-byte scratch stack block `func_actor_403000_8013C864` takes each
-/// frame: `d` and `dist` are the player's offset from the model and its length
-/// (even frames), `to`/`from` the two world positions handed to `func_800E0308`
-/// as the line-of-sight segment (odd frames), `ofs` the flare offset passed to
-/// `func_actor_403000_801327B0`.
-typedef struct Actor403000UpdateScratch {
-    /* 0x00 */ VECTOR  d;
-    /* 0x10 */ byte    pad_10[0x8];
-    /* 0x18 */ SVECTOR to;
-    /* 0x20 */ SVECTOR from;
-    /* 0x28 */ SVECTOR ofs;
-    /* 0x30 */ s32     dist;
-    /* 0x34 */ byte    pad_34[0x4];
-} Actor403000UpdateScratch;
-STATIC_ASSERT_SIZEOF(Actor403000UpdateScratch, 0x38);
+/// Scratch-stack block of the actor's per-frame update, reserved on the
+/// frames the update gets past its paused and hidden returns and released
+/// before it returns.
+///
+/// The update samples the player's range on even animation frames and the
+/// line of sight on odd ones, so a frame fills either `playerDelta` and
+/// `playerDistance` or the two sight positions. `flareOffset` is filled every
+/// frame. The state handler the update calls reserves blocks of its own below
+/// this one.
+typedef struct {
+    VECTOR  playerDelta;     // Player's position minus the actor's, world units; `pad` is never written
+    byte    unknown_10[0x8]; // Reserved with the block and never accessed; role unproven
+    SVECTOR sightTarget;     // Player's composed position: the far end of the sight segment; `pad` is never written
+    SVECTOR sightOrigin;     // Actor's composed position: the near end of the sight segment; `pad` is never written
+    SVECTOR flareOffset;     // Where the flare is drawn, in the frame of the joint carrying it; `pad` is never written
+    s32     playerDistance;  // Length of `playerDelta`; beyond 9000 the player is out of range
+    byte    unknown_34[0x4]; // Reserved with the block and never accessed; role unproven
+} _Actor403000UpdateScratch;
+STATIC_ASSERT_SIZEOF(_Actor403000UpdateScratch, 0x38);
 
-/// The animation-state handlers `func_actor_403000_8013C864` copies onto its
-/// stack and calls through, indexed by `Actor403000Work::state`.
-typedef struct Actor403000StateTable {
-    TaskFunc funcs[35];
-} Actor403000StateTable;
-static const Actor403000StateTable D_actor_403000_80131F44;
+/// The actor's state handlers, stored as a value for whole-table copies.
+///
+/// `Actor403000Work::state` is the index. The package defines one table; the
+/// per-frame update copies all of it to the stack and calls the current
+/// state's handler with the actor's task. The call has no terminator or
+/// bounds check. The table has 35 slots, of which the 25 `ACTOR_403000_STATE_*`
+/// values are filled; the rest are `NULL` and must not be selected.
+typedef struct {
+    TaskFunc handlers[35]; // Handler of each state, in state order, taking the actor's task
+} _Actor403000StateTable;
+STATIC_ASSERT_SIZEOF(_Actor403000StateTable, 0x8C);
+static const _Actor403000StateTable D_actor_403000_80131F44;
 
 /// Waypoint grid for `func_actor_403000_80134204`: two rows of five indices
 /// (row by `coord.t[2]`, column by `coord.t[0]` band), each one less than the
@@ -586,7 +602,7 @@ static AnimationSet _gActor403000Animation25B24;
 static AnimationSet _gActor403000Animation26334;
 static AnimationSet _gActor403000Animation2651C;
 static TmdSource    _gActor403000BlizzardChaserBody;
-s32                 func_actor_403000_801324EC(Task*, s32, Actor403000Event*, s32);
+s32                 func_actor_403000_801324EC(Task*, s32, ActorCommand*, s32);
 s32                 func_actor_403000_8013D268(Task*, s32, s32, s32);
 s32                 func_actor_403000_8013D324(Task*, s32, s32, s32);
 s32                 func_actor_403000_8013D364(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
@@ -3553,16 +3569,16 @@ static s32                 func_actor_403000_8013D98C(s32 arg0);
 
 #include "../../shared/actor_contacts_push_contact.inc.c"
 
-s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2, s32 arg3)
+s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg3)
 {
     Actor403000Work* work  = arg0->work;
     Enemy*           enemy = arg0->spawnArg2.pointer;
 
-    work->lastCommandStage = arg2->b[0];
-    work->lastCommandArea  = arg2->b[1];
-    work->lastCommandId    = arg2->b[2];
-    if (arg2->w[0] == 0x204) {
-        switch (arg2->w[1]) {
+    work->lastCommandStage = arg2->context.loc.stage;
+    work->lastCommandArea  = arg2->context.loc.area;
+    work->lastCommandId    = arg2->command;
+    if (arg2->context.key == 0x204) {
+        switch (arg2->command) {
             case 0:
                 enemy->hp   = 0;
                 work->state = ACTOR_403000_STATE_HIDDEN;
@@ -3713,36 +3729,35 @@ static void func_actor_403000_801327B0(GfxCoord* coord, SVECTOR* pos, s32 arg2)
 
 static void func_actor_403000_80132AE0(GfxCoord* parent)
 {
-    Actor403000TrailScratch* scratch;
-    MATRIX*                  m;
-    GfxCoord*                walker;
-    SVECTOR*                 pos;
-    s16                      i;
-    POLY_FT4*                prim;
-    SVECTOR*                 n;
+    _Actor403000TrailScratch* scratch;
+    MATRIX*                   m;
+    GfxCoord*                 walker;
+    SVECTOR*                  pos;
+    s16                       i;
+    POLY_FT4*                 prim;
+    SVECTOR*                  n;
 
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403000TrailScratch));
-    scratch = SCRATCH_STACK_CURSOR(Actor403000TrailScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000TrailScratch);
     for (i = 0; i < 17; i++) {
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
     }
-    m                                        = &scratch->coord.coord;
-    MATRIX_PAIR(&scratch->coord.coord, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 0, 2)                     = 0;
-    MATRIX_PAIR(m, 1, 1)                     = 0x1000;
-    MATRIX_PAIR(m, 2, 0)                     = 0;
-    m->m[2][2]                               = 0x1000;
-    scratch->coord.coord.t[0]                = -0x3C;
-    scratch->coord.coord.t[1]                = -0x28;
-    scratch->coord.coord.t[2]                = 0x12C;
-    scratch->coord.parent                    = parent;
-    scratch->coord.composeStamp              = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&scratch->coord);
-    walker          = &scratch->coord;
-    pos             = &scratch->pos;
-    scratch->pos.vz = 0;
-    scratch->pos.vy = 0;
-    scratch->pos.vx = 0;
+    m                                          = &scratch->emitter.coord;
+    MATRIX_PAIR(&scratch->emitter.coord, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 0, 2)                       = 0;
+    MATRIX_PAIR(m, 1, 1)                       = 0x1000;
+    MATRIX_PAIR(m, 2, 0)                       = 0;
+    m->m[2][2]                                 = 0x1000;
+    scratch->emitter.coord.t[0]                = -0x3C;
+    scratch->emitter.coord.t[1]                = -0x28;
+    scratch->emitter.coord.t[2]                = 0x12C;
+    scratch->emitter.parent                    = parent;
+    scratch->emitter.composeStamp              = GRAPHICS_COORD_DIRTY;
+    Gp_UpdateCoord(&scratch->emitter);
+    walker                 = &scratch->emitter;
+    pos                    = &scratch->emitterPos;
+    scratch->emitterPos.vz = 0;
+    scratch->emitterPos.vy = 0;
+    scratch->emitterPos.vx = 0;
     {
         SVECTOR local;
         VECTOR  result;
@@ -3773,9 +3788,9 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
             break;
         }
     }
-    D_actor_403000_80158DF0[0].vx = scratch->pos.vx;
-    D_actor_403000_80158DF0[0].vy = scratch->pos.vy;
-    D_actor_403000_80158DF0[0].vz = scratch->pos.vz;
+    D_actor_403000_80158DF0[0].vx = scratch->emitterPos.vx;
+    D_actor_403000_80158DF0[0].vy = scratch->emitterPos.vy;
+    D_actor_403000_80158DF0[0].vz = scratch->emitterPos.vz;
     for (i = 0; i < 18; i++) {
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -3783,19 +3798,19 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         gte_ldv0(&D_actor_403000_80158DF0[i]);
         gte_rtps();
-        gte_stsxy(&scratch->sxy.word);
-        gte_stdp(&scratch->p);
-        gte_stflg(&scratch->flag);
+        gte_stsxy(&scratch->screen.word);
+        gte_stdp(&scratch->depthCue);
+        gte_stflg(&scratch->projectionFlags);
         gte_stszotz(&scratch->otz);
-        if (i == 0 || scratch->flag < 0) {
-            scratch->prevSxy.word = scratch->sxy.word;
-            scratch->prevFlag     = scratch->flag;
+        if (i == 0 || scratch->projectionFlags < 0) {
+            scratch->prevScreen.word     = scratch->screen.word;
+            scratch->prevProjectionFlags = scratch->projectionFlags;
             continue;
         }
-        n                  = &scratch->normal;
-        scratch->normal.vz = 0;
-        scratch->normal.vx = scratch->sxy.xy.vy - scratch->prevSxy.xy.vy;
-        scratch->normal.vy = scratch->prevSxy.xy.vx - scratch->sxy.xy.vx;
+        n                      = &scratch->edgeOffset;
+        scratch->edgeOffset.vz = 0;
+        scratch->edgeOffset.vx = scratch->screen.xy.vy - scratch->prevScreen.xy.vy;
+        scratch->edgeOffset.vy = scratch->prevScreen.xy.vx - scratch->screen.xy.vx;
         VectorNormalSS(n, n);
         if (scratch->otz > 0) {
             gte_lddp((gDisplayState.screenDistance * 50 / scratch->otz) >> 2);
@@ -3803,21 +3818,21 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
             gte_gpf12();
             gte_stsv(n);
         }
-        prim->x2 = scratch->sxy.xy.vx + scratch->normal.vx;
-        prim->y2 = scratch->sxy.xy.vy + scratch->normal.vy;
-        prim->x3 = scratch->sxy.xy.vx - scratch->normal.vx;
-        prim->y3 = scratch->sxy.xy.vy - scratch->normal.vy;
-        if (scratch->prevFlag >= 0) {
+        prim->x2 = scratch->screen.xy.vx + scratch->edgeOffset.vx;
+        prim->y2 = scratch->screen.xy.vy + scratch->edgeOffset.vy;
+        prim->x3 = scratch->screen.xy.vx - scratch->edgeOffset.vx;
+        prim->y3 = scratch->screen.xy.vy - scratch->edgeOffset.vy;
+        if (scratch->prevProjectionFlags >= 0) {
             if (i != 1) {
                 POLY_FT4* prev = prim - 1;
 
                 GPU_PRIMITIVE_XY_WORD(prim, 0) = GPU_PRIMITIVE_XY_WORD(prev, 2);
                 GPU_PRIMITIVE_XY_WORD(prim, 1) = GPU_PRIMITIVE_XY_WORD(prev, 3);
             } else {
-                prim->x0 = scratch->prevSxy.xy.vx + scratch->normal.vx;
-                prim->y0 = scratch->prevSxy.xy.vy + scratch->normal.vy;
-                prim->x1 = scratch->prevSxy.xy.vx - scratch->normal.vx;
-                prim->y1 = scratch->prevSxy.xy.vy - scratch->normal.vy;
+                prim->x0 = scratch->prevScreen.xy.vx + scratch->edgeOffset.vx;
+                prim->y0 = scratch->prevScreen.xy.vy + scratch->edgeOffset.vy;
+                prim->x1 = scratch->prevScreen.xy.vx - scratch->edgeOffset.vx;
+                prim->y1 = scratch->prevScreen.xy.vy - scratch->edgeOffset.vy;
             }
             prim->u2                          = 4;
             prim->u0                          = 4;
@@ -3834,43 +3849,42 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
             prim->code = 0x2E;
             addPrim(&gGpuCurrentOt[(((u32)(scratch->otz - 10) << gDisplayState.otDepthShift) >> 4) & 0x3FF], prim);
         }
-        scratch->prevSxy.word = scratch->sxy.word;
-        scratch->prevFlag     = scratch->flag;
+        scratch->prevScreen.word     = scratch->screen.word;
+        scratch->prevProjectionFlags = scratch->projectionFlags;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403000TrailScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403000TrailScratch);
 }
 
 static void func_actor_403000_801330D4(GfxCoord* parent)
 {
-    Actor403000TrailScratch* scratch;
-    MATRIX*                  m;
-    GfxCoord*                walker;
-    SVECTOR*                 pos;
-    s16                      i;
+    _Actor403000TrailScratch* scratch;
+    MATRIX*                   m;
+    GfxCoord*                 walker;
+    SVECTOR*                  pos;
+    s16                       i;
 
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403000TrailScratch));
-    scratch = SCRATCH_STACK_CURSOR(Actor403000TrailScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000TrailScratch);
     for (i = 0; i < 17; i++) {
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
     }
     /* Identity, written as three words and a short through a second pointer. */
-    m                                        = &scratch->coord.coord;
-    MATRIX_PAIR(&scratch->coord.coord, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 0, 2)                     = 0;
-    MATRIX_PAIR(m, 1, 1)                     = 0x1000;
-    MATRIX_PAIR(m, 2, 0)                     = 0;
-    m->m[2][2]                               = 0x1000;
-    scratch->coord.coord.t[0]                = -0x3C;
-    scratch->coord.coord.t[1]                = -0x28;
-    scratch->coord.parent                    = parent;
-    scratch->coord.coord.t[2]                = 0x12C;
-    scratch->coord.composeStamp              = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&scratch->coord);
-    walker          = &scratch->coord;
-    pos             = &scratch->pos;
-    scratch->pos.vz = 0;
-    scratch->pos.vy = 0;
-    scratch->pos.vx = 0;
+    m                                          = &scratch->emitter.coord;
+    MATRIX_PAIR(&scratch->emitter.coord, 0, 0) = 0x1000;
+    MATRIX_PAIR(m, 0, 2)                       = 0;
+    MATRIX_PAIR(m, 1, 1)                       = 0x1000;
+    MATRIX_PAIR(m, 2, 0)                       = 0;
+    m->m[2][2]                                 = 0x1000;
+    scratch->emitter.coord.t[0]                = -0x3C;
+    scratch->emitter.coord.t[1]                = -0x28;
+    scratch->emitter.parent                    = parent;
+    scratch->emitter.coord.t[2]                = 0x12C;
+    scratch->emitter.composeStamp              = GRAPHICS_COORD_DIRTY;
+    Gp_UpdateCoord(&scratch->emitter);
+    walker                 = &scratch->emitter;
+    pos                    = &scratch->emitterPos;
+    scratch->emitterPos.vz = 0;
+    scratch->emitterPos.vy = 0;
+    scratch->emitterPos.vx = 0;
     {
         SVECTOR local;
         VECTOR  result;
@@ -3901,9 +3915,9 @@ static void func_actor_403000_801330D4(GfxCoord* parent)
             break;
         }
     }
-    D_actor_403000_80158DF0[0].vx = scratch->pos.vx;
-    D_actor_403000_80158DF0[0].vy = scratch->pos.vy;
-    D_actor_403000_80158DF0[0].vz = scratch->pos.vz;
+    D_actor_403000_80158DF0[0].vx = scratch->emitterPos.vx;
+    D_actor_403000_80158DF0[0].vy = scratch->emitterPos.vy;
+    D_actor_403000_80158DF0[0].vz = scratch->emitterPos.vz;
 }
 
 static void func_actor_403000_801332E8(Task* arg0)
@@ -4776,16 +4790,15 @@ static inline void func_actor_403000_PlaySound(Task* arg0, Enemy* enemy, s32 id)
 
 static void func_actor_403000_80134F44(Task* arg0)
 {
-    Task*                     player;
-    Enemy*                    enemy;
-    PlayerStatus*             config;
-    Actor403000Work*          work;
-    Actor403000DamageScratch* head;
-    Actor403000DamageScratch* scratch;
-    s32                       yaw;
-    s32                       dx;
-    s32                       dy;
-    s32                       dz;
+    Task*                      player;
+    Enemy*                     enemy;
+    PlayerStatus*              config;
+    Actor403000Work*           work;
+    _Actor403000DamageScratch* scratch;
+    s32                        yaw;
+    s32                        dx;
+    s32                        dy;
+    s32                        dz;
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     enemy  = arg0->spawnArg2.pointer;
@@ -4796,17 +4809,16 @@ static void func_actor_403000_80134F44(Task* arg0)
             work->hitCooldown--;
             return;
         }
-        head        = SCRATCH_STACK_CURSOR(Actor403000DamageScratch);
-        scratch     = (SCRATCH_STACK_CURSOR(Actor403000DamageScratch) = head - 1);
-        scratch->id = func_actor_403000_FindHit(&scratch->pos, work->torsoSphere.contacts);
-        if (scratch->id == 0) {
-            scratch->id = func_actor_403000_FindHit(&scratch->pos, work->hindSphere.contacts);
+        scratch         = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000DamageScratch);
+        scratch->hitKey = func_actor_403000_FindHit(&scratch->hitPos, work->torsoSphere.contacts);
+        if (scratch->hitKey == 0) {
+            scratch->hitKey = func_actor_403000_FindHit(&scratch->hitPos, work->hindSphere.contacts);
         }
-        if (scratch->id == 0) {
-            scratch->id = func_actor_403000_FindHit(&scratch->pos, work->neckSphere.contacts);
+        if (scratch->hitKey == 0) {
+            scratch->hitKey = func_actor_403000_FindHit(&scratch->hitPos, work->neckSphere.contacts);
         }
-        if (scratch->id == 0) {
-            scratch->id = func_actor_403000_FindHit(&scratch->pos, work->headCapsule.contacts);
+        if (scratch->hitKey == 0) {
+            scratch->hitKey = func_actor_403000_FindHit(&scratch->hitPos, work->headCapsule.contacts);
         }
         if (work->blastPuffFrames != 0) {
             work->blastPuffFrames--;
@@ -4830,11 +4842,11 @@ static void func_actor_403000_80134F44(Task* arg0)
                     work->state = ACTOR_403000_STATE_KNOCKDOWN;
                 }
             }
-            scratch->id         = 0;
+            scratch->hitKey     = 0;
             scratch->damage     = 400;
             work->neckYaw       = 0;
             work->neckYawTarget = 0;
-            func_800E2C78(enemy, scratch->id, scratch->damage, 0);
+            func_800E2C78(enemy, scratch->hitKey, scratch->damage, 0);
             func_800DA6E8(&enemy->node, scratch->damage, 0);
             enemy->hp -= scratch->damage;
             if (enemy->hp <= 0 && gPlayerStatus.hp <= 0) {
@@ -4861,12 +4873,12 @@ static void func_actor_403000_80134F44(Task* arg0)
                 func_actor_403000_PlaySound(arg0, enemy, 0x401E0005);
             }
         }
-        if (scratch->id != 0) {
+        if (scratch->hitKey != 0) {
             if (work->state == ACTOR_403000_STATE_WATCH) {
                 work->ambushRequested = 1;
             }
-            work->hitCooldown = Gp_GetIdParam2(scratch->id);
-            switch (Gp_GetIdParam0(scratch->id) & 0xFFFF) {
+            work->hitCooldown = Gp_GetIdParam2(scratch->hitKey);
+            switch (Gp_GetIdParam0(scratch->hitKey) & 0xFFFF) {
                 case 0:
                 case 5:
                 case 6:
@@ -4898,7 +4910,7 @@ static void func_actor_403000_80134F44(Task* arg0)
                     break;
                 case 2:
                     if (work->state != ACTOR_403000_STATE_AMBUSH && !(work->state == ACTOR_403000_STATE_DROP && arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) && work->state != ACTOR_403000_STATE_KNOCKDOWN && work->state != ACTOR_403000_STATE_DROP_CATCH && work->playerCaught != 1) {
-                        Gp_SetObjFlag2(enemy, scratch->id, 0);
+                        Gp_SetObjFlag2(enemy, scratch->hitKey, 0);
                         if (work->state == ACTOR_403000_STATE_STUNNED || work->state == ACTOR_403000_STATE_DOWN || work->state == ACTOR_403000_STATE_DOWN_HIT || (work->state == ACTOR_403000_STATE_GET_UP && work->stateFrame < 0x12)) {
                             work->state     = ACTOR_403000_STATE_DOWN_HIT;
                             work->prevState = -1;
@@ -4908,7 +4920,7 @@ static void func_actor_403000_80134F44(Task* arg0)
                     }
                     break;
                 case 3:
-                    Gp_SetObjFlag4(enemy, scratch->id, 0);
+                    Gp_SetObjFlag4(enemy, scratch->hitKey, 0);
                     break;
                 case 1:
                     enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
@@ -4930,28 +4942,28 @@ static void func_actor_403000_80134F44(Task* arg0)
                     }
                     break;
             }
-            dx              = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-            scratch->d.vx   = dx;
-            dy              = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-            scratch->d.vy   = dy;
-            dz              = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-            scratch->d.vz   = dz;
-            scratch->dist   = SquareRoot0(dx * dx + dy * dy + dz * dz);
-            scratch->damage = Gp_ComputeDamage(scratch->id, scratch->dist, 0, 0);
-            if (Gp_RollEnemyChance(enemy, scratch->id, 0) != 0) {
+            dx                      = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
+            scratch->playerDelta.vx = dx;
+            dy                      = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
+            scratch->playerDelta.vy = dy;
+            dz                      = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
+            scratch->playerDelta.vz = dz;
+            scratch->playerDistance = SquareRoot0(dx * dx + dy * dy + dz * dz);
+            scratch->damage         = Gp_ComputeDamage(scratch->hitKey, scratch->playerDistance, 0, 0);
+            if (Gp_RollEnemyChance(enemy, scratch->hitKey, 0) != 0) {
                 scratch->damage *= 4;
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], 0, NULL);
             }
-            scratch->rel.vx = scratch->pos.vx - arg0->extra.tmd->coords->workm.t[0];
-            scratch->rel.vy = scratch->pos.vy - arg0->extra.tmd->coords->workm.t[1];
-            scratch->rel.vz = scratch->pos.vz - arg0->extra.tmd->coords->workm.t[2];
-            yaw             = ratan2(scratch->rel.vx, scratch->rel.vz);
-            scratch->angle  = yaw - ratan2(-arg0->extra.tmd->coords->workm.m[2][0], arg0->extra.tmd->coords->workm.m[2][2]);
-            scratch->angle  = func_actor_403000_WrapAngle(scratch->angle);
-            func_actor_403000_80134910(arg0, scratch->angle, scratch->id);
+            scratch->hitOffset.vx = scratch->hitPos.vx - arg0->extra.tmd->coords->workm.t[0];
+            scratch->hitOffset.vy = scratch->hitPos.vy - arg0->extra.tmd->coords->workm.t[1];
+            scratch->hitOffset.vz = scratch->hitPos.vz - arg0->extra.tmd->coords->workm.t[2];
+            yaw                   = ratan2(scratch->hitOffset.vx, scratch->hitOffset.vz);
+            scratch->hitYaw       = yaw - ratan2(-arg0->extra.tmd->coords->workm.m[2][0], arg0->extra.tmd->coords->workm.m[2][2]);
+            scratch->hitYaw       = func_actor_403000_WrapAngle(scratch->hitYaw);
+            func_actor_403000_80134910(arg0, scratch->hitYaw, scratch->hitKey);
             work->neckYaw       = 0;
             work->neckYawTarget = 0;
-            func_800E2C78(enemy, scratch->id, scratch->damage, 0);
+            func_800E2C78(enemy, scratch->hitKey, scratch->damage, 0);
             func_800DA6E8(&enemy->node, scratch->damage, 0);
             enemy->hp -= scratch->damage;
             if ((work->state == ACTOR_403000_STATE_DROP && arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) || work->state == ACTOR_403000_STATE_DROP_CATCH || work->state == ACTOR_403000_STATE_AMBUSH || work->playerCaught == 1) {
@@ -5012,7 +5024,7 @@ static void func_actor_403000_80134F44(Task* arg0)
                 }
             }
         }
-        SCRATCH_STACK_RELEASE_BLOCK(Actor403000DamageScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_Actor403000DamageScratch);
     }
 }
 
@@ -7297,7 +7309,7 @@ static void func_actor_403000_8013C2D4(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
-static const Actor403000StateTable D_actor_403000_80131F44 = {
+static const _Actor403000StateTable D_actor_403000_80131F44 = {
     {
         func_actor_403000_8013D5F8,
         func_actor_403000_8013D72C,
@@ -7329,14 +7341,14 @@ static const Actor403000StateTable D_actor_403000_80131F44 = {
 
 static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
 {
-    VECTOR3                   pos;
-    Actor403000Work*          work;
-    Task*                     player;
-    Actor403000UpdateScratch* scratch;
-    Actor403000StateTable     states;
-    PlayerStatus*             config;
-    u32                       sound;
-    s32                       pan;
+    VECTOR3                    pos;
+    Actor403000Work*           work;
+    Task*                      player;
+    _Actor403000UpdateScratch* scratch;
+    _Actor403000StateTable     states;
+    PlayerStatus*              config;
+    u32                        sound;
+    s32                        pan;
 
     work                                  = arg1->work;
     player                                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -7378,7 +7390,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(work->headCapsule.contacts);
             return;
     }
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor403000UpdateScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000UpdateScratch);
     if (config->hp > 0) {
         func_actor_403000_80134F44(arg1);
     }
@@ -7388,7 +7400,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
         work->stateEntered = 0;
     }
     work->prevState = work->state;
-    states.funcs[work->state](arg1);
+    states.handlers[work->state](arg1);
     if (work->state != ACTOR_403000_STATE_SCRIPTED_DISSOLVE && work->state != ACTOR_403000_STATE_DISSOLVE && work->state != ACTOR_403000_STATE_SCRIPTED_BURN && work->state != ACTOR_403000_STATE_HIDDEN) {
         work->torsoSphere.body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->hindSphere.body.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -7409,23 +7421,23 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
         }
     }
     if (!(gDisplayState.animFrame & 1)) {
-        scratch->d.vx = player->extra.tmd->coords->coord.t[0] - arg1->extra.tmd->coords->coord.t[0];
-        scratch->d.vy = player->extra.tmd->coords->coord.t[1] - arg1->extra.tmd->coords->coord.t[1];
-        scratch->d.vz = player->extra.tmd->coords->coord.t[2] - arg1->extra.tmd->coords->coord.t[2];
-        scratch->dist = SquareRoot0(scratch->d.vx * scratch->d.vx + scratch->d.vy * scratch->d.vy + scratch->d.vz * scratch->d.vz);
-        if (scratch->dist > 9000) {
+        scratch->playerDelta.vx = player->extra.tmd->coords->coord.t[0] - arg1->extra.tmd->coords->coord.t[0];
+        scratch->playerDelta.vy = player->extra.tmd->coords->coord.t[1] - arg1->extra.tmd->coords->coord.t[1];
+        scratch->playerDelta.vz = player->extra.tmd->coords->coord.t[2] - arg1->extra.tmd->coords->coord.t[2];
+        scratch->playerDistance = SquareRoot0(scratch->playerDelta.vx * scratch->playerDelta.vx + scratch->playerDelta.vy * scratch->playerDelta.vy + scratch->playerDelta.vz * scratch->playerDelta.vz);
+        if (scratch->playerDistance > 9000) {
             work->playerInRange = 0;
         } else {
             work->playerInRange = 1;
         }
     } else {
-        scratch->to.vx   = player->extra.tmd->coords->workm.t[0];
-        scratch->to.vy   = player->extra.tmd->coords->workm.t[1];
-        scratch->to.vz   = player->extra.tmd->coords->workm.t[2];
-        scratch->from.vx = arg1->extra.tmd->coords->workm.t[0];
-        scratch->from.vy = arg1->extra.tmd->coords->workm.t[1];
-        scratch->from.vz = arg1->extra.tmd->coords->workm.t[2];
-        if (func_800E0308(&scratch->from, &scratch->to) != 1) {
+        scratch->sightTarget.vx = player->extra.tmd->coords->workm.t[0];
+        scratch->sightTarget.vy = player->extra.tmd->coords->workm.t[1];
+        scratch->sightTarget.vz = player->extra.tmd->coords->workm.t[2];
+        scratch->sightOrigin.vx = arg1->extra.tmd->coords->workm.t[0];
+        scratch->sightOrigin.vy = arg1->extra.tmd->coords->workm.t[1];
+        scratch->sightOrigin.vz = arg1->extra.tmd->coords->workm.t[2];
+        if (func_800E0308(&scratch->sightOrigin, &scratch->sightTarget) != 1) {
             work->playerVisible = 1;
         } else {
             work->playerVisible = 0;
@@ -7525,11 +7537,11 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
             }
         }
     }
-    scratch->ofs.vx = -60;
-    scratch->ofs.vy = -40;
-    scratch->ofs.vz = 300;
+    scratch->flareOffset.vx = -60;
+    scratch->flareOffset.vy = -40;
+    scratch->flareOffset.vz = 300;
     if (work->state != ACTOR_403000_STATE_SCRIPTED_DISSOLVE && work->state != ACTOR_403000_STATE_DISSOLVE && work->state != ACTOR_403000_STATE_SCRIPTED_BURN) {
-        func_actor_403000_801327B0(&arg1->extra.tmd->coords[4], &scratch->ofs, 0);
+        func_actor_403000_801327B0(&arg1->extra.tmd->coords[4], &scratch->flareOffset, 0);
         func_actor_403000_80132AE0(&arg1->extra.tmd->coords[4]);
     } else {
         func_actor_403000_801330D4(&arg1->extra.tmd->coords[4]);
@@ -7555,7 +7567,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
     if (player->extra.tmd->coords->coord.t[0] > 0x477C) {
         player->extra.tmd->coords->coord.t[0] = 0x477C;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor403000UpdateScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403000UpdateScratch);
 }
 
 /// The enemy's three state handlers - spawn, per-frame tick and teardown -

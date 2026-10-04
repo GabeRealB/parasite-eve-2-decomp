@@ -104831,8 +104831,8 @@ With `migrate_rodata_to_functions`, a `.rodata` symbol only one function
 references is written into that function's `.s`, not into a file of its own.
 When the function becomes C, `INCLUDE_RODATA(..., D_x)` fails at assembly
 ("can't open ... D_x.s"). For a function-pointer table (`sp = D_x;
-sp.funcs[state](arg)`), define it in C just before the function:
-`const Actor403000StateTable D_actor_403000_80131F44 = { { f1, f2, ... } };`.
+sp.handlers[state](arg)`), define it in C just before the function:
+`const _Actor403000StateTable D_actor_403000_80131F44 = { { f1, f2, ... } };`.
 It lands in the unit's `.rodata` ahead of the function's jump tables, in the
 same order as before. Declare any `INCLUDE_ASM` handlers the initializer names.
 
@@ -104883,7 +104883,7 @@ mem in CSE, so the re-read survives to `reload_cse_regs`, which turns it into a 
 
 **Related, same function:** an angle wrapped in `while` loops and then both stored and passed as an
 `s16` argument (`sll a1,a1; sra a1,a1; jal; sh a1,0x2C(s3)`) matched only as
-`scratch->angle = WrapAngle(scratch->angle); f(index, scratch->angle, ...)` with a `static inline s16`
+`scratch->hitYaw = WrapAngle(scratch->hitYaw); f(index, scratch->hitYaw, ...)` with a `static inline s16`
 helper: the return-value extension becomes the pseudo both uses read, so the loop variable lands in `a1`.
 if (cond) { ... }
 ```
