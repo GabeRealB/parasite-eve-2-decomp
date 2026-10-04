@@ -2789,10 +2789,10 @@ topology, predicates, delay slots and call targets all already matching - two
 hunks of pure instruction order, one per block. Both were fixed by moving a C
 statement; no pin, no asm barrier:
 
-- the `field_DE &= 0x7FFF` store had to precede `field_140 = ++counter`
+- the `attackBody.flags &= 0x7FFF` store had to precede the `counter` increment
   (target reads `lhu v1,0xDE` / `andi` / `sh v1,0xDE` before the `0x140` pair);
 - the whole LCG update `state = (gRandomLcgState * 5) + 0x71357911;` had to precede
-  the two flag stores `field_13C = 1; field_13E = 0;`, with `gRandomLcgState = state;`
+  the two flag stores `mode = 1; phase = 0;`, with `gRandomLcgState = state;`
   left last. Target materialises `lui`/`ori` first, then `lui`/`lw` of
   `gRandomLcgState`, then `li`/`sh`/`sh`, then `sll`/`addu`/`addu`/`sw`.
 
@@ -83917,10 +83917,10 @@ instruction short of the target) until two statements were swapped. Both
 versions write the same six assignments - only the middle two change places:
 
 ```c
-    work->field_124 = coord->coord.t[2];
+    work->prevPos.vz = coord->coord.t[2];
     coord->coord.t[1] += 0x80;                                        /* A */
-    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_138) >> 12;
-    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_138) >> 12;
+    coord->coord.t[0] += (coord->coord.m[0][2] * work->speed) >> 12;
+    coord->coord.t[2] += (coord->coord.m[2][2] * work->speed) >> 12;
 ```
 
 With A first, `.sched` - sched1, pre-reload, so no register sharing can be
