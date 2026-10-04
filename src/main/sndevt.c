@@ -339,7 +339,7 @@ static volatile s32 D_800689E8;
 
 static u8 D_800689F0[];
 
-extern s32 func_80179BE4(u16 arg0, u8 arg1, LinInterp* ramp);
+extern s32 func_map_neo_ark_80179BE4(u16 arg0, u8 arg1, LinInterp* ramp);
 
 static void SndEvt_Free(SndEvt* event);
 
@@ -1452,7 +1452,7 @@ static void Midi_UpdateVoiceVolumes(_MidiSong* song)
 
     interp = &song->volumeRamp;
     if (song->sequenceId == 0x4F && D_80082120 == 5) {
-        volume = func_80179BE4((u16)song->volumeScale, D_80082136, interp);
+        volume = func_map_neo_ark_80179BE4((u16)song->volumeScale, D_80082136, interp);
     } else if (song->sequenceId == 0x5A) {
         volume = LinInterp_Apply(interp, (u32)((Midi_GetMasterVolume() & 0xFF) * ((D_800689F0[0x5A] * 3) << 5)) / 127U);
     } else {

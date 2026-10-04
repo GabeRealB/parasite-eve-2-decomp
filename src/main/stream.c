@@ -84,9 +84,9 @@ u16 D_8006AC6C;
 
 extern s32 StCdIntrFlag;
 
-extern void func_80179988(void* arg0);
+extern void func_map_akropolis_80179988(void* arg0);
 
-extern void func_801799BC(void* arg0);
+extern void func_map_neo_ark_801799BC(void* arg0);
 
 static void Mdec_SetupBuffers(u8* arg0);
 
@@ -171,13 +171,13 @@ static void Mdec_SetupBuffers(u8* arg0)
             return;
         }
         case 2:
-            func_80179988(arg0);
+            func_map_akropolis_80179988(arg0);
             return;
         case 3:
             func_map_dryfield_80179954(arg0);
             return;
         case 6:
-            func_801799BC(arg0);
+            func_map_neo_ark_801799BC(arg0);
             return;
     }
 }

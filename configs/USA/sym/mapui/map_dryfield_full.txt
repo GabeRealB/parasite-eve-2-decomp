@@ -138,7 +138,7 @@ D_dryfield_night_motel_lobby_80182928 = 0x80182928; // absolute:True
 D_dryfield_night_motel_lobby_80182DD8 = 0x80182DD8; // absolute:True
 D_dryfield_night_motel_lobby_80183D1C = 0x80183D1C; // absolute:True
 D_dryfield_night_motel_lobby_8018448C = 0x8018448C; // absolute:True
-func_dryfield_night_saloon_g_r_8017E050 = 0x8017E050; // type:func absolute:True
+func_dryfield_night_saloon_g_r_8017E050 = 0x8017E050; // type:func absolute:True owner=dryfield_night_saloon_g_r
 D_dryfield_night_saloon_g_r_80185180 = 0x80185180; // absolute:True
 D_dryfield_night_saloon_g_r_80185190 = 0x80185190; // absolute:True
 D_dryfield_night_saloon_g_r_801851B0 = 0x801851B0; // absolute:True
@@ -183,7 +183,7 @@ D_dryfield_night_breezeway_8017E704 = 0x8017E704; // absolute:True
 D_dryfield_night_breezeway_8017EBE8 = 0x8017EBE8; // absolute:True
 D_dryfield_night_breezeway_8017FD10 = 0x8017FD10; // absolute:True
 D_dryfield_night_breezeway_801804B8 = 0x801804B8; // absolute:True
-factoryNightEntryTask = 0x801809F4; // type:func absolute:True
+factoryNightEntryTask = 0x801809F4; // type:func absolute:True owner=dryfield_night_factory
 D_dryfield_night_factory_80186F1C = 0x80186F1C; // absolute:True
 D_dryfield_night_factory_80186F24 = 0x80186F24; // absolute:True
 D_dryfield_night_factory_80186F34 = 0x80186F34; // absolute:True
@@ -192,7 +192,7 @@ D_dryfield_night_factory_80186F58 = 0x80186F58; // absolute:True
 D_dryfield_night_factory_80187C14 = 0x80187C14; // absolute:True
 D_dryfield_night_factory_80189A24 = 0x80189A24; // absolute:True
 D_dryfield_night_factory_8018A79C = 0x8018A79C; // absolute:True
-func_dryfield_night_garage_801803BC = 0x801803BC; // type:func absolute:True
+func_dryfield_night_garage_801803BC = 0x801803BC; // type:func absolute:True owner=dryfield_night_garage
 D_dryfield_night_garage_801833F4 = 0x801833F4; // absolute:True
 D_dryfield_night_garage_80183404 = 0x80183404; // absolute:True
 D_dryfield_night_garage_80183434 = 0x80183434; // absolute:True
@@ -219,7 +219,7 @@ D_dryfield_night_junk_yard_801807CC = 0x801807CC; // absolute:True
 D_dryfield_night_junk_yard_801811DC = 0x801811DC; // absolute:True
 D_dryfield_night_junk_yard_80183700 = 0x80183700; // absolute:True
 D_dryfield_night_junk_yard_801844C4 = 0x801844C4; // absolute:True
-func_dryfield_night_trailer_coach_801828CC = 0x801828CC; // type:func absolute:True
+func_dryfield_night_trailer_coach_801828CC = 0x801828CC; // type:func absolute:True owner=dryfield_night_trailer_coach
 gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0 = 0x80184CA0; // absolute:True
 D_dryfield_night_trailer_coach_80189500 = 0x80189500; // absolute:True
 D_dryfield_night_trailer_coach_80189508 = 0x80189508; // absolute:True
@@ -247,7 +247,7 @@ D_dryfield_night_motel_balcony_80182EAC = 0x80182EAC; // absolute:True
 D_dryfield_night_motel_balcony_80184004 = 0x80184004; // absolute:True
 D_dryfield_night_motel_balcony_8018D078 = 0x8018D078; // absolute:True
 D_dryfield_night_motel_balcony_8018F2AC = 0x8018F2AC; // absolute:True
-func_dryfield_night_motel_room_6_80181C80 = 0x80181C80; // type:func absolute:True
+func_dryfield_night_motel_room_6_80181C80 = 0x80181C80; // type:func absolute:True owner=dryfield_night_motel_room_6
 D_dryfield_night_motel_room_6_80182F00 = 0x80182F00; // absolute:True
 D_dryfield_night_motel_room_6_80182F08 = 0x80182F08; // absolute:True
 D_dryfield_night_motel_room_6_80182F18 = 0x80182F18; // absolute:True
@@ -284,7 +284,7 @@ D_dryfield_night_cellar_8017DB34 = 0x8017DB34; // absolute:True
 D_dryfield_night_cellar_8017DE84 = 0x8017DE84; // absolute:True
 D_dryfield_night_cellar_8017FAB8 = 0x8017FAB8; // absolute:True
 D_dryfield_night_cellar_801807F4 = 0x801807F4; // absolute:True
-func_dryfield_night_underpass_8017D95C = 0x8017D95C; // type:func absolute:True
+func_dryfield_night_underpass_8017D95C = 0x8017D95C; // type:func absolute:True owner=dryfield_night_underpass
 D_dryfield_night_underpass_8017DD70 = 0x8017DD70; // absolute:True
 D_dryfield_night_underpass_8017DDD0 = 0x8017DDD0; // absolute:True
 D_dryfield_night_underpass_8017DE3C = 0x8017DE3C; // absolute:True

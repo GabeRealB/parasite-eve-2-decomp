@@ -148,10 +148,10 @@ static const char D_mist_shooting_gallery_8017D838[];
 static const char D_mist_shooting_gallery_8017D844[];
 static const char D_mist_shooting_gallery_8017D850[];
 
-extern void func_8014A398(void);
+extern void func_actor_215100_8014A398(void);
 extern s32  func_8014AA54(RoomEventMsg* loc);
-extern void func_8014AB6C(void);
-extern void func_8014AF0C(void);
+extern void func_actor_215100_8014AB6C(void);
+extern void func_actor_215100_8014AF0C(void);
 extern void func_8014C5E0(s32, s32, s32);
 
 extern s32        D_8014D038;
@@ -1893,7 +1893,7 @@ static void func_mist_shooting_gallery_8017FD40(Task* task)
             Gp_MsgSlot4Chain(1, 1);
         }
     }
-    func_8014A398();
+    func_actor_215100_8014A398();
 }
 void func_mist_shooting_gallery_8017FDD0(Task* task)
 {
@@ -2003,10 +2003,10 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
         D_80114D08 = 0xA;
     }
     if ((request->actionId == 2) && (GameFlag_GetNibble(GAME_FLAG_0ED) == 0)) {
-        func_8014AF0C();
+        func_actor_215100_8014AF0C();
     }
     if (request->actionId == 3) {
-        func_8014AB6C();
+        func_actor_215100_8014AB6C();
     }
     if ((request->actionId == 4) && (GameFlag_GetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
         func_800E3FAC(0xA2, 0x3B);

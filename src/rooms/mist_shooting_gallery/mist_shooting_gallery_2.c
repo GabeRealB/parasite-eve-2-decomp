@@ -138,14 +138,14 @@ extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 /// down: the state machine remembers where it was in `resumePhase` / `resumeCaptionStep`
 /// and jumps to the state-9 shutdown banner.
 extern void   func_8014A908(void);
-extern void   func_8014A9A0(void);
+extern void   func_actor_215100_8014A9A0(void);
 extern void   func_8014B0D4(void);
 static void   func_mist_shooting_gallery_80184A80(Task* arg0);
 static void   func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work);
 static u16    func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work);
 static void   func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2);
 static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, _MistShootingGallerySpawn* arg1);
-void          func_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
+void          CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2);
 static void   func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2);
 static void   func_mist_shooting_gallery_80182B1C(Task* arg0);
 static void   func_mist_shooting_gallery_80182C58(Task* arg0);
@@ -2378,7 +2378,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
     work  = arg0->work;
     bonus = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
     if (Pad_CheckButtons(0, 1, 0x100) != 0) {
-        func_8014A9A0();
+        func_actor_215100_8014A9A0();
         return;
     }
 
@@ -2582,7 +2582,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
 
     work = arg0->work;
     if (Pad_CheckButtons(0, 1, 0x100) != 0) {
-        func_8014A9A0();
+        func_actor_215100_8014A9A0();
         return;
     }
 
@@ -3153,7 +3153,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
                     work->timer = 4;
                     D_80115768  = 0;
                     work->phase++;
-                    func_8014A9A0();
+                    func_actor_215100_8014A9A0();
                 } else {
                     work->captionStep = step + 1;
                 }
@@ -3485,7 +3485,7 @@ void func_mist_shooting_gallery_80184B10(Task* arg0)
 
 static void func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2)
 {
-    func_8014B2B8(arg0, arg1, 0xD0);
+    CapCaption_SelectScript(arg0, arg1, 0xD0);
     Display_InitModeObj(&D_mist_shooting_gallery_801856D0, arg2, 0, 0);
 }
 

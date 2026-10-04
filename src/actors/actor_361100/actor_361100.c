@@ -121,8 +121,8 @@ extern AnimationSet**   D_actor_361100_80171BA8[1];
 
 extern TaskMessageEntry D_actor_361100_80171BB8[5];
 
-void func_80138C9C(Actor403600Ripple* state);
-void func_801353D0(Actor403600Ripple* state, GfxCoord* coord);
+void func_actor_403600_80138C9C(Actor403600Ripple* state);
+void func_actor_403600_801353D0(Actor403600Ripple* state, GfxCoord* coord);
 
 static void func_actor_361100_80161FF8(Task* arg0);
 static void func_actor_361100_80162B18(Task* task);
@@ -978,7 +978,7 @@ void func_actor_361100_80161E3C(Task* arg0)
             state->emitting = 1;
             i               = 0;
             do {
-                func_80138C9C(state);
+                func_actor_403600_80138C9C(state);
                 i += 1;
             } while (i < 0x1E);
             coord->parent                    = &gGfxViewCoord;
@@ -1000,8 +1000,8 @@ void func_actor_361100_80161E3C(Task* arg0)
             return;
         } else if (mode == 12) {
             D_actor_403600_8016069C = writePtr + (gDisplayState.otBuffer * ((s32)(streamLeft + (streamLeft >> 0x1F)) >> 1));
-            func_80138C9C(state);
-            func_801353D0(state, coord);
+            func_actor_403600_80138C9C(state);
+            func_actor_403600_801353D0(state, coord);
             return;
         } else if (mode == 10) {
             Task_CallExit(arg0);

@@ -487,21 +487,21 @@ func_80131E24 = 0x80131E24; // absolute:True
 func_80131E2C = 0x80131E2C; // absolute:True
 func_80131E38 = 0x80131E38; // absolute:True
 func_80131E70 = 0x80131E70; // absolute:True
-func_80131FB8 = 0x80131FB8; // absolute:True
+func_actor_150400_80131FB8 = 0x80131FB8; // absolute:True owner=actor_150400
 func_80131FBC = 0x80131FBC; // absolute:True
 func_80132000 = 0x80132000; // absolute:True
 func_80132028 = 0x80132028; // absolute:True
-func_80132038 = 0x80132038; // absolute:True
-func_80132110 = 0x80132110; // absolute:True
+func_actor_161500_80132038 = 0x80132038; // absolute:True owner=actor_161500
+func_actor_161500_80132110 = 0x80132110; // absolute:True owner=actor_161500
 func_80132210 = 0x80132210; // absolute:True
-func_80132220 = 0x80132220; // absolute:True
+func_actor_450200_80132220 = 0x80132220; // absolute:True owner=actor_450200
 func_8013224C = 0x8013224C; // absolute:True
 func_801322A0 = 0x801322A0; // absolute:True
-func_801322B8 = 0x801322B8; // absolute:True
+func_actor_460200_801322B8 = 0x801322B8; // absolute:True owner=actor_460200
 func_801322F8 = 0x801322F8; // absolute:True
 func_8013230C = 0x8013230C; // absolute:True
 func_80132390 = 0x80132390; // absolute:True
-func_801327A8 = 0x801327A8; // absolute:True
+func_actor_450900_801327A8 = 0x801327A8; // absolute:True owner=actor_450900
 func_80132834 = 0x80132834; // absolute:True
 D_80132D70 = 0x80132D70; // absolute:True
 func_80132F58 = 0x80132F58; // absolute:True
@@ -572,15 +572,15 @@ D_801449F4 = 0x801449F4; // absolute:True
 func_80149E38 = 0x80149E38; // absolute:True
 func_80149E80 = 0x80149E80; // absolute:True
 func_80149EBC = 0x80149EBC; // absolute:True
-func_80149FA4 = 0x80149FA4; // absolute:True
-func_8014A398 = 0x8014A398; // absolute:True
+func_actor_260400_80149FA4 = 0x80149FA4; // absolute:True owner=actor_260400
+func_actor_215100_8014A398 = 0x8014A398; // absolute:True owner=actor_215100
 func_8014A908 = 0x8014A908; // absolute:True
-func_8014A9A0 = 0x8014A9A0; // absolute:True
+func_actor_215100_8014A9A0 = 0x8014A9A0; // absolute:True owner=actor_215100
 func_8014AA54 = 0x8014AA54; // absolute:True
-func_8014AB6C = 0x8014AB6C; // absolute:True
-func_8014AF0C = 0x8014AF0C; // absolute:True
+func_actor_215100_8014AB6C = 0x8014AB6C; // absolute:True owner=actor_215100
+func_actor_215100_8014AF0C = 0x8014AF0C; // absolute:True owner=actor_215100
 func_8014B0D4 = 0x8014B0D4; // absolute:True
-func_8014B2B8 = 0x8014B2B8; // absolute:True
+CapCaption_SelectScript = 0x8014B2B8; // absolute:True owner=actor_215100
 D_8014B958 = 0x8014B958; // absolute:True
 D_8014B964 = 0x8014B964; // absolute:True
 D_8014BD48 = 0x8014BD48; // absolute:True
@@ -596,8 +596,8 @@ D_80151E60 = 0x80151E60; // absolute:True
 D_80153274 = 0x80153274; // absolute:True
 D_80153D6C = 0x80153D6C; // absolute:True
 D_801575F0 = 0x801575F0; // absolute:True
-func_8016268C = 0x8016268C; // absolute:True
-func_80162B0C = 0x80162B0C; // absolute:True
+func_actor_341300_8016268C = 0x8016268C; // absolute:True owner=actor_341300
+func_actor_361100_80162B0C = 0x80162B0C; // absolute:True owner=actor_361100
 D_80164190 = 0x80164190; // absolute:True
 D_80164B78 = 0x80164B78; // absolute:True
 D_80164FF8 = 0x80164FF8; // absolute:True
@@ -612,8 +612,8 @@ D_8016BFE0 = 0x8016BFE0; // absolute:True
 D_8016EA28 = 0x8016EA28; // absolute:True
 D_801718F0 = 0x801718F0; // absolute:True
 D_801752EC = 0x801752EC; // absolute:True
-func_80179FC8 = 0x80179FC8; // absolute:True
-func_8017A038 = 0x8017A038; // absolute:True
+func_map_akropolis_80179FC8 = 0x80179FC8; // absolute:True owner=map_akropolis
+func_map_akropolis_8017A038 = 0x8017A038; // absolute:True owner=map_akropolis
 func_807245E4 = 0x807245E4; // absolute:True
 func_80724608 = 0x80724608; // absolute:True
 
@@ -631,9 +631,9 @@ gGameFlagNibbleBanks = 0x80073980; // absolute:True size:0x200
 
 func_map_dryfield_full_80179954 = 0x80179954; // absolute:True
 
-func_map_shelter_80179A04 = 0x80179A04; // absolute:True
+func_map_shelter_80179A04 = 0x80179A04; // absolute:True owner=map_shelter
 
-func_map_neo_ark_80179B14 = 0x80179B14; // absolute:True
+func_map_neo_ark_80179B14 = 0x80179B14; // absolute:True owner=map_neo_ark
 
 D_actor_310100_801797FC = 0x801797FC; // absolute:True
 

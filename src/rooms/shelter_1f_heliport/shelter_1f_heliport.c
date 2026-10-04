@@ -65,14 +65,14 @@ extern s8 D_shelter_1f_heliport_80182CB0[4];
 extern s8 D_shelter_1f_heliport_80182CB0_value __asm__("D_shelter_1f_heliport_80182CB0");
 
 extern void func_80131FBC(void);
-extern void func_80132038(void);
-extern void func_80132110(void);
+extern void func_actor_161500_80132038(void);
+extern void func_actor_161500_80132110(void);
 extern void func_8013230C(void);
 extern void func_801322A0(void);
 extern void func_80149E38(void);
 extern void func_80149E80(void);
 extern void func_80149EBC(void);
-extern void func_80149FA4(void);
+extern void func_actor_260400_80149FA4(void);
 
 extern TaskDesc D_80136CDC;
 
@@ -748,13 +748,13 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, s3
             }
             break;
         case 2:
-            func_80132038();
+            func_actor_161500_80132038();
             break;
         case 3:
             func_80131FBC();
             break;
         case 4:
-            func_80132110();
+            func_actor_161500_80132110();
             break;
         case 5:
             func_801322A0();
@@ -773,7 +773,7 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
         func_80149E80();
     }
     if (gGameSession->location.loc.variant == 2) {
-        func_80149FA4();
+        func_actor_260400_80149FA4();
     }
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         func_8013230C();

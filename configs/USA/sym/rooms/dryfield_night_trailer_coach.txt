@@ -145,7 +145,7 @@ D_dryfield_night_trailer_coach_801889A8 = 0x801889A8; // size:0x558 defined:True
 D_dryfield_night_trailer_coach_80188F00 = 0x80188F00; // size:0x180 defined:True
 D_dryfield_night_trailer_coach_80189080 = 0x80189080; // size:0x240 defined:True
 D_dryfield_night_trailer_coach_801892C0 = 0x801892C0; // size:0x138 defined:True
-D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
+D_acropolis_square_80188888 = 0x80188888; // absolute:True
 D_dryfield_night_trailer_coach_80188708 = 0x80188708; // size:0x150 defined:True
 D_dryfield_night_trailer_coach_80188858 = 0x80188858; // size:0x150 defined:True
 Shop_ItemListDescriptor = 0x80184660; // size:0x1C defined:True

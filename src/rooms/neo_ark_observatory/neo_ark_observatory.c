@@ -93,7 +93,7 @@ extern EvsCommand D_8013CAEC[];
 extern EvsCommand D_8013FC58[];
 extern EvsCommand D_80140078[];
 
-extern void func_80132220(void);
+extern void func_actor_450200_80132220(void);
 extern void func_801322F8(void);
 
 /// Index of the mirrored player's coordinate part each held-object reflection
@@ -1660,7 +1660,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
         }
     }
     if (request->actionId == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gGameSession->location.loc.view == 2) {
-        func_80132220();
+        func_actor_450200_80132220();
     }
     if (request->actionId == 4 && GameFlag_GetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0 && GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN) == 0) {
         GameFlag_SetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN, 1);

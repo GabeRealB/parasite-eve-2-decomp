@@ -76,7 +76,7 @@ func_neo_ark_eve_access_tunnel_8017E090 = 0x8017E090; // absolute:True
 
 func_shelter_b6_training_room_80181930 = 0x80181930; // absolute:True
 
-func_shelter_b6_training_room_80182A14 = 0x80182A14; // absolute:True
+func_shelter_b6_training_room_80182A14 = 0x80182A14; // absolute:True owner=shelter_b6_training_room
 
 func_shelter_b6_corridor_8017EBA4 = 0x8017EBA4; // absolute:True
 

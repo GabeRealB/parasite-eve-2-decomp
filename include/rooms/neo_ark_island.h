@@ -46,7 +46,7 @@ void func_neo_ark_island_8017FB2C(Task* arg0);
 
 void func_neo_ark_island_8017EB68(Task* task);
 
-void func_neo_ark_island_8017EFE8(Task* task);
+void waterDriftTaskU16FixedCoord(Task* task);
 
 void func_neo_ark_island_8017FB9C(Task* task);
 

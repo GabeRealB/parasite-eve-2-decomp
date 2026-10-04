@@ -30,8 +30,8 @@ gFactoryMsgTable = 0x80186E64; // size:0x30 defined:True
 gFactoryPromptDesc = 0x80186E94; // size:0xC defined:True
 gFactoryNightPanelDesc = 0x80186EA0; // size:0xC defined:True
 gFactoryPanelMsgTable = 0x80186EAC; // size:0x10 defined:True
-gFactoryDayJoltCmds = 0x8018A39C; // absolute:True owner=dryfield_factory
-gFactoryDayJoltRecs = 0x8018A3A8; // absolute:True owner=dryfield_factory
+gFactoryDayJoltCmds = 0x8018A39C; // absolute:True
+gFactoryDayJoltRecs = 0x8018A3A8; // absolute:True
 D_dryfield_night_factory_80189A24 = 0x80189A24; // size:0xE4 defined:True
 D_dryfield_night_factory_80189B08 = 0x80189B08; // size:0x180 defined:True
 D_dryfield_night_factory_80189C88 = 0x80189C88; // size:0x18 defined:True
@@ -47,9 +47,9 @@ _gDryfieldNightFactoryCollision0A630Verts = 0x801870E0; // size:0x550 defined:Tr
 _gDryfieldNightFactoryCollision0A630Faces = 0x80187630; // size:0x360 defined:True
 _gDryfieldNightFactoryCollision0A630Cells = 0x80187990; // size:0x58 defined:True
 _gDryfieldNightFactoryCollision0A630Table = 0x80187BD0; // size:0x20 defined:True
-gFactoryDaySpawnTable = 0x80186E28; // absolute:True owner=dryfield_factory
-gFactoryDayPanelDesc = 0x80186E94; // absolute:True owner=dryfield_factory
-gFactoryDayGrid = 0x80187BF8; // absolute:True owner=dryfield_factory
+gFactoryDaySpawnTable = 0x80186E28; // absolute:True
+gFactoryDayPanelDesc = 0x80186E94; // absolute:True
+gFactoryDayGrid = 0x80187BF8; // absolute:True
 gFactoryNightGrid = 0x80187BF0; // size:0x24 defined:True
 D_dryfield_night_factory_80187C14 = 0x80187C14; // size:0x2AC defined:True
 D_dryfield_night_factory_80187EC0 = 0x80187EC0; // size:0x10 defined:True

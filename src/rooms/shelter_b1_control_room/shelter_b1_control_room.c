@@ -174,7 +174,7 @@ typedef struct {
 } _ShelterB1ControlRoomMirrorScratch;
 STATIC_ASSERT_SIZEOF(_ShelterB1ControlRoomMirrorScratch, 0x8C);
 
-extern void             func_80131FB8(void);
+extern void             func_actor_150400_80131FB8(void);
 extern TaskMessageEntry D_shelter_b1_control_room_80181B94[];
 extern EvsCommand       D_80132D70[];
 extern EvsCommand       D_80133088[];
@@ -728,7 +728,7 @@ static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
     arg0->msgTable = D_shelter_b1_control_room_80181B94;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 0xB) {
-        func_80131FB8();
+        func_actor_150400_80131FB8();
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
             func_800E8634(D_80132D70, 0, D_80133088);
         }

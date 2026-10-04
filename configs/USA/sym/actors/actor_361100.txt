@@ -1,8 +1,8 @@
 // Overlay-local symbols for actor_361100.
 
 // Referenced in another actor load slot, resident beside this one.
-func_801353D0 = 0x801353D0; // absolute:True
-func_80138C9C = 0x80138C9C; // absolute:True
+func_actor_403600_801353D0 = 0x801353D0; // absolute:True owner=actor_403600
+func_actor_403600_80138C9C = 0x80138C9C; // absolute:True owner=actor_403600
 D_actor_403600_8016069C = 0x8016069C; // absolute:True
 D_actor_361100_80166AD8 = 0x80166AD8; // size:0x4 defined:True
 _gActor361100Model06038Skeleton = 0x80166ADC; // size:0x2AC defined:True

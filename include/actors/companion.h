@@ -19,6 +19,6 @@ extern u8 D_80167230[];
 
 /// Overlay import. `func_801088D4` calls it with `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` when
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1`.
-void func_80166E94(Task* arg0, s32 arg1);
+void func_actor_800100_80166E94(Task* arg0, s32 arg1);
 
 #endif // INCLUDE_ACTORS_COMPANION_H

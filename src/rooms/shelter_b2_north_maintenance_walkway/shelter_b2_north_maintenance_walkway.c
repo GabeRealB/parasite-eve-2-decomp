@@ -52,7 +52,7 @@
 extern EvsCommand D_80165354[];
 extern EvsCommand D_80165834[];
 
-extern void func_8016268C(void);
+extern void func_actor_341300_8016268C(void);
 
 /// Area records applied once the walkway's scene has started.
 extern AreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[];
@@ -804,7 +804,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
     task->msgTable = D_shelter_b2_north_maintenance_walkway_80183B60;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
-        func_8016268C();
+        func_actor_341300_8016268C();
     }
     task->state = task->state + 1;
 }

@@ -2,6 +2,7 @@
 """Check every symbol the splat configs declare against the images they describe.
 
     check_symbols.py [--root DIR] [--image NAME ...] [--verbose] [--strict]
+                     [--assign-owners] [--renames FILE]
 
 Each config (`configs/USA/{main,gameplay,title}.yaml` and every generated
 overlay config) lists symbol files; together they declare names at addresses.
@@ -51,14 +52,29 @@ always resident with everything. The packages one manifest entry builds from a
 single source (its `slots`) count as one image, compared by file offset, since
 each slot may load them at a different address.
 
-An absolute import can specify `owner=IMAGE` in its symbol-map comment when
-retained code refers to another image in the same load slot. The owner must
-actually declare that name at that address; this does not infer ownership from
-an address shared by mutually exclusive overlays. Ownership does not
-prove runtime reachability: retained alternate-room branches still need their
-load-state and resource bounds reviewed separately.
+A reference into a slot says which image it means, in its symbol-map comment:
 
-Exit status is 1 with --strict when anything is reported.
+    owner=IMAGE     exactly one image starts a symbol at the address, and the
+                    reference carries that symbol's name. Rejected when the
+                    owner does not define that name there, and when any other
+                    image that can hold the slot starts a symbol there too.
+    shared=FAMILY   several images start a symbol there - a weapon's entry
+                    point, a table every actor exports - and the reference
+                    means whichever is loaded. Rejected when fewer than two
+                    do, or when they belong to other families than written
+                    (`shared=mappic+pe` where they span two).
+
+Candidates are found by address alone, never by the reference's name, and only
+a symbol's start counts: a reference landing inside an object is offered
+nothing. The `owner` check lists every reference that has neither annotation,
+with its candidates. `--assign-owners` writes owner= where there is one
+candidate, it is a function and the names agree; `--renames FILE` lists those
+whose one candidate spells the name differently, to be renamed first. A lone
+*data* candidate is reported but never written: data is labelled only as far
+as it has been split, so another image may hold an object at that address
+inside a block nobody has cut yet. Ownership does not prove runtime
+reachability: retained alternate-room branches still need their load-state and
+resource bounds reviewed separately.
 """
 from __future__ import annotations
 
@@ -147,6 +163,32 @@ def image_definitions(elf: Path) -> dict[tuple[str, int], bool]:
                 and s['st_info']['type'] in ('STT_FUNC', 'STT_OBJECT', 'STT_NOTYPE')}
 
 
+# Symbols that mark a position rather than define something: the compiler's
+# line labels and unit markers, and the linker script's section bounds.
+MARKER = re.compile(r'^(LM\d+|__gnu_compiled_c|gcc2_compiled\.|.*_(TEXT|DATA|RODATA|BSS|VRAM)(_(START|END))?)$')
+
+
+def image_symbols_at(elf: Path) -> dict[int, list[tuple[str, bool]]]:
+    """What an image defines at each address: (name, is code), markers left out."""
+    out = defaultdict(set)
+    with open(elf, 'rb') as f:
+        e = ELFFile(f)
+        tab = e.get_section_by_name('.symtab')
+        if tab is None:
+            return {}
+        for s in tab.iter_symbols():
+            sh = s['st_shndx']
+            if not isinstance(sh, int) or sh == 0 or s['st_info']['type'] not in ('STT_FUNC', 'STT_OBJECT', 'STT_NOTYPE'):
+                continue
+            name = s.name.removesuffix('.NON_MATCHING')
+            if not name or MARKER.match(name) or name.startswith(('.', '$')):
+                continue
+            # An overlay links as one section holding code and data alike, so
+            # the section says nothing; the symbol's own type does.
+            out[s['st_value']].add((name, s['st_info']['type'] == 'STT_FUNC'))
+    return {a: sorted(v) for a, v in out.items()}
+
+
 def image_scoped_names(decls: list[Decl], definitions) -> set[str]:
     """Names with proven owning-image definitions and no cross-image use.
 
@@ -158,6 +200,12 @@ def image_scoped_names(decls: list[Decl], definitions) -> set[str]:
     for d in decls:
         if d.owner == d.image and (d.name, d.addr) in definitions.get(d.image, ()):
             local.add(d.name)
+        elif d.owner is not None and d.attrs.get('owner') == d.owner:
+            # A reference that names its owner means that image's definition
+            # and nothing else, so it does not make the name a project-wide
+            # one: a shared fragment's function keeps one name in every image
+            # that compiles it, and a reference picks one of them by owner.
+            continue
         else:
             imported.add(d.name)
     return local - imported
@@ -209,19 +257,20 @@ def parse_decls(root: Path, image: str, files: list[str]) -> list[Decl]:
             explicit_owner = re.search(r'\bowner=([A-Za-z0-9_]+)\b', m.group(3))
             if explicit_owner:
                 attrs['owner'] = explicit_owner.group(1)
+            shared = re.search(r'\bshared=([A-Za-z0-9_+]+)', m.group(3))
+            if shared:
+                attrs['shared'] = shared.group(1)
             decls.append(Decl(image, m.group(1), int(m.group(2), 16), attrs, f'{f}:{n}'))
     return decls
 
 
-def has_explicit_owner(d: Decl, by_image: dict[str, list[Decl]], ranges) -> bool:
-    """An override must identify the owner's own definition at this address."""
+def has_explicit_owner(d: Decl, symbols_at, ranges) -> bool:
+    """An owner must define this name at this address in its own image."""
     owner = d.attrs.get('owner')
-    if d.attrs.get('absolute', '').lower() != 'true' or owner not in ranges:
+    if d.attrs.get('absolute', '').lower() != 'true' or owner not in ranges or owner not in symbols_at:
         return False
     lo, hi = ranges[owner]
-    return any(t.name == d.name and t.addr == d.addr and lo <= t.addr <= hi and
-               t.attrs.get('absolute', '').lower() != 'true'
-               for t in by_image.get(owner, []))
+    return lo <= d.addr <= hi and any(n == d.name for n, _ in symbols_at[owner].get(d.addr, ()))
 
 
 def main() -> None:
@@ -230,6 +279,12 @@ def main() -> None:
     ap.add_argument('--image', action='append', default=[], help='report only findings involving these images')
     ap.add_argument('--verbose', '-v', action='store_true', help='list every finding, not only counts and a sample')
     ap.add_argument('--strict', action='store_true')
+    ap.add_argument('--assign-owners', action='store_true',
+                    help='write owner=IMAGE onto every unowned reference that has exactly one candidate '
+                         'and already carries that candidate\'s name')
+    ap.add_argument('--renames', metavar='FILE',
+                    help='write the unowned references whose one candidate spells the name differently, '
+                         'as `old new owner where` lines, for a rename before --assign-owners')
     a = ap.parse_args()
     root = Path(a.root).resolve()
 
@@ -273,6 +328,46 @@ def main() -> None:
         slot_members[slot] = {canon(c) for c in cands}
         return slot
 
+    symbols_at = {image: image_symbols_at(root / 'build/USA/out' / f'{image}.elf') for image in configs}
+
+    def needs_owner(image, d):
+        """Whether layout alone leaves the reference without one owner.
+
+        That is an absolute reference into a region several images load into
+        in turn: another family's slot, or the image's own - where it can only
+        mean an image that replaces this one, since this one does not define it.
+        """
+        if d.attrs.get('absolute', '').lower() != 'true':
+            return False
+        lo, hi = ranges[image]
+        if lo <= d.addr <= hi:
+            return not any(n == d.name for n, _ in symbols_at[image].get(d.addr, ()))
+        return len([j for j in covering(d.addr) if j in resident[image]]) > 1
+
+    def candidates(image, d):
+        """Images that define something at the address, with what they call it.
+
+        Decided by the address, never by the reference's own name: the name is
+        what an owner is supposed to establish. A reference declared as code is
+        offered only code.
+        """
+        lo, hi = ranges[image]
+        if lo <= d.addr <= hi:
+            pool = [j for j in configs if j != image and canon(j) != canon(image) and overlaps(image, j)]
+        else:
+            pool = [j for j in covering(d.addr) if j in resident[image] and j in configs]
+        want_code = True if d.attrs.get('type') == 'func' else None
+        return {(j, n, code) for j in pool for n, code in symbols_at[j].get(d.addr, ())
+                if want_code is None or code == want_code}
+
+    def family(image):
+        """The family an overlay's config belongs to; a core image is its own."""
+        for f in configs[image]['syms']:
+            m = re.search(r'/sym/([^/]+)/', f)
+            if m:
+                return m.group(1)
+        return image
+
     findings: dict[str, list[tuple[set, str]]] = defaultdict(list)
 
     seen = set()
@@ -296,26 +391,103 @@ def main() -> None:
     decls: list[Decl] = []
     by_image: dict[str, list[Decl]] = {}
     out_of_range = defaultdict(list)
+    unowned: dict[tuple, dict] = {}
     for image, cfg in configs.items():
         by_image[image] = parse_decls(root, image, cfg['syms'])
     for image, ds in by_image.items():
         for d in ds:
             explicit_owner = d.attrs.get('owner')
-            if explicit_owner is not None:
-                if not has_explicit_owner(d, by_image, ranges):
+            shared = d.attrs.get('shared')
+            if explicit_owner is not None and shared is not None:
+                report('ownership', [image], f'{d.where}: {d.name} carries both owner= and shared=')
+                d.owner = None
+            elif explicit_owner is not None:
+                # owner= says one image, and only one, starts a symbol here.
+                entries = {canon(j) for j, _, _ in candidates(image, d)}
+                if not has_explicit_owner(d, symbols_at, ranges):
                     report('ownership', [image, explicit_owner],
                            f'{d.where}: {d.name} has no matching definition in owner={explicit_owner}')
                     d.owner = None
+                elif entries != {canon(explicit_owner)}:
+                    report('ownership', [image, explicit_owner],
+                           f'{d.where}: {d.name} has owner={explicit_owner}, but {len(entries)} images start a symbol '
+                           f'at 0x{d.addr:08X}; a place several images define is shared=, not owned')
+                    d.owner = None
                 else:
                     d.owner = explicit_owner
+            elif shared is not None:
+                # shared= says the opposite: the address is a place in a slot
+                # that several images define - an entry point, a table every
+                # weapon exports - and the reference means whichever is loaded.
+                # It names the families so that the claim can be checked.
+                cands = candidates(image, d)
+                entries = {canon(j) for j, _, _ in cands}
+                fams = '+'.join(sorted({family(j) for j, _, _ in cands}))
+                d.owner = owner_of(image, d.addr)
+                if len(entries) < 2:
+                    report('ownership', [image],
+                           f'{d.where}: {d.name} is shared={shared}, but {len(entries)} image(s) start a symbol at '
+                           f'0x{d.addr:08X}' + ('; one image is owner=' if entries else ''))
+                elif fams != '+'.join(sorted(shared.split('+'))):
+                    report('ownership', [image], f'{d.where}: {d.name} is shared={shared}, but the images that start '
+                                                 f'a symbol there belong to {fams}')
             else:
                 d.owner = owner_of(image, d.addr)
+                if needs_owner(image, d):
+                    # A shared symbol file is read by every image of its
+                    # family; an owner has to hold for all of them.
+                    c = candidates(image, d)
+                    u = unowned.setdefault((d.where, d.name, d.addr), {'images': set(), 'cands': c})
+                    u['images'].add(image)
+                    u['cands'] &= c
             if d.owner is None:
                 out_of_range[(d.where, d.name, d.addr)].append(image)
         decls += ds
     for (w, name, addr), images in sorted(out_of_range.items()):
         whom = images[0] if len(images) == 1 else f'{len(images)} images reading it'
         report('range', images, f'{w}: {name} = 0x{addr:08X} is outside {whom} and every image resident with it')
+
+    # 1b. owner: a reference into a slot says which image it means. The
+    # candidates are the images defining something at that address; one
+    # candidate is an answer, several are a question for whoever reads the code.
+    assign, renames = [], []
+    for (w, name, addr), u in sorted(unowned.items()):
+        by_entry = defaultdict(set)
+        for j, n, _ in u['cands']:
+            by_entry[canon(j)].add((j, n))
+        names = {n for _, n, _ in u['cands']}
+        if len(by_entry) == 1 and len(names) == 1:
+            owner, new, code = sorted(u['cands'])[0]
+            # Every function is split, so "no other image starts a function
+            # here" is a fact. Data is labelled only as far as it has been
+            # split: another image may hold an object at this address inside
+            # a block nobody has cut yet, so a lone data candidate is a lead,
+            # not an answer, and is never written automatically.
+            if code:
+                (assign if new == name else renames).append((w, name, new, owner))
+            what = (f'one candidate: {owner}' + ('' if new == name else f', which calls it {new}')
+                    + ('' if code else ' (data: unique only as far as the other images are split)'))
+        elif not u['cands']:
+            what = 'no image defines anything there'
+        else:
+            shown = sorted(f'{j}:{n}' for j, n, _ in u['cands'])
+            fams = '+'.join(sorted({family(j) for j, _, _ in u['cands']}))
+            what = f'shared={fams}? {len(by_entry)} candidates: ' + ', '.join(shown[:6]) + (f', ... ({len(shown)} in all)' if len(shown) > 6 else '')
+        report('owner', u['images'], f'{w}: {name} = 0x{addr:08X} has no owner; {what}')
+    if a.renames:
+        Path(a.renames).write_text(''.join(f'{old} {new} {owner} {w}\n' for w, old, new, owner in renames))
+    if a.assign_owners:
+        edits = defaultdict(dict)
+        for w, name, _, owner in assign:
+            f, n = w.rsplit(':', 1)
+            edits[f][int(n)] = owner
+        for f, lines in edits.items():
+            text = (root / f).read_text().splitlines(keepends=True)
+            for n, owner in lines.items():
+                body = text[n - 1].rstrip('\n')
+                text[n - 1] = body + (' ' if '//' in body else ' // ') + f'owner={owner}\n'
+            (root / f).write_text(''.join(text))
+        print(f'owner= written on {len(assign)} reference(s); {len(renames)} more wait for a rename')
 
     # 2. declared: references splat had to write out for the linker.
     for image, cfg in configs.items():
@@ -360,8 +532,9 @@ def main() -> None:
             where_in = d.addr - ranges[d.owner][0] if d.owner in groups else d.addr
             scope = ''
             if d.name in scoped:
-                scope = canon(d.image)
-                if definitions[d.image][(d.name, d.addr)]:
+                home = d.owner if d.attrs.get('owner') == d.owner else d.image
+                scope = canon(home)
+                if definitions[home].get((d.name, d.addr)):
                     scope += f':local@{where_in:X}'
             key = (d.name, scope)
             meaning[key].add((canon(d.owner), where_in))
@@ -442,7 +615,7 @@ def main() -> None:
 
     wanted = set(a.image)
     total = 0
-    for check in ('layout', 'ownership', 'range', 'declared', 'names', 'addresses', 'interior'):
+    for check in ('layout', 'ownership', 'owner', 'range', 'declared', 'names', 'addresses', 'interior'):
         items = [msg for imgs, msg in findings[check] if not wanted or imgs & wanted]
         total += len(items)
         print(f'{check}: {len(items)}')

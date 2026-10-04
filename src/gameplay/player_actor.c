@@ -684,31 +684,31 @@ extern AnimationBank D_8016CB98;
 /// Weapon overlay entry points, at fixed addresses.
 void func_8011D1C4(Task* arg0);
 
-void func_8011D1D4(Task* arg0);
+void func_grenade_pistol_8011D1D4(Task* arg0);
 
-void func_8011D1D8(Task* arg0);
+void func_p08_8011D1D8(Task* arg0);
 
 void func_8011D1DC(Task* arg0);
 
 void func_8011D1EC(Task* arg0);
 
-void func_8011DA34(Task* arg0);
+void func_m4a1_bayonet_8011DA34(Task* arg0);
 
-void func_8011DBFC(Task* arg0);
+void func_tonfa_baton_8011DBFC(Task* arg0);
 
-void func_8011DDA0(Task* arg0);
+void func_p229_8011DDA0(Task* arg0);
 
-void func_8011DDA4(Task* arg0);
+void func_mp5a5_8011DDA4(Task* arg0);
 
-void func_8011E040(Task* arg0);
+void func_gunblade_8011E040(Task* arg0);
 
 void func_8011E4F8(Task* arg0);
 
-void func_8011E710(Task* arg0);
+void func_m4a1_hammer_8011E710(Task* arg0);
 
-void func_8011F5D4(Task* arg0);
+void func_m4a1_javelin_8011F5D4(Task* arg0);
 
-void func_8011F724(Task* arg0);
+void func_hypervelocity_8011F724(Task* arg0);
 
 u16 D_80112964[5][2] = {
     { 16, 240 },
@@ -7081,38 +7081,38 @@ s32 func_801060E0(Task* arg0)
 /// `func_801065A0` serves the weapons with none.
 static const _PlayerActorWeaponAttacks D_800978BC = { {
     func_801065A0,
-    func_8011D1D8,
+    func_p08_8011D1D8,
     func_8011D1C4,
     func_8011D1DC,
-    func_8011D1D8,
-    func_8011DDA0,
+    func_p08_8011D1D8,
+    func_p229_8011DDA0,
     func_801065A0,
     func_801065A0,
     func_801065A0,
-    func_8011D1D8,
+    func_p08_8011D1D8,
     func_801065A0,
-    func_8011D1D4,
-    func_8011D1D4,
+    func_grenade_pistol_8011D1D4,
+    func_grenade_pistol_8011D1D4,
     func_8011D1DC,
     func_8011D1DC,
     func_8011D1DC,
     func_8011D1C4,
     func_8011D1DC,
     func_801065A0,
-    func_8011DBFC,
+    func_tonfa_baton_8011DBFC,
     func_8011D1C4,
     func_8011D1C4,
-    func_8011F724,
-    func_8011E040,
+    func_hypervelocity_8011F724,
+    func_gunblade_8011E040,
     func_801065A0,
-    func_8011E710,
-    func_8011DA34,
+    func_m4a1_hammer_8011E710,
+    func_m4a1_bayonet_8011DA34,
     func_8011D1EC,
     func_8011E4F8,
-    func_8011F5D4,
-    func_8011DDA4,
-    func_8011DDA4,
-    func_8011DDA4,
+    func_m4a1_javelin_8011F5D4,
+    func_mp5a5_8011DDA4,
+    func_mp5a5_8011DDA4,
+    func_mp5a5_8011DDA4,
 } };
 
 static void func_8010615C(Task* arg0)
@@ -8453,7 +8453,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
         inner->animationState = 0xA;
         mode                  = 0x14;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
-            func_80166E94(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0);
+            func_actor_800100_80166E94(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0);
         }
     } else {
         if (arg2 == 1) {

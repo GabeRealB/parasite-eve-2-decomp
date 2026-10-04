@@ -44,8 +44,8 @@
 
 extern WorldCoordRoomLights D_mist_r18_80186E44[1];
 
-s32  func_8017A038(void);
-void func_80179FC8(s32 arg0, s32 arg1);
+s32  func_map_akropolis_8017A038(void);
+void func_map_akropolis_80179FC8(s32 arg0, s32 arg1);
 
 static void func_mist_r18_8017D960(Task* task);
 static void func_mist_r18_8017DBB8(s32 shade, s32 arg1);
@@ -1171,7 +1171,7 @@ static void func_mist_r18_8017D960(Task* task)
             func_800E8614(D_mist_r18_8018603C, 0);
             D_mist_r18_80186E9C = 4;
         } else if (state == 4) {
-            if (func_8017A038() != 1) {
+            if (func_map_akropolis_8017A038() != 1) {
                 func_800E8614(D_mist_r18_801861BC, 0);
                 D_mist_r18_80186EA0 = 1;
                 return;
@@ -1665,7 +1665,7 @@ void func_mist_r18_8017ECC0(s8 arg0)
 
 void func_mist_r18_8017ECCC(void)
 {
-    func_80179FC8(0, D_mist_r18_80186EA0);
+    func_map_akropolis_80179FC8(0, D_mist_r18_80186EA0);
 }
 
 static void func_mist_r18_8017ECF4(Task* arg0)

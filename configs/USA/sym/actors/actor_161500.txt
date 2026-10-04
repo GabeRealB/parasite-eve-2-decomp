@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_161500.
-func_shelter_1f_heliport_801802AC = 0x801802AC; // type:func absolute:True
+func_shelter_1f_heliport_801802AC = 0x801802AC; // type:func absolute:True owner=shelter_1f_heliport
 D_actor_161500_801352A8 = 0x801352A8; // size:0x210 defined:True
 D_actor_161500_801354B8 = 0x801354B8; // size:0x1B0 defined:True
 D_actor_161500_80135668 = 0x80135668; // size:0x180 defined:True

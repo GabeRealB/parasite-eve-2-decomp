@@ -129,25 +129,25 @@ static void Tmd_FlagAllNodes(Task* task);
 /// Releases the buffer of every attached model.
 static void Tmd_FreeNodeBuffers(Task* task);
 
-u32* D_80136224(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32* func_actor_403600_80136224(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_80136500(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32* func_actor_403600_80136500(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 u32* D_8013685C(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_80136C00(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32* func_actor_403600_80136C00(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_8013700C(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32* func_actor_403600_8013700C(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_80137300(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32* func_actor_403600_80137300(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_801375F8(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32* func_actor_403600_801375F8(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 u32* D_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32* func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 static const TaskFuncTable3 Tmd_TaskStates = { {
     Tmd_FlagAllNodes,
@@ -205,10 +205,10 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamGt3;
                     break;
                 case 0x8038:
-                    handler = D_80136224;
+                    handler = func_actor_403600_80136224;
                     break;
                 case 0x10038:
-                    handler = D_8013700C;
+                    handler = func_actor_403600_8013700C;
                     break;
                 case 0x20038:
                     handler = D_801379B4;
@@ -217,7 +217,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamGt3SemiTrans;
                     break;
                 case 0x1003A:
-                    handler = D_80137300;
+                    handler = func_actor_403600_80137300;
                     break;
                 case 0x78:
                     handler = tmdDrawStreamGt4;
@@ -226,10 +226,10 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = D_8013685C;
                     break;
                 case 0x10078:
-                    handler = D_801375F8;
+                    handler = func_actor_403600_801375F8;
                     break;
                 case 0x20078:
-                    handler = D_80138004;
+                    handler = func_actor_403600_80138004;
                     break;
                 case 0x7A:
                     handler = tmdDrawStreamGt4SemiTrans;
@@ -244,7 +244,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     }
                     break;
                 case 0x200C8:
-                    handler = D_801386EC;
+                    handler = func_actor_403600_801386EC;
                     break;
                 case 0x31:
                 case 0x39:
@@ -252,7 +252,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamPrimGt3PreXform;
                     break;
                 case 0x8039:
-                    handler = D_80136500;
+                    handler = func_actor_403600_80136500;
                     break;
                 case 0x3B:
                     handler = tmdDrawStreamPrimGt3PreXformSemiTrans;
@@ -263,7 +263,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamPrimGt4PreXform;
                     break;
                 case 0x8079:
-                    handler = D_80136C00;
+                    handler = func_actor_403600_80136C00;
                     break;
                 case 0x7B:
                     handler = tmdDrawStreamPrimGt4PreXformSemiTrans;

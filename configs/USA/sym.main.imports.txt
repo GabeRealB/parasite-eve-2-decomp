@@ -2,8 +2,8 @@
 // They lie outside main's segment, so splat names them only when absolute.
 // Keep in sync with configs/USA/sym.gameplay.txt / sym.title.txt.
 
-Title_RestoreDemoCard = 0x8009407C; // type:func absolute:True
-Title_EnqueueDemoScene = 0x80094B90; // type:func absolute:True
+Title_RestoreDemoCard = 0x8009407C; // type:func absolute:True owner=title
+Title_EnqueueDemoScene = 0x80094B90; // type:func absolute:True owner=title
 Title_TaskDescs = 0x80094C8C; // absolute:True
 
 Gp_DrawActorTmdFlagged = 0x80097AC0; // type:func absolute:True
@@ -88,20 +88,20 @@ modelLightingReserveStreamPrimG3 = 0x8009FC90; // type:func absolute:True
 // Code main calls in whichever overlay occupies a load slot at the time (the
 // map-UI, room, options and actor slots). No single overlay owns these
 // addresses, so they are declared here rather than in an overlay's map.
-func_80179988 = 0x80179988; // type:func absolute:True
-func_801799BC = 0x801799BC; // type:func absolute:True
-func_80179BE4 = 0x80179BE4; // type:func absolute:True
+func_map_akropolis_80179988 = 0x80179988; // type:func absolute:True owner=map_akropolis
+func_map_neo_ark_801799BC = 0x801799BC; // type:func absolute:True owner=map_neo_ark
+func_map_neo_ark_80179BE4 = 0x80179BE4; // type:func absolute:True owner=map_neo_ark
 func_801D4B64 = 0x801D4B64; // type:func absolute:True
-D_80136224 = 0x80136224; // type:func absolute:True
-D_80136500 = 0x80136500; // type:func absolute:True
+func_actor_403600_80136224 = 0x80136224; // type:func absolute:True owner=actor_403600
+func_actor_403600_80136500 = 0x80136500; // type:func absolute:True owner=actor_403600
 D_8013685C = 0x8013685C; // type:func absolute:True
-D_80136C00 = 0x80136C00; // type:func absolute:True
-D_8013700C = 0x8013700C; // type:func absolute:True
-D_80137300 = 0x80137300; // type:func absolute:True
-D_801375F8 = 0x801375F8; // type:func absolute:True
+func_actor_403600_80136C00 = 0x80136C00; // type:func absolute:True owner=actor_403600
+func_actor_403600_8013700C = 0x8013700C; // type:func absolute:True owner=actor_403600
+func_actor_403600_80137300 = 0x80137300; // type:func absolute:True owner=actor_403600
+func_actor_403600_801375F8 = 0x801375F8; // type:func absolute:True owner=actor_403600
 D_801379B4 = 0x801379B4; // type:func absolute:True
-D_80138004 = 0x80138004; // type:func absolute:True
-D_801386EC = 0x801386EC; // type:func absolute:True
+func_actor_403600_80138004 = 0x80138004; // type:func absolute:True owner=actor_403600
+func_actor_403600_801386EC = 0x801386EC; // type:func absolute:True owner=actor_403600
 
 // Overlay task entry points and descriptor banks named by main's descriptor tables.
 func_800A8654 = 0x800A8654; // type:func absolute:True
@@ -119,8 +119,8 @@ Gp_LoadWaitDispatch = 0x800A97DC; // type:func absolute:True
 Gp_FlashWhiteTask = 0x800AC344; // type:func absolute:True
 Gp_CommitSpawnLoc = 0x800A9980; // type:func absolute:True
 Gp_SetupSprtDisplay = 0x800A99E0; // type:func absolute:True
-Title_Dispatch = 0x8009472C; // type:func absolute:True
-Title_ExitTask = 0x800947A8; // type:func absolute:True
+Title_Dispatch = 0x8009472C; // type:func absolute:True owner=title
+Title_ExitTask = 0x800947A8; // type:func absolute:True owner=title
 D_8010FC2C = 0x8010FC2C; // absolute:True
 Gp_MenuRootTask = 0x800BF9FC; // type:func absolute:True
 Gp_EffAttachTask37 = 0x800F6D18; // type:func absolute:True
@@ -171,11 +171,11 @@ D_pa3_8011DA04 = 0x8011DA04; // absolute:True
 D_m93r_8011DA74 = 0x8011DA74; // absolute:True
 D_m950_8011DA9C = 0x8011DA9C; // absolute:True
 D_sp12_8011DB44 = 0x8011DB44; // absolute:True
-func_tonfa_baton_8011DB98 = 0x8011DB98; // type:func absolute:True
-func_grenade_pistol_8011DBD0 = 0x8011DBD0; // type:func absolute:True
-func_mm1_8011DBD0 = 0x8011DBD8; // type:func absolute:True
+func_tonfa_baton_8011DB98 = 0x8011DB98; // type:func absolute:True owner=tonfa_baton
+func_grenade_pistol_8011DBD0 = 0x8011DBD0; // type:func absolute:True owner=grenade_pistol
+func_mm1_8011DBD0 = 0x8011DBD8; // type:func absolute:True owner=mm1
 D_as12_8011DCF0 = 0x8011DCF0; // absolute:True
-func_m4a1_grenade_8011DE68 = 0x8011DE68; // type:func absolute:True
+func_m4a1_grenade_8011DE68 = 0x8011DE68; // type:func absolute:True owner=m4a1_grenade
 D_m249_8011DE74 = 0x8011DE74; // absolute:True
 D_m4a1_8011DEC4 = 0x8011DEC4; // absolute:True
 D_grenade_pistol_8011E28C = 0x8011E28C; // absolute:True
@@ -188,7 +188,7 @@ D_m4a1_grenade_8011EA2C = 0x8011EA2C; // absolute:True
 D_mp5a5_8011EAFC = 0x8011EAFC; // absolute:True
 D_gunblade_8011EEB0 = 0x8011EEB0; // absolute:True
 D_m4a1_pyke_8011F56C = 0x8011F56C; // absolute:True
-func_hypervelocity_8011F6C0 = 0x8011F6C0; // type:func absolute:True
+func_hypervelocity_8011F6C0 = 0x8011F6C0; // type:func absolute:True owner=hypervelocity
 D_m4a1_hammer_8011F778 = 0x8011F778; // absolute:True
 D_hypervelocity_801202F8 = 0x801202F8; // absolute:True
 D_hypervelocity_801205E4 = 0x801205E4; // absolute:True
@@ -197,10 +197,10 @@ D_hypervelocity_80120860 = 0x80120860; // absolute:True
 D_grenade_pistol_8012B5A4 = 0x8012B5A4; // absolute:True
 D_mm1_8012D444 = 0x8012D444; // absolute:True
 D_m4a1_grenade_8012E1FC = 0x8012E1FC; // absolute:True
-func_actor_800300_801625F4 = 0x801625F4; // type:func absolute:True
+func_actor_800300_801625F4 = 0x801625F4; // type:func absolute:True owner=actor_800300
 func_actor_800200_801626EC = 0x801626EC; // type:func absolute:True
-func_actor_800100_80163CF0 = 0x80163CF0; // type:func absolute:True
-func_kyle_800102_801682B4 = 0x801682B4; // type:func absolute:True
+func_actor_800100_80163CF0 = 0x80163CF0; // type:func absolute:True owner=actor_800100
+func_kyle_800102_801682B4 = 0x801682B4; // type:func absolute:True owner=kyle_800102
 gActor800300Model02CF4 = 0x8016885C; // absolute:True
 gActor800200FlintBody = 0x80169ECC; // absolute:True
 D_kyle_800102_8016CE38 = 0x8016CE38; // absolute:True
@@ -216,8 +216,8 @@ D_kyle_800102_801775A8 = 0x801775A8; // absolute:True
 func_acropolis_fountain_8017DCD4 = 0x8017DCD4; // type:func absolute:True
 func_acropolis_security_room_8017ED68 = 0x8017ED68; // type:func absolute:True
 func_acropolis_helicopter_landing_pad_8017EF8C = 0x8017EF8C; // type:func absolute:True
-func_acropolis_bridge_8017F788 = 0x8017F788; // type:func absolute:True
-func_acropolis_security_room_80180294 = 0x80180294; // type:func absolute:True
+func_acropolis_bridge_8017F788 = 0x8017F788; // type:func absolute:True owner=acropolis_bridge
+func_acropolis_security_room_80180294 = 0x80180294; // type:func absolute:True owner=acropolis_security_room
 func_acropolis_cafeteria_80181E70 = 0x80181E70; // type:func absolute:True
 gAcropolisCafeteriaModel07CA8 = 0x801858C4; // absolute:True
 gAcropolisCafeteriaModel08638 = 0x8018625C; // absolute:True

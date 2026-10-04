@@ -92,7 +92,7 @@ Shop_Data_80181B4C = 0x80183EA4; // size:0x1C defined:True
 Shop_Data_80181B68 = 0x80183EC0; // size:0x1C defined:True
 Shop_Data_80181B84 = 0x80183EDC; // size:0x1C defined:True
 Shop_Data_80181BA0 = 0x80183EF8; // size:0x1C defined:True
-D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
+D_acropolis_square_80188888 = 0x80188888; // absolute:True
 Shop_ItemListDescriptor = 0x80183F14; // size:0x1C defined:True
 Shop_Data_80181BD8 = 0x80183F30; // size:0x1C defined:True
 Shop_Data_80181BF4 = 0x80183F4C; // size:0x1C defined:True

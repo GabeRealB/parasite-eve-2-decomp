@@ -12,7 +12,7 @@ D_dryfield_gas_station_8018316C = 0x8018316C; // absolute:True
 D_dryfield_gas_station_80183EC8 = 0x80183EC8; // absolute:True
 D_dryfield_gas_station_801842A8 = 0x801842A8; // absolute:True
 D_dryfield_gas_station_80184BAC = 0x80184BAC; // absolute:True
-func_dryfield_main_street_8017E168 = 0x8017E168; // type:func absolute:True
+func_dryfield_main_street_8017E168 = 0x8017E168; // type:func absolute:True owner=dryfield_main_street
 D_dryfield_main_street_80181BBC = 0x80181BBC; // absolute:True
 D_dryfield_main_street_80181BCC = 0x80181BCC; // absolute:True
 D_dryfield_main_street_80181BD0 = 0x80181BD0; // absolute:True
@@ -21,7 +21,7 @@ D_dryfield_main_street_80181BDC = 0x80181BDC; // absolute:True
 D_dryfield_main_street_80182CC0 = 0x80182CC0; // absolute:True
 D_dryfield_main_street_80184308 = 0x80184308; // absolute:True
 D_dryfield_main_street_801855EC = 0x801855EC; // absolute:True
-func_dryfield_general_store_8017DF5C = 0x8017DF5C; // type:func absolute:True
+func_dryfield_general_store_8017DF5C = 0x8017DF5C; // type:func absolute:True owner=dryfield_general_store
 D_dryfield_general_store_8017E670 = 0x8017E670; // absolute:True
 D_dryfield_general_store_8017E680 = 0x8017E680; // absolute:True
 D_dryfield_general_store_8017E684 = 0x8017E684; // absolute:True
@@ -72,7 +72,7 @@ D_dryfield_r08_8017F718 = 0x8017F718; // absolute:True
 D_dryfield_r08_8017FBBC = 0x8017FBBC; // absolute:True
 D_dryfield_r08_80180918 = 0x80180918; // absolute:True
 D_dryfield_r08_80180C04 = 0x80180C04; // absolute:True
-func_dryfield_dilapidated_house_8017EB60 = 0x8017EB60; // type:func absolute:True
+func_dryfield_dilapidated_house_8017EB60 = 0x8017EB60; // type:func absolute:True owner=dryfield_dilapidated_house
 D_dryfield_dilapidated_house_80186954 = 0x80186954; // absolute:True
 D_dryfield_dilapidated_house_80186964 = 0x80186964; // absolute:True
 D_dryfield_dilapidated_house_80186968 = 0x80186968; // absolute:True
@@ -126,7 +126,7 @@ D_dryfield_parking_lot_8017DC64 = 0x8017DC64; // absolute:True
 D_dryfield_parking_lot_8017E900 = 0x8017E900; // absolute:True
 D_dryfield_parking_lot_8017F054 = 0x8017F054; // absolute:True
 D_dryfield_parking_lot_8017FB30 = 0x8017FB30; // absolute:True
-func_dryfield_toilet_8017D9E4 = 0x8017D9E4; // type:func absolute:True
+func_dryfield_toilet_8017D9E4 = 0x8017D9E4; // type:func absolute:True owner=dryfield_toilet
 D_dryfield_toilet_8018112C = 0x8018112C; // absolute:True
 D_dryfield_toilet_8018113C = 0x8018113C; // absolute:True
 D_dryfield_toilet_80181140 = 0x80181140; // absolute:True
@@ -227,7 +227,7 @@ D_dryfield_junk_yard_8017ED24 = 0x8017ED24; // absolute:True
 D_dryfield_junk_yard_8017F5C0 = 0x8017F5C0; // absolute:True
 D_dryfield_junk_yard_80180C28 = 0x80180C28; // absolute:True
 D_dryfield_junk_yard_80181C28 = 0x80181C28; // absolute:True
-func_dryfield_trailer_coach_80182950 = 0x80182950; // type:func absolute:True
+func_dryfield_trailer_coach_80182950 = 0x80182950; // type:func absolute:True owner=dryfield_trailer_coach
 gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 = 0x80184554; // absolute:True
 D_dryfield_trailer_coach_801871CC = 0x801871CC; // absolute:True
 D_dryfield_trailer_coach_801871DC = 0x801871DC; // absolute:True
@@ -255,7 +255,7 @@ D_dryfield_motel_balcony_801822F0 = 0x801822F0; // absolute:True
 D_dryfield_motel_balcony_80182B80 = 0x80182B80; // absolute:True
 D_dryfield_motel_balcony_80185C98 = 0x80185C98; // absolute:True
 D_dryfield_motel_balcony_80186704 = 0x80186704; // absolute:True
-func_dryfield_motel_room_6_80181B18 = 0x80181B18; // type:func absolute:True
+func_dryfield_motel_room_6_80181B18 = 0x80181B18; // type:func absolute:True owner=dryfield_motel_room_6
 D_dryfield_motel_room_6_80182D98 = 0x80182D98; // absolute:True
 D_dryfield_motel_room_6_80182DA8 = 0x80182DA8; // absolute:True
 D_dryfield_motel_room_6_80182DAC = 0x80182DAC; // absolute:True

@@ -46,7 +46,7 @@
 #include "../../shared/room_cutscene.h"
 
 extern void func_80132210(void);
-extern void func_801322B8(void);
+extern void func_actor_460200_801322B8(void);
 extern void func_80132390(void);
 
 extern UiObjectDesc D_800611E4;
@@ -242,7 +242,7 @@ s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
 {
     if (arg2->warp == 1) {
-        func_801322B8();
+        func_actor_460200_801322B8();
     }
     if (arg2->warp == 2) {
         func_80132390();

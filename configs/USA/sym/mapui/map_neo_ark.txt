@@ -32,7 +32,7 @@ D_shelter_1f_bulwark_801803D0 = 0x801803D0; // absolute:True
 D_shelter_1f_bulwark_8018066C = 0x8018066C; // absolute:True
 D_shelter_1f_bulwark_801807B0 = 0x801807B0; // absolute:True
 D_shelter_1f_bulwark_80180E9C = 0x80180E9C; // absolute:True
-func_shelter_1f_heliport_80180768 = 0x80180768; // type:func absolute:True
+func_shelter_1f_heliport_80180768 = 0x80180768; // type:func absolute:True owner=shelter_1f_heliport
 D_shelter_1f_heliport_801812D0 = 0x801812D0; // absolute:True
 D_shelter_1f_heliport_801812E0 = 0x801812E0; // absolute:True
 D_shelter_1f_heliport_801812E8 = 0x801812E8; // absolute:True
@@ -122,7 +122,7 @@ D_neo_ark_pavilion_801838F8 = 0x801838F8; // absolute:True
 D_neo_ark_pavilion_80184208 = 0x80184208; // absolute:True
 D_neo_ark_pavilion_801873B8 = 0x801873B8; // absolute:True
 D_neo_ark_pavilion_801879EC = 0x801879EC; // absolute:True
-func_neo_ark_island_8017EB10 = 0x8017EB10; // type:func absolute:True
+func_neo_ark_island_8017EB10 = 0x8017EB10; // type:func absolute:True owner=neo_ark_island
 D_neo_ark_island_80181B94 = 0x80181B94; // absolute:True
 D_neo_ark_island_80181BA4 = 0x80181BA4; // absolute:True
 D_neo_ark_island_80181BAC = 0x80181BAC; // absolute:True
@@ -131,7 +131,7 @@ D_neo_ark_island_80181BB4 = 0x80181BB4; // absolute:True
 D_neo_ark_island_801826EC = 0x801826EC; // absolute:True
 D_neo_ark_island_80183B14 = 0x80183B14; // absolute:True
 D_neo_ark_island_80183FE8 = 0x80183FE8; // absolute:True
-func_neo_ark_garden_8017EA44 = 0x8017EA44; // type:func absolute:True
+func_neo_ark_garden_8017EA44 = 0x8017EA44; // type:func absolute:True owner=neo_ark_garden
 D_neo_ark_garden_8018140C = 0x8018140C; // absolute:True
 D_neo_ark_garden_8018141C = 0x8018141C; // absolute:True
 D_neo_ark_garden_80181424 = 0x80181424; // absolute:True
@@ -140,7 +140,7 @@ D_neo_ark_garden_8018142C = 0x8018142C; // absolute:True
 D_neo_ark_garden_801816E8 = 0x801816E8; // absolute:True
 D_neo_ark_garden_80182540 = 0x80182540; // absolute:True
 D_neo_ark_garden_80182BD8 = 0x80182BD8; // absolute:True
-func_neo_ark_power_plant_2_8017D854 = 0x8017D854; // type:func absolute:True
+func_neo_ark_power_plant_2_8017D854 = 0x8017D854; // type:func absolute:True owner=neo_ark_power_plant_2
 D_neo_ark_power_plant_2_80180690 = 0x80180690; // absolute:True
 D_neo_ark_power_plant_2_801806A0 = 0x801806A0; // absolute:True
 D_neo_ark_power_plant_2_801806A8 = 0x801806A8; // absolute:True
@@ -149,7 +149,7 @@ D_neo_ark_power_plant_2_801806B0 = 0x801806B0; // absolute:True
 D_neo_ark_power_plant_2_80180DE8 = 0x80180DE8; // absolute:True
 D_neo_ark_power_plant_2_8018205C = 0x8018205C; // absolute:True
 D_neo_ark_power_plant_2_80182F50 = 0x80182F50; // absolute:True
-func_neo_ark_power_plant_1_8017D9C0 = 0x8017D9C0; // type:func absolute:True
+func_neo_ark_power_plant_1_8017D9C0 = 0x8017D9C0; // type:func absolute:True owner=neo_ark_power_plant_1
 D_neo_ark_power_plant_1_8017F1C8 = 0x8017F1C8; // absolute:True
 D_neo_ark_power_plant_1_8017F1D8 = 0x8017F1D8; // absolute:True
 D_neo_ark_power_plant_1_8017F1E0 = 0x8017F1E0; // absolute:True
@@ -273,7 +273,7 @@ D_shelter_1f_tent_80183A7C = 0x80183A7C; // absolute:True
 D_shelter_1f_tent_80183A94 = 0x80183A94; // absolute:True
 D_shelter_1f_tent_80183CF4 = 0x80183CF4; // absolute:True
 D_shelter_1f_tent_801842B4 = 0x801842B4; // absolute:True
-func_neo_ark_woodland_path_8017E9B0 = 0x8017E9B0; // type:func absolute:True
+func_neo_ark_woodland_path_8017E9B0 = 0x8017E9B0; // type:func absolute:True owner=neo_ark_woodland_path
 D_neo_ark_woodland_path_80181694 = 0x80181694; // absolute:True
 D_neo_ark_woodland_path_80181698 = 0x80181698; // absolute:True
 D_neo_ark_woodland_path_8018169C = 0x8018169C; // absolute:True
@@ -286,7 +286,7 @@ D_neo_ark_woodland_path_8018445C = 0x8018445C; // absolute:True
 D_neo_ark_woodland_path_8018477C = 0x8018477C; // absolute:True
 D_neo_ark_woodland_path_801847D4 = 0x801847D4; // absolute:True
 D_neo_ark_woodland_path_80184910 = 0x80184910; // absolute:True
-func_neo_ark_submarine_gallery_8017EBCC = 0x8017EBCC; // type:func absolute:True
+func_neo_ark_submarine_gallery_8017EBCC = 0x8017EBCC; // type:func absolute:True owner=neo_ark_submarine_gallery
 D_neo_ark_submarine_gallery_80181A08 = 0x80181A08; // absolute:True
 D_neo_ark_submarine_gallery_80181A0C = 0x80181A0C; // absolute:True
 D_neo_ark_submarine_gallery_80181A10 = 0x80181A10; // absolute:True

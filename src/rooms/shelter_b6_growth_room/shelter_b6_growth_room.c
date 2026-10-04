@@ -24,7 +24,7 @@ extern TaskMessageEntry D_shelter_b6_growth_room_8017F16C[];
 extern EvsCommand D_80136110[];
 extern EvsCommand D_80136308[];
 
-extern void func_801327A8(void);
+extern void func_actor_450900_801327A8(void);
 extern void func_80132834(void);
 
 s32 func_shelter_b6_growth_room_8017D5E8(Task*, s32, s32, s32);
@@ -77,7 +77,7 @@ s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, s32 arg
 s32 func_shelter_b6_growth_room_8017D6C8(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
 {
     if (arg2->warp == 1) {
-        func_801327A8();
+        func_actor_450900_801327A8();
     }
     if (arg2->warp == 2) {
         func_80132834();
