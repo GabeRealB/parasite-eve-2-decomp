@@ -72,70 +72,81 @@ extern s8 D_actor_403200_8015F8E0[8];
 
 typedef struct Actor403200Obj Actor403200Obj;
 
-/// Reference positions used by the distance-based view selector.
-typedef struct Actor403200ViewPoints {
-    /* 0x00 */ SVECTOR v[4];
-} Actor403200ViewPoints;
-STATIC_ASSERT_SIZEOF(Actor403200ViewPoints, 0x20);
+/// Points one of the host's camera view functions measures the player's
+/// distance from, one for each phase of the fight.
+///
+/// As the host moves on through the arena, each phase has its own pair of
+/// camera views to cut between. The function copies the whole set, takes the
+/// point of the current phase and picks the view from how far the player
+/// stands from it, with thresholds that depend on the view already showing.
+/// `GluttonWork::phase` is the index, 0 to 3; nothing checks it.
+typedef struct {
+    SVECTOR points[4]; // World positions, indexed by phase; phases 2 and 3 share one point, and `pad` is zero
+} _Actor403200ViewAnchors;
+STATIC_ASSERT_SIZEOF(_Actor403200ViewAnchors, 0x20);
 
-/// One of the nine models and spawn arguments used by the formation spawner.
-typedef struct Actor403200SpawnRec {
-    /* 0x0 */ TmdSource* model;
-    /* 0x4 */ s16        spawnArg;
-    /* 0x6 */ s16        field_6;
-} Actor403200SpawnRec;
-STATIC_ASSERT_SIZEOF(Actor403200SpawnRec, 0x8);
+/// One spinner of the formation the host spawns: the model it is drawn with
+/// and how long it waits once the set is released.
+///
+/// The host spawns its spinners together, one for each record, patching the
+/// record's model into the spinner's task descriptor and passing
+/// `chaseDelayClass` as the spawn argument.
+typedef struct {
+    TmdSource* model;           // Model installed in the spinner task's descriptor before the spawn
+    s16        chaseDelayClass; // Spawn argument picking `GluttonSpinnerWork::chaseDelay` (0: 0x14 ticks, 1: 0x28, 2: 0x50)
+} _Actor403200SpinnerSpawn;
+STATIC_ASSERT_SIZEOF(_Actor403200SpinnerSpawn, 0x8);
 
-/// 0x20-byte scratchpad frame the state-selecting tick
-/// `func_actor_403200_8013EB64` carves off the scratch-pad stack. `delta` is the
-/// player-relative offset whose length is `dist`, the range the three
-/// `phase` sub-states door the enemy through;
-/// `view` is the camera-relative offset the yaw written to `neckYawTarget` is
-/// taken from. Both are read back out of the frame rather than kept in
-/// registers, which is what puts them in the scratch in the first place.
-typedef struct Actor403200ApproachScratch {
-    /* 0x00 */ VECTOR  delta; // player position minus this part's, in world units
-    /* 0x10 */ SVECTOR view;  // camera position minus this part's
-    /* 0x18 */ s32     dist;  // length of `delta`
-    /* 0x1C */ byte    pad_1C[0x4];
-} Actor403200ApproachScratch;
-STATIC_ASSERT_SIZEOF(Actor403200ApproachScratch, 0x20);
+/// Scratch-stack block the host's idle state works in for one tick.
+///
+/// The idle state is where every attack returns to. Each tick it turns the
+/// neck toward the player, and once the delay between attacks has run out it
+/// picks the next state from the fight's phase, the host's hit points and how
+/// far the player stands from the host. It reserves one complete block and
+/// releases it before returning; nothing in it outlasts the tick.
+typedef struct {
+    VECTOR  rangeOffset;    // Offset to the player's model root from the point (0, 0xFA, -0x25F) off the host's root, world units; `pad` is never written
+    SVECTOR toPlayer;       // Offset from the host's root to the player's root coordinate; its yaw against the host's facing becomes the neck's yaw target. `pad` is never written
+    s32     playerDistance; // Length of `rangeOffset`; the range phases 1 and 2 pick their attack by
+    byte    field_1C[0x4];  // Reserved with the block and never accessed; role unproven
+} _Actor403200IdleScratch;
+STATIC_ASSERT_SIZEOF(_Actor403200IdleScratch, 0x20);
 
-/// 0xC-byte scratchpad frame the launch state's reset half
-/// `func_actor_403200_8013B3C8` carves off the scratch-pad stack for the one yaw it
-/// takes this tick. `dir` is the player-relative offset of the host model's
-/// root part, the pair `ratan2` turns into the yaw written to `neckYawTarget`; the
-/// trailing word is not read back, and is only here because the frame the code
-/// carves is 0xC, not the 8 the vector alone needs.
-typedef struct Actor403200TurnScratch {
-    /* 0x00 */ SVECTOR dir; // player position minus the host root part's
-    /* 0x08 */ s32     field_8;
-} Actor403200TurnScratch;
-STATIC_ASSERT_SIZEOF(Actor403200TurnScratch, 0xC);
+/// Scratch-stack block the host's rain-launch state works in for one tick.
+///
+/// The state launches the eight rain blobs one after another while the neck
+/// keeps turning toward the player. It reserves one complete block and
+/// releases it before returning.
+typedef struct {
+    SVECTOR toPlayer;     // Offset from the host's root to the player's root coordinate; its yaw against the host's facing becomes the neck's yaw target. `pad` is never written
+    byte    field_8[0x4]; // Reserved with the block and never accessed; role unproven
+} _Actor403200RainLaunchScratch;
+STATIC_ASSERT_SIZEOF(_Actor403200RainLaunchScratch, 0xC);
 
-/// 0x54-byte scratchpad frame the launch tick carves off the scratch-pad stack. `dir`
-/// starts as the player-relative offset in the arena plane, is renormalised
-/// and then scaled by the per-frame pull the animation frame selects; `pos` is
-/// the host's fifth part in view space, which the yaw `angle` and the message
-/// 0x3E9 placement are both built from. `push` is the 32-bit triple
-/// `func_80105B74` copies onto the player, `dist` is the offset's length, and
-/// `pull` / `period` are the phase strength and the script-spawn interval.
-typedef struct Actor403200DragScratch {
-    /* 0x00 */ VECTOR3 push;
-    /* 0x0C */ byte    pad_C[0x4];
-    /* 0x10 */ SVECTOR dir;
-    /* 0x18 */ SVECTOR pos;
-    /* 0x20 */ byte    pad_20[0x20];
-    /* 0x40 */ s32     dist;
-    /* 0x44 */ byte    pad_44[0x4];
-    /* 0x48 */ s16     angle;
-    /* 0x4A */ byte    pad_4A[0x2];
-    /* 0x4C */ s16     pull;
-    /* 0x4E */ s16     i;
-    /* 0x50 */ s16     period;
-    /* 0x52 */ byte    pad_52[0x2];
-} Actor403200DragScratch;
-STATIC_ASSERT_SIZEOF(Actor403200DragScratch, 0x54);
+/// Scratch-stack block the host's drag state works in for one tick.
+///
+/// The state draws the player in toward the host's part 4 while the spinners
+/// fly: each tick the player is displaced along the line between the two, by
+/// an amount the animation's cue and the fight's phase set, and the pad
+/// rumbles at an interval the phase sets. A player drawn within reach while
+/// the pull is strongest is caught: placed a fixed distance out from that part,
+/// turned to face it or away from it, and handed the caught animation. The
+/// state reserves one complete block and releases it before returning.
+typedef struct {
+    VECTOR3 displacement;   // This tick's pull on the player, world units: `offset` on X and Z, 0 on Y. Handed to the player as its pending displacement; left unwritten on a tick without pull
+    byte    field_C[0x4];   // Reserved with the block and never accessed; role unproven
+    SVECTOR offset;         // Working vector. First the offset from the host's root to the player's root coordinate, for the neck's yaw; then from part 4 to the player, normalised (4096 = 1.0) and scaled to the tick's pull toward that part. A catch reuses it for the placement's offset from `pullCentre`, then for the offset from the placement back to `pullCentre`
+    SVECTOR pullCentre;     // Position of the host's part 4 in the view coordinate's space, taken when the player is caught
+    byte    field_20[0x20]; // Reserved with the block and never accessed; role unproven
+    s32     playerDistance; // Horizontal distance from part 4 to the player, world units; a catch needs it under 0x4B0
+    byte    field_44[0x4];  // Reserved with the block and never accessed; role unproven
+    s16     pullCentreYaw;  // Turn from a caught player's facing to the bearing of `pullCentre`, wrapped to +/-0x800; under 0x400 either way the player is placed facing the host, otherwise facing away. Stored but never read
+    byte    field_4A[0x2];  // Reserved with the block and never accessed; role unproven
+    s16     phasePull;      // Pull the phase adds to the base 0x19 units a tick (phase 0: 0, 1: 5, otherwise 0xA), before the cue's divisor
+    s16     slot;           // Index into `GluttonWork::summons`, 0 or 1: counter of the loop that forgets the summons as the state ends
+    s16     rumblePeriod;   // Ticks between pad rumble scripts during the pull (phase 0: 0x14, 1: 0x10, otherwise 0xC)
+} _Actor403200DragScratch;
+STATIC_ASSERT_SIZEOF(_Actor403200DragScratch, 0x54);
 
 /// Exit callback of the boss task, installed by its spawn state.
 
@@ -225,8 +236,8 @@ extern TaskDesc gGluttonEscortTasks[];
 extern TaskMessageEntry D_actor_403200_8015F770[8];
 
 /// Three formations of nine positions, and each member's model/spawn argument.
-extern SVECTOR             D_actor_403200_8015F7B0[3][9];
-extern Actor403200SpawnRec D_actor_403200_8015F888[9];
+extern SVECTOR                  D_actor_403200_8015F7B0[3][9];
+extern _Actor403200SpinnerSpawn D_actor_403200_8015F888[9];
 
 /// Non-zero once the launch state has published the enemy's position to the
 /// player, and cleared again when it restarts.
@@ -249,18 +260,26 @@ extern GfxCoord D_actor_403200_8015F920;
 
 extern GluttonCoord D_actor_403200_8015F970;
 
-/// Position and Euler rotation the launch tick sends the player as message
-/// 0x3E9.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// Allocation holding the placement the host sends the player, and the forty
+/// bytes after it.
+///
+/// `placement` is the payload of `GAME_ACTOR_MESSAGE_PLACE`, kept in static
+/// storage and lent to the player for the length of the dispatch. The drag
+/// state fills it in when it catches the player. The state that follows
+/// moves the player to the host's root: it rewrites the position alone and
+/// sends the record again with the rotation the catch left.
+///
+/// Forty zero bytes separate the record from the object after it. No access
+/// to them is recovered, so whether they are trailing fields of the record or
+/// separate unreferenced variables is unproven; they stay in this allocation
+/// only to keep the object after it at its address.
 typedef struct {
-    ActorTransform value;
-    u8             retained[40];
-} Actor403200StorageF9C0;
-STATIC_ASSERT_SIZEOF(Actor403200StorageF9C0, 64);
+    ActorTransform placement;    // Where the player is put and the Euler rotation it is given; only yaw is ever nonzero, and `pos.pad` is never written
+    u8             field_18[40]; // Zero in the image; no access established and role unproven
+} _Actor403200PlayerPlacementStorage;
+STATIC_ASSERT_SIZEOF(_Actor403200PlayerPlacementStorage, 0x40);
 
-extern Actor403200StorageF9C0 D_actor_403200_8015F9C0;
+extern _Actor403200PlayerPlacementStorage D_actor_403200_8015F9C0;
 
 extern GameActorButtonPressHold D_actor_403200_8015FA00;
 
@@ -2612,9 +2631,16 @@ AnimationSet* D_actor_403200_8015E6CC[7] = {
     NULL,
 };
 
-typedef s32 (*Actor403200ViewFn)(Task* task, s16 arg);
+/// Picks the room's camera view for the host's current situation.
+///
+/// The host's tick calls one of these each frame, chosen by
+/// `GluttonWork::viewSelector`, unless the view is locked. `host` is the
+/// boss's task and `phase` is `GluttonWork::phase`, the step of the fight.
+/// Returns the index of the view the room should show; the tick stores it as
+/// the live view when it differs from the current one.
+typedef s32 (*_Actor403200ViewFunc)(Task* host, s16 phase);
 
-Actor403200ViewFn D_actor_403200_8015E6E8[9] = {
+_Actor403200ViewFunc D_actor_403200_8015E6E8[9] = {
     func_actor_403200_80141180,
     func_actor_403200_80134748,
     func_actor_403200_801344C4,
@@ -2797,16 +2823,16 @@ SVECTOR D_actor_403200_8015F7B0[3][9] = {
     { { 0x2EE0, 0, -1500, 0 }, { 0x32C8, 0, -1600, 0 }, { 0x3E80, 0, -1300, 0 }, { 0x2EE0, 0, -0x2904, 0 }, { 0x32C8, 0, -0x2968, 0 }, { 0x3E80, 0, -0x283C, 0 }, { 0x36B0, 0, -0x2904, 0 }, { 0x3A98, 0, -600, 0 }, { 0x4650, 0, -0x283C, 0 } },
 };
 
-Actor403200SpawnRec D_actor_403200_8015F888[9] = {
-    { &_gActor403200Model1C474, 0, 0 },
-    { &_gActor403200GluttonProp, 1, 0 },
-    { &_gActor403200Model1CDA4, 2, 0 },
-    { &_gActor403200Model1CFA0, 2, 0 },
-    { &_gActor403200Model1D26C, 1, 0 },
-    { &_gActor403200Model1D3E8, 0, 0 },
-    { &_gActor403200Model1D524, 0, 0 },
-    { &_gActor403200Model1D5241D630, 1, 0 },
-    { &_gActor403200Model1D754, 2, 0 },
+_Actor403200SpinnerSpawn D_actor_403200_8015F888[9] = {
+    { &_gActor403200Model1C474, 0 },
+    { &_gActor403200GluttonProp, 1 },
+    { &_gActor403200Model1CDA4, 2 },
+    { &_gActor403200Model1CFA0, 2 },
+    { &_gActor403200Model1D26C, 1 },
+    { &_gActor403200Model1D3E8, 0 },
+    { &_gActor403200Model1D524, 0 },
+    { &_gActor403200Model1D5241D630, 1 },
+    { &_gActor403200Model1D754, 2 },
 };
 
 // Only the leading value has established accesses. Preserve the following
@@ -2847,14 +2873,14 @@ GfxCoord D_actor_403200_8015F920 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 
 
 GluttonCoord D_actor_403200_8015F970 = { .node = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
 
-Actor403200StorageF9C0 D_actor_403200_8015F9C0;
+_Actor403200PlayerPlacementStorage D_actor_403200_8015F9C0;
 
 GameActorButtonPressHold D_actor_403200_8015FA00;
 
 /// Integer part of the last step `ActorContact_PushContact` applied.
 extern SVECTOR ActorContact_ScratchPosition;
 
-extern Actor403200ViewFn D_actor_403200_8015E6E8[];
+extern _Actor403200ViewFunc D_actor_403200_8015E6E8[];
 
 /// Scratchpad frame the per-frame tick carves off the scratch-pad stack. Only `view`
 /// is written: the selector result compared with `Gp_GetViewIndex`.
@@ -2865,12 +2891,17 @@ typedef struct Actor403200TickScratch {
 } Actor403200TickScratch;
 STATIC_ASSERT_SIZEOF(Actor403200TickScratch, 0x1C);
 
-/// The 25 state handlers at `D_actor_403200_80132154`. The tick copies the
-/// whole table onto the stack and calls `fn[state]`.
-typedef struct Actor403200StateTable {
-    TaskFunc fn[0x19];
-} Actor403200StateTable;
-STATIC_ASSERT_SIZEOF(Actor403200StateTable, 0x64);
+/// The host's state handlers stored as a value for whole-table copies.
+///
+/// `GluttonWork::state` is the index. The host's tick copies the table and
+/// calls the current state's handler with the host's task once a frame; there
+/// is no terminator or bounds check. The table has 25 slots, of which the
+/// states the host enters, 0 to 0x12, are filled; the rest are NULL and must
+/// not be selected.
+typedef struct {
+    TaskFunc funcs[25]; // Handlers in state order
+} _Actor403200StateTable;
+STATIC_ASSERT_SIZEOF(_Actor403200StateTable, 0x64);
 
 static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1);
 
@@ -3386,7 +3417,7 @@ s32 func_actor_403200_80134900(Task* arg0, s16 arg1)
 }
 
 /// Reference positions the view selector below measures the player against.
-static const Actor403200ViewPoints D_actor_403200_80131E64 = {
+static const _Actor403200ViewAnchors D_actor_403200_80131E64 = {
     {
         { 0x10B4, 1, -0x17DD, 0 },
         { 0x1CD0, 1, -0x17DD, 0 },
@@ -3408,23 +3439,23 @@ static const EnemyTaskFuncTable3 gGluttonPropStates = {
 
 s32 func_actor_403200_80134A14(Task* arg0, s16 arg1)
 {
-    SVECTOR               vec;
-    Actor403200ViewPoints tab;
-    Task*                 obj;
-    s32                   dist;
-    s32                   value;
-    s32                   view;
-    s32                   flag;
+    SVECTOR                 vec;
+    _Actor403200ViewAnchors anchors;
+    Task*                   obj;
+    s32                     dist;
+    s32                     value;
+    s32                     view;
+    s32                     flag;
 
-    view   = Gp_GetViewIndex() & 0xFF;
-    obj    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    tab    = D_actor_403200_80131E64;
-    vec.vx = obj->extra.tmd->coords->coord.t[0] - tab.v[arg1].vx;
-    dist   = vec.vx * vec.vx;
-    vec.vy = obj->extra.tmd->coords->coord.t[1] - tab.v[arg1].vy;
-    dist  += vec.vy * vec.vy;
-    vec.vz = obj->extra.tmd->coords->coord.t[2] - tab.v[arg1].vz;
-    dist   = SquareRoot0(dist + (vec.vz * vec.vz));
+    view    = Gp_GetViewIndex() & 0xFF;
+    obj     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    anchors = D_actor_403200_80131E64;
+    vec.vx  = obj->extra.tmd->coords->coord.t[0] - anchors.points[arg1].vx;
+    dist    = vec.vx * vec.vx;
+    vec.vy  = obj->extra.tmd->coords->coord.t[1] - anchors.points[arg1].vy;
+    dist   += vec.vy * vec.vy;
+    vec.vz  = obj->extra.tmd->coords->coord.t[2] - anchors.points[arg1].vz;
+    dist    = SquareRoot0(dist + (vec.vz * vec.vz));
     switch (arg1) {
         case 0:
             if ((view != 2) && (view != 3) && (view != 4)) {
@@ -4542,18 +4573,18 @@ static void func_actor_403200_8013B23C(Task* arg0)
 /// `func_actor_403200_8013D9EC`.
 static void func_actor_403200_8013B3C8(Task* arg0)
 {
-    GluttonWork*            work;
-    GluttonWork*            escorts;
-    GluttonWork*            dying;
-    GfxCoord*               model;
-    GfxCoord*               facing;
-    Actor403200TurnScratch* sc;
-    s16                     i;
-    s16                     j;
-    s16                     state;
-    s16                     ang;
+    GluttonWork*                   work;
+    GluttonWork*                   escorts;
+    GluttonWork*                   dying;
+    GfxCoord*                      model;
+    GfxCoord*                      facing;
+    _Actor403200RainLaunchScratch* sc;
+    s16                            i;
+    s16                            j;
+    s16                            state;
+    s16                            ang;
 
-    sc   = (Actor403200TurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200TurnScratch));
+    sc   = SCRATCH_STACK_RESERVE_BLOCK(_Actor403200RainLaunchScratch);
     work = arg0->work;
     if (work->stateChanged != 0) {
         work->lastAttack       = 2;
@@ -4613,12 +4644,12 @@ static void func_actor_403200_8013B3C8(Task* arg0)
     if (work->stateTicks >= 0x15) {
         work->viewSelector = 1;
     }
-    model      = arg0->extra.tmd->coords;
-    sc->dir.vx = gPlayerStatus.coordMtx->t[0] - model->coord.t[0];
-    sc->dir.vy = gPlayerStatus.coordMtx->t[1] - model->coord.t[1];
-    sc->dir.vz = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
-    facing     = arg0->extra.tmd->coords;
-    ang        = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    model           = arg0->extra.tmd->coords;
+    sc->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - model->coord.t[0];
+    sc->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - model->coord.t[1];
+    sc->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
+    facing          = arg0->extra.tmd->coords;
+    ang             = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (ang < 0) {
     wrapUp:
         if (ang < -0x800) {
@@ -4633,7 +4664,7 @@ static void func_actor_403200_8013B3C8(Task* arg0)
         }
     }
     work->neckYawTarget = ang;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200TurnScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403200RainLaunchScratch);
 }
 
 /// Spawns up to nine enemies in a randomly selected formation, stopping when
@@ -4655,7 +4686,7 @@ static void func_actor_403200_8013B740(Task* arg0)
 
     for (i = 0; i < 9; i++) {
         gGluttonEscortTasks[4].data.model = D_actor_403200_8015F888[i].model;
-        enemy                             = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 4, D_actor_403200_8015F888[i].spawnArg, NULL);
+        enemy                             = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 4, D_actor_403200_8015F888[i].chaseDelayClass, NULL);
         work->lastSpawned                 = enemy;
         if (enemy == NULL) {
             break;
@@ -4672,24 +4703,24 @@ static void func_actor_403200_8013B740(Task* arg0)
 /// escorts and tells the scene (message 0x7DA, action 0x2C). Each tick yaws
 /// the enemy toward the player and scales a pull from the animation frame;
 /// inside the swipe window, once the player accepts message 0x3F8, it places
-/// them (0x3E9) and hands over an animation (0x3F4).
+/// them (`GAME_ACTOR_MESSAGE_PLACE`) and hands over an animation (0x3F4).
 static void func_actor_403200_8013B8C4(Task* arg0)
 {
-    GluttonWork*            work;
-    GluttonWork*            escorts;
-    GluttonWork*            dying;
-    Enemy*                  enemy;
-    Task*                   task;
-    PlayerStatus*           cfg;
-    Actor403200DragScratch* sc;
-    s16                     i;
-    s16                     j;
+    GluttonWork*             work;
+    GluttonWork*             escorts;
+    GluttonWork*             dying;
+    Enemy*                   enemy;
+    Task*                    task;
+    PlayerStatus*            cfg;
+    _Actor403200DragScratch* sc;
+    s16                      i;
+    s16                      j;
 
     work  = arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     task  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     cfg   = &gPlayerStatus;
-    sc    = (Actor403200DragScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200DragScratch));
+    sc    = SCRATCH_STACK_RESERVE_BLOCK(_Actor403200DragScratch);
 
     if (work->stateChanged != 0) {
         work->lastAttack       = 3;
@@ -4733,47 +4764,47 @@ static void func_actor_403200_8013B8C4(Task* arg0)
 
     gluttonTickAnim(arg0);
 
-    work->neckYawTarget = actorPositionYaw(arg0, &sc->dir, &gPlayerStatus);
+    work->neckYawTarget = actorPositionYaw(arg0, &sc->offset, &gPlayerStatus);
 
-    sc->dir.vz = 0;
-    sc->dir.vy = 0;
-    sc->dir.vx = 0;
-    actorLocalToView(&arg0->extra.tmd->coords[4], &sc->dir);
+    sc->offset.vz = 0;
+    sc->offset.vy = 0;
+    sc->offset.vx = 0;
+    actorLocalToView(&arg0->extra.tmd->coords[4], &sc->offset);
 
-    sc->dir.vx = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->dir.vx;
-    sc->dir.vy = (u16)task->extra.tmd->coords->coord.t[1] - (u16)sc->dir.vy;
-    sc->dir.vz = (u16)task->extra.tmd->coords->coord.t[2] - (u16)sc->dir.vz;
-    sc->dist   = sc->dir.vx * sc->dir.vx;
-    sc->dist  += sc->dir.vz * sc->dir.vz;
-    sc->dist   = SquareRoot0(sc->dist);
-    VectorNormalSS(&sc->dir, &sc->dir);
+    sc->offset.vx       = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->offset.vx;
+    sc->offset.vy       = (u16)task->extra.tmd->coords->coord.t[1] - (u16)sc->offset.vy;
+    sc->offset.vz       = (u16)task->extra.tmd->coords->coord.t[2] - (u16)sc->offset.vz;
+    sc->playerDistance  = sc->offset.vx * sc->offset.vx;
+    sc->playerDistance += sc->offset.vz * sc->offset.vz;
+    sc->playerDistance  = SquareRoot0(sc->playerDistance);
+    VectorNormalSS(&sc->offset, &sc->offset);
 
     switch (work->phase) {
         case 0:
-            sc->period = 0x14;
+            sc->rumblePeriod = 0x14;
             break;
         case 1:
-            sc->period = 0x10;
+            sc->rumblePeriod = 0x10;
             break;
         case 2:
         default:
-            sc->period = 0xC;
+            sc->rumblePeriod = 0xC;
             break;
     }
-    if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xA) < 9U) && ((work->stateTicks % sc->period) == 0)) {
+    if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xA) < 9U) && ((work->stateTicks % sc->rumblePeriod) == 0)) {
         Gp_SpawnScript18(D_actor_403200_80141C7C, D_actor_403200_80141C88);
     }
 
     switch (work->phase) {
         case 0:
-            sc->pull = 0;
+            sc->phasePull = 0;
             break;
         case 1:
-            sc->pull = 5;
+            sc->phasePull = 5;
             break;
         case 2:
         default:
-            sc->pull = 0xA;
+            sc->phasePull = 0xA;
             break;
     }
 
@@ -4800,84 +4831,84 @@ static void func_actor_403200_8013B8C4(Task* arg0)
     work->hostExposed = 1;
     switch (work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
         case 9:
-            gte_lddp(-(sc->pull + 0x19) / 4);
-            gte_ldsv(&sc->dir);
+            gte_lddp(-(sc->phasePull + 0x19) / 4);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0x180;
             break;
         case 10:
-            gte_lddp(-(sc->pull + 0x19) / 2);
-            gte_ldsv(&sc->dir);
+            gte_lddp(-(sc->phasePull + 0x19) / 2);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             break;
         case 11:
         case 13:
         case 15:
-            gte_lddp(-(sc->pull + 0x19));
-            gte_ldsv(&sc->dir);
+            gte_lddp(-(sc->phasePull + 0x19));
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0x2B2;
             break;
         case 12:
         case 14:
-            gte_lddp(-((sc->pull + 0x19) * 3) / 2);
-            gte_ldsv(&sc->dir);
+            gte_lddp(-((sc->phasePull + 0x19) * 3) / 2);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0x500;
             break;
         case 16:
-            gte_lddp(-(sc->pull + 0x19) / 3);
-            gte_ldsv(&sc->dir);
+            gte_lddp(-(sc->phasePull + 0x19) / 3);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0x100;
             break;
         case 17:
         case 18:
-            gte_lddp(-(sc->pull + 0x19) / 3);
-            gte_ldsv(&sc->dir);
+            gte_lddp(-(sc->phasePull + 0x19) / 3);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0x400;
             break;
         case 19:
         case 20:
-            sc->dir.vz = 0;
-            sc->dir.vx = 0;
-            gte_lddp(-(sc->pull + 0x19) / 6);
-            gte_ldsv(&sc->dir);
+            sc->offset.vz = 0;
+            sc->offset.vx = 0;
+            gte_lddp(-(sc->phasePull + 0x19) / 6);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0;
             break;
         default:
             work->hostExposed = 0;
-            sc->dir.vz        = 0;
-            sc->dir.vx        = 0;
+            sc->offset.vz     = 0;
+            sc->offset.vx     = 0;
             break;
     }
 
-    if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xB) < 5U) && (sc->dist < 0x4B0) && (enemy->hp > 0) &&
+    if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xB) < 5U) && (sc->playerDistance < 0x4B0) && (enemy->hp > 0) &&
         (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403200_8015FA00, 0) == 0)) {
         SVECTOR* dirp;
         s16      ang;
 
         work->state        = 0xD;
         work->playerCaught = 1;
-        sc->pos.vz         = 0;
-        sc->pos.vy         = 0;
-        sc->pos.vx         = 0;
-        actorLocalToView(&arg0->extra.tmd->coords[4], &sc->pos);
+        sc->pullCentre.vz  = 0;
+        sc->pullCentre.vy  = 0;
+        sc->pullCentre.vx  = 0;
+        actorLocalToView(&arg0->extra.tmd->coords[4], &sc->pullCentre);
 
-        sc->dir.vx          = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->pos.vx;
-        sc->dir.vy          = 0;
-        sc->dir.vz          = (u16)task->extra.tmd->coords->coord.t[2] - (u16)sc->pos.vz;
-        ang                 = actorViewYaw(arg0->extra.tmd->coords, &sc->dir);
-        dirp                = &sc->dir;
+        sc->offset.vx       = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->pullCentre.vx;
+        sc->offset.vy       = 0;
+        sc->offset.vz       = (u16)task->extra.tmd->coords->coord.t[2] - (u16)sc->pullCentre.vz;
+        ang                 = actorViewYaw(arg0->extra.tmd->coords, &sc->offset);
+        dirp                = &sc->offset;
         work->neckYawTarget = ang;
         VectorNormalSS(dirp, dirp);
         gte_lddp(0x384);
@@ -4885,39 +4916,39 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         gte_gpf12();
         gte_stsv(dirp);
 
-        D_actor_403200_8015F9C0.value.pos.vx = sc->pos.vx + sc->dir.vx;
-        D_actor_403200_8015F9C0.value.pos.vy = task->extra.tmd->coords->coord.t[1];
+        D_actor_403200_8015F9C0.placement.pos.vx = sc->pullCentre.vx + sc->offset.vx;
+        D_actor_403200_8015F9C0.placement.pos.vy = task->extra.tmd->coords->coord.t[1];
         {
-            s32 pz = sc->pos.vz;
-            s32 dz = sc->dir.vz;
+            s32 pz = sc->pullCentre.vz;
+            s32 dz = sc->offset.vz;
 
-            D_actor_403200_8015F9C0.value.rot.vx = 0;
-            D_actor_403200_8015F9C0.value.rot.vz = 0;
-            D_actor_403200_8015F9C0.value.pos.vz = pz + dz;
+            D_actor_403200_8015F9C0.placement.rot.vx = 0;
+            D_actor_403200_8015F9C0.placement.rot.vz = 0;
+            D_actor_403200_8015F9C0.placement.pos.vz = pz + dz;
         }
         {
-            u16 px = (u16)sc->pos.vx;
-            u16 mx = (u16)D_actor_403200_8015F9C0.value.pos.vx;
+            u16 px = (u16)sc->pullCentre.vx;
+            u16 mx = (u16)D_actor_403200_8015F9C0.placement.pos.vx;
 
-            sc->dir.vy = 0;
-            sc->dir.vx = px - mx;
+            sc->offset.vy = 0;
+            sc->offset.vx = px - mx;
         }
-        sc->dir.vz = (u16)sc->pos.vz - (u16)D_actor_403200_8015F9C0.value.pos.vz;
-        ang        = actorViewYaw(task->extra.tmd->coords, dirp);
+        sc->offset.vz = (u16)sc->pullCentre.vz - (u16)D_actor_403200_8015F9C0.placement.pos.vz;
+        ang           = actorViewYaw(task->extra.tmd->coords, dirp);
         {
             s32 ext = ang;
 
-            sc->angle = ext;
+            sc->pullCentreYaw = ext;
             if (abs(ext) < 0x400) {
-                D_actor_403200_8015F9C0.value.rot.vy = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz);
-                work->playerAnim.source.sets         = D_actor_403200_8015E6AC;
+                D_actor_403200_8015F9C0.placement.rot.vy = ratan2((s32)sc->offset.vx, (s32)sc->offset.vz);
+                work->playerAnim.source.sets             = D_actor_403200_8015E6AC;
             } else {
-                D_actor_403200_8015F9C0.value.rot.vy = ratan2((s32)sc->dir.vx, (s32)sc->dir.vz) + 0x800;
-                work->playerAnim.source.sets         = D_actor_403200_8015E6CC;
+                D_actor_403200_8015F9C0.placement.rot.vy = ratan2((s32)sc->offset.vx, (s32)sc->offset.vz) + 0x800;
+                work->playerAnim.source.sets             = D_actor_403200_8015E6CC;
             }
         }
         if (cfg->hp > 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(task, 0x3E9, &D_actor_403200_8015F9C0.value, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403200_8015F9C0.placement, 0);
         }
         work->playerAnim.animationId = 1;
         work->playerAnim.blend       = ANIMATION_BLEND_RESET;
@@ -4927,11 +4958,11 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         work->caughtTicks = 0;
     }
 
-    if (sc->dir.vx != 0 || sc->dir.vz != 0) {
-        sc->push.vx = sc->dir.vx;
-        sc->push.vy = 0;
-        sc->push.vz = sc->dir.vz;
-        func_80105B74(&sc->push);
+    if (sc->offset.vx != 0 || sc->offset.vz != 0) {
+        sc->displacement.vx = sc->offset.vx;
+        sc->displacement.vy = 0;
+        sc->displacement.vz = sc->offset.vz;
+        func_80105B74(&sc->displacement);
     }
 
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
@@ -4942,8 +4973,8 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         gGluttonSpinnersReleased = 0;
         work->spinnersSpawned    = 0;
         work->state              = 0xA;
-        for (sc->i = 0; sc->i < 2; sc->i++) {
-            work->summons[sc->i] = NULL;
+        for (sc->slot = 0; sc->slot < 2; sc->slot++) {
+            work->summons[sc->slot] = NULL;
         }
         work->summonsAlive = 0;
     }
@@ -4951,7 +4982,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         work->viewSelector = 2;
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200DragScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403200DragScratch);
 }
 
 /// State-change reset for the enemy's launch state, and the tick that walks it
@@ -5134,10 +5165,10 @@ static void func_actor_403200_8013C84C(Task* arg0)
         work->prevSlot3Cue = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if ((taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) && (cfg->hp > 0)) {
-        D_actor_403200_8015F9C0.value.pos.vx = arg0->extra.tmd->coords[0].coord.t[0];
-        D_actor_403200_8015F9C0.value.pos.vy = arg0->extra.tmd->coords[0].coord.t[1];
-        D_actor_403200_8015F9C0.value.pos.vz = arg0->extra.tmd->coords[0].coord.t[2];
-        TASK_MESSAGE_DISPATCH_POINTER(task, 0x3E9, &D_actor_403200_8015F9C0.value, 0);
+        D_actor_403200_8015F9C0.placement.pos.vx = arg0->extra.tmd->coords[0].coord.t[0];
+        D_actor_403200_8015F9C0.placement.pos.vy = arg0->extra.tmd->coords[0].coord.t[1];
+        D_actor_403200_8015F9C0.placement.pos.vz = arg0->extra.tmd->coords[0].coord.t[2];
+        TASK_MESSAGE_DISPATCH_POINTER(task, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403200_8015F9C0.placement, 0);
         D_actor_403200_8015F8E0[0] = 1;
     }
     if (work->stateTicks < 0x18) {
@@ -5943,8 +5974,8 @@ static void func_actor_403200_8013E9C0(Task* arg0)
 /// 0x10 -- and winds the shared `gGluttonLimbReach` counter down by 0xC8
 /// once it has passed 0x190.
 ///
-/// It then runs the per-frame body and aims the enemy at the camera: the
-/// camera's translation minus the part's own translation gives the pair
+/// It then runs the per-frame body and aims the enemy at the player: the
+/// player's root coordinate minus the part's own translation gives the pair
 /// `ratan2` turns into a yaw, taken relative to the part's facing the same way
 /// the group-0 hit handler does it, and the result is wrapped to +/-0x800 into
 /// `neckYawTarget`. `gGluttonEnded` holding `stateTicks` at zero makes the
@@ -5957,20 +5988,20 @@ static void func_actor_403200_8013E9C0(Task* arg0)
 /// re-selected twice in a row. A positive heal counter in `pendingHeals` overrides
 /// all of it with the heal state 0xF.
 ///
-/// The x range that sub-state 0 tests is the player-relative offset read back
-/// out of the frame, not `dist`: the two share only the frame, and the y test
+/// The x range that sub-state 0 tests is the player-relative offset taken
+/// again from the two models, not `playerDistance`: the two share only the frame, and the y test
 /// carries the -0xFA the z one carries +0x25F, the offsets the hit handler puts
 /// on the same pair.
 static void func_actor_403200_8013EB64(Task* arg0)
 {
-    Actor403200ApproachScratch* sc;
-    GluttonWork*                work;
-    Enemy*                      enemy;
-    Task*                       player;
-    GfxCoord*                   coord;
-    GfxCoord*                   facing;
-    SVECTOR*                    view;
-    s16                         angle;
+    _Actor403200IdleScratch* sc;
+    GluttonWork*             work;
+    Enemy*                   enemy;
+    Task*                    player;
+    GfxCoord*                coord;
+    GfxCoord*                facing;
+    SVECTOR*                 toPlayer;
+    s16                      angle;
 
     work   = arg0->work;
     enemy  = arg0->spawnArg2.pointer;
@@ -5993,16 +6024,16 @@ static void func_actor_403200_8013EB64(Task* arg0)
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
         work->limbPose    = 0;
     }
-    sc = (Actor403200ApproachScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200ApproachScratch));
+    sc = SCRATCH_STACK_RESERVE_BLOCK(_Actor403200IdleScratch);
     gluttonTickAnim(arg0);
 
-    coord    = arg0->extra.tmd->coords;
-    view     = &sc->view;
-    view->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    view->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    view->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    facing   = arg0->extra.tmd->coords;
-    angle    = ratan2(view->vx, view->vz) -
+    coord        = arg0->extra.tmd->coords;
+    toPlayer     = &sc->toPlayer;
+    toPlayer->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    toPlayer->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    toPlayer->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    facing       = arg0->extra.tmd->coords;
+    angle        = ratan2(toPlayer->vx, toPlayer->vz) -
             ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (angle < 0) {
     wrapUp:
@@ -6022,16 +6053,16 @@ static void func_actor_403200_8013EB64(Task* arg0)
         work->stateTicks = 0;
     }
     if (work->attackDelay <= work->stateTicks) {
-        sc->delta.vx = player->extra.tmd->coords->coord.t[0] -
-                       arg0->extra.tmd->coords->coord.t[0];
-        sc->delta.vy = (player->extra.tmd->coords->coord.t[1] -
-                        arg0->extra.tmd->coords->coord.t[1]) -
-                       0xFA;
-        sc->delta.vz = (player->extra.tmd->coords->coord.t[2] -
-                        arg0->extra.tmd->coords->coord.t[2]) +
-                       0x25F;
-        sc->dist = SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vy * sc->delta.vy +
-                               sc->delta.vz * sc->delta.vz);
+        sc->rangeOffset.vx = player->extra.tmd->coords->coord.t[0] -
+                             arg0->extra.tmd->coords->coord.t[0];
+        sc->rangeOffset.vy = (player->extra.tmd->coords->coord.t[1] -
+                              arg0->extra.tmd->coords->coord.t[1]) -
+                             0xFA;
+        sc->rangeOffset.vz = (player->extra.tmd->coords->coord.t[2] -
+                              arg0->extra.tmd->coords->coord.t[2]) +
+                             0x25F;
+        sc->playerDistance = SquareRoot0(sc->rangeOffset.vx * sc->rangeOffset.vx + sc->rangeOffset.vy * sc->rangeOffset.vy +
+                                         sc->rangeOffset.vz * sc->rangeOffset.vz);
         switch (work->phase) {
             case 0:
                 if (enemy->hp < 0x5DC) {
@@ -6053,13 +6084,13 @@ static void func_actor_403200_8013EB64(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 0xF) == 0) {
                         work->state = 3;
-                    } else if (sc->dist >= 0x20D1) {
+                    } else if (sc->playerDistance >= 0x20D1) {
                         if (work->lastAttack == 6) {
                             work->state = 2;
                         } else {
                             work->state = 6;
                         }
-                    } else if (sc->dist >= 0x189D) {
+                    } else if (sc->playerDistance >= 0x189D) {
                         if (work->lastAttack == 7) {
                             work->state = 2;
                         } else {
@@ -6071,7 +6102,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
                 }
                 break;
             case 2:
-                if (sc->dist >= 0x2329) {
+                if (sc->playerDistance >= 0x2329) {
                     if (work->lastAttack == 2) {
                         work->state = 6;
                     } else {
@@ -6088,7 +6119,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
             work->state = 0xF;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200ApproachScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403200IdleScratch);
 }
 
 /// Summon tick of the arena fight. While `gGluttonEnded` is 1
@@ -6301,7 +6332,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
 /// The host's state handlers, indexed by `state`; the last six slots are
 /// empty. Two of the handlers take no argument and are called through the
 /// table's type anyway.
-static const Actor403200StateTable D_actor_403200_80132154 = {
+static const _Actor403200StateTable D_actor_403200_80132154 = {
     {
         func_actor_403200_8013B23C,
         func_actor_403200_80141B40,
@@ -6341,7 +6372,7 @@ static const EnemyTaskFuncTable3 D_actor_403200_801321B8 = {
 static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
 {
     VECTOR                  pos;
-    Actor403200StateTable   states;
+    _Actor403200StateTable  states;
     GluttonWork*            work;
     GluttonWork*            dying;
     GluttonWork*            vis;
@@ -6568,7 +6599,7 @@ after_mode:
         }
     }
 
-    states.fn[work->state](arg1);
+    states.funcs[work->state](arg1);
 
     if ((u16)work->state < 2 || work->state == 5 || work->state == 0xC) {
         nodeFlags                                = 1;
