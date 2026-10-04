@@ -5,7 +5,7 @@
 /// a copy of the table on the stack.
 void sucklercephDropTask(Task* arg0)
 {
-    GpEnemyTaskFuncTable4 sp;
+    EnemyTaskFuncTable4 sp;
 
     sp = gSucklercephDropTaskStates;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

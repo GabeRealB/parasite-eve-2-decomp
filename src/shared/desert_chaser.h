@@ -55,7 +55,7 @@
 
 /// The task states `desertChaserTask` runs; the regular build has a fourth.
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-typedef GpEnemyTaskFuncTable4 DesertChaserTaskStates;
+typedef EnemyTaskFuncTable4 DesertChaserTaskStates;
 #else
 typedef EnemyTaskFuncTable3 DesertChaserTaskStates;
 #endif

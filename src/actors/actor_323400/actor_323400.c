@@ -83,7 +83,7 @@ static void func_actor_323400_80164C4C(Enemy* enemy, Task* task);
 /// State handlers `desertChaserFrameState` runs by `DesertChaserWork::field_0`.
 #include "../../shared/actor_contacts.h"
 
-static const GpEnemyTaskFuncTable4 gDesertChaserStates = {
+static const EnemyTaskFuncTable4 gDesertChaserStates = {
     desertChaserHideState,
     func_actor_323400_80164BD0,
     func_actor_323400_801641C4,

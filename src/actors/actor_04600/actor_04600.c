@@ -335,7 +335,7 @@ static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
 /// Task states of the dropping first enemy as `sucklercephDropTask` dispatches
 /// them: the same update and death after a spawn that parks the enemy hidden,
 /// and a fourth state for its drop into place.
-static const GpEnemyTaskFuncTable4 gSucklercephDropTaskStates = {
+static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
     { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
 };
 

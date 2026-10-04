@@ -3862,7 +3862,7 @@ static const EnemyTaskFuncTable5 gGluttonGlobStates = {
 
 /// State handlers of the enemy `gluttonChunkTask` dispatches: spawn,
 /// descent, settle and teardown.
-static const GpEnemyTaskFuncTable4 gGluttonChunkStates = {
+static const EnemyTaskFuncTable4 gGluttonChunkStates = {
     {
         gluttonChunkSpawn,
         gluttonChunkFall,
@@ -3884,7 +3884,7 @@ static const EnemyTaskFuncTable5 gGluttonRainStates = {
 };
 
 /// State handlers of the spinner enemy: spawn, hidden wait, chase and teardown.
-static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
+static const EnemyTaskFuncTable4 gGluttonSpinnerStates = {
     {
         gluttonSpinnerSpawn,
         gluttonSpinnerWait,

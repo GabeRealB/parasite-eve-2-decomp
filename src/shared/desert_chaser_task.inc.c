@@ -1,7 +1,9 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
 /// The enemy task's per-frame entry: runs the handler for the task's current
-/// state - spawn, tick or teardown - from a stack copy of the state table.
+/// state from a stack copy of the state table. The states are spawn, tick and
+/// teardown; the regular build runs a fourth between tick and teardown, which
+/// settles a pending release before advancing.
 void desertChaserTask(Task* task)
 {
     DesertChaserTaskStates sp;

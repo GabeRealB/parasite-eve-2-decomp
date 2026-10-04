@@ -6,8 +6,8 @@
 /// The model object's flag word is left at 2 while the enemy runs.
 void gluttonChunkTask(Task* arg0)
 {
-    GpEnemyTaskFuncTable4 sp;
-    GluttonGrabWork*      work;
+    EnemyTaskFuncTable4 sp;
+    GluttonGrabWork*    work;
 
     sp = gGluttonChunkStates;
 

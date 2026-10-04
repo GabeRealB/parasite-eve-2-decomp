@@ -3372,7 +3372,7 @@ static const Actor01900StateTable Actor01900_D001BC = { {
 /// The actor task's dispatcher table, indexed by `Task::state`: spawn
 /// (`Actor01900_Fn02018`), a three-frame wait (`Actor01900_Fn0ABA0`), the
 /// per-frame tick (`Actor01900_Fn09D3C`) and teardown.
-static const GpEnemyTaskFuncTable4 Actor01900_D0023C = { {
+static const EnemyTaskFuncTable4 Actor01900_D0023C = { {
     Actor01900_Fn02018,
     Actor01900_Fn0ABA0,
     Actor01900_Fn09D3C,
@@ -3660,7 +3660,7 @@ static void Actor01900_Fn0ABA0(Enemy* enemy, Task* task)
 
 void Actor01900_Fn0ABE4(Task* arg0)
 {
-    GpEnemyTaskFuncTable4 sp;
+    EnemyTaskFuncTable4 sp;
 
     sp = Actor01900_D0023C;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

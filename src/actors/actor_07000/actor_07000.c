@@ -1092,7 +1092,7 @@ static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
 /// Task states of the caged specimen as `sucklercephDropTask` dispatches them:
 /// the same update and teardown after a spawn that parks the specimen hidden,
 /// and a fourth state for its drop into place.
-static const GpEnemyTaskFuncTable4 gSucklercephDropTaskStates = {
+static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
     { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
 };
 
@@ -1239,7 +1239,7 @@ void sucklercephKill(Task* arg0, u8 arg1)
 
 /// Task states of the specimen's second form as `Actor07000_Fn05E6C`
 /// dispatches them: spawn, per-frame update, death and destruction.
-static const GpEnemyTaskFuncTable4 Actor07000_D0003C = {
+static const EnemyTaskFuncTable4 Actor07000_D0003C = {
     { Actor07000_Fn02E0C, Actor07000_Fn03164, Actor07000_Fn04468, enemyDestroy },
 };
 
@@ -2701,7 +2701,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 
 void Actor07000_Fn05E6C(Task* arg0)
 {
-    GpEnemyTaskFuncTable4 sp;
+    EnemyTaskFuncTable4 sp;
 
     sp = Actor07000_D0003C;
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);

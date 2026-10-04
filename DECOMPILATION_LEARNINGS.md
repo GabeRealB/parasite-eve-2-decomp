@@ -49254,7 +49254,7 @@ outcome, not a coincidence: fix the call before reading any dump.
 The third form of the same invention, and the one where the callee cannot settle
 it. Dispatchers here copy a fixed function table onto the stack and call through
 one entry — `TaskFuncTable3/4/5`, `EnemyTaskFuncTable3`,
-`GpEnemyTaskFuncTable4` or `EnemyTaskFuncTable5`. The copy's
+`EnemyTaskFuncTable4` or `EnemyTaskFuncTable5`. The copy's
 temporaries land in `$a1`-`$a3` (they die at the `jalr`, so nothing else
 claims them), which leaves exactly the picture of a call passing the table's
 contents:
@@ -103079,7 +103079,7 @@ m2c cannot tell the copy's four stores from outgoing stack arguments:
 ```c
 void Actor01900_Fn0ABE4(Task* arg0)
 {
-    GpEnemyTaskFuncTable4 sp;
+    EnemyTaskFuncTable4 sp;
 
     sp = Actor01900_D0023C;
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
@@ -103096,8 +103096,8 @@ same `addu $a1` + `lui`, and 5 of them carry this table-copy shape.
 
 Name the type from the whole table, not from the call: `Actor01900_D0023C`'s
 four words point at `Actor01900_Fn02018`, `Actor01900_Fn0ABA0`,
-`Actor01900_Fn09D3C` and `enemyDestroy`, which is `GpEnemyTaskFuncTable4`
-(gameplay/1BC.h). The three-entry `EnemyTaskFuncTable3` and five-entry
+`Actor01900_Fn09D3C` and `enemyDestroy`, which is `EnemyTaskFuncTable4`
+(gameplay/enemy.h). The three-entry `EnemyTaskFuncTable3` and five-entry
 `EnemyTaskFuncTable5` forms are the same idiom with a different count, so a
 table whose length does not fit the type guessed from the call is a length
 error, not an argument error.

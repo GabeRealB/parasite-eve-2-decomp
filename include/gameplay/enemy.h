@@ -176,11 +176,18 @@ typedef struct {
 } EnemyTaskFuncTable3;
 STATIC_ASSERT_SIZEOF(EnemyTaskFuncTable3, 0xC);
 
-/// Four-entry form of `EnemyTaskFuncTable3`, for actors whose dispatcher has
-/// an extra state beyond spawn/tick/teardown.
+/// Four `EnemyTaskFunc` handlers stored as a value for whole-table copies.
+///
+/// Each table defines its slots' roles. The selector may be a task state or a
+/// work substate. Dispatch requires an index in 0..3 and a non-NULL entry,
+/// which receives the live enemy and the task that owns it. There is no
+/// terminator or bounds check in the table. Copying it copies callback
+/// pointers, not enemy or task storage; the callback code must remain loaded
+/// for the call. A handler may release either argument before returning.
 typedef struct {
-    EnemyTaskFunc funcs[4];
-} GpEnemyTaskFuncTable4;
+    EnemyTaskFunc funcs[4]; // Handlers in selector order; slot meanings belong to each table
+} EnemyTaskFuncTable4;
+STATIC_ASSERT_SIZEOF(EnemyTaskFuncTable4, 0x10);
 
 /// Five `EnemyTaskFunc` handlers stored as a value for whole-table copies.
 ///

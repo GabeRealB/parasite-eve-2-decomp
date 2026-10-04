@@ -3696,7 +3696,7 @@ static const EnemyTaskFuncTable5 gGluttonGlobStates = {
 
 /// State handlers of the enemy dropped from the host's part 3: spawn, fall,
 /// settle, teardown.
-static const GpEnemyTaskFuncTable4 gGluttonChunkStates = {
+static const EnemyTaskFuncTable4 gGluttonChunkStates = {
     {
         gluttonChunkSpawn,
         gluttonChunkFall,
@@ -3730,7 +3730,7 @@ static const EnemyTaskFuncTable5 gGluttonRainStates = {
 #include "../../shared/glutton_spinner_chase.inc.c"
 
 /// State handlers of the spinner enemy: spawn, wait, home, teardown.
-static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
+static const EnemyTaskFuncTable4 gGluttonSpinnerStates = {
     {
         gluttonSpinnerSpawn,
         gluttonSpinnerWait,

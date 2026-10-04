@@ -6,8 +6,8 @@
 /// it.
 void gluttonSpinnerTask(Task* arg0)
 {
-    GpEnemyTaskFuncTable4 sp;
-    GluttonSpinnerWork*   work;
+    EnemyTaskFuncTable4 sp;
+    GluttonSpinnerWork* work;
 
     sp = gGluttonSpinnerStates;
 

@@ -9,7 +9,7 @@
 void desertChaserFrameState(Enemy* enemy, Task* task)
 {
     DesertChaserWork*        work;
-    GpEnemyTaskFuncTable4    sp;
+    EnemyTaskFuncTable4      sp;
     DesertChaserTickScratch* scratch;
     u8*                      head;
     GfxCoord*                walker;
