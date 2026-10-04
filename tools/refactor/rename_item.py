@@ -128,15 +128,19 @@ def record_generated_name(root: str, spec_name: str, new_name: str, source: str,
     if rel is None:
         return None
     addr = int(m.group(1), 16)
-    # A reference into another image is declared `absolute:True` in a symbol
-    # map already - the family's imports, or the image's own - and the sidecar
-    # pass rewrites that line. The name is then stored; adding an entry to the
+    # A reference into another image is declared `absolute:True` in a map the
+    # referring image reads - its own, or its imports - and the sidecar pass
+    # rewrites that line. The name is then stored; adding an entry to the
     # image's own map as well would declare, as that image's function, an
-    # address the image does not hold.
-    import glob
-    for other in glob.glob(os.path.join(root, "configs", version, "**", "*.txt"), recursive=True):
+    # address the image does not hold. Another image's reference to this
+    # definition says nothing of the kind, so only this image's maps count.
+    parts = os.path.normpath(source).split(os.sep)
+    imports = (os.path.join("configs", version, f"sym.{parts[1]}.imports.txt")
+               if parts[1] in ("main", "gameplay", "title")
+               else os.path.join("configs", version, "sym", f"{parts[1]}.imports.txt"))
+    for other in (rel, imports):
         try:
-            text = open(other, errors="replace").read()
+            text = open(os.path.join(root, other), errors="replace").read()
         except OSError:
             continue
         if re.search(rf"^\s*(?:{re.escape(spec_name)}|{re.escape(new_name)})\s*=\s*{addr:#010x}\s*;[^\n]*absolute:True",

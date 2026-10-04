@@ -69,6 +69,19 @@ def slot_siblings(version: str) -> dict[str, list[str]]:
     return out
 
 
+def package_aliases(version: str) -> dict[str, set[str]]:
+    """The names each package exports as aliases of a shared definition (DEFINE_ALIAS)."""
+    manifest = tomllib.loads((ROOT / "configs" / version / "overlays.toml").read_text())
+    out: dict[str, set[str]] = {}
+    for fam in manifest.values():
+        if not isinstance(fam, dict) or "overlays" not in fam:
+            continue
+        for entry in fam["overlays"].values():
+            for s in entry.get("slots") or []:
+                out[str(s["package"])] = set((s.get("aliases") or {}).values())
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--version", default="USA")
@@ -76,6 +89,7 @@ def main() -> int:
     args = ap.parse_args()
     out_dir = ROOT / "build" / args.version / "out"
     siblings = slot_siblings(args.version)
+    aliases = package_aliases(args.version)
     maps_of = {}
     problems = []
     checked = 0
@@ -98,11 +112,14 @@ def main() -> int:
         for addr, fn in image_functions(elf):
             if fn in known or re.fullmatch(rf"func_(\w+_)?{addr:08X}", fn):
                 continue
-            # a source built for several packages: a placeholder is named after the
-            # address it has in the first of them, and each package's alias
-            # (DEFINE_ALIAS) repeats that under its own name
-            owners = "|".join(map(re.escape, [cfg_name, *siblings.get(cfg_name, [])]))
-            if cfg_name in siblings and re.fullmatch(rf"func_({owners})_[0-9A-F]{{8}}", fn):
+            # an alias is a second symbol on a function the source defines under
+            # another name, and that name is the one objdiff pairs
+            if fn in aliases.get(cfg_name, ()):
+                continue
+            # a source built for several packages: a placeholder is named after
+            # the address it has in the first of them
+            owners = "|".join(map(re.escape, siblings.get(cfg_name, [])))
+            if owners and re.fullmatch(rf"func_({owners})_[0-9A-F]{{8}}", fn):
                 continue
             problems.append(f"{cfg_name}: {fn} at 0x{addr:08X} is not in {(paths or ['its symbol map'])[0]}")
     if problems:
