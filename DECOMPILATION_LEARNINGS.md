@@ -46913,7 +46913,7 @@ gMcSaveData.location.loc.view = Gp_FindViewIndex(9);
 restores the order with no barrier and no shape claim, because both sides are
 now `MEM_IN_STRUCT_P` and *both* suppressing clauses in `true_dependence` go
 false. In `func_dryfield_water_tower_8017FA5C` -- a `Gp_FindViewIndex` result
-stored beside a `DryfieldWaterTowerState*` load of `field_48` -- the schedule
+stored beside a `_DryfieldWaterTowerPropSceneWork*` load of `fallingPropTask` -- the schedule
 then matches the target instruction for instruction.
 
 Prefer this to `SOFT_BARRIER()` here, and read the barrier's failure as
@@ -86448,7 +86448,7 @@ address form 100.000%, and both produce the same `sb` (the reported `regs` is a
 counting artefact of the two renamed operands, not an allocation difference —
 do not go looking in `.lreg` for it). The struct spelling is not always wrong,
 though: `func_dryfield_water_tower_8017FA5C`, two functions away in the same
-file, needs it for the aliasing of that store with its `state->field_48` read.
+file, needs it for the aliasing of that store with its `state->fallingPropTask` read.
 Prefer whichever name the target relocates against, and when a body's schedule
 needs the other one, say so at both sites.
 
@@ -90033,8 +90033,8 @@ the displacement while keeping the base symbol:
 extern ActorTransform D_dryfield_water_tower_801823A8;
 extern ActorTransform D_dryfield_water_tower_801823D8[];
 
-taskMessageDispatch(work->field_8, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[0], 0);
-taskMessageDispatch(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);
+taskMessageDispatch(work->secondActorTask, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[0], 0);
+taskMessageDispatch(work->firstActorTask, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);
 ```
 
 CSE keeps `&D_..._801823D8` in one register, so the second call is the single
@@ -122521,7 +122521,7 @@ When the guard compares a *variable* it cannot fold, and the target keeps it as
 a real `beqz` before the loop:
 
 ```
-    lhu    v0,%lo(D)(a1)      # D[0].field_0, the guard's operand
+    lhu    v0,%lo(D)(a1)      # D[0].maxTimeouts, the guard's operand
     lhu    v1,0x72(v1)
     sltu   v0,v0,v1
     beqz   v0,.Lend
@@ -122542,10 +122542,10 @@ decrement:
 
 ```c
 i = 0;
-if (D_dryfield_water_tower_8018767C[0].field_0 < state->field_72) {
+if (D_dryfield_water_tower_8018767C[0].maxTimeouts < state->timeouts) {
     do {
         i += 1;
-    } while (D_dryfield_water_tower_8018767C[i].field_0 < state->field_72);
+    } while (D_dryfield_water_tower_8018767C[i].maxTimeouts < state->timeouts);
 }
 ```
 
@@ -122714,12 +122714,12 @@ delete=1`, with blocks, predicates, calls, delay slots and the whole register
 allocation already matching.
 
 A cast at the use site does not reach it here, because the switch's operand *is*
-the value: `switch ((u16)work->field_C)` still moves the HImode load into a
+the value: `switch ((u16)work->request)` still moves the HImode load into a
 register and folds the extension, so the `lh` stands. The widening has to be a
 read of its own:
 
 ```c
-u16 state = work->field_C;   /* lhu 0xC(s2) - zero_extend:SI (mem:HI) */
+u16 state = work->request;   /* lhu 0xC(s2) - zero_extend:SI (mem:HI) */
 switch (state) {             /* lh without the local */
 ```
 
@@ -122781,7 +122781,7 @@ The lever that worked was adding a local that does nothing:
     new_var = 0;
     obj->field_C &= 0xFF7F;
     if (D_80114C11 == 0) { ... }
-    if (state->field_70 != new_var) {  /* ... instead of `!= 0` */
+    if (state->shadowEnabled != new_var) {  /* ... instead of `!= 0` */
 ```
 
 together with storing a pointer field in two steps rather than one

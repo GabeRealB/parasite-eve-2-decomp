@@ -66,141 +66,184 @@ extern ActorTransform D_dryfield_water_tower_80181A40[2];
 
 extern WorldCollisionTrigger D_dryfield_water_tower_80186A84[24];
 
-/// Work block of the water tower's script task, allocated as 0x18 zeroed bytes
-/// by `func_dryfield_water_tower_8017FD64` and hung off `Task::work` (0x1C).
-/// Reach it with
-/// `(DwtwWork*)task->work`.
-///
-/// The first three fields are the tasks the room's script dispatches its
-/// messages to: `field_0` is the slot-3 game pointer (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`),
-/// and `field_4` / `field_8` are `Gp_FindWorkById(...)->task` for two ids
-/// built from the session's `location.loc.area` / `location.loc.stage` bytes (the second id has
-/// 0x1000 OR'd in). `func_dryfield_water_tower_80180220` sends the 0x7D4 pair
-/// to `field_8` / `field_4` and the 0x3F3 / 0x3E9 messages to `field_0`.
-///
-/// `field_C` / `field_E` are written together as a pair -- `field_E` always
-/// cleared -- by `func_dryfield_water_tower_80180174`, a body the breezeway
-/// room carries as `func_dryfield_breezeway_8017E370`. `field_C` is the
-/// per-frame command latch `func_dryfield_water_tower_8017FBE8` switches on and
-/// every one of its paths clears: the states it dispatches are the room's
-/// animations and the two prop placements, and its idle states are 0 and 3.
-/// `field_E`'s meaning is not yet known. `field_14` is a 0/1 latch that lets
-/// `func_dryfield_water_tower_80180194` dispatch its one-shot message once.
-typedef struct DwtwWork {
-    /* 0x00 */ Task* field_0; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), taskMessageDispatch target
-    /* 0x04 */ Task* field_4; // Gp_FindWorkById(...)->task
-    /* 0x08 */ Task* field_8; // Gp_FindWorkById(...)->task
-    /* 0x0C */ s16   field_C;
-    /* 0x0E */ s16   field_E;
-    /* 0x10 */ byte  pad_10[0x4];
-    /* 0x14 */ s16   field_14;
-    /* 0x16 */ byte  pad_16[0x2];
-} DwtwWork;
-STATIC_ASSERT_SIZEOF(DwtwWork, 0x18);
+/// Requests the actor scene's event script posts, held for one frame in
+/// `_DryfieldWaterTowerActorSceneWork::request`. The script never posts 3.
+enum {
+    DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_NONE,              // Nothing posted
+    DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_SET_UP,            // Place both actors and start their clips, set the player's draw mode 2, fade in
+    DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_MOVE_FIRST_ACTOR,  // Place the first actor again and start its second clip
+    DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_PLACE_PLAYER = 4,  // Show the player and place them at the scene's mark
+    DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_FIRST_ACTOR_CLIP,  // Restart the first actor's opening clip
+    DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_SECOND_ACTOR_CLIP, // Restart the second actor's opening clip
+};
 
-/// One step of the room's rotation schedule, the table
-/// `func_dryfield_water_tower_8017FB4C` walks: `field_0` is the step's
-/// threshold and `field_2` its duration. Four of them sit at 0x8018767C --
-/// `{0, 25}`, `{1, 30}`, `{2, 35}` and the `{0xFFFF, 40}` terminator, so the
-/// thresholds ascend and the last entry is the cap the walk can never pass --
-/// and the duration is read out as `field_2 * 30` with the low bit cleared.
+/// Work block of the water tower room's actor scene, kept at `Task::work`.
 ///
-/// `func_dryfield_water_tower_8017EB7C` counts the step up in
-/// `DryfieldWaterTowerState::field_72` and walks the same table inline,
-/// handing the duration to the accumulator `D_dryfield_water_tower_801876AA`
-/// at 0x801876AA, the halfword its 0x801876A8 frame counter is compared
-/// against.
-typedef struct DwtwStep {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-} DwtwStep;
-STATIC_ASSERT_SIZEOF(DwtwStep, 0x4);
+/// The scene is the task the prop scene's driver spawns on the room's first
+/// action. It starts the player's weapon animation, runs an event script over
+/// the room's two placed actors and ends with the event. The script reaches
+/// this block through its callbacks, which post `request` for the task to carry
+/// out on its next frame.
+typedef struct {
+    Task* playerTask;       // Player task at allocation; receives the scene's draw-mode and placement messages
+    Task* firstActorTask;   // Task of the placed actor whose key is the room's stage and area
+    Task* secondActorTask;  // Task of the placed actor with that key and 0x1000 set
+    u16   request;          // Request to carry out this frame, then cleared (DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_*)
+    s16   field_E;          // Cleared whenever a request is posted and never read; role unproven
+    byte  field_10[4];      // Never accessed; role unproven
+    s16   actorCommandSent; // Set once the scene has broadcast actor command 0 (0 no, 1 yes)
+    byte  field_16[2];      // Never accessed; role unproven
+} _DryfieldWaterTowerActorSceneWork;
+STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerActorSceneWork, 0x18);
 
-/// One entry of the room's per-view volume table: while the cap is being
-/// rotated, `func_dryfield_water_tower_8017EB7C` looks up the view the cap
-/// script last recorded and plays its running sound at `field_2` percent of
-/// full volume (0x7F). A `field_0` of 0xFFFF ends the table, and a view with no
-/// entry plays at full volume.
-typedef struct DwtwViewVolume {
-    /* 0x0 */ u16 field_0; // view index
-    /* 0x2 */ u16 field_2; // volume, percent
-} DwtwViewVolume;
-STATIC_ASSERT_SIZEOF(DwtwViewVolume, 0x4);
+/// Frames in one unit of `_DryfieldWaterTowerTimeLimit::duration`.
+#define DRYFIELD_WATER_TOWER_TIME_LIMIT_UNIT_FRAMES 30
 
-/// Scratch state of the room's cap script, stored at `Task::work`: the
-/// 0x7C-byte block `func_dryfield_water_tower_8017F128` allocates for its own
-/// task before it runs. Every task the room spawns off `D_..._80182384`
-/// allocates the same block, so the prop tasks reached through `field_44` /
-/// `field_48` carry one too.
+/// `_DryfieldWaterTowerTimeLimit::maxTimeouts` of the entry that ends the table.
+#define DRYFIELD_WATER_TOWER_TIME_LIMIT_LAST 0xFFFF
+
+/// One entry of the mechanism's time limits: how long a timed run lasts, by how
+/// many earlier runs have timed out.
 ///
-/// It opens with the light and colour matrices of the task's own model: setup
-/// points the model's `lightMtx` and `colorMtx` at them.
+/// A run takes the first entry whose `maxTimeouts` is not below the count, so
+/// the thresholds ascend and the last entry serves every later run. Each
+/// timeout therefore buys the next run a longer limit, up to the last entry's.
+typedef struct {
+    u16 maxTimeouts; // Highest count of timed-out runs the entry serves (DRYFIELD_WATER_TOWER_TIME_LIMIT_LAST in the last entry)
+    u16 duration;    // Length of the run, in units of DRYFIELD_WATER_TOWER_TIME_LIMIT_UNIT_FRAMES
+} _DryfieldWaterTowerTimeLimit;
+STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerTimeLimit, 0x4);
+
+/// `_DryfieldWaterTowerViewVolume::viewIndex` of the record that ends the table.
+#define DRYFIELD_WATER_TOWER_VIEW_VOLUME_END 0xFFFF
+
+/// One entry of the room's per-view volume table for the mechanism's running
+/// sound.
 ///
-/// `field_40` is the slot-3 game pointer (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`), the task the
-/// 0x3E9 player-placement messages go to. `field_44` / `field_48` are the two
-/// prop tasks `func_dryfield_water_tower_8017F128` spawns as types 1 and 2 of
-/// `D_..._80182384` -- the 0x7D4 (`actorMsgPlaceYawPitchRoll`)
-/// targets -- and `field_4C` is
-/// the task it spawns off a second table, `D_..._8018277C`. `field_50` is the
-/// script-18 task `func_dryfield_water_tower_8017E93C` spawns when the cap
-/// script reaches one of its last three states, one of the room's three
-/// `Gp_SpawnScript18` pairs.
+/// While a run is being timed the sound is replayed every frame at the volume
+/// of the entry `Gp_FindViewIndex` selects for the view the driver last
+/// recorded. A view with no entry plays at full volume.
+typedef struct {
+    u16 viewIndex; // `Gp_FindViewIndex` result the entry applies to (DRYFIELD_WATER_TOWER_VIEW_VOLUME_END ends the table)
+    u16 percent;   // Volume in that view, as a percentage of full volume
+} _DryfieldWaterTowerViewVolume;
+STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerViewVolume, 0x4);
+
+/// Requests the prop scene's event scripts post, held for one frame in
+/// `_DryfieldWaterTowerPropSceneWork::request`.
+enum {
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_NONE,              // Nothing posted
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_OUT,         // Show the player and start the sliding prop towards its far placement
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_APPLY_VIEW,        // Switch the room to `nextView`
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_BACK,        // Re-enable the trigger a run disables, walk or hide the player, start the sliding prop back
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SHOW_PLAYER,       // Show the player, placed first after a completed run, then switch to `nextView`
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_UNHANDLED,         // Posted by the closing script; the driver has no case for it
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_FALL,              // Start the falling prop's fall to its hanging height
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_DROP,              // Place the player and start the falling prop's drop to the ground
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_RUN_RUMBLE,        // Start the run's vibration script and its sounds
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_BACK_RUMBLE, // Start the slide back's vibration script and sound
+    DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_DROP_RUMBLE,       // Start the drop's vibration script and sound
+};
+
+/// How a timed run of the mechanism ended, held in
+/// `_DryfieldWaterTowerPropSceneWork::runResult` and reported by the run's step.
+enum {
+    DRYFIELD_WATER_TOWER_RUN_UNDER_WAY, // The step's answer while the run has not ended; never stored
+    DRYFIELD_WATER_TOWER_RUN_TIMED_OUT, // The time limit passed; the driver waits for the next run
+    DRYFIELD_WATER_TOWER_RUN_COMPLETED, // The player took the room's second action in time; the reason byte of that action
+};
+
+/// Phases of a timed run, held in `_DryfieldWaterTowerPropSceneWork::phase`
+/// while the driver is in its run state.
+enum {
+    DRYFIELD_WATER_TOWER_RUN_PHASE_START,          // Play the opening script, or restore the opened room directly on a later run
+    DRYFIELD_WATER_TOWER_RUN_PHASE_OPENING_SCRIPT, // Wait for the opening script's event to end
+    DRYFIELD_WATER_TOWER_RUN_PHASE_START_TIMER,    // Command the actors and restart the frame count
+    DRYFIELD_WATER_TOWER_RUN_PHASE_TIMING,         // Count frames until the limit or the room's second action
+    DRYFIELD_WATER_TOWER_RUN_PHASE_ENDING_SCRIPT,  // Wait for the ending script's event to end and report the result
+};
+
+/// Phases of the driver's two steps after a completed run, held in
+/// `_DryfieldWaterTowerPropSceneWork::phase`.
+enum {
+    DRYFIELD_WATER_TOWER_CLOSING_PHASE_START, // Send the step's command or start its script
+    DRYFIELD_WATER_TOWER_CLOSING_PHASE_WAIT,  // Wait for the answer or for the script's event to end
+};
+
+/// Phases of the sliding prop's slide in either direction, held in
+/// `_DryfieldWaterTowerPropSceneWork::phase`.
+enum {
+    DRYFIELD_WATER_TOWER_PROP_SLIDE_MOVING,   // Advancing in Z towards the end placement, raising dust
+    DRYFIELD_WATER_TOWER_PROP_SLIDE_SETTLING, // Held at the end placement until the settle count runs out
+};
+
+/// Frames the sliding prop is held at the end of a slide before it reports arrival.
+#define DRYFIELD_WATER_TOWER_PROP_SLIDE_SETTLE_FRAMES 61
+
+/// Phases of the falling prop's fall to its hanging height, held in
+/// `_DryfieldWaterTowerPropSceneWork::phase`. The free-falling copy has no
+/// phases of its own: it leaves the first one on the frame it is placed.
+enum {
+    DRYFIELD_WATER_TOWER_PROP_FALL_SPAWN_COPY, // Spawn the free-falling copy
+    DRYFIELD_WATER_TOWER_PROP_FALL_START_COPY, // Start the copy falling
+    DRYFIELD_WATER_TOWER_PROP_FALL_FALLING,    // Accelerating downwards until the hanging height is passed
+    DRYFIELD_WATER_TOWER_PROP_FALL_HANGING,    // At rest at the hanging height
+};
+
+/// Phases of the falling prop's drop from its hanging height to the ground,
+/// held in `_DryfieldWaterTowerPropSceneWork::phase`.
+enum {
+    DRYFIELD_WATER_TOWER_PROP_DROP_START,    // Remove the free-falling copy and take the drop's start placement
+    DRYFIELD_WATER_TOWER_PROP_DROP_DROPPING, // Descending at a constant rate until the ground placement is passed
+    DRYFIELD_WATER_TOWER_PROP_DROP_SETTLING, // Shaking at the ground placement until the settle count runs out
+};
+
+/// Frames the falling prop shakes on the ground before its drop reports arrival.
+#define DRYFIELD_WATER_TOWER_PROP_DROP_SETTLE_FRAMES 11
+
+/// Work block of each task in the water tower room's prop scene, kept at `Task::work`.
 ///
-/// The tail is halfword slots -- the pairs are timers the instructions above
-/// the state switch count down -- and the ones the decomp has named so far are
-/// `field_58` / `field_5A` / `field_60`, the three
-/// `func_dryfield_water_tower_8017F808` clears on message 0x7DB, and
-/// `field_5C` / `field_5E`, which `func_dryfield_water_tower_8017F8E8` writes
-/// together -- `field_5C` is the cap script's command index, the value
-/// `func_dryfield_water_tower_8017E93C` switches on and every one of its states
-/// resets to zero -- and `field_6A`, the cap props' displacement accumulator: the prop
-/// task `func_dryfield_water_tower_8017DE30` advances it by 4 a frame and adds
-/// the result to the cap coordinate's Y, so the cap accelerates downwards.
-/// `field_64` holds the value of nibble 0x55 the cap script read while placing
-/// its props, `field_68` the view index the script later restores into the
-/// saved location, and `field_74` the session's view, which the script records every
-/// frame it runs. `field_6C` / `field_6E` are 0/1 latches set by
-/// `func_dryfield_water_tower_8017FBC8` / `8017FBD8`; `field_70` is a third,
-/// set by script opcode `func_dryfield_water_tower_8017FA5C` and read back by
-/// the prop task `func_dryfield_water_tower_8017E1DC`. `field_72` is the
-/// rotation's step, advanced by `func_dryfield_water_tower_8017EB7C` and the
-/// index `func_dryfield_water_tower_8017FB4C` reads its `DwtwStep` with.
-/// `field_76` is also a
-/// 0/1 latch, set once by `func_dryfield_water_tower_8017F82C`, the 0x0D
-/// handler both of the room's script tables carry. `field_78` is a fourth:
-/// `func_dryfield_water_tower_8017E93C` sets it as it spawns
-/// `Gp_SpawnScript18(0x80187628, 0x8018763C)`, `8017EB7C` clears it, and
-/// `func_dryfield_water_tower_8017F908` reads it to decide whether its event
-/// 0x5214000C is due.
-typedef struct DryfieldWaterTowerState {
-    MATRIX           lightMtx;
-    MATRIX           colorMtx;
-    /* 0x40 */ Task* field_40; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
-    /* 0x44 */ Task* field_44;
-    /* 0x48 */ Task* field_48;
-    /* 0x4C */ Task* field_4C;
-    /* 0x50 */ Task* field_50;
-    /* 0x54 */ u8    pad_54[0x4];
-    /* 0x58 */ u16   field_58;
-    /* 0x5A */ s16   field_5A;
-    /* 0x5C */ u16   field_5C;
-    /* 0x5E */ s16   field_5E;
-    /* 0x60 */ s16   field_60;
-    /* 0x62 */ u8    pad_62[0x2];
-    /* 0x64 */ u16   field_64;
-    /* 0x66 */ u16   field_66;
-    /* 0x68 */ s16   field_68;
-    /* 0x6A */ u16   field_6A;
-    /* 0x6C */ u16   field_6C;
-    /* 0x6E */ u16   field_6E;
-    /* 0x70 */ u16   field_70;
-    /* 0x72 */ u16   field_72;
-    /* 0x74 */ s16   field_74;
-    /* 0x76 */ u16   field_76;
-    /* 0x78 */ u16   field_78;
-    /* 0x7A */ u8    pad_7A[0x2];
-} DryfieldWaterTowerState;
-STATIC_ASSERT_SIZEOF(DryfieldWaterTowerState, 0x7C);
+/// The scene is three tasks spawned from one table: a driver without a model,
+/// which sequences the room's mechanism and carries out the requests its event
+/// scripts post, and two prop tasks, one whose model slides across the room
+/// and one whose model falls from above. Each allocates its own zeroed copy of
+/// this block and stores the player task in it. Beyond that the driver uses the
+/// task pointers, the request and the run fields, and the props use their
+/// matrices and motion fields; `phase` and `fallingPropTask` serve both.
+///
+/// The mechanism is operated in timed runs. A run slides the prop out and
+/// counts frames against a time limit; it ends when the limit passes or when
+/// the player takes the room's second action, and either way the prop slides
+/// back. A completed run goes on to the falling prop's fall and drop.
+typedef struct {
+    MATRIX lightMtx;            // Props: light matrix the model is drawn with
+    MATRIX colorMtx;            // Props: colour matrix the model is drawn with
+    Task*  playerTask;          // Player task at allocation; the driver shows, hides and places its model
+    Task*  slidingPropTask;     // Driver: the sliding prop's task, which it spawns
+    Task*  fallingPropTask;     // Driver: the falling prop's task, which it spawns. Falling prop: the free-falling copy of itself it spawns
+    Task*  actorSceneTask;      // Driver: the actor scene's task, which it spawns and waits for
+    Task*  padScriptTask;       // Driver: task of the vibration script last started; never read
+    byte   field_54[4];         // Never accessed; role unproven
+    u16    phase;               // Phase of the motion or driver step in progress; each numbers its own from 0
+    s16    settleFrames;        // Props: frames spent settling at the end of a slide or drop
+    u16    request;             // Driver: request to carry out this frame, then cleared (DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_*)
+    s16    field_5E;            // Cleared whenever a request is posted and never read; role unproven
+    s16    field_60;            // Cleared whenever a prop is commanded into a new state and never read; role unproven
+    byte   field_62[2];         // Never accessed; role unproven
+    u16    mechanismState;      // Driver: the mechanism-state flag as read when the props were placed; 2 once a run has been timed
+    u16    runResult;           // Driver: how the last run ended (DRYFIELD_WATER_TOWER_RUN_TIMED_OUT, DRYFIELD_WATER_TOWER_RUN_COMPLETED)
+    s16    nextView;            // Driver: 1-based view slot the next view change switches the room to
+    s16    fallSpeed;           // Falling prop: distance fallen each frame, growing by 4 a frame
+    u16    actorEventReceived;  // Driver: an actor has reported an event to the room (0 no, 1 yes)
+    u16    runRequested;        // Driver: the room has asked for a run; cleared as the run starts (0 no, 1 yes)
+    u16    shadowEnabled;       // Falling prop: draw its ground shadow (0 no, 1 yes)
+    u16    timeouts;            // Driver: runs that have timed out; selects the next run's time limit
+    s16    currentView;         // Driver: the session's view slot on the last frame the driver ran
+    u16    reequipRequested;    // Driver: the weapon re-equip has been requested, which happens once (0 no, 1 yes)
+    u16    runningSoundStarted; // Driver: the run's sound loop has been started (0 no, 1 yes)
+    byte   field_7A[2];         // Never accessed; role unproven
+} _DryfieldWaterTowerPropSceneWork;
+STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerPropSceneWork, 0x7C);
 
 /// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on and
@@ -243,14 +286,14 @@ static SVECTOR                _gDryfieldWaterTowerCollision04560[8];
 /// the address constant and lose the head-based form.
 ///
 /// `func_dryfield_water_tower_8017F9AC` also sends this record to the prop task
-/// at `DryfieldWaterTowerState::field_44` with message 0x7D4.
+/// at `_DryfieldWaterTowerPropSceneWork::slidingPropTask` with message 0x7D4.
 
 /// The run's second record, at 0x80181A58: the lowered position
 /// `func_dryfield_water_tower_8017E428` sinks the cap to (`pos.vy`), tests the
 /// cap's Z against (`pos.vz`) and pulls the cap's X to (`pos.vx`), and the
 /// 0x7D4 placement that same function publishes to itself once its state 1
 /// counter runs out. `func_dryfield_water_tower_8017F908` sends it to the prop
-/// task at `DryfieldWaterTowerState::field_44` with the same message.
+/// task at `_DryfieldWaterTowerPropSceneWork::slidingPropTask` with the same message.
 
 /// The effect offsets `func_dryfield_water_tower_8017E5B0` spawns 0x60054
 /// with, at 0x80181C60: twelve halfwords, indexed by the 0..9 `killCountdown`
@@ -265,16 +308,16 @@ extern u16 D_dryfield_water_tower_80181C60[];
 
 /// The two player placements the cap script's commands 3, 4 and 7 dispatch as
 /// the payload of message 0x3E9 (their handler is the slot-3 game task at
-/// `field_40`): `80181AD0` from commands 4 and 7, and `80181AE8` from command
+/// `playerTask`): `80181AD0` from commands 4 and 7, and `80181AE8` from command
 /// 3, which sends `80181AD0` -- the 0x18-byte record one step below it in the
 /// same array -- with 0x3F2 straight after. `func_dryfield_water_tower_8017F9AC`
 /// and `8017FA5C` send `80181AD0` with the same message.
 extern ActorTransform D_dryfield_water_tower_80181AD0[2];
 
 /// The three `Gp_SpawnScript18` pairs the cap script's last three commands
-/// spawn into `field_50`, and the sound each one queues: `0x52140006` with the
+/// spawn into `padScriptTask`, and the sound each one queues: `0x52140006` with the
 /// extra `0x5214000C` for command 8, whose script `func_dryfield_water_tower_8017EB7C`
-/// and `func_dryfield_water_tower_8017F908` wait on through `field_78`.
+/// and `func_dryfield_water_tower_8017F908` wait on through `runningSoundStarted`.
 extern PadScriptCmd              D_dryfield_water_tower_80187628[5];
 extern PadScriptVibrationSegment D_dryfield_water_tower_8018763C[4];
 extern PadScriptCmd              D_dryfield_water_tower_8018764C[5];
@@ -321,10 +364,10 @@ extern EvsCommand D_dryfield_water_tower_80181DC8[];
 extern EvsCommand D_dryfield_water_tower_80181E88[];
 extern EvsCommand D_dryfield_water_tower_80181FF0[];
 
-/// The room's rotation schedule (see `DwtwStep`) and the per-view volume table
-/// its running sound is scaled by.
-extern DwtwStep       D_dryfield_water_tower_8018767C[];
-extern DwtwViewVolume D_dryfield_water_tower_80182350[];
+/// The mechanism's time limits, searched by the count of timed-out runs, and
+/// the per-view volume table its running sound is scaled by.
+extern _DryfieldWaterTowerTimeLimit  D_dryfield_water_tower_8018767C[];
+extern _DryfieldWaterTowerViewVolume D_dryfield_water_tower_80182350[];
 
 /// The cap script's message table, published into its own `Task::msgTable`.
 extern TaskMessageEntry D_dryfield_water_tower_80182374[2];
@@ -340,8 +383,8 @@ extern TaskDesc D_dryfield_water_tower_8018277C[];
 
 /// The `ActorTransform` run the room's 0x7D4 messages step the props through:
 /// the 0x18-byte records from 0x801823A8 up to 0x80182408. `D_..._801823C0`,
-/// the second of them, is case 1's pair -- `[0]` to `field_4` and `[3]`
-/// (0x80182408) to `field_8`; `D_..._801823F0`, the run's element 2, is case
+/// the second of them, is case 1's pair -- `[0]` to `firstActorTask` and `[3]`
+/// (0x80182408) to `secondActorTask`; `D_..._801823F0`, the run's element 2, is case
 /// 2's, and the same record the script opcode
 /// `func_dryfield_water_tower_80180220` sends as element 1 of the pair it
 /// declares `D_..._801823D8[]`; and `D_..._801823A8`, the first, is the player
@@ -355,7 +398,7 @@ extern ActorTransform D_dryfield_water_tower_801823A8;
 /// is `D_..._80182420[1]` in case 1 and `D_..._80182434` in case 6.
 
 /// The pair of placements `func_dryfield_water_tower_80180220` sends with
-/// message 0x7D4, one to each of `field_8` and `field_4`; the second is the
+/// message 0x7D4, one to each of `secondActorTask` and `firstActorTask`; the second is the
 /// element at 0x18, so the run is declared as an array. Both are payloads of
 /// `actorMsgPlaceYawPitchRoll`, the handler the room's script table
 /// pairs with 0x7D4.
@@ -559,11 +602,11 @@ EvsCommand D_dryfield_water_tower_80181C78[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_RUN_RUMBLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_APPLY_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -584,15 +627,15 @@ EvsCommand D_dryfield_water_tower_80181DC8[8] = {
 EvsCommand D_dryfield_water_tower_80181E88[15] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_BACK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_water_tower_8017F8B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_water_tower_8017F700 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_BACK_RUMBLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SHOW_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -616,13 +659,13 @@ EvsCommand D_dryfield_water_tower_801820B0[17] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_water_tower_8017F700 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_UNHANDLED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_FALL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_DROP_RUMBLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_8017F8E8 }, { .value = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_DROP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_water_tower_8017F82C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -644,7 +687,7 @@ EvsCommand D_dryfield_water_tower_80182248[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-DwtwViewVolume D_dryfield_water_tower_80182350[9] = {
+_DryfieldWaterTowerViewVolume D_dryfield_water_tower_80182350[9] = {
     { 3, 60 },
     { 4, 75 },
     { 5, 50 },
@@ -653,7 +696,7 @@ DwtwViewVolume D_dryfield_water_tower_80182350[9] = {
     { 8, 90 },
     { 19, 75 },
     { 20, 100 },
-    { 0xFFFF, 0xFFFF },
+    { DRYFIELD_WATER_TOWER_VIEW_VOLUME_END, 0xFFFF },
 };
 
 TaskMessageEntry D_dryfield_water_tower_80182374[2] = {
@@ -691,20 +734,20 @@ EvsCommand D_dryfield_water_tower_80182464[22] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_dryfield_water_tower_8018245C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_water_tower_80180114 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_80180174 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_80180174 }, { .value = DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_SET_UP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_water_tower_80180134 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_80180174 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_80180174 }, { .value = DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_SECOND_ACTOR_CLIP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_80180174 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_80180174 }, { .value = DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_FIRST_ACTOR_CLIP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_80180174 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_80180174 }, { .value = DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_MOVE_FIRST_ACTOR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_water_tower_80180154 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_water_tower_80180194 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_80180174 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tower_80180174 }, { .value = DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_PLACE_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1751,11 +1794,11 @@ PadScriptCmd D_dryfield_water_tower_80187670[2] = {
 
 PadScriptVibrationSegment D_dryfield_water_tower_80187678 = { 90, 180, 60, 1 };
 
-DwtwStep D_dryfield_water_tower_8018767C[4] = {
+_DryfieldWaterTowerTimeLimit D_dryfield_water_tower_8018767C[4] = {
     { 0, 25 },
     { 1, 30 },
     { 2, 35 },
-    { 0xFFFF, 40 },
+    { DRYFIELD_WATER_TOWER_TIME_LIMIT_LAST, 40 },
 };
 
 DryfieldWaterTowerSavedView D_dryfield_water_tower_8018768C = { 0 };
@@ -1771,8 +1814,8 @@ static s32        func_dryfield_water_tower_8017FB4C(Task* task);
 static void       func_dryfield_water_tower_8017FBE8(Task* task);
 
 /// Cap-prop task body, in two variants picked by `spawnArg1`. With it zero the
-/// task lowers the cap, driven by `DryfieldWaterTowerState::field_58`: state 0
-/// spawns the table's entry-2 prop into `field_48` and returns without moving
+/// task lowers the cap, driven by `_DryfieldWaterTowerPropSceneWork::phase`: state 0
+/// spawns the table's entry-2 prop into `fallingPropTask` and returns without moving
 /// the cap, state 1 hands that prop a 0x7DB record whose `field_2` asks it for
 /// state 2, and state 2 publishes the lowered placement above once the cap's
 /// coordinate has sunk past it, i.e. once the cap has arrived -- state 3 does
@@ -1780,62 +1823,62 @@ static void       func_dryfield_water_tower_8017FBE8(Task* task);
 ///
 /// A task spawned with a non-zero `spawnArg1` has no state machine: it
 /// publishes the raised placement on its first frame and then only runs the
-/// tail, which advances the halfword `field_6A` by 4 and moves the cap's
+/// tail, which advances the halfword `fallSpeed` by 4 and moves the cap's
 /// coordinate down by it -- so the cap accelerates by 4 a frame -- leaving the
 /// coordinate marked dirty for the next `Gp_UpdateCoord` pass.
 static void func_dryfield_water_tower_8017DE30(Task* arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    GfxCoord*                coord = arg0->extra.tmd->coords;
-    ActorCommand             msg;
+    _DryfieldWaterTowerPropSceneWork* state = arg0->work;
+    GfxCoord*                         coord = arg0->extra.tmd->coords;
+    ActorCommand                      msg;
 
     if (arg0->spawnArg1.value == 0) {
-        switch (state->field_58) {
-            case 0:
-                state->field_48 = Task_SpawnFromTable(D_dryfield_water_tower_80182384, 2, 1, 0);
-                state->field_58++;
+        switch (state->phase) {
+            case DRYFIELD_WATER_TOWER_PROP_FALL_SPAWN_COPY:
+                state->fallingPropTask = Task_SpawnFromTable(D_dryfield_water_tower_80182384, 2, 1, 0);
+                state->phase++;
                 return;
 
-            case 1:
+            case DRYFIELD_WATER_TOWER_PROP_FALL_START_COPY:
                 msg.command = 2;
-                TASK_MESSAGE_DISPATCH_POINTER(state->field_48, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-                state->field_58++;
+                TASK_MESSAGE_DISPATCH_POINTER(state->fallingPropTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+                state->phase++;
                 /* fallthrough */
 
-            case 2:
+            case DRYFIELD_WATER_TOWER_PROP_FALL_FALLING:
                 if (coord->coord.t[1] > D_dryfield_water_tower_80181A70[1].pos.vy) {
-                    TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[1], 0);
-                    state->field_58++;
+                    TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A70[1], 0);
+                    state->phase++;
                     return;
                 }
                 break;
 
-            case 3:
+            case DRYFIELD_WATER_TOWER_PROP_FALL_HANGING:
                 return;
         }
-    } else if (state->field_58 == 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[0], 0);
-        state->field_58++;
+    } else if (state->phase == 0) {
+        TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A70[0], 0);
+        state->phase++;
     }
 
-    state->field_6A    += 4;
-    coord->coord.t[1]  += (s16)state->field_6A;
+    state->fallSpeed   += 4;
+    coord->coord.t[1]  += state->fallSpeed;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// The cap-arrival test the raise prop `func_dryfield_water_tower_8017E1DC` runs
 /// as its state 3 and the lower prop's state machine drives: it is the lenient
 /// sibling of the lowering prop `func_dryfield_water_tower_8017DE30` above, a
-/// three-state machine over the same `DryfieldWaterTowerState::field_58` that
+/// three-state machine over the same `_DryfieldWaterTowerPropSceneWork::phase` that
 /// reports 1 once the cap has arrived.
 ///
-/// State 0 is the spawn tick: it raises the `field_70` shadow latch, kills the
-/// prop parked in `field_48` and publishes the raised placement (the 0x7D4
+/// State 0 is the spawn tick: it raises the `shadowEnabled` shadow latch, kills the
+/// prop parked in `fallingPropTask` and publishes the raised placement (the 0x7D4
 /// record at 0x80181AB8, the pair's second entry). State 1 sinks the cap's
 /// coordinate by 0x12C a frame and, once it passes `pos.vy` of the record at
 /// 0x80181AA0 -- the height the cap has to reach -- fires this room's two arrival
 /// sounds, spawns the two effects 0x190 apart around the cap and publishes the
-/// placed record with 0x7D4 before advancing. State 2 counts `field_5A`; on the
+/// placed record with 0x7D4 before advancing. State 2 counts `settleFrames`; on the
 /// eleventh tick it restores the three script tables from the room's data and
 /// returns 1, and until then it mirrors the record's `pos.vz` into the cap's Z,
 /// nudged by 0xA while the `gDisplayState.gameTick` flag bit 2 is raised. Only the states
@@ -1850,27 +1893,27 @@ static void func_dryfield_water_tower_8017DE30(Task* arg0)
 /// which is the store order the target's frame keeps.
 static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
 {
-    DryfieldWaterTowerState* state;
-    GfxCoord*                coord;
-    GfxCoord*                effCoord;
-    SVECTOR                  pos;
-    s32                      i;
+    _DryfieldWaterTowerPropSceneWork* state;
+    GfxCoord*                         coord;
+    GfxCoord*                         effCoord;
+    SVECTOR                           pos;
+    s32                               i;
 
-    state               = (DryfieldWaterTowerState*)arg0->work;
+    state               = arg0->work;
     coord               = arg0->extra.tmd->coords;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    switch (state->field_58) {
-        case 0:
-            state->field_70 = 1;
-            if (state->field_48 != NULL) {
-                taskKill(state->field_48);
-                state->field_48 = NULL;
+    switch (state->phase) {
+        case DRYFIELD_WATER_TOWER_PROP_DROP_START:
+            state->shadowEnabled = 1;
+            if (state->fallingPropTask != NULL) {
+                taskKill(state->fallingPropTask);
+                state->fallingPropTask = NULL;
             }
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181AB8, 0);
-            state->field_58++;
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181AB8, 0);
+            state->phase++;
             break;
 
-        case 1:
+        case DRYFIELD_WATER_TOWER_PROP_DROP_DROPPING:
             coord->coord.t[1] += 0x12C;
             if (D_dryfield_water_tower_80181A70[2].pos.vy < coord->coord.t[1]) {
                 SndEvt_EnqueueType7(SOUND_WATER_TOWER_CAP_DROP, 0);
@@ -1885,18 +1928,18 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
                     i++;
                     pos.vx += 0x190;
                 } while ((u32)(i & 0xFFFF) < 2U);
-                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
-                state->field_58++;
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A70[2], 0);
+                state->phase++;
             }
             break;
 
-        case 2:
-            state->field_5A++;
-            if ((s16)state->field_5A >= 0xB) {
+        case DRYFIELD_WATER_TOWER_PROP_DROP_SETTLING:
+            state->settleFrames++;
+            if (state->settleFrames >= DRYFIELD_WATER_TOWER_PROP_DROP_SETTLE_FRAMES) {
                 Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04550, (_gDryfieldWaterTowerCollision06004Normals + 2), 0x10);
                 Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045E0, (_gDryfieldWaterTowerCollision06004Faces + 2), sizeof(_gDryfieldWaterTowerCollision045E0));
                 Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04560, (_gDryfieldWaterTowerCollision06004Verts + 8), 0x40);
-                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A70[2], 0);
                 return 1;
             }
             {
@@ -1948,14 +1991,14 @@ static inline void _dryfieldWaterTowerDrawCapShadow(Task* task, GfxCoord* coord)
 /// points at the script table's entry 2.
 ///
 /// State 0 is the spawn tick: it allocates the cap script's 0x7C-byte
-/// `DryfieldWaterTowerState` block into `Task::work`, parks the slot-3 game
-/// task at its `field_40`, parents the model's coordinate to `gGfxViewCoord`,
+/// `_DryfieldWaterTowerPropSceneWork` block into `Task::work`, parks the slot-3 game
+/// task at its `playerTask`, parents the model's coordinate to `gGfxViewCoord`,
 /// rebuilds the model's buffers and points its light and colour matrices
 /// (`field_1C` / `field_20`) at the block, so the cap is lit by the room's own
 /// state rather than by the default pair a `Tmd_Create` model starts with. It
 /// then hangs the room's script table off `Task::msgTable`.
 ///
-/// State 1 kills the prop `field_48` holds -- the lowering prop the script
+/// State 1 kills the prop `fallingPropTask` holds -- the lowering prop the script
 /// spawned -- and states 2 and 3 hand the frame to that prop's body,
 /// `func_dryfield_water_tower_8017DE30`, and then wait on
 /// `func_dryfield_water_tower_8017DFAC` until it reports the cap has arrived,
@@ -1963,7 +2006,7 @@ static inline void _dryfieldWaterTowerDrawCapShadow(Task* task, GfxCoord* coord)
 /// body when the machine is skipped, stages the cap's `workm` translation and
 /// hands it to `func_800D7A9C`.
 ///
-/// `DryfieldWaterTowerState::field_70` gates the shadow: the script opcode
+/// `_DryfieldWaterTowerPropSceneWork::shadowEnabled` gates the shadow: the script opcode
 /// `func_dryfield_water_tower_8017FA5C` raises it, and it is read here as the
 /// latch that puts a floor quad under the cap, mirrored to `-y - 0xC8` of the
 /// cap's own coordinate.
@@ -1972,21 +2015,20 @@ static inline void _dryfieldWaterTowerDrawCapShadow(Task* task, GfxCoord* coord)
 /// the prop only raises the model's skip-draw bit 0x80 and returns, leaving the
 /// script's states alone.
 ///
-/// Two shapes in the body are what the original compiled from rather than
-/// stylistic choices, and folding either away re-schedules the blocks around
-/// them: `new_var` is a dead zero the shadow latch is tested against instead of
-/// `if (state->field_70)`, and `colorMtx` is stored twice -- `&mem->lightMtx`,
-/// then the field plus one -- instead of being assigned `&mem->colorMtx` outright.
+/// One shape in the body is what the original compiled from rather than a
+/// stylistic choice, and folding it away re-schedules the blocks around it:
+/// `new_var` is a dead zero the shadow latch is tested against instead of
+/// `if (state->shadowEnabled)`.
 void func_dryfield_water_tower_8017E1DC(Task* arg0)
 {
-    int                      new_var;
-    DryfieldWaterTowerState* state;
-    TmdObject*               obj;
-    GfxCoord*                coord;
-    DryfieldWaterTowerState* mem;
+    int                               new_var;
+    _DryfieldWaterTowerPropSceneWork* state;
+    TmdObject*                        obj;
+    GfxCoord*                         coord;
+    _DryfieldWaterTowerPropSceneWork* mem;
 
     obj   = arg0->extra.tmd;
-    state = (DryfieldWaterTowerState*)arg0->work;
+    state = arg0->work;
     coord = obj->coords;
     if (gGameSession->sceneUpdatesPaused != 0) {
         obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2008,12 +2050,11 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                     taskKill(arg0);
                 } else {
                     memFillBytes(mem, 0, sizeof(*mem));
-                    mem->field_40      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    mem->playerTask    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     modelCoord->parent = &gGfxViewCoord;
                     model->flags       = 0;
                     Tmd_AllocBuffers(model);
-                    model->colorMtx = &mem->lightMtx;
-                    model->colorMtx = model->colorMtx + 1;
+                    model->colorMtx = &mem->colorMtx;
                     model->lightMtx = &mem->lightMtx;
                     arg0->msgTable  = D_dryfield_water_tower_80181B00;
                 }
@@ -2022,9 +2063,9 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
             }
 
             case 1:
-                if (state->field_48 != 0) {
-                    taskKill(state->field_48);
-                    state->field_48 = 0;
+                if (state->fallingPropTask != 0) {
+                    taskKill(state->fallingPropTask);
+                    state->fallingPropTask = 0;
                 }
                 break;
 
@@ -2040,14 +2081,14 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
         }
         _dryfieldWaterTowerLightCap(arg0);
     }
-    if (state->field_70 != new_var) {
+    if (state->shadowEnabled != new_var) {
         _dryfieldWaterTowerDrawCapShadow(arg0, coord);
     }
 }
 
 /// A second cap-arrival body, the sibling of `func_dryfield_water_tower_8017E5B0`
 /// and `func_dryfield_water_tower_8017DFAC`: its `Task::work` is the same
-/// 0x7C-byte `DryfieldWaterTowerState` the cap script allocates and its
+/// 0x7C-byte `_DryfieldWaterTowerPropSceneWork` the cap script allocates and its
 /// `extra->field_8` the cap's own coordinate, and it reports arrival the same
 /// way the cap-arrival test does, by returning 1.
 ///
@@ -2057,7 +2098,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 /// to state 1. Every frame of the state also spawns effect 0x60054 at the cap,
 /// offset in X by the room's per-frame table entry
 /// `D_..._80181C60[killCountdown]`, and wraps that 0..9 counter. State 1 counts
-/// `field_5A`; on its 0x3D-th tick it publishes the 0x7D4 record at 0x80181A58
+/// `settleFrames`; on its 0x3D-th tick it publishes the 0x7D4 record at 0x80181A58
 /// and returns 1, and until then mirrors that record's `pos.vx` into the cap's
 /// X, nudged by the same flag. Every path clears `coord->composeStamp`, leaving the
 /// coordinate dirty for the next `Gp_UpdateCoord` pass.
@@ -2075,20 +2116,20 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 /// and emit `slt` with its operands swapped.
 static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    GfxCoord*                coord = arg0->extra.tmd->coords;
-    GfxCoord*                effCoord;
-    SVECTOR                  pos;
+    _DryfieldWaterTowerPropSceneWork* state = arg0->work;
+    GfxCoord*                         coord = arg0->extra.tmd->coords;
+    GfxCoord*                         effCoord;
+    SVECTOR                           pos;
 
-    switch (state->field_58) {
-        case 0:
+    switch (state->phase) {
+        case DRYFIELD_WATER_TOWER_PROP_SLIDE_MOVING:
             coord->coord.t[2] += 0x14;
             coord->coord.t[1]  = D_dryfield_water_tower_80181A40[1].pos.vy;
             if (gDisplayState.gameTick & 4) {
                 coord->coord.t[1] += 5;
             }
             if (coord->coord.t[2] > D_dryfield_water_tower_80181A40[1].pos.vz) {
-                state->field_58++;
+                state->phase++;
             }
             effCoord = arg0->extra.tmd->coords;
             if (arg0->killCountdown >= 0xA) {
@@ -2102,10 +2143,10 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
             Gp_SpawnEff(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
             break;
 
-        case 1:
-            state->field_5A++;
-            if ((s16)state->field_5A >= 0x3D) {
-                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
+        case DRYFIELD_WATER_TOWER_PROP_SLIDE_SETTLING:
+            state->settleFrames++;
+            if (state->settleFrames >= DRYFIELD_WATER_TOWER_PROP_SLIDE_SETTLE_FRAMES) {
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40[1], 0);
                 return 1;
             }
             coord->coord.t[0] = D_dryfield_water_tower_80181A40[1].pos.vx;
@@ -2120,7 +2161,7 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 
 /// A third cap-arrival body, the sibling of `func_dryfield_water_tower_8017DFAC`
 /// and `func_dryfield_water_tower_8017E428`: its `Task::work` is the same
-/// 0x7C-byte `DryfieldWaterTowerState` the cap script allocates and its
+/// 0x7C-byte `_DryfieldWaterTowerPropSceneWork` the cap script allocates and its
 /// `extra->field_8` the cap's own coordinate, and it reports arrival the same
 /// way the cap-arrival test does, by returning 1.
 ///
@@ -2131,7 +2172,7 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 /// same event again as 0x5214000C/0xA and steps to state 1. Every frame of the
 /// state also spawns effect 0x60054 at the cap, offset in X by the room's
 /// per-frame table entry `D_..._80181C60[killCountdown]`, and wraps that 0..9
-/// counter. State 1 counts `field_5A`; on its 0x3D-th tick it publishes the
+/// counter. State 1 counts `settleFrames`; on its 0x3D-th tick it publishes the
 /// 0x7D4 record at 0x80181A40 and returns 1, and until then mirrors that
 /// record's `pos.vx` into the cap's X, nudged by the same flag. Every path
 /// clears `coord->composeStamp`, leaving the coordinate dirty for the next
@@ -2145,13 +2186,13 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 /// CSE forwards the stored value and one load serves both uses.
 static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    GfxCoord*                coord = arg0->extra.tmd->coords;
-    GfxCoord*                effCoord;
-    SVECTOR                  pos;
+    _DryfieldWaterTowerPropSceneWork* state = arg0->work;
+    GfxCoord*                         coord = arg0->extra.tmd->coords;
+    GfxCoord*                         effCoord;
+    SVECTOR                           pos;
 
-    switch (state->field_58) {
-        case 0:
+    switch (state->phase) {
+        case DRYFIELD_WATER_TOWER_PROP_SLIDE_MOVING:
             SndEvt_EnqueueTypeB(SOUND_WATER_TOWER_CAP_RUNNING, 0x7F);
             coord->coord.t[2] -= 0x14;
             coord->coord.t[1]  = D_dryfield_water_tower_80181A40[0].pos.vy;
@@ -2160,7 +2201,7 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
             }
             if (coord->coord.t[2] < D_dryfield_water_tower_80181A40[0].pos.vz) {
                 SndEvt_EnqueueType7(SOUND_WATER_TOWER_CAP_RUNNING, 0xA);
-                state->field_58++;
+                state->phase++;
             }
             effCoord = arg0->extra.tmd->coords;
             if (arg0->killCountdown >= 0xA) {
@@ -2174,10 +2215,10 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
             Gp_SpawnEff(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
             break;
 
-        case 1:
-            state->field_5A++;
-            if ((s16)state->field_5A >= 0x3D) {
-                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A40, 0);
+        case DRYFIELD_WATER_TOWER_PROP_SLIDE_SETTLING:
+            state->settleFrames++;
+            if (state->settleFrames >= DRYFIELD_WATER_TOWER_PROP_SLIDE_SETTLE_FRAMES) {
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40, 0);
                 return 1;
             }
             coord->coord.t[0] = D_dryfield_water_tower_80181A40[0].pos.vx;
@@ -2195,8 +2236,8 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 /// gating -- while `gGameSession->sceneUpdatesPaused` is set it only raises the model's
 /// skip-draw bit 0x80, and while `Gp_StateC08.menuOpen` is non-zero it clears
 /// the bit and does nothing else -- and its spawn tick is the same: allocate
-/// the 0x7C-byte `DryfieldWaterTowerState` into `Task::work`, park the slot-3
-/// game task at `field_40`, parent the model to `gGfxViewCoord`, rebuild its
+/// the 0x7C-byte `_DryfieldWaterTowerPropSceneWork` into `Task::work`, park the slot-3
+/// game task at `playerTask`, parent the model to `gGfxViewCoord`, rebuild its
 /// buffers with the block as its light and colour matrices, and hang the
 /// room's script table off `Task::msgTable`.
 ///
@@ -2212,12 +2253,12 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 /// order.
 void func_dryfield_water_tower_8017E764(Task* arg0)
 {
-    DryfieldWaterTowerState* state;
-    TmdObject*               obj;
-    TmdObject*               tmp;
-    TmdObject*               model;
-    GfxCoord*                coord;
-    VECTOR                   vec;
+    _DryfieldWaterTowerPropSceneWork* state;
+    TmdObject*                        obj;
+    TmdObject*                        tmp;
+    TmdObject*                        model;
+    GfxCoord*                         coord;
+    VECTOR                            vec;
 
     obj = arg0->extra.tmd;
     if (gGameSession->sceneUpdatesPaused != 0) {
@@ -2238,9 +2279,9 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
                 taskKill(arg0);
             } else {
                 memFillBytes(state, 0, sizeof(*state));
-                state->field_40 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                coord->parent   = &gGfxViewCoord;
-                tmp->flags      = 0;
+                state->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                coord->parent     = &gGfxViewCoord;
+                tmp->flags        = 0;
                 Tmd_AllocBuffers(tmp);
                 tmp->colorMtx  = &state->colorMtx;
                 tmp->lightMtx  = &state->lightMtx;
@@ -2273,180 +2314,181 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
 
 /// The cap script's command dispatcher, run once per frame on the task that
 /// `func_dryfield_water_tower_8017F128` allocates the state block for: the
-/// command in `DryfieldWaterTowerState::field_5C` is switched on and cleared at
+/// command in `_DryfieldWaterTowerPropSceneWork::request` is switched on and cleared at
 /// the end of every path, so each one runs exactly once.
 ///
-/// Commands 1, 3, 6 and 7 each end by handing the prop task at `field_44`
-/// (commands 1 and 3) or `field_48` (6 and 7) a 0x7DB record whose `field_2` is
+/// Commands 1, 3, 6 and 7 each end by handing the prop task at `slidingPropTask`
+/// (commands 1 and 3) or `fallingPropTask` (6 and 7) a 0x7DB record whose `field_2` is
 /// the prop's next state -- 2 for the first pair, 3 for the second -- after
 /// telling the slot-3 game task (commands 1 and 4) 0x3F3/1 or (3, 4 and 7)
-/// 0x3E9. Command 3 sends the two player placements the state's `field_66`
+/// 0x3E9. Command 3 sends the two player placements the state's `runResult`
 /// picks between: with it 2, `80181AE8` with 0x3E9 and then its 0x18-byte
 /// neighbour `80181AD0` with 0x3F2, otherwise 0x3F3 with a null payload; it
 /// also raises bit 0x40 of the room's 4A object, as `func_acropolis_fountain_8017DA1C`
 /// does for the fountain's. Commands 4 and 2 share their tail: 4 sends 0x3E9
-/// (with `80181AD0`) only when `field_66` is 2, then both stash
-/// `field_68` in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` and raise the session's `viewDirty`, the pair
+/// (with `80181AD0`) only when `runResult` is 2, then both stash
+/// `nextView` in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` and raise the session's `viewDirty`, the pair
 /// `func_dryfield_water_tower_8017D948` undoes.
 ///
 /// The last three commands start a script-18 pair each -- the cutscene
 /// `func_dryfield_water_tower_8017F908` waits on with its 0x5214000C -- into
-/// `field_50`; command 8 raises the `field_78` running flag that
+/// `padScriptTask`; command 8 raises the `runningSoundStarted` running flag that
 /// `func_dryfield_water_tower_8017EB7C` clears and queues two sounds where 9
 /// and 10 queue one.
 static void func_dryfield_water_tower_8017E93C(Task* arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
+    _DryfieldWaterTowerPropSceneWork* state = arg0->work;
 
-    switch (state->field_5C) {
-        case 0:
+    switch (state->request) {
+        case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_NONE:
             break;
 
-        case 1: {
+        case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_OUT: {
             ActorCommand msg;
 
-            taskMessageDispatch(state->field_40, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(state->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             msg.command = 2;
-            TASK_MESSAGE_DISPATCH_POINTER(state->field_44, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         }
 
-        case 4:
-            if (state->field_66 == 2) {
-                TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
+        case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SHOW_PLAYER:
+            if (state->runResult == DRYFIELD_WATER_TOWER_RUN_COMPLETED) {
+                TASK_MESSAGE_DISPATCH_POINTER(state->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181AD0[0], 0);
             }
-            taskMessageDispatch(state->field_40, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(state->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
 
-        case 2:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->field_68;
+        case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_APPLY_VIEW:
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->nextView;
             gGameSession->viewDirty                                    = 1;
             break;
 
-        case 3: {
+        case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_BACK: {
             ActorCommand msg;
 
             {
                 WorldCollisionTrigger* object = &D_dryfield_water_tower_80186A84[20];
                 object->flags                |= WORLD_COLLISION_TRIGGER_ENABLED;
             }
-            if (state->field_66 == 2) {
-                TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[1], 0);
-                TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3F2, &D_dryfield_water_tower_80181AD0[1] - 1, 0);
+            if (state->runResult == DRYFIELD_WATER_TOWER_RUN_COMPLETED) {
+                TASK_MESSAGE_DISPATCH_POINTER(state->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181AD0[1], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(state->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &D_dryfield_water_tower_80181AD0[1] - 1, 0);
             } else {
-                taskMessageDispatch(state->field_40, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+                taskMessageDispatch(state->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             }
             msg.command = 3;
-            TASK_MESSAGE_DISPATCH_POINTER(state->field_44, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         }
 
-        case 6: {
+        case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_FALL: {
             ActorCommand msg;
 
             msg.command = 2;
-            TASK_MESSAGE_DISPATCH_POINTER(state->field_48, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->fallingPropTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         }
 
-        case 7: {
+        case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_DROP: {
             ActorCommand msg;
 
-            TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181AD0[0], 0);
             msg.command = 3;
-            TASK_MESSAGE_DISPATCH_POINTER(state->field_48, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->fallingPropTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         }
 
-        case 8:
-            state->field_78 = 1;
-            state->field_50 = Gp_SpawnScript18(D_dryfield_water_tower_80187628,
-                                               D_dryfield_water_tower_8018763C);
+        case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_RUN_RUMBLE:
+            state->runningSoundStarted = 1;
+            state->padScriptTask       = Gp_SpawnScript18(D_dryfield_water_tower_80187628,
+                                                          D_dryfield_water_tower_8018763C);
             SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 6), 0, 0);
             SndEvt_EnqueueType6(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
             break;
 
-        case 9:
-            state->field_50 = Gp_SpawnScript18(D_dryfield_water_tower_8018764C,
-                                               D_dryfield_water_tower_80187660);
+        case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_BACK_RUMBLE:
+            state->padScriptTask = Gp_SpawnScript18(D_dryfield_water_tower_8018764C,
+                                                    D_dryfield_water_tower_80187660);
             SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 7), 0, 0);
             break;
 
-        case 10:
-            state->field_50 = Gp_SpawnScript18(D_dryfield_water_tower_80187670,
-                                               &D_dryfield_water_tower_80187678);
+        case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_DROP_RUMBLE:
+            state->padScriptTask = Gp_SpawnScript18(D_dryfield_water_tower_80187670,
+                                                    &D_dryfield_water_tower_80187678);
             SndEvt_EnqueueType6(SOUND_WATER_TOWER_CAP_DROP, 0, 0);
             break;
     }
-    state->field_5C = 0;
+    state->request = DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_NONE;
 }
 
-/// The duration of the rotation step `DryfieldWaterTowerState::field_72` is on,
-/// in frames: the same walk of `D_dryfield_water_tower_8018767C` as
+/// The time limit of the mechanism's next run, in frames: the duration of the
+/// first `D_dryfield_water_tower_8018767C` entry that serves
+/// `_DryfieldWaterTowerPropSceneWork::timeouts`. It is the same search as
 /// `func_dryfield_water_tower_8017FB4C`, without that function's low-bit mask.
 static inline u16 _dryfieldWaterTowerStepFrames(Task* task)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->work;
-    u16                      i;
+    _DryfieldWaterTowerPropSceneWork* state = task->work;
+    u16                               i;
 
     i = 0;
-    if (D_dryfield_water_tower_8018767C[0].field_0 < state->field_72) {
+    if (D_dryfield_water_tower_8018767C[0].maxTimeouts < state->timeouts) {
         do {
             i += 1;
-        } while (D_dryfield_water_tower_8018767C[i].field_0 < state->field_72);
+        } while (D_dryfield_water_tower_8018767C[i].maxTimeouts < state->timeouts);
     }
-    return D_dryfield_water_tower_8018767C[i].field_2 * 30;
+    return D_dryfield_water_tower_8018767C[i].duration * DRYFIELD_WATER_TOWER_TIME_LIMIT_UNIT_FRAMES;
 }
 
 /// State 6 of the cap script, one call per frame: returns 0 while the step is
 /// running, otherwise the value the script switches on -- 1 to go back to
 /// state 5, 2 to go on to state 7.
 ///
-/// State 0 either starts a rotation (`field_64` 0: message 0x7DA with 9 to the
-/// slot-4 game task, view 7 recorded in `field_68`, the `field_78` latch
+/// State 0 either starts a rotation (`mechanismState` 0: message 0x7DA with 9 to the
+/// slot-4 game task, view 7 recorded in `nextView`, the `runningSoundStarted` latch
 /// cleared and the first `func_800E8634` pair handed over), or, when the cap
 /// has already been placed, restores view 7 and the lowered cap directly and
 /// goes to state 2. Either way it clears bit 0x40 of the room's 4A object, loads
-/// the current step's duration and restores the first block of each script
+/// the run's time limit and restores the first block of each script
 /// table pair. State 1 waits for the session's `eventState` to go idle; state 2
 /// sends 0x7DA with 1, restarts the frame counter and sets nibble 0x55 to 2.
 ///
 /// State 3 ends the rotation either on a pending 4C record with id 5 and a
-/// second byte of 2 (`field_66` then takes that byte) or once the frame counter
-/// passes the step's duration (`field_66` 1, the step advanced and the current
+/// second byte of 2 (`runResult` then takes that byte) or once the frame counter
+/// passes the run's time limit (`runResult` 1, the timeout counted and the current
 /// view kept); until then it plays the running sound at the volume the recorded
-/// view's `DwtwViewVolume` entry gives. State 4 waits for `eventState`, sends
-/// 0x7DA with 3 unless `field_66` is 2, restores the blocks again, sets nibble
-/// 0x55 to 1 and returns `field_66`.
+/// view's `_DryfieldWaterTowerViewVolume` entry gives. State 4 waits for `eventState`, sends
+/// 0x7DA with 3 unless `runResult` is 2, restores the blocks again, sets nibble
+/// 0x55 to 1 and returns `runResult`.
 static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    DryfieldWaterTowerState* work;
-    GameSession*             session;
-    ActorCommand             msg0;
-    ActorCommand             msg2;
-    ActorCommand             msg4;
-    u16                      objId;
-    u8                       objA;
-    u8                       objB;
-    s32                      reason;
-    u16                      i;
-    s32                      volume;
+    _DryfieldWaterTowerPropSceneWork* state = arg0->work;
+    _DryfieldWaterTowerPropSceneWork* work;
+    GameSession*                      session;
+    ActorCommand                      msg0;
+    ActorCommand                      msg2;
+    ActorCommand                      msg4;
+    u16                               objId;
+    u8                                objA;
+    u8                                objB;
+    s32                               reason;
+    u16                               i;
+    s32                               volume;
 
-    switch (state->field_58) {
-        case 0:
-            if (state->field_64 == 0) {
+    switch (state->phase) {
+        case DRYFIELD_WATER_TOWER_RUN_PHASE_START:
+            if (state->mechanismState == 0) {
                 msg0.context.loc.stage = gGameSession->location.loc.stage;
                 msg0.context.loc.area  = gGameSession->location.loc.area;
                 msg0.command           = 9;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg0, ACTOR_COMMAND_MESSAGE_APPLY);
-                state->field_68 = Gp_FindViewIndex(7);
-                state->field_78 = 0;
+                state->nextView            = Gp_FindViewIndex(7);
+                state->runningSoundStarted = 0;
                 func_800E8634(D_dryfield_water_tower_80181C78, 0, D_dryfield_water_tower_80181DC8);
-                state->field_58++;
+                state->phase++;
             } else {
-                TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
-                taskMessageDispatch(state->field_40, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                taskMessageDispatch(state->field_40, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40[1], 0);
+                taskMessageDispatch(state->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                taskMessageDispatch(state->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(7);
                 session                                                    = gGameSession;
                 session->viewDirty                                         = 1;
@@ -2454,7 +2496,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 session->eventState                                        = 0;
                 SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 6), 0, 0x20);
                 SndEvt_EnqueueType6(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
-                state->field_58 = 2;
+                state->phase = DRYFIELD_WATER_TOWER_RUN_PHASE_START_TIMER;
             }
             {
                 WorldCollisionTrigger* object = &D_dryfield_water_tower_80186A84[20];
@@ -2464,33 +2506,33 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04608, _gDryfieldWaterTowerCollision06004Verts, 0x40);
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045F8, _gDryfieldWaterTowerCollision06004Normals, 0x10);
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04688, _gDryfieldWaterTowerCollision06004Faces, sizeof(_gDryfieldWaterTowerCollision04688));
-            return 0;
+            return DRYFIELD_WATER_TOWER_RUN_UNDER_WAY;
 
-        case 1:
+        case DRYFIELD_WATER_TOWER_RUN_PHASE_OPENING_SCRIPT:
             if (gGameSession->eventState != 0) {
-                return 0;
+                return DRYFIELD_WATER_TOWER_RUN_UNDER_WAY;
             }
-            state->field_58++;
+            state->phase++;
             break;
 
-        case 2:
+        case DRYFIELD_WATER_TOWER_RUN_PHASE_START_TIMER:
             msg2.context.loc.stage = gGameSession->location.loc.stage;
             msg2.context.loc.area  = gGameSession->location.loc.area;
             msg2.command           = 1;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg2, ACTOR_COMMAND_MESSAGE_APPLY);
             D_dryfield_water_tower_801876A8 = 0;
-            state->field_64                 = 2;
+            state->mechanismState           = 2;
             GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 2);
-            state->field_58++;
+            state->phase++;
 
-        case 3:
+        case DRYFIELD_WATER_TOWER_RUN_PHASE_TIMING:
             if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
                 (objId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (reason = (s8)objA) == 2) {
                 Gp_UnlinkObj4A(0, (D_dryfield_water_tower_80186A84 + 6));
-                state->field_68 = Gp_FindViewIndex(9);
+                state->nextView = Gp_FindViewIndex(9);
                 func_800E8634(D_dryfield_water_tower_80181E88, 0, D_dryfield_water_tower_80181FF0);
-                state->field_66 = reason;
-                state->field_58++;
+                state->runResult = reason;
+                state->phase++;
                 break;
             }
             D_dryfield_water_tower_801876A8++;
@@ -2498,29 +2540,29 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 break;
             }
             if (D_dryfield_water_tower_801876AA < D_dryfield_water_tower_801876A8) {
-                state->field_72++;
-                state->field_68 = gGameSession->location.loc.view;
+                state->timeouts++;
+                state->nextView = gGameSession->location.loc.view;
                 func_800E8634(D_dryfield_water_tower_80181E88, 0, D_dryfield_water_tower_80181FF0);
-                state->field_66 = 1;
-                state->field_58++;
+                state->runResult = DRYFIELD_WATER_TOWER_RUN_TIMED_OUT;
+                state->phase++;
             }
-            work = (DryfieldWaterTowerState*)arg0->work;
-            for (i = 0; D_dryfield_water_tower_80182350[i].field_0 != 0xFFFF; i++) {
-                if (D_dryfield_water_tower_80182350[i].field_0 == Gp_FindViewIndex((u8)work->field_74)) {
-                    volume = D_dryfield_water_tower_80182350[i].field_2 * 127 / 100;
+            work = arg0->work;
+            for (i = 0; D_dryfield_water_tower_80182350[i].viewIndex != DRYFIELD_WATER_TOWER_VIEW_VOLUME_END; i++) {
+                if (D_dryfield_water_tower_80182350[i].viewIndex == Gp_FindViewIndex((u8)work->currentView)) {
+                    volume = D_dryfield_water_tower_80182350[i].percent * 127 / 100;
                     goto play;
                 }
             }
             volume = 0x7F;
         play:
             SndEvt_EnqueueTypeB(SOUND_WATER_TOWER_CAP_RUNNING, volume & 0xFF);
-            return 0;
+            return DRYFIELD_WATER_TOWER_RUN_UNDER_WAY;
 
-        case 4:
+        case DRYFIELD_WATER_TOWER_RUN_PHASE_ENDING_SCRIPT:
             if (gGameSession->eventState != 0) {
-                return 0;
+                return DRYFIELD_WATER_TOWER_RUN_UNDER_WAY;
             }
-            if (state->field_66 != 2) {
+            if (state->runResult != DRYFIELD_WATER_TOWER_RUN_COMPLETED) {
                 msg4.context.loc.stage = gGameSession->location.loc.stage;
                 msg4.context.loc.area  = gGameSession->location.loc.area;
                 msg4.command           = 3;
@@ -2530,31 +2572,31 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045F8, _gDryfieldWaterTowerCollision06004Normals, 0x10);
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04688, _gDryfieldWaterTowerCollision06004Faces, sizeof(_gDryfieldWaterTowerCollision04688));
             GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 1);
-            return state->field_66;
+            return state->runResult;
     }
-    return 0;
+    return DRYFIELD_WATER_TOWER_RUN_UNDER_WAY;
 }
 
 /// State 7 of the cap script, one call per frame, returning non-zero once the
-/// step is complete. On its first frame (`field_58` 0) it sends message 0x7DA to
+/// step is complete. On its first frame (`phase` 0) it sends message 0x7DA to
 /// the slot-4 game task with an `ActorCommand` record naming the current stage and
 /// area and carrying 2 as the requested state, the reply message being 0x7DB;
-/// after that it waits for the `field_6C` latch.
+/// after that it waits for the `actorEventReceived` latch.
 static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
 {
-    DryfieldWaterTowerState* work = (DryfieldWaterTowerState*)arg0->work;
-    ActorCommand             msg;
+    _DryfieldWaterTowerPropSceneWork* work = arg0->work;
+    ActorCommand                      msg;
 
-    switch (work->field_58) {
-        case 0:
+    switch (work->phase) {
+        case DRYFIELD_WATER_TOWER_CLOSING_PHASE_START:
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 2;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            work->field_58++;
+            work->phase++;
             break;
-        case 1:
-            if (work->field_6C != 0) {
+        case DRYFIELD_WATER_TOWER_CLOSING_PHASE_WAIT:
+            if (work->actorEventReceived != 0) {
                 return 1;
             }
             break;
@@ -2565,16 +2607,16 @@ static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
 }
 
 /// State 8 of the cap script, one call per frame, returning non-zero once the
-/// step is complete. On its first frame (`field_58` 0) it hands the room's two
+/// step is complete. On its first frame (`phase` 0) it hands the room's two
 /// blocks at 0x801820B0 / 0x80182248 to `func_800E8634`, retrying on later
 /// frames while `Gp_StateC08.mode` is 1 or `gDisplayState.pendingMode` is set; after that it waits
 /// for the session's `eventState` to go idle and sets nibble 0x32 to 2.
 static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 {
-    DryfieldWaterTowerState* work = (DryfieldWaterTowerState*)arg0->work;
+    _DryfieldWaterTowerPropSceneWork* work = arg0->work;
 
-    switch (work->field_58) {
-        case 0:
+    switch (work->phase) {
+        case DRYFIELD_WATER_TOWER_CLOSING_PHASE_START:
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
                 break;
             }
@@ -2582,9 +2624,9 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
                 return 0;
             }
             func_800E8634(D_dryfield_water_tower_801820B0, 0, D_dryfield_water_tower_80182248);
-            work->field_58++;
+            work->phase++;
             break;
-        case 1:
+        case DRYFIELD_WATER_TOWER_CLOSING_PHASE_WAIT:
             if (gGameSession->eventState != 0) {
                 return 0;
             }
@@ -2599,39 +2641,39 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 /// The cap script, the task entry 0 of `D_dryfield_water_tower_80182384`
 /// runs. It does nothing while the session's `sceneUpdatesPaused` or `Gp_StateC08.menuOpen` is set
 /// or `gPlayerStatus.hp` is zero. State 0 allocates the 0x7C-byte
-/// `DryfieldWaterTowerState`, publishes the task and its message table, and
+/// `_DryfieldWaterTowerPropSceneWork`, publishes the task and its message table, and
 /// restores two collision patches in the room's grid; state 1 spawns
-/// entries 1 and 2 of the same table into `field_44` / `field_48` and state 2
+/// entries 1 and 2 of the same table into `slidingPropTask` / `fallingPropTask` and state 2
 /// places them.
 ///
 /// Nibble 0x32 then picks where the script resumes. At 0 it waits (state 3) for
 /// a pending 4C record with id 5 (low 15 bits) and a second byte of 1, spawns
-/// entry 0 of `D_dryfield_water_tower_8018277C` into `field_4C` and sets the
+/// entry 0 of `D_dryfield_water_tower_8018277C` into `actorSceneTask` and sets the
 /// nibble to 1, then waits for that task to end (state 4). At 1 it goes
-/// straight to state 5, which waits on the `field_6E` latch. At 2 it clears
-/// bit 0x40 of 4A objects 0 and 14, moves the `field_48` prop to
-/// `D_dryfield_water_tower_80181A70[2]` and raises its `field_70`, and
+/// straight to state 5, which waits on the `runRequested` latch. At 2 it clears
+/// bit 0x40 of 4A objects 0 and 14, moves the `fallingPropTask` prop to
+/// `D_dryfield_water_tower_80181A70[2]` and raises its `shadowEnabled`, and
 /// overwrites the second block of each pair; when nibble 0x55 is also 3 it
-/// clears object 3 too, moves the `field_44` prop to its second record,
+/// clears object 3 too, moves the `slidingPropTask` prop to its second record,
 /// overwrites the first block of each pair and parks in state 9, which does
 /// nothing.
 ///
 /// State 6 runs `func_dryfield_water_tower_8017EB7C`, going back to state 5
 /// when it returns 1 and on to state 7 when it returns 2. Every frame the
-/// script runs, it records the session's view in `field_74` and executes the
+/// script runs, it records the session's view in `currentView` and executes the
 /// queued command.
 void func_dryfield_water_tower_8017F128(Task* arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)arg0->work;
-    DryfieldWaterTowerState* work;
-    u16                      objId;
-    u8                       objA;
-    u8                       objB;
-    s32                      out;
-    s32                      mask;
-    WorldCollisionTrigger*   p0;
-    WorldCollisionTrigger*   p3;
-    WorldCollisionTrigger*   p14;
+    _DryfieldWaterTowerPropSceneWork* state = arg0->work;
+    _DryfieldWaterTowerPropSceneWork* work;
+    u16                               objId;
+    u8                                objA;
+    u8                                objB;
+    s32                               out;
+    s32                               mask;
+    WorldCollisionTrigger*            p0;
+    WorldCollisionTrigger*            p3;
+    WorldCollisionTrigger*            p14;
 
     if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gPlayerStatus.hp == 0) {
         return;
@@ -2645,7 +2687,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
                 taskKill(arg0);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->field_40                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                work->playerTask                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tower_801876A4 = arg0;
                 arg0->msgTable                  = D_dryfield_water_tower_80182374;
             }
@@ -2655,20 +2697,20 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04550, _gDryfieldWaterTowerCollision06004Normals + 2, 0x10);
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045E0, _gDryfieldWaterTowerCollision06004Faces + 2, sizeof(_gDryfieldWaterTowerCollision045E0));
             Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045A0, _gDryfieldWaterTowerCollision06004Verts + 8, 0x40);
-            state = (DryfieldWaterTowerState*)arg0->work;
+            state = arg0->work;
             arg0->state++;
             break;
 
         case 1:
-            state->field_44 = Task_SpawnFromTable(D_dryfield_water_tower_80182384, 1, 0, 0);
-            state->field_48 = Task_SpawnFromTable(D_dryfield_water_tower_80182384, 2, 0, 0);
+            state->slidingPropTask = Task_SpawnFromTable(D_dryfield_water_tower_80182384, 1, 0, 0);
+            state->fallingPropTask = Task_SpawnFromTable(D_dryfield_water_tower_80182384, 2, 0, 0);
             arg0->state++;
             break;
 
         case 2:
-            TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, D_dryfield_water_tower_80181A40, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(state->field_48, 0x7D4, D_dryfield_water_tower_80181A70, 0);
-            state->field_64 = GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE);
+            TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, D_dryfield_water_tower_80181A40, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->fallingPropTask, ACTOR_MESSAGE_PLACE, D_dryfield_water_tower_80181A70, 0);
+            state->mechanismState = GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE);
             if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 0) {
                 arg0->state++;
             } else if (GameFlag_GetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) == 1) {
@@ -2679,15 +2721,15 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
                 p0->flags  &= mask;
                 p14         = &(D_dryfield_water_tower_80186A84 + 6)[14];
                 p14->flags &= mask;
-                TASK_MESSAGE_DISPATCH_POINTER(state->field_48, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
-                ((DryfieldWaterTowerState*)state->field_48->work)->field_70 = 1;
+                TASK_MESSAGE_DISPATCH_POINTER(state->fallingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A70[2], 0);
+                ((_DryfieldWaterTowerPropSceneWork*)state->fallingPropTask->work)->shadowEnabled = 1;
                 Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04550, (_gDryfieldWaterTowerCollision06004Normals + 2), 0x10);
                 Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045E0, (_gDryfieldWaterTowerCollision06004Faces + 2), sizeof(_gDryfieldWaterTowerCollision045E0));
                 Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04560, (_gDryfieldWaterTowerCollision06004Verts + 8), 0x40);
-                if (state->field_64 == 3) {
+                if (state->mechanismState == 3) {
                     p3         = &(D_dryfield_water_tower_80186A84 + 6)[3];
                     p3->flags &= mask;
-                    TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40[1], 0);
                     Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04608, (_gDryfieldWaterTowerCollision06004Verts + 8) - 8, 0x40);
                     Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045F8, (_gDryfieldWaterTowerCollision06004Normals + 2) - 2, 0x10);
                     Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04688, (_gDryfieldWaterTowerCollision06004Faces + 2) - 2, sizeof(_gDryfieldWaterTowerCollision04688));
@@ -2698,36 +2740,36 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
 
         case 3:
             if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && (objId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (s8)objA == 1) {
-                state->field_4C = Task_SpawnFromTable(D_dryfield_water_tower_8018277C, 0, 0, 0);
+                state->actorSceneTask = Task_SpawnFromTable(D_dryfield_water_tower_8018277C, 0, 0, 0);
                 GameFlag_SetNibble(GAME_FLAG_WATER_TOWER_PROGRESS, 1);
                 arg0->state++;
             }
             break;
 
         case 4:
-            if (Task_PollKill(state->field_4C, &out) != 0) {
+            if (Task_PollKill(state->actorSceneTask, &out) != 0) {
                 arg0->state++;
             }
             break;
 
         case 5:
-            if (state->field_6E != 0) {
-                state->field_6E = 0;
-                state->field_58 = 0;
+            if (state->runRequested != 0) {
+                state->runRequested = 0;
+                state->phase        = 0;
                 arg0->state++;
             }
             break;
 
         case 6:
             switch (func_dryfield_water_tower_8017EB7C(arg0)) {
-                case 0:
+                case DRYFIELD_WATER_TOWER_RUN_UNDER_WAY:
                     break;
-                case 1:
-                    state->field_58 = 0;
+                case DRYFIELD_WATER_TOWER_RUN_TIMED_OUT:
+                    state->phase = 0;
                     arg0->state--;
                     break;
-                case 2:
-                    state->field_58 = 0;
+                case DRYFIELD_WATER_TOWER_RUN_COMPLETED:
+                    state->phase = 0;
                     arg0->state++;
                     break;
             }
@@ -2735,14 +2777,14 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
 
         case 7:
             if (_dryfieldWaterTowerState7Step(arg0)) {
-                state->field_58 = 0;
+                state->phase = 0;
                 arg0->state++;
             }
             break;
 
         case 8:
             if (_dryfieldWaterTowerState8Step(arg0)) {
-                state->field_58 = 0;
+                state->phase = 0;
                 arg0->state++;
             }
             break;
@@ -2750,7 +2792,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
         case 9:
             break;
     }
-    state->field_74 = gGameSession->location.loc.view;
+    state->currentView = gGameSession->location.loc.view;
     func_dryfield_water_tower_8017E93C(arg0);
 }
 
@@ -2793,11 +2835,11 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
 /// itself is never read, hence the named-but-unused `msgId`.
 s32 func_dryfield_water_tower_8017F808(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->work;
+    _DryfieldWaterTowerPropSceneWork* state = task->work;
 
-    state->field_58     = 0;
+    state->phase        = 0;
     state->field_60     = 0;
-    state->field_5A     = 0;
+    state->settleFrames = 0;
     task->state         = msg->command;
     task->killCountdown = 0;
 }
@@ -2809,20 +2851,20 @@ s32 func_dryfield_water_tower_8017F808(Task* task, s32 msgId, ActorCommand* msg,
 /// `func_dryfield_water_tower_8017F908` on `D_..._80181DC8` and
 /// `func_dryfield_water_tower_8017FA5C` on the 0x8018227C record.
 ///
-/// One-shot, latched by `DryfieldWaterTowerState::field_76`: the first call
+/// One-shot, latched by `_DryfieldWaterTowerPropSceneWork::reequipRequested`: the first call
 /// raises bit 0x80 of `gGameSession->flowFlags` and drops bit 0x40, releases one
 /// ref of the slot-4 game object, and sets the latch.
 /// `func_shelter_b3_dumping_hole_801818E0` runs the same latch / release /
 /// `|= 0x80` sequence for its room.
 void func_dryfield_water_tower_8017F82C(void)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
+    _DryfieldWaterTowerPropSceneWork* state = D_dryfield_water_tower_801876A4->work;
 
-    if (state->field_76 == 0) {
+    if (state->reequipRequested == 0) {
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON);
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 1);
-        state->field_76 = 1;
+        state->reequipRequested = 1;
     }
 }
 
@@ -2836,9 +2878,9 @@ void func_dryfield_water_tower_8017F8B0(void)
 
 void func_dryfield_water_tower_8017F8E8(s16 arg0)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
+    _DryfieldWaterTowerPropSceneWork* state = D_dryfield_water_tower_801876A4->work;
 
-    state->field_5C = arg0;
+    state->request  = arg0;
     state->field_5E = 0;
 }
 
@@ -2848,25 +2890,25 @@ void func_dryfield_water_tower_8017F8E8(s16 arg0)
 /// `func_dryfield_water_tower_8017FA5C` on `D_dryfield_water_tower_80182248`
 /// and differs in the view it selects: 7 here against that one's 9.
 ///
-/// It plays event 0x5214000C unless the latch `DryfieldWaterTowerState::field_78`
+/// It plays event 0x5214000C unless the latch `_DryfieldWaterTowerPropSceneWork::runningSoundStarted`
 /// says the view has already been announced, records the view in the saved
 /// location byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`, sends its 0x7D4 placement
-/// `80181A58` to the prop task at `field_44` and restarts that task on state 1,
+/// `80181A58` to the prop task at `slidingPropTask` and restarts that task on state 1,
 /// then stops the pad scripts and queues event 0x52140006. The latch is what
 /// separates it from that sibling: this one is the re-entry the 0x5214000C
 /// announcement is gated on, and `func_dryfield_water_tower_8017EB7C` clears
 /// the latch when it re-arms the room.
 void func_dryfield_water_tower_8017F908(void)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
+    _DryfieldWaterTowerPropSceneWork* state = D_dryfield_water_tower_801876A4->work;
 
-    if (state->field_78 == 0) {
+    if (state->runningSoundStarted == 0) {
         SndEvt_EnqueueType6(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(7);
     gGameSession->viewDirty                                    = 1;
-    TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
-    state->field_44->state = 1;
+    TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40[1], 0);
+    state->slidingPropTask->state = 1;
     Gp_HaltPadScripts();
     SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 6), 0x1E);
 }
@@ -2874,97 +2916,100 @@ void func_dryfield_water_tower_8017F908(void)
 /// The third of the room's 0x0D script handlers in this run, between
 /// `func_dryfield_water_tower_8017F908` and `func_dryfield_water_tower_8017FA5C`
 /// and the one that does not recompute the view: it records the view
-/// `DryfieldWaterTowerState::field_68` in the saved location, starts the prop
-/// task at `field_44` on state 1 with its 0x7D4 placement
+/// `_DryfieldWaterTowerPropSceneWork::nextView` in the saved location, starts the prop
+/// task at `slidingPropTask` on state 1 with its 0x7D4 placement
 /// `80181A40` and stops the pad scripts, the same three-step restart the other
 /// two perform on their own prop tasks.
 ///
 /// It plays both event ids of that restart -- 0x52140007 and 0x5214000C -- and
 /// is the only one of the three that moves the player: the 0x3E9 placement
 /// `80181AD0` `func_dryfield_water_tower_8017FA5C` sends unconditionally goes
-/// to the slot-3 game task at `field_40` here, but only while `field_66` reads
+/// to the slot-3 game task at `playerTask` here, but only while `runResult` reads
 /// 2, the room's "the cap is following" state.
 void func_dryfield_water_tower_8017F9AC(void)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
+    _DryfieldWaterTowerPropSceneWork* state = D_dryfield_water_tower_801876A4->work;
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->field_68;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->nextView;
     gGameSession->viewDirty                                    = 1;
-    TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40, 0);
-    state->field_44->state = 1;
+    TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40, 0);
+    state->slidingPropTask->state = 1;
     Gp_HaltPadScripts();
     SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 7), 0xA);
     SndEvt_EnqueueType7(SOUND_WATER_TOWER_CAP_RUNNING, 0xA);
-    if (state->field_66 == 2) {
-        TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
+    if (state->runResult == DRYFIELD_WATER_TOWER_RUN_COMPLETED) {
+        TASK_MESSAGE_DISPATCH_POINTER(state->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181AD0[0], 0);
     }
 }
 
 /// Script opcode 0x0D of the room's command table `D_dryfield_water_tower_80182248`:
-/// it hands the stream to view 9, restarts the prop task at `field_48` on state 1
+/// it hands the stream to view 9, restarts the prop task at `fallingPropTask` on state 1
 /// and gives it its 0x7D4 placement, moves the player to `80181AD0`, stops the pad
 /// scripts, plays event 0x5214000B and installs the lowered-cap collision patch.
 void func_dryfield_water_tower_8017FA5C(void)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
+    _DryfieldWaterTowerPropSceneWork* state = D_dryfield_water_tower_801876A4->work;
 
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(9);
-    TASK_MESSAGE_DISPATCH_POINTER(state->field_48, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
-    state->field_48->state = 1;
-    TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(state->fallingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A70[2], 0);
+    state->fallingPropTask->state = 1;
+    TASK_MESSAGE_DISPATCH_POINTER(state->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181AD0[0], 0);
     Gp_HaltPadScripts();
     SndEvt_EnqueueType7(SOUND_WATER_TOWER_CAP_DROP, 0xA);
     Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04550, (_gDryfieldWaterTowerCollision06004Normals + 2), 0x10);
     Mem_CopyUnaligned(_gDryfieldWaterTowerCollision045E0, (_gDryfieldWaterTowerCollision06004Faces + 2), sizeof(_gDryfieldWaterTowerCollision045E0));
     Mem_CopyUnaligned(_gDryfieldWaterTowerCollision04560, (_gDryfieldWaterTowerCollision06004Verts + 8), 0x40);
-    ((DryfieldWaterTowerState*)state->field_48->work)->field_70 = 1;
+    ((_DryfieldWaterTowerPropSceneWork*)state->fallingPropTask->work)->shadowEnabled = 1;
 }
 
-/// The `DwtwStep` the rotation's step counter is on: the last entry of
-/// `D_dryfield_water_tower_8018767C` whose threshold is below
-/// `DryfieldWaterTowerState::field_72`, walked from the second entry -- a
-/// counter of 0 fails the entry-0 test and takes the first entry without
-/// walking -- and capped by the `0xFFFF` terminator. The step's duration comes
-/// back 30-fold with its low bit cleared.
+/// The time limit of the mechanism's next run, in frames with the low bit
+/// cleared: the duration of the first `D_dryfield_water_tower_8018767C` entry
+/// whose `maxTimeouts` is not below `_DryfieldWaterTowerPropSceneWork::timeouts`.
+/// A count of 0 takes the first entry without searching, and the last entry's
+/// `DRYFIELD_WATER_TOWER_TIME_LIMIT_LAST` stops the search for every count.
 static s32 func_dryfield_water_tower_8017FB4C(Task* task)
 {
-    DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)task->work;
-    u16                      i;
+    _DryfieldWaterTowerPropSceneWork* state = task->work;
+    u16                               i;
 
     i = 0;
-    if (D_dryfield_water_tower_8018767C[0].field_0 < state->field_72) {
+    if (D_dryfield_water_tower_8018767C[0].maxTimeouts < state->timeouts) {
         do {
             i += 1;
-        } while (D_dryfield_water_tower_8018767C[i].field_0 < state->field_72);
+        } while (D_dryfield_water_tower_8018767C[i].maxTimeouts < state->timeouts);
     }
-    return (D_dryfield_water_tower_8018767C[i].field_2 * 30) & 0xFFFE;
+    return (D_dryfield_water_tower_8018767C[i].duration * DRYFIELD_WATER_TOWER_TIME_LIMIT_UNIT_FRAMES) & 0xFFFE;
 }
 
 s32 func_dryfield_water_tower_8017FBC8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    ((DryfieldWaterTowerState*)task->work)->field_6C = 1;
+    _DryfieldWaterTowerPropSceneWork* work = task->work;
+
+    work->actorEventReceived = 1;
 }
 
 s32 func_dryfield_water_tower_8017FBD8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    ((DryfieldWaterTowerState*)task->work)->field_6E = 1;
+    _DryfieldWaterTowerPropSceneWork* work = task->work;
+
+    work->runRequested = 1;
 }
 
 /// The room's per-frame body, run by `func_dryfield_water_tower_8017FD64`
 /// after its state machine has stepped the task on. It dispatches on the
-/// `DwtwWork::field_C` the room's script writes through
+/// `_DryfieldWaterTowerActorSceneWork::request` the room's script writes through
 /// `func_dryfield_water_tower_80180174` and clears it again on every path, so
 /// each command runs for the single frame the latch holds.
 ///
 /// State 1 installs the room's machinery: animation 0x0D to the prop task at
-/// `field_4`, the two 0x7D4 placements (base and base+0x48) to `field_4` and
-/// `field_8`, animation 0x0E to `field_8`, the slot-3 command 0x3F3 with its
+/// `firstActorTask`, the two 0x7D4 placements (base and base+0x48) to `firstActorTask` and
+/// `secondActorTask`, animation 0x0E to `secondActorTask`, the slot-3 command 0x3F3 with its
 /// `2`, and the fade-up. The cap script sends that same command as `1`
 /// (`func_dryfield_water_tower_8017E93C` commands 1 and 4) -- the value state 4
 /// below pairs with the 0x3E9 player move, as that script's command 4 does.
 /// States 2, 5 and 6 are the single messages the props receive when the script
 /// moves them: animation 0x0F with case 2's placement, and animations 0x0D and
-/// 0x0E to `field_4` and `field_8` on their own. States 0 and 3 are the idle
+/// 0x0E to `firstActorTask` and `secondActorTask` on their own. States 0 and 3 are the idle
 /// ones -- every path, including theirs, clears the latch.
 ///
 /// The halfword is read unsigned, so the state arrives as `lhu`; state 0 is a
@@ -2972,44 +3017,43 @@ s32 func_dryfield_water_tower_8017FBD8(Task* task, s32 msgId, s32 arg2, s32 arg3
 /// with the state itself rather than with `state - 1`.
 static void func_dryfield_water_tower_8017FBE8(Task* task)
 {
-    DwtwWork* work  = (DwtwWork*)task->work;
-    u16       state = work->field_C;
+    _DryfieldWaterTowerActorSceneWork* work = task->work;
 
-    switch (state) {
-        case 0:
+    switch (work->request) {
+        case DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_NONE:
             break;
-        case 1:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D3, &D_dryfield_water_tower_80182420[0], 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_water_tower_801823C0[0], 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &D_dryfield_water_tower_801823C0[3], 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D3, &D_dryfield_water_tower_80182420[1], 0);
-            taskMessageDispatch(work->field_0, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+        case DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_SET_UP:
+            TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLAY_ANIMATION, &D_dryfield_water_tower_80182420[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823C0[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->secondActorTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823C0[3], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->secondActorTask, ACTOR_MESSAGE_PLAY_ANIMATION, &D_dryfield_water_tower_80182420[1], 0);
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             Task_SpawnFromTable(D_dryfield_water_tower_8018277C, 2, 8, 0);
             break;
-        case 2:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_water_tower_801823C0[2], 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D3, (D_dryfield_water_tower_80182420 + 2), 0);
+        case DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_MOVE_FIRST_ACTOR:
+            TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823C0[2], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLAY_ANIMATION, (D_dryfield_water_tower_80182420 + 2), 0);
             break;
-        case 4:
-            taskMessageDispatch(work->field_0, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &D_dryfield_water_tower_801823A8, 0);
+        case DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_PLACE_PLAYER:
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823A8, 0);
             break;
-        case 5:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D3, &D_dryfield_water_tower_80182420[0], 0);
+        case DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_FIRST_ACTOR_CLIP:
+            TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLAY_ANIMATION, &D_dryfield_water_tower_80182420[0], 0);
             break;
-        case 6:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D3, (D_dryfield_water_tower_80182420 + 1), 0);
+        case DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_SECOND_ACTOR_CLIP:
+            TASK_MESSAGE_DISPATCH_POINTER(work->secondActorTask, ACTOR_MESSAGE_PLAY_ANIMATION, (D_dryfield_water_tower_80182420 + 1), 0);
             break;
     }
-    work->field_C = 0;
+    work->request = DRYFIELD_WATER_TOWER_ACTOR_SCENE_REQUEST_NONE;
 }
 
 /// Room entry point: install the player's weapon animation set on slot 3
 /// (message 0x3E8) unless the attachment wheel is open (`Gp_StateC08.mode`) or
-/// `gDisplayState.pendingMode` says one has just ended, then allocate the `DwtwWork` the room
+/// `gDisplayState.pendingMode` says one has just ended, then allocate the `_DryfieldWaterTowerActorSceneWork` the room
 /// task hangs off `Task::work` (killing the task if the allocation fails),
-/// zero it, park the slot-3 task in `field_0` and the room task itself in
-/// `D_dryfield_water_tower_801876AC`, and resolve `field_4` / `field_8` from
+/// zero it, park the slot-3 task in `playerTask` and the room task itself in
+/// `D_dryfield_water_tower_801876AC`, and resolve `firstActorTask` / `secondActorTask` from
 /// the session id: the base id, then the id with the 0x1000 index of
 /// `Gp_FindWorkById`'s search key.
 ///
@@ -3020,11 +3064,11 @@ static void func_dryfield_water_tower_8017FBE8(Task* task)
 /// per-frame body `func_dryfield_water_tower_8017FBE8`.
 void func_dryfield_water_tower_8017FD64(Task* task)
 {
-    AnimationPlayRequest msg;
-    DwtwWork*            work;
-    s32                  id;
-    s32                  weaponId;
-    s32                  anim;
+    AnimationPlayRequest               msg;
+    _DryfieldWaterTowerActorSceneWork* work;
+    s32                                id;
+    s32                                weaponId;
+    s32                                anim;
 
     if (gGameSession->sceneUpdatesPaused != 0) {
         return;
@@ -3051,12 +3095,12 @@ void func_dryfield_water_tower_8017FD64(Task* task)
                 taskKill(task);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->field_0                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                work->playerTask                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tower_801876AC = task;
                 id                              = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-                work->field_4                   = Gp_FindWorkById(id)->task;
+                work->firstActorTask            = Gp_FindWorkById(id)->task;
                 id                              = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
-                work->field_8                   = Gp_FindWorkById(id)->task;
+                work->secondActorTask           = Gp_FindWorkById(id)->task;
             }
             task->state++;
             break;
@@ -3101,43 +3145,43 @@ void func_dryfield_water_tower_80180154(void)
 
 void func_dryfield_water_tower_80180174(s16 arg0)
 {
-    DwtwWork* work = (DwtwWork*)D_dryfield_water_tower_801876AC->work;
+    _DryfieldWaterTowerActorSceneWork* work = D_dryfield_water_tower_801876AC->work;
 
-    work->field_C = arg0;
+    work->request = arg0;
     work->field_E = 0;
 }
 
 /// Armed once per room: hands the slot-4 task the session's two id bytes as
-/// message 0x7DA's payload, then sets `field_14` so the message goes out only
+/// message 0x7DA's payload, then sets `actorCommandSent` so the message goes out only
 /// the first time. The halfword it zeroes is the state the 0x7DB handler reads.
 void func_dryfield_water_tower_80180194(void)
 {
-    DwtwWork*    work = (DwtwWork*)D_dryfield_water_tower_801876AC->work;
-    ActorCommand msg;
+    _DryfieldWaterTowerActorSceneWork* work = D_dryfield_water_tower_801876AC->work;
+    ActorCommand                       msg;
 
-    if (work->field_14 == 0) {
+    if (work->actorCommandSent == 0) {
         Gp_ArmStateF0(1);
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 0;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-        work->field_14 = 1;
+        work->actorCommandSent = 1;
     }
 }
 
 /// Places the room's two prop tasks and the slot-3 game task: the first two
-/// 0x7D4 placements go to `field_8` / `field_4`, then `field_0` gets the 0x3F3
+/// 0x7D4 placements go to `secondActorTask` / `firstActorTask`, then `playerTask` gets the 0x3F3
 /// (1) and 0x3E9 commands that move the player to `D_..._801823A8`. The area
 /// record takes view 4 and the session is dropped back to state 1 before the
 /// stream RNG is restored.
 void func_dryfield_water_tower_80180220(void)
 {
-    DwtwWork* work = (DwtwWork*)D_dryfield_water_tower_801876AC->work;
+    _DryfieldWaterTowerActorSceneWork* work = D_dryfield_water_tower_801876AC->work;
 
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &(D_dryfield_water_tower_801823C0 + 1)[0], 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &(D_dryfield_water_tower_801823C0 + 1)[1], 0);
-    taskMessageDispatch(work->field_0, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &D_dryfield_water_tower_801823A8, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->secondActorTask, ACTOR_MESSAGE_PLACE, &(D_dryfield_water_tower_801823C0 + 1)[0], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLACE, &(D_dryfield_water_tower_801823C0 + 1)[1], 0);
+    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823A8, 0);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
     gGameSession->viewDirty                                    = 1;
     CdCmd_CancelReplaceAndActivate();
