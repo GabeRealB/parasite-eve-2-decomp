@@ -68,6 +68,12 @@ enum {
     ACTOR_107600_MOUNT_STEP_LEAVE       = 5, // Wait for the target to finish, then shrink away
 };
 
+/// Steps of a fixed mount, in `_Actor107600MountWork::step`.
+enum {
+    ACTOR_107600_MOUNT_FIXED_STEP_PLACE = 0, // Stand at full height on the floor
+    ACTOR_107600_MOUNT_FIXED_STEP_LEAVE = 1, // Wait for the target to finish, then shrink away
+};
+
 /// Work block of a gallery target's mount: the stand that rises where the
 /// gallery places it, carries its target along a path and shrinks away once the
 /// target has gone.
@@ -77,7 +83,7 @@ enum {
 typedef struct {
     MATRIX colorMatrix;      // Colour matrix the mount's model is lit through, in place of the scene's shared one
     MATRIX lightMatrix;      // Light matrix of the same
-    s16    pitch;            // Rotation of the model root about X
+    s16    pitch;            // Rotation of the model root about X. Nothing sets it, so it stays 0
     s16    yaw;              // About Y: starts a quarter turn back and advances 0x20 a frame while `rotating`
     s16    roll;             // About Z: half a turn on a hanging mount
     byte   unknown_46[2];    // No field access established; role unproven
@@ -88,13 +94,13 @@ typedef struct {
     s16    timer;            // Frames: counts the settling bob, then counts down the hold of a stationary path
     byte   unknown_13C[2];   // No field access established; role unproven
     s16    state;            // Update routine (0 lets the spawn frame pass, 1 runs `behaviour`)
-    s16    step;             // Progress through `behaviour`; `ACTOR_107600_MOUNT_STEP_*` on a path-following mount
+    s16    step;             // Progress through `behaviour`: `ACTOR_107600_MOUNT_STEP_*` on a path-following mount, `ACTOR_107600_MOUNT_FIXED_STEP_*` on a fixed one
     byte   unknown_142[2];   // No field access established; role unproven
     s16    behaviour;        // `ACTOR_107600_MOUNT_*`
     s16    path;             // Path the mount follows, from bits 16-23 of the spawn argument
     s16    waypoint;         // Stop of `path` the mount is closing on
     u8     rotating;         // Nonzero while the mount turns about Y: set once the target stands when bit 28 of the spawn argument asks for it, cleared when the path ends
-    s8     heightPercent;    // Vertical scale of the model root, 0 to 100, in steps of 8
+    s8     heightPercent;    // Vertical scale of the model root, in percent: grows from 0 and shrinks from 100 in steps of 8, clamped the frame after it passes either end
 } _Actor107600MountWork;
 STATIC_ASSERT_SIZEOF(_Actor107600MountWork, 0x14C);
 
@@ -186,24 +192,23 @@ typedef struct {
 } _Actor107600Waypoint;
 STATIC_ASSERT_SIZEOF(_Actor107600Waypoint, 6);
 
-/// Entry of the effect-offset table `func_actor_107600_80133024` copies into
-/// an `SVECTOR`'s `vx`/`vy`.
-typedef struct Actor107600Pair {
-    /* 0x0 */ u16 vx;
-    /* 0x2 */ u16 vy;
-} Actor107600Pair;
-
-/// 0x34-byte scratch block `func_actor_107600_80134248` takes from
-/// the scratch stack to draw one `POLY_FT4`. `v` holds the four corners
-/// (the offset table plus the coordinate's translation and the caller's
-/// position), projected through `workm` by one `RTPS` and one `RTPT` into
-/// `sxy` (each a packed `gte_stsxy` word, x low and y high). `otz` is the
-/// `gte_stszotz` less 0x40, which picks the OT bucket.
-typedef struct Actor107600QuadScratch {
-    /* 0x00 */ s32     sxy[4];
-    /* 0x10 */ s32     otz;
-    /* 0x14 */ SVECTOR v[4];
-} Actor107600QuadScratch;
+/// Scratch-stack workspace for one textured quad drawn on a target's face: a
+/// hit mark, or the burst that replaces the last one on a destroyed target.
+///
+/// `vertices` holds the four corners in the space of the target's root
+/// coordinate. One RTPS projects corner 0 and one RTPT corners 1..3 through
+/// that coordinate's composed matrix, and the drawer splits each resulting
+/// screen word onto the packet. A quad whose `depth` falls below the nearest
+/// ordering bucket it may use is dropped.
+///
+/// Reserve the whole block and release it before the drawer returns. Pointers
+/// into the block must not survive release.
+typedef struct {
+    s32     screenCorners[4]; // Projected corners, one GTE screen word each: X in the low half, Y in the high
+    s32     depth;            // Last projected corner's SZ3 / 4, less the drawer's ordering bias
+    SVECTOR vertices[4];      // Corners handed to the projection
+} _Actor107600QuadScratch;
+STATIC_ASSERT_SIZEOF(_Actor107600QuadScratch, 0x34);
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -250,7 +255,7 @@ extern _Actor107600Waypoint* D_actor_107600_80135624[];
 
 /* Eight effect offsets `func_actor_107600_80133024` cycles through from
  * `_Actor107600TargetWork::hitMarkFirst`. */
-extern Actor107600Pair D_actor_107600_80135730[];
+extern DVECTOR D_actor_107600_80135730[];
 
 /* Table `func_actor_107600_80132DF0` spawns from, indexed with `arg1 + 1`; it
  * is the trailing animation/data blob, not the leading rodata. */
@@ -802,14 +807,14 @@ DamageAttack D_actor_107600_8013571C[1] = { 0 };
 
 EnemyParams D_actor_107600_80135720 = { D_actor_107600_8013571C, 50, 0, 0, 0, 255, 0, 0, 0 };
 
-Actor107600Pair D_actor_107600_80135730[8] = {
-    { 0, 0xFEE0 },
-    { 96, 0xFF60 },
-    { 0xFF90, 0xFFA0 },
-    { 192, 0xFEC0 },
-    { 0xFFE0, 0xFE40 },
-    { 0xFF60, 0xFEA0 },
-    { 224, 0xFFD0 },
+DVECTOR D_actor_107600_80135730[8] = {
+    { 0, -0x120 },
+    { 0x60, -0xA0 },
+    { -0x70, -0x60 },
+    { 0xC0, -0x140 },
+    { -0x20, -0x1C0 },
+    { -0xA0, -0x160 },
+    { 0xE0, -0x30 },
     { 0, 0 },
 };
 
@@ -1290,11 +1295,11 @@ static void func_actor_107600_80132D54(Task* arg0)
     Enemy*                 enemy = arg0->spawnArg2.pointer;
 
     switch (work->step) {
-        case 0:
+        case ACTOR_107600_MOUNT_FIXED_STEP_PLACE:
             work->step++;
             work->heightPercent = 100;
             coord->coord.t[1]   = 0;
-        case 1:
+        case ACTOR_107600_MOUNT_FIXED_STEP_LEAVE:
             if (enemy->task->firstChild->spawnArg1.value & 0x80) {
                 if (work->heightPercent > 0) {
                     work->heightPercent -= 8;
@@ -1869,48 +1874,47 @@ static const DVECTOR D_actor_107600_80131ED8[] = {
 /// 0x40..0x67 x 0..0x27 and a 0xA0 depth bias.
 static void func_actor_107600_80133FA8(GfxCoord* coord, SVECTOR* pos)
 {
-    Actor107600QuadScratch* s;
-    POLY_FT4*               p;
-    s32                     i;
+    _Actor107600QuadScratch* s;
+    POLY_FT4*                p;
+    s32                      i;
 
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor107600QuadScratch));
-    s = SCRATCH_STACK_CURSOR(Actor107600QuadScratch);
+    s = SCRATCH_STACK_RESERVE_BLOCK(_Actor107600QuadScratch);
     for (i = 0; i < 4; i++) {
-        s->v[i].vx = pos->vx + (D_actor_107600_80131ED8[i].vx + coord->coord.t[0]);
-        s->v[i].vy = pos->vy + (D_actor_107600_80131ED8[i].vy + coord->coord.t[1]);
-        s->v[i].vz = coord->coord.t[2] + pos->vz;
+        s->vertices[i].vx = pos->vx + (D_actor_107600_80131ED8[i].vx + coord->coord.t[0]);
+        s->vertices[i].vy = pos->vy + (D_actor_107600_80131ED8[i].vy + coord->coord.t[1]);
+        s->vertices[i].vz = coord->coord.t[2] + pos->vz;
     }
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
-    gte_ldv0(&s->v[0]);
+    gte_ldv0(&s->vertices[0]);
     gte_rtps();
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setPolyFT4(p);
-    gte_stsxy(&s->sxy[0]);
-    gte_ldv3(&s->v[1], &s->v[2], &s->v[3]);
+    gte_stsxy(&s->screenCorners[0]);
+    gte_ldv3(&s->vertices[1], &s->vertices[2], &s->vertices[3]);
     gte_rtpt();
     p->tpage = 0x99;
     p->clut  = 0x3E80;
     setUV4(p, 0x40, 0, 0x67, 0, 0x40, 0x27, 0x67, 0x27);
     setShadeTex(p, 1);
-    gte_stsxy3(&s->sxy[1], &s->sxy[2], &s->sxy[3]);
-    gte_stszotz(&s->otz);
-    s->otz -= 0xA0;
-    if (s->otz < 0x40) {
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor107600QuadScratch));
+    gte_stsxy3(&s->screenCorners[1], &s->screenCorners[2], &s->screenCorners[3]);
+    gte_stszotz(&s->depth);
+    s->depth -= 0xA0;
+    if (s->depth < 0x40) {
+        SCRATCH_STACK_RELEASE_BLOCK(_Actor107600QuadScratch);
         return;
     }
-    p->x0 = s->sxy[0];
-    p->y0 = s->sxy[0] >> 16;
-    p->x1 = s->sxy[1];
-    p->y1 = s->sxy[1] >> 16;
-    p->x2 = s->sxy[2];
-    p->y2 = s->sxy[2] >> 16;
-    p->x3 = s->sxy[3];
-    p->y3 = s->sxy[3] >> 16;
-    addPrim(&gGpuCurrentOt[s->otz >> 4], p);
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor107600QuadScratch));
+    p->x0 = s->screenCorners[0];
+    p->y0 = s->screenCorners[0] >> 16;
+    p->x1 = s->screenCorners[1];
+    p->y1 = s->screenCorners[1] >> 16;
+    p->x2 = s->screenCorners[2];
+    p->y2 = s->screenCorners[2] >> 16;
+    p->x3 = s->screenCorners[3];
+    p->y3 = s->screenCorners[3] >> 16;
+    addPrim(&gGpuCurrentOt[s->depth >> 4], p);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor107600QuadScratch);
 }
 
 /// Corner offsets of the quad `func_actor_107600_80134248` draws; the
@@ -1928,48 +1932,47 @@ static const DVECTOR D_actor_107600_80131EE8[] = {
 /// dropping it when its OT depth lands too close.
 static void func_actor_107600_80134248(GfxCoord* coord, SVECTOR* pos)
 {
-    Actor107600QuadScratch* s;
-    POLY_FT4*               p;
-    s32                     i;
+    _Actor107600QuadScratch* s;
+    POLY_FT4*                p;
+    s32                      i;
 
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor107600QuadScratch));
-    s = SCRATCH_STACK_CURSOR(Actor107600QuadScratch);
+    s = SCRATCH_STACK_RESERVE_BLOCK(_Actor107600QuadScratch);
     for (i = 0; i < 4; i++) {
-        s->v[i].vx = pos->vx + (D_actor_107600_80131EE8[i].vx + coord->coord.t[0]);
-        s->v[i].vy = pos->vy + (D_actor_107600_80131EE8[i].vy + coord->coord.t[1]);
-        s->v[i].vz = coord->coord.t[2] + pos->vz;
+        s->vertices[i].vx = pos->vx + (D_actor_107600_80131EE8[i].vx + coord->coord.t[0]);
+        s->vertices[i].vy = pos->vy + (D_actor_107600_80131EE8[i].vy + coord->coord.t[1]);
+        s->vertices[i].vz = coord->coord.t[2] + pos->vz;
     }
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
-    gte_ldv0(&s->v[0]);
+    gte_ldv0(&s->vertices[0]);
     gte_rtps();
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setPolyFT4(p);
-    gte_stsxy(&s->sxy[0]);
-    gte_ldv3(&s->v[1], &s->v[2], &s->v[3]);
+    gte_stsxy(&s->screenCorners[0]);
+    gte_ldv3(&s->vertices[1], &s->vertices[2], &s->vertices[3]);
     gte_rtpt();
     p->tpage = 0x99;
     p->clut  = 0x3E80;
     setUV4(p, 0x68, 0, 0x77, 0, 0x68, 0xF, 0x77, 0xF);
     setShadeTex(p, 1);
-    gte_stsxy3(&s->sxy[1], &s->sxy[2], &s->sxy[3]);
-    gte_stszotz(&s->otz);
-    s->otz -= 0x40;
-    if (s->otz < 0x40) {
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor107600QuadScratch));
+    gte_stsxy3(&s->screenCorners[1], &s->screenCorners[2], &s->screenCorners[3]);
+    gte_stszotz(&s->depth);
+    s->depth -= 0x40;
+    if (s->depth < 0x40) {
+        SCRATCH_STACK_RELEASE_BLOCK(_Actor107600QuadScratch);
         return;
     }
-    p->x0 = s->sxy[0];
-    p->y0 = s->sxy[0] >> 16;
-    p->x1 = s->sxy[1];
-    p->y1 = s->sxy[1] >> 16;
-    p->x2 = s->sxy[2];
-    p->y2 = s->sxy[2] >> 16;
-    p->x3 = s->sxy[3];
-    p->y3 = s->sxy[3] >> 16;
-    addPrim(&gGpuCurrentOt[s->otz >> 4], p);
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor107600QuadScratch));
+    p->x0 = s->screenCorners[0];
+    p->y0 = s->screenCorners[0] >> 16;
+    p->x1 = s->screenCorners[1];
+    p->y1 = s->screenCorners[1] >> 16;
+    p->x2 = s->screenCorners[2];
+    p->y2 = s->screenCorners[2] >> 16;
+    p->x3 = s->screenCorners[3];
+    p->y3 = s->screenCorners[3] >> 16;
+    addPrim(&gGpuCurrentOt[s->depth >> 4], p);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor107600QuadScratch);
 }
 
 /// Weighted mode collapses each column of `m` to one value plus a
