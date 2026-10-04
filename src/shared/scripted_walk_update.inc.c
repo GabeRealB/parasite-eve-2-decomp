@@ -11,13 +11,13 @@ void scriptedWalkUpdate(Task* task)
     GfxCoord*         coord = task->extra.tmd->coords;
     ScriptedWalkWork* work  = (ScriptedWalkWork*)task->work;
 
-    if (gScriptedWalkWork->st.state == 1) {
+    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         scriptedWalkBlendAnim();
-        gScriptedWalkWork->st.state = 3;
-    } else if (gScriptedWalkWork->st.state == 2) {
+        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
+    } else if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
         scriptedWalkResetAnim();
-        gScriptedWalkWork->st.state = 3;
-    } else if (gScriptedWalkWork->st.state == 3) {
+        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
+    } else if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
         if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
             if (work->st.travel != 0) {
                 switch (SCRIPTED_WALK_MODE) {
@@ -32,7 +32,7 @@ void scriptedWalkUpdate(Task* task)
                         break;
                 }
                 if (--work->st.travel == 0) {
-                    work->st.state           = 1;
+                    work->st.state           = ACTOR_ENEMY_ANIM_BLEND;
                     gScriptedWalkBlendFrames = 10;
                     work->st.animId          = 0xD;
                 }
@@ -40,7 +40,7 @@ void scriptedWalkUpdate(Task* task)
         }
         if (work->st.animId == 3 && work->turnFrames != 0) {
             work->st.yaw += 0x33;
-            gfxRotMatrixY(&coord->coord, (s16)work->st.yaw, 1);
+            gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->turnFrames--;
         }

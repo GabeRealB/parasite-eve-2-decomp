@@ -41,7 +41,7 @@ void pairWalkSpawn(Enemy* enemy, Task* task)
     animationInitContext(&work->rig.anim, (AnimationSet**)gPairWalkAnimParams, obj,
                          work->rig.poses, work->rig.slots);
     work->st.animId = 1;
-    work->st.state  = 2;
+    work->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable  = gPairWalkMessages;
     pairWalkUpdate(task);
     task->state++;

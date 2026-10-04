@@ -1240,7 +1240,7 @@ static void func_actor_143900_80131E70(Enemy* enemy, Task* task)
     animationInitContext(&gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_143900_801413F8, obj,
                          gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId  = 1;
-    gScriptedWalkWork->st.state   = 2;
+    gScriptedWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
     gScriptedWalkWork->st.travel  = 0;
     gScriptedWalkWork->turnFrames = 0;
     task->msgTable                = D_actor_143900_801413BC;
@@ -1297,10 +1297,10 @@ s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* prese
     if (preset->animationId < 0x14) {
         gScriptedWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
-            gScriptedWalkWork->st.state = 1;
+            gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
             gScriptedWalkBlendFrames    = preset->blendFrames;
         } else {
-            gScriptedWalkWork->st.state = 2;
+            gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         gScriptedWalkWork->st.field_6 = 0;
         scriptedWalkUpdate(D_actor_143900_801496BC);
@@ -1386,7 +1386,7 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
     animationInitContext(&D_actor_143900_801496C4->rig.anim, (AnimationSet**)D_actor_143900_80149688, obj,
                          D_actor_143900_801496C4->rig.poses, D_actor_143900_801496C4->rig.slots);
     D_actor_143900_801496C4->st.animId = 1;
-    D_actor_143900_801496C4->st.state  = 2;
+    D_actor_143900_801496C4->st.state  = ACTOR_ENEMY_ANIM_RESET;
     helper                             = Task_SpawnFromTable(D_actor_143900_80149664, 1, 1, 0);
     if (helper != NULL) {
         D_actor_143900_801496C4->helper1 = helper;
@@ -1523,10 +1523,10 @@ s32 func_actor_143900_801331C4(Task* task, s32 arg1, AnimationPlayRequest* prese
     if (preset->animationId < 0xC) {
         D_actor_143900_801496C4->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
-            D_actor_143900_801496C4->st.state = 1;
+            D_actor_143900_801496C4->st.state = ACTOR_ENEMY_ANIM_BLEND;
             D_actor_143900_80149630           = preset->blendFrames;
         } else {
-            D_actor_143900_801496C4->st.state = 2;
+            D_actor_143900_801496C4->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         D_actor_143900_801496C4->st.field_6 = 0;
         func_actor_143900_80132A9C(D_actor_143900_801496C8);

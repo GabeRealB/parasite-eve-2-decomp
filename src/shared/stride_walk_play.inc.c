@@ -12,10 +12,10 @@ s32 strideWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
     if (args->animationId < 0xC) {
         work->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = 1;
+            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
             work->animArg  = args->blendFrames;
         } else {
-            work->st.state = 2;
+            work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         work->st.field_6 = 0;
         strideWalkUpdate(task);

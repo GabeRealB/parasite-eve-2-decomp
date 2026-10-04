@@ -2420,7 +2420,7 @@ static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
     vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     animationInitContext(&work->rig.anim, (AnimationSet**)&D_actor_460200_80151538, obj, work->rig.poses, work->rig.slots);
-    work->st.state = 2;
+    work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = D_actor_460200_801514FC;
     func_actor_460200_801336B4(task);
     task->state += 1;
@@ -2467,10 +2467,10 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args,
     if (args->animationId < 0x12) {
         work->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = 1;
+            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
             work->animArg  = args->blendFrames;
         } else {
-            work->st.state = 2;
+            work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         work->st.field_6 = 0;
         func_actor_460200_801336B4(task);

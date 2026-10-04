@@ -535,24 +535,37 @@ typedef struct {
 } ActorAnimRig6;
 STATIC_ASSERT_SIZEOF(ActorAnimRig6, 0x164);
 
-/// The animation and walk state an animated enemy keeps right after its rig.
-/// `state` is the animation step: 1 and 2 reseed the slots from `animId`, 1
-/// blending into it and 2 outright, and both advance to 3, which ticks the
-/// slots. `appliedAnimId` is the id the slots were last seeded with. `yaw` is
-/// the heading last given the root coordinate, and `travel` counts down the
-/// steps left in a walk. `field_6`, `field_8` and `field_A` are each enemy's
-/// own, and nothing the enemies share reads the bytes between them and `yaw`.
-typedef struct ActorEnemyState {
-    s16  state;
-    s16  appliedAnimId;
-    s16  animId;
-    s16  field_6;
-    s16  field_8;
-    s16  field_A;
-    byte pad_C[0x26];
-    s16  yaw;
+/// Steps of an enemy's animation, kept in `ActorEnemyState::state`.
+///
+/// A play request leaves one of the two reseeds pending. The enemy's next
+/// update performs it and moves on to `ACTOR_ENEMY_ANIM_TICK`, where it stays
+/// until the next request. A block still zeroed has no step, and its update
+/// leaves the rig alone.
+enum {
+    ACTOR_ENEMY_ANIM_BLEND = 1, // Reseed the slots from `animId`, blending from the pose they hold
+    ACTOR_ENEMY_ANIM_RESET = 2, // Reseed the slots from `animId` at its start, with no blend
+    ACTOR_ENEMY_ANIM_TICK  = 3, // Tick the slots each frame
+};
+
+/// The animation request and walk an animated enemy keeps right after its rig.
+///
+/// A play request stores the clip in `animId` and the reseed to perform in
+/// `state`; the update that performs it copies the clip to `appliedAnimId`.
+/// Clip ids index the package's own animation table. An enemy that walks
+/// keeps the heading it last gave its root coordinate and the frames its walk
+/// has left; one that stays where it is placed leaves both zero. No enemy
+/// reads or writes the bytes of `pad_A` or `pad_34`, and the block is
+/// allocated zeroed.
+typedef struct {
+    s16  state;         // Step of the animation (0 none, else `ACTOR_ENEMY_ANIM_BLEND`, `_RESET` or `_TICK`)
+    s16  appliedAnimId; // Clip the slots were last seeded with; recorded, never read
+    s16  animId;        // Clip the last play request selected
+    s16  field_6;       // Cleared by each play request and raised once by a view figure's spawn; never read, role unproven
+    s16  cueRecord;     // Animation record the enemy last cued a sound for, so a record held for several frames cues once
+    byte pad_A[0x28];
+    s16  yaw;           // Heading last given the root coordinate, 4096 to a turn
     byte pad_34[0x2];
-    s16  travel;
+    s16  travel;        // Frames of forward movement the walk has left
 } ActorEnemyState;
 STATIC_ASSERT_SIZEOF(ActorEnemyState, 0x38);
 
@@ -704,10 +717,8 @@ STATIC_ASSERT_SIZEOF(Actor161500Work, 0x4FC);
 
 /// Work block of the animated actor whose code actor_110300 and actor_110800
 /// both carry, reached through a global the spawn publishes: the rig at the
-/// front and the animation state after it. `st.field_6` is raised by the
-/// spawn routine and cleared when an animation starts, and `st.field_8` is
-/// the frame slot 19 or 16 last cued a sound for, kept for change detection,
-/// which only actor_110800 uses.
+/// front and the animation state after it. `st.cueRecord` is the animation
+/// record slot 19 or 16 last cued a sound for, which only actor_110800 uses.
 typedef struct Actor110300Work {
     ActorAnimRig20  rig;
     ActorEnemyState st;

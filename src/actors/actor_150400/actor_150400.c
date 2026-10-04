@@ -480,7 +480,7 @@ static void func_actor_150400_80132014(Enemy* enemy, Task* task)
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_150400_8013C90C, obj,
                          work->rig.poses, work->rig.slots);
     work->st.animId = 1;
-    work->st.state  = 2;
+    work->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable  = D_actor_150400_8013C8C4;
     pairWalkUpdate(task);
     task->state++;

@@ -2793,7 +2793,7 @@ static void func_actor_450800_80132160(Enemy* enemy, Task* task)
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_450800_8014ACC4, obj, work->rig.poses,
                          work->rig.slots);
     work->st.animId = 1;
-    work->st.state  = 2;
+    work->st.state  = ACTOR_ENEMY_ANIM_RESET;
 
     spawned = Task_SpawnFromTable(D_actor_450800_8014AC88, 1, 8, 0);
     if (spawned != NULL) {
@@ -2829,13 +2829,13 @@ static void func_actor_450800_80132448(Task* task)
     GfxCoord*        coord = task->extra.tmd->coords;
     Actor450800Work* work  = (Actor450800Work*)task->work;
 
-    if (work->st.state == 1) {
+    if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         func_actor_450800_80132AE0(task);
-        work->st.state = 3;
-    } else if (work->st.state == 2) {
+        work->st.state = ACTOR_ENEMY_ANIM_TICK;
+    } else if (work->st.state == ACTOR_ENEMY_ANIM_RESET) {
         pacedWalkResetAnim(task);
-        work->st.state = 3;
-    } else if (work->st.state == 3) {
+        work->st.state = ACTOR_ENEMY_ANIM_TICK;
+    } else if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
         if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
             if (work->st.travel != 0) {
                 switch (work->field_4FE) {
@@ -2850,7 +2850,7 @@ static void func_actor_450800_80132448(Task* task)
                         break;
                 }
                 if (--work->st.travel == 0) {
-                    work->st.state  = 1;
+                    work->st.state  = ACTOR_ENEMY_ANIM_BLEND;
                     work->animArg   = 0xA;
                     work->st.animId = 0xD;
                 }
@@ -2958,10 +2958,10 @@ s32 func_actor_450800_80132B44(Task* task, s32 arg1, AnimationPlayRequest* args,
     if (args->animationId < 0x1F) {
         work->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = 1;
+            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
             work->animArg  = args->blendFrames;
         } else {
-            work->st.state = 2;
+            work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         work->st.field_6 = 0;
         func_actor_450800_80132448(task);

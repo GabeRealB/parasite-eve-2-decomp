@@ -27,7 +27,7 @@
 /// and reached through `D_actor_202900_80156E54`, which the actor's update
 /// refreshes from the task every frame: the light and colour matrices the
 /// model is drawn under, its nineteen-part rig and its animation state, in
-/// which `st.field_8` latches the second slot's record once it reaches 0x15,
+/// which `st.cueRecord` latches the second slot's record once it reaches 0x15,
 /// so the overlay reacts to that record once.
 typedef struct Actor202900Work {
     MATRIX          light;
@@ -284,10 +284,10 @@ static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
     func_800D7A9C(obj, &vec, 0, 3);
     Gp_AnimInitCtx(&D_actor_202900_80156E54->rig.anim, D_actor_202900_80156E3C, obj,
                    D_actor_202900_80156E54->rig.poses);
-    D_actor_202900_80156E54->st.animId  = 4;
-    D_actor_202900_80156E54->st.state   = 2;
-    D_actor_202900_80156E54->st.field_8 = 0;
-    task->msgTable                      = D_actor_202900_80156E0C;
+    D_actor_202900_80156E54->st.animId    = 4;
+    D_actor_202900_80156E54->st.state     = ACTOR_ENEMY_ANIM_RESET;
+    D_actor_202900_80156E54->st.cueRecord = 0;
+    task->msgTable                        = D_actor_202900_80156E0C;
     func_actor_202900_8014A194(task);
     task->state++;
 }
@@ -342,7 +342,7 @@ static void func_actor_202900_8014A0B4(Enemy* enemy, Task* task)
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
     func_actor_202900_8014A194(task);
-    if ((s16)D_actor_202900_80156E54->st.animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
+    if (D_actor_202900_80156E54->st.animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
         SndEvt_EnqueueType6(SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE, 0, 0);
     }
 }
@@ -362,17 +362,17 @@ static void func_actor_202900_8014A158(Task* arg0)
 /// functions.
 static void func_actor_202900_8014A194(Task* arg0)
 {
-    if (D_actor_202900_80156E54->st.state == 1) {
+    if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         func_actor_202900_8014A304();
-        D_actor_202900_80156E54->st.state = 3;
+        D_actor_202900_80156E54->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (D_actor_202900_80156E54->st.state == 2) {
+    if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_RESET) {
         func_actor_202900_8014A260();
-        D_actor_202900_80156E54->st.state = 3;
+        D_actor_202900_80156E54->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (D_actor_202900_80156E54->st.state == 3) {
+    if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_TICK) {
         func_actor_202900_8014A208();
     }
 }
@@ -403,7 +403,7 @@ static void func_actor_202900_8014A260(void)
     do {
         D_actor_202900_80156E54->rig.slots[i].rate = 1;
         Gp_AnimInitSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i], i,
-                        (s16)D_actor_202900_80156E54->st.animId);
+                        D_actor_202900_80156E54->st.animId);
         i++;
     } while (i < 0x13);
     D_actor_202900_80156E54->st.appliedAnimId = D_actor_202900_80156E54->st.animId;
@@ -423,14 +423,14 @@ static void func_actor_202900_8014A304(void)
     i = 1;
     do {
         func_800B3AA4(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i], i,
-                      (s16)D_actor_202900_80156E54->st.animId, 0, 8);
+                      D_actor_202900_80156E54->st.animId, 0, 8);
         i++;
     } while (i < 0x13);
     D_actor_202900_80156E54->st.appliedAnimId = D_actor_202900_80156E54->st.animId;
 }
 
 /// Watches the second animation slot for the frame the overlay reacts to:
-/// while it holds 0x15, records it in `st.field_8` and reports whether that is
+/// while it holds 0x15, records it in `st.cueRecord` and reports whether that is
 /// a change.
 ///
 /// The mask is written at each use rather than hoisted into a `u16` local.
@@ -443,11 +443,11 @@ static s32 func_actor_202900_8014A394(void)
 
     frame = D_actor_202900_80156E54->rig.slots[1].currentPose.indices.recordIndex;
     if ((frame & ANIMATION_POSE_CUE_INDEX_MASK) == 0x15) {
-        if (D_actor_202900_80156E54->st.field_8 != (frame & ANIMATION_POSE_CUE_INDEX_MASK)) {
-            D_actor_202900_80156E54->st.field_8 = frame & ANIMATION_POSE_CUE_INDEX_MASK;
+        if (D_actor_202900_80156E54->st.cueRecord != (frame & ANIMATION_POSE_CUE_INDEX_MASK)) {
+            D_actor_202900_80156E54->st.cueRecord = frame & ANIMATION_POSE_CUE_INDEX_MASK;
             return 1;
         }
-        D_actor_202900_80156E54->st.field_8 = frame & ANIMATION_POSE_CUE_INDEX_MASK;
+        D_actor_202900_80156E54->st.cueRecord = frame & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     return 0;
 }
@@ -467,7 +467,7 @@ s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, AnimationPlayRequest* args,
     if (args->animationId < 5) {
         D_actor_202900_80156E54->st.animId  = args->animationId;
         actor                               = gActorSelfTask;
-        D_actor_202900_80156E54->st.state   = 2;
+        D_actor_202900_80156E54->st.state   = ACTOR_ENEMY_ANIM_RESET;
         D_actor_202900_80156E54->st.field_6 = 0;
         func_actor_202900_8014A194(actor);
         return 0;

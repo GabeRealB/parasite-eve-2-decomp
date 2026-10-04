@@ -9,7 +9,7 @@ void viewFigureReseedAnim(void)
 
     i = 1;
     do {
-        animationSeekSlotWithBlend(&gViewFigureWork->rig.anim, i, (s16)gViewFigureWork->st.animId, 0, 8);
+        animationSeekSlotWithBlend(&gViewFigureWork->rig.anim, i, gViewFigureWork->st.animId, 0, 8);
         i++;
     } while (i < 0x14);
     gViewFigureWork->st.appliedAnimId = gViewFigureWork->st.animId;

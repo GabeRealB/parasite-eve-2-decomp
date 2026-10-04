@@ -1586,7 +1586,7 @@ static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
     animationInitContext(&gFootstepWalkWork->rig.anim, (AnimationSet**)D_actor_260500_80159DBC, obj,
                          gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
     gFootstepWalkWork->st.animId  = 4;
-    gFootstepWalkWork->st.state   = 2;
+    gFootstepWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
     gFootstepWalkWork->st.travel  = 0;
     gFootstepWalkWork->turnFrames = 0;
     task->msgTable                = D_actor_260500_80159D80;
@@ -1642,10 +1642,10 @@ s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, AnimationPlayRequest* prese
     if (preset->animationId < 0x24) {
         gFootstepWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
-            gFootstepWalkWork->st.state = 1;
+            gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
             gFootstepWalkBlendFrames    = preset->blendFrames;
         } else {
-            gFootstepWalkWork->st.state = 2;
+            gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         gFootstepWalkWork->st.field_6 = 0;
         footstepWalkQuietUpdate(D_actor_260500_80159E50);

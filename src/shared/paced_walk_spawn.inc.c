@@ -40,7 +40,7 @@ void pacedWalkSpawn(Enemy* enemy, Task* task)
     func_800D7A9C(obj, &vec, 0, 3);
     animationInitContext(&work->rig.anim, (AnimationSet**)gPacedWalkAnimBank, obj,
                          work->rig.poses, work->rig.slots);
-    work->st.state = 2;
+    work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = gPacedWalkMsgTable;
     pacedWalkUpdate(task);
     task->state++;

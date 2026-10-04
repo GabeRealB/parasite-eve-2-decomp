@@ -42,7 +42,7 @@ void footstepWalkSpawn(Enemy* enemy, Task* task)
     animationInitContext(&gFootstepWalkWork->rig.anim, (AnimationSet**)gFootstepWalkAnims, obj,
                          gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
     gFootstepWalkWork->st.animId  = 1;
-    gFootstepWalkWork->st.state   = 2;
+    gFootstepWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
     gFootstepWalkWork->st.travel  = 0;
     gFootstepWalkWork->turnFrames = 0;
     gFootstepWalkWork->stepRec    = 0;

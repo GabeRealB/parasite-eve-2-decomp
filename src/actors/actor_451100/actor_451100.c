@@ -1482,7 +1482,7 @@ static void func_actor_451100_80131E24(Enemy* enemy, Task* task)
     animationInitContext(&gFootstepWalkWork->rig.anim, D_actor_451100_8013F740, obj,
                          gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
     gFootstepWalkWork->st.animId  = 0x14;
-    gFootstepWalkWork->st.state   = 2;
+    gFootstepWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
     gFootstepWalkWork->st.travel  = 0;
     gFootstepWalkWork->turnFrames = 0;
     task->msgTable                = D_actor_451100_8013F704;
@@ -1538,10 +1538,10 @@ s32 func_actor_451100_80132538(Task* task, s32 arg1, AnimationPlayRequest* args,
     if (args->animationId < 0x25) {
         gFootstepWalkWork->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            gFootstepWalkWork->st.state = 1;
+            gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
             gFootstepWalkBlendFrames    = args->blendFrames;
         } else {
-            gFootstepWalkWork->st.state = 2;
+            gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         gFootstepWalkWork->st.field_6 = 0;
         footstepWalkQuietUpdate(D_actor_451100_8014E748);
@@ -1638,7 +1638,7 @@ static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_451100_8014E6FC, obj, work->rig.poses,
                          work->rig.slots);
     work->st.animId = 1;
-    work->st.state  = 2;
+    work->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable  = D_actor_451100_8014E6B4;
     pairWalkUpdate(task);
     task->state += 1;
@@ -1698,10 +1698,10 @@ s32 func_actor_451100_80132E98(Task* task, s32 arg1, AnimationPlayRequest* args,
     if (args->animationId < 0x12) {
         work->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = 1;
+            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
             work->animArg  = args->blendFrames;
         } else {
-            work->st.state = 2;
+            work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         work->st.field_6 = 0;
         pairWalkUpdate(task);

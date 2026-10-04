@@ -5,17 +5,17 @@
 /// on to step 3, which ticks them. The argument is never read.
 void viewFigureStepAnim(Task* task)
 {
-    if (gViewFigureWork->st.state == 1) {
+    if (gViewFigureWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         viewFigureReseedAnim();
-        gViewFigureWork->st.state = 3;
+        gViewFigureWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (gViewFigureWork->st.state == 2) {
+    if (gViewFigureWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
         viewFigureResetAnim();
-        gViewFigureWork->st.state = 3;
+        gViewFigureWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (gViewFigureWork->st.state == 3) {
+    if (gViewFigureWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
         viewFigureTickAnim();
     }
 }

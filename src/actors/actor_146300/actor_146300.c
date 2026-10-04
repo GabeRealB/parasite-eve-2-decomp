@@ -1546,7 +1546,7 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
     animationInitContext(&gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_146300_801427E0, obj,
                          gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId = 0xB;
-    gScriptedWalkWork->st.state  = 2;
+    gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable               = D_actor_146300_801427A0;
     func_actor_146300_801327CC(task);
     task->state++;
@@ -1600,17 +1600,17 @@ static void func_actor_146300_801327A4(Task* task)
 /// the second survives.
 static void func_actor_146300_801327CC(Task* task)
 {
-    if (gScriptedWalkWork->st.state == 1) {
+    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         scriptedWalkBlendAnim();
-        gScriptedWalkWork->st.state = 3;
+        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (gScriptedWalkWork->st.state == 2) {
+    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
         scriptedWalkResetAnim();
-        gScriptedWalkWork->st.state = 3;
+        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (gScriptedWalkWork->st.state == 3) {
+    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
         scriptedWalkTickAnim();
     }
 }
@@ -1630,10 +1630,10 @@ s32 func_actor_146300_8013299C(Task* task, s32 arg1, AnimationPlayRequest* prese
     if (preset->animationId < 0x11) {
         gScriptedWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
-            gScriptedWalkWork->st.state = 1;
+            gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
             gScriptedWalkBlendFrames    = preset->blendFrames;
         } else {
-            gScriptedWalkWork->st.state = 2;
+            gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         gScriptedWalkWork->st.field_6 = 0;
         func_actor_146300_801327CC(gActorSelfTask);

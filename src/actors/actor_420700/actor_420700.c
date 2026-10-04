@@ -24,20 +24,40 @@
 #include "main/tmd_types.h"
 #include "../../shared/scripted_walk.h"
 
+/// The animation request and head turn the actor keeps right after its rig.
+///
+/// The first three members are the ones `ActorEnemyState` opens with, used
+/// the same way; the block then goes its own way, so it is not that type.
+typedef struct {
+    s16 state;         // Step of the animation (0 none, else `ACTOR_ENEMY_ANIM_BLEND`, `_RESET` or `_TICK`)
+    s16 appliedAnimId; // Clip the slots were last seeded with
+    s16 animId;        // Clip the last play request selected
+    s16 turnMode;      // What the head turn does each frame (`ACTOR_420700_TURN_*`), as message 0x7DB last set it
+    s16 turnWeight;    // Share of the remaining angle the head turns each frame, 0 to 0x1000 for none to all of it
+    s16 field_A;       // Cleared by each play request; never read, role unproven
+} _Actor420700State;
+STATIC_ASSERT_SIZEOF(_Actor420700State, 0xC);
+
+/// What the actor's head turn does each frame, kept in
+/// `_Actor420700State::turnMode`: the command message 0x7DB carries.
+enum {
+    ACTOR_420700_TURN_AUTO    = 0, // Toward the player, the weight rising while the player faces away from the actor and falling otherwise
+    ACTOR_420700_TURN_PLAYER  = 1, // Toward the player, the weight rising from 0
+    ACTOR_420700_TURN_RELEASE = 2, // Toward the player, the weight falling from 0x1000
+    ACTOR_420700_TURN_POINT   = 3, // Toward a fixed point of the room, the weight rising from 0
+};
+
 /// Work block of the overlay's actor, allocated zeroed by its state-0 handler
 /// and kept both in `gScriptedWalkWork` and at `Task::work`; the task
 /// dispatcher republishes it every tick, and every other function in the
 /// overlay reaches it through the global. `light` and `color` are the model's
-/// matrices and `rig` and `st` its animation rig and state. The actor's own
-/// state fields are a ramp: `st.field_6` is the mode message 0x7DB selects (1
-/// and 3 rise, 2 falls, 0 leaves it alone), and `st.field_8` the value the
-/// ramp walks by 0x80, clamped to 0..0x1000.
+/// matrices and `rig` and `st` its animation rig and state.
 typedef struct Actor420700Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig20  rig;
-    ActorEnemyState st;
-    byte            pad_4EC[0xB4];
+    MATRIX            light;
+    MATRIX            color;
+    ActorAnimRig20    rig;
+    _Actor420700State st;
+    byte              pad_4C0[0xE0];
 } Actor420700Work;
 STATIC_ASSERT_SIZEOF(Actor420700Work, 0x5A0);
 
@@ -1040,7 +1060,7 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
     animationInitContext(&gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_420700_8013EF8C, obj,
                          gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId = 5;
-    gScriptedWalkWork->st.state  = 2;
+    gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable               = D_actor_420700_8013EF48;
     func_actor_420700_80132478(task);
     task->state++;
@@ -1048,8 +1068,8 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
 
 /// Step 1 of the `func_actor_420700_80132340` dispatcher: refresh the model's third
 /// coordinate and colour the actor from its world translation, run
-/// `func_actor_420700_80132478`, then step the `st.field_8` ramp by the mode in
-/// `st.field_6` and pass it as the weight of `func_800B0928` aimed at the
+/// `func_actor_420700_80132478`, then step the `st.turnWeight` ramp by the mode in
+/// `st.turnMode` and pass it as the weight of `func_800B0928` aimed at the
 /// slot-3 task (modes 0, 1 and 2) or of `func_800B0CF4` aimed at a fixed
 /// world point (mode 3).
 ///
@@ -1082,25 +1102,26 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
     func_actor_420700_80132478(task);
     rate = 0x10;
-    if (gScriptedWalkWork->st.field_6 != 0) {
-        if (gScriptedWalkWork->st.field_6 == 1 || gScriptedWalkWork->st.field_6 == 3) {
-            gScriptedWalkWork->st.field_8 += 0x80;
-            if (gScriptedWalkWork->st.field_8 > 0x1000) {
-                gScriptedWalkWork->st.field_8 = 0x1000;
+    if (gScriptedWalkWork->st.turnMode != ACTOR_420700_TURN_AUTO) {
+        if (gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_PLAYER ||
+            gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_POINT) {
+            gScriptedWalkWork->st.turnWeight += 0x80;
+            if (gScriptedWalkWork->st.turnWeight > 0x1000) {
+                gScriptedWalkWork->st.turnWeight = 0x1000;
             }
         } else {
-            gScriptedWalkWork->st.field_8 -= 0x80;
-            if (gScriptedWalkWork->st.field_8 < 0) {
-                gScriptedWalkWork->st.field_8 = 0;
+            gScriptedWalkWork->st.turnWeight -= 0x80;
+            if (gScriptedWalkWork->st.turnWeight < 0) {
+                gScriptedWalkWork->st.turnWeight = 0;
             }
         }
-        if (gScriptedWalkWork->st.field_6 == 3) {
+        if (gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_POINT) {
             target[0].coord.t[0] = 0x1173;
             target[0].coord.t[1] = 0;
             target[0].coord.t[2] = -0x733;
-            func_800B0CF4(task, target, 0x200, 0x100, gScriptedWalkWork->st.field_8);
+            func_800B0CF4(task, target, 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
         } else {
-            func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.field_8);
+            func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
         }
     } else {
         if (gGameSession->eventState == 0) {
@@ -1113,20 +1134,20 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
             } else {
                 D_actor_420700_8013EFF0 = -0x80;
             }
-            if (gScriptedWalkWork->st.field_8 != 0) {
+            if (gScriptedWalkWork->st.turnWeight != 0) {
                 rate = 0;
             }
         } else {
             D_actor_420700_8013EFF0 = -0x80;
         }
-        gScriptedWalkWork->st.field_8 += D_actor_420700_8013EFF0;
-        if (gScriptedWalkWork->st.field_8 > 0x1000) {
-            gScriptedWalkWork->st.field_8 = 0x1000;
+        gScriptedWalkWork->st.turnWeight += D_actor_420700_8013EFF0;
+        if (gScriptedWalkWork->st.turnWeight > 0x1000) {
+            gScriptedWalkWork->st.turnWeight = 0x1000;
         }
-        if (gScriptedWalkWork->st.field_8 < 0) {
-            gScriptedWalkWork->st.field_8 = 0;
+        if (gScriptedWalkWork->st.turnWeight < 0) {
+            gScriptedWalkWork->st.turnWeight = 0;
         }
-        func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.field_8);
+        func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
     }
     for (i = 1; i < 0x14; i++) {
         gScriptedWalkWork->rig.slots[i].rate = rate;
@@ -1192,17 +1213,17 @@ void func_actor_420700_801323D8(Task* task)
 /// second survives.
 static void func_actor_420700_80132478(Task* task)
 {
-    if (gScriptedWalkWork->st.state == 1) {
+    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         func_actor_420700_801325C8();
-        gScriptedWalkWork->st.state = 3;
+        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (gScriptedWalkWork->st.state == 2) {
+    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
         scriptedWalkResetAnim();
-        gScriptedWalkWork->st.state = 3;
+        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (gScriptedWalkWork->st.state == 3) {
+    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
         scriptedWalkTickAnim();
     }
 }
@@ -1250,9 +1271,9 @@ s32 func_actor_420700_80132644(Task* task, s32 arg1, AnimationPlayRequest* args,
         work            = gScriptedWalkWork;
         work->st.animId = (u16)args->animationId + offset;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = 1;
+            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
         } else {
-            work->st.state = 2;
+            work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         gScriptedWalkWork->st.field_A = 0;
         func_actor_420700_80132478(D_actor_420700_8013EFE4);
@@ -1291,8 +1312,8 @@ s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// Message 0x7DB handler: records the `st.field_6` mode the ramp
-/// `func_actor_420700_80132064` runs and seeds `st.field_8` at the end that mode
+/// Message 0x7DB handler: records the `st.turnMode` mode the ramp
+/// `func_actor_420700_80132064` runs and seeds `st.turnWeight` at the end that mode
 /// walks away from -- 0 for the rising modes 1 and 3, 0x1000 for the falling
 /// mode 2. Mode 0 is accepted as a no-op, and a block whose leading id is not
 /// 0x1B02 is rejected with -1 without touching the work block.
@@ -1307,16 +1328,16 @@ s32 func_actor_420700_80132784(Task* task, s32 arg1, ActorCommand* args, s32 arg
     if (args->context.key != 0x1B02) {
         return -1;
     }
-    gScriptedWalkWork->st.field_6 = args->command;
+    gScriptedWalkWork->st.turnMode = args->command;
     switch (args->command) {
-        case 0:
+        case ACTOR_420700_TURN_AUTO:
             break;
-        case 1:
-        case 3:
-            gScriptedWalkWork->st.field_8 = 0;
+        case ACTOR_420700_TURN_PLAYER:
+        case ACTOR_420700_TURN_POINT:
+            gScriptedWalkWork->st.turnWeight = 0;
             break;
-        case 2:
-            gScriptedWalkWork->st.field_8 = 0x1000;
+        case ACTOR_420700_TURN_RELEASE:
+            gScriptedWalkWork->st.turnWeight = 0x1000;
             break;
     }
     return 0;

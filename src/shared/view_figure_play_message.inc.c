@@ -10,7 +10,7 @@ s32 viewFigurePlayMessage(Task* task, s32 arg1, AnimationPlayRequest* args, s32 
     if (args->animationId < 6) {
         gViewFigureWork->st.animId  = args->animationId;
         actor                       = gActorSelfTask;
-        gViewFigureWork->st.state   = 2;
+        gViewFigureWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
         gViewFigureWork->st.field_6 = 0;
         viewFigureStepAnim(actor);
         return 0;

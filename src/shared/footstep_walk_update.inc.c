@@ -11,13 +11,13 @@ void footstepWalkUpdate(Task* task)
     GfxCoord*        coord = task->extra.tmd->coords;
     Actor151000Work* work  = (Actor151000Work*)task->work;
 
-    if (gFootstepWalkWork->st.state == 1) {
+    if (gFootstepWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         footstepWalkBlendAnim();
-        gFootstepWalkWork->st.state = 3;
-    } else if (gFootstepWalkWork->st.state == 2) {
+        gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
+    } else if (gFootstepWalkWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
         footstepWalkResetAnim();
-        gFootstepWalkWork->st.state = 3;
-    } else if (gFootstepWalkWork->st.state == 3) {
+        gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
+    } else if (gFootstepWalkWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
         if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
             if (work->st.travel != 0) {
                 switch (gFootstepWalkMode) {
@@ -32,7 +32,7 @@ void footstepWalkUpdate(Task* task)
                         break;
                 }
                 if (--work->st.travel == 0) {
-                    work->st.state           = 1;
+                    work->st.state           = ACTOR_ENEMY_ANIM_BLEND;
                     gFootstepWalkBlendFrames = 10;
                     work->st.animId          = 0xD;
                 }

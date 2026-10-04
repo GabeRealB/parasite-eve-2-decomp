@@ -11,17 +11,17 @@ void pairWalkUpdate(Task* task)
     s16              animId;
 
     work = (Actor150400Work*)task->work;
-    if (work->st.state == 1) {
+    if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         pairWalkReseedAnim(task);
-        work->st.state = 3;
+        work->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (work->st.state == 2) {
+    if (work->st.state == ACTOR_ENEMY_ANIM_RESET) {
         pairWalkResetAnim(task);
-        work->st.state = 3;
+        work->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (work->st.state == 3) {
+    if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
         // The loop-end note ends cse's first block here, so the pause check
         // loads its own 1 instead of reusing the state test's.
         do {
@@ -29,7 +29,7 @@ void pairWalkUpdate(Task* task)
         animId = work->st.animId;
         if (animId == 4 && work->st.travel != 0) {
             actorMoveForward(task->extra.tmd->coords, 0x11);
-            work->st.travel = (u16)work->st.travel - 1;
+            work->st.travel--;
             if (work->st.travel == 0) {
                 work->animArg   = 0xA;
                 work->st.animId = 1;

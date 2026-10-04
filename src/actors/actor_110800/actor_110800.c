@@ -290,8 +290,8 @@ static void func_actor_110800_80131F9C(Enemy* enemy, Task* task);
 ///
 /// The two animation ids this actor plays carry a frame table each: id 4
 /// watches slot 19 alone, id 5 watches slot 19 and then slot 16. An entry
-/// latches the frame it fired for in `st.field_8`, so a frame that is held over
-/// several calls only cues once; the mask is the frame index of the slot's
+/// latches the frame it fired for in `st.cueRecord`, so a frame that is held
+/// over several calls only cues once; the mask is the frame index of the slot's
 /// halfword.
 ///
 /// The body reaches the task through the second argument, so the incoming `$a1`
@@ -300,10 +300,6 @@ static void func_actor_110800_80131F9C(Enemy* enemy, Task* task);
 /// twice with the coordinate taken through the first read: that leaves cse's
 /// load in a temporary and copies it into `obj`, which is the `move` between
 /// the two loads the target has.
-///
-/// The switch reads `animId` signed. The field is unsigned, so the cast is
-/// load-bearing: without it the halfword load is `lhu` where the target has
-/// `lh`.
 static void func_actor_110800_80131F9C(Enemy* enemy, Task* task)
 {
     GfxCoord*  coord;
@@ -313,51 +309,51 @@ static void func_actor_110800_80131F9C(Enemy* enemy, Task* task)
     coord = task->extra.tmd->coords;
     obj   = task->extra.tmd;
     viewFigureStepAnim(task);
-    switch ((s16)gViewFigureWork->st.animId) {
+    switch (gViewFigureWork->st.animId) {
         case 4:
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC8) {
-                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x11), 0, 0);
                 }
-                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCA) {
-                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0D), 0, 0);
                 }
-                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCD) {
-                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0E), 0, 0);
                 }
-                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             break;
         case 5:
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x115) {
-                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
                 }
-                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x11F) {
-                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
                 }
-                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             if ((gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCE) {
-                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
                 }
-                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             if ((gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xD8) {
-                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
                 }
-                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             break;
     }

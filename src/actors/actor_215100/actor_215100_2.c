@@ -2220,7 +2220,7 @@ static void func_actor_215100_8014C660(Enemy* enemy, Task* task)
     func_800D7A9C(obj, &vec, 0, 3);
     animationInitContext(&work->rig.anim, D_actor_215100_8015E5E8, obj,
                          work->rig.poses, work->rig.slots);
-    work->st.state = 2;
+    work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = D_actor_215100_8015E5A0;
     pacedWalkUpdate(task);
     task->state++;
@@ -2275,10 +2275,10 @@ s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, AnimationPlayRequest* args,
     if (args->animationId < 0x19) {
         work->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = 1;
+            work->st.state = ACTOR_ENEMY_ANIM_BLEND;
             work->animArg  = args->blendFrames;
         } else {
-            work->st.state = 2;
+            work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         work->st.field_6 = 0;
         pacedWalkUpdate(task);

@@ -10,10 +10,10 @@ s32 footstepWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
     if (args->animationId < 0x23) {
         gFootstepWalkWork->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
-            gFootstepWalkWork->st.state = 1;
+            gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
             gFootstepWalkBlendFrames    = args->blendFrames;
         } else {
-            gFootstepWalkWork->st.state = 2;
+            gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         gFootstepWalkWork->st.field_6 = 0;
         footstepWalkUpdate(gFootstepWalkTask);

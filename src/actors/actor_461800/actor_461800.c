@@ -1083,7 +1083,7 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
     animationInitContext(&gScriptedWalkWork->rig.anim, D_actor_461800_80139FB0, obj,
                          gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
     gScriptedWalkWork->st.animId = 1;
-    gScriptedWalkWork->st.state  = 2;
+    gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
 
     spawned1 = Task_SpawnFromTable(D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
@@ -1187,10 +1187,10 @@ s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* prese
     if (preset->animationId < 6) {
         gScriptedWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
-            gScriptedWalkWork->st.state = 1;
+            gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
             gScriptedWalkBlendFrames    = preset->blendFrames;
         } else {
-            gScriptedWalkWork->st.state = 2;
+            gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         gScriptedWalkWork->st.field_6 = 0;
         scriptedWalkUpdate(D_actor_461800_80143898);
