@@ -7,11 +7,11 @@
 /// otherwise resets the slots before ticking them.
 s32 actorMotionPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
-    ActorMotionWork* work;
-    TmdObject*       ext;
-    s32              i;
+    ActorMotionPlayWork* work;
+    TmdObject*           ext;
+    s32                  i;
 
-    work = (ActorMotionWork*)task->work;
+    work = (ActorMotionPlayWork*)task->work;
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;

@@ -8,14 +8,14 @@
 /// `func_actor_135600_801330A8` written out inline. Returns 0.
 s32 actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
-    ActorMotionWork*      work;
-    ActorMotionWork*      w;
+    ActorMotionPlayWork*  work;
+    ActorMotionWalkWork*  w;
     AnimationPlayRequest  preset;
     AnimationPlayRequest* msg;
     s32                   i;
     TmdObject*            ext;
 
-    w                    = (ActorMotionWork*)task->work;
+    w                    = (ActorMotionWalkWork*)task->work;
     w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
     w->walk.motionStep   = 0;
     w->walk.target.vx    = place->pos.vx;
@@ -37,7 +37,7 @@ s32 actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, ActorMotio
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     msg  = &preset;
-    work = (ActorMotionWork*)task->work;
+    work = (ActorMotionPlayWork*)task->work;
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;

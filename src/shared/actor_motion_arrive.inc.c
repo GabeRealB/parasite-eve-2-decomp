@@ -8,14 +8,14 @@
 /// advances `walk.motionStep`.
 void actorMotionArrive(Task* arg0)
 {
-    ActorMotionWork*     work;
+    ActorMotionWalkWork* work;
     GfxCoord*            coord;
     SVECTOR              d;
     s32                  dx;
     s32                  dz;
     AnimationPlayRequest preset;
 
-    work  = (ActorMotionWork*)arg0->work;
+    work  = (ActorMotionWalkWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
     if (work->walk.target.vx - coord->coord.t[0] >= 0) {
         dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];

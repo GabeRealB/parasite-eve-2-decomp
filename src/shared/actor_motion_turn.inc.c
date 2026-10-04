@@ -9,7 +9,7 @@
 /// root coordinate is rebuilt as the identity matrix rotated by `vec`.
 void actorMotionTurnToYaw(Task* arg0)
 {
-    ActorMotionWork*     work;
+    ActorMotionWalkWork* work;
     GfxRotationWords*    words;
     GfxCoord*            coord;
     SVECTOR              vec;
@@ -18,7 +18,7 @@ void actorMotionTurnToYaw(Task* arg0)
     s16                  diff;
 
     coord = arg0->extra.tmd->coords;
-    work  = (ActorMotionWork*)arg0->work;
+    work  = (ActorMotionWalkWork*)arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
     diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;

@@ -5,13 +5,13 @@
 /// rebuilding the local matrix from that yaw alone, then advances the step.
 void actorMotionFaceTarget(Task* task)
 {
-    ActorMotionWork* work;
-    GfxCoord*        coord;
-    VECTOR           delta;
-    SVECTOR          dir;
-    SVECTOR          rot;
+    ActorMotionWalkWork* work;
+    GfxCoord*            coord;
+    VECTOR               delta;
+    SVECTOR              dir;
+    SVECTOR              rot;
 
-    work  = (ActorMotionWork*)task->work;
+    work  = (ActorMotionWalkWork*)task->work;
     coord = task->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];

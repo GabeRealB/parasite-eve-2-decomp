@@ -1,16 +1,24 @@
-/* Actor motion: the play-animation message (0x7D3) and the walk sequence of
- * actors whose work block starts with a twenty-part rig, a model state and a
- * walk state. The play handler rebinds the rig when the requested bank
- * changes, then blends or resets the slots into the requested clip and ticks
- * them. 'Start walk' (0x7DD) latches a target position and rotation and plays
- * a start clip; the walk steps then face the target, walk until the distance
- * stops shrinking (then play the queued next clip), and turn 0x40 a frame to
- * the placement yaw before returning to idle.
+/* Actor motion: the play-animation message (0x7D3) and the scripted walk of
+ * the actors a room script places and sends from point to point.
+ *
+ * The play handler serves any actor whose work block opens with a rig and a
+ * model state, whether or not it walks. It rebinds the rig when the requested
+ * bank changes, then blends or resets the slots into the requested clip and
+ * ticks them. actorMotionPlayAnim drives a twenty-part rig,
+ * actorMotionPlayAnim19 a nineteen-part one.
+ *
+ * The walk additionally needs the walk state directly after those two
+ * members. 'Start walk' (0x7DD) latches a target position and rotation and
+ * plays a start clip; the walk steps then face the target, walk until the
+ * distance stops shrinking (then play the queued next clip), and turn 0x40 a
+ * frame to the placement yaw before returning to idle. The step that sets
+ * the actor moving is the package's own. Of the nineteen-part walk only the
+ * arrival step, actorMotionArrive19, is here.
  *
  * Include this header in the prologue and each fragment at its function's
- * position. The package defines the animation bank tables the handlers index
- * as gActorMotionAnimBanks and, for the nineteen-part walkers,
- * gActorMotionAnimBanks19. actorMotionArrive19 plays its next clip through
+ * position. The package defines the animation bank tables the handlers index:
+ * gActorMotionAnimBanks for the twenty-part handlers, gActorMotionAnimBanks19
+ * for the nineteen-part ones. actorMotionArrive19 plays its next clip through
  * actorMotionPlayAnim19, which a package whose handler always restarts the
  * slots defines itself.
  */
@@ -25,13 +33,36 @@
 
 #include "main/task_types.h"
 
-/// The head of every work block these handlers run on. What follows is the
-/// package's own.
-typedef struct ActorMotionWork {
-    ActorAnimRig20  rig;
-    ActorModelState model;
-    ActorWalkState  walk;
-} ActorMotionWork;
+/// What `actorMotionPlayAnim` needs of the work block at `Task::work`: the
+/// twenty-part rig it binds and seeds, and the model state recording what the
+/// rig plays.
+///
+/// Every package that installs the handler opens its work block with these
+/// two members, and the handler reaches nothing after them. What follows is
+/// the package's own: a walker that runs the library's walk keeps its walk
+/// state directly after (`ActorMotionWalkWork`), while an actor that only
+/// plays clips keeps state of its own there.
+typedef struct {
+    ActorAnimRig20  rig;   // Playback storage of the twenty-part model; the handler binds it to the requested bank and drives slots 1 to 19
+    ActorModelState model; // What the rig plays; the handler keeps `bank`, `animId` and `ticking` and leaves the rest to the package
+} ActorMotionPlayWork;
+STATIC_ASSERT_SIZEOF(ActorMotionPlayWork, 0x4B8);
+
+/// What the twenty-part walk needs of the work block at `Task::work`: the
+/// head of a scripted walker, `ActorMotionPlayWork` with the walk state
+/// directly after it.
+///
+/// `actorMotionStartWalk` and the steps `actorMotionFaceTarget`,
+/// `actorMotionArrive` and `actorMotionTurnToYaw` run on it. The walk's clips
+/// are played by `actorMotionPlayAnim`, which views the same block as
+/// `ActorMotionPlayWork`, so the first two members are laid out as that
+/// type's. What follows `walk` is the package's own.
+typedef struct {
+    ActorAnimRig20  rig;   // Playback storage of the twenty-part model
+    ActorModelState model; // What the rig plays; `nextAnimId` is the clip the walk changes to on arrival and again as its closing turn ends
+    ActorWalkState  walk;  // Destination, closing rotation, per-frame velocity and step of the walk in progress
+} ActorMotionWalkWork;
+STATIC_ASSERT_SIZEOF(ActorMotionWalkWork, 0x4FC);
 
 /// What `actorMotionPlayAnim19` needs of the work block at `Task::work`: the
 /// nineteen-part rig it binds and seeds, and the model state recording what
