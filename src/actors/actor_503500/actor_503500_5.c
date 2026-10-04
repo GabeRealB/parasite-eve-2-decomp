@@ -48,18 +48,35 @@ extern AnimationSet* D_actor_503500_8016EA54[20];
 
 extern AnimationSet* D_actor_503500_8016EAA4[5];
 
-/// The 0x44 block `func_actor_503500_801455A4` allocates: an attack sphere and
-/// its one-entry contact table, plus the effect task it reparents itself under.
-typedef struct Actor503500Work44 {
-    WorldCollisionBody    body;        // Attack sphere placed on the player's coordinate; collides only during the strike phase
+/// Frames the yellow-flash attack charges before its sphere is switched on.
+#define ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE_FRAMES 95
+/// Frames the yellow-flash attack's sphere stays switched on.
+#define ACTOR_503500_YELLOW_FLASH_ATTACK_STRIKE_FRAMES 4
+
+/// Values of `_Actor503500YellowFlashAttackWork::phase`.
+enum {
+    ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE,   // Counting the charge; the sphere is off
+    ACTOR_503500_YELLOW_FLASH_ATTACK_STRIKE,   // The sphere is pair-tested, if the player was high enough when the charge ended
+    ACTOR_503500_YELLOW_FLASH_ATTACK_FINISHED, // The sphere is off again and the task moves on to its exit state
+};
+
+/// Work block of the yellow-flash attack task: the attack that charges under
+/// the `EFFECT_SHELTER_R48_RING_FLASH_YELLOW` effect and then strikes the
+/// player wherever they stand.
+///
+/// The damage comes from a sphere carried on the player's own coordinate
+/// rather than on the attacker's, so position does not avoid it; it is only
+/// switched on when the charge ends with the player more than 1000 units above
+/// the room's origin, and only for the length of the strike.
+typedef struct {
+    WorldCollisionBody    body;        // Attack sphere (radius 300) on the player's coordinate; pair-tested only during the strike phase
     WorldCollisionContact contacts[1]; // Contact table of `body`, emptied every frame
-    /* 0x38 */ Task*      field_38;
-    /* 0x3C */ s16        field_3C;    // frame counter within `field_40`'s phase
-    /* 0x3E */ byte       pad_3E[0x2];
-    /* 0x40 */ s8         field_40;    // phase, advanced by `func_actor_503500_80145754`
-    /* 0x41 */ byte       pad_41[0x3];
-} Actor503500Work44;
-STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
+    Task*                 effectTask;  // Task of the charge effect, which the attack task is reparented under
+    s16                   phaseFrames; // Frames spent in `phase`
+    byte                  field_3E[2]; // Never accessed; role unproven
+    s8                    phase;       // (0 charge, 1 strike, 2 finished): `ACTOR_503500_YELLOW_FLASH_ATTACK_*`
+} _Actor503500YellowFlashAttackWork;
+STATIC_ASSERT_SIZEOF(_Actor503500YellowFlashAttackWork, 0x44);
 
 /// The 0xD0 block `func_actor_503500_80144E8C` allocates: an attack capsule
 /// with its shape and four-entry contact table, then this task's own payload:
@@ -1358,12 +1375,12 @@ static const TaskFuncTable3 D_actor_503500_80132218 = {
 
 static void func_actor_503500_801455A4(Task* arg0)
 {
-    Actor503500Work44* work;
-    GfxCoord*          coord;
-    GfxRotationWords*  m;
-    EffectWork*        eff;
-    Task*              child;
-    s32                pan;
+    _Actor503500YellowFlashAttackWork* work;
+    GfxCoord*                          coord;
+    GfxRotationWords*                  m;
+    EffectWork*                        eff;
+    Task*                              child;
+    s32                                pan;
 
     coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
@@ -1389,7 +1406,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     work->body.radius           = 0x12C;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->body);
-    Gp_InitRec18Table(work->contacts, 1, 0);
+    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     eff = Gp_SpawnEff(EFFECT_SHELTER_R48_RING_FLASH_YELLOW, coord, 0, NULL);
@@ -1397,8 +1414,8 @@ static void func_actor_503500_801455A4(Task* arg0)
         func_actor_503500_80145950(arg0);
         return;
     }
-    child          = eff->task;
-    work->field_38 = child;
+    child            = eff->task;
+    work->effectTask = child;
     taskReparent(arg0, child);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0C), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
@@ -1409,39 +1426,40 @@ static void func_actor_503500_801455A4(Task* arg0)
 
 static void func_actor_503500_80145754(Task* arg0)
 {
-    Actor503500Work44* work;
-    GfxCoord*          coord;
-    GfxCoord*          coord2;
-    s32                pan;
-    s32                pan2;
+    _Actor503500YellowFlashAttackWork* work;
+    GfxCoord*                          coord;
+    GfxCoord*                          coord2;
+    s32                                pan;
+    s32                                pan2;
 
-    work = (Actor503500Work44*)arg0->work;
+    work = arg0->work;
     if (func_actor_503500_8013608C(arg0) == 0) {
-        switch (work->field_40) {
-            case 0:
-                work->field_3C++;
-                if (work->field_3C >= 0x5F) {
+        switch (work->phase) {
+            case ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE:
+                work->phaseFrames++;
+                if (work->phaseFrames >= ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE_FRAMES) {
+                    // The strike only lands on a player standing this high (Y is negative upwards).
                     if (gPlayerStatus.coordMtx->t[1] < -1000) {
                         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     }
-                    work->field_3C = 0;
-                    work->field_40++;
-                } else if (work->field_3C == 0x3E) {
+                    work->phaseFrames = 0;
+                    work->phase++;
+                } else if (work->phaseFrames == 0x3E) {
                     coord = arg0->extra.tmd->coords;
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x14), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-                } else if (work->field_3C == 0x5A) {
+                } else if (work->phaseFrames == 0x5A) {
                     coord2 = arg0->extra.tmd->coords;
                     pan2   = (s8)worldCoordGetOriginAudioPan(coord2);
                     SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0D), pan2, (s8)(worldCoordGetOriginAudioDepth(coord2) / 2));
                 }
                 return;
-            case 1:
-                work->field_3C++;
-                if (work->field_3C >= 4) {
-                    work->field_3C    = 0;
+            case ACTOR_503500_YELLOW_FLASH_ATTACK_STRIKE:
+                work->phaseFrames++;
+                if (work->phaseFrames >= ACTOR_503500_YELLOW_FLASH_ATTACK_STRIKE_FRAMES) {
+                    work->phaseFrames = 0;
                     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    work->field_40++;
+                    work->phase++;
                 }
                 return;
         }
@@ -1468,19 +1486,24 @@ static void func_actor_503500_801458F8(Task* arg0)
 
 static void func_actor_503500_80145950(Task* arg0)
 {
-    TmdObject* ext;
+    _Actor503500YellowFlashAttackWork* work;
+    TmdObject*                         ext;
 
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0C), 1);
     func_actor_503500_801372AC(6);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500Work44*)arg0->work)->body);
+    work                  = arg0->work;
+    Gp_UnlinkObj(&work->body);
     taskKill(arg0);
 }
 
 static void func_actor_503500_801459B0(Task* arg0)
 {
-    Gp_ClearRec18Occupied(((Actor503500Work44*)arg0->work)->contacts);
+    _Actor503500YellowFlashAttackWork* work;
+
+    work = arg0->work;
+    Gp_ClearRec18Occupied(work->contacts);
 }
 
 void func_actor_503500_801459D4(Task* task)
