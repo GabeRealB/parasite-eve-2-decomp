@@ -25,19 +25,36 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-/// 0x68-byte scratch `func_gunblade_8011E040` carves off the scratch stack.
-/// `coord` is the sound source handed to `Gp_PickNearestRec18` and
-/// `Gp_PlayObjSfx` (the lock-on target's position is written into its
-/// `workm.t`), `dir` receives the blade's forward column from
-/// `gfxReadMatrixZAxis`, and `step` is that column scaled down by 136 - the
-/// per-axis camera shake added to the muzzle coordinate while the slash's
-/// recoil timer runs.
-typedef struct _GunbladeScratch {
-    /* 0x00 */ GfxCoord coord;
-    /* 0x50 */ VECTOR   step;
-    /* 0x60 */ SVECTOR  dir;
-} GunbladeScratch;
-STATIC_ASSERT_SIZEOF(GunbladeScratch, 0x68);
+/// Divisor that turns the model's forward axis into the distance the spinning
+/// slash covers per frame: 4096 / 136, about 30 coordinate units.
+enum { GUNBLADE_SPIN_ADVANCE_DIVISOR = 136 };
+
+/// Scratch-stack block for the gunblade's attack handler.
+///
+/// The handler reserves one block each frame and releases it before
+/// returning; the block is not cleared. It stages two unrelated things: the
+/// node a fired round's impact sound is placed at, and the forward step the
+/// spinning slash moves the actor by.
+///
+/// Only the translation of `impactCoord`'s composed transform is written. A
+/// sound's pan and depth come from projecting the node's origin, which reads
+/// nothing else, so the rest of the node is whatever the scratch stack last
+/// held. The position is a weapon contact point, offset by up to 7 units per
+/// axis when the impact picker reports it, in the space the weapon node's
+/// composed transform is expressed in.
+///
+/// `forward` is read from the root coordinate's local matrix and is not
+/// normalized. `advance` is each component of it divided by
+/// `GUNBLADE_SPIN_ADVANCE_DIVISOR` and multiplied by the frame's
+/// `GameActor.movementSign`: 1 while the spin runs, 0 otherwise. It is added
+/// to the root coordinate's local translation in every state. Neither
+/// vector's `pad` is written.
+typedef struct {
+    GfxCoord impactCoord; // Node standing at the round's impact point: the source of the impact sound
+    VECTOR   advance;     // This frame's displacement of the model's root coordinate, in coordinate units; zero outside the spin
+    SVECTOR  forward;     // Model's forward axis: the Z column of its root coordinate's local matrix, 4096 per unit
+} _GunbladeAttackScratch;
+STATIC_ASSERT_SIZEOF(_GunbladeAttackScratch, 0x68);
 
 /// `gPlayerStatus.weaponSlotItem`, the encoded primary weapon-slot item, read under
 /// its own address wherever the value is wanted once rather than as one of a
@@ -66,30 +83,29 @@ static void func_gunblade_8011E040(Task* arg0);
 /// position rather than the scratch coordinate - and falls into state 7, which
 /// drops out of the firing pose once the aim check fails.
 ///
-/// The tail is common to every state: it reads the blade's forward column out
-/// of the muzzle matrix and, only while `shake` is set, adds a 1/136th of it to
-/// the muzzle coordinate.
+/// The tail is common to every state: it reads the model's forward axis out
+/// of its root coordinate's matrix and, only while `shake` is set, moves that
+/// coordinate forward by a `GUNBLADE_SPIN_ADVANCE_DIVISOR`th of it.
 static void func_gunblade_8011E040(Task* arg0)
 {
-    GameActor*             actor;
-    GfxCoord*              coord;
-    GunbladeScratch*       blk;
-    WorldCollisionCapsule* rec;
-    EffectWork*            eff;
-    s32                    sfx;
-    s32                    anim;
-    s32                    hit;
-    s32                    lvl;
-    s16                    spread;
-    s32                    shake;
+    GameActor*              actor;
+    GfxCoord*               coord;
+    _GunbladeAttackScratch* scratch;
+    WorldCollisionCapsule*  rec;
+    EffectWork*             eff;
+    s32                     sfx;
+    s32                     anim;
+    s32                     hit;
+    s32                     lvl;
+    s16                     spread;
+    s32                     shake;
 
-    shake = 0;
-    actor = arg0->work;
-    sfx   = (gPlayerStatus.weaponSlotItem - 0xD) << 24;
-    rec   = &actor->weaponShape;
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(GunbladeScratch));
-    blk   = SCRATCH_STACK_CURSOR(GunbladeScratch);
-    coord = arg0->extra.tmd->coords;
+    shake   = 0;
+    actor   = arg0->work;
+    sfx     = (gPlayerStatus.weaponSlotItem - 0xD) << 24;
+    rec     = &actor->weaponShape;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GunbladeAttackScratch);
+    coord   = arg0->extra.tmd->coords;
     if (sfx < 0) {
         sfx = 0;
     }
@@ -205,16 +221,16 @@ static void func_gunblade_8011E040(Task* arg0)
         case 6:
             actor->statePhase++;
             if (gPlayerStatus.weaponSlotItem != 0xD) {
-                hit = Gp_PickNearestRec18(actor->weaponContacts, coord, &blk->coord);
+                hit = Gp_PickNearestRec18(actor->weaponContacts, coord, &scratch->impactCoord);
                 if (gPlayerStatus.weaponSlotItem == 0xE) {
                     if (hit != 0 || Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
-                        blk->coord.workm.t[0] = actor->weaponContacts[0].point.vx;
-                        blk->coord.workm.t[1] = actor->weaponContacts[0].point.vy;
-                        blk->coord.workm.t[2] = actor->weaponContacts[0].point.vz;
-                        Gp_PlayObjSfx(&blk->coord, sfx | 0x20170004, 1);
+                        scratch->impactCoord.workm.t[0] = actor->weaponContacts[0].point.vx;
+                        scratch->impactCoord.workm.t[1] = actor->weaponContacts[0].point.vy;
+                        scratch->impactCoord.workm.t[2] = actor->weaponContacts[0].point.vz;
+                        Gp_PlayObjSfx(&scratch->impactCoord, sfx | 0x20170004, 1);
                     }
                 } else if (hit != 0) {
-                    Gp_PlayObjSfx(&blk->coord, 0x17, 1);
+                    Gp_PlayObjSfx(&scratch->impactCoord, 0x17, 1);
                 }
             }
             /* fallthrough */
@@ -225,13 +241,13 @@ static void func_gunblade_8011E040(Task* arg0)
             }
             break;
     }
-    gfxReadMatrixZAxis(&coord->coord, &blk->dir);
+    gfxReadMatrixZAxis(&coord->coord, &scratch->forward);
     actor->movementSign = shake;
-    blk->step.vx        = (s16)(blk->dir.vx / 136) * shake;
-    blk->step.vy        = (s16)(blk->dir.vy / 136) * shake;
-    blk->step.vz        = (s16)(blk->dir.vz / 136) * shake;
-    coord->coord.t[0]  += blk->step.vx;
-    coord->coord.t[1]  += blk->step.vy;
-    coord->coord.t[2]  += blk->step.vz;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GunbladeScratch));
+    scratch->advance.vx = (s16)(scratch->forward.vx / GUNBLADE_SPIN_ADVANCE_DIVISOR) * shake;
+    scratch->advance.vy = (s16)(scratch->forward.vy / GUNBLADE_SPIN_ADVANCE_DIVISOR) * shake;
+    scratch->advance.vz = (s16)(scratch->forward.vz / GUNBLADE_SPIN_ADVANCE_DIVISOR) * shake;
+    coord->coord.t[0]  += scratch->advance.vx;
+    coord->coord.t[1]  += scratch->advance.vy;
+    coord->coord.t[2]  += scratch->advance.vz;
+    SCRATCH_STACK_RELEASE_BLOCK(_GunbladeAttackScratch);
 }
