@@ -58,6 +58,12 @@ A reference into a slot says which image it means, in its symbol-map comment:
                     reference carries that symbol's name. Rejected when the
                     owner does not define that name there, and when any other
                     image that can hold the slot starts a symbol there too.
+    owner=IMAGE shared=FAMILY
+                    several images start a symbol there, and this reference
+                    means IMAGE's - established from the use site, since the
+                    address cannot say. IMAGE must define the reference's name
+                    there. The address may be imported again under another
+                    image's name by a reference that means that one.
     shared=FAMILY   several images start a symbol there - a weapon's entry
                     point, a table every actor exports - and the reference
                     means whichever is loaded. Rejected when fewer than two
@@ -393,8 +399,29 @@ def main() -> None:
             explicit_owner = d.attrs.get('owner')
             shared = d.attrs.get('shared')
             if explicit_owner is not None and shared is not None:
-                report('ownership', [image], f'{d.where}: {d.name} carries both owner= and shared=')
-                d.owner = None
+                # Both: the place is shared, and this reference means one of
+                # the images that define it - which the address cannot say, and
+                # the use site does (a stage table's entry for one room). The
+                # same address may then be imported again, under another
+                # image's name, by a reference that means that one.
+                cands = candidates(image, d)
+                entries = {canon(j) for j, _, _ in cands}
+                fams = '+'.join(sorted({family(j) for j, _, _ in cands}))
+                if not has_explicit_owner(d, symbols_at, ranges):
+                    report('ownership', [image, explicit_owner],
+                           f'{d.where}: {d.name} has no matching definition in owner={explicit_owner}')
+                    d.owner = None
+                elif len(entries) < 2:
+                    report('ownership', [image, explicit_owner],
+                           f'{d.where}: {d.name} is owner={explicit_owner} shared={shared}, but only that image '
+                           f'starts a symbol at 0x{d.addr:08X}; drop shared=')
+                    d.owner = explicit_owner
+                elif fams != '+'.join(sorted(shared.split('+'))):
+                    report('ownership', [image], f'{d.where}: {d.name} is shared={shared}, but the images that start '
+                                                 f'a symbol there belong to {fams}')
+                    d.owner = explicit_owner
+                else:
+                    d.owner = explicit_owner
             elif explicit_owner is not None:
                 # owner= says one image, and only one, starts a symbol here.
                 entries = {canon(j) for j, _, _ in candidates(image, d)}
@@ -405,7 +432,7 @@ def main() -> None:
                 elif entries != {canon(explicit_owner)}:
                     report('ownership', [image, explicit_owner],
                            f'{d.where}: {d.name} has owner={explicit_owner}, but {len(entries)} images start a symbol '
-                           f'at 0x{d.addr:08X}; a place several images define is shared=, not owned')
+                           f'at 0x{d.addr:08X}; say shared= as well if the use site establishes this one')
                     d.owner = None
                 else:
                     d.owner = explicit_owner

@@ -701,7 +701,7 @@ func_dryfield_night_back_street_8017F6DC = 0x8017F6DC; // type:func absolute:Tru
 
 func_dryfield_night_dilapidated_house_8017E670 = 0x8017E670; // type:func absolute:True owner=dryfield_night_dilapidated_house
 
-func_dryfield_night_driveway_8017DD8C = 0x8017DD8C; // type:func absolute:True
+func_dryfield_night_driveway_8017DD8C = 0x8017DD8C; // type:func absolute:True owner=dryfield_night_driveway shared=rooms
 
 func_dryfield_night_garage_801807E4 = 0x801807E4; // type:func absolute:True
 
@@ -906,7 +906,7 @@ func_neo_ark_pyramid_8017E6B4 = 0x8017E6B4; // type:func absolute:True owner=neo
 
 func_neo_ark_pyramid_8017EF9C = 0x8017EF9C; // type:func absolute:True owner=neo_ark_pyramid
 
-func_neo_ark_r31_8017D990 = 0x8017D990; // type:func absolute:True
+func_neo_ark_r31_8017D990 = 0x8017D990; // type:func absolute:True owner=neo_ark_r31 shared=rooms
 
 func_neo_ark_savanna_zone_8017D9AC = 0x8017D9AC; // type:func absolute:True owner=neo_ark_savanna_zone
 
