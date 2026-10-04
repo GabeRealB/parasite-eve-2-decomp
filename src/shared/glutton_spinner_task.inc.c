@@ -24,13 +24,13 @@ void gluttonSpinnerTask(Task* arg0)
     }
 
     if (arg0->work != NULL) {
-        work = (GluttonSpinnerWork*)arg0->work;
-        if (work->field_94 != arg0->state) {
-            work->field_90 = 1;
+        work = arg0->work;
+        if (work->prevState != arg0->state) {
+            work->stateChanged = 1;
         } else {
-            work->field_90 = 0;
+            work->stateChanged = 0;
         }
-        work->field_94 = arg0->state;
+        work->prevState = arg0->state;
     }
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }

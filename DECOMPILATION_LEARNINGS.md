@@ -72519,10 +72519,10 @@ body is the default's body — cross-jumping merges the two, and the leaf's
 
 ```c
 switch ((u16)task->spawnArg1) {
-    case 0:  work->spin = 0x14; break;
-    case 1:  work->spin = 0x28; break;
-    case 2:  work->spin = 0x50; break;   /* invisible: same body as default */
-    default: work->spin = 0x50; break;
+    case 0:  work->chaseDelay = 0x14; break;
+    case 1:  work->chaseDelay = 0x28; break;
+    case 2:  work->chaseDelay = 0x50; break;   /* invisible: same body as default */
+    default: work->chaseDelay = 0x50; break;
 }
 ```
 
@@ -72539,8 +72539,8 @@ largest `potential_hazard`. A store beats an `ori` on that test every time. So
 the shared tail of a switch
 
 ```c
-switch (v) { case 0: spin = 0x14; break; … }
-work->spin = spin;              /* first statement of the join block */
+switch (v) { case 0: delay = 0x14; break; … }
+work->chaseDelay = delay;             /* first statement of the join block */
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
 ```
 
@@ -72558,8 +72558,8 @@ in each arm instead:
 
 ```c
 switch ((u16)task->spawnArg1) {
-    case 0:  work->spin = 0x14; break;
-    case 1:  work->spin = 0x28; break;
+    case 0:  work->chaseDelay = 0x14; break;
+    case 1:  work->chaseDelay = 0x28; break;
     …
 }
 ```
@@ -73649,15 +73649,15 @@ gets it, and leaves the `sb` of the decremented value independent so the
 scheduler still issues the store first:
 
 ```c
-spin       = work->spin;   /* s32 */
-spin--;
-work->spin = spin;         /* sb, does not depend on the mask */
-phase      = work->spin;   /* s32: cse rematerialises it as andi 0xff */
+delay            = work->chaseDelay; /* s32 */
+delay--;
+work->chaseDelay = delay; /* sb, does not depend on the mask */
+phase            = work->chaseDelay; /* s32: cse rematerialises it as andi 0xff */
 if ((phase & 3) == 1) { ... }
 ```
 
 A `u8` local instead is worse in both directions: GCC trusts `PROMOTE_MODE` and
-emits neither `andi`, and an explicit `(u8)(spin - 1)` assigned back to the
+emits neither `andi`, and an explicit `(u8)(delay - 1)` assigned back to the
 variable makes the `sb` depend on the truncation, so the store schedules after
 it. `func_actor_444000_8013A3AC` is the example.
 

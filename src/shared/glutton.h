@@ -200,25 +200,27 @@ typedef struct {
 } GluttonProjectileWork;
 STATIC_ASSERT_SIZEOF(GluttonProjectileWork, 0x1C0);
 
-/// Work block of the spinner enemy dispatched through `D_actor_403200_80131F28`:
-/// its spawn state allocates it with `memCalloc(0xA0, 0)` and parks it in the
-/// task's `Task::work` slot. `spin` counts down while the model only yaws in
-/// place and is also the phase that yaw follows; `field_98` is the homing
-/// speed and radius and `field_96` the step count that accelerates it.
-typedef struct GluttonSpinnerWork {
-    byte   pad_0[0x50];
-    MATRIX colorMtx;
-    MATRIX lightMtx;
-    /// Set when the dispatcher sees the state change, cleared when it has not.
-    s16  field_90;
-    byte pad_92[0x2];
-    /// The state the dispatcher last ran, so it can spot the change.
-    s16  field_94;
-    s16  field_96;
-    s16  field_98;
-    byte pad_9A[0x2];
-    u8   spin;
-    byte pad_9D[0x3];
+/// Work block of a spinner: one of the loose models set out on the arena floor
+/// that fly into the Glutton while it inhales.
+///
+/// Each spinner is an enemy task of its own running a table of state handlers.
+/// Its spawn state allocates the block zeroed at this size and keeps it at
+/// `Task::work`. The spinner then lies where it was placed until the boss
+/// releases the whole set. Once released it rocks in place for `chaseDelay`
+/// ticks, then flies at the target point all spinners share, gathering speed
+/// and tumbling faster as it goes, and is torn down as it arrives. Withdrawing
+/// the release tears down every spinner that has left its waiting state.
+typedef struct {
+    byte   unknown_0[0x50]; // Never accessed; role unproven
+    MATRIX colorMtx;        // Light-colour matrix lent to the model
+    MATRIX lightMtx;        // Light-direction matrix lent to the model
+    s16    stateChanged;    // 1 on the tick a state is entered, otherwise 0; kept by the dispatcher and read by none of the spinner's states
+    byte   unknown_92[0x2]; // Never accessed; role unproven
+    s16    prevState;       // Task state as of the previous tick, kept by the dispatcher
+    s16    chaseTicks;      // Ticks spent flying at the target. An eighth of it is added to `chaseSpeed` each tick, and it is the angle the model turns about its X axis that tick
+    s16    chaseSpeed;      // Distance flown toward the target each tick, starting from 0. Within that distance of the target on the floor plane, the spinner has arrived. The model also turns half of it about Y and twice it about Z each tick
+    byte   unknown_9A[0x2]; // Never accessed; role unproven
+    u8     chaseDelay;      // Ticks left after the release before the spinner flies, set by its spawn argument (0: 0x14, 1: 0x28, otherwise 0x50). The model rocks about Y on the odd counts meanwhile
 } GluttonSpinnerWork;
 STATIC_ASSERT_SIZEOF(GluttonSpinnerWork, 0xA0);
 

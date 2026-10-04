@@ -16,7 +16,7 @@ void gluttonSpinnerSpawn(Enemy* enemy, Task* task)
         return;
     }
 
-    work       = memCalloc(0xA0, 0);
+    work       = memCalloc(sizeof(GluttonSpinnerWork), 0);
     task->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
@@ -28,22 +28,22 @@ void gluttonSpinnerSpawn(Enemy* enemy, Task* task)
 
     switch ((u16)task->spawnArg1.value) {
         case 0:
-            work->spin = 0x14;
+            work->chaseDelay = 0x14;
             break;
         case 1:
-            work->spin = 0x28;
+            work->chaseDelay = 0x28;
             break;
         case 2:
-            work->spin = 0x50;
+            work->chaseDelay = 0x50;
             break;
         default:
-            work->spin = 0x50;
+            work->chaseDelay = 0x50;
             break;
     }
 
-    task->msgTable = NULL;
-    work->field_98 = 0;
-    work->field_96 = 0;
+    task->msgTable   = NULL;
+    work->chaseSpeed = 0;
+    work->chaseTicks = 0;
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gfxRotMatrixY(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & 0x4FF, 0);
