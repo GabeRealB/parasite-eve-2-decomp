@@ -27,37 +27,54 @@
 
 #include "overlay.h"
 
-/// Work block allocated by the spawn state `func_actor_311900_8016228C`
-/// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot.
-/// `func_actor_311900_8016278C` republishes the
-/// two matrices onto `TmdObject::lightMtx` / `colorMtx`, the light / colour pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
+/// Steps of the palette greying, kept in `_Actor311900Work::clutGreyStep`.
 ///
-/// The size is the allocation, and the fields below are the ones the spawn
-/// state seeds: 2 into the halfword at 0x474, 1 into the one at 0x478, and
-/// zero into 0x4C4 / 0x4C6. `func_actor_311900_80162100` turns that pair into
-/// the animation request `field_474` and the two ids beside it: `field_478` is
-/// the id the slots are seeded with, `field_476` latches it as the one now
-/// playing once the slots have been seeded, `field_47C` is the rate byte every
-/// seeding writes into `AnimationSlot.rate`, and `field_47A` counts frames
-/// while `field_474` is 3 -- the running step, which is where both seeding
-/// steps leave it.
-typedef struct Actor311900Work {
-    /* 0x000 */ ActorAnimRig20 rig;
-    /* 0x474 */ s16            field_474;
-    /* 0x476 */ s16            field_476;
-    /* 0x478 */ u16            field_478;
-    /* 0x47A */ u16            field_47A;
-    /* 0x47C */ u8             field_47C;
-    /* 0x47D */ byte           pad_47D[0x7];
-    /* 0x484 */ MATRIX         light;
-    /* 0x4A4 */ MATRIX         color;
-    /* 0x4C4 */ u16            field_4C4;
-    /* 0x4C6 */ u16            field_4C6;
-    /* 0x4C8 */ u8             field_4C8; ///< CLUT grey-fade step, func_actor_311900_80161E3C
-    /* 0x4C9 */ byte           pad_4C9[0x3];
-} Actor311900Work;
-STATIC_ASSERT_SIZEOF(Actor311900Work, 0x4CC);
+/// A figure's tick performs one step a frame and moves on to the next, so the
+/// read-back, the conversion and the upload fall on three successive frames.
+enum {
+    ACTOR_311900_CLUT_GREY_READ    = 0, // Read the figure's two CLUT rows back from VRAM
+    ACTOR_311900_CLUT_GREY_CONVERT = 1, // Raise the three channels of every entry to its brightest one
+    ACTOR_311900_CLUT_GREY_UPLOAD  = 2, // Write the two rows back to VRAM
+    ACTOR_311900_CLUT_GREY_DONE    = 3, // Greyed; the tick leaves the rows alone
+};
+
+/// Ticks the advancing figure moves forward for, counted in
+/// `_Actor311900Work::advanceFrames`, before its scene is flagged done and its
+/// task moves on to its teardown.
+enum { ACTOR_311900_ADVANCE_FRAMES = 0x5A };
+
+/// Work block of either figure the package shows, allocated zeroed at its full
+/// size by the figure's spawn state and kept at `Task::work` for the task's
+/// life.
+///
+/// It opens with the rig of the figure's twenty-part body model and the
+/// animation request its update serves, in the steps an enemy's animation
+/// takes (`ACTOR_ENEMY_ANIM_BLEND`, `_RESET`, `_TICK`). Each spawn requests
+/// clip 1 from its start and nothing requests another, so the blended step is
+/// served but never asked for. The model object borrows `light` and `color`
+/// for as long as the block lives.
+///
+/// What follows the matrices is the figures' own. Each is drawn only while its
+/// own view of the room is up and greys its texture palette over its first
+/// three ticks. The figure of the package's first state table also moves
+/// forward along its own Z axis once its view has been shown, and ends its
+/// scene after `ACTOR_311900_ADVANCE_FRAMES` ticks of that; the other figure
+/// leaves `advanceFrames` and `advancing` zero.
+typedef struct {
+    ActorAnimRig20 rig;           // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    s16            animState;     // Step of the animation (0 none, else `ACTOR_ENEMY_ANIM_BLEND`, `_RESET` or `_TICK`)
+    s16            appliedAnimId; // Clip the slots were last seeded with; recorded, never read
+    s16            animId;        // Clip the next reseed selects, an index into the figure's animation set table
+    u16            animFrames;    // Updates since the last reseed; counted, never read
+    u8             animRate;      // Rate given every slot ahead of a reseed, in sixteenths of a frame; nothing sets it, so it is 0, which a reseed from the clip's start replaces with `ANIMATION_RATE_ONE`
+    byte           pad_47D[0x7];  // Never accessed
+    MATRIX         light;         // Light-direction matrix lent to the model object
+    MATRIX         color;         // Light-colour matrix lent to the model object
+    s16            advanceFrames; // Ticks the figure has moved forward for; reaching `ACTOR_311900_ADVANCE_FRAMES` ends its scene
+    s16            advancing;     // Set once the figure's view has been shown, never cleared (0 standing where it was placed, 1 moving forward every tick)
+    u8             clutGreyStep;  // Step of the palette greying (`ACTOR_311900_CLUT_GREY_*`)
+} _Actor311900Work;
+STATIC_ASSERT_SIZEOF(_Actor311900Work, 0x4CC);
 
 /// The animation data `animationInitContext` builds the first setup path's clip
 /// context from; the spawn hands it over whole, so it is only ever a byte
@@ -231,21 +248,23 @@ static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2);
 static void func_actor_311900_80162100(Task* task);
 
 /// Fades the two 256-entry CLUT rows `arg2` / `arg2 + 1` of the palette table
-/// to grey, one step per call in the work block's `field_4C8`: step 0 reads the
-/// VRAM rows `arg1 + 0xF5` / `arg1 + 0xF6` back into the table, step 1 sets each
+/// to grey, one step of `_Actor311900Work::clutGreyStep` per call:
+/// `ACTOR_311900_CLUT_GREY_READ` reads the VRAM rows `arg1 + 0xF5` /
+/// `arg1 + 0xF6` back into the table, `ACTOR_311900_CLUT_GREY_CONVERT` sets each
 /// entry's three 5-bit channels to their maximum (keeping the STP bit set), and
-/// step 2 uploads the rows again, leaving 3.
+/// `ACTOR_311900_CLUT_GREY_UPLOAD` uploads the rows again, leaving
+/// `ACTOR_311900_CLUT_GREY_DONE`.
 static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
 {
-    RECT             rect;
-    Actor311900Work* work;
-    s32              i;
-    u16              r;
-    u16              g;
-    u16              b;
+    RECT              rect;
+    _Actor311900Work* work;
+    s32               i;
+    u16               r;
+    u16               g;
+    u16               b;
 
-    work = (Actor311900Work*)task->work;
-    if (work->field_4C8 == 0) {
+    work = task->work;
+    if (work->clutGreyStep == ACTOR_311900_CLUT_GREY_READ) {
         rect.x = 0;
         rect.y = arg1 + 0xF5;
         rect.w = 0x100;
@@ -256,8 +275,8 @@ static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
         rect.w = 0x100;
         rect.h = 1;
         StoreImage2(&rect, (u_long*)D_actor_311900_8016EC18[arg2 + 1]);
-        work->field_4C8 = 1;
-    } else if (work->field_4C8 == 1) {
+        work->clutGreyStep = ACTOR_311900_CLUT_GREY_CONVERT;
+    } else if (work->clutGreyStep == ACTOR_311900_CLUT_GREY_CONVERT) {
         for (i = 0; i < 0x100; i++) {
             r = D_actor_311900_8016EC18[arg2][i] & 0x1F;
             g = (D_actor_311900_8016EC18[arg2][i] >> 5) & 0x1F;
@@ -300,8 +319,8 @@ static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
             }
             D_actor_311900_8016EC18[arg2 + 1][i] = r | (g << 5) | (b << 10) | 0x8000;
         }
-        work->field_4C8 = 2;
-    } else if (work->field_4C8 == 2) {
+        work->clutGreyStep = ACTOR_311900_CLUT_GREY_UPLOAD;
+    } else if (work->clutGreyStep == ACTOR_311900_CLUT_GREY_UPLOAD) {
         rect.x = 0;
         rect.y = arg1 + 0xF5;
         rect.w = 0x100;
@@ -312,58 +331,58 @@ static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
         rect.w = 0x100;
         rect.h = 1;
         LoadImage2(&rect, (u_long*)D_actor_311900_8016EC18[arg2 + 1]);
-        work->field_4C8 = 3;
+        work->clutGreyStep = ACTOR_311900_CLUT_GREY_DONE;
     }
 }
 
-/// Applies the animation request in the work block's `field_474` to slots 1..19
-/// of its context, which is where the block itself begins. Step 1 seeks every
-/// slot to the id in `field_478` through `animationSeekSlotWithBlend`, step 2 resets them to
-/// it; each first marks the slot reset-pending with the rate byte at `field_47C`,
-/// and both then latch that id as the one now playing in `field_476`, settle on
-/// step 3 and clear the frame counter at `field_47A`. Step 3 only ticks the slots
+/// Serves the animation request in `_Actor311900Work::animState` on slots 1..19
+/// of the work block's rig. `ACTOR_ENEMY_ANIM_BLEND` seeks every slot to the
+/// clip `animId` through `animationSeekSlotWithBlend`, `ACTOR_ENEMY_ANIM_RESET`
+/// resets them to it; each first gives the slot the rate in `animRate`, and
+/// both then record that clip in `appliedAnimId`, settle on
+/// `ACTOR_ENEMY_ANIM_TICK` and clear `animFrames`. That step only ticks the slots
 /// and counts frames.
 ///
 /// The two advances are one block in the ROM: jump.c cross-jumps them because
-/// both branches name the same local. Step 3 reads the block again into an alias
+/// both branches name the same local. The tick step reads the block again into an alias
 /// of its own -- keeping `start` dead before `work` there is what leaves the
 /// slot walk on the `work` register cse2 picks for it.
 static void func_actor_311900_80162100(Task* task)
 {
-    Actor311900Work* work;
-    Actor311900Work* start;
-    Actor311900Work* tick;
-    s32              i;
-    s32              j;
-    s32              k;
+    _Actor311900Work* work;
+    _Actor311900Work* start;
+    _Actor311900Work* tick;
+    s32               i;
+    s32               j;
+    s32               k;
 
-    work = (Actor311900Work*)task->work;
-    if (work->field_474 == 1) {
-        start = (Actor311900Work*)task->work;
-        for (i = 1; i < 0x14; i++) {
-            start->rig.slots[i].rate = start->field_47C;
-            animationSeekSlotWithBlend(&start->rig.anim, i, (s16)start->field_478, 0, 0);
+    work = task->work;
+    if (work->animState == ACTOR_ENEMY_ANIM_BLEND) {
+        start = task->work;
+        for (i = 1; i < ARRAY_SIZE(start->rig.slots); i++) {
+            start->rig.slots[i].rate = start->animRate;
+            animationSeekSlotWithBlend(&start->rig.anim, i, start->animId, 0, 0);
         }
-        start->field_476 = start->field_478;
-        work->field_474  = 3;
-        work->field_47A  = 0;
+        start->appliedAnimId = start->animId;
+        work->animState      = ACTOR_ENEMY_ANIM_TICK;
+        work->animFrames     = 0;
         return;
     }
-    if (work->field_474 == 2) {
-        start = (Actor311900Work*)task->work;
-        for (j = 1; j < 0x14; j++) {
-            start->rig.slots[j].rate = start->field_47C;
-            animationResetSlot(&start->rig.anim, j, (s16)start->field_478);
+    if (work->animState == ACTOR_ENEMY_ANIM_RESET) {
+        start = task->work;
+        for (j = 1; j < ARRAY_SIZE(start->rig.slots); j++) {
+            start->rig.slots[j].rate = start->animRate;
+            animationResetSlot(&start->rig.anim, j, start->animId);
         }
-        start->field_476 = start->field_478;
-        work->field_474  = 3;
-        work->field_47A  = 0;
+        start->appliedAnimId = start->animId;
+        work->animState      = ACTOR_ENEMY_ANIM_TICK;
+        work->animFrames     = 0;
         return;
     }
-    if (work->field_474 == 3) {
-        work->field_47A++;
-        tick = (Actor311900Work*)task->work;
-        for (k = 1; k < 0x14; k++) {
+    if (work->animState == ACTOR_ENEMY_ANIM_TICK) {
+        work->animFrames++;
+        tick = task->work;
+        for (k = 1; k < ARRAY_SIZE(tick->rig.slots); k++) {
             animationTickSlot(&tick->rig.anim, k);
         }
     }
@@ -404,26 +423,26 @@ void func_actor_311900_8016222C(Task* task)
 /// The actor's first setup path, reached through `D_actor_311900_80161E24`. It
 /// tears the enemy down instead while game flag 0xA's nibble 2 -- the bit
 /// `func_actor_311900_801623B0` raises once the view reaches 0xA -- is already
-/// up, or when the 0x4CC-byte work block cannot be allocated into
+/// up, or when the `_Actor311900Work` block cannot be allocated into
 /// `Task::work`.
 ///
 /// Otherwise it splats the light / colour pair `func_actor_311900_8016278C`
 /// writes onto the model root's `field_1C` / `field_20` slots, points
 /// `Enemy::field_4` at the root coordinate's matrix, re-parents that root to
 /// `gGfxViewCoord`, builds the animation context `animationInitContext` over the
-/// block's slot array and packed-pose run, seeds the tick's two work halfwords
-/// 0x474 / 0x478 and zeroes the 0x4C4 / 0x4C6 pair it counts in, and publishes
+/// block's slot array and packed-pose run, requests clip 1 from its start
+/// (`animState` / `animId`), zeroes `advanceFrames` and `advancing`, and publishes
 /// the view-dependent light level exactly as the tick does.
 static void func_actor_311900_8016228C(Enemy* enemy, Task* task)
 {
-    Actor311900Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
+    _Actor311900Work* work;
+    GfxCoord*         coord;
+    TmdObject*        obj;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
     if ((GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 2) ||
-        (work = memCalloc(0x4CC, 0), task->work = work, work == NULL)) {
+        (work = memCalloc(sizeof(_Actor311900Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -433,11 +452,11 @@ static void func_actor_311900_8016228C(Enemy* enemy, Task* task)
     obj->flags      = 0;
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBE8, obj, work->rig.poses,
                          work->rig.slots);
-    coord->parent   = &gGfxViewCoord;
-    work->field_474 = 2;
-    work->field_478 = 1;
-    work->field_4C4 = 0;
-    work->field_4C6 = 0;
+    coord->parent       = &gGfxViewCoord;
+    work->animState     = ACTOR_ENEMY_ANIM_RESET;
+    work->animId        = 1;
+    work->advanceFrames = 0;
+    work->advancing     = 0;
     if ((Gp_GetViewIndex() & 0xFF) == 0xA) {
         obj->flags = 0;
     } else {
@@ -449,32 +468,33 @@ static void func_actor_311900_8016228C(Enemy* enemy, Task* task)
 
 /// The actor's per-frame tick. Publishes the view-dependent light level into
 /// `TmdObject::flags` (0 at view 0xA, 0x80 otherwise), and while the work
-/// block's `field_4C6` latch is up, counts frames in `field_4C4` and nudges the
+/// block's `advancing` latch is up, counts frames in `advanceFrames` and nudges the
 /// model along the coordinate part `func_actor_311900_80162658` walks. The
-/// counter reaching 0x5A raises game flag 0x102 and advances the state.
+/// counter reaching `ACTOR_311900_ADVANCE_FRAMES` raises game flag 0x102 and
+/// advances the state.
 static void func_actor_311900_801623B0(Enemy* enemy, Task* task)
 {
-    Actor311900Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
+    _Actor311900Work* work;
+    GfxCoord*         coord;
+    TmdObject*        obj;
 
     obj   = task->extra.tmd;
-    work  = (Actor311900Work*)task->work;
+    work  = task->work;
     coord = obj->coords;
     func_actor_311900_80161E3C(task, 2, 0);
     if ((Gp_GetViewIndex() & 0xFF) == 0xA) {
         GameFlag_SetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, GameFlag_GetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | 2);
         obj->flags      = 0;
-        work->field_4C6 = 1;
+        work->advancing = 1;
     } else {
         obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if ((s16)work->field_4C6 == 1) {
-        work->field_4C4++;
+    if (work->advancing == 1) {
+        work->advanceFrames++;
         func_actor_311900_80162658(coord, 0x24);
     }
     func_actor_311900_80162100(task);
-    if ((s16)work->field_4C4 >= 0x5A) {
+    if (work->advanceFrames >= ACTOR_311900_ADVANCE_FRAMES) {
         GameFlag_SetNibble(GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE, 1);
         task->state++;
     }
@@ -501,23 +521,23 @@ void func_actor_311900_8016249C(Task* task)
 /// (rather than `func_actor_311900_8016278C`'s) from a different animation run
 /// (`D_actor_311900_8016EBF4`, not `D_actor_311900_8016EBE8`).
 ///
-/// The 0x4CC-byte block goes into `Task::work`. `Enemy::field_4` takes the
+/// The `_Actor311900Work` block goes into `Task::work`. `Enemy::field_4` takes the
 /// model's root coordinate's
 /// matrix, the root's `parent` is re-parented to `gGfxViewCoord`, the animation
 /// context is built over the block's slot array and packed-pose run, and the
-/// two work halfwords 0x474 / 0x478 seed the tick's state. Note this handler,
-/// unlike `func_actor_311900_8016228C`, does not touch `field_4C4` / `field_4C6`
+/// `animState` / `animId` request clip 1 from its start. Note this handler,
+/// unlike `func_actor_311900_8016228C`, does not touch `advanceFrames` / `advancing`
 /// or the model's `field_C`.
 static void func_actor_311900_801624F8(Enemy* enemy, Task* task)
 {
-    Actor311900Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
+    _Actor311900Work* work;
+    GfxCoord*         coord;
+    TmdObject*        obj;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
     if (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) >= 3 ||
-        (work = memCalloc(0x4CC, 0), task->work = work, work == NULL)) {
+        (work = memCalloc(sizeof(_Actor311900Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -528,8 +548,8 @@ static void func_actor_311900_801624F8(Enemy* enemy, Task* task)
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBF4, obj, work->rig.poses,
                          work->rig.slots);
     coord->parent   = &gGfxViewCoord;
-    work->field_474 = 2;
-    work->field_478 = 1;
+    work->animState = ACTOR_ENEMY_ANIM_RESET;
+    work->animId    = 1;
     func_actor_311900_80162100(task);
     task->state += 1;
 }
@@ -597,12 +617,12 @@ static s32 func_actor_311900_80162658(GfxCoord* arg0, s16 arg1)
 /// for `m[1][0]` and `m[2][2]`, the colour matrix fully pass-through.
 static void func_actor_311900_8016278C(Task* task)
 {
-    GfxMatrix*       color;
-    GfxMatrix*       light;
-    TmdObject*       ext;
-    Actor311900Work* work;
+    GfxMatrix*        color;
+    GfxMatrix*        light;
+    TmdObject*        ext;
+    _Actor311900Work* work;
 
-    work  = (Actor311900Work*)task->work;
+    work  = task->work;
     ext   = task->extra.tmd;
     light = (GfxMatrix*)&work->light;
     color = (GfxMatrix*)&work->color;
@@ -650,12 +670,12 @@ static void func_actor_311900_8016278C(Task* task)
 /// matrix flat except for a negated `m[0][0]`.
 static void func_actor_311900_8016281C(Task* task)
 {
-    GfxMatrix*       color;
-    GfxMatrix*       light;
-    TmdObject*       ext;
-    Actor311900Work* work;
+    GfxMatrix*        color;
+    GfxMatrix*        light;
+    TmdObject*        ext;
+    _Actor311900Work* work;
 
-    work  = (Actor311900Work*)task->work;
+    work  = task->work;
     ext   = task->extra.tmd;
     light = (GfxMatrix*)&work->light;
     color = (GfxMatrix*)&work->color;

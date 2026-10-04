@@ -92278,18 +92278,24 @@ if (M2C_FIELD(work, s16 *, 0x4C6) == 1) { ... }   /* lh  $v1, 0x4C6($s1) */
 ```
 
 and the overlay header already declared that field `u16`, so the "natural" port
-`if (work->field_4C6 == 1)` scored 96.610% with `insert=1 delete=1` on an
+`if (work->advancing == 1)` scored 96.610% with `insert=1 delete=1` on an
 otherwise identical 59/59-instruction function (blocks, predicates and calls all
 matching): a single `lhu $v1, 0x4C6($s1)` where the target has `lh`. m2c's cast
-type is the load's signedness, so it has to be re-encoded at the use site:
+type is the load's signedness, so it has to be re-encoded, at the use site
+while the field stays `u16` -
 
 ```c
-if ((s16)work->field_4C6 == 1) { ... }            /* lh  $v1, 0x4C6($s1) */
+if ((s16)work->advancing == 1) { ... }            /* lh  $v1, 0x4C6($s1) */
 ```
 
-The neighbouring `work->field_4C4++` keeps its `lhu`, which is what makes the
-field's declared type `u16` - read each use separately, exactly as "One `u16`
-field read as both `lhu` and `lh`" says. A one-instruction `insert`/`delete` pair
+- or in the field itself: `_Actor311900Work::advancing` is now declared `s16`,
+and the plain `work->advancing == 1` emits the same `lh`. The neighbouring
+`work->advanceFrames++` loads with `lhu`, but that does not make its field
+`u16`: an increment stored straight back is emitted with `lhu` for an `s16`
+field as well, and its other use is a signed compare that wants `lh`, so that
+field is `s16` too and both casts are gone. Read each use separately, as "One
+`u16` field read as both `lhu` and `lh`" says, and let the uses whose width
+shows decide the type. A one-instruction `insert`/`delete` pair
 on a structurally matching function is worth reading as a load-width mismatch
 (also `lb`/`lbu`, `lh`/`lhu`) before anything else.
 
@@ -101339,7 +101345,7 @@ Evidence: scratch `nonmatchings/func_actor_311900_8016278C-vacuum/`. `base.c`
 `8e2bf86f…` (m2c seed, 87.78%, object `90bf4dd9…`), `base_1.c` `c94933f6…`
 (two store widths retyped, 100.000%), `base_2.c` `57f4a3af…` (typed port, same
 object `3bbd323f…` as `base_1.c`, `build.sh` reports it as a repeat). Compiler
-`60d886cd…` throughout. `Actor311900Work` is declared in
+`60d886cd…` throughout. `_Actor311900Work` is declared in
 `src/actors/actor_311900/actor_311900.c`; `GfxMatrix` is declared in
 `include/main/gfx_types.h`.
 
@@ -101373,19 +101379,19 @@ constants question.** Only a differing *register name* on an otherwise
 matching line is actually about allocation.
 
 The struct that fixes it here is also the layout worth reusing in this family:
-`Actor311900Work` opens with a 0x474-byte animation prefix -
+`_Actor311900Work` opens with a 0x474-byte animation prefix, its `rig` -
 
 ```c
-typedef struct Actor311900Anim {
-    /* 0x000 */ AnimationContext  context;
-    /* 0x014 */ AnimationSlot slots[0x14];  /* 20 * 0x28 fills the gap to 0x334 */
-    /* 0x334 */ byte       poses[0x140]; /* AnimationContext.poseBuffer, packed encodings in 0x10-byte slots */
-} Actor311900Anim;
-STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
+typedef struct {
+    AnimationContext anim;
+    AnimationSlot    slots[20];                              /* 20 * 0x28 fills the gap to 0x334 */
+    u8               poses[20][ANIMATION_POSE_BUFFER_BYTES]; /* AnimationContext.poseBuffer, packed encodings in 0x10-byte slots */
+} ActorAnimRig20;
+STATIC_ASSERT_SIZEOF(ActorAnimRig20, 0x474);
 ```
 
-so the spawn hands `animationInitContext` the block as `(AnimationContext*)work`,
-`work->anim.slots` as `slots` and `work->anim.poses` as `poseBuffer`. **Derive a slot
+so the spawn hands `animationInitContext` the block as `&work->rig.anim`,
+`work->rig.slots` as `slots` and `work->rig.poses` as `poseBuffer`. **Derive a slot
 count by filling the gap, and re-check it against the assert:** `0x334 - 0x14
 = 0x320` is 20 slots of 0x28, not 32 - the same 20 `actor_160600` and
 `actor_503500` carry. Getting that wrong fails `STATIC_ASSERT_SIZEOF` on both
@@ -101395,7 +101401,7 @@ the prefix and the work struct, which is the cheap place to find out.
 spawn, still `INCLUDE_ASM`) is this body with `GameFlag_GetNibble(0xA) & 2`
 for `GameFlag_GetNibble(1) >= 3`, `func_actor_311900_8016278C` for
 `func_actor_311900_8016281C`, `D_actor_311900_8016EBE8` for
-`D_actor_311900_8016EBF4`, plus two extra stores (`field_4C4` / `field_4C6`
+`D_actor_311900_8016EBF4`, plus two extra stores (`advanceFrames` / `advancing`
 to 0) and a view-dependent `obj->field_C` seed before the closing
 `func_actor_311900_80162100`. Its asm is the same shape up to those six
 edits, so porting this source with them should land it.
@@ -101444,7 +101450,7 @@ the then-arm of one `if`:
 
 ```c
     if ((GameFlag_GetNibble(0xA) & 2) ||
-        (work = memCalloc(0x4CC, 0), task->work = work, work == NULL)) {
+        (work = memCalloc(sizeof(_Actor311900Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -125538,10 +125544,10 @@ the address on `work`, and cse2 rewrites it anyway. Giving step 3 an alias of it
 own -
 
 ```c
-    if (work->field_474 == 3) {
-        work->field_47A++;
-        tick = (Actor311900Work*)task->work;     /* was: start = ... */
-        for (k = 1; k < 0x14; k++) { animationTickSlot(&tick->anim.context, k); }
+    if (work->animState == ACTOR_ENEMY_ANIM_TICK) {
+        work->animFrames++;
+        tick = task->work;                        /* was: start = ... */
+        for (k = 1; k < ARRAY_SIZE(tick->rig.slots); k++) { animationTickSlot(&tick->rig.anim, k); }
     }
 ```
 
