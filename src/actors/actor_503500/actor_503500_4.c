@@ -292,25 +292,55 @@ typedef struct Actor503500Work38 {
 } Actor503500Work38;
 STATIC_ASSERT_SIZEOF(Actor503500Work38, 0x38);
 
-/// Work block of the 0xF4 enemy whose state-0 init is
-/// `func_actor_503500_8013ECBC` (`D_actor_503500_80177A6C`). It keeps a
-/// halfword at 0xEC -- `func_actor_503500_8013F4A4` stores one there and
-/// `func_actor_503500_8013F9D4` clears it -- where the 0xF0 blocks keep
-/// bytes. Its sub-state index is `field_F0`, the one
-/// `func_actor_503500_8013F8AC` dispatches on.
-typedef struct Actor503500WorkF4 {
-    /* 0x00 */ WorldCollisionBody    obj; // the collision body Gp_UnlinkObj takes
-    /* 0x20 */ WorldCollisionContact rec[8];
-    /* 0xE0 */ EffectSpawnArg        field_E0;
-    /* 0xE8 */ s16                   field_E8; // per-frame countdown, clamped at 0
-    /* 0xEA */ u16                   field_EA; // sub-state frame counter
-    /* 0xEC */ s16                   field_EC;
-    /* 0xEE */ byte                  pad_EE[0x2];
-    /* 0xF0 */ s8                    field_F0; // sub-state index
-    /* 0xF1 */ s8                    field_F1; // sub-state phase, cleared with field_F0
-    /* 0xF2 */ byte                  pad_F2[0x2];
-} Actor503500WorkF4;
-STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
+/// What a yellow-flash emitter is doing, as held in `_Actor503500YellowFlashEmitterWork::state`.
+enum {
+    ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE    = 0, // A target; waits for the boss to command an attack
+    ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK  = 1, // Has the boss play its two attack animations and launches the yellow-flash attack during the first
+    ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING   = 2, // Health exhausted: stops being a target, sheds hit effects and repaints a block of VRAM
+    ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT = 3, // State after set-up: not yet hit; waits for the boss to tell it to become a target
+};
+
+/// Constants of a yellow-flash emitter.
+enum {
+    ACTOR_503500_YELLOW_FLASH_EMITTER_ATTACK_LAUNCH_FRAME = 30,  // Frame of the attack's count on which the yellow-flash attack is launched
+    ACTOR_503500_YELLOW_FLASH_EMITTER_ATTACK_FRAMES       = 111, // Frames the attack counts before it waits on the boss's animation
+    ACTOR_503500_YELLOW_FLASH_EMITTER_DYING_FRAMES        = 31,  // Frames the dying emitter sheds hit effects
+};
+
+/// Work block of the yellow-flash emitter, the slot enemy (slot 12) that
+/// launches the boss's yellow-flash attack.
+///
+/// The emitter has no model: its task carries only a coordinate, hung with
+/// no offset or rotation from part 8 of the boss's model, and a target
+/// sphere 800 units along that part's Z. It is not among the slot enemies
+/// the boss spawns at set-up. The slot-1 enemy, which rides the same part,
+/// spawns it when it comes off the boss, and the boss then tells it to
+/// become a target; until then its sphere is not pair-tested.
+///
+/// Commanded by the boss, the emitter asks for the boss's animation 12 and
+/// then 13, and during the first launches the yellow-flash attack task on its
+/// own coordinate. It gives the attack up when the boss recoils from a lost
+/// part, is stunned or is defeated.
+///
+/// A hit that exhausts its health empties the slot and sends the boss into
+/// its part-lost recoil. The emitter then sheds hit effects for
+/// `ACTOR_503500_YELLOW_FLASH_EMITTER_DYING_FRAMES`, copies a 31 by 40 block
+/// of VRAM over the block 32 pixels to its left, and ends its task.
+///
+/// One static instance exists; the task's `Task::work` points at it.
+typedef struct {
+    WorldCollisionBody    body;          // Target sphere of radius 800 on the task's coordinate, 800 units along its Z; pair-tested only from the boss's command to become a target until the emitter dies
+    WorldCollisionContact contacts[8];   // Contact table of `body`, also the enemy's hit records
+    EffectSpawnArg        hitEffect;     // Record hit effects on the emitter are spawned with, bound to the task's coordinate
+    s16                   hitCooldown;   // Frames during which further hits are ignored; each hit that lands raises it to that attack's value
+    s16                   stateFrames;   // Frames counted by the current step of the state
+    s16                   field_EC;      // Set to 2 when the dying state begins and cleared on every state change. Nothing reads it back; role unproven
+    byte                  unknown_EE[2]; // No access found; role unproven
+    s8                    state;         // An `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_*` state
+    s8                    stateStep;     // Step within the current state, restarted on every state change
+    byte                  unknown_F2[2]; // No access found; role unproven
+} _Actor503500YellowFlashEmitterWork;
+STATIC_ASSERT_SIZEOF(_Actor503500YellowFlashEmitterWork, 0xF4);
 
 /// The second 0xF4 block: the enemy whose state-0 init is
 /// `func_actor_503500_8013CAE4` (`memFillBytes` over slot `spawnArg1 - 7` of
@@ -319,7 +349,7 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
 /// counters as halfwords at 0xEC and 0xEE -- `func_actor_503500_8013D1CC` and
 /// `func_actor_503500_8013D558` step 0xEC and `func_actor_503500_8013DBA8`
 /// clears both -- where the 0xF0 blocks keep the bytes they dispatch on, and
-/// where `Actor503500WorkF4` puts its counter pair at 0xEA / 0xEC. Its sub-state index is `field_F0`,
+/// where `_Actor503500YellowFlashEmitterWork` puts its counter pair at 0xEA / 0xEC. Its sub-state index is `field_F0`,
 /// the one `func_actor_503500_8013D990` dispatches on.
 typedef struct Actor503500Work770E8 {
     /* 0x00 */ WorldCollisionBody    obj;
@@ -390,7 +420,7 @@ typedef struct Actor503500Work7797C {
 } Actor503500Work7797C;
 STATIC_ASSERT_SIZEOF(Actor503500Work7797C, 0xF0);
 
-extern Actor503500WorkF4 D_actor_503500_80177A6C;
+extern _Actor503500YellowFlashEmitterWork D_actor_503500_80177A6C;
 
 extern Actor503500Work776A0 D_actor_503500_801776A0;
 
@@ -537,7 +567,7 @@ Actor503500Work770E8 D_actor_503500_80177794[2] = { 0 };
 
 Actor503500Work7797C D_actor_503500_8017797C = { 0 };
 
-Actor503500WorkF4 D_actor_503500_80177A6C = { 0 };
+_Actor503500YellowFlashEmitterWork D_actor_503500_80177A6C = { 0 };
 
 _Actor503500LungingChainWork D_actor_503500_80177B60[4];
 
@@ -2331,10 +2361,11 @@ static const TaskFuncTable3 D_actor_503500_801320D0 = {
     },
 };
 
-/// State-0 init of the 0xF4 enemy at `D_actor_503500_80177A6C`: clears the
-/// block, resets the task's own coordinate to a plain 4096 identity, parents
-/// it to part 8 of the parent task's model, links the enemy node and its
-/// display node, and hands the block to sub-state 3.
+/// State-0 init of the yellow-flash emitter at `D_actor_503500_80177A6C`:
+/// clears the block, resets the task's own coordinate to a plain 4096
+/// identity, parents it to part 8 of the parent task's model, links the enemy
+/// node and the target sphere with its pair tests off, and starts
+/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT`.
 static void func_actor_503500_8013ECBC(Task* arg0)
 {
     Enemy*                 enemy;
@@ -2366,53 +2397,54 @@ static void func_actor_503500_8013ECBC(Task* arg0)
     enemy->bodyPos.vx              = D_actor_503500_8016F36C.vx;
     enemy->bodyPos.vy              = D_actor_503500_8016F36C.vy;
     enemy->bodyPos.vz              = D_actor_503500_8016F36C.vz;
-    rec                            = D_actor_503500_80177A6C.rec;
+    rec                            = D_actor_503500_80177A6C.contacts;
     enemy->param                   = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
     enemy->recs                    = rec;
     enemy->hp                      = enemy->param->hpMax;
 
-    D_actor_503500_80177A6C.obj.coord            = coord;
-    D_actor_503500_80177A6C.obj.context.contacts = rec;
-    D_actor_503500_80177A6C.obj.pos.vx           = D_actor_503500_8016F36C.vx;
-    D_actor_503500_80177A6C.obj.pos.vy           = D_actor_503500_8016F36C.vy;
-    D_actor_503500_80177A6C.obj.pos.vz           = D_actor_503500_8016F36C.vz;
-    D_actor_503500_80177A6C.obj.key              = 0x30023;
-    D_actor_503500_80177A6C.obj.radius           = 0x320;
-    D_actor_503500_80177A6C.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &D_actor_503500_80177A6C.obj);
-    Gp_InitRec18Table(rec, 8, 0);
-    D_actor_503500_80177A6C.field_E0.spawnArgLo = 0x600;
-    D_actor_503500_80177A6C.field_E0.coord      = coord;
-    D_actor_503500_80177A6C.field_E0.spawnArgHi = 3;
-    D_actor_503500_80177A6C.obj.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    func_actor_503500_8013F9D4(arg0, 3);
+    D_actor_503500_80177A6C.body.coord            = coord;
+    D_actor_503500_80177A6C.body.context.contacts = rec;
+    D_actor_503500_80177A6C.body.pos.vx           = D_actor_503500_8016F36C.vx;
+    D_actor_503500_80177A6C.body.pos.vy           = D_actor_503500_8016F36C.vy;
+    D_actor_503500_80177A6C.body.pos.vz           = D_actor_503500_8016F36C.vz;
+    D_actor_503500_80177A6C.body.key              = 0x30023;
+    D_actor_503500_80177A6C.body.radius           = 0x320;
+    D_actor_503500_80177A6C.body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &D_actor_503500_80177A6C.body);
+    Gp_InitRec18Table(rec, ARRAY_SIZE(D_actor_503500_80177A6C.contacts), 0);
+    D_actor_503500_80177A6C.hitEffect.spawnArgLo = 0x600;
+    D_actor_503500_80177A6C.hitEffect.coord      = coord;
+    D_actor_503500_80177A6C.hitEffect.spawnArgHi = 3;
+    D_actor_503500_80177A6C.body.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT);
     arg0->exitCallback = func_actor_503500_8013F778;
     arg0->state       += 1;
 }
 
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
-/// the 0xF4 block's enemy, like `func_actor_503500_80139A20`: each attack id is
-/// taken once, only type-2 ids land while the `field_E8` countdown is clear,
-/// and a hit that empties `field_40` starts sub-state 2 but still applies the
+/// the yellow-flash emitter, like `func_actor_503500_80139A20`: each attack id is
+/// taken once, only type-2 ids land while `hitCooldown` is clear,
+/// and a hit that empties the enemy's health starts
+/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING` but still applies the
 /// id's status effect. The hit effect is pulled to 400 units along the contact
 /// offset. `arg1` is passed by the caller but unused.
 static void func_actor_503500_8013EE5C(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
-    VECTOR             d;
-    SVECTOR            pos;
-    MATRIX             mtx;
-    MATRIX             rot;
-    Actor503500WorkF4* work;
-    Enemy*             enemy;
-    GfxCoord*          coord;
-    GfxCoord*          src;
-    s16                stun;
-    u32                id;
-    s32                dmg;
-    s32                crit;
-    s32                scale;
-    s32                i;
-    s32                j;
+    VECTOR                              d;
+    SVECTOR                             pos;
+    MATRIX                              mtx;
+    MATRIX                              rot;
+    _Actor503500YellowFlashEmitterWork* work;
+    Enemy*                              enemy;
+    GfxCoord*                           coord;
+    GfxCoord*                           src;
+    s16                                 stun;
+    u32                                 id;
+    s32                                 dmg;
+    s32                                 crit;
+    s32                                 scale;
+    s32                                 i;
+    s32                                 j;
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
@@ -2430,7 +2462,7 @@ static void func_actor_503500_8013EE5C(Task* arg0, WorldCollisionBody* arg1, Wor
         if ((id & 0xFFFF0000) != 0x20000) {
             continue;
         }
-        if (work->field_E8 != 0) {
+        if (work->hitCooldown != 0) {
             continue;
         }
         src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
@@ -2448,7 +2480,7 @@ static void func_actor_503500_8013EE5C(Task* arg0, WorldCollisionBody* arg1, Wor
         func_800DA6E8(&enemy->node, dmg, 0);
         enemy->hp -= dmg;
         if (enemy->hp <= 0) {
-            func_actor_503500_8013F9D4(arg0, 2);
+            func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING);
         }
         switch (Gp_GetIdParam0(id) & 0xFFFF) {
             case 0:
@@ -2484,44 +2516,47 @@ static void func_actor_503500_8013EE5C(Task* arg0, WorldCollisionBody* arg1, Wor
         pos.vx += D_actor_503500_8016F36C.vx;
         pos.vy += D_actor_503500_8016F36C.vy;
         pos.vz += D_actor_503500_8016F36C.vz;
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->field_E0);
+        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->hitEffect);
         if (crit != 0) {
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
         }
         stun = Gp_GetIdParam2(id);
-        if (work->field_E8 < stun) {
-            work->field_E8 = stun;
+        if (work->hitCooldown < stun) {
+            work->hitCooldown = stun;
         }
     next:;
     }
 }
 
-/// A sub-state of the 0xF4 block, stepped by `field_F1`: applies the boss's
-/// animation preset 0xC, counts 0x6F frames (spawning table entry 3 at frame
-/// 0x1E with its coordinate parented to this task's), applies preset 0xD once
-/// the boss reports sub-state 0xC done, and leaves when 0xD is done too.
+/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK` step of the yellow-flash
+/// emitter, stepped by `stateStep`: applies the boss's animation preset 0xC,
+/// counts `ACTOR_503500_YELLOW_FLASH_EMITTER_ATTACK_FRAMES` in `stateFrames`
+/// (spawning table entry 3 on frame
+/// `ACTOR_503500_YELLOW_FLASH_EMITTER_ATTACK_LAUNCH_FRAME` with its coordinate
+/// parented to this task's), applies preset 0xD once the boss reports preset
+/// 0xC done, and idles when 0xD is done too.
 static void func_actor_503500_8013F328(Task* arg0)
 {
-    Actor503500WorkF4* work = (Actor503500WorkF4*)arg0->work;
-    Task*              task;
-    GfxCoord*          coord;
+    _Actor503500YellowFlashEmitterWork* work = arg0->work;
+    Task*                               task;
+    GfxCoord*                           coord;
 
     if (func_actor_503500_8013608C(arg0->parent) != 0) {
-        func_actor_503500_8013F9D4(arg0, 0);
+        func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
         func_actor_503500_8013611C(arg0->spawnArg1.value);
         return;
     }
-    switch (work->field_F1) {
+    switch (work->stateStep) {
         case 0:
             func_actor_503500_80135FB4(arg0->parent, 0xC, 8);
-            work->field_F1++;
+            work->stateStep++;
             break;
         case 1:
-            work->field_EA++;
-            if ((s16)work->field_EA >= 0x6F) {
-                work->field_EA = 0;
-                work->field_F1++;
-            } else if ((s16)work->field_EA == 0x1E) {
+            work->stateFrames++;
+            if (work->stateFrames >= ACTOR_503500_YELLOW_FLASH_EMITTER_ATTACK_FRAMES) {
+                work->stateFrames = 0;
+                work->stateStep++;
+            } else if (work->stateFrames == ACTOR_503500_YELLOW_FLASH_EMITTER_ATTACK_LAUNCH_FRAME) {
                 task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 3, 0, 0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
@@ -2535,38 +2570,40 @@ static void func_actor_503500_8013F328(Task* arg0)
         case 2:
             if (func_actor_503500_80136014(arg0->parent, 0xC) != 0) {
                 func_actor_503500_80135FB4(arg0->parent, 0xD, 0x10);
-                work->field_F1++;
+                work->stateStep++;
             }
             break;
         case 3:
             if (func_actor_503500_80136014(arg0->parent, 0xD) != 0) {
-                func_actor_503500_8013F9D4(arg0, 0);
+                func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
             }
             break;
     }
 }
 
-/// Sub-state 2 of the 0xF4 block, stepped by `field_F1`: phase 0 hides the
-/// display node, unlinks the enemy node, releases its state-F0 reference and
-/// plays the death sound; phase 1 spawns effects from `D_actor_503500_8016F374`
-/// for 0x1F frames, then restores the VRAM rect and moves on.
+/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING` step of the yellow-flash
+/// emitter, stepped by `stateStep`: step 0 stops pair-testing `body`, unlinks
+/// the enemy node, releases its state-F0 reference and plays the death sound;
+/// step 1 spawns effects from `D_actor_503500_8016F374` for
+/// `ACTOR_503500_YELLOW_FLASH_EMITTER_DYING_FRAMES`, then copies the VRAM rect
+/// and moves on.
 static void func_actor_503500_8013F4A4(Task* arg0)
 {
-    Enemy*             enemy;
-    Actor503500WorkF4* work;
-    GfxCoord*          coord;
-    s32                pan;
+    Enemy*                              enemy;
+    _Actor503500YellowFlashEmitterWork* work;
+    GfxCoord*                           coord;
+    s32                                 pan;
 
     enemy = arg0->spawnArg2.pointer;
-    work  = (Actor503500WorkF4*)arg0->work;
+    work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    switch (work->field_F1) {
+    switch (work->stateStep) {
         case 0:
-            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            enemy->recs      = 0;
+            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
-            work->field_E8 = 0;
+            work->hitCooldown = 0;
             (Gp_IncStateF0Ref)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
@@ -2574,23 +2611,23 @@ static void func_actor_503500_8013F4A4(Task* arg0)
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             work->field_EC = 2;
-            work->field_F1++;
+            work->stateStep++;
             break;
         case 1:
             if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
                 Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x01001A00,
-                            &D_actor_503500_8016F374[(s16)((s16)work->field_EA % 6)]);
-                if (work->field_EA & 1) {
+                            &D_actor_503500_8016F374[work->stateFrames % 6]);
+                if (work->stateFrames & 1) {
                     Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x04404600,
-                                &D_actor_503500_8016F374[(s16)((s16)work->field_EA % 3) + 3]);
+                                &D_actor_503500_8016F374[work->stateFrames % 3 + 3]);
                 }
             }
-            work->field_EA++;
-            if ((s16)work->field_EA >= 0x1F) {
+            work->stateFrames++;
+            if (work->stateFrames >= ACTOR_503500_YELLOW_FLASH_EMITTER_DYING_FRAMES) {
                 MoveImage(&D_actor_503500_8016F3A4, 0x140, 0x100);
                 SndEvt_EnqueueType7(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
                 func_actor_503500_8013611C(arg0->spawnArg1.value);
-                work->field_F1++;
+                work->stateStep++;
             }
             break;
         default:
@@ -2599,7 +2636,7 @@ static void func_actor_503500_8013F4A4(Task* arg0)
     }
 }
 
-/// The 0xF4 block's per-frame tick, the same shape as
+/// The yellow-flash emitter's per-frame tick, the same shape as
 /// `func_actor_503500_8013E9A4`: frozen mode 1 skips the frame entirely,
 /// mode 2 only marks the enemy's link node, and anything else clears the
 /// coordinate flag and runs the normal chain.
@@ -2627,11 +2664,13 @@ static void func_actor_503500_8013F6F0(Task* arg0)
 
 static void func_actor_503500_8013F778(Task* arg0)
 {
-    Enemy* enemy;
+    Enemy*                              enemy;
+    _Actor503500YellowFlashEmitterWork* work;
 
     enemy                           = arg0->spawnArg2.pointer;
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500WorkF4*)arg0->work)->obj);
+    work                            = arg0->work;
+    Gp_UnlinkObj(&work->body);
     enemy->recs = 0;
     arg0->work  = NULL;
     enemyDestroy(enemy, arg0);
@@ -2655,75 +2694,82 @@ static void func_actor_503500_8013F7D8(Task* arg0)
 
 static void func_actor_503500_8013F830(Task* arg0)
 {
-    Actor503500WorkF4* work;
-    s16                timer;
+    _Actor503500YellowFlashEmitterWork* work;
+    s16                                 timer;
 
     work = arg0->work;
-    if (work->field_E8 != 0) {
-        timer          = (u16)work->field_E8 - 1;
-        work->field_E8 = timer;
+    if (work->hitCooldown != 0) {
+        timer             = (u16)work->hitCooldown - 1;
+        work->hitCooldown = timer;
         if (timer < 0) {
-            work->field_E8 = 0;
+            work->hitCooldown = 0;
         }
     }
     if (func_actor_503500_80136208() == 0) {
-        func_actor_503500_8013EE5C(arg0, &work->obj, work->rec, 8);
+        func_actor_503500_8013EE5C(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
-    Gp_ClearRec18Occupied(work->rec);
+    Gp_ClearRec18Occupied(work->contacts);
 }
 
 static void func_actor_503500_8013F8AC(Task* arg0)
 {
-    switch (((Actor503500WorkF4*)arg0->work)->field_F0) {
-        case 0:
+    _Actor503500YellowFlashEmitterWork* work = arg0->work;
+
+    switch (work->state) {
+        case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE:
             func_actor_503500_8013F948(arg0);
             break;
-        case 1:
+        case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK:
             func_actor_503500_8013F328(arg0);
             break;
-        case 2:
+        case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING:
             func_actor_503500_8013F4A4(arg0);
             break;
-        case 3:
+        case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT:
             func_actor_503500_8013F984(arg0);
             break;
     }
 }
 
-/// The 0xF4 block's counterpart of `func_actor_503500_80138454`: when a kill is
-/// pending, hands the block to sub-state 1 and cancels the countdown.
+/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE` step of the yellow-flash
+/// emitter, the counterpart of `func_actor_503500_80138454`: when the boss has
+/// left command 2 in the task's `killCountdown`, takes it and starts
+/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK`.
 static void func_actor_503500_8013F948(Task* arg0)
 {
     if (arg0->killCountdown == 2) {
-        func_actor_503500_8013F9D4(arg0, 1);
+        func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK);
         arg0->killCountdown = 0;
     }
 }
 
-/// The 0xF4 block's sub-state 3 handler: when a kill is pending, hands the
-/// block to sub-state 0 and hides its display node.
+/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT` step of the yellow-flash
+/// emitter: when the boss has left command 8 in the task's `killCountdown`,
+/// starts `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE` and has `body`
+/// pair-tested, which makes the emitter a target.
 static void func_actor_503500_8013F984(Task* arg0)
 {
-    Actor503500WorkF4* work;
+    _Actor503500YellowFlashEmitterWork* work;
 
     if (arg0->killCountdown == 8) {
-        func_actor_503500_8013F9D4(arg0, 0);
-        work             = arg0->work;
-        work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
+        work              = arg0->work;
+        work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 }
 
-/// The 0xF4 block's counterpart of `func_actor_503500_80138490`: puts the block
-/// into sub-state `arg1`, clears the phase and the two counters that go with
-/// it, cancels a pending kill, and reports the slot busy to the boss when the
-/// sub-state is non-zero.
+/// The yellow-flash emitter's counterpart of `func_actor_503500_80138490`:
+/// enters state `arg1` (an `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_*`),
+/// clears `stateStep`, `stateFrames` and `field_EC`, drops any command still
+/// waiting in the task, and reports the slot busy to the boss in every state
+/// but `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE`.
 static void func_actor_503500_8013F9D4(Task* arg0, s32 arg1)
 {
-    Actor503500WorkF4* work = (Actor503500WorkF4*)arg0->work;
+    _Actor503500YellowFlashEmitterWork* work = arg0->work;
 
-    work->field_F0      = arg1;
-    work->field_F1      = 0;
-    work->field_EA      = 0;
+    work->state         = arg1;
+    work->stateStep     = 0;
+    work->stateFrames   = 0;
     work->field_EC      = 0;
     arg0->killCountdown = 0;
     func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
