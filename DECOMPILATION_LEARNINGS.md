@@ -48346,8 +48346,8 @@ to a local pointer declared *before* the call and the pseudo is live across
 the call, so regalloc must give it a saved register:
 
 ```c
-SbupActionPrompt* prompt = &D_80114D28;
-SbupExamineWork*  work   = (SbupExamineWork*)task->work;
+SbupActionPrompt*                      prompt = &D_80114D28;
+_ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
 func_shelter_b1_underground_parking_80183B9C();
 prompt->mode = 0;

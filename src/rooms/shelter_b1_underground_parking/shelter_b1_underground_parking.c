@@ -79,26 +79,34 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/room_variants.h"
 
-/// Work block of the parking-lot examine task, hung off the `Task::work` slot
-/// (0x1C). Reach it with
-/// `(SbupExamineWork*)task->work`.
+/// `ActionPromptHotspot::id` of the selector panel's enter button, which
+/// commits the pending switch pattern. The four switch hotspots carry the bit
+/// each one toggles in that pattern instead (8, 4, 2, 1).
+#define SHELTER_B1_UNDERGROUND_PARKING_PANEL_HOTSPOT_ENTER 16
+
+/// Amount the selector panel's closing fade darkens each frame.
+#define SHELTER_B1_UNDERGROUND_PARKING_PANEL_FADE_STEP 6
+
+/// Work block of the task that runs the parking lot's selector panel screen,
+/// allocated zeroed by its first state and kept at `Task::work`.
 ///
-/// `func_shelter_b1_underground_parking_80184468` copies a matched hotspot's
-/// two table fields into `field_C` and `promptKind`;
-/// `func_shelter_b1_underground_parking_80184594` forwards `promptKind` to
-/// `func_800D4E78` as the display mode of the prompt it spawns.
-/// `fadeLevel` is the intensity of the closing fade: the last state raises it
-/// each frame, clamps it at 0xFF and draws it on all three channels of
-/// `Fade_DrawOverlay`.
-typedef struct SbupExamineWork {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ byte pad_4[0x4];
-    /* 0x08 */ s16  fadeLevel;
-    /* 0x0A */ byte pad_A[0x2];
-    /* 0x0C */ s16  field_C;
-    /* 0x0E */ s8   promptKind;
-    /* 0x0F */ byte pad_F[0x1];
-} SbupExamineWork;
+/// The panel's idle state tests the cursor against the hotspot table and
+/// latches the entry the player confirms in `choice` and `promptKind`; the
+/// states after it open the command prompt for that entry and, when the player
+/// accepts it, carry the choice out. A switch toggles its bit of the pending
+/// pattern and returns to the idle state. The enter button commits a pattern
+/// that differs from the current one, and the screen then leaves through a
+/// fade to black that `fadeLevel` drives.
+typedef struct {
+    s32 field_0;      // Cleared when the task starts and never read; role unproven
+    u8  unknown_4[4]; // Never read or written by the room; role unproven
+    s16 fadeLevel;    // Darkness of the closing fade, drawn subtractively on all three channels (0 none, 0xFF black, where it ends)
+    u8  unknown_A[2]; // Never read or written by the room; role unproven
+    s16 choice;       // `ActionPromptHotspot::id` of the confirmed hotspot (8, 4, 2 or 1 the switch toggling that pattern bit, 16 the enter button)
+    s8  promptKind;   // `ActionPromptHotspot::promptKind` of that hotspot, forwarded when its command prompt opens
+    u8  unknown_F;    // Never read or written by the room; role unproven
+} _ShelterB1UndergroundParkingPanelWork;
+STATIC_ASSERT_SIZEOF(_ShelterB1UndergroundParkingPanelWork, 0x10);
 
 /// The departure the departure task carries out.
 extern RoomDeparture gRoomDeparture;
@@ -513,7 +521,7 @@ ActionPromptHotspot D_shelter_b1_underground_parking_8018767C[6] = {
     { -48, 77, 16, 16, 4, 1, 0 },
     { -21, 77, 16, 16, 2, 1, 0 },
     { 3, 77, 16, 16, 1, 1, 0 },
-    { 34, 77, 40, 16, 16, 1, 0 },
+    { 34, 77, 40, 16, SHELTER_B1_UNDERGROUND_PARKING_PANEL_HOTSPOT_ENTER, 1, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
@@ -2270,16 +2278,16 @@ void func_shelter_b1_underground_parking_80184284(Task* task)
 
 static void func_shelter_b1_underground_parking_80184304(Task* task)
 {
-    SbupExamineWork*     st;
-    ActionPromptHotspot* hs;
+    _ShelterB1UndergroundParkingPanelWork* work;
+    ActionPromptHotspot*                   hs;
 
-    st = memCalloc(0x10, 0);
-    if (st == NULL) {
+    work = memCalloc(sizeof(*work), 0);
+    if (work == NULL) {
         taskKill(task);
         return;
     }
     task->spawnArg2.pointer                                    = Task_SpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
-    task->work                                                 = st;
+    task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x15;
     /* The once-loops fold away, but flow weights the references inside them
        by loop depth. The outer one keeps the state load below the mode store;
@@ -2288,7 +2296,7 @@ static void func_shelter_b1_underground_parking_80184304(Task* task)
     do {
         task->state++;
         do {
-            st->field_0 = 0;
+            work->field_0 = 0;
         } while (0);
     } while (0);
     Display_AcquireRef();
@@ -2315,9 +2323,9 @@ static void func_shelter_b1_underground_parking_801843F0(Task* task)
 
 static void func_shelter_b1_underground_parking_80184468(Task* task)
 {
-    ActionPrompt*        prompt = D_80114D28;
-    ActionPromptHotspot* hs     = D_shelter_b1_underground_parking_8018767C;
-    SbupExamineWork*     work   = (SbupExamineWork*)task->work;
+    ActionPrompt*                          prompt = D_80114D28;
+    ActionPromptHotspot*                   hs     = D_shelter_b1_underground_parking_8018767C;
+    _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
     gGameSession->hideHud = 1;
@@ -2334,7 +2342,7 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    work->field_C       = hs->id;
+                    work->choice        = hs->id;
                     work->promptKind    = hs->promptKind;
                     task->state         = 3;
                     return;
@@ -2351,8 +2359,8 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
 
 static void func_shelter_b1_underground_parking_80184594(Task* task)
 {
-    ActionPrompt*    prompt = D_80114D28;
-    SbupExamineWork* work   = (SbupExamineWork*)task->work;
+    ActionPrompt*                          prompt = D_80114D28;
+    _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -2363,14 +2371,14 @@ static void func_shelter_b1_underground_parking_80184594(Task* task)
 
 static void func_shelter_b1_underground_parking_801845F8(Task* task)
 {
-    ActionPrompt*    prompt = D_80114D28;
-    SbupExamineWork* work   = (SbupExamineWork*)task->work;
+    ActionPrompt*                          prompt = D_80114D28;
+    _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
-        if (work->field_C == 0x10) {
+        if (work->choice == SHELTER_B1_UNDERGROUND_PARKING_PANEL_HOTSPOT_ENTER) {
             SndEvt_EnqueueType6(SOUND_SHELTER_B1_PARKING_PANEL_BUTTON, 0, 0);
             if (D_shelter_b1_underground_parking_8018D788 != D_shelter_b1_underground_parking_8018D789) {
                 if (gGameSession->location.loc.room == 1) {
@@ -2382,7 +2390,7 @@ static void func_shelter_b1_underground_parking_801845F8(Task* task)
                 return;
             }
         } else {
-            D_shelter_b1_underground_parking_8018D789 ^= work->field_C;
+            D_shelter_b1_underground_parking_8018D789 ^= work->choice;
             SndEvt_EnqueueType6(SOUND_SHELTER_B1_PARKING_PANEL_BUTTON, 0, 0);
             task->state = 2;
             return;
@@ -2422,10 +2430,10 @@ static void func_shelter_b1_underground_parking_80184778(Task* task)
 
 static void func_shelter_b1_underground_parking_801847D0(Task* task)
 {
-    SbupExamineWork* work = (SbupExamineWork*)task->work;
+    _ShelterB1UndergroundParkingPanelWork* work = task->work;
 
     func_shelter_b1_underground_parking_80183B9C();
-    work->fadeLevel += 6;
+    work->fadeLevel += SHELTER_B1_UNDERGROUND_PARKING_PANEL_FADE_STEP;
     if (work->fadeLevel >= 0x100) {
         work->fadeLevel = 0xFF;
     }
