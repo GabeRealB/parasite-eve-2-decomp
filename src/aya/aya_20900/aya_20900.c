@@ -15,17 +15,34 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-/// 8-byte work block `func_aya_20900_80115CFC` allocates with `memMalloc(8, false)`
-/// and parks in `Task::work`; reach it with `(Aya20900Work*)task->work`.
-/// `index` is the fade state machine,
-/// `timer` counts the hold at full white, and `fade` is the TILE colour.
-typedef struct Aya20900Work {
-    /* 0x0 */ u16 index;
-    /* 0x2 */ u16 timer;
-    /* 0x4 */ u16 unk4;
-    /* 0x6 */ u16 fade;
-} Aya20900Work;
-STATIC_ASSERT_SIZEOF(Aya20900Work, 0x8);
+/// Phases of the Game Over screen, in the order `_Aya20900GameOverWork::phase` steps through them.
+enum {
+    AYA_20900_GAME_OVER_PHASE_ENTER        = 0, // Pick the entry: darken a preserved picture first, or start from black
+    AYA_20900_GAME_OVER_PHASE_DARKEN_SCENE = 1, // Darken the preserved picture to black, logo hidden
+    AYA_20900_GAME_OVER_PHASE_REVEAL_START = 2, // First reveal frame, drawn before the display is unmasked
+    AYA_20900_GAME_OVER_PHASE_REVEAL       = 3, // Unmask the display and brighten the logo out of black
+    AYA_20900_GAME_OVER_PHASE_HOLD         = 4, // Show the logo until a pad press skips it or the hold runs out
+    AYA_20900_GAME_OVER_PHASE_DARKEN_OUT   = 5  // Darken to black, then report the screen finished
+};
+
+enum {
+    /// Frames the Game Over logo is held before the screen leaves without a button press.
+    AYA_20900_GAME_OVER_HOLD_FRAMES = 0x30D,
+    /// `_Aya20900GameOverWork::darkness` at which the picture is fully black.
+    AYA_20900_GAME_OVER_DARKNESS_BLACK = 0xFF
+};
+
+/// State of the Game Over screen's task, allocated by it and held in `Task::work`.
+///
+/// The screen is a centred logo under a full-screen tile that is subtracted
+/// from the picture, so `darkness` is how much brightness is removed.
+typedef struct {
+    s16 phase;      // Current step of the screen (`AYA_20900_GAME_OVER_PHASE_*`)
+    s16 holdFrames; // Frames the logo has been held, counted up to `AYA_20900_GAME_OVER_HOLD_FRAMES`
+    s16 field_4;    // Cleared with the block and never accessed; role unproven
+    s16 darkness;   // Level the covering tile subtracts from every channel (0 picture untouched, 0xFF black)
+} _Aya20900GameOverWork;
+STATIC_ASSERT_SIZEOF(_Aya20900GameOverWork, 0x8);
 
 void        func_aya_20900_8011578C(Task* arg0);
 static void func_aya_20900_80115948(void);
@@ -114,70 +131,66 @@ static void func_aya_20900_80115948(void)
 
 static s32 func_aya_20900_80115A14(Task* arg0)
 {
-    Aya20900Work* work;
-    TILE*         p;
-    DR_TPAGE*     dr;
-    u16           fade;
-    u16           timer;
-    s32           showLogo;
-    u8            color;
+    _Aya20900GameOverWork* work;
+    TILE*                  p;
+    DR_TPAGE*              dr;
+    s32                    showLogo;
+    u8                     color;
 
-    work     = (Aya20900Work*)arg0->work;
+    work     = arg0->work;
     showLogo = 1;
-    switch ((s16)work->index) {
-        case 0:
+    switch (work->phase) {
+        case AYA_20900_GAME_OVER_PHASE_ENTER:
             if (gGameSession->restartMode == GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
-                showLogo     = 0;
-                work->fade   = 0;
-                work->index += 1;
+                showLogo       = 0;
+                work->darkness = 0;
+                work->phase   += 1;
             } else {
+                // Nothing to keep on screen: swap in a black background and start fully dark.
                 memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-                work->fade                              = 0xFF;
-                work->index                             = 2;
+                work->darkness                          = AYA_20900_GAME_OVER_DARKNESS_BLACK;
+                work->phase                             = AYA_20900_GAME_OVER_PHASE_REVEAL_START;
             }
             break;
-        case 1:
-            fade       = work->fade + 8;
-            work->fade = fade;
-            if ((s16)fade >= 0xFF) {
+        case AYA_20900_GAME_OVER_PHASE_DARKEN_SCENE:
+            work->darkness += 8;
+            if (work->darkness >= AYA_20900_GAME_OVER_DARKNESS_BLACK) {
+                // The preserved picture is hidden now; replace it with the black background.
                 memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-                work->fade                              = 0xFF;
-                work->index                            += 1;
+                work->darkness                          = AYA_20900_GAME_OVER_DARKNESS_BLACK;
+                work->phase                            += 1;
             }
             showLogo = 0;
             break;
-        case 3:
+        case AYA_20900_GAME_OVER_PHASE_REVEAL:
             SetDispMask(1);
-            goto fade_out;
-        case 2:
-            work->index += 1;
-        fade_out:
-            fade       = work->fade - 4;
-            work->fade = fade;
-            if ((s16)fade <= 0) {
-                work->fade   = 0;
-                work->timer  = 0;
-                work->index += 1;
+            goto reveal;
+        case AYA_20900_GAME_OVER_PHASE_REVEAL_START:
+            work->phase += 1;
+        reveal:
+            work->darkness -= 4;
+            if (work->darkness <= 0) {
+                work->darkness   = 0;
+                work->holdFrames = 0;
+                work->phase     += 1;
             }
             break;
-        case 4:
-            timer       = work->timer + 1;
-            work->timer = timer;
-            if ((s16)timer < 0x30D) {
+        case AYA_20900_GAME_OVER_PHASE_HOLD:
+            work->holdFrames += 1;
+            if (work->holdFrames < AYA_20900_GAME_OVER_HOLD_FRAMES) {
                 if (Pad_CheckFlag800() != 0) {
                     SndEvt_EnqueueType2(0x62, 1);
-                    work->index += 1;
+                    work->phase += 1;
                 }
             } else {
-                work->index += 1;
+                work->phase += 1;
             }
             break;
-        case 5:
-            fade       = work->fade + 8;
-            work->fade = fade;
-            if ((s16)fade >= 0xFF) {
+        case AYA_20900_GAME_OVER_PHASE_DARKEN_OUT:
+            work->darkness += 8;
+            if (work->darkness >= AYA_20900_GAME_OVER_DARKNESS_BLACK) {
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
                 return 1;
             }
@@ -189,7 +202,7 @@ static s32 func_aya_20900_80115A14(Task* arg0)
     }
 
     p              = gGpuPrimCursor;
-    color          = (u8)work->fade;
+    color          = work->darkness;
     gGpuPrimCursor = p + 1;
     setlen(p, 3);
     setcode(p, 0x62);
@@ -212,8 +225,8 @@ static s32 func_aya_20900_80115A14(Task* arg0)
 
 void func_aya_20900_80115CFC(Task* arg0)
 {
-    Aya20900Work* work;
-    s32           temp_v1;
+    _Aya20900GameOverWork* work;
+    s32                    temp_v1;
 
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
