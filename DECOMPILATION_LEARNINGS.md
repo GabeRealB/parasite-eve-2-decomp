@@ -147414,3 +147414,45 @@ No wrapper, no pointer local, no cast. When a table read needs a hand-summed
 byte offset to match, try the plain multi-dimensional global first; when only
 the constant loads around an LCG draw are out of order, try the draw as an
 assignment expression at its point of use before reaching for a struct view.
+
+## A packed-struct copy of one `static const` table at two sites is two block-local array initializers (func_actor_403600_801396F8, 2026-10-04)
+
+The seed copied a nine-byte list onto the stack in two `case` arms and later
+wrote a CD parameter block through the same slot, so it carried three pieces of
+scaffolding: a file-scope `static const` of a `__attribute__((packed))`
+one-member struct, a function-scope local of that type assigned from it twice,
+and the parameter bytes written as `sp20.values[n]`.
+
+```c
+static const Pattern D_x = { { 1, 12, 13, 14, 15, 16, 17, 18, 19 } };
+...
+sp20 = D_x;                      /* twice */
+...
+sp20.values[2] = 0x1E;           /* an unrelated use of the slot */
+CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, sp20.values, sp30);
+```
+
+None of it is needed. Each arm declares its own initialized array, and the
+parameter blocks are locals of the arm that sends them:
+
+```c
+if (work->actionTimer >= 0x14) {
+    u8 smokeCoords[9] = { 1, 12, 13, 14, 15, 16, 17, 18, 19 };
+    ...
+}
+...
+if ((s16)work->whiteout == 0xFF) {
+    u8 param1[4];
+    u8 param2[4];
+```
+
+Two things make this byte-identical. `output_constant_def` hashes a constant
+before emitting it, so the two equal initializers are one `.rodata` object, at
+the position the first of them is expanded - the single unaligned
+`lwl`/`lwr`/`lb` source the target reads from twice. And block locals take
+`assign_stack_temp` slots that are freed at the end of their block (see "Two
+payloads that never overlap share one stack slot"), so the second array reuses
+the first one's 16-byte slot and `param1` reuses it again, while `param2`, with
+no free slot left, gets a new one after it. A lone table read at two sites does
+not therefore prove a named global: try the repeated local initializer before
+keeping a `static const`.

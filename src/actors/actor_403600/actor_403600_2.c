@@ -82,34 +82,34 @@ typedef struct {
 } _Actor403600RecoilRow;
 STATIC_ASSERT_SIZEOF(_Actor403600RecoilRow, 0x8);
 
-typedef struct Actor403600Pattern {
-    u8 values[9];
-} __attribute__((packed)) Actor403600Pattern;
-STATIC_ASSERT_SIZEOF(Actor403600Pattern, 9);
+/// Scratch-stack block of the routine that picks, from where the player
+/// stands, the fixed point of the room the boss flies to next.
+///
+/// The candidates are one of two sets of those points: seven, or two. The
+/// player's ground distance from each candidate is measured in turn and kept,
+/// and the kept distances decide the point. One block serves one choice and is
+/// released before the routine returns.
+typedef struct {
+    s32 deltaX;       // Player's offset on X from the candidate being measured, world units; overwritten for each candidate
+    s32 deltaZ;       // The same on Z
+    s32 distances[7]; // Ground distance of the player from each candidate, in the set's order; the set of two fills only the first two
+} _Actor403600NearestPointScratch;
+STATIC_ASSERT_SIZEOF(_Actor403600NearestPointScratch, 0x24);
 
-/// One step of a camera path: the view rotation and translation as halfwords,
-/// widened into a `ViewCamera` when the step is applied.
-typedef struct Actor403600ViewKey {
-    s16 rot[9];
-    s16 pos[3];
-} Actor403600ViewKey;
-STATIC_ASSERT_SIZEOF(Actor403600ViewKey, 0x18);
-
-/// 0x24-byte scratch block used to hold seven planar distances while selecting
-/// the nearest point from D_actor_403600_801605F4.
-typedef struct Actor403600DistanceScratch {
-    /* 0x00 */ s32 x;
-    /* 0x04 */ s32 z;
-    /* 0x08 */ s32 distances[7];
-} Actor403600DistanceScratch;
-STATIC_ASSERT_SIZEOF(Actor403600DistanceScratch, 0x24);
-
-typedef struct Actor403600TurnScratch {
-    /* 0x00 */ u16       angles[4];
-    /* 0x08 */ s16       vector[4];
-    /* 0x10 */ GfxMatrix matrix;
-} Actor403600TurnScratch;
-STATIC_ASSERT_SIZEOF(Actor403600TurnScratch, 0x30);
+/// Scratch-stack block of the turn that points the boss at what it aims for.
+///
+/// The aim is the player or the boss's flight target. A basis is built whose
+/// Z axis runs from the boss to the aim, and its Euler angles are where the
+/// boss should face. The boss takes them at once, or steps each of its own
+/// angles toward them by its turn rate; either way its roll is then added
+/// about Z and its rotation rebuilt. Both vectors serve several stages in
+/// turn. One block serves one turn and is released before the routine returns.
+typedef struct {
+    SVECTOR angles;    // Up axis (0, 4096, 0) the basis is built about; then the Euler angles of the basis, 4096 to a turn; last the Z axis of the boss's rebuilt rotation, whose `vx` and `vz` give its yaw. `pad` is never written
+    SVECTOR direction; // Low 16 bits of the aim's offset from the boss, world units, then that offset as a unit vector (4096 = 1); the gradual turn then keeps the boss's own Euler angles here as they step toward `angles`. `pad` is never written
+    MATRIX  basis;     // Rotation that faces the aim, upright; its translation is never set or read
+} _Actor403600AimTurnScratch;
+STATIC_ASSERT_SIZEOF(_Actor403600AimTurnScratch, 0x30);
 
 /// Scratch-stack block of the step that puts the boss at the start of a rush
 /// pass.
@@ -159,19 +159,11 @@ STATIC_ASSERT_SIZEOF(_Actor403600TransformStorage, 32);
 
 extern _Actor403600TransformStorage D_actor_403600_801606E0;
 
-/// One sample of the rotation sequence `Actor403600Work::sceneFrame` walks
-/// through index 0x2BB. Copied into an `SVECTOR` (`z` to `vz`, `y` to `vy`)
-/// before `RotMatrix`.
-typedef struct {
-    u16 z;
-    u16 y;
-} _Actor403600RotSample;
-
-extern _Actor403600RotSample D_8016A408[];
-extern Actor403600ViewKey    D_8016AEF8[];
-extern Actor403600ViewKey    D_8016E450;
-extern SVECTOR               D_actor_403600_8016065C;
-extern SVECTOR               D_actor_403600_80160664;
+extern Actor303600RotSample D_8016A408[];
+extern Actor303600ViewKey   D_8016AEF8[];
+extern Actor303600ViewKey   D_8016E450;
+extern SVECTOR              D_actor_403600_8016065C;
+extern SVECTOR              D_actor_403600_80160664;
 
 extern ViewCamera D_actor_403600_80160700;
 
@@ -794,59 +786,55 @@ static void func_actor_403600_8013955C(Task* arg0)
     }
 }
 
-static const Actor403600Pattern D_actor_403600_80131E38 = { { 1, 12, 13, 14, 15, 16, 17, 18, 19 } };
-
 static void func_actor_403600_801396F8(Task* arg0)
 {
-    SVECTOR            sp10;
-    SVECTOR            sp18;
-    Actor403600Pattern sp20;
-    u8                 sp30[4];
-    u8                 patternIndex;
-    s32                temp_a0_4;
-    s16                temp_v0_13;
-    s32                temp_v0_14;
-    s16                temp_v0_16;
-    s16                temp_v0_18;
-    s32                temp_v0_19;
-    s16                temp_v0_29;
-    s16                temp_v0_9;
-    s16                temp_v1;
-    s16                temp_v1_2;
-    s16                temp_v1_3;
-    s16                temp_v1_6;
-    s16                var_v0_3;
-    EffectWork*        temp_v0_5;
-    EffectWork*        temp_v0_6;
-    EffectWork*        temp_v0_7;
-    EffectWork*        temp_v0_8;
-    s32                temp_s2;
-    s32                temp_v0_17;
-    s32                var_a0;
-    s32                var_v0;
-    s32                temp_s0_2;
-    s32                temp_s0_4;
-    u16                temp_v0_22;
-    u16                temp_v0_23;
-    u16                temp_v0_27;
-    u16                temp_v0_28;
-    u16                temp_v0_2;
-    u16                temp_v0_4;
-    s32                temp_v1_4;
-    u16                var_v0_4;
-    u32                temp_v0_10;
-    u32                temp_v0_11;
-    u8                 temp_a0;
-    u8                 temp_a0_2;
-    u8                 temp_a0_3;
-    u8                 temp_a0_5;
-    GfxCoord*          temp_s0;
-    GfxCoord*          temp_s0_3;
-    Actor403600Work*   work;
-    Actor403600Work*   temp_v0;
-    Actor403600Work*   temp_v0_12;
-    Actor403600Work*   temp_v0_15;
-    Actor403600Work*   temp_v0_3;
+    SVECTOR          sp10;
+    SVECTOR          sp18;
+    u8               smokeIndex;
+    s32              temp_a0_4;
+    s16              temp_v0_13;
+    s32              temp_v0_14;
+    s16              temp_v0_16;
+    s16              temp_v0_18;
+    s32              temp_v0_19;
+    s16              temp_v0_29;
+    s16              temp_v0_9;
+    s16              temp_v1;
+    s16              temp_v1_2;
+    s16              temp_v1_3;
+    s16              temp_v1_6;
+    s16              var_v0_3;
+    EffectWork*      temp_v0_5;
+    EffectWork*      temp_v0_6;
+    EffectWork*      temp_v0_7;
+    EffectWork*      temp_v0_8;
+    s32              temp_s2;
+    s32              temp_v0_17;
+    s32              var_a0;
+    s32              var_v0;
+    s32              temp_s0_2;
+    s32              temp_s0_4;
+    u16              temp_v0_22;
+    u16              temp_v0_23;
+    u16              temp_v0_27;
+    u16              temp_v0_28;
+    u16              temp_v0_2;
+    u16              temp_v0_4;
+    s32              temp_v1_4;
+    u16              var_v0_4;
+    u32              temp_v0_10;
+    u32              temp_v0_11;
+    u8               temp_a0;
+    u8               temp_a0_2;
+    u8               temp_a0_3;
+    u8               temp_a0_5;
+    GfxCoord*        temp_s0;
+    GfxCoord*        temp_s0_3;
+    Actor403600Work* work;
+    Actor403600Work* temp_v0;
+    Actor403600Work* temp_v0_12;
+    Actor403600Work* temp_v0_15;
+    Actor403600Work* temp_v0_3;
 
     work    = arg0->work;
     temp_v1 = work->mode;
@@ -1178,10 +1166,12 @@ static void func_actor_403600_801396F8(Task* arg0)
                         }
                     }
                     if (work->actionTimer >= 0x14) {
-                        sp20 = D_actor_403600_80131E38;
-                        for (patternIndex = 0; patternIndex < 9; patternIndex++) {
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[sp20.values[patternIndex]], 0x34C00, NULL);
-                            Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[sp20.values[patternIndex]], 0xC00, NULL);
+                        // Model coordinates the smoke and sprites rise from.
+                        u8 smokeCoords[9] = { 1, 12, 13, 14, 15, 16, 17, 18, 19 };
+
+                        for (smokeIndex = 0; smokeIndex < ARRAY_SIZE(smokeCoords); smokeIndex++) {
+                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0x34C00, NULL);
+                            Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0xC00, NULL);
                         }
                         work->actionTimer = 0;
                     }
@@ -1195,10 +1185,12 @@ static void func_actor_403600_801396F8(Task* arg0)
                 case 2:
                     work->animId = 0x14;
                     if (work->actionTimer >= 0x14) {
-                        sp20 = D_actor_403600_80131E38;
-                        for (patternIndex = 0; patternIndex < 9; patternIndex++) {
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[sp20.values[patternIndex]], 0x34C00, NULL);
-                            Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[sp20.values[patternIndex]], 0xC00, NULL);
+                        // Model coordinates the smoke and sprites rise from.
+                        u8 smokeCoords[9] = { 1, 12, 13, 14, 15, 16, 17, 18, 19 };
+
+                        for (smokeIndex = 0; smokeIndex < ARRAY_SIZE(smokeCoords); smokeIndex++) {
+                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0x34C00, NULL);
+                            Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0xC00, NULL);
                         }
                         work->actionTimer = 0;
                     }
@@ -1257,14 +1249,17 @@ static void func_actor_403600_801396F8(Task* arg0)
                     goto block_115;
                 case 1:
                     if ((s16)work->whiteout == 0xFF) {
-                        sp20.values[2] = 0x1E;
-                        sp20.values[3] = 0;
-                        sp20.values[0] = 0;
-                        sp30[0]        = 0x24;
-                        sp30[3]        = 0;
-                        sp30[2]        = 0;
-                        sp30[1]        = 0;
-                        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, sp20.values, sp30);
+                        u8 param1[4];
+                        u8 param2[4];
+
+                        param1[2] = 0x1E;
+                        param1[3] = 0;
+                        param1[0] = 0;
+                        param2[0] = 0x24;
+                        param2[3] = 0;
+                        param2[2] = 0;
+                        param2[1] = 0;
+                        CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
                         goto block_115;
                     }
                     break;
@@ -2572,88 +2567,83 @@ static void func_actor_403600_8013C864(Task* arg0)
 
 static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
 {
-    s32                         temp_a0;
-    s32                         temp_v0;
-    s32                         temp_v0_10;
-    s32                         temp_v0_2;
-    s32                         temp_v0_3;
-    s32                         temp_v0_4;
-    s32                         temp_v0_5;
-    s32                         temp_v0_6;
-    s32                         temp_v0_7;
-    s32                         temp_v0_8;
-    s32                         temp_v0_9;
-    s32                         temp_v1;
-    s32                         temp_v1_2;
-    s32                         temp_v1_3;
-    s32                         temp_v1_4;
-    s32                         temp_v1_5;
-    s32                         temp_v1_6;
-    s32                         temp_v1_7;
-    s32                         temp_v1_8;
-    s32                         temp_v1_9;
-    s32                         var_a1;
-    s32                         var_a2;
-    s32                         var_v1;
-    Actor403600DistanceScratch* temp_s2;
-    Actor403600DistanceScratch* temp_s3;
-    Actor403600DistanceScratch* temp_s5;
-    Actor403600Work*            work;
-    SVECTOR*                    temp_v0_11;
-    SVECTOR*                    temp_v1_10;
+    s32                              temp_a0;
+    s32                              temp_v0;
+    s32                              temp_v0_10;
+    s32                              temp_v0_2;
+    s32                              temp_v0_3;
+    s32                              temp_v0_4;
+    s32                              temp_v0_5;
+    s32                              temp_v0_6;
+    s32                              temp_v0_7;
+    s32                              temp_v0_8;
+    s32                              temp_v0_9;
+    s32                              temp_v1;
+    s32                              temp_v1_2;
+    s32                              temp_v1_3;
+    s32                              temp_v1_4;
+    s32                              temp_v1_5;
+    s32                              temp_v1_6;
+    s32                              temp_v1_7;
+    s32                              temp_v1_8;
+    s32                              temp_v1_9;
+    s32                              var_a1;
+    s32                              var_a2;
+    s32                              var_v1;
+    _Actor403600NearestPointScratch* scratch;
+    Actor403600Work*                 work;
+    SVECTOR*                         temp_v0_11;
+    SVECTOR*                         temp_v1_10;
 
-    temp_s2                    = SCRATCH_STACK_CURSOR(void);
-    temp_s3                    = temp_s2 - 1;
-    SCRATCH_STACK_CURSOR(void) = temp_s3;
-    work                       = arg0->work;
-    temp_s5                    = temp_s3;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403600NearestPointScratch);
+    work    = arg0->work;
     if (arg1 == 0) {
-        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[0].vx;
+        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[0].vx;
         temp_v1               = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[0].vz;
-        temp_s3->z            = temp_v1;
-        temp_v0               = temp_s3->x;
-        temp_s3->distances[0] = SquareRoot0((temp_v0 * temp_v0) + (temp_v1 * temp_v1));
+        scratch->deltaZ       = temp_v1;
+        temp_v0               = scratch->deltaX;
+        scratch->distances[0] = SquareRoot0((temp_v0 * temp_v0) + (temp_v1 * temp_v1));
 
-        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[1].vx;
+        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[1].vx;
         temp_v1_2             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[1].vz;
-        temp_s3->z            = temp_v1_2;
-        temp_v0_2             = temp_s3->x;
-        temp_s3->distances[1] = SquareRoot0((temp_v0_2 * temp_v0_2) + (temp_v1_2 * temp_v1_2));
+        scratch->deltaZ       = temp_v1_2;
+        temp_v0_2             = scratch->deltaX;
+        scratch->distances[1] = SquareRoot0((temp_v0_2 * temp_v0_2) + (temp_v1_2 * temp_v1_2));
 
-        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[2].vx;
+        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[2].vx;
         temp_v1_3             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[2].vz;
-        temp_s3->z            = temp_v1_3;
-        temp_v0_3             = temp_s3->x;
-        temp_s3->distances[2] = SquareRoot0((temp_v0_3 * temp_v0_3) + (temp_v1_3 * temp_v1_3));
+        scratch->deltaZ       = temp_v1_3;
+        temp_v0_3             = scratch->deltaX;
+        scratch->distances[2] = SquareRoot0((temp_v0_3 * temp_v0_3) + (temp_v1_3 * temp_v1_3));
 
-        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[3].vx;
+        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[3].vx;
         temp_v1_4             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[3].vz;
-        temp_s3->z            = temp_v1_4;
-        temp_v0_4             = temp_s3->x;
-        temp_s3->distances[3] = SquareRoot0((temp_v0_4 * temp_v0_4) + (temp_v1_4 * temp_v1_4));
+        scratch->deltaZ       = temp_v1_4;
+        temp_v0_4             = scratch->deltaX;
+        scratch->distances[3] = SquareRoot0((temp_v0_4 * temp_v0_4) + (temp_v1_4 * temp_v1_4));
 
-        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[4].vx;
+        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[4].vx;
         temp_v1_5             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[4].vz;
-        temp_s3->z            = temp_v1_5;
-        temp_v0_5             = temp_s3->x;
-        temp_s3->distances[4] = SquareRoot0((temp_v0_5 * temp_v0_5) + (temp_v1_5 * temp_v1_5));
+        scratch->deltaZ       = temp_v1_5;
+        temp_v0_5             = scratch->deltaX;
+        scratch->distances[4] = SquareRoot0((temp_v0_5 * temp_v0_5) + (temp_v1_5 * temp_v1_5));
 
-        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[5].vx;
+        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[5].vx;
         temp_v1_6             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[5].vz;
-        temp_s3->z            = temp_v1_6;
-        temp_v0_6             = temp_s3->x;
-        temp_s3->distances[5] = SquareRoot0((temp_v0_6 * temp_v0_6) + (temp_v1_6 * temp_v1_6));
+        scratch->deltaZ       = temp_v1_6;
+        temp_v0_6             = scratch->deltaX;
+        scratch->distances[5] = SquareRoot0((temp_v0_6 * temp_v0_6) + (temp_v1_6 * temp_v1_6));
 
-        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[6].vx;
+        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[6].vx;
         temp_v1_7             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[6].vz;
-        temp_s3->z            = temp_v1_7;
-        temp_v0_7             = temp_s3->x;
-        temp_s3->distances[6] = SquareRoot0((temp_v0_7 * temp_v0_7) + (temp_v1_7 * temp_v1_7));
+        scratch->deltaZ       = temp_v1_7;
+        temp_v0_7             = scratch->deltaX;
+        scratch->distances[6] = SquareRoot0((temp_v0_7 * temp_v0_7) + (temp_v1_7 * temp_v1_7));
         var_a2                = 0xFFFFFF;
         var_v1                = 0;
         var_a1                = 0;
         do {
-            temp_a0 = temp_s5->distances[var_a1 & 0xFF];
+            temp_a0 = scratch->distances[var_a1 & 0xFF];
             if (temp_a0 < var_a2) {
                 var_v1 = var_a1;
                 var_a2 = temp_a0;
@@ -2661,19 +2651,19 @@ static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
             var_a1 += 1;
         } while ((u32)(var_a1 & 0xFF) < 7U);
     } else {
-        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[7].vx;
+        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[7].vx;
         temp_v1_8             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[7].vz;
-        temp_s3->z            = temp_v1_8;
-        temp_v0_8             = temp_s3->x;
-        temp_s3->distances[0] = SquareRoot0((temp_v0_8 * temp_v0_8) + (temp_v1_8 * temp_v1_8));
+        scratch->deltaZ       = temp_v1_8;
+        temp_v0_8             = scratch->deltaX;
+        scratch->distances[0] = SquareRoot0((temp_v0_8 * temp_v0_8) + (temp_v1_8 * temp_v1_8));
 
-        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[8].vx;
+        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[8].vx;
         temp_v1_9             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[8].vz;
-        temp_s3->z            = temp_v1_9;
-        temp_v0_9             = temp_s3->x;
+        scratch->deltaZ       = temp_v1_9;
+        temp_v0_9             = scratch->deltaX;
         temp_v0_10            = SquareRoot0((temp_v0_9 * temp_v0_9) + (temp_v1_9 * temp_v1_9));
-        temp_s3->distances[1] = temp_v0_10;
-        var_v1                = temp_v0_10 >= temp_s3->distances[0];
+        scratch->distances[1] = temp_v0_10;
+        var_v1                = temp_v0_10 >= scratch->distances[0];
     }
     temp_v0_11 = D_actor_403600_801605F4;
     temp_v1_10 = (var_v1 & 0xFF) + temp_v0_11;
@@ -2681,7 +2671,7 @@ static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
         work->targetPos.vx = temp_v1_10->vx;
     } while (0);
     work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - 0x258;
-    SCRATCH_STACK_RELEASE_BYTES(0x24);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403600NearestPointScratch);
     work->targetPos.vz = temp_v1_10->vz;
 }
 
@@ -3111,98 +3101,77 @@ static s32 func_actor_403600_8013DDF4(Task* arg0, s16 arg1)
 
 static s32 func_actor_403600_8013DFE0(Task* arg0)
 {
-    s16                     temp_v0;
-    s16                     temp_v0_2;
-    s16                     temp_v0_3;
-    s16                     temp_v1_3;
-    s16                     diff;
-    s16                     turnDiff;
-    s16                     wrapped;
-    s32                     angle;
-    s32                     stepped;
-    s32                     temp_lo;
-    s32                     temp_s5;
-    GfxMatrix*              temp_s0;
-    MATRIX*                 temp_s0_2;
-    GfxMatrix*              temp_s0_3;
-    MATRIX*                 temp_s0_4;
-    SVECTOR*                temp_s1;
-    SVECTOR*                temp_s2;
-    Actor403600Work*        work;
-    Actor403600TurnScratch* temp_v1;
-    Actor403600TurnScratch* temp_v1_2;
+    s16                         temp_v0;
+    s16                         temp_v0_2;
+    s16                         temp_v0_3;
+    s16                         temp_v1_3;
+    s16                         diff;
+    s16                         turnDiff;
+    s16                         wrapped;
+    s32                         angle;
+    s32                         stepped;
+    s32                         temp_lo;
+    s32                         temp_s5;
+    Actor403600Work*            work;
+    _Actor403600AimTurnScratch* scratch;
 
-    temp_v1                    = SCRATCH_STACK_CURSOR(Actor403600TurnScratch);
-    temp_v1                    = temp_v1 - 1;
-    SCRATCH_STACK_CURSOR(void) = temp_v1;
-    temp_v1_2                  = temp_v1;
-    work                       = arg0->work;
-    temp_v1_3                  = work->aimMode;
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(_Actor403600AimTurnScratch);
+    work      = arg0->work;
+    temp_v1_3 = work->aimMode;
     switch (temp_v1_3) {
         case ACTOR_403600_AIM_PLAYER:
-            temp_v1_2->vector[0] =
+            scratch->direction.vx =
                 (s16)(gPlayerStatus.coordMtx->t[0] - work->worldCoord.coord.t[0]);
-            temp_v1_2->vector[1] =
+            scratch->direction.vy =
                 (s16)(gPlayerStatus.coordMtx->t[1] - work->worldCoord.coord.t[1]);
-            temp_v1_2->vector[2] =
+            scratch->direction.vz =
                 (s16)(gPlayerStatus.coordMtx->t[2] - work->worldCoord.coord.t[2]);
             break;
         case ACTOR_403600_AIM_TARGET:
         case ACTOR_403600_AIM_TARGET_SNAP:
-            temp_v1_2->vector[0] = (s16)(work->targetPos.vx - work->worldCoord.coord.t[0]);
-            temp_v1_2->vector[1] = (s16)(work->targetPos.vy - work->worldCoord.coord.t[1]);
-            temp_v1_2->vector[2] = (s16)(work->targetPos.vz - work->worldCoord.coord.t[2]);
+            scratch->direction.vx = (s16)(work->targetPos.vx - work->worldCoord.coord.t[0]);
+            scratch->direction.vy = (s16)(work->targetPos.vy - work->worldCoord.coord.t[1]);
+            scratch->direction.vz = (s16)(work->targetPos.vz - work->worldCoord.coord.t[2]);
             break;
         case ACTOR_403600_AIM_PLAYER_LEVEL:
-            temp_s5              = (s16)(gPlayerStatus.coordMtx->t[0] - work->worldCoord.coord.t[0]);
-            temp_v1_2->vector[1] = 0;
-            temp_v1_2->vector[0] = temp_s5;
-            temp_v1_2->vector[2] =
+            temp_s5               = (s16)(gPlayerStatus.coordMtx->t[0] - work->worldCoord.coord.t[0]);
+            scratch->direction.vy = 0;
+            scratch->direction.vx = temp_s5;
+            scratch->direction.vz =
                 (s16)(gPlayerStatus.coordMtx->t[2] - work->worldCoord.coord.t[2]);
             break;
     }
-    temp_v0   = temp_v1_2->vector[0];
-    temp_v0_2 = temp_v1_2->vector[1];
-    temp_v0_3 = temp_v1_2->vector[2];
+    temp_v0   = scratch->direction.vx;
+    temp_v0_2 = scratch->direction.vy;
+    temp_v0_3 = scratch->direction.vz;
     temp_lo   = temp_v0_3 * temp_v0_3;
     temp_s5   = SquareRoot0((temp_v0 * temp_v0) + (temp_v0_2 * temp_v0_2) + temp_lo);
     if (work->aimMode == ACTOR_403600_AIM_TARGET_SNAP) {
-        temp_s2                                = (SVECTOR*)temp_v1_2->vector;
-        temp_s0                                = &temp_v1_2->matrix;
-        temp_v1_2->matrix.rotationWords.m00M01 = ONE;
-        temp_s0->rotationWords.m02M10          = 0;
-        temp_s0->rotationWords.m11M12          = ONE;
-        temp_s0->rotationWords.m20M21          = 0;
-        temp_s0->rotationWords.m22             = ONE;
-        VectorNormalSS(temp_s2, temp_s2);
-        temp_v1_2->angles[0] = 0;
-        temp_v1_2->angles[1] = 0x1000;
-        temp_v1_2->angles[2] = 0;
-        Gfx_OrthonormalBasis(&temp_s0->mat, temp_s2, (SVECTOR*)temp_v1_2);
-        gfxMatrixToEuler(&temp_s0->mat, (SVECTOR*)temp_v1_2);
-        temp_s0_2            = &work->worldCoord.coord;
-        temp_v1_2->angles[2] = (u16)(temp_v1_2->angles[2] + work->roll);
-        Gfx_RotMatrixXYZ(temp_s0_2, (SVECTOR*)temp_v1_2, 1);
-        gfxReadMatrixZAxis(temp_s0_2, (SVECTOR*)temp_v1_2);
+        gfxSetRotIdentity(&scratch->basis);
+        VectorNormalSS(&scratch->direction, &scratch->direction);
+        scratch->angles.vx = 0;
+        scratch->angles.vy = ONE;
+        scratch->angles.vz = 0;
+        Gfx_OrthonormalBasis(&scratch->basis, &scratch->direction, &scratch->angles);
+        gfxMatrixToEuler(&scratch->basis, &scratch->angles);
+        scratch->angles.vz += work->roll;
+        Gfx_RotMatrixXYZ(&work->worldCoord.coord, &scratch->angles, 1);
+        gfxReadMatrixZAxis(&work->worldCoord.coord, &scratch->angles);
     } else {
-        temp_s1                                = (SVECTOR*)temp_v1_2->vector;
-        temp_s0_3                              = &temp_v1_2->matrix;
-        temp_v1_2->matrix.rotationWords.m00M01 = ONE;
-        temp_s0_3->rotationWords.m02M10        = 0;
-        temp_s0_3->rotationWords.m11M12        = ONE;
-        temp_s0_3->rotationWords.m20M21        = 0;
-        temp_s0_3->rotationWords.m22           = ONE;
-        VectorNormalSS(temp_s1, temp_s1);
-        temp_v1_2->angles[0] = 0;
-        temp_v1_2->angles[1] = 0x1000;
-        temp_v1_2->angles[2] = 0;
-        Gfx_OrthonormalBasis(&temp_s0_3->mat, temp_s1, (SVECTOR*)temp_v1_2);
-        gfxMatrixToEuler(&temp_s0_3->mat, (SVECTOR*)temp_v1_2);
-        gfxMatrixToEuler(&work->worldCoord.coord, temp_s1);
-        diff     = (temp_v1_2->angles[0] & 0xFFF) - (temp_v1_2->vector[0] & 0xFFF);
+        gfxSetRotIdentity(&scratch->basis);
+        VectorNormalSS(&scratch->direction, &scratch->direction);
+        scratch->angles.vx = 0;
+        scratch->angles.vy = ONE;
+        scratch->angles.vz = 0;
+        Gfx_OrthonormalBasis(&scratch->basis, &scratch->direction, &scratch->angles);
+        gfxMatrixToEuler(&scratch->basis, &scratch->angles);
+        // The direction is spent: its slot takes the boss's own angles, which
+        // step toward the basis's one axis at a time.
+        gfxMatrixToEuler(&work->worldCoord.coord, &scratch->direction);
+        diff     = (scratch->angles.vx & 0xFFF) - (scratch->direction.vx & 0xFFF);
         turnDiff = diff;
         if (work->turnRate >= __builtin_abs(diff)) {
-            temp_v1_2->vector[0] = temp_v1_2->angles[0];
+            scratch->direction.vx = scratch->angles.vx;
         } else {
             if (__builtin_abs(diff) > 0x800) {
                 wrapped = diff - 0x1000;
@@ -3211,19 +3180,19 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
                 }
                 turnDiff = wrapped;
             }
-            angle = temp_v1_2->vector[0];
+            angle = scratch->direction.vx;
             if (turnDiff > 0) {
                 stepped = angle + work->turnRate;
             } else {
                 stepped = angle - work->turnRate;
             }
-            temp_v1_2->vector[0] = stepped;
+            scratch->direction.vx = stepped;
         }
 
-        diff     = (temp_v1_2->angles[1] & 0xFFF) - (temp_v1_2->vector[1] & 0xFFF);
+        diff     = (scratch->angles.vy & 0xFFF) - (scratch->direction.vy & 0xFFF);
         turnDiff = diff;
         if (work->turnRate >= __builtin_abs(diff)) {
-            temp_v1_2->vector[1] = temp_v1_2->angles[1];
+            scratch->direction.vy = scratch->angles.vy;
         } else {
             if (__builtin_abs(diff) > 0x800) {
                 wrapped = diff - 0x1000;
@@ -3232,19 +3201,19 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
                 }
                 turnDiff = wrapped;
             }
-            angle = temp_v1_2->vector[1];
+            angle = scratch->direction.vy;
             if (turnDiff > 0) {
                 stepped = angle + work->turnRate;
             } else {
                 stepped = angle - work->turnRate;
             }
-            temp_v1_2->vector[1] = stepped;
+            scratch->direction.vy = stepped;
         }
 
-        diff     = (temp_v1_2->angles[2] & 0xFFF) - (temp_v1_2->vector[2] & 0xFFF);
+        diff     = (scratch->angles.vz & 0xFFF) - (scratch->direction.vz & 0xFFF);
         turnDiff = diff;
         if (work->turnRate >= __builtin_abs(diff)) {
-            temp_v1_2->vector[2] = temp_v1_2->angles[2];
+            scratch->direction.vz = scratch->angles.vz;
         } else {
             if (__builtin_abs(diff) > 0x800) {
                 wrapped = diff - 0x1000;
@@ -3253,22 +3222,22 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
                 }
                 turnDiff = wrapped;
             }
-            angle = temp_v1_2->vector[2];
+            angle = scratch->direction.vz;
             if (turnDiff > 0) {
                 stepped = angle + work->turnRate;
             } else {
                 stepped = angle - work->turnRate;
             }
-            temp_v1_2->vector[2] = stepped;
+            scratch->direction.vz = stepped;
         }
-        temp_s0_4            = &work->worldCoord.coord;
-        temp_v1_2->vector[2] = (s16)((u16)temp_v1_2->vector[2] + work->roll);
-        Gfx_RotMatrixXYZ(temp_s0_4, (SVECTOR*)temp_v1_2->vector, 1);
-        work->yaw = (u16)temp_v1_2->vector[1];
-        gfxReadMatrixZAxis(temp_s0_4, (SVECTOR*)temp_v1_2);
+        scratch->direction.vz += work->roll;
+        Gfx_RotMatrixXYZ(&work->worldCoord.coord, &scratch->direction, 1);
+        work->yaw = scratch->direction.vy;
+        gfxReadMatrixZAxis(&work->worldCoord.coord, &scratch->angles);
     }
-    work->yaw = ratan2((s16)temp_v1_2->angles[0], (s16)temp_v1_2->angles[2]);
-    SCRATCH_STACK_RELEASE_BYTES(0x30);
+    // Either turn leaves the Z axis of the rebuilt rotation in `angles`.
+    work->yaw = ratan2(scratch->angles.vx, scratch->angles.vz);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403600AimTurnScratch);
     return temp_s5;
 }
 
@@ -4452,7 +4421,7 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
     GfxCoord            view;
     ActorCommand        startMsg;
     ActorCommand        stopMsg;
-    Actor403600ViewKey* key;
+    Actor303600ViewKey* key;
     s32                 i;
     s32                 transparency;
     TmdObject*          object;
@@ -4469,24 +4438,24 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
     D_actor_403600_8016065C.vy = D_8016A408[work->sceneFrame].y;
     RotMatrix(&D_actor_403600_8016065C, &work->worldCoord.coord);
     object->otOffset = -0x1F;
-    if (work->sceneFrame >= 0x239) {
+    if (work->sceneFrame >= ACTOR_303600_VIEW_KEY_COUNT - 1) {
         key = &D_8016E450;
     } else {
         key = &D_8016AEF8[work->sceneFrame];
     }
     // The compact key stores all nine rotation coefficients in row-major order.
-    for (i = 0; i < (s32)ARRAY_SIZE(key->rot); i++) {
-        ((s16(*)[9])D_actor_403600_80160700.transform.m)[0][i] = key->rot[i];
+    for (i = 0; i < (s32)ARRAY_SIZE(key->rotation); i++) {
+        ((s16(*)[9])D_actor_403600_80160700.transform.m)[0][i] = key->rotation[i];
     }
-    for (i = 0; i < 3; i++) {
-        D_actor_403600_80160700.transform.t[i] = key->pos[i];
+    for (i = 0; i < (s32)ARRAY_SIZE(key->translation); i++) {
+        D_actor_403600_80160700.transform.t[i] = key->translation[i];
     }
     D_actor_403600_80160700.screenDistance = 0x149;
     Gp_TrySpawnViewTask(&D_actor_403600_80160700);
     func_actor_403600_80141F58(&work->worldCoord, work->hitCooldown);
     work->sceneFrame++;
-    if (work->sceneFrame >= 0x2BC) {
-        work->sceneFrame = 0x2BB;
+    if (work->sceneFrame >= ACTOR_303600_ROT_SAMPLE_COUNT) {
+        work->sceneFrame = ACTOR_303600_ROT_SAMPLE_COUNT - 1;
     }
     if (work->mode != ACTOR_403600_MODE_SCENE_FADE) {
         if (work->sceneFrame == 1) {
