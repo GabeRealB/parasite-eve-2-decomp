@@ -13,21 +13,21 @@
 
 #include "rooms/shop_tier.h"
 
-/// 16-byte MDEC stream context (`memCalloc(0x10)`). Offset 0 is the VLC
-/// table from `func_replay_bonus_80115C68`; `fileId` indexes `D_8006C338`;
-/// `x,y,w,h` is the VRAM destination (`x=0x280`, `w=0xF0`, `h=0xB0`,
-/// `y = (flip ^ 1) << 8`). Passed as spawnArg2 of the `D_replay_bonus_80118F6C`
-/// task (`func_replay_bonus_801159A0`).
-typedef struct ReplayBonusStream {
-    /* 0x00 */ u16* table;
-    /* 0x04 */ u16  fileId;
-    /* 0x06 */ u16  unk6;
-    /* 0x08 */ u16  x;
-    /* 0x0A */ u16  y;
-    /* 0x0C */ u16  w;
-    /* 0x0E */ u16  h;
-} ReplayBonusStream;
-STATIC_ASSERT_SIZEOF(ReplayBonusStream, 0x10);
+/// One credits picture to decode: the MDEC bitstream to read and the VRAM
+/// rectangle its pixels go to.
+///
+/// The credits task allocates one record and refills it for each picture. It
+/// is the spawn argument of the task that decodes the picture.
+typedef struct {
+    u16* vlcTable;      // Huffman table built by `DecDCTvlcBuild`, shared by every picture
+    u16  resourceIndex; // Resource slot holding the picture's bitstream
+    u16  field_6;       // Never accessed; role unproven
+    u16  vramX;         // Left edge of the destination in VRAM
+    u16  vramY;         // Top edge of the destination in VRAM
+    u16  width;         // Picture width in pixels; decoding goes in 16-pixel-wide strips
+    u16  height;        // Picture height in pixels
+} ReplayBonusPictureDecode;
+STATIC_ASSERT_SIZEOF(ReplayBonusPictureDecode, 0x10);
 
 typedef struct ReplayBonusStfCmd {
     /* 0x0 */ u8 op;
@@ -35,55 +35,75 @@ typedef struct ReplayBonusStfCmd {
 } ReplayBonusStfCmd;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfCmd, 0x2);
 
-typedef struct ReplayBonusStfGlyph {
-    /* 0x0 */ u8 u;
-    /* 0x1 */ u8 v;
-    /* 0x2 */ u8 w;
-    /* 0x3 */ u8 h;
+/// Packing of `ReplayBonusStfGlyph::heightAndPage`.
+enum {
+    REPLAY_BONUS_STF_GLYPH_HEIGHT_MASK = 0x7F, // Cell height in pixels
+    REPLAY_BONUS_STF_GLYPH_PAGE_SHIFT  = 7,    // Bit 7 is set for a cell on the second font page
+};
+
+/// One cell of the credits font: where the glyph sits in its texture page, and
+/// its size.
+typedef struct {
+    u8 u;             // Left edge of the cell in its texture page
+    u8 v;             // Top edge of the cell in its texture page
+    u8 width;         // Cell width in pixels, which is also the pen advance
+    u8 heightAndPage; // Height in bits 0-6; bit 7 selects the second font page
 } ReplayBonusStfGlyph;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfGlyph, 0x4);
 
-typedef struct ReplayBonusStfSpr {
-    /* 0x00 */ u16 tpageX;
-    /* 0x02 */ u16 tpageBits;
-    /* 0x04 */ u16 clutX;
-    /* 0x06 */ u16 clutY;
-    /* 0x08 */ u8  u;
-    /* 0x09 */ u8  v;
-    /* 0x0A */ u8  flags;
-    /* 0x0B */ u8  pad_B;
-    /* 0x0C */ u16 w;
-    /* 0x0E */ u16 h;
-} ReplayBonusStfSpr;
-STATIC_ASSERT_SIZEOF(ReplayBonusStfSpr, 0x10);
+/// One image a credits row can place: its texture page, palette and rectangle.
+///
+/// An image that runs past the right edge of its texture page continues on the
+/// page beside it.
+typedef struct {
+    u16 tpageX;    // Texture page X in VRAM
+    u16 tpageY;    // Texture page Y in VRAM
+    u16 clutX;     // Palette X in VRAM
+    u16 clutY;     // Palette Y in VRAM
+    u8  u;         // Left edge of the image in its first texture page
+    u8  v;         // Top edge of the image in its texture page
+    u8  pixelMode; // Texture format (0 4-bit, 1 8-bit, 2 15-bit)
+    u16 width;     // Image width in pixels
+    u16 height;    // Image height in pixels
+} ReplayBonusStfSprite;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfSprite, 0x10);
 
-typedef struct ReplayBonusStfAlign {
-    /* 0x0 */ u16 left;
-    /* 0x2 */ u16 center;
-    /* 0x4 */ u16 right;
-    /* 0x6 */ u16 pad_6;
-} ReplayBonusStfAlign;
-STATIC_ASSERT_SIZEOF(ReplayBonusStfAlign, 0x8);
+/// Anchors of one layout column, in pixels from the left edge of the
+/// 640-pixel-wide credits screen.
+///
+/// A row command picks a column together with the anchor that the text,
+/// picture or image after it hangs from.
+typedef struct {
+    u16 centerX; // Centre of a centred run
+    u16 leftX;   // Left edge of a left-aligned run
+    u16 rightX;  // Right edge of a right-aligned run
+    u16 field_6; // Never read; role unproven
+} ReplayBonusStfColumn;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfColumn, 0x8);
 
-/// STF credits header (`D_replay_bonus_80119294`). `speed` is the 8.8
-/// increment added to the fractional accumulator each frame; `hold0` /
-/// `hold1` are multiplied by 6 for `Task::killCountdown`.
-typedef struct ReplayBonusStfHdr {
-    /* 0x00 */ u16                 speed;
-    /* 0x02 */ u8                  hold0;
-    /* 0x03 */ u8                  hold1;
-    /* 0x04 */ byte                pad_4[0x20];
-    /* 0x24 */ ReplayBonusStfAlign align[1];
-} ReplayBonusStfHdr;
+enum {
+    REPLAY_BONUS_STF_COLUMN_COUNT     = 8, // Layout columns in `ReplayBonusStfParams`
+    REPLAY_BONUS_STF_HOLD_UNIT_FRAMES = 6, // Frames in one unit of the credits' hold times
+};
 
-/// One STF credits row (`D_replay_bonus_80119298`). `y` is the line's
-/// vertical position; the last row's `y - 0x1E0` is the scroll stop.
-typedef struct ReplayBonusStfLine {
-    /* 0x0 */ union {
-        s32                offset;
-        ReplayBonusStfCmd* pointer;
-    } cmds;
-    /* 0x4 */ s32 y;
+/// Presentation parameters of the credits: scroll timing and layout columns.
+typedef struct {
+    u16                  scrollSpeed;                            // Pixels scrolled per frame, 8.8 fixed point
+    u8                   startHold;                              // Wait before the scroll starts, in `REPLAY_BONUS_STF_HOLD_UNIT_FRAMES`
+    u8                   endHold;                                // Wait on the last rows once the scroll stops, same unit
+    byte                 field_4[0x20];                          // Never read; role unproven
+    ReplayBonusStfColumn columns[REPLAY_BONUS_STF_COLUMN_COUNT]; // Indexed by a row command's column argument
+} ReplayBonusStfParams;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfParams, 0x64);
+
+/// One row of the credits: the commands that draw it and where it sits in the
+/// scrolling document.
+typedef struct {
+    union {
+        s32                offset;  // From the start of the file, as stored on disc
+        ReplayBonusStfCmd* pointer; // Once the file is relocated
+    } cmds;                         // Commands of the row, ended by op 0xFF
+    s32 y;                          // Bottom edge of the row, in pixels from the top of the document
 } ReplayBonusStfLine;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfLine, 0x8);
 
@@ -94,45 +114,48 @@ typedef struct ReplayBonusStfTable {
 } ReplayBonusStfTable;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfTable, 0x4);
 
-/// On disk these fields are signed byte offsets from the file base.
-/// Relocation replaces each offset with its pointer; the negative PSX RAM
-/// address in `field_C` then marks an already relocated file.
-typedef struct ReplayBonusStfFile {
-    /* 0x00 */ char magic[4];
-    /* 0x04 */ s32  unk4;
-    /* 0x08 */ union {
-        s32                offset;
-        ReplayBonusStfHdr* pointer;
-    } field_8;
-    /* 0x0C */ union {
+/// Header of an "STF" credits file: the four tables the credits are drawn
+/// from.
+///
+/// On disc each table is a byte offset from the start of the file. Relocation
+/// replaces the offsets with pointers in place, and does so once: a pointer
+/// into RAM is negative as a signed word, so a file whose `glyphs` word is not
+/// positive has already been relocated.
+typedef struct {
+    char magic[4]; // "STF" then a format digit; only the three letters are checked
+    s32  field_4;  // Never read; role unproven
+    union {
+        s32                   offset;
+        ReplayBonusStfParams* pointer;
+    } params; // Scroll timing and layout columns
+    union {
         s32                  offset;
         ReplayBonusStfGlyph* pointer;
-    } field_C;
-    /* 0x10 */ union {
+    } glyphs; // Font cells, indexed by a glyph command's argument
+    union {
         s32                  offset;
         ReplayBonusStfTable* pointer;
-    } field_10;
-    /* 0x14 */ union {
-        s32                offset;
-        ReplayBonusStfSpr* pointer;
-    } field_14;
+    } lineTable; // Rows of the document, top to bottom
+    union {
+        s32                   offset;
+        ReplayBonusStfSprite* pointer;
+    } sprites; // Images, indexed by an image command's argument
 } ReplayBonusStfFile;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfFile, 0x18);
 
-/// Totals block at `D_replay_bonus_80119274`. `field_4` is the BP drawn on the
-/// Balance screen; `field_C` is the BP drawn for NEXT REPLAY BONUS. Offset 8 is
-/// also `D_replay_bonus_8011927C`, the EXP override for that preview.
-/// Offset 0x10 is the separately-named `D_replay_bonus_80119284` shop row;
-/// offset 0x14 is `D_replay_bonus_80119288` (EXTRA BONUS), added to `field_C`
-/// as `field_14` so the sum uses the totals base.
-typedef struct ReplayBonusTotals {
-    /* 0x00 */ s32 unk0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s32 field_14;
+/// What a completed game carries into the next one.
+///
+/// The Complete Bonus list works these out when it opens. The panels after it
+/// show them, and building the next game's save applies them.
+typedef struct {
+    s32 totalExp;     // EXP earned this game: the balance plus what the learned upgrade levels cost
+    s32 totalBp;      // BP balance plus the bonus BP of every listed item, capped at 99999999
+    s32 nextExp;      // EXP the next game starts with: the balance times the mode's multiplier, capped at 9999999
+    s32 nextBp;       // BP the next game starts with, before `extraBonusBp`: `totalBp` times the multiplier, capped at 9999999
+    s32 shopTier;     // Shop tier this clear unlocks, or -1 when every tier is already unlocked
+    s32 extraBonusBp; // BP granted in place of a tier when none is left to unlock, otherwise 0
 } ReplayBonusTotals;
+STATIC_ASSERT_SIZEOF(ReplayBonusTotals, 0x18);
 
 /// Replay-bonus item-id table (`0x4E` ids, then a `0xFFFF` terminator).
 /// `func_replay_bonus_80117598` tests membership; `func_replay_bonus_80115D60`
@@ -185,8 +208,8 @@ extern u8 D_replay_bonus_80119227;
 /// The live `D_replay_bonus_80118F6C` worker, or NULL.
 extern Task* D_replay_bonus_80119228;
 
-/// Heap pointer to the current `ReplayBonusStream`.
-extern ReplayBonusStream* D_replay_bonus_801192BC;
+/// Heap pointer to the current `ReplayBonusPictureDecode`.
+extern ReplayBonusPictureDecode* D_replay_bonus_801192BC;
 
 extern ReplayBonusStfFile* D_replay_bonus_8011928C;
 
@@ -196,10 +219,10 @@ extern TaskDesc D_replay_bonus_8011922C;
 /// Relocated STF glyph and sprite tables.
 extern ReplayBonusStfGlyph* D_replay_bonus_80119290;
 
-extern ReplayBonusStfSpr* D_replay_bonus_8011929C;
+extern ReplayBonusStfSprite* D_replay_bonus_8011929C;
 
-/// Relocated STF header.
-extern ReplayBonusStfHdr* D_replay_bonus_80119294;
+/// Relocated STF presentation parameters.
+extern ReplayBonusStfParams* D_replay_bonus_80119294;
 
 /// Relocated STF row array; `D_replay_bonus_801192A0` is the count.
 extern ReplayBonusStfLine* D_replay_bonus_80119298;

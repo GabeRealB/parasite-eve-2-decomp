@@ -84,37 +84,37 @@ static void func_replay_bonus_801158C0(void)
 
 void func_replay_bonus_801159A0(Task* arg0)
 {
-    ReplayBonusStream* stream;
-    s32                state;
-    s32                width;
-    s32                bufSize;
-    s32                imgWidth;
-    s32                strip;
-    s32                next;
-    u16                w;
-    u16                x;
-    u16                h;
-    u16                y;
-    void*              vlcBuf;
-    u_long*            bs;
+    ReplayBonusPictureDecode* picture;
+    s32                       state;
+    s32                       width;
+    s32                       bufSize;
+    s32                       imgWidth;
+    s32                       strip;
+    s32                       next;
+    u16                       w;
+    u16                       x;
+    u16                       h;
+    u16                       y;
+    void*                     vlcBuf;
+    u_long*                   bs;
 
-    state  = arg0->state;
-    stream = arg0->spawnArg2.pointer;
+    state   = arg0->state;
+    picture = arg0->spawnArg2.pointer;
     switch (state) {
         case 0:
             D_replay_bonus_80119270 = 0;
-            w                       = stream->w;
-            x                       = stream->x;
+            w                       = picture->width;
+            x                       = picture->vramX;
             D_replay_bonus_80119264 = w;
-            h                       = stream->h;
+            h                       = picture->height;
             D_replay_bonus_80119266 = h;
             D_replay_bonus_80119268 = x;
-            y                       = stream->y;
+            y                       = picture->vramY;
             D_replay_bonus_8011926A = y;
             DecDCTReset(0);
             D_replay_bonus_8011925C = memMalloc((s16)D_replay_bonus_80119266 << 6, true);
             vlcBuf                  = memMalloc(D_replay_bonus_80119264 * (s16)D_replay_bonus_80119266 * 2, true);
-            bs                      = D_8006C338[stream->fileId].data;
+            bs                      = D_8006C338[picture->resourceIndex].data;
             D_replay_bonus_80119260 = vlcBuf;
             bufSize                 = DecDCTBufSize(bs);
             width                   = D_replay_bonus_80119264;
@@ -122,14 +122,14 @@ void func_replay_bonus_801159A0(Task* arg0)
                 width += 0xF;
             }
             DecDCTvlcSize2((bufSize / (width >> 4)) + 2);
-            if ((DecDCTvlc2(D_8006C338[stream->fileId].data, D_replay_bonus_80119260, stream->table) << 0x10) == 0) {
+            if ((DecDCTvlc2(D_8006C338[picture->resourceIndex].data, D_replay_bonus_80119260, picture->vlcTable) << 0x10) == 0) {
                 arg0->state = 2;
                 return;
             }
             arg0->state = arg0->state + 1;
             return;
         case 1:
-            if (DecDCTvlc2(NULL, NULL, stream->table) != 0) {
+            if (DecDCTvlc2(NULL, NULL, picture->vlcTable) != 0) {
                 return;
             }
             arg0->state = arg0->state + 1;
@@ -371,32 +371,32 @@ void func_replay_bonus_80115ED0(Task* arg0)
         list->firstVisibleItemIndex.unsignedValue = 0;
         acc                                       = _replayBonusTotalBp(list, obj);
         totals                                    = &D_replay_bonus_80119274;
-        totals->field_4                           = acc;
-        totals->field_C                           = acc;
+        totals->totalBp                           = acc;
+        totals->nextBp                            = acc;
         list->firstVisibleItemIndex.unsignedValue = list->itemCount - list->visibleRowCount.unsignedValue;
         tmp                                       = func_replay_bonus_80115CA4();
         exp                                       = cfg->exp;
-        D_replay_bonus_80119274.unk0              = tmp;
-        totals->field_8                           = exp;
+        D_replay_bonus_80119274.totalExp          = tmp;
+        totals->nextExp                           = exp;
         switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
             case 3:
-                totals->field_8 = exp * 10;
-                totals->field_C = totals->field_C * 10;
+                totals->nextExp = exp * 10;
+                totals->nextBp  = totals->nextBp * 10;
                 break;
             case 2:
-                totals->field_8 = exp * 5;
-                totals->field_C = totals->field_C * 5;
+                totals->nextExp = exp * 5;
+                totals->nextBp  = totals->nextBp * 5;
                 break;
             case 1:
-                totals->field_8 = exp * 3;
-                totals->field_C = totals->field_C * 3;
+                totals->nextExp = exp * 3;
+                totals->nextBp  = totals->nextBp * 3;
                 break;
         }
-        if (D_replay_bonus_80119274.field_C > 0x98967F) {
-            D_replay_bonus_80119274.field_C = 0x98967F;
+        if (D_replay_bonus_80119274.nextBp > 0x98967F) {
+            D_replay_bonus_80119274.nextBp = 0x98967F;
         }
-        if (D_replay_bonus_80119274.field_8 > 0x98967F) {
-            D_replay_bonus_80119274.field_8 = 0x98967F;
+        if (D_replay_bonus_80119274.nextExp > 0x98967F) {
+            D_replay_bonus_80119274.nextExp = 0x98967F;
         }
         tmp   = func_replay_bonus_80115CA4();
         p     = D_replay_bonus_80118F78;
@@ -430,7 +430,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
             }
             result = idx;
         }
-        D_replay_bonus_80119274.field_10 = result;
+        D_replay_bonus_80119274.shopTier = result;
         if (result < 0) {
             sum     = 0;
             row     = D_replay_bonus_80118F78;
@@ -449,7 +449,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
             sum                    *= 0x186A0;
             D_replay_bonus_80119288 = sum;
         } else {
-            D_replay_bonus_80119274.field_14 = 0;
+            D_replay_bonus_80119274.extraBonusBp = 0;
         }
     }
 
@@ -607,9 +607,9 @@ void func_replay_bonus_801166AC(Task* arg0)
     req2.drawMode   = TEXT_DRAW_OUTLINED;
     req2.otIndex    = ot2 + 1;
     Text_DrawString(&req2, D_replay_bonus_801157C8);
-    value = D_replay_bonus_80119274.field_4;
+    value = D_replay_bonus_80119274.totalBp;
     if (arg0->spawnArg1.value == 1) {
-        value = D_replay_bonus_80119274.field_C;
+        value = D_replay_bonus_80119274.nextBp;
     }
     Text_DrawPrompt(obj, negX, 0x11, Text_ItoaSigned(buf, value), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     if (arg0->state == 1) {
@@ -857,26 +857,26 @@ void func_replay_bonus_80116EC0(void)
     if (save->state.clearCount >= 100) {
         save->state.clearCount = 99;
     }
-    if (save->state.maxExp < D_replay_bonus_80119274.unk0) {
-        save->state.maxExp = D_replay_bonus_80119274.unk0;
+    if (save->state.maxExp < D_replay_bonus_80119274.totalExp) {
+        save->state.maxExp = D_replay_bonus_80119274.totalExp;
     }
-    if (save->state.maxBp < D_replay_bonus_80119274.field_4) {
-        save->state.maxBp = D_replay_bonus_80119274.field_4;
+    if (save->state.maxBp < D_replay_bonus_80119274.totalBp) {
+        save->state.maxBp = D_replay_bonus_80119274.totalBp;
     }
-    sum = D_replay_bonus_80119274.field_C + D_replay_bonus_80119274.field_14;
+    sum = D_replay_bonus_80119274.nextBp + D_replay_bonus_80119274.extraBonusBp;
     if (sum > 0x98967F) {
         sum = 0x98967F;
     }
     cfg->bp               = sum;
     save->state.savePoint = 0xF;
-    exp                   = D_replay_bonus_80119274.field_8;
+    exp                   = D_replay_bonus_80119274.nextExp;
     cfg->exp              = exp;
     save->state.playerExp = exp;
     save->state.playerBp  = cfg->bp;
     if (copy.state.gameMode >= 2) {
         save->state.replayRank = 2;
     } else if (save->state.replayRank <= 0) {
-        if (D_replay_bonus_80119274.unk0 > 0x10D88) {
+        if (D_replay_bonus_80119274.totalExp > 0x10D88) {
             save->state.replayRank = 1;
         }
     }

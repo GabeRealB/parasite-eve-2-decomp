@@ -51,6 +51,16 @@ extern UiObjectDesc D_replay_bonus_801191E0;
 extern UiObjectDesc D_replay_bonus_801191FC;
 extern s32          D_replay_bonus_80119284;
 
+/// Where a credits picture is decoded to and how large it is drawn.
+///
+/// Every picture has this size. Two VRAM rows at this column hold the picture
+/// on screen and the one being decoded, so that one can fade into the other.
+enum {
+    REPLAY_BONUS_PICTURE_VRAM_X = 640, // Left edge of both picture buffers in VRAM
+    REPLAY_BONUS_PICTURE_WIDTH  = 240, // Picture width in pixels
+    REPLAY_BONUS_PICTURE_HEIGHT = 176, // Picture height in pixels
+};
+
 static void func_replay_bonus_80117E04(void);
 static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds);
 static void func_replay_bonus_80118F00(s32 arg0);
@@ -393,42 +403,42 @@ void func_replay_bonus_80117A08(Task* arg0)
         DISPLAY_SETUP_INTERLACED_640X480 = 0x1141,
     };
 
-    RECT               rect;
-    s32                temp_a1;
-    s32                temp_v1_2;
-    s32                temp_v1_3;
-    u16*               temp_v0;
-    u16                temp_v0_2;
-    u16                temp_v0_3;
-    u32                temp_v1;
-    ReplayBonusStfHdr* hdr;
+    RECT                  rect;
+    s32                   temp_a1;
+    s32                   temp_v1_2;
+    s32                   temp_v1_3;
+    u16*                  temp_v0;
+    u16                   temp_v0_2;
+    u16                   temp_v0_3;
+    u32                   temp_v1;
+    ReplayBonusStfParams* params;
 
     temp_v1 = arg0->state;
     switch (temp_v1) {
         case 0:
-            D_replay_bonus_80119226        = 0;
-            D_replay_bonus_80119227        = 0;
-            D_replay_bonus_801192AC        = 0;
-            D_replay_bonus_801192BC        = memCalloc(0x10U, false);
-            temp_v0                        = func_replay_bonus_80115C68();
-            D_replay_bonus_80119228        = NULL;
-            D_replay_bonus_80119225        = 0;
-            D_replay_bonus_801192BC->table = temp_v0;
+            D_replay_bonus_80119226           = 0;
+            D_replay_bonus_80119227           = 0;
+            D_replay_bonus_801192AC           = 0;
+            D_replay_bonus_801192BC           = memCalloc(sizeof(ReplayBonusPictureDecode), false);
+            temp_v0                           = func_replay_bonus_80115C68();
+            D_replay_bonus_80119228           = NULL;
+            D_replay_bonus_80119225           = 0;
+            D_replay_bonus_801192BC->vlcTable = temp_v0;
             func_replay_bonus_80118F00(0);
             GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             SetDispMask(1);
             Display_SetMode(DISPLAY_SETUP_INTERLACED_640X480);
-            rect.x = 0x280;
-            rect.w = 0xF0;
+            rect.x = REPLAY_BONUS_PICTURE_VRAM_X;
+            rect.w = REPLAY_BONUS_PICTURE_WIDTH;
             rect.y = 0;
-            rect.h = 0xB0;
+            rect.h = REPLAY_BONUS_PICTURE_HEIGHT;
             ClearImage(&rect, 0, 0, 0);
             rect.y = 0x100;
             ClearImage(&rect, 0, 0, 0);
             D_replay_bonus_801192A4                 = -0x1E0;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             D_replay_bonus_801192B0                 = 0;
-            arg0->killCountdown                     = D_replay_bonus_80119294->hold0 * 6;
+            arg0->killCountdown                     = D_replay_bonus_80119294->startHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
             CdCmd_StartOverlay(0U, 1U, 0xBU);
             CdCmd_EnqueueOverlay82();
             goto advance;
@@ -458,8 +468,8 @@ void func_replay_bonus_80117A08(Task* arg0)
         case 10:
             D_replay_bonus_801192B0 += 1;
             func_replay_bonus_80117E04();
-            hdr                     = D_replay_bonus_80119294;
-            temp_v1_2               = D_replay_bonus_801192A8 + hdr->speed;
+            params                  = D_replay_bonus_80119294;
+            temp_v1_2               = D_replay_bonus_801192A8 + params->scrollSpeed;
             temp_a1                 = D_replay_bonus_801192A4 + (temp_v1_2 >> 8);
             D_replay_bonus_801192A8 = temp_v1_2;
             D_replay_bonus_801192A4 = temp_a1;
@@ -468,7 +478,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             if (temp_v1_3 < temp_a1) {
                 D_replay_bonus_801192A4 = temp_v1_3;
                 arg0->state            += 1;
-                arg0->killCountdown     = hdr->hold1 * 6;
+                arg0->killCountdown     = params->endHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
             }
             if (Pad_CheckFlag800() != 0) {
                 CdCmd_CancelReplaceAndActivate();
@@ -598,8 +608,8 @@ static void func_replay_bonus_80117E04(void)
         setSprt(sprt);
         sprt->x0 = D_replay_bonus_801192B8 - 0x140;
         sprt->y0 = -0x8C;
-        sprt->w  = 0xF0;
-        sprt->h  = 0xB0;
+        sprt->w  = REPLAY_BONUS_PICTURE_WIDTH;
+        sprt->h  = REPLAY_BONUS_PICTURE_HEIGHT;
         sprt->r0 = D_replay_bonus_801192AC;
         sprt->g0 = D_replay_bonus_801192AC;
         sprt->b0 = D_replay_bonus_801192AC;
@@ -609,7 +619,7 @@ static void func_replay_bonus_80117E04(void)
 
         tpage          = gGpuPrimCursor;
         gGpuPrimCursor = tpage + 1;
-        setDrawTPage(tpage, 0, 1, getTPage(2, 0, 0x280, D_replay_bonus_80119226 << 8));
+        setDrawTPage(tpage, 0, 1, getTPage(2, 0, REPLAY_BONUS_PICTURE_VRAM_X, D_replay_bonus_80119226 << 8));
         addPrim(gGpuCurrentOt + 11, tpage);
         return;
     }
@@ -622,8 +632,8 @@ static void func_replay_bonus_80117E04(void)
     rgb      = (D_replay_bonus_801192AC * (0x78 - D_replay_bonus_80119227)) / 120;
     sprt->x0 = D_replay_bonus_801192B8 - 0x140;
     sprt->y0 = -0x8C;
-    sprt->w  = 0xF0;
-    sprt->h  = 0xB0;
+    sprt->w  = REPLAY_BONUS_PICTURE_WIDTH;
+    sprt->h  = REPLAY_BONUS_PICTURE_HEIGHT;
     sprt->u0 = 0;
     sprt->v0 = 0;
     setSemiTrans(sprt, 1);
@@ -634,7 +644,7 @@ static void func_replay_bonus_80117E04(void)
 
     tpage          = gGpuPrimCursor;
     gGpuPrimCursor = tpage + 1;
-    setDrawTPage(tpage, 0, 1, getTPage(2, 1, 0x280, D_replay_bonus_80119226 << 8));
+    setDrawTPage(tpage, 0, 1, getTPage(2, 1, REPLAY_BONUS_PICTURE_VRAM_X, D_replay_bonus_80119226 << 8));
     addPrim(gGpuCurrentOt + 11, tpage);
 
     sprt           = gGpuPrimCursor;
@@ -644,8 +654,8 @@ static void func_replay_bonus_80117E04(void)
     rgb      = (D_replay_bonus_801192AC * D_replay_bonus_80119227) / 120;
     sprt->x0 = D_replay_bonus_801192B8 - 0x140;
     sprt->y0 = -0x8C;
-    sprt->w  = 0xF0;
-    sprt->h  = 0xB0;
+    sprt->w  = REPLAY_BONUS_PICTURE_WIDTH;
+    sprt->h  = REPLAY_BONUS_PICTURE_HEIGHT;
     sprt->u0 = 0;
     sprt->v0 = 0;
     sprt->r0 = rgb;
@@ -655,7 +665,7 @@ static void func_replay_bonus_80117E04(void)
 
     tpage          = gGpuPrimCursor;
     gGpuPrimCursor = tpage + 1;
-    setDrawTPage(tpage, 0, 1, getTPage(2, 0, 0x280, (D_replay_bonus_80119226 ^ 1) << 8));
+    setDrawTPage(tpage, 0, 1, getTPage(2, 0, REPLAY_BONUS_PICTURE_VRAM_X, (D_replay_bonus_80119226 ^ 1) << 8));
     addPrim(gGpuCurrentOt + 11, tpage);
 
     wait                    = D_replay_bonus_80119227 - 1;
@@ -686,7 +696,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
     s32                  clut;
     s32                  clutY;
     s32                  gh;
-    s32                  flags;
+    s32                  pixelMode;
     u16                  page;
     u8                   pageFlags;
     ReplayBonusStfGlyph* glyph;
@@ -708,33 +718,33 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                     width = 0;
                     j     = 0;
                     while (cmds[i + j].op == 0) {
-                        width += D_replay_bonus_80119290[cmds[i + j].arg].w;
+                        width += D_replay_bonus_80119290[cmds[i + j].arg].width;
                         j++;
                     }
                     x = 0;
                     switch ((u8)align) {
                         case 0:
-                            x = D_replay_bonus_80119294->align[col].left - ((s16)width / 2);
+                            x = D_replay_bonus_80119294->columns[col].centerX - ((s16)width / 2);
                             break;
                         case 1:
-                            x = D_replay_bonus_80119294->align[col].center;
+                            x = D_replay_bonus_80119294->columns[col].leftX;
                             break;
                         case 2:
-                            x = D_replay_bonus_80119294->align[col].right - width;
+                            x = D_replay_bonus_80119294->columns[col].rightX - width;
                             break;
                     }
                     x -= 0x140;
                     j  = 0;
                     while (cmds[i + j].op == 0) {
                         glyph                    = &D_replay_bonus_80119290[cmds[i + j].arg];
-                        width                    = glyph->w;
-                        gh                       = glyph->h;
+                        width                    = glyph->width;
+                        gh                       = glyph->heightAndPage;
                         gu                       = glyph->u;
                         gv                       = glyph->v;
                         p                        = (POLY_FT4*)(D_replay_bonus_801192C0 + D_replay_bonus_801192B4);
                         D_replay_bonus_801192B4 += 0x28;
                         setPolyFT4(p);
-                        y0        = gh & 0x7F;
+                        y0        = gh & REPLAY_BONUS_STF_GLYPH_HEIGHT_MASK;
                         p->u0     = gu;
                         p->v0     = gv;
                         p->u1     = width + gu;
@@ -756,7 +766,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                         p->x1     = x1;
                         p->y1     = y0;
                         p->x3     = x1;
-                        glyphFlag = (u32)gh >> 7;
+                        glyphFlag = (u32)gh >> REPLAY_BONUS_STF_GLYPH_PAGE_SHIFT;
                         p->clut   = (((tpageId / 4) + 0x1FE) << 6) | ((tpageId & 3) | 0x38);
                         p->tpage  = 0x1E;
                         if (glyphFlag) {
@@ -796,13 +806,13 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                         cmds[i].arg = 0xFF;
                         switch ((u8)align) {
                             case 0:
-                                x = D_replay_bonus_80119294->align[col].left - 0x78;
+                                x = D_replay_bonus_80119294->columns[col].centerX - (REPLAY_BONUS_PICTURE_WIDTH / 2);
                                 break;
                             case 1:
-                                x = D_replay_bonus_80119294->align[col].center;
+                                x = D_replay_bonus_80119294->columns[col].leftX;
                                 break;
                             case 2:
-                                x = D_replay_bonus_80119294->align[col].right - 0xF0;
+                                x = D_replay_bonus_80119294->columns[col].rightX - REPLAY_BONUS_PICTURE_WIDTH;
                                 break;
                         }
                         D_replay_bonus_801192B8 = x;
@@ -811,28 +821,28 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                     break;
                 case 8:
                     idx   = cmds[i].arg;
-                    width = D_replay_bonus_8011929C[idx].w;
+                    width = D_replay_bonus_8011929C[idx].width;
                     x     = 0;
                     switch ((u8)align) {
                         case 0:
-                            x = D_replay_bonus_80119294->align[col].left - ((s16)width / 2);
+                            x = D_replay_bonus_80119294->columns[col].centerX - ((s16)width / 2);
                             break;
                         case 1:
-                            x = D_replay_bonus_80119294->align[col].center;
+                            x = D_replay_bonus_80119294->columns[col].leftX;
                             break;
                         case 2:
-                            x = D_replay_bonus_80119294->align[col].right - width;
+                            x = D_replay_bonus_80119294->columns[col].rightX - width;
                             break;
                     }
-                    shift  = 2;
-                    tpageX = D_replay_bonus_8011929C[idx].tpageX;
-                    gu     = D_replay_bonus_8011929C[idx].u;
-                    gv     = D_replay_bonus_8011929C[idx].v;
-                    gh     = D_replay_bonus_8011929C[idx].h;
-                    clutY  = D_replay_bonus_8011929C[idx].clutY << 6;
-                    clut   = clutY | ((D_replay_bonus_8011929C[idx].clutX >> 4) & 0x3F);
-                    flags  = D_replay_bonus_8011929C[idx].flags;
-                    switch (flags) {
+                    shift     = 2;
+                    tpageX    = D_replay_bonus_8011929C[idx].tpageX;
+                    gu        = D_replay_bonus_8011929C[idx].u;
+                    gv        = D_replay_bonus_8011929C[idx].v;
+                    gh        = D_replay_bonus_8011929C[idx].height;
+                    clutY     = D_replay_bonus_8011929C[idx].clutY << 6;
+                    clut      = clutY | ((D_replay_bonus_8011929C[idx].clutX >> 4) & 0x3F);
+                    pixelMode = D_replay_bonus_8011929C[idx].pixelMode;
+                    switch (pixelMode) {
                         case 1:
                             shift = 1;
                             break;
@@ -868,9 +878,9 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                         gGpuPrimCursor = dr + 1;
                         setaddr(gGpuCurrentOt + 10, sprt);
                         setlen(dr, 1);
-                        pageFlags   = D_replay_bonus_8011929C[idx].flags;
+                        pageFlags   = D_replay_bonus_8011929C[idx].pixelMode;
                         page        = (u32)(tpageX & 0x3FF) >> 6;
-                        dr->code[0] = ((pageFlags & 3) << 7) | (s16)((s32)((D_replay_bonus_8011929C[idx].tpageBits & 0x100) << 16) >> 20) | page | ((s16)(D_replay_bonus_8011929C[idx].tpageBits & 0x200) * 4) | 0xE1000200;
+                        dr->code[0] = ((pageFlags & 3) << 7) | (s16)((s32)((D_replay_bonus_8011929C[idx].tpageY & 0x100) << 16) >> 20) | page | ((s16)(D_replay_bonus_8011929C[idx].tpageY & 0x200) * 4) | 0xE1000200;
                         tpageX     += 0x100 >> shift;
                         x           = x + piece;
                         drawTag     = (dr->tag & 0xFF000000) | (getaddr(gGpuCurrentOt + 10) & 0xFFFFFF);
@@ -894,13 +904,13 @@ static s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
         return 0;
     }
 
-    if (file->field_C.offset > 0) {
-        file->field_C.offset   += (s32)file;
-        file->field_8.offset   += (s32)file;
-        file->field_10.offset  += (s32)file;
-        file->field_14.offset  += (s32)file;
-        D_replay_bonus_80119298 = (file->field_10.pointer)->lines;
-        D_replay_bonus_801192A0 = (file->field_10.pointer)->count;
+    if (file->glyphs.offset > 0) {
+        file->glyphs.offset    += (s32)file;
+        file->params.offset    += (s32)file;
+        file->lineTable.offset += (s32)file;
+        file->sprites.offset   += (s32)file;
+        D_replay_bonus_80119298 = (file->lineTable.pointer)->lines;
+        D_replay_bonus_801192A0 = (file->lineTable.pointer)->count;
         for (i = 0; i < D_replay_bonus_801192A0; i++) {
             rec                     = D_replay_bonus_80119298;
             D_replay_bonus_80119298 = rec + 1;
@@ -908,19 +918,19 @@ static s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
         }
     }
 
-    D_replay_bonus_80119290 = file->field_C.pointer;
-    D_replay_bonus_80119294 = file->field_8.pointer;
-    D_replay_bonus_80119298 = (file->field_10.pointer)->lines;
-    D_replay_bonus_8011929C = file->field_14.pointer;
+    D_replay_bonus_80119290 = file->glyphs.pointer;
+    D_replay_bonus_80119294 = file->params.pointer;
+    D_replay_bonus_80119298 = (file->lineTable.pointer)->lines;
+    D_replay_bonus_8011929C = file->sprites.pointer;
     return 1;
 }
 
 void func_replay_bonus_80118C64(Task* arg0)
 {
-    s32                poll;
-    s32                temp_v1;
-    ReplayBonusStream* stream;
-    Task*              t;
+    s32                       poll;
+    s32                       temp_v1;
+    ReplayBonusPictureDecode* picture;
+    Task*                     t;
 
     temp_v1 = arg0->state;
     switch (temp_v1) {
@@ -929,13 +939,13 @@ void func_replay_bonus_80118C64(Task* arg0)
                 taskKill(arg0);
                 break;
             }
-            stream                  = D_replay_bonus_801192BC;
-            stream->fileId          = (u16)arg0->spawnArg1.value;
-            stream->x               = 0x280;
-            stream->y               = (D_replay_bonus_80119226 ^ 1) << 8;
-            stream->w               = 0xF0;
-            stream->h               = 0xB0;
-            D_replay_bonus_80119228 = Task_SpawnFromTable(&D_replay_bonus_80118F6C, 0, 0, stream);
+            picture                 = D_replay_bonus_801192BC;
+            picture->resourceIndex  = arg0->spawnArg1.value;
+            picture->vramX          = REPLAY_BONUS_PICTURE_VRAM_X;
+            picture->vramY          = (D_replay_bonus_80119226 ^ 1) << 8;
+            picture->width          = REPLAY_BONUS_PICTURE_WIDTH;
+            picture->height         = REPLAY_BONUS_PICTURE_HEIGHT;
+            D_replay_bonus_80119228 = Task_SpawnFromTable(&D_replay_bonus_80118F6C, 0, 0, picture);
             D_replay_bonus_80119225 = 1;
             arg0->state            += 1;
             break;

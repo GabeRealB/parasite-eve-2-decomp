@@ -65257,7 +65257,7 @@ The matching sequence came from a volatile scalar view of the member plus
 a nonvolatile register touch:
 
 ```c
-*(volatile s32*)&totals->field_8 = exp;
+*(volatile s32*)&totals->nextExp = exp;
 SOFT_TOUCH_REG(exp);
 switch (D_80072177) { /* multipliers use exp */ }
 ```
