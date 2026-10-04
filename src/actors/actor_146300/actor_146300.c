@@ -31,35 +31,51 @@
 #include "../../shared/scripted_walk.h"
 #include "../../shared/actor_messages.h"
 
-// The engine copies words across the exported animation bank and its
-// following argument records. Both views cover the complete backing object.
+/// Source storage for the copy that extends the player's animation bank.
+///
+/// The package's event scripts send the player a copy request for these words
+/// before they play one of the clips. The copy takes
+/// `ANIMATION_BANK_EXTENSION_CAPACITY` words, which is more than the clip
+/// table holds: the eighteen set pointers become extended ids 47-64, and the
+/// fourteen words after them, the first two play requests and four words of
+/// the third, are written into the bank behind the clips. No request selects
+/// an id past 64, so none of those request words is played as a clip.
+///
+/// The play requests are the first three of the run the package keeps for the
+/// player and are part of this object only because the copied span reaches
+/// over them; the requests for ids 49 to 64 are separate objects.
 typedef union {
     struct {
-        AnimationSet*        sets[18];
-        AnimationPlayRequest arguments[3];
-    } data;
-    s32 words[33];
-} Actor146300AnimCopy7898;
-STATIC_ASSERT_SIZEOF(Actor146300AnimCopy7898, 132);
+        AnimationSet*        sets[18];        // Player clips for extended ids 47-64
+        AnimationPlayRequest playRequests[3]; // Requests for extended ids 47, 47 with a 5-frame blend, and 48; nothing references the first
+    } data;                                   // The records by name
+    s32 words[33];                            // The same storage as the copy reads it; the last word lies beyond the copied span
+} _Actor146300AnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_Actor146300AnimationBankExtensionStorage, 132);
 
-extern Actor146300AnimCopy7898 D_actor_146300_80137898;
+extern _Actor146300AnimationBankExtensionStorage D_actor_146300_80137898;
 
-/// Work block of the overlay's actor, allocated zeroed by its spawn routine
-/// and kept both in `gScriptedWalkWork` and at `Task::work`; every other
-/// function in the overlay reaches it through the global. `light` and `color`
-/// are the matrices the spawn routine hands the model, and `rig` and `st` its
-/// animation rig and state.
-typedef struct Actor146300Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig20  rig;
-    ActorEnemyState st;
-} Actor146300Work;
-STATIC_ASSERT_SIZEOF(Actor146300Work, 0x4EC);
+/// Work block of the package's actor, a twenty-part figure that event scripts
+/// place and give clips to but that never walks.
+///
+/// The spawn state allocates it zeroed and keeps it both at `Task::work` and
+/// in `gScriptedWalkWork`. The model object borrows `light` and `color` for as
+/// long as the block lives. The matrices, the rig and `st` sit where the
+/// scripted walkers' blocks keep theirs, which is what lets the package carry
+/// that library's slot tick, its two reseeds and its placement under the
+/// library's name for the block. The block ends at `st`: there is no turn
+/// countdown behind it, and the walk's frame count in `st` stays zero.
+typedef struct {
+    MATRIX          light; // Light-direction matrix lent to the model object
+    MATRIX          color; // Light-colour matrix lent to the model object
+    ActorAnimRig20  rig;   // Playback storage of the twenty-part model; slots 1 to 19 are driven
+    ActorEnemyState st;    // Animation request and the heading the last placement gave the root
+} _Actor146300Work;
+STATIC_ASSERT_SIZEOF(_Actor146300Work, 0x4EC);
 
 /// The work block above, published by the task handler
 /// `func_actor_146300_801326CC` and by the spawn routine.
-extern Actor146300Work* gScriptedWalkWork;
+extern _Actor146300Work* gScriptedWalkWork;
 
 /// The actor's own task, published by the spawn routine: the 0x7D3 handler
 /// runs the per-frame update on it, and the 0x7D5 handler and the companion's
@@ -553,7 +569,7 @@ static AnimationSet _gActor146300Animation05A44 = {
 
 TaskDesc D_actor_146300_8013788C = { { { TASK_BODY_NONE, 192 } }, func_actor_146300_80131ECC, { .value = 0 } };
 
-Actor146300AnimCopy7898 D_actor_146300_80137898 = { .data = { { &_gActor146300Animation01330, &_gActor146300Animation016C8, &_gActor146300Animation01E30, &_gActor146300Animation021A8, &_gActor146300Animation028E4, &_gActor146300Animation02B6C, &_gActor146300Animation0300C, &_gActor146300Animation0352C, &_gActor146300Animation03804, &_gActor146300Animation03ACC, &_gActor146300Animation03FEC, &_gActor146300Animation04394, &_gActor146300Animation04758, &_gActor146300Animation049F0, &_gActor146300Animation04C7C, &_gActor146300Animation05354, &_gActor146300Animation0568C, &_gActor146300Animation05A44 }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
+_Actor146300AnimationBankExtensionStorage D_actor_146300_80137898 = { .data = { { &_gActor146300Animation01330, &_gActor146300Animation016C8, &_gActor146300Animation01E30, &_gActor146300Animation021A8, &_gActor146300Animation028E4, &_gActor146300Animation02B6C, &_gActor146300Animation0300C, &_gActor146300Animation0352C, &_gActor146300Animation03804, &_gActor146300Animation03ACC, &_gActor146300Animation03FEC, &_gActor146300Animation04394, &_gActor146300Animation04758, &_gActor146300Animation049F0, &_gActor146300Animation04C7C, &_gActor146300Animation05354, &_gActor146300Animation0568C, &_gActor146300Animation05A44 }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
 
 AnimationPlayRequest D_actor_146300_8013791C = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -646,14 +662,14 @@ EvsCommand D_actor_146300_80137C28[99] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_146300_80137B24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_146300_80137BE0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137898.data.arguments[1] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137898.data.playRequests[1] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5315000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137898.data.arguments[1] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137898.data.playRequests[1] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_146300_80137A5C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137898.data.arguments[2] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137898.data.playRequests[2] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_8013791C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_146300_80137A70 } }, { .value = 0 } },
@@ -1321,7 +1337,7 @@ u8 D_actor_146300_801427E0[68] = {
 
 s32 D_actor_146300_80142824 = 0;
 
-Actor146300Work* gScriptedWalkWork;
+_Actor146300Work* gScriptedWalkWork;
 
 Task* gActorSelfTask;
 
@@ -1493,7 +1509,7 @@ void func_actor_146300_80132418(s32 arg0)
 }
 
 /// Spawn routine, state 0 of the task handler `func_actor_146300_801326CC`:
-/// allocates the 0x4EC work block and publishes it in `gScriptedWalkWork`
+/// allocates the work block and publishes it in `gScriptedWalkWork`
 /// and the task's `work` slot (destroying the enemy if the allocation fails),
 /// installs the exit callback, binds the model's coordinate frame to the view
 /// and publishes the task in `gActorSelfTask`.
@@ -1509,15 +1525,15 @@ void func_actor_146300_80132418(s32 arg0)
 /// per-frame update runs once before the state advances.
 static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    Actor146300Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    Task*            helper;
+    VECTOR            vec;
+    _Actor146300Work* work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
+    Task*             helper;
 
     obj               = task->extra.tmd;
     coord             = obj->coords;
-    work              = memCalloc(0x4EC, 0);
+    work              = memCalloc(sizeof(_Actor146300Work), false);
     gScriptedWalkWork = work;
     task->work        = work;
     if (work == NULL) {
