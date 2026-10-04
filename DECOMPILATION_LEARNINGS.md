@@ -50898,9 +50898,9 @@ matched.
 ### One pointer local shared by two `switch` cases is set twice: scope it per case
 
 `func_actor_503500_801450A0` was stuck at 98.85% with `regs`/`reorder` only.
-Cases 2 and 3 each seed a matrix through `m = (GfxRotationWords*)&work->field_9C`
-and then call `RotMatrixY(angle, &work->field_9C)`. The target computes
-`addiu a1, s1, 0x9c` *after* the `field_C0` / `field_BC` adds, so the case-2
+Cases 2 and 3 each seed a matrix through `m = (GfxRotationWords*)&work->sweepRotation`
+and then call `RotMatrixY(angle, &work->sweepRotation)`. The target computes
+`addiu a1, s1, 0x9c` *after* the `sweepAngularVelocity` / `sweepAngle` adds, so the case-2
 `step` (`lui a1, 0xfffe` / `lui a1, 0x2`) can use `a1` too. Ours hoisted the
 `addiu` to the top of the block, and `step` moved to `a2`.
 
@@ -50914,7 +50914,7 @@ tie-break keeps that order, and `step` and `m` no longer overlap, so both take
 `a1`. The function matched 100%.
 
 The probe that found it reused `step` as the pointer:
-`step = (s32)&work->field_9C; ((GfxRotationWords*)step)->m02M10 = 0; ...`. That scored
+`step = (s32)&work->sweepRotation; ((GfxRotationWords*)step)->m02M10 = 0; ...`. That scored
 99.7% with `regs=0`. The anti-dependence on the `addu` that reads `step`
 ordered the `addiu`, and the shared pseudo gave `a1`. It showed which property
 mattered, but writing the per-case locals was the actual fix. When a pointer is
@@ -69174,7 +69174,7 @@ task's `GfxCoord` and a `MATRIX` inside its own work block — through the
 ```c
 m = (GfxRotationWords*)&coord->coord;
 m->m00M01 = ONE; m->m02M10 = 0; m->m11M12 = ONE; m->m20M21 = 0; m->m22 = ONE;
-m = (GfxRotationWords*)&work->field_9C;
+m = (GfxRotationWords*)&work->sweepRotation;
 m->m00M01 = ONE; ...
 ```
 

@@ -71,33 +71,72 @@ enum {
 typedef struct {
     WorldCollisionBody    body;        // Attack sphere (radius 300) on the player's coordinate; pair-tested only during the strike phase
     WorldCollisionContact contacts[1]; // Contact table of `body`, emptied every frame
-    Task*                 effectTask;  // Task of the charge effect, which the attack task is reparented under
+    Task*                 effectTask;  // Task of the charge effect, made a child of the attack task; never read back
     s16                   phaseFrames; // Frames spent in `phase`
     byte                  field_3E[2]; // Never accessed; role unproven
     s8                    phase;       // (0 charge, 1 strike, 2 finished): `ACTOR_503500_YELLOW_FLASH_ATTACK_*`
 } _Actor503500YellowFlashAttackWork;
 STATIC_ASSERT_SIZEOF(_Actor503500YellowFlashAttackWork, 0x44);
 
-/// The 0xD0 block `func_actor_503500_80144E8C` allocates: an attack capsule
-/// with its shape and four-entry contact table, then this task's own payload:
-/// the effect task it reparents itself under, a rotation it seeds to identity
-/// next to the one in its `GfxCoord`, and the pair of words plus the halfword
-/// that `func_actor_503500_801450A0` reads and writes every frame.
-typedef struct Actor503500WorkD0 {
-    WorldCollisionBody    body;        // Attack capsule on the task's own coordinate; pair-tested from the strike until it touches the player or its radii have shrunk to a quarter
-    WorldCollisionCapsule capsule;     // Shape of `body`: from the coordinate's origin to a far end turned about Y each frame of the sweep, both radii shrinking with it
-    WorldCollisionContact contacts[4]; // Contact table of `capsule`, emptied every frame
-    /* 0x98 */ Task*      field_98;
-    /* 0x9C */ MATRIX     field_9C;
-    /* 0xBC */ Fixed16    field_BC; // angle; the high half turns field_9C
-    /* 0xC0 */ s32        field_C0; // per-frame angle step
-    /* 0xC4 */ s16        field_C4;
-    /* 0xC6 */ s16        field_C6; // sub-state frame counter
-    /* 0xC8 */ byte       pad_C8[0x4];
-    /* 0xCC */ s8         field_CC; // sub-state index
-    /* 0xCD */ byte       pad_CD[0x3];
-} Actor503500WorkD0;
-STATIC_ASSERT_SIZEOF(Actor503500WorkD0, 0xD0);
+/// Frames the pink-flash attack charges before the first of its two capsules
+/// is switched on.
+#define ACTOR_503500_PINK_FLASH_ATTACK_CHARGE_FRAMES 31
+/// Frames the pink-flash attack then holds straight ahead before it sweeps;
+/// the second capsule is switched on when they end.
+#define ACTOR_503500_PINK_FLASH_ATTACK_HOLD_FRAMES 21
+/// Change of `_Actor503500PinkFlashAttackWork::sweepAngularVelocity` per frame
+/// of the sweep: two angle units, in 16.16.
+#define ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATION 0x20000
+/// Sweep angle past which the pink-flash attack's capsule stops speeding up
+/// and slows down again (4096 to the turn, so 22.5 degrees). It is passed at
+/// 272 and the slowing adds 240, so a sweep ends at 512: 45 degrees.
+#define ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_TURNOVER_ANGLE 0x100
+/// Radii of the pink-flash attack's capsule at its far end and at its origin
+/// while `_Actor503500PinkFlashAttackWork::radiusScale` is `ONE`.
+#define ACTOR_503500_PINK_FLASH_ATTACK_FAR_RADIUS  3000
+#define ACTOR_503500_PINK_FLASH_ATTACK_NEAR_RADIUS 1000
+/// Amount `_Actor503500PinkFlashAttackWork::radiusScale` loses each frame from
+/// the sweep on, the value it stops at, and the value at or below which the
+/// capsule is switched off.
+#define ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_STEP 0x50
+#define ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_MIN  (ONE / 8)
+#define ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_OFF  (ONE / 4)
+
+/// Values of `_Actor503500PinkFlashAttackWork::phase`.
+enum {
+    ACTOR_503500_PINK_FLASH_ATTACK_CHARGE,           // Counting the charge; both capsules are off
+    ACTOR_503500_PINK_FLASH_ATTACK_HOLD,             // The first capsule is pair-tested, still pointing straight ahead
+    ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATE, // Both capsules are pair-tested and turn away from each other, faster every frame
+    ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_DECELERATE, // The turn slows by the same amount every frame until it stops
+    ACTOR_503500_PINK_FLASH_ATTACK_FADE,             // Waiting for the radii to shrink to a quarter, where the capsule is switched off
+    ACTOR_503500_PINK_FLASH_ATTACK_FINISHED,         // The task moves on to its exit state
+};
+
+/// Work block of a pink-flash attack task: one of the pair of tasks that
+/// charge under the `EFFECT_SHELTER_R48_RING_FLASH_PINK` effect and then sweep
+/// a capsule each to either side of the coordinate they were spawned on.
+///
+/// The two tasks are told apart by `Task::spawnArg1`. Task 0 spawns the
+/// effect, switches its capsule on when the charge ends and sweeps towards
+/// negative angles; task 1 spawns nothing, switches its capsule on when the
+/// hold ends and sweeps towards positive ones. Each capsule starts straight
+/// ahead, from the coordinate's origin to a point 6000 units along its Z axis
+/// and 2000 along its Y, and is switched off at its first contact with the
+/// player, so it lands once.
+typedef struct {
+    WorldCollisionBody    body;                 // Attack capsule on the task's own coordinate; pair-tested from the end of the charge (task 0) or of the hold (task 1) until it touches the player or its radii have shrunk to a quarter
+    WorldCollisionCapsule capsule;              // Shape of `body`: from the coordinate's origin (radius 1000) to a far end (radius 2000) turned by `sweepRotation`; from the sweep on the radii are `radiusScale` of 1000 and 3000
+    WorldCollisionContact contacts[4];          // Contact table of `capsule`, emptied every frame
+    Task*                 effectTask;           // Task of the charge effect, made a child of the attack task; NULL in task 1, which spawns none; never read back
+    MATRIX                sweepRotation;        // Rotation about Y by `sweepAngle` that places the capsule's far end; identity until the sweep, and only its rotation part is ever set or used
+    Fixed16               sweepAngle;           // Angle the capsule has swept from straight ahead, 16.16 with 4096 to the turn; negative in task 0, positive in task 1
+    s32                   sweepAngularVelocity; // Added to `sweepAngle` every frame of the sweep, in the same 16.16 units
+    s16                   radiusScale;          // Scale of the capsule's radii, `ONE` for full size; shrinks every frame from the sweep on, down to an eighth
+    s16                   phaseFrames;          // Frames spent in `phase`; counted during the charge and the hold only
+    byte                  field_C8[4];          // Never accessed; role unproven
+    s8                    phase;                // (0 charge, 1 hold, 2 sweep accelerating, 3 sweep decelerating, 4 fade, 5 finished): `ACTOR_503500_PINK_FLASH_ATTACK_*`
+} _Actor503500PinkFlashAttackWork;
+STATIC_ASSERT_SIZEOF(_Actor503500PinkFlashAttackWork, 0xD0);
 
 /// Frames the orange-flash attack charges before its capsule is switched on.
 #define ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_FRAMES 91
@@ -1145,15 +1184,15 @@ TaskMessageEntry D_actor_503500_80176530[5] = {
 
 static void func_actor_503500_80144E8C(Task* arg0)
 {
-    Actor503500WorkD0*     work;
-    GfxCoord*              coord;
-    WorldCollisionCapsule* capsule;
-    WorldCollisionContact* contacts;
-    EffectWork*            eff;
-    Task*                  child;
-    GfxRotationWords*      m1;
-    GfxRotationWords*      m2;
-    s32                    pan;
+    _Actor503500PinkFlashAttackWork* work;
+    GfxCoord*                        coord;
+    WorldCollisionCapsule*           capsule;
+    WorldCollisionContact*           contacts;
+    EffectWork*                      eff;
+    Task*                            child;
+    GfxRotationWords*                m1;
+    GfxRotationWords*                m2;
+    s32                              pan;
 
     coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
@@ -1161,8 +1200,8 @@ static void func_actor_503500_80144E8C(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work     = work;
-    work->field_C4 = 0x1000;
+    arg0->work        = work;
+    work->radiusScale = ONE;
 
     m1         = (GfxRotationWords*)&coord->coord;
     m1->m00M01 = ONE;
@@ -1171,7 +1210,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
     m1->m20M21 = 0;
     m1->m22    = ONE;
 
-    m2         = (GfxRotationWords*)&work->field_9C;
+    m2         = (GfxRotationWords*)&work->sweepRotation;
     m2->m00M01 = ONE;
     m2->m02M10 = 0;
     m2->m11M12 = ONE;
@@ -1210,8 +1249,8 @@ static void func_actor_503500_80144E8C(Task* arg0)
             func_actor_503500_80145480(arg0);
             return;
         }
-        child          = eff->task;
-        work->field_98 = child;
+        child            = eff->task;
+        work->effectTask = child;
         taskReparent(arg0, child);
     }
     pan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -1223,108 +1262,111 @@ static void func_actor_503500_80144E8C(Task* arg0)
 
 static void func_actor_503500_801450A0(Task* arg0)
 {
-    Actor503500WorkD0*     work;
-    WorldCollisionCapsule* capsule;
-    GfxCoord*              coord;
-    s32                    pan;
-    s32                    step;
-    s32                    ang;
+    _Actor503500PinkFlashAttackWork* work;
+    WorldCollisionCapsule*           capsule;
+    GfxCoord*                        coord;
+    s32                              pan;
+    s32                              step;
+    s32                              ang;
 
-    work    = (Actor503500WorkD0*)arg0->work;
+    work    = arg0->work;
     capsule = &work->capsule;
-    switch (work->field_CC) {
-        case 0:
-            if (++work->field_C6 >= 0x1F) {
+    switch (work->phase) {
+        case ACTOR_503500_PINK_FLASH_ATTACK_CHARGE:
+            if (++work->phaseFrames >= ACTOR_503500_PINK_FLASH_ATTACK_CHARGE_FRAMES) {
                 if (arg0->spawnArg1.value == 0) {
                     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
                 coord = arg0->extra.tmd->coords;
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0B), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-                work->field_C6 = 0;
-                work->field_CC++;
+                work->phaseFrames = 0;
+                work->phase++;
             }
             break;
-        case 1:
-            if (++work->field_C6 >= 0x15) {
+        case ACTOR_503500_PINK_FLASH_ATTACK_HOLD:
+            if (++work->phaseFrames >= ACTOR_503500_PINK_FLASH_ATTACK_HOLD_FRAMES) {
                 if (arg0->spawnArg1.value != 0) {
                     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
-                work->field_C6 = 0;
-                work->field_CC++;
+                work->phaseFrames = 0;
+                work->phase++;
             }
             break;
-        case 2:
-            step = -0x20000;
+        case ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATE:
+            step = -ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATION;
             if (arg0->spawnArg1.value != 0) {
-                step = 0x20000;
+                step = ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATION;
             }
             {
                 GfxRotationWords* m;
 
-                m                    = (GfxRotationWords*)&work->field_9C;
-                m->m00M01            = ONE;
-                work->field_C0      += step;
-                work->field_BC.word += work->field_C0;
-                m->m02M10            = 0;
-                m->m11M12            = ONE;
-                m->m20M21            = 0;
-                m->m22               = ONE;
+                m                           = (GfxRotationWords*)&work->sweepRotation;
+                m->m00M01                   = ONE;
+                work->sweepAngularVelocity += step;
+                work->sweepAngle.word      += work->sweepAngularVelocity;
+                m->m02M10                   = 0;
+                m->m11M12                   = ONE;
+                m->m20M21                   = 0;
+                m->m22                      = ONE;
             }
-            RotMatrixY(work->field_BC.halves.integer, &work->field_9C);
-            ang = work->field_BC.halves.integer;
+            RotMatrixY(work->sweepAngle.halves.integer, &work->sweepRotation);
+            ang = work->sweepAngle.halves.integer;
             if (ang < 0) {
                 ang = -ang;
             }
-            if (ang > 0x100) {
-                work->field_CC++;
+            if (ang > ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_TURNOVER_ANGLE) {
+                work->phase++;
             }
             break;
-        case 3:
+        case ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_DECELERATE:
+            // Bring the velocity back to zero from whichever side this task swept to.
             if (arg0->spawnArg1.value != 0) {
-                work->field_C0 -= 0x20000;
-                if (work->field_C0 < 0) {
-                    work->field_C0 = 0;
-                    work->field_CC++;
+                work->sweepAngularVelocity -= ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATION;
+                if (work->sweepAngularVelocity < 0) {
+                    work->sweepAngularVelocity = 0;
+                    work->phase++;
                 }
             } else {
-                work->field_C0 += 0x20000;
-                if (work->field_C0 > 0) {
-                    work->field_C0 = 0;
-                    work->field_CC++;
+                work->sweepAngularVelocity += ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATION;
+                if (work->sweepAngularVelocity > 0) {
+                    work->sweepAngularVelocity = 0;
+                    work->phase++;
                 }
             }
             {
                 GfxRotationWords* m;
 
-                m                    = (GfxRotationWords*)&work->field_9C;
-                m->m00M01            = ONE;
-                work->field_BC.word += work->field_C0;
-                m->m02M10            = 0;
-                m->m11M12            = ONE;
-                m->m20M21            = 0;
-                m->m22               = ONE;
+                m                      = (GfxRotationWords*)&work->sweepRotation;
+                m->m00M01              = ONE;
+                work->sweepAngle.word += work->sweepAngularVelocity;
+                m->m02M10              = 0;
+                m->m11M12              = ONE;
+                m->m20M21              = 0;
+                m->m22                 = ONE;
             }
-            RotMatrixY(work->field_BC.halves.integer, &work->field_9C);
+            RotMatrixY(work->sweepAngle.halves.integer, &work->sweepRotation);
             break;
-        case 4:
-            if (work->field_C4 <= 0x400) {
+        case ACTOR_503500_PINK_FLASH_ATTACK_FADE:
+            if (work->radiusScale <= ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_OFF) {
                 work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->field_CC++;
+                work->phase++;
             }
             break;
         default:
             arg0->state++;
             break;
     }
-    if (work->field_CC >= 2) {
-        work->field_C4 -= 0x50;
-        if (work->field_C4 < 0x200) {
-            work->field_C4 = 0x200;
+    if (work->phase >= ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATE) {
+        // Shrink the capsule; the radii are scaled by radiusScale / ONE, with both halves of that fraction divided by 8.
+        work->radiusScale -= ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_STEP;
+        if (work->radiusScale < ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_MIN) {
+            work->radiusScale = ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_MIN;
         }
-        capsule->end0Radius = work->field_C4 * 0x177 >> 9;
-        capsule->end1Radius = work->field_C4 * 0x7D >> 9;
-        gte_SetRotMatrix(&work->field_9C);
+        capsule->end0Radius = work->radiusScale * (ACTOR_503500_PINK_FLASH_ATTACK_FAR_RADIUS / 8) >> 9;
+        capsule->end1Radius = work->radiusScale * (ACTOR_503500_PINK_FLASH_ATTACK_NEAR_RADIUS / 8) >> 9;
+        // Turn the far end about Y by the sweep angle.
+        gte_SetRotMatrix(&work->sweepRotation);
         gte_ldv0(&D_actor_503500_801715CC);
         gte_rtv0();
         gte_stsv(&capsule->ends[0]);
@@ -1350,21 +1392,23 @@ static void func_actor_503500_80145428(Task* arg0)
 
 static void func_actor_503500_80145480(Task* arg0)
 {
-    TmdObject* ext;
+    _Actor503500PinkFlashAttackWork* work;
+    TmdObject*                       ext;
 
     func_actor_503500_801372AC(6);
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0B), 1);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500WorkD0*)arg0->work)->body);
+    work                  = arg0->work;
+    Gp_UnlinkObj(&work->body);
     taskKill(arg0);
 }
 
 static void func_actor_503500_801454E0(Task* arg0)
 {
-    Actor503500WorkD0*     work;
-    WorldCollisionContact* contacts;
-    s32                    i;
+    _Actor503500PinkFlashAttackWork* work;
+    WorldCollisionContact*           contacts;
+    s32                              i;
 
     work     = arg0->work;
     contacts = work->contacts;
