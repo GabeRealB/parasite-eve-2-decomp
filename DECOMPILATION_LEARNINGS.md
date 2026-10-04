@@ -74801,10 +74801,10 @@ stores through it:
 
 ```c
 head        = (u8*)SCRATCH_SP;
-SCRATCH_SP -= sizeof(Actor444000RunScratch);
-sc          = (Actor444000RunScratch*)SCRATCH_SP;   /* separate pseudo: move s3,v1 */
+SCRATCH_SP -= sizeof(_Actor444000RunScratch);
+sc          = (_Actor444000RunScratch*)SCRATCH_SP;   /* separate pseudo: move s3,v1 */
 ...
-mat = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
+mat = &((_Actor444000RunScratch*)(head - sizeof(_Actor444000RunScratch)))->rootMatrix;
 mat->rotationWords.m00M01 = 0x1000;   /* CSE folds this one back to -0x24(a0) */
 mat->rotationWords.m02M10 = 0;        /* the rest keep the materialised base  */
 ```

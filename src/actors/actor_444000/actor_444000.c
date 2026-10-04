@@ -116,58 +116,65 @@ typedef struct {
 } _Actor444000EventWork;
 STATIC_ASSERT_SIZEOF(_Actor444000EventWork, 0x34);
 
-/// Scratchpad frame `func_actor_444000_8013482C` carves off the scratch stack
-/// for the run-out / turn / run-back pass. `dir` is first the offset from the
-/// model to the player, whose yaw against the model's own facing becomes
-/// `GluttonWork::neckYawTarget`, and later the normalised, GPF-scaled step the
-/// turn adds to the coordinate; `m` is the working copy of the model's root
-/// coordinate and `angle` the yaw `gfxRotMatrixY` rebuilds it from.
-typedef struct Actor444000RunScratch {
-    /* 0x00 */ SVECTOR   dir;
-    /* 0x08 */ GfxMatrix m;
-    /* 0x28 */ s16       pad_28;
-    /* 0x2A */ s16       angle;
-} Actor444000RunScratch;
-STATIC_ASSERT_SIZEOF(Actor444000RunScratch, 0x2C);
+/// Scratch-stack block of the state that walks the host out along its facing,
+/// swings it through a half turn and walks it back.
+///
+/// One block serves one tick of that state. Every tick uses `offset` for the
+/// neck's yaw target; only the ticks of the half turn use the rest. The turn
+/// rebuilds the root rotation about `yaw` each tick rather than spinning the
+/// host in place: the working matrix is moved forward along its facing,
+/// rotated, written back, and the host is then moved back along the new facing
+/// by a slightly shorter step, so it swings round a point ahead of it. Yaws are
+/// 4096 units per turn.
+typedef struct {
+    SVECTOR   offset;        // Offset from the host's root to the player, whose yaw against the host's facing becomes the neck's yaw target; in the turn, the facing axis of `rootMatrix` scaled to the step forward, then that of the turned matrix scaled to the step back
+    GfxMatrix rootMatrix;    // Working copy of the host's root matrix for one tick of the turn; a state change seeds its rotation with identity, which the copy replaces before anything reads it
+    byte      unknown_28[2]; // Never accessed; role unproven
+    s16       yaw;           // Host's heading advanced by this tick's 0xD, the yaw the rotation is rebuilt about; set to 0x800 on the tick the half turn completes
+} _Actor444000RunScratch;
+STATIC_ASSERT_SIZEOF(_Actor444000RunScratch, 0x2C);
 
-/// 0x4C-byte scratchpad frame `func_actor_444000_8013EC84` carves off
-/// the scratch stack for the escort-order tick. `delta` is the player-relative
-/// offset in the arena plane whose length is `dist` -- under 0xB54 the player is
-/// dragged back along `dir` to a fixed range -- and `pos` is the host's fifth
-/// part carried into view space, which the yaw `angle` and the final message
-/// 0x3E9 placement are both built from. `dir` doubles as `VectorNormalSS`'s
-/// workspace throughout.
-typedef struct Actor444000WarpScratch {
-    /* 0x00 */ SVECTOR dir;
-    /* 0x08 */ SVECTOR pos;
-    /* 0x10 */ VECTOR  delta;
-    /* 0x20 */ MATRIX  m;
-    /* 0x40 */ s32     dist;  // length of `delta`, in world units
-    /* 0x44 */ byte    pad_44[0x6];
-    /* 0x4A */ s16     angle; // yaw handed to the placement, wrapped to +/-0x800
-} Actor444000WarpScratch;
-STATIC_ASSERT_SIZEOF(Actor444000WarpScratch, 0x4C);
+/// Scratch-stack block of the state the host runs once it has caught the
+/// player: the range it holds the player at and the placement it gives them.
+///
+/// One block serves one tick of that state. The tick that enters the state
+/// measures the player's range and, when they stand too close, moves them back
+/// out along the line from the host; that tick and one later tick then place
+/// the player ahead of the host's fifth part, turned to face it or to face
+/// directly away, whichever is nearer the heading they already have. Yaws are
+/// 4096 units per turn.
+typedef struct {
+    SVECTOR offset;           // Working vector: `playerDelta` scaled to length 0xCE4, the offset from the host's root the player is moved back out to; `anchor` minus the player's position and then the reverse, for the two bearings; the reverse scaled to length 0x384, the offset from `anchor` the player is placed at
+    SVECTOR anchor;           // Origin of the host's fifth part, in the space the root coordinates share
+    VECTOR  playerDelta;      // Player's position minus the host's on the ground plane, world units; only `vx` and `vz` are written or read
+    byte    unknown_20[0x20]; // Never accessed; role unproven
+    s32     playerDistance;   // Length of `playerDelta`; under 0xB54 the player is moved back out
+    byte    unknown_44[0x6];  // Never accessed; role unproven
+    s16     playerYaw;        // Yaw the player is placed at: the bearing from the player to `anchor`, or its reverse when the player faces more than a quarter turn off that bearing
+} _Actor444000CatchScratch;
+STATIC_ASSERT_SIZEOF(_Actor444000CatchScratch, 0x4C);
 
-/// 0x4C-byte scratchpad frame `func_actor_444000_8013E058` takes off the
-/// scratch-pad stack for the drag tick. `dir` starts as the player-relative offset in
-/// the arena plane, is carried into view space, renormalised and then scaled by
-/// the per-frame pull the animation frame selects; `push` is the same vector as
-/// the 32-bit triple `func_80105B74` copies onto the player actor, `dist` is the
-/// offset's length and `pull` / `period` are the frame-derived strength and the
-/// script-spawn interval the current phase uses.
-typedef struct Actor444000DragScratch {
-    /* 0x00 */ VECTOR3 push;
-    /* 0x0C */ byte    pad_C[0x4];
-    /* 0x10 */ SVECTOR dir;
-    /* 0x18 */ byte    pad_18[0x20];
-    /* 0x38 */ s32     dist;   // length of `dir` before it is normalised
-    /* 0x3C */ byte    pad_3C[0x8];
-    /* 0x44 */ s16     pull;   // phase offset folded into the gpf scale
-    /* 0x46 */ s16     i;      // escort slot being cleared, 0 or 1
-    /* 0x48 */ s16     period; // frames between script spawns
-    /* 0x4A */ byte    pad_4A[0x2];
-} Actor444000DragScratch;
-STATIC_ASSERT_SIZEOF(Actor444000DragScratch, 0x4C);
+/// Scratch-stack block of the state in which the host drags the player toward
+/// it.
+///
+/// One block serves one tick of that state. The tick measures the player from
+/// the host's fifth part, turns that offset into a displacement toward the
+/// part whose length the fight's phase and the animation's cue decide, and
+/// leaves it with the player actor as its pending displacement. Lengths are
+/// world units.
+typedef struct {
+    VECTOR3 displacement;     // Displacement handed to the player actor for this tick: `offset` on the ground plane, with `vy` zero
+    byte    unknown_C[0x4];   // Never accessed; role unproven
+    SVECTOR offset;           // Working vector: the host's root to the player, for the neck's yaw target; the origin of the host's fifth part; the player's position minus that origin, normalised and then scaled to the tick's pull, which is negative so that it points at the part
+    byte    unknown_18[0x20]; // Never accessed; role unproven
+    s32     playerDistance;   // Ground-plane length of `offset` from the fifth part to the player, before it is normalised; under 0x4B0 the host may catch the player
+    byte    unknown_3C[0x8];  // Never accessed; role unproven
+    s16     phasePull;        // Pull the fight's phase adds to the base 0x19 (0, 5, 10 or 15); the animation's cue takes a fraction or multiple of the sum
+    s16     slot;             // Index into `GluttonWork::summons`, 0 or 1: counter of the loop that forgets both summons as the state ends
+    s16     padScriptPeriod;  // Ticks between the pad scripts started over the pulling stretch of the animation (0x19, 0x11 or 0xE by phase)
+    byte    unknown_4A[0x2];  // Never accessed; role unproven
+} _Actor444000DragScratch;
+STATIC_ASSERT_SIZEOF(_Actor444000DragScratch, 0x4C);
 
 /// The package's event task, whose `Task::work` holds an
 /// `_Actor444000EventWork`; `NULL` until that task's spawn state publishes it.
@@ -230,7 +237,7 @@ extern PadScriptCmd              D_actor_444000_80144A74[2];
 extern PadScriptVibrationSegment D_actor_444000_80144A7C[2];
 extern PadScriptCmd              D_actor_444000_80144A84[2];
 extern PadScriptVibrationSegment D_actor_444000_80144A8C[2];
-/// Script pair the drag tick spawns every `period` frames.
+/// Script pair the drag tick spawns every `padScriptPeriod` ticks.
 extern PadScriptCmd              D_actor_444000_80144A94[3];
 extern PadScriptVibrationSegment D_actor_444000_80144AA0[2];
 
@@ -246,17 +253,28 @@ extern TaskMessageEntry D_actor_444000_80161818[7];
 extern TaskDesc D_actor_444000_801616B0[];
 /// Effect argument block the spawn state points at the host's root coordinate.
 extern EffectSpawnArg D_actor_444000_80161880;
-/// Shared 0x7DA payload buffer, also used by `func_actor_444000_80141618`.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    ActorCommand value;
-    u8           retained[4];
-} Actor444000Storage1888;
-STATIC_ASSERT_SIZEOF(Actor444000Storage1888, 8);
 
-extern Actor444000Storage1888 D_actor_444000_80161888;
+/// Static storage for the command record the boss sends other actors.
+///
+/// `command` is the payload of `ACTOR_COMMAND_MESSAGE_APPLY`, lent to the
+/// receiver for the length of each dispatch. One record serves every sender in
+/// the package, each filling it in just before it sends: the announcements of
+/// the fight's progress, which the scene manager forwards to its actors, and
+/// the orders the boss gives each of its two summons directly. All of them use
+/// the synthetic context of stage 0, area 44.
+///
+/// Four zero bytes separate the record from the next object. No access to
+/// them is recovered, so whether they are trailing fields of this object or a
+/// separate unreferenced variable is unproven; they stay in this allocation
+/// only to keep the data after it at its address.
+typedef struct {
+    ActorCommand command;      // Record the receiver borrows; an announcement's command word is 0, 2 or 3, a summon's order a number in the high byte over a random one of 0x01, 0x11 and 0x21 in the low
+    u8           unknown_4[4]; // Zero in the image; no access established and role unproven
+} _Actor444000CommandStorage;
+STATIC_ASSERT_SIZEOF(_Actor444000CommandStorage, 8);
+
+/// Shared 0x7DA payload buffer, also used by `func_actor_444000_80141618`.
+extern _Actor444000CommandStorage D_actor_444000_80161888;
 /// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
 extern TaskDesc D_80172604;
 
@@ -288,18 +306,30 @@ extern GluttonCoord D_actor_444000_801618B8;
 /// Which of the three shared debris coordinates below the next launch uses,
 /// cycled 0/1/2 by `func_actor_444000_801404C0`.
 extern s16 D_actor_444000_80161850;
+
+/// Number of coordinates the debris launches rotate through.
+enum { ACTOR_444000_DEBRIS_COORD_COUNT = 3 };
+
+/// Static storage for the coordinates the boss's debris effects ride.
+///
+/// A debris launch takes the next coordinate in rotation, rebuilds it under
+/// the view coordinate at the launch point and spawns its effect on it. The
+/// effect is handed the coordinate itself rather than a copy.
+///
+/// 0x118 zero bytes separate the coordinates from the next object, which is
+/// not a whole number of further coordinates. No access to them is recovered,
+/// so whether they belong to this object or are separate unreferenced
+/// variables is unproven; they stay in this allocation only to keep the data
+/// after it at its address.
+typedef struct {
+    GfxCoord coords[ACTOR_444000_DEBRIS_COORD_COUNT]; // Parented to the view coordinate; each is rewritten whole by the launch that takes it
+    u8       unknown_F0[0x118];                       // Zero in the image; no access established and role unproven
+} _Actor444000DebrisCoordStorage;
+STATIC_ASSERT_SIZEOF(_Actor444000DebrisCoordStorage, 0x208);
+
 /// The three coordinates that debris effects are spawned on, each rebuilt in
 /// view space from the first escort's second part.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    GfxCoord value[6];
-    u8       retained[40];
-} Actor444000Storage1948;
-STATIC_ASSERT_SIZEOF(Actor444000Storage1948, 520);
-
-extern Actor444000Storage1948 D_actor_444000_80161948;
+extern _Actor444000DebrisCoordStorage D_actor_444000_80161948;
 /// Spawn table of the enemy the arena fight drops in every tenth step.
 extern TaskDesc gGluttonEscortTasks[];
 
@@ -308,29 +338,51 @@ extern TaskDesc gGluttonEscortTasks[];
 /// second (`field_4 == 4`) send.
 /// The companion table used instead when the player is more than a quarter turn
 /// off the host's facing, so the hold plays from the other side.
+
+/// Static storage for the mark of how far a catch has taken the player.
+///
+/// The state the host runs once it has caught the player clears the flag as it
+/// places the player ahead of the host, and sets it when the player's scripted
+/// animation has stopped and it moves them onto the host's own position.
+/// Nothing in the package, its room or the resident code reads the flag, so
+/// what it was for is unproven.
+///
+/// Seven zero bytes separate the flag from the next object. No access to
+/// them is recovered, so whether they are trailing fields of this object or a
+/// separate unreferenced variable is unproven; they stay in this allocation
+/// only to keep the data after it at its address.
+typedef struct {
+    s8 playerAtHost; // 0 from the start of a catch, 1 once the catch has put the player on the host's root position
+    u8 unknown_1[7]; // Zero in the image; no access established and role unproven
+} _Actor444000PlayerAtHostStorage;
+STATIC_ASSERT_SIZEOF(_Actor444000PlayerAtHostStorage, 8);
+
 /// Set while the escort-order tick holds the player at a placement of its own;
 /// 1 marks the plain re-placement, 0 the full grab.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    s8 value;
-    u8 retained[7];
-} Actor444000Storage1868;
-STATIC_ASSERT_SIZEOF(Actor444000Storage1868, 8);
+extern _Actor444000PlayerAtHostStorage D_actor_444000_80161868;
 
-extern Actor444000Storage1868 D_actor_444000_80161868;
+/// Static storage for the placement the host gives the player once it has
+/// caught them.
+///
+/// `placement` is the payload of `GAME_ACTOR_MESSAGE_PLACE`, lent to the player
+/// for the length of the dispatch, which consumes it. The catch fills it in
+/// twice over: ahead of the host's fifth part with the yaw that faces the
+/// player at the part or directly away from it, and, once the player's
+/// scripted animation has stopped, at the host's own position with every angle
+/// zero.
+///
+/// Eight zero bytes separate the record from the next object. No access to
+/// them is recovered, so whether they are trailing fields of this object or a
+/// separate unreferenced variable is unproven; they stay in this allocation
+/// only to keep the data after it at its address.
+typedef struct {
+    ActorTransform placement;     // Record the player borrows; pitch and roll are always zero
+    u8             unknown_18[8]; // Zero in the image; no access established and role unproven
+} _Actor444000TransformStorage;
+STATIC_ASSERT_SIZEOF(_Actor444000TransformStorage, 32);
+
 /// Shared message 0x3E9 placement payload the escort-order tick sends slot 3.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    ActorTransform value;
-    u8             retained[8];
-} Actor444000Storage1908;
-STATIC_ASSERT_SIZEOF(Actor444000Storage1908, 32);
-
-extern Actor444000Storage1908 D_actor_444000_80161908;
+extern _Actor444000TransformStorage D_actor_444000_80161908;
 /// Button-press hold the host sends the player before its grab and its swipe
 /// take effect. Its press count is never written and stays zero.
 extern GluttonButtonPressHoldStorage D_actor_444000_80161928;
@@ -2633,7 +2685,7 @@ Task* D_actor_444000_80161860 = NULL;
 
 u32 D_actor_444000_80161864 = 0x1A90C60D;
 
-Actor444000Storage1868 D_actor_444000_80161868 = { 0, { 0, 0, 0, 0, 0, 0, 0 } };
+_Actor444000PlayerAtHostStorage D_actor_444000_80161868 = { 0, { 0, 0, 0, 0, 0, 0, 0 } };
 
 SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
@@ -2642,7 +2694,7 @@ static _GluttonHostTaskStorage _gGluttonHostTask = { NULL, { 0 } };
 
 EffectSpawnArg D_actor_444000_80161880 = { NULL, 0, 0 };
 
-Actor444000Storage1888 D_actor_444000_80161888 = { { { .loc = { 0, 0 } }, 0 }, { 0, 0, 0, 0 } };
+_Actor444000CommandStorage D_actor_444000_80161888 = { { { .loc = { 0, 0 } }, 0 }, { 0, 0, 0, 0 } };
 
 SVECTOR gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 
@@ -2650,11 +2702,11 @@ GluttonButtonPressHoldStorage gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 
 
 GluttonCoord D_actor_444000_801618B8 = { .node = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
 
-Actor444000Storage1908 D_actor_444000_80161908 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+_Actor444000TransformStorage D_actor_444000_80161908 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 GluttonButtonPressHoldStorage D_actor_444000_80161928 = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-Actor444000Storage1948 D_actor_444000_80161948 = { { { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+_Actor444000DebrisCoordStorage D_actor_444000_80161948 = { { { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL }, { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, { 0 } };
 
 TmdSource D_actor_444000_80161B50 = { 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL };
 
@@ -2670,7 +2722,7 @@ static __inline__ void Actor444000_FlattenRotation(GfxCoord* coord, s32 vy);
 static void            func_actor_444000_8013D96C(Task* arg0);
 static void            func_actor_444000_8013E058(Task* task);
 static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* work,
-                                                    Task* player, Actor444000WarpScratch* sc,
+                                                    Task* player, _Actor444000CatchScratch* sc,
                                                     PlayerStatus* cfg);
 static void            func_actor_444000_8013EC84(Task* arg0);
 static void            func_actor_444000_8013FB74(Task* arg0);
@@ -3033,27 +3085,27 @@ static __inline__ void Actor444000_StepForward(GfxCoord* coord)
 /// `neckYawTarget`, wrapped into +/-0x800, and -- unless the game is frozen --
 /// walks the model forward along that facing. State 0 runs out to x 0x1770,
 /// state 1 turns the model 0xD a step until it has swung the full half turn
-/// (its rotation is rebuilt from the running `angle` rather than spun in
+/// (its rotation is rebuilt from the running `yaw` rather than spun in
 /// place), and states 2 to 5 run it back through -0x1387, -0x251B and -0x32C7.
 /// Past -0x4203 the task hands over to state 0x10 and tells the player task
 /// (slot 7) message 0x13F4.
 static void func_actor_444000_8013482C(Task* task)
 {
-    Actor444000RunScratch* sc;
-    GfxMatrix*             mat;
-    TmdObject*             tmd;
-    GluttonWork*           work;
-    Enemy*                 enemy;
-    GfxCoord*              coord;
-    GfxCoord*              model;
-    GfxCoord*              facing;
-    u8*                    head;
-    s16                    ang;
-    s32                    frame;
+    _Actor444000RunScratch* sc;
+    GfxMatrix*              mat;
+    TmdObject*              tmd;
+    GluttonWork*            work;
+    Enemy*                  enemy;
+    GfxCoord*               coord;
+    GfxCoord*               model;
+    GfxCoord*               facing;
+    u8*                     head;
+    s16                     ang;
+    s32                     frame;
 
     head = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000RunScratch));
-    sc = SCRATCH_STACK_CURSOR(Actor444000RunScratch);
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(_Actor444000RunScratch));
+    sc = SCRATCH_STACK_CURSOR(_Actor444000RunScratch);
 
     work  = task->work;
     enemy = task->spawnArg2.pointer;
@@ -3068,7 +3120,7 @@ static void func_actor_444000_8013482C(Task* task)
         work->animStep                = GLUTTON_ANIM_STEP_BLEND;
         work->hostExposed             = 0;
         work->neckPitchTarget         = 0;
-        mat                           = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
+        mat                           = &((_Actor444000RunScratch*)(head - sizeof(_Actor444000RunScratch)))->rootMatrix;
         mat->rotationWords.m00M01     = ONE;
         mat->rotationWords.m02M10     = 0;
         mat->rotationWords.m11M12     = ONE;
@@ -3104,13 +3156,13 @@ static void func_actor_444000_8013482C(Task* task)
 
     work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 
-    model      = task->extra.tmd->coords;
-    sc->dir.vx = gPlayerStatus.coordMtx->t[0] - model->coord.t[0];
-    sc->dir.vy = gPlayerStatus.coordMtx->t[1] - model->coord.t[1];
-    sc->dir.vz = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
+    model         = task->extra.tmd->coords;
+    sc->offset.vx = gPlayerStatus.coordMtx->t[0] - model->coord.t[0];
+    sc->offset.vy = gPlayerStatus.coordMtx->t[1] - model->coord.t[1];
+    sc->offset.vz = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
 
     facing = task->extra.tmd->coords;
-    ang    = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    ang    = ratan2(sc->offset.vx, sc->offset.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
 
     if (ang < 0) {
     wrapUp:
@@ -3151,37 +3203,37 @@ static void func_actor_444000_8013482C(Task* task)
                     Actor444000_StepForward(coord);
                 }
             } else {
-                sc->angle = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0xD;
-                sc->m.mat = task->extra.tmd->coords->coord;
+                sc->yaw            = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0xD;
+                sc->rootMatrix.mat = task->extra.tmd->coords->coord;
 
-                gfxReadMatrixZAxis(&sc->m.mat, &sc->dir);
-                VectorNormalSS(&sc->dir, &sc->dir);
+                gfxReadMatrixZAxis(&sc->rootMatrix.mat, &sc->offset);
+                VectorNormalSS(&sc->offset, &sc->offset);
                 gte_lddp(0xBEA);
-                gte_ldsv(&sc->dir);
+                gte_ldsv(&sc->offset);
                 gte_gpf12();
-                gte_stsv(&sc->dir);
+                gte_stsv(&sc->offset);
 
-                sc->m.mat.t[0] += sc->dir.vx;
-                sc->m.mat.t[1] += sc->dir.vy;
-                sc->m.mat.t[2] += sc->dir.vz;
+                sc->rootMatrix.mat.t[0] += sc->offset.vx;
+                sc->rootMatrix.mat.t[1] += sc->offset.vy;
+                sc->rootMatrix.mat.t[2] += sc->offset.vz;
 
-                gfxRotMatrixY(&sc->m.mat, sc->angle, 1);
-                task->extra.tmd->coords->coord = sc->m.mat;
+                gfxRotMatrixY(&sc->rootMatrix.mat, sc->yaw, 1);
+                task->extra.tmd->coords->coord = sc->rootMatrix.mat;
 
-                gfxReadMatrixZAxis(&sc->m.mat, &sc->dir);
-                VectorNormalSS(&sc->dir, &sc->dir);
+                gfxReadMatrixZAxis(&sc->rootMatrix.mat, &sc->offset);
+                VectorNormalSS(&sc->offset, &sc->offset);
                 gte_lddp(-0xBB8);
-                gte_ldsv(&sc->dir);
+                gte_ldsv(&sc->offset);
                 gte_gpf12();
-                gte_stsv(&sc->dir);
+                gte_stsv(&sc->offset);
 
-                task->extra.tmd->coords->coord.t[0]  += sc->dir.vx;
-                task->extra.tmd->coords->coord.t[1]  += sc->dir.vy;
-                task->extra.tmd->coords->coord.t[2]  += sc->dir.vz;
+                task->extra.tmd->coords->coord.t[0]  += sc->offset.vx;
+                task->extra.tmd->coords->coord.t[1]  += sc->offset.vy;
+                task->extra.tmd->coords->coord.t[2]  += sc->offset.vz;
                 task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-                if (0x800 - ABS(sc->angle) < 0xD) {
-                    sc->angle = 0x800;
+                if (0x800 - ABS(sc->yaw) < 0xD) {
+                    sc->yaw = 0x800;
                     gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x800, 1);
                     work->phase++;
                 }
@@ -3250,7 +3302,7 @@ static void func_actor_444000_8013482C(Task* task)
             break;
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor444000RunScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor444000RunScratch));
 }
 
 /// Rebuild `coord`'s rotation around the yaw it already faces, left at full
@@ -4437,10 +4489,10 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     }
     gluttonTickAnim(task);
 
-    D_actor_444000_80161888.value.context.loc.stage = 0;
-    D_actor_444000_80161888.value.context.loc.area  = 0x2C;
-    D_actor_444000_80161888.value.command           = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.value, ACTOR_COMMAND_MESSAGE_APPLY);
+    D_actor_444000_80161888.command.context.loc.stage = 0;
+    D_actor_444000_80161888.command.context.loc.area  = 0x2C;
+    D_actor_444000_80161888.command.command           = 0;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.command, ACTOR_COMMAND_MESSAGE_APPLY);
 
     work->wallDistance = work->wallDistanceTarget = 0xFA0;
     for (k = 0; k < 2; k++) {
@@ -4815,13 +4867,13 @@ static void func_actor_444000_8013D96C(Task* arg0)
 /// host's own facing, wrapped to +/-0x800 -- in `neckYawTarget`. The host's fifth
 /// part is carried into view space, the player-relative offset from there gives
 /// the direction and distance the pull works along, and the animation frame
-/// picks how hard: `pull` is the phase's base strength and the frame divides
-/// `-(pull + 0x19)` by 1, 2, 3, 4, 6 or 2/3 before `gte_gpf12` scales the
+/// picks how hard: `phasePull` is the phase's base strength and the frame divides
+/// `-(phasePull + 0x19)` by 1, 2, 3, 4, 6 or 2/3 before `gte_gpf12` scales the
 /// normalised direction by it. Frames outside 9..20 drop the pull and clear
 /// `hostExposed`. `func_80105B74` hands the result to the player actor unless the
 /// game is in mode 2 or 0xA or the player is already in mode 2.
 ///
-/// Alongside that: a script fires every `period` frames while the frame sits in
+/// Alongside that: a script fires every `padScriptPeriod` ticks while the frame sits in
 /// 0xA..0x12, two cues play on frames 0x3C and 0xE8, the fight asks slot 3 for
 /// the hold (message 0x3F8) once the player is inside 0x4B0 on frames 0xB..0xF
 /// and phase 6 onward clamps the player back behind -0x52D0. Once `hostRig.slots[1]`
@@ -4829,29 +4881,29 @@ static void func_actor_444000_8013D96C(Task* arg0)
 /// its two spawned escorts.
 static void func_actor_444000_8013E058(Task* task)
 {
-    GluttonWork*            work  = task->work;
-    Enemy*                  enemy = task->spawnArg2.pointer;
-    Task*                   slot3;
-    GameActor*              actor;
-    Actor444000DragScratch* sc;
-    GluttonWork*            escorts;
-    GluttonWork*            buffers;
-    PlayerStatus*           cfg;
-    GfxCoord*               coord;
-    GfxCoord*               facing;
-    GfxCoord*               yawCoord;
-    GfxCoord*               clamp;
-    SVECTOR*                posp;
-    SVECTOR*                dirp;
-    TmdObject*              tmd;
-    TmdObject*              escortTmd;
-    s16                     angle;
-    s16                     i;
-    s16                     j;
-    s16                     dz;
+    GluttonWork*             work  = task->work;
+    Enemy*                   enemy = task->spawnArg2.pointer;
+    Task*                    slot3;
+    GameActor*               actor;
+    _Actor444000DragScratch* sc;
+    GluttonWork*             escorts;
+    GluttonWork*             buffers;
+    PlayerStatus*            cfg;
+    GfxCoord*                coord;
+    GfxCoord*                facing;
+    GfxCoord*                yawCoord;
+    GfxCoord*                clamp;
+    SVECTOR*                 posp;
+    SVECTOR*                 dirp;
+    TmdObject*               tmd;
+    TmdObject*               escortTmd;
+    s16                      angle;
+    s16                      i;
+    s16                      j;
+    s16                      dz;
 
     slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    sc    = (Actor444000DragScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000DragScratch));
+    sc    = SCRATCH_STACK_RESERVE_BLOCK(_Actor444000DragScratch);
     actor = slot3->work;
 
     if (work->stateChanged != 0) {
@@ -4887,10 +4939,10 @@ static void func_actor_444000_8013E058(Task* task)
         posp->vy               = 0;
         posp->vx               = 0;
         actorLocalToView(&Gp_LookupSlot4(0)->extra.tmd->coords[3], posp);
-        D_actor_444000_80161888.value.context.loc.stage = 0;
-        D_actor_444000_80161888.value.context.loc.area  = 0x2C;
-        D_actor_444000_80161888.value.command           = 2;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.value, ACTOR_COMMAND_MESSAGE_APPLY);
+        D_actor_444000_80161888.command.context.loc.stage = 0;
+        D_actor_444000_80161888.command.context.loc.area  = 0x2C;
+        D_actor_444000_80161888.command.command           = 2;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.command, ACTOR_COMMAND_MESSAGE_APPLY);
     }
 
     coord = slot3->extra.tmd->coords;
@@ -4900,15 +4952,15 @@ static void func_actor_444000_8013E058(Task* task)
     }
     gluttonTickAnim(task);
 
-    cfg        = &gPlayerStatus;
-    facing     = task->extra.tmd->coords;
-    dirp       = &sc->dir;
-    sc->dir.vx = (u16)cfg->coordMtx->t[0] - (u16)facing->coord.t[0];
-    dirp->vy   = (u16)cfg->coordMtx->t[1] - (u16)facing->coord.t[1];
-    dz         = (u16)cfg->coordMtx->t[2] - (u16)facing->coord.t[2];
-    dirp->vz   = dz;
-    yawCoord   = task->extra.tmd->coords;
-    angle      = ratan2(sc->dir.vx, dz) - ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
+    cfg           = &gPlayerStatus;
+    facing        = task->extra.tmd->coords;
+    dirp          = &sc->offset;
+    sc->offset.vx = (u16)cfg->coordMtx->t[0] - (u16)facing->coord.t[0];
+    dirp->vy      = (u16)cfg->coordMtx->t[1] - (u16)facing->coord.t[1];
+    dz            = (u16)cfg->coordMtx->t[2] - (u16)facing->coord.t[2];
+    dirp->vz      = dz;
+    yawCoord      = task->extra.tmd->coords;
+    angle         = ratan2(sc->offset.vx, dz) - ratan2(-yawCoord->coord.m[2][0], yawCoord->coord.m[2][2]);
     if (angle < 0) {
     wrapUp:
         if (angle < -0x800) {
@@ -4924,51 +4976,51 @@ static void func_actor_444000_8013E058(Task* task)
     }
     work->neckYawTarget = angle;
 
-    sc->dir.vz = 0;
-    sc->dir.vy = 0;
-    sc->dir.vx = 0;
-    actorLocalToView(&task->extra.tmd->coords[4], &sc->dir);
+    sc->offset.vz = 0;
+    sc->offset.vy = 0;
+    sc->offset.vx = 0;
+    actorLocalToView(&task->extra.tmd->coords[4], &sc->offset);
 
-    sc->dir.vx = (u16)slot3->extra.tmd->coords->coord.t[0] - (u16)sc->dir.vx;
-    sc->dir.vy = (u16)slot3->extra.tmd->coords->coord.t[1] - (u16)sc->dir.vy;
-    sc->dir.vz = (u16)slot3->extra.tmd->coords->coord.t[2] - (u16)sc->dir.vz;
-    sc->dist   = sc->dir.vx * sc->dir.vx;
-    sc->dist  += sc->dir.vz * sc->dir.vz;
-    sc->dist   = SquareRoot0(sc->dist);
-    VectorNormalSS(&sc->dir, &sc->dir);
+    sc->offset.vx       = (u16)slot3->extra.tmd->coords->coord.t[0] - (u16)sc->offset.vx;
+    sc->offset.vy       = (u16)slot3->extra.tmd->coords->coord.t[1] - (u16)sc->offset.vy;
+    sc->offset.vz       = (u16)slot3->extra.tmd->coords->coord.t[2] - (u16)sc->offset.vz;
+    sc->playerDistance  = sc->offset.vx * sc->offset.vx;
+    sc->playerDistance += sc->offset.vz * sc->offset.vz;
+    sc->playerDistance  = SquareRoot0(sc->playerDistance);
+    VectorNormalSS(&sc->offset, &sc->offset);
 
     switch (work->phase) {
         case 0:
-            sc->period = 0x19;
+            sc->padScriptPeriod = 0x19;
             break;
         case 1:
-            sc->period = 0x11;
+            sc->padScriptPeriod = 0x11;
             break;
         case 2:
         default:
-            sc->period = 0xE;
+            sc->padScriptPeriod = 0xE;
             break;
     }
-    if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xA) < 9U) && ((work->stateTicks % sc->period) == 0)) {
+    if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xA) < 9U) && ((work->stateTicks % sc->padScriptPeriod) == 0)) {
         Gp_SpawnScript18(D_actor_444000_80144A94, D_actor_444000_80144AA0);
     }
 
     switch (work->phase) {
         case 0:
         case 6:
-            sc->pull = 0;
+            sc->phasePull = 0;
             break;
         case 1:
-            sc->pull = 5;
+            sc->phasePull = 5;
             break;
         case 2:
-            sc->pull = 0xA;
+            sc->phasePull = 0xA;
             break;
         case 3:
         case 4:
         case 5:
         default:
-            sc->pull = 0xF;
+            sc->phasePull = 0xF;
             break;
     }
 
@@ -4987,68 +5039,68 @@ static void func_actor_444000_8013E058(Task* task)
     work->hostExposed = 1;
     switch (work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
         case 9:
-            gte_lddp(-(sc->pull + 0x19) / 4);
-            gte_ldsv(&sc->dir);
+            gte_lddp(-(sc->phasePull + 0x19) / 4);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0x180;
             break;
         case 10:
-            gte_lddp(-(sc->pull + 0x19) / 2);
-            gte_ldsv(&sc->dir);
+            gte_lddp(-(sc->phasePull + 0x19) / 2);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             break;
         case 11:
         case 13:
         case 15:
-            gte_lddp(-(sc->pull + 0x19));
-            gte_ldsv(&sc->dir);
+            gte_lddp(-(sc->phasePull + 0x19));
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0x2B2;
             break;
         case 12:
         case 14:
-            gte_lddp(-((sc->pull + 0x19) * 3) / 2);
-            gte_ldsv(&sc->dir);
+            gte_lddp(-((sc->phasePull + 0x19) * 3) / 2);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0x500;
             break;
         case 16:
-            gte_lddp(-(sc->pull + 0x19) / 3);
-            gte_ldsv(&sc->dir);
+            gte_lddp(-(sc->phasePull + 0x19) / 3);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0x100;
             break;
         case 17:
         case 18:
-            gte_lddp(-(sc->pull + 0x19) / 3);
-            gte_ldsv(&sc->dir);
+            gte_lddp(-(sc->phasePull + 0x19) / 3);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0x400;
             break;
         case 19:
         case 20:
-            sc->dir.vz = 0;
-            sc->dir.vx = 0;
-            gte_lddp(-(sc->pull + 0x19) / 6);
-            gte_ldsv(&sc->dir);
+            sc->offset.vz = 0;
+            sc->offset.vx = 0;
+            gte_lddp(-(sc->phasePull + 0x19) / 6);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             work->neckPitchTarget = 0;
             break;
         default:
             work->hostExposed = 0;
-            sc->dir.vz        = 0;
-            sc->dir.vx        = 0;
+            sc->offset.vz     = 0;
+            sc->offset.vx     = 0;
             break;
     }
 
-    if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xB) < 5U) && (sc->dist < 0x4B0) && (work->phase < 6)) {
+    if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xB) < 5U) && (sc->playerDistance < 0x4B0) && (work->phase < 6)) {
         if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.hold, 0) == 0) {
             work->state        = 0xD;
             work->playerCaught = 1;
@@ -5061,27 +5113,27 @@ static void func_actor_444000_8013E058(Task* task)
         }
     }
 
-    if (sc->dir.vx != 0 || sc->dir.vz != 0) {
-        sc->push.vx = sc->dir.vx;
-        sc->push.vy = 0;
-        sc->push.vz = sc->dir.vz;
+    if (sc->offset.vx != 0 || sc->offset.vz != 0) {
+        sc->displacement.vx = sc->offset.vx;
+        sc->displacement.vy = 0;
+        sc->displacement.vz = sc->offset.vz;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 2 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xA && actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
-            func_80105B74(&sc->push);
+            func_80105B74(&sc->displacement);
         }
     }
 
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        D_actor_444000_80161888.value.context.loc.stage = 0;
-        D_actor_444000_80161888.value.context.loc.area  = 0x2C;
-        D_actor_444000_80161888.value.command           = 3;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.value, ACTOR_COMMAND_MESSAGE_APPLY);
+        D_actor_444000_80161888.command.context.loc.stage = 0;
+        D_actor_444000_80161888.command.context.loc.area  = 0x2C;
+        D_actor_444000_80161888.command.command           = 3;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.command, ACTOR_COMMAND_MESSAGE_APPLY);
         work->state = 0xA;
-        for (sc->i = 0; sc->i < 2; sc->i++) {
-            work->summons[sc->i] = NULL;
+        for (sc->slot = 0; sc->slot < 2; sc->slot++) {
+            work->summons[sc->slot] = NULL;
         }
     }
     work->summonsAlive = 0;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor444000DragScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor444000DragScratch);
 }
 
 /// Escort-order tick of the arena fight: the state the boss runs while it has
@@ -5111,7 +5163,7 @@ static void func_actor_444000_8013E058(Task* task)
 /// opposite yaw is stowed in `neckYawTarget` for the drive step. The normalised
 /// direction scaled to 0x384 is where the player is asked to stand.
 static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* work,
-                                                    Task* player, Actor444000WarpScratch* sc,
+                                                    Task* player, _Actor444000CatchScratch* sc,
                                                     PlayerStatus* cfg)
 {
     GfxCoord* coord;
@@ -5119,16 +5171,16 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
     s16       angle;
     s32       yaw;
 
-    sc->pos.vz = 0;
-    sc->pos.vy = 0;
-    sc->pos.vx = 0;
-    actorLocalToView(&task->extra.tmd->coords[4], &sc->pos);
+    sc->anchor.vz = 0;
+    sc->anchor.vy = 0;
+    sc->anchor.vx = 0;
+    actorLocalToView(&task->extra.tmd->coords[4], &sc->anchor);
 
-    sc->dir.vx = sc->pos.vx - player->extra.tmd->coords->coord.t[0];
-    sc->dir.vy = 0;
-    sc->dir.vz = sc->pos.vz - player->extra.tmd->coords->coord.t[2];
-    facing     = player->extra.tmd->coords;
-    angle      = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    sc->offset.vx = sc->anchor.vx - player->extra.tmd->coords->coord.t[0];
+    sc->offset.vy = 0;
+    sc->offset.vz = sc->anchor.vz - player->extra.tmd->coords->coord.t[2];
+    facing        = player->extra.tmd->coords;
+    angle         = ratan2(sc->offset.vx, sc->offset.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (angle < 0) {
     wrapUp:
         if (angle < -0x800) {
@@ -5142,26 +5194,26 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
             goto wrapDown;
         }
     }
-    yaw       = angle;
-    sc->angle = yaw;
-    if (abs(sc->angle) > 0x400) {
-        if (sc->angle > 0) {
-            sc->angle = yaw - 0x800;
+    yaw           = angle;
+    sc->playerYaw = yaw;
+    if (abs(sc->playerYaw) > 0x400) {
+        if (sc->playerYaw > 0) {
+            sc->playerYaw = yaw - 0x800;
         } else {
-            sc->angle = yaw + 0x800;
+            sc->playerYaw = yaw + 0x800;
         }
         work->playerAnim.source.sets = (D_actor_444000_80161670 + 4);
     } else {
         work->playerAnim.source.sets = D_actor_444000_80161670;
     }
-    coord      = player->extra.tmd->coords;
-    sc->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    coord          = player->extra.tmd->coords;
+    sc->playerYaw += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 
-    sc->dir.vx = player->extra.tmd->coords->coord.t[0] - sc->pos.vx;
-    sc->dir.vy = 0;
-    sc->dir.vz = player->extra.tmd->coords->coord.t[2] - sc->pos.vz;
-    facing     = task->extra.tmd->coords;
-    angle      = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    sc->offset.vx = player->extra.tmd->coords->coord.t[0] - sc->anchor.vx;
+    sc->offset.vy = 0;
+    sc->offset.vz = player->extra.tmd->coords->coord.t[2] - sc->anchor.vz;
+    facing        = task->extra.tmd->coords;
+    angle         = ratan2(sc->offset.vx, sc->offset.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (angle < 0) {
     wrapUp2:
         if (angle < -0x800) {
@@ -5177,45 +5229,45 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
     }
     work->neckYawTarget = angle;
 
-    VectorNormalSS(&sc->dir, &sc->dir);
+    VectorNormalSS(&sc->offset, &sc->offset);
     gte_lddp(0x384);
-    gte_ldsv(&sc->dir);
+    gte_ldsv(&sc->offset);
     gte_gpf12();
-    gte_stsv(&sc->dir);
+    gte_stsv(&sc->offset);
 
-    D_actor_444000_80161908.value.pos.vx = sc->pos.vx + sc->dir.vx;
-    D_actor_444000_80161908.value.pos.vy = player->extra.tmd->coords->coord.t[1];
-    D_actor_444000_80161908.value.pos.vz = sc->pos.vz + sc->dir.vz;
-    D_actor_444000_80161908.value.rot.vx = 0;
-    D_actor_444000_80161908.value.rot.vy = sc->angle;
-    D_actor_444000_80161908.value.rot.vz = 0;
+    D_actor_444000_80161908.placement.pos.vx = sc->anchor.vx + sc->offset.vx;
+    D_actor_444000_80161908.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
+    D_actor_444000_80161908.placement.pos.vz = sc->anchor.vz + sc->offset.vz;
+    D_actor_444000_80161908.placement.rot.vx = 0;
+    D_actor_444000_80161908.placement.rot.vy = sc->playerYaw;
+    D_actor_444000_80161908.placement.rot.vz = 0;
     if (cfg->hp > 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_actor_444000_80161908.value, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_444000_80161908.placement, 0);
     }
 }
 
 static void func_actor_444000_8013EC84(Task* arg0)
 {
-    Actor444000WarpScratch* sc;
-    GluttonWork*            work;
-    GluttonWork*            escorts;
-    GluttonWork*            buffers;
-    Enemy*                  enemy;
-    Task*                   player;
-    PlayerStatus*           cfg;
-    Task*                   target;
-    TmdObject*              tmd;
-    TmdObject*              escortTmd;
-    SVECTOR*                verts;
-    s16                     i;
-    s16                     j;
-    s32                     frame;
-    s32                     cueId;
-    s32                     cuePan;
-    s32                     hitId;
-    s32                     hitPan;
-    s32                     endId;
-    s32                     endPan;
+    _Actor444000CatchScratch* sc;
+    GluttonWork*              work;
+    GluttonWork*              escorts;
+    GluttonWork*              buffers;
+    Enemy*                    enemy;
+    Task*                     player;
+    PlayerStatus*             cfg;
+    Task*                     target;
+    TmdObject*                tmd;
+    TmdObject*                escortTmd;
+    SVECTOR*                  verts;
+    s16                       i;
+    s16                       j;
+    s32                       frame;
+    s32                       cueId;
+    s32                       cuePan;
+    s32                       hitId;
+    s32                       hitPan;
+    s32                       endId;
+    s32                       endPan;
 
     work   = arg0->work;
     enemy  = arg0->spawnArg2.pointer;
@@ -5223,7 +5275,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
     cfg    = &gPlayerStatus;
 
     if (work->stateChanged != 0) {
-        sc = (Actor444000WarpScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000WarpScratch));
+        sc = SCRATCH_STACK_RESERVE_BLOCK(_Actor444000CatchScratch);
 
         verts        = Gp_GridParams->vertices;
         verts[24].vy = 0x1F4;
@@ -5266,32 +5318,32 @@ static void func_actor_444000_8013EC84(Task* arg0)
         work->neckYawEnabled   = 1;
         work->hostExposed      = 0;
 
-        sc->delta.vx = player->extra.tmd->coords->coord.t[0] -
-                       arg0->extra.tmd->coords->coord.t[0];
-        sc->delta.vz = player->extra.tmd->coords->coord.t[2] -
-                       arg0->extra.tmd->coords->coord.t[2];
-        sc->dist = SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vz * sc->delta.vz);
-        if (sc->dist < 0xB54) {
-            sc->dir.vy = 0;
-            sc->dir.vx = sc->delta.vx;
-            sc->dir.vz = sc->delta.vz;
-            VectorNormalSS(&sc->dir, &sc->dir);
+        sc->playerDelta.vx = player->extra.tmd->coords->coord.t[0] -
+                             arg0->extra.tmd->coords->coord.t[0];
+        sc->playerDelta.vz = player->extra.tmd->coords->coord.t[2] -
+                             arg0->extra.tmd->coords->coord.t[2];
+        sc->playerDistance = SquareRoot0(sc->playerDelta.vx * sc->playerDelta.vx + sc->playerDelta.vz * sc->playerDelta.vz);
+        if (sc->playerDistance < 0xB54) {
+            sc->offset.vy = 0;
+            sc->offset.vx = sc->playerDelta.vx;
+            sc->offset.vz = sc->playerDelta.vz;
+            VectorNormalSS(&sc->offset, &sc->offset);
             gte_lddp(0xCE4);
-            gte_ldsv(&sc->dir);
+            gte_ldsv(&sc->offset);
             gte_gpf12();
-            gte_stsv(&sc->dir);
+            gte_stsv(&sc->offset);
             player->extra.tmd->coords->coord.t[0] =
-                arg0->extra.tmd->coords->coord.t[0] + sc->dir.vx;
+                arg0->extra.tmd->coords->coord.t[0] + sc->offset.vx;
             player->extra.tmd->coords->coord.t[2] =
-                arg0->extra.tmd->coords->coord.t[2] + sc->dir.vz;
+                arg0->extra.tmd->coords->coord.t[2] + sc->offset.vz;
             player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(player->extra.tmd->coords);
         }
 
         Actor444000_PlacePlayerAhead(arg0, work, player, sc, cfg);
 
-        D_actor_444000_80161868.value = 0;
-        Gp_StateC08.flags            |= ATTACHMENT_FLAG_EVENT_LOCK;
+        D_actor_444000_80161868.playerAtHost = 0;
+        Gp_StateC08.flags                   |= ATTACHMENT_FLAG_EVENT_LOCK;
         Gp_PulseState1C();
         Gp_ClearNodeSlots(&enemy->node);
         Gp_ClearNodeSlots(&work->escorts[3]->node);
@@ -5299,12 +5351,12 @@ static void func_actor_444000_8013EC84(Task* arg0)
         Gp_ClearNodeSlots(&work->escorts[1]->node);
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
 
-        D_actor_444000_80161888.value.context.loc.stage = 0;
-        D_actor_444000_80161888.value.context.loc.area  = 0x2C;
-        D_actor_444000_80161888.value.command           = 3;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.value, ACTOR_COMMAND_MESSAGE_APPLY);
+        D_actor_444000_80161888.command.context.loc.stage = 0;
+        D_actor_444000_80161888.command.context.loc.area  = 0x2C;
+        D_actor_444000_80161888.command.command           = 3;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.command, ACTOR_COMMAND_MESSAGE_APPLY);
     } else {
-        sc = (Actor444000WarpScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000WarpScratch));
+        sc = SCRATCH_STACK_RESERVE_BLOCK(_Actor444000CatchScratch);
         gluttonTickAnim(arg0);
 
         if ((work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->animId == 0xF) {
@@ -5358,14 +5410,14 @@ static void func_actor_444000_8013EC84(Task* arg0)
         }
 
         if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-            D_actor_444000_80161908.value.pos.vx = arg0->extra.tmd->coords->coord.t[0];
-            D_actor_444000_80161908.value.pos.vy = arg0->extra.tmd->coords->coord.t[1];
-            D_actor_444000_80161908.value.pos.vz = arg0->extra.tmd->coords->coord.t[2];
-            D_actor_444000_80161908.value.rot.vx = 0;
-            D_actor_444000_80161908.value.rot.vy = 0;
-            D_actor_444000_80161908.value.rot.vz = 0;
-            TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_actor_444000_80161908.value, 0);
-            D_actor_444000_80161868.value = 1;
+            D_actor_444000_80161908.placement.pos.vx = arg0->extra.tmd->coords->coord.t[0];
+            D_actor_444000_80161908.placement.pos.vy = arg0->extra.tmd->coords->coord.t[1];
+            D_actor_444000_80161908.placement.pos.vz = arg0->extra.tmd->coords->coord.t[2];
+            D_actor_444000_80161908.placement.rot.vx = 0;
+            D_actor_444000_80161908.placement.rot.vy = 0;
+            D_actor_444000_80161908.placement.rot.vz = 0;
+            TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_444000_80161908.placement, 0);
+            D_actor_444000_80161868.playerAtHost = 1;
         }
 
         if (work->stateTicks == 0x17) {
@@ -5379,7 +5431,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor444000WarpScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor444000CatchScratch);
 }
 
 /// Tick of the arena fight that runs the boss' two swipes and keeps the player
@@ -5665,7 +5717,7 @@ scanned:
 /// Sub-states 0x3B and 0x3C each fire a one-shot cue positioned at the first
 /// escort's second coordinate. From 0x3D on the fight also drops debris: every
 /// fifth step one of the three shared coordinates in
-/// `D_actor_444000_80161948.value` is rebuilt at that escort's second part -- its
+/// `D_actor_444000_80161948.coords` is rebuilt at that escort's second part -- its
 /// rotation accumulated up the parent chain, its origin carried into view
 /// space, then turned a quarter turn each way so `gfxReadMatrixZAxis` yields the
 /// launch direction, which is normalised and scaled to 0x320 before being
@@ -5734,27 +5786,27 @@ static void func_actor_444000_801404C0(Task* arg0)
 
     if ((s16)(u16)work->stateTicks >= 0x3D) {
         if ((s16)((s16)(u16)work->stateTicks % 5) == 0) {
-            if (D_actor_444000_80161850 >= 2) {
+            if (D_actor_444000_80161850 >= ACTOR_444000_DEBRIS_COORD_COUNT - 1) {
                 D_actor_444000_80161850 = 0;
             } else {
                 D_actor_444000_80161850 = (u16)D_actor_444000_80161850 + 1;
             }
 
             actorAccumulateToView(&work->escorts[0]->task->extra.tmd->coords[1],
-                                  &D_actor_444000_80161948.value[D_actor_444000_80161850].coord);
-            D_actor_444000_80161948.value[D_actor_444000_80161850].parent = &gGfxViewCoord;
+                                  &D_actor_444000_80161948.coords[D_actor_444000_80161850].coord);
+            D_actor_444000_80161948.coords[D_actor_444000_80161850].parent = &gGfxViewCoord;
 
             pos.vz = 0;
             pos.vy = 0;
             pos.vx = 0;
             actorLocalToView(&work->escorts[0]->task->extra.tmd->coords[1], &pos);
 
-            D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[0] = pos.vx;
-            D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[1] = pos.vy;
-            D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[2] = pos.vz;
-            gfxRotMatrixY(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, 0x80, 0);
-            gfxRotMatrixX(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
-            gfxReadMatrixZAxis(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, &pos);
+            D_actor_444000_80161948.coords[D_actor_444000_80161850].coord.t[0] = pos.vx;
+            D_actor_444000_80161948.coords[D_actor_444000_80161850].coord.t[1] = pos.vy;
+            D_actor_444000_80161948.coords[D_actor_444000_80161850].coord.t[2] = pos.vz;
+            gfxRotMatrixY(&D_actor_444000_80161948.coords[D_actor_444000_80161850].coord, 0x80, 0);
+            gfxRotMatrixX(&D_actor_444000_80161948.coords[D_actor_444000_80161850].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
+            gfxReadMatrixZAxis(&D_actor_444000_80161948.coords[D_actor_444000_80161850].coord, &pos);
 
             posp   = &pos;
             pos.vy = 0;
@@ -5765,13 +5817,13 @@ static void func_actor_444000_801404C0(Task* arg0)
             gte_gpf12();
             gte_stsv(posp);
 
-            coord               = &D_actor_444000_80161948.value[D_actor_444000_80161850];
+            coord               = &D_actor_444000_80161948.coords[D_actor_444000_80161850];
             coord->coord.t[0]  += pos.vx;
             coord->coord.t[1]  += pos.vy;
             coord->coord.t[2]  += pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            Gp_SpawnEff(EFFECT_196, &D_actor_444000_80161948.value[D_actor_444000_80161850], 0x27A0D600, NULL);
+            Gp_SpawnEff(EFFECT_196, &D_actor_444000_80161948.coords[D_actor_444000_80161850], 0x27A0D600, NULL);
         }
         if ((s16)((s16)(u16)work->stateTicks % 10) == 4) {
             spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 2, 0, arg0->spawnArg2.pointer);
@@ -6271,24 +6323,24 @@ static void func_actor_444000_80141618(Task* task)
         sc->slot = 1;
     }
     if (work->summons[sc->slot] != NULL && work->phase < 6) {
-        D_actor_444000_80161888.value.context.loc.stage = 0;
-        D_actor_444000_80161888.value.context.loc.area  = 0x2C;
+        D_actor_444000_80161888.command.context.loc.stage = 0;
+        D_actor_444000_80161888.command.context.loc.area  = 0x2C;
         switch (work->phase) {
             case 0:
             case 1:
                 if (sc->slot == 0) {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.value.command = 3;
+                        D_actor_444000_80161888.command.command = 3;
                     } else {
-                        D_actor_444000_80161888.value.command = 4;
+                        D_actor_444000_80161888.command.command = 4;
                     }
                 } else {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.value.command = 5;
+                        D_actor_444000_80161888.command.command = 5;
                     } else {
-                        D_actor_444000_80161888.value.command = 6;
+                        D_actor_444000_80161888.command.command = 6;
                     }
                 }
                 break;
@@ -6297,16 +6349,16 @@ static void func_actor_444000_80141618(Task* task)
                 if (sc->slot == 0) {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.value.command = 0xd;
+                        D_actor_444000_80161888.command.command = 0xd;
                     } else {
-                        D_actor_444000_80161888.value.command = 8;
+                        D_actor_444000_80161888.command.command = 8;
                     }
                 } else {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.value.command = 7;
+                        D_actor_444000_80161888.command.command = 7;
                     } else {
-                        D_actor_444000_80161888.value.command = 0xe;
+                        D_actor_444000_80161888.command.command = 0xe;
                     }
                 }
                 break;
@@ -6315,25 +6367,25 @@ static void func_actor_444000_80141618(Task* task)
                 if (sc->slot == 0) {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.value.command = 9;
+                        D_actor_444000_80161888.command.command = 9;
                     } else {
-                        D_actor_444000_80161888.value.command = 0xf;
+                        D_actor_444000_80161888.command.command = 0xf;
                     }
                 } else {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.value.command = 9;
+                        D_actor_444000_80161888.command.command = 9;
                     } else {
-                        D_actor_444000_80161888.value.command = 0xf;
+                        D_actor_444000_80161888.command.command = 0xf;
                     }
                 }
                 break;
         }
-        D_actor_444000_80161888.value.command <<= 8;
-        rnd                                     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        D_actor_444000_80161888.value.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
-        gRandomLcgState                         = rnd;
-        TASK_MESSAGE_DISPATCH_POINTER(work->summons[sc->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_444000_80161888.value, 0);
+        D_actor_444000_80161888.command.command <<= 8;
+        rnd                                       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        D_actor_444000_80161888.command.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
+        gRandomLcgState                           = rnd;
+        TASK_MESSAGE_DISPATCH_POINTER(work->summons[sc->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_444000_80161888.command, 0);
     }
 out:
     SCRATCH_STACK_RELEASE_BLOCK(GluttonSummonScratch);
@@ -6641,11 +6693,11 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         if (enemy->hp <= 0 && work->state != 0) {
             switch (work->deathTicks) {
                 case 0:
-                    gGluttonEnded                                   = 1;
-                    D_actor_444000_80161888.value.context.loc.stage = 0;
-                    D_actor_444000_80161888.value.context.loc.area  = 0x2C;
-                    D_actor_444000_80161888.value.command           = 3;
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.value, ACTOR_COMMAND_MESSAGE_APPLY);
+                    gGluttonEnded                                     = 1;
+                    D_actor_444000_80161888.command.context.loc.stage = 0;
+                    D_actor_444000_80161888.command.context.loc.area  = 0x2C;
+                    D_actor_444000_80161888.command.command           = 3;
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.command, ACTOR_COMMAND_MESSAGE_APPLY);
                     break;
 
                 case 3:
