@@ -58,18 +58,32 @@ STATIC_ASSERT_SIZEOF(_Actor161500TalkAnimationBankExtensionStorage, 144);
 
 extern _Actor161500TalkAnimationBankExtensionStorage D_actor_161500_80133F90;
 
-// The engine copies words across the exported animation bank and its
-// following argument records. Both views cover the complete backing object.
+/// The clips the soldier's request scenes add to the player's animation bank,
+/// with the words stored after them.
+///
+/// The request scenes are the ones the soldier plays while the companion is
+/// present: the first exchange, the two that repeat while the request is
+/// pending, and the one that hands the item over. Each event script that plays
+/// one of these clips first sends the player a copy request for this storage.
+/// The copy takes 10 words from the start of the storage, which is more than
+/// the clip table holds: the six set pointers occupy extended ids 47-52, the
+/// NULL that closes the table lands at id 53, and the first three words of the
+/// play request are written into the bank after it. The scenes select ids
+/// 47-52 only, so none of those following words is played as a clip.
+///
+/// The play request is part of this object only because the copied span
+/// reaches into it. The six requests the scripts do play, one per clip, are
+/// separate objects stored directly after this one.
 typedef union {
     struct {
-        AnimationSet*        sets[7];
-        AnimationPlayRequest arguments[1];
-    } data;
-    s32 words[12];
-} Actor161500AnimCopy6D60;
-STATIC_ASSERT_SIZEOF(Actor161500AnimCopy6D60, 48);
+        AnimationSet*        sets[7];     // Player clips for extended ids 47-52, then NULL at id 53, which nothing requests
+        AnimationPlayRequest playRequest; // Request for extended id 47; nothing references it, and it repeats the first of the requests after this object
+    } data;                               // The records by name
+    s32 words[12];                        // The same storage as the copy reads it; the last two words lie beyond the copied span
+} _Actor161500RequestSceneAnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_Actor161500RequestSceneAnimationBankExtensionStorage, 48);
 
-extern Actor161500AnimCopy6D60 D_actor_161500_80136D60;
+extern _Actor161500RequestSceneAnimationBankExtensionStorage D_actor_161500_80136D60;
 
 extern TaskDesc      gStrideWalkTasks[];
 extern AnimationSet* gStrideWalkAnimParams[12];
@@ -116,12 +130,11 @@ static AnimationSet _gActor161500Animation04A88;
 static AnimationSet _gActor161500Animation04C60;
 static AnimationSet _gActor161500Animation04E94;
 
-extern Actor161500AnimCopy6D60 D_actor_161500_80136D60;
-extern ActorTransform          D_actor_161500_80136CE8;
-extern ActorTransform          D_actor_161500_80136D00;
-extern ActorTransform          D_actor_161500_80136D18;
-extern ActorTransform          D_actor_161500_80136D30;
-extern ActorTransform          D_actor_161500_80136D48;
+extern ActorTransform D_actor_161500_80136CE8;
+extern ActorTransform D_actor_161500_80136D00;
+extern ActorTransform D_actor_161500_80136D18;
+extern ActorTransform D_actor_161500_80136D30;
+extern ActorTransform D_actor_161500_80136D48;
 
 void func_actor_161500_80131F50(s32);
 
@@ -831,7 +844,7 @@ ActorTransform D_actor_161500_80136D30 = { { 1330, 0, 4780, 0 }, { 0, 2616, 0, 0
 
 ActorTransform D_actor_161500_80136D48 = { { 4224, 0, 5209, 0 }, { 0, 2048, 0, 0 } };
 
-Actor161500AnimCopy6D60 D_actor_161500_80136D60 = { .data = { { &_gActor161500Animation04304, &_gActor161500Animation04518, &_gActor161500Animation047F8, &_gActor161500Animation04A88, &_gActor161500Animation04C60, &_gActor161500Animation04E94, NULL }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE } } } };
+_Actor161500RequestSceneAnimationBankExtensionStorage D_actor_161500_80136D60 = { .data = { { &_gActor161500Animation04304, &_gActor161500Animation04518, &_gActor161500Animation047F8, &_gActor161500Animation04A88, &_gActor161500Animation04C60, &_gActor161500Animation04E94, NULL }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE } } };
 
 AnimationPlayRequest D_actor_161500_80136D90 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
