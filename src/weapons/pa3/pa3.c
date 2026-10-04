@@ -208,3 +208,1754 @@ TmdSource D_sp12_8011DB44 = {
     _gSp12Model005CCStream,
 };
 #endif
+
+/* Each package carries its own animation bank. */
+#if WEAPON_ID == 0xD
+static AnimationPackedPose _gPa3Animation009F8Bank1[2] = {
+#include "assets/pa3_animation_009F8_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation009F8Bank4[8] = {
+#include "assets/pa3_animation_009F8_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation009F8Records[76] = {
+#include "assets/pa3_animation_009F8_records.inc"
+};
+
+static u16 _gPa3Animation009F8Indices[20] = {
+#include "assets/pa3_animation_009F8_indices.inc"
+};
+
+static AnimationSet _gPa3Animation009F8 = {
+    _gPa3Animation009F8Records,
+    _gPa3Animation009F8Indices,
+    { NULL, _gPa3Animation009F8Bank1, NULL, NULL, _gPa3Animation009F8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0109CBank1[12] = {
+#include "assets/pa3_animation_0109C_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0109CBank4[151] = {
+#include "assets/pa3_animation_0109C_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0109CRecords[218] = {
+#include "assets/pa3_animation_0109C_records.inc"
+};
+
+static u16 _gPa3Animation0109CIndices[20] = {
+#include "assets/pa3_animation_0109C_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0109C = {
+    _gPa3Animation0109CRecords,
+    _gPa3Animation0109CIndices,
+    { NULL, _gPa3Animation0109CBank1, NULL, NULL, _gPa3Animation0109CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation018FCBank1[19] = {
+#include "assets/pa3_animation_018FC_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation018FCBank4[169] = {
+#include "assets/pa3_animation_018FC_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation018FCRecords[290] = {
+#include "assets/pa3_animation_018FC_records.inc"
+};
+
+static u16 _gPa3Animation018FCIndices[20] = {
+#include "assets/pa3_animation_018FC_indices.inc"
+};
+
+static AnimationSet _gPa3Animation018FC = {
+    _gPa3Animation018FCRecords,
+    _gPa3Animation018FCIndices,
+    { NULL, _gPa3Animation018FCBank1, NULL, NULL, _gPa3Animation018FCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation02160Bank1[19] = {
+#include "assets/pa3_animation_02160_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation02160Bank4[170] = {
+#include "assets/pa3_animation_02160_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation02160Records[290] = {
+#include "assets/pa3_animation_02160_records.inc"
+};
+
+static u16 _gPa3Animation02160Indices[20] = {
+#include "assets/pa3_animation_02160_indices.inc"
+};
+
+static AnimationSet _gPa3Animation02160 = {
+    _gPa3Animation02160Records,
+    _gPa3Animation02160Indices,
+    { NULL, _gPa3Animation02160Bank1, NULL, NULL, _gPa3Animation02160Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation02474Bank1[3] = {
+#include "assets/pa3_animation_02474_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation02474Bank4[69] = {
+#include "assets/pa3_animation_02474_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation02474Records[99] = {
+#include "assets/pa3_animation_02474_records.inc"
+};
+
+static u16 _gPa3Animation02474Indices[20] = {
+#include "assets/pa3_animation_02474_indices.inc"
+};
+
+static AnimationSet _gPa3Animation02474 = {
+    _gPa3Animation02474Records,
+    _gPa3Animation02474Indices,
+    { NULL, _gPa3Animation02474Bank1, NULL, NULL, _gPa3Animation02474Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation02BD0Bank1[14] = {
+#include "assets/pa3_animation_02BD0_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation02BD0Bank4[156] = {
+#include "assets/pa3_animation_02BD0_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation02BD0Records[253] = {
+#include "assets/pa3_animation_02BD0_records.inc"
+};
+
+static u16 _gPa3Animation02BD0Indices[20] = {
+#include "assets/pa3_animation_02BD0_indices.inc"
+};
+
+static AnimationSet _gPa3Animation02BD0 = {
+    _gPa3Animation02BD0Records,
+    _gPa3Animation02BD0Indices,
+    { NULL, _gPa3Animation02BD0Bank1, NULL, NULL, _gPa3Animation02BD0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation03358Bank1[16] = {
+#include "assets/pa3_animation_03358_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation03358Bank4[167] = {
+#include "assets/pa3_animation_03358_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation03358Records[247] = {
+#include "assets/pa3_animation_03358_records.inc"
+};
+
+static u16 _gPa3Animation03358Indices[20] = {
+#include "assets/pa3_animation_03358_indices.inc"
+};
+
+static AnimationSet _gPa3Animation03358 = {
+    _gPa3Animation03358Records,
+    _gPa3Animation03358Indices,
+    { NULL, _gPa3Animation03358Bank1, NULL, NULL, _gPa3Animation03358Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0362CBank1[6] = {
+#include "assets/pa3_animation_0362C_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0362CBank4[52] = {
+#include "assets/pa3_animation_0362C_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0362CRecords[91] = {
+#include "assets/pa3_animation_0362C_records.inc"
+};
+
+static u16 _gPa3Animation0362CIndices[20] = {
+#include "assets/pa3_animation_0362C_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0362C = {
+    _gPa3Animation0362CRecords,
+    _gPa3Animation0362CIndices,
+    { NULL, _gPa3Animation0362CBank1, NULL, NULL, _gPa3Animation0362CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation039BCBank1[7] = {
+#include "assets/pa3_animation_039BC_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation039BCBank4[73] = {
+#include "assets/pa3_animation_039BC_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation039BCRecords[114] = {
+#include "assets/pa3_animation_039BC_records.inc"
+};
+
+static u16 _gPa3Animation039BCIndices[20] = {
+#include "assets/pa3_animation_039BC_indices.inc"
+};
+
+static AnimationSet _gPa3Animation039BC = {
+    _gPa3Animation039BCRecords,
+    _gPa3Animation039BCIndices,
+    { NULL, _gPa3Animation039BCBank1, NULL, NULL, _gPa3Animation039BCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation03E44Bank1[9] = {
+#include "assets/pa3_animation_03E44_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation03E44Bank4[104] = {
+#include "assets/pa3_animation_03E44_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation03E44Records[139] = {
+#include "assets/pa3_animation_03E44_records.inc"
+};
+
+static u16 _gPa3Animation03E44Indices[20] = {
+#include "assets/pa3_animation_03E44_indices.inc"
+};
+
+static AnimationSet _gPa3Animation03E44 = {
+    _gPa3Animation03E44Records,
+    _gPa3Animation03E44Indices,
+    { NULL, _gPa3Animation03E44Bank1, NULL, NULL, _gPa3Animation03E44Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation04040Bank1[3] = {
+#include "assets/pa3_animation_04040_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation04040Bank4[22] = {
+#include "assets/pa3_animation_04040_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation04040Records[76] = {
+#include "assets/pa3_animation_04040_records.inc"
+};
+
+static u16 _gPa3Animation04040Indices[20] = {
+#include "assets/pa3_animation_04040_indices.inc"
+};
+
+static AnimationSet _gPa3Animation04040 = {
+    _gPa3Animation04040Records,
+    _gPa3Animation04040Indices,
+    { NULL, _gPa3Animation04040Bank1, NULL, NULL, _gPa3Animation04040Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation04318Bank1[6] = {
+#include "assets/pa3_animation_04318_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation04318Bank4[57] = {
+#include "assets/pa3_animation_04318_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation04318Records[87] = {
+#include "assets/pa3_animation_04318_records.inc"
+};
+
+static u16 _gPa3Animation04318Indices[20] = {
+#include "assets/pa3_animation_04318_indices.inc"
+};
+
+static AnimationSet _gPa3Animation04318 = {
+    _gPa3Animation04318Records,
+    _gPa3Animation04318Indices,
+    { NULL, _gPa3Animation04318Bank1, NULL, NULL, _gPa3Animation04318Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation045BCBank1[4] = {
+#include "assets/pa3_animation_045BC_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation045BCBank4[55] = {
+#include "assets/pa3_animation_045BC_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation045BCRecords[82] = {
+#include "assets/pa3_animation_045BC_records.inc"
+};
+
+static u16 _gPa3Animation045BCIndices[20] = {
+#include "assets/pa3_animation_045BC_indices.inc"
+};
+
+static AnimationSet _gPa3Animation045BC = {
+    _gPa3Animation045BCRecords,
+    _gPa3Animation045BCIndices,
+    { NULL, _gPa3Animation045BCBank1, NULL, NULL, _gPa3Animation045BCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation047BCBank1[3] = {
+#include "assets/pa3_animation_047BC_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation047BCBank4[23] = {
+#include "assets/pa3_animation_047BC_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation047BCRecords[76] = {
+#include "assets/pa3_animation_047BC_records.inc"
+};
+
+static u16 _gPa3Animation047BCIndices[20] = {
+#include "assets/pa3_animation_047BC_indices.inc"
+};
+
+static AnimationSet _gPa3Animation047BC = {
+    _gPa3Animation047BCRecords,
+    _gPa3Animation047BCIndices,
+    { NULL, _gPa3Animation047BCBank1, NULL, NULL, _gPa3Animation047BCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation04B10Bank1[8] = {
+#include "assets/pa3_animation_04B10_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation04B10Bank4[68] = {
+#include "assets/pa3_animation_04B10_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation04B10Records[101] = {
+#include "assets/pa3_animation_04B10_records.inc"
+};
+
+static u16 _gPa3Animation04B10Indices[20] = {
+#include "assets/pa3_animation_04B10_indices.inc"
+};
+
+static AnimationSet _gPa3Animation04B10 = {
+    _gPa3Animation04B10Records,
+    _gPa3Animation04B10Indices,
+    { NULL, _gPa3Animation04B10Bank1, NULL, NULL, _gPa3Animation04B10Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation04DC4Bank1[5] = {
+#include "assets/pa3_animation_04DC4_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation04DC4Bank4[55] = {
+#include "assets/pa3_animation_04DC4_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation04DC4Records[83] = {
+#include "assets/pa3_animation_04DC4_records.inc"
+};
+
+static u16 _gPa3Animation04DC4Indices[20] = {
+#include "assets/pa3_animation_04DC4_indices.inc"
+};
+
+static AnimationSet _gPa3Animation04DC4 = {
+    _gPa3Animation04DC4Records,
+    _gPa3Animation04DC4Indices,
+    { NULL, _gPa3Animation04DC4Bank1, NULL, NULL, _gPa3Animation04DC4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation050E4Bank1[6] = {
+#include "assets/pa3_animation_050E4_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation050E4Bank4[66] = {
+#include "assets/pa3_animation_050E4_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation050E4Records[96] = {
+#include "assets/pa3_animation_050E4_records.inc"
+};
+
+static u16 _gPa3Animation050E4Indices[20] = {
+#include "assets/pa3_animation_050E4_indices.inc"
+};
+
+static AnimationSet _gPa3Animation050E4 = {
+    _gPa3Animation050E4Records,
+    _gPa3Animation050E4Indices,
+    { NULL, _gPa3Animation050E4Bank1, NULL, NULL, _gPa3Animation050E4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation058A8Bank1[18] = {
+#include "assets/pa3_animation_058A8_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation058A8Bank4[184] = {
+#include "assets/pa3_animation_058A8_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation058A8Records[239] = {
+#include "assets/pa3_animation_058A8_records.inc"
+};
+
+static u16 _gPa3Animation058A8Indices[20] = {
+#include "assets/pa3_animation_058A8_indices.inc"
+};
+
+static AnimationSet _gPa3Animation058A8 = {
+    _gPa3Animation058A8Records,
+    _gPa3Animation058A8Indices,
+    { NULL, _gPa3Animation058A8Bank1, NULL, NULL, _gPa3Animation058A8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation06B40Bank1[29] = {
+#include "assets/pa3_animation_06B40_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation06B40Bank4[450] = {
+#include "assets/pa3_animation_06B40_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation06B40Records[633] = {
+#include "assets/pa3_animation_06B40_records.inc"
+};
+
+static u16 _gPa3Animation06B40Indices[20] = {
+#include "assets/pa3_animation_06B40_indices.inc"
+};
+
+static AnimationSet _gPa3Animation06B40 = {
+    _gPa3Animation06B40Records,
+    _gPa3Animation06B40Indices,
+    { NULL, _gPa3Animation06B40Bank1, NULL, NULL, _gPa3Animation06B40Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation076B8Bank1[12] = {
+#include "assets/pa3_animation_076B8_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation076B8Bank4[266] = {
+#include "assets/pa3_animation_076B8_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation076B8Records[412] = {
+#include "assets/pa3_animation_076B8_records.inc"
+};
+
+static u16 _gPa3Animation076B8Indices[20] = {
+#include "assets/pa3_animation_076B8_indices.inc"
+};
+
+static AnimationSet _gPa3Animation076B8 = {
+    _gPa3Animation076B8Records,
+    _gPa3Animation076B8Indices,
+    { NULL, _gPa3Animation076B8Bank1, NULL, NULL, _gPa3Animation076B8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation07DD4Bank1[9] = {
+#include "assets/pa3_animation_07DD4_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation07DD4Bank4[144] = {
+#include "assets/pa3_animation_07DD4_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation07DD4Records[264] = {
+#include "assets/pa3_animation_07DD4_records.inc"
+};
+
+static u16 _gPa3Animation07DD4Indices[20] = {
+#include "assets/pa3_animation_07DD4_indices.inc"
+};
+
+static AnimationSet _gPa3Animation07DD4 = {
+    _gPa3Animation07DD4Records,
+    _gPa3Animation07DD4Indices,
+    { NULL, _gPa3Animation07DD4Bank1, NULL, NULL, _gPa3Animation07DD4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation08254Bank1[6] = {
+#include "assets/pa3_animation_08254_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation08254Bank4[107] = {
+#include "assets/pa3_animation_08254_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation08254Records[143] = {
+#include "assets/pa3_animation_08254_records.inc"
+};
+
+static u16 _gPa3Animation08254Indices[20] = {
+#include "assets/pa3_animation_08254_indices.inc"
+};
+
+static AnimationSet _gPa3Animation08254 = {
+    _gPa3Animation08254Records,
+    _gPa3Animation08254Indices,
+    { NULL, _gPa3Animation08254Bank1, NULL, NULL, _gPa3Animation08254Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0842CBank1[3] = {
+#include "assets/pa3_animation_0842C_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0842CBank4[32] = {
+#include "assets/pa3_animation_0842C_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0842CRecords[57] = {
+#include "assets/pa3_animation_0842C_records.inc"
+};
+
+static u16 _gPa3Animation0842CIndices[20] = {
+#include "assets/pa3_animation_0842C_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0842C = {
+    _gPa3Animation0842CRecords,
+    _gPa3Animation0842CIndices,
+    { NULL, _gPa3Animation0842CBank1, NULL, NULL, _gPa3Animation0842CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation08990Bank1[11] = {
+#include "assets/pa3_animation_08990_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation08990Bank4[125] = {
+#include "assets/pa3_animation_08990_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation08990Records[167] = {
+#include "assets/pa3_animation_08990_records.inc"
+};
+
+static u16 _gPa3Animation08990Indices[20] = {
+#include "assets/pa3_animation_08990_indices.inc"
+};
+
+static AnimationSet _gPa3Animation08990 = {
+    _gPa3Animation08990Records,
+    _gPa3Animation08990Indices,
+    { NULL, _gPa3Animation08990Bank1, NULL, NULL, _gPa3Animation08990Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation08B84Bank1[3] = {
+#include "assets/pa3_animation_08B84_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation08B84Bank4[20] = {
+#include "assets/pa3_animation_08B84_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation08B84Records[76] = {
+#include "assets/pa3_animation_08B84_records.inc"
+};
+
+static u16 _gPa3Animation08B84Indices[20] = {
+#include "assets/pa3_animation_08B84_indices.inc"
+};
+
+static AnimationSet _gPa3Animation08B84 = {
+    _gPa3Animation08B84Records,
+    _gPa3Animation08B84Indices,
+    { NULL, _gPa3Animation08B84Bank1, NULL, NULL, _gPa3Animation08B84Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation09004Bank1[8] = {
+#include "assets/pa3_animation_09004_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation09004Bank4[105] = {
+#include "assets/pa3_animation_09004_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation09004Records[139] = {
+#include "assets/pa3_animation_09004_records.inc"
+};
+
+static u16 _gPa3Animation09004Indices[20] = {
+#include "assets/pa3_animation_09004_indices.inc"
+};
+
+static AnimationSet _gPa3Animation09004 = {
+    _gPa3Animation09004Records,
+    _gPa3Animation09004Indices,
+    { NULL, _gPa3Animation09004Bank1, NULL, NULL, _gPa3Animation09004Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation091E0Bank1[2] = {
+#include "assets/pa3_animation_091E0_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation091E0Bank4[17] = {
+#include "assets/pa3_animation_091E0_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation091E0Records[76] = {
+#include "assets/pa3_animation_091E0_records.inc"
+};
+
+static u16 _gPa3Animation091E0Indices[20] = {
+#include "assets/pa3_animation_091E0_indices.inc"
+};
+
+static AnimationSet _gPa3Animation091E0 = {
+    _gPa3Animation091E0Records,
+    _gPa3Animation091E0Indices,
+    { NULL, _gPa3Animation091E0Bank1, NULL, NULL, _gPa3Animation091E0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation09984Bank1[13] = {
+#include "assets/pa3_animation_09984_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation09984Bank4[177] = {
+#include "assets/pa3_animation_09984_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation09984Records[253] = {
+#include "assets/pa3_animation_09984_records.inc"
+};
+
+static u16 _gPa3Animation09984Indices[20] = {
+#include "assets/pa3_animation_09984_indices.inc"
+};
+
+static AnimationSet _gPa3Animation09984 = {
+    _gPa3Animation09984Records,
+    _gPa3Animation09984Indices,
+    { NULL, _gPa3Animation09984Bank1, NULL, NULL, _gPa3Animation09984Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0A42CBank1[19] = {
+#include "assets/pa3_animation_0A42C_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0A42CBank4[269] = {
+#include "assets/pa3_animation_0A42C_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0A42CRecords[336] = {
+#include "assets/pa3_animation_0A42C_records.inc"
+};
+
+static u16 _gPa3Animation0A42CIndices[20] = {
+#include "assets/pa3_animation_0A42C_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0A42C = {
+    _gPa3Animation0A42CRecords,
+    _gPa3Animation0A42CIndices,
+    { NULL, _gPa3Animation0A42CBank1, NULL, NULL, _gPa3Animation0A42CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0B590Bank1[30] = {
+#include "assets/pa3_animation_0B590_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0B590Bank4[461] = {
+#include "assets/pa3_animation_0B590_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0B590Records[542] = {
+#include "assets/pa3_animation_0B590_records.inc"
+};
+
+static u16 _gPa3Animation0B590Indices[20] = {
+#include "assets/pa3_animation_0B590_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0B590 = {
+    _gPa3Animation0B590Records,
+    _gPa3Animation0B590Indices,
+    { NULL, _gPa3Animation0B590Bank1, NULL, NULL, _gPa3Animation0B590Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0C348Bank1[23] = {
+#include "assets/pa3_animation_0C348_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0C348Bank4[354] = {
+#include "assets/pa3_animation_0C348_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0C348Records[435] = {
+#include "assets/pa3_animation_0C348_records.inc"
+};
+
+static u16 _gPa3Animation0C348Indices[20] = {
+#include "assets/pa3_animation_0C348_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0C348 = {
+    _gPa3Animation0C348Records,
+    _gPa3Animation0C348Indices,
+    { NULL, _gPa3Animation0C348Bank1, NULL, NULL, _gPa3Animation0C348Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0CAA0Bank1[13] = {
+#include "assets/pa3_animation_0CAA0_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0CAA0Bank4[184] = {
+#include "assets/pa3_animation_0CAA0_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0CAA0Records[227] = {
+#include "assets/pa3_animation_0CAA0_records.inc"
+};
+
+static u16 _gPa3Animation0CAA0Indices[20] = {
+#include "assets/pa3_animation_0CAA0_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0CAA0 = {
+    _gPa3Animation0CAA0Records,
+    _gPa3Animation0CAA0Indices,
+    { NULL, _gPa3Animation0CAA0Bank1, NULL, NULL, _gPa3Animation0CAA0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0D578Bank1[19] = {
+#include "assets/pa3_animation_0D578_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0D578Bank4[288] = {
+#include "assets/pa3_animation_0D578_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0D578Records[329] = {
+#include "assets/pa3_animation_0D578_records.inc"
+};
+
+static u16 _gPa3Animation0D578Indices[20] = {
+#include "assets/pa3_animation_0D578_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0D578 = {
+    _gPa3Animation0D578Records,
+    _gPa3Animation0D578Indices,
+    { NULL, _gPa3Animation0D578Bank1, NULL, NULL, _gPa3Animation0D578Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0DE30Bank1[18] = {
+#include "assets/pa3_animation_0DE30_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0DE30Bank4[201] = {
+#include "assets/pa3_animation_0DE30_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0DE30Records[283] = {
+#include "assets/pa3_animation_0DE30_records.inc"
+};
+
+static u16 _gPa3Animation0DE30Indices[20] = {
+#include "assets/pa3_animation_0DE30_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0DE30 = {
+    _gPa3Animation0DE30Records,
+    _gPa3Animation0DE30Indices,
+    { NULL, _gPa3Animation0DE30Bank1, NULL, NULL, _gPa3Animation0DE30Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0E5D0Bank1[16] = {
+#include "assets/pa3_animation_0E5D0_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0E5D0Bank4[157] = {
+#include "assets/pa3_animation_0E5D0_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0E5D0Records[263] = {
+#include "assets/pa3_animation_0E5D0_records.inc"
+};
+
+static u16 _gPa3Animation0E5D0Indices[20] = {
+#include "assets/pa3_animation_0E5D0_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0E5D0 = {
+    _gPa3Animation0E5D0Records,
+    _gPa3Animation0E5D0Indices,
+    { NULL, _gPa3Animation0E5D0Bank1, NULL, NULL, _gPa3Animation0E5D0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gPa3Animation0EFA4Bank1[25] = {
+#include "assets/pa3_animation_0EFA4_bank1.inc"
+};
+
+static AnimationPackedRotation _gPa3Animation0EFA4Bank4[223] = {
+#include "assets/pa3_animation_0EFA4_bank4.inc"
+};
+
+static AnimationRecord _gPa3Animation0EFA4Records[311] = {
+#include "assets/pa3_animation_0EFA4_records.inc"
+};
+
+static u16 _gPa3Animation0EFA4Indices[20] = {
+#include "assets/pa3_animation_0EFA4_indices.inc"
+};
+
+static AnimationSet _gPa3Animation0EFA4 = {
+    _gPa3Animation0EFA4Records,
+    _gPa3Animation0EFA4Indices,
+    { NULL, _gPa3Animation0EFA4Bank1, NULL, NULL, _gPa3Animation0EFA4Bank4, NULL, NULL, NULL },
+};
+
+AnimationBank D_pa3_8012C18C = { { {
+    NULL,
+    &_gPa3Animation009F8,
+    &_gPa3Animation0DE30,
+    &_gPa3Animation0E5D0,
+    &_gPa3Animation0EFA4,
+    &_gPa3Animation018FC,
+    &_gPa3Animation02160,
+    &_gPa3Animation0CAA0,
+    &_gPa3Animation0D578,
+    &_gPa3Animation091E0,
+    &_gPa3Animation0C348,
+    &_gPa3Animation0C348,
+    &_gPa3Animation0A42C,
+    &_gPa3Animation09984,
+    &_gPa3Animation0B590,
+    &_gPa3Animation0B590,
+    &_gPa3Animation04DC4,
+    &_gPa3Animation050E4,
+    &_gPa3Animation058A8,
+    &_gPa3Animation0109C,
+    &_gPa3Animation0B590,
+    &_gPa3Animation009F8,
+    &_gPa3Animation009F8,
+    &_gPa3Animation06B40,
+    &_gPa3Animation07DD4,
+    &_gPa3Animation076B8,
+    &_gPa3Animation03E44,
+    &_gPa3Animation04040,
+    &_gPa3Animation04318,
+    &_gPa3Animation045BC,
+    &_gPa3Animation047BC,
+    &_gPa3Animation04B10,
+    &_gPa3Animation08254,
+    &_gPa3Animation0842C,
+    &_gPa3Animation08254,
+    &_gPa3Animation0842C,
+    &_gPa3Animation02BD0,
+    &_gPa3Animation03358,
+    &_gPa3Animation039BC,
+    &_gPa3Animation0362C,
+    &_gPa3Animation02474,
+    &_gPa3Animation009F8,
+    &_gPa3Animation08990,
+    &_gPa3Animation08B84,
+    &_gPa3Animation09004,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+} } };
+#elif WEAPON_ID == 0xE
+static AnimationPackedPose _gSp12Animation00B38Bank1[2] = {
+#include "assets/sp12_animation_00B38_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation00B38Bank4[8] = {
+#include "assets/sp12_animation_00B38_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation00B38Records[76] = {
+#include "assets/sp12_animation_00B38_records.inc"
+};
+
+static u16 _gSp12Animation00B38Indices[20] = {
+#include "assets/sp12_animation_00B38_indices.inc"
+};
+
+static AnimationSet _gSp12Animation00B38 = {
+    _gSp12Animation00B38Records,
+    _gSp12Animation00B38Indices,
+    { NULL, _gSp12Animation00B38Bank1, NULL, NULL, _gSp12Animation00B38Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation011DCBank1[12] = {
+#include "assets/sp12_animation_011DC_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation011DCBank4[151] = {
+#include "assets/sp12_animation_011DC_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation011DCRecords[218] = {
+#include "assets/sp12_animation_011DC_records.inc"
+};
+
+static u16 _gSp12Animation011DCIndices[20] = {
+#include "assets/sp12_animation_011DC_indices.inc"
+};
+
+static AnimationSet _gSp12Animation011DC = {
+    _gSp12Animation011DCRecords,
+    _gSp12Animation011DCIndices,
+    { NULL, _gSp12Animation011DCBank1, NULL, NULL, _gSp12Animation011DCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation01A3CBank1[19] = {
+#include "assets/sp12_animation_01A3C_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation01A3CBank4[169] = {
+#include "assets/sp12_animation_01A3C_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation01A3CRecords[290] = {
+#include "assets/sp12_animation_01A3C_records.inc"
+};
+
+static u16 _gSp12Animation01A3CIndices[20] = {
+#include "assets/sp12_animation_01A3C_indices.inc"
+};
+
+static AnimationSet _gSp12Animation01A3C = {
+    _gSp12Animation01A3CRecords,
+    _gSp12Animation01A3CIndices,
+    { NULL, _gSp12Animation01A3CBank1, NULL, NULL, _gSp12Animation01A3CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation022A0Bank1[19] = {
+#include "assets/sp12_animation_022A0_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation022A0Bank4[170] = {
+#include "assets/sp12_animation_022A0_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation022A0Records[290] = {
+#include "assets/sp12_animation_022A0_records.inc"
+};
+
+static u16 _gSp12Animation022A0Indices[20] = {
+#include "assets/sp12_animation_022A0_indices.inc"
+};
+
+static AnimationSet _gSp12Animation022A0 = {
+    _gSp12Animation022A0Records,
+    _gSp12Animation022A0Indices,
+    { NULL, _gSp12Animation022A0Bank1, NULL, NULL, _gSp12Animation022A0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation025B4Bank1[3] = {
+#include "assets/sp12_animation_025B4_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation025B4Bank4[69] = {
+#include "assets/sp12_animation_025B4_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation025B4Records[99] = {
+#include "assets/sp12_animation_025B4_records.inc"
+};
+
+static u16 _gSp12Animation025B4Indices[20] = {
+#include "assets/sp12_animation_025B4_indices.inc"
+};
+
+static AnimationSet _gSp12Animation025B4 = {
+    _gSp12Animation025B4Records,
+    _gSp12Animation025B4Indices,
+    { NULL, _gSp12Animation025B4Bank1, NULL, NULL, _gSp12Animation025B4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation02D10Bank1[14] = {
+#include "assets/sp12_animation_02D10_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation02D10Bank4[156] = {
+#include "assets/sp12_animation_02D10_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation02D10Records[253] = {
+#include "assets/sp12_animation_02D10_records.inc"
+};
+
+static u16 _gSp12Animation02D10Indices[20] = {
+#include "assets/sp12_animation_02D10_indices.inc"
+};
+
+static AnimationSet _gSp12Animation02D10 = {
+    _gSp12Animation02D10Records,
+    _gSp12Animation02D10Indices,
+    { NULL, _gSp12Animation02D10Bank1, NULL, NULL, _gSp12Animation02D10Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation03498Bank1[16] = {
+#include "assets/sp12_animation_03498_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation03498Bank4[167] = {
+#include "assets/sp12_animation_03498_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation03498Records[247] = {
+#include "assets/sp12_animation_03498_records.inc"
+};
+
+static u16 _gSp12Animation03498Indices[20] = {
+#include "assets/sp12_animation_03498_indices.inc"
+};
+
+static AnimationSet _gSp12Animation03498 = {
+    _gSp12Animation03498Records,
+    _gSp12Animation03498Indices,
+    { NULL, _gSp12Animation03498Bank1, NULL, NULL, _gSp12Animation03498Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0376CBank1[6] = {
+#include "assets/sp12_animation_0376C_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0376CBank4[52] = {
+#include "assets/sp12_animation_0376C_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0376CRecords[91] = {
+#include "assets/sp12_animation_0376C_records.inc"
+};
+
+static u16 _gSp12Animation0376CIndices[20] = {
+#include "assets/sp12_animation_0376C_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0376C = {
+    _gSp12Animation0376CRecords,
+    _gSp12Animation0376CIndices,
+    { NULL, _gSp12Animation0376CBank1, NULL, NULL, _gSp12Animation0376CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation03AFCBank1[7] = {
+#include "assets/sp12_animation_03AFC_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation03AFCBank4[73] = {
+#include "assets/sp12_animation_03AFC_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation03AFCRecords[114] = {
+#include "assets/sp12_animation_03AFC_records.inc"
+};
+
+static u16 _gSp12Animation03AFCIndices[20] = {
+#include "assets/sp12_animation_03AFC_indices.inc"
+};
+
+static AnimationSet _gSp12Animation03AFC = {
+    _gSp12Animation03AFCRecords,
+    _gSp12Animation03AFCIndices,
+    { NULL, _gSp12Animation03AFCBank1, NULL, NULL, _gSp12Animation03AFCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation03F84Bank1[9] = {
+#include "assets/sp12_animation_03F84_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation03F84Bank4[104] = {
+#include "assets/sp12_animation_03F84_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation03F84Records[139] = {
+#include "assets/sp12_animation_03F84_records.inc"
+};
+
+static u16 _gSp12Animation03F84Indices[20] = {
+#include "assets/sp12_animation_03F84_indices.inc"
+};
+
+static AnimationSet _gSp12Animation03F84 = {
+    _gSp12Animation03F84Records,
+    _gSp12Animation03F84Indices,
+    { NULL, _gSp12Animation03F84Bank1, NULL, NULL, _gSp12Animation03F84Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation04180Bank1[3] = {
+#include "assets/sp12_animation_04180_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation04180Bank4[22] = {
+#include "assets/sp12_animation_04180_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation04180Records[76] = {
+#include "assets/sp12_animation_04180_records.inc"
+};
+
+static u16 _gSp12Animation04180Indices[20] = {
+#include "assets/sp12_animation_04180_indices.inc"
+};
+
+static AnimationSet _gSp12Animation04180 = {
+    _gSp12Animation04180Records,
+    _gSp12Animation04180Indices,
+    { NULL, _gSp12Animation04180Bank1, NULL, NULL, _gSp12Animation04180Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation04458Bank1[6] = {
+#include "assets/sp12_animation_04458_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation04458Bank4[57] = {
+#include "assets/sp12_animation_04458_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation04458Records[87] = {
+#include "assets/sp12_animation_04458_records.inc"
+};
+
+static u16 _gSp12Animation04458Indices[20] = {
+#include "assets/sp12_animation_04458_indices.inc"
+};
+
+static AnimationSet _gSp12Animation04458 = {
+    _gSp12Animation04458Records,
+    _gSp12Animation04458Indices,
+    { NULL, _gSp12Animation04458Bank1, NULL, NULL, _gSp12Animation04458Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation046FCBank1[4] = {
+#include "assets/sp12_animation_046FC_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation046FCBank4[55] = {
+#include "assets/sp12_animation_046FC_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation046FCRecords[82] = {
+#include "assets/sp12_animation_046FC_records.inc"
+};
+
+static u16 _gSp12Animation046FCIndices[20] = {
+#include "assets/sp12_animation_046FC_indices.inc"
+};
+
+static AnimationSet _gSp12Animation046FC = {
+    _gSp12Animation046FCRecords,
+    _gSp12Animation046FCIndices,
+    { NULL, _gSp12Animation046FCBank1, NULL, NULL, _gSp12Animation046FCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation048FCBank1[3] = {
+#include "assets/sp12_animation_048FC_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation048FCBank4[23] = {
+#include "assets/sp12_animation_048FC_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation048FCRecords[76] = {
+#include "assets/sp12_animation_048FC_records.inc"
+};
+
+static u16 _gSp12Animation048FCIndices[20] = {
+#include "assets/sp12_animation_048FC_indices.inc"
+};
+
+static AnimationSet _gSp12Animation048FC = {
+    _gSp12Animation048FCRecords,
+    _gSp12Animation048FCIndices,
+    { NULL, _gSp12Animation048FCBank1, NULL, NULL, _gSp12Animation048FCBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation04C50Bank1[8] = {
+#include "assets/sp12_animation_04C50_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation04C50Bank4[68] = {
+#include "assets/sp12_animation_04C50_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation04C50Records[101] = {
+#include "assets/sp12_animation_04C50_records.inc"
+};
+
+static u16 _gSp12Animation04C50Indices[20] = {
+#include "assets/sp12_animation_04C50_indices.inc"
+};
+
+static AnimationSet _gSp12Animation04C50 = {
+    _gSp12Animation04C50Records,
+    _gSp12Animation04C50Indices,
+    { NULL, _gSp12Animation04C50Bank1, NULL, NULL, _gSp12Animation04C50Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation04F04Bank1[5] = {
+#include "assets/sp12_animation_04F04_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation04F04Bank4[55] = {
+#include "assets/sp12_animation_04F04_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation04F04Records[83] = {
+#include "assets/sp12_animation_04F04_records.inc"
+};
+
+static u16 _gSp12Animation04F04Indices[20] = {
+#include "assets/sp12_animation_04F04_indices.inc"
+};
+
+static AnimationSet _gSp12Animation04F04 = {
+    _gSp12Animation04F04Records,
+    _gSp12Animation04F04Indices,
+    { NULL, _gSp12Animation04F04Bank1, NULL, NULL, _gSp12Animation04F04Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation05224Bank1[6] = {
+#include "assets/sp12_animation_05224_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation05224Bank4[66] = {
+#include "assets/sp12_animation_05224_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation05224Records[96] = {
+#include "assets/sp12_animation_05224_records.inc"
+};
+
+static u16 _gSp12Animation05224Indices[20] = {
+#include "assets/sp12_animation_05224_indices.inc"
+};
+
+static AnimationSet _gSp12Animation05224 = {
+    _gSp12Animation05224Records,
+    _gSp12Animation05224Indices,
+    { NULL, _gSp12Animation05224Bank1, NULL, NULL, _gSp12Animation05224Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation059E8Bank1[18] = {
+#include "assets/sp12_animation_059E8_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation059E8Bank4[184] = {
+#include "assets/sp12_animation_059E8_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation059E8Records[239] = {
+#include "assets/sp12_animation_059E8_records.inc"
+};
+
+static u16 _gSp12Animation059E8Indices[20] = {
+#include "assets/sp12_animation_059E8_indices.inc"
+};
+
+static AnimationSet _gSp12Animation059E8 = {
+    _gSp12Animation059E8Records,
+    _gSp12Animation059E8Indices,
+    { NULL, _gSp12Animation059E8Bank1, NULL, NULL, _gSp12Animation059E8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation06C80Bank1[29] = {
+#include "assets/sp12_animation_06C80_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation06C80Bank4[450] = {
+#include "assets/sp12_animation_06C80_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation06C80Records[633] = {
+#include "assets/sp12_animation_06C80_records.inc"
+};
+
+static u16 _gSp12Animation06C80Indices[20] = {
+#include "assets/sp12_animation_06C80_indices.inc"
+};
+
+static AnimationSet _gSp12Animation06C80 = {
+    _gSp12Animation06C80Records,
+    _gSp12Animation06C80Indices,
+    { NULL, _gSp12Animation06C80Bank1, NULL, NULL, _gSp12Animation06C80Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation077F8Bank1[12] = {
+#include "assets/sp12_animation_077F8_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation077F8Bank4[266] = {
+#include "assets/sp12_animation_077F8_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation077F8Records[412] = {
+#include "assets/sp12_animation_077F8_records.inc"
+};
+
+static u16 _gSp12Animation077F8Indices[20] = {
+#include "assets/sp12_animation_077F8_indices.inc"
+};
+
+static AnimationSet _gSp12Animation077F8 = {
+    _gSp12Animation077F8Records,
+    _gSp12Animation077F8Indices,
+    { NULL, _gSp12Animation077F8Bank1, NULL, NULL, _gSp12Animation077F8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation07F14Bank1[9] = {
+#include "assets/sp12_animation_07F14_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation07F14Bank4[144] = {
+#include "assets/sp12_animation_07F14_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation07F14Records[264] = {
+#include "assets/sp12_animation_07F14_records.inc"
+};
+
+static u16 _gSp12Animation07F14Indices[20] = {
+#include "assets/sp12_animation_07F14_indices.inc"
+};
+
+static AnimationSet _gSp12Animation07F14 = {
+    _gSp12Animation07F14Records,
+    _gSp12Animation07F14Indices,
+    { NULL, _gSp12Animation07F14Bank1, NULL, NULL, _gSp12Animation07F14Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation08394Bank1[6] = {
+#include "assets/sp12_animation_08394_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation08394Bank4[107] = {
+#include "assets/sp12_animation_08394_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation08394Records[143] = {
+#include "assets/sp12_animation_08394_records.inc"
+};
+
+static u16 _gSp12Animation08394Indices[20] = {
+#include "assets/sp12_animation_08394_indices.inc"
+};
+
+static AnimationSet _gSp12Animation08394 = {
+    _gSp12Animation08394Records,
+    _gSp12Animation08394Indices,
+    { NULL, _gSp12Animation08394Bank1, NULL, NULL, _gSp12Animation08394Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0856CBank1[3] = {
+#include "assets/sp12_animation_0856C_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0856CBank4[32] = {
+#include "assets/sp12_animation_0856C_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0856CRecords[57] = {
+#include "assets/sp12_animation_0856C_records.inc"
+};
+
+static u16 _gSp12Animation0856CIndices[20] = {
+#include "assets/sp12_animation_0856C_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0856C = {
+    _gSp12Animation0856CRecords,
+    _gSp12Animation0856CIndices,
+    { NULL, _gSp12Animation0856CBank1, NULL, NULL, _gSp12Animation0856CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation08AD0Bank1[11] = {
+#include "assets/sp12_animation_08AD0_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation08AD0Bank4[125] = {
+#include "assets/sp12_animation_08AD0_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation08AD0Records[167] = {
+#include "assets/sp12_animation_08AD0_records.inc"
+};
+
+static u16 _gSp12Animation08AD0Indices[20] = {
+#include "assets/sp12_animation_08AD0_indices.inc"
+};
+
+static AnimationSet _gSp12Animation08AD0 = {
+    _gSp12Animation08AD0Records,
+    _gSp12Animation08AD0Indices,
+    { NULL, _gSp12Animation08AD0Bank1, NULL, NULL, _gSp12Animation08AD0Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation08CC4Bank1[3] = {
+#include "assets/sp12_animation_08CC4_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation08CC4Bank4[20] = {
+#include "assets/sp12_animation_08CC4_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation08CC4Records[76] = {
+#include "assets/sp12_animation_08CC4_records.inc"
+};
+
+static u16 _gSp12Animation08CC4Indices[20] = {
+#include "assets/sp12_animation_08CC4_indices.inc"
+};
+
+static AnimationSet _gSp12Animation08CC4 = {
+    _gSp12Animation08CC4Records,
+    _gSp12Animation08CC4Indices,
+    { NULL, _gSp12Animation08CC4Bank1, NULL, NULL, _gSp12Animation08CC4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation09144Bank1[8] = {
+#include "assets/sp12_animation_09144_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation09144Bank4[105] = {
+#include "assets/sp12_animation_09144_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation09144Records[139] = {
+#include "assets/sp12_animation_09144_records.inc"
+};
+
+static u16 _gSp12Animation09144Indices[20] = {
+#include "assets/sp12_animation_09144_indices.inc"
+};
+
+static AnimationSet _gSp12Animation09144 = {
+    _gSp12Animation09144Records,
+    _gSp12Animation09144Indices,
+    { NULL, _gSp12Animation09144Bank1, NULL, NULL, _gSp12Animation09144Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0931CBank1[2] = {
+#include "assets/sp12_animation_0931C_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0931CBank4[16] = {
+#include "assets/sp12_animation_0931C_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0931CRecords[76] = {
+#include "assets/sp12_animation_0931C_records.inc"
+};
+
+static u16 _gSp12Animation0931CIndices[20] = {
+#include "assets/sp12_animation_0931C_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0931C = {
+    _gSp12Animation0931CRecords,
+    _gSp12Animation0931CIndices,
+    { NULL, _gSp12Animation0931CBank1, NULL, NULL, _gSp12Animation0931CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation09B5CBank1[14] = {
+#include "assets/sp12_animation_09B5C_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation09B5CBank4[194] = {
+#include "assets/sp12_animation_09B5C_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation09B5CRecords[272] = {
+#include "assets/sp12_animation_09B5C_records.inc"
+};
+
+static u16 _gSp12Animation09B5CIndices[20] = {
+#include "assets/sp12_animation_09B5C_indices.inc"
+};
+
+static AnimationSet _gSp12Animation09B5C = {
+    _gSp12Animation09B5CRecords,
+    _gSp12Animation09B5CIndices,
+    { NULL, _gSp12Animation09B5CBank1, NULL, NULL, _gSp12Animation09B5CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0A604Bank1[19] = {
+#include "assets/sp12_animation_0A604_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0A604Bank4[269] = {
+#include "assets/sp12_animation_0A604_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0A604Records[336] = {
+#include "assets/sp12_animation_0A604_records.inc"
+};
+
+static u16 _gSp12Animation0A604Indices[20] = {
+#include "assets/sp12_animation_0A604_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0A604 = {
+    _gSp12Animation0A604Records,
+    _gSp12Animation0A604Indices,
+    { NULL, _gSp12Animation0A604Bank1, NULL, NULL, _gSp12Animation0A604Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0BA44Bank1[34] = {
+#include "assets/sp12_animation_0BA44_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0BA44Bank4[541] = {
+#include "assets/sp12_animation_0BA44_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0BA44Records[633] = {
+#include "assets/sp12_animation_0BA44_records.inc"
+};
+
+static u16 _gSp12Animation0BA44Indices[20] = {
+#include "assets/sp12_animation_0BA44_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0BA44 = {
+    _gSp12Animation0BA44Records,
+    _gSp12Animation0BA44Indices,
+    { NULL, _gSp12Animation0BA44Bank1, NULL, NULL, _gSp12Animation0BA44Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0C4B8Bank1[18] = {
+#include "assets/sp12_animation_0C4B8_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0C4B8Bank4[268] = {
+#include "assets/sp12_animation_0C4B8_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0C4B8Records[327] = {
+#include "assets/sp12_animation_0C4B8_records.inc"
+};
+
+static u16 _gSp12Animation0C4B8Indices[20] = {
+#include "assets/sp12_animation_0C4B8_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0C4B8 = {
+    _gSp12Animation0C4B8Records,
+    _gSp12Animation0C4B8Indices,
+    { NULL, _gSp12Animation0C4B8Bank1, NULL, NULL, _gSp12Animation0C4B8Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0CB3CBank1[12] = {
+#include "assets/sp12_animation_0CB3C_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0CB3CBank4[160] = {
+#include "assets/sp12_animation_0CB3C_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0CB3CRecords[201] = {
+#include "assets/sp12_animation_0CB3C_records.inc"
+};
+
+static u16 _gSp12Animation0CB3CIndices[20] = {
+#include "assets/sp12_animation_0CB3C_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0CB3C = {
+    _gSp12Animation0CB3CRecords,
+    _gSp12Animation0CB3CIndices,
+    { NULL, _gSp12Animation0CB3CBank1, NULL, NULL, _gSp12Animation0CB3CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0D0B4Bank1[10] = {
+#include "assets/sp12_animation_0D0B4_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0D0B4Bank4[131] = {
+#include "assets/sp12_animation_0D0B4_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0D0B4Records[169] = {
+#include "assets/sp12_animation_0D0B4_records.inc"
+};
+
+static u16 _gSp12Animation0D0B4Indices[20] = {
+#include "assets/sp12_animation_0D0B4_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0D0B4 = {
+    _gSp12Animation0D0B4Records,
+    _gSp12Animation0D0B4Indices,
+    { NULL, _gSp12Animation0D0B4Bank1, NULL, NULL, _gSp12Animation0D0B4Bank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0D96CBank1[18] = {
+#include "assets/sp12_animation_0D96C_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0D96CBank4[201] = {
+#include "assets/sp12_animation_0D96C_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0D96CRecords[283] = {
+#include "assets/sp12_animation_0D96C_records.inc"
+};
+
+static u16 _gSp12Animation0D96CIndices[20] = {
+#include "assets/sp12_animation_0D96C_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0D96C = {
+    _gSp12Animation0D96CRecords,
+    _gSp12Animation0D96CIndices,
+    { NULL, _gSp12Animation0D96CBank1, NULL, NULL, _gSp12Animation0D96CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0E10CBank1[16] = {
+#include "assets/sp12_animation_0E10C_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0E10CBank4[157] = {
+#include "assets/sp12_animation_0E10C_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0E10CRecords[263] = {
+#include "assets/sp12_animation_0E10C_records.inc"
+};
+
+static u16 _gSp12Animation0E10CIndices[20] = {
+#include "assets/sp12_animation_0E10C_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0E10C = {
+    _gSp12Animation0E10CRecords,
+    _gSp12Animation0E10CIndices,
+    { NULL, _gSp12Animation0E10CBank1, NULL, NULL, _gSp12Animation0E10CBank4, NULL, NULL, NULL },
+};
+
+static AnimationPackedPose _gSp12Animation0EAE0Bank1[25] = {
+#include "assets/sp12_animation_0EAE0_bank1.inc"
+};
+
+static AnimationPackedRotation _gSp12Animation0EAE0Bank4[223] = {
+#include "assets/sp12_animation_0EAE0_bank4.inc"
+};
+
+static AnimationRecord _gSp12Animation0EAE0Records[311] = {
+#include "assets/sp12_animation_0EAE0_records.inc"
+};
+
+static u16 _gSp12Animation0EAE0Indices[20] = {
+#include "assets/sp12_animation_0EAE0_indices.inc"
+};
+
+static AnimationSet _gSp12Animation0EAE0 = {
+    _gSp12Animation0EAE0Records,
+    _gSp12Animation0EAE0Indices,
+    { NULL, _gSp12Animation0EAE0Bank1, NULL, NULL, _gSp12Animation0EAE0Bank4, NULL, NULL, NULL },
+};
+
+AnimationBank D_sp12_8012BCC8 = { { {
+    NULL,
+    &_gSp12Animation00B38,
+    &_gSp12Animation0D96C,
+    &_gSp12Animation0E10C,
+    &_gSp12Animation0EAE0,
+    &_gSp12Animation01A3C,
+    &_gSp12Animation022A0,
+    &_gSp12Animation0CB3C,
+    &_gSp12Animation0D0B4,
+    &_gSp12Animation0931C,
+    &_gSp12Animation0C4B8,
+    &_gSp12Animation0C4B8,
+    &_gSp12Animation0A604,
+    &_gSp12Animation09B5C,
+    &_gSp12Animation0BA44,
+    &_gSp12Animation0BA44,
+    &_gSp12Animation04F04,
+    &_gSp12Animation05224,
+    &_gSp12Animation059E8,
+    &_gSp12Animation011DC,
+    &_gSp12Animation0BA44,
+    &_gSp12Animation00B38,
+    &_gSp12Animation00B38,
+    &_gSp12Animation06C80,
+    &_gSp12Animation07F14,
+    &_gSp12Animation077F8,
+    &_gSp12Animation03F84,
+    &_gSp12Animation04180,
+    &_gSp12Animation04458,
+    &_gSp12Animation046FC,
+    &_gSp12Animation048FC,
+    &_gSp12Animation04C50,
+    &_gSp12Animation08394,
+    &_gSp12Animation0856C,
+    &_gSp12Animation08394,
+    &_gSp12Animation0856C,
+    &_gSp12Animation02D10,
+    &_gSp12Animation03498,
+    &_gSp12Animation03AFC,
+    &_gSp12Animation0376C,
+    &_gSp12Animation025B4,
+    &_gSp12Animation00B38,
+    &_gSp12Animation08AD0,
+    &_gSp12Animation08CC4,
+    &_gSp12Animation09144,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+} } };
+#endif
