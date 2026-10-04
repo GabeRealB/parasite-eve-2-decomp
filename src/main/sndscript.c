@@ -229,21 +229,45 @@ STATIC_ASSERT_SIZEOF(_SndVoice, 0x40);
 STATIC_ASSERT(OFFSET_OF(_SndVoice, envelope) == 0x10, snd_voice_envelope_offset);
 STATIC_ASSERT(OFFSET_OF(_SndVoice, script) == 0x34, snd_voice_script_offset);
 
-/// "Loop" (0x706F6F4C) / "Wait" (0x74696157) / "endL" (0x4C646E65) script cmds.
-/// Loop: repeat count and minimum wait; Wait: signed duration.
-/// endL contains only the magic word and advances the byte cursor by four.
-typedef struct _SndScriptCmd {
-    /* 0x0 */ s32 magic;
-    /* 0x4 */ union {
+/// FourCCs of the flow-control commands in a sound-script entry.
+///
+/// `Loop` and `Wait` are eight-byte `_SndScriptCmd` records. `endL` closes the
+/// innermost loop and `endC` ends the entry; both are the tag word alone.
+enum {
+    SOUND_SCRIPT_LOOP_TAG     = 0x706F6F4C,
+    SOUND_SCRIPT_WAIT_TAG     = 0x74696157,
+    SOUND_SCRIPT_LOOP_END_TAG = 0x4C646E65,
+    SOUND_SCRIPT_END_TAG      = 0x43646E65
+};
+
+/// One flow-control command in a sound-script entry.
+///
+/// The interpreter reads the bytes at its cursor in a loaded `hONE` bank image
+/// through this layout and dispatches on `magic`. Only `Loop` and `Wait` use
+/// the second word, and each advances the cursor by this record's eight
+/// bytes. `endL` and `endC` carry no payload: `endL` advances by the tag word
+/// alone when its loop is done. The image owns the bytes.
+///
+/// `Loop` opens a loop once `delayTicks` script ticks have accumulated, and
+/// the clock then consumes that delay. The commands up to the matching `endL`
+/// run `repeatCount` times; a count of zero is never decremented, so that loop
+/// repeats until the script is stopped. Loops nest eight deep. A `Loop` beyond
+/// that, or an `endL` with no loop open, ends the script as `endC` does.
+///
+/// `Wait` holds the cursor until `waitTicks` script ticks have accumulated and
+/// then consumes them. The count is signed, and a negative one never waits.
+typedef struct {
+    s32 magic; // Serialized command FourCC
+    union {
         struct {
-            u8  field_4;
-            u8  pad_5;
-            u16 field_6;
-        } loop;
-        s32 duration;
+            u8  repeatCount; // Times the loop body runs; zero repeats without end
+            u8  pad;         // No reader; byte before the halfword delay
+            u16 delayTicks;  // Script ticks to wait before the loop opens; zero opens immediately
+        } loop;              // Loop payload
+        s32 waitTicks;       // Wait payload: script ticks to hold the cursor; negative does not wait
     } data;
-} SndScriptCmd;
-STATIC_ASSERT_SIZEOF(SndScriptCmd, 0x8);
+} _SndScriptCmd;
+STATIC_ASSERT_SIZEOF(_SndScriptCmd, 0x8);
 
 /// Lifecycle of one `_SndScript` slot.
 ///
@@ -311,50 +335,79 @@ typedef struct _SndScript {
 } _SndScript;
 STATIC_ASSERT_SIZEOF(_SndScript, 0x60);
 
-/// "oneA" (0x41656E6F) tagged chunk header read by SndScript_FindOneA.
-/// Located at a signed byte offset into a raw buffer.
-typedef struct _SndOneA {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ u16 field_6;
-} SndOneA;
-STATIC_ASSERT_SIZEOF(SndOneA, 0x8);
+/// `oneA` FourCC. A note's ADSR offset is used only when it addresses this tag.
+enum { SOUND_SCRIPT_ADSR_TAG = 0x41656E6F };
+
+/// ADSR override for one scripted voice.
+///
+/// This is the 8-byte `oneA` chunk in a loaded `hONE` bank image. The voice
+/// command names it with an image-relative byte offset; -1 keeps the layer's
+/// registers, and so does an offset whose `magic` is not
+/// `SOUND_SCRIPT_ADSR_TAG`. A matching chunk's two halfwords replace the
+/// layer's packed SPU registers for that voice, unchanged. The image owns the
+/// bytes. The script interpreter treats the tag as data: landing on it stops
+/// command processing without advancing the cursor.
+typedef struct {
+    s32 magic; // Serialized oneA FourCC; any other value keeps the layer ADSR
+    u16 adsr1; // Packed SPU attack/decay/sustain-level register
+    u16 adsr2; // Packed SPU sustain/release register
+} _SndScriptAdsr;
+STATIC_ASSERT_SIZEOF(_SndScriptAdsr, 0x8);
 
 STATIC_ASSERT(OFFSET_OF(SpuVoiceAttr, adsr1) == 0x3A, snd_voice_adsr1_offset);
 STATIC_ASSERT(OFFSET_OF(SpuVoiceAttr, adsr2) == 0x3C, snd_voice_adsr2_offset);
 
-/// 0x18-byte voice-slot lookup result filled by SndVoice_ScanCandidates and consumed by
-/// SndVoice_AllocSlot / SndVoice_SelectStealCandidate. field_0 is the chosen slot index (or error);
-/// field_1..field_6 are candidate slot indices (-1 = empty); field_7 is the
-/// candidate count; field_8/C/10/14 hold ranking scores / IDs.
-typedef struct _SndVoicePick {
-    /* 0x00 */ s8  field_0;
-    /* 0x01 */ s8  field_1;
-    /* 0x02 */ s8  field_2;
-    /* 0x03 */ s8  field_3;
-    /* 0x04 */ s8  field_4;
-    /* 0x05 */ s8  field_5;
-    /* 0x06 */ s8  field_6;
-    /* 0x07 */ u8  field_7;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s32 field_14;
-} SndVoicePick;
-STATIC_ASSERT_SIZEOF(SndVoicePick, 0x18);
+/// Survey of the eight script slots for one start request, and the slot chosen.
+///
+/// A start request scans every `_SndScript` slot once. Idle slots are free. A
+/// stopping slot is neither free nor replaceable. Every other instance is
+/// ranked by its entry's priority against the request's, and counted when it
+/// belongs to the request's group: the same request id ignoring bits 8..15,
+/// or, where the instance's entry sets `SOUND_SCRIPT_GROUP_BY_FLAGS`, a flags
+/// word equal to the request's.
+///
+/// A slot member is an index 0..7, or -1 when no slot qualified. An age is a
+/// count of running audio updates, so a larger one is older. The slot's age is
+/// meaningful only while its slot member is set.
+///
+/// `slot` is the result. It is the idle slot when there is one and the group
+/// is below the entry's instance limit. Otherwise the request replaces the
+/// oldest group member, or with no group member a lower-priority instance, or
+/// the oldest one at the request's own priority. A negative result refuses the
+/// request, and nothing is started.
+typedef struct {
+    s8  slot;               // Chosen slot 0..7; -1 after the scan, negative when refused
+    s8  lastGroupSlot;      // Last group member scanned; written only, no reader
+    s8  newestGroupSlot;    // Group member with the fewest running updates
+    s8  idleSlot;           // Last idle slot scanned
+    s8  lowerPrioritySlot;  // First slot holding the lowest priority below the request's
+    s8  equalPrioritySlot;  // Oldest slot whose priority equalled lowestPriority when scanned
+    s8  oldestGroupSlot;    // Group member with the most running updates
+    u8  groupCount;         // Group members found, compared with the entry's instance limit
+    s32 lowestPriority;     // Starts at the request's priority and falls to the lowest one below it
+    s32 newestGroupTicks;   // Age of newestGroupSlot; 0xFFFF, above any retrigger limit, with no member
+    s32 equalPriorityTicks; // Age of equalPrioritySlot
+    s32 oldestGroupTicks;   // Age of oldestGroupSlot
+} _SndScriptSlotPick;
+STATIC_ASSERT_SIZEOF(_SndScriptSlotPick, 0x18);
 
-/// 0xC-byte init-table entry at Snd_BankInitTable (two entries used by Snd_InitBanks).
-/// field_0 indexes Snd_BankSlotsByType for a slot id; field_2 is written to SndBankSlot.bankId
-/// and `SndBank::bankId`; field_4/field_6 are SndHeap_Malloc sizes; field_8 is stored
-/// to SndBankSlot.spuAddr.
-typedef struct _SndBankInitEntry {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ u16 field_6;
-    /* 0x8 */ s32 field_8;
-} SndBankInitEntry;
-STATIC_ASSERT_SIZEOF(SndBankInitEntry, 0xC);
+/// One sound bank reserved at boot, before any bank file has been read.
+///
+/// Sound initialization binds the bank type's script slot to its descriptor,
+/// stamps both with `bankId`, and takes two blocks from the sound heap: the
+/// descriptor's table block and the slot's script image. Neither block holds
+/// loaded contents yet, so the bank cannot play until a load completes.
+///
+/// The two byte counts equal the minimums a later load of the same bank type
+/// asks for, so a reload never requests less than was reserved here.
+typedef struct {
+    u16 bankType;   // Bank type 0..15, the index into the type-to-slot map
+    u16 bankId;     // Placeholder id for the descriptor and slot: the type nibble over 0xFF
+    u16 tableBytes; // Sound-heap bytes for the descriptor's program and layer table block
+    u16 imageBytes; // Sound-heap bytes for the slot's script image
+    u32 spuAddr;    // SPU sample-pool origin in bytes, stored on the slot
+} _SndBankInitEntry;
+STATIC_ASSERT_SIZEOF(_SndBankInitEntry, 0xC);
 
 // oneC controls apply to a whole script instance and all voices it starts.
 enum {
@@ -415,7 +468,7 @@ static volatile s32 D_8008274C;
 
 static u8 D_80068A54[];
 
-static SndBankInitEntry Snd_BankInitTable[];
+static _SndBankInitEntry Snd_BankInitTable[];
 
 static s16 SndScript_VoiceRanges[];
 
@@ -431,7 +484,7 @@ static void SndVoice_StepMasterLevel(void);
 
 static s32 SndVoice_DriveSlots(s32* unused);
 
-static void SndVoice_ScanCandidates(SndVoicePick* candidates, u16 arg1, s32 arg2, u16 arg3);
+static void SndVoice_ScanCandidates(_SndScriptSlotPick* candidates, u16 arg1, s32 arg2, u16 arg3);
 
 /// Advances a script's 16.16 tick clock by one step: a whole tick, or 0.6 of
 /// one when the display region is 1.
@@ -452,7 +505,7 @@ static void SndVoice_Init(void);
 static void SndVoice_SetPriorityLevel(s8 arg0);
 
 /// Selects an eligible voice candidate, respecting the retrigger-age limit.
-static s8 SndVoice_SelectStealCandidate(SndVoicePick* candidates, s32 retriggerTicks);
+static s8 SndVoice_SelectStealCandidate(_SndScriptSlotPick* candidates, s32 retriggerTicks);
 
 static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* slot, SndScriptEntryControls* entryControls);
 
@@ -476,8 +529,8 @@ static s32 SndScript_FindOneA(u8* arg0, s16 arg1, SpuVoiceAttr* arg2);
 
 static void SndVoice_ClearActive(void);
 
-static u8               D_80068A54[]        = { 0xFF, 0xFF, 0xFF, 0xFF, 0x20, 0x26, 0x20, 0x26, 0x2E, 0x05, 0x1E, 0xFF };
-static SndBankInitEntry Snd_BankInitTable[] = {
+static u8                D_80068A54[]        = { 0xFF, 0xFF, 0xFF, 0xFF, 0x20, 0x26, 0x20, 0x26, 0x2E, 0x05, 0x1E, 0xFF };
+static _SndBankInitEntry Snd_BankInitTable[] = {
     { 0x0002, 0x20FF, 0x00CE, 0x0210, 0x73810 },
     { 0x000E, 0xE0FF, 0x0078, 0x0168, 0x6F810 },
 };
@@ -824,14 +877,14 @@ void Snd_SetMutedVolumes(s32 arg0)
 
 s32 Snd_InitBanks(u32 unused)
 {
-    s32               i;
-    s8                slot;
-    SndBankSlot*      bankSlot;
-    SndBank*          bank;
-    SndBankInitEntry* entry;
-    s8*               map;
-    SndBank*          banks;
-    s32               id;
+    s32                i;
+    s8                 slot;
+    SndBankSlot*       bankSlot;
+    SndBank*           bank;
+    _SndBankInitEntry* entry;
+    s8*                map;
+    SndBank*           banks;
+    s32                id;
 
     *(volatile s32*)&D_80068A78 = 0xFF;
     Spu_SetVoiceRange(1, 0x12, 6);
@@ -844,21 +897,21 @@ s32 Snd_InitBanks(u32 unused)
     banks = Snd_Banks;
     entry = Snd_BankInitTable;
 loop:
-    slot     = *(s8*)(entry->field_0 + (s32)map);
+    slot     = *(s8*)(entry->bankType + (s32)map);
     bankSlot = SndBankSlot_Get(slot);
-    id       = entry->field_2;
+    id       = entry->bankId;
     // Subtraction preserves the scaled slot first in the address addition.
     bank             = banks - -slot;
     bankSlot->bank   = bank;
     bankSlot->bankId = id;
-    bank->bankId     = entry->field_2;
+    bank->bankId     = entry->bankId;
     i++;
-    bankSlot->bank->heapBlock       = SndHeap_Malloc(entry->field_4);
+    bankSlot->bank->heapBlock       = SndHeap_Malloc(entry->tableBytes);
     bankSlot->bank->groups          = bankSlot->bank->heapBlock;
     bankSlot->bank->layers          = bankSlot->bank->heapBlock;
     bankSlot->bank->groupFirstLayer = bankSlot->bank->heapBlock;
-    bankSlot->image                 = SndHeap_Malloc(entry->field_6);
-    bankSlot->spuAddr               = entry->field_8;
+    bankSlot->image                 = SndHeap_Malloc(entry->imageBytes);
+    bankSlot->spuAddr               = entry->spuAddr;
     entry++;
     if (i < 2) {
         goto loop;
@@ -1363,55 +1416,55 @@ static s32 SndVoice_DriveSlots(s32* unused)
     return 0;
 }
 
-static void SndVoice_ScanCandidates(SndVoicePick* candidates, u16 arg1, s32 arg2, u16 arg3)
+static void SndVoice_ScanCandidates(_SndScriptSlotPick* candidates, u16 arg1, s32 arg2, u16 arg3)
 {
     s8          i;
     _SndScript* p;
     u16         temp;
     s32         score;
 
-    candidates->field_0  = -1;
-    candidates->field_10 = -1;
-    candidates->field_5  = -1;
-    candidates->field_14 = -1;
-    candidates->field_6  = -1;
-    candidates->field_4  = -1;
-    candidates->field_3  = -1;
-    candidates->field_1  = -1;
-    candidates->field_2  = -1;
-    candidates->field_8  = arg1;
-    candidates->field_C  = 0xFFFF;
-    candidates->field_7  = 0;
+    candidates->slot               = -1;
+    candidates->equalPriorityTicks = -1;
+    candidates->equalPrioritySlot  = -1;
+    candidates->oldestGroupTicks   = -1;
+    candidates->oldestGroupSlot    = -1;
+    candidates->lowerPrioritySlot  = -1;
+    candidates->idleSlot           = -1;
+    candidates->lastGroupSlot      = -1;
+    candidates->newestGroupSlot    = -1;
+    candidates->lowestPriority     = arg1;
+    candidates->newestGroupTicks   = 0xFFFF;
+    candidates->groupCount         = 0;
 
     for (i = 0; i < 8; i++) {
         p = &SndScript_Slots[i];
         if (p->state == SOUND_SCRIPT_IDLE) {
-            candidates->field_3 = i;
+            candidates->idleSlot = i;
         } else if (p->state != SOUND_SCRIPT_STOPPING) {
             temp = p->entryControls->priority;
-            if (temp < (u32)candidates->field_8) {
-                candidates->field_8 = temp;
-                candidates->field_4 = i;
-            } else if (candidates->field_8 == temp) {
-                if ((candidates->field_5 == -1) || (candidates->field_10 < p->runningTicks)) {
-                    score                = p->runningTicks;
-                    candidates->field_5  = i;
-                    candidates->field_10 = score;
+            if (temp < (u32)candidates->lowestPriority) {
+                candidates->lowestPriority    = temp;
+                candidates->lowerPrioritySlot = i;
+            } else if (candidates->lowestPriority == temp) {
+                if ((candidates->equalPrioritySlot == -1) || (candidates->equalPriorityTicks < p->runningTicks)) {
+                    score                          = p->runningTicks;
+                    candidates->equalPrioritySlot  = i;
+                    candidates->equalPriorityTicks = score;
                 }
             }
             if (((p->soundId & 0xFFFF00FF) == (arg2 & 0xFFFF00FF)) ||
                 (((temp = p->entryControls->flags) & SOUND_SCRIPT_GROUP_BY_FLAGS) && (arg3 == temp))) {
-                candidates->field_1 = i;
-                if ((candidates->field_2 == -1) || (candidates->field_C > p->runningTicks)) {
-                    score               = p->runningTicks;
-                    candidates->field_2 = i;
-                    candidates->field_C = score;
+                candidates->lastGroupSlot = i;
+                if ((candidates->newestGroupSlot == -1) || (candidates->newestGroupTicks > p->runningTicks)) {
+                    score                        = p->runningTicks;
+                    candidates->newestGroupSlot  = i;
+                    candidates->newestGroupTicks = score;
                 }
-                candidates->field_7 += 1;
-                if ((candidates->field_6 == -1) || (candidates->field_14 < p->runningTicks)) {
-                    score                = p->runningTicks;
-                    candidates->field_6  = i;
-                    candidates->field_14 = score;
+                candidates->groupCount += 1;
+                if ((candidates->oldestGroupSlot == -1) || (candidates->oldestGroupTicks < p->runningTicks)) {
+                    score                        = p->runningTicks;
+                    candidates->oldestGroupSlot  = i;
+                    candidates->oldestGroupTicks = score;
                 }
             }
         }
@@ -1495,7 +1548,7 @@ static s32 SndScript_Exec(_SndScript* script)
     };
     SpuVoiceRef     voiceRef;
     s16             volume[2];
-    SndScriptCmd*   cmd;
+    _SndScriptCmd*  cmd;
     _SndScriptNote* note;
     _SndVoice*      voice;
     SndBankLayer*   bankLayer;
@@ -1517,33 +1570,33 @@ static s32 SndScript_Exec(_SndScript* script)
     s32             countdown;
     s16             envelopeOffset;
 
-    cmd = (SndScriptCmd*)script->cursor;
+    cmd = (_SndScriptCmd*)script->cursor;
     switch ((u32)cmd->magic) {
         case SOUND_SCRIPT_PITCH_ENVELOPE_TAG:
             // Envelope data is not a command; halt without advancing the cursor.
             break;
-        case 0x43646E65:
+        case SOUND_SCRIPT_END_TAG:
         stop:
             script->ended = 1;
             break;
-        case 0x706F6F4C:
+        case SOUND_SCRIPT_LOOP_TAG:
             if (script->loopDepth >= 8U) {
                 goto stop;
             }
             ticks = script->tickClock;
-            if ((ticks >> 16) >= cmd->data.loop.field_6) {
-                script->loopCounts[script->loopDepth]  = cmd->data.loop.field_4;
-                script->cursor                         = script->cursor + sizeof(SndScriptCmd);
+            if ((ticks >> 16) >= cmd->data.loop.delayTicks) {
+                script->loopCounts[script->loopDepth]  = cmd->data.loop.repeatCount;
+                script->cursor                         = script->cursor + sizeof(_SndScriptCmd);
                 script->loopCursors[script->loopDepth] = script->cursor;
                 script->loopDepth++;
-                script->tickClock -= cmd->data.loop.field_6 << 16;
+                script->tickClock -= cmd->data.loop.delayTicks << 16;
                 result             = 1;
                 goto done;
             } else {
                 _sndScriptAdvanceClock(script);
             }
             break;
-        case 0x4C646E65:
+        case SOUND_SCRIPT_LOOP_END_TAG:
             if (script->loopDepth == 0) {
                 goto stop;
             }
@@ -1660,19 +1713,19 @@ static s32 SndScript_Exec(_SndScript* script)
             script->cursor    = script->cursor + sizeof(_SndScriptNote);
 
             goto done;
-        case 0x74696157:
+        case SOUND_SCRIPT_WAIT_TAG:
             ticks = script->tickClock;
-            wait  = cmd->data.duration;
+            wait  = cmd->data.waitTicks;
             if ((ticks >> 16) < wait) {
                 _sndScriptAdvanceClock(script);
                 result = 0;
                 goto done;
             }
             script->tickClock = ticks - (wait << 16);
-            script->cursor    = script->cursor + sizeof(SndScriptCmd);
+            script->cursor    = script->cursor + sizeof(_SndScriptCmd);
             result            = 1;
             goto done;
-        case 0x41656E6F:
+        case SOUND_SCRIPT_ADSR_TAG:
         default:
             result = 0;
             goto done;
@@ -1780,18 +1833,18 @@ apply:
 
 s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndScriptEntryControls* entryControls)
 {
-    SndVoicePick sp18;
+    _SndScriptSlotPick pick;
 
-    SndVoice_ScanCandidates(&sp18, entryControls->priority, arg0, entryControls->flags);
-    if ((sp18.field_7 < entryControls->maxInstances) && (sp18.field_3 != -1)) {
-        sp18.field_0 = sp18.field_3;
+    SndVoice_ScanCandidates(&pick, entryControls->priority, arg0, entryControls->flags);
+    if ((pick.groupCount < entryControls->maxInstances) && (pick.idleSlot != -1)) {
+        pick.slot = pick.idleSlot;
     } else {
-        sp18.field_0 = SndVoice_SelectStealCandidate(&sp18, entryControls->retriggerTicks);
+        pick.slot = SndVoice_SelectStealCandidate(&pick, entryControls->retriggerTicks);
     }
-    if (sp18.field_0 >= 0) {
-        SndScript_Play(sp18.field_0, arg1, arg2, arg0, slot, entryControls);
+    if (pick.slot >= 0) {
+        SndScript_Play(pick.slot, arg1, arg2, arg0, slot, entryControls);
     }
-    return sp18.field_0;
+    return pick.slot;
 }
 
 void SndVoice_FadeMatching(s32 arg0, s32 arg1)
@@ -2018,7 +2071,7 @@ s8 SndVoice_GetMasterVolume(void)
     return D_80082748;
 }
 
-static s8 SndVoice_SelectStealCandidate(SndVoicePick* candidates, s32 retriggerTicks)
+static s8 SndVoice_SelectStealCandidate(_SndScriptSlotPick* candidates, s32 retriggerTicks)
 {
     s32 v;
     u8  u;
@@ -2028,29 +2081,29 @@ static s8 SndVoice_SelectStealCandidate(SndVoicePick* candidates, s32 retriggerT
     if (retriggerTicks == SOUND_SCRIPT_RETRIGGER_DISABLED) {
         return -9;
     }
-    if (candidates->field_C < retriggerTicks) {
+    if (candidates->newestGroupTicks < retriggerTicks) {
         return -5;
     }
-    if (candidates->field_2 != none) {
+    if (candidates->newestGroupSlot != none) {
         goto field6;
     }
-    v = candidates->field_4;
-    u = candidates->field_4;
+    v = candidates->lowerPrioritySlot;
+    u = candidates->lowerPrioritySlot;
     if (v != none) {
         goto store;
     }
-    v = candidates->field_5;
-    u = candidates->field_5;
+    v = candidates->equalPrioritySlot;
+    u = candidates->equalPrioritySlot;
 join:
     if (v == none) {
         goto ret_m6;
     }
 store:
-    candidates->field_0 = u;
+    candidates->slot = u;
     return v;
 field6:
-    v = candidates->field_6;
-    u = candidates->field_6;
+    v = candidates->oldestGroupSlot;
+    u = candidates->oldestGroupSlot;
     goto join;
 ret_m6:
     return -6;
@@ -2372,13 +2425,13 @@ static void SndVoice_SetupEnvelope(_SndVoice* voice, s16 envelopeOffset, u32 pit
 
 static s32 SndScript_FindOneA(u8* arg0, s16 arg1, SpuVoiceAttr* arg2)
 {
-    SndOneA* chunk;
+    _SndScriptAdsr* chunk;
 
     if (arg1 != SOUND_SCRIPT_NOTE_LAYER_ADSR) {
-        chunk = (SndOneA*)&arg0[arg1];
-        if (chunk->field_0 == 0x41656E6F) {
-            arg2->adsr1 = chunk->field_4;
-            arg2->adsr2 = chunk->field_6;
+        chunk = (_SndScriptAdsr*)&arg0[arg1];
+        if (chunk->magic == SOUND_SCRIPT_ADSR_TAG) {
+            arg2->adsr1 = chunk->adsr1;
+            arg2->adsr2 = chunk->adsr2;
             return 1;
         }
         return -1;

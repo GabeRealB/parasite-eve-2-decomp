@@ -2819,7 +2819,7 @@ Stream_Slots                = 0x8006D4F0; // type:StreamSlot size:0x258
 Stage_Ctx                   = 0x80062698;
 
 // Remaining GStruct cleanup (Wip_* = weak evidence)
-Snd_BankInitTable           = 0x80068A60; // type:SndBankInitEntry
+Snd_BankInitTable           = 0x80068A60;
 CdAudio_TblEntries          = 0x80082794;
 Pad_RemapState              = 0x800626A8;
 gPlayerStatus               = 0x80073B88; // type:PlayerStatus size:0x80

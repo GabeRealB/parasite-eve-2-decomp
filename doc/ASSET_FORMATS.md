@@ -963,7 +963,7 @@ expects SMF; SPK playback goes through **`SndScript_Exec`** (`one*` opcodes).
 | Gap | Notes |
 |-----|--------|
 | **`hONE` header** | Layout known from the loader: 4-byte magic, `u16` bank id, `u16` entry count, then that many `u16` offsets of entry blocks relative to the header |
-| **Tagged script stream** | `oneC` / `oneV` / `oneE` / `oneA` / `endC` / `Loop` / `Wait` / `endL` — the command structs are typed in `include/main/sound.h`; still need a stream walker |
+| **Tagged script stream** | `oneC` / `oneV` / `oneE` / `oneA` / `endC` / `Loop` / `Wait` / `endL` — the command structs are typed beside the interpreter in `src/main/sndscript.c` (`oneC` in `src/main/sound_types.h`); still need a stream walker |
 | **`SndScript_Exec`** | Decompiled in `src/main/sndscript.c` — authoritative interpreter for timing and opcodes |
 | **Timed event list** | Needs Wait/Loop stack + timebase (script ticks vs frame rate) |
 | **Audio mix / “play the song”** | Needs timed events + pitch (root/fine/`oneV`, `oneE` envelope) + vol/pan + ADSR (`oneA`) + polyphony; samples alone are not enough |
