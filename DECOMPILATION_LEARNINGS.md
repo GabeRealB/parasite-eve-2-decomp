@@ -70429,7 +70429,7 @@ barrier. Write the early exit as a `break`:
 } else {
     do {
         if (Guard() == 0) { return 1; }
-        if (arg0->field_5 != 0) { break; }   /* this branch is the one */
+        if (arg0->queryOnly != ROOM_EVENT_EXECUTE) { break; }   /* this branch is the one */
         ...                                   /* falling through to the tail */
     } while (0);
 }
