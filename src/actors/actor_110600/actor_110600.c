@@ -58,18 +58,20 @@
 #include "../../shared/actor_contacts.h"
 #include "../../shared/boss_stranger.h"
 
-/// 0x2C-byte scratch frame `func_actor_110600_80133778` opens on
-/// the scratch stack to lay one patrol node out: `m` receives a copy of the
-/// walker coordinate's matrix, `v` the facing column `gfxReadMatrixZAxis` reads
-/// out of it once it has been rotated and scaled by the GTE, and `i` the node
-/// index the two loops below walk.
-typedef struct Actor110600TsvScratch {
-    /* 0x00 */ SVECTOR v;
-    /* 0x08 */ MATRIX  m;
-    /* 0x28 */ s16     i;
-    /* 0x2A */ byte    pad_2A[0x2];
-} Actor110600TsvScratch;
-STATIC_ASSERT_SIZEOF(Actor110600TsvScratch, 0x2C);
+/// Scratch-stack block the patrol layout works in while it places the walker's
+/// nav nodes.
+///
+/// Node 0 is the walker's own position. Each node after it lies one further
+/// turn about Y round the walker: `rotation` is turned by the layout's angle
+/// once per node, and `offset` is its facing axis times the layout's scale, of
+/// 4096. One block serves one layout and is released before it returns.
+/// Angles are 4096ths of a turn.
+typedef struct {
+    SVECTOR offset;    // Node's offset from the walker: the facing axis of `rotation`, then that axis scaled; `pad` is never written
+    MATRIX  rotation;  // Copy of the walker coordinate's matrix, turned about Y once more for each node; only its rotation is read
+    s16     nodeIndex; // Node being placed, from 1; then the route step being seeded, from 0, left on the end marker's slot
+} _Actor110600PatrolLayoutScratch;
+STATIC_ASSERT_SIZEOF(_Actor110600PatrolLayoutScratch, 0x2C);
 
 /// Returns the patrol node nearest the walker: the squared XZ distance between
 /// each node and the low halfwords of the walker coordinate's translation,
@@ -132,7 +134,8 @@ enum {
     ACTOR_110600_STATE_LURK_ALERT   = 0x15, // the alert that ends `LURK`: not lockable, then chases
     ACTOR_110600_STATE_SHUDDER      = 0x16, // jolts the root from side to side over five ticks, then chases; never selected
     ACTOR_110600_STATE_ALERT_REWIND = 0x17, // runs animation 0x15 forward 20 ticks on entry, then plays it backward until another state is set; entered by a cafeteria command
-    ACTOR_110600_STATE_ENRAGE       = 0x18  // convulses while `enrageTint` builds, then chases at a faster `baseRate`; entered once, by the hit that takes it below half its hit points
+    ACTOR_110600_STATE_ENRAGE       = 0x18, // convulses while `enrageTint` builds, then chases at a faster `baseRate`; entered once, by the hit that takes it below half its hit points
+    ACTOR_110600_STATE_COUNT                // number of states, and of the handlers in `_Actor110600StateTable`
 };
 
 /// Values of `_Actor110600Work::animRequest` and `_Actor110600Work::blendRequest`.
@@ -221,31 +224,40 @@ typedef struct {
 } _Actor110600Work;
 STATIC_ASSERT_SIZEOF(_Actor110600Work, 0xBEC);
 
-/// Damage and hit-direction values in the 0x30-byte scratchpad frame used by
-/// func_actor_110600_80136210.
-typedef struct Actor110600HitScratch {
-    /* 0x00 */ VECTOR  delta;
-    /* 0x10 */ SVECTOR direction;
-    /* 0x18 */ SVECTOR point;
-    /* 0x20 */ s32     key;
-    /* 0x24 */ u32     damage;
-    /* 0x28 */ s32     distance;
-    /* 0x2C */ s16     angle;
-    /* 0x2E */ s16     pad;
-} Actor110600HitScratch;
-
-STATIC_ASSERT_SIZEOF(Actor110600HitScratch, 0x30);
+/// Scratch-stack block of the damage step, which runs each tick the actor has
+/// health left and no hit cooldown running, and reserves a block only while
+/// the player is alive.
+///
+/// The step looks for a damaging contact, kind 0x20000, on the hit body and
+/// then on the grid body. When it finds one it rolls the damage for the
+/// player's range, scales it, takes it off the enemy's health and works out
+/// which way the hit lies from the facing. The damage-over-time tick that
+/// follows reuses `damage` alone. The block is released before the step
+/// returns. Angles are 4096ths of a turn.
+typedef struct {
+    VECTOR  toPlayer;       // Player's position minus the root's; never read back, and `pad` is never written
+    SVECTOR hitOffset;      // `hitPos` minus the root's composed translation; `vx` and `vz` give the hit's bearing, and `pad` is never written
+    SVECTOR hitPos;         // Point of the contact found; `pad` is never written
+    s32     hitKey;         // Key of the contact found: the kind over the attack's packed id; 0 when neither body holds a damaging contact
+    u32     damage;         // Damage of the hit: the roll for the range, times 5 on a critical roll, doubled when `hitYaw` reads beyond 0x500 either way and halved once enraged; then the damage of the over-time tick
+    s32     playerDistance; // Length of `toPlayer`, the range the damage is rolled for; never read back
+    s16     hitYaw;         // Bearing of `hitOffset` off the facing, wrapped to [-0x800, 0x800]. The doubling test reads it before this hit's bearing is stored, so it sees whatever the block's bytes held when it was reserved
+} _Actor110600HitScratch;
+STATIC_ASSERT_SIZEOF(_Actor110600HitScratch, 0x30);
 
 /// The actor's state handlers, indexed by `_Actor110600Work::state`.
-/// `func_actor_110600_80137F2C` copies the table to its frame before
-/// dispatching, the same local jump table `Gp_EnemyDispatch` builds for the
-/// shared `Gp_EnemyWaitFuncs`; four of the 25 slots are still unused.
-typedef struct Actor110600StateTable {
-    TaskFunc fn[0x19];
-} Actor110600StateTable;
-STATIC_ASSERT_SIZEOF(Actor110600StateTable, 0x64);
+///
+/// The package defines one table. The per-frame tick copies it to the stack
+/// before calling the entry of the current state. The call is unconditional,
+/// so the `NULL` entries of `ACTOR_110600_STATE_RESTORED` and the three
+/// `ACTOR_110600_STATE_UNUSED_*` values mark states the actor must not be in
+/// when the tick dispatches.
+typedef struct {
+    TaskFunc handlers[ACTOR_110600_STATE_COUNT]; // Handler of each state, taking the actor's task
+} _Actor110600StateTable;
+STATIC_ASSERT_SIZEOF(_Actor110600StateTable, ACTOR_110600_STATE_COUNT * sizeof(TaskFunc));
 
-static const Actor110600StateTable D_actor_110600_80131F3C;
+static const _Actor110600StateTable D_actor_110600_80131F3C;
 
 // Animation sets supplied by the paired actor overlay.
 
@@ -355,19 +367,22 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement, 
 extern s16 D_actor_110600_8014865C;
 static s32 func_actor_110600_80138900(void);
 
-/// Recoil push stage `func_actor_110600_80137AF4` indexes for the speed it
-/// moves the actor by, and bumps once that push has landed. Reset to 0 first,
-/// so the push only starts on the frame a live actor arrives.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// Allocation holding the step counter of `ACTOR_110600_STATE_SHUDDER`.
+///
+/// Six zero bytes separate the counter from the contact scratch position that
+/// follows it in the image. No access to them is recovered, so whether they
+/// are alignment, trailing fields of this object or a separate unreferenced
+/// variable is unproven; they stay in this allocation only to keep the data
+/// after it at its address.
 typedef struct {
-    s16 value;
-    u8  retained[6];
-} Actor110600Storage8688;
-STATIC_ASSERT_SIZEOF(Actor110600Storage8688, 8);
+    s16 step;         // Jolts made so far: cleared as the state is entered, 0 to 4 pick the sideways push of the tick, 5 hands over to `ACTOR_110600_STATE_CHASE`
+    u8  unknown_2[6]; // Zero in the image; no access established and role unproven
+} _Actor110600ShudderStepStorage;
+STATIC_ASSERT_SIZEOF(_Actor110600ShudderStepStorage, 8);
 
-extern Actor110600Storage8688 D_actor_110600_80148688;
+/// Step counter of the `ACTOR_110600_STATE_SHUDDER` handler, in its static
+/// allocation.
+extern _Actor110600ShudderStepStorage D_actor_110600_80148688;
 
 /// Argument record `func_actor_110600_80135E20` fills for `func_800FDB18`:
 /// model part 1's coordinate, scale 0x100 and count 3.
@@ -1053,7 +1068,7 @@ TaskDesc D_actor_110600_80148670 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MO
 
 TaskDesc D_actor_110600_8014867C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_110600_80138EA8, { .model = &_gActor110600StrangerBody } };
 
-Actor110600Storage8688 D_actor_110600_80148688 = { 0, { 0, 0, 0, 0, 0, 0 } };
+_Actor110600ShudderStepStorage D_actor_110600_80148688 = { 0, { 0 } };
 
 SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
@@ -1137,39 +1152,36 @@ static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
 /// frame released.
 static void func_actor_110600_80133778(BossStrangerWalker* work, s16 scale, s16 angle)
 {
-    Actor110600TsvScratch* blk;
-    u8*                    head;
+    _Actor110600PatrolLayoutScratch* scratch;
 
     if (work->nav->nodeCount < 2)
         return;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x2C;
-    blk                      = (Actor110600TsvScratch*)(head - 0x2C);
-    work->nav->nodes[0].x    = (u16)work->coord->coord.t[0];
-    work->nav->nodes[0].y    = (u16)work->coord->coord.t[1];
-    work->nav->nodes[0].z    = (u16)work->coord->coord.t[2];
-    work->nav->nodeOrder[0]  = 0;
-    blk->m                   = work->coord->coord;
-    for (blk->i = 1; blk->i < work->nav->nodeCount; blk->i++) {
-        gfxRotMatrixY(&blk->m, angle, 0);
-        gfxReadMatrixZAxis(&blk->m, &blk->v);
+    scratch                 = SCRATCH_STACK_RESERVE_BLOCK(_Actor110600PatrolLayoutScratch);
+    work->nav->nodes[0].x   = (u16)work->coord->coord.t[0];
+    work->nav->nodes[0].y   = (u16)work->coord->coord.t[1];
+    work->nav->nodes[0].z   = (u16)work->coord->coord.t[2];
+    work->nav->nodeOrder[0] = 0;
+    scratch->rotation       = work->coord->coord;
+    for (scratch->nodeIndex = 1; scratch->nodeIndex < work->nav->nodeCount; scratch->nodeIndex++) {
+        gfxRotMatrixY(&scratch->rotation, angle, 0);
+        gfxReadMatrixZAxis(&scratch->rotation, &scratch->offset);
         gte_lddp(scale);
-        gte_ldsv(&blk->v);
+        gte_ldsv(&scratch->offset);
         gte_gpf12();
-        gte_stsv(&blk->v);
-        work->nav->nodes[blk->i].x   = (u16)work->coord->coord.t[0] + (u16)blk->v.vx;
-        work->nav->nodes[blk->i].y   = (u16)work->coord->coord.t[1] + (u16)blk->v.vy;
-        work->nav->nodes[blk->i].z   = (u16)work->coord->coord.t[2] + (u16)blk->v.vz;
-        work->nav->nodeOrder[blk->i] = blk->i;
-        printf("emc_m->tsv[%d]( %d, %d, %d )\n", blk->i, work->nav->nodes[blk->i].x, work->nav->nodes[blk->i].y, work->nav->nodes[blk->i].z);
+        gte_stsv(&scratch->offset);
+        work->nav->nodes[scratch->nodeIndex].x   = (u16)work->coord->coord.t[0] + scratch->offset.vx;
+        work->nav->nodes[scratch->nodeIndex].y   = (u16)work->coord->coord.t[1] + scratch->offset.vy;
+        work->nav->nodes[scratch->nodeIndex].z   = (u16)work->coord->coord.t[2] + scratch->offset.vz;
+        work->nav->nodeOrder[scratch->nodeIndex] = scratch->nodeIndex;
+        printf("emc_m->tsv[%d]( %d, %d, %d )\n", scratch->nodeIndex, work->nav->nodes[scratch->nodeIndex].x, work->nav->nodes[scratch->nodeIndex].y, work->nav->nodes[scratch->nodeIndex].z);
     }
     work->route->field_4 = 0;
     work->route->cursor  = 0;
-    for (blk->i = 0; blk->i < work->nav->nodeCount; blk->i++) {
-        work->route->nodeIndices[blk->i] = blk->i;
+    for (scratch->nodeIndex = 0; scratch->nodeIndex < work->nav->nodeCount; scratch->nodeIndex++) {
+        work->route->nodeIndices[scratch->nodeIndex] = scratch->nodeIndex;
     }
-    work->route->nodeIndices[blk->i] = OVERLAY_WALKER_ROUTE_END;
-    SCRATCH_STACK_RELEASE_BYTES(0x2C);
+    work->route->nodeIndices[scratch->nodeIndex] = OVERLAY_WALKER_ROUTE_END;
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor110600PatrolLayoutScratch);
 }
 
 #include "../../shared/boss_stranger_inlines.inc.c"
@@ -2279,22 +2291,22 @@ static __inline__ s32 Actor110600_FindHit(SVECTOR* point, WorldCollisionContact*
 
 static void func_actor_110600_80136210(Task* arg0)
 {
-    _Actor110600Work*      work;
-    Enemy*                 enemy;
-    GfxCoord*              facing;
-    s16                    angle;
-    s16                    dz;
-    s16                    state;
-    s32                    magnitude;
-    s32                    yaw;
-    s32                    x;
-    s32                    y;
-    s32                    z;
-    s32                    distance;
-    s32                    pan;
-    u32                    kind;
-    Actor110600HitScratch* sc;
-    PlayerStatus*          player;
+    _Actor110600Work*       work;
+    Enemy*                  enemy;
+    GfxCoord*               facing;
+    s16                     angle;
+    s16                     dz;
+    s16                     state;
+    s32                     magnitude;
+    s32                     yaw;
+    s32                     x;
+    s32                     y;
+    s32                     z;
+    s32                     distance;
+    s32                     pan;
+    u32                     kind;
+    _Actor110600HitScratch* scratch;
+    PlayerStatus*           player;
 
     enemy  = arg0->spawnArg2.pointer;
     work   = arg0->work;
@@ -2303,54 +2315,54 @@ static void func_actor_110600_80136210(Task* arg0)
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         return;
     }
-    sc      = (Actor110600HitScratch*)SCRATCH_STACK_RESERVE_BYTES(0x30);
-    sc->key = Actor110600_FindHit(&sc->point, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    if (!sc->key) {
-        sc->key = Actor110600_FindHit(&sc->point, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    scratch         = SCRATCH_STACK_RESERVE_BLOCK(_Actor110600HitScratch);
+    scratch->hitKey = Actor110600_FindHit(&scratch->hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    if (!scratch->hitKey) {
+        scratch->hitKey = Actor110600_FindHit(&scratch->hitPos, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     }
-    if (sc->key) {
+    if (scratch->hitKey) {
         state = work->state;
         if ((state == ACTOR_110600_STATE_PATROL) || (state == ACTOR_110600_STATE_IDLE) || (state == ACTOR_110600_STATE_LURK)) {
             work->state = ACTOR_110600_STATE_ALERT;
         }
-        x            = player->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-        sc->delta.vx = x;
-        y            = player->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-        sc->delta.vy = y;
-        z            = player->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-        sc->delta.vz = z;
-        distance     = SquareRoot0((x * x) + (y * y) + (z * z));
-        sc->distance = distance;
-        sc->damage   = Gp_ComputeDamage((u32)sc->key, (u32)distance, 0, 0);
-        if (Gp_RollEnemyChance(enemy, (u32)sc->key, 0) != 0) {
-            sc->damage = (u32)(sc->damage * 5);
+        x                       = player->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
+        scratch->toPlayer.vx    = x;
+        y                       = player->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
+        scratch->toPlayer.vy    = y;
+        z                       = player->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
+        scratch->toPlayer.vz    = z;
+        distance                = SquareRoot0((x * x) + (y * y) + (z * z));
+        scratch->playerDistance = distance;
+        scratch->damage         = Gp_ComputeDamage(scratch->hitKey, distance, 0, 0);
+        if (Gp_RollEnemyChance(enemy, scratch->hitKey, 0) != 0) {
+            scratch->damage *= 5;
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, 0, NULL);
         }
-        magnitude = sc->angle;
+        magnitude = scratch->hitYaw;
         if (magnitude < 0) {
             magnitude = -magnitude;
         }
         if (magnitude >= 0x501) {
-            sc->damage = (u32)(sc->damage * 2);
+            scratch->damage *= 2;
         }
         if (work->enraged == 1) {
-            sc->damage = (u32)((u32)sc->damage >> 1);
+            scratch->damage >>= 1;
         }
-        func_800E2C78(enemy, sc->key, (s32)sc->damage, 0);
-        enemy->hp = (u16)enemy->hp - (u16)sc->damage;
-        func_800DA6E8(&enemy->node, (s32)sc->damage, 0);
+        func_800E2C78(enemy, scratch->hitKey, scratch->damage, 0);
+        enemy->hp = (u16)enemy->hp - (u16)scratch->damage;
+        func_800DA6E8(&enemy->node, scratch->damage, 0);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg0->extra.tmd->coords);
-        sc->direction.vx = (s16)(sc->point.vx - (u16)arg0->extra.tmd->coords->workm.t[0]);
-        sc->direction.vy = (s16)(sc->point.vy - (u16)arg0->extra.tmd->coords->workm.t[1]);
-        dz               = sc->point.vz - (u16)arg0->extra.tmd->coords->workm.t[2];
-        sc->direction.vz = dz;
-        yaw              = ratan2((s32)sc->direction.vx, (s32)dz);
-        facing           = arg0->extra.tmd->coords;
-        angle            = yaw - ratan2((s32)-facing->workm.m[2][0], (s32)facing->workm.m[2][2]);
-        sc->angle        = angle;
-        sc->angle        = Actor110600_WrapHitAngle(sc->angle);
-        func_actor_110600_80135E20(arg0, sc->angle, sc->key);
+        scratch->hitOffset.vx = (s16)(scratch->hitPos.vx - (u16)arg0->extra.tmd->coords->workm.t[0]);
+        scratch->hitOffset.vy = (s16)(scratch->hitPos.vy - (u16)arg0->extra.tmd->coords->workm.t[1]);
+        dz                    = scratch->hitPos.vz - (u16)arg0->extra.tmd->coords->workm.t[2];
+        scratch->hitOffset.vz = dz;
+        yaw                   = ratan2(scratch->hitOffset.vx, dz);
+        facing                = arg0->extra.tmd->coords;
+        angle                 = yaw - ratan2((s32)-facing->workm.m[2][0], (s32)facing->workm.m[2][2]);
+        scratch->hitYaw       = angle;
+        scratch->hitYaw       = Actor110600_WrapHitAngle(scratch->hitYaw);
+        func_actor_110600_80135E20(arg0, scratch->hitYaw, scratch->hitKey);
         work->lookYaw       = 0;
         work->lookYawTarget = 0;
         if ((work->enraged == 0) && (enemy->hp < (s32)((u16)D_actor_110600_80138F14.hpMax >> 1))) {
@@ -2370,8 +2382,8 @@ static void func_actor_110600_80136210(Task* arg0)
             pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(SOUND_STRANGER_HURT, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         }
-        work->hitCooldown = Gp_GetIdParam2(sc->key);
-        kind              = Gp_GetIdParam0(sc->key) & 0xFFFF;
+        work->hitCooldown = Gp_GetIdParam2(scratch->hitKey);
+        kind              = Gp_GetIdParam0(scratch->hitKey) & 0xFFFF;
         switch (kind) {
             case 0:
             case 4:
@@ -2387,22 +2399,22 @@ static void func_actor_110600_80136210(Task* arg0)
             case 9:
                 break;
             case 2:
-                Gp_SetObjFlag2(enemy, sc->key, 0);
+                Gp_SetObjFlag2(enemy, scratch->hitKey, 0);
                 work->state = ACTOR_110600_STATE_STATUS_HOLD;
                 break;
             case 3:
-                Gp_SetObjFlag4(enemy, sc->key, 0);
+                Gp_SetObjFlag4(enemy, scratch->hitKey, 0);
                 break;
         }
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        sc->damage = Gp_TickObjFlag4(enemy);
+        scratch->damage = Gp_TickObjFlag4(enemy);
         if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
-        if (sc->damage != 0) {
-            enemy->hp = (u16)enemy->hp - (u16)sc->damage;
-            func_800DA6E8(&enemy->node, (s32)sc->damage, 0);
+        if (scratch->damage != 0) {
+            enemy->hp = (u16)enemy->hp - (u16)scratch->damage;
+            func_800DA6E8(&enemy->node, scratch->damage, 0);
             if (work->state != ACTOR_110600_STATE_STATUS_HOLD) {
                 work->blendActive  = 1;
                 work->blendAnimId  = 0xB;
@@ -2412,7 +2424,7 @@ static void func_actor_110600_80136210(Task* arg0)
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor110600HitScratch);
 }
 
 /// Timer stage that walks between the two long `animId` values. Entering on
@@ -3091,11 +3103,11 @@ static void func_actor_110600_80137AF4(Task* arg0)
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-        D_actor_110600_80148688.value = 0;
+        D_actor_110600_80148688.step  = 0;
     }
     Gfx_MatrixCol0(&arg0->extra.tmd->coords->coord, &vec);
     VectorNormalSS(&vec, &vec);
-    switch (D_actor_110600_80148688.value) {
+    switch (D_actor_110600_80148688.step) {
         case 0:
             gte_lddp(0x320);
             gte_ldsv(&vec);
@@ -3133,7 +3145,7 @@ static void func_actor_110600_80137AF4(Task* arg0)
     arg0->extra.tmd->coords->coord.t[0] += vec.vx;
     arg0->extra.tmd->coords->coord.t[2] += vec.vz;
     coord                                = arg0->extra.tmd->coords;
-    D_actor_110600_80148688.value++;
+    D_actor_110600_80148688.step++;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -3208,7 +3220,7 @@ static void func_actor_110600_80137DB0(Task* arg0)
 /// migrates the table into the `.s` of the function that reads it, so it is
 /// written out here to keep the block in the unit's `.rodata` now that
 /// `func_actor_110600_80137F2C` is decompiled.
-static const Actor110600StateTable D_actor_110600_80131F3C = {
+static const _Actor110600StateTable D_actor_110600_80131F3C = { {
     func_actor_110600_801388A4,
     NULL,
     func_actor_110600_80135194,
@@ -3234,7 +3246,7 @@ static const Actor110600StateTable D_actor_110600_80131F3C = {
     func_actor_110600_80137AF4,
     func_actor_110600_80138CA4,
     func_actor_110600_80137DB0,
-};
+} };
 
 /// The actor's enemy tick, the middle entry of the `D_actor_110600_80131FA0`
 /// triple `func_actor_110600_80134AB4` / this / `enemyDestroy`: copies
@@ -3259,9 +3271,9 @@ static const Actor110600StateTable D_actor_110600_80131F3C = {
 /// pose.
 static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
 {
-    VECTOR                pos;
-    Actor110600StateTable states;
-    _Actor110600Work*     work;
+    VECTOR                 pos;
+    _Actor110600StateTable states;
+    _Actor110600Work*      work;
 
     work   = arg1->work;
     states = D_actor_110600_80131F3C;
@@ -3306,7 +3318,7 @@ static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
     work->gridBody.pos.vx = (u16)arg1->extra.tmd->coords->coord.t[0];
     work->gridBody.pos.vy = (u16)arg1->extra.tmd->coords->coord.t[1];
     work->gridBody.pos.vz = (u16)arg1->extra.tmd->coords->coord.t[2];
-    states.fn[work->state](arg1);
+    states.handlers[work->state](arg1);
     work->gridBody.pos.vx = (u16)arg1->extra.tmd->coords->coord.t[0];
     work->gridBody.pos.vy = (u16)((u16)arg1->extra.tmd->coords->coord.t[1] - 0x124);
     work->gridBody.pos.vz = (u16)arg1->extra.tmd->coords->coord.t[2];
