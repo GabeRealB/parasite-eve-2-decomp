@@ -52,7 +52,7 @@ extern s16 gScriptedWalkMode[2];
 /// walk code addresses the mode.
 extern s16 gScriptedWalkModeValue __asm__("gScriptedWalkMode");
 
-extern Actor461800Work* gScriptedWalkWork;
+extern ScriptedWalkAttachmentsWork* gScriptedWalkWork;
 
 /// The task the first variant's work block above belongs to, published by
 /// `func_actor_461800_80132390` alongside it.
@@ -866,7 +866,7 @@ s32 D_actor_461800_8014388C = 0;
 
 s32 D_actor_461800_80143890 = 0;
 
-Actor461800Work* gScriptedWalkWork = NULL;
+ScriptedWalkAttachmentsWork* gScriptedWalkWork = NULL;
 
 Task* D_actor_461800_80143898 = NULL;
 
@@ -1046,8 +1046,8 @@ void func_actor_461800_8013229C(void)
 }
 
 /// Spawn tick of the first actor variant: allocates the work block, hangs the
-/// model off the view, seeds the animation context and starts the two helper
-/// tasks. Each helper takes its texture page and CLUT row from the nested area
+/// model off the view, seeds the animation context and starts the two attachment
+/// tasks. Each attachment takes its texture page and CLUT row from the nested area
 /// record the actor's spawn index selects, and is streamed twice once its aux
 /// buffer exists.
 static void func_actor_461800_80132390(Enemy* enemy, Task* task)
@@ -1060,7 +1060,7 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    task->work = (gScriptedWalkWork = memCalloc(0x4F8, false));
+    task->work = (gScriptedWalkWork = memCalloc(sizeof(ScriptedWalkAttachmentsWork), false));
     if (gScriptedWalkWork == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -1087,13 +1087,13 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
 
     spawned1 = Task_SpawnFromTable(D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
-        gScriptedWalkWork->helper1 = spawned1;
+        gScriptedWalkWork->attachment1 = spawned1;
         actorTintModel(spawned1->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     spawned2 = Task_SpawnFromTable(D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
-        gScriptedWalkWork->helper2 = spawned2;
+        gScriptedWalkWork->attachment2 = spawned2;
         actorTintModel(spawned2->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
@@ -1116,7 +1116,7 @@ void func_actor_461800_801329B0(Task* task)
         func_actor_461800_80132A0C,
     };
 
-    gScriptedWalkWork = (Actor461800Work*)task->work;
+    gScriptedWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1130,15 +1130,15 @@ void func_actor_461800_801329B0(Task* task)
 
 /// `Task::exitCallback` of the first variant: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2` by the spawn descriptor) back to
-/// `enemyDestroy`, then kills the two helper tasks the spawn routine
+/// `enemyDestroy`, then kills the two attachment tasks the spawn routine
 /// started.
 static void func_actor_461800_80132A90(Task* task)
 {
-    Actor461800Work* work = (Actor461800Work*)task->work;
+    ScriptedWalkAttachmentsWork* work = task->work;
 
     enemyDestroy(task->spawnArg2.pointer, task);
-    taskKill(work->helper1);
-    taskKill(work->helper2);
+    taskKill(work->attachment1);
+    taskKill(work->attachment2);
 }
 
 #include "../../shared/walker_shadow_shaded.inc.c"
@@ -1200,15 +1200,15 @@ s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* prese
 }
 
 /// Sets `TmdObject.flags` on the three model objects this actor owns:
-/// the one on its own task and the two helper tasks' models in the work block.
+/// the one on its own task and the two attachment tasks' models in the work block.
 /// `arg2 & 1` shows them (flags 0); otherwise each gets `TMD_OBJECT_SKIP_ACTIVE_DRAW`.
 /// `arg2 & 2` also sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on each. These are object
 /// flags, not `Tmd_Create`'s buffer-flag argument.
 s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* own    = D_actor_461800_80143898->extra.tmd;
-    TmdObject* first  = gScriptedWalkWork->helper1->extra.tmd;
-    TmdObject* second = gScriptedWalkWork->helper2->extra.tmd;
+    TmdObject* first  = gScriptedWalkWork->attachment1->extra.tmd;
+    TmdObject* second = gScriptedWalkWork->attachment2->extra.tmd;
 
     if (arg2 & 1) {
         own->flags    = 0;

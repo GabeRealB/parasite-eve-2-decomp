@@ -50,6 +50,33 @@ typedef struct ScriptedWalkWork {
     s16             turnFrames;
 } ScriptedWalkWork;
 
+/// Work block of a scripted walker that carries two attachments, allocated
+/// zeroed at its full size by the walker's spawn state and kept both at
+/// `Task::work` and in the walker's `gScriptedWalkWork`.
+///
+/// It opens as `ScriptedWalkWork` does, which is how the walk-to handler and
+/// the update view it. Each attachment is a task of its own that draws a
+/// one-part model and hangs that model's coordinate off one part of the
+/// walker's rig, the part being the task's first spawn argument, so the model
+/// follows the part. The spawn state starts the two from entries 1 and 2 of
+/// the walker's spawn table, the model-draw message shows and hides them with
+/// the walker, and the walker's exit callback kills both. A spawn that fails
+/// leaves its member NULL, which neither of those two checks for.
+///
+/// actor_461800's first walker carries its two hand models this way, on parts
+/// 8 and 12. actor_143900's second carries one model on part 1 and one on part
+/// 12, and its command message shows either one and hides the other.
+typedef struct {
+    MATRIX          light;       // Light-direction matrix lent to the model object
+    MATRIX          color;       // Light-colour matrix lent to the model object
+    ActorAnimRig20  rig;         // Playback storage of the twenty-part model; slots 1 to 19 are driven
+    ActorEnemyState st;          // Animation request, heading last given the root and frames of walk left
+    s16             turnFrames;  // Frames the update still turns the model for while the turn clip plays
+    Task*           attachment1; // Task of the model started from spawn-table entry 1
+    Task*           attachment2; // Task of the model started from spawn-table entry 2
+} ScriptedWalkAttachmentsWork;
+STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
+
 void scriptedWalkUpdate(Task* task);
 void scriptedWalkTickAnim(void);
 void scriptedWalkResetAnim(void);

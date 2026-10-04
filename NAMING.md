@@ -487,6 +487,16 @@ behaviour, awake stage, death phase and animation values use
 `SUCKLERCEPH_STATE_`, `SUCKLERCEPH_AWAKE_STAGE_`, `SUCKLERCEPH_DEATH_PHASE_` and
 `SUCKLERCEPH_ANIM_`.
 
+`scriptedWalk` owns the included walk of the twenty-part NPCs that cutscene
+scripts move around, over a work block each walker publishes in a global. Its
+implementation interface is `src/shared/scripted_walk.h`, one fragment per
+function, carried by `actor_143900` (two walkers), `actor_146300`,
+`actor_260400`, `actor_420700` and `actor_461800`. `ScriptedWalkWork` is the
+head every walker's block opens with, which is how the fragments that take the
+task view it. `ScriptedWalkAttachmentsWork` is the whole block of a walker that
+carries two attachment tasks, the first walker of `actor_461800` and the second
+of `actor_143900`; the other walkers' blocks are their packages' own.
+
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
 `jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the

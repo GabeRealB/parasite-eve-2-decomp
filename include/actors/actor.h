@@ -862,24 +862,6 @@ typedef struct Actor110300Work {
 } Actor110300Work;
 STATIC_ASSERT_SIZEOF(Actor110300Work, 0x55C);
 
-/// Work block of the animated enemy whose code actor_461800 and actor_143900's
-/// second variant both carry, allocated zeroed at its full size and kept both
-/// at `Task::work` and in a global the other handlers reach it through: the
-/// model's light and colour matrices, its rig and animation state, the frames
-/// of turning left while animation 3 plays, and the two helper tasks the spawn
-/// routine starts and the exit callback kills.
-typedef struct Actor461800Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig20  rig;
-    ActorEnemyState st;
-    s16             turnFrames;
-    byte            pad_4EE[0x2];
-    Task*           helper1;
-    Task*           helper2;
-} Actor461800Work;
-STATIC_ASSERT_SIZEOF(Actor461800Work, 0x4F8);
-
 /// Work block of the animated enemy whose code actor_151000, actor_535700 and
 /// actor_461800's second variant carry, allocated zeroed at its full size and
 /// kept both at `Task::work` and in a global the other handlers reach it

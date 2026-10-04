@@ -97,7 +97,7 @@ extern u8 D_actor_143900_801413F8[];
 
 /// The second variant's work block, published by its dispatcher
 /// `func_actor_143900_80132DEC` and its spawn routine.
-extern Actor461800Work* D_actor_143900_801496C4;
+extern ScriptedWalkAttachmentsWork* D_actor_143900_801496C4;
 
 /// The second variant's task, published by its spawn routine so the placement,
 /// visibility and play-animation handlers can reach it.
@@ -116,8 +116,8 @@ extern s16 D_actor_143900_80149630;
 /// `Task::msgTable`.
 extern TaskMessageEntry D_actor_143900_80149634[];
 
-/// Spawn table the second variant's spawn routine starts its two helper tasks
-/// from, indices 1 and 2; the tasks are parked in `helper1` / `helper2`.
+/// Spawn table the second variant's spawn routine starts its two attachment tasks
+/// from, indices 1 and 2; the tasks are parked in `attachment1` / `attachment2`.
 extern TaskDesc D_actor_143900_80149664[];
 
 /// Animation stream the second variant's spawn routine binds into its work
@@ -1175,7 +1175,7 @@ s16 gScriptedWalkMode[2] = {
     0x49E7,
 };
 
-Actor461800Work* D_actor_143900_801496C4 = NULL;
+ScriptedWalkAttachmentsWork* D_actor_143900_801496C4 = NULL;
 
 Task* D_actor_143900_801496C8;
 
@@ -1344,24 +1344,24 @@ s32 func_actor_143900_80132778(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 #include "../../shared/scripted_walk_to.inc.c"
 
 /// Spawn routine of the second variant (state 0 of `func_actor_143900_80132DEC`):
-/// allocates the 0x4F8 work block and publishes it in `D_actor_143900_801496C4`
+/// allocates the work block and publishes it in `D_actor_143900_801496C4`
 /// and the task's `work` slot, binds the model's coordinate to the view and
 /// hands the object its light and colour matrices out of the block, publishes
 /// the task in `D_actor_143900_801496C8`, relights the model from a point 0x320
 /// above its translation and binds the animation stream. It then starts the two
-/// helper tasks from the overlay's spawn table and runs the first update with
+/// attachment tasks from the overlay's spawn table and runs the first update with
 /// the reset mode 2 / id 1 it seeds.
 static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    Actor461800Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    Task*            helper;
+    VECTOR                       vec;
+    ScriptedWalkAttachmentsWork* work;
+    GfxCoord*                    coord;
+    TmdObject*                   obj;
+    Task*                        helper;
 
     obj                     = task->extra.tmd;
     coord                   = obj->coords;
-    work                    = memCalloc(0x4F8, false);
+    work                    = memCalloc(sizeof(ScriptedWalkAttachmentsWork), false);
     D_actor_143900_801496C4 = work;
     task->work              = work;
     if (work == NULL) {
@@ -1389,11 +1389,11 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
     D_actor_143900_801496C4->st.state  = ACTOR_ENEMY_ANIM_RESET;
     helper                             = Task_SpawnFromTable(D_actor_143900_80149664, 1, 1, 0);
     if (helper != NULL) {
-        D_actor_143900_801496C4->helper1 = helper;
+        D_actor_143900_801496C4->attachment1 = helper;
     }
     helper = Task_SpawnFromTable(D_actor_143900_80149664, 2, 0xC, 0);
     if (helper != NULL) {
-        D_actor_143900_801496C4->helper2 = helper;
+        D_actor_143900_801496C4->attachment2 = helper;
     }
     D_actor_143900_801496C4->st.travel  = 0;
     D_actor_143900_801496C4->turnFrames = 0;
@@ -1432,7 +1432,7 @@ void func_actor_143900_80132DEC(Task* task)
     };
     u8 scratch[0x40]; /* never referenced; only reserves the frame */
 
-    D_actor_143900_801496C4 = (Actor461800Work*)task->work;
+    D_actor_143900_801496C4 = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1446,14 +1446,14 @@ void func_actor_143900_80132DEC(Task* task)
 
 /// `Task::exitCallback` of the second variant: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2`) back to `enemyDestroy`, then kills the two
-/// helper tasks the spawn routine started.
+/// attachment tasks the spawn routine started.
 static void func_actor_143900_80132ECC(Task* task)
 {
-    Actor461800Work* work = (Actor461800Work*)task->work;
+    ScriptedWalkAttachmentsWork* work = task->work;
 
     enemyDestroy(task->spawnArg2.pointer, task);
-    taskKill(work->helper1);
-    taskKill(work->helper2);
+    taskKill(work->attachment1);
+    taskKill(work->attachment2);
 }
 
 /// A further copy of the shadow, under this file's own name.
@@ -1461,9 +1461,9 @@ static void func_actor_143900_80132ECC(Task* task)
 #include "../../shared/walker_shadow_shaded.inc.c"
 #undef walkerDrawShadowShaded
 
-/// Helper-task handler of the second variant: state 0 hangs the task's own
+/// Attachment-task handler of the second variant: state 0 hangs the task's own
 /// coordinate frame off part `spawnArg1` of the second variant's model and
-/// steps to state 1; every later tick relights the helper's model from a point
+/// steps to state 1; every later tick relights the attachment's model from a point
 /// 0x320 above that model's root translation.
 void func_actor_143900_80132FB0(Task* task)
 {
@@ -1536,13 +1536,13 @@ s32 func_actor_143900_801331C4(Task* task, s32 arg1, AnimationPlayRequest* prese
 }
 
 /// Message 0x7D5 handler of the second variant: applies `arg2` to the three
-/// models it owns - its own task's and the two helper tasks'. Bit 0 selects
+/// models it owns - its own task's and the two attachment tasks'. Bit 0 selects
 /// `TmdObject.flags` 0 (shown) vs 0x80 (hidden); bit 1 ORs in 0x4.
 s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* own    = D_actor_143900_801496C8->extra.tmd;
-    TmdObject* first  = D_actor_143900_801496C4->helper1->extra.tmd;
-    TmdObject* second = D_actor_143900_801496C4->helper2->extra.tmd;
+    TmdObject* first  = D_actor_143900_801496C4->attachment1->extra.tmd;
+    TmdObject* second = D_actor_143900_801496C4->attachment2->extra.tmd;
 
     if (arg2 & 1) {
         own->flags    = 0;
@@ -1569,16 +1569,16 @@ s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2, s32 arg3)
 #undef gScriptedWalkWork
 
 /// Message 0x7DB handler of the second variant: the payload's halfword at 0x2
-/// picks which of the two helper tasks' models is shown - 0 shows the second
-/// (`helper2`) and hides the first, 1 the reverse; any other value leaves
+/// picks which of the two attachment tasks' models is shown - 0 shows the second
+/// (`attachment2`) and hides the first, 1 the reverse; any other value leaves
 /// both.
 s32 func_actor_143900_80133360(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     TmdObject* first;
     TmdObject* second;
 
-    first  = D_actor_143900_801496C4->helper1->extra.tmd;
-    second = D_actor_143900_801496C4->helper2->extra.tmd;
+    first  = D_actor_143900_801496C4->attachment1->extra.tmd;
+    second = D_actor_143900_801496C4->attachment2->extra.tmd;
     switch (msg->command) {
         case 0:
             second->flags = 0;
