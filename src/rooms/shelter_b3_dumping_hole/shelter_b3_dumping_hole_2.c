@@ -361,28 +361,6 @@ enum {
     SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FLICKER      = 6, // Multi-frame: flicker the view's sprites, then start the framebuffer blend
 };
 
-typedef struct {
-    /* 0x00 */ u32 tag;
-    /* 0x04 */ u8  r;
-    /* 0x05 */ u8  g;
-    /* 0x06 */ u8  b;
-    /* 0x07 */ u8  code;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ s16 field_A;
-    /* 0x0C */ u8  field_C;
-    /* 0x0D */ u8  field_D;
-    /* 0x0E */ u8  field_E;
-    /* 0x0F */ u8  pad_F;
-    /* 0x10 */ s16 field_10;
-    /* 0x12 */ s16 field_12;
-    /* 0x14 */ u8  field_14;
-    /* 0x15 */ u8  field_15;
-    /* 0x16 */ u8  field_16;
-    /* 0x17 */ u8  pad_17;
-    /* 0x18 */ s16 field_18;
-    /* 0x1A */ s16 field_1A;
-} Prim82AA0;
-
 /// The encounter's enemy slots, in the order the controller starts them.
 extern OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[];
 
