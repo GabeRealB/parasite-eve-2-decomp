@@ -85732,11 +85732,20 @@ but it invents a record the code gives no evidence of, so it was replaced by
 the separate local.
 
 Casting the source up to a wider type instead (`sp = *(Wider*)&D;`) is the
-trap: it makes the move copy the *large* size and buys two more loads. The same
-20 bytes of locals are in `actor_521100`'s dispatcher
-(`func_actor_521100_80136604`: 3 words at `0x10`-`0x18`, bytes at `0x20`/`0x21`,
-a halfword at `0x22`), which does store into the trailing ones, so the shape
-recurs in the family rather than being an artefact of one overlay.
+trap: it makes the move copy the *large* size and buys two more loads.
+
+The second local does not start where the table ends. Each `BLKmode` local's
+slot is rounded up to 8 bytes (the 4-byte `struct` entry below), so the 12-byte
+table occupies `0x10`-`0x1F` and the next aggregate starts at `0x20` whatever
+its own alignment: the word at `0x1C` is the table's slot padding, not a member
+of anything, and the second local is 1-8 bytes, not 5-12. `actor_521100`'s
+dispatcher (`func_actor_521100_80136604`: 3 words at `0x10`-`0x18`, bytes at
+`0x20`/`0x21`, a halfword at `0x22`) shows it, because it does store into its
+second local. Declaring that local as an 8-byte record with a leading unused
+word put the stores at `0x24`-`0x26`; a 4-byte `{ u8; u8; u16 }` beside a bare
+`EnemyTaskFuncTable3` matches. So the shape recurs in the family rather than
+being an artefact of one overlay, and in neither overlay is the table a member
+of a larger record.
 
 Inputs: `base_2.i` (3-word local, 99.130%)
 `f875b51dee062167d0eca2801acbe6bdc9c54c47fa29597b73d0cf0f1d646d82`,

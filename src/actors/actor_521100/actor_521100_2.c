@@ -114,21 +114,6 @@ STATIC_ASSERT_SIZEOF(_Actor521100AnmcWomanWork, 0x4B4);
 
 extern _Actor521100AnmcWomanWork* D_actor_521100_8016A3D8;
 
-/// Stack copy `func_actor_521100_80136604` makes before the indirect call.
-/// The copy itself moves only the 3 words of `D_actor_521100_80131E68`, but
-/// the dispatcher's frame is 0x30 with `$ra` at 0x28, which needs 17-24 bytes
-/// of locals. The trailing `u8`/`u8`/`u16` at 0x10 are written to 2, 9, 1;
-/// `field_C` is unread. `actor_210600`'s dispatcher has the same 20 bytes of
-/// locals and leaves the trailing eight untouched.
-typedef struct Actor521100DispatchCtx {
-    /* 0x00 */ EnemyTaskFuncTable3 table;
-    /* 0x0C */ s32                 field_C;
-    /* 0x10 */ u8                  field_10;
-    /* 0x11 */ u8                  field_11;
-    /* 0x12 */ u16                 field_12;
-} Actor521100DispatchCtx;
-STATIC_ASSERT_SIZEOF(Actor521100DispatchCtx, 0x14);
-
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_521100_8016A358[6];
@@ -734,19 +719,26 @@ static const EnemyTaskFuncTable3 D_actor_521100_80131E68 = { {
     func_actor_521100_801360C4,
 } };
 
-/// State dispatcher: copies the overlay's 3-entry state table onto a 20-byte
-/// stack record, fills the trailing context bytes, caches the work pointer,
-/// and calls the entry `Task::state` selects.
+/// State dispatcher: copies the overlay's 3-entry state table onto the stack,
+/// caches the work pointer, and calls the entry `Task::state` selects.
 void func_actor_521100_80136604(Task* arg0)
 {
-    Actor521100DispatchCtx sp;
+    EnemyTaskFuncTable3 sp;
+    // Filled here and then neither read nor passed on, so what the record is
+    // for is unproven, as is the signedness of its fields. The stores establish
+    // these four bytes; the frame has room for up to four more behind them.
+    struct {
+        u8  field_0;
+        u8  field_1;
+        u16 field_2;
+    } unread;
 
-    sp.table                = D_actor_521100_80131E68;
-    sp.field_10             = 2;
-    sp.field_11             = 9;
-    sp.field_12             = 1;
+    sp                      = D_actor_521100_80131E68;
+    unread.field_0          = 2;
+    unread.field_1          = 9;
+    unread.field_2          = 1;
     D_actor_521100_8016A3D8 = arg0->work;
-    sp.table.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
 static void func_actor_521100_80136680(Enemy* arg0, Task* task)
