@@ -106764,14 +106764,14 @@ the scheduler hoists it to the top of the block while the `addiu` sinks back
 down to the first use.
 
 ```c
-work->field_68E = D_actor_521100_8015F634[(rng >> 16) & 0xF];   /* lui/addiu both late */
+work->stateCounter = D_actor_521100_8015F634[(rng >> 16) & 0xF];   /* lui/addiu both late */
 ```
 
 ```c
 tbl             = D_actor_521100_8015F634;      /* lui early, addiu sinks to the use */
 rng             = gRandomLcgState * 5 + 0x71357911;
 gRandomLcgState     = rng;
-work->field_68E = tbl[(rng >> 16) & 0xF];
+work->stateCounter = tbl[(rng >> 16) & 0xF];
 ```
 
 Read the target's two halves: when `lui %hi` of the table sits several
@@ -106830,10 +106830,10 @@ sll   v0,a1,1           # index reuses the copy, not v1
 ```
 
 The `addu a1,v1,zero` reads like an allocation wobble; it is not. The source
-read `work->field_686` a *second* time in the SImode context (`if (work->field_686
-< 0x15) { val = Table[work->field_686]; }`), and cse had the first read's value
+read `work->animationId` a *second* time in the SImode context (`if (work->animationId
+< 0x15) { val = Table[work->animationId]; }`), and cse had the first read's value
 still in its table, so it replaced the second load with a register copy. The seed
-hoisted one read into a local (`anim = work->field_686;`) and reused the local in
+hoisted one read into a local (`anim = work->animationId;`) and reused the local in
 both places - which is the usual advice, and here it is exactly what removes the
 copy, because a local makes the two uses one value instead of two reads.
 
@@ -106926,7 +106926,7 @@ slot moves to `$a3`. Spelling the absolute value as a ternary instead
 s16 diff;
 s32 adiff;
 /* ... */
-diff  = work->field_698 - work->field_696;
+diff  = work->targetYaw - work->yaw;
 adiff = diff >= 0 ? diff : -diff;      /* 100.000% */
 ```
 
@@ -106967,10 +106967,10 @@ the same 84 instruction words in `Actor02500_Fn016FC` (actor_102500),
 `func_actor_300700_80164794` and `func_actor_521100_80134C38`. Porting the
 `actor_300700` source into 521100 and renaming the fields scored **89.85%**
 (`regs=13 branch=8 insert=5 delete=3`). The bodies are identical; the headers
-are not: `Actor521100Work` declares the current-yaw field `field_696` as `u16`
-(two other matched bodies in the same overlay read it with `lhu`, so the header
-is not free to change), while the sibling overlays' structs declare theirs
-`s16`.
+are not: `Actor521100Work` then declared the current-yaw field `yaw` as `u16`
+(two other matched bodies in the same overlay read it with `lhu`, which made
+the header look fixed; it is `s16` now, and they still match), while the
+sibling overlays' structs declare theirs `s16`.
 
 The leftover is not an allocation wobble, it is a reload where the target has a
 copy. The target keeps the computed yaw in `$a1`, stores it in the branch's
@@ -106997,8 +106997,8 @@ Reading the field signed at the two re-read sites is the whole fix, and it is
 what lets the `u16` header stay:
 
 ```c
-next = (s16)work->field_696;    /* was: next = work->field_696; */
-cur  = (s16)work->field_696;    /* was: cur  = work->field_696; */
+next = (s16)work->yaw;    /* was: next = work->yaw; */
+cur  = (s16)work->yaw;    /* was: cur  = work->yaw; */
 ```
 
 100.000%, every penalty zero. Declaring the field `s16` in the header gives the
@@ -107499,9 +107499,10 @@ expanded at each **use site**, so `combine` folds it back into an `lh` at the
 position of the *use*, not the assignment - and the scheduler therefore places
 the load by the surrounding expression, not by where the C reads the field.
 
-`Actor521100Work::field_68A` is `u16` in the header (`func_actor_521100_80135964`
-really does `lhu` it for `field_68A += i`), and the overlay's other bodies write
-`(s16)work->field_68A`. Doing the same into an `s16` local gives
+`Actor521100Work::animationFrame` was `u16` in the header at the time
+(`func_actor_521100_80135964` really does `lhu` it for `animationFrame += i`;
+the field is `s16` now, which matches as well), and the overlay's other bodies
+wrote `(s16)work->animationFrame`. Doing the same into an `s16` local gives
 
 ```
 insn 277  (set (reg/v:HI 93) (mem/s:HI (plus (reg 81) 1674)))   ; lhu - the read
@@ -107594,7 +107595,7 @@ u32  rng;
 tbl             = D_actor_521100_8015F634;
 rng             = gRandomLcgState * 5 + 0x71357911;
 gRandomLcgState     = rng;
-work->field_68E = tbl[(rng >> 16) & 0xF];   /* folds to srl 15 / andi 0x1E */
+work->stateCounter = tbl[(rng >> 16) & 0xF];   /* folds to srl 15 / andi 0x1E */
 ```
 
 Nothing else was needed. The work pointer moved `$a2` -> `$a3` on its own once
@@ -107697,9 +107698,9 @@ source `base_1.c` `cb2ffab3886c6cf58d30c7362bac1b40421e18a66f62d0949e30dadcb1146
 in three `switch` arms:
 
 ```c
-    case 0: tbl = D_actor_521100_8015F5D4; work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF]; break;
-    case 1: tbl = D_actor_521100_8015F5F4; work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF]; break;
-    case 3: tbl = D_actor_521100_8015F5F4; work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF]; break;
+    case 0: tbl = D_actor_521100_8015F5D4; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
+    case 1: tbl = D_actor_521100_8015F5F4; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
+    case 3: tbl = D_actor_521100_8015F5F4; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
 ```
 
 Each arm wants `lui $a0,%hi(tbl)` + `addiu $a0,$a0,%lo(tbl)`, one register, and
@@ -107727,7 +107728,7 @@ and the cascade starts.
         if (…) {
             u16* tbl = D_actor_521100_8015F5D4;   /* block-scoped, set once, used once */
             …
-            work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF];
+            work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF];
         }
 ```
 

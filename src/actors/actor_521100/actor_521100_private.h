@@ -16,107 +16,96 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-/// Work block of the actor `func_actor_521100_80131E8C` spawns:
-/// `memCalloc(0x6C0, 0)`, hung off `Task::work`. It holds the model's
-/// animation context, slots and pose buffer, the `color` / `light` matrices the
-/// model is drawn under, and the collision bodies the spawn links: `obj47C`
-/// and `obj514` (kind 2, over the `rec49C` and `rec534` contact tables),
-/// `obj57C` / `obj59C` sharing `rec5BC`, and `obj5D4` / `obj5F4` sharing
-/// `rec62C`, the first of that pair carrying the `shape` segment.
-typedef struct Actor521100Work {
-    /* 0x000 */ ActorAnimRig19        rig;
-    /* 0x43C */ MATRIX                color;
-    /* 0x45C */ MATRIX                light;
-    /* 0x47C */ WorldCollisionBody    obj47C;
-    /* 0x49C */ WorldCollisionContact rec49C[5];
-    /* 0x514 */ WorldCollisionBody    obj514;
-    /* 0x534 */ WorldCollisionContact rec534[3];
-    /// The two collision nodes the burn-out sequence arms, the pair
-    /// `Actor510900Work`'s `weaponAttack` / `forearmAttack` carry. `func_actor_521100_80131E8C`
-    /// fills both - the two pointers, `pos` and
-    /// `key` / `radius` - and links them. The state bodies then raise
-    /// `flags` bit 0x8000 on the frame their effect fires, hand both back with
-    /// an `&= 0x7FFF` when the sequence advances, and take the word
-    /// `Gp_PackPair` returns into `key`.
-    /* 0x57C */ WorldCollisionBody obj57C;
-    /// See `obj57C`.
-    /* 0x59C */ WorldCollisionBody    obj59C;
-    /* 0x5BC */ WorldCollisionContact rec5BC[1];
-    /* 0x5D4 */ WorldCollisionBody    obj5D4;
-    /* 0x5F4 */ WorldCollisionBody    obj5F4;
-    /* 0x614 */ WorldCollisionCapsule shape;
-    /* 0x62C */ WorldCollisionContact rec62C[1];
-    /// `func_800FDB18` argument record `func_actor_521100_80135230` refreshes
-    /// on the effect frames of the burn-out sequence.
-    /* 0x644 */ EffectSpawnArg eff;
-    /* 0x64C */ s16            field_64C; // the attach coordinate's translation, snapshotted each frame
-    /* 0x64E */ s16            field_64E;
-    /* 0x650 */ s16            field_650;
-    /* 0x652 */ byte           pad_652[2];
-    /* 0x654 */ Task*          field_654;
-    /* 0x658 */ byte           pad_658[0x20];
-    /// Residual twist of the coordinate at `field_8[3]`, two angles of the
-    /// +/-(0x40..0xBF) range the hit body `func_actor_521100_801322F8` draws
-    /// from `gRandomLcgState` on the frame it takes a hit. It writes them here and
-    /// arms `field_680`; the untwist body `func_actor_521100_80135024` then
-    /// rotates that coordinate's matrix back by them, stepping each angle 0x20
-    /// towards zero per frame until both arrive and it clears the flag. Same
-    /// pair as `Actor510900Work::hitTwist` / `hitTwistActive` and
-    /// `GolemPawnRookWork::field_688` / `field_6B4`.
-    /* 0x678 */ SVECTOR field_678;
-    /* 0x680 */ s16     field_680;
-    /* 0x682 */ s16     field_682; // non-zero while the tick in func_actor_521100_80135B80 remaps the model's field_C
-    /* 0x684 */ s16     field_684;
-    /// The clip the slots are blended to and the clip they currently carry.
-    /// The preset handler `func_actor_521100_80135C14` stores one clip id into
-    /// both, so the blend is skipped; `func_actor_521100_80135964` later walks
-    /// every slot towards `field_686` while the two differ, then ticks them
-    /// once they agree. `field_68A` counts the ticks, and is cleared when a new
-    /// clip is latched into `field_688`.
-    /* 0x686 */ s16 field_686;
-    /* 0x688 */ s16 field_688;
-    /* 0x68A */ u16 field_68A;
-    /* 0x68C */ s16 field_68C;
-    /* 0x68E */ s16 field_68E;
-    /* 0x690 */ s16 field_690;
-    /* 0x692 */ s16 field_692;
-    /* 0x694 */ s16 field_694;
-    /// 12-bit angles. The step-1 entry body `func_actor_521100_80135680`
-    /// subtracts them, wraps the difference into [-0x800, 0x800] and reads
-    /// `field_6AA` when the result is under 0x200.
-    /* 0x696 */ u16 field_696;
-    /* 0x698 */ u16 field_698;
-    /* 0x69A */ s16 field_69A; // forward speed, in 12-bit fixed point
-    /* 0x69C */ s16 field_69C; // cleared together with the forward speed
-    /* 0x69E */ s16 field_69E;
-    /* 0x6A0 */ s16 field_6A0;
-    /* 0x6A2 */ s16 field_6A2;
-    /* 0x6A4 */ s16 field_6A4;
-    /// Parked animation the burn-out body `func_actor_521100_80133104` clears
-    /// on its own frame, the same slot `actor_102000` and `actor_105700` park
-    /// into.
-    /* 0x6A6 */ s16 field_6A6;
-    /* 0x6A8 */ s16 field_6A8;
-    /* 0x6AA */ s16 field_6AA;
-    /* 0x6AC */ s16 field_6AC;
-    /// Armed by `func_actor_521100_80133104` on the frame the burn-out sound
-    /// fires and cleared again when the sequence advances.
-    /* 0x6AE */ s16 field_6AE;
-    /* 0x6B0 */ s16 field_6B0;
-    /* 0x6B2 */ s16 field_6B2;
-    /// The animation record's flag nibble (`rec->field_3 & 0x30`) latched for
-    /// the next frame by the footstep cue body `func_actor_521100_80134D88`, so
-    /// each foot fires on the frame its bit has just dropped.
-    /* 0x6B4 */ u16 field_6B4;
-    /// Current and previous burn-out choices, used to avoid a third repeat.
-    /* 0x6B6 */ s16 field_6B6;
-    /* 0x6B8 */ s16 field_6B8;
-    /// Non-zero asks the burn-out bodies to hand the actor on to state 6
-    /// (`field_69E = 6`) instead of back to the idle state 0; `field_6BC` is
-    /// the sub-state they then start at.
-    /* 0x6BA */ s16 field_6BA;
-    /* 0x6BC */ u16 field_6BC;
-    /* 0x6BE */ s16 field_6BE;
+/// Values of `Actor521100Work::state`: the behaviour the fighting golem runs
+/// each frame. Each one steps through its own `subState` values.
+enum {
+    ACTOR_521100_STATE_APPROACH   = 0, // Stands, then walks at the player; tries the grab on the way and attacks once the player is in reach
+    ACTOR_521100_STATE_ATTACK     = 1, // Picks one of the three gunblade attacks and plays it
+    ACTOR_521100_STATE_GRAB       = 2, // Seizes and holds the player until they struggle free, are killed, or kill the golem
+    ACTOR_521100_STATE_STAGGER    = 3, // Reaction to a guardable hit that comes from more than 0x300 off its heading or lands during a live attack
+    ACTOR_521100_STATE_GUARD      = 4, // Reaction to a guardable hit from within 0x300 of its heading, which does a quarter or an eighth of its damage
+    ACTOR_521100_STATE_FLINCH     = 5, // Reaction to a plain hit while approaching, limited by `flinchCooldown`
+    ACTOR_521100_STATE_WALK_ROUTE = 6, // Walks the room's fixed waypoints, one leg per `subState`, turning to attack when the player comes near
+};
+
+/// Values of `Actor521100Work::attackChoice`: the attack the golem plays, which
+/// is also the index of its entry in the package's damage table.
+enum {
+    ACTOR_521100_ATTACK_NONE       = -1, // Nothing chosen yet
+    ACTOR_521100_ATTACK_SLASH      = 0,  // Swing with a short step forward
+    ACTOR_521100_ATTACK_LONG_SLASH = 1,  // Swing that turns with the player and steps further; never chosen at close range
+    ACTOR_521100_ATTACK_STANCE     = 2,  // Takes a stance, holds it, then swings with the weapon sphere alone; always chosen while the player's attachment is armed or casting
+};
+
+/// Work block of the Dryfield No. 9 golem, kept at `Task::work` of the body
+/// model's task.
+///
+/// Each frame of the fight the hit handler reads the frame's contacts, the
+/// state handler picks the animation, the speed and the heading to turn to,
+/// and the common tail turns the body by `turnSpeed`, moves it along its
+/// facing by `forwardSpeed`, plays the step cues and steps the animation.
+/// While an event runs the block only animates, and burns when the event asks
+/// for it.
+///
+/// The gunblade is a second model whose task is a child of the body's. It
+/// reaches this block through `Task::parent`, borrows `color` and `light`,
+/// and during an event copies the body's draw mode.
+///
+/// The block is cleared at allocation. No access to `pad_658` has been
+/// observed; what those bytes hold is unproven. The fourth halfword of
+/// `prevRootPos` is never accessed either.
+typedef struct {
+    ActorAnimRig19        rig;                  // Playback storage of the nineteen-part body model; slots 1..18 are driven
+    MATRIX                color;                // Colour matrix lent to the body model and to the gunblade model
+    MATRIX                light;                // Light matrix lent to the same models
+    WorldCollisionBody    groundBody;           // Sphere of radius 0x190 resting on the root on list 2, grid-tested with a floor query to keep the golem on the floor and out of walls
+    WorldCollisionContact groundContacts[5];    // Contacts of `groundBody`; each frame's push-out is read from them and they are cleared
+    WorldCollisionBody    body;                 // Sphere of radius 0x190 at the chest on list 2, receiving attacks
+    WorldCollisionContact bodyContacts[3];      // Contacts of `body`, also lent to the enemy record; each frame's hits are read from them and cleared
+    WorldCollisionBody    weaponAttack;         // Sphere on list 3 offset along the gunblade model, carrying the current attack's key; enabled only while an attack can hit
+    WorldCollisionBody    forearmAttack;        // Sphere on list 3 at the weapon arm's forearm; keyed with `weaponAttack` and enabled with it for the two slashes
+    WorldCollisionContact attackContacts[1];    // Contact shared by both attack spheres; a contact disables them and latches `attackLanded`
+    WorldCollisionBody    grabPathProbe;        // Capsule on list 3 riding the root, grid-tested only: the line from the golem to the spot it holds a grabbed player at
+    WorldCollisionBody    grabSpotProbe;        // Sphere of radius 0x1C2 on list 3, grid-tested only, 0x4E2 ahead of the root where a grabbed player is held
+    WorldCollisionCapsule grabPathCapsule;      // Shape of `grabPathProbe` in the root's frame: `ends[1]` on the body, `ends[0]` 0x5DC ahead, radius 1
+    WorldCollisionContact grabProbeContacts[1]; // Contact shared by both probes; read into `grabBlocked` and cleared every frame
+    EffectSpawnArg        hitEffectArg;         // Argument of the effects spawned on the body: the one a landed hit spawns at the chest and the event's fire
+    SVECTOR               prevRootPos;          // Root translation before this frame's move, put back when the ground contacts push in opposing directions
+    Task*                 weaponTask;           // Task of the gunblade model riding the weapon hand; `weaponAttack` follows its coordinate
+    byte                  pad_658[0x20];
+    SVECTOR               hitTwist;             // Rotation a plain hit knocks the chest by (angle units of 4096 a turn; `vx` and `vy` only), walked back 0x20 a frame towards zero
+    s16                   hitTwistActive;       // Nonzero while `hitTwist` still has to be applied
+    s16                   inEvent;              // Refreshed every frame: 1 while an event runs, when the gunblade model copies the body's draw mode
+    s16                   hitCooldown;          // Frames left during which attack hits are ignored, set by the hit that landed
+    s16                   animationId;          // Animation the body should be playing; `ACTOR_MESSAGE_PLAY_ANIMATION` stores its id plus 0x14 or 0x1D, by the request's source
+    s16                   seededAnimationId;    // Animation the slots were last started on; a difference from `animationId` restarts them with that animation's blend
+    s16                   animationFrame;       // Frames the current animation has been stepped since it was started
+    s16                   eventBurnStage;       // Fire the body sheds during an event (0 none, 1 alight: a burst every 7 frames on the chest and on a random part, 2 and 3 dying down: every 14, then 28)
+    s16                   stateCounter;         // Scratch of the current state: frames to stand, walk or hold the stance, frames to the hold's next damage, the death sound's load step, or frames since the last fire burst
+    s16                   stateElapsed;         // Second counter: frames the hold has lasted without a struggle, or frames the event's fire has burnt
+    s16                   modelDrawFlags;       // First argument of the last `ACTOR_MESSAGE_SET_MODEL_DRAW` (bit 0 draw the model, bit 1 skip its automatic buffer); the gunblade model follows it during an event
+    s16                   weaponHidden;         // Set by actor command 1 and never cleared; the gunblade model is not drawn during an event
+    s16                   yaw;                  // Heading of the body (4096 a turn), turned up to `turnSpeed` a frame towards `targetYaw`
+    s16                   targetYaw;            // Heading to turn to (0..0xFFF): the bearing of the player, or of a waypoint on the route
+    s16                   forwardSpeed;         // Distance the root moves along its facing this frame; negative backs away
+    s16                   turnSpeed;            // Most `yaw` may change this frame; 0 holds the heading
+    s16                   state;                // `ACTOR_521100_STATE_*`
+    s16                   subState;             // Step within `state`, numbered separately by each state
+    s16                   attackStep;           // Step of the stance attack (0 taking the stance, 1 holding it, 2 swinging, 3 recovering)
+    s16                   grabFromFront;        // Taken as the grab begins: 1 when the player faces the golem, 0 when seized from behind; picks the player's animations and the throw's path
+    s16                   attackLanded;         // Set when an attack sphere has touched its target, cleared when the attack's spheres go off; not read
+    s16                   playerEscaped;        // Set by message 2014 while the player lives; ends the hold, which clears it
+    s16                   playerDistance;       // Horizontal distance from the body to the player, measured by the approach and the attack
+    s16                   flinchCooldown;       // Frames before a plain hit may start the flinch again; rolled as 0x96..0x195 by each flinch
+    s16                   attackLive;           // 1 from the frame an attack's spheres are enabled until the attack ends; a guardable hit taken meanwhile staggers
+    s16                   activated;            // Set by message 2007; until then the frame handler takes no hits and runs no state
+    s16                   present;              // 1 from spawn until its hit points run out while the player lives; the answer to `ACTOR_MESSAGE_IS_PRESENT`
+    u16                   lastCueFlags;         // `ANIMATION_RECORD_CUE_MASK` bits of slot 1's record on the previous frame; a step sound plays when one drops
+    s16                   attackChoice;         // `ACTOR_521100_ATTACK_*` chosen last
+    s16                   prevAttackChoice;     // The choice before it; when both agree the next one is drawn from a table that excludes a third repeat
+    s16                   resumeRoute;          // Nonzero sends a finished hit reaction back to the route, at `resumeRouteLeg`, instead of to the approach
+    s16                   resumeRouteLeg;       // `subState` the route is resumed at
+    s16                   grabBlocked;          // Refreshed every frame: 1 when the room's collision grid touches a grab probe, which rules the grab out
 } Actor521100Work;
 STATIC_ASSERT_SIZEOF(Actor521100Work, 0x6C0);
 

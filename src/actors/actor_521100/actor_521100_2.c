@@ -422,7 +422,7 @@ s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (arg2 & 2) {
         obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
-    work->field_692 = arg2;
+    work->modelDrawFlags = arg2;
     return 0;
 }
 
@@ -433,12 +433,12 @@ s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, ActorCommand* request, s32 
     work = arg0->work;
     switch (request->command) {
         case 0:
-            work->field_68C = 1;
-            work->field_68E = 0;
-            work->field_690 = 0;
+            work->eventBurnStage = 1;
+            work->stateCounter   = 0;
+            work->stateElapsed   = 0;
             break;
         case 1:
-            work->field_694 = request->command;
+            work->weaponHidden = request->command;
             break;
     }
     return 0;
@@ -446,14 +446,14 @@ s32 func_actor_521100_80135D58(Task* arg0, s32 arg1, ActorCommand* request, s32 
 
 s32 func_actor_521100_80135D9C(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
-    ((Actor521100Work*)arg0->work)->field_6B0 = 1;
+    ((Actor521100Work*)arg0->work)->activated = 1;
     (Gp_IncStateF0Ref)(0);
     return 0;
 }
 
 s32 func_actor_521100_80135DC8(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
-    return ((Actor521100Work*)arg0->work)->field_6B2;
+    return ((Actor521100Work*)arg0->work)->present;
 }
 
 static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
