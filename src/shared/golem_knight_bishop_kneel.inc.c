@@ -2,11 +2,14 @@
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Runs the actor's branch sequence. State 0 puts the slot set on animation
-/// 0xD or 0x11, whichever `field_6D2` selects, and parks the state at 1 or 2 to
-/// match. States 1 and 2 queue the actor's cue at frame 0x2C / 0x19 and, once
-/// `field_6C4` reaches 0x42 / 0x31, move to state 3 with an LCG-rolled
-/// `field_6D4` countdown; states 3 and 4 then alternate on that countdown.
+/// Runs the fall at low hit points and the writhing after it. Step 0 takes
+/// the fall animation 0xD or 0x11 by `hitFromFront`, files the matching
+/// `downedPose`, starts the flicker, sets `reactionLock` for the fall and
+/// moves the grid test from `groundBody` to the shifted `hurtBody`. Steps 1
+/// and 2 queue the fall sound at frame 0x2C / 0x19 and, once `animFrame`
+/// reaches 0x42 / 0x31, release `reactionLock` and go to step 3 with an
+/// LCG-rolled `timer`; steps 3 and 4 then alternate between the lying and the
+/// writhing animation on that countdown.
 void golemKnightBishopKneelSeq(Task* arg0)
 {
     GolemKnightBishopWork* work;
@@ -18,89 +21,89 @@ void golemKnightBishopKneelSeq(Task* arg0)
     s16                    timer;
 
     work  = arg0->work;
-    state = work->field_6CE;
+    state = work->step;
     coord = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
-            if (work->field_6D2 == 0) {
-                work->field_6C0 = 0xD;
-                work->field_6CE = 1;
-                work->field_6F0 = 1;
-                work->field_490 = -0xA7;
+            if (work->hitFromFront == 0) {
+                work->anim            = 0xD;
+                work->step            = 1;
+                work->downedPose      = 1;
+                work->hurtBody.pos.vz = -0xA7;
             } else {
-                work->field_6C0 = 0x11;
-                work->field_6CE = 2;
-                work->field_6F0 = 2;
-                work->field_490 = 0x109;
+                work->anim            = 0x11;
+                work->step            = 2;
+                work->downedPose      = 2;
+                work->hurtBody.pos.vz = 0x109;
             }
-            work->field_498  = 0x15E;
-            work->field_714  = 1;
-            work->field_6DA  = 7;
-            work->field_6F2  = 2;
-            work->field_6C8  = 0;
-            work->field_49A |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            work->field_502 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+            work->hurtBody.radius   = 0x15E;
+            work->knockdownStage    = 1;
+            work->fadeState         = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_START;
+            work->reactionLock      = 2;
+            work->forwardSpeed      = 0;
+            work->hurtBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
+            work->groundBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
         case 1:
-            if (work->field_6C4 == 0x2C) {
-                snd = gGolemKnightBishopAnimCues[work->field_712 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            if (work->animFrame == 0x2C) {
+                snd = gGolemKnightBishopAnimCues[work->soundSet + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            if (work->field_6C4 >= 0x42) {
-                work->field_6C0 = 0x10;
-                work->field_6CE = 3;
-                work->field_6F2 = 0;
-                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = random;
-                work->field_6D4 = (random >> 16) & 0x3F;
+            if (work->animFrame >= 0x42) {
+                work->anim         = 0x10;
+                work->step         = 3;
+                work->reactionLock = 0;
+                random             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState    = random;
+                work->timer        = (random >> 16) & 0x3F;
             }
-            if (work->field_714 == 1) {
-                work->field_714 = 2;
+            if (work->knockdownStage == 1) {
+                work->knockdownStage = 2;
             }
             break;
         case 2:
-            if (work->field_6C4 == 0x19) {
-                snd = gGolemKnightBishopAnimCues[work->field_712 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            if (work->animFrame == 0x19) {
+                snd = gGolemKnightBishopAnimCues[work->soundSet + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            if (work->field_6C4 >= 0x31) {
-                work->field_6C0 = 0x14;
-                work->field_6CE = 3;
-                work->field_6F2 = 0;
-                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = random;
-                work->field_6D4 = (random >> 16) & 0x3F;
+            if (work->animFrame >= 0x31) {
+                work->anim         = 0x14;
+                work->step         = 3;
+                work->reactionLock = 0;
+                random             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState    = random;
+                work->timer        = (random >> 16) & 0x3F;
             }
-            if (work->field_714 == 1) {
-                work->field_714 = 2;
+            if (work->knockdownStage == 1) {
+                work->knockdownStage = 2;
             }
             break;
         case 3:
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
+            timer       = work->timer - 1;
+            work->timer = timer;
             if (timer <= 0) {
                 anim = 0x13;
-                if (work->field_6F0 == 1) {
+                if (work->downedPose == 1) {
                     anim = 0xF;
                 }
-                work->field_6D4 = 0xA;
-                work->field_6C0 = anim;
-                work->field_6CE = 4;
+                work->timer = 0xA;
+                work->anim  = anim;
+                work->step  = 4;
             }
             break;
         case 4:
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
+            timer       = work->timer - 1;
+            work->timer = timer;
             if (timer <= 0) {
                 anim = 0x14;
-                if (work->field_6F0 == 1) {
+                if (work->downedPose == 1) {
                     anim = 0x10;
                 }
-                work->field_6C0 = anim;
-                work->field_6CE = 3;
+                work->anim      = anim;
+                work->step      = 3;
                 random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = random;
-                work->field_6D4 = (random >> 16) & 0x3F;
+                work->timer     = (random >> 16) & 0x3F;
             }
             break;
     }

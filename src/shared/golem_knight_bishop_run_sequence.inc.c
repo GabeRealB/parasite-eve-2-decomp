@@ -1,53 +1,53 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Runs the sequence `field_6CC` names (0 to 0xB), then the vocal cue unless
-/// the sequence is 1.
+/// Runs the handler of the work block's `sequence`, then the grab's release
+/// timer unless the sequence is the grab, which runs it itself.
 void golemKnightBishopRunSequence(Task* arg0)
 {
     s16                    temp_v1;
     GolemKnightBishopWork* temp_s1;
 
     temp_s1 = arg0->work;
-    temp_v1 = temp_s1->field_6CC;
+    temp_v1 = temp_s1->sequence;
     switch (temp_v1) {
-        case 0:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_IDLE:
             golemKnightBishopIdleSeq(arg0);
             break;
-        case 1:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB:
             golemKnightBishopGrabSeq(arg0);
             break;
-        case 2:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_STRIKE:
             golemKnightBishopStrikeSeq(arg0);
             break;
-        case 3:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH:
             golemKnightBishopBoxApproachSeq(arg0);
             break;
-        case 4:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER:
             golemKnightBishopRecoverSeq(arg0);
             break;
-        case 5:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_LIGHT_FLINCH:
             golemKnightBishopLightFlinchSeq(arg0);
             break;
-        case 6:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_HEAVY_FLINCH:
             golemKnightBishopHeavyFlinchSeq(arg0);
             break;
-        case 7:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL:
             golemKnightBishopKneelSeq(arg0);
             break;
-        case 8:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL_HIT:
             golemKnightBishopKneelHitSeq(arg0);
             break;
-        case 9:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_COLLAPSE_DEATH:
             golemKnightBishopCollapseDeathSeq(arg0);
             break;
-        case 10:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL_DEATH:
             golemKnightBishopKneelDeathSeq(arg0);
             break;
-        case 11:
+        case GOLEM_KNIGHT_BISHOP_SEQUENCE_REGION_SCAN:
             golemKnightBishopBoxScanSeq(arg0);
             break;
     }
-    if (temp_s1->field_6CC != 1) {
+    if (temp_s1->sequence != GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB) {
         golemKnightBishopHoldCueTimer(arg0);
     }
 }

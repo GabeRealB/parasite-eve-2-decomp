@@ -1,9 +1,8 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Rebuilds the root part's rotation from the saved attach matrix
-/// `field_674`, scaled per axis by `scale`: the saved matrix is
-/// copied into the root coordinate, and an identity scaled in a scratchpad
-/// matrix is multiplied into it.
+/// Rebuilds the root part's rotation from `unscaledRootMtx`, scaled per axis
+/// by `scale`: the saved matrix is copied into the root coordinate, and an
+/// identity scaled in a scratchpad matrix is multiplied into it.
 void golemKnightBishopApplyScale(Task* arg0)
 {
     void**                 scratch;
@@ -19,7 +18,7 @@ void golemKnightBishopApplyScale(Task* arg0)
     coord                               = &arg0->extra.tmd->coords[0];
     work                                = arg0->work;
 
-    coord->coord            = work->field_674;
+    coord->coord            = work->unscaledRootMtx;
     m->rotationWords.m00M01 = ONE;
     m->rotationWords.m02M10 = 0;
     m->rotationWords.m11M12 = ONE;

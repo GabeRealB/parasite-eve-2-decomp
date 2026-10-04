@@ -60,10 +60,10 @@
 extern GolemKnightBishopFrameStep gGolemKnightBishopFrameSteps[];
 
 /// Per-roll wait lengths the wait state of `golemKnightBishopIdleSeq`
-/// scales by `16 - field_70C`, indexed by a 4-bit `gRandomLcgState` draw.
+/// scales by `16 - attackCount`, indexed by a 4-bit `gRandomLcgState` draw.
 extern s16 gGolemKnightBishopIdleWaits[];
 
-/// Per-roll state offsets the wait state adds to 2 when `field_6E8` is set.
+/// Per-roll state offsets the wait state adds to 2 when `feintBroken` is set.
 extern u16 gGolemKnightBishopIdleSteps[];
 
 /// Cue word the countdown's expiry queues, a separate `D_` symbol in the
@@ -83,13 +83,13 @@ extern s32 gGolemKnightBishopStrikeCue;
 /// OR'd in as bits 8-11 of the cue id.
 extern s32 gGolemKnightBishopHoldCue;
 
-/// Cue-id table: `GolemKnightBishopWork::field_712` picks two adjacent words,
-/// `[field_712 * 2 - 1]` for the `flags` bit 0x20 cue and `[field_712 * 2]`
-/// for the 0x10 one; the branch sequences read `[field_712 + 8]`.
+/// Cue-id table: `GolemKnightBishopWork::soundSet` picks two adjacent words,
+/// `[soundSet * 2 - 1]` for the `flags` bit 0x20 cue and `[soundSet * 2]`
+/// for the 0x10 one; the branch sequences read `[soundSet + 8]`.
 extern s32 gGolemKnightBishopAnimCues[];
 
-/// Weighted 16-entry roll for `GolemKnightBishopWork::field_6E4`: indices 0-10 hold 0
-/// and 11-15 hold 1, so the short approach is taken about a third of the time.
+/// Weighted 16-entry roll for `GolemKnightBishopWork::feinting`: indices 0-10 hold 0
+/// and 11-15 hold 1, so the appearance is a feint about a third of the time.
 extern u16 gGolemKnightBishopApproachRoll[];
 
 /// Per-animation-id value `golemKnightBishopTickAnim` hands `animationSeekSlotWithBlend`
@@ -1300,11 +1300,12 @@ static const EnemyTaskFuncTable3 D_actor_403900_80131F18 = {
 
 #include "../../shared/golem_knight_bishop_hold_cue.inc.c"
 
-/// Raises the actor's phase `field_6F4` to 1 while enemies remain.
+/// Records that the player has struggled free of the hold (`grabBreak` 1),
+/// provided they are still alive.
 s32 func_actor_403900_801381E4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (gPlayerStatus.hp > 0) {
-        ((GolemKnightBishopWork*)task->work)->field_6F4 = 1;
+        ((GolemKnightBishopWork*)task->work)->grabBreak = 1;
     }
     return 0;
 }

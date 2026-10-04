@@ -4610,19 +4610,19 @@ The section above covers a phi that cannot be `$v0` at all. This is the other
 half: the phi allocates fine, but *where it sits in its block* decides which
 trailing store cross-jumping merges.
 
-`func_actor_402200_80135A24` state 0 picks one of two slot sets on `field_6D2`.
-Each arm ends with the same `field_6D4` store, and the arms choose between two
+`func_actor_402200_80135A24` state 0 picks one of two slot sets on `hitFromFront`.
+Each arm ends with the same `timer` store, and the arms choose between two
 values for a single shared store at the join:
 
 ```c
-if (work->field_6D2 == 0) {
-    work->field_6D4 = 0x42;
-    pitch           = -0xA7;
+if (work->hitFromFront == 0) {
+    work->timer = 0x42;
+    pitch       = -0xA7;
 } else {
-    work->field_6D4 = 0x31;
-    pitch           = 0x109;
+    work->timer = 0x31;
+    pitch       = 0x109;
 }
-work->field_490 = pitch;
+work->hurtBody.pos.vz = pitch;
 ```
 
 The target resolves the pair at the join, with the losing constant in the
@@ -45695,7 +45695,7 @@ sh      $v0, 0x6CE($s1)
 
 Written with `M2C_FIELD(work, s16*, 0x6C0) = 0xB;` and so on, the `lw` stays
 *below* the stores and the `ori` half of the LCG constant splits away from its
-`lui`; the same three statements as `work->field_6C0 = 0xB;` hoist it. The
+`lui`; the same three statements as `work->anim = 0xB;` hoist it. The
 statements and their order are identical - only the types change, and the
 mechanism is the one named above: the struct store's `COMPONENT_REF` sets
 `MEM_IN_STRUCT_P`, `fixed_scalar_and_varying_struct_p` then declares the

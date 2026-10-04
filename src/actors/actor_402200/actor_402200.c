@@ -65,7 +65,7 @@ extern GolemKnightBishopFrameStep gGolemKnightBishopFrameSteps[];
 
 /// Reacts to the damage just taken; see its definition.
 
-/// Runs the one-shot vocal cue armed by `field_718`; see its definition.
+/// Runs the one-shot vocal cue armed by `grabStage`; see its definition.
 
 /// Aims the actor at the player; see its definition.
 
@@ -82,10 +82,10 @@ extern GolemKnightBishopFrameStep gGolemKnightBishopFrameSteps[];
 /// its definition.
 
 /// Per-roll wait lengths state 0 of `golemKnightBishopIdleSeq` scales by
-/// `16 - field_70C`, indexed by a 4-bit `gRandomLcgState` draw.
+/// `16 - attackCount`, indexed by a 4-bit `gRandomLcgState` draw.
 extern s16 gGolemKnightBishopIdleWaits[];
 
-/// Per-roll state offsets state 0 adds to 2 when `field_6E8` is set.
+/// Per-roll state offsets state 0 adds to 2 when `feintBroken` is set.
 extern u16 gGolemKnightBishopIdleSteps[];
 
 /// Cue word `golemKnightBishopLightFlinchSeq` and `golemKnightBishopHeavyFlinchSeq`
@@ -96,8 +96,8 @@ extern s32 gGolemKnightBishopPainCue;
 /// Cue word the fade-out in `golemKnightBishopTranslucencyFade` queues.
 extern s32 gGolemKnightBishopFadeCue;
 
-/// Cue-id table: `GolemKnightBishopWork::field_712` picks two adjacent words,
-/// `[field_712 * 2 - 1]` for the `flags` bit 0x20 cue and `[field_712 * 2]`
+/// Cue-id table: `GolemKnightBishopWork::soundSet` picks two adjacent words,
+/// `[soundSet * 2 - 1]` for the `flags` bit 0x20 cue and `[soundSet * 2]`
 /// for the 0x10 one.
 extern s32 gGolemKnightBishopAnimCues[];
 
@@ -128,8 +128,8 @@ extern AnimationSet*            gGolemKnightBishopAnimSets[22];
 /// Per-difficulty HP above which the player always breaks the grab.
 extern s16 gGolemKnightBishopGrabHpLimits[];
 
-/// Weighted 16-entry roll for `GolemKnightBishopWork::field_6E4`: indices 0-4 hold 0
-/// and 5-15 hold 1, so the short approach is taken about two thirds of the time.
+/// Weighted 16-entry roll for `GolemKnightBishopWork::feinting`: indices 0-4 hold 0
+/// and 5-15 hold 1, so the appearance is a feint about two thirds of the time.
 extern u16 gGolemKnightBishopApproachRoll[];
 
 /// Animation block the grab's 0x3FF messages hand the player.
@@ -1334,11 +1334,12 @@ static const EnemyTaskFuncTable3 D_actor_402200_80131F18 = {
 
 #include "../../shared/golem_knight_bishop_hold_cue.inc.c"
 
-/// Raises the actor's phase `field_6F4` to 1 while enemies remain.
+/// Records that the player has struggled free of the hold (`grabBreak` 1),
+/// provided they are still alive.
 s32 func_actor_402200_801381E0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (gPlayerStatus.hp > 0) {
-        ((GolemKnightBishopWork*)task->work)->field_6F4 = 1;
+        ((GolemKnightBishopWork*)task->work)->grabBreak = 1;
     }
     return 0;
 }

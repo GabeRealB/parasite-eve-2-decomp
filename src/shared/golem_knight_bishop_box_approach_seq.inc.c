@@ -1,13 +1,16 @@
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Runs the actor's approach sequence off the box region it last hit. State 0
-/// plants the display object on that region's post (`x`, `z`), faces it along
-/// `param.heading` and queues the cue `field_6B8`, parking the state at 1 when
-/// the player is within 0xDAC and at 2 otherwise. States 1 and 2 re-aim for `field_6D6` frames; state 2
-/// closes in until the player is within 0xA8C (state 3) or turns away by more
-/// than 0x180 (state 4). State 3 steps `field_6C8` through the frame table
-/// `gGolemKnightBishopFrameSteps` and fires its per-frame events; state 4 counts
-/// `field_6D4` down back to state 0.
+/// Runs the attack from the box region `boxRegion`. Step 0 plants the display
+/// object on that region's post (`x`, `z`), faces it along `param.heading`,
+/// starts the appearance with its sound and arms the hurt body, going to step
+/// 1 when the player is within 0xDAC and to 2 otherwise. Steps 1 and 2 aim
+/// the beam for `auxTimer` frames; step 2 walks in until the player is within
+/// 0xA8C (step 3) or their bearing leaves the heading by more than 0x180
+/// (step 4, vanishing). Either breaks off into the recover sequence once
+/// `interruptDamage` reaches `GOLEM_KNIGHT_BISHOP_HIT_WEIGHT`. Step 3 is the
+/// charge: `forwardSpeed` follows `gGolemKnightBishopFrameSteps`, `strikeBody`
+/// is live on the root from frame 0x14 to 0x20, and frame 0x5A starts the
+/// vanish. Step 4 counts `timer` down to the idle sequence.
 void golemKnightBishopBoxApproachSeq(Task* arg0)
 {
     u8*                             head;
@@ -28,138 +31,138 @@ void golemKnightBishopBoxApproachSeq(Task* arg0)
     SCRATCH_STACK_CURSOR(u8) = head - sizeof(GolemKnightBishopOffsetScratch);
     sc                       = (GolemKnightBishopOffsetScratch*)(head - sizeof(GolemKnightBishopOffsetScratch));
     work                     = arg0->work;
-    state                    = work->field_6CE;
+    state                    = work->step;
     coord                    = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
-            coord->coord.t[0] = work->field_6B4[work->field_708].x;
+            coord->coord.t[0] = work->regions[work->boxRegion].x;
             coord->coord.t[1] = gPlayerStatus.coordMtx->t[1];
-            coord->coord.t[2] = work->field_6B4[work->field_708].z;
+            coord->coord.t[2] = work->regions[work->boxRegion].z;
             sc->in.vx         = 0;
-            sc->in.vy         = work->field_6B4[work->field_708].param.heading;
+            sc->in.vy         = work->regions[work->boxRegion].param.heading;
             sc->in.vz         = 0;
             RotMatrix(&sc->in, &coord->coord);
             sc->out.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             sc->out.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xDAC) {
-                work->field_6C0 = 4;
-                work->field_6CE = 1;
-                work->field_6D4 = 0x1E;
+                work->anim  = 4;
+                work->step  = 1;
+                work->timer = 0x1E;
             } else {
-                work->field_6C0 = 6;
-                work->field_6CE = 2;
+                work->anim = 6;
+                work->step = 2;
             }
-            work->field_6DA = 1;
-            work->field_6DC = 0x14;
-            work->field_6DE = 0xA;
-            work->field_6B8 = gGolemKnightBishopApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-            SndEvt_EnqueueType6(work->field_6B8, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_APPEAR;
+            work->translucencyFadeFrames = 0x14;
+            work->colorBlendFadeFrames   = 0xA;
+            work->appearSound            = gGolemKnightBishopApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            SndEvt_EnqueueType6(work->appearSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_ArmStateF0(1);
-            if (work->field_6C6 == 0) {
-                work->field_49A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->field_494  = work->field_716 | 0x30000;
+            if (work->hitCooldown == 0) {
+                work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                work->hurtBody.key    = work->actorId | 0x30000;
             }
-            work->field_6D6 = GOLEM_KNIGHT_BISHOP_AIM_TIME;
-            work->field_70A = 0;
-            work->field_6F2 = 1;
+            work->auxTimer        = GOLEM_KNIGHT_BISHOP_AIM_TIME;
+            work->interruptDamage = 0;
+            work->reactionLock    = 1;
             break;
         case 1:
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
+            timer       = work->timer - 1;
+            work->timer = timer;
             if (timer <= 0) {
-                work->field_6C0 = 6;
-                work->field_6CE = 2;
+                work->anim = 6;
+                work->step = 2;
             }
-            if (work->field_6D6 > 0) {
-                work->field_6D6--;
+            if (work->auxTimer > 0) {
+                work->auxTimer--;
                 golemKnightBishopAimFromPart(arg0);
             }
-            if (work->field_70A >= GOLEM_KNIGHT_BISHOP_HIT_WEIGHT) {
-                work->field_6CC  = 4;
-                work->field_6CE  = 0;
-                work->field_6DA  = 7;
-                work->field_6C8  = 0;
-                work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+            if (work->interruptDamage >= GOLEM_KNIGHT_BISHOP_HIT_WEIGHT) {
+                work->sequence           = GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER;
+                work->step               = 0;
+                work->fadeState          = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_START;
+                work->forwardSpeed       = 0;
+                work->aimBeamBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             break;
         case 2:
             val = 0;
-            if (work->field_6C4 >= 8) {
+            if (work->animFrame >= 8) {
                 val = 0x78;
             }
-            work->field_6C8 = val;
-            if (work->field_6D6 > 0) {
-                work->field_6D6--;
+            work->forwardSpeed = val;
+            if (work->auxTimer > 0) {
+                work->auxTimer--;
                 golemKnightBishopAimFromPart(arg0);
             }
             sc->out.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             sc->out.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xA8C) {
-                work->field_6C0  = 7;
-                work->field_6CE  = 3;
-                work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                work->anim               = 7;
+                work->step               = 3;
+                work->aimBeamBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             } else {
-                diff = (ratan2((s16)sc->out.vx, (s16)sc->out.vz) & 0xFFF) - work->field_6B4[work->field_708].param.heading;
+                diff = (ratan2((s16)sc->out.vx, (s16)sc->out.vz) & 0xFFF) - work->regions[work->boxRegion].param.heading;
                 dist = (abs(diff) >= 0x800) ? ((diff > 0) ? 0x1000 - diff : diff + 0x1000) : abs(diff);
                 if (dist > 0x180) {
-                    work->field_6C0  = 4;
-                    work->field_6CE  = 4;
-                    work->field_6DA  = 3;
-                    work->field_6DC  = 0x14;
-                    work->field_6DE  = 0xA;
-                    work->field_6F2  = 0;
-                    work->field_6D4  = work->field_6DC + 0xA;
-                    work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    work->field_6BC  = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                    SndEvt_EnqueueType6(work->field_6BC, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    work->anim                   = 4;
+                    work->step                   = 4;
+                    work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_VANISH;
+                    work->translucencyFadeFrames = 0x14;
+                    work->colorBlendFadeFrames   = 0xA;
+                    work->reactionLock           = 0;
+                    work->timer                  = work->translucencyFadeFrames + 0xA;
+                    work->aimBeamBody.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                    work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                    SndEvt_EnqueueType6(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
-            if (work->field_70A >= GOLEM_KNIGHT_BISHOP_HIT_WEIGHT) {
-                work->field_6CC  = 4;
-                work->field_6CE  = 0;
-                work->field_6DA  = 7;
-                work->field_6C8  = 0;
-                work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+            if (work->interruptDamage >= GOLEM_KNIGHT_BISHOP_HIT_WEIGHT) {
+                work->sequence           = GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER;
+                work->step               = 0;
+                work->fadeState          = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_START;
+                work->forwardSpeed       = 0;
+                work->aimBeamBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             break;
         case 3:
-            for (i = 0; work->field_6C4 > gGolemKnightBishopFrameSteps[i].frame; i++) {
+            for (i = 0; work->animFrame > gGolemKnightBishopFrameSteps[i].frame; i++) {
             }
-            work->field_6C8 = gGolemKnightBishopFrameSteps[i].value;
-            if (work->field_6C4 == 0x12) {
+            work->forwardSpeed = gGolemKnightBishopFrameSteps[i].value;
+            if (work->animFrame == 0x12) {
                 snd = gGolemKnightBishopStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            if (work->field_6C4 == 0x14) {
-                work->field_56C  = arg0->extra.tmd->coords;
-                work->field_576  = -0x4B0;
-                work->field_578  = 0x1F4;
-                work->field_574  = 0;
-                work->field_580  = 0x3E8;
-                work->field_57C  = Gp_PackPair(gGolemKnightBishopAttacks, 2);
-                work->field_582 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            if (work->animFrame == 0x14) {
+                work->strikeBody.coord  = arg0->extra.tmd->coords;
+                work->strikeBody.pos.vy = -0x4B0;
+                work->strikeBody.pos.vz = 0x1F4;
+                work->strikeBody.pos.vx = 0;
+                work->strikeBody.radius = 0x3E8;
+                work->strikeBody.key    = Gp_PackPair(gGolemKnightBishopAttacks, 2);
+                work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
-            if (work->field_6C4 == 0x20) {
-                work->field_6F2  = 0;
-                work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            if (work->animFrame == 0x20) {
+                work->reactionLock      = 0;
+                work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            if (work->field_6C4 == 0x5A) {
-                work->field_6DA = 3;
-                work->field_6DC = 0x14;
-                work->field_6DE = 0xA;
-                work->field_6CE = 4;
-                work->field_6D4 = work->field_6DC + 0xA;
-                work->field_6BC = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(work->field_6BC, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            if (work->animFrame == 0x5A) {
+                work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_VANISH;
+                work->translucencyFadeFrames = 0x14;
+                work->colorBlendFadeFrames   = 0xA;
+                work->step                   = 4;
+                work->timer                  = work->translucencyFadeFrames + 0xA;
+                work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                SndEvt_EnqueueType6(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
         case 4:
-            work->field_6C8 = 0;
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
+            work->forwardSpeed = 0;
+            timer              = work->timer - 1;
+            work->timer        = timer;
             if (timer <= 0) {
-                work->field_6CC = 0;
-                work->field_6CE = 0;
+                work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_IDLE;
+                work->step     = 0;
             }
             break;
     }

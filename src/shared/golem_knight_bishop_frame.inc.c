@@ -2,12 +2,12 @@
 
 /// Frame handler for the scene's `gSceneCombatState.actorControl` mode. Mode 1 only refreshes the
 /// tint and the ground shadow, and mode 2 hides the model; both return at once.
-/// Mode 0 shows the model again while the `field_6DA` timer runs and makes the
-/// enemy lockable only while a hit is pending (bit 0x8000 of `field_49A`).
-/// Then, once the box table is set, the frame runs: the hit handler, the
+/// Mode 0 shows the model again unless `fadeState` is hidden and makes the
+/// enemy lockable only while `hurtBody` is pair-enabled.
+/// Then, in a room that has `regions`, the frame runs: the hit handler, the
 /// sequence dispatch, the step forward, the animation reseed, the vocal cue,
 /// the coordinate refresh, the tint and shadow, the projection at depth +0xC,
-/// the fade and `func_8009EA50`.
+/// the fade and `func_8009EA50` with `translucency`.
 void golemKnightBishopFrameState(Enemy* arg0, Task* arg1)
 {
     GolemKnightBishopWork* temp_s1;
@@ -37,10 +37,10 @@ ge2:
     }
     goto default_body;
 case0:
-    if (temp_s1->field_6DA != 0) {
+    if (temp_s1->fadeState != GOLEM_KNIGHT_BISHOP_FADE_HIDDEN) {
         temp_a1->flags = 0;
     }
-    arg0->node.state.parts.flags = (temp_s1->field_49A >> 0xF) ^ WORLD_TARGET_NOT_LOCKABLE;
+    arg0->node.state.parts.flags = (temp_s1->hurtBody.flags >> 0xF) ^ WORLD_TARGET_NOT_LOCKABLE;
     goto default_body;
 case1:
     golemKnightBishopUpdateTint(arg1);
@@ -51,7 +51,7 @@ case2:
     arg0->node.state.parts.flags = one;
     return;
 default_body:
-    if (temp_s1->field_6B4 != 0) {
+    if (temp_s1->regions != 0) {
         golemKnightBishopTakeHits(arg1);
         golemKnightBishopRunSequence(arg1);
         golemKnightBishopStepForward(arg1);
@@ -64,6 +64,6 @@ default_body:
         golemKnightBishopDrawShadow(arg1);
         golemKnightBishopQueueFrameCapture(&arg1->extra.tmd->coords[3], 0xC);
         golemKnightBishopTranslucencyFade(arg1);
-        func_8009EA50(temp_s1->field_6D8);
+        func_8009EA50(temp_s1->translucency);
     }
 }

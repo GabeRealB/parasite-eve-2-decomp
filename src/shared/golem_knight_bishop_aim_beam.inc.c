@@ -1,9 +1,10 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Draws the red trail between the two points `golemKnightBishopAimFromPart`
-/// projects into `field_6FC`..`field_704`: eight segments, each skipped while
-/// its interpolated depth is below 0x1E, and each drawn as two shaded quads
-/// offset along the screen normal, a centre line and a tpage.
+/// Draws the red aim beam between the two screen points
+/// `golemKnightBishopAimFromPart` leaves in `beamScreenX`, `beamScreenY` and
+/// `beamDepth`: eight segments, each skipped while its interpolated depth is
+/// below 0x1E, and each drawn as two shaded quads offset along the screen
+/// normal, a centre line and a tpage.
 void golemKnightBishopDrawAimBeam(Task* arg0)
 {
     GolemKnightBishopTrailScratch* sc;
@@ -16,27 +17,27 @@ void golemKnightBishopDrawAimBeam(Task* arg0)
 
     sc         = SCRATCH_STACK_RESERVE_BLOCK(GolemKnightBishopTrailScratch);
     work       = arg0->work;
-    sc->dir.vx = work->field_6FC[1] - work->field_6FC[0];
-    sc->dir.vy = work->field_700[1] - work->field_700[0];
+    sc->dir.vx = work->beamScreenX[1] - work->beamScreenX[0];
+    sc->dir.vy = work->beamScreenY[1] - work->beamScreenY[0];
     sc->dir.vz = 0;
     VectorNormalS(&sc->dir, &sc->norm);
     sc->norm.vy *= -1;
-    sc->dx       = (work->field_6FC[1] - work->field_6FC[0]) / 8;
-    sc->dy       = (work->field_700[1] - work->field_700[0]) / 8;
-    sc->dz       = (work->field_704[1] - work->field_704[0]) / 8;
+    sc->dx       = (work->beamScreenX[1] - work->beamScreenX[0]) / 8;
+    sc->dy       = (work->beamScreenY[1] - work->beamScreenY[0]) / 8;
+    sc->dz       = (work->beamDepth[1] - work->beamDepth[0]) / 8;
     for (i = 0; i < 8; i++) {
-        sc->z = sc->dz * (i + 1) + work->field_704[0];
+        sc->z = sc->dz * (i + 1) + work->beamDepth[0];
         if (sc->z < 0x1E) {
             continue;
         }
-        sc->x[0] = work->field_6FC[0] + sc->dx * i;
-        sc->x[1] = work->field_6FC[0] + sc->dx * (i + 1);
+        sc->x[0] = work->beamScreenX[0] + sc->dx * i;
+        sc->x[1] = work->beamScreenX[0] + sc->dx * (i + 1);
         sc->x[2] = sc->x[0] + ((-(sc->norm.vy * 0x600) >> 12) / sc->z);
         sc->x[3] = sc->x[1] + ((-(sc->norm.vy * 0x600) >> 12) / sc->z);
         sc->x[4] = sc->x[0] + (((sc->norm.vy * 3) >> 3) / sc->z);
         sc->x[5] = sc->x[1] + (((sc->norm.vy * 3) >> 3) / sc->z);
-        sc->y[0] = work->field_700[0] + sc->dy * i;
-        sc->y[1] = work->field_700[0] + sc->dy * (i + 1);
+        sc->y[0] = work->beamScreenY[0] + sc->dy * i;
+        sc->y[1] = work->beamScreenY[0] + sc->dy * (i + 1);
         sc->y[2] = sc->y[0] + ((-(sc->norm.vx * 0x600) >> 12) / sc->z);
         sc->y[3] = sc->y[1] + ((-(sc->norm.vx * 0x600) >> 12) / sc->z);
         sc->y[4] = sc->y[0] + (((sc->norm.vx * 3) >> 3) / sc->z);

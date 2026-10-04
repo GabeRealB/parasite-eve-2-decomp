@@ -1,12 +1,15 @@
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Per-frame hit handler: applies the `func_800E0C10` push-back from the
-/// `field_504` and (while `field_49A` enables grid tests) `field_49C`
-/// record tables to the root coordinate, ticks the `field_6C6` flinch
-/// countdown, and for each kind-2 hit record in `field_49C` computes the
-/// damage from the distance to the player, applies it to the `Enemy`,
-/// spawns the hit sparks once per distinct id and hands the damage to
-/// `golemKnightBishopPickHitReaction` unless the vocal cue is armed.
+/// Per-frame hit handler: applies the `func_800E0C10` push-back from
+/// `groundContacts` and (while `hurtBody` is grid-enabled) `hurtContacts` to
+/// the root coordinate, counts `hitCooldown` down and re-arms `hurtBody` when
+/// it ends, and for each weapon hit in `hurtContacts` outside the cooldown
+/// computes the damage from the distance to the player, applies it to the
+/// `Enemy` and to `interruptDamage`, spawns the hit effect once per distinct
+/// key and hands the damage to `golemKnightBishopPickHitReaction` - or, while
+/// the golem holds the player, raises `grabBreak` instead. A touch or a hit
+/// on a feint only sets `feintBroken`. A blow `strikeBody` has landed
+/// switches that body off.
 void golemKnightBishopTakeHits(Task* arg0)
 {
     s32                          lastId;
@@ -31,7 +34,7 @@ void golemKnightBishopTakeHits(Task* arg0)
     coord                                             = arg0->extra.tmd->coords;
     enemy                                             = arg0->spawnArg2.pointer;
 
-    switch (func_800E0C10(work->field_504, &sc->delta, 4, NULL)) {
+    switch (func_800E0C10(work->groundContacts, &sc->delta, ARRAY_SIZE(work->groundContacts), NULL)) {
         case 0:
             break;
         case 1:
@@ -40,15 +43,15 @@ void golemKnightBishopTakeHits(Task* arg0)
             coord->coord.t[2] += sc->delta.fixed.vz.halves.integer;
             break;
         case 2:
-            coord->coord.t[0] = work->field_664;
-            coord->coord.t[1] = work->field_668;
-            coord->coord.t[2] = work->field_66C;
+            coord->coord.t[0] = work->prevRootPos.vx;
+            coord->coord.t[1] = work->prevRootPos.vy;
+            coord->coord.t[2] = work->prevRootPos.vz;
             break;
     }
-    Gp_ClearRec18Occupied(work->field_504);
+    Gp_ClearRec18Occupied(work->groundContacts);
 
-    if (work->field_49A & WORLD_COLLISION_BODY_GRID_ENABLED) {
-        switch (func_800E0C10(work->field_49C, &sc->delta, 3, NULL)) {
+    if (work->hurtBody.flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
+        switch (func_800E0C10(work->hurtContacts, &sc->delta, ARRAY_SIZE(work->hurtContacts), NULL)) {
             case 0:
                 break;
             case 1:
@@ -56,66 +59,66 @@ void golemKnightBishopTakeHits(Task* arg0)
                 coord->coord.t[2] += sc->delta.fixed.vz.halves.integer;
                 break;
             case 2:
-                coord->coord.t[0] = work->field_664;
-                coord->coord.t[2] = work->field_66C;
+                coord->coord.t[0] = work->prevRootPos.vx;
+                coord->coord.t[2] = work->prevRootPos.vz;
                 break;
         }
     }
 
-    if (work->field_6C6 != 0) {
-        t               = work->field_6C6 - 1;
-        work->field_6C6 = t;
+    if (work->hitCooldown != 0) {
+        t                 = work->hitCooldown - 1;
+        work->hitCooldown = t;
         if (t <= 0) {
-            work->field_49A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_6C6  = 0;
-            work->field_494  = work->field_716 | 0x30000;
+            work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            work->hitCooldown     = 0;
+            work->hurtBody.key    = work->actorId | 0x30000;
         }
     }
 
-    for (i = 0; i < 3; i++) {
-        switch ((u32)work->field_49C[i].key.value >> 16) {
+    for (i = 0; i < ARRAY_SIZE(work->hurtContacts); i++) {
+        switch ((u32)work->hurtContacts[i].key.value >> 16) {
             case 0:
                 break;
             case 1:
-                if (work->field_6E4 == 1) {
-                    work->field_6E8 = 1;
+                if (work->feinting == 1) {
+                    work->feintBroken = 1;
                 }
                 break;
             case 2:
-                if (work->field_6C6 != 0) {
+                if (work->hitCooldown != 0) {
                     break;
                 }
-                if (work->field_6E4 == 1) {
-                    work->field_6E8 = 1;
+                if (work->feinting == 1) {
+                    work->feintBroken = 1;
                     break;
                 }
                 sc->delta.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
                 sc->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
                 sc->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                work->field_6D2     = (u32) ~(sc->delta.vector.vx * coord->coord.m[0][2] +
-                                          sc->delta.vector.vy * coord->coord.m[1][2] +
-                                          sc->delta.vector.vz * coord->coord.m[2][2]) >>
-                                  31;
-                damage = Gp_ComputeDamage(work->field_49C[i].key.value,
+                work->hitFromFront  = (u32) ~(sc->delta.vector.vx * coord->coord.m[0][2] +
+                                             sc->delta.vector.vy * coord->coord.m[1][2] +
+                                             sc->delta.vector.vz * coord->coord.m[2][2]) >>
+                                     31;
+                damage = Gp_ComputeDamage(work->hurtContacts[i].key.value,
                                           SquareRoot0(sc->delta.vector.vx * sc->delta.vector.vx +
                                                       sc->delta.vector.vy * sc->delta.vector.vy +
                                                       sc->delta.vector.vz * sc->delta.vector.vz),
                                           0, 0);
-                kind   = Gp_GetIdParam0(work->field_49C[i].key.value);
+                kind   = Gp_GetIdParam0(work->hurtContacts[i].key.value);
                 if ((u16)kind == 5) {
                     damage *= 2;
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
                 }
-                if (Gp_RollEnemyChance(enemy, work->field_49C[i].key.value, 0) != 0) {
+                if (Gp_RollEnemyChance(enemy, work->hurtContacts[i].key.value, 0) != 0) {
                     damage *= 4;
                     if ((u16)kind != 5) {
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
-                func_800E2C78(enemy, work->field_49C[i].key.value, damage, 0);
-                enemy->hp       -= damage;
-                work->field_70A += damage;
+                func_800E2C78(enemy, work->hurtContacts[i].key.value, damage, 0);
+                enemy->hp             -= damage;
+                work->interruptDamage += damage;
                 switch ((u16)kind) {
                     case 0:
                     case 3:
@@ -127,47 +130,47 @@ void golemKnightBishopTakeHits(Task* arg0)
                         break;
                     case 1:
                     case 2:
-                        if (work->field_6EC == 0) {
-                            work->field_6EC = 1;
-                            work->field_6DA = 7;
+                        if (work->flickerStage == 0) {
+                            work->flickerStage = 1;
+                            work->fadeState    = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_START;
                         }
                         break;
                     case 9:
-                        work->field_70A += GOLEM_KNIGHT_BISHOP_HIT_WEIGHT;
+                        work->interruptDamage += GOLEM_KNIGHT_BISHOP_HIT_WEIGHT;
                         break;
                 }
-                if (lastId != work->field_49C[i].key.value) {
-                    lastId     = work->field_49C[i].key.value;
+                if (lastId != work->hurtContacts[i].key.value) {
+                    lastId     = work->hurtContacts[i].key.value;
                     sc->ofs.vx = 0;
                     sc->ofs.vy = 0;
                     t          = -0x96;
-                    if (work->field_6D2 == 1) {
+                    if (work->hitFromFront == 1) {
                         t = 0xC8;
                     }
                     sc->ofs.vz = t;
-                    func_800FDB18((u16)Gp_GetIdParam1(work->field_49C[i].key.value),
+                    func_800FDB18((u16)Gp_GetIdParam1(work->hurtContacts[i].key.value),
                                   &arg0->extra.tmd->coords[3], &sc->ofs,
-                                  &work->field_65C);
+                                  &work->hitEffectArg);
                 }
-                wait = Gp_GetIdParam2(work->field_49C[i].key.value);
+                wait = Gp_GetIdParam2(work->hurtContacts[i].key.value);
                 if (wait > 0) {
-                    work->field_6C6 = wait;
+                    work->hitCooldown = wait;
                 }
-                if (work->field_6DA >= 8) {
-                    work->field_6EA = 2;
+                if (work->fadeState >= GOLEM_KNIGHT_BISHOP_FADE_FLICKER_DIM) {
+                    work->tintRequest = 2;
                 }
-                if (work->field_718 != 1) {
+                if (work->grabStage != 1) {
                     golemKnightBishopPickHitReaction(arg0, damage);
                 } else {
-                    work->field_6F4 = 2;
+                    work->grabBreak = 2;
                 }
                 break;
         }
     }
-    Gp_ClearRec18Occupied(work->field_49C);
-    if (work->field_584.flags & 1) {
-        work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(&work->field_584);
+    Gp_ClearRec18Occupied(work->hurtContacts);
+    if (work->strikeContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+        work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        Gp_ClearRec18Occupied(work->strikeContacts);
     }
     SCRATCH_STACK_RELEASE_BLOCK(GolemKnightBishopHitScratch);
 }

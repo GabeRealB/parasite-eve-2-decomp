@@ -1,11 +1,13 @@
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Aims the actor off its fourth part. While `field_6D6` is positive the
-/// offset (-0x28, -0x78, 0xDC) through the root-to-part matrix lands in
-/// `field_634`..`field_638` with bits 0xC000 of `field_62A` raised. Below
-/// `GOLEM_KNIGHT_BISHOP_AIM_TIME` - 1 it projects two points into `field_6FC`..`field_704`: the same offset off
-/// the part, and a point 0x514 up and the `field_644` target's distance out
-/// from the root.
+/// Aims the beam from the actor's fourth part. While `auxTimer` is positive
+/// the offset (-0x28, -0x78, 0xDC) from that part, brought into root space,
+/// becomes `aimBeamCapsule.ends[1]` and `aimBeamBody` is grid- and
+/// pair-enabled; otherwise the body is switched off. Below
+/// `GOLEM_KNIGHT_BISHOP_AIM_TIME` - 1 it projects the beam's two ends into
+/// `beamScreenX`, `beamScreenY` and `beamDepth` and draws it: the same point
+/// on the part, and a point 0x514 above the root as far ahead as the contact
+/// in `aimBeamContacts` (10000 when the capsule touched nothing).
 void golemKnightBishopAimFromPart(Task* arg0)
 {
     u8*                          head;
@@ -25,7 +27,7 @@ void golemKnightBishopAimFromPart(Task* arg0)
     coord->composeStamp      = GRAPHICS_COORD_DIRTY;
     part->composeStamp       = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(part);
-    if (work->field_6D6 > 0) {
+    if (work->auxTimer > 0) {
         gfxMakeRelativeTransform(&coord->workm, &part->workm, &sc->m);
         sc->pts[1].vx = -0x28;
         sc->pts[1].vy = -0x78;
@@ -34,14 +36,14 @@ void golemKnightBishopAimFromPart(Task* arg0)
         gte_ldv0(&sc->pts[1]);
         gte_rtv0();
         gte_stlvnl(&sc->out);
-        work->field_634  = sc->m.t[0] + sc->out.vx;
-        work->field_636  = sc->m.t[1] + sc->out.vy;
-        work->field_638  = sc->m.t[2] + sc->out.vz;
-        work->field_62A |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->aimBeamCapsule.ends[1].vx = sc->m.t[0] + sc->out.vx;
+        work->aimBeamCapsule.ends[1].vy = sc->m.t[1] + sc->out.vy;
+        work->aimBeamCapsule.ends[1].vz = sc->m.t[2] + sc->out.vz;
+        work->aimBeamBody.flags        |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else {
-        work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->aimBeamBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     }
-    if (work->field_6D6 < GOLEM_KNIGHT_BISHOP_AIM_TIME - 1) {
+    if (work->auxTimer < GOLEM_KNIGHT_BISHOP_AIM_TIME - 1) {
         sc->pts[1].vx = -0x28;
         sc->pts[1].vy = -0x78;
         sc->pts[1].vz = 0xDC;
@@ -54,16 +56,16 @@ void golemKnightBishopAimFromPart(Task* arg0)
         sc->pts[1].vz = part->workm.t[2] + sc->out.vz;
         sc->pts[0].vx = 0;
         sc->pts[0].vy = -0x514;
-        if (Gp_FindRec18(&work->field_644, 0) != 0) {
-            sc->out.vx    = work->field_644.point.vx - sc->pts[1].vx;
-            sc->out.vy    = work->field_644.point.vy - sc->pts[1].vy;
-            sc->out.vz    = work->field_644.point.vz - sc->pts[1].vz;
+        if (Gp_FindRec18(work->aimBeamContacts, 0) != 0) {
+            sc->out.vx    = work->aimBeamContacts[0].point.vx - sc->pts[1].vx;
+            sc->out.vy    = work->aimBeamContacts[0].point.vy - sc->pts[1].vy;
+            sc->out.vz    = work->aimBeamContacts[0].point.vz - sc->pts[1].vz;
             dist          = SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vy * sc->out.vy + sc->out.vz * sc->out.vz);
             sc->pts[0].vz = dist;
-            if ((work->field_644.key.value & 0xFFFF0000) == 0x10000) {
+            if ((work->aimBeamContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000) {
                 sc->pts[0].vz = dist + 0x12C;
             }
-            Gp_ClearRec18Occupied(&work->field_644);
+            Gp_ClearRec18Occupied(work->aimBeamContacts);
         } else {
             sc->pts[0].vz = 10000;
         }
@@ -81,9 +83,9 @@ void golemKnightBishopAimFromPart(Task* arg0)
             gte_rtps();
             gte_stsxy(&sc->sxy);
             gte_stszotz(&sc->otz);
-            work->field_6FC[i] = sc->sxy;
-            work->field_700[i] = sc->sxy >> 16;
-            work->field_704[i] = sc->otz;
+            work->beamScreenX[i] = sc->sxy;
+            work->beamScreenY[i] = sc->sxy >> 16;
+            work->beamDepth[i]   = sc->otz;
         }
         golemKnightBishopDrawAimBeam(arg0);
     }

@@ -2,13 +2,15 @@
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Parks the actor's target position off the player (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`).
-/// In state 3 it takes `field_6E6` from the player's heading and places the
-/// target 0x5AA behind the player, enabling grid tests through `field_5BA` and
-/// `field_5DA`; in state 4 it rolls an angle from `gRandomLcgState` (anywhere, or
-/// within a quarter turn either side while `field_6E8` is clear), derives
-/// `field_5DC` / `field_5E0` from it, adds the player's heading and places the
-/// target 0x4B out along the result, enabling grid tests through `field_5BA`.
+/// Places `targetPos` by the player (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`) for the attack the idle
+/// sequence's `step` has picked. For a grab (step 3) it takes `targetYaw`
+/// from the player's heading and places the target 0x5AA behind the player,
+/// grid-enabling `pathProbeBody` and `spotProbeBody`. For a strike (step 4) it
+/// rolls an angle from `gRandomLcgState` (anywhere while `feintBroken` is set,
+/// otherwise within a quarter turn either side of the player's facing), points
+/// `pathProbeCapsule.ends[0]` 2000 out along it, adds the player's heading
+/// into `targetYaw` and places the target 1200 out along the result,
+/// grid-enabling `pathProbeBody` alone.
 void golemKnightBishopPlaceTarget(Task* arg0)
 {
     u8*                             head;
@@ -22,9 +24,9 @@ void golemKnightBishopPlaceTarget(Task* arg0)
     SCRATCH_STACK_CURSOR(u8) = head - sizeof(GolemKnightBishopOffsetScratch);
     sc                       = (GolemKnightBishopOffsetScratch*)(head - sizeof(GolemKnightBishopOffsetScratch));
     work                     = arg0->work;
-    if (work->field_6CE == 3) {
+    if (work->step == 3) {
         coord           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-        work->field_6E6 = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+        work->targetYaw = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
         sc->in.vz       = -0x5AA;
         sc->in.vx       = 0;
         sc->in.vy       = 0;
@@ -32,18 +34,18 @@ void golemKnightBishopPlaceTarget(Task* arg0)
         gte_ldv0(&sc->in);
         gte_rtv0();
         gte_stlvnl(&sc->out);
-        work->field_6A4  = gPlayerStatus.coordMtx->t[0] + sc->out.vx;
-        work->field_6A8  = gPlayerStatus.coordMtx->t[1];
-        work->field_6AC  = gPlayerStatus.coordMtx->t[2] + sc->out.vz;
-        work->field_5DE  = -0x3E8;
-        work->field_5E0  = -0x7D0;
-        work->field_5DC  = 0;
-        work->field_5BA |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->field_5DA |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    } else if (work->field_6CE == 4) {
-        if (work->field_6E8 != 0) {
+        work->targetPos.vx                = gPlayerStatus.coordMtx->t[0] + sc->out.vx;
+        work->targetPos.vy                = gPlayerStatus.coordMtx->t[1];
+        work->targetPos.vz                = gPlayerStatus.coordMtx->t[2] + sc->out.vz;
+        work->pathProbeCapsule.ends[0].vy = -0x3E8;
+        work->pathProbeCapsule.ends[0].vz = -0x7D0;
+        work->pathProbeCapsule.ends[0].vx = 0;
+        work->pathProbeBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->spotProbeBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+    } else if (work->step == 4) {
+        if (work->feintBroken != 0) {
             gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            work->field_6E6 = (gRandomLcgState >> 16) & 0xFFF;
+            work->targetYaw = (gRandomLcgState >> 16) & 0xFFF;
         } else {
             random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState = random;
@@ -51,19 +53,19 @@ void golemKnightBishopPlaceTarget(Task* arg0)
             if (!((random >> 16) & 0x400)) {
                 angle = -angle;
             }
-            work->field_6E6 = angle;
+            work->targetYaw = angle;
         }
-        work->field_5DC  = (u32)(rsin(work->field_6E6) * 0x7D) >> 8;
-        work->field_5DE  = -0x3E8;
-        work->field_5E0  = (u32)(rcos(work->field_6E6) * 0x7D) >> 8;
-        coord            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-        work->field_6E6  = (work->field_6E6 + (ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF)) & 0xFFF;
-        sc->in.vx        = (u32)(rsin(work->field_6E6) * 0x4B) >> 8;
-        sc->in.vz        = (u32)(rcos(work->field_6E6) * 0x4B) >> 8;
-        work->field_6A4  = gPlayerStatus.coordMtx->t[0] + sc->in.vx;
-        work->field_6A8  = gPlayerStatus.coordMtx->t[1];
-        work->field_6AC  = gPlayerStatus.coordMtx->t[2] + sc->in.vz;
-        work->field_5BA |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->pathProbeCapsule.ends[0].vx = (u32)(rsin(work->targetYaw) * 0x7D) >> 8;
+        work->pathProbeCapsule.ends[0].vy = -0x3E8;
+        work->pathProbeCapsule.ends[0].vz = (u32)(rcos(work->targetYaw) * 0x7D) >> 8;
+        coord                             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+        work->targetYaw                   = (work->targetYaw + (ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF)) & 0xFFF;
+        sc->in.vx                         = (u32)(rsin(work->targetYaw) * 0x4B) >> 8;
+        sc->in.vz                         = (u32)(rcos(work->targetYaw) * 0x4B) >> 8;
+        work->targetPos.vx                = gPlayerStatus.coordMtx->t[0] + sc->in.vx;
+        work->targetPos.vy                = gPlayerStatus.coordMtx->t[1];
+        work->targetPos.vz                = gPlayerStatus.coordMtx->t[2] + sc->in.vz;
+        work->pathProbeBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopOffsetScratch));
 }

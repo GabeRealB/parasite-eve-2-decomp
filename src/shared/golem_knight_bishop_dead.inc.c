@@ -4,10 +4,12 @@
 
 /// Frame handler for the scene's `gSceneCombatState.actorControl` mode. Mode 1 only refreshes the
 /// coordinates, tint and shadow and mode 2 hides the model, both returning
-/// without giving back the 8-byte scratch stack block. Otherwise the
-/// `field_6CE` sequence runs: state 0 unlinks the actor and saves its pose,
-/// state 1 sprays a randomly angled effect every fourth frame, and state 2
-/// projects the actor before moving on to 3.
+/// without giving back the 8-byte scratch stack block. Otherwise `step`
+/// runs: step 0 unlinks the enemy and its hurt, ground and strike bodies,
+/// files `downedPose` as the saved pose and takes the lying animation, step 1
+/// then sprays a randomly angled effect every fourth frame, and step 2, where
+/// a restored corpse starts, queues the frame capture and the fade once
+/// before moving on to 3.
 void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
 {
     u8*                    head;
@@ -39,25 +41,25 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
-    switch (work->field_6CE) {
+    switch (work->step) {
         case 0:
             arg0->recs = 0;
             worldTargetUnlinkNode(&arg0->node);
-            Gp_UnlinkObj((WorldCollisionBody*)work->field_4E4);
-            Gp_UnlinkObj((WorldCollisionBody*)work->field_47C);
-            Gp_UnlinkObj((WorldCollisionBody*)work->field_564);
-            Gp_ReleaseStateF0Add(arg1, work->field_716);
+            Gp_UnlinkObj(&work->groundBody);
+            Gp_UnlinkObj(&work->hurtBody);
+            Gp_UnlinkObj(&work->strikeBody);
+            Gp_ReleaseStateF0Add(arg1, work->actorId);
             anim = 0x14;
-            if (work->field_6F0 == 1) {
+            if (work->downedPose == 1) {
                 anim = 0x10;
             }
-            work->field_6C0  = anim;
-            work->field_6CE  = 1;
-            arg0->spawnState = work->field_6F0;
+            work->anim       = anim;
+            work->step       = 1;
+            arg0->spawnState = work->downedPose;
             Gp_SaveEnemyPose(arg0);
             break;
         case 1:
-            if (!(work->field_6C4 & 3)) {
+            if (!(work->animFrame & 3)) {
                 sc->vx          = 0;
                 sc->vz          = 0;
                 random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -69,8 +71,8 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
         case 2:
             golemKnightBishopQueueFrameCapture(&arg1->extra.tmd->coords[3], 0xC);
             golemKnightBishopTranslucencyFade(arg1);
-            func_8009EA50(work->field_6D8);
-            work->field_6CE = 3;
+            func_8009EA50(work->translucency);
+            work->step = 3;
             break;
     }
     golemKnightBishopHoldCueTimer(arg1);

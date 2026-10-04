@@ -1,8 +1,9 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Sequence 9, death while standing: collapses on the hit side and fades out,
-/// queuing the fall cue on the impact frame. When the timer ends it moves the
-/// task to its dead state (2).
+/// Death while standing: falls by `hitFromFront` as it fades into full view,
+/// filing the matching `downedPose` and moving the grid test from `groundBody`
+/// to the shifted `hurtBody`, and queues the fall sound on the impact frame.
+/// When `timer` ends it moves the task to its dead state (2).
 void golemKnightBishopCollapseDeathSeq(Task* arg0)
 {
     GolemKnightBishopWork* work;
@@ -14,52 +15,52 @@ void golemKnightBishopCollapseDeathSeq(Task* arg0)
     s16                    timer;
 
     work  = arg0->work;
-    state = work->field_6CE;
+    state = work->step;
     coord = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
-            if (work->field_6D2 == 0) {
-                work->field_6C0 = 0xD;
-                work->field_6CE = 1;
-                work->field_6F0 = 1;
-                work->field_6D4 = 0x42;
-                work->field_490 = -0xA7;
+            if (work->hitFromFront == 0) {
+                work->anim            = 0xD;
+                work->step            = 1;
+                work->downedPose      = 1;
+                work->timer           = 0x42;
+                work->hurtBody.pos.vz = -0xA7;
             } else {
-                work->field_6C0 = 0x11;
-                work->field_6CE = 1;
-                work->field_6F0 = 2;
-                work->field_6D4 = 0x31;
-                work->field_490 = 0x109;
+                work->anim            = 0x11;
+                work->step            = 1;
+                work->downedPose      = 2;
+                work->timer           = 0x31;
+                work->hurtBody.pos.vz = 0x109;
             }
-            work->field_498  = 0x15E;
-            work->field_714  = 1;
-            work->field_6DA  = 1;
-            work->field_6DC  = 0x14;
-            work->field_6DE  = 0xA;
-            work->field_6F2  = 2;
-            work->field_6C8  = 0;
-            work->field_49A |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            work->field_502 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+            work->hurtBody.radius        = 0x15E;
+            work->knockdownStage         = 1;
+            work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_APPEAR;
+            work->translucencyFadeFrames = 0x14;
+            work->colorBlendFadeFrames   = 0xA;
+            work->reactionLock           = 2;
+            work->forwardSpeed           = 0;
+            work->hurtBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+            work->groundBody.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
         case 1:
-            if (work->field_714 == state) {
-                work->field_714 = 2;
+            if (work->knockdownStage == state) {
+                work->knockdownStage = 2;
             }
             frames = 0x19;
-            if (work->field_6F0 == state) {
+            if (work->downedPose == state) {
                 frames = 0x2C;
             }
-            if (work->field_6C4 == frames) {
-                snd = gGolemKnightBishopAnimCues[work->field_712 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            if (work->animFrame == frames) {
+                snd = gGolemKnightBishopAnimCues[work->soundSet + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            timer           = work->field_6D4 - 1;
-            work->field_6D4 = timer;
+            timer       = work->timer - 1;
+            work->timer = timer;
             if (timer <= 0) {
-                arg0->state     = 2;
-                work->field_6CE = 0;
-                work->field_6F2 = 0;
+                arg0->state        = 2;
+                work->step         = 0;
+                work->reactionLock = 0;
             }
             break;
     }

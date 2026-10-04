@@ -2,11 +2,11 @@
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Sequence 8, the low-HP turn: state 0 picks animation 0xE (and state 1) when
-/// `field_6F0` is 1, otherwise 0x12 and state 2; states 1 and 2 wait for the
-/// frame counter to reach 0x10 or 0x16, then switch to animation 0x10 or 0x14,
-/// enter sequence 7 at state 3 and arm the `field_6D4` countdown from the
-/// `gRandomLcgState` LCG (0..0x3F).
+/// A hit taken on the ground: step 0 takes animation 0xE (and step 1) when
+/// `downedPose` is 1, otherwise 0x12 and step 2; steps 1 and 2 wait for
+/// `animFrame` to reach 0x10 or 0x16, then take the lying animation 0x10 or
+/// 0x14 and re-enter the kneel sequence at step 3 with `timer` rolled from
+/// the `gRandomLcgState` LCG (0..0x3F).
 void golemKnightBishopKneelHitSeq(Task* arg0)
 {
     GolemKnightBishopWork* work;
@@ -14,34 +14,34 @@ void golemKnightBishopKneelHitSeq(Task* arg0)
     s32                    next;
 
     work  = arg0->work;
-    state = work->field_6CE;
+    state = work->step;
     switch (state) {
         case 0:
-            next = work->field_6F0;
+            next = work->downedPose;
             if (next == 1) {
-                work->field_6C0 = 0xE;
-                work->field_6CE = next;
+                work->anim = 0xE;
+                work->step = next;
             } else {
-                work->field_6C0 = 0x12;
-                work->field_6CE = 2;
+                work->anim = 0x12;
+                work->step = 2;
             }
             break;
         case 1:
-            if (work->field_6C4 >= 0x10) {
-                work->field_6C0 = 0x10;
-                work->field_6CC = 7;
-                work->field_6CE = 3;
+            if (work->animFrame >= 0x10) {
+                work->anim      = 0x10;
+                work->sequence  = GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL;
+                work->step      = 3;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->field_6D4 = (gRandomLcgState >> 16) & 0x3F;
+                work->timer     = (gRandomLcgState >> 16) & 0x3F;
             }
             break;
         case 2:
-            if (work->field_6C4 >= 0x16) {
-                work->field_6C0 = 0x14;
-                work->field_6CC = 7;
-                work->field_6CE = 3;
+            if (work->animFrame >= 0x16) {
+                work->anim      = 0x14;
+                work->sequence  = GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL;
+                work->step      = 3;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->field_6D4 = (gRandomLcgState >> 16) & 0x3F;
+                work->timer     = (gRandomLcgState >> 16) & 0x3F;
             }
             break;
     }

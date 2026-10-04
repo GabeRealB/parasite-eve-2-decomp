@@ -9,15 +9,15 @@ static inline void golemKnightBishopTickAnimInline(Task* arg0)
     s32                    value;
 
     work = arg0->work;
-    if (work->field_6C0 != work->field_6C2) {
-        work->field_6C2 = work->field_6C0;
-        work->field_6C4 = 0;
-        value           = gGolemKnightBishopAnimBlend[work->field_6C0];
+    if (work->anim != work->playingAnim) {
+        work->playingAnim = work->anim;
+        work->animFrame   = 0;
+        value             = gGolemKnightBishopAnimBlend[work->anim];
         for (i = 1; i < 0x13; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_6C0, 0, value);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->anim, 0, value);
         }
     } else {
-        work->field_6C4++;
+        work->animFrame++;
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);
         }
@@ -35,11 +35,11 @@ static inline void golemKnightBishopDrawShadowInline(Task* arg0)
     work  = arg0->work;
     coord = &arg0->extra.tmd->coords[0];
     sub   = &arg0->extra.tmd->coords[3];
-    if (work->field_6E2 == 0) {
-        work->field_6E2 = -1;
+    if (work->shadowShade == 0) {
+        work->shadowShade = -1;
     }
     vec.vx = sub->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = sub->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x300, work->field_6E2);
+    Gp_DrawEffGroundQuad(&vec, 0x300, work->shadowShade);
 }
