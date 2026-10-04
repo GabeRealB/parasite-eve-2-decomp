@@ -35,19 +35,39 @@
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
-/// 0x120-byte scratch block `func_shelter_b2_pod_bottom_80180A4C` takes from
-/// the scratch stack: the 32 rotated ring points and the disc centre, the
-/// quad's depth and GTE flag, and the four projected corners of one quad.
+/// Number of points round the rim of a `_ShelterB2PodBottomDiscScratch`. A
+/// power of two: the drawer wraps a rim index with
+/// `& (SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT - 1)`.
+#define SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT 32
+
+/// Angle between neighbouring rim points, in the 4096-per-turn units of
+/// `rsin` and `rcos`.
+#define SHELTER_B2_POD_BOTTOM_DISC_RIM_ANGLE_STEP (0x1000 / SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT)
+
+/// Scratch-stack workspace for drawing a filled disc as a fan of quads.
+///
+/// The drawer places the rim points evenly round a circle parallel to a
+/// coordinate frame's local XY plane, turns each by that frame's rotation and
+/// stores it back narrowed to 16 bits; `center` is the middle of the circle,
+/// treated the same way, or the frame's origin. The centre is projected once
+/// into `sxy0` and stays there as vertex 0 of every quad. Each quad then covers
+/// two rim steps: vertices 1, 2 and 3 are `rim[i]`, `rim[i + 2]` and
+/// `rim[i + 1]` for even `i`, wrapping at the last one, so half as many quads
+/// as rim points close the disc.
+///
+/// Reserve one complete block on the scratch stack and release it in reverse
+/// order after drawing. Pointers into the block must not survive its release.
 typedef struct {
-    SVECTOR pts[32];
-    SVECTOR center;
-    s32     otz;
-    s32     flag;
-    DVECTOR sxy0;
-    DVECTOR sxy1;
-    DVECTOR sxy2;
-    DVECTOR sxy3;
-} _ShelterB2PodBottomRingScratch;
+    SVECTOR rim[SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT]; // Rim points after the frame's rotation, in signed 16-bit coordinate units
+    SVECTOR center;                                          // Disc centre after the same rotation; zero when the disc sits on the frame's origin
+    s32     otz;                                             // Ordering-table depth: SZ3 / 4 of the quad's last projected vertex
+    s32     projectionFlags;                                 // GTE FLAG word after the centre's RTPS, then each quad's RTPT; bit 31 makes it negative and drops the disc or the quad
+    DVECTOR sxy0;                                            // Screen position of the centre, vertex 0 of every quad
+    DVECTOR sxy1;                                            // Screen position of the current quad's vertex 1
+    DVECTOR sxy2;                                            // Screen position of vertex 2
+    DVECTOR sxy3;                                            // Screen position of vertex 3
+} _ShelterB2PodBottomDiscScratch;
+STATIC_ASSERT_SIZEOF(_ShelterB2PodBottomDiscScratch, 0x120);
 
 static void func_shelter_b2_pod_bottom_8017E788(GfxCoord* coord, s16 arg1, s16 arg2);
 static void func_shelter_b2_pod_bottom_8017EEAC(EffectWork* work, GfxCoord* coord, s32 arg2);
@@ -889,27 +909,22 @@ static void func_shelter_b2_pod_bottom_801805A0(GfxCoord* arg0, s32 arg1, s32 ar
 /// is dropped.
 static void func_shelter_b2_pod_bottom_80180A4C(GfxCoord* coord, s16 radius, SVECTOR* center)
 {
-    void**                          scratch;
-    _ShelterB2PodBottomRingScratch* block;
+    _ShelterB2PodBottomDiscScratch* block;
     POLY_F4*                        prim;
     s32                             i;
     s32                             ang;
-    u8*                             head;
 
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = SCRATCH_HEAD_AT(scratch, u8) - sizeof(_ShelterB2PodBottomRingScratch);
-    *scratch = head;
-    block    = (_ShelterB2PodBottomRingScratch*)head;
+    block = SCRATCH_STACK_RESERVE_BLOCK(_ShelterB2PodBottomDiscScratch);
     gte_SetTransMatrix(&coord->workm);
     if (center != NULL) {
-        for (i = 0; i < 32; i++) {
-            block->pts[i].vx = (u16)center->vx + ((rsin(i << 7) * radius) >> 12);
-            block->pts[i].vy = (u16)center->vy + ((rcos(i << 7) * radius) >> 12);
-            block->pts[i].vz = center->vz;
+        for (i = 0; i < SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT; i++) {
+            block->rim[i].vx = (u16)center->vx + ((rsin(i * SHELTER_B2_POD_BOTTOM_DISC_RIM_ANGLE_STEP) * radius) >> 12);
+            block->rim[i].vy = (u16)center->vy + ((rcos(i * SHELTER_B2_POD_BOTTOM_DISC_RIM_ANGLE_STEP) * radius) >> 12);
+            block->rim[i].vz = center->vz;
             gte_SetRotMatrix(&coord->workm);
-            gte_ldv0(&block->pts[i]);
+            gte_ldv0(&block->rim[i]);
             gte_rtv0();
-            gte_stsv(&block->pts[i]);
+            gte_stsv(&block->rim[i]);
         }
         block->center.vx = center->vx;
         block->center.vy = center->vy;
@@ -919,15 +934,15 @@ static void func_shelter_b2_pod_bottom_80180A4C(GfxCoord* coord, s16 radius, SVE
         gte_rtv0();
         gte_stsv(&block->center);
     } else {
-        for (i = 0; i < 32; i++) {
-            ang              = i << 7;
-            block->pts[i].vx = (rsin(ang) * radius) >> 12;
-            block->pts[i].vy = (rcos(ang) * radius) >> 12;
-            block->pts[i].vz = 0;
+        for (i = 0; i < SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT; i++) {
+            ang              = i * SHELTER_B2_POD_BOTTOM_DISC_RIM_ANGLE_STEP;
+            block->rim[i].vx = (rsin(ang) * radius) >> 12;
+            block->rim[i].vy = (rcos(ang) * radius) >> 12;
+            block->rim[i].vz = 0;
             gte_SetRotMatrix(&coord->workm);
-            gte_ldv0(&block->pts[i]);
+            gte_ldv0(&block->rim[i]);
             gte_rtv0();
-            gte_stsv(&block->pts[i]);
+            gte_stsv(&block->rim[i]);
         }
         block->center.vx = 0;
         block->center.vy = 0;
@@ -937,33 +952,33 @@ static void func_shelter_b2_pod_bottom_80180A4C(GfxCoord* coord, s16 radius, SVE
     gte_ldv0(&block->center);
     gte_rtps();
     gte_stsxy(&block->sxy0);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        for (i = 0; i < 32; i += 2) {
-            gte_ldv3(&block->pts[i], &block->pts[(i + 2) & 0x1F], &block->pts[i + 1]);
+    gte_stflg(&block->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        for (i = 0; i < SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT; i += 2) {
+            gte_ldv3(&block->rim[i], &block->rim[(i + 2) & (SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT - 1)], &block->rim[i + 1]);
             gte_rtpt();
             gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-            gte_stflg(&block->flag);
-            if (block->flag >= 0) {
+            gte_stflg(&block->projectionFlags);
+            if (block->projectionFlags >= 0) {
                 gte_stszotz(&block->otz);
                 prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
                 setPolyF4(prim);
                 setRGB0(prim, 0xFF, 0xFF, 0xFF);
-                prim->x0 = (u16)block->sxy0.vx;
-                prim->y0 = (u16)block->sxy0.vy;
-                prim->x1 = (u16)block->sxy1.vx;
-                prim->y1 = (u16)block->sxy1.vy;
-                prim->x2 = (u16)block->sxy2.vx;
-                prim->y2 = (u16)block->sxy2.vy;
-                prim->x3 = (u16)block->sxy3.vx;
-                prim->y3 = (u16)block->sxy3.vy;
+                prim->x0 = block->sxy0.vx;
+                prim->y0 = block->sxy0.vy;
+                prim->x1 = block->sxy1.vx;
+                prim->y1 = block->sxy1.vy;
+                prim->x2 = block->sxy2.vx;
+                prim->y2 = block->sxy2.vy;
+                prim->x3 = block->sxy3.vx;
+                prim->y3 = block->sxy3.vy;
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x120);
+    SCRATCH_STACK_RELEASE_BLOCK(_ShelterB2PodBottomDiscScratch);
 }
 
 void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
