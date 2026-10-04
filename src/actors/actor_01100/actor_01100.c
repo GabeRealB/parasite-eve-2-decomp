@@ -89,15 +89,6 @@ typedef struct ActorsShared801385e0Scale {
 } ActorsShared801385e0Scale;
 STATIC_ASSERT_SIZEOF(ActorsShared801385e0Scale, 0x10);
 
-/// The caller's vector slot: the column copy fills the `SVECTOR` at 0x10, GPF
-/// scales it in place and the translation update reads `vx` / `vz` back out of
-/// it. Nothing ahead of 0x10 is read, and no carrier references this body at
-/// all, so what the caller keeps there is not visible from here.
-typedef struct ActorsShared8013898cVec {
-    /* 0x00 */ byte    pad_0[0x10];
-    /* 0x10 */ SVECTOR vec;
-} ActorsShared8013898cVec;
-
 /// Indices into `_Actor01100Work::bodies` and `_Actor01100Work::contacts`.
 enum {
     ACTOR_01100_BODY_ROOT       = 0, // sphere on the model's root, tested against the world
@@ -105,6 +96,14 @@ enum {
     ACTOR_01100_BODY_RIGHT_HAND = 2, // attack sphere on part 8
     ACTOR_01100_BODY_CHEST      = 3, // sphere on part 3 that takes the hits
     ACTOR_01100_BODY_COUNT
+};
+
+/// Model parts a state handler can name in `_Actor01100Scratch::splashPart`,
+/// as indices into the model's part coordinates.
+enum {
+    ACTOR_01100_PART_CHEST      = 3,
+    ACTOR_01100_PART_RIGHT_HAND = 8,
+    ACTOR_01100_PART_LEFT_HAND  = 12
 };
 
 /// Values of `_Actor01100Work::state`: the index of the handler the per-frame
@@ -229,40 +228,30 @@ typedef struct {
 } _Actor01100Work;
 STATIC_ASSERT_SIZEOF(_Actor01100Work, 0xBCC);
 
-/// Block `func_actor_104900_80134780` hands every state handler in `$a3`, one
-/// frame of the actor's own stack. The dispatcher fills `pan` and `depth` from
-/// the model's second per-part `GfxCoord` (0x50 into
-/// `Task::field_2C->field_8`) right before the indirect call, storing each as a
-/// halfword; the handlers read the low byte,
-/// so the pair is laid out as bytes here. Which of them writes what is per
-/// handler - the 0x80138D58 body writes only 0x64.
-typedef struct ActorsShared80138efcArg {
-    /// Scratch position. The dispatcher writes the root part's world
-    /// translation here, lowered by 0x320, and hands it to
-    /// `Gp_UpdateActorColor`.
-    /* 0x00 */ VECTOR pos;
-    /// Scratch vector. The dispatcher builds its effect offsets here for
-    /// `Gp_SpawnEff`, rotating the splash offset through a part's world
-    /// matrix and then into view space with `mtx`.
-    /* 0x10 */ SVECTOR vec;
-    /* 0x18 */ byte    pad_18[0x8];
-    /// Transpose of `gGfxViewCoord.workm`, refreshed on the frames the splash
-    /// check runs.
-    /* 0x20 */ MATRIX mtx;
-    /// Pose buffers of the two animation contexts. While `flinchWeight` is
-    /// nonzero the first context steps into `poses[0]`, the second into
-    /// `poses[1]`, and `Gp_AnimWritePoseBlend` weights the pair by it.
-    /* 0x40 */ AnimationPose poses[2];
-    /* 0x60 */ s8            pan;
-    /* 0x61 */ byte          pad_61[0x1];
-    /* 0x62 */ s8            depth;
-    /* 0x63 */ byte          pad_63[0x1];
-    /* 0x64 */ s8            field_64;
-} ActorsShared80138efcArg;
-STATIC_ASSERT_SIZEOF(ActorsShared80138efcArg, 0x68);
+/// Working storage the enemy task borrows from the scratchpad stack around
+/// each call of its state handler, and gives back when the call returns.
+///
+/// The handler is handed the block and passes it on to everything it runs, so
+/// nothing in it outlives the call. Besides the vectors, matrix and pose
+/// buffers any of them may work in, it carries three values between the
+/// per-frame tick and the `_Actor01100Work::state` handler the tick runs: where
+/// the enemy is heard from, which the tick measures for the sound cues the
+/// handlers queue, and the model part a handler asks the tick to watch for
+/// crossing the water surface.
+typedef struct {
+    VECTOR        vector;      // long vector: the per-axis 4.12 factors a shoulder's matrix columns are scaled by, then the root's world position with 0x320 taken off its Y, where the enemy's colour is sampled
+    SVECTOR       shortVector; // short vector: the contact point of a hit, a matrix column while it is scaled, the offset from an arm to the player, the walk's step, the offset an effect is spawned at
+    byte          field_18[8]; // never accessed; role unproven
+    MATRIX        viewInverse; // transpose of the view coordinate's world matrix, built each tick in the water room; its rotation takes a world offset into the view's frame
+    AnimationPose poses[2];    // one part's pose from `_Actor01100Work::rig` and from `flinchRig`, mixed by `flinchWeight` into the part's coordinate
+    s16           pan;         // audio pan of the origin of model part 1, measured before the state handler runs; the cues take its low byte
+    s16           depth;       // audio depth of the same point, likewise
+    u8            splashPart;  // model part the state handler names for the water-surface check: 0 for none or an `ACTOR_01100_PART_*`; cleared before each call
+} _Actor01100Scratch;
+STATIC_ASSERT_SIZEOF(_Actor01100Scratch, 0x68);
 
 typedef void (*ActorsShared80138efcState)(Enemy* enemy, Task* task, _Actor01100Work* work,
-                                          ActorsShared80138efcArg* arg);
+                                          _Actor01100Scratch* scratch);
 
 typedef struct ActorsShared80138efcStateTable {
     ActorsShared80138efcState funcs[26];
@@ -289,9 +278,9 @@ extern DamageAttack Actor01100_D074F8[6];
 
 /// One of the actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown. Wider than the usual two-argument `EnemyTaskFunc` shape: the
-/// handlers also take the actor's work block (`Task::work`) and a 0x68-byte
-/// scratchpad buffer the dispatcher allocates around the call.
-typedef void (*Actor101100StateFunc)(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* scratch);
+/// handlers also take the actor's work block (`Task::work`) and the
+/// `_Actor01100Scratch` the dispatcher borrows around the call.
+typedef void (*Actor101100StateFunc)(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 
 /// Fixed-size table of `Actor101100StateFunc` callbacks. Copied onto the stack
 /// by `Actor01100_Fn06554` so the call uses a local jump table.
@@ -325,22 +314,22 @@ extern Actor104900EffSlot D_80067330;
     gte_stsv(sv);                     \
     gte_WriteMatrixColumn(sv, m, col)
 
-static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unusedWork, ActorsShared80138efcArg* unusedArg);
-static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* unusedArg);
-static s32  Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn03740(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn0389C(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn039D0(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn041BC(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn05678(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unusedWork, _Actor01100Scratch* unusedScratch);
+static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* unusedScratch);
+static s32  Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn03740(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn0389C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn039D0(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn041BC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn05678(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn05E68(Task* task);
 static void Actor01100_Fn06198(Task* task);
 static void Actor01100_Fn0638C(Task* task);
@@ -348,12 +337,12 @@ static void Actor01100_Fn0668C(Task* task);
 static void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1);
 static s32  Actor01100_Fn06954(GfxCoord* arg0, s32 arg1);
 static s32  Actor01100_Fn06AC8(GfxCoord* arg0);
-static void Actor01100_Fn06E4C(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn06F38(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn07014(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn070DC(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void Actor01100_Fn072B8(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
+static void Actor01100_Fn06E4C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn06F38(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn07014(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn070DC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void Actor01100_Fn072B8(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn0736C(Task* task);
 static void Actor01100_Fn073A8(Task* task);
 static void Actor01100_Fn073DC(Task* task);
@@ -1046,17 +1035,17 @@ static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, u8 rate);
 static __inline__ s32  _actor01100FindClass2Contact(SVECTOR* out, WorldCollisionContact* contacts);
 static __inline__ s32  _actor01100PushOut(GfxCoord* coord, WorldCollisionContact* contacts);
 static __inline__ void _actor01100ClearObjPair(_Actor01100Work* work);
-static void            Actor01100_Fn01B90(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void            Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
+static void            Actor01100_Fn01B90(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void            Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static __inline__ s32  _actor01100BearingToPlayer(GfxCoord* self);
 static __inline__ s32  _actor01100DistSqToPlayer(GfxCoord* self);
 static __inline__ u8*  Actor104900_ScratchRead(void);
 static __inline__ void Actor104900_ScratchWrite(u8* p);
 static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 scale);
 static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model);
-static void            Actor01100_Fn06B6C(GfxCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2);
-static void            Actor01100_Fn06C0C(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
-static void            Actor01100_Fn06D3C(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg);
+static void            Actor01100_Fn06B6C(GfxCoord* arg0, _Actor01100Scratch* arg1, s32 arg2);
+static void            Actor01100_Fn06C0C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void            Actor01100_Fn06D3C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 
 #include "../../shared/actor_contacts_find_push.inc.c"
 
@@ -1083,7 +1072,7 @@ static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, u8 rate)
 /// part 1. Spawn state 1/2 then writes 0x7F into slots 1..20 of each
 /// context. Placement `entryId` 0x31 selects the second param table and
 /// scales the identity matrix by 0x1400.
-static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unusedWork, ActorsShared80138efcArg* unusedArg)
+static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unusedWork, _Actor01100Scratch* unusedScratch)
 {
     _Actor01100Work*          work;
     TmdObject*                extra;
@@ -1210,7 +1199,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
 /// takes `Actor01100_Fn0668C` as its
 /// exit callback, the model's hidden bit is lifted, `msgTable` is pointed at
 /// this overlay's message table and the state advances.
-static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* unusedArg)
+static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* unusedScratch)
 {
     WorldCollisionBody* obj;
     s32                 reach;
@@ -1375,7 +1364,7 @@ static __inline__ void _actor01100ClearObjPair(_Actor01100Work* work)
 /// the death cue and releasing the placement at zero), and stages the
 /// reaction's state. Every frame it then pushes the model out of the first
 /// contact table and clears all four. Returns 1 when damage landed.
-static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     s32                    damaged;
     s32                    fromBehind;
@@ -1434,7 +1423,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, A
             func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
         }
     }
-    hitKey = _actor01100FindClass2Contact(&arg->vec, work->contacts[ACTOR_01100_BODY_CHEST]);
+    hitKey = _actor01100FindClass2Contact(&scratch->shortVector, work->contacts[ACTOR_01100_BODY_CHEST]);
     if (hitKey != 0) {
         dist = Actor01100_Fn06AC8(task->extra.tmd->coords);
         for (i = 0; i < 3; i++) {
@@ -1593,7 +1582,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, A
                 died   = 1;
                 sndId  = (work->waterRoom << 0x16) | 0x400B0006;
                 sndId |= (u8)work->placeIndex << 8;
-                SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 reaction = ACTOR_01100_REACTION_FALL;
                 if (work->downState == ACTOR_01100_DOWN_RISING) {
                     reaction = ACTOR_01100_REACTION_FALL_AGAIN;
@@ -1643,7 +1632,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, A
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 work->hitFromBehind = fromBehind;
                 func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
@@ -1652,7 +1641,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, A
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 work->state = ACTOR_01100_STATE_FLINCH;
                 _actor01100ClearObjPair(work);
@@ -1665,7 +1654,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, A
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 work->flinchPhase = 0;
                 work->state       = ACTOR_01100_STATE_FALL;
@@ -1682,7 +1671,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, A
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 work->flinchPhase = 0;
                 work->state       = ACTOR_01100_STATE_FALL_AGAIN;
@@ -1703,7 +1692,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, A
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
                 break;
@@ -1711,7 +1700,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, A
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, arg->pan, arg->depth);
+                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
                 break;
@@ -1762,7 +1751,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, A
 /// Each arm declares its own player and actor locals: the two arms must reach
 /// the compiler as distinct quantities, since one of them is live across the
 /// flag byte's address and cannot share the call's result register.
-static void Actor01100_Fn01B90(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn01B90(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     WorldTargetNode* lockNode;
     s32              flag;
@@ -1813,7 +1802,7 @@ static void Actor01100_Fn01B90(Enemy* enemy, Task* task, _Actor01100Work* work, 
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
     GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
-    if (Actor01100_Fn00F58(enemy, task, work, arg) != 0) {
+    if (Actor01100_Fn00F58(enemy, task, work, scratch) != 0) {
         flag = 1;
     }
     if (flag && (work->hp > 0)) {
@@ -1832,7 +1821,7 @@ static void Actor01100_Fn01B90(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// 6 and 10. `rightShoulderSwell` / `leftShoulderSwell` scale the child then
 /// the parent by the reciprocal; `rightArmStretch` / `leftArmStretch` scale the
 /// parent in place (column 0 at 1+delta, columns 1-2 at 1+delta/4).
-static void Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     GfxCoord* part;
     GfxCoord* node;
@@ -1870,38 +1859,38 @@ static void Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, 
         GfxCoord* coords;
         s32       inv;
 
-        scale       = work->rightShoulderSwell + 0x1000;
-        coords      = task->extra.tmd->coords;
-        arg->pos.vz = scale;
-        arg->pos.vy = scale;
-        arg->pos.vx = scale;
-        node        = &coords[6];
-        gfxScaleMatrixColumns(&node->parent->coord, &arg->pos);
+        scale              = work->rightShoulderSwell + 0x1000;
+        coords             = task->extra.tmd->coords;
+        scratch->vector.vz = scale;
+        scratch->vector.vy = scale;
+        scratch->vector.vx = scale;
+        node               = &coords[6];
+        gfxScaleMatrixColumns(&node->parent->coord, &scratch->vector);
         node->parent->composeStamp = GRAPHICS_COORD_DIRTY;
         inv                        = 0x01000000 / scale;
-        arg->pos.vz                = inv;
-        arg->pos.vy                = inv;
-        arg->pos.vx                = inv;
-        gfxScaleMatrixColumns(&node->coord, &arg->pos);
+        scratch->vector.vz         = inv;
+        scratch->vector.vy         = inv;
+        scratch->vector.vx         = inv;
+        gfxScaleMatrixColumns(&node->coord, &scratch->vector);
     }
 
     if (work->leftShoulderSwell != 0) {
         GfxCoord* coords;
         s32       inv;
 
-        scale       = work->leftShoulderSwell + 0x1000;
-        coords      = task->extra.tmd->coords;
-        arg->pos.vz = scale;
-        arg->pos.vy = scale;
-        arg->pos.vx = scale;
-        node        = &coords[10];
-        gfxScaleMatrixColumns(&node->parent->coord, &arg->pos);
+        scale              = work->leftShoulderSwell + 0x1000;
+        coords             = task->extra.tmd->coords;
+        scratch->vector.vz = scale;
+        scratch->vector.vy = scale;
+        scratch->vector.vx = scale;
+        node               = &coords[10];
+        gfxScaleMatrixColumns(&node->parent->coord, &scratch->vector);
         node->parent->composeStamp = GRAPHICS_COORD_DIRTY;
         inv                        = 0x01000000 / scale;
-        arg->pos.vz                = inv;
-        arg->pos.vy                = inv;
-        arg->pos.vx                = inv;
-        gfxScaleMatrixColumns(&node->coord, &arg->pos);
+        scratch->vector.vz         = inv;
+        scratch->vector.vy         = inv;
+        scratch->vector.vx         = inv;
+        gfxScaleMatrixColumns(&node->coord, &scratch->vector);
     }
 
     if (work->rightArmStretch != 0) {
@@ -1909,7 +1898,7 @@ static void Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, 
         SVECTOR*  sv;
         GfxCoord* c;
 
-        sv = &arg->vec;
+        sv = &scratch->shortVector;
         c  = task->extra.tmd->coords;
         m  = &c[6].coord;
         SCALE_COL(m, sv, 0, work->rightArmStretch + 0x1000);
@@ -1923,7 +1912,7 @@ static void Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, 
         SVECTOR*  sv;
         GfxCoord* c;
 
-        sv = &arg->vec;
+        sv = &scratch->shortVector;
         c  = task->extra.tmd->coords;
         m  = &c[10].coord;
         SCALE_COL(m, sv, 0, work->leftArmStretch + 0x1000);
@@ -1967,14 +1956,15 @@ static const ActorsShared80138efcStateTable Actor01100_D00064 = { {
 /// Per-frame update. Does nothing while `hidden` is set. Otherwise it refreshes
 /// model part 3 and, while `gSceneCombatState.actorControl` is 0, steps both
 /// animation contexts over parts 1-20 (restarting the motion in `motion` when
-/// it changed, and blending the second context in by `flinchWeight`), fills
-/// `pan`/`depth` from part 1, runs the handler for `state`, then the arm `mode`
-/// selects, and while `waterRoom` is 1 spawns the splash effects and sound.
-/// While `gSceneCombatState.actorControl` is 1 it only pushes the root out of
-/// its world contacts. Whatever the mode, it then refreshes the root, updates
-/// the actor colour from the root position, draws the floor quad unless bit 1
-/// of the model's flags is set, and exits the task once `mode` reaches 0x10.
-static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+/// it changed, and blending the second context in by `flinchWeight`), fills the
+/// scratch block's `pan` and `depth` from part 1, runs the handler for `state`,
+/// then the arm `mode` selects, and while `waterRoom` is 1 spawns the splash
+/// effects and sound. While `gSceneCombatState.actorControl` is 1 it only
+/// pushes the root out of its world contacts. Whatever the mode, it then
+/// refreshes the root, updates the actor colour from the root position, draws
+/// the floor quad unless bit 1 of the model's flags is set, and exits the task
+/// once `mode` reaches 0x10.
+static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     ActorsShared80138efcStateTable table;
     GfxCoord*                      part;
@@ -2015,7 +2005,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 }
                 slot = 1;
                 do {
-                    func_800B4538(&work->flinchRig.anim, slot, &arg->poses[1], animId, 0, 0, 0);
+                    func_800B4538(&work->flinchRig.anim, slot, &scratch->poses[1], animId, 0, 0, 0);
                     slot++;
                 } while (slot < ARRAY_SIZE(work->flinchRig.slots));
                 work->flinchPhase++;
@@ -2049,7 +2039,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
             } else {
                 pose = 0;
                 if (work->flinchWeight != 0) {
-                    pose = &arg->poses[0];
+                    pose = &scratch->poses[0];
                 }
             }
             if (restart != 0) {
@@ -2068,24 +2058,24 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
             }
             if (pose != 0) {
                 blend = work->flinchWeight << 5;
-                animationTickSlotPose(&work->flinchRig.anim, slot, &arg->poses[1], 0);
-                Gp_AnimWritePoseBlend(&work->rig.anim, slot, &arg->poses[0],
-                                      &arg->poses[1], 0x1000 - blend, blend);
+                animationTickSlotPose(&work->flinchRig.anim, slot, &scratch->poses[1], 0);
+                Gp_AnimWritePoseBlend(&work->rig.anim, slot, &scratch->poses[0],
+                                      &scratch->poses[1], 0x1000 - blend, blend);
             }
             slot++;
         } while (slot < ARRAY_SIZE(work->rig.slots));
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->motionEnded = 1;
         }
-        part               = task->extra.tmd->coords;
-        part              += 1;
-        *(s16*)&arg->pan   = worldCoordGetOriginAudioPan(part);
-        *(s16*)&arg->depth = worldCoordGetOriginAudioDepth(part);
-        table.funcs[work->state](enemy, task, work, arg);
-        Actor01100_Fn01D98(enemy, task, work, arg);
+        part           = task->extra.tmd->coords;
+        part          += 1;
+        scratch->pan   = worldCoordGetOriginAudioPan(part);
+        scratch->depth = worldCoordGetOriginAudioDepth(part);
+        table.funcs[work->state](enemy, task, work, scratch);
+        Actor01100_Fn01D98(enemy, task, work, scratch);
         switch (work->mode) {
             case ACTOR_01100_MODE_UNAWARE:
-                Actor01100_Fn01B90(enemy, task, work, arg);
+                Actor01100_Fn01B90(enemy, task, work, scratch);
                 break;
             case ACTOR_01100_MODE_ENGAGED: {
                 GfxCoord*        c;
@@ -2098,7 +2088,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
                 GP_NODE_ENEMY(lockNode)->coord      = c + 3;
-                if (Actor01100_Fn00F58(enemy, task, work, arg) == 0 && task->spawnArg1.value == 0 && work->prevMode == ACTOR_01100_MODE_ENGAGED && work->motionEnded == 1 && Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
+                if (Actor01100_Fn00F58(enemy, task, work, scratch) == 0 && task->spawnArg1.value == 0 && work->prevMode == ACTOR_01100_MODE_ENGAGED && work->motionEnded == 1 && Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
                     _actor01100ClearObjPair(work);
                     work->mode      = ACTOR_01100_MODE_UNAWARE;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2151,64 +2141,64 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
                 GP_NODE_ENEMY(lockNode)->coord      = c + 3;
-                Actor01100_Fn00F58(enemy, task, work, arg);
+                Actor01100_Fn00F58(enemy, task, work, scratch);
                 break;
             }
         }
         if (work->waterRoom == 1) {
-            TransposeMatrix(&gGfxViewCoord.workm, &arg->mtx);
+            TransposeMatrix(&gGfxViewCoord.workm, &scratch->viewInverse);
             if (!(gDisplayState.animFrame & 0xF)) {
                 GfxCoord* c;
 
-                c           = task->extra.tmd->coords;
-                arg->vec.vx = 0;
-                arg->vec.vy = -0x1E0;
-                arg->vec.vz = 0;
-                Gp_SpawnEff(gRoomEffectWaterRippleId, c, 0xC0, &arg->vec);
+                c                       = task->extra.tmd->coords;
+                scratch->shortVector.vx = 0;
+                scratch->shortVector.vy = -0x1E0;
+                scratch->shortVector.vz = 0;
+                Gp_SpawnEff(gRoomEffectWaterRippleId, c, 0xC0, &scratch->shortVector);
             }
-            if ((u8)arg->field_64 != 0) {
-                if (work->splashPart == 0 || ((u8)arg->field_64 == 3 && work->splashPart != (u8)arg->field_64)) {
+            if (scratch->splashPart != 0) {
+                if (work->splashPart == 0 || (scratch->splashPart == ACTOR_01100_PART_CHEST && work->splashPart != scratch->splashPart)) {
                     work->splashHeight = 0;
                 }
-                work->splashPart = arg->field_64;
+                work->splashPart = scratch->splashPart;
             }
-            if (work->sprayFrames != 0 || (u8)arg->field_64 != 0) {
+            if (work->sprayFrames != 0 || scratch->splashPart != 0) {
                 eff  = 0x11402300;
                 part = &task->extra.tmd->coords[work->splashPart];
                 Gp_UpdateCoord(part);
-                arg->vec.vx = 0;
-                arg->vec.vy = 0;
-                arg->vec.vz = 0;
-                if (work->splashPart == 8) {
-                    arg->vec.vx = 0x190;
-                } else if (work->splashPart == 0xC) {
-                    arg->vec.vx = -0x190;
+                scratch->shortVector.vx = 0;
+                scratch->shortVector.vy = 0;
+                scratch->shortVector.vz = 0;
+                if (work->splashPart == ACTOR_01100_PART_RIGHT_HAND) {
+                    scratch->shortVector.vx = 0x190;
+                } else if (work->splashPart == ACTOR_01100_PART_LEFT_HAND) {
+                    scratch->shortVector.vx = -0x190;
                 }
-                gfxRotateSv(&part->workm, &arg->vec);
-                arg->vec.vx += part->workm.t[0];
-                arg->vec.vy += part->workm.t[1];
-                arg->vec.vz += part->workm.t[2];
-                arg->vec.vx -= gGfxViewCoord.workm.t[0];
-                arg->vec.vy -= gGfxViewCoord.workm.t[1];
-                arg->vec.vz -= gGfxViewCoord.workm.t[2];
-                gfxRotateSv(&arg->mtx, &arg->vec);
-                dy = gGameSession->waterY - arg->vec.vy;
+                gfxRotateSv(&part->workm, &scratch->shortVector);
+                scratch->shortVector.vx += part->workm.t[0];
+                scratch->shortVector.vy += part->workm.t[1];
+                scratch->shortVector.vz += part->workm.t[2];
+                scratch->shortVector.vx -= gGfxViewCoord.workm.t[0];
+                scratch->shortVector.vy -= gGfxViewCoord.workm.t[1];
+                scratch->shortVector.vz -= gGfxViewCoord.workm.t[2];
+                gfxRotateSv(&scratch->viewInverse, &scratch->shortVector);
+                dy = gGameSession->waterY - scratch->shortVector.vy;
                 if (work->splashHeight * dy < 0) {
                     work->sprayFrames = 5;
                 }
                 work->splashHeight = dy;
-                if (work->splashPart == 3) {
-                    arg->vec.vx += rand() % 1200 - 0x258;
-                    eff          = 0x11602480;
-                    arg->vec.vz += rand() % 1200 - 0x258;
+                if (work->splashPart == ACTOR_01100_PART_CHEST) {
+                    scratch->shortVector.vx += rand() % 1200 - 0x258;
+                    eff                      = 0x11602480;
+                    scratch->shortVector.vz += rand() % 1200 - 0x258;
                 }
                 if (work->sprayFrames != 0) {
                     work->sprayFrames--;
                     if (work->sprayFrames == 0) {
                         work->splashPart = 0;
                     }
-                    Gp_SpawnEff(gRoomEffectWaterSprayId, &gGfxViewCoord, eff, &arg->vec);
-                    SndEvt_EnqueueType6(((u8)work->placeIndex << 8) | 0x404B000D, arg->pan, arg->depth);
+                    Gp_SpawnEff(gRoomEffectWaterSprayId, &gGfxViewCoord, eff, &scratch->shortVector);
+                    SndEvt_EnqueueType6(((u8)work->placeIndex << 8) | 0x404B000D, (s8)scratch->pan, (s8)scratch->depth);
                 }
             }
         }
@@ -2224,10 +2214,10 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
     root = task->extra.tmd->coords;
     Gp_UpdateCoord(root);
-    arg->pos.vx = root->workm.t[0];
-    arg->pos.vy = root->workm.t[1] - 0x320;
-    arg->pos.vz = root->workm.t[2];
-    Gp_UpdateActorColor(enemy, &arg->pos, 0, 0);
+    scratch->vector.vx = root->workm.t[0];
+    scratch->vector.vy = root->workm.t[1] - 0x320;
+    scratch->vector.vz = root->workm.t[2];
+    Gp_UpdateActorColor(enemy, &scratch->vector, 0, 0);
     if (!(task->extra.tmd->flags & TMD_OBJECT_SEMI_TRANS)) {
         Gp_DrawFloorQuad(task->extra.tmd->coords, 0x600, NULL);
     }
@@ -2243,10 +2233,10 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// into its `flags`. While the countdown sits in `[0x1B, 0x36]` and the latch
 /// is still 1, a hit on the left hand's contact table masks those bits back out
 /// of both middle collision bodies and steps the latch; frame 0x37 does the
-/// same mask unconditionally. The frame block's scratch byte at 0x64 takes 0xC
+/// same mask unconditionally. The scratch block's `splashPart` takes 0xC
 /// either way, and `motionEnded` ends the sub-state by clearing `state` and the
 /// latch.
-static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     WorldCollisionBody* obj;
     u16                 time;
@@ -2269,7 +2259,7 @@ static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, 
             work->stateStep = (u8)work->stateStep + 1;
         }
     }
-    arg->field_64 = 0xC;
+    scratch->splashPart = ACTOR_01100_PART_LEFT_HAND;
     if (work->stateCounter == 0x37) {
         _actor01100ClearObjPair(work);
     }
@@ -2286,10 +2276,10 @@ static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// collision body 2's `flags`. While the countdown sits in `[0x1B, 0x36]` and
 /// the latch is still 1, a hit on the right hand's contact table masks those
 /// bits back out of both middle collision bodies and steps the latch; frame
-/// 0x37 does the same mask unconditionally. The frame block's scratch byte at
-/// 0x64 takes 8 either way, and `motionEnded` ends the sub-state by clearing
-/// `state` and the latch.
-static void Actor01100_Fn03740(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+/// 0x37 does the same mask unconditionally. The scratch block's `splashPart`
+/// takes 8 either way, and `motionEnded` ends the sub-state by clearing `state`
+/// and the latch.
+static void Actor01100_Fn03740(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     WorldCollisionBody* obj;
     u16                 time;
@@ -2312,7 +2302,7 @@ static void Actor01100_Fn03740(Enemy* enemy, Task* task, _Actor01100Work* work, 
             work->stateStep = (u8)work->stateStep + 1;
         }
     }
-    arg->field_64 = 8;
+    scratch->splashPart = ACTOR_01100_PART_RIGHT_HAND;
     if (work->stateCounter == 0x37) {
         _actor01100ClearObjPair(work);
     }
@@ -2329,7 +2319,7 @@ static void Actor01100_Fn03740(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// towards that countdown, rebuilds the Y rotation over the pose and clears
 /// `composeStamp`, and when the countdown reaches zero it drops `state` and the
 /// latch, ending the spin about.
-static void Actor01100_Fn0389C(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn0389C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     GfxCoord* pose;
     s32       idx;
@@ -2395,7 +2385,7 @@ static __inline__ s32 _actor01100BearingToPlayer(GfxCoord* self)
     return angle;
 }
 
-static void Actor01100_Fn039D0(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn039D0(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     s16 bearing;
     s32 angle;
@@ -2443,7 +2433,7 @@ static __inline__ s32 _actor01100DistSqToPlayer(GfxCoord* self)
     return dist;
 }
 
-static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     GfxCoord* self;
     s16       angle;
@@ -2550,7 +2540,7 @@ static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
 }
 
-static void Actor01100_Fn041BC(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn041BC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     GfxCoord* yaw;
     s32       delta;
@@ -2569,7 +2559,7 @@ static void Actor01100_Fn041BC(Enemy* enemy, Task* task, _Actor01100Work* work, 
         work->stateStep++;
         task->killCountdown = wait;
     }
-    Actor01100_Fn039D0(enemy, task, work, arg);
+    Actor01100_Fn039D0(enemy, task, work, scratch);
 
     delta = work->playerBearing;
     yaw   = task->extra.tmd->coords;
@@ -2627,13 +2617,13 @@ static const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 /// and ORs the 0xC000 bits; frame 0x20 posts `0x400B0008`. While the countdown
 /// sits in `[0x17, 0x2B]` and the latch is still 1, a high-bit hit on the left
 /// hand's contact table steps the latch to 3. `leftShoulderSwell` /
-/// `leftArmStretch` ramp with the countdown, the frame block's scratch byte at
-/// 0x64 takes 0xC, and frame 0x2C masks those bits back out of both middle
-/// collision bodies. `motionEnded` writes rate 0x10 onto slots `[1,
-/// 0x14]` of both animation runs and then either stages state 0xE, or, while
-/// the latch is 3, a 1-in-4 draw of that state versus restarting the motion
-/// through `startedMotion`.
-static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+/// `leftArmStretch` ramp with the countdown, the scratch block's `splashPart`
+/// takes 0xC, and frame 0x2C masks those bits back out of both middle collision
+/// bodies. `motionEnded` writes rate 0x10 onto slots `[1, 0x14]` of both
+/// animation runs and then either stages state 0xE, or, while the latch is 3, a
+/// 1-in-4 draw of that state versus restarting the motion through
+/// `startedMotion`.
+static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     SVECTOR*            vec;
     GfxCoord*           actorCoords;
@@ -2658,21 +2648,21 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
         if (player == NULL) {
             work->stretchGoal = 0;
         } else {
-            vec          = &arg->vec;
-            actorCoords  = task->extra.tmd->coords;
-            playerCoords = player->extra.tmd->coords;
-            arg->vec.vx  = 0x12C;
-            arg->vec.vy  = 0;
-            arg->vec.vz  = 0;
-            actorPart    = &actorCoords[10];
-            playerPart   = &playerCoords[1];
-            _gfxLoadRotSv(&actorPart->workm, &arg->vec);
+            vec                     = &scratch->shortVector;
+            actorCoords             = task->extra.tmd->coords;
+            playerCoords            = player->extra.tmd->coords;
+            scratch->shortVector.vx = 0x12C;
+            scratch->shortVector.vy = 0;
+            scratch->shortVector.vz = 0;
+            actorPart               = &actorCoords[10];
+            playerPart              = &playerCoords[1];
+            _gfxLoadRotSv(&actorPart->workm, &scratch->shortVector);
             gte_rtv0();
             gte_stsv(vec);
-            arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
-            arg->vec.vy += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
-            arg->vec.vz += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
-            dist         = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
+            scratch->shortVector.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
+            scratch->shortVector.vy += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
+            scratch->shortVector.vz += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
+            dist                     = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
             if (dist < 0x384) {
                 work->stretchGoal = 0;
             } else if (dist >= 0xA8D) {
@@ -2683,7 +2673,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
         }
     }
     work->stateCounter = (u16)work->stateCounter + 1;
-    Actor01100_Fn039D0(enemy, task, work, arg);
+    Actor01100_Fn039D0(enemy, task, work, scratch);
     yaw  = work->playerBearing;
     pose = task->extra.tmd->coords;
     if (yaw >= 0x11) {
@@ -2702,7 +2692,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
         obj->key    = Gp_PackObjPair(enemy, 3);
         obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else if (work->stateCounter == 0x20) {
-        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), arg->pan, arg->depth);
+        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), (s8)scratch->pan, (s8)scratch->depth);
     }
     if (((u32)((u16)work->stateCounter - 0x17) < 0x15U) && (work->stateStep == 1) &&
         (Gp_CountRec18Hi(work->contacts[ACTOR_01100_BODY_LEFT_HAND], 0x10000) != 0)) {
@@ -2733,7 +2723,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
             work->leftArmStretch = 0;
         }
     }
-    arg->field_64 = 0xC;
+    scratch->splashPart = ACTOR_01100_PART_LEFT_HAND;
     if (work->stateCounter == 0x2C) {
         _actor01100ClearObjPair(work);
     }
@@ -2769,14 +2759,14 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// collision body 2 and ORs the 0xC000 bits; frame 0x2D posts `0x400B0008`.
 /// While the countdown sits in `[0x24, 0x3B]` and the latch is still 1, a
 /// high-bit hit on the right hand's contact table steps the latch to 3.
-/// `rightShoulderSwell` / `rightArmStretch` ramp with the countdown, the frame
-/// block's scratch byte at 0x64 takes 8 (with a same-value write on frame
+/// `rightShoulderSwell` / `rightArmStretch` ramp with the countdown, the
+/// scratch block's `splashPart` takes 8 (with a same-value write on frame
 /// 0x2F), and frame 0x3C masks those bits back out of both middle collision
 /// bodies. `motionEnded` writes rate 0x10 onto slots `[1, 0x14]` of both
 /// animation runs, zeroes `rightArmStretch`, and then either stages state 0xE,
 /// or, while the latch is 3, a 1-in-4 draw of that state versus restarting the
 /// motion through `startedMotion`.
-static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     SVECTOR*            vec;
     GfxCoord*           actorCoords;
@@ -2801,21 +2791,21 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
         if (player == NULL) {
             work->stretchGoal = 0;
         } else {
-            vec          = &arg->vec;
-            actorCoords  = task->extra.tmd->coords;
-            playerCoords = player->extra.tmd->coords;
-            arg->vec.vx  = 0x12C;
-            arg->vec.vy  = 0;
-            arg->vec.vz  = 0;
-            actorPart    = &actorCoords[6];
-            playerPart   = &playerCoords[1];
-            _gfxLoadRotSv(&actorPart->workm, &arg->vec);
+            vec                     = &scratch->shortVector;
+            actorCoords             = task->extra.tmd->coords;
+            playerCoords            = player->extra.tmd->coords;
+            scratch->shortVector.vx = 0x12C;
+            scratch->shortVector.vy = 0;
+            scratch->shortVector.vz = 0;
+            actorPart               = &actorCoords[6];
+            playerPart              = &playerCoords[1];
+            _gfxLoadRotSv(&actorPart->workm, &scratch->shortVector);
             gte_rtv0();
             gte_stsv(vec);
-            arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
-            arg->vec.vy += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
-            arg->vec.vz += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
-            dist         = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
+            scratch->shortVector.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
+            scratch->shortVector.vy += (u16)playerPart->workm.t[1] - (u16)actorPart->workm.t[1];
+            scratch->shortVector.vz += (u16)playerPart->workm.t[2] - (u16)actorPart->workm.t[2];
+            dist                     = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
             if (dist < 0x384) {
                 work->stretchGoal = 0;
             } else if (dist >= 0xA8D) {
@@ -2825,7 +2815,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
             }
         }
     }
-    Actor01100_Fn039D0(enemy, task, work, arg);
+    Actor01100_Fn039D0(enemy, task, work, scratch);
     yaw  = work->playerBearing;
     pose = task->extra.tmd->coords;
     if (yaw >= 0x11) {
@@ -2840,13 +2830,13 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
     gfxRotMatrixY(&pose->coord, angle, 1);
     pose->composeStamp = GRAPHICS_COORD_DIRTY;
     work->stateCounter = (u16)work->stateCounter + 1;
-    Actor01100_Fn039D0(enemy, task, work, arg);
+    Actor01100_Fn039D0(enemy, task, work, scratch);
     if (work->stateCounter == 0x23) {
         obj         = &work->bodies[ACTOR_01100_BODY_RIGHT_HAND];
         obj->key    = Gp_PackObjPair(enemy, 4);
         obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else if (work->stateCounter == 0x2D) {
-        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), arg->pan, arg->depth);
+        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), (s8)scratch->pan, (s8)scratch->depth);
     }
     if (((u32)((u16)work->stateCounter - 0x24) < 0x18U) && (work->stateStep == 1) &&
         (Gp_CountRec18Hi(work->contacts[ACTOR_01100_BODY_RIGHT_HAND], 0x10000) != 0)) {
@@ -2878,9 +2868,9 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
         }
     }
     if (work->stateCounter == 0x2F) {
-        arg->field_64 = 8;
+        scratch->splashPart = ACTOR_01100_PART_RIGHT_HAND;
     }
-    arg->field_64 = 8;
+    scratch->splashPart = ACTOR_01100_PART_RIGHT_HAND;
     if (work->stateCounter == 0x3C) {
         _actor01100ClearObjPair(work);
     }
@@ -2913,7 +2903,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// `Actor01100_D155E0`. Placement `entryId` 0x31 is a pair of shots; otherwise
 /// one fan of three, each at ±0x12C on model part 4, with cue `0x400B000A`. A
 /// set `motionEnded` stages state 0xE.
-static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     GfxCoord* part;
     Task*     spawned;
@@ -2968,19 +2958,19 @@ static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, 
             }
             part = &task->extra.tmd->coords[4];
             for (j = 0; j < nInner; j++) {
-                arg->vec.vx = (dir != 0) ? 0x12C : -0x12C;
-                arg->vec.vy = 0;
-                arg->vec.vz = 0;
-                spawned     = Task_SpawnFromTable(Actor01100_D155E0, kind, yaw, 0);
+                scratch->shortVector.vx = (dir != 0) ? 0x12C : -0x12C;
+                scratch->shortVector.vy = 0;
+                scratch->shortVector.vz = 0;
+                spawned                 = Task_SpawnFromTable(Actor01100_D155E0, kind, yaw, 0);
                 if (spawned != NULL) {
-                    Gp_CopyCoordOffset(spawned, part, &arg->vec);
+                    Gp_CopyCoordOffset(spawned, part, &scratch->shortVector);
                     taskReparent(task, spawned);
                 }
-                SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B000A), arg->pan, arg->depth);
+                SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B000A), (s8)scratch->pan, (s8)scratch->depth);
             }
         }
     }
-    Actor01100_Fn039D0(enemy, task, work, arg);
+    Actor01100_Fn039D0(enemy, task, work, scratch);
     if (work->motionEnded != 0) {
         work->state     = ACTOR_01100_STATE_ADVANCE;
         work->stateStep = 0;
@@ -3050,15 +3040,15 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 s
 /// yaw by at most 0x10 and the Y rotation is rebuilt. The same window steps
 /// `((frame - 13) * 900) / 33` and, while
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` is clear, adds the
-/// scaled facing column's X/Z onto the translation through the frame block's
-/// vector at 0x10. Frame 1 cues `0x400B0002` and frame 0x2E cues `0x400B0001`.
+/// scaled facing column's X/Z onto the translation through the scratch block's
+/// `shortVector`. Frame 1 cues `0x400B0002` and frame 0x2E cues `0x400B0001`.
 ///
 /// Frame 0x2E remeasures the distance. Seven draws in eight leave the lunge:
 /// `blockedFrames` below 0xB and a yaw inside ±0x300 stage 0xC or 0xD from the
 /// sign, flipped by a further one draw in eight, and only while the new
 /// distance is inside 0xA62B0F. Anything else stages 0xB inside 0x89543F and
 /// 0xF beyond it.
-static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     GfxCoord*      actorCoords;
     GfxCoord*      coords;
@@ -3111,7 +3101,7 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, 
         }
     }
 
-    Actor01100_Fn039D0(enemy, task, work, arg);
+    Actor01100_Fn039D0(enemy, task, work, scratch);
     if ((u32)((u8)work->strideFrame - 1) < 0x2EU) {
         turn = work->playerBearing;
         pose = task->extra.tmd->coords;
@@ -3130,9 +3120,9 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, 
         scale              = ((frame - 13) * 900) / 33 - ((frame - 14) * 900) / 33;
         coords             = task->extra.tmd->coords;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 0) {
-            Actor104900_MatrixCol2(&coords->coord, &arg->vec, scale);
-            coords->coord.t[0]  += arg->vec.vx;
-            coords->coord.t[2]  += arg->vec.vz;
+            Actor104900_MatrixCol2(&coords->coord, &scratch->shortVector, scale);
+            coords->coord.t[0]  += scratch->shortVector.vx;
+            coords->coord.t[2]  += scratch->shortVector.vz;
             coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
@@ -3143,7 +3133,7 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, 
     if (work->strideFrame == 1) {
         snd = 0x400B0002;
     do_sound:
-        SndEvt_EnqueueType6((work->waterRoom << 22) | snd | ((u8)work->placeIndex << 8), arg->pan, arg->depth);
+        SndEvt_EnqueueType6((work->waterRoom << 22) | snd | ((u8)work->placeIndex << 8), (s8)scratch->pan, (s8)scratch->depth);
     }
     if (work->strideFrame == 0x2E) {
         actorCoords = task->extra.tmd->coords;
@@ -3207,7 +3197,7 @@ static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model)
 }
 
 static void Actor01100_Fn05678(
-    Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+    Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     TmdObject*          extra;
     GfxCoord*           coords;
@@ -3297,7 +3287,7 @@ static void Actor01100_Fn05678(
         work->lookYaw += 0x30;
     }
 
-    arg->field_64 = 3;
+    scratch->splashPart = ACTOR_01100_PART_CHEST;
     if (enemy->spawnState == 3) {
         coords = task->extra.tmd->coords;
         scale  = Actor01100_D000CC;
@@ -3322,14 +3312,14 @@ static void Actor01100_Fn05678(
 /// countdown is zeroed, with `stateStep` stepped either way. Every later frame
 /// moves the countdown up by one and, on the frame it reaches 5, cues the
 /// 0x400B0003 event - the low byte of `placeIndex` in bits 8..15 and
-/// `waterRoom` in bit 22, pan and depth from the frame block - then parks the
-/// countdown at -0x7FFF so it fires only once. The frame block's scratch byte
-/// at 0x64 takes 3 either way, and `motionEnded` ends the sub-state: while `hp`
-/// still counts it keeps the state on the 0x17 motion with the 0x10 pair when
+/// `waterRoom` in bit 22, pan and depth from the scratch block - then parks the
+/// countdown at -0x7FFF so it fires only once. The scratch block's `splashPart`
+/// takes 3 either way, and `motionEnded` ends the sub-state: while `hp` still
+/// counts it keeps the state on the 0x17 motion with the 0x10 pair when
 /// `reactionFlags` has no buildup, and stages the 0x14 motion through `mode`
 /// when it does; once that count has run out it hands the frame to
 /// `Actor01100_Fn05678` on state 0x18 instead.
-static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     u16 time;
 
@@ -3347,10 +3337,10 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, 
     time               = (u16)work->stateCounter + 1;
     work->stateCounter = time;
     if ((s16)time >= 5) {
-        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0003), arg->pan, arg->depth);
+        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0003), (s8)scratch->pan, (s8)scratch->depth);
         work->stateCounter = -0x7FFF;
     }
-    arg->field_64 = 3;
+    scratch->splashPart = ACTOR_01100_PART_CHEST;
     if (work->motionEnded != 0) {
         work->recentDamage = 0;
         if (work->hp > 0) {
@@ -3368,7 +3358,7 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, 
         }
         work->state     = ACTOR_01100_STATE_DEATH;
         work->stateStep = 0;
-        Actor01100_Fn05678(enemy, task, work, arg);
+        Actor01100_Fn05678(enemy, task, work, scratch);
     }
 }
 
@@ -3598,24 +3588,24 @@ static void Actor01100_Fn0638C(Task* task)
 }
 
 /// Runs the actor's current state handler, copying the table onto the stack
-/// before the call. The handler is handed a 0x68-byte scratchpad buffer,
-/// borrowed from the scratchpad stack for the duration of the call, with its
-/// last byte cleared.
+/// before the call. The handler is handed an `_Actor01100Scratch` borrowed
+/// from the scratchpad stack for the duration of the call, with its
+/// `splashPart` cleared.
 void Actor01100_Fn06554(Task* task)
 {
     Actor101100StateFuncTable3 sp;
     Enemy*                     enemy;
     void*                      work;
-    u8*                        scratch;
+    _Actor01100Scratch*        scratch;
 
     sp      = Actor01100_D00004;
     enemy   = task->spawnArg2.pointer;
     work    = task->work;
-    scratch = (u8*)SCRATCH_STACK_RESERVE_BYTES(0x68);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor01100Scratch);
 
-    scratch[0x64] = 0;
+    scratch->splashPart = 0;
     sp.funcs[task->state](enemy, task, work, scratch);
-    SCRATCH_STACK_RELEASE_BYTES(0x68);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor01100Scratch);
 }
 
 /// State handlers of the secondary task this entry spawns: set-up
@@ -3832,24 +3822,24 @@ static s32 Actor01100_Fn06AC8(GfxCoord* arg0)
 }
 
 /// Steps the actor along its own forward axis: column 2 of the coordinate's
-/// rotation is copied into the caller's vector, scaled by GPF with `arg2` as
-/// the distance, and added back into the coordinate's X and Z translation. Y is
-/// left alone, so the step stays in the ground plane, and clearing `composeStamp` asks
-/// the next coordinate update to rebuild the world matrix. Does nothing while
-/// the movement freeze flag is set.
+/// rotation is copied into the scratch block's `shortVector`, scaled by GPF
+/// with `arg2` as the distance, and added back into the coordinate's X and Z
+/// translation. Y is left alone, so the step stays in the ground plane, and
+/// clearing `composeStamp` asks the next coordinate update to rebuild the world
+/// matrix. Does nothing while the movement freeze flag is set.
 ///
-/// Nothing in the entry calls it, so the argument types are the ones the body
-/// itself needs and no call site confirms them.
-static void Actor01100_Fn06B6C(GfxCoord* arg0, ActorsShared8013898cVec* arg1, s32 arg2)
+/// Nothing in the entry calls it. `ACTOR_01100_STATE_ADVANCE` carries the same
+/// step inline, on its own coordinate and scratch block.
+static void Actor01100_Fn06B6C(GfxCoord* arg0, _Actor01100Scratch* arg1, s32 arg2)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 0) {
-        gte_ReadMatrixColumn(&arg0->coord, 2, &arg1->vec);
+        gte_ReadMatrixColumn(&arg0->coord, 2, &arg1->shortVector);
         gte_lddp(arg2);
-        gte_ldsv(&arg1->vec);
+        gte_ldsv(&arg1->shortVector);
         gte_gpf12();
-        gte_stsv(&arg1->vec);
-        arg0->coord.t[0]  += arg1->vec.vx;
-        arg0->coord.t[2]  += arg1->vec.vz;
+        gte_stsv(&arg1->shortVector);
+        arg0->coord.t[0]  += arg1->shortVector.vx;
+        arg0->coord.t[2]  += arg1->shortVector.vz;
         arg0->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }
@@ -3866,7 +3856,7 @@ static void Actor01100_Fn06B6C(GfxCoord* arg0, ActorsShared8013898cVec* arg1, s3
 /// masked back out of both `WorldCollisionBody` nodes in the motion block, and
 /// one LCG draw picks the next state: 4 for three draws in four, else 0.
 /// `stateStep` is cleared either way, so the sub-state re-arms from the top.
-static void Actor01100_Fn06C0C(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn06C0C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     WorldTargetNode* lockNode;
     u8               trigger;
@@ -3877,7 +3867,7 @@ static void Actor01100_Fn06C0C(Enemy* enemy, Task* task, _Actor01100Work* work, 
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
     GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
-    if ((Actor01100_Fn00F58(enemy, task, work, arg) == 0) && (task->spawnArg1.value == 0)) {
+    if ((Actor01100_Fn00F58(enemy, task, work, scratch) == 0) && (task->spawnArg1.value == 0)) {
         trigger = work->prevMode;
         if ((trigger == 1) && (work->motionEnded == trigger)) {
             if (Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
@@ -3904,7 +3894,7 @@ static void Actor01100_Fn06C0C(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// Either way the link transform is re-armed exactly as `Actor01100_Fn06C0C`
 /// arms it - model part 3 through `TmdObject::coords[3]` as `coord`, the
 /// 0xC8-box local offset through `src` - and `Actor01100_Fn00F58` runs last.
-static void Actor01100_Fn06D3C(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn06D3C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     WorldTargetNode* lockNode;
     s16              walk;
@@ -3944,10 +3934,10 @@ static void Actor01100_Fn06D3C(Enemy* enemy, Task* task, _Actor01100Work* work, 
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
     GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
-    Actor01100_Fn00F58(enemy, task, work, arg);
+    Actor01100_Fn00F58(enemy, task, work, scratch);
 }
 
-static void Actor01100_Fn06E4C(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn06E4C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     s32 t;
     s32 t2;
@@ -3987,14 +3977,14 @@ static void Actor01100_Fn06E4C(Enemy* enemy, Task* task, _Actor01100Work* work, 
 }
 
 /// First frame of the sub-state arms motion 5 and a 0x64-frame countdown in
-/// `stateCounter`, then bumps `stateStep`. Every later frame steps that countdown, and
-/// on the frame it reaches zero cues the 0x400B0004 event - the low byte of
-/// `placeIndex` in bits 8..15, `waterRoom` in bit 22, pan and depth from the
-/// frame block - through `SndEvt_EnqueueType6`. The scratch byte at 0x64 then
-/// takes 0xC while bit 0 of `gDisplayState.animFrame` is set and 8 otherwise,
-/// and `motionEnded` ends the sub-state by clearing both the state and the
-/// latch.
-static void Actor01100_Fn06F38(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+/// `stateCounter`, then bumps `stateStep`. Every later frame steps that
+/// countdown, and on the frame it reaches zero cues the 0x400B0004 event - the
+/// low byte of `placeIndex` in bits 8..15, `waterRoom` in bit 22, pan and depth
+/// from the scratch block - through `SndEvt_EnqueueType6`. The scratch block's
+/// `splashPart` then takes 0xC while bit 0 of `gDisplayState.animFrame` is set
+/// and 8 otherwise, and `motionEnded` ends the sub-state by clearing both the
+/// state and the latch.
+static void Actor01100_Fn06F38(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     if (work->stateStep == 0) {
         work->motion       = 5;
@@ -4005,13 +3995,13 @@ static void Actor01100_Fn06F38(Enemy* enemy, Task* task, _Actor01100Work* work, 
     if (work->stateCounter != 0) {
         work->stateCounter--;
         if (work->stateCounter == 0) {
-            SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0004), arg->pan, arg->depth);
+            SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0004), (s8)scratch->pan, (s8)scratch->depth);
         }
     }
     if (gDisplayState.animFrame & 1) {
-        arg->field_64 = 0xC;
+        scratch->splashPart = ACTOR_01100_PART_LEFT_HAND;
     } else {
-        arg->field_64 = 8;
+        scratch->splashPart = ACTOR_01100_PART_RIGHT_HAND;
     }
     if (work->motionEnded == 1) {
         work->state     = ACTOR_01100_STATE_IDLE;
@@ -4024,7 +4014,7 @@ static void Actor01100_Fn06F38(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// While `hp` is still positive and `reactionFlags` value 2 is clear, it moves
 /// to motion 0x17; once that count has run out it hands the frame to
 /// `Actor01100_Fn05678` on motion 0x18.
-static void Actor01100_Fn07014(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn07014(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     AnimationSlot* motion = &work->rig.slots[1];
 
@@ -4051,14 +4041,14 @@ static void Actor01100_Fn07014(Enemy* enemy, Task* task, _Actor01100Work* work, 
         } else {
             work->state     = ACTOR_01100_STATE_DEATH;
             work->stateStep = 0;
-            Actor01100_Fn05678(enemy, task, work, arg);
+            Actor01100_Fn05678(enemy, task, work, scratch);
         }
     }
 }
 
 /// Arms the motion pair for the current sub-state when `stateStep` is still
 /// clear, and switches to state 0xF when `motionEnded` is set.
-static void Actor01100_Fn070DC(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn070DC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     if (work->stateStep == 0) {
         if (work->hitFromBehind == 0) {
@@ -4086,14 +4076,14 @@ static void Actor01100_Fn070DC(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// with `stateStep` stepped in both cases. Every later frame moves the
 /// countdown up by one and, on the frame it reaches 0xD, cues the 0x400B0003
 /// event - the low byte of `placeIndex` in bits 8..15 and `waterRoom` in bit
-/// 22, pan and depth from the frame block - then parks the countdown at -0x7FFF
-/// so it fires only once. The frame block's scratch byte at 0x64 takes 3 either
+/// 22, pan and depth from the scratch block - then parks the countdown at -0x7FFF
+/// so it fires only once. The scratch block's `splashPart` takes 3 either
 /// way, and `motionEnded` ends the sub-state: while `hp` still counts it keeps
 /// the state on the 0x17 motion with the 0x10 pair when `reactionFlags` has no
 /// buildup, and stages the 0x14 motion through `mode` when it does; once that
 /// count has run out it hands the frame to `Actor01100_Fn05678` on the 0x18
 /// motion instead.
-static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     u16 time;
 
@@ -4110,10 +4100,10 @@ static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, 
     time               = (u16)work->stateCounter + 1;
     work->stateCounter = time;
     if ((s16)time >= 0xD) {
-        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0003), arg->pan, arg->depth);
+        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0003), (s8)scratch->pan, (s8)scratch->depth);
         work->stateCounter = -0x7FFF;
     }
-    arg->field_64 = 3;
+    scratch->splashPart = ACTOR_01100_PART_CHEST;
     if (work->motionEnded != 0) {
         work->recentDamage = 0;
         if (work->hp > 0) {
@@ -4132,7 +4122,7 @@ static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, 
         }
         work->state     = ACTOR_01100_STATE_DEATH;
         work->stateStep = 0;
-        Actor01100_Fn05678(enemy, task, work, arg);
+        Actor01100_Fn05678(enemy, task, work, scratch);
     }
 }
 
@@ -4142,7 +4132,7 @@ static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// is clear, `downState` is set to 2 and the countdown is zeroed, and
 /// `stateStep` is stepped. Every later frame moves the countdown up by one and,
 /// on the frame it reaches 0x28 - 0x3C while `hitFromBehind` is set - clears
-/// `downState` again. The frame block's scratch byte at 0x64 takes 3 either
+/// `downState` again. The scratch block's `splashPart` takes 3 either
 /// way, and `motionEnded` ends the sub-state by dropping the enemy out of its
 /// link-node slot, latching `mode` and switching `state` to 0xF.
 ///
@@ -4151,7 +4141,7 @@ static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// `hitFromBehind`, and jump.c's arm collapse hoists one arm's constant in
 /// front of that branch, which then keeps the flag and the value in separate
 /// registers.
-static void Actor01100_Fn072B8(Enemy* enemy, Task* task, _Actor01100Work* work, ActorsShared80138efcArg* arg)
+static void Actor01100_Fn072B8(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     u16 count;
 
@@ -4177,7 +4167,7 @@ static void Actor01100_Fn072B8(Enemy* enemy, Task* task, _Actor01100Work* work, 
             work->downState = ACTOR_01100_DOWN_STANDING;
         }
     }
-    arg->field_64 = 3;
+    scratch->splashPart = ACTOR_01100_PART_CHEST;
     if (work->motionEnded != 0) {
         enemy->node.state.parts.flags = 0;
         work->mode                    = ACTOR_01100_MODE_ENGAGED;

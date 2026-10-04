@@ -138457,13 +138457,16 @@ variables. Pinning one `MATRIX* m` to `$v1` for the child also forces the
 parent into `$v1`; a second unpinned `parent` pointer lets the inverse GPF keep
 `$a2`.
 
-## A `VECTOR` member pads a 0x65-byte stack block to 0x68
+## A scratch block's size is its reservation, not its last accessed byte
 
-`ActorsShared80138efcArg` is 0x65 bytes and must stay that size: its alignment
-is 1 because the leading run is `byte pad_0[0x60]`. Replacing the front with a
-`VECTOR` (align 4) pads the trailing `s8` out to 0x68 and trips
-`STATIC_ASSERT_SIZEOF`. Keep the byte run and view the GPF scale as
-`(VECTOR*)arg` / `(SVECTOR*)((VECTOR*)arg + 1)`.
+The last byte any handler touches in `_Actor01100Scratch` is at 0x64. Declared
+as byte runs it has alignment 1 and is 0x65 bytes; a leading `VECTOR` (align 4)
+rounds it to 0x68, which trips a `STATIC_ASSERT_SIZEOF` written for 0x65. That
+assert is the thing to fix, not the member: the dispatcher reserves 0x68 bytes
+on the scratchpad stack, so the typed members - `scratch->vector`,
+`scratch->shortVector`, the `MATRIX`, the two `s16` - give the reserved size
+with their natural alignment, and nothing has to be viewed through a
+`(VECTOR*)` cast of a byte run.
 
 ## A per-case reload of the same pointer must not share a C variable with the copy used in the first loop
 
