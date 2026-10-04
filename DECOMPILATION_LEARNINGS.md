@@ -99105,7 +99105,7 @@ it as `*((((value * 0xF) + idx) * 2) + &D)`. `M2C_UNK` is 4 bytes, so GCC scaled
 an index that was *already* scaled: `sll v0,v0,3` where the target has
 `sll v0,v0,1`, and `lw v0,0(v0)` where the target has `lh v1,0(v0)`. Typing it
 `extern s16 D_actor_103700_80139DB8[];` and indexing it -
-`D[(value * 15) + (s16)work->field_25E]` - fixed the shift and the load in one
+`D[(value * 15) + work->bobPhase]` - fixed the shift and the load in one
 edit, and `regs`, `reorder`, `insert` and `delete` went to 0 with them.
 
 The width is legible before you compile anything, in two places at once: the
@@ -99186,7 +99186,7 @@ addu   v0,v0,s0        /* s0 = i = 1 */
 sh     v0,0x24c(s1)
 ```
 
-Written the obvious way, `work->field_24C += i;`, the object is one word
+Written the obvious way, `work->animFrame += i;`, the object is one word
 different - `addiu v0,v0,1` for that `addu` - with `regs=0` and only
 `insert=1 delete=1` in the penalty mix, which reads as a scheduling problem and
 is not one. The *first* `cse` did it: `.jump` still shows the register and
@@ -99210,7 +99210,7 @@ diagnosis. The original is bottom-tested, and the siblings say so:
 ```c
     } else {
         TOUCH_REG(i);
-        work->field_24C += i;
+        work->animFrame += i;
         do {
             animationTickSlot((AnimationContext*)work, i);
             i++;
@@ -99238,12 +99238,12 @@ Example: `func_actor_103700_80135210`. Inputs: `base_5.i`
 
 A message-send prologue writes `1` to three places - `anim.field_4`,
 `anim.field_10` (the store that lands in the `jal` delay slot) and
-`work->field_262` after the call - and also returns it. The obvious source,
+`work->holdingPlayer` after the call - and also returns it. The obvious source,
 
 ```c
     taskMessageDispatch(player, 0x3FF, (s32)&scratch->anim, 0);
     ret = 1;
-    work->field_262 = 1;
+    work->holdingPlayer = 1;
 ```
 
 scores 91.27% with `structure: match` and a pure register-swap diff: the
@@ -99254,7 +99254,7 @@ register is not a copy of anything, and the surplus pair shows up as
 
 ```c
     taskMessageDispatch(player, 0x3FF, (s32)&scratch->anim, 0);
-    work->field_262 = 1;
+    work->holdingPlayer = 1;
     ret = 1;
 ```
 
@@ -118184,7 +118184,7 @@ The copy is what CSE leaves when the *child* comes first and the parent
 variable second:
 
 ```c
-work  = (Actor103700Work*)task->work;
+work  = task->work;
 obj   = ((TmdObject*)task->extra)->coords;
 model = (TmdObject*)task->extra;
 ```
