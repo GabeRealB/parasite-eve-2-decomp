@@ -158,24 +158,24 @@ extern TaskMessageEntry D_actor_503500_80176530[];
 
 /// Local offset of the display node `func_actor_503500_80144E8C` links, and the
 /// offsets it seeds its `WorldCollisionCapsule` with.
-extern Actor503500UVec D_actor_503500_801715C4;
-extern Actor503500UVec D_actor_503500_801715CC;
+extern SVECTOR D_actor_503500_801715C4;
+extern SVECTOR D_actor_503500_801715CC;
 /// Local offset of the display node `func_actor_503500_801455A4` links.
-extern Actor503500UVec D_actor_503500_801715D4;
-static void            func_actor_503500_80145480(Task* arg0);
-static void            func_actor_503500_801450A0(Task* arg0);
-static void            func_actor_503500_801454E0(Task* arg0);
-static void            func_actor_503500_80145754(Task* arg0);
-static void            func_actor_503500_80145950(Task* arg0);
-static void            func_actor_503500_801459B0(Task* arg0);
-static void            func_actor_503500_80145C50(Task* arg0);
-static void            func_actor_503500_80145F18(Task* arg0);
+extern SVECTOR D_actor_503500_801715D4;
+static void    func_actor_503500_80145480(Task* arg0);
+static void    func_actor_503500_801450A0(Task* arg0);
+static void    func_actor_503500_801454E0(Task* arg0);
+static void    func_actor_503500_80145754(Task* arg0);
+static void    func_actor_503500_80145950(Task* arg0);
+static void    func_actor_503500_801459B0(Task* arg0);
+static void    func_actor_503500_80145C50(Task* arg0);
+static void    func_actor_503500_80145F18(Task* arg0);
 
-extern Actor503500UVec D_actor_503500_801715DC;
-extern Actor503500UVec D_actor_503500_801715E4;
-static void            func_actor_503500_80145E98(Task* arg0);
-static void            func_actor_503500_8014618C(Task* arg0);
-static void            func_actor_503500_80146524(Task* arg0);
+extern SVECTOR D_actor_503500_801715DC;
+extern SVECTOR D_actor_503500_801715E4;
+static void    func_actor_503500_80145E98(Task* arg0);
+static void    func_actor_503500_8014618C(Task* arg0);
+static void    func_actor_503500_80146524(Task* arg0);
 
 extern AnimationSet*  D_actor_503500_80176514[3];
 extern AnimationSet** gActorMotionAnimBanks19[1];
@@ -583,15 +583,15 @@ SVECTOR D_actor_503500_8016F0A0[1] = {
     { -364, 1479, 0, 0 },
 };
 
-Actor503500UVec D_actor_503500_8016F0A8[1] = {
-    { 0xFE94, 0xFA39, 0, 0 },
+SVECTOR D_actor_503500_8016F0A8[1] = {
+    { -364, -1479, 0, 0 },
 };
 
 SVECTOR D_actor_503500_8016F0B0 = { 0, 0, 400, 0 };
 
-Actor503500UVec D_actor_503500_8016F0B8[2] = {
-    { 3500, 0xFA24, 0xEBB0, 0 },
-    { 0xF254, 0xFA24, 0xEBB0, 0 },
+SVECTOR D_actor_503500_8016F0B8[2] = {
+    { 3500, -1500, -5200, 0 },
+    { -3500, -1500, -5200, 0 },
 };
 
 SVECTOR D_actor_503500_8016F0C8 = { 0, 0, 1000, 0 };
@@ -614,15 +614,15 @@ SVECTOR D_actor_503500_8016F0F0[2] = {
 
 RECT D_actor_503500_8016F100 = { 0, 253, 256, 1 };
 
-Actor503500UVec D_actor_503500_8016F108[4] = {
+SVECTOR D_actor_503500_8016F108[4] = {
     { 2000, 0, 1000, 0 },
-    { 2000, 0, 0xFC18, 0 },
-    { 0xFD12, 300, 0, 0 },
-    { 0xFD12, 600, 0, 0 },
+    { 2000, 0, -1000, 0 },
+    { -750, 300, 0, 0 },
+    { -750, 600, 0, 0 },
 };
 
-Actor503500UVec D_actor_503500_8016F128[1][3] = {
-    { { 0xFD12, 900, 0, 0 }, { 0xFD12, 1700, 0, 0 }, { 0xFD12, 1400, 0, 0 } },
+SVECTOR D_actor_503500_8016F128[1][3] = {
+    { { -750, 900, 0, 0 }, { -750, 1700, 0, 0 }, { -750, 1400, 0, 0 } },
 };
 
 SVECTOR D_actor_503500_8016F140 = { -750, 1100, 0, 0 };
@@ -762,10 +762,10 @@ SVECTOR D_actor_503500_8016F3CC[4] = {
 
 SVECTOR D_actor_503500_8016F3EC = { 0, 0, 400, 0 };
 
-Actor503500UVec D_actor_503500_8016F3F4[4] = {
-    { 0xFF38, 0, 400, 0 },
+SVECTOR D_actor_503500_8016F3F4[4] = {
+    { -200, 0, 400, 0 },
     { 200, 0, 400, 0 },
-    { 0xFF38, 0, 400, 0 },
+    { -200, 0, 400, 0 },
     { 200, 0, 400, 0 },
 };
 
@@ -1001,24 +1001,24 @@ PadScriptCmd D_actor_503500_8017159C[2] = {
 
 PadScriptVibrationSegment D_actor_503500_801715A4[2] = { { 0, 0, 8, 0 }, { 255, 255, 8, 1 } };
 
-Actor503500UVec D_actor_503500_801715AC = { 0 };
+SVECTOR D_actor_503500_801715AC = { 0 };
 
-Actor503500UVec D_actor_503500_801715B4 = { 0 };
+SVECTOR D_actor_503500_801715B4 = { 0 };
 
 s32 D_actor_503500_801715BC[2] = {
     180,
     150,
 };
 
-Actor503500UVec D_actor_503500_801715C4 = { 0 };
+SVECTOR D_actor_503500_801715C4 = { 0 };
 
-Actor503500UVec D_actor_503500_801715CC = { 0, 2000, 6000, 0 };
+SVECTOR D_actor_503500_801715CC = { 0, 2000, 6000, 0 };
 
-Actor503500UVec D_actor_503500_801715D4 = { 0 };
+SVECTOR D_actor_503500_801715D4 = { 0 };
 
-Actor503500UVec D_actor_503500_801715DC = { 0 };
+SVECTOR D_actor_503500_801715DC = { 0 };
 
-Actor503500UVec D_actor_503500_801715E4 = { 0, 500, 6000, 0 };
+SVECTOR D_actor_503500_801715E4 = { 0, 500, 6000, 0 };
 
 static TmdBone _gActor503500Actor361100Model06038Skeleton[19] = {
 #include "assets/actor_361100_model_06038_skeleton.inc"

@@ -682,8 +682,8 @@ static void func_actor_503500_8013B460(Task* arg0)
 /// Spawns effect slot `arg2` of `D_actor_503500_8016E9F0` on the task's own
 /// coordinate: the child's translation is the parent world position plus the
 /// slot offset rotated into that frame, and its rotation is the parent's world
-/// rotation times `RotMatrixZYX` of the slot angles. The negations go through
-/// an `s32` so the sign extension of the `u16` component survives.
+/// rotation times `RotMatrixZYX` of the slot angles. A nonzero `side` mirrors
+/// the slot: the offset's `vx` and the angles' `vy` are negated.
 static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2)
 {
     SVECTOR   pos;
@@ -696,8 +696,8 @@ static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2)
     s32*      p;
     s32       i;
     s32       t;
-    u16       vx;
-    u16       vy;
+    s16       vx;
+    s16       vy;
 
     src  = arg0->extra.tmd->coords;
     task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 1, 0, 0xA00000);
@@ -708,7 +708,7 @@ static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2)
         ofs.vy      = D_actor_503500_8016F108[arg2].vy;
         ofs.vz      = D_actor_503500_8016F108[arg2].vz;
         if (side != 0) {
-            t      = -(s16)vx;
+            t      = -vx;
             ofs.vx = t;
         }
         gte_SetRotMatrix(&m);
@@ -728,7 +728,7 @@ static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2)
         pos.vy = vy = D_actor_503500_8016F128[arg2][0].vy;
         pos.vz      = D_actor_503500_8016F128[arg2][0].vz;
         if (side != 0) {
-            t      = -(s16)vy;
+            t      = -vy;
             pos.vy = t;
         }
         RotMatrixZYX(&pos, &m);

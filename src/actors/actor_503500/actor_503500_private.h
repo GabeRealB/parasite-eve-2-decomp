@@ -173,17 +173,6 @@ typedef struct Actor503500ObjWork {
 } Actor503500ObjWork;
 STATIC_ASSERT_SIZEOF(Actor503500ObjWork, 0x38);
 
-/// `SVECTOR`-shaped offset read through unsigned halfwords: every consumer
-/// copies the component straight into an `s16` field, so the sign of the load
-/// never reaches the result and the original emits `lhu`.
-typedef struct Actor503500UVec {
-    /* 0x0 */ u16 vx;
-    /* 0x2 */ u16 vy;
-    /* 0x4 */ u16 vz;
-    /* 0x6 */ u16 pad_6;
-} Actor503500UVec;
-STATIC_ASSERT_SIZEOF(Actor503500UVec, 8);
-
 /// Scratchpad frame (`0x90` bytes carved off the scratchpad stack) used by
 /// `func_actor_503500_8014176C` and `func_actor_503500_8013A470` while they
 /// re-aim a chain of coordinates.
@@ -291,11 +280,11 @@ extern SVECTOR D_actor_503500_8016F090[2];
 
 extern SVECTOR D_actor_503500_8016F0A0[1];
 
-extern Actor503500UVec D_actor_503500_8016F0A8[1];
+extern SVECTOR D_actor_503500_8016F0A8[1];
 
 extern SVECTOR D_actor_503500_8016F0B0;
 
-extern Actor503500UVec D_actor_503500_8016F0B8[2];
+extern SVECTOR D_actor_503500_8016F0B8[2];
 
 extern SVECTOR D_actor_503500_8016F0C8;
 
@@ -307,9 +296,9 @@ extern SVECTOR D_actor_503500_8016F0F0[2];
 
 extern RECT D_actor_503500_8016F100;
 
-extern Actor503500UVec D_actor_503500_8016F108[4];
+extern SVECTOR D_actor_503500_8016F108[4];
 
-extern Actor503500UVec D_actor_503500_8016F128[1][3];
+extern SVECTOR D_actor_503500_8016F128[1][3];
 
 extern RECT D_actor_503500_8016F148[2][2];
 
@@ -351,7 +340,7 @@ extern SVECTOR D_actor_503500_8016F3CC[4];
 
 extern SVECTOR D_actor_503500_8016F3EC;
 
-extern Actor503500UVec D_actor_503500_8016F3F4[4];
+extern SVECTOR D_actor_503500_8016F3F4[4];
 
 extern SVECTOR D_actor_503500_8016F414[4];
 
@@ -391,9 +380,9 @@ extern PadScriptCmd D_actor_503500_8017159C[2];
 
 extern PadScriptVibrationSegment D_actor_503500_801715A4[2];
 
-extern Actor503500UVec D_actor_503500_801715AC;
+extern SVECTOR D_actor_503500_801715AC;
 
-extern Actor503500UVec D_actor_503500_801715B4;
+extern SVECTOR D_actor_503500_801715B4;
 
 extern s32 D_actor_503500_801715BC[2];
 
