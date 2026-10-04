@@ -27,6 +27,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#define SCRIPTED_WALK_WORK_T Actor260400Work
 #include "../../shared/scripted_walk.h"
 #include "../../shared/walker.h"
 

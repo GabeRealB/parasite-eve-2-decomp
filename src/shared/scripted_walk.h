@@ -21,6 +21,11 @@
  * halfword at the start of their four-byte mode symbol. A file with a second
  * walker, as actor_143900 has, includes the fragments again with the library
  * names defined to that walker's own.
+ *
+ * The update and the walk-to handler take the block from Task::work, so a
+ * package whose walker allocates a block of its own type names that type
+ * through SCRIPTED_WALK_WORK_T before including this header. actor_143900 and
+ * actor_260400 do; actor_143900 rebinds it around its second walker's copies.
  */
 
 #ifndef SRC_SHARED_SCRIPTED_WALK_H
@@ -39,29 +44,17 @@
 #define SCRIPTED_WALK_MODE gScriptedWalkMode
 #endif
 
-/// The head every walker's work block starts with: the model's light and
-/// colour matrices, its rig and animation state, and the frames of turning
-/// left while the turn clip plays. What follows is the package's own.
-typedef struct ScriptedWalkWork {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig20  rig;
-    ActorEnemyState st;
-    s16             turnFrames;
-} ScriptedWalkWork;
-
 /// Work block of a scripted walker that carries two attachments, allocated
 /// zeroed at its full size by the walker's spawn state and kept both at
 /// `Task::work` and in the walker's `gScriptedWalkWork`.
 ///
-/// It opens as `ScriptedWalkWork` does, which is how the walk-to handler and
-/// the update view it. Each attachment is a task of its own that draws a
-/// one-part model and hangs that model's coordinate off one part of the
-/// walker's rig, the part being the task's first spawn argument, so the model
-/// follows the part. The spawn state starts the two from entries 1 and 2 of
-/// the walker's spawn table, the model-draw message shows and hides them with
-/// the walker, and the walker's exit callback kills both. A spawn that fails
-/// leaves its member NULL, which neither of those two checks for.
+/// Each attachment is a task of its own that draws a one-part model and hangs
+/// that model's coordinate off one part of the walker's rig, the part being
+/// the task's first spawn argument, so the model follows the part. The spawn
+/// state starts the two from entries 1 and 2 of the walker's spawn table, the
+/// model-draw message shows and hides them with the walker, and the walker's
+/// exit callback kills both. A spawn that fails leaves its member NULL, which
+/// neither of those two checks for.
 ///
 /// actor_461800's first walker carries its two hand models this way, on parts
 /// 8 and 12. actor_143900's second carries one model on part 1 and one on part
@@ -76,6 +69,25 @@ typedef struct {
     Task*           attachment2; // Task of the model started from spawn-table entry 2
 } ScriptedWalkAttachmentsWork;
 STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
+
+#ifndef SCRIPTED_WALK_WORK_T
+/// Type `scriptedWalkUpdate` and `scriptedWalkTo` take the block at
+/// `Task::work` as.
+///
+/// The walkers' blocks are their packages' own types, so each includer binds
+/// the type its walker allocates; the default is the block of a walker with
+/// two attachments. The two functions reach the animation request, the heading
+/// and the walk and turn countdowns, so a bound type has to declare an
+/// `ActorEnemyState st` and an `s16 turnFrames`, as every walker that carries
+/// them does behind its two light matrices and its rig. The other fragments
+/// reach the block through `gScriptedWalkWork` and take its type from the
+/// package's declaration of that global.
+///
+/// Bind before this header. The binding persists across the fragments'
+/// inclusions; a file whose walkers differ in block type undefines and
+/// redefines it around the copies of the walker that differs.
+#define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
+#endif
 
 void scriptedWalkUpdate(Task* task);
 void scriptedWalkTickAnim(void);

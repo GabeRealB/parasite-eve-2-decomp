@@ -29,7 +29,8 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_r49.h"
-#define SCRIPTED_WALK_MODE gScriptedWalkModeValue
+#define SCRIPTED_WALK_MODE   gScriptedWalkModeValue
+#define SCRIPTED_WALK_WORK_T Actor143900Work
 #include "../../shared/scripted_walk.h"
 #include "../../shared/walker.h"
 
@@ -1411,6 +1412,8 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #define gScriptedWalkBlendFrames D_actor_143900_80149630
 #undef SCRIPTED_WALK_MODE
 #define SCRIPTED_WALK_MODE D_actor_143900_801496CC
+#undef SCRIPTED_WALK_WORK_T
+#define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
 #include "../../shared/scripted_walk_update.inc.c"
 #undef scriptedWalkUpdate
 #undef scriptedWalkTickAnim
@@ -1420,6 +1423,8 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #undef gScriptedWalkBlendFrames
 #undef SCRIPTED_WALK_MODE
 #define SCRIPTED_WALK_MODE gScriptedWalkModeValue
+#undef SCRIPTED_WALK_WORK_T
+#define SCRIPTED_WALK_WORK_T Actor143900Work
 
 /// Two-state dispatcher of the second variant: publishes the task's work block
 /// in `D_actor_143900_801496C4` on the way through, then calls the handler its
@@ -1596,7 +1601,11 @@ s32 func_actor_143900_80133360(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 #define scriptedWalkTo func_actor_143900_801333C4
 #undef SCRIPTED_WALK_MODE
 #define SCRIPTED_WALK_MODE D_actor_143900_801496CC
+#undef SCRIPTED_WALK_WORK_T
+#define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
 #include "../../shared/scripted_walk_to.inc.c"
 #undef scriptedWalkTo
 #undef SCRIPTED_WALK_MODE
 #define SCRIPTED_WALK_MODE gScriptedWalkModeValue
+#undef SCRIPTED_WALK_WORK_T
+#define SCRIPTED_WALK_WORK_T Actor143900Work

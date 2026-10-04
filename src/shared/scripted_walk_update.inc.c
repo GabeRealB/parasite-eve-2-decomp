@@ -8,8 +8,8 @@
 /// while `turnFrames` counts down. Mode 3 then ticks the animation.
 void scriptedWalkUpdate(Task* task)
 {
-    GfxCoord*         coord = task->extra.tmd->coords;
-    ScriptedWalkWork* work  = (ScriptedWalkWork*)task->work;
+    GfxCoord*             coord = task->extra.tmd->coords;
+    SCRIPTED_WALK_WORK_T* work  = task->work;
 
     if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         scriptedWalkBlendAnim();

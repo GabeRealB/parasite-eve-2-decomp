@@ -7,16 +7,16 @@
 /// and 25 otherwise.
 s32 scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode)
 {
-    GfxCoord*         coord;
-    ScriptedWalkWork* work;
-    s32               dx;
-    s32               dz;
-    s32               steps;
-    s32               dist;
-    s32               angle;
+    GfxCoord*             coord;
+    SCRIPTED_WALK_WORK_T* work;
+    s32                   dx;
+    s32                   dz;
+    s32                   steps;
+    s32                   dist;
+    s32                   angle;
 
     coord              = task->extra.tmd->coords;
-    work               = (ScriptedWalkWork*)task->work;
+    work               = task->work;
     SCRIPTED_WALK_MODE = mode;
     dx                 = target->vx - coord->coord.t[0];
     dz                 = target->vz - coord->coord.t[2];

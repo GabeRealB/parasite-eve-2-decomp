@@ -570,11 +570,13 @@ share. Each package defines the tables the fragments read (`gMothParams`,
 scripts move around, over a work block each walker publishes in a global. Its
 implementation interface is `src/shared/scripted_walk.h`, one fragment per
 function, carried by `actor_143900` (two walkers), `actor_146300`,
-`actor_260400`, `actor_420700` and `actor_461800`. `ScriptedWalkWork` is the
-head every walker's block opens with, which is how the fragments that take the
-task view it. `ScriptedWalkAttachmentsWork` is the whole block of a walker that
-carries two attachment tasks, the first walker of `actor_461800` and the second
-of `actor_143900`; the other walkers' blocks are their packages' own.
+`actor_260400`, `actor_420700` and `actor_461800`. `ScriptedWalkAttachmentsWork`
+is the whole block of a walker that carries two attachment tasks, the first
+walker of `actor_461800` and the second of `actor_143900`; the other walkers'
+blocks are their packages' own. The two fragments that take the block from the
+task, `scriptedWalkUpdate` and `scriptedWalkTo`, declare it as
+`SCRIPTED_WALK_WORK_T`, which each carrier binds to the type its walker
+allocates.
 
 `strideWalk` owns the included walk of the soldier NPC that can carry a second
 model and turns its head toward the player during talk scenes, carried by
