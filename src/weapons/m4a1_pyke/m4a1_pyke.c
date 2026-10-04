@@ -47,7 +47,7 @@
 /// (the muzzle), `(0, 0x200, 0x40)`.
 static SVECTOR D_m4a1_pyke_8011E90C = { 0, 0x200, 0x40, 0 };
 
-static void func_m4a1_pyke_8011E4F8(Task* arg0);
+void func_m4a1_pyke_8011E4F8(Task* arg0);
 
 /// Per-frame beam task for the M4A1 Pyke. Nothing runs while the player model
 /// is hidden (`field_C & 0x80`) or effects are hidden
@@ -200,7 +200,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
 /// else ends the burst, parks the beam task at sub-state 3 or 4 and plays the
 /// `0x201C0005` tail. State 6 counts `field_979` down and drops out of the
 /// firing pose once the aim check fails or the trigger has been released.
-static void func_m4a1_pyke_8011E4F8(Task* arg0)
+void func_m4a1_pyke_8011E4F8(Task* arg0)
 {
     GameActor* actor;
     GfxCoord*  coord;

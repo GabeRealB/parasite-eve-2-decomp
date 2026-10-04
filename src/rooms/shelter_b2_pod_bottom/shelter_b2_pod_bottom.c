@@ -30,7 +30,7 @@
 
 #include "mapui/map_shelter.h"
 
-void func_actor_361100_80162B0C(s32);
+void func_actor_361100_80162B0C(s32 unused);
 
 extern EvsCommand       D_80165F48[];
 extern EvsCommand       D_80166848[];

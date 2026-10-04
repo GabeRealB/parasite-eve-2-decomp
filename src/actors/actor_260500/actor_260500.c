@@ -1506,7 +1506,7 @@ Task* D_actor_260500_80159E50;
 s16 gFootstepWalkMode;
 
 void        func_actor_260500_80149E80(void);
-static void func_actor_260500_80149EBC(void);
+void        func_actor_260500_80149EBC(void);
 static void func_actor_260500_80149FB0(Enemy* enemy, Task* task);
 
 /// Loads cap file 2 and starts it (`func_800E6D4C(0x340, 0)`) when `arg0` is
@@ -1534,7 +1534,7 @@ void func_actor_260500_80149E80(void)
     }
 }
 
-static void func_actor_260500_80149EBC(void)
+void func_actor_260500_80149EBC(void)
 {
     switch (GameFlag_GetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS)) {
         case 0:

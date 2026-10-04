@@ -144,7 +144,7 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
 static void func_hypervelocity_8011F374(Task* arg0);
 static void func_hypervelocity_8011F570(Task* arg0);
 static void func_hypervelocity_8011F694(Task* arg0);
-static void func_hypervelocity_8011F724(Task* arg0);
+void        func_hypervelocity_8011F724(Task* arg0);
 
 /// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
 /// `Task::spawnArg2` is the `EffectWork` holding the flare's drift
@@ -908,7 +908,7 @@ void func_hypervelocity_8011F6C0(Task* arg0)
 /// 18 ticks the forward axis of the player model's root coordinate is scaled
 /// by the remaining ticks over 378 (or 244 on the first tick) and subtracted
 /// from the coordinate's translation, pushing the player straight back.
-static void func_hypervelocity_8011F724(Task* arg0)
+void func_hypervelocity_8011F724(Task* arg0)
 {
     _HypervelocityRecoilScratch* scratch;
     GameActor*                   actor;

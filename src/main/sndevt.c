@@ -339,7 +339,7 @@ static volatile s32 D_800689E8;
 
 static u8 D_800689F0[];
 
-extern s32 func_map_neo_ark_80179BE4(u16 arg0, u8 arg1, LinInterp* ramp);
+extern s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp);
 
 static void SndEvt_Free(SndEvt* event);
 

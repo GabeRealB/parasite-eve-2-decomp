@@ -91,7 +91,7 @@ static u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
 static u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 
 static void func_m4a1_javelin_8011F4A4(const long* arg0);
-static void func_m4a1_javelin_8011F5D4(Task* arg0);
+void        func_m4a1_javelin_8011F5D4(Task* arg0);
 
 /// Per-frame task for the javelin's guide beam. `Task::spawnArg2` is the
 /// `EffectWork` and `Task::extra` reaches the coordinate the beam
@@ -748,7 +748,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 /// `extern u8` at 0x80073BAA is what keeps GCC from hoisting the `lbu` above
 /// the `actor->` stores: a scalar global and a struct field do not alias, so
 /// the scheduler is free to move the load, and the block comes out reordered.
-static void func_m4a1_javelin_8011F5D4(Task* arg0)
+void func_m4a1_javelin_8011F5D4(Task* arg0)
 {
     GameActor*  actor;
     GfxCoord*   coord;

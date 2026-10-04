@@ -163,7 +163,7 @@ void func_actor_403600_80134398(Task* arg0);
 static const SVECTOR D_actor_403600_80131E2C;
 static const CVECTOR D_actor_403600_80131E34;
 
-static void func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1);
+void        func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1);
 static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx);
 
 void func_actor_403600_80134288(Task*);
@@ -931,16 +931,16 @@ static void        func_actor_403600_8013289C(s32 x, s32 corner, SVECTOR* arg2, 
 static inline void _actor403600ApplyMatrixSv(MATRIX* m, SVECTOR* in, SVECTOR* out);
 static inline void _actor403600TrailTick(Actor403600Ripple* state);
 static inline s32  _actor403600TrailEmpty(Actor403600Ripple* state);
-static u32*        func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+u32*               func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+u32*               func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 u32*               func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_8013700C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_80137300(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_801375F8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+u32*               func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+u32*               func_actor_403600_8013700C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+u32*               func_actor_403600_80137300(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+u32*               func_actor_403600_801375F8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 u32*               func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-static u32*        func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
-static u32*        func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32*               func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32*               func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Links primitive `p` at the head of ordering-table entry `ot` through tag words.
 ///
@@ -1884,7 +1884,7 @@ block_22:
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
 }
 
-static void func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1)
+void func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1)
 {
     s32                            radii[16];
     s32                            heights[16];
@@ -2298,7 +2298,7 @@ void func_actor_403600_80135C28(Task* arg0)
     }
 }
 
-static u32* func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -2384,7 +2384,7 @@ static u32* func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* 
     return arg2;
 }
 
-static u32* func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT3*     poly;
     s32*          opz;
@@ -2602,7 +2602,7 @@ u32* func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-static u32* func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT4*     poly;
     s32*          opz;
@@ -2736,7 +2736,7 @@ static u32* func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* 
     return arg2;
 }
 
-static u32* func_actor_403600_8013700C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* func_actor_403600_8013700C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -2824,7 +2824,7 @@ static u32* func_actor_403600_8013700C(TmdStreamWorkspace* arg0, s32 arg1, u32* 
     return arg2;
 }
 
-static u32* func_actor_403600_80137300(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* func_actor_403600_80137300(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -2912,7 +2912,7 @@ static u32* func_actor_403600_80137300(TmdStreamWorkspace* arg0, s32 arg1, u32* 
     return arg2;
 }
 
-static u32* func_actor_403600_801375F8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* func_actor_403600_801375F8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -3098,7 +3098,7 @@ u32* func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return tmdDrawStreamGt3(ws, flags, stream);
 }
 
-static u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     CVECTOR                  color;
     u8*                      head;
@@ -3190,7 +3190,7 @@ static u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* s
     return tmdDrawStreamGt4(ws, flags, stream);
 }
 
-static u32* func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     CVECTOR                 color;
     u8*                     head;

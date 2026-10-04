@@ -84,9 +84,9 @@ u16 D_8006AC6C;
 
 extern s32 StCdIntrFlag;
 
-extern void func_map_akropolis_80179988(void* arg0);
+extern void func_map_akropolis_80179988(u8* arg0);
 
-extern void func_map_neo_ark_801799BC(void* arg0);
+extern void func_map_neo_ark_801799BC(u8* arg0);
 
 static void Mdec_SetupBuffers(u8* arg0);
 

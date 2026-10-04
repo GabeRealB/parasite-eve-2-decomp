@@ -118,7 +118,7 @@ static void func_actor_215100_8014CB04(Task* task);
 
 /* cap captions instance: retain the original overlay symbols. */
 static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2);
-static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
+void        func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
 // Exported instances: mist_shooting_gallery's modal caption calls this
 // package's script selector, and its caption task this package's drawer.
 #define CAP_CAPTION_SELECT_SCRIPT_LINKAGE
@@ -1777,12 +1777,12 @@ s32 D_actor_215100_8015E670;
 
 RoomEventMsg D_actor_215100_8015E678;
 
-static void func_actor_215100_8014A398(void);
-void        func_actor_215100_8014A908(void);
-static void func_actor_215100_8014A9A0(void);
-static s32  func_actor_215100_8014AA54(RoomEventMsg* arg0);
-static void func_actor_215100_8014AB6C(void);
-static void func_actor_215100_8014AF0C(void);
+void func_actor_215100_8014A398(void);
+void func_actor_215100_8014A908(void);
+void func_actor_215100_8014A9A0(void);
+s32  func_actor_215100_8014AA54(RoomEventMsg* arg0);
+void func_actor_215100_8014AB6C(void);
+void func_actor_215100_8014AF0C(void);
 
 static void func_actor_215100_8014C660(Enemy* enemy, Task* task);
 
@@ -1801,7 +1801,7 @@ static void func_actor_215100_8014C660(Enemy* enemy, Task* task);
 /// opening at 0x201 and 0xA01, and one of the 0x1000 / 0x4000 pad masks held.
 /// Either mask runs the handoff `func_actor_215100_8014AA54` uses: the weapon
 /// message, caption command 0x14 and the scene task `D_actor_215100_8014CF6C`.
-static void func_actor_215100_8014A398(void)
+void func_actor_215100_8014A398(void)
 {
     Task*      task;
     GameActor* actor;
@@ -1991,7 +1991,7 @@ void func_actor_215100_8014A908(void)
     SndEvt_EnqueueType2(0, 0x1E);
 }
 
-static void func_actor_215100_8014A9A0(void)
+void func_actor_215100_8014A9A0(void)
 {
     if (D_actor_215100_8015E670 == 5) {
         D_actor_215100_8014D038 = 0;
@@ -2016,7 +2016,7 @@ static void func_actor_215100_8014A9A0(void)
 /// it not-taken and fills its slot from the fall-through rather than from the
 /// shared `return 2` tail. Without the loop the branch reaches the same label
 /// by a copied `li v0,2`, one instruction longer.
-static s32 func_actor_215100_8014AA54(RoomEventMsg* arg0)
+s32 func_actor_215100_8014AA54(RoomEventMsg* arg0)
 {
     if (D_actor_215100_8014D038 != 0) {
         if (arg0->queryOnly != ROOM_EVENT_EXECUTE) {
@@ -2045,7 +2045,7 @@ static s32 func_actor_215100_8014AA54(RoomEventMsg* arg0)
     return 2;
 }
 
-static void func_actor_215100_8014AB6C(void)
+void func_actor_215100_8014AB6C(void)
 {
     if (D_actor_215100_8014D038 != 0) {
         func_mist_shooting_gallery_80184954();
@@ -2159,7 +2159,7 @@ void func_actor_215100_8014AEC4(s32 arg0)
     Gp_ResetCap();
 }
 
-static void func_actor_215100_8014AF0C(void)
+void func_actor_215100_8014AF0C(void)
 {
     switch (GameFlag_GetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS)) {
         case 0:
@@ -2185,7 +2185,7 @@ static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2)
 
 #include "../../shared/cap_captions_resource.inc.c"
 
-static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
+void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
 {
     CapCaption_LoadResource(arg0, arg1, arg2);
 }

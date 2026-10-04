@@ -688,8 +688,8 @@ s32 D_actor_450900_80136C98;
 
 Task* D_actor_450900_80136C9C;
 
-static void func_actor_450900_801327A8(void);
-void        func_actor_450900_80132834(void);
+void func_actor_450900_801327A8(void);
+void func_actor_450900_80132834(void);
 
 /// State handler that runs the save-point capture. State 0 spawns the capture
 /// task `func_actor_450900_80132548` into `D_actor_450900_80136C9C`; state 1
@@ -993,7 +993,7 @@ void func_actor_450900_80132724(void)
 /// `D_actor_450900_80136470` below 0x30C, `D_actor_450900_80136680` at or above
 /// it. The three calls are written out at each site - the `jal` is shared only
 /// because `jump.c` cross-jumps the identical tails.
-static void func_actor_450900_801327A8(void)
+void func_actor_450900_801327A8(void)
 {
     if (GameFlag_GetNibble(GAME_FLAG_0D8) != 0) {
         if (D_actor_450900_80135E74 == 0) {

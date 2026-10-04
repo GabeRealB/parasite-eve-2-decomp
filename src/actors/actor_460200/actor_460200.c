@@ -2149,7 +2149,7 @@ AnimationSet* D_actor_460200_8015153C[17] = {
 };
 
 void        func_actor_460200_80132210(void);
-static void func_actor_460200_801322B8(void);
+void        func_actor_460200_801322B8(void);
 void        func_actor_460200_80132390(void);
 static void func_actor_460200_801336B4(Task* task);
 
@@ -2217,7 +2217,7 @@ void func_actor_460200_80132210(void)
     }
 }
 
-static void func_actor_460200_801322B8(void)
+void func_actor_460200_801322B8(void)
 {
     switch (GameFlag_GetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A)) {
         case 0:

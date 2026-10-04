@@ -1385,12 +1385,12 @@ AnimationSet* gStrideWalkAnimParams[12] = {
     &_gActor161500Animation0D544,
 };
 
-void        func_actor_161500_80131E38(void);
-void        func_actor_161500_80131FBC(void);
-static void func_actor_161500_80132038(void);
-static void func_actor_161500_80132110(void);
-void        func_actor_161500_801322A0(void);
-void        func_actor_161500_8013230C(void);
+void func_actor_161500_80131E38(void);
+void func_actor_161500_80131FBC(void);
+void func_actor_161500_80132038(void);
+void func_actor_161500_80132110(void);
+void func_actor_161500_801322A0(void);
+void func_actor_161500_8013230C(void);
 
 void func_actor_161500_80131E38(void)
 {
@@ -1455,7 +1455,7 @@ void func_actor_161500_80131FBC(void)
     }
 }
 
-static void func_actor_161500_80132038(void)
+void func_actor_161500_80132038(void)
 {
     s32 temp_s0;
     s32 temp_v0;
@@ -1483,7 +1483,7 @@ void func_actor_161500_801320F0(s32 arg0)
     Gp_RunCapCmd(arg0, 0);
 }
 
-static void func_actor_161500_80132110(void)
+void func_actor_161500_80132110(void)
 {
     if (GameFlag_GetNibble(GAME_FLAG_105) == 0) {
         func_800E8614(D_actor_161500_801352A8, 0);

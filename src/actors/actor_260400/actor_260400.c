@@ -980,7 +980,7 @@ Task* D_actor_260400_80154C74;
 s16 gScriptedWalkMode;
 
 void        func_actor_260400_80149E38(void);
-static void func_actor_260400_80149FA4(void);
+void        func_actor_260400_80149FA4(void);
 static void func_actor_260400_80149FE0(Enemy* enemy, Task* task);
 
 void func_actor_260400_80149E38(void)
@@ -1023,7 +1023,7 @@ void func_actor_260400_80149F5C(s32 arg0)
     Gp_ResetCap();
 }
 
-static void func_actor_260400_80149FA4(void)
+void func_actor_260400_80149FA4(void)
 {
     Task* slot;
 

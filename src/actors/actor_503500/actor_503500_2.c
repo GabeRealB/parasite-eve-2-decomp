@@ -1667,7 +1667,7 @@ TaskDesc D_actor_503500_8016E9F0[5] = {
 
 /// Player-facing flag byte in the main executable; no module header owns it yet.
 
-static void func_actor_503500_80132F58(void);
+void func_actor_503500_80132F58(s32 unused);
 
 void func_actor_503500_80132778(Task* task)
 {
@@ -1954,7 +1954,7 @@ void func_actor_503500_80132F28(void)
     gGameSession->padScriptFlags = 0;
 }
 
-static void func_actor_503500_80132F58(void)
+void func_actor_503500_80132F58(s32 unused)
 {
     D_actor_503500_80176558 = NULL;
 }

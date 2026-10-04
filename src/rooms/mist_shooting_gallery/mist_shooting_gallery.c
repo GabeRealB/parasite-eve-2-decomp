@@ -152,7 +152,7 @@ extern void func_actor_215100_8014A398(void);
 extern s32  func_actor_215100_8014AA54(RoomEventMsg* loc);
 extern void func_actor_215100_8014AB6C(void);
 extern void func_actor_215100_8014AF0C(void);
-extern void func_actor_215100_8014C5E0(s32, s32, s32);
+extern void func_actor_215100_8014C5E0(s16, s16, s16);
 
 extern s32        D_8014D038;
 extern TaskDesc   D_8014E13C;

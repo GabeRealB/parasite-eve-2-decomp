@@ -22,7 +22,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-static void func_m4a1_bayonet_8011DA34(Task* arg0);
+void func_m4a1_bayonet_8011DA34(Task* arg0);
 
 /// Per-frame firing state machine for the M4A1 bayonet. State 0 arms the shot
 /// and raises the weapon (clip 8 instead of 1 when it was already up), state 1
@@ -37,7 +37,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0);
 /// any occupied `field_32C` slot plays `0x201A0005`. State 7 counts `field_979`
 /// down and drops out of the firing pose once the aim check fails or the
 /// trigger has been released.
-static void func_m4a1_bayonet_8011DA34(Task* arg0)
+void func_m4a1_bayonet_8011DA34(Task* arg0)
 {
     GameActor*             actor;
     GfxCoord*              coord;

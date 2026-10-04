@@ -364,7 +364,7 @@ Task* D_actor_150400_8013C924 = NULL;
 
 Task* D_actor_150400_8013C928;
 
-static void func_actor_150400_80131FB8(void);
+void        func_actor_150400_80131FB8(void);
 static void func_actor_150400_80132014(Enemy* enemy, Task* task);
 
 /// Per-frame callback of the model task `D_actor_150400_80132CF0` describes,
@@ -433,7 +433,7 @@ void func_actor_150400_80131F9C(s32 arg0)
     D_actor_150400_8013C928->state = arg0;
 }
 
-static void func_actor_150400_80131FB8(void)
+void func_actor_150400_80131FB8(void)
 {
     D_actor_150400_8013C924 = Task_SpawnFromTable(&D_actor_150400_80132CF0, 0, 1, 0);
     D_actor_150400_8013C928 = Task_SpawnFromTable(&D_actor_150400_80132CF0, 0, 2, 0);

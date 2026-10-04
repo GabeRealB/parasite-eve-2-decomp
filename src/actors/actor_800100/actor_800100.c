@@ -186,7 +186,7 @@ static s32  func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* ar
 static void func_actor_800100_80166DD0(Task* arg0);
 static void func_actor_800100_80166DF0(Task* arg0);
 static void func_actor_800100_80166E14(Task* arg0);
-static void func_actor_800100_80166E94(Task* arg0, s32 arg1);
+void        func_actor_800100_80166E94(Task* arg0, s32 arg1);
 static void func_actor_800100_80166EE8(Task* arg0);
 static s32  _actor800100GetContactDistance(GfxCoord* coord, WorldCollisionContact* contact, u16* contactZY);
 
@@ -3288,7 +3288,7 @@ static void func_actor_800100_80166E14(Task* arg0)
     playerActorPlayChildSlotsWithBlend(arg0, 8, 1, 6);
 }
 
-static void func_actor_800100_80166E94(Task* arg0, s32 arg1)
+void func_actor_800100_80166E94(Task* arg0, s32 arg1)
 {
     GameActor* actor;
 

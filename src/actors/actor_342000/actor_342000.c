@@ -413,7 +413,7 @@ extern PadScriptCmd D_80144A74[2];
 
 extern PadScriptVibrationSegment D_80144A7C[2];
 
-void actor444000GluttonSetShakeLevel(s32 arg0);
+void actor444000GluttonSetShakeLevel(s8 arg0);
 
 /// Spawn table of the event task's children: entry 2 is the script parent,
 /// 3..7 its five script tasks and 8/9 the two effect actors.

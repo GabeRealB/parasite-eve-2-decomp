@@ -62,7 +62,7 @@ STATIC_ASSERT_SIZEOF(_GunbladeAttackScratch, 0x68);
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId`, the 1-based difficulty/mode row of `D_80112E04`.
 
-static void func_gunblade_8011E040(Task* arg0);
+void func_gunblade_8011E040(Task* arg0);
 
 /// Per-frame firing state machine for the gunblade. State 0 arms the shot and
 /// raises the weapon (clip 6 instead of 1 when it was already up), state 1
@@ -86,7 +86,7 @@ static void func_gunblade_8011E040(Task* arg0);
 /// The tail is common to every state: it reads the model's forward axis out
 /// of its root coordinate's matrix and, only while `shake` is set, moves that
 /// coordinate forward by a `GUNBLADE_SPIN_ADVANCE_DIVISOR`th of it.
-static void func_gunblade_8011E040(Task* arg0)
+void func_gunblade_8011E040(Task* arg0)
 {
     GameActor*              actor;
     GfxCoord*               coord;

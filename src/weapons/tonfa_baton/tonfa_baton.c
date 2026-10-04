@@ -70,7 +70,7 @@ static void func_tonfa_baton_8011DB78(Task* task);
 static void func_tonfa_baton_8011DA48(Task* task);
 static void func_tonfa_baton_8011DA74(Task* arg0);
 static void func_tonfa_baton_8011DB6C(Task* arg0);
-static void func_tonfa_baton_8011DBFC(Task* arg0);
+void        func_tonfa_baton_8011DBFC(Task* arg0);
 
 void func_tonfa_baton_8011D1EC(Task* task)
 {
@@ -255,7 +255,7 @@ void func_tonfa_baton_8011DB98(Task* arg0)
 /// three ticks in and parks in case 4, whose 9 ticks clear the hit flag again.
 /// Cases 1/2 and 4 also play the connect sound once per swing when
 /// `Gp_CountRec18Hi` reports a hit.
-static void func_tonfa_baton_8011DBFC(Task* arg0)
+void func_tonfa_baton_8011DBFC(Task* arg0)
 {
     GameActor*                actor;
     GfxCoord*                 coord;

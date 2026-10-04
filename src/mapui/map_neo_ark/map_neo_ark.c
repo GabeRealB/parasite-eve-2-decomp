@@ -110,8 +110,8 @@ static AreaObjectPlace D_map_neo_ark_8017C930[4];
 static AreaObjectPlace D_map_neo_ark_8017C970[2];
 static AreaObjectPlace D_map_neo_ark_8017C990[2];
 
-static void func_map_neo_ark_801799BC(u8* arg0);
-static s32  func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp);
+void func_map_neo_ark_801799BC(u8* arg0);
+s32  func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp);
 
 /// MDEC buffer layout hook for the Neo Ark map, reached from
 /// `Mdec_SetupBuffers` (main) for stream kinds 6 and 9. Both kinds park the
@@ -120,7 +120,7 @@ static s32  func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp);
 /// kind 9 additionally rewinds the CD queue and asks for the 0x180 x 0x100
 /// display. `D_8006AC44` always ends up one full frame past the second decode
 /// buffer.
-static void func_map_neo_ark_801799BC(u8* arg0)
+void func_map_neo_ark_801799BC(u8* arg0)
 {
     CdCmdQueue* q = &gCdCmdQueue;
     s32         stride;
@@ -162,7 +162,7 @@ static void func_map_neo_ark_801799BC(u8* arg0)
 /// and anything else plays at `arg0` with both ramps reset. Each ramp waits out
 /// its own counter (0x79 / 0xF1 frames), then walks `D_800820E0` by 0x300 a
 /// frame until it reaches the target and the counter is parked at 0xFF.
-static s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp)
+s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp)
 {
     s32 volume;
     u32 temp;

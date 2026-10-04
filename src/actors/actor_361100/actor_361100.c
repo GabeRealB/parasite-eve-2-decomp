@@ -933,7 +933,7 @@ TaskMessageEntry D_actor_361100_80171BB8[5] = {
 
 Task* D_actor_361100_80171BE0;
 
-static void func_actor_361100_80162B0C(void);
+void func_actor_361100_80162B0C(s32 unused);
 
 /// Runs while `Fs_ChunkOutputSizes[2]` reports a streaming write in flight -- it is `-1`
 /// until `Fs_LoadFile` has a chunk, and the mode byte in `gGameSession->location.loc.view`
@@ -1474,7 +1474,7 @@ void func_actor_361100_80162AEC(s32 bits)
     gGameSession->flowFlags |= bits;
 }
 
-static void func_actor_361100_80162B0C(void)
+void func_actor_361100_80162B0C(s32 unused)
 {
     D_actor_361100_80171BE0 = 0;
 }

@@ -170,7 +170,7 @@ extern ViewCamera D_actor_403600_80160700;
 static void func_actor_403600_80138EF8(struct Enemy* enemy, Task* task);
 static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1);
 static void func_actor_403600_8013C864(Task* arg0);
-static void func_actor_403600_80138C9C(Actor403600Ripple* arg0);
+void        func_actor_403600_80138C9C(Actor403600Ripple* arg0);
 static u8*  func_actor_403600_80138DCC(Task* arg0);
 static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1);
 static s32  func_actor_403600_8013D9A8(Task* arg0);
@@ -415,7 +415,7 @@ void func_actor_403600_80138C68(Task* arg0)
 /// set (restarting its phase on a rising edge) or down otherwise, and records
 /// the source's phase and strength in the new head while the strength is
 /// non-zero.
-static void func_actor_403600_80138C9C(Actor403600Ripple* state)
+void func_actor_403600_80138C9C(Actor403600Ripple* state)
 {
     s32 head;
 

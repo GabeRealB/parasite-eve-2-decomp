@@ -44,7 +44,7 @@
 /// Muzzle offset of the P229, in the firing hand's coordinate frame.
 static SVECTOR _gMuzzleOffset = { 0, 0x140, 0x20, 0 };
 
-static void func_p229_8011DDA0(Task* arg0);
+void func_p229_8011DDA0(Task* arg0);
 
 #include "../../shared/muzzle_flash_task.inc.c"
 
@@ -82,7 +82,7 @@ void func_p229_8011D1DC(Task* task)
 /// under the weapon task. States 3/4 pick the lock-on target once (only while
 /// still in state 3) and state 5 counts `field_979` down, dropping back out of
 /// the firing pose once the aim check fails or the trigger has been released.
-static void func_p229_8011DDA0(Task* arg0)
+void func_p229_8011DDA0(Task* arg0)
 {
     GameActor*             actor;
     GfxCoord*              coord;

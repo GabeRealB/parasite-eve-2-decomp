@@ -19,7 +19,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-static void func_m4a1_hammer_8011E710(Task* arg0);
+void func_m4a1_hammer_8011E710(Task* arg0);
 
 /// Per-frame firing state machine for the M4A1 hammer. State 0 arms the shot
 /// and raises the weapon (clip 8 instead of 1 when it was already up), state 1
@@ -36,7 +36,7 @@ static void func_m4a1_hammer_8011E710(Task* arg0);
 /// releasing the hammer task at 0. State 6 counts `field_979` down and drops
 /// out of the firing pose once the aim check fails or the trigger has been
 /// released.
-static void func_m4a1_hammer_8011E710(Task* arg0)
+void func_m4a1_hammer_8011E710(Task* arg0)
 {
     GameActor*             actor;
     GfxCoord*              coord;

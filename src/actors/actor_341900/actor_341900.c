@@ -159,7 +159,7 @@ STATIC_ASSERT_SIZEOF(_Actor341900GluttonModelWork, 0x258);
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
 /// beside `gStageSceneMusicEntry`.
 
-extern void                      actor444000GluttonSetShakeLevel(s32 arg0);
+extern void                      actor444000GluttonSetShakeLevel(s8 arg0);
 extern PadScriptCmd              D_80144A74[2];
 extern PadScriptVibrationSegment D_80144A7C[2];
 

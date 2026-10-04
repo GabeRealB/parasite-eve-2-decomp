@@ -377,7 +377,7 @@ TaskDesc D_actor_341300_80165A98 = { { { TASK_BODY_NONE, 192 } }, func_actor_341
 Task* D_actor_341300_80165AA4 = NULL;
 
 static void func_actor_341300_80161E84(void);
-static void func_actor_341300_8016268C(void);
+void        func_actor_341300_8016268C(void);
 
 /// Draws the two textured quads at fixed positions: each is four fixed
 /// model-space corners projected through `gGfxViewCoord.workm`, emitted as a
@@ -600,7 +600,7 @@ void func_actor_341300_80162680(s8 arg0)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
 }
 
-static void func_actor_341300_8016268C(void)
+void func_actor_341300_8016268C(void)
 {
     D_actor_341300_80165AA4 = 0;
 }

@@ -724,7 +724,7 @@ WorldCollisionSurfaceProperties* D_acropolis_east_elevator_hall_80187B74[8] = {
     D_acropolis_east_elevator_hall_80187B64,
 };
 
-static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0);
+void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0);
 
 #include "../../shared/planar_reflection.inc.c"
 
@@ -858,7 +858,7 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 
 #include "../../shared/red_beacon_task.inc.c"
 
-static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
+void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
 {
     EffectPointTileScratch* tileScratch;
     TILE_1*                 prim;

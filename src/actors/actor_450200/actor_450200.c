@@ -1223,7 +1223,7 @@ u16 D_actor_450200_801405E8[256];
 
 u16 D_actor_450200_801407E8[256];
 
-static void        func_actor_450200_80132220(void);
+void               func_actor_450200_80132220(void);
 void               func_actor_450200_801322F8(void);
 static void        func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTrans, s32 rgb, s32 shadeTex);
 static inline void _actor450200LoadScaledClut(u16* src, u16* dst, s32 scale, s32 y);
@@ -1374,7 +1374,7 @@ void func_actor_450200_8013219C(void)
         ratan2(target->coord.t[0] - looker->coord.t[0], target->coord.t[2] - looker->coord.t[2]) & 0xFFF;
 }
 
-static void func_actor_450200_80132220(void)
+void func_actor_450200_80132220(void)
 {
     switch (GameFlag_GetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT)) {
         case 0:

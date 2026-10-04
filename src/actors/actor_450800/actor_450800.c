@@ -2653,13 +2653,13 @@ u8 gPairWalkAnimParams[24] = {
     128,
 };
 
-static void        func_actor_450800_80131E2C(void);
+void               func_actor_450800_80131E2C(void);
 void               func_actor_450800_80132000(void);
 void               func_actor_450800_80132028(void);
 static inline void _actor450800TintModel(Task* spawned, Task* actor);
 static void        func_actor_450800_80132160(Enemy* enemy, Task* task);
 
-static void func_actor_450800_80131E2C(void)
+void func_actor_450800_80131E2C(void)
 {
     s32 temp_v0;
     s32 n;
