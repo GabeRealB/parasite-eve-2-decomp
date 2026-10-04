@@ -397,7 +397,7 @@ Preprocessed inputs: `base_7.c`
 
 Target: `lw s2,0x1c(a0)` / `li v0,2` / `sh v0,0x4a0(s2)` / `li s0,1` / `li s3,0xa`, then the loop. Plain C puts both `li`s above the `lw`. sched1 gives the `sh` priority 2 (it depends on the `lw`, which has a load delay), and the loop-init `i = 1` and hoisted `10` only priority 1, so the store is scheduled last in the block. The tree held the order with `SCHED_BARRIER()`.
 
-Writing the store as a one-statement macro, `#define SET_ANIM_ID(w, a) do { (w)->field_4A0 = (a); } while (0)`, matches with no barrier. The macro's loop notes make everything after them depend on everything before, so sched1 keeps the source order. The mechanism is the same fence as the `func_actor_104900_8013279C` entry above. Its loop-weighted refs on the work pointer and the animation id did not move the allocation here, but check `.lreg` where they might. A `static inline` setter does *not* work, because its return label is deleted before sched1.
+Writing the store as a one-statement macro, `#define SET_ANIM_ID(w, a) do { (w)->animSet = (a); } while (0)`, matches with no barrier. The macro's loop notes make everything after them depend on everything before, so sched1 keeps the source order. The mechanism is the same fence as the `func_actor_104900_8013279C` entry above. Its loop-weighted refs on the work pointer and the animation id did not move the allocation here, but check `.lreg` where they might. A `static inline` setter does *not* work, because its return label is deleted before sched1.
 
 ## Separate conditional stores preserve a global reload; declaration order breaks a global priority tie (func_actor_420700_80132644, 2026-09-20)
 
@@ -124762,10 +124762,10 @@ live range *starts* where the pointer's ends, so `global.c`'s `find_reg` picks
 `$s0` and every penalty goes to zero:
 
 ```c
-    work  = (Actor121300Work*)map;      /* setup half */
+    work  = (_Actor121300AyaBreaWork*)map;      /* setup half */
     ...
-    slotsWork            = (Actor121300Work*)arg0->work;   /* loop half */
-    slotsWork->field_4A0 = 1;
+    slotsWork          = arg0->work;   /* loop half */
+    slotsWork->animSet = 1;
 ```
 
 Read the `.rtl` dump for this, not `.lreg`/`.greg`: the greg dump is written
@@ -124779,7 +124779,7 @@ The slot count is stored before the loop that re-arms the slots, and the same
 `1` initialises the counter:
 
 ```c
-    work->field_4A0 = 1;
+    work->animSet = 1;
     i = 1;
     do { work->slots[(u16)i].rate = 0x10; ... } while ((u16)i < 0x13U);
 ```
@@ -137820,7 +137820,7 @@ Matched input SHA256:
 
 The unpinned retry reproduced 98.355% (`regs=1 reorder=3 insert=1 delete=1`). Both inline animation helpers stored the animation id before a loop, but sched1 moved counter=1 and loop-hoisted blend=10 ahead of the work-pointer load/store. In case 2 this extended the 10 constant across the task's last use: .greg recorded r107 conflicting with task r80, so the constant occupied s4 instead of the target's reusable s3. Case 7 still needed task after its loop, so s4 was correct there.
 
-A preplanned `SCHED_BARRIER()` immediately after the field_4A0 store matched exactly. In base_2.i.sched, basic asm UID 136 depends on store 134, and both counter 138 and constant 653 have REG_DEP_OUTPUT to 136. The analogous case-7 chain is 413 -> 415 -> 417/649. The barrier stays inside the same block; a new CODE_LABEL is unnecessary. Patched sched.c:1973-2000 handles basic asm by adding register dependencies and flushing pending memory accesses.
+A preplanned `SCHED_BARRIER()` immediately after the `animSet` store matched exactly. In base_2.i.sched, basic asm UID 136 depends on store 134, and both counter 138 and constant 653 have REG_DEP_OUTPUT to 136. The analogous case-7 chain is 413 -> 415 -> 417/649. The barrier stays inside the same block; a new CODE_LABEL is unnecessary. Patched sched.c:1973-2000 handles basic asm by adding register dependencies and flushing pending memory accesses.
 
 The allocation prediction also held: global order stayed unchanged, task remained s3, the case-2 r80/r107 conflict disappeared and r107 took s3; case-7 r153 retained s4. The constants' spans fell 28 -> 22. A normal-style port with for loops remained exact. This supports the local dependency/conflict mechanism, not a claim about the original source spelling. The bounded router improved a lower-scoring alternate but contributed no transformation to this match.
 

@@ -47,83 +47,103 @@
 #include "../../shared/actor_messages.h"
 
 /// The overlay's spawn table: entries 1 and 2 are spawned by the one-line
-/// spawners the scene script calls, 3 by the waypoint walker for each new
-/// waypoint, 4 to 8 are the debris variants `func_actor_121300_80133064`
-/// scatters around a waypoint, 9 is spawned once the session event has
+/// spawners the scene script calls, 3 by the lamp shattering for each lamp
+/// that goes out, 4 to 8 are the debris variants `func_actor_121300_80133064`
+/// scatters around a lamp, 9 is spawned once the session event has
 /// ended, and 0xA by `func_actor_121300_80134224`.
 extern TaskDesc D_actor_121300_8013D390[];
 
-/// Work block for the `actor_121300` overlay's cutscene actor.
+/// Scene step of Aya's double, stored in `_Actor121300AyaBreaWork::step`.
 ///
-/// `func_actor_121300_80133BFC` allocates it with `memMalloc(0x4B0, 0)`,
-/// zeroes it with `memFillBytes` and parks the pointer in the task's `Task::work`
-/// slot (0x1C); reach the block with
-/// `(Actor121300Work*)task->work`.  The same function publishes the task
-/// itself in `D_actor_121300_8013D418` and stores the
-/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task in `field_488`, which is the target of every
-/// `taskMessageDispatch` the overlay sends.
-///
-/// The block opens with the animation prefix `actor_105100` and `actor_136100`
-/// also carry: the 0x14-byte `AnimationContext` `animationInitContext` is handed as its
-/// `arg0`, the nineteen 0x28-byte `AnimationSlot`s `animationResetSlot` walks, and
-/// the pose buffer at 0x30C.  The two `MATRIX`es at 0x43C / 0x45C are the
-/// model's light and colour matrices, published through `TmdObject::lightMtx`
-/// / `field_20`.
-typedef struct Actor121300Work {
-    /* 0x000 */ ActorAnimRig19 rig;
-    /* 0x43C */ MATRIX         field_43C; // light matrix, into TmdObject::lightMtx
-    /* 0x45C */ MATRIX         field_45C; // colour matrix, into TmdObject::colorMtx
-    /* 0x47C */ ScreenWaveCtx  wave;      // ramp of the screen-wave task `screenWaveTask`
-    /* 0x488 */ Task*          field_488; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task, the taskMessageDispatch target
-    /* 0x48C */ Task*          field_48C;
-    /* 0x490 */ byte           pad_490[0x8];
-    /* 0x498 */ s16            field_498;         // set by func_actor_121300_80134250
-    /* 0x49A */ s16            field_49A;         // cleared alongside field_498
-    /* 0x49C */ s16            field_49C;
-    /* 0x49E */ s16            field_49E;         // waypoint cursor: index into D_actor_121300_8013CC20
-    /* 0x4A0 */ u16            field_4A0;         // animation slot count, set by func_actor_121300_80133BFC
-    /* 0x4A2 */ u16            field_4A2;         // state of the waypoint walker func_actor_121300_80133730
-    /* 0x4A4 */ u16            field_4A4;         // frames spent on the current waypoint
-    /* 0x4A6 */ s16            field_4A6;         // waypoint index handed to func_dryfield_r08_8017F334 / Task_SpawnFromTable
-    /* 0x4A8 */ s16            field_4A8;         // effect-count reduction, bumped by func_actor_121300_80133580
-    /* 0x4AA */ s16            field_4AA;         // frame counter for field_4A8 (wraps at 20)
-    s16                        texturePageOffset; // Texture relocation for image uploads, in 64-word VRAM columns
-    /* 0x4AE */ byte           pad_4AE[0x2];
-} Actor121300Work;
-STATIC_ASSERT_SIZEOF(Actor121300Work, 0x4B0);
+/// The event script selects one at each of its cues and the double's tick
+/// carries it out every frame. A step that has to happen only once puts
+/// `ACTOR_121300_STEP_NONE` back when it is done; the others run until the
+/// script selects the next.
+enum {
+    ACTOR_121300_STEP_NONE               = 0,  // Nothing beyond ticking the animation
+    ACTOR_121300_STEP_REPLACE_PLAYER     = 1,  // Hide the player's model, put the double on its mark and restart animation set 1 (once)
+    ACTOR_121300_STEP_PLAY_SET_2         = 2,  // Blend every part into animation set 2 (once)
+    ACTOR_121300_STEP_SHATTER_LAMPS      = 3,  // Shatter the room's lamps one after another
+    ACTOR_121300_STEP_SHATTER_LAMPS_WAVE = 4,  // Slow the debris to a tenth and start the long screen wave, then keep shattering
+    ACTOR_121300_STEP_END_SHATTER        = 5,  // Finish the screen wave, release the debris and restore the stream's image mode (once)
+    ACTOR_121300_STEP_HOLD_ON_MARK       = 6,  // Hold the double at the start of set 1 on its mark under the room's second lights, spawning the ground ring and the upper row of drift sprites
+    ACTOR_121300_STEP_PLAY_SET_3         = 7,  // Blend every part into animation set 3, then spawn the ground ring of drift sprites
+    ACTOR_121300_STEP_SHATTER_LAMPS_SLOW = 8,  // Slow the debris to three tenths and keep shattering
+    ACTOR_121300_STEP_SPRITES_DWINDLE    = 9,  // Spawn the ground ring, and the upper row with a point fewer every 20 ticks
+    ACTOR_121300_STEP_WAVE_PULSE         = 10, // Short screen wave: 8 ticks rising and held, then left to fall (ends the step)
+    ACTOR_121300_STEP_RAISED_RING        = 11, // Spawn the raised ring of drift sprites
+    ACTOR_121300_STEP_MASK_STREAM        = 12, // Have the stream's images decoded with the mask bit set (once)
+};
 
-/// Animation-id table `func_actor_121300_80132818` indexes by
-/// `Actor121300Work::field_4A0`, whose `>= 0` guard is what gates the slot
-/// re-arm; the entry it holds is then written back over `field_4A0`.  All four
-/// of its entries are -1, so the re-arm never runs in practice.
+/// Progress of the lamp shattering, stored in
+/// `_Actor121300AyaBreaWork::shatterState`.
+enum {
+    ACTOR_121300_SHATTER_START   = 0, // Enable the debris and clear the lamp count and timer
+    ACTOR_121300_SHATTER_RUNNING = 1, // Put out one lamp every `ACTOR_121300_SHATTER_INTERVAL` ticks
+};
+
+enum {
+    /// Ticks of a shattering step between one lamp going out and the next.
+    ACTOR_121300_SHATTER_INTERVAL = 3,
+    /// Value of `_Actor121300Lamp::endMarker` in the record closing the lamp table.
+    ACTOR_121300_LAMP_END = -1,
+};
+
+/// Work block of Aya Brea's double, the body model this package animates over
+/// the streamed scene, and the state of that scene.
+///
+/// The task's setup allocates it zeroed and keeps it at `Task::work` for the
+/// task's life. The model object borrows `lightMtx` and `colorMtx`, the
+/// animation context is bound to `rig`, and the screen-wave task borrows
+/// `wave`, so the block has to outlive all three.
+///
+/// The event script drives the scene by storing a step; the double's tick
+/// carries the step out. The steps shatter the room's twelve lamps one at a
+/// time, distort the frame with a screen wave and spawn drift sprites around
+/// the room.
+typedef struct {
+    ActorAnimRig19 rig;                 // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    MATRIX         lightMtx;            // Light matrix the model object is lit with
+    MATRIX         colorMtx;            // Light colour matrix the model object is lit with
+    ScreenWaveCtx  wave;                // Ramp of the screen wave the scene runs; the wave task reads it every frame
+    Task*          player;              // The player's task, whose model the double stands in for
+    Task*          waveTask;            // The screen-wave task as last spawned; stored and never read
+    byte           field_490[0x8];      // Allocated but never accessed; role unproven
+    u16            step;                // Scene step being carried out (`ACTOR_121300_STEP_*`)
+    u16            stepState;           // Progress within the step, cleared when the script selects one (0 its opening work is still to do)
+    s16            pulseFrames;         // Ticks since `ACTOR_121300_STEP_WAVE_PULSE` started its wave
+    s16            lampCursor;          // Lamp whose `endMarker` gates the shattering; nothing advances it, so it stays the first lamp
+    u16            animSet;             // Index of the animation set the driven slots play
+    u16            shatterState;        // (`ACTOR_121300_SHATTER_START`, `ACTOR_121300_SHATTER_RUNNING`)
+    s16            shatterFrames;       // Ticks of shattering since the last lamp went out
+    s16            lampsShattered;      // Lamps put out so far, which is also the index of the next lamp to go
+    s16            spritePointsDropped; // Points at the end of the upper drift-sprite row no longer spawned at
+    s16            spriteDropFrames;    // Ticks of `ACTOR_121300_STEP_SPRITES_DWINDLE` since a point was last dropped
+    s16            texturePageOffset;   // Texture relocation for image uploads, in 64-word VRAM columns
+} _Actor121300AyaBreaWork;
+STATIC_ASSERT_SIZEOF(_Actor121300AyaBreaWork, 0x4B0);
+
+/// Animation set to follow each set with, indexed by
+/// `_Actor121300AyaBreaWork::animSet`: once every driven slot has settled, a
+/// non-negative entry becomes the set the slots play.  All four entries are
+/// -1, so no set is followed by another.
 extern s16 D_actor_121300_8013CC18[];
 
-/// One record of the cutscene's waypoint table `D_actor_121300_8013CC20`: a
-/// position plus a fourth halfword `func_actor_121300_80133730` reads as a
-/// liveness flag.  The table is 0xD records long and its last record is
-/// `{0, 0, 0, -1}`, so the `!= -1` guard keeps the walker on the 0xC real
-/// entries; `func_actor_121300_8013293C` reads the x/y/z of entry
-/// `someWork->field_34` off the same table.
-typedef struct Actor121300Waypoint {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 z;
-    /* 0x6 */ s16 field_6;
-} Actor121300Waypoint;
-STATIC_ASSERT_SIZEOF(Actor121300Waypoint, 0x8);
+/// One of the room's overhead lamps, in the order the scene shatters them.
+///
+/// The positions are those the room draws its twelve lamp glows at. A record
+/// with `ACTOR_121300_LAMP_END` closes the table.
+typedef struct {
+    s16 x;         // World X of the lamp
+    s16 y;         // World Y of the lamp
+    s16 z;         // World Z of the lamp
+    s16 endMarker; // (0 a lamp, `ACTOR_121300_LAMP_END` the closing record)
+} _Actor121300Lamp;
+STATIC_ASSERT_SIZEOF(_Actor121300Lamp, 0x8);
 
-extern Actor121300Waypoint D_actor_121300_8013CC20[];
-
-/// Scratch `func_actor_121300_80133D98` stages the three states that build a
-/// payload in.  Their live ranges do not overlap -- the state-0 message 0x3E8
-/// record is dead once the state advances, and state 3 kills the task without
-/// reaching the tail -- so the three share one stack slot and the frame stays
-/// 0x38 bytes.
-typedef union Actor121300Scratch {
-    /* 0x0 */ AnimationPlayRequest msg;  // state 0: slot-3 weapon record, message 0x3E8
-    /* 0x0 */ RECT                 rect; // state 3: the area ClearImage blanks
-    /* 0x0 */ VECTOR               vec;  // tail: model part-1 translation for func_800D7A9C
-} Actor121300Scratch;
+/// The lamp table: the room's twelve lamps and a closing record.  The debris
+/// of a lamp starts at its position.
+extern _Actor121300Lamp D_actor_121300_8013CC20[];
 
 /// Frame counter `func_actor_121300_80133D98` bumps once a frame and the
 /// effect spawners gate on: `func_actor_121300_8013343C` only runs on every
@@ -138,33 +158,33 @@ extern s32 D_actor_121300_8013CC00;
 extern SVECTOR D_actor_121300_8013CCB8[];
 extern SVECTOR D_actor_121300_8013CD48[];
 /// Spawn points of `func_actor_121300_80133580`, of which the first
-/// `6 - Actor121300Work::field_4A8` are used.
+/// `6 - _Actor121300AyaBreaWork::spritePointsDropped` are used.
 extern SVECTOR D_actor_121300_8013CDC8[];
 
-/// 0x5C work block of the debris task `func_actor_121300_8013293C`, allocated
-/// into `Task::work`.  The two matrices are published as the model's light
-/// and colour matrices (`TmdObject::lightMtx` / `colorMtx`); the rest is a
-/// per-frame spin and velocity, all rolled from `gRandomLcgState` on spawn, and a
-/// short random delay before the model's buffers are allocated.
-typedef struct Actor121300DebrisWork {
-    /* 0x00 */ MATRIX lightMtx; // TmdObject::lightMtx
-    /* 0x20 */ MATRIX colorMtx; // TmdObject::colorMtx
-    /* 0x40 */ s16    rotX;
-    /* 0x42 */ s16    rotY;
-    /* 0x44 */ s16    rotZ;
-    /* 0x46 */ s16    pad_46;
-    /* 0x48 */ s16    spinX;
-    /* 0x4A */ s16    spinY;
-    /* 0x4C */ s16    spinZ;
-    /* 0x4E */ s16    pad_4E;
-    /* 0x50 */ s16    velX;
-    /* 0x52 */ s16    velY;
-    /* 0x54 */ s16    velZ;
-    /* 0x56 */ s16    pad_56;
-    /* 0x58 */ s16    delay;
-    /* 0x5A */ s16    pad_5A;
-} Actor121300DebrisWork;
-STATIC_ASSERT_SIZEOF(Actor121300DebrisWork, 0x5C);
+/// Work block of one piece of lamp debris, kept at `Task::work`.
+///
+/// The piece's first state allocates it zeroed and rolls the velocity, the
+/// spin and the delay from `gRandomLcgState`. The model object borrows the
+/// two matrices for the task's life. Velocity and spin are per tick at full
+/// speed; each tick applies the scene's speed percentage to them.
+typedef struct {
+    MATRIX lightMtx;      // Light matrix the model object is lit with
+    MATRIX colorMtx;      // Light colour matrix the model object is lit with
+    s16    rotX;          // Rotation about X, 4096 units per turn
+    s16    rotY;          // Rotation about Y, 4096 units per turn
+    s16    rotZ;          // Rotation about Z, 4096 units per turn
+    byte   field_46[0x2]; // Allocated but never accessed; role unproven
+    s16    spinX;         // Change of `rotX` per tick (-127..127)
+    s16    spinY;         // Change of `rotY` per tick (-127..127)
+    s16    spinZ;         // Change of `rotZ` per tick (-127..127)
+    byte   field_4E[0x2]; // Allocated but never accessed; role unproven
+    s16    velX;          // World X travelled per tick
+    s16    velY;          // World Y travelled per tick; starts 3 to 6 downward and gains 3 a tick at full speed
+    s16    velZ;          // World Z travelled per tick
+    byte   field_56[0x2]; // Allocated but never accessed; role unproven
+    s16    delay;         // Ticks left before the piece gets its model buffers and starts to fall (0-3)
+} _Actor121300DebrisWork;
+STATIC_ASSERT_SIZEOF(_Actor121300DebrisWork, 0x5C);
 
 /// Main-executable globals with no module header yet: `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 message 0x3E8 record is keyed on,
@@ -1552,7 +1572,7 @@ s16 D_actor_121300_8013CC18[4] = {
     -1,
 };
 
-Actor121300Waypoint D_actor_121300_8013CC20[13] = {
+_Actor121300Lamp D_actor_121300_8013CC20[13] = {
     { 4950, -1750, 2570, 0 },
     { 5170, -1750, 2570, 0 },
     { 5340, -1750, 2700, 0 },
@@ -1565,7 +1585,7 @@ Actor121300Waypoint D_actor_121300_8013CC20[13] = {
     { 4770, -1750, 2700, 0 },
     { 4900, -1750, 2900, 0 },
     { 5200, -1750, 2900, 0 },
-    { 0, 0, 0, -1 },
+    { 0, 0, 0, ACTOR_121300_LAMP_END },
 };
 
 TaskMessageEntry D_actor_121300_8013CC88[3] = {
@@ -1630,7 +1650,7 @@ EvsSceneKey D_actor_121300_8013CE00 = { 2, 13, 11 };
 
 EvsCommand D_actor_121300_8013CE08[52] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_REPLACE_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_121300_8013CE00 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_121300_80134364 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1641,44 +1661,44 @@ EvsCommand D_actor_121300_8013CE08[52] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_801342D4 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_PLAY_SET_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_MASK_STREAM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_80134334 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_WAVE_PULSE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_SHATTER_LAMPS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_SHATTER_LAMPS_SLOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_SHATTER_LAMPS_WAVE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_80134304 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_80134334 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_END_SHATTER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_HOLD_ON_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_801342D4 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_SPRITES_DWINDLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_PLAY_SET_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_80134304 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_80134334 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_801342D4 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_RAISED_RING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_80134304 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_121300_80134270 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_121300_801343A4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1686,7 +1706,7 @@ EvsCommand D_actor_121300_8013CE08[52] = {
 EvsCommand D_actor_121300_8013D2E8[7] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_121300_80134250 }, { .value = ACTOR_121300_STEP_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_121300_8013427C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1770,40 +1790,40 @@ void func_actor_121300_801326EC(Task* arg0)
 /// Slot re-arm of the cutscene actor: ticks all nineteen animation slots, and
 /// once every one of slots 1..18 has `ANIMATION_SLOT_SETTLED` set,
 /// hands them the animation id `D_actor_121300_8013CC18` holds for the current
-/// `field_4A0`, blending it in over ten frames.  A negative table entry leaves
+/// `animSet`, blending it in over ten frames.  A negative table entry leaves
 /// the slots alone and only the return value follows.  The gotos reproduce
 /// retail's block layout.
 static s32 func_actor_121300_80132818(Task* arg0)
 {
-    Actor121300Work* work;
-    Actor121300Work* ctx;
-    u16              i;
-    u16              done;
-    u16              anim;
+    _Actor121300AyaBreaWork* work;
+    _Actor121300AyaBreaWork* ctx;
+    u16                      i;
+    u16                      done;
+    u16                      anim;
 
-    work = (Actor121300Work*)arg0->work;
-    for (i = 1; i < 0x13; i++) {
+    work = arg0->work;
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationTickSlot(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
-    for (; i < 0x13; i++) {
+    for (; i < ARRAY_SIZE(work->rig.slots); i++) {
         if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
             goto fail;
         }
     }
 check:
     if (done) {
-        if (D_actor_121300_8013CC18[work->field_4A0] >= 0) {
-            anim           = D_actor_121300_8013CC18[work->field_4A0];
-            ctx            = (Actor121300Work*)arg0->work;
-            ctx->field_4A0 = anim;
+        if (D_actor_121300_8013CC18[work->animSet] >= 0) {
+            anim         = D_actor_121300_8013CC18[work->animSet];
+            ctx          = arg0->work;
+            ctx->animSet = anim;
             goto loop;
         fail:
             done = 0;
             goto check;
         loop:
-            for (i = 1; i < 0x13; i++) {
+            for (i = 1; i < ARRAY_SIZE(ctx->rig.slots); i++) {
                 animationSeekSlotWithBlend(&ctx->rig.anim, i, anim, 0, 10);
             }
         }
@@ -1814,15 +1834,15 @@ check:
 
 void func_actor_121300_8013293C(Task* arg0)
 {
-    Actor121300DebrisWork* work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    VECTOR                 pos;
-    Actor121300DebrisWork* alloc;
-    s16                    r;
-    TmdObject*             tail;
+    _Actor121300DebrisWork* work;
+    TmdObject*              obj;
+    GfxCoord*               coord;
+    VECTOR                  pos;
+    _Actor121300DebrisWork* alloc;
+    s16                     r;
+    TmdObject*              tail;
 
-    work  = (Actor121300DebrisWork*)arg0->work;
+    work  = arg0->work;
     obj   = arg0->extra.tmd;
     coord = obj->coords;
     if (D_actor_121300_8013D41C == 0) {
@@ -1985,7 +2005,7 @@ void func_actor_121300_8013293C(Task* arg0)
     func_800D7A9C(tail, &pos, 0, 3);
 }
 
-/// Spawns the fifteen debris variants for one waypoint, then releases this task.
+/// Spawns the fifteen debris variants for one lamp, then releases this task.
 void func_actor_121300_80133064(Task* task)
 {
     void* alloc;
@@ -2029,7 +2049,7 @@ void func_actor_121300_80133064(Task* task)
 
 /// Uploads this actor's images using its parent's texture-page offset.
 ///
-/// `Actor121300Work::texturePageOffset` holds the signed offset, and `spawnArg2`
+/// `_Actor121300AyaBreaWork::texturePageOffset` holds the signed offset, and `spawnArg2`
 /// names the parent task. `spawnArg1` selects the images; the two-state variants
 /// upload one block per frame before killing the task.
 void func_actor_121300_8013322C(Task* task)
@@ -2040,7 +2060,7 @@ void func_actor_121300_8013322C(Task* task)
     // Relocate each image by the placement's 64-word texture-page offset.
     switch (task->spawnArg1.value) {
         case 0:
-            imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+            imageX   = ((_Actor121300AyaBreaWork*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
             imageX <<= 6;
             imageX  += 0x180;
             rect.x   = imageX;
@@ -2048,7 +2068,7 @@ void func_actor_121300_8013322C(Task* task)
             rect.w   = 0x19;
             rect.h   = 0x14;
             LoadImage(&rect, D_actor_121300_8013BBE8);
-            imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+            imageX   = ((_Actor121300AyaBreaWork*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
             imageX <<= 6;
             imageX  += 0x18C;
             rect.x   = imageX;
@@ -2061,7 +2081,7 @@ void func_actor_121300_8013322C(Task* task)
         case 1:
             switch (task->state) {
                 case 0:
-                    imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+                    imageX   = ((_Actor121300AyaBreaWork*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
                     imageX <<= 6;
                     imageX  += 0x180;
                     rect.x   = imageX;
@@ -2072,7 +2092,7 @@ void func_actor_121300_8013322C(Task* task)
                     task->state++;
                     break;
                 case 1:
-                    imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+                    imageX   = ((_Actor121300AyaBreaWork*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
                     imageX <<= 6;
                     imageX  += 0x180;
                     rect.x   = imageX;
@@ -2087,7 +2107,7 @@ void func_actor_121300_8013322C(Task* task)
         case 2:
             switch (task->state) {
                 case 0:
-                    imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+                    imageX   = ((_Actor121300AyaBreaWork*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
                     imageX <<= 6;
                     imageX  += 0x180;
                     rect.x   = imageX;
@@ -2098,7 +2118,7 @@ void func_actor_121300_8013322C(Task* task)
                     task->state++;
                     break;
                 case 1:
-                    imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+                    imageX   = ((_Actor121300AyaBreaWork*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
                     imageX <<= 6;
                     imageX  += 0x180;
                     rect.x   = imageX;
@@ -2114,7 +2134,7 @@ void func_actor_121300_8013322C(Task* task)
             break;
         case 4:
         case 5:
-            imageX   = ((Actor121300Work*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
+            imageX   = ((_Actor121300AyaBreaWork*)((Task*)task->spawnArg2.pointer)->work)->texturePageOffset;
             imageX <<= 6;
             imageX  += 0x18C;
             rect.x   = imageX;
@@ -2168,29 +2188,29 @@ static void func_actor_121300_8013343C(Task* arg0, s16 arg1)
     }
 }
 
-/// Effect spawner: bumps the `Actor121300Work::field_4A8` falloff every 20
+/// Effect spawner: bumps the `_Actor121300AyaBreaWork::spritePointsDropped` falloff every 20
 /// calls with `arg1` set, then on every fourth frame spawns effect 0x601B7 at
-/// the first `6 - field_4A8` entries of `D_actor_121300_8013CDC8`, jittered
+/// the first `6 - spritePointsDropped` entries of `D_actor_121300_8013CDC8`, jittered
 /// along `vx` by up to +/-70 as in `func_actor_121300_8013343C`.
 static void func_actor_121300_80133580(Task* arg0, s16 arg1)
 {
-    SVECTOR          pos;
-    Actor121300Work* work;
-    s16              i;
-    u32              seed;
-    s32              flags;
-    SVECTOR*         tbl;
-    s32              vx;
+    SVECTOR                  pos;
+    _Actor121300AyaBreaWork* work;
+    s16                      i;
+    u32                      seed;
+    s32                      flags;
+    SVECTOR*                 tbl;
+    s32                      vx;
 
-    work = (Actor121300Work*)arg0->work;
+    work = arg0->work;
     if (arg1 != 0) {
-        if (++work->field_4AA >= 20) {
-            work->field_4AA = 0;
-            work->field_4A8++;
+        if (++work->spriteDropFrames >= 20) {
+            work->spriteDropFrames = 0;
+            work->spritePointsDropped++;
         }
     }
     if (!(D_actor_121300_8013CC00 & 3)) {
-        for (i = 0; i < 6 - work->field_4A8; i++) {
+        for (i = 0; i < 6 - work->spritePointsDropped; i++) {
             flags           = 0x81202400;
             tbl             = D_actor_121300_8013CDC8;
             seed            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -2206,34 +2226,35 @@ static void func_actor_121300_80133580(Task* arg0, s16 arg1)
     }
 }
 
-/// Waypoint walker: while the current `Actor121300Work::field_49E` waypoint of
-/// `D_actor_121300_8013CC20` is live, counts three frames on it, then retunes
-/// the view through `func_dryfield_r08_8017F340`, bumps the value `func_dryfield_r08_8017F334` passes on
-/// and spawns the `D_actor_121300_8013D390[3]` child seeded with the new
-/// waypoint index.
+/// Lamp shattering: while the `_Actor121300AyaBreaWork::lampCursor` record of
+/// `D_actor_121300_8013CC20` is a lamp, counts three ticks, then hides the
+/// next lamp's sprites through `func_dryfield_r08_8017F340`, tells the room
+/// through `func_dryfield_r08_8017F334` how many lamps are out and spawns the
+/// `D_actor_121300_8013D390[3]` child that scatters that lamp's debris.
 static void func_actor_121300_80133730(Task* arg0)
 {
-    Actor121300Work* work = (Actor121300Work*)arg0->work;
+    _Actor121300AyaBreaWork* work = arg0->work;
 
-    switch (work->field_4A2) {
-        case 0:
+    switch (work->shatterState) {
+        case ACTOR_121300_SHATTER_START:
             D_actor_121300_8013D41C = 1;
-            work->field_4A4         = 0;
-            work->field_4A6         = 0;
-            work->field_4A2        += 1;
+            work->shatterFrames     = 0;
+            work->lampsShattered    = 0;
+            work->shatterState     += 1;
             break;
-        case 1:
-            if (D_actor_121300_8013CC20[work->field_49E].field_6 != -1) {
-                if ((s16)++work->field_4A4 >= 3) {
-                    if (work->field_4A6 < 6) {
-                        func_dryfield_r08_8017F340((u8)work->field_4A6, 1);
-                    } else if (work->field_4A6 >= 7) {
-                        func_dryfield_r08_8017F340((u8)(work->field_4A6 - 1), 1);
+        case ACTOR_121300_SHATTER_RUNNING:
+            if (D_actor_121300_8013CC20[work->lampCursor].endMarker != ACTOR_121300_LAMP_END) {
+                if (++work->shatterFrames >= ACTOR_121300_SHATTER_INTERVAL) {
+                    // Hide the lamp's sprite batch in the room's view; the seventh lamp has none.
+                    if (work->lampsShattered < 6) {
+                        func_dryfield_r08_8017F340(work->lampsShattered, 1);
+                    } else if (work->lampsShattered >= 7) {
+                        func_dryfield_r08_8017F340(work->lampsShattered - 1, 1);
                     }
-                    func_dryfield_r08_8017F334(work->field_4A6 + 1);
-                    Task_SpawnFromTable(D_actor_121300_8013D390, 3, (s32)(work->field_4A6), 0);
-                    work->field_4A4 = 0;
-                    work->field_4A6 = (s16)((u16)work->field_4A6 + 1);
+                    func_dryfield_r08_8017F334(work->lampsShattered + 1);
+                    Task_SpawnFromTable(D_actor_121300_8013D390, 3, (s32)work->lampsShattered, 0);
+                    work->shatterFrames = 0;
+                    work->lampsShattered++;
                 }
             }
             break;
@@ -2241,19 +2262,19 @@ static void func_actor_121300_80133730(Task* arg0)
 }
 
 /// Records `anim` as the animation the actor's slots are playing.
-#define SET_ANIM_ID(work, anim)     \
-    do {                            \
-        (work)->field_4A0 = (anim); \
+#define SET_ANIM_ID(work, anim)   \
+    do {                          \
+        (work)->animSet = (anim); \
     } while (0)
 
 static inline void func_actor_121300_PlayAll(Task* arg0, s32 anim)
 {
-    Actor121300Work* work;
-    u16              i;
+    _Actor121300AyaBreaWork* work;
+    u16                      i;
 
-    work = (Actor121300Work*)arg0->work;
+    work = arg0->work;
     SET_ANIM_ID(work, anim);
-    for (i = 1; i < 0x13; i++) {
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationSeekSlotWithBlend(&work->rig.anim, i, anim, 0, 10);
     }
 }
@@ -2265,65 +2286,65 @@ static inline void func_actor_121300_SetCC04(s32 v)
 
 static void func_actor_121300_80133854(Task* arg0)
 {
-    Actor121300Work* work;
-    CdCmdQueue*      queue;
+    _Actor121300AyaBreaWork* work;
+    CdCmdQueue*              queue;
 
-    work  = (Actor121300Work*)arg0->work;
+    work  = arg0->work;
     queue = &gCdCmdQueue;
     func_actor_121300_80132818(arg0);
-    switch ((u16)work->field_498) {
-        case 1:
-            taskMessageDispatch(work->field_488, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+    switch (work->step) {
+        case ACTOR_121300_STEP_REPLACE_PLAYER:
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
             gGameSession->viewDirty = 1;
             {
-                Actor121300Work* slotsWork;
-                s32              i;
+                _Actor121300AyaBreaWork* slotsWork;
+                s32                      i;
 
-                slotsWork            = (Actor121300Work*)arg0->work;
-                slotsWork->field_4A0 = 1;
-                for (i = 1; (u16)i < 0x13U; i++) {
+                slotsWork          = arg0->work;
+                slotsWork->animSet = 1;
+                for (i = 1; (u16)i < ARRAY_SIZE(slotsWork->rig.slots); i++) {
                     slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
                     animationResetSlot(&slotsWork->rig.anim, (u16)i, 1);
                 }
             }
-            work->field_498 = 0;
+            work->step = ACTOR_121300_STEP_NONE;
             break;
-        case 2:
+        case ACTOR_121300_STEP_PLAY_SET_2:
             func_actor_121300_PlayAll(arg0, 2);
-            work->field_498 = 0;
+            work->step = ACTOR_121300_STEP_NONE;
             break;
-        case 4:
-            if ((u16)work->field_49A == 0) {
+        case ACTOR_121300_STEP_SHATTER_LAMPS_WAVE:
+            if (work->stepState == 0) {
                 func_actor_121300_SetCC04(10);
                 work->wave.span  = 0x3C;
                 work->wave.scale = 0x100;
-                work->field_48C  = Task_SpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
-                work->field_49A++;
+                work->waveTask   = Task_SpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
+                work->stepState++;
             }
-        case 3:
+        case ACTOR_121300_STEP_SHATTER_LAMPS:
             func_actor_121300_80133730(arg0);
             break;
-        case 8:
+        case ACTOR_121300_STEP_SHATTER_LAMPS_SLOW:
             func_actor_121300_SetCC04(0x1E);
             func_actor_121300_80133730(arg0);
             break;
-        case 5:
+        case ACTOR_121300_STEP_END_SHATTER:
             work->wave.state        = SCREEN_WAVE_RAMP_FINISHED;
             queue->imageMdecMode    = MDEC_IMAGE_MODE_RGB16;
             D_actor_121300_8013D41C = 0;
-            work->field_498         = 0;
+            work->step              = 0;
             break;
-        case 6:
-            if ((u16)work->field_49A == 0) {
+        case ACTOR_121300_STEP_HOLD_ON_MARK:
+            if (work->stepState == 0) {
                 TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
                 {
-                    Actor121300Work* slotsWork;
-                    s32              i;
+                    _Actor121300AyaBreaWork* slotsWork;
+                    s32                      i;
 
-                    slotsWork            = (Actor121300Work*)arg0->work;
-                    slotsWork->field_4A0 = 1;
-                    for (i = 1; (u16)i < 0x13U; i++) {
+                    slotsWork          = arg0->work;
+                    slotsWork->animSet = 1;
+                    for (i = 1; (u16)i < ARRAY_SIZE(slotsWork->rig.slots); i++) {
                         slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
                         animationResetSlot(&slotsWork->rig.anim, (u16)i, 1);
                     }
@@ -2333,43 +2354,43 @@ static void func_actor_121300_80133854(Task* arg0)
             func_actor_121300_8013343C(arg0, 0);
             func_actor_121300_80133580(arg0, 0);
             break;
-        case 7:
-            if ((u16)work->field_49A == 0) {
+        case ACTOR_121300_STEP_PLAY_SET_3:
+            if (work->stepState == 0) {
                 func_actor_121300_PlayAll(arg0, 3);
-                work->field_49A++;
+                work->stepState++;
             }
             func_actor_121300_8013343C(arg0, 0);
             break;
-        case 9:
+        case ACTOR_121300_STEP_SPRITES_DWINDLE:
             func_actor_121300_80133580(arg0, 1);
             func_actor_121300_8013343C(arg0, 0);
             break;
-        case 10:
-            switch ((u16)work->field_49A) {
+        case ACTOR_121300_STEP_WAVE_PULSE:
+            switch (work->stepState) {
                 case 0:
-                    work->wave.span  = 8;
-                    work->wave.scale = 0x100;
-                    work->field_48C  = Task_SpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
-                    work->field_49C  = 0;
-                    work->field_49A++;
+                    work->wave.span   = 8;
+                    work->wave.scale  = 0x100;
+                    work->waveTask    = Task_SpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
+                    work->pulseFrames = 0;
+                    work->stepState++;
                     break;
                 case 1:
-                    if (++work->field_49C >= 8) {
+                    if (++work->pulseFrames >= 8) {
                         work->wave.state = SCREEN_WAVE_RAMP_FALLING;
                         work->wave.span  = 8;
-                        work->field_498  = 0;
+                        work->step       = 0;
                     }
                     break;
             }
             break;
-        case 11:
+        case ACTOR_121300_STEP_RAISED_RING:
             func_actor_121300_8013343C(arg0, 1);
             break;
-        case 12:
+        case ACTOR_121300_STEP_MASK_STREAM:
             queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-        case 0:
+        case ACTOR_121300_STEP_NONE:
         default:
-            work->field_498 = 0;
+            work->step = ACTOR_121300_STEP_NONE;
             break;
     }
 }
@@ -2382,18 +2403,18 @@ static void func_actor_121300_80133BFC(Task* task)
 {
     enum { TEXTURE_RESOURCE_ENTRY_ID = 0x84 };
 
-    Actor121300Work* work;
-    Actor121300Work* allocatedWork;
-    Actor121300Work* slotsWork;
-    TmdObject*       tmd;
-    GfxCoord*        coord;
-    AreaPlacement*   place;
-    s32              slotIndex;
-    u8               entryId;
+    _Actor121300AyaBreaWork* work;
+    _Actor121300AyaBreaWork* allocatedWork;
+    _Actor121300AyaBreaWork* slotsWork;
+    TmdObject*               tmd;
+    GfxCoord*                coord;
+    AreaPlacement*           place;
+    s32                      slotIndex;
+    u8                       entryId;
 
     tmd           = task->extra.tmd;
     coord         = tmd->coords;
-    allocatedWork = memMalloc(sizeof(Actor121300Work), false);
+    allocatedWork = memMalloc(sizeof(_Actor121300AyaBreaWork), false);
     task->work    = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(task);
@@ -2401,12 +2422,12 @@ static void func_actor_121300_80133BFC(Task* task)
     }
     work = allocatedWork;
     memFillBytes(work, 0, sizeof(*work));
-    work->field_488         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_121300_8013D418 = task;
     coord->parent           = &gGfxViewCoord;
-    tmd->lightMtx           = &work->field_43C;
+    tmd->lightMtx           = &work->lightMtx;
     tmd->flags              = 0;
-    tmd->colorMtx           = &work->field_45C;
+    tmd->colorMtx           = &work->colorMtx;
     place                   = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
     entryId                 = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
@@ -2421,9 +2442,9 @@ static void func_actor_121300_80133BFC(Task* task)
     work->texturePageOffset = place->texturePageOffset;
     animationInitContext(&work->rig.anim, D_actor_121300_8013CC08, tmd, work->rig.poses,
                          work->rig.slots);
-    slotsWork            = (Actor121300Work*)task->work;
-    slotsWork->field_4A0 = 1;
-    slotIndex            = 1;
+    slotsWork          = task->work;
+    slotsWork->animSet = 1;
+    slotIndex          = 1;
     do {
         slotsWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&slotsWork->rig.anim, (u16)slotIndex, 1);
@@ -2450,29 +2471,31 @@ static void func_actor_121300_80133BFC(Task* task)
 /// `func_800D7A9C`.
 void func_actor_121300_80133D98(Task* arg0)
 {
-    Actor121300Scratch scratch;
-    TmdObject*         extra;
-    s32                state;
-    s32                weaponId;
-    s32                anim;
+    TmdObject* extra;
+    s32        state;
+    s32        weaponId;
+    s32        anim;
 
     state = arg0->state;
     switch (state) {
-        case 0:
+        case 0: {
+            AnimationPlayRequest request;
+
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                weaponId                         = gPlayerStatus.weapon;
-                anim                             = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                scratch.msg.source.index         = anim;
-                scratch.msg.animationId          = 1;
-                scratch.msg.blend                = ANIMATION_BLEND_RESET;
-                scratch.msg.blendFrames          = 0;
-                scratch.msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.msg, 0);
+                weaponId                     = gPlayerStatus.weapon;
+                anim                         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                request.source.index         = anim;
+                request.animationId          = 1;
+                request.blend                = ANIMATION_BLEND_RESET;
+                request.blendFrames          = 0;
+                request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
                 func_actor_121300_80133BFC(arg0);
                 arg0->state += 1;
                 break;
             }
             return;
+        }
         case 1:
             func_800E8634(D_actor_121300_8013CE08, 0, D_actor_121300_8013D2E8);
             arg0->state += 1;
@@ -2483,14 +2506,16 @@ void func_actor_121300_80133D98(Task* arg0)
                 arg0->state += 1;
             }
             break;
-        case 3:
-            scratch.rect.x = 0;
-            scratch.rect.y = 0;
-            scratch.rect.w = 0x140;
-            scratch.rect.h = 0xF0;
-            ClearImage(&scratch.rect, 0, 0, 0);
-            scratch.rect.y = 0x110;
-            ClearImage(&scratch.rect, 0, 0, 0);
+        case 3: {
+            RECT rect;
+
+            rect.x = 0;
+            rect.y = 0;
+            rect.w = 0x140;
+            rect.h = 0xF0;
+            ClearImage(&rect, 0, 0, 0);
+            rect.y = 0x110;
+            ClearImage(&rect, 0, 0, 0);
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = state;
@@ -2500,13 +2525,18 @@ void func_actor_121300_80133D98(Task* arg0)
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             return;
+        }
     }
     func_actor_121300_80133854(arg0);
-    extra          = arg0->extra.tmd;
-    scratch.vec.vx = extra->coords[1].workm.t[0];
-    scratch.vec.vy = arg0->extra.tmd->coords[1].workm.t[1];
-    scratch.vec.vz = arg0->extra.tmd->coords[1].workm.t[2];
-    func_800D7A9C(extra, &scratch.vec, 0, 3);
+    {
+        VECTOR pos;
+
+        extra  = arg0->extra.tmd;
+        pos.vx = extra->coords[1].workm.t[0];
+        pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
+        pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
+        func_800D7A9C(extra, &pos, 0, 3);
+    }
     D_actor_121300_8013CC00 += 1;
 }
 
@@ -2560,10 +2590,10 @@ s32 func_actor_121300_80134224(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void func_actor_121300_80134250(s16 arg0)
 {
-    Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->work;
+    _Actor121300AyaBreaWork* work = D_actor_121300_8013D418->work;
 
-    work->field_498 = arg0;
-    work->field_49A = 0;
+    work->step      = arg0;
+    work->stepState = 0;
 }
 
 void func_actor_121300_80134270(void)
@@ -2573,12 +2603,12 @@ void func_actor_121300_80134270(void)
 
 void func_actor_121300_8013427C(void)
 {
-    Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->work;
+    _Actor121300AyaBreaWork* work = D_actor_121300_8013D418->work;
 
     D_actor_121300_8013D41C   = 0;
     work->wave.state          = SCREEN_WAVE_RAMP_FINISHED;
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
-    taskMessageDispatch(work->field_488, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     CdCmd_CancelReplaceAndActivate();
 }
 
