@@ -102149,7 +102149,7 @@ above).
 Inputs: `base.i` (m2c seed, 85.111%), `base_1.i` (100.000%).
 ## One pseudo per C variable, not per assignment: reusing the function's pointer local denies a reload a caller-saved home (func_actor_120500_80132920, 2026-09-16)
 
-An `if (p->work->field_4B4 != 0) { ...; taskMessageDispatch(p->work->field_4B4, ...); }`
+An `if (p->work->playerTask != 0) { ...; taskMessageDispatch(p->work->playerTask, ...); }`
 where the target loads `p->work` **once** and reuses it for the call argument
 scores 88.75% from the m2c seed and 96.97% after the payload is made one
 struct — both times with the wrong shape in the same place. The m2c seed writes
@@ -102176,10 +102176,10 @@ target's `$v1`, and it is 100.000% with all penalties zero:
 
 ```c
     animWork = actor->field_1C;
-    if (animWork->field_4B4 != NULL) {
+    if (animWork->playerTask != NULL) {
         msg.field_0 = D_actor_120500_8013807C;
         ...
-        taskMessageDispatch(animWork->field_4B4, 0x3F4, (s32)&msg, 0);
+        taskMessageDispatch(animWork->playerTask, 0x3F4, (s32)&msg, 0);
     }
     work = actor->field_1C;
 ```
@@ -128921,22 +128921,22 @@ raw `j` targets (`./objdump.py base_N.o | grep 'j  *\.text'`), not the score —
 and treat the overlay checksum as the only verdict.
 
 The cause is a source-level one-liner. Writing the epilogue-jumping arms as
-`goto clear_4C8;`, where `clear_4C8:` is the label *on* the shared store, makes
+`goto screen_request_clear;`, where `screen_request_clear:` is the label *on* the shared store, makes
 every arm jump at the store (executing it a second time through its own delay
 slot). Retail jumped *past* it, so the label the arms name has to be the one
 after the store, and only the fall-through arm names the store's label:
 
 ```c
     if (code != 2) {
-        w->field_4C8 = 0;
-        goto done_4C8;      /* done_4C8: is below the store, not on it */
+        screenWork->screenRequest = 0;
+        goto screen_request_done;   /* screen_request_done: is below the store, not on it */
     } else {
-        goto do_4C8_case2;
+        goto screen_request_play_movie;
     }
     ...
-clear_4C8:                  /* the `code < 2` arm branches here */
-    w->field_4C8 = 0;
-done_4C8:
+screen_request_clear:               /* the `code < 2` arm branches here */
+    screenWork->screenRequest = 0;
+screen_request_done:
 ```
 
 ## A scan loop written `while`/`do` is rotated by `duplicate_loop_exit_test`; an explicit `goto` label reproduces retail's test-at-top block (func_actor_120500_8013241C, 2026-09-17)
@@ -128978,7 +128978,7 @@ into a single `beq`; written as nested `if`s it keeps both branches. The same
 dispatch also tests `>= 2` with `slti` (signed), which a `u16` field does not
 give on its own — the narrowing compare is `sltiu`, as the corpus entry for `u8`
 globals already notes. Reading the field into an `s32` local first
-(`code = w->field_4C8;` then `code >= 2`) produces `lhu` + `slti`, and m2c's
+(`code = screenWork->screenRequest;` then `code >= 2`) produces `lhu` + `slti`, and m2c's
 `(s32) temp_v1_3 >= 2` cast is the tell that retail did this.
 
 With those two tests the body is an if/else chain, not a switch: `emit_case_nodes`
@@ -128988,23 +128988,39 @@ pair at all. Once the tests are ifs, the block layout follows the emission order
 (then before else), which for this dispatch meant putting the two arm bodies
 behind labels with `goto`s, in the order the target has them.
 
-## Two payloads that never overlap share one stack slot: write them as a union (func_actor_120500_8013241C, 2026-09-17)
+## Two payloads that never overlap share one stack slot: declare each in its own block (func_actor_120500_8013241C, 2026-09-17)
 
 State 0 fills a 0x14-byte `AnimationPlayRequest` for message 0x3E8 and the epilogue fills a
-0x10-byte `VECTOR` for `func_800D7A9C`; GCC never reuses a stack slot between two
-distinct locals (`assign_stack_local` always allocates), and the target's frame
-has one 0x14 slot carrying both. `Actor310100Vec` already records the idiom, so
-declare the pair as a union and address the two members:
+0x10-byte `VECTOR` for `func_800D7A9C`; the target's frame has one 0x14 slot
+carrying both. Two locals declared at function scope never share a slot, and
+that form adds 0x10 to the frame and a saved register with it. Two locals of
+*disjoint blocks* do share one: `expand_decl` gives an addressable local an
+`assign_stack_temp` slot at its block's nesting level, `expand_end_bindings`
+frees that level's slots, and a later block's local takes a freed slot that
+is large enough. So the request is a local of the state-0 arm and the
+translation a local of a block around the epilogue:
 
 ```c
-typedef union Actor120500Args {
-    /* 0x0 */ AnimationPlayRequest msg; // message 0x3E8 payload
-    /* 0x0 */ VECTOR    pos; // model part-1 translation
-} Actor120500Args;
+        case 0:
+            if (...) {
+                AnimationPlayRequest request;
+                ...
+                TASK_MESSAGE_DISPATCH_POINTER(..., ANIMATION_MESSAGE_PLAY, &request, 0);
+            }
+    ...
+    {
+        VECTOR pos;
+
+        pos.vx = ...;
+        func_800D7A9C(mdl, &pos, 0, 3);
+    }
 ```
 
-The union's size is the larger member's, so the frame comes out exactly as
-retail's, where two separate locals add 0x10 and a saved register with it.
+The slot keeps the size of its first, larger occupant, so the frame comes out
+exactly as retail's. This body was first matched with the pair as members of
+a union at function scope, which produces the same frame; the block-scoped
+locals match too and need no type that says the two payloads are one object.
+Try them before reaching for a union when a frame is one slot short.
 ## An `alabel` on an absolute import hides the last carrier of an already-shared body from `find` (func_actor_304000_80162DFC, 2026-09-17)
 
 `overlay_dup_index.py find func_actor_304000_80162DFC` reports `same body: 1

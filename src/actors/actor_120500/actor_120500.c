@@ -45,38 +45,57 @@
 #include "../../shared/screen_fade.h"
 #include "../../shared/actor_messages.h"
 
-/// The actor's work block, hung off `Task::work`. `func_actor_120500_801322A0`
-/// allocates it with `memMalloc(0x4CC, 0)` and zeroes it with `memFillBytes`.
+/// Requests the event script posts in `_Actor120500Work::playerRequest`.
 ///
-/// It opens with the animation state `animationInitContext` is handed: the
-/// `AnimationContext`, the twenty `AnimationSlot`s the tick walks and the pose buffer.
-/// The two `MATRIX`es are the model's light and colour matrices, published
-/// through `TmdObject::lightMtx` / `colorMtx`. The three code/phase pairs at
-/// the end are requests the setters arm and the tick consumes.
-typedef struct Actor120500Work {
-    /* 0x000 */ ActorAnimRig20 rig;
-    /* 0x474 */ MATRIX         field_474; // light matrix, into TmdObject::lightMtx
-    /* 0x494 */ MATRIX         field_494; // colour matrix, into TmdObject::colorMtx
-    /* 0x4B4 */ Task*          field_4B4; // task in pointer slot 3, the animation messages' target
-    /* 0x4B8 */ s16            field_4B8;
-    /* 0x4BA */ s16            field_4BA;
-    /* 0x4BC */ byte           pad_4BC[0x4];
-    /* 0x4C0 */ u16            field_4C0;
-    /* 0x4C2 */ s16            field_4C2;
-    /* 0x4C4 */ byte           pad_4C4[0x4];
-    /* 0x4C8 */ u16            field_4C8;
-    /* 0x4CA */ s16            field_4CA;
-} Actor120500Work;
-STATIC_ASSERT_SIZEOF(Actor120500Work, 0x4CC);
+/// Any other nonzero code is cleared without effect.
+enum {
+    ACTOR_120500_PLAYER_REQUEST_NONE             = 0,
+    ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION  = 2, // Raises the override vector and starts the first of the scene's player animations, then holds the player at the first placement every tick until another request replaces this one
+    ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION = 3, // Fades in from black, drops the override vector, shows the player at the second placement and starts the second animation
+    ACTOR_120500_PLAYER_REQUEST_THIRD_ANIMATION  = 4, // Blends into the third animation over 8 frames
+    ACTOR_120500_PLAYER_REQUEST_HIDE_BODY        = 5, // Hides the actor's own model and keeps it from being given buffers again
+    ACTOR_120500_PLAYER_REQUEST_WEAPON_ANIMATION = 6, // Returns the player to the equipped weapon's animation
+};
 
-/// Scratch buffer `func_actor_120500_8013241C` fills twice in one tick: as the
-/// `AnimationPlayRequest` it hands the task in pointer slot 3 with message 0x3E8, then as
-/// the model's part-1 translation `func_800D7A9C` draws with. The two uses
-/// cannot overlap, and the frame keeps them in one 0x14-byte stack slot.
-typedef union Actor120500Args {
-    /* 0x0 */ AnimationPlayRequest msg; // message 0x3E8 payload
-    /* 0x0 */ VECTOR               pos; // model part-1 translation
-} Actor120500Args;
+/// Requests the event script posts in `_Actor120500Work::bodyRequest`.
+enum {
+    ACTOR_120500_BODY_REQUEST_NONE   = 0,
+    ACTOR_120500_BODY_REQUEST_APPEAR = 1, // Allocates the body model's buffers, fades in from black and places the body in the view
+};
+
+/// Requests the event script posts in `_Actor120500Work::screenRequest`.
+enum {
+    ACTOR_120500_SCREEN_REQUEST_NONE       = 0,
+    ACTOR_120500_SCREEN_REQUEST_FADE_OUT   = 1, // Fades to black
+    ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE = 2, // Hides the player's model and spawns the task that plays the scene's movie
+};
+
+/// Work block of Kyle Madigan's body in the motel room 6 scene, allocated at
+/// its full size, zeroed and kept at `Task::work`.
+///
+/// The actor directs the scene around its movie: the player's animations
+/// before and after it, its own body's appearance, and the fades and the movie
+/// themselves. The event script drives all three by posting numbered requests,
+/// one channel each. The tick performs a posted request once and clears it;
+/// posting one restarts the step beside it, which a request lasting several
+/// ticks counts its stages in. Request 0 is none.
+///
+/// Nothing accesses the two `pad` runs; their roles are unproven.
+typedef struct {
+    ActorAnimRig20 rig;               // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    MATRIX         light;             // Storage for the model's `TmdObject::lightMtx`
+    MATRIX         color;             // Storage for the model's `TmdObject::colorMtx`
+    Task*          playerTask;        // The player's task, which the player requests are sent to
+    u16            playerRequest;     // Request posted for the player, `ACTOR_120500_PLAYER_REQUEST_*`
+    u16            playerRequestStep; // Stage of `playerRequest`, 0 when it is posted (first animation: 0 start it, 1 only hold the placement)
+    byte           pad_4BC[0x4];
+    u16            bodyRequest;       // Request posted for the actor's body, `ACTOR_120500_BODY_REQUEST_*`
+    u16            bodyRequestStep;   // Zeroed when `bodyRequest` is posted; never read
+    byte           pad_4C4[0x4];
+    u16            screenRequest;     // Request posted for the fades and the movie, `ACTOR_120500_SCREEN_REQUEST_*`
+    u16            screenRequestStep; // Zeroed when `screenRequest` is posted; never read
+} _Actor120500Work;
+STATIC_ASSERT_SIZEOF(_Actor120500Work, 0x4CC);
 
 /// The actor task, published by `func_actor_120500_801322A0` so the setters,
 /// which take no task, can reach its work block.
@@ -268,26 +287,26 @@ ActorTransform D_actor_120500_801380C0 = { { 800, -0x2EE0, -2750, 0 }, { 0, 2048
 
 EvsCommand D_actor_120500_801380D8[24] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = ACTOR_120500_SCREEN_REQUEST_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328E0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328E0 }, { .value = ACTOR_120500_BODY_REQUEST_APPEAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = ACTOR_120500_SCREEN_REQUEST_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = ACTOR_120500_PLAYER_REQUEST_HIDE_BODY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = ACTOR_120500_PLAYER_REQUEST_THIRD_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = ACTOR_120500_PLAYER_REQUEST_WEAPON_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -393,95 +412,92 @@ void func_actor_120500_80131E58(Task* arg0)
     }
 }
 
-/// Per-frame request handler for the pair at `field_4B8` / `field_4BA`, stepped
-/// by the tick body and armed by `func_actor_120500_801328C0`. Every tick first
-/// sends message 0x3ED to the task at `field_4B4`, then dispatches on the code:
-/// 2 raises the override vector and installs animation set 0 once before
-/// sending placement record `D_actor_120500_80138090` on every tick -- the only
-/// code that does not clear itself; 3 spawns the fade from black, drops the
-/// override and installs set 1 with `D_actor_120500_801380A8`; 4 installs set 2
-/// with the 8-frame blend; 5 sends the actor its own message 0x7D5 with payload
-/// 2, hiding the model; and 6 sends message 0x3E8 with the equipped-weapon
-/// animation, picked the same way `func_actor_120500_8013241C` picks it. Every
-/// other code, 0 and 1 included, just clears the request.
+/// Performs the request posted in `_Actor120500Work::playerRequest`, stepped by
+/// the tick body and posted by `func_actor_120500_801328C0`. Every tick first
+/// sends `ANIMATION_MESSAGE_IS_PLAYING` to `playerTask`, then dispatches on the
+/// request. `ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION` is the only one that
+/// does not clear itself: after its first tick it keeps sending the placement
+/// record `D_actor_120500_80138090`. The weapon animation is picked the same
+/// way `func_actor_120500_8013241C` picks it. Every code without a handler, 1
+/// included, just clears the request.
 static void func_actor_120500_80132028(Task* arg0)
 {
-    Actor120500Work*      work;
-    Actor120500Work*      w;
-    Actor120500Work*      w2;
-    Actor120500Work*      w3;
+    _Actor120500Work*     work;
+    _Actor120500Work*     reloadedWork;
+    _Actor120500Work*     animWork;
+    _Actor120500Work*     firstAnimWork;
     SVECTOR               vec;
     AnimationPlayRequest  msg;
     AnimationPlayRequest* p;
     s32                   anim;
     s32                   base;
 
-    work = (Actor120500Work*)arg0->work;
-    if (work->field_4B4 != NULL) {
-        taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_IS_PLAYING, 0, 0);
+    work = arg0->work;
+    if (work->playerTask != NULL) {
+        taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0);
     }
-    switch ((u16)work->field_4B8) {
-        case 0:
+    switch (work->playerRequest) {
+        case ACTOR_120500_PLAYER_REQUEST_NONE:
         case 1:
             break;
-        case 2:
-            switch ((u16)work->field_4BA) {
+        case ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION:
+            switch (work->playerRequestStep) {
                 case 0:
                     vec.vx = 0x960;
                     vec.vy = 0x960;
                     vec.vz = 0x960;
                     Gp_SetOverrideVec(&vec);
-                    w3 = (Actor120500Work*)arg0->work;
-                    p  = &msg;
-                    if (w3->field_4B4 != NULL) {
+                    firstAnimWork = arg0->work;
+                    p             = &msg;
+                    if (firstAnimWork->playerTask != NULL) {
                         msg.source.sets         = D_actor_120500_8013807C;
                         msg.animationId         = 0;
                         msg.blend               = ANIMATION_BLEND_RESET;
                         msg.blendFrames         = 0;
                         p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(w3->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(firstAnimWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
                     }
-                    work->field_4BA = work->field_4BA + 1;
+                    work->playerRequestStep = work->playerRequestStep + 1;
                     /* fallthrough */
                 case 1:
-                    TASK_MESSAGE_DISPATCH_POINTER(((Actor120500Work*)arg0->work)->field_4B4, 0x3E9,
+                    TASK_MESSAGE_DISPATCH_POINTER(((_Actor120500Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE,
                                                   &D_actor_120500_80138090, 0);
                     return;
             }
             return;
-        case 3:
+        case ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION:
             Task_SpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
-            w = (Actor120500Work*)arg0->work;
+            reloadedWork = arg0->work;
             Gp_SetOverrideVec(NULL);
-            taskMessageDispatch(w->field_4B4, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(w->field_4B4, 0x3E9, &D_actor_120500_801380A8, 0);
-            w2 = (Actor120500Work*)arg0->work;
-            p  = &msg;
-            if (w2->field_4B4 != NULL) {
+            taskMessageDispatch(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120500_801380A8, 0);
+            animWork = arg0->work;
+            p        = &msg;
+            if (animWork->playerTask != NULL) {
                 msg.source.sets         = D_actor_120500_8013807C;
                 p->animationId          = 1;
                 msg.blend               = ANIMATION_BLEND_RESET;
                 msg.blendFrames         = 0;
                 p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(w2->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
             }
             break;
-        case 4:
-            w2 = (Actor120500Work*)arg0->work;
-            p  = &msg;
-            if (w2->field_4B4 != NULL) {
+        case ACTOR_120500_PLAYER_REQUEST_THIRD_ANIMATION:
+            animWork = arg0->work;
+            p        = &msg;
+            if (animWork->playerTask != NULL) {
                 msg.source.sets         = D_actor_120500_8013807C;
                 p->animationId          = 2;
                 p->blend                = ANIMATION_BLEND_INTERPOLATE;
                 p->blendFrames          = 8;
                 p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(w2->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
             }
             break;
-        case 5:
+        case ACTOR_120500_PLAYER_REQUEST_HIDE_BODY:
             taskMessageDispatch(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
-        case 6:
+        case ACTOR_120500_PLAYER_REQUEST_WEAPON_ANIMATION:
             base = gPlayerStatus.weapon;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 anim = base + 1;
@@ -493,10 +509,10 @@ static void func_actor_120500_80132028(Task* arg0)
             msg.blend                = ANIMATION_BLEND_RESET;
             msg.blendFrames          = 0;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, ANIMATION_MESSAGE_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
     }
-    work->field_4B8 = 0;
+    work->playerRequest = ACTOR_120500_PLAYER_REQUEST_NONE;
 }
 
 /// Initialize the cutscene actor's model and animations.
@@ -507,18 +523,18 @@ static void func_actor_120500_801322A0(Task* task)
 {
     enum { TEXTURE_RESOURCE_ENTRY_ID = 0x65 };
 
-    Actor120500Work* work;
-    Actor120500Work* allocatedWork;
-    Actor120500Work* slotsWork;
-    TmdObject*       tmd;
-    GfxCoord*        coord;
-    AreaPlacement*   place;
-    s32              slotIndex;
-    u8               entryId;
+    _Actor120500Work* work;
+    _Actor120500Work* allocatedWork;
+    _Actor120500Work* slotsWork;
+    TmdObject*        tmd;
+    GfxCoord*         coord;
+    AreaPlacement*    place;
+    s32               slotIndex;
+    u8                entryId;
 
     tmd           = task->extra.tmd;
     coord         = tmd->coords;
-    allocatedWork = memMalloc(sizeof(Actor120500Work), false);
+    allocatedWork = memMalloc(sizeof(_Actor120500Work), false);
     task->work    = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(task);
@@ -526,12 +542,12 @@ static void func_actor_120500_801322A0(Task* task)
     }
     work = allocatedWork;
     memFillBytes(work, 0, sizeof(*work));
-    work->field_4B4         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_120500_80138454 = task;
     coord->parent           = &gGfxViewCoord;
-    tmd->lightMtx           = &work->field_474;
+    tmd->lightMtx           = &work->light;
     tmd->flags              = 0;
-    tmd->colorMtx           = &work->field_494;
+    tmd->colorMtx           = &work->color;
     place                   = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
     entryId                 = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
@@ -543,7 +559,7 @@ static void func_actor_120500_801322A0(Task* task)
     }
     Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
     animationInitContext(&work->rig.anim, D_actor_120500_80138088, tmd, work->rig.poses, work->rig.slots);
-    slotsWork      = (Actor120500Work*)task->work;
+    slotsWork      = task->work;
     task->msgTable = D_actor_120500_80138408;
     slotIndex      = 1;
     do {
@@ -562,30 +578,36 @@ static void func_actor_120500_801322A0(Task* task)
 ///
 /// Every state then steps the request handler, ticks the nineteen animation
 /// slots past slot 0 and walks the slots to the first whose
-/// `ANIMATION_SLOT_REACHED_BOUNDARY` result is clear. Request code 1 at 0x4C0
-/// allocates the model's buffers, spawns the
-/// fade from black and places the actor with its own placement record. At
-/// 0x4C8, code 1 spawns the fade to black and code 2 sends message 0x3F3,
-/// spawns the streamed sequence, raises `gDisplayState.control.flags.flipMode` and spawns the view
-/// tasks. The model's part-1 translation goes to `func_800D7A9C` last.
+/// `ANIMATION_SLOT_REACHED_BOUNDARY` result is clear. The body request
+/// `ACTOR_120500_BODY_REQUEST_APPEAR` allocates the model's buffers, spawns the
+/// fade from black and places the actor with its own placement record. Of the
+/// screen requests, `ACTOR_120500_SCREEN_REQUEST_FADE_OUT` spawns the fade to
+/// black and `ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE` hides the player's model,
+/// spawns the streamed sequence, raises `gDisplayState.control.flags.flipMode`
+/// and spawns the view tasks. The model's part-1 translation goes to
+/// `func_800D7A9C` last.
 ///
-/// The request 0x4C8 dispatch is written with gotos: the labels reproduce
+/// The screen request dispatch is written with gotos: the labels reproduce
 /// retail's block layout, where the three clear sites sit at the end of their
 /// own arms.
+///
+/// The animation request and the translation are locals of two separate
+/// blocks so that they share one stack slot, as the retail frame has them.
 void func_actor_120500_8013241C(Task* arg0)
 {
-    Actor120500Work* work;
-    Actor120500Work* slotsWork;
-    Actor120500Work* w;
-    Actor120500Args  args;
-    TmdObject*       mdl;
-    s32              anim;
-    s32              code;
-    s32              i;
+    _Actor120500Work* work;
+    _Actor120500Work* slotsWork;
+    _Actor120500Work* screenWork;
+    TmdObject*        mdl;
+    s32               anim;
+    s32               code;
+    s32               i;
 
     switch (arg0->state) {
         case 0:
             if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+                AnimationPlayRequest request;
+
                 func_actor_120500_801322A0(arg0);
                 anim = gPlayerStatus.weapon;
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
@@ -593,12 +615,12 @@ void func_actor_120500_8013241C(Task* arg0)
                 } else {
                     anim = anim + 0x22;
                 }
-                args.msg.source.index         = anim;
-                args.msg.animationId          = 1;
-                args.msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-                args.msg.blendFrames          = 10;
-                args.msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &args.msg, 0);
+                request.source.index         = anim;
+                request.animationId          = 1;
+                request.blend                = ANIMATION_BLEND_INTERPOLATE;
+                request.blendFrames          = 10;
+                request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
                 func_800E3FAC(0xA2, 0xD);
                 func_800E8634(D_actor_120500_801380D8, 0, D_actor_120500_80138318);
                 arg0->state += 1;
@@ -614,134 +636,138 @@ void func_actor_120500_8013241C(Task* arg0)
     }
 
     func_actor_120500_80132028(arg0);
-    work      = (Actor120500Work*)arg0->work;
+    work      = arg0->work;
     slotsWork = work;
 
     i = 1;
     do {
         animationTickSlot(&slotsWork->rig.anim, (u16)i);
         i++;
-    } while ((u16)i < 0x14U);
+    } while ((u16)i < ARRAY_SIZE(slotsWork->rig.slots));
 
     i = 1;
 loop_slots:
     if ((slotsWork->rig.slots[(u16)i].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) != 0) {
         i++;
-        if ((u16)i < 0x14U) {
+        if ((u16)i < ARRAY_SIZE(slotsWork->rig.slots)) {
             goto loop_slots;
         }
     }
 
-    if (work->field_4C0 != 0) {
-        if (work->field_4C0 == 1) {
+    if (work->bodyRequest != ACTOR_120500_BODY_REQUEST_NONE) {
+        if (work->bodyRequest == ACTOR_120500_BODY_REQUEST_APPEAR) {
             Tmd_AllocBuffers(arg0->extra.tmd);
             Task_SpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_120500_801380C0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120500_801380C0, 0);
         }
     }
-    work->field_4C0 = 0;
+    work->bodyRequest = ACTOR_120500_BODY_REQUEST_NONE;
 
-    w    = (Actor120500Work*)arg0->work;
-    code = w->field_4C8;
-    if (code != 1) {
-        if (code >= 2) {
-            if (code != 2) {
-                w->field_4C8 = 0;
-                goto done_4C8;
+    screenWork = arg0->work;
+    code       = screenWork->screenRequest;
+    if (code != ACTOR_120500_SCREEN_REQUEST_FADE_OUT) {
+        if (code >= ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE) {
+            if (code != ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE) {
+                screenWork->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
+                goto screen_request_done;
             } else {
-                goto do_4C8_case2;
+                goto screen_request_play_movie;
             }
         } else {
-            goto clear_4C8;
+            goto screen_request_clear;
         }
     } else {
-        goto do_4C8_case1;
+        goto screen_request_fade_out;
     }
-do_4C8_case1:
+screen_request_fade_out:
     Task_SpawnFromTable(D_actor_120500_80138418, 2, 8, 0);
-    w->field_4C8 = 0;
-    goto done_4C8;
-do_4C8_case2:
-    taskMessageDispatch(w->field_4B4, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+    screenWork->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
+    goto screen_request_done;
+screen_request_play_movie:
+    taskMessageDispatch(screenWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
     Display_SpawnWithOt(D_actor_120500_80138418, 0, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
-clear_4C8:
-    w->field_4C8 = 0;
-done_4C8:
+screen_request_clear:
+    screenWork->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
+screen_request_done:
 
-    mdl         = arg0->extra.tmd;
-    args.pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
-    args.pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
-    args.pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-    func_800D7A9C(mdl, &args.pos, 0, 3);
+{
+    VECTOR pos;
+
+    mdl    = arg0->extra.tmd;
+    pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
+    pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
+    pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
+    func_800D7A9C(mdl, &pos, 0, 3);
+}
 }
 
 #include "../../shared/screen_fade_in.inc.c"
 
 #include "../../shared/screen_fade_out.inc.c"
 
-/// Request setters, reached from the tables in the actor's data: each arms one
-/// code/phase pair of the actor's work block with `arg0` and restarts its
-/// phase. This one arms the pair `func_actor_120500_80132028` consumes; the
-/// next two arm the pairs the tick consumes at 0x4C0 and 0x4C8.
+/// Request setters, reached from the tables in the actor's data: each posts
+/// `arg0` in one request channel of the actor's work block and restarts its
+/// step. This one posts the player request `func_actor_120500_80132028`
+/// performs; the next two post the body and screen requests the tick performs.
 void func_actor_120500_801328C0(s16 arg0)
 {
-    Actor120500Work* work = D_actor_120500_80138454->work;
+    _Actor120500Work* work = D_actor_120500_80138454->work;
 
-    work->field_4B8 = arg0;
-    work->field_4BA = 0;
+    work->playerRequest     = arg0;
+    work->playerRequestStep = 0;
 }
 
 void func_actor_120500_801328E0(s16 arg0)
 {
-    Actor120500Work* work = D_actor_120500_80138454->work;
+    _Actor120500Work* work = D_actor_120500_80138454->work;
 
-    work->field_4C0 = arg0;
-    work->field_4C2 = 0;
+    work->bodyRequest     = arg0;
+    work->bodyRequestStep = 0;
 }
 
 void func_actor_120500_80132900(s16 arg0)
 {
-    Actor120500Work* work = D_actor_120500_80138454->work;
+    _Actor120500Work* work = D_actor_120500_80138454->work;
 
-    work->field_4C8 = arg0;
-    work->field_4CA = 0;
+    work->screenRequest     = arg0;
+    work->screenRequestStep = 0;
 }
 
 /// Puts the actor back to rest: plays sound cue `0x521E0007`, sends the actor
 /// its own message 0x7D5 with payload 2, hiding the model, and clears the
-/// three request codes the setters above arm. The task at `field_4B4` then
+/// three requests the setters above post. The player's task then
 /// gets animation set 2 of `D_actor_120500_8013807C` (message 0x3F4), message
 /// 0x3F3 with payload 1, and the placement record `D_actor_120500_801380A8`
 /// as message 0x3E9, with the override vector cleared in between.
 void func_actor_120500_80132920(void)
 {
     Task*                actor;
-    Actor120500Work*     work;
-    Actor120500Work*     animWork;
+    _Actor120500Work*    work;
+    _Actor120500Work*    animWork;
     AnimationPlayRequest msg;
 
     actor = D_actor_120500_80138454;
     work  = actor->work;
     SndEvt_EnqueueType7(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0xA);
     taskMessageDispatch(actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-    work->field_4B8 = 0;
-    work->field_4C0 = 0;
-    work->field_4C8 = 0;
-    animWork        = actor->work;
-    if (animWork->field_4B4 != NULL) {
+    work->playerRequest = ACTOR_120500_PLAYER_REQUEST_NONE;
+    work->bodyRequest   = ACTOR_120500_BODY_REQUEST_NONE;
+    work->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
+    animWork            = actor->work;
+    if (animWork->playerTask != NULL) {
         msg.source.sets          = D_actor_120500_8013807C;
         msg.animationId          = 2;
         msg.blend                = ANIMATION_BLEND_RESET;
         msg.blendFrames          = 0;
         msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(animWork->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
     work = actor->work;
     Gp_SetOverrideVec(NULL);
-    taskMessageDispatch(work->field_4B4, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_120500_801380A8, 0);
+    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120500_801380A8, 0);
 }
 
 /// Message 0x7D5 handler: shows or hides the task's model. Payload 0 hides it
