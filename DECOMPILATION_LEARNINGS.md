@@ -85681,7 +85681,7 @@ Inputs: `base.c` (two parameters, 98.938%)
 `base_1.c` (three parameters, 100.000%)
 `688e2e7590aa3ec2308edaee5390602ce65c59315ae1c939a697e71bb91d0d20`.
 
-## The frame tells you the locals' size; when it exceeds the stores, enlarge the copy's *destination* type
+## The frame tells you the locals' size; when it exceeds the stores, the function has locals it never touches
 
 `func_actor_210600_8014BA3C` is the family's state dispatcher: copy a global
 function-pointer table to the stack, index it by `Task::state`, call the entry.
@@ -85704,27 +85704,33 @@ frame instead. In this port (`config/mips/mips.c` `compute_frame_size`,
 A call that passes no stack arguments has `args_size = 0x10`, so
 `frame = var_size + 0x18` and `locals` is the 8-byte window ending at
 `var_size`: frame `0x28` means 9-16 bytes of locals, `0x30` means 17-24. Here
-the code stores only 12 bytes but the frame says 17-24, so the assignment's
-*destination* is larger than its source.
+the code stores only 12 bytes but the frame says 17-24, so the function has
+5-12 bytes of locals beyond the table that it never touches.
 
-A struct assignment moves exactly the **source's** size, so the extra bytes
-belong in the destination type, as a member at offset 0 - the copy stays 3
-words and only the frame grows:
+An aggregate local gets its stack slot whether or not anything uses it, so
+declaring those bytes beside the table is enough - the copy stays 3 words and
+only the frame grows. This is what the tree has, with the same bare
+`EnemyTaskFuncTable3` local as every other dispatcher of the family:
 
-    typedef struct { void (*funcs[3])(void*, Task*); } Actor210600StateFuncTable3;  /* 0xC */
-    typedef struct { Actor210600StateFuncTable3 table; s32 field_C; s32 field_10; } /* 0x14 */
-        Actor210600DispatchCtx;
+    EnemyTaskFuncTable3 sp;
+    byte                unused[8];               /* never read or written */
 
-    Actor210600DispatchCtx sp;
-    sp.table = D_actor_210600_80149E24;          /* still 3 lw / 3 sw */
-    sp.table.funcs[arg0->state](arg0->spawnArg2, arg0);   /* 100.000% */
+    sp = D_actor_210600_80149E24;                /* still 3 lw / 3 sw */
+    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);   /* 100.000% */
 
-Casting the source up instead (`sp = *(Actor210600DispatchCtx*)&D;`) is the
+A struct assignment moves exactly the **source's** size, so the first form that
+matched put the extra bytes in the *destination* instead: a 20-byte record with
+the table as its member at offset 0 and two unused words behind it, assigned
+through `sp.table = D_actor_210600_80149E24;`. That compiles to the same bytes,
+but it invents a record the code gives no evidence of, so it was replaced by
+the separate local.
+
+Casting the source up to a wider type instead (`sp = *(Wider*)&D;`) is the
 trap: it makes the move copy the *large* size and buys two more loads. The same
-20-byte table-plus-context local is built by `actor_521100`'s dispatcher
+20 bytes of locals are in `actor_521100`'s dispatcher
 (`func_actor_521100_80136604`: 3 words at `0x10`-`0x18`, bytes at `0x20`/`0x21`,
-a halfword at `0x22`), so the shape recurs in the family rather than being an
-artefact of one overlay.
+a halfword at `0x22`), which does store into the trailing ones, so the shape
+recurs in the family rather than being an artefact of one overlay.
 
 Inputs: `base_2.i` (3-word local, 99.130%)
 `f875b51dee062167d0eca2801acbe6bdc9c54c47fa29597b73d0cf0f1d646d82`,
@@ -102676,7 +102682,7 @@ call" above.
 that lives on.
 
 ```c
-mem         = (Actor210600Work*)memCalloc(0x8D8, false);
+mem         = memCalloc(sizeof(_Actor210600Work), false);
 work        = mem;
 task->work = mem;
 if (mem == NULL) {
@@ -127646,23 +127652,23 @@ ending there. Read the target literally either way: `lw $a0,0x2C($s4)` /
 that was live for the matrix copy is the same "the inline re-derives
 `task->extra->coords`" evidence, from the other end of the body.
 
-The pick-up after the inline is an effect guarded on an animation clip, and the
+The pick-up after the inline is an effect guarded on an animation cue index, and the
 two halves of that guard read **different slots** -- do not assume symmetry:
 
 ```c
-id = work->slots[1].currentPose.indices.recordIndex & 0x3FF;                   /* 0x3E, `lhu` + `andi` */
-if (id == 7 && work->field_896 != id) {
+id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;               /* 0x3E, `lhu` + `andi` */
+if (id == 7 && work->lastCueIndex != id) {
     memset(&vec, 0, 8);                               /* SVECTOR, not NULL */
     eff.coord      = ((TmdObject*)task->extra)->coords; /* part 0, no addiu */
     eff.spawnArgLo = 0x100;
     eff.spawnArgHi = 2;
     func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
 }
-work->field_896 = work->slots[0].currentPose.indices.recordIndex & 0x3FF;      /* 0x16 -- slot 0, not 1 */
+work->lastCueIndex = work->rig.slots[0].currentPose.indices.recordIndex & 0x3FF; /* 0x16 -- slot 0, not 1 */
 ```
 
 Slot 1 is what is watched (`0x3E`), slot 0 is what is remembered (`0x16`, stored
-to `field_896` as an `s16` but loaded `lhu` before the mask). The `+ 1` on the
+to `lastCueIndex` as an `s16` but loaded `lhu` before the mask). The `+ 1` on the
 coordinate argument is one `GfxCoord`, i.e. `+ 0x50`; `oddStrangerDormant`
 is the same guard one actor over (`field_5A` / `field_8B4`, `field_8 + 5` =
 `0x190`) and is the body to read first. `Actor110600_ScaleRotation` in
@@ -127679,11 +127685,11 @@ Inputs: `base_1.c` source `e46795b5…`, preprocessed `dd76ada1…`, target
 
 ## A `u16` field that feeds a call argument *and* an array index needs the `(s16)` cast at both uses
 
-`func_actor_210600_8014B2C0` reads one clip id twice per slot:
+`func_actor_210600_8014B2C0` reads one animation id twice per slot:
 
 ```
 lh      v1,0x880(s0)      /* row   */
-lh      a2,0x882(s0)      /* clip: one signed load ...      */
+lh      a2,0x882(s0)      /* id: one signed load ...        */
 sll     v0,v1,2
 addu    v0,v0,v1
 addu    v0,a2,v0          /* ... used as the column  ...    */
@@ -127693,9 +127699,10 @@ lb      v0,0(v0)
 jal     animationSeekSlotWithBlend     /* ... and as the third argument  */
 ```
 
-The field is `u16`, and that is right: the tail's `field_880 = field_882` is
-`lhu` + `sh`. But `(zero_extend:SI (mem:HI))` and `(sign_extend:SI (mem:HI))`
-are *different expressions* to cse, so a plain `D_actor_...498[row][clip]`
+The field was declared `u16` at the time, on the strength of the tail's
+`appliedAnim = animId` being `lhu` + `sh`. With that declaration
+`(zero_extend:SI (mem:HI))` and `(sign_extend:SI (mem:HI))`
+are *different expressions* to cse, so a plain `D_actor_...498[row][id]`
 index gets its own `lhu` and the loop runs one instruction long, with the row
 product re-homed into `$v1` behind it:
 
@@ -127716,21 +127723,28 @@ cast at both uses collapses the two loads into the single `lh` the target has
 and the object becomes byte-identical:
 
 ```c
-animationSeekSlotWithBlend(&start->anim, i, (s16)start->field_882, 0,
-              D_actor_210600_8015A498[start->field_880][(s16)start->field_882]);
+animationSeekSlotWithBlend(&start->rig.anim, i, (s16)start->animId, 0,
+              D_actor_210600_8015A498[start->appliedAnim][(s16)start->animId]);
 ```
+
+The `lhu` + `sh` copy does not prove the field unsigned, though: a copy between
+two `s16` members loads `lhu` as well, because the extension is dead before a
+halfword store. Declaring `animId` as `s16` gives the single `lh` with no cast
+at either use, and that is what the tree has now. Keep the both-uses cast for a
+field that really is `u16`.
 
 The rule is the mirror of "A `u16` parameter masked twice: hoist it into a
 `u32` local": there the fix is one value with a single extension, here it is
 one *signed* value shared by a call and an index, and a cast at only one of
-them silently buys a second load. `s16 start->field_880` needs no cast — its
+them silently buys a second load. `s16 start->appliedAnim` needs no cast — its
 only use is the row, and the target's signed load comes from the declaration.
 
-Two things about the same function worth carrying forward. The 0x886 rate byte
-is a dual-width field (the matched message handler stores it with `sh`, this
-body reads it with `lbu`), so it wants the union from "Same-offset `lhu` vs
-`lbu` needs a union, not a cast" — and the union member rename costs exactly
-one line of the matched handler. And the body is one of a family
+Two things about the same function worth carrying forward. The 0x886 rate
+(`animRate`) is stored with `sh` by the matched message handler and read with
+`lbu` here, which looks like a dual-width field and was first written as a
+`u16` / `u8` union. It is a plain halfword: the reads are assignments to the
+`s8` `AnimationSlot.rate`, and GCC narrows a halfword load whose value is only
+stored to a byte into `lbu` by itself. And the body is one of a family
 (`func_actor_311900_80162100`, `func_acropolis_bridge_8018581C`) whose C is
 written out: `work` plus a per-branch `start`/`reset`/`tick` alias, each
 re-loading `task->work`, the `for (i = 1; i < N; i++)` seeding loop, and the

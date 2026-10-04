@@ -118,8 +118,8 @@ extern _Actor521100AnmcWomanWork* D_actor_521100_8016A3D8;
 /// The copy itself moves only the 3 words of `D_actor_521100_80131E68`, but
 /// the dispatcher's frame is 0x30 with `$ra` at 0x28, which needs 17-24 bytes
 /// of locals. The trailing `u8`/`u8`/`u16` at 0x10 are written to 2, 9, 1;
-/// `field_C` is unread. Same 20-byte table-plus-context shape as
-/// `Actor210600DispatchCtx`.
+/// `field_C` is unread. `actor_210600`'s dispatcher has the same 20 bytes of
+/// locals and leaves the trailing eight untouched.
 typedef struct Actor521100DispatchCtx {
     /* 0x00 */ EnemyTaskFuncTable3 table;
     /* 0x0C */ s32                 field_C;
