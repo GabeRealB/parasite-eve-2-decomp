@@ -22765,28 +22765,28 @@ Do **not** feed those temp columns through `gte_ldclmv` — they are contiguous
 ## Euler RotMatrix ZYX (`Gfx_RotMatrixZYX`) — 0x44 scratch, dual cos store
 
 Sibling of `Gfx_RotMatrixXYZ` / `Gfx_RotMatrixYXZ` that builds `RotZ * RotY * RotX`.
-Needs a larger scratch block (`ScratchRotZYX`, 0x44) with three `SVECTOR`s
-(`vec` / `vec2` / `vec3` at 0x2C / 0x34 / 0x3C) because both Y and X contribute
+Needs a larger scratch block (`_GfxZyxRotationScratch`, 0x44) with three `SVECTOR`s
+(`columns[0]` / `columns[1]` / `columns[2]` at 0x2C / 0x34 / 0x3C) because both Y and X contribute
 two non-trivial columns.
 
 Two codegen details that stall at ~98% without them:
 
-1. **Dual store of `rcos(vz)`.** Target does `sh v0, cos_z` then
+1. **Dual store of `rcos(vz)`.** Target does `sh v0, cosZ` then
    `sh v0, m[0][0]` from the return register. Write:
 
    ```c
-   block->cos_z = rcos(angles->vz);
-   *(s16*)(head - 0x44) = block->cos_z; /* CSE keeps v0 for both sh */
+   block->cosZ = rcos(angles->vz);
+   *(s16*)(head - 0x44) = block->cosZ; /* CSE keeps v0 for both sh */
    ```
 
 2. **`ONE` into `m[2][2]` must stay before the four halfword reloads.** A plain
-   `block->mat.m[2][2] = ONE` sinks below the `lhu`s (~98%). Store through the
-   `volatile ScratchRotZYX*`:
+   `block->rotation.m[2][2] = ONE` sinks below the `lhu`s (~98%). Store through the
+   `volatile _GfxZyxRotationScratch*`:
 
    ```c
    vblock = block;
-   vblock->mat.m[2][2] = ONE;
-   sin_z = vblock->sin_z; /* … cos_z, cos_y, sin_y */
+   vblock->rotation.m[2][2] = ONE;
+   sin_z = vblock->sinZ; /* … cosZ, cosY, sinY */
    ```
 
 Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
