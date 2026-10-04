@@ -32,44 +32,67 @@
 
 #include "overlay.h"
 
+/// Clip of `_Actor521100AnmcWomanState::animId` the woman is spawned in, and
+/// the only one a walk moves her under.
+#define ACTOR_521100_ANMC_WOMAN_ANIM_WALK 1
+
+/// Distance the woman's walk covers each frame, along the root coordinate's
+/// local Z axis. A walk request divides the ground distance to its target by
+/// this to get `_Actor521100AnmcWomanState::travel`.
+#define ACTOR_521100_ANMC_WOMAN_WALK_STRIDE 20
+
 /// Values of `_Actor521100AnmcWomanState::flattenStep`: how far the flatten
 /// that ends the woman has got.
 enum {
-    ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN  = 0, // Not started: the next frame turns the root to `yaw`, snapshots it and starts at full height
+    ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN  = 0, // Not started: the next frame turns the root to `yaw`, saves it and starts at full height
     ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK = 1, // The height is lowered each frame
     ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE   = 2, // The height has reached its floor: the model is left as it is and no longer animated
 };
 
-/// The animation request, the flatten and the walk the ANMC woman keeps right
+/// What `_Actor521100AnmcWomanState::flattenScaleY` loses each frame of the
+/// shrink, and the height the shrink stops at, 4096 being full height.
+#define ACTOR_521100_ANMC_WOMAN_FLATTEN_SCALE_STEP  0x10
+#define ACTOR_521100_ANMC_WOMAN_FLATTEN_SCALE_FLOOR 0x100
+
+/// Values of `_Actor521100AnmcWomanState::flattenFrames` at which the shrinking
+/// model turns semi-transparent and at which the burn effect is spawned
+/// beside it.
+#define ACTOR_521100_ANMC_WOMAN_FLATTEN_FADE_FRAMES 10
+#define ACTOR_521100_ANMC_WOMAN_FLATTEN_BURN_FRAMES 15
+
+/// The animation request, the walk and the flatten the ANMC woman keeps right
 /// after her rig.
 ///
 /// A play request stores the clip in `animId` and the reseed to perform in
 /// `state`; the update that performs it copies the clip to `appliedAnimId`.
-/// Clip ids index the woman's own animation table. A walk request leaves the
-/// heading it turned the root coordinate to in `yaw` and the frames of walking
-/// in `travel`.
+/// A clip id is the request's animation number plus one and indexes the
+/// woman's own animation table, whose entry 0 is empty. A walk request turns
+/// the root coordinate to face its target, leaving the heading in `yaw`, and
+/// stores the frames of walking in `travel`.
 ///
 /// The flatten is how the woman ends: her model is squashed along its Y axis,
 /// a little further each frame, while its light colour is scaled by the same
-/// factor with a random flicker. Each frame rebuilds the root coordinate from `unscaledRoot` and the
-/// current `flattenScaleY`, so the scale never compounds.
+/// factor with a random flicker. Each frame rebuilds the root coordinate from
+/// `savedRootMtx` and the current `flattenScaleY`, so the scale never
+/// compounds.
 ///
-/// The members shared with `ActorEnemyState` sit where that type has them;
-/// the flatten occupies bytes it leaves unnamed. No access to `pad_30` or
+/// The block has `ActorEnemyState`'s size, and the members it shares with
+/// that type sit where that type has them; the flatten occupies bytes that
+/// type gives another role or leaves unnamed. No access to `pad_30` or
 /// `pad_34` has been observed, and the block is allocated zeroed.
 typedef struct {
     s16    state;         // Step of the animation (0 none, else `ACTOR_ENEMY_ANIM_BLEND`, `_RESET` or `_TICK`)
     s16    appliedAnimId; // Clip the slots were last seeded with; recorded, never read
-    s16    animId;        // Clip the last play request selected
+    s16    animId;        // Clip requested, by spawn (`ACTOR_521100_ANMC_WOMAN_ANIM_WALK`) or the last play request
     s16    field_6;       // Cleared by each play request; never read, role unproven
     s16    flattenStep;   // `ACTOR_521100_ANMC_WOMAN_FLATTEN_*`
-    s16    flattenFrames; // Frames the flatten has shrunk for; the model turns semi-transparent at 10 and the burn effect is spawned at 15
-    s16    flattenScaleY; // Height of the flattening model, 4096 = full; lowered 0x10 a frame until it is 0x100 or less
-    MATRIX unscaledRoot;  // Root coordinate's local matrix as the flatten began, turned to `yaw`
+    s16    flattenFrames; // Frames the flatten has shrunk for
+    s16    flattenScaleY; // Height of the flattening model, 4096 = full
+    MATRIX savedRootMtx;  // Root coordinate's local matrix as the flatten began, turned to `yaw`; each shrink frame rescales a copy of it
     byte   pad_30[0x2];
     s16    yaw;           // Heading last given the root coordinate, 4096 to a turn
     byte   pad_34[0x2];
-    s16    travel;        // Frames of forward movement the walk has left
+    s16    travel;        // Frames of forward movement the walk has left, `ACTOR_521100_ANMC_WOMAN_WALK_STRIDE` units each
 } _Actor521100AnmcWomanState;
 STATIC_ASSERT_SIZEOF(_Actor521100AnmcWomanState, 0x38);
 
@@ -511,7 +534,7 @@ static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
     vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     Gp_AnimInitCtx(&D_actor_521100_8016A3D8->rig.anim, D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->rig.poses);
-    D_actor_521100_8016A3D8->st.animId = 1;
+    D_actor_521100_8016A3D8->st.animId = ACTOR_521100_ANMC_WOMAN_ANIM_WALK;
     D_actor_521100_8016A3D8->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable                     = D_actor_521100_8016A358;
     func_actor_521100_80135F2C(task);
@@ -548,8 +571,8 @@ static void func_actor_521100_80135F2C(Task* task)
     }
     if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
         animId = work->st.animId;
-        if (animId == 1 && work->st.travel != 0) {
-            actorMoveForward(task->extra.tmd->coords, 0x14);
+        if (animId == ACTOR_521100_ANMC_WOMAN_ANIM_WALK && work->st.travel != 0) {
+            actorMoveForward(task->extra.tmd->coords, ACTOR_521100_ANMC_WOMAN_WALK_STRIDE);
             D_actor_521100_8016A3D8->st.travel--;
         }
         func_actor_521100_80136724();
@@ -562,7 +585,7 @@ static void func_actor_521100_80135F2C(Task* task)
 /// seeds the flatten (the shrink body `func_actor_521100_801368B0` scales by
 /// `st.flattenScaleY`, so the seed stores `ONE` there, turns the root
 /// coordinate to `st.yaw` and snapshots its local matrix into
-/// `st.unscaledRoot`), `ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK` runs that body
+/// `st.savedRootMtx`), `ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK` runs that body
 /// and drops the 0x600A5 effect once `st.flattenFrames` reaches 0xF, and
 /// `ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE` returns without animating. The other
 /// two steps fall through to the slot tick and the colour step.
@@ -584,17 +607,17 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
             work->st.flattenFrames = 0;
             work->st.flattenScaleY = ONE;
             gfxRotMatrixY(&coord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);
-            work->st.unscaledRoot = coord->coord;
+            work->st.savedRootMtx = coord->coord;
             work->st.flattenStep  = ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK;
             break;
 
         case ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK:
             func_actor_521100_801368B0(task);
             work->st.flattenFrames++;
-            if (work->st.flattenFrames == 0xA) {
+            if (work->st.flattenFrames == ACTOR_521100_ANMC_WOMAN_FLATTEN_FADE_FRAMES) {
                 obj->flags = TMD_OBJECT_SEMI_TRANS;
             }
-            if (work->st.flattenFrames == 0xF) {
+            if (work->st.flattenFrames == ACTOR_521100_ANMC_WOMAN_FLATTEN_BURN_FRAMES) {
                 sp10.coord.t[0] -= 0x1F4;
                 sp10.coord.t[2] -= 0x64;
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, &sp10, 5, NULL);
@@ -797,7 +820,7 @@ static void func_actor_521100_80136820(void)
 /// `ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK`: takes an `ActorScaleScratch`
 /// block from the scratch stack, splats an identity rotation into it and hands
 /// it to `ScaleMatrix` with a `(ONE, st.flattenScaleY, ONE)` vector, then
-/// restores the root coordinate's local matrix from `st.unscaledRoot`, the
+/// restores the root coordinate's local matrix from `st.savedRootMtx`, the
 /// snapshot the flatten's first step took, and multiplies the product into it,
 /// so the scale never compounds. The scale drops 0x10 a frame; under 0x101 the
 /// step advances to `ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE` and this body stops
@@ -817,15 +840,15 @@ static void func_actor_521100_801368B0(Task* task)
     work    = task->work;
     scratch = (SCRATCH_STACK_CURSOR(ActorScaleScratch) = head - 1);
     coord   = task->extra.tmd->coords;
-    if (work->st.flattenScaleY >= 0x101) {
-        work->st.flattenScaleY -= 0x10;
+    if (work->st.flattenScaleY > ACTOR_521100_ANMC_WOMAN_FLATTEN_SCALE_FLOOR) {
+        work->st.flattenScaleY -= ACTOR_521100_ANMC_WOMAN_FLATTEN_SCALE_STEP;
     } else {
         work->st.flattenStep = ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE;
     }
     scratch->scale.vx                    = ONE;
     scratch->scale.vy                    = work->st.flattenScaleY;
     scratch->scale.vz                    = ONE;
-    coord->coord                         = work->st.unscaledRoot;
+    coord->coord                         = work->st.savedRootMtx;
     scratch->matrix.rotationWords.m00M01 = ONE;
     scratch->matrix.rotationWords.m02M10 = 0;
     scratch->matrix.rotationWords.m11M12 = ONE;
@@ -945,6 +968,6 @@ s32 func_actor_521100_80136BE8(Task* task, s32 arg1, ActorTransform* target, s32
     yaw                             = ratan2(dx, dz);
     D_actor_521100_8016A3D8->st.yaw = yaw;
     gfxRotMatrixY(&coord->coord, (s16)yaw, GRAPHICS_ROTATION_REPLACE);
-    D_actor_521100_8016A3D8->st.travel = SquareRoot0(dx * dx + dz * dz) / 20;
+    D_actor_521100_8016A3D8->st.travel = SquareRoot0(dx * dx + dz * dz) / ACTOR_521100_ANMC_WOMAN_WALK_STRIDE;
     return 0;
 }

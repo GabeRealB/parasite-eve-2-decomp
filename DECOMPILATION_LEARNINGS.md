@@ -107297,7 +107297,7 @@ GCC keeps those four stores independent, so the object comes out as
 groups the loads: `lw $t0..$t3` from the source, then `sw $t0..$t3` to the
 destination, in one 0x10-byte block per iteration. Rewriting the two copies in
 `func_actor_521100_801360C4` as `sp10 = *coord;` and
-`work->unscaledRoot = coord->coord;` took the seed from 49.312% to 98.261% in one
+`work->st.savedRootMtx = coord->coord;` took the seed from 49.312% to 98.261% in one
 edit, with the structure diagnostic a full match.
 
 The copy size also names the source type, which is worth checking before
@@ -107317,18 +107317,22 @@ preprocessed
 ## `lh` on a `u16` field whose only reader is an `s32` call argument
 
 The halfword-load-width entries above all ask what the *field* is. This case
-asks what the *use* is: `Actor521100Work::yaw` is `u16` (the matched
-`func_actor_521100_80134C38` stores a `u16` `ratan2` result into it), and
-`func_actor_521100_801360C4` passes it to `gfxRotMatrixY(MATRIX*, s32, s32)`,
-where the target loads `lh $a1,0x4AE($s0)`. The sign extension is requested by
-the call site, not by the field:
+asks what the *use* is: the heading at 0x4AE of the block
+`func_actor_521100_801360C4` works on was declared `u16` when this was matched
+(the block was then typed `Actor521100Work`, whose `yaw` the matched
+`func_actor_521100_80134C38` stores a `u16` `ratan2` result into), and the
+function passes it to `gfxRotMatrixY(MATRIX*, s32, s32)`, where the target
+loads `lh $a1,0x4AE($s0)`. The sign extension is requested by the call site,
+not by the field:
 
 ```c
 gfxRotMatrixY(&coord->coord, (s16)work->yaw, 1);
 ```
 
-and the overlay's own matched sibling spells the identical call the same way
-off a `u16` local (`actor_521100_7.c:60`: `gfxRotMatrixY(&coord->coord,
+(That heading has since become the `s16` `_Actor521100AnmcWomanState::yaw`,
+read as `work->st.yaw`, so the tree's call no longer carries the cast; the
+case stands for a field that really is `u16`.) The overlay's own matched
+sibling spells the identical call the same way off a `u16` local (`actor_521100_7.c:60`: `gfxRotMatrixY(&coord->coord,
 (s16)yaw, 1);`). So a lone `lhu`/`lh` swap - `insert=1 delete=1`, 98.3% with the
 structure otherwise identical - is the fourth case beside the three listed
 under "A halfword that is incremented before its signed compare": check the
