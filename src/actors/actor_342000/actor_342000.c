@@ -49,67 +49,40 @@
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/actor_messages.h"
 
-/// Per-instance work block for the overlay's model actor.
+/// Work block of each task that makes up the Glutton's display model: the
+/// body, its two legs and the three further parts hung off the body.
 ///
-/// `func_actor_342000_80162158` allocates it with `memMalloc(0x2AC, 0)`,
-/// `memFillBytes`s it to zero over the same 0x2AC bytes and stores it in the
-/// `Task::work` slot (0x1C), so the size below is the allocation, not a
-/// guess: the actor reuses that pointer field for its own work block. Reach it
-/// with `(Actor342000Work*)task->work`.
+/// All six tasks share one spawn step, which allocates the block zeroed at
+/// this size and keeps it at `Task::work`. The block supplies what the task's
+/// model does not own: the light and colour matrices it is drawn with, and a
+/// coordinate node between the model and whatever it is attached to. The
+/// model's root part hangs off `coord` and `coord` off `parentCoord`, so the
+/// block places, turns and scales the whole model without touching the part
+/// coordinates its animation drives. The exit callback takes `coord` out of
+/// that chain again before the block is freed.
 ///
-/// `field_2A4` is the coordinate node the actor's model is re-parented to:
-/// `func_actor_342000_80162158` seeds it with `&gGfxViewCoord`, and the exit
-/// callback `func_actor_342000_80163F88` writes it back into
-/// `task->extra.tmd->coords->parent`.
-///
-/// `coord` is the actor's own rotation node. `func_actor_342000_801628C8`
-/// builds `coord.coord` from the euler angles below it (`gfxRotMatrixY` of
-/// `field_278`, then `X` of `field_274`, then `Z` of `field_27C`, word loads),
-/// scales each of its columns by the matching `field_264` component through
-/// `gpf 12` and clears `coord.composeStamp`; `func_actor_342000_801640C0` writes all of
-/// it from an `ActorTransform`.
-///
-/// `field_264` holds that per-axis scale, 1.12 fixed point like the matrix it
-/// multiplies: each column `j` is gathered into a scratchpad `SVECTOR`, run
-/// through `GPF` against `field_264[j]` and written back.
-///
-/// `field_298` is the parent actor task a child model display handler
-/// (`func_actor_342000_801625D8`) mirrors its flags and column scale from.
-///
-/// `field_29C` / `field_2A0` are the actor's two child tasks; the per-frame tail
-/// of `func_actor_342000_801628C8` ticks them with `func_actor_342000_80161EA4`.
-///
-/// `field_2AA` latches the `ActorCommand::command` the id 0x7DB handler was
-/// last called with; command 0xA additionally refills `field_264` from the
-/// handler's second payload.
-///
-/// The block opens with the actor's playback rig -- `rig`, whose context
-/// `animationInitContext` binds to its eight slots and pose entries with this
-/// overlay's banks: `func_actor_342000_80161EA4` ticks it and passes the id bank
-/// `field_288` indexes. Slot 0 is the child slot that function skips. `light` /
-/// `color` at 0x1D4 / 0x1F4 are the pair `func_actor_342000_80162158`
-/// republishes onto the model's `TmdObject::lightMtx` / `colorMtx`, exactly as
-/// the neighbouring actor overlays lay out theirs.
-typedef struct Actor342000Work {
-    /* 0x000 */ ActorAnimRig8 rig;
-    /* 0x1D4 */ MATRIX        light;
-    /* 0x1F4 */ MATRIX        color;
-    /* 0x214 */ GfxCoord      coord;
-    /* 0x264 */ VECTOR        field_264;
-    /* 0x274 */ s32           field_274;
-    /* 0x278 */ s32           field_278;
-    /* 0x27C */ s32           field_27C;
-    /* 0x280 */ byte          pad_280[0x8];
-    /* 0x288 */ s32           field_288;
-    /* 0x28C */ byte          pad_28C[0xC];
-    /* 0x298 */ Task*         field_298;
-    /* 0x29C */ Task*         field_29C;
-    /* 0x2A0 */ Task*         field_2A0;
-    /* 0x2A4 */ GfxCoord*     field_2A4;
-    /* 0x2A8 */ byte          pad_2A8[0x2];
-    /* 0x2AA */ u16           field_2AA;
-} Actor342000Work;
-STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
+/// Only the body is placed and scaled by its own members: a placement message
+/// stores the translation and `rotation`, a command or the event's staging
+/// sets `scale`, and the body rebuilds `coord` from them every tick. A leg or
+/// part keeps its `coord` at the identity scaled by the body's `scale`.
+typedef struct {
+    ActorAnimRig8 rig;              // Playback over the task's model: the body drives slots 1 to 7 and a leg slots 0 to 3; the other parts never bind it
+    MATRIX        light;            // Light matrix the model's `TmdObject::lightMtx` points at
+    MATRIX        color;            // Colour matrix the model's `TmdObject::colorMtx` points at
+    GfxCoord      coord;            // Node the model's root part hangs from. Body: the placed translation, with `rotation` composed and each column scaled by `scale`; leg or part: the identity scaled by the body's `scale`
+    VECTOR        scale;            // Factor each column of `coord`'s rotation is multiplied by, X/Y/Z, `ONE` being 1.0. Read on the body only, by itself and by its legs and parts
+    s32           rotation[3];      // X/Y/Z Euler angles of the last placement, 4096 units per turn, composed Y, then X, then Z. Read on the body only
+    byte          unknown_280[0x8]; // Zeroed allocation bytes; no access established and role unproven
+    s32           followUpIndex;    // Entry of the package's follow-up clip table consulted once every driven slot has settled. Nothing writes it, so it stays 0
+    byte          unknown_28C[0xC]; // Zeroed allocation bytes; no access established and role unproven
+    Task*         parent;           // Task this one was spawned for and made a child of: the event task for the body, the body for a leg or part
+    Task*         legRight;         // Body only: the right leg's task, whose playback the body ticks after its own. The leg stores itself here as it spawns
+    Task*         legLeft;          // Body only: the left leg's task, likewise
+    GfxCoord*     parentCoord;      // Borrowed node `coord` hangs from: the view for the body, the body model's root part for a leg, and the part of the body model its table entry names for the rest
+    byte          unknown_2A8[0x2]; // Zeroed allocation bytes; no access established and role unproven
+    u16           lastCommand;      // `ActorCommand::command` of the last command message the task took. Nothing reads it back
+} _Actor342000GluttonModelWork;
+STATIC_ASSERT_SIZEOF(_Actor342000GluttonModelWork, 0x2AC);
 
 /// `_Actor342000EventWork::playerAction`: the one-shot request the event script
 /// hands the player.
@@ -198,7 +171,7 @@ extern ActorTransform D_actor_342000_80164948;
 
 extern TaskMessageEntry D_actor_342000_801648A8[2];
 
-/// Animation-id bank `Actor342000Work::field_288` indexes; a negative entry
+/// Animation-id bank `_Actor342000GluttonModelWork::followUpIndex` indexes; a negative entry
 /// means the bank is empty and the slots are left alone.
 extern s16 D_actor_342000_80164810[];
 
@@ -451,7 +424,7 @@ extern EvsCommand D_actor_342000_80164968[];
 extern EvsCommand D_actor_342000_80164E30[];
 
 static s32         func_actor_342000_80161EA4(Task* arg0, u16 arg1);
-static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w);
+static inline void Actor342000_InitCoord(Task* arg0, _Actor342000GluttonModelWork* w);
 static void        func_actor_342000_80162158(Task* arg0);
 static void        func_actor_342000_80162BBC(Task* arg0);
 static inline void Actor342000_CopyMove(ActorTransform* dst, ActorTransform* src);
@@ -472,17 +445,17 @@ static inline void Actor342000_EnterArea(void);
 /// reproduce retail's block layout.
 static s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
 {
-    Actor342000Work* work;
-    Actor342000Work* ctx;
-    u16              i;
-    u16              done;
-    u16              start;
-    u16              anim;
-    s32              first;
+    _Actor342000GluttonModelWork* work;
+    _Actor342000GluttonModelWork* ctx;
+    u16                           i;
+    u16                           done;
+    u16                           start;
+    u16                           anim;
+    s32                           first;
 
     anim  = arg1 == 8;
     start = anim;
-    work  = (Actor342000Work*)arg0->work;
+    work  = arg0->work;
     for (i = start; i < arg1; i++) {
         animationTickSlot(&work->rig.anim, i);
     }
@@ -495,9 +468,9 @@ static s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
     }
 check:
     if (done) {
-        if (D_actor_342000_80164810[work->field_288] >= 0) {
-            anim  = D_actor_342000_80164810[work->field_288];
-            ctx   = (Actor342000Work*)arg0->work;
+        if (D_actor_342000_80164810[work->followUpIndex] >= 0) {
+            anim  = D_actor_342000_80164810[work->followUpIndex];
+            ctx   = arg0->work;
             first = arg1 == 8;
             goto loop;
         fail:
@@ -549,18 +522,18 @@ void func_actor_342000_8016201C(Task* arg0)
     func_800D7A9C(mdl, &pos, 0, 3);
 }
 
-/// Parents the work block's own coordinate to `Actor342000Work::field_2A4`,
+/// Parents the work block's own coordinate to `_Actor342000GluttonModelWork::parentCoord`,
 /// hangs the model's part coordinate off it and resets it to an identity
 /// matrix with no translation. Every `func_actor_342000_80162158` case repeats
 /// it; as a function its address pseudos are born at their first use instead
 /// of being hoisted to the top of each case.
-static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
+static inline void Actor342000_InitCoord(Task* arg0, _Actor342000GluttonModelWork* w)
 {
     GfxCoord*  coord;
     GfxMatrix* mtx;
 
     coord                                 = &w->coord;
-    coord->parent                         = ((Actor342000Work*)arg0->work)->field_2A4;
+    coord->parent                         = ((_Actor342000GluttonModelWork*)arg0->work)->parentCoord;
     arg0->extra.tmd->coords->parent       = coord;
     coord->coord.t[0]                     = 0;
     coord->coord.t[1]                     = 0;
@@ -580,21 +553,21 @@ static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
 /// applies the area record 0x20's TMD bytes and, per `Task::spawnArg1`, parents
 /// the coordinate (view, parent model, or the parent part
 /// `D_actor_342000_80164900` names) and binds the animation bank. Cases 1 and 2
-/// register themselves on the parent as `field_29C` / `field_2A0`.
+/// register themselves on the parent as `legRight` / `legLeft`.
 ///
 /// The empty loops before `case 1:` / `case 2:` make reorg fill the dispatch
 /// delay slots from those arms; one `ctx` per case keeps each short-lived so
 /// the work pointer outranks it for `$s1`.
 static void func_actor_342000_80162158(Task* arg0)
 {
-    TmdObject*       extra;
-    Actor342000Work* work;
-    Actor342000Work* ctx;
-    Actor342000Work* ctx2;
-    Actor342000Work* ctx3;
-    Actor342000Work* w;
-    AreaPlacement*   rec;
-    u16              i;
+    TmdObject*                    extra;
+    _Actor342000GluttonModelWork* work;
+    _Actor342000GluttonModelWork* ctx;
+    _Actor342000GluttonModelWork* ctx2;
+    _Actor342000GluttonModelWork* ctx3;
+    _Actor342000GluttonModelWork* w;
+    AreaPlacement*                rec;
+    u16                           i;
 
     extra      = arg0->extra.tmd;
     work       = memMalloc(sizeof(*work), false);
@@ -605,7 +578,7 @@ static void func_actor_342000_80162158(Task* arg0)
     }
     w = work;
     memFillBytes(w, 0, sizeof(*w));
-    w->field_298    = (Task*)arg0->spawnArg2.pointer;
+    w->parent       = (Task*)arg0->spawnArg2.pointer;
     extra->lightMtx = &w->light;
     extra->colorMtx = &w->color;
     arg0->msgTable  = D_actor_342000_801648E8;
@@ -618,10 +591,10 @@ static void func_actor_342000_80162158(Task* arg0)
     Gp_SetTmdBytes(extra, rec->texturePageOffset, rec->clutRowOffset);
     switch (arg0->spawnArg1.value) {
         case 0:
-            w->field_2A4 = &gGfxViewCoord;
+            w->parentCoord = &gGfxViewCoord;
             Actor342000_InitCoord(arg0, w);
             animationInitContext(&w->rig.anim, D_actor_342000_801647F8, extra, w->rig.poses, w->rig.slots);
-            ctx = (Actor342000Work*)arg0->work;
+            ctx = arg0->work;
             for (i = 1; i < 8; i++) {
                 ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
                 animationResetSlot(&ctx->rig.anim, i, 0);
@@ -630,11 +603,11 @@ static void func_actor_342000_80162158(Task* arg0)
             do {
             } while (0);
         case 1:
-            w->field_2A4 = w->field_298->extra.tmd->coords;
+            w->parentCoord = w->parent->extra.tmd->coords;
             Actor342000_InitCoord(arg0, w);
-            ((Actor342000Work*)w->field_298->work)->field_29C = arg0;
+            ((_Actor342000GluttonModelWork*)w->parent->work)->legRight = arg0;
             animationInitContext(&w->rig.anim, D_actor_342000_80164800, extra, w->rig.poses, w->rig.slots);
-            ctx2 = (Actor342000Work*)arg0->work;
+            ctx2 = arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx2->rig.slots[i].rate = ANIMATION_RATE_ONE;
                 animationResetSlot(&ctx2->rig.anim, i, 0);
@@ -643,46 +616,46 @@ static void func_actor_342000_80162158(Task* arg0)
             do {
             } while (0);
         case 2:
-            w->field_2A4 = w->field_298->extra.tmd->coords;
+            w->parentCoord = w->parent->extra.tmd->coords;
             Actor342000_InitCoord(arg0, w);
-            ((Actor342000Work*)w->field_298->work)->field_2A0 = arg0;
+            ((_Actor342000GluttonModelWork*)w->parent->work)->legLeft = arg0;
             animationInitContext(&w->rig.anim, D_actor_342000_80164808, extra, w->rig.poses, w->rig.slots);
-            ctx3 = (Actor342000Work*)arg0->work;
+            ctx3 = arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx3->rig.slots[i].rate = ANIMATION_RATE_ONE;
                 animationResetSlot(&ctx3->rig.anim, i, 0);
             }
             break;
         default:
-            w->field_2A4 = &w->field_298->extra.tmd->coords[D_actor_342000_80164900[arg0->spawnArg1.value].pad];
+            w->parentCoord = &w->parent->extra.tmd->coords[D_actor_342000_80164900[arg0->spawnArg1.value].pad];
             Actor342000_InitCoord(arg0, w);
             break;
     }
-    taskReparent(w->field_298, arg0);
+    taskReparent(w->parent, arg0);
     arg0->exitCallback = func_actor_342000_80163F88;
 }
 
 /// Display handler of the actor's child model. The spawn tick seeds the
 /// model's part coordinate translation from the `D_actor_342000_80164900` entry
 /// `Task::spawnArg1` selects; state 1 resets the work block's coordinate to
-/// identity and scales each column by the parent's `Actor342000Work::field_264`.
+/// identity and scales each column by the parent's `_Actor342000GluttonModelWork::scale`.
 /// Every tick then mirrors the parent model's `TmdObject::flags` and hands the
 /// second part translation to `func_800D7A9C`.
 void func_actor_342000_801625D8(Task* arg0)
 {
-    Actor342000Work* work;
-    GfxMatrix*       mtx;
-    VECTOR*          sc;
-    GfxCoord*        coord;
-    TmdObject*       extra;
-    VECTOR           pos;
+    _Actor342000GluttonModelWork* work;
+    GfxMatrix*                    mtx;
+    VECTOR*                       sc;
+    GfxCoord*                     coord;
+    TmdObject*                    extra;
+    VECTOR                        pos;
 
-    work = (Actor342000Work*)arg0->work;
+    work = arg0->work;
 
     switch (arg0->state) {
         case 0:
             func_actor_342000_80162158(arg0);
-            work                = (Actor342000Work*)arg0->work;
+            work                = arg0->work;
             coord               = arg0->extra.tmd->coords;
             coord->coord.t[0]   = D_actor_342000_80164900[arg0->spawnArg1.value].vx;
             coord->coord.t[1]   = D_actor_342000_80164900[arg0->spawnArg1.value].vy;
@@ -691,7 +664,7 @@ void func_actor_342000_801625D8(Task* arg0)
             arg0->state        += 1;
             break;
         case 1:
-            sc                        = &((Actor342000Work*)work->field_298->work)->field_264;
+            sc                        = &((_Actor342000GluttonModelWork*)work->parent->work)->scale;
             mtx                       = (GfxMatrix*)&work->coord.coord;
             mtx->rotationWords.m00M01 = ONE;
             mtx->rotationWords.m02M10 = 0;
@@ -702,7 +675,7 @@ void func_actor_342000_801625D8(Task* arg0)
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
-    arg0->extra.tmd->flags = work->field_298->extra.tmd->flags;
+    arg0->extra.tmd->flags = work->parent->extra.tmd->flags;
     extra                  = arg0->extra.tmd;
     pos.vx                 = arg0->extra.tmd->coords[1].workm.t[0];
     pos.vy                 = arg0->extra.tmd->coords[1].workm.t[1];
@@ -714,19 +687,19 @@ void func_actor_342000_801625D8(Task* arg0)
 /// block and sends message 0x7D4. State 1 rebuilds the actor coordinate: an
 /// identity rotation, the euler angles below it composed onto it (Y, then X,
 /// then Z), and every column scaled by the matching component of
-/// `Actor342000Work::field_264`. Every later tick ticks the actor's own
+/// `_Actor342000GluttonModelWork::scale`. Every later tick ticks the actor's own
 /// animation bank and the two child tasks and hands the model's second part
 /// translation to `func_800D7A9C`.
 void func_actor_342000_801628C8(Task* arg0)
 {
-    Actor342000Work* work;
-    Actor342000Work* data;
-    GfxMatrix*       mtx;
-    s32*             ang;
-    TmdObject*       extra;
-    VECTOR           pos;
+    _Actor342000GluttonModelWork* work;
+    _Actor342000GluttonModelWork* data;
+    GfxMatrix*                    mtx;
+    s32*                          ang;
+    TmdObject*                    extra;
+    VECTOR                        pos;
 
-    work = (Actor342000Work*)arg0->work;
+    work = arg0->work;
 
     switch (arg0->state) {
         case 0:
@@ -741,18 +714,18 @@ void func_actor_342000_801628C8(Task* arg0)
             mtx->rotationWords.m11M12 = ONE;
             mtx->rotationWords.m20M21 = 0;
             mtx->rotationWords.m22    = ONE;
-            ang                       = &work->field_274;
+            ang                       = work->rotation;
             gfxRotMatrixY(&mtx->mat, ang[1], 1);
             gfxRotMatrixX(&mtx->mat, ang[0], GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixZ(&mtx->mat, ang[2], GRAPHICS_ROTATION_COMPOSE);
-            gfxScaleMatrixColumns(&mtx->mat, &work->field_264);
+            gfxScaleMatrixColumns(&mtx->mat, &work->scale);
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */
         default:
-            data = (Actor342000Work*)arg0->work;
+            data = arg0->work;
             func_actor_342000_80161EA4(arg0, 8);
-            func_actor_342000_80161EA4(data->field_29C, 4);
-            func_actor_342000_80161EA4(data->field_2A0, 4);
+            func_actor_342000_80161EA4(data->legRight, 4);
+            func_actor_342000_80161EA4(data->legLeft, 4);
             extra  = arg0->extra.tmd;
             pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
             pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
@@ -896,12 +869,12 @@ static inline void Actor342000_CopyMove(ActorTransform* dst, ActorTransform* src
 
 static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
 {
-    Actor342000Work* ctx;
-    u16              i;
-    u16              first;
+    _Actor342000GluttonModelWork* ctx;
+    u16                           i;
+    u16                           first;
 
     first = n == 8;
-    ctx   = (Actor342000Work*)task->work;
+    ctx   = task->work;
     if (blend == 0) {
         for (i = first; i < n; i++) {
             ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
@@ -934,13 +907,13 @@ static inline void Actor342000_Store(long* dst, s32 value)
 
 static void func_actor_342000_80162F28(Task* arg0)
 {
-    _Actor342000EventWork* work;
-    Actor342000Work*       actor;
-    ActorTransform*        src;
-    s32                    v;
+    _Actor342000EventWork*        work;
+    _Actor342000GluttonModelWork* gluttonWork;
+    ActorTransform*               src;
+    s32                           v;
 
-    work  = arg0->work;
-    actor = (Actor342000Work*)work->glutton->work;
+    work        = arg0->work;
+    gluttonWork = work->glutton->work;
     switch (work->stagingMode) {
         case ACTOR_342000_STAGING_GLUTTON_SINKS:
             switch (work->stagingStep) {
@@ -950,9 +923,9 @@ static void func_actor_342000_80162F28(Task* arg0)
                     taskMessageDispatch(work->doors[1], ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     Actor342000_CopyMove(&work->doorPlacements[0], &D_actor_342000_80164818[0]);
                     Actor342000_CopyMove(&work->doorPlacements[1], &D_actor_342000_80164818[1]);
-                    actor->field_264.vx           = 0x1000;
-                    actor->field_264.vy           = 0x1000;
-                    actor->field_264.vz           = 0x1000;
+                    gluttonWork->scale.vx         = ONE;
+                    gluttonWork->scale.vy         = ONE;
+                    gluttonWork->scale.vz         = ONE;
                     src                           = &D_actor_342000_801648B8;
                     work->gluttonPlacement.pos.vx = src->pos.vx;
                     work->gluttonPlacement.pos.vy = src->pos.vy;
@@ -968,7 +941,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                         Actor342000_SetAnim(work->gluttonLegRight, 1, 10, 4);
                         Actor342000_SetAnim(work->gluttonLegLeft, 1, 10, 4);
                     }
-                    actor->field_264.vx            -= 4;
+                    gluttonWork->scale.vx          -= 4;
                     work->doorPlacements[0].pos.vx += 5;
                     work->doorPlacements[1].pos.vx -= 5;
                     TASK_MESSAGE_DISPATCH_POINTER(work->doors[0], ACTOR_MESSAGE_PLACE, &work->doorPlacements[0], 0);
@@ -989,7 +962,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                     Actor342000_SetAnim(work->gluttonLegLeft, 0, 0, 4);
                     work->stagingStep++;
                 case 1:
-                    actor->field_264.vx -= 4;
+                    gluttonWork->scale.vx -= 4;
                     break;
             }
             return;
@@ -1003,7 +976,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                     Actor342000_CopyMove(&work->doorPlacements[1], &D_actor_342000_80164848[1]);
                     work->stagingStep++;
                 case 1:
-                    actor->field_264.vx -= 4;
+                    gluttonWork->scale.vx -= 4;
                     Actor342000_Add(&work->doorPlacements[0].pos.vx, 5);
                     Actor342000_Add(&work->doorPlacements[1].pos.vx, -5);
                     v = Actor342000_Sway(work->doorPlacements[0].pos.vz, -20);
@@ -1321,13 +1294,13 @@ void func_actor_342000_80163EAC(Task* arg0)
 
 static void func_actor_342000_80163F88(Task* task)
 {
-    Actor342000Work* work;
-    GfxCoord*        coord;
+    _Actor342000GluttonModelWork* work;
+    GfxCoord*                     coord;
 
     coord = task->extra.tmd->coords;
-    work  = (Actor342000Work*)task->work;
+    work  = task->work;
 
-    coord->parent = work->field_2A4;
+    coord->parent = work->parentCoord;
     taskKill(task);
 }
 
@@ -1337,31 +1310,31 @@ static void func_actor_342000_80163F88(Task* task)
 
 s32 func_actor_342000_801640C0(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3)
 {
-    Actor342000Work* work;
-    GfxCoord*        coord;
+    _Actor342000GluttonModelWork* work;
+    GfxCoord*                     coord;
 
-    work                     = (Actor342000Work*)arg0->work;
+    work                     = arg0->work;
     coord                    = &work->coord;
     coord->coord.t[0]        = transform->pos.vx;
     coord->coord.t[1]        = transform->pos.vy;
     coord->coord.t[2]        = transform->pos.vz;
-    work->field_274          = transform->rot.vx;
-    work->field_278          = transform->rot.vy;
-    work->field_27C          = transform->rot.vz;
+    work->rotation[0]        = transform->rot.vx;
+    work->rotation[1]        = transform->rot.vy;
+    work->rotation[2]        = transform->rot.vz;
     work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 s32 func_actor_342000_80164110(Task* arg0, s32 arg1, ActorCommand* request, ActorTransform* transform)
 {
-    Actor342000Work* work;
+    _Actor342000GluttonModelWork* work;
 
-    work = (Actor342000Work*)arg0->work;
+    work = arg0->work;
     if (request->command == 0xA) {
-        work->field_264.vx = transform->pos.vx;
-        work->field_264.vy = transform->pos.vy;
-        work->field_264.vz = transform->pos.vz;
+        work->scale.vx = transform->pos.vx;
+        work->scale.vy = transform->pos.vy;
+        work->scale.vz = transform->pos.vz;
     }
-    work->field_2AA = request->command;
+    work->lastCommand = request->command;
 }
 
 void func_actor_342000_80164154(void)
