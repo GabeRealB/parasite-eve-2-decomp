@@ -758,6 +758,26 @@ typedef struct ActorAnimStep {
 } ActorAnimStep;
 STATIC_ASSERT_SIZEOF(ActorAnimStep, 0x4);
 
+/// One pending cue of a cutscene task: what its event script has told one of
+/// the scene's actors, or the scene itself, to do.
+///
+/// A script callback posts a cue by storing `id` and clearing `step`. The
+/// cutscene task's handler for that cue acts on it the next time it runs and
+/// then clears `id`. A cue that spans several frames starts at its first step
+/// and keeps `id` set until its last step is done, and a handler may leave
+/// `id` set for an action it repeats every frame.
+///
+/// A cue is replaced, not queued: posting over one that is still running
+/// abandons it, and skipping the scene clears the cues outright. Each package
+/// numbers its own cues.
+typedef struct {
+    u16  id;           // Cue to act on; 0 when none is pending
+    u16  step;         // Step reached within a cue that spans several frames; counts up from 0
+    s16  counter;      // Frames waited, or distance an actor has been slid, within the current step; zeroed by the step that starts counting, not by posting
+    byte unknown_6[2]; // Never accessed; the cues sit 8 bytes apart, so the bytes are the cue's, but nothing shows what they hold
+} ActorCutsceneCue;
+STATIC_ASSERT_SIZEOF(ActorCutsceneCue, 0x8);
+
 /// One entry of a sprite frame table: the texture-page coordinates of the
 /// frame, each in the low byte of its halfword.
 typedef struct ActorSpriteUv {

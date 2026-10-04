@@ -55,29 +55,6 @@
 #include "rooms/shelter_b1_pod_service_gantry.h"
 #include "../../shared/actor_messages.h"
 
-/// One actor's pending cue in the package's cutscene.
-///
-/// The event script posts a cue, and the cutscene task's handler for that actor
-/// acts on it the next time it runs and then clears `id`. Posting a cue clears
-/// `step`, so a cue that spans several frames starts at its first step; the
-/// handler leaves `id` set until the last step is done.
-///
-/// Cues 1 to 33 are the scene's cuts, posted in order to the whole cast as each
-/// cut opens. 35 to 39 are posted to one actor in the middle of a cut, and are
-/// numbered per actor: 35 is one cue for Aya and another for Kyle. The scene's
-/// own cue is numbered separately again. A handler acts on the cues that
-/// concern its actor and clears the rest unhandled.
-///
-/// A cue is replaced, not queued: posting over one that is still running
-/// abandons it, and skipping the scene clears the cast's cues outright.
-typedef struct {
-    u16  id;           // Cue to act on; 0 when none is pending
-    u16  step;         // Step reached within a cue that spans several frames; counts up from 0
-    s16  counter;      // Frames waited, or distance Aya has been slid, within the current step; zeroed by the step that starts counting, not by posting
-    byte unknown_6[2]; // Never accessed; the cues sit 8 bytes apart, so the bytes are the cue's, but nothing shows what they hold
-} _Actor560800Cue;
-STATIC_ASSERT_SIZEOF(_Actor560800Cue, 0x8);
-
 /// Work block of the task that runs the package's cutscene, allocated zeroed at
 /// its full size by that task's first state and kept at its `Task::work`.
 ///
@@ -88,30 +65,36 @@ STATIC_ASSERT_SIZEOF(_Actor560800Cue, 0x8);
 /// spawned task hangs below the cutscene task in the teardown tree and dies
 /// with it; the player's task is borrowed and outlives the scene.
 ///
+/// Cues 1 to 33 are the scene's cuts, posted in order to the whole cast as each
+/// cut opens. 35 to 39 are posted to one actor in the middle of a cut, and are
+/// numbered per actor: 35 is one cue for Aya and another for Kyle. The scene's
+/// own cue is numbered separately again. A handler acts on the cues that
+/// concern its actor and clears the rest unhandled.
+///
 /// The player keeps the animation player of an ordinary actor, so the scene
 /// tracks which of its own animations Aya is in and chains the next one itself.
 /// The other three run animation scripts inside their own tasks.
 typedef struct {
-    Task*           player;            // The player's task, playing Aya; borrowed, never killed here
-    Task*           eve;               // Eve's body: the masked model at first, replaced by a second model with its own texture when the scene cue asks; names a dead task for the few frames the swap takes
-    Task*           kyle;              // Kyle Madigan's body
-    Task*           no9;               // No. 9's body
-    Task*           kyleGunHand;       // Kyle's hand model on the body part that also carries the gun
-    Task*           kyleFreeHand;      // Kyle's other hand model
-    Task*           kyleGun;           // Kyle's handgun model; may be NULL, and every use checks
-    Task*           no9Gunblade;       // No. 9's gunblade model; may be NULL, and every use checks
-    Task*           chainGroup;        // Task driving the eight jointed chain models, which follow a part of Eve's or No. 9's body; takes `ActorCommand`s
-    Task*           carrierModel;      // Single pulsing model that travels vertically and ends by carrying No. 9's body off with it; takes `ActorCommand`s
-    _Actor560800Cue playerCue;         // Aya's cue: animations, slides and the decals spawned at her feet
-    _Actor560800Cue no9Cue;            // No. 9's cue: animation changes
-    _Actor560800Cue eveCue;            // Eve's cue: animation changes, and hiding the chain group; `step` and `counter` are never read
-    _Actor560800Cue kyleCue;           // Kyle's cue: animations, turns of the body, the two shots and showing or hiding him with his hands and gun
-    byte            unknown_48[0x10];  // Never accessed; the size of two more cues, but nothing shows they are cues
-    _Actor560800Cue sceneCue;          // Cue for the scene itself (1 replaces Eve's model); only `id` is ever read
-    u16             playerAnimId;      // Animation Aya is playing, an index into the package's player animation sets and into the script that names its successor
-    s16             playerAnimHold;    // Frames the current player animation has been held, for a script step that lasts a fixed time
-    u16             shotDamageApplied; // 1 once the shot has cost the player 50 HP, so skipping the scene applies it exactly once
-    s16             keepEffects;       // 1 while opening a cut must leave the room's running effects alone; 0 lets each new cut cancel them all
+    Task*            player;            // The player's task, playing Aya; borrowed, never killed here
+    Task*            eve;               // Eve's body: the masked model at first, replaced by a second model with its own texture when the scene cue asks; names a dead task for the few frames the swap takes
+    Task*            kyle;              // Kyle Madigan's body
+    Task*            no9;               // No. 9's body
+    Task*            kyleGunHand;       // Kyle's hand model on the body part that also carries the gun
+    Task*            kyleFreeHand;      // Kyle's other hand model
+    Task*            kyleGun;           // Kyle's handgun model; may be NULL, and every use checks
+    Task*            no9Gunblade;       // No. 9's gunblade model; may be NULL, and every use checks
+    Task*            chainGroup;        // Task driving the eight jointed chain models, which follow a part of Eve's or No. 9's body; takes `ActorCommand`s
+    Task*            carrierModel;      // Single pulsing model that travels vertically and ends by carrying No. 9's body off with it; takes `ActorCommand`s
+    ActorCutsceneCue playerCue;         // Aya's cue: animations, slides and the decals spawned at her feet
+    ActorCutsceneCue no9Cue;            // No. 9's cue: animation changes
+    ActorCutsceneCue eveCue;            // Eve's cue: animation changes, and hiding the chain group; `step` and `counter` are never read
+    ActorCutsceneCue kyleCue;           // Kyle's cue: animations, turns of the body, the two shots and showing or hiding him with his hands and gun
+    byte             unknown_48[0x10];  // Never accessed; the size of two more cues, but nothing shows they are cues
+    ActorCutsceneCue sceneCue;          // Cue for the scene itself (1 replaces Eve's model); only `id` is ever read
+    u16              playerAnimId;      // Animation Aya is playing, an index into the package's player animation sets and into the script that names its successor
+    s16              playerAnimHold;    // Frames the current player animation has been held, for a script step that lasts a fixed time
+    u16              shotDamageApplied; // 1 once the shot has cost the player 50 HP, so skipping the scene applies it exactly once
+    s16              keepEffects;       // 1 while opening a cut must leave the room's running effects alone; 0 lets each new cut cancel them all
 } _Actor560800CutsceneWork;
 STATIC_ASSERT_SIZEOF(_Actor560800CutsceneWork, 0x68);
 

@@ -68,47 +68,61 @@ typedef struct Actor160900ChildWork {
 } Actor160900ChildWork;
 STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 
-/// Work block this overlay hangs off the task's `Task::work` slot (0x1C). Reach
-/// it with
-/// `(Actor160900Work*)task->work`.
-///
-/// `func_actor_160900_8013418C` allocates it with `memMalloc(0x68, 0)` and
-/// zeroes all 0x68 bytes, so the size below is the allocation. That function
-/// fills `field_34` with `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` -- the task every `taskMessageDispatch`
-/// in this overlay targets -- and 0x38/0x3C/0x40 with the tasks it spawns from
-/// `D_actor_160900_8013FB50` indices 3, 5 and 6.
-///
-/// `field_64` indexes `D_actor_160900_8013F1CC` and `field_66` counts frames
-/// against the step's `hold`.
-///
-/// `wave` is the context of the screen-wave task `screenWaveTask`,
-/// which the `field_4C == 4` request spawns with it as the argument after
-/// setting an eight-frame ramp; the `field_4C == 5` request ends the wave.
-/// The block is zeroed at allocation and this overlay never sets the tint.
-typedef struct Actor160900Work {
-    /* 0x00 */ ScreenWaveCtx wave;
-    /* 0x0C */ Task*         field_C[10]; // child tasks, killed on death
-    /* 0x34 */ Task*         field_34;    // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), taskMessageDispatch target
-    /* 0x38 */ Task*         field_38;    // D_actor_160900_8013FB50[3]
-    /* 0x3C */ Task*         field_3C;    // D_actor_160900_8013FB50[5]
-    /* 0x40 */ Task*         field_40;    // D_actor_160900_8013FB50[6]
-    /* 0x44 */ Task*         field_44;    // optional, notified with 0x7D5 alongside 0x3C/0x40
-    /* 0x48 */ byte          pad_48[4];
-    /* 0x4C */ s16           field_4C;
-    /* 0x4E */ s16           field_4E;
-    /* 0x50 */ byte          pad_50[4];
-    /* 0x54 */ s16           field_54;
-    /* 0x56 */ s16           field_56;
-    /* 0x58 */ byte          pad_58[4];
-    /* 0x5C */ s16           field_5C;
-    /* 0x5E */ s16           field_5E;
-    /* 0x60 */ byte          pad_60[4];
-    /* 0x64 */ u16           field_64;
-    /* 0x66 */ u16           field_66;
-} Actor160900Work;
-STATIC_ASSERT_SIZEOF(Actor160900Work, 0x68);
+/// Cues of `_Actor160900CutsceneWork::playerCue`. The clips are those of
+/// `_gActor160900PlayerAnimationSets`.
+enum {
+    ACTOR_160900_PLAYER_CUE_TAKE_PLACE   = 1,  // places Aya for the scene and restarts her in clip 10
+    ACTOR_160900_PLAYER_CUE_CLIP_1       = 2,  // restarts her in clip 1
+    ACTOR_160900_PLAYER_CUE_WALK_TO_MARK = 3,  // once: clip 1 of her own weapon's bank, a second placement, and a walk to a fixed point; stays posted afterwards
+    ACTOR_160900_PLAYER_CUE_WAVE_START   = 4,  // starts the screen wave on an eight-frame rise
+    ACTOR_160900_PLAYER_CUE_WAVE_END     = 5,  // ends the screen wave's task
+    ACTOR_160900_PLAYER_CUE_CLIP_2       = 6,  // restarts her in clip 2, which chains on through clips 3, 4 and 5
+    ACTOR_160900_PLAYER_CUE_CLIP_6       = 7,  // blends her into clip 6
+    ACTOR_160900_PLAYER_CUE_CLIP_7       = 8,  // blends her into clip 7, which chains back to clip 0
+    ACTOR_160900_PLAYER_CUE_CLIP_8       = 9,  // blends her into clip 8, which chains back to clip 0
+    ACTOR_160900_PLAYER_CUE_CLIP_9       = 10, // blends her into clip 9, which chains back to clip 0
+};
 
-/// Work block of the `D_actor_160900_8013FB50[3]` child (`field_38`), as far
+/// Cues of `_Actor160900CutsceneWork::kyleCue`.
+enum {
+    ACTOR_160900_KYLE_CUE_HIDE_AND_PLACE = 1, // hides Kyle's body and places it
+    ACTOR_160900_KYLE_CUE_APPEAR         = 2, // shows his hands, his gun if there is one, and his body, and spawns a ground decal at an offset from him
+    ACTOR_160900_KYLE_CUE_CLIP_1         = 3, // blends his body into clip 1 of its own animation script
+    ACTOR_160900_KYLE_CUE_GROUND_DECAL   = 4, // spawns a ground decal at a second offset from him
+};
+
+/// Work block of the task that runs the package's cutscene, allocated and
+/// zeroed at its full size by that task's first state and kept at its
+/// `Task::work`.
+///
+/// The scene plays Aya Brea and Kyle Madigan against one event script. The
+/// block holds the cast - the player's own task and the model tasks this
+/// package spawns for Kyle - and the cues through which the script tells Aya,
+/// Kyle and the scene's effects what to do next. Kyle's body hangs below the
+/// cutscene task in the teardown tree and his hands below his body, so they
+/// die with the scene; the player's task is borrowed and outlives it.
+///
+/// The player keeps the animation player of an ordinary actor, so the scene
+/// tracks which of its own clips Aya is in and chains the next one itself.
+/// Kyle runs his animation script inside his own task.
+typedef struct {
+    ScreenWaveCtx    wave;           // Ramp of the screen-wave task the player cue starts and ends; the scene seeds the rise and strength and leaves the tint off
+    Task*            lightQuads[10]; // Additive gradient quads the script puts up a set at a time, of which the largest fills six slots; NULL where a slot is empty, and killed and cleared together when the script takes the set down
+    Task*            player;         // The player's task, playing Aya; borrowed, never killed here
+    Task*            kyle;           // Kyle Madigan's body
+    Task*            kyleGunHand;    // Kyle's hand model on the body part that would also carry the gun
+    Task*            kyleFreeHand;   // Kyle's other hand model
+    Task*            kyleGun;        // Slot for Kyle's handgun model, shown with his hands when set; nothing here spawns the gun, so it stays NULL
+    byte             unknown_48[4];  // Never accessed; role unproven
+    ActorCutsceneCue playerCue;      // Aya's cue (`ACTOR_160900_PLAYER_CUE_*`): her placement and clips, and the screen wave; only the walk to the mark reads `step`
+    ActorCutsceneCue kyleCue;        // Kyle's cue (`ACTOR_160900_KYLE_CUE_*`): hiding, placing and showing him, his clip, and the ground decals; `step` is never read
+    ActorCutsceneCue effectCue;      // Which of the five point lists the scene spawns its effect over, one frame in eight (0 none, 1-5 the list); stays posted until the script changes it, and `step` is never read
+    u16              playerAnimId;   // Clip Aya is playing, an index into the package's player animation sets and into the script that names its successor
+    s16              playerAnimHold; // Frames the current player clip has been held, for a script step that lasts a fixed time
+} _Actor160900CutsceneWork;
+STATIC_ASSERT_SIZEOF(_Actor160900CutsceneWork, 0x68);
+
+/// Work block of the `D_actor_160900_8013FB50[3]` child (`_Actor160900CutsceneWork::kyle`), as far
 /// as `func_actor_160900_8013358C` reaches into it: the model's rig, the
 /// matrices it is lit with, and the animation script it walks.
 typedef struct Actor160900Child3Work {
@@ -122,7 +136,7 @@ typedef struct Actor160900Child3Work {
 STATIC_ASSERT_SIZEOF(Actor160900Child3Work, 0x4BC);
 
 /// The overlay's task table. Entry 0 is `func_actor_160900_8013418C`, which
-/// spawns entries 3, 5 and 6 into `Actor160900Work`; entries 1 and 2 are
+/// spawns entries 3, 5 and 6 into `_Actor160900CutsceneWork`; entries 1 and 2 are
 /// spawned by `func_actor_160900_801346B0` / `func_actor_160900_801346E0`.
 extern TaskDesc D_actor_160900_8013FB50[];
 
@@ -135,7 +149,7 @@ extern u8       D_actor_160900_8013F228[];
 extern TaskDesc D_actor_160900_8013F17C[];
 
 /// Point lists `func_actor_160900_8013418C` hands `func_actor_160900_80133758`
-/// for `Actor160900Work::field_5C` values 1-5.
+/// for `_Actor160900CutsceneWork::effectCue` ids 1-5.
 extern SVECTOR D_actor_160900_8013F258[];
 extern SVECTOR D_actor_160900_8013F2E0[];
 extern SVECTOR D_actor_160900_8013F3B0[];
@@ -859,8 +873,8 @@ EvsSceneKey D_actor_160900_8013F530 = { 6, 9, 11 };
 EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_TAKE_PLACE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = ACTOR_160900_KYLE_CUE_HIDE_AND_PLACE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_160900_8013F530 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134830 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -871,46 +885,46 @@ EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_160900_801346B0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134710 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80133A84 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = ACTOR_160900_KYLE_CUE_APPEAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134710 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80133F90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_WALK_TO_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_WAVE_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134710 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_WAVE_END }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = ACTOR_160900_KYLE_CUE_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = Gp_PulseState1C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_160900_801346E0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = ACTOR_160900_KYLE_CUE_GROUND_DECAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134870 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -971,56 +985,56 @@ static void        func_actor_160900_80133758(SVECTOR* pts);
 
 static s32 func_actor_160900_801326EC(Task* arg0)
 {
-    Actor160900Work*     work;
-    ActorAnimStep*       table;
-    ActorAnimStep*       entry;
-    ActorAnimStep*       entry2;
-    AnimationPlayRequest msg;
-    u16                  anim;
-    u16                  anim2;
+    _Actor160900CutsceneWork* work;
+    ActorAnimStep*            table;
+    ActorAnimStep*            entry;
+    ActorAnimStep*            entry2;
+    AnimationPlayRequest      msg;
+    u16                       anim;
+    u16                       anim2;
 
-    work = (Actor160900Work*)arg0->work;
-    if (work->field_34 == NULL) {
+    work = arg0->work;
+    if (work->player == NULL) {
         return 1;
     }
     table = D_actor_160900_8013F1CC;
-    entry = &table[work->field_64];
+    entry = &table[work->playerAnimId];
     if (entry->hold != 0) {
-        if ((s16)work->field_66 >= entry->hold) {
+        if (work->playerAnimHold >= entry->hold) {
             if (entry->animId < 0) {
                 return 1;
             }
             anim                     = entry->animId;
             msg.source.sets          = _gActor160900PlayerAnimationSets;
-            work->field_64           = anim;
+            work->playerAnimId       = anim;
             msg.animationId          = anim;
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 0xA;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
-            work->field_66 = 0;
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            work->playerAnimHold = 0;
         } else {
-            work->field_66 += 1;
+            work->playerAnimHold += 1;
         }
     } else {
-        if (taskMessageDispatch(work->field_34, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
+        if (taskMessageDispatch(work->player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
             return 0;
         }
-        entry2 = &D_actor_160900_8013F1CC[work->field_64];
+        entry2 = &D_actor_160900_8013F1CC[work->playerAnimId];
         if (entry2->animId < 0) {
             return 1;
         }
-        work = (Actor160900Work*)arg0->work;
-        if (work->field_34 != NULL) {
+        work = arg0->work;
+        if (work->player != NULL) {
             anim2                    = entry2->animId;
             msg.source.sets          = _gActor160900PlayerAnimationSets;
-            work->field_64           = anim2;
+            work->playerAnimId       = anim2;
             msg.animationId          = anim2;
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 0xA;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
-            work->field_66 = 0;
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            work->playerAnimHold = 0;
         }
     }
     return 0;
@@ -1365,92 +1379,92 @@ void func_actor_160900_80132E80(Task* task)
 
 static inline void func_actor_160900_SetAnim(Task* task, u16 anim)
 {
-    Actor160900Work*      work;
-    AnimationPlayRequest  msg;
-    AnimationPlayRequest* p;
+    _Actor160900CutsceneWork* work;
+    AnimationPlayRequest      msg;
+    AnimationPlayRequest*     p;
 
-    work = (Actor160900Work*)task->work;
+    work = task->work;
     p    = &msg;
-    if (work->field_34 != NULL) {
+    if (work->player != NULL) {
         p->source.sets          = _gActor160900PlayerAnimationSets;
-        work->field_64          = anim;
+        work->playerAnimId      = anim;
         p->animationId          = anim;
         p->blend                = ANIMATION_BLEND_INTERPOLATE;
         p->blendFrames          = 10;
         p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
-        work->field_66 = 0;
+        TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+        work->playerAnimHold = 0;
     }
 }
 
 static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim)
 {
-    Actor160900Work*      work;
-    AnimationPlayRequest  msg;
-    AnimationPlayRequest* p;
+    _Actor160900CutsceneWork* work;
+    AnimationPlayRequest      msg;
+    AnimationPlayRequest*     p;
 
-    work = (Actor160900Work*)task->work;
+    work = task->work;
     p    = &msg;
-    if (work->field_34 != NULL) {
+    if (work->player != NULL) {
         p->source.sets          = _gActor160900PlayerAnimationSets;
-        work->field_64          = anim;
+        work->playerAnimId      = anim;
         p->animationId          = anim;
         p->blend                = ANIMATION_BLEND_RESET;
         p->blendFrames          = 0;
         p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
-        work->field_66 = 0;
+        TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+        work->playerAnimHold = 0;
     }
 }
 
-/// Runs the one-shot request in `Actor160900Work::field_4C` (animation
-/// changes on the player task, a spawn, a flag) and clears it.
+/// Advances Aya's clip chain, then acts on `_Actor160900CutsceneWork::playerCue`
+/// and clears it, except for the walk to the mark, which stays posted.
 static void func_actor_160900_80133238(Task* arg0)
 {
-    Actor160900Work* work;
+    _Actor160900CutsceneWork* work;
     union {
         AnimationPlayRequest animation;
         VECTOR3              destination;
     } message;
 
-    Actor160900Work* messageWork;
-    s32              bankIndex;
-    s32              weaponId;
+    _Actor160900CutsceneWork* messageWork;
+    s32                       bankIndex;
+    s32                       weaponId;
 
-    work = (Actor160900Work*)arg0->work;
+    work = arg0->work;
     func_actor_160900_801326EC(arg0);
-    switch ((u16)work->field_4C) {
+    switch (work->playerCue.id) {
         case 0:
             break;
-        case 1:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_34, 0x3E9, D_actor_160900_8013F210, 0);
-            messageWork = (Actor160900Work*)arg0->work;
-            if (messageWork->field_34 != NULL) {
+        case ACTOR_160900_PLAYER_CUE_TAKE_PLACE:
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, D_actor_160900_8013F210, 0);
+            messageWork = arg0->work;
+            if (messageWork->player != NULL) {
                 message.animation.source.sets          = _gActor160900PlayerAnimationSets;
-                messageWork->field_64                  = 10;
+                messageWork->playerAnimId              = 10;
                 message.animation.animationId          = 10;
                 message.animation.blend                = ANIMATION_BLEND_RESET;
                 message.animation.blendFrames          = 0;
                 message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(messageWork->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &message.animation, 0);
-                messageWork->field_66 = 0;
+                TASK_MESSAGE_DISPATCH_POINTER(messageWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &message.animation, 0);
+                messageWork->playerAnimHold = 0;
             }
             break;
-        case 2:
-            messageWork = (Actor160900Work*)arg0->work;
-            if (messageWork->field_34 != NULL) {
+        case ACTOR_160900_PLAYER_CUE_CLIP_1:
+            messageWork = arg0->work;
+            if (messageWork->player != NULL) {
                 message.animation.source.sets          = _gActor160900PlayerAnimationSets;
-                messageWork->field_64                  = 1;
+                messageWork->playerAnimId              = 1;
                 message.animation.animationId          = 1;
                 message.animation.blend                = ANIMATION_BLEND_RESET;
                 message.animation.blendFrames          = 0;
                 message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(messageWork->field_34, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &message.animation, 0);
-                messageWork->field_66 = 0;
+                TASK_MESSAGE_DISPATCH_POINTER(messageWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &message.animation, 0);
+                messageWork->playerAnimHold = 0;
             }
             break;
-        case 3:
-            if ((u16)work->field_4E == 0) {
+        case ACTOR_160900_PLAYER_CUE_WALK_TO_MARK:
+            if (work->playerCue.step == 0) {
                 weaponId = gPlayerStatus.weapon;
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                     bankIndex = weaponId + 1;
@@ -1464,72 +1478,72 @@ static void func_actor_160900_80133238(Task* arg0)
                 message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
 
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &message.animation, 0);
-                TASK_MESSAGE_DISPATCH_POINTER(work->field_34, 0x3E9, D_actor_160900_8013F228, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, D_actor_160900_8013F228, 0);
                 message.destination.vx = -0x7D0;
                 message.destination.vy = 0;
                 message.destination.vz = 0xC80;
-                TASK_MESSAGE_DISPATCH_POINTER(work->field_34, 0x3FB, &message.destination, 0);
-                work->field_4E++;
+                TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3FB, &message.destination, 0);
+                work->playerCue.step++;
             }
             return;
-        case 4:
+        case ACTOR_160900_PLAYER_CUE_WAVE_START:
             work->wave.span  = 8;
             work->wave.scale = 0x80;
             Task_SpawnFromTable(D_actor_160900_8013F17C, 0, 0, &work->wave);
-            work->field_4C = 0;
+            work->playerCue.id = 0;
             return;
-        case 5:
+        case ACTOR_160900_PLAYER_CUE_WAVE_END:
             work->wave.state = SCREEN_WAVE_RAMP_FINISHED;
             break;
-        case 6:
+        case ACTOR_160900_PLAYER_CUE_CLIP_2:
             func_actor_160900_SetAnimZ(arg0, 2);
             break;
-        case 7:
+        case ACTOR_160900_PLAYER_CUE_CLIP_6:
             func_actor_160900_SetAnim(arg0, 6);
             break;
-        case 8:
+        case ACTOR_160900_PLAYER_CUE_CLIP_7:
             func_actor_160900_SetAnim(arg0, 7);
             break;
-        case 9:
+        case ACTOR_160900_PLAYER_CUE_CLIP_8:
             func_actor_160900_SetAnim(arg0, 8);
             break;
-        case 10:
+        case ACTOR_160900_PLAYER_CUE_CLIP_9:
             func_actor_160900_SetAnim(arg0, 9);
             break;
     }
-    work->field_4C = 0;
+    work->playerCue.id = 0;
 }
 
 static void func_actor_160900_8013358C(Task* arg0)
 {
-    Actor160900Work*       work;
-    Actor160900Child3Work* child;
-    SVECTOR                ofs;
-    SVECTOR                ofs2;
-    s32                    i;
+    _Actor160900CutsceneWork* work;
+    Actor160900Child3Work*    child;
+    SVECTOR                   ofs;
+    SVECTOR                   ofs2;
+    s32                       i;
 
-    work = (Actor160900Work*)arg0->work;
-    switch ((u16)work->field_54) {
+    work = arg0->work;
+    switch (work->kyleCue.id) {
         case 0:
             break;
-        case 1:
-            taskMessageDispatch(work->field_38, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_38, 0x7D4, D_actor_160900_8013F240, 0);
+        case ACTOR_160900_KYLE_CUE_HIDE_AND_PLACE:
+            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, D_actor_160900_8013F240, 0);
             break;
-        case 2:
-            taskMessageDispatch(work->field_3C, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(work->field_40, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            if (work->field_44 != NULL) {
-                taskMessageDispatch(work->field_44, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        case ACTOR_160900_KYLE_CUE_APPEAR:
+            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            if (work->kyleGun != NULL) {
+                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }
-            taskMessageDispatch(work->field_38, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             ofs.vx = -100;
             ofs.vy = 100;
             ofs.vz = -1200;
-            Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_38->extra.tmd->coords, 0x20000100, &ofs);
+            Gp_SpawnEff(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords, 0x20000100, &ofs);
             break;
-        case 3:
-            child            = (Actor160900Child3Work*)work->field_38->work;
+        case ACTOR_160900_KYLE_CUE_CLIP_1:
+            child            = (Actor160900Child3Work*)work->kyle->work;
             child->field_4B8 = 1;
             child->field_4BA = 0;
             do {
@@ -1538,14 +1552,14 @@ static void func_actor_160900_8013358C(Task* arg0)
                 animationSeekSlotWithBlend(&child->rig.anim, (u16)i, 1, 0, 10);
             }
             break;
-        case 4:
+        case ACTOR_160900_KYLE_CUE_GROUND_DECAL:
             ofs2.vx = -200;
             ofs2.vy = 100;
             ofs2.vz = -400;
-            Gp_SpawnEff(EFFECT_GROUND_DECAL, work->field_38->extra.tmd->coords, 0x20000100, &ofs2);
+            Gp_SpawnEff(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords, 0x20000100, &ofs2);
             break;
     }
-    work->field_54 = 0;
+    work->kyleCue.id = 0;
 }
 
 /// Spawn effect 0x601B4 at each point of a `pad == -1` terminated list, x
@@ -1576,14 +1590,14 @@ static void func_actor_160900_80133758(SVECTOR* pts)
 
 void func_actor_160900_80133880(void)
 {
-    Actor160900Work*      data;
-    Actor160900ChildWork* alloc;
-    Actor160900ChildWork* work;
-    Task*                 task;
+    _Actor160900CutsceneWork* data;
+    Actor160900ChildWork*     alloc;
+    Actor160900ChildWork*     work;
+    Task*                     task;
 
-    data             = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    task             = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
-    data->field_C[0] = task;
+    data                = D_actor_160900_8013FBB4->work;
+    task                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
+    data->lightQuads[0] = task;
     if (task == NULL) {
         return;
     }
@@ -1612,7 +1626,7 @@ void func_actor_160900_80133880(void)
     work->field_18.vy                   = 0;
     work->field_18.vz                   = 0;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
-    data->field_C[1]                    = task;
+    data->lightQuads[1]                 = task;
     if (task == NULL) {
         return;
     }
@@ -1643,14 +1657,14 @@ void func_actor_160900_80133880(void)
 }
 void func_actor_160900_80133A84(void)
 {
-    Actor160900Work*      data;
-    Actor160900ChildWork* alloc;
-    Actor160900ChildWork* work;
-    Task*                 task;
+    _Actor160900CutsceneWork* data;
+    Actor160900ChildWork*     alloc;
+    Actor160900ChildWork*     work;
+    Task*                     task;
 
-    data             = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    task             = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 5, 0);
-    data->field_C[0] = task;
+    data                = D_actor_160900_8013FBB4->work;
+    task                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 5, 0);
+    data->lightQuads[0] = task;
     if (task == NULL) {
         return;
     }
@@ -1679,7 +1693,7 @@ void func_actor_160900_80133A84(void)
     work->field_18.vy                   = 0;
     work->field_18.vz                   = -0x1F4;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 2, 0);
-    data->field_C[1]                    = task;
+    data->lightQuads[1]                 = task;
     if (task == NULL) {
         return;
     }
@@ -1708,7 +1722,7 @@ void func_actor_160900_80133A84(void)
     work->field_18.vy                   = 0;
     work->field_18.vz                   = 0x1F4;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 3, 0);
-    data->field_C[2]                    = task;
+    data->lightQuads[2]                 = task;
     if (task == NULL) {
         return;
     }
@@ -1737,7 +1751,7 @@ void func_actor_160900_80133A84(void)
     work->field_18.vy                   = 0;
     work->field_18.vz                   = -0x3E8;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 4, 0);
-    data->field_C[3]                    = task;
+    data->lightQuads[3]                 = task;
     if (task == NULL) {
         return;
     }
@@ -1766,7 +1780,7 @@ void func_actor_160900_80133A84(void)
     work->field_18.vy                   = 0;
     work->field_18.vz                   = -0x1F4;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
-    data->field_C[4]                    = task;
+    data->lightQuads[4]                 = task;
     if (task == NULL) {
         return;
     }
@@ -1795,7 +1809,7 @@ void func_actor_160900_80133A84(void)
     work->field_18.vy                   = 0;
     work->field_18.vz                   = 0x1F4;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
-    data->field_C[5]                    = task;
+    data->lightQuads[5]                 = task;
     if (task == NULL) {
         return;
     }
@@ -1826,14 +1840,14 @@ void func_actor_160900_80133A84(void)
 }
 void func_actor_160900_80133F90(void)
 {
-    Actor160900Work*      data;
-    Actor160900ChildWork* alloc;
-    Actor160900ChildWork* work;
-    Task*                 task;
+    _Actor160900CutsceneWork* data;
+    Actor160900ChildWork*     alloc;
+    Actor160900ChildWork*     work;
+    Task*                     task;
 
-    data             = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    task             = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
-    data->field_C[0] = task;
+    data                = D_actor_160900_8013FBB4->work;
+    task                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
+    data->lightQuads[0] = task;
     if (task == NULL) {
         return;
     }
@@ -1862,7 +1876,7 @@ void func_actor_160900_80133F90(void)
     work->field_18.vy                   = 0;
     work->field_18.vz                   = 0;
     task                                = Task_SpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
-    data->field_C[1]                    = task;
+    data->lightQuads[1]                 = task;
     if (task == NULL) {
         return;
     }
@@ -1893,8 +1907,8 @@ void func_actor_160900_80133F90(void)
 }
 void func_actor_160900_8013418C(Task* arg0)
 {
-    Actor160900Work* work;
-    Actor160900Work* data;
+    _Actor160900CutsceneWork* work;
+    _Actor160900CutsceneWork* data;
 
     switch (arg0->state) {
         case 0:
@@ -1907,11 +1921,11 @@ void func_actor_160900_8013418C(Task* arg0)
                 taskKill(arg0);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->field_34          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_160900_8013FBB4 = arg0;
-                work->field_38          = Task_SpawnFromTable(D_actor_160900_8013FB50, 3, 0, arg0);
-                work->field_3C          = Task_SpawnFromTable(D_actor_160900_8013FB50, 5, 1, work->field_38);
-                work->field_40          = Task_SpawnFromTable(D_actor_160900_8013FB50, 6, 0, work->field_38);
+                work->kyle              = Task_SpawnFromTable(D_actor_160900_8013FB50, 3, 0, arg0);
+                work->kyleGunHand       = Task_SpawnFromTable(D_actor_160900_8013FB50, 5, 1, work->kyle);
+                work->kyleFreeHand      = Task_SpawnFromTable(D_actor_160900_8013FB50, 6, 0, work->kyle);
             }
             Gp_CapFile = 0;
             Gp_LoadCapFile(3);
@@ -1931,8 +1945,8 @@ void func_actor_160900_8013418C(Task* arg0)
     }
     func_actor_160900_80133238(arg0);
     func_actor_160900_8013358C(arg0);
-    data = (Actor160900Work*)arg0->work;
-    switch ((u16)data->field_5C) {
+    data = arg0->work;
+    switch (data->effectCue.id) {
         case 1:
             func_actor_160900_80133758(D_actor_160900_8013F258);
             break;
@@ -1950,7 +1964,7 @@ void func_actor_160900_8013418C(Task* arg0)
             break;
         case 0:
         default:
-            data->field_5C = 0;
+            data->effectCue.id = 0;
             break;
     }
 }
@@ -2063,52 +2077,52 @@ void func_actor_160900_801346E0(s32 arg0)
 
 void func_actor_160900_80134710(void)
 {
-    Actor160900Work* work;
-    Task*            task;
-    s16              i;
+    _Actor160900CutsceneWork* work;
+    Task*                     task;
+    s16                       i;
 
-    work = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    for (i = 0; i < 10; i++) {
-        task = work->field_C[i];
+    work = D_actor_160900_8013FBB4->work;
+    for (i = 0; i < ARRAY_SIZE(work->lightQuads); i++) {
+        task = work->lightQuads[i];
         if (task != NULL) {
             taskKill(task);
-            work->field_C[i] = NULL;
+            work->lightQuads[i] = NULL;
         }
     }
 }
 void func_actor_160900_80134790(s16 arg0)
 {
-    Actor160900Work* work;
+    _Actor160900CutsceneWork* work;
 
-    work           = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    work->field_4C = arg0;
-    work->field_4E = 0;
+    work                 = D_actor_160900_8013FBB4->work;
+    work->playerCue.id   = arg0;
+    work->playerCue.step = 0;
 }
 void func_actor_160900_801347B0(s16 arg0)
 {
-    Actor160900Work* work;
+    _Actor160900CutsceneWork* work;
 
-    work           = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    work->field_54 = arg0;
-    work->field_56 = 0;
+    work               = D_actor_160900_8013FBB4->work;
+    work->kyleCue.id   = arg0;
+    work->kyleCue.step = 0;
 }
 
 void func_actor_160900_801347D0(s16 arg0)
 {
-    Actor160900Work* work;
+    _Actor160900CutsceneWork* work;
 
-    work           = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    work->field_5C = arg0;
-    work->field_5E = 0;
+    work                 = D_actor_160900_8013FBB4->work;
+    work->effectCue.id   = arg0;
+    work->effectCue.step = 0;
 }
 void func_actor_160900_801347F0(void)
 {
-    Actor160900Work* work;
+    _Actor160900CutsceneWork* work;
 
-    work           = (Actor160900Work*)D_actor_160900_8013FBB4->work;
-    work->field_4C = 0;
-    work->field_54 = 0;
-    work->field_5C = 0;
+    work               = D_actor_160900_8013FBB4->work;
+    work->playerCue.id = 0;
+    work->kyleCue.id   = 0;
+    work->effectCue.id = 0;
     CdCmd_CancelReplaceAndActivate();
     SetDispMask(1);
 }
