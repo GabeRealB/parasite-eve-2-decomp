@@ -150,12 +150,6 @@ typedef struct {
 } _Actor03800Work;
 STATIC_ASSERT_SIZEOF(_Actor03800Work, 0x384);
 
-typedef struct Actor03800TurnScratch {
-    /* 0x00 */ SVECTOR rotation;
-    /* 0x08 */ MATRIX  matrix;
-} Actor03800TurnScratch;
-STATIC_ASSERT_SIZEOF(Actor03800TurnScratch, 0x28);
-
 typedef struct Actor03800MoveScratch {
     VECTOR  delta;
     SVECTOR normal;
@@ -1767,11 +1761,11 @@ static void Actor03800_Fn021E4(Task* arg0)
     Enemy*                 ctx;
     _Actor03800Work*       work;
     GfxCoord*              coord;
-    Actor03800TurnScratch* scratch;
+    ActorEulerTurnScratch* scratch;
     s32                    sound;
     s32                    pan;
 
-    scratch = (Actor03800TurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(*scratch));
+    scratch = (ActorEulerTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(*scratch));
     work    = arg0->work;
     coord   = arg0->extra.tmd->coords;
     ctx     = arg0->spawnArg2.pointer;
@@ -1801,18 +1795,18 @@ static void Actor03800_Fn021E4(Task* arg0)
             work->actionStep = 3;
             break;
         case 3:
-            scratch->rotation.vx = 0;
-            scratch->rotation.vy = work->yaw;
-            scratch->rotation.vz = 0;
-            RotMatrix(&scratch->rotation, &scratch->matrix);
+            scratch->angles.vx = 0;
+            scratch->angles.vy = work->yaw;
+            scratch->angles.vz = 0;
+            RotMatrix(&scratch->angles, &scratch->rotation);
             gte_SetRotMatrix(&work->savedRootMtx);
-            gte_ldclmv(&scratch->matrix.m[0][0]);
+            gte_ldclmv(&scratch->rotation.m[0][0]);
             gte_rtir();
             gte_stclmv(&work->savedRootMtx.m[0][0]);
-            gte_ldclmv(&scratch->matrix.m[0][1]);
+            gte_ldclmv(&scratch->rotation.m[0][1]);
             gte_rtir();
             gte_stclmv(&work->savedRootMtx.m[0][1]);
-            gte_ldclmv(&scratch->matrix.m[0][2]);
+            gte_ldclmv(&scratch->rotation.m[0][2]);
             gte_rtir();
             gte_stclmv(&work->savedRootMtx.m[0][2]);
             coord->coord        = work->savedRootMtx;

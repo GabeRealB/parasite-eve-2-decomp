@@ -148,6 +148,19 @@ typedef struct {
 } ActorChildPlaceScratch;
 STATIC_ASSERT_SIZEOF(ActorChildPlaceScratch, 0x38);
 
+/// The scratch-stack block of a turn multiplied onto a rotation: the Euler
+/// angles of the turn and the rotation matrix built from them.
+///
+/// One block serves one turn. The angles are written, `RotMatrix` builds
+/// `rotation` from them, and that is multiplied onto the rotation being turned
+/// a column at a time, which turns it in its own frame. The rotation turned is
+/// a model's root coordinate or a matrix the owner keeps in its work block.
+typedef struct {
+    SVECTOR angles;   // Euler angles of the turn, 4096 per turn; `pad` is never written. A routine that spawns an effect once the turn is done borrows it for the effect's offset from its parent coordinate
+    MATRIX  rotation; // The turn as a rotation matrix; its translation is never set or read
+} ActorEulerTurnScratch;
+STATIC_ASSERT_SIZEOF(ActorEulerTurnScratch, 0x28);
+
 /// Scratch-stack block of a uniform matrix scale that takes the translation
 /// along: the rotation is scaled by `ScaleMatrix`, the translation on the GTE.
 ///
@@ -438,6 +451,24 @@ typedef struct {
     SVECTOR              pushDirection;   // `toPlayer` normalised, 4096 = 1.0: the way the player is pushed. The first tick borrows it for the hit effect's offset from the player's coordinate instead; `pad` is never written
 } ActorPlayerKnockbackScratch;
 STATIC_ASSERT_SIZEOF(ActorPlayerKnockbackScratch, 0x44);
+
+/// Scratch-stack block of an enemy's hold on the player, which the player
+/// breaks by pressing buttons.
+///
+/// The enemy fills `buttonPressHold` and sends it with
+/// `GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES`; a player that accepts the hold
+/// answers 0. The enemy then fills `playerAnim` with an animation of the
+/// package's own player set and sends it with
+/// `ANIMATION_MESSAGE_REPLACE_AND_PLAY`. A block is reserved for one tick and
+/// released before the routine returns, so an enemy that changes the held
+/// player's animation on a later tick fills `playerAnim` again. The player's
+/// task reads each member while its message is dispatched and keeps neither
+/// address.
+typedef struct {
+    GameActorButtonPressHold buttonPressHold; // Payload of the hold request; only `pressCount`, the presses that break the hold, is written
+    AnimationPlayRequest     playerAnim;      // Animation of the package's player set the held player is told to install and play
+} ActorPlayerHoldScratch;
+STATIC_ASSERT_SIZEOF(ActorPlayerHoldScratch, 0x2C);
 
 /// The scratch-pad block of a point placed relative to a coordinate: `offset`
 /// in the coordinate's frame, and `result` the world position it is rotated

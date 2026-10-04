@@ -95911,7 +95911,7 @@ Hoisting the assignment *above* the allocation it is unrelated to is what works:
 ```c
 parentCoords = ((TmdObject*)arg1->parent->extra)->coords;
 parentCoord  = &parentCoords[3];          /* block 1 */
-work         = memCalloc(sizeof(Actor510900ChildFx), false);
+work         = memCalloc(sizeof(_Actor510900GrenadeWork), false);
 if (work == NULL) { ... return; }
 ```
 
@@ -96272,14 +96272,14 @@ directly,
 `lhu` plus `(neg:SI (subreg:SI (reg:HI 95) 0))` — because the high half is
 about to be thrown away:
 
-    scratch->rot.vx = -work->field_CE;   /* lhu */
+    scratch->angles.vx = -work->phaseCounter;   /* lhu */
 
 The target loads `lh`. Routing the value through an `s32` local makes the
 negation a genuine SImode operation on a `sign_extend`, and combine cannot
 narrow it back because MIPS has no `neghi2`:
 
-    angle           = -work->field_CE;   /* lh */
-    scratch->rot.vx = angle;
+    angle              = -work->phaseCounter;   /* lh */
+    scratch->angles.vx = angle;
 
 So `lhu` where the target has `lh` on a signed field is not a struct-type
 mistake; it is the destination's mode reaching back into the load. Note this is

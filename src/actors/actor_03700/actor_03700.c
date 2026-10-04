@@ -118,14 +118,6 @@ typedef struct {
 } _Actor03700Work;
 STATIC_ASSERT_SIZEOF(_Actor03700Work, 0x270);
 
-/// 0x2C-byte scratch from the scratch stack used by `Actor03700_Fn03130`:
-/// the 0x3F8 query buffer followed by the `AnimationPlayRequest` it sends as message 0x3FF.
-typedef struct Actor103700HoldScratch {
-    /* 0x00 */ GameActorButtonPressHold query;
-    /* 0x18 */ AnimationPlayRequest     anim;
-} Actor103700HoldScratch;
-STATIC_ASSERT_SIZEOF(Actor103700HoldScratch, 0x2C);
-
 extern u16 Actor03700_D07F7C[];
 
 /// Halfword tables `Actor03700_Fn018C8` indexes by a 4-bit LCG draw:
@@ -2139,30 +2131,30 @@ static s32 Actor03700_Fn03130(Task* task)
     _Actor03700Work*        work;
     Task*                   player;
     void*                   head;
-    Actor103700HoldScratch* scratch;
+    ActorPlayerHoldScratch* scratch;
     s32                     ret;
 
     work                       = task->work;
     player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(Actor103700HoldScratch);
-    scratch                    = SCRATCH_STACK_CURSOR(Actor103700HoldScratch);
+    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(ActorPlayerHoldScratch);
+    scratch                    = SCRATCH_STACK_CURSOR(ActorPlayerHoldScratch);
 
     ret = 0;
     if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        scratch->query.pressCount = 8;
-        if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, scratch, 0) == 0) {
-            scratch->anim.source.sets          = Actor03700_D080FC;
-            scratch->anim.animationId          = 1;
-            scratch->anim.blend                = ANIMATION_BLEND_RESET;
-            scratch->anim.blendFrames          = 0;
-            scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
+        scratch->buttonPressHold.pressCount = 8;
+        if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &scratch->buttonPressHold, 0) == 0) {
+            scratch->playerAnim.source.sets          = Actor03700_D080FC;
+            scratch->playerAnim.animationId          = 1;
+            scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+            scratch->playerAnim.blendFrames          = 0;
+            scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
             work->holdingPlayer = 1;
             ret                 = 1;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor103700HoldScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorPlayerHoldScratch));
     return ret;
 }
 

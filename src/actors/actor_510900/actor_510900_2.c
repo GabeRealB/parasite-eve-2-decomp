@@ -81,79 +81,98 @@ typedef struct Actor510900GridScratch {
 } Actor510900GridScratch;
 STATIC_ASSERT_SIZEOF(Actor510900GridScratch, 0x10);
 
-/// `Task::work` of the child task `func_actor_510900_8013A85C` drives: an
-/// animation context `animationTickSlot` ticks slots 1..10 of, with a pair of
-/// words past it. Below 2, `field_334` + 0xB is the game-flag nibble index
-/// `field_336` is written to; otherwise `field_336` goes to the parent work's
-/// `light2Status`.
-typedef struct Actor510900ChildAnim {
-    /* 0x000 */ AnimationContext      anim;
-    /* 0x014 */ AnimationSlot         slots[11];   ///< `animationInitContext` slots, reset 1..10
-    /* 0x1CC */ byte                  poses[0xB0]; ///< `animationInitContext` poseBuffer
-    /* 0x27C */ MATRIX                colorMtx;    ///< handed to `TmdObject::colorMtx`
-    /* 0x29C */ MATRIX                lightMtx;    ///< handed to `TmdObject::lightMtx`
-    /* 0x2BC */ WorldCollisionBody    obj2BC;
-    /* 0x2DC */ WorldCollisionContact rec2DC;
-    /* 0x2F4 */ WorldCollisionBody    obj2F4;
-    /* 0x314 */ WorldCollisionContact rec314;
-    /// Task the frame handler releases (state 2) once the camera has cut
-    /// away from every view this actor is visible in.
-    /* 0x32C */ struct Task* field_32C;
-    /// State the frame handler below dispatches on: 0 waits for the grab, 1
-    /// runs the `field_332` countdown, 2 is done.
-    /* 0x330 */ s16 field_330;
-    /* 0x332 */ s16 field_332;
-    /* 0x334 */ s16 field_334;
-    /* 0x336 */ s16 field_336;
-} Actor510900ChildAnim;
-STATIC_ASSERT_SIZEOF(Actor510900ChildAnim, 0x338);
+/// Values of `_Actor510900HelipadLightWork::state`. Light 2 also copies its
+/// state to `Actor510900Work::light2State` every frame.
+enum {
+    ACTOR_510900_HELIPAD_LIGHT_INTACT   = 0, // Whole: a shot or the golem's slash breaks it
+    ACTOR_510900_HELIPAD_LIGHT_SPARKING = 1, // Broken and throwing sparks; its blast can strike once
+    ACTOR_510900_HELIPAD_LIGHT_DONE     = 2, // The sparks have run out, or the golem is gone
+};
 
-/// 0x18 scratch block `func_actor_510900_8013A9BC` takes from the scratch stack
-/// for the frame it starts the grab on; only the trailing `SVECTOR` is used,
-/// as the spawn argument of both effects.
-typedef struct Actor510900GrabScratch {
-    /* 0x00 */ byte    pad_0[0x10];
-    /* 0x10 */ SVECTOR rot;
-} Actor510900GrabScratch;
-STATIC_ASSERT_SIZEOF(Actor510900GrabScratch, 0x18);
+/// Values of `_Actor510900HelipadLightWork::status`.
+enum {
+    ACTOR_510900_HELIPAD_LIGHT_STATUS_INTACT   = 0, // Not broken yet
+    ACTOR_510900_HELIPAD_LIGHT_STATUS_SPARKING = 1, // Broken, sparks still running
+    ACTOR_510900_HELIPAD_LIGHT_STATUS_SPENT    = 2, // Broken, sparks over
+    ACTOR_510900_HELIPAD_LIGHT_STATUS_STOPPED  = 3, // Never broken: the golem was gone first
+};
 
-/// 0xD0-byte `Task::work` block `func_actor_510900_801397F0` allocates for its
-/// child task: the child's colour and light matrices (handed to
-/// `TmdObject::colorMtx` / `lightMtx`), two linked `WorldCollisionBody`s with their `WorldCollisionContact`
-/// tables, and the timer/state trio `func_actor_510900_8013A100` runs its
-/// teardown state machine on.
-typedef struct Actor510900ChildFx {
-    /* 0x00 */ MATRIX                colorMtx;
-    /* 0x20 */ MATRIX                lightMtx;
-    /* 0x40 */ WorldCollisionBody    obj40;
-    /* 0x60 */ WorldCollisionContact rec60;
-    /* 0x78 */ WorldCollisionBody    obj78;
-    /* 0x98 */ WorldCollisionCapsule d4rec;
-    /* 0xB0 */ WorldCollisionContact recB0;
-    /* 0xC8 */ u16                   field_C8; ///< frame counter, reset at every state change
-    /* 0xCA */ s16                   field_CA; ///< state: 0 fade in, 1 hold, 2 hit, 3 expire
-    /* 0xCC */ s16                   field_CC;
-    /* 0xCE */ s16                   field_CE;
-} Actor510900ChildFx;
-STATIC_ASSERT_SIZEOF(Actor510900ChildFx, 0xD0);
+/// Work block of one of the three helipad lights, kept at `Task::work` of the
+/// light model's task.
+///
+/// A light stands intact until the player shoots it or the golem's slash
+/// reaches it. It then breaks: the model changes to its second animation, a
+/// spark effect starts, and for as long as the sparks last a blast sphere
+/// around the light can strike the golem, which drives it back in a shower of
+/// sparks. The blast is switched off at its first contact. A light runs only
+/// while the camera is in one of its three views.
+///
+/// The block is cleared at allocation.
+typedef struct {
+    AnimationContext      anim;                                   // Context bound to `slots`, `poses` and the model's part coordinates
+    AnimationSlot         slots[11];                              // Playback state of the model part at the same index; slots 1..10 are driven
+    u8                    poses[11][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose of the slot at the same index
+    MATRIX                colorMtx;                               // Colour matrix lent to the light's model
+    MATRIX                lightMtx;                               // Light matrix lent to the same model
+    WorldCollisionBody    body;                                   // Sphere of radius 0xC8 on model part 10, on list 2, receiving attacks; enabled only while the light is intact and in view
+    WorldCollisionContact bodyContacts[1];                        // Contact of `body`, read and cleared every frame the light is intact
+    WorldCollisionBody    blast;                                  // Sphere of radius 0x15E on the same part, on list 8, keyed 0x50002; enabled from the break until its first contact or the end of the sparks
+    WorldCollisionContact blastContacts[1];                       // Contact of `blast`
+    Task*                 sparksTask;                             // Spark effect started at the break and adopted as a child of the light's task; `NULL` before the break, if it did not spawn, or once it has been told to stop
+    s16                   state;                                  // `ACTOR_510900_HELIPAD_LIGHT_*`
+    s16                   sparkFrames;                            // Frames of sparks left, 0x78 at the break; a frame the camera spends in another view also takes one off
+    s16                   lightIndex;                             // Which of the three lights this is (0..2), from the spawn argument; picks its place, facing and views
+    s16                   status;                                 // `ACTOR_510900_HELIPAD_LIGHT_STATUS_*`, published every frame in view: by lights 0 and 1 to game-flag nibbles 0xB and 0xC, by light 2 to `Actor510900Work::light2Status`
+} _Actor510900HelipadLightWork;
+STATIC_ASSERT_SIZEOF(_Actor510900HelipadLightWork, 0x338);
 
-/// 0x28-byte scratch `func_actor_510900_80139C10` takes from the scratch stack
-/// every frame the child effect turns: `rot` is the yaw it spins by (and then
-/// the offset the trail effect is spawned along), `mtx` the rotation
-/// `RotMatrix` builds from it and composes into the coordinate.
-typedef struct Actor510900ChildFxTickScratch {
-    /* 0x00 */ SVECTOR rot;
-    /* 0x08 */ MATRIX  mtx;
-} Actor510900ChildFxTickScratch;
-STATIC_ASSERT_SIZEOF(Actor510900ChildFxTickScratch, 0x28);
+/// Values of `_Actor510900GrenadeWork::phase` while the grenade flies.
+enum {
+    ACTOR_510900_GRENADE_FLIGHT_BELOW_PEAK = 0, // Has not been above height 0x514 yet
+    ACTOR_510900_GRENADE_FLIGHT_PEAKED     = 1, // Has been above it: dropping back below bursts the grenade
+};
 
-/// 0x2C-byte scratch from the scratch stack used by `func_actor_510900_8013A310`:
-/// the 0x3F8 query buffer followed by the `AnimationPlayRequest` it sends as message 0x3FF.
-typedef struct Actor510900HitScratch {
-    /* 0x00 */ GameActorButtonPressHold query;
-    /* 0x18 */ AnimationPlayRequest     anim;
-} Actor510900HitScratch;
-STATIC_ASSERT_SIZEOF(Actor510900HitScratch, 0x2C);
+/// Values of `_Actor510900GrenadeWork::phase` once the grenade has burst.
+enum {
+    ACTOR_510900_GRENADE_BURST_SPREADING = 0, // 0x10 frames with the attack sphere off, then it widens to radius 0x258
+    ACTOR_510900_GRENADE_BURST_CATCHING  = 1, // Up to 0x1F frames in which the widened sphere can catch the player
+    ACTOR_510900_GRENADE_BURST_HOLDING   = 2, // The player is caught: `holdStep` runs
+    ACTOR_510900_GRENADE_BURST_ENDING    = 3, // 0x1F frames, then the grenade's task ends
+};
+
+/// Values of `_Actor510900GrenadeWork::holdStep`.
+enum {
+    ACTOR_510900_GRENADE_HOLD_REQUEST = 0, // Asks the player for the hold; on acceptance deals the damage and starts the stunned animation
+    ACTOR_510900_GRENADE_HOLD_STUNNED = 1, // Until the player has escaped, 0x3C frames have passed or the golem is gone; then starts the recovery animation
+    ACTOR_510900_GRENADE_HOLD_RECOVER = 2, // 0x14 frames, then waits for the animation to end and releases the player
+};
+
+/// Work block of the golem's stun grenade, kept at `Task::work` of the
+/// grenade model's task.
+///
+/// The grenade leaves the golem's chest pitching forward a fixed step every
+/// frame while it moves along its own axis, so the step sets how far the arc
+/// carries; it is chosen from the distance to the player at the throw. It
+/// bursts when it comes back down through height 0x514, touches the player or
+/// meets the room's collision grid. The burst then spreads into a wider sphere
+/// that holds a player it catches until they have pressed enough buttons, the
+/// hold times out or the golem is gone.
+///
+/// The block is cleared at allocation.
+typedef struct {
+    MATRIX                colorMtx;             // Colour matrix lent to the grenade's model
+    MATRIX                lightMtx;             // Light matrix lent to the same model
+    WorldCollisionBody    attack;               // Sphere on list 3 at the grenade: radius 0xC8 in flight, 0x258 once the burst has spread; a player contact bursts the grenade or starts the hold
+    WorldCollisionContact attackContacts[1];    // Contact of `attack`
+    WorldCollisionBody    gridProbe;            // Capsule on list 3 tested against the room's collision grid only; unlinked at the burst
+    WorldCollisionCapsule gridProbeCapsule;     // Shape of `gridProbe`: 0x1F4 along the grenade's Y axis from its origin, radius 1
+    WorldCollisionContact gridProbeContacts[1]; // Contact of `gridProbe`; any contact bursts the grenade
+    u16                   frames;               // Frames counted in the current phase; in flight, frames since the last smoke puff of the trail (one every third frame)
+    s16                   phase;                // `ACTOR_510900_GRENADE_FLIGHT_*` in flight, `ACTOR_510900_GRENADE_BURST_*` after the burst
+    s16                   holdStep;             // `ACTOR_510900_GRENADE_HOLD_*`
+    s16                   phaseCounter;         // In flight, the pitch added each frame (4096 a turn); during the hold, frames spent in `holdStep`
+} _Actor510900GrenadeWork;
+STATIC_ASSERT_SIZEOF(_Actor510900GrenadeWork, 0xD0);
 
 /// Animation-set table handed to the player as the 0x3FF payload's `source.sets`.
 extern AnimationSet* D_actor_510900_80167B2C[];
@@ -165,25 +184,45 @@ extern u16 D_actor_510900_80167CD0[];
 /// Animation set table `animationInitContext` installs in the context above.
 extern AnimationSet* D_actor_510900_80167CAC[];
 
-/// `Actor510900ChildFx::field_CE` per 1000 units of distance between the child
-/// and the player, clamped to the last entry.
+/// `_Actor510900GrenadeWork::phaseCounter` of the flight, the pitch added each
+/// frame, per 1000 units of distance between the grenade and the player,
+/// clamped to the last entry.
 extern u16 D_actor_510900_80167C94[12];
 
-/// 0x7C-byte `Task::work` block `func_actor_510900_8013AD90` allocates: two
-/// linked `WorldCollisionBody`s, each with its one-entry `WorldCollisionContact` table.
-/// `func_actor_510900_8013C430` unlinks both.
-typedef struct Actor510900ChildWork {
-    /* 0x00 */ WorldCollisionBody    obj0;
-    /* 0x20 */ WorldCollisionContact rec20;
-    /* 0x38 */ WorldCollisionBody    obj38;
-    /* 0x58 */ WorldCollisionContact rec58;
-    /* 0x70 */ Task*                 field_70; // released (state 3) on a view change
-    /* 0x74 */ s16                   field_74; // row of `D_actor_510900_80167CEC`
-    /* 0x76 */ s16                   field_76; // countdown, decremented on a view change
-    /* 0x78 */ s16                   field_78; // state handed to `field_70` when the grab lands
-    /* 0x7A */ byte                  pad_7A[0x2];
-} Actor510900ChildWork;
-STATIC_ASSERT_SIZEOF(Actor510900ChildWork, 0x7C);
+/// Values of `_Actor510900BlastSourceWork::state`.
+enum {
+    ACTOR_510900_BLAST_SOURCE_DORMANT = 0, // Waiting for helipad light 2 to break
+    ACTOR_510900_BLAST_SOURCE_ARMED   = 1, // Can be shot
+    ACTOR_510900_BLAST_SOURCE_SHOT    = 2, // The frame after the shot: the flare is given its starting state
+    ACTOR_510900_BLAST_SOURCE_FLARING = 3, // `flareFrames` runs down
+    ACTOR_510900_BLAST_SOURCE_SPENT   = 4, // The flare has been told to end
+    ACTOR_510900_BLAST_SOURCE_STOPPED = 5, // The golem is gone and the flare released
+};
+
+/// Work block of the blast source beside helipad light 2, kept at
+/// `Task::work` of a task that has a coordinate and no model.
+///
+/// The source lies dormant until light 2 breaks. A shot then sets it off: a
+/// flare starts, and for as long as it burns a blast sphere can strike the
+/// golem once - stunning it in a shower of sparks while light 2 is still
+/// sparking, driving it back along the lap once the light is spent. The
+/// source runs in one view only and gives off embers there the whole time.
+/// What the source is in the scene is unproven.
+///
+/// The block is cleared at allocation. No access to `pad_7A` has been
+/// observed; whether it is a member or tail padding is unproven.
+typedef struct {
+    WorldCollisionBody    body;             // Sphere of radius 0x12C at the source on list 2, receiving attacks; enabled only while armed and in view
+    WorldCollisionContact bodyContacts[1];  // Contact of `body`, read and cleared every frame the source is armed
+    WorldCollisionBody    blast;            // Sphere of radius 0x200 raised 0x200 above the source, on list 8; keyed 0x50003 or 0x50004 by the shot and enabled from it until its first contact or the end of the flare
+    WorldCollisionContact blastContacts[1]; // Contact of `blast`
+    Task*                 flareTask;        // Flare effect started by the shot and adopted as a child of the source's task; `NULL` before the shot, if it did not spawn, or once it has been released
+    s16                   state;            // `ACTOR_510900_BLAST_SOURCE_*`
+    s16                   flareFrames;      // Frames the flare still burns, 0x3C at the shot; a frame the camera spends in another view also takes one off
+    s16                   flareTaskState;   // `Task::state` the flare starts in, chosen at the shot (1 if light 2 was already spent, 0 if it was still sparking)
+    byte                  pad_7A[0x2];
+} _Actor510900BlastSourceWork;
+STATIC_ASSERT_SIZEOF(_Actor510900BlastSourceWork, 0x7C);
 
 /// Table the state 1 handler below picks `stateCounter` from; a 4-bit
 /// `gRandomLcgState` draw indexes at least sixteen `u16` entries.
@@ -202,13 +241,13 @@ extern s16 D_actor_510900_80167A10[];
 /// as its fifth argument when it restarts animation slots 1..18.
 extern s16 D_actor_510900_80167B38[];
 
-/// One corner of the square `func_actor_510900_80138978` walks the actor
-/// around, in world x/z.
-typedef struct Actor510900PatrolCorner {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-} Actor510900PatrolCorner;
-STATIC_ASSERT_SIZEOF(Actor510900PatrolCorner, 0x4);
+/// One corner of the square lap the golem walks, in world X and Z. A side of
+/// the lap starts at its corner.
+typedef struct {
+    s16 x; // World X of the corner
+    s16 z; // World Z of the corner
+} _Actor510900LapCorner;
+STATIC_ASSERT_SIZEOF(_Actor510900LapCorner, 0x4);
 
 /// The unit direction the side leaving that corner runs in.
 typedef struct Actor510900PatrolStep {
@@ -217,8 +256,8 @@ typedef struct Actor510900PatrolStep {
 } Actor510900PatrolStep;
 STATIC_ASSERT_SIZEOF(Actor510900PatrolStep, 0x2);
 
-/// The four corners of the patrol square, indexed by `Actor510900Work::lapSide`.
-extern Actor510900PatrolCorner D_actor_510900_80167B84[4];
+/// The four corners of the lap, indexed by `Actor510900Work::lapSide`.
+extern _Actor510900LapCorner D_actor_510900_80167B84[4];
 
 /// The direction of each of its four sides, indexed the same way.
 extern Actor510900PatrolStep D_actor_510900_80167B94[4];
@@ -232,19 +271,22 @@ extern EffectSpawnArg D_actor_510900_80167B7C;
 /// while `sideRemaining` is below 0x3E8).
 extern u16 D_actor_510900_80167B9C[];
 
-/// One of the four world-space x/z boxes `func_actor_510900_8013864C` tests the
-/// player against; the index of the box containing them is latched into
-/// `Actor510900Work::playerSide`.
-typedef struct Actor510900PatrolBox {
-    /* 0x0 */ s16 minX;
-    /* 0x2 */ s16 maxX;
-    /* 0x4 */ s16 minZ;
-    /* 0x6 */ s16 maxZ;
-} Actor510900PatrolBox;
-STATIC_ASSERT_SIZEOF(Actor510900PatrolBox, 0x8);
+/// The strip of the landing pad that runs along one side of the lap, as a
+/// world-space rectangle; all four edges are exclusive.
+///
+/// The golem finds the side the player is on by testing the player's position
+/// against the four strips in order. The strips overlap at the pad's corners,
+/// where the first one that holds the player counts.
+typedef struct {
+    s16 minX; // Edge of the strip towards negative X
+    s16 maxX; // Edge towards positive X
+    s16 minZ; // Edge towards negative Z
+    s16 maxZ; // Edge towards positive Z
+} _Actor510900LapStrip;
+STATIC_ASSERT_SIZEOF(_Actor510900LapStrip, 0x8);
 
-/// The four boxes, in the same order as the patrol square's corners.
-extern Actor510900PatrolBox D_actor_510900_80167BA4[4];
+/// The strip along each side of the lap, in the same order as the corners.
+extern _Actor510900LapStrip D_actor_510900_80167BA4[4];
 
 /// The three face normals `func_actor_510900_8013B524` copies into
 /// `Gp_GridParams->normals`, restoring the collision grid this actor edited.
@@ -600,7 +642,7 @@ s16 D_actor_510900_80167B38[34] = {
 
 EffectSpawnArg D_actor_510900_80167B7C = { NULL, 300, 1 };
 
-Actor510900PatrolCorner D_actor_510900_80167B84[4] = {
+_Actor510900LapCorner D_actor_510900_80167B84[4] = {
     { -6600, -6600 },
     { 6600, -6600 },
     { 6600, 6600 },
@@ -621,7 +663,7 @@ u16 D_actor_510900_80167B9C[4] = {
     2048,
 };
 
-Actor510900PatrolBox D_actor_510900_80167BA4[4] = {
+_Actor510900LapStrip D_actor_510900_80167BA4[4] = {
     { -7200, 7200, -7200, -6000 },
     { 6000, 7200, -6000, 7200 },
     { -7200, 6000, 6000, 7200 },
@@ -718,8 +760,8 @@ static void func_actor_510900_8013C338(Task* arg0, GfxCoord* arg1);
 static void func_actor_510900_8013B0D8(Task* arg0);
 
 /// View index the child keeps running in; any other view parks it.
-/// Game-flag nibble 0xD values, indexed by the child's `field_74` and the
-/// parent work's `light2Status`.
+/// Game-flag nibble 0xD values, indexed by the blast source's
+/// `_Actor510900BlastSourceWork::state` and the parent work's `light2Status`.
 extern u16 D_actor_510900_80167CEC[][4];
 
 static void func_actor_510900_8013B658(Enemy* arg0, Task* arg1);
@@ -734,7 +776,8 @@ static void func_actor_510900_8013C0E4(Enemy* enemy, Task* task);
 
 static void func_actor_510900_8013C134(Enemy* enemy, Task* task);
 
-/// The three views the child is visible in, indexed by its `field_334`.
+/// The three views a helipad light is visible in, indexed by its
+/// `_Actor510900HelipadLightWork::lightIndex`.
 extern u16 D_actor_510900_80167CD8[][3];
 
 static void func_actor_510900_80135744(Task* arg0);
@@ -2698,28 +2741,29 @@ static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
-/// Spawn state of the child effect task: allocates its `Actor510900ChildFx`
+/// Spawn state of the child effect task: allocates its `_Actor510900GrenadeWork`
 /// work block, places the child on the parent's fourth coordinate offset by a
 /// fixed local vector and yawed -0x160, and links its two collision objects.
-/// `field_CE` comes from `D_actor_510900_80167C94` indexed by the horizontal
-/// distance to the player in units of 1000, clamped to the last entry.
+/// `phaseCounter`, the pitch step of the flight, comes from
+/// `D_actor_510900_80167C94` indexed by the horizontal distance to the player
+/// in units of 1000, clamped to the last entry.
 static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
 {
-    Actor510900ChildFx*     work;
-    ActorChildPlaceScratch* scratch;
-    TmdObject*              tmd;
-    GfxCoord*               coord;
-    GfxCoord*               parentCoords;
-    GfxCoord*               parentCoord;
-    s32                     dx;
-    s32                     dz;
-    s32                     idx;
+    _Actor510900GrenadeWork* work;
+    ActorChildPlaceScratch*  scratch;
+    TmdObject*               tmd;
+    GfxCoord*                coord;
+    GfxCoord*                parentCoords;
+    GfxCoord*                parentCoord;
+    s32                      dx;
+    s32                      dz;
+    s32                      idx;
 
     tmd          = arg1->extra.tmd;
     coord        = tmd->coords;
     parentCoords = arg1->parent->extra.tmd->coords;
     parentCoord  = &parentCoords[3];
-    work         = memCalloc(sizeof(Actor510900ChildFx), false);
+    work         = memCalloc(sizeof(_Actor510900GrenadeWork), false);
     if (work == NULL) {
         enemyDestroy(arg0, arg1);
         return;
@@ -2773,46 +2817,46 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
         idx = 0xB;
     }
 
-    work->field_CE               = D_actor_510900_80167C94[idx];
-    work->obj40.coord            = coord;
-    work->obj40.context.contacts = &work->rec60;
-    work->obj40.pos.vx           = 0;
-    work->obj40.pos.vy           = 0;
-    work->obj40.pos.vz           = 0;
-    work->obj40.key              = 0;
-    work->obj40.radius           = 0xC8;
-    work->obj40.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj40);
-    Gp_InitRec18Table(&work->rec60, 1, 0);
+    work->phaseCounter            = D_actor_510900_80167C94[idx];
+    work->attack.coord            = coord;
+    work->attack.context.contacts = work->attackContacts;
+    work->attack.pos.vx           = 0;
+    work->attack.pos.vy           = 0;
+    work->attack.pos.vz           = 0;
+    work->attack.key              = 0;
+    work->attack.radius           = 0xC8;
+    work->attack.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->attack);
+    Gp_InitRec18Table(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
 
-    work->d4rec.ends[0].vx      = 0;
-    work->d4rec.ends[0].vy      = 0;
-    work->d4rec.ends[0].vz      = 0;
-    work->d4rec.ends[1].vx      = 0;
-    work->d4rec.ends[1].vy      = 0x1F4;
-    work->d4rec.ends[1].vz      = 0;
-    work->d4rec.end0Radius      = 1;
-    work->d4rec.end1Radius      = 1;
-    work->d4rec.contacts        = &work->recB0;
-    work->obj78.context.capsule = &work->d4rec;
-    work->obj78.coord           = coord;
-    work->obj78.pos.vx          = 0;
-    work->obj78.pos.vy          = 0;
-    work->obj78.pos.vz          = 0;
-    work->obj78.key             = 0;
-    work->obj78.radius          = 0;
-    work->obj78.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->obj40.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_LinkObj(3, &work->obj78);
-    Gp_InitRec18Table(&work->recB0, 1, 0);
-    work->obj78.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+    work->gridProbeCapsule.ends[0].vx = 0;
+    work->gridProbeCapsule.ends[0].vy = 0;
+    work->gridProbeCapsule.ends[0].vz = 0;
+    work->gridProbeCapsule.ends[1].vx = 0;
+    work->gridProbeCapsule.ends[1].vy = 0x1F4;
+    work->gridProbeCapsule.ends[1].vz = 0;
+    work->gridProbeCapsule.end0Radius = 1;
+    work->gridProbeCapsule.end1Radius = 1;
+    work->gridProbeCapsule.contacts   = work->gridProbeContacts;
+    work->gridProbe.context.capsule   = &work->gridProbeCapsule;
+    work->gridProbe.coord             = coord;
+    work->gridProbe.pos.vx            = 0;
+    work->gridProbe.pos.vy            = 0;
+    work->gridProbe.pos.vz            = 0;
+    work->gridProbe.key               = 0;
+    work->gridProbe.radius            = 0;
+    work->gridProbe.flags             = WORLD_COLLISION_BODY_CAPSULE;
+    work->attack.flags               |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_LinkObj(3, &work->gridProbe);
+    Gp_InitRec18Table(work->gridProbeContacts, ARRAY_SIZE(work->gridProbeContacts), 0);
+    work->gridProbe.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
     arg1->state = 1;
     SCRATCH_STACK_RELEASE_BLOCK(ActorChildPlaceScratch);
 }
 
 /// Per-frame handler of the effect child while it is alive: spins the object by
-/// `field_CE` about X, drags it 150 units down its own Y axis and drips a trail
+/// `phaseCounter` about X, drags it 150 units down its own Y axis and drips a trail
 /// effect every third frame. Once it has fallen past -0x514 and come back up,
 /// or either `WorldCollisionContact` table reports a hit, it fires the impact effects,
 /// reparents the task under the spawned one and hands the actor to state 2.
@@ -2820,21 +2864,20 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
 /// way. `gSceneCombatState.actorControl` 1 only refreshes the colour and 2 only hides the model.
 static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
 {
-    VECTOR                         pos;
-    EffectWork*                    eff;
-    GfxCoord*                      coord;
-    u8*                            head;
-    Actor510900ChildFxTickScratch* scratch;
-    TmdObject*                     tmd;
-    Actor510900ChildFx*            work;
-    Actor510900Work*               parent;
-    s32                            angle;
-    s32                            snd;
-    s32                            done;
-    u16                            tick;
+    VECTOR                   pos;
+    EffectWork*              eff;
+    GfxCoord*                coord;
+    ActorEulerTurnScratch*   scratch;
+    TmdObject*               tmd;
+    _Actor510900GrenadeWork* work;
+    Actor510900Work*         parent;
+    s32                      angle;
+    s32                      snd;
+    s32                      done;
+    u16                      tick;
 
     tmd    = task->extra.tmd;
-    work   = (Actor510900ChildFx*)task->work;
+    work   = task->work;
     coord  = tmd->coords;
     parent = task->parent->work;
     done   = 0;
@@ -2853,78 +2896,76 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
             return;
     }
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    scratch                  = (Actor510900ChildFxTickScratch*)(head - sizeof(Actor510900ChildFxTickScratch));
-    SCRATCH_STACK_CURSOR(u8) = (u8*)scratch;
-    angle                    = -work->field_CE;
-    scratch->rot.vx          = angle;
-    scratch->rot.vy          = 0;
-    scratch->rot.vz          = 0;
-    RotMatrix(&scratch->rot, &scratch->mtx);
+    scratch            = SCRATCH_STACK_RESERVE_BLOCK(ActorEulerTurnScratch);
+    angle              = -work->phaseCounter;
+    scratch->angles.vx = angle;
+    scratch->angles.vy = 0;
+    scratch->angles.vz = 0;
+    RotMatrix(&scratch->angles, &scratch->rotation);
     gte_SetRotMatrix(&coord->coord);
-    gte_ldclmv(&scratch->mtx);
+    gte_ldclmv(&scratch->rotation);
     gte_rtir();
     gte_stclmv(&coord->coord);
-    gte_ldclmv(&scratch->mtx.m[0][1]);
+    gte_ldclmv(&scratch->rotation.m[0][1]);
     gte_rtir();
     gte_stclmv(&coord->coord.m[0][1]);
-    gte_ldclmv(&scratch->mtx.m[0][2]);
+    gte_ldclmv(&scratch->rotation.m[0][2]);
     gte_rtir();
     gte_stclmv(&coord->coord.m[0][2]);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->coord.t[0]  += -(coord->coord.m[0][1] * 0x96) >> 12;
     coord->coord.t[1]  += -(coord->coord.m[1][1] * 0x96) >> 12;
     coord->coord.t[2]  += -(coord->coord.m[2][1] * 0x96) >> 12;
-    tick                = work->field_C8 + 1;
-    work->field_C8      = tick;
+    tick                = work->frames + 1;
+    work->frames        = tick;
     if (tick >= 3) {
-        scratch->rot.vx = 0;
-        scratch->rot.vy = 0x64;
-        scratch->rot.vz = 0;
-        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x01001600, &scratch->rot);
-        work->field_C8 = 0;
+        scratch->angles.vx = 0;
+        scratch->angles.vy = 0x64;
+        scratch->angles.vz = 0;
+        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x01001600, &scratch->angles);
+        work->frames = 0;
     }
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
     Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
     if (coord->coord.t[1] < -0x514) {
-        work->field_CA = 1;
+        work->phase = ACTOR_510900_GRENADE_FLIGHT_PEAKED;
     }
-    if (work->field_CA != 0 && coord->coord.t[1] >= -0x513) {
+    if (work->phase != ACTOR_510900_GRENADE_FLIGHT_BELOW_PEAK && coord->coord.t[1] >= -0x513) {
         done = 1;
     }
-    if (done != 0 || (work->rec60.key.value & 0xFFFF0000) == 0x10000 || work->recB0.key.value != 0) {
+    if (done != 0 || (work->attackContacts[0].key.value & 0xFFFF0000) == 0x10000 || work->gridProbeContacts[0].key.value != 0) {
         Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x10002200, NULL);
         Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC1001200, NULL);
         eff = Gp_SpawnEff((EFFECT_ACTOR_510900_IMPACT_BURST | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
         if (eff != NULL) {
             taskReparent(task, eff->task);
         }
-        if (work->rec60.key.value != 0) {
-            work->field_CA = 2;
+        if (work->attackContacts[0].key.value != 0) {
+            work->phase = ACTOR_510900_GRENADE_BURST_HOLDING;
         } else {
-            work->field_CA = 0;
+            work->phase = ACTOR_510900_GRENADE_BURST_SPREADING;
         }
-        work->obj40.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ClearRec18Occupied(&work->rec60);
-        Gp_UnlinkObj(&work->obj78);
-        work->field_C8         = 0;
+        work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        Gp_ClearRec18Occupied(work->attackContacts);
+        Gp_UnlinkObj(&work->gridProbe);
+        work->frames           = 0;
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         snd                    = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100009;
         SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         task->state = 2;
     }
-    Gp_ClearRec18Occupied(&work->rec60);
+    Gp_ClearRec18Occupied(work->attackContacts);
     if (parent->present == 0) {
-        work->obj40.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_UnlinkObj(&work->obj78);
-        work->field_C8         = 0;
+        work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        Gp_UnlinkObj(&work->gridProbe);
+        work->frames           = 0;
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         task->state            = 2;
-        work->field_CA         = 3;
+        work->phase            = ACTOR_510900_GRENADE_BURST_ENDING;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor510900ChildFxTickScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorEulerTurnScratch);
 }
 
 /// Frame handler of the effect child task: state 0 fades the object in over
@@ -2933,65 +2974,65 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
 /// and destroys the enemy.
 static void func_actor_510900_8013A100(Enemy* enemy, Task* task)
 {
-    Actor510900ChildFx* work;
-    Actor510900Work*    parent;
-    u16                 tick;
+    _Actor510900GrenadeWork* work;
+    Actor510900Work*         parent;
+    u16                      tick;
 
-    work   = (Actor510900ChildFx*)task->work;
+    work   = task->work;
     parent = task->parent->work;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        switch (work->field_CA) {
-            case 0:
-                tick           = work->field_C8 + 1;
-                work->field_C8 = tick;
+        switch (work->phase) {
+            case ACTOR_510900_GRENADE_BURST_SPREADING:
+                tick         = work->frames + 1;
+                work->frames = tick;
                 if (tick >= 0x10) {
-                    work->obj40.radius = 0x258;
-                    work->field_CA     = 1;
-                    work->field_C8     = 0;
-                    work->obj40.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                    work->attack.radius = 0x258;
+                    work->phase         = ACTOR_510900_GRENADE_BURST_CATCHING;
+                    work->frames        = 0;
+                    work->attack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     return;
                 }
                 if (parent->present == 0) {
-                    work->obj40.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_UnlinkObj(&work->obj78);
-                    work->field_C8         = 0;
+                    work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                    Gp_UnlinkObj(&work->gridProbe);
+                    work->frames           = 0;
                     task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     task->state            = 2;
-                    work->field_CA         = 3;
+                    work->phase            = ACTOR_510900_GRENADE_BURST_ENDING;
                     return;
                 }
                 break;
-            case 1:
-                if ((work->rec60.key.value & 0xFFFF0000) == 0x10000) {
-                    work->field_CA     = 2;
-                    work->field_CC     = 0;
-                    work->obj40.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            case ACTOR_510900_GRENADE_BURST_CATCHING:
+                if ((work->attackContacts[0].key.value & 0xFFFF0000) == 0x10000) {
+                    work->phase         = ACTOR_510900_GRENADE_BURST_HOLDING;
+                    work->holdStep      = ACTOR_510900_GRENADE_HOLD_REQUEST;
+                    work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
-                    tick           = work->field_C8 + 1;
-                    work->field_C8 = tick;
+                    tick         = work->frames + 1;
+                    work->frames = tick;
                     if (tick >= 0x1F) {
-                        work->field_CA = 3;
-                        work->field_C8 = 0;
+                        work->phase  = ACTOR_510900_GRENADE_BURST_ENDING;
+                        work->frames = 0;
                     } else if (parent->present == 0) {
-                        work->obj40.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                        Gp_UnlinkObj(&work->obj78);
-                        work->field_C8         = 0;
+                        work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                        Gp_UnlinkObj(&work->gridProbe);
+                        work->frames           = 0;
                         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         task->state            = 2;
-                        work->field_CA         = 3;
+                        work->phase            = ACTOR_510900_GRENADE_BURST_ENDING;
                     }
                 }
-                Gp_ClearRec18Occupied(&work->rec60);
+                Gp_ClearRec18Occupied(work->attackContacts);
                 return;
-            case 2:
+            case ACTOR_510900_GRENADE_BURST_HOLDING:
                 func_actor_510900_8013A310(task);
                 return;
-            case 3:
-                tick           = work->field_C8 + 1;
-                work->field_C8 = tick;
+            case ACTOR_510900_GRENADE_BURST_ENDING:
+                tick         = work->frames + 1;
+                work->frames = tick;
                 if (tick >= 0x1F) {
                     parent->grenadeLive = 0;
-                    Gp_UnlinkObj(&work->obj40);
+                    Gp_UnlinkObj(&work->attack);
                     enemyDestroy(enemy, task);
                 }
                 break;
@@ -3000,81 +3041,79 @@ static void func_actor_510900_8013A100(Enemy* enemy, Task* task)
 }
 
 /// Runs the player-hold sequence the effect's state 2 drives, on a 0x2C-byte
-/// scratch block: `field_CC` 0 asks the player for the hold (message 0x3F8) and
+/// scratch block: `holdStep` 0 asks the player for the hold (message 0x3F8) and
 /// on success starts the grab animation and its sound, 1 holds until the parent
 /// reports the hit or 0x3C frames pass and then switches to the second
 /// animation, and 2 waits 0x14 frames before releasing the player. Any refused
 /// message leaves the effect in state 3 so the caller tears it down.
 static void func_actor_510900_8013A310(Task* task)
 {
-    Actor510900ChildFx*    work;
-    Actor510900Work*       parent;
-    Task*                  player;
-    void*                  head;
-    Actor510900HitScratch* scratch;
-    GfxCoord*              obj;
-    u16                    tick;
-    s32                    snd;
-    s32                    pan;
+    _Actor510900GrenadeWork* work;
+    Actor510900Work*         parent;
+    Task*                    player;
+    ActorPlayerHoldScratch*  scratch;
+    GfxCoord*                obj;
+    u16                      tick;
+    s32                      snd;
+    s32                      pan;
 
-    work                       = (Actor510900ChildFx*)task->work;
-    parent                     = task->parent->work;
-    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(Actor510900HitScratch);
-    scratch                    = SCRATCH_STACK_CURSOR(Actor510900HitScratch);
+    work   = task->work;
+    parent = task->parent->work;
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorPlayerHoldScratch);
+    scratch = SCRATCH_STACK_CURSOR(ActorPlayerHoldScratch);
 
-    switch (work->field_CC) {
-        case 0:
+    switch (work->holdStep) {
+        case ACTOR_510900_GRENADE_HOLD_REQUEST:
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
-                scratch->query.pressCount = 0xC;
-                if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, scratch, 0) != 0) {
-                    work->field_CA = 3;
+                scratch->buttonPressHold.pressCount = 0xC;
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &scratch->buttonPressHold, 0) != 0) {
+                    work->phase = ACTOR_510900_GRENADE_BURST_ENDING;
                     break;
                 }
                 taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
-                scratch->anim.source.sets          = D_actor_510900_80167B2C;
-                scratch->anim.animationId          = 1;
-                scratch->anim.blend                = ANIMATION_BLEND_RESET;
-                scratch->anim.blendFrames          = 0;
-                scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
-                work->field_CC = 1;
-                work->field_CE = 0;
-                obj            = player->extra.tmd->coords;
-                snd            = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x5110000A;
-                pan            = (s8)worldCoordGetOriginAudioPan(obj);
+                scratch->playerAnim.source.sets          = D_actor_510900_80167B2C;
+                scratch->playerAnim.animationId          = 1;
+                scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+                scratch->playerAnim.blendFrames          = 0;
+                scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
+                work->holdStep     = ACTOR_510900_GRENADE_HOLD_STUNNED;
+                work->phaseCounter = 0;
+                obj                = player->extra.tmd->coords;
+                snd                = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x5110000A;
+                pan                = (s8)worldCoordGetOriginAudioPan(obj);
                 SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(obj));
             }
             break;
-        case 1:
-            tick           = work->field_CE + 1;
-            work->field_CE = tick;
+        case ACTOR_510900_GRENADE_HOLD_STUNNED:
+            tick               = work->phaseCounter + 1;
+            work->phaseCounter = tick;
             if ((s16)tick < 0x3D && parent->playerEscaped != 1 && parent->present != 0) {
                 break;
             }
-            parent->playerEscaped              = 0;
-            scratch->anim.source.sets          = D_actor_510900_80167B2C;
-            scratch->anim.animationId          = 2;
-            scratch->anim.blend                = ANIMATION_BLEND_RESET;
-            scratch->anim.blendFrames          = 0;
-            scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
-            work->field_CC = 2;
-            work->field_CE = 0;
+            parent->playerEscaped                    = 0;
+            scratch->playerAnim.source.sets          = D_actor_510900_80167B2C;
+            scratch->playerAnim.animationId          = 2;
+            scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+            scratch->playerAnim.blendFrames          = 0;
+            scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
+            work->holdStep     = ACTOR_510900_GRENADE_HOLD_RECOVER;
+            work->phaseCounter = 0;
             break;
-        case 2:
-            tick           = work->field_CE + 1;
-            work->field_CE = tick;
+        case ACTOR_510900_GRENADE_HOLD_RECOVER:
+            tick               = work->phaseCounter + 1;
+            work->phaseCounter = tick;
             if ((s16)tick >= 0x15) {
                 if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                     taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                    work->field_CA = 3;
+                    work->phase = ACTOR_510900_GRENADE_BURST_ENDING;
                 }
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor510900HitScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorPlayerHoldScratch);
 }
 
 /// Spawn handler of the child task: allocates the animation work block, seeds
@@ -3082,17 +3121,17 @@ static void func_actor_510900_8013A310(Task* task)
 /// slots 1..10 and links the two render objects.
 static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
 {
-    TmdObject*            tmd;
-    GfxCoord*             coords;
-    Actor510900ChildAnim* work;
-    GfxCoord*             coord;
-    SVECTOR*              rot;
-    void*                 head;
-    s32                   i;
+    TmdObject*                    tmd;
+    GfxCoord*                     coords;
+    _Actor510900HelipadLightWork* work;
+    GfxCoord*                     coord;
+    SVECTOR*                      rot;
+    void*                         head;
+    s32                           i;
 
     tmd    = task->extra.tmd;
     coords = tmd->coords;
-    work   = memCalloc(sizeof(Actor510900ChildAnim), 0);
+    work   = memCalloc(sizeof(_Actor510900HelipadLightWork), 0);
     coord  = &coords[10];
     if (work == NULL) {
         enemyDestroy(enemy, task);
@@ -3114,45 +3153,45 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = -0xC8;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    work->field_334               = task->spawnArg1.value;
+    work->lightIndex              = task->spawnArg1.value;
     ((SVECTOR*)(head - 8))->vx    = 0;
-    rot->vy                       = D_actor_510900_80167CD0[work->field_334];
+    rot->vy                       = D_actor_510900_80167CD0[work->lightIndex];
     rot->vz                       = 0;
     RotMatrix(rot, &coords->coord);
     i                  = 1;
-    coords->coord.t[0] = D_actor_510900_80167CB8[work->field_334].vx;
-    coords->coord.t[1] = D_actor_510900_80167CB8[work->field_334].vy;
-    coords->coord.t[2] = D_actor_510900_80167CB8[work->field_334].vz;
+    coords->coord.t[0] = D_actor_510900_80167CB8[work->lightIndex].vx;
+    coords->coord.t[1] = D_actor_510900_80167CB8[work->lightIndex].vy;
+    coords->coord.t[2] = D_actor_510900_80167CB8[work->lightIndex].vz;
     coords->parent     = &gGfxViewCoord;
-    animationInitContext(&work->anim, D_actor_510900_80167CAC, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
+    animationInitContext(&work->anim, D_actor_510900_80167CAC, tmd, work->poses, work->slots);
     do {
         animationResetSlot(&work->anim, i, 1);
         i++;
     } while (i < 0xB);
-    work->obj2BC.pos.vx           = -0xC8;
-    work->obj2BC.coord            = coord;
-    work->obj2BC.pos.vy           = 0;
-    work->obj2BC.pos.vz           = 0;
-    work->obj2BC.context.contacts = &work->rec2DC;
-    work->obj2BC.key              = 0;
-    work->obj2BC.radius           = 0xC8;
-    work->obj2BC.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->obj2BC);
-    Gp_InitRec18Table(&work->rec2DC, 1, 0);
-    work->obj2F4.key              = 0x50002;
-    work->obj2F4.coord            = coord;
-    work->obj2F4.pos.vx           = 0;
-    work->obj2F4.pos.vy           = 0;
-    work->obj2F4.pos.vz           = 0;
-    work->obj2F4.context.contacts = &work->rec314;
-    work->obj2F4.radius           = 0x15E;
-    work->obj2F4.flags            = WORLD_COLLISION_BODY_SPHERE;
-    work->obj2BC.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(8, &work->obj2F4);
-    Gp_InitRec18Table(&work->rec314, 1, 0);
-    work->obj2F4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    task->exitCallback  = func_actor_510900_8013C380;
-    task->state         = 1;
+    work->body.pos.vx           = -0xC8;
+    work->body.coord            = coord;
+    work->body.pos.vy           = 0;
+    work->body.pos.vz           = 0;
+    work->body.context.contacts = work->bodyContacts;
+    work->body.key              = 0;
+    work->body.radius           = 0xC8;
+    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work->body);
+    Gp_InitRec18Table(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
+    work->blast.key              = 0x50002;
+    work->blast.coord            = coord;
+    work->blast.pos.vx           = 0;
+    work->blast.pos.vy           = 0;
+    work->blast.pos.vz           = 0;
+    work->blast.context.contacts = work->blastContacts;
+    work->blast.radius           = 0x15E;
+    work->blast.flags            = WORLD_COLLISION_BODY_SPHERE;
+    work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    Gp_LinkObj(8, &work->blast);
+    Gp_InitRec18Table(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
+    work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    task->exitCallback = func_actor_510900_8013C380;
+    task->state        = 1;
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
@@ -3162,16 +3201,16 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
 /// into the normal body.
 static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
 {
-    TmdObject*            obj;
-    Actor510900ChildAnim* work;
-    GfxCoord*             coord;
-    Actor510900Work*      parent;
-    s32                   mode;
-    s32                   i;
-    s32                   one;
+    TmdObject*                    obj;
+    _Actor510900HelipadLightWork* work;
+    GfxCoord*                     coord;
+    Actor510900Work*              parent;
+    s32                           mode;
+    s32                           i;
+    s32                           one;
 
     obj    = arg1->extra.tmd;
-    work   = (Actor510900ChildAnim*)arg1->work;
+    work   = arg1->work;
     coord  = obj->coords;
     parent = arg1->parent->work;
     mode   = gSceneCombatState.actorControl;
@@ -3209,10 +3248,10 @@ case2:
     return;
 body:
     func_actor_510900_8013A9BC(arg1);
-    if (work->field_334 < 2) {
-        GameFlag_SetNibble(work->field_334 + 0xB, work->field_336);
+    if (work->lightIndex < 2) {
+        GameFlag_SetNibble(work->lightIndex + 0xB, work->status);
     } else {
-        parent->light2Status = work->field_336;
+        parent->light2Status = work->status;
     }
     i = 1;
     do {
@@ -3226,43 +3265,43 @@ case1:
 }
 
 /// Grab state machine of the child task, run from the frame handler above.
-/// State 0 waits for the grab: the player has to be inside the `rec2DC` node
+/// State 0 waits for the grab: the player has to be inside the `bodyContacts` node
 /// (and survive `Gp_ComputeDamage`) or the parent has to request this child by
 /// number through `slashedLight`; on a hit it resets the animation slots, spawns
-/// the grab effect and its sound and starts the `field_332` countdown. State 1
+/// the grab effect and its sound and starts the `sparkFrames` countdown. State 1
 /// runs that countdown, keeping the four trailing part coordinates updated, and
 /// hands the held effect task its exit state once the timer runs out or the
-/// camera cuts away. State 2 only releases the held task. `field_334` 2 mirrors
+/// camera cuts away. State 2 only releases the held task. `lightIndex` 2 mirrors
 /// the state back to the parent's `light2State`.
 static void func_actor_510900_8013A9BC(Task* task)
 {
-    Actor510900ChildAnim*   work;
-    Actor510900Work*        parent;
-    Enemy*                  ctx;
-    Actor510900GrabScratch* scratch;
-    Actor510900GrabScratch* head;
-    GfxCoord*               coord;
-    EffectWork*             eff;
-    Task*                   spawned;
-    s16                     next;
-    s32                     grabbed;
-    s32                     i;
-    s32                     one;
-    s32                     snd;
-    s32                     pan;
-    s32                     dmg;
-    s16                     state;
+    _Actor510900HelipadLightWork* work;
+    Actor510900Work*              parent;
+    Enemy*                        ctx;
+    ActorFaceScratch*             scratch;
+    ActorFaceScratch*             head;
+    GfxCoord*                     coord;
+    EffectWork*                   eff;
+    Task*                         spawned;
+    s16                           next;
+    s32                           grabbed;
+    s32                           i;
+    s32                           one;
+    s32                           snd;
+    s32                           pan;
+    s32                           dmg;
+    s16                           state;
 
-    grabbed                                      = 0;
-    head                                         = SCRATCH_STACK_CURSOR(Actor510900GrabScratch);
-    coord                                        = &task->extra.tmd->coords[10];
-    SCRATCH_STACK_CURSOR(Actor510900GrabScratch) = head - 1;
-    scratch                                      = head - 1;
-    work                                         = (Actor510900ChildAnim*)task->work;
-    ctx                                          = task->spawnArg2.pointer;
-    state                                        = work->field_330;
-    parent                                       = task->parent->work;
-    one                                          = 1;
+    grabbed                                = 0;
+    head                                   = SCRATCH_STACK_CURSOR(ActorFaceScratch);
+    coord                                  = &task->extra.tmd->coords[10];
+    SCRATCH_STACK_CURSOR(ActorFaceScratch) = head - 1;
+    scratch                                = head - 1;
+    work                                   = task->work;
+    ctx                                    = task->spawnArg2.pointer;
+    state                                  = work->state;
+    parent                                 = task->parent->work;
+    one                                    = 1;
     if (state == one) {
         goto case1;
     }
@@ -3280,25 +3319,25 @@ ge2:
     goto end;
 case0:
     if (parent->present == 0) {
-        work->field_336 = 3;
-        work->field_330 = 2;
+        work->status = ACTOR_510900_HELIPAD_LIGHT_STATUS_STOPPED;
+        work->state  = ACTOR_510900_HELIPAD_LIGHT_DONE;
         goto end;
     }
     ctx->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
-    dmg                         = work->rec2DC.key.value;
-    work->obj2BC.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    dmg                         = work->bodyContacts[0].key.value;
+    work->body.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.state.parts.targeted == one &&
         Gp_ComputeDamage(dmg, 0x3E8, 0, 0) != 0) {
         grabbed = 1;
     }
-    if (parent->slashedLight == work->field_334 + 1 && parent->lightSlashStruck == 1) {
+    if (parent->slashedLight == work->lightIndex + 1 && parent->lightSlashStruck == 1) {
         grabbed              = 1;
         parent->slashedLight = -1;
     }
     if (grabbed == 1) {
-        work->field_336 = grabbed;
-        work->field_330 = grabbed;
-        i               = 1;
+        work->status = grabbed;
+        work->state  = grabbed;
+        i            = 1;
         do {
             animationSeekSlotWithBlend(&work->anim, i, 2, 0, 0);
             i++;
@@ -3308,37 +3347,37 @@ case0:
         scratch->rot.vz = 0;
         eff             = Gp_SpawnEff((EFFECT_HELIPAD_LIGHT_SPARKS | EFFECT_SPAWN_UNLIMITED), coord, 0, &scratch->rot);
         if (eff != NULL) {
-            spawned         = eff->task;
-            work->field_32C = spawned;
+            spawned          = eff->task;
+            work->sparksTask = spawned;
             taskReparent(task, spawned);
         }
         Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x200, &scratch->rot);
-        work->field_332     = 0x78;
-        work->obj2BC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj2F4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        snd                 = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100004;
-        pan                 = (s8)worldCoordGetOriginAudioPan(coord);
+        work->sparkFrames  = 0x78;
+        work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        snd                = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100004;
+        pan                = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
-    Gp_ClearRec18Occupied(&work->rec2DC);
+    Gp_ClearRec18Occupied(work->bodyContacts);
     goto end;
 case1:
-    if (Gp_FindRec18(&work->rec314, 0) != 0) {
-        work->obj2F4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    if (Gp_FindRec18(work->blastContacts, 0) != 0) {
+        work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    Gp_ClearRec18Occupied(&work->rec314);
+    Gp_ClearRec18Occupied(work->blastContacts);
     func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[9]);
     func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[8]);
     func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[7]);
     func_acropolis_helicopter_landing_pad_80180A64(&task->extra.tmd->coords[6]);
-    work->field_332--;
+    work->sparkFrames--;
     next = 2;
-    if (work->field_332 <= 0) {
+    if (work->sparkFrames <= 0) {
         Task* held;
 
-        work->field_336     = next;
-        work->obj2F4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        held                = work->field_32C;
+        work->status       = next;
+        work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        held               = work->sparksTask;
         if (held != NULL) {
             held->state = state;
         }
@@ -3348,41 +3387,41 @@ case1:
         if (parent->present != 0) {
             goto end;
         }
-        work->field_336     = next;
-        work->obj2F4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        held                = work->field_32C;
+        work->status       = next;
+        work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        held               = work->sparksTask;
         if (held != NULL) {
-            held->state     = 2;
-            work->field_32C = NULL;
+            held->state      = 2;
+            work->sparksTask = NULL;
         }
     }
-    work->field_330 = next;
+    work->state = next;
     goto end;
 case2:
     if (parent->present == 0) {
         Task* held;
 
-        held = work->field_32C;
+        held = work->sparksTask;
         if (held != NULL) {
-            held->state     = state;
-            work->field_32C = NULL;
+            held->state      = state;
+            work->sparksTask = NULL;
         }
     }
 end:
-    if (work->field_334 == 2) {
-        parent->light2State = work->field_330;
+    if (work->lightIndex == 2) {
+        parent->light2State = work->state;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor510900GrabScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
 static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
 {
-    GfxCoord*             coord;
-    GfxRotationWords*     mat;
-    Actor510900ChildWork* work;
+    GfxCoord*                    coord;
+    GfxRotationWords*            mat;
+    _Actor510900BlastSourceWork* work;
 
     coord = task->extra.tmd->coords;
-    work  = memCalloc(sizeof(Actor510900ChildWork), false);
+    work  = memCalloc(sizeof(_Actor510900BlastSourceWork), false);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -3407,42 +3446,42 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    work->obj0.coord              = coord;
-    work->obj0.pos.vx             = 0;
-    work->obj0.pos.vy             = 0;
-    work->obj0.pos.vz             = 0;
-    work->obj0.context.contacts   = &work->rec20;
-    work->obj0.key                = 0;
-    work->obj0.radius             = 0x12C;
-    work->obj0.flags              = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->obj0);
-    Gp_InitRec18Table(&work->rec20, 1, 0);
-    work->obj38.pos.vy           = -0x200;
-    work->obj38.coord            = coord;
-    work->obj38.pos.vx           = 0;
-    work->obj38.pos.vz           = 0;
-    work->obj38.context.contacts = &work->rec58;
-    work->obj38.key              = 0;
-    work->obj38.radius           = 0x200;
-    work->obj38.flags            = WORLD_COLLISION_BODY_SPHERE;
-    work->obj0.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(8, &work->obj38);
-    Gp_InitRec18Table(&work->rec58, 1, 0);
-    work->obj38.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->body.coord              = coord;
+    work->body.pos.vx             = 0;
+    work->body.pos.vy             = 0;
+    work->body.pos.vz             = 0;
+    work->body.context.contacts   = work->bodyContacts;
+    work->body.key                = 0;
+    work->body.radius             = 0x12C;
+    work->body.flags              = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work->body);
+    Gp_InitRec18Table(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
+    work->blast.pos.vy           = -0x200;
+    work->blast.coord            = coord;
+    work->blast.pos.vx           = 0;
+    work->blast.pos.vz           = 0;
+    work->blast.context.contacts = work->blastContacts;
+    work->blast.key              = 0;
+    work->blast.radius           = 0x200;
+    work->blast.flags            = WORLD_COLLISION_BODY_SPHERE;
+    work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    Gp_LinkObj(8, &work->blast);
+    Gp_InitRec18Table(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
+    work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback = func_actor_510900_8013C430;
     task->state        = 1;
 }
 
 static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1)
 {
-    Actor510900ChildWork* work;
-    Actor510900Work*      parent;
-    s32                   mode;
-    s32                   one;
-    u32                   random;
-    Task*                 child;
+    _Actor510900BlastSourceWork* work;
+    Actor510900Work*             parent;
+    s32                          mode;
+    s32                          one;
+    u32                          random;
+    Task*                        child;
 
-    work   = (Actor510900ChildWork*)arg1->work;
+    work   = arg1->work;
     parent = arg1->parent->work;
     mode   = gSceneCombatState.actorControl;
     one    = 1;
@@ -3464,15 +3503,15 @@ ge2:
 case0:
     if ((Gp_GetViewIndex() & 0xFF) != D_actor_510900_80167CE4[0]) {
         arg0->node.state.parts.flags = one;
-        work->obj0.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj38.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        if (work->field_76 != 0) {
-            work->field_76--;
+        work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->blast.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        if (work->flareFrames != 0) {
+            work->flareFrames--;
         }
-        child = work->field_70;
+        child = work->flareTask;
         if (child != NULL) {
-            child->state   = 3;
-            work->field_70 = NULL;
+            child->state    = 3;
+            work->flareTask = NULL;
         }
         return;
     }
@@ -3483,7 +3522,7 @@ case2:
     return;
 body:
     func_actor_510900_8013B0D8(arg1);
-    GameFlag_SetNibble(GAME_FLAG_00D, D_actor_510900_80167CEC[work->field_74][parent->light2Status]);
+    GameFlag_SetNibble(GAME_FLAG_00D, D_actor_510900_80167CEC[work->state][parent->light2Status]);
     random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gRandomLcgState = random;
     if ((u16)((random >> 16) % 3) == 0) {
@@ -3500,120 +3539,118 @@ static const EnemyTaskFuncTable3 D_actor_510900_80131ECC = {
 /// `func_actor_510900_8013AF38`.
 /// State 1 watches the parent's `light2State` phase and its own collision record
 /// for a 0x20000 hit; landing one spawns the grab effects, reparents this task
-/// under the effect's task and hands the victim the state in `field_78`. The
-/// timer in `field_76` then runs the hold out (state 3), and states 4 and 5
+/// under the effect's task and hands the victim the state in `flareTaskState`. The
+/// timer in `flareFrames` then runs the hold out (state 3), and states 4 and 5
 /// finish or release the victim.
 static void func_actor_510900_8013B0D8(Task* arg0)
 {
-    Actor510900ChildWork* work;
-    GfxCoord*             coord;
-    Actor510900Work*      parent;
-    Enemy*                ctx;
-    EffectWork*           eff;
-    Task*                 held;
-    Task*                 ending;
-    Task*                 dropped;
-    Task*                 released;
-    Task*                 spawned;
-    s32                   hit;
-    s32                   tag;
-    s32                   snd;
-    s32                   pan;
-    s32                   next;
-    u16                   left;
+    _Actor510900BlastSourceWork* work;
+    GfxCoord*                    coord;
+    Actor510900Work*             parent;
+    Enemy*                       ctx;
+    EffectWork*                  eff;
+    Task*                        held;
+    Task*                        ending;
+    Task*                        dropped;
+    Task*                        released;
+    Task*                        spawned;
+    s32                          hit;
+    s32                          tag;
+    s32                          snd;
+    s32                          pan;
+    u16                          left;
 
-    work   = (Actor510900ChildWork*)arg0->work;
+    work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
     parent = arg0->parent->work;
     ctx    = arg0->spawnArg2.pointer;
 
-    switch (work->field_74) {
-        case 0:
-            next = parent->light2State;
-            if (next == 1) {
-                work->field_74 = next;
+    switch (work->state) {
+        case ACTOR_510900_BLAST_SOURCE_DORMANT:
+            if (parent->light2State == ACTOR_510900_HELIPAD_LIGHT_SPARKING) {
+                work->state = ACTOR_510900_BLAST_SOURCE_ARMED;
             }
             break;
-        case 1:
+        case ACTOR_510900_BLAST_SOURCE_ARMED:
             ctx->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
-            hit                         = work->rec20.key.value;
-            work->obj0.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            hit                         = work->bodyContacts[0].key.value;
+            work->body.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             if ((hit & ~0x7FFF) == 0x20000) {
                 tag = ctx->node.state.parts.targeted;
                 if (tag == 1 && Gp_ComputeDamage(hit, 0x3E8, 0, 0) != 0) {
-                    work->field_74 = 2;
-                    work->field_76 = 0x3C;
+                    work->state       = ACTOR_510900_BLAST_SOURCE_SHOT;
+                    work->flareFrames = 0x3C;
                     Gp_SpawnEff(EFFECT_IMPACT_SPARK, coord, 0, NULL);
                     eff = Gp_SpawnEff((EFFECT_05F | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
                     if (eff != NULL) {
-                        spawned        = eff->task;
-                        work->field_70 = spawned;
+                        spawned         = eff->task;
+                        work->flareTask = spawned;
                         taskReparent(arg0, spawned);
                     }
-                    work->obj0.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    work->obj38.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    if (parent->light2State == 2) {
-                        work->field_78  = tag;
-                        work->obj38.key = 0x50003;
+                    work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                    work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                    if (parent->light2State == ACTOR_510900_HELIPAD_LIGHT_DONE) {
+                        work->flareTaskState = tag;
+                        work->blast.key      = 0x50003;
                     } else {
-                        work->field_78  = 0;
-                        work->obj38.key = 0x50004;
+                        work->flareTaskState = 0;
+                        work->blast.key      = 0x50004;
                     }
                     snd = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100002;
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
-            Gp_ClearRec18Occupied(&work->rec20);
+            Gp_ClearRec18Occupied(work->bodyContacts);
             break;
-        case 2:
-            held           = work->field_70;
-            work->field_74 = 3;
+        case ACTOR_510900_BLAST_SOURCE_SHOT:
+            held        = work->flareTask;
+            work->state = ACTOR_510900_BLAST_SOURCE_FLARING;
             if (held != NULL) {
-                held->state = work->field_78;
+                held->state = work->flareTaskState;
             }
-            if (Gp_FindRec18(&work->rec58, 0) != 0) {
-                work->obj38.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            if (Gp_FindRec18(work->blastContacts, 0) != 0) {
+                work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            Gp_ClearRec18Occupied(&work->rec58);
+            Gp_ClearRec18Occupied(work->blastContacts);
             break;
-        case 3:
-            if (Gp_FindRec18(&work->rec58, 0) != 0) {
-                work->obj38.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        case ACTOR_510900_BLAST_SOURCE_FLARING:
+            if (Gp_FindRec18(work->blastContacts, 0) != 0) {
+                work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            Gp_ClearRec18Occupied(&work->rec58);
-            left           = work->field_76 - 1;
-            work->field_76 = left;
+            Gp_ClearRec18Occupied(work->blastContacts);
+            left              = work->flareFrames - 1;
+            work->flareFrames = left;
             if ((s16)left <= 0) {
-                work->field_74     = 4;
-                work->obj38.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                ending             = work->field_70;
+                work->state        = ACTOR_510900_BLAST_SOURCE_SPENT;
+                work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                ending             = work->flareTask;
                 if (ending != NULL) {
                     ending->state = 2;
                 }
                 break;
             }
             if (parent->present == 0) {
-                work->field_74     = 5;
-                work->obj38.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                dropped            = work->field_70;
+                work->state        = ACTOR_510900_BLAST_SOURCE_STOPPED;
+                work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                dropped            = work->flareTask;
                 if (dropped != NULL) {
-                    dropped->state = 3;
-                    work->field_70 = NULL;
+                    dropped->state  = 3;
+                    work->flareTask = NULL;
                 }
             }
             break;
-        case 4:
+        case ACTOR_510900_BLAST_SOURCE_SPENT:
             if (parent->present == 0) {
-                work->field_74 = 5;
-                released       = work->field_70;
+                work->state = ACTOR_510900_BLAST_SOURCE_STOPPED;
+                released    = work->flareTask;
                 if (released != NULL) {
                     released->state = 3;
-                    work->field_70  = NULL;
+                    work->flareTask = NULL;
                 }
             }
             break;
-        case 5:
+        case ACTOR_510900_BLAST_SOURCE_STOPPED:
             break;
     }
 }
@@ -4113,20 +4150,20 @@ void func_actor_510900_8013C1EC(Task* task)
 /// and returns 0.
 static s32 func_actor_510900_8013C240(Task* task)
 {
-    TmdObject*            obj;
-    Actor510900ChildAnim* work;
-    Enemy*                ctx;
-    s32                   i;
-    u8                    misses;
-    u8                    view;
+    TmdObject*                    obj;
+    _Actor510900HelipadLightWork* work;
+    Enemy*                        ctx;
+    s32                           i;
+    u8                            misses;
+    u8                            view;
 
     obj    = task->extra.tmd;
-    work   = (Actor510900ChildAnim*)task->work;
+    work   = task->work;
     ctx    = task->spawnArg2.pointer;
     misses = 0;
     view   = Gp_GetViewIndex();
     for (i = 0; i < 3; i++) {
-        if (view != D_actor_510900_80167CD8[work->field_334][i]) {
+        if (view != D_actor_510900_80167CD8[work->lightIndex][i]) {
             misses++;
         }
     }
@@ -4136,15 +4173,15 @@ static s32 func_actor_510900_8013C240(Task* task)
     }
 
     obj->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->obj2BC.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->obj2F4.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->body.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->blast.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    if (work->field_32C != NULL) {
-        work->field_32C->state = 2;
-        work->field_32C        = NULL;
+    if (work->sparksTask != NULL) {
+        work->sparksTask->state = 2;
+        work->sparksTask        = NULL;
     }
-    if (work->field_332 != 0) {
-        work->field_332--;
+    if (work->sparkFrames != 0) {
+        work->sparkFrames--;
     }
     return 0;
 }
@@ -4161,12 +4198,12 @@ static void func_actor_510900_8013C338(Task* arg0, GfxCoord* arg1)
 
 static void func_actor_510900_8013C380(Task* arg0)
 {
-    Enemy*                enemy = arg0->spawnArg2.pointer;
-    Actor510900ChildAnim* work  = arg0->work;
+    Enemy*                        enemy = arg0->spawnArg2.pointer;
+    _Actor510900HelipadLightWork* work  = arg0->work;
 
     worldTargetUnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->obj2BC);
-    Gp_UnlinkObj(&work->obj2F4);
+    Gp_UnlinkObj(&work->body);
+    Gp_UnlinkObj(&work->blast);
     enemyDestroy(enemy, arg0);
 }
 
@@ -4182,11 +4219,11 @@ void func_actor_510900_8013C3DC(Task* task)
 
 static void func_actor_510900_8013C430(Task* arg0)
 {
-    Enemy*                enemy = arg0->spawnArg2.pointer;
-    Actor510900ChildWork* work  = arg0->work;
+    Enemy*                       enemy = arg0->spawnArg2.pointer;
+    _Actor510900BlastSourceWork* work  = arg0->work;
 
     worldTargetUnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->obj0);
-    Gp_UnlinkObj(&work->obj38);
+    Gp_UnlinkObj(&work->body);
+    Gp_UnlinkObj(&work->blast);
     enemyDestroy(enemy, arg0);
 }

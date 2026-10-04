@@ -547,9 +547,12 @@ Scratch blocks that packages reserve in functions of their own stay in
 the same 0x20 untouched bytes and keep the collision grid's correction after
 them; the last is the block `ActorOverlapPushScratch` serves without that
 lead. `ActorPlayerKnockbackScratch` is the block of the knockback
-`actor_105100` and `actor_205200` step the player through, and
-`ActorHitTakenScratch` that of the hit check `actor_01200` and `actor_04000`
-turn toward a hit with.
+`actor_105100` and `actor_205200` step the player through,
+`ActorPlayerHoldScratch` that of the button-press hold `actor_03700` and
+`actor_510900` put the player in, `ActorEulerTurnScratch` that of the Euler
+turn `actor_02100`, `actor_03800` and `actor_510900` multiply onto a rotation,
+and `ActorHitTakenScratch` that of the hit check `actor_01200` and
+`actor_04000` turn toward a hit with.
 
 `moth` owns the included Moth enemy shared by `actor_00700` (packages
 `actor_100700` and `actor_200700`) and `actor_300700`. Its implementation

@@ -6,6 +6,8 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor.h"
+
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
@@ -39,12 +41,6 @@
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-
-typedef struct Actor02100Fn00048Scratch {
-    /* 0x00 */ SVECTOR rotation;
-    /* 0x08 */ MATRIX  matrix;
-} Actor02100Fn00048Scratch;
-STATIC_ASSERT_SIZEOF(Actor02100Fn00048Scratch, 0x28);
 
 /// 0x18-byte block the watcher's routines take from the scratch stack when they
 /// need a vector or two to work in: one of each width a GTE rotation works
@@ -540,18 +536,18 @@ static __inline__ void Actor02100_ReleaseScratch28(void);
 
 static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
 {
-    WorldCollisionContact*    table;
-    WorldCollisionContact*    contacts;
-    SVECTOR*                  rotation;
-    Actor02100Fn00048Scratch* head;
-    s16                       variant;
-    s16                       scale;
-    TmdObject*                extra;
-    GfxCoord*                 coord;
-    _Actor02100Work*          work;
-    s16*                      column1;
-    s16*                      column2;
-    MATRIX*                   matrix;
+    WorldCollisionContact* table;
+    WorldCollisionContact* contacts;
+    SVECTOR*               rotation;
+    ActorEulerTurnScratch* head;
+    s16                    variant;
+    s16                    scale;
+    TmdObject*             extra;
+    GfxCoord*              coord;
+    _Actor02100Work*       work;
+    s16*                   column1;
+    s16*                   column2;
+    MATRIX*                matrix;
 
     extra = arg1->extra.tmd;
     coord = extra->coords;
@@ -570,25 +566,25 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     }
     extra->flags                  = 0;
     coord->composeStamp           = GRAPHICS_COORD_DIRTY;
-    head                          = SCRATCH_STACK_CURSOR(Actor02100Fn00048Scratch);
+    head                          = SCRATCH_STACK_CURSOR(ActorEulerTurnScratch);
     extra->lightMtx               = &work->light;
     extra->colorMtx               = &work->color;
-    rotation                      = &head[-1].rotation;
+    rotation                      = &head[-1].angles;
     rotation->vx                  = 0;
     rotation->vy                  = 0;
     SCRATCH_STACK_CURSOR(SVECTOR) = rotation;
     rotation->vz                  = arg0->place->mode;
-    RotMatrix(rotation, &head[-1].matrix);
+    RotMatrix(rotation, &head[-1].rotation);
     matrix = &coord->coord;
     gte_SetRotMatrix(matrix);
-    gte_ldclmv(&head[-1].matrix);
+    gte_ldclmv(&head[-1].rotation);
     gte_rtir();
     gte_stclmv(matrix);
-    gte_ldclmv(&head[-1].matrix.m[0][1]);
+    gte_ldclmv(&head[-1].rotation.m[0][1]);
     gte_rtir();
     column1 = &coord->coord.m[0][1];
     gte_stclmv(column1);
-    gte_ldclmv(&head[-1].matrix.m[0][2]);
+    gte_ldclmv(&head[-1].rotation.m[0][2]);
     gte_rtir();
     column2 = &coord->coord.m[0][2];
     gte_stclmv(column2);
@@ -670,9 +666,9 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->enemyStrikeBody.flags           = (u32)WORLD_COLLISION_BODY_CAPSULE;
     work->playerStrikeBody.flags          = (u16)((work->playerStrikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT));
     Gp_LinkObj(1, &work->enemyStrikeBody);
-    work->enemyStrikeBody.flags                    = (u16)((work->enemyStrikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT);
-    arg1->state                                    = 1;
-    SCRATCH_STACK_CURSOR(Actor02100Fn00048Scratch) = SCRATCH_STACK_CURSOR(Actor02100Fn00048Scratch) + 1;
+    work->enemyStrikeBody.flags                 = (u16)((work->enemyStrikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT);
+    arg1->state                                 = 1;
+    SCRATCH_STACK_CURSOR(ActorEulerTurnScratch) = SCRATCH_STACK_CURSOR(ActorEulerTurnScratch) + 1;
 }
 
 static void Actor02100_Fn004C4(Task* arg0)
