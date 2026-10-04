@@ -37,35 +37,35 @@
 #include "../../shared/coord_math.h"
 #include "../../shared/actor_messages.h"
 
-/// The overlay's *other* work block, for the task `func_actor_341700_8016D130`
-/// starts: that function calls `memCalloc(0x80, 0)` and stores the result in
-/// the same `Task::work` slot, so the two blocks never coexist on one task.
+/// Values of `_Actor341700PropWork::state`.
+enum {
+    ACTOR_341700_PROP_STATE_HIDDEN = 0, // not drawn; entered by every dumping-hole command but 1
+    ACTOR_341700_PROP_STATE_SHOWN  = 1, // drawn where it stands; the state the spawn leaves it in
+    ACTOR_341700_PROP_STATE_RISE   = 2  // dropped 1800 below its origin and shaken back up, shedding the room's rising sprites; entered by dumping-hole command 1
+};
+
+/// Work block of the package's scripted prop, the model it carries beside its
+/// Mad Chasers for the Shelter B3 dumping hole's event.
 ///
-/// `field_0` is the state index `func_actor_341700_8016CC9C` dispatches
-/// through its three-entry handler table; `field_2` holds the previous value
-/// and `field_4` the state-change flag. `func_actor_341700_8016CEB4` copies
-/// the three leading bytes of an incoming command over `field_18` .. `field_1A`.
-///
-/// `light` / `color` are the matrices this block is allocated for:
-/// `func_actor_341700_8016D130` stores their addresses into the model's
-/// `TmdObject.lightMtx` / `colorMtx` light and colour matrix slots, so the
-/// actor rasterises through its own work block rather than a separate
-/// `MATRIX` allocation.
-typedef struct Actor341700SubWork {
-    /* 0x00 */ s16    field_0;
-    /* 0x02 */ s16    field_2;
-    /* 0x04 */ s16    field_4;
-    /* 0x06 */ s16    field_6;
-    /* 0x08 */ byte   pad_8[0x10];
-    /* 0x18 */ u8     field_18;
-    /* 0x19 */ u8     field_19;
-    /* 0x1A */ u8     field_1A;
-    /* 0x1B */ byte   pad_1B[0x1];
-    /* 0x1C */ MATRIX light;
-    /* 0x3C */ MATRIX color;
-    /* 0x5C */ byte   pad_5C[0x24];
-} Actor341700SubWork;
-STATIC_ASSERT_SIZEOF(Actor341700SubWork, 0x80);
+/// The prop's spawn handler allocates it zeroed and keeps it at `Task::work`;
+/// its size is that allocation's. The prop has no hit points and can never be
+/// locked onto. It only stands hidden, stands shown, or rises shaking from
+/// below its origin, as the room's actor commands select.
+typedef struct {
+    s16    state;            // `ACTOR_341700_PROP_STATE_*`
+    s16    prevState;        // `state` the tick last ran; -1 from spawn, so the first tick enters `state` afresh
+    s16    stateEntered;     // 1 on the first tick of a state, when the handler sets itself up (0 otherwise)
+    s16    stateFrame;       // ticks `ACTOR_341700_PROP_STATE_RISE` has run, counted from 1; times its shake phases and sprite bursts
+    byte   pad_8[0x10];      // never accessed
+    u8     lastCommandStage; // stage tag of the last actor command received, whatever its namespace; never read
+    u8     lastCommandArea;  // area tag of that command; never read
+    u8     lastCommand;      // low byte of that command's selector; never read
+    byte   pad_1B[0x1];      // never accessed
+    MATRIX lightMtx;         // storage for the model's `TmdObject::lightMtx`
+    MATRIX colorMtx;         // storage for the model's `TmdObject::colorMtx`
+    byte   pad_5C[0x24];     // never accessed
+} _Actor341700PropWork;
+STATIC_ASSERT_SIZEOF(_Actor341700PropWork, 0x80);
 
 /// Whole-unit part of the last movement step `func_actor_341700_8016B804`
 /// applied, rounded away from zero when the step had a fraction.
@@ -804,31 +804,31 @@ static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1);
 
 static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
 {
-    SVECTOR             vec;
-    Actor341700SubWork* work = (Actor341700SubWork*)arg1->work;
-    s16                 i;
-    s16                 r;
-    u32                 t;
-    SVECTOR*            table;
-    u8*                 p;
-    u32                 rnd;
-    u32                 index;
-    SVECTOR*            vecPtr;
-    u8*                 indices;
+    SVECTOR               vec;
+    _Actor341700PropWork* work = arg1->work;
+    s16                   i;
+    s16                   r;
+    u32                   t;
+    SVECTOR*              table;
+    u8*                   p;
+    u32                   rnd;
+    u32                   index;
+    SVECTOR*              vecPtr;
+    u8*                   indices;
 
-    if (work->field_4 != 0) {
-        work->field_6                       = 0;
+    if (work->stateEntered != 0) {
+        work->stateFrame                    = 0;
         arg1->extra.tmd->coords->coord.t[1] = 0x708;
     }
-    work->field_6++;
+    work->stateFrame++;
     if (arg1->extra.tmd->coords->coord.t[1] > 200) {
-        if (work->field_6 >= 0xA6) {
-            if (work->field_6 % 4 < 2) {
+        if (work->stateFrame >= 0xA6) {
+            if (work->stateFrame % 4 < 2) {
                 arg1->extra.tmd->coords->coord.t[1] += 90;
             } else {
                 arg1->extra.tmd->coords->coord.t[1] -= 100;
             }
-            if (work->field_6 % 6 < 3) {
+            if (work->stateFrame % 6 < 3) {
                 gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 12, GRAPHICS_ROTATION_COMPOSE);
                 gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 24, GRAPHICS_ROTATION_COMPOSE);
                 gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -24, GRAPHICS_ROTATION_COMPOSE);
@@ -849,13 +849,13 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
                 gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 3, GRAPHICS_ROTATION_COMPOSE);
                 gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 27, GRAPHICS_ROTATION_COMPOSE);
             }
-        } else if (work->field_6 >= 0x79) {
-            if (work->field_6 % 4 < 2) {
+        } else if (work->stateFrame >= 0x79) {
+            if (work->stateFrame % 4 < 2) {
                 arg1->extra.tmd->coords->coord.t[1] += 50;
             } else {
                 arg1->extra.tmd->coords->coord.t[1] -= 58;
             }
-            if (work->field_6 % 6 < 3) {
+            if (work->stateFrame % 6 < 3) {
                 gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 8, GRAPHICS_ROTATION_COMPOSE);
                 gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 16, GRAPHICS_ROTATION_COMPOSE);
                 gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -16, GRAPHICS_ROTATION_COMPOSE);
@@ -876,13 +876,13 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
                 gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 2, GRAPHICS_ROTATION_COMPOSE);
                 gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 18, GRAPHICS_ROTATION_COMPOSE);
             }
-        } else if (work->field_6 >= 11 && work->field_6 < 18) {
-            if (work->field_6 % 4 < 2) {
+        } else if (work->stateFrame >= 11 && work->stateFrame < 18) {
+            if (work->stateFrame % 4 < 2) {
                 arg1->extra.tmd->coords->coord.t[1] += 30;
             } else {
                 arg1->extra.tmd->coords->coord.t[1] -= 33;
             }
-            if (work->field_6 % 6 < 3) {
+            if (work->stateFrame % 6 < 3) {
                 gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 4, GRAPHICS_ROTATION_COMPOSE);
                 gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 8, GRAPHICS_ROTATION_COMPOSE);
                 gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -8, GRAPHICS_ROTATION_COMPOSE);
@@ -903,7 +903,7 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
                 gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 1, GRAPHICS_ROTATION_COMPOSE);
                 gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 9, GRAPHICS_ROTATION_COMPOSE);
             }
-            switch ((work->field_6 - 11) % 8) {
+            switch ((work->stateFrame - 11) % 8) {
                 case 0:
                     vec = D_actor_341700_80175F7C[35];
                     func_shelter_b3_dumping_hole_8017FCF4(arg1->extra.tmd->coords, &vec);
@@ -927,12 +927,12 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
             }
         }
     } else {
-        if (work->field_6 % 4 < 2) {
+        if (work->stateFrame % 4 < 2) {
             arg1->extra.tmd->coords->coord.t[1] += 100;
         } else {
             arg1->extra.tmd->coords->coord.t[1] -= 100;
         }
-        if (work->field_6 % 6 < 3) {
+        if (work->stateFrame % 6 < 3) {
             gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 12, GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 24, GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -24, GRAPHICS_ROTATION_COMPOSE);
@@ -970,13 +970,13 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
     table                                    = D_actor_341700_80175F7C;
     vecPtr                                   = &vec;
     for (; i < 4; i++) {
-        if (work->field_6 > 240) {
+        if (work->stateFrame > 240) {
             return;
         }
-        if (work->field_6 < 120) {
+        if (work->stateFrame < 120) {
             return;
         }
-        p = (u8*)((i + (work->field_6 - 120) * 4) + (u32)indices);
+        p = (u8*)((i + (work->stateFrame - 120) * 4) + (u32)indices);
         if (*p == 0) {
             return;
         }
@@ -996,7 +996,7 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
     }
 }
 
-/// Three state handlers, indexed by `Actor341700SubWork::field_0`; copied onto
+/// Three state handlers, indexed by `_Actor341700PropWork::state`; copied onto
 /// the stack before dispatch.
 static const EnemyTaskFuncTable3 D_actor_341700_80162058 = { {
     func_actor_341700_8016D2B8,
@@ -1006,8 +1006,9 @@ static const EnemyTaskFuncTable3 D_actor_341700_80162058 = { {
 
 /// Per-frame callback of the `func_actor_341700_8016D130` task. It colours the
 /// model from the world position of its *second* attach coordinate and then,
-/// unless `gSceneCombatState.actorControl` hides the model, runs the handler `Actor341700SubWork::
-/// field_0` names.
+/// unless `gSceneCombatState.actorControl` hides the model, runs the handler
+/// `_Actor341700PropWork::state` names, with `stateEntered` set on the first
+/// tick of a state.
 ///
 /// `case 0` is folded into `default` on purpose. The two bodies are the same,
 /// so the case list keeps three nodes and GCC's tree tests `case 1` at the
@@ -1015,9 +1016,9 @@ static const EnemyTaskFuncTable3 D_actor_341700_80162058 = { {
 /// come out with the wrong polarity and a stray low-bound test.
 static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1)
 {
-    VECTOR              block;
-    Actor341700SubWork* work = (Actor341700SubWork*)arg1->work;
-    EnemyTaskFuncTable3 sp   = D_actor_341700_80162058;
+    VECTOR                block;
+    _Actor341700PropWork* work = arg1->work;
+    EnemyTaskFuncTable3   sp   = D_actor_341700_80162058;
 
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg1->extra.tmd->coords[1]);
@@ -1033,13 +1034,13 @@ static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
-            if (work->field_2 != work->field_0) {
-                work->field_4 = 1;
+            if (work->prevState != work->state) {
+                work->stateEntered = 1;
             } else {
-                work->field_4 = 0;
+                work->stateEntered = 0;
             }
-            work->field_2 = work->field_0;
-            sp.funcs[work->field_0](arg0, arg1);
+            work->prevState = work->state;
+            sp.funcs[work->state](arg0, arg1);
             if (gGameSession->viewReady != 0) {
                 arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             }
@@ -1081,8 +1082,9 @@ s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2, s32 arg3)
 
 /// The `0x2704` command handler, reached through the task's `Task::msgTable`
 /// table (`D_actor_341700_80175F5C`): the three leading bytes of `cmd` are
-/// copied over `Actor341700SubWork::field_18` .. `field_1A` and the second
-/// halfword, when the opcode matches, picks the state the work block moves to.
+/// recorded in `_Actor341700PropWork::lastCommandStage`, `lastCommandArea`
+/// and `lastCommand`, and the selector, when the command is the dumping
+/// hole's, picks the `ACTOR_341700_PROP_STATE_*` the work block moves to.
 ///
 /// `case 2` is folded into `default` on purpose. The two bodies are the same,
 /// so the case list keeps three nodes and GCC's decision tree balances around
@@ -1090,25 +1092,25 @@ s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2, s32 arg3)
 /// come out in a different order.
 s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, ActorCommand* cmd, s32 arg3)
 {
-    Actor341700SubWork* work = (Actor341700SubWork*)task->work;
+    _Actor341700PropWork* work = task->work;
 
-    work->field_18 = cmd->context.loc.stage;
-    work->field_19 = cmd->context.loc.area;
-    work->field_1A = (u8)cmd->command;
+    work->lastCommandStage = cmd->context.loc.stage;
+    work->lastCommandArea  = cmd->context.loc.area;
+    work->lastCommand      = (u8)cmd->command;
 
     if (cmd->context.key == 0x2704) {
         switch (cmd->command) {
             case 0:
-                work->field_0 = 0;
+                work->state = ACTOR_341700_PROP_STATE_HIDDEN;
                 return 1;
             case 1:
                 task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                work->field_0                         = 2;
+                work->state                           = ACTOR_341700_PROP_STATE_RISE;
                 break;
             case 2:
             default:
-                work->field_0 = 0;
-                task->state   = 1;
+                work->state = ACTOR_341700_PROP_STATE_HIDDEN;
+                task->state = 1;
                 break;
         }
     }
@@ -1121,18 +1123,15 @@ s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, ActorCommand* cmd, s32 arg3
 
 static void func_actor_341700_8016D130(Enemy* arg0, Task* arg1)
 {
-    Actor341700SubWork* work;
-    Actor341700SubWork* workAllocation;
-    TmdObject*          model;
-    GfxCoord*           coord;
-    VECTOR              block;
+    _Actor341700PropWork* work;
+    TmdObject*            model;
+    GfxCoord*             coord;
+    VECTOR                block;
 
-    model          = arg1->extra.tmd;
-    coord          = model->coords;
-    workAllocation = memCalloc(sizeof(*workAllocation), false);
-    work           = workAllocation;
-    arg1->work     = workAllocation;
-    if (workAllocation == NULL) {
+    model      = arg1->extra.tmd;
+    coord      = model->coords;
+    arg1->work = work = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
         enemyDestroy(arg0, arg1);
         return;
     }
@@ -1152,24 +1151,25 @@ static void func_actor_341700_8016D130(Enemy* arg0, Task* arg1)
     arg0->reactionFlags                   = 0;
     arg0->hpMax                           = 0;
     arg0->hp                              = 0;
-    model->lightMtx                       = &work->light;
-    model->colorMtx                       = &work->color;
+    model->lightMtx                       = &work->lightMtx;
+    model->colorMtx                       = &work->colorMtx;
     coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     block.vx = coord->workm.t[0];
     block.vy = coord->workm.t[1];
     block.vz = coord->workm.t[2];
     Gp_UpdateActorColor(arg0, &block, 0, 0);
-    work->field_2 = -1;
-    work->field_0 = 1;
-    arg1->state  += 1;
+    work->prevState = -1;
+    work->state     = ACTOR_341700_PROP_STATE_SHOWN;
+    arg1->state    += 1;
 }
 
 static void func_actor_341700_8016D2B8(Enemy* arg0, Task* arg1)
 {
-    TmdObject* model;
+    _Actor341700PropWork* work = arg1->work;
+    TmdObject*            model;
 
-    if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
+    if (work->stateEntered != 0) {
         model                        = arg1->extra.tmd;
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         model->flags                 = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
@@ -1178,9 +1178,10 @@ static void func_actor_341700_8016D2B8(Enemy* arg0, Task* arg1)
 
 static void func_actor_341700_8016D2E8(Enemy* arg0, Task* arg1)
 {
-    TmdObject* model;
+    _Actor341700PropWork* work = arg1->work;
+    TmdObject*            model;
 
-    if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
+    if (work->stateEntered != 0) {
         model                        = arg1->extra.tmd;
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         model->flags                 = 0;
