@@ -102,3 +102,102 @@ void func_p08_8011D1D8(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
+
+/* Each package carries its own model. */
+#if WEAPON_ID == 0x4
+static TmdBone _gP08Model00440Skeleton[1] = {
+#include "assets/p08_model_00440_skeleton.inc"
+};
+
+static u32 _gP08Model00440PartVerts[1] = {
+#include "assets/p08_model_00440_partVerts.inc"
+};
+
+static SVECTOR _gP08Model00440Verts[28] = {
+#include "assets/p08_model_00440_verts.inc"
+};
+
+static SVECTOR _gP08Model00440Normals[26] = {
+#include "assets/p08_model_00440_normals.inc"
+};
+
+static u32 _gP08Model00440Stream[201] = {
+#include "assets/p08_model_00440_stream.inc"
+};
+
+TmdSource D_p08_8011D924 = {
+    0,
+    1408,
+    0,
+    1,
+    _gP08Model00440PartVerts,
+    _gP08Model00440Verts,
+    _gP08Model00440Normals,
+    _gP08Model00440Skeleton,
+    _gP08Model00440Stream,
+};
+#elif WEAPON_ID == 0x1
+static TmdBone _gP08SnailP08Model00440Skeleton[1] = {
+#include "assets/p08_model_00440_skeleton.inc"
+};
+
+static u32 _gP08SnailP08Model00440PartVerts[1] = {
+#include "assets/p08_model_00440_partVerts.inc"
+};
+
+static SVECTOR _gP08SnailP08Model00440Verts[28] = {
+#include "assets/p08_model_00440_verts.inc"
+};
+
+static SVECTOR _gP08SnailP08Model00440Normals[26] = {
+#include "assets/p08_model_00440_normals.inc"
+};
+
+static u32 _gP08SnailP08Model00440Stream[201] = {
+#include "assets/p08_model_00440_stream.inc"
+};
+
+TmdSource D_p08_snail_8011D924 = {
+    0,
+    1408,
+    0,
+    1,
+    _gP08SnailP08Model00440PartVerts,
+    _gP08SnailP08Model00440Verts,
+    _gP08SnailP08Model00440Normals,
+    _gP08SnailP08Model00440Skeleton,
+    _gP08SnailP08Model00440Stream,
+};
+#elif WEAPON_ID == 0x9
+static TmdBone _gMongooseModel00450Skeleton[1] = {
+#include "assets/mongoose_model_00450_skeleton.inc"
+};
+
+static u32 _gMongooseModel00450PartVerts[1] = {
+#include "assets/mongoose_model_00450_partVerts.inc"
+};
+
+static SVECTOR _gMongooseModel00450Verts[28] = {
+#include "assets/mongoose_model_00450_verts.inc"
+};
+
+static SVECTOR _gMongooseModel00450Normals[28] = {
+#include "assets/mongoose_model_00450_normals.inc"
+};
+
+static u32 _gMongooseModel00450Stream[201] = {
+#include "assets/mongoose_model_00450_stream.inc"
+};
+
+TmdSource D_mongoose_8011D934 = {
+    0,
+    1408,
+    0,
+    1,
+    _gMongooseModel00450PartVerts,
+    _gMongooseModel00450Verts,
+    _gMongooseModel00450Normals,
+    _gMongooseModel00450Skeleton,
+    _gMongooseModel00450Stream,
+};
+#endif

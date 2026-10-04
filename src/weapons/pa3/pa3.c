@@ -141,3 +141,70 @@ void func_pa3_8011D1DC(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
+
+/* Each package carries its own model. */
+#if WEAPON_ID == 0xD
+static TmdBone _gPa3Model0056CSkeleton[1] = {
+#include "assets/pa3_model_0056C_skeleton.inc"
+};
+
+static u32 _gPa3Model0056CPartVerts[1] = {
+#include "assets/pa3_model_0056C_partVerts.inc"
+};
+
+static SVECTOR _gPa3Model0056CVerts[26] = {
+#include "assets/pa3_model_0056C_verts.inc"
+};
+
+static SVECTOR _gPa3Model0056CNormals[26] = {
+#include "assets/pa3_model_0056C_normals.inc"
+};
+
+static u32 _gPa3Model0056CStream[182] = {
+#include "assets/pa3_model_0056C_stream.inc"
+};
+
+TmdSource D_pa3_8011DA04 = {
+    0,
+    1276,
+    0,
+    1,
+    _gPa3Model0056CPartVerts,
+    _gPa3Model0056CVerts,
+    _gPa3Model0056CNormals,
+    _gPa3Model0056CSkeleton,
+    _gPa3Model0056CStream,
+};
+#elif WEAPON_ID == 0xE
+static TmdBone _gSp12Model005CCSkeleton[1] = {
+#include "assets/sp12_model_005CC_skeleton.inc"
+};
+
+static u32 _gSp12Model005CCPartVerts[1] = {
+#include "assets/sp12_model_005CC_partVerts.inc"
+};
+
+static SVECTOR _gSp12Model005CCVerts[34] = {
+#include "assets/sp12_model_005CC_verts.inc"
+};
+
+static SVECTOR _gSp12Model005CCNormals[30] = {
+#include "assets/sp12_model_005CC_normals.inc"
+};
+
+static u32 _gSp12Model005CCStream[238] = {
+#include "assets/sp12_model_005CC_stream.inc"
+};
+
+TmdSource D_sp12_8011DB44 = {
+    0,
+    1692,
+    0,
+    1,
+    _gSp12Model005CCPartVerts,
+    _gSp12Model005CCVerts,
+    _gSp12Model005CCNormals,
+    _gSp12Model005CCSkeleton,
+    _gSp12Model005CCStream,
+};
+#endif

@@ -140,3 +140,70 @@ void SLOT_FUNC(8011DBD0)(Task* arg0)
     handlers = D_grenade_pistol_8011D1C4;
     handlers.funcs[arg0->state](arg0);
 }
+
+/* Each package carries its own model. */
+#if GRENADE_VARIANT == 0
+static TmdBone _gGrenadePistolModel00CDCSkeleton[1] = {
+#include "assets/grenade_pistol_model_00CDC_skeleton.inc"
+};
+
+static u32 _gGrenadePistolModel00CDCPartVerts[1] = {
+#include "assets/grenade_pistol_model_00CDC_partVerts.inc"
+};
+
+static SVECTOR _gGrenadePistolModel00CDCVerts[36] = {
+#include "assets/grenade_pistol_model_00CDC_verts.inc"
+};
+
+static SVECTOR _gGrenadePistolModel00CDCNormals[36] = {
+#include "assets/grenade_pistol_model_00CDC_normals.inc"
+};
+
+static u32 _gGrenadePistolModel00CDCStream[252] = {
+#include "assets/grenade_pistol_model_00CDC_stream.inc"
+};
+
+TmdSource D_grenade_pistol_8011E28C = {
+    0,
+    1796,
+    0,
+    1,
+    _gGrenadePistolModel00CDCPartVerts,
+    _gGrenadePistolModel00CDCVerts,
+    _gGrenadePistolModel00CDCNormals,
+    _gGrenadePistolModel00CDCSkeleton,
+    _gGrenadePistolModel00CDCStream,
+};
+#elif GRENADE_VARIANT == 1
+static TmdBone _gMm1Model00DD4Skeleton[1] = {
+#include "assets/mm1_model_00DD4_skeleton.inc"
+};
+
+static u32 _gMm1Model00DD4PartVerts[1] = {
+#include "assets/mm1_model_00DD4_partVerts.inc"
+};
+
+static SVECTOR _gMm1Model00DD4Verts[52] = {
+#include "assets/mm1_model_00DD4_verts.inc"
+};
+
+static SVECTOR _gMm1Model00DD4Normals[50] = {
+#include "assets/mm1_model_00DD4_normals.inc"
+};
+
+static u32 _gMm1Model00DD4Stream[320] = {
+#include "assets/mm1_model_00DD4_stream.inc"
+};
+
+TmdSource D_mm1_8011E494 = {
+    0,
+    2292,
+    0,
+    1,
+    _gMm1Model00DD4PartVerts,
+    _gMm1Model00DD4Verts,
+    _gMm1Model00DD4Normals,
+    _gMm1Model00DD4Skeleton,
+    _gMm1Model00DD4Stream,
+};
+#endif

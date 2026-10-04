@@ -118,18 +118,18 @@ label = "Grenade Pistol"
 slots = [
   { package = "grenade_pistol", prefix = "grenade_pistol", id = 18, label = "Grenade Pistol", defines = { GRENADE_VARIANT = 0 }, objects = [
     { kind = "packageId" },
-    { unit = "grenade_pistol", variant = true, rodata = "0x4", text = "0x14" },
-    { kind = "model", at = "0xA74" },
-    { kind = "modelSource", at = "0x10CC" },
+    { unit = "grenade_pistol", variant = true, rodata = "0x4", text = "0x14", data = "0xA74" },
+    { kind = "model", at = "0xA74", in_c = true },
+    { kind = "modelSource", at = "0x10CC", in_c = true },
     { kind = "data", at = "0x10F0" },
     { unit = "grenade_pistol/grenade_pistol_work", data = "0xE260" },
     { kind = "data", at = "0xE27C" },
   ] },
   { package = "mm1", prefix = "mm1", id = 19, label = "MM1", defines = { GRENADE_VARIANT = 1 }, objects = [
     { kind = "packageId" },
-    { unit = "grenade_pistol", variant = true, rodata = "0x4", text = "0x14" },
-    { kind = "model", at = "0xA7C" },
-    { kind = "modelSource", at = "0x12D4" },
+    { unit = "grenade_pistol", variant = true, rodata = "0x4", text = "0x14", data = "0xA7C" },
+    { kind = "model", at = "0xA7C", in_c = true },
+    { kind = "modelSource", at = "0x12D4", in_c = true },
     { kind = "data", at = "0x12F8" },
     { unit = "grenade_pistol/grenade_pistol_work", data = "0x10100" },
     { kind = "data", at = "0x1011C" },
@@ -187,9 +187,9 @@ slots = [
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "m4a1", variant = true, rodata = "0x4", text = "0x4" },
-  { kind = "model", at = "0x2E4" },
-  { kind = "modelSource", at = "0xD04" },
+  { unit = "m4a1", variant = true, rodata = "0x4", text = "0x4", data = "0x2E4" },
+  { kind = "model", at = "0x2E4", in_c = true },
+  { kind = "modelSource", at = "0xD04", in_c = true },
   { kind = "data", at = "0xD28" },
 ]
 
@@ -289,8 +289,8 @@ slots = [
 objects = [
   { kind = "packageId" },
   { unit = "mp5a5", variant = true, rodata = "0x4", text = "0x20", data = "0xF68" },
-  { kind = "model", at = "0xF70" },
-  { kind = "modelSource", at = "0x193C" },
+  { kind = "model", at = "0xF70", in_c = true },
+  { kind = "modelSource", at = "0x193C", in_c = true },
   { kind = "data", at = "0x1960" },
   { unit = "mp5a5/mp5a5_work", data = "0xE348" },
 ]
@@ -304,17 +304,17 @@ slots = [
   { package = "p08_snail", prefix = "p08_snail", id = 8, label = "P08(S. Magazine)", defines = { WEAPON_ID = 0x1, P08_FLASH_EFFECT = 0x6002B, P08_FLASH_WEAPON = 0x1, P08_FIELD_940 = 0xC } },
   { package = "mongoose", prefix = "mongoose", id = 16, label = "Mongoose", defines = { WEAPON_ID = 0x9, P08_FLASH_EFFECT = 0x6006A, P08_FLASH_WEAPON = 0x9, P08_FIELD_940 = 0xF }, objects = [
     { kind = "packageId" },
-    { unit = "p08", variant = true, rodata = "0x4", text = "0x18" },
-    { kind = "model", at = "0x268" },
-    { kind = "modelSource", at = "0x774" },
+    { unit = "p08", variant = true, rodata = "0x4", text = "0x18", data = "0x268" },
+    { kind = "model", at = "0x268", in_c = true },
+    { kind = "modelSource", at = "0x774", in_c = true },
     { kind = "data", at = "0x798" },
   ] },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "p08", variant = true, rodata = "0x4", text = "0x18" },
-  { kind = "model", at = "0x268" },
-  { kind = "modelSource", at = "0x764" },
+  { unit = "p08", variant = true, rodata = "0x4", text = "0x18", data = "0x268" },
+  { kind = "model", at = "0x268", in_c = true },
+  { kind = "modelSource", at = "0x764", in_c = true },
   { kind = "data", at = "0x788" },
 ]
 
@@ -338,17 +338,17 @@ slots = [
   { package = "pa3", prefix = "pa3", id = 20, label = "PA3", defines = { WEAPON_ID = 0xD, PA3_FIELD_979 = 0x20 } },
   { package = "sp12", prefix = "sp12", id = 21, label = "SP12", defines = { WEAPON_ID = 0xE, PA3_FIELD_979 = 0x24 }, objects = [
     { kind = "packageId" },
-    { unit = "pa3", variant = true, rodata = "0x4", text = "0x1C" },
-    { kind = "model", at = "0x3A4" },
-    { kind = "modelSource", at = "0x984" },
+    { unit = "pa3", variant = true, rodata = "0x4", text = "0x1C", data = "0x3A4" },
+    { kind = "model", at = "0x3A4", in_c = true },
+    { kind = "modelSource", at = "0x984", in_c = true },
     { kind = "data", at = "0x9A8" },
   ] },
 ]
 objects = [
   { kind = "packageId" },
-  { unit = "pa3", variant = true, rodata = "0x4", text = "0x1C" },
-  { kind = "model", at = "0x3A4" },
-  { kind = "modelSource", at = "0x844" },
+  { unit = "pa3", variant = true, rodata = "0x4", text = "0x1C", data = "0x3A4" },
+  { kind = "model", at = "0x3A4", in_c = true },
+  { kind = "modelSource", at = "0x844", in_c = true },
   { kind = "data", at = "0x868" },
 ]
 
