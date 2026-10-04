@@ -75,6 +75,25 @@ typedef struct {
     u8      unknown_8[8]; // Zero in the image; no access established and role unproven
 } DesertChaserContactPushStepStorage;
 STATIC_ASSERT_SIZEOF(DesertChaserContactPushStepStorage, 16);
+
+/// Allocation holding the cutscene build's hit-effect argument record.
+///
+/// `effectArg` is the record the armed builds keep in their work block as
+/// `DesertChaserWork::effectArg` and hand the effect spawner with every hit.
+/// The cutscene build keeps it as a global instead: its spawn state binds it
+/// to the model root's coordinate with the armed builds' two arguments, and
+/// nothing reads it afterwards, since this build takes no hits and spawns no
+/// effect from it.
+///
+/// In both cutscene packages 88 zero bytes follow the record and run to the
+/// last byte of the image. No access to them is recovered, so whether they
+/// are trailing fields of this object or separate unreferenced variables is
+/// unproven; they stay in this allocation only so the image keeps its length.
+typedef struct {
+    EffectSpawnArg effectArg;     // Root coordinate, spawn-argument low half 0x100 and high half 2, stored once by the spawn state; never read
+    u8             unknown_8[88]; // Zero in the image; no access established and role unproven
+} DesertChaserEffectArgStorage;
+STATIC_ASSERT_SIZEOF(DesertChaserEffectArgStorage, 96);
 #endif
 
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE

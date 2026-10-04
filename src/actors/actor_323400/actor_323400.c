@@ -62,16 +62,7 @@ extern TaskMessageEntry gRigMessages[7];
 
 /// Effect record the spawn handler fills: the model root's coordinate and
 /// the two spawn arguments 0x100 and 2.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    EffectSpawnArg value;
-    u8             retained[88];
-} Actor323400Storage1228;
-STATIC_ASSERT_SIZEOF(Actor323400Storage1228, 96);
-
-extern Actor323400Storage1228 gRigEffectRec;
+extern DesertChaserEffectArgStorage gRigEffectRec;
 
 /// Enemy parameters the spawn handler stores in `Enemy::param`.
 extern EnemyParams gRigParams;
@@ -2996,7 +2987,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &(ActorContact_ScratchPosition.step);
 }
 
-Actor323400Storage1228 gRigEffectRec;
+DesertChaserEffectArgStorage gRigEffectRec;
 
 #include "../../shared/actor_contacts.h"
 

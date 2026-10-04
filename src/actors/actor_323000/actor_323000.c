@@ -47,16 +47,7 @@ extern u8 gRigAnimSource[];
 
 /// Effect record the spawn handler fills: the model root's coordinate and
 /// the two spawn arguments 0x100 and 2.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    EffectSpawnArg value;
-    u8             retained[88];
-} Actor323000Storage3A24;
-STATIC_ASSERT_SIZEOF(Actor323000Storage3A24, 96);
-
-extern Actor323000Storage3A24 gRigEffectRec;
+extern DesertChaserEffectArgStorage gRigEffectRec;
 
 /// Message table published as `Task::msgTable` by the spawn handler.
 // Message-table callbacks use the argument views required by this TU.
@@ -3017,7 +3008,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &(ActorContact_ScratchPosition.step);
 }
 
-Actor323000Storage3A24 gRigEffectRec = { { 0 }, { 0 } };
+DesertChaserEffectArgStorage gRigEffectRec = { { 0 }, { 0 } };
 
 static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2);
 
