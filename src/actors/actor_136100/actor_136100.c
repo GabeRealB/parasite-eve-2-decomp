@@ -50,64 +50,74 @@ extern ActorTransform D_actor_136100_8013F334[2];
 
 extern ActorTransform D_actor_136100_8013F304[2];
 
-/// Work block for the `actor_136100` overlay's cutscene actor.
+/// Which of its two scenes the actor stages, held in `_Actor136100Work::scene`.
 ///
-/// `func_actor_136100_80133A88` allocates it with `memMalloc(0x4F0, 0)`,
-/// zeroes it with `memFillBytes` and parks the pointer in the task's `Task::work`
-/// slot (0x1C); reach the block with
-/// `(Actor136100Work*)task->work`.  The same function publishes the task
-/// itself in `D_actor_136100_8014078C` and stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`
-/// task in `field_4B4`.
+/// The scenes use different placements, scripts and request handlers; the
+/// choice is made once, when the actor spawns.
+enum {
+    ACTOR_136100_SCENE_AFTER_BURNER  = 0, // `GAME_FLAG_BURNER_DEFEATED` is set
+    ACTOR_136100_SCENE_BEFORE_BURNER = 1, // `GAME_FLAG_BURNER_DEFEATED` is clear
+};
+
+/// Work block of Gary Douglas on Dryfield's main street at night, allocated at
+/// its full size, zeroed and kept at `Task::work`.
 ///
-/// The block opens with the model's rig, whose slots 1..19 the animation
-/// start handler reseeds. The pairs from `field_4C4`, `field_4CC` and
-/// `field_4D4` on are value/countdown pairs the overlay's small setters write
-/// together.
-typedef struct Actor136100Work {
-    /* 0x000 */ ActorAnimRig20 rig;
-    /* 0x474 */ MATRIX         field_474; // light matrix, into TmdObject::lightMtx
-    /* 0x494 */ MATRIX         field_494; // colour matrix, into TmdObject::colorMtx
-    /* 0x4B4 */ Task*          field_4B4; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task
-    /* 0x4B8 */ Task*          field_4B8; // task spawned from entry 2 of D_actor_136100_80140744
-    /* 0x4BC */ Task*          field_4BC; // task spawned from entry 3 of D_actor_136100_80140744
-    /* 0x4C0 */ Task*          field_4C0; // second dispatch task (NULL-checked senders)
-    /* 0x4C4 */ s16            field_4C4; // set by func_actor_136100_80134838
-    /* 0x4C6 */ s16            field_4C6; // cleared alongside field_4C4
-    /* 0x4C8 */ s16            field_4C8; // tick counter: func_actor_136100_801323F8
-    /* 0x4CA */ byte           pad_4CA[0x2];
-    /* 0x4CC */ s16            field_4CC; // set by func_actor_136100_80134858
-    /* 0x4CE */ s16            field_4CE; // cleared alongside field_4CC
-    /* 0x4D0 */ s16            field_4D0; // request 5 tick counter
-    /* 0x4D2 */ byte           pad_4D2[0x2];
-    /* 0x4D4 */ s16            field_4D4; // set by func_actor_136100_80134878
-    /* 0x4D6 */ s16            field_4D6; // cleared alongside field_4D4
-    /* 0x4D8 */ s16            field_4D8; // shot count: func_actor_136100_80132BC0
-    /* 0x4DA */ s16            field_4DA; // countdown: func_actor_136100_80132BC0
-    /* 0x4DC */ u16            field_4DC; // cue step: func_actor_136100_80133904
-    /* 0x4DE */ s16            field_4DE; // set by func_actor_136100_80133690
-    /* 0x4E0 */ s16            field_4E0; // animation slot count reset by func_actor_136100_801347B8
-    /* 0x4E2 */ u16            field_4E2; // index into the D_actor_136100_8013F218 animation chain
-    /* 0x4E4 */ u16            field_4E4; // cue phase: func_actor_136100_80133904
-    /* 0x4E6 */ byte           pad_4E6[0x4];
-    /* 0x4EA */ s16            field_4EA; // fourth model part's Y rotation
-    /* 0x4EC */ s16            field_4EC; // player-eff flag: Gp_KillPlayerEffs / Gp_SpawnWeaponEff
-    /* 0x4EE */ byte           pad_4EE[0x2];
-} Actor136100Work;
-STATIC_ASSERT_SIZEOF(Actor136100Work, 0x4F0);
+/// The actor directs a scene with three performers: the player, its own body
+/// and the companion. For each it keeps the task to address, a request the
+/// event script posts for the per-frame handlers to carry out, and the
+/// animation last started, which selects the follow-on animation once that one
+/// has finished. A request code is 0 when none is pending and is otherwise
+/// particular to the scene; posting one restarts its step.
+///
+/// The tasks of the head and rifle models allocate a block of this type as
+/// well and use only its `light` and `color`.
+///
+/// Nothing accesses the four `pad` runs; their roles are unproven.
+typedef struct {
+    ActorAnimRig20 rig;                    // Body rig; the actor drives slots 1 to 19
+    MATRIX         light;                  // Light matrix the task's model is lit with
+    MATRIX         color;                  // Colour matrix the task's model is lit with
+    Task*          playerTask;             // Player's task
+    Task*          headTask;               // Task of the head-and-hat model, which hangs from rig part 4
+    Task*          rifleTask;              // Task of the rifle model: placed in the view after the Burner, hung from rig part 8 before it
+    Task*          companionTask;          // Companion's task, NULL when none is registered
+    s16            playerRequest;          // Request for the player (0 none)
+    s16            playerRequestStep;      // Step of the player request in progress, counted from 0; the head turn counts its steps here too
+    s16            playerRequestFrames;    // Frames the current step of the player request has waited
+    byte           pad_4CA[0x2];
+    s16            bodyRequest;            // Request for the actor's own body (0 none)
+    s16            bodyRequestStep;        // Step of the body request in progress, counted from 0
+    s16            bodyRequestFrames;      // Frames the current step of the body request has waited
+    byte           pad_4D2[0x2];
+    s16            companionRequest;       // Request for the companion (0 none)
+    s16            companionRequestStep;   // Step of the companion request in progress, counted from 0
+    s16            companionRepeatCount;   // Times the repeated sound and animation of a companion request have played
+    s16            companionRepeatDelay;   // Frames until that sound and animation play again
+    u16            followUpSeen;           // Whether a talk after the opening scene has played (0 the next plays the full script, 1 the short one)
+    s16            playerAnimation;        // Animation last requested of the player
+    s16            bodyAnimation;          // Animation set the rig last started, an index into the actor's set table
+    u16            companionAnimation;     // Animation last requested of the companion, an index into the sets the actor installs on it
+    u16            scene;                  // Scene staged (0 `ACTOR_136100_SCENE_AFTER_BURNER`, 1 `ACTOR_136100_SCENE_BEFORE_BURNER`)
+    byte           pad_4E6[0x4];
+    s16            headYaw;                // Yaw the head turn gives rig part 4 in the scene before the Burner, 4096 to a turn
+    s16            playerEquipmentRemoved; // 1 while the player's equipment tasks are killed for a scene, so its end spawns the weapon again
+    byte           pad_4EE[0x2];
+} _Actor136100Work;
+STATIC_ASSERT_SIZEOF(_Actor136100Work, 0x4F0);
 
 /// Set by `func_actor_136100_801348F8` when the cutscene wants the display
 /// back on; while it is non-zero the fade task kills itself instead of fading.
 extern u16 D_actor_136100_8013F17C;
 
-/// Next-animation table indexed by field_4DE - 0x2F; negative entries end
+/// Next-animation table indexed by `playerAnimation` - 0x2F; negative entries end
 /// the chain, and live entries are sent as animation ids with 0x2F added.
 extern s16 D_actor_136100_8013F1EC[];
 
-/// Next animation indexed by field_4E0; negative entries skip the restart.
+/// Next animation indexed by `bodyAnimation`; negative entries skip the restart.
 extern s16 D_actor_136100_8013F1FC[];
 
 /// The actor's six-entry task table, spawned from by index: 0 is the actor
-/// itself, 2 and 3 the tasks kept in `field_4B8`/`field_4BC`, 4 the fade-in and
+/// itself, 2 and 3 the tasks kept in `headTask` / `rifleTask`, 4 the fade-in and
 /// 5 the fade-out.
 extern TaskDesc D_actor_136100_80140744[];
 
@@ -1214,8 +1224,8 @@ static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec);
 
 static s32 func_actor_136100_80131EC4(Task* arg0)
 {
-    Actor136100Work*     work;
-    Actor136100Work*     msgWork;
+    _Actor136100Work*    work;
+    _Actor136100Work*    msgWork;
     AnimationPlayRequest rec;
     s16*                 sel;
     s32                  i;
@@ -1223,19 +1233,19 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     s32                  weaponId;
     s32                  id;
 
-    work = (Actor136100Work*)arg0->work;
-    if (work->field_4B4 == NULL) {
+    work = arg0->work;
+    if (work->playerTask == NULL) {
     ret1:
         return 1;
     }
-    if (taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
+    if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
         return 0;
     }
-    if ((u16)work->field_4DE < 0x2FU) {
+    if ((u16)work->playerAnimation < 0x2FU) {
         goto ret1;
     }
 
-    i   = (u16)work->field_4DE - 0x2FU;
+    i   = (u16)work->playerAnimation - 0x2FU;
     sel = &D_actor_136100_8013F1EC[i];
     id  = *sel;
     if (id < 0) {
@@ -1243,50 +1253,50 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     }
     idx = (u16)*sel + 0x2FU;
 
-    msgWork                  = (Actor136100Work*)arg0->work;
+    msgWork                  = arg0->work;
     weaponId                 = gPlayerStatus.weapon;
     id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
-    msgWork->field_4DE       = idx;
+    msgWork->playerAnimation = idx;
     rec.animationId          = idx;
     rec.blend                = ANIMATION_BLEND_INTERPOLATE;
     rec.blendFrames          = 0xA;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
     goto ret1;
 }
 
 static s32 func_actor_136100_80131FBC(Task* arg0)
 {
-    Actor136100Work* work;
-    Actor136100Work* animWork;
-    u16              i;
-    u16              done;
-    u16              anim;
-    u16              id;
+    _Actor136100Work* work;
+    _Actor136100Work* animWork;
+    u16               i;
+    u16               done;
+    u16               anim;
+    u16               id;
 
-    work = (Actor136100Work*)arg0->work;
-    for (i = 1; i < 20; i++) {
+    work = arg0->work;
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationTickSlot(&work->rig.anim, i);
     }
-    for (done = i = 1; i < 20; i++) {
+    for (done = i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
             goto fail;
         }
     }
 check:
     if (done) {
-        anim = D_actor_136100_8013F1FC[(u16)work->field_4E0];
-        if (D_actor_136100_8013F1FC[(u16)work->field_4E0] >= 0) {
-            id                  = anim;
-            animWork            = (Actor136100Work*)arg0->work;
-            animWork->field_4E0 = id;
+        anim = D_actor_136100_8013F1FC[(u16)work->bodyAnimation];
+        if (D_actor_136100_8013F1FC[(u16)work->bodyAnimation] >= 0) {
+            id                      = anim;
+            animWork                = arg0->work;
+            animWork->bodyAnimation = id;
             goto loop;
         fail:
             done = 0;
             goto check;
         loop:
-            for (i = 1; i < 20; i++) {
+            for (i = 1; i < ARRAY_SIZE(animWork->rig.slots); i++) {
                 animationSeekSlotWithBlend(&animWork->rig.anim, i, id, 0, 0xA);
             }
         }
@@ -1295,8 +1305,8 @@ check:
     return 0;
 }
 
-/// Spawn tick of the cutscene actor's second phase: allocates the 0x4F0-byte
-/// `Actor136100Work` block, zeroes it and parks it in `Task::work`, then wires
+/// Tick of the head-and-hat model's task: on its first run it allocates a
+/// whole `_Actor136100Work` block, zeroes it and parks it in `Task::work`, then wires
 /// the model object up -- `Tmd_AllocBuffers`, `TmdObject::flags` cleared, the
 /// work block's light/colour matrices into `TmdObject::lightMtx` / `colorMtx`
 /// and the animation-context task reparented under `D_actor_136100_8014078C`.
@@ -1309,16 +1319,16 @@ check:
 /// three coordinate reads (see `func_actor_136100_80132284`).
 void func_actor_136100_801320E0(Task* task)
 {
-    Actor136100Work* work;
-    VECTOR           vec;
-    AreaPlacement*   place;
-    u8               id;
+    _Actor136100Work* work;
+    VECTOR            vec;
+    AreaPlacement*    place;
+    u8                id;
 
     if (task->state == 0) {
         TmdObject* tmd   = task->extra.tmd;
         GfxCoord*  coord = tmd->coords;
 
-        work       = memMalloc(sizeof(Actor136100Work), false);
+        work       = memMalloc(sizeof(_Actor136100Work), false);
         task->work = work;
         if (work == NULL) {
             taskKill(task);
@@ -1327,8 +1337,8 @@ void func_actor_136100_801320E0(Task* task)
             coord->parent          = task->spawnArg2.pointer;
             task->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
-            tmd->lightMtx  = &work->field_474;
-            tmd->colorMtx  = &work->field_494;
+            tmd->lightMtx  = &work->light;
+            tmd->colorMtx  = &work->color;
             task->msgTable = D_actor_136100_8013F2F4;
             taskReparent(D_actor_136100_8014078C, task);
         }
@@ -1357,8 +1367,8 @@ void func_actor_136100_801320E0(Task* task)
 
 void func_actor_136100_80132284(Task* arg0)
 {
-    Actor136100Work* work;
-    VECTOR           vec;
+    _Actor136100Work* work;
+    VECTOR            vec;
 
     if (arg0->state == 0) {
         TmdObject* tmd   = arg0->extra.tmd;
@@ -1373,8 +1383,8 @@ void func_actor_136100_80132284(Task* arg0)
             coord->parent          = arg0->spawnArg2.pointer;
             arg0->extra.tmd->flags = 0;
             Tmd_AllocBuffers(tmd);
-            tmd->lightMtx  = &work->field_474;
-            tmd->colorMtx  = &work->field_494;
+            tmd->lightMtx  = &work->light;
+            tmd->colorMtx  = &work->color;
             arg0->msgTable = D_actor_136100_8013F2F4;
             taskReparent(D_actor_136100_8014078C, arg0);
         }
@@ -1407,53 +1417,53 @@ void func_actor_136100_80132284(Task* arg0)
 /// Per-expansion work pointers preserve the original call scheduling.
 #define ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, anim, blendChoice, frames, record)                                            \
     {                                                                                                                                 \
-        Actor136100Work* msgWork;                                                                                                     \
-        s32              weaponId;                                                                                                    \
-        s32              id;                                                                                                          \
+        _Actor136100Work* msgWork;                                                                                                    \
+        s32               weaponId;                                                                                                   \
+        s32               id;                                                                                                         \
                                                                                                                                       \
-        msgWork                       = (Actor136100Work*)(task)->work;                                                               \
+        msgWork                       = (task)->work;                                                                                 \
         weaponId                      = gPlayerStatus.weapon;                                                                         \
         id                            = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
         (record).source.index         = id;                                                                                           \
-        msgWork->field_4DE            = anim;                                                                                         \
+        msgWork->playerAnimation      = anim;                                                                                         \
         (record).animationId          = anim;                                                                                         \
         (record).blend                = (blendChoice);                                                                                \
         (record).blendFrames          = (frames);                                                                                     \
         (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                            \
-        TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &(record), 0);                                      \
+        TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &(record), 0);                                     \
     }
 
-/// Step the cutscene actor's `field_4C4` request.  Request 1 runs a three-step
-/// sequence on `field_4C6` (send the 0x3E9 / 0x3F2 placement, wait for 0x3F0,
-/// then wait six ticks on `field_4C8`) before sending the weapon record; 2..6
+/// Step the cutscene actor's `playerRequest`.  Request 1 runs a three-step
+/// sequence on `playerRequestStep` (send the 0x3E9 / 0x3F2 placement, wait for 0x3F0,
+/// then wait six ticks on `playerRequestFrames`) before sending the weapon record; 2..6
 /// send it straight away with their own animation.  A finished request is
 /// cleared.
 static void func_actor_136100_801323F8(Task* arg0)
 {
-    Actor136100Work*     work = (Actor136100Work*)arg0->work;
+    _Actor136100Work*    work = arg0->work;
     AnimationPlayRequest rec;
 
     if (gGameSession->eventState != 0) {
         func_actor_136100_80131EC4(arg0);
     }
-    switch ((u16)work->field_4C4) {
+    switch ((u16)work->playerRequest) {
         case 0:
             break;
         case 1:
-            switch ((u16)work->field_4C6) {
+            switch ((u16)work->playerRequestStep) {
                 case 0:
-                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F304[0], 0);
-                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3F2, &D_actor_136100_8013F304[1], 0);
-                    work->field_4C8 = 0;
-                    work->field_4C6++;
+                    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, &D_actor_136100_8013F304[0], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3F2, &D_actor_136100_8013F304[1], 0);
+                    work->playerRequestFrames = 0;
+                    work->playerRequestStep++;
                     return;
                 case 1:
-                    if (taskMessageDispatch(work->field_4B4, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-                        work->field_4C6++;
+                    if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                        work->playerRequestStep++;
                     }
                     return;
                 case 2:
-                    if (++work->field_4C8 < 6) {
+                    if (++work->playerRequestFrames < 6) {
                         return;
                     }
                     ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x2F, 1, 5, rec);
@@ -1469,7 +1479,7 @@ static void func_actor_136100_801323F8(Task* arg0)
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x34, 1, 0xA, rec);
             break;
         case 4:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F37C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, &D_actor_136100_8013F37C, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x2F, 0, 0, rec);
             break;
         case 5:
@@ -1479,7 +1489,7 @@ static void func_actor_136100_801323F8(Task* arg0)
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
     }
-    work->field_4C4 = 0;
+    work->playerRequest = 0;
 }
 
 /// Installs the linked actor's animation table and requests a blended clip.
@@ -1489,35 +1499,35 @@ static void func_actor_136100_801323F8(Task* arg0)
 /// evaluated once. Dispatch consumes the request synchronously.
 /// A null linked task suppresses evaluation of the clip and record arguments.
 /// Per-expansion work pointers preserve the original call scheduling.
-#define ACTOR_136100_PLAY_LINKED_ANIMATION(task, anim, blendChoice, frames, record)                               \
-    {                                                                                                             \
-        Actor136100Work* animWork = (Actor136100Work*)(task)->work;                                               \
-                                                                                                                  \
-        if (animWork->field_4C0 != NULL) {                                                                        \
-            (record).source.sets          = D_actor_136100_8013F1D4;                                              \
-            animWork->field_4E2           = anim;                                                                 \
-            (record).animationId          = anim;                                                                 \
-            (record).blend                = (blendChoice);                                                        \
-            (record).blendFrames          = (frames);                                                             \
-            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                    \
-            TASK_MESSAGE_DISPATCH_POINTER(animWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
-        }                                                                                                         \
+#define ACTOR_136100_PLAY_LINKED_ANIMATION(task, anim, blendChoice, frames, record)                                   \
+    {                                                                                                                 \
+        _Actor136100Work* animWork = (task)->work;                                                                    \
+                                                                                                                      \
+        if (animWork->companionTask != NULL) {                                                                        \
+            (record).source.sets          = D_actor_136100_8013F1D4;                                                  \
+            animWork->companionAnimation  = anim;                                                                     \
+            (record).animationId          = anim;                                                                     \
+            (record).blend                = (blendChoice);                                                            \
+            (record).blendFrames          = (frames);                                                                 \
+            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                        \
+            TASK_MESSAGE_DISPATCH_POINTER(animWork->companionTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
+        }                                                                                                             \
     }
 
-/// Record `id` as the work block's current animation (`field_4E0`).
+/// Record `id` as the work block's current animation (`bodyAnimation`).
 #define _actor136100SetAnimId(work, id) \
     do {                                \
-        (work)->field_4E0 = (id);       \
+        (work)->bodyAnimation = (id);   \
     } while (0)
 
 /// Record `anim` as the current animation and start it on rig slots 1..19.
 static inline void func_actor_136100_SetAnim(Task* task, s16 anim)
 {
-    Actor136100Work* work = (Actor136100Work*)task->work;
-    s32              i;
+    _Actor136100Work* work = task->work;
+    s32               i;
 
     _actor136100SetAnimId(work, anim);
-    for (i = 1; (u16)i < 0x14U; i++) {
+    for (i = 1; (u16)i < ARRAY_SIZE(work->rig.slots); i++) {
         animationSeekSlotWithBlend(&work->rig.anim, i & 0xFFFF, anim, 0, 0xA);
     }
 }
@@ -1526,36 +1536,36 @@ static inline void func_actor_136100_SetAnim(Task* task, s16 anim)
 /// (`func_actor_136100_801347B8`'s loop, reaching the work block through `task`).
 static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
 {
-    Actor136100Work* work = (Actor136100Work*)task->work;
-    s32              i;
+    _Actor136100Work* work = task->work;
+    s32               i;
 
-    work->field_4E0 = count;
-    i               = 1;
+    work->bodyAnimation = count;
+    i                   = 1;
     do {
         work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&work->rig.anim, (u16)i, count);
         i++;
-    } while ((u16)i < 0x14U);
+    } while ((u16)i < ARRAY_SIZE(work->rig.slots));
 }
 
 static void func_actor_136100_80132748(Task* arg0)
 {
-    Actor136100Work*     work = (Actor136100Work*)arg0->work;
+    _Actor136100Work*    work = arg0->work;
     AnimationPlayRequest rec;
 
     func_actor_136100_80131FBC(arg0);
-    switch ((u16)work->field_4CC) {
+    switch ((u16)work->bodyRequest) {
         case 0:
             break;
         case 1:
-            switch ((u16)work->field_4CE) {
+            switch ((u16)work->bodyRequestStep) {
                 case 0:
-                    work->field_4D0 = 0;
+                    work->bodyRequestFrames = 0;
                     func_actor_136100_SetAnim(arg0, 2);
-                    work->field_4CE++;
+                    work->bodyRequestStep++;
                     return;
                 case 1:
-                    if (++work->field_4D0 < 0x3D) {
+                    if (++work->bodyRequestFrames < 0x3D) {
                         return;
                     }
                     ACTOR_136100_PLAY_LINKED_ANIMATION(arg0, 3, 1, 0xA, rec);
@@ -1565,35 +1575,35 @@ static void func_actor_136100_80132748(Task* arg0)
             }
             break;
         case 2:
-            switch ((u16)work->field_4CE) {
+            switch ((u16)work->bodyRequestStep) {
                 case 0:
-                    work->field_4D0 = 0;
+                    work->bodyRequestFrames = 0;
                     func_actor_136100_SetAnim(arg0, 5);
-                    work->field_4CE++;
+                    work->bodyRequestStep++;
                     return;
                 case 1:
-                    if (++work->field_4D0 == 0x11) {
+                    if (++work->bodyRequestFrames == 0x11) {
                         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, 0x0E), 0, 0);
                     }
-                    if (work->field_4D0 < 0x15) {
+                    if (work->bodyRequestFrames < 0x15) {
                         return;
                     }
                     {
-                        Actor136100Work* msgWork;
-                        s32              weaponId;
-                        s32              id;
+                        _Actor136100Work* msgWork;
+                        s32               weaponId;
+                        s32               id;
 
                         msgWork                  = arg0->work;
                         weaponId                 = gPlayerStatus.weapon;
                         id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         rec.source.index         = id;
-                        msgWork->field_4DE       = 0x30;
+                        msgWork->playerAnimation = 0x30;
                         rec.animationId          = 0x30;
                         rec.blend                = ANIMATION_BLEND_INTERPOLATE;
                         rec.blendFrames          = 0xA;
                         rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
 
-                        TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
                     }
                     ACTOR_136100_PLAY_LINKED_ANIMATION(arg0, 4, 1, 0xA, rec);
                     break;
@@ -1608,14 +1618,14 @@ static void func_actor_136100_80132748(Task* arg0)
             func_actor_136100_SetAnim(arg0, 9);
             break;
         case 5:
-            switch ((u16)work->field_4CE) {
+            switch ((u16)work->bodyRequestStep) {
                 case 0:
-                    work->field_4D0 = 0;
+                    work->bodyRequestFrames = 0;
                     func_actor_136100_SetAnim(arg0, 0xA);
-                    work->field_4CE++;
+                    work->bodyRequestStep++;
                     return;
                 case 1:
-                    if (++work->field_4D0 < 0x50) {
+                    if (++work->bodyRequestFrames < 0x50) {
                         return;
                     }
                     func_actor_136100_SetAnim(arg0, 0xB);
@@ -1625,128 +1635,129 @@ static void func_actor_136100_80132748(Task* arg0)
             }
             break;
         case 6: {
-            Actor136100Work* animWork = (Actor136100Work*)arg0->work;
-            s32              i;
+            _Actor136100Work* animWork = arg0->work;
+            s32               i;
 
-            animWork->field_4E0 = 1;
-            for (i = 1; (u16)i < 0x14U; i++) {
+            animWork->bodyAnimation = 1;
+            for (i = 1; (u16)i < ARRAY_SIZE(animWork->rig.slots); i++) {
                 animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
                 animationResetSlot(&animWork->rig.anim, (u16)i, 1);
             }
         } break;
     }
-    work->field_4CC = 0;
+    work->bodyRequest = 0;
 }
 
-/// Play `anim` on the `field_4C0` task (message 0x3F4) and record it as the
-/// current `field_4E2` chain entry; does nothing while that task is unset.
+/// Play `anim` on `companionTask` (message 0x3F4) and record it as the
+/// current `companionAnimation` chain entry; does nothing while that task is unset.
 static inline void func_actor_136100_PlayAnim(Task* task, u16 anim, s32 blend, s32 speed)
 {
-    Actor136100Work*     work = (Actor136100Work*)task->work;
+    _Actor136100Work*    work = task->work;
     AnimationPlayRequest msg;
 
-    if (work->field_4C0 != NULL) {
+    if (work->companionTask != NULL) {
         msg.source.sets          = D_actor_136100_8013F1D4;
-        work->field_4E2          = anim;
+        work->companionAnimation = anim;
         msg.animationId          = anim;
         msg.blend                = blend;
         msg.blendFrames          = speed;
         msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 
 /// Advance the animation chain like `func_actor_136100_80133558`, then run the
-/// `field_4D4` request: 1 and 3 play a fixed animation, 2 steps the
-/// `field_4D6` sequence -- three sound-and-animation shots every 15 ticks
-/// (`field_4DA` countdown, `field_4D8` shot count) before a final animation.
-/// Every request that finishes clears `field_4D4`.
+/// `companionRequest`: 1 and 3 play a fixed animation, 2 steps the
+/// `companionRequestStep` sequence -- a sound and an animation three times, 15
+/// ticks apart (`companionRepeatDelay` countdown, `companionRepeatCount` plays
+/// so far) before a final animation. Every request that finishes clears
+/// `companionRequest`.
 static void func_actor_136100_80132BC0(Task* arg0)
 {
-    Actor136100Work* work;
-    s16              anim;
+    _Actor136100Work* work;
+    s16               anim;
 
-    work = (Actor136100Work*)arg0->work;
-    if (work->field_4C0 != NULL && taskMessageDispatch(work->field_4C0, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-        anim = D_actor_136100_8013F218[work->field_4E2];
+    work = arg0->work;
+    if (work->companionTask != NULL && taskMessageDispatch(work->companionTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
+        anim = D_actor_136100_8013F218[work->companionAnimation];
         if (anim >= 0) {
             func_actor_136100_PlayAnim(arg0, anim, 1, 0xA);
         }
     }
-    switch ((u16)work->field_4D4) {
+    switch ((u16)work->companionRequest) {
         case 0:
             break;
         case 1:
             func_actor_136100_PlayAnim(arg0, 1, 0, 0);
             break;
         case 2:
-            switch ((u16)work->field_4D6) {
+            switch ((u16)work->companionRequestStep) {
                 case 0:
-                    work->field_4D8 = 0;
-                    work->field_4DA = 0;
-                    work->field_4D6++;
+                    work->companionRepeatCount = 0;
+                    work->companionRepeatDelay = 0;
+                    work->companionRequestStep++;
                     return;
                 case 1:
-                    if (--work->field_4DA > 0) {
+                    if (--work->companionRepeatDelay > 0) {
                         return;
                     }
-                    if (work->field_4D8 >= 3) {
+                    if (work->companionRepeatCount >= 3) {
                         func_actor_136100_PlayAnim(arg0, 1, 1, 0xA);
                         break;
                     }
                     SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 9), 0, 0);
                     func_actor_136100_PlayAnim(arg0, 2, 1, 0xA);
-                    work->field_4DA = 0xF;
-                    work->field_4D8++;
+                    work->companionRepeatDelay = 0xF;
+                    work->companionRepeatCount++;
                     return;
                 default:
                     return;
             }
             break;
         case 3:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F3F4, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F3F4, 0);
             func_actor_136100_PlayAnim(arg0, 0, 0, 0);
             break;
     }
-    work->field_4D4 = 0;
+    work->companionRequest = 0;
 }
 
-/// Step the cutscene actor's second-phase `field_4C4` request, the sibling of
-/// `func_actor_136100_801323F8`: request 2 runs the three-step `field_4C6`
+/// Step the cutscene actor's `playerRequest` in the scene before the Burner, the sibling of
+/// `func_actor_136100_801323F8`: request 2 runs the three-step `playerRequestStep`
 /// sequence (0x3F3 / 0x3E9 / 0x3F2 placement, wait for 0x3F0, six ticks on
-/// `field_4C8`), the others send the weapon record straight away.  A finished
+/// `playerRequestFrames`), the others send the weapon record straight away.  A finished
 /// request is cleared.
 static void func_actor_136100_80132E78(Task* arg0)
 {
-    Actor136100Work*     work = (Actor136100Work*)arg0->work;
+    _Actor136100Work*    work = arg0->work;
     AnimationPlayRequest rec;
 
     if (gGameSession->eventState != 0) {
         func_actor_136100_80131EC4(arg0);
     }
-    switch ((u16)work->field_4C4) {
+    switch ((u16)work->playerRequest) {
         case 0:
             break;
         case 1:
-            taskMessageDispatch(work->field_4B4, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
         case 2:
-            switch ((u16)work->field_4C6) {
+            switch ((u16)work->playerRequestStep) {
                 case 0:
-                    taskMessageDispatch(work->field_4B4, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F334[0], 0);
-                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3F2, &D_actor_136100_8013F334[1], 0);
-                    work->field_4C8 = 0;
-                    work->field_4C6++;
+                    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, &D_actor_136100_8013F334[0], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3F2, &D_actor_136100_8013F334[1], 0);
+                    work->playerRequestFrames = 0;
+                    work->playerRequestStep++;
                     return;
                 case 1:
-                    if (taskMessageDispatch(work->field_4B4, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-                        work->field_4C6++;
+                    if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                        work->playerRequestStep++;
                     }
                     return;
                 case 2:
-                    if (++work->field_4C8 < 6) {
+                    if (++work->playerRequestFrames < 6) {
                         return;
                     }
                     ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x2F, 1, 5, rec);
@@ -1762,7 +1773,7 @@ static void func_actor_136100_80132E78(Task* arg0)
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x35, 1, 0xA, rec);
             break;
         case 5:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F364, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, &D_actor_136100_8013F364, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
         case 6:
@@ -1772,17 +1783,17 @@ static void func_actor_136100_80132E78(Task* arg0)
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, rec);
             break;
     }
-    work->field_4C4 = 0;
+    work->playerRequest = 0;
 }
 
 static void func_actor_136100_80133238(Task* arg0)
 {
-    Actor136100Work* work;
-    GfxCoord*        coords;
+    _Actor136100Work* work;
+    GfxCoord*         coords;
 
-    work = (Actor136100Work*)arg0->work;
+    work = arg0->work;
     func_actor_136100_80131FBC(arg0);
-    switch ((u16)work->field_4CC) {
+    switch ((u16)work->bodyRequest) {
         case 0:
             break;
         case 1:
@@ -1799,93 +1810,95 @@ static void func_actor_136100_80133238(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3AC, 0);
             break;
         case 5:
-            switch ((u16)work->field_4CE) {
+            switch ((u16)work->bodyRequestStep) {
                 case 0:
                     func_actor_136100_SetAnim(arg0, 6);
-                    work->field_4D0 = 0;
-                    work->field_4CE++;
+                    work->bodyRequestFrames = 0;
+                    work->bodyRequestStep++;
                     return;
                 case 1:
-                    if (++work->field_4D0 == 0xF) {
+                    if (++work->bodyRequestFrames == 0xF) {
                         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, 0x0F), 0, 0);
-                        work->field_4CC = 0;
+                        work->bodyRequest = 0;
                     }
                     return;
             }
             return;
         case 6:
-            switch ((u16)work->field_4C6) {
+            // The head turn counts its steps on the player request's step, which
+            // the player request the script posts just before it leaves at 0.
+            switch ((u16)work->playerRequestStep) {
                 case 0:
                     TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3DC, 0);
-                    work->field_4EA = 0x1000;
-                    work->field_4C6++;
+                    work->headYaw = 0x1000;
+                    work->playerRequestStep++;
                     return;
                 case 1:
-                    gfxRotMatrixY(&arg0->extra.tmd->coords[4].coord, work->field_4EA, 1);
-                    if (work->field_4EA >= 0xD56) {
-                        work->field_4EA -= 0x40;
+                    gfxRotMatrixY(&arg0->extra.tmd->coords[4].coord, work->headYaw, 1);
+                    if (work->headYaw >= 0xD56) {
+                        work->headYaw -= 0x40;
                     }
                     return;
             }
             return;
         case 7:
             coords = arg0->extra.tmd->coords;
-            if ((work->field_4EA += 0x40) > 0x1000) {
-                work->field_4EA = 0;
-                work->field_4CC = 0;
+            if ((work->headYaw += 0x40) > 0x1000) {
+                work->headYaw     = 0;
+                work->bodyRequest = 0;
             }
-            gfxRotMatrixY(&coords[4].coord, work->field_4EA, 1);
+            gfxRotMatrixY(&coords[4].coord, work->headYaw, 1);
             return;
         case 8:
             func_actor_136100_ResetSlots(arg0, 3);
             break;
     }
-    work->field_4CC = 0;
+    work->bodyRequest = 0;
 }
 
 /// Advance the cutscene actor's animation chain and send its pending placement.
 ///
-/// Once the `field_4C0` task reports its current animation done (message
-/// 0x3ED), steps `field_4E2` to the next entry of the `D_actor_136100_8013F218`
+/// Once `companionTask` reports its current animation done (message
+/// 0x3ED), steps `companionAnimation` to the next entry of the `D_actor_136100_8013F218`
 /// chain (negative ends it) and plays it with 0x3F4.  Then sends the 0x3E9
-/// placement selected by `field_4D4` (1..3) and clears the request.
+/// placement selected by `companionRequest` (1..3) and clears the request.
 static void func_actor_136100_80133558(Task* arg0)
 {
-    Actor136100Work*     work;
-    Actor136100Work*     msgWork;
+    _Actor136100Work*    work;
+    _Actor136100Work*    msgWork;
     AnimationPlayRequest msg;
     u16                  anim;
 
-    work = (Actor136100Work*)arg0->work;
-    if (work->field_4C0 != NULL && taskMessageDispatch(work->field_4C0, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-        anim = D_actor_136100_8013F218[work->field_4E2];
-        if (D_actor_136100_8013F218[work->field_4E2] >= 0) {
-            msgWork = (Actor136100Work*)arg0->work;
-            if (msgWork->field_4C0 != NULL) {
-                msg.source.sets          = D_actor_136100_8013F1D4;
-                msgWork->field_4E2       = anim;
-                msg.animationId          = anim;
-                msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-                msg.blendFrames          = 0xA;
-                msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+    work = arg0->work;
+    if (work->companionTask != NULL && taskMessageDispatch(work->companionTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
+        anim = D_actor_136100_8013F218[work->companionAnimation];
+        if (D_actor_136100_8013F218[work->companionAnimation] >= 0) {
+            msgWork = arg0->work;
+            if (msgWork->companionTask != NULL) {
+                msg.source.sets             = D_actor_136100_8013F1D4;
+                msgWork->companionAnimation = anim;
+                msg.animationId             = anim;
+                msg.blend                   = ANIMATION_BLEND_INTERPOLATE;
+                msg.blendFrames             = 0xA;
+                msg.enableWorldCollision    = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(msgWork->companionTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             }
         }
     }
-    switch ((u16)work->field_4D4) {
+    switch ((u16)work->companionRequest) {
         case 0:
             break;
         case 1:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F424, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F424, 0);
             break;
         case 2:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F43C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F43C, 0);
             break;
         case 3:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F40C, 0);
             break;
     }
-    work->field_4D4 = 0;
+    work->companionRequest = 0;
 }
 
 /// Reset the cutscene actor's animation state and re-send the weapon record.
@@ -1894,52 +1907,52 @@ static void func_actor_136100_80133558(Task* arg0)
 /// slots through `animationResetSlot` with the work block's slot count at 1, then
 /// sends slot 3 the 0x3E9 placement and the 0x3E8 weapon record
 /// (`AnimationPlayRequest`) built from the equip-slot addend (`gPlayerStatus.weapon`), the pair
-/// `func_actor_136100_8013467C` sends on its own.  `field_4DE` is armed on the
+/// `func_actor_136100_8013467C` sends on its own.  `playerAnimation` is armed on the
 /// way past.
 ///
 /// Three separate `task->work` loads are what the original reaches the block
-/// with -- the stores to `field_4C4` / `field_4CC` invalidate the first in cse,
+/// with -- the stores to `playerRequest` / `bodyRequest` invalidate the first in cse,
 /// and the first is still live for the 0x3E9 send after the loop.  The dead
 /// `SVECTOR` is not read; it reserves the 8-byte local the frame has between
 /// the outgoing-arg area and `rec` (see `func_actor_136100_801347B8`).
 void func_actor_136100_80133690(void)
 {
     Task*                task;
-    Actor136100Work*     work;
-    Actor136100Work*     animWork;
-    Actor136100Work*     msgWork;
+    _Actor136100Work*    work;
+    _Actor136100Work*    animWork;
+    _Actor136100Work*    msgWork;
     SVECTOR              unused;
     AnimationPlayRequest rec;
     s32                  i;
     s32                  weaponId;
     s32                  id;
 
-    task            = D_actor_136100_8014078C;
-    work            = (Actor136100Work*)task->work;
-    work->field_4C4 = 0;
-    work->field_4CC = 0;
+    task                = D_actor_136100_8014078C;
+    work                = task->work;
+    work->playerRequest = 0;
+    work->bodyRequest   = 0;
 
-    animWork            = (Actor136100Work*)task->work;
-    animWork->field_4E0 = 1;
-    i                   = 1;
+    animWork                = task->work;
+    animWork->bodyAnimation = 1;
+    i                       = 1;
     do {
         animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&animWork->rig.anim, (u16)i, 1);
         i++;
-    } while ((u16)i < 0x14U);
+    } while ((u16)i < ARRAY_SIZE(animWork->rig.slots));
 
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F304[1], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, &D_actor_136100_8013F304[1], 0);
 
-    msgWork                  = (Actor136100Work*)task->work;
+    msgWork                  = task->work;
     weaponId                 = gPlayerStatus.weapon;
     id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
-    msgWork->field_4DE       = 1;
+    msgWork->playerAnimation = 1;
     rec.animationId          = 1;
     rec.blend                = ANIMATION_BLEND_RESET;
     rec.blendFrames          = 0;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
 }
 
 /// Second half of the cutscene actor's re-arm: clears the first two
@@ -1949,53 +1962,53 @@ void func_actor_136100_80133690(void)
 /// equip-slot addend (`gPlayerStatus.weapon`).  `arg0 == 1` additionally resets the
 /// fourth bone's rotation to zero.
 ///
-/// Two `task->work` loads reach the block: the stores to `field_4C4` /
-/// `field_4CC` invalidate the first in cse, and it is still live for the 0x3E9
-/// and 0x3E9/`field_4C0` sends after the loop.  The dead `SVECTOR` is not read;
+/// Two `task->work` loads reach the block: the stores to `playerRequest` /
+/// `bodyRequest` invalidate the first in cse, and it is still live for the 0x3E9
+/// and 0x3E9/`companionTask` sends after the loop.  The dead `SVECTOR` is not read;
 /// it reserves the 8-byte local the frame has between the outgoing-arg area and
 /// `rec` (see `func_actor_136100_80133690`).
 void func_actor_136100_8013379C(s32 arg0)
 {
     Task*                task;
-    Actor136100Work*     work;
-    Actor136100Work*     animWork;
-    Actor136100Work*     msgWork;
+    _Actor136100Work*    work;
+    _Actor136100Work*    animWork;
+    _Actor136100Work*    msgWork;
     SVECTOR              unused;
     AnimationPlayRequest rec;
     s32                  i;
     s32                  weaponId;
     s32                  id;
 
-    task            = D_actor_136100_8014078C;
-    work            = (Actor136100Work*)task->work;
-    work->field_4C4 = 0;
-    work->field_4CC = 0;
+    task                = D_actor_136100_8014078C;
+    work                = task->work;
+    work->playerRequest = 0;
+    work->bodyRequest   = 0;
 
     TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &D_actor_136100_8013F3AC, 0);
 
-    animWork            = (Actor136100Work*)task->work;
-    animWork->field_4E0 = 3;
-    i                   = 1;
+    animWork                = task->work;
+    animWork->bodyAnimation = 3;
+    i                       = 1;
     do {
         animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&animWork->rig.anim, (u16)i, 3);
         i++;
-    } while ((u16)i < 0x14U);
+    } while ((u16)i < ARRAY_SIZE(animWork->rig.slots));
 
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, D_actor_136100_8013F334, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, D_actor_136100_8013F334, 0);
 
-    msgWork                  = (Actor136100Work*)task->work;
+    msgWork                  = task->work;
     weaponId                 = gPlayerStatus.weapon;
     id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
-    msgWork->field_4DE       = 1;
+    msgWork->playerAnimation = 1;
     rec.animationId          = 1;
     rec.blend                = ANIMATION_BLEND_RESET;
     rec.blendFrames          = 0;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
 
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F40C, 0);
 
     if (arg0 == 1) {
         gfxRotMatrixY(&task->extra.tmd->coords[4].coord, 0, 1);
@@ -2005,16 +2018,16 @@ void func_actor_136100_8013379C(s32 arg0)
 /// Cue handler: when the pending `Gp_TakePendingObj4C` event is a positive
 /// id 5 (and `gPlayerStatus.interactionPressed` is set), kind 0x12 in phase 0 or kind 0x13 in phase 1
 /// notifies via `func_actor_136100_80134A18` and plays the phase's first cue on
-/// the first hit (`func_800E8634`, advancing `field_4DC`) or its repeat cue after.
+/// the first hit (`func_800E8634`, advancing `followUpSeen`) or its repeat cue after.
 /// `ready` must be `s16`: as `s32` the `!= 0` store fuses into the callee-saved
 /// home and the join copy into `$v0` disappears.
 static s32 func_actor_136100_80133904(Task* task)
 {
-    Actor136100Work* work = (Actor136100Work*)task->work;
-    u16              evtId;
-    u8               evtKind;
-    u8               evtSub;
-    s16              ready;
+    _Actor136100Work* work = task->work;
+    u16               evtId;
+    u8                evtKind;
+    u8                evtSub;
+    s16               ready;
 
     ready = 0;
     if (Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
@@ -2030,21 +2043,21 @@ static s32 func_actor_136100_80133904(Task* task)
     if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
         return 0;
     }
-    if ((s8)evtKind == 0x12 && work->field_4E4 == 0) {
+    if ((s8)evtKind == 0x12 && work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
         func_actor_136100_80134A18(task);
-        if (work->field_4DC == 0) {
+        if (work->followUpSeen == 0) {
             func_800E8634(D_actor_136100_8013F94C, 0, D_actor_136100_8013FAE4);
-            work->field_4DC++;
+            work->followUpSeen++;
         } else {
             func_800E8614(D_actor_136100_8013FC64, 0);
         }
         return 1;
     }
-    if ((s8)evtKind == 0x13 && work->field_4E4 == 1) {
+    if ((s8)evtKind == 0x13 && work->scene == ACTOR_136100_SCENE_BEFORE_BURNER) {
         func_actor_136100_80134A18(task);
-        if (work->field_4DC == 0) {
+        if (work->followUpSeen == 0) {
             func_800E8634(D_actor_136100_801402C4, 0, D_actor_136100_801404EC);
-            work->field_4DC++;
+            work->followUpSeen++;
         } else {
             func_800E8614(D_actor_136100_8014063C, 0);
         }
@@ -2061,16 +2074,16 @@ static void func_actor_136100_80133A88(Task* task)
 {
     enum { TEXTURE_RESOURCE_ENTRY_ID = 0x6A };
 
-    Actor136100Work* work;
-    Actor136100Work* allocatedWork;
-    TmdObject*       tmd;
-    GfxCoord*        coord;
-    AreaPlacement*   place;
-    u8               entryId;
+    _Actor136100Work* work;
+    _Actor136100Work* allocatedWork;
+    TmdObject*        tmd;
+    GfxCoord*         coord;
+    AreaPlacement*    place;
+    u8                entryId;
 
     tmd           = task->extra.tmd;
     coord         = tmd->coords;
-    allocatedWork = memMalloc(sizeof(Actor136100Work), false);
+    allocatedWork = memMalloc(sizeof(_Actor136100Work), false);
     task->work    = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(task);
@@ -2078,12 +2091,12 @@ static void func_actor_136100_80133A88(Task* task)
     }
     work = allocatedWork;
     memFillBytes(work, 0, sizeof(*work));
-    work->field_4B4         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_136100_8014078C = task;
     coord->parent           = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
-    tmd->lightMtx = &work->field_474;
-    tmd->colorMtx = &work->field_494;
+    tmd->lightMtx = &work->light;
+    tmd->colorMtx = &work->color;
     tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
     place         = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
     entryId       = place->entryId;
@@ -2125,19 +2138,19 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
 /// evaluated once. Dispatch consumes the request synchronously.
 /// A null linked task suppresses evaluation of the clip and record arguments.
 /// Per-expansion work pointers preserve the original call scheduling.
-#define ACTOR_136100_RESET_LINKED_ANIMATION(task, anim, record)                                                   \
-    {                                                                                                             \
-        Actor136100Work* animWork = (Actor136100Work*)(task)->work;                                               \
-                                                                                                                  \
-        if (animWork->field_4C0 != NULL) {                                                                        \
-            (record).source.sets          = D_actor_136100_8013F1D4;                                              \
-            animWork->field_4E2           = anim;                                                                 \
-            (record).animationId          = anim;                                                                 \
-            (record).blend                = ANIMATION_BLEND_RESET;                                                \
-            (record).blendFrames          = 0;                                                                    \
-            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                    \
-            TASK_MESSAGE_DISPATCH_POINTER(animWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
-        }                                                                                                         \
+#define ACTOR_136100_RESET_LINKED_ANIMATION(task, anim, record)                                                       \
+    {                                                                                                                 \
+        _Actor136100Work* animWork = (task)->work;                                                                    \
+                                                                                                                      \
+        if (animWork->companionTask != NULL) {                                                                        \
+            (record).source.sets          = D_actor_136100_8013F1D4;                                                  \
+            animWork->companionAnimation  = anim;                                                                     \
+            (record).animationId          = anim;                                                                     \
+            (record).blend                = ANIMATION_BLEND_RESET;                                                    \
+            (record).blendFrames          = 0;                                                                        \
+            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                        \
+            TASK_MESSAGE_DISPATCH_POINTER(animWork->companionTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
+        }                                                                                                             \
     }
 
 /// Copies seven set addresses into the player's writable animation-bank extension.
@@ -2145,18 +2158,18 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
 /// `record` must be a side-effect-free `AnimationBankCopyRequest` lvalue. The table is
 /// null-terminated; the receiver copies only the preceding entries.
 /// Per-expansion work pointers preserve the original call scheduling.
-#define ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, record)                                                   \
-    {                                                                                                           \
-        Actor136100Work* msgWork = (Actor136100Work*)(task)->work;                                              \
-        s32              n;                                                                                     \
-                                                                                                                \
-        n = 0;                                                                                                  \
-        while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {                                                      \
-            n += 1;                                                                                             \
-        }                                                                                                       \
-        (record).source.sets = &D_actor_136100_8013F180[0];                                                     \
-        (record).wordCount   = n & 0xFFFF;                                                                      \
-        TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &(record), 0); \
+#define ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, record)                                                    \
+    {                                                                                                            \
+        _Actor136100Work* msgWork = (task)->work;                                                                \
+        s32               n;                                                                                     \
+                                                                                                                 \
+        n = 0;                                                                                                   \
+        while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {                                                       \
+            n += 1;                                                                                              \
+        }                                                                                                        \
+        (record).source.sets = &D_actor_136100_8013F180[0];                                                      \
+        (record).wordCount   = n & 0xFFFF;                                                                       \
+        TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &(record), 0); \
     }
 
 /// Refresh the shadow coordinate and hand its translation to `func_800D7A9C`.
@@ -2174,7 +2187,7 @@ static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
 }
 
 /// Main tick of the cutscene actor.  State 0 allocates the work block, picks
-/// the phase (`field_4E4`, from game flag 0x73) and spawns the two helper tasks;
+/// the scene (`scene`, from `GAME_FLAG_BURNER_DEFEATED`) and spawns the head and rifle tasks;
 /// state 1 sends the phase's opening cues; state 2 waits for the matching start
 /// cue, sends the weapon record and table and sets game flag 0x7C; states 3..5
 /// wait on `gGameSession->eventState` and `func_actor_136100_80133904`.  Every
@@ -2184,8 +2197,8 @@ static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
 /// temporary storage; each is consumed before the next view is written.
 void func_actor_136100_80133BC8(Task* arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)arg0->work;
-    SVECTOR          unused;
+    _Actor136100Work* work = arg0->work;
+    SVECTOR           unused;
     union {
         AnimationPlayRequest     animation;
         AnimationBankCopyRequest copy;
@@ -2207,33 +2220,33 @@ void func_actor_136100_80133BC8(Task* arg0)
                 return;
             }
             func_actor_136100_80133A88(arg0);
-            work            = (Actor136100Work*)arg0->work;
-            work->field_4E4 = GameFlag_GetNibble(GAME_FLAG_BURNER_DEFEATED) == 0;
-            work->field_4B8 = Task_SpawnFromTable(D_actor_136100_80140744, 2, 0,
-                                                  arg0->extra.tmd->coords + 4);
-            if (work->field_4E4 == 0) {
+            work           = arg0->work;
+            work->scene    = GameFlag_GetNibble(GAME_FLAG_BURNER_DEFEATED) == 0;
+            work->headTask = Task_SpawnFromTable(D_actor_136100_80140744, 2, 0,
+                                                 arg0->extra.tmd->coords + 4);
+            if (work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
                 func_actor_136100_ResetSlots(arg0, 1);
-                work->field_4BC = Task_SpawnFromTable(D_actor_136100_80140744, 3, 0, &gGfxViewCoord);
+                work->rifleTask = Task_SpawnFromTable(D_actor_136100_80140744, 3, 0, &gGfxViewCoord);
             } else {
                 func_actor_136100_ResetSlots(arg0, 3);
-                work->field_4BC = Task_SpawnFromTable(D_actor_136100_80140744, 3, 1,
+                work->rifleTask = Task_SpawnFromTable(D_actor_136100_80140744, 3, 1,
                                                       arg0->extra.tmd->coords + 8);
                 Mem_CopyUnaligned(&D_actor_136100_8013F224, gDryfieldNightMainStreetCollision06F80Normals, 0x20);
                 Mem_CopyUnaligned(&D_actor_136100_8013F2C4, gDryfieldNightMainStreetCollision06F80Faces, sizeof(D_actor_136100_8013F2C4));
                 Mem_CopyUnaligned(&D_actor_136100_8013F244, gDryfieldNightMainStreetCollision06F80Verts, 0x80);
             }
-            work->field_4C0 = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+            work->companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
             arg0->state++;
             break;
         case 1:
-            if (work->field_4E4 == 0) {
+            if (work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
                 func_800E3FAC(0xA2, 0x19);
                 taskMessageDispatch(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                taskMessageDispatch(work->field_4B8, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                taskMessageDispatch(work->field_4BC, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                TASK_MESSAGE_DISPATCH_POINTER(work->field_4BC, 0x7D4, &D_actor_136100_8013F454, 0);
-                if (work->field_4C0 != NULL) {
-                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F3F4, 0);
+                taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, 0x7D4, &D_actor_136100_8013F454, 0);
+                if (work->companionTask != NULL) {
+                    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F3F4, 0);
                 }
                 TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F394, 0);
                 func_actor_136100_ResetSlots(arg0, 1);
@@ -2241,10 +2254,10 @@ void func_actor_136100_80133BC8(Task* arg0)
             } else {
                 func_800E3FAC(0xA2, 0x1A);
                 taskMessageDispatch(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                taskMessageDispatch(work->field_4B8, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                taskMessageDispatch(work->field_4BC, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                if (work->field_4C0 != NULL) {
-                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
+                taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                if (work->companionTask != NULL) {
+                    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F40C, 0);
                 }
                 TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3AC, 0);
                 func_actor_136100_ResetSlots(arg0, 3);
@@ -2254,7 +2267,7 @@ void func_actor_136100_80133BC8(Task* arg0)
             break;
         case 2:
             cue = func_actor_136100_TakeStartCue(&evtId, &evtKind, &evtSub);
-            if (cue == 1 && work->field_4E4 == 0) {
+            if (cue == 1 && work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
                 if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
                     return;
                 }
@@ -2269,7 +2282,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 arg0->state++;
                 break;
             }
-            if (func_actor_136100_TakeStartCue(&evtId2, &evtKind2, &evtSub2) == 2 && work->field_4E4 == 1) {
+            if (func_actor_136100_TakeStartCue(&evtId2, &evtKind2, &evtSub2) == 2 && work->scene == ACTOR_136100_SCENE_BEFORE_BURNER) {
                 if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
                     return;
                 }
@@ -2300,7 +2313,7 @@ void func_actor_136100_80133BC8(Task* arg0)
             }
             break;
     }
-    if (work->field_4E4 == 0) {
+    if (work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
         func_actor_136100_801323F8(arg0);
         func_actor_136100_80132748(arg0);
         func_actor_136100_80132BC0(arg0);
@@ -2395,41 +2408,41 @@ void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2, s32 arg3)
 
 void func_actor_136100_801347B8(void)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
-    SVECTOR          unused;
-    s32              i;
+    _Actor136100Work* work = D_actor_136100_8014078C->work;
+    SVECTOR           unused;
+    s32               i;
 
-    work->field_4E0 = 1;
-    i               = 1;
+    work->bodyAnimation = 1;
+    i                   = 1;
     do {
         work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&work->rig.anim, (u16)i, 1);
         i++;
-    } while ((u16)i < 0x14U);
+    } while ((u16)i < ARRAY_SIZE(work->rig.slots));
 }
 
 void func_actor_136100_80134838(s16 arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+    _Actor136100Work* work = D_actor_136100_8014078C->work;
 
-    work->field_4C4 = arg0;
-    work->field_4C6 = 0;
+    work->playerRequest     = arg0;
+    work->playerRequestStep = 0;
 }
 
 void func_actor_136100_80134858(s16 arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+    _Actor136100Work* work = D_actor_136100_8014078C->work;
 
-    work->field_4CC = arg0;
-    work->field_4CE = 0;
+    work->bodyRequest     = arg0;
+    work->bodyRequestStep = 0;
 }
 
 void func_actor_136100_80134878(s16 arg0)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+    _Actor136100Work* work = D_actor_136100_8014078C->work;
 
-    work->field_4D4 = arg0;
-    work->field_4D6 = 0;
+    work->companionRequest     = arg0;
+    work->companionRequestStep = 0;
 }
 
 /// Starts the fade-in (entry 4 of the actor's task table).
@@ -2451,21 +2464,21 @@ void func_actor_136100_801348F8(void)
 
 void func_actor_136100_80134924(void)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+    _Actor136100Work* work = D_actor_136100_8014078C->work;
 
-    if (work->field_4EC == 0) {
-        work->field_4EC = 1;
+    if (work->playerEquipmentRemoved == 0) {
+        work->playerEquipmentRemoved = 1;
         Gp_KillPlayerEffs();
     }
 }
 
 void func_actor_136100_80134964(void)
 {
-    Actor136100Work* work = (Actor136100Work*)D_actor_136100_8014078C->work;
+    _Actor136100Work* work = D_actor_136100_8014078C->work;
 
-    if (work->field_4EC != 0) {
+    if (work->playerEquipmentRemoved != 0) {
         Gp_SpawnWeaponEff();
-        work->field_4EC = 0;
+        work->playerEquipmentRemoved = 0;
         Gp_MsgPlayerWeapon(0);
     }
 }
@@ -2487,7 +2500,7 @@ void func_actor_136100_801349B4(s32 arg0)
 /// the table and that count to message 0x3F7.
 static void func_actor_136100_80134A18(Task* arg0)
 {
-    Actor136100Work*         work = (Actor136100Work*)arg0->work;
+    _Actor136100Work*        work = arg0->work;
     AnimationBankCopyRequest msg;
     s32                      n;
 
@@ -2497,5 +2510,5 @@ static void func_actor_136100_80134A18(Task* arg0)
     }
     msg.source.sets = &D_actor_136100_8013F180[0];
     msg.wordCount   = n & 0xFFFF;
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
 }

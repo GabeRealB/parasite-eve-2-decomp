@@ -81225,7 +81225,7 @@ if (map == NULL) {
     taskKill(arg0);
     return;
 }
-work = (Actor136100Work*)map;
+work = (_Actor136100Work*)map;
 ```
 
 The lesson is that 96.487% can be a *shape* mismatch wearing a `regs` penalty:
@@ -124027,7 +124027,8 @@ which register the target's predicate reads.
 The same function also carried the m2c pointee-scaling trap documented above:
 `temp_v0 + 0x474` with `temp_v0` an `AnimationContext*` (0x14) emitted
 `addiu $v0,$s1,0x5910`. Giving the work block named `MATRIX field_474` /
-`field_494` members, as its `Actor136100Work` twin has, removed it.
+`field_494` members, as its `_Actor136100Work` twin has in `light` / `color`,
+removed it.
 
 Inputs: scratch `nonmatchings/func_actor_120300_801335D8-vacuum`, `base.c`
 82.780% (`branch=3 regs=43 insert=8 delete=11`), `base_1.c` 99.423%
