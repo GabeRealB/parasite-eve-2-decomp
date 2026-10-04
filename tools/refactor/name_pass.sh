@@ -352,11 +352,14 @@ The conventions, the compiler's limits and what counts as evidence are above
 6. Where another image refers to the item - a symbol-map line for its name or
    its address marked \`absolute:True\`, which \`grep -rn "<name>\\|0x<ADDR>"
    configs/USA\` finds - check that reference as part of the item, because the
-   build never does: each image links against an address. Its \`owner=\` must
-   be the image whose object the referring code really means (read the use
-   site: a table's key, the resources the referrer loads, the type it expects),
-   its declaration in the referring image must have the definition's type, and
-   it must carry the definition's name. Where one is wrong, correct it - the
+   build never does: each image links against an address. Its declaration in
+   the referring image must have the definition's type, and it must carry the
+   definition's name. A reference into the main executable or into gameplay
+   needs no annotation: only one image is ever at that address. One into a
+   slot that several overlays load into carries \`owner=\`, which must be the
+   image whose object the referring code really means (read the use site: a
+   table's key, the resources the referrer loads, the type it expects); do not
+   add \`owner=\` anywhere else. Where one is wrong, correct it - the
    annotation, the declaration, or the name on both sides - and say so in the
    review. A place several images define is \`shared=\`; a function or object
    another image refers to cannot be \`static\`. \`venv/bin/python3

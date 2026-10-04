@@ -259,7 +259,7 @@ def parse_decls(root: Path, image: str, files: list[str]) -> list[Decl]:
             if not m:
                 continue
             attrs = dict(re.findall(r'\b(\w+):(\S+)', m.group(3).split('//', 1)[-1])) if '//' in m.group(3) else {}
-            explicit_owner = re.search(r'\bowner=([A-Za-z0-9_]+)\b', m.group(3))
+            explicit_owner = re.search(r'\bowner=([A-Za-z0-9_.]+[A-Za-z0-9_])', m.group(3))  # main's image name has a dot
             if explicit_owner:
                 attrs['owner'] = explicit_owner.group(1)
             shared = re.search(r'\bshared=([A-Za-z0-9_+]+)', m.group(3))
