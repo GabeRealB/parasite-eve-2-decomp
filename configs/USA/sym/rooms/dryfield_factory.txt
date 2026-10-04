@@ -117,9 +117,9 @@ _gDryfieldFactoryCollision09844Table = 0x80186DFC; // size:0x8 defined:True
 gFactoryLiftTurnedTemplate = 0x80186E04; // size:0x24 defined:True
 gFactoryDaySpawnTable = 0x80186E28; // size:0x60 defined:True
 
-gFactoryNightJoltCmds = 0x8018A7BC; // absolute:True
+gFactoryNightJoltCmds = 0x8018A7BC; // absolute:True owner=dryfield_night_factory
 
-gFactoryNightJoltRecs = 0x8018A7C8; // absolute:True
+gFactoryNightJoltRecs = 0x8018A7C8; // absolute:True owner=dryfield_night_factory
 
 factoryDayDrawGlows = 0x801825F0; // type:func
 actionPromptOutlineRect = 0x80180BA4; // type:func

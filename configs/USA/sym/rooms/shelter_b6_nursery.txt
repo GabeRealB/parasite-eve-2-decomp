@@ -35,7 +35,7 @@ Telephone_Data_80181CAC = 0x80184F70; // size:0x1C defined:True
 Telephone_Data_80181CC8 = 0x80184F8C; // size:0x1C defined:True
 Telephone_Data_80181CE4 = 0x80184FA8; // size:0x10 defined:True
 Telephone_Data_80181CF4 = 0x80184FB8; // size:0x24 defined:True
-D_acropolis_square_80188888 = 0x80188888; // absolute:True
+D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
 gRoomCutsceneTaskDescs = 0x80184FDC; // size:0x24 defined:True
 D_shelter_b6_nursery_80185000 = 0x80185000; // size:0xC defined:True
 D_shelter_b6_nursery_8018500C = 0x8018500C; // size:0x28 defined:True

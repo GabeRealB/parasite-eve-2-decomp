@@ -79,7 +79,7 @@ D_shelter_b3_incinerator_control_room_80182A40 = 0x80182A40; // size:0x14 define
 gRoomCutsceneSoundTask = 0x80182A54; // size:0x4 defined:True
 D_shelter_b3_incinerator_control_room_80182A58 = 0x80182A58; // size:0x18 defined:True
 D_actor_142600_80135E24 = 0x80135E24; // absolute:True owner=actor_142600
-D_acropolis_square_80188888 = 0x80188888; // absolute:True
+D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
 gRoomCutsceneTaskDescs = 0x80181814; // size:0x24 defined:True
 D_shelter_b3_incinerator_control_room_80181838 = 0x80181838; // size:0x30 defined:True
 

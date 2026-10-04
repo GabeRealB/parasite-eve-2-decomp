@@ -337,6 +337,10 @@ def main() -> None:
             return image
         cands = sorted(j for j in covering(addr) if j in resident[image])
         if not cands:
+            # Past this image's end but inside its slot: an image that
+            # replaces this one and is longer.
+            cands = sorted(j for j in covering(addr) if j in configs and j != image and overlaps(image, j))
+        if not cands:
             return None
         if len(cands) == 1:
             return cands[0]
@@ -360,7 +364,10 @@ def main() -> None:
         lo, hi = ranges[image]
         if lo <= d.addr <= hi:
             return not any(n == d.name for n, _ in symbols_at[image].get(d.addr, ()))
-        return len([j for j in covering(d.addr) if j in resident[image]]) > 1
+        here = [j for j in covering(d.addr) if j in resident[image]]
+        if not here:
+            return any(j in configs and j != image and overlaps(image, j) for j in covering(d.addr))
+        return len(here) > 1
 
     def candidates(image, d):
         """Images that define something at the address, with what they call it.
@@ -374,6 +381,8 @@ def main() -> None:
             pool = [j for j in configs if j != image and canon(j) != canon(image) and overlaps(image, j)]
         else:
             pool = [j for j in covering(d.addr) if j in resident[image] and j in configs]
+            if not pool:
+                pool = [j for j in covering(d.addr) if j in configs and j != image and overlaps(image, j)]
         # Every reference C declares as a function says type:func, so one that
         # does not is data; and only an externally linked symbol can be meant.
         want_code = d.attrs.get('type') == 'func'
