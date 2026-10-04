@@ -561,7 +561,7 @@ s32 func_shelter_b2_elevator_hall_8017DC80(Task* task, s32 msgId, s32 arg2, s32 
 s32 func_shelter_b2_elevator_hall_8017DC88(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
-        SndEvt_EnqueueType6(0x541B0000 | 1, 0, 0);
+        sndEvtRequestScriptStart(0x541B0000 | 1, 0, 0);
     }
     return 0;
 }

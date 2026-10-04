@@ -2341,10 +2341,10 @@ void func_actor_510900_801355B4(Enemy* arg0, Task* arg1)
         work->flameFrames = 0xFF;
         snd               = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
         pan               = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         work->eventFlameSound = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780011;
         pan2                  = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(work->eventFlameSound, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(work->eventFlameSound, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
     }
     work->animationFrame++;
     for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {

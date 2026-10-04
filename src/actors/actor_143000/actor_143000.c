@@ -343,7 +343,7 @@ static void func_actor_143000_801325F0(Task* arg0)
             for (; p->id != ACTION_PROMPT_HOTSPOT_END; p++) {
                 if (p->hit != 0) {
                     if (work->keypadExamined != 0 && p->id == 5) {
-                        SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
+                        sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
                         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
                         work->keyPress.x    = prompt->screen.xy.x;
@@ -469,7 +469,7 @@ static void func_actor_143000_80132A04(Task* arg0)
                 work->statusWidth = 0;
                 break;
             case 0x78:
-                SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_CODE_ACCEPTED, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_CODE_ACCEPTED, 0, 0);
                 work->resultBanner = ACTOR_143000_KEYPAD_BANNER_ACCEPTED;
                 break;
             case 0x96:
@@ -508,7 +508,7 @@ static void func_actor_143000_80132A04(Task* arg0)
                 work->statusWidth = 0;
                 break;
             case 0x78:
-                SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_CODE_REJECTED, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_CODE_REJECTED, 0, 0);
                 work->resultBanner = ACTOR_143000_KEYPAD_BANNER_REJECTED;
                 break;
             case 0x96:
@@ -744,7 +744,7 @@ static void func_actor_143000_801336E8(Task* arg0)
                 arg0->state = 2;
                 break;
             case 2:
-                SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_ENTER, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_ENTER, 0, 0);
                 arg0->state         = 7;
                 arg0->killCountdown = 0;
                 break;
@@ -836,7 +836,7 @@ static void func_actor_143000_801339CC(Task* arg0)
         if ((s16)count <= 0) {
             arg0->killCountdown = (rand() * 8 >> 15) + 8;
             work->codeLength++;
-            SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
             memcpy(D_actor_143000_80135C20, D_actor_143000_80131EB0, 11);
             count = work->codeLength;
             if (count >= 0xA) {

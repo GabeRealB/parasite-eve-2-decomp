@@ -350,7 +350,7 @@ static void func_actor_202900_8014A0B4(Enemy* enemy, Task* task)
     func_800D7A9C(obj, &pos, 0, 3);
     func_actor_202900_8014A194(task);
     if (D_actor_202900_80156E54->st.animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
-        SndEvt_EnqueueType6(SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE, 0, 0);
+        sndEvtRequestScriptStart(SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE, 0, 0);
     }
 }
 

@@ -198,7 +198,7 @@ void Gp_EndingTask(Task* arg0)
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 48, 0, 0)) {
             arg0->killCountdown = 0x5A;
         }
-        SndEvt_EnqueueType6(SOUND_AREA_EXIT, 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA_EXIT, 0, 0);
         Gp_SpawnScript18(D_80114A24, D_80114A34);
         Gp_SetCurAreaFlag4();
     } else if (arg0->state == 1) {

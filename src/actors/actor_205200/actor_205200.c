@@ -389,7 +389,7 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
                     func_actor_205200_8014ACD4(task);
                     if (work->nearestCoord != NULL) {
                         work->sustainedSoundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340001;
-                        SndEvt_EnqueueType6(
+                        sndEvtRequestScriptStart(
                             work->sustainedSoundId, 0, (s8)func_actor_205200_8014B914(work->nearestDistance));
                         work->state = ACTOR_205200_CTRL_PULSING;
                     }
@@ -443,7 +443,7 @@ static void func_actor_205200_8014AB98(Task* arg0)
                     Task_SpawnFromTable(D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
                     Gp_ArmStateF0(1);
                     work->pendingWavePhase = SCREEN_WAVE_RAMP_FALLING;
-                    SndEvt_EnqueueType6(((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340002, 0, 0);
+                    sndEvtRequestScriptStart(((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340002, 0, 0);
                 }
                 work->pulseTimer = ACTOR_205200_PULSE_RAISED_FRAMES;
                 work->pulseState = ACTOR_205200_PULSE_RAISED;
@@ -610,7 +610,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x02002600, NULL);
                 Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x02002600, NULL);
                 snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340004;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 Gp_SpawnPadLerp(10, 0xFF, 0x80);
             } else if (damage > 0) {
                 if (part->effectCooldown == 0) {
@@ -631,7 +631,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                     part->hitCooldown = hitTime;
                 }
                 snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340003;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
         }
     }
@@ -710,7 +710,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
                 if (vol < -0x7FFF) {
                     vol = -0x7FFF;
                 }
-                SndEvt_EnqueueType6(snd, pan, (s16)vol >> 8);
+                sndEvtRequestScriptStart(snd, pan, (s16)vol >> 8);
             }
             if (--part->effectCooldown <= 0) {
                 gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

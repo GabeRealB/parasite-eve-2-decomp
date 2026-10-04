@@ -315,19 +315,19 @@ static void func_actor_110800_80131F9C(Enemy* enemy, Task* task)
         case 4:
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC8) {
                 if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x11), 0, 0);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x11), 0, 0);
                 }
                 gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCA) {
                 if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0D), 0, 0);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0D), 0, 0);
                 }
                 gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCD) {
                 if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0E), 0, 0);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0E), 0, 0);
                 }
                 gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
@@ -335,25 +335,25 @@ static void func_actor_110800_80131F9C(Enemy* enemy, Task* task)
         case 5:
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x115) {
                 if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
                 }
                 gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x11F) {
                 if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
                 }
                 gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             if ((gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCE) {
                 if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
                 }
                 gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             if ((gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xD8) {
                 if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
                 }
                 gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }

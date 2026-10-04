@@ -393,7 +393,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             D_shelter_1f_bulwark_80180EC0.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_shelter_1f_bulwark_80180EC0);
             arg0->killCountdown = 0;
-            SndEvt_EnqueueType6(SOUND_SHELTER_1F_BULWARK_TO_HELIPORT, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_1F_BULWARK_TO_HELIPORT, 0, 0);
             goto advance;
         case 3:
             arg0->killCountdown++;

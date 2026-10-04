@@ -1127,7 +1127,7 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
         } else {
             Gp_RunCapCmd1(2);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
-            SndEvt_EnqueueType6(SOUND_NIGHT_WATER_HOLE_LOCKED, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NIGHT_WATER_HOLE_LOCKED, 0, 0);
         }
     }
     return 0;

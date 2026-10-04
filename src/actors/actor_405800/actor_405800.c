@@ -2019,7 +2019,7 @@ static void func_actor_405800_80133CD0(Task* arg0)
         sound  |= 0x40050004;
         pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work = (_Actor405800IvoryStalkerWork*)arg0->work;
         if (((s8)work->cloakRequest >= 0) || ((work->cloakRequest & ACTOR_405800_CLOAK_KIND_MASK) != ACTOR_405800_CLOAK_SHOW)) {
             work->cloakRequest = ACTOR_405800_CLOAK_RUNNING | ACTOR_405800_CLOAK_SHOW;
@@ -2051,7 +2051,7 @@ static void func_actor_405800_80133DB0(Task* arg0)
         sound = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan   = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->leftArmOuter.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->leftArmInner.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
@@ -2093,7 +2093,7 @@ static void func_actor_405800_80133F48(Task* arg0)
         sound = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan   = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->rightArmOuter.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->rightArmInner.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
@@ -2177,7 +2177,7 @@ static void func_actor_405800_801340E0(Task* arg0)
     }
     sound = base | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     work->holdLoops = 0;
     work->subState++;
 }
@@ -2212,7 +2212,7 @@ static void func_actor_405800_80134314(Task* arg0)
     if (++work->holdFrames == 8) {
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->playerDied == 1 || work->holdKilledPlayer == 1 || enemy->hp <= 0 || work->holdLoops >= 4) {
         work->playerDied = 0;
@@ -2244,7 +2244,7 @@ static void func_actor_405800_80134314(Task* arg0)
         }
         sound2 = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 2), 0);
         vec.vx      = 0;
         vec.vy      = -200;
@@ -2297,7 +2297,7 @@ static void func_actor_405800_8013471C(Task* arg0)
             }
             sound = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             work2                 = (_Actor405800IvoryStalkerWork*)arg0->work;
             work2->animBlend      = 2;
@@ -2381,7 +2381,7 @@ static void func_actor_405800_80134A64(Task* arg0)
         }
         sound = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work2              = (_Actor405800IvoryStalkerWork*)arg0->work;
         work2->animBlend   = 2;
         work2->animClip    = 0x19;
@@ -2436,7 +2436,7 @@ static void func_actor_405800_80134E80(Task* arg0)
         }
         sound = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         coord->coord.t[1]     = work->leapY;
         work->pitch           = 0;
@@ -2519,7 +2519,7 @@ static void func_actor_405800_80135558(Task* arg0)
         sound         = 0x40050006 | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan           = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan         >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->stateFrames++;
     }
     if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
@@ -2735,7 +2735,7 @@ static void func_actor_405800_80135A3C(Task* arg0, s16 arg1)
         sound   = id | voice;
         pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->animFrame == start1) {
         stalkerZebraIvoryReadPartViewXZ(arg0, 8, &work->anchorPos);
@@ -2750,7 +2750,7 @@ static void func_actor_405800_80135A3C(Task* arg0, s16 arg1)
         sound   = id | voice;
         pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->animFrame >= start0 && work->animFrame <= end0) {
         stalkerZebraIvoryPinPartXZ(arg0, 0xB, &work->anchorPos);
@@ -3934,7 +3934,7 @@ static void func_actor_405800_80138E20(Task* task)
         sound  |= 0x40050006;
         pan     = worldCoordGetOriginAudioPan(task->extra.tmd->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         work->stateFrames++;
     }
     if ((stalkerZebraIvoryClipDone(task) << 0x10) != 0) {
@@ -4368,7 +4368,7 @@ static void func_actor_405800_801399C4(Task* arg0)
         sound = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan   = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->holding = 0;
         work->stateFrames++;
     }

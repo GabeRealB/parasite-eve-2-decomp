@@ -503,7 +503,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             }
             Gp_MsgPlayerWeapon(0);
             task->state++;
-            SndEvt_EnqueueType6(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR, 0, 0);
             return;
         case 3:
             var_v0 = SndVoice_HasActiveId(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR);
@@ -615,7 +615,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, const void* f
 s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
-        SndEvt_EnqueueType6(0x55080000 | 1, 0, 0);
+        sndEvtRequestScriptStart(0x55080000 | 1, 0, 0);
     }
     return 0;
 }

@@ -756,7 +756,7 @@ static void CdCmd_ProcessPhase1(void)
                 switch (p->cancelStep) {
                     case CD_COMMAND_CANCEL_BEGIN:
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
-                            SndEvt_EnqueueType6(0, 0, 0);
+                            sndEvtRequestScriptStart(SOUND_SCRIPT_REQUEST_NO_OP, 0, 0);
                         }
                         CdAudio_Begin();
                         p->cancelStep = p->cancelStep + 1;

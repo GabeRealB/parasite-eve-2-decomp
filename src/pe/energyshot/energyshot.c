@@ -58,7 +58,7 @@ static _EnergyshotLevelTuning D_energyshot_801300E4[] = {
     { 0x0010, 0x00F0, 0x0007, 0x0600 },
 };
 
-/// The `SndEvt_EnqueueType6` id for each `D_energyshot_801300E4` row.
+/// The `sndEvtRequestScriptStart` id for each `D_energyshot_801300E4` row.
 static s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 
 static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg3);
@@ -162,8 +162,8 @@ void func_energyshot_8012EF34(Task* arg0)
                     s32 pan;
 
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(D_energyshot_801300FC[mem->index], pan,
-                                        (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(D_energyshot_801300FC[mem->index], pan,
+                                             (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 return;
             }

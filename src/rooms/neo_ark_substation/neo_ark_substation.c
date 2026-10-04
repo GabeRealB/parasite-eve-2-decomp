@@ -511,7 +511,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[8] = {
 
 /// Keeps the substation's looping ambience in step with the area the session is
 /// in: `gGameSession->location.loc.view` selects one of the room's nine `(panOffset, attenuation)`
-/// entries, and state 0 starts that loop with `SndEvt_EnqueueType6`. States 1
+/// entries, and state 0 starts that loop with `sndEvtRequestScriptStart`. States 1
 /// through 4 then watch for the session's index to stop matching the area
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
 /// along - and state 5 retunes the playing loop to the new entry with
@@ -533,7 +533,7 @@ void func_neo_ark_substation_8017D608(Task* task)
 
     switch (task->state) {
         case 0:
-            SndEvt_EnqueueType6(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)attenuation);
+            sndEvtRequestScriptStart(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)attenuation);
             task->state = task->state + 1;
             break;
         case 1:

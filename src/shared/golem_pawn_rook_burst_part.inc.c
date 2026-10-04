@@ -34,7 +34,7 @@ void golemPawnRookBurstPartTick(Enemy* arg0, Task* arg1)
             snd                   = gGolemPawnRookBurstCue |
                   ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             pan = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
         case 2:
             arg1->state = state;

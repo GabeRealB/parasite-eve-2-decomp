@@ -1968,7 +1968,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
 
 /// Keeps the room's looping ambience in step with the area the session is in:
 /// `gGameSession->location.loc.view` selects an entry of the ambience table, and
-/// state 0 starts the loop with `SndEvt_EnqueueType6`. Once
+/// state 0 starts the loop with `sndEvtRequestScriptStart`. Once
 /// `D_shelter_b1_underground_parking_8018D758` is clear, state 1 queues a
 /// `SndEvt_EnqueueType7` event for the loop and ends the task; otherwise it waits for the session's view to stop matching `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`,
 /// states 2 to 4 walk the task along, and state 5 retunes the loop to the new
@@ -1990,7 +1990,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
 
     switch (task->state) {
         case 0:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), (s8)pan, (s8)attenuation);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), (s8)pan, (s8)attenuation);
             task->state = task->state + 1;
             break;
         case 1:
@@ -2080,7 +2080,7 @@ s32 func_shelter_b1_underground_parking_80183360(Task* arg0, s32 arg1, RoomEvent
 s32 func_shelter_b1_underground_parking_801833DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x10), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x10), 0, 0);
     }
     return 0;
 }
@@ -2379,19 +2379,19 @@ static void func_shelter_b1_underground_parking_801845F8(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         if (work->choice == SHELTER_B1_UNDERGROUND_PARKING_PANEL_HOTSPOT_ENTER) {
-            SndEvt_EnqueueType6(SOUND_SHELTER_B1_PARKING_PANEL_BUTTON, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B1_PARKING_PANEL_BUTTON, 0, 0);
             if (D_shelter_b1_underground_parking_8018D788 != D_shelter_b1_underground_parking_8018D789) {
                 if (gGameSession->location.loc.room == 1) {
-                    SndEvt_EnqueueType6(SOUND_SHELTER_B1_PARKING_PANEL_APPLY_R1, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_SHELTER_B1_PARKING_PANEL_APPLY_R1, 0, 0);
                 } else {
-                    SndEvt_EnqueueType6(SOUND_SHELTER_B1_PARKING_PANEL_APPLY, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_SHELTER_B1_PARKING_PANEL_APPLY, 0, 0);
                 }
                 task->state = 6;
                 return;
             }
         } else {
             D_shelter_b1_underground_parking_8018D789 ^= work->choice;
-            SndEvt_EnqueueType6(SOUND_SHELTER_B1_PARKING_PANEL_BUTTON, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B1_PARKING_PANEL_BUTTON, 0, 0);
             task->state = 2;
             return;
         }

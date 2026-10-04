@@ -1836,7 +1836,7 @@ void func_acropolis_patio_8017DA5C(Task* task)
         case 2:
             if (Gp_GetCapEventKey() == state) {
                 gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 3);
-                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4), 0, 0);
             advance:
                 task->state = task->state + 1;
                 return;
@@ -1908,7 +1908,7 @@ s32 func_acropolis_patio_8017DD44(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 s32 func_acropolis_patio_8017DD4C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
-        SndEvt_EnqueueType6(0x51030000 | 3, 0, 0);
+        sndEvtRequestScriptStart(0x51030000 | 3, 0, 0);
     }
     return 0;
 }

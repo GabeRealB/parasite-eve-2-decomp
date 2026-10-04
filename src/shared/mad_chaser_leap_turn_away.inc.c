@@ -18,7 +18,7 @@ void madChaserLeapTurnAway(Task* arg0)
     if ((s16)++work->stateFrames == 1) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0004;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (madChaserAnimEnded(arg0) != 0) {
         work->busy         = 0;

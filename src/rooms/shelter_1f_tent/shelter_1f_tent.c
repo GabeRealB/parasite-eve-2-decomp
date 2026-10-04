@@ -196,8 +196,8 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
             gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 8);
         }
     } else {
-        SndEvt_EnqueueType6(SOUND_SHELTER_1F_TENT_AMBIENCE_1, 0, 0);
-        SndEvt_EnqueueType6(SOUND_SHELTER_1F_TENT_AMBIENCE_2, 0, 0);
+        sndEvtRequestScriptStart(SOUND_SHELTER_1F_TENT_AMBIENCE_1, 0, 0);
+        sndEvtRequestScriptStart(SOUND_SHELTER_1F_TENT_AMBIENCE_2, 0, 0);
     }
     task->state = task->state + 1;
 }

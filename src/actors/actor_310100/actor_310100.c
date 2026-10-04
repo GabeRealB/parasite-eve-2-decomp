@@ -693,7 +693,7 @@ static s32 func_actor_310100_80161E24(Task* task)
         if (rec != NULL) {
             if (work->placementId == ACTOR_310100_PLACEMENT_OFFICER_1) {
                 if (rec->flags & ANIMATION_RECORD_CUE_2) {
-                    SndEvt_EnqueueType6(D_actor_310100_801798A8[work->stepSoundIndex], worldCoordGetOriginAudioPan(obj), 0);
+                    sndEvtRequestScriptStart(D_actor_310100_801798A8[work->stepSoundIndex], worldCoordGetOriginAudioPan(obj), 0);
                     step = work->stepSoundIndex;
                     if (step < 2U) {
                         work->stepSoundIndex = (u16)(step + 1);
@@ -701,10 +701,10 @@ static s32 func_actor_310100_80161E24(Task* task)
                 }
             } else {
                 if (rec->flags & ANIMATION_RECORD_CUE_2) {
-                    SndEvt_EnqueueType6(SOUND_ACROPOLIS_PLAZA_POLICE_STEP_1, worldCoordGetOriginAudioPan(obj), 0);
+                    sndEvtRequestScriptStart(SOUND_ACROPOLIS_PLAZA_POLICE_STEP_1, worldCoordGetOriginAudioPan(obj), 0);
                 }
                 if (rec->flags & ANIMATION_RECORD_CUE_1) {
-                    SndEvt_EnqueueType6(SOUND_ACROPOLIS_PLAZA_POLICE_STEP_2, worldCoordGetOriginAudioPan(obj), 0);
+                    sndEvtRequestScriptStart(SOUND_ACROPOLIS_PLAZA_POLICE_STEP_2, worldCoordGetOriginAudioPan(obj), 0);
                 }
             }
         }

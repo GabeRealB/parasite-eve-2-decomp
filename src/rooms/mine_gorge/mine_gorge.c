@@ -255,7 +255,7 @@ s32 func_mine_gorge_8017D784(Task* task, s32 msgId, const void* firstArg, s32 ar
 s32 func_mine_gorge_8017D7F4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0xA) {
-        SndEvt_EnqueueType6(0x54050000 | arg2, 0, 0);
+        sndEvtRequestScriptStart(0x54050000 | arg2, 0, 0);
     }
     return 0;
 }

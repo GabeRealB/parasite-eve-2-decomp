@@ -1139,7 +1139,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
     depth = worldCoordGetOriginAudioDepth(&D_shelter_b2_laboratory_801864DC);
     switch (arg0->state) {
         case 0:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), pan, depth);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), pan, depth);
             arg0->state++;
             break;
         case 1:
@@ -1224,7 +1224,7 @@ s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* first
 s32 func_shelter_b2_laboratory_8018025C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x17), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x17), 0, 0);
     }
     return 0;
 }

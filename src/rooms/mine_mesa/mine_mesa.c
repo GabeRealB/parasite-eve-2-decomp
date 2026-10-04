@@ -3137,10 +3137,10 @@ void func_mine_mesa_8017E978(Task* arg0)
     arg0->killCountdown = temp_v0;
     switch ((s16)temp_v0) {
         case 0x2F:
-            SndEvt_EnqueueType6(0x10000039, 0, 0);
+            sndEvtRequestScriptStart(0x10000039, 0, 0);
             break;
         case 0x39:
-            SndEvt_EnqueueType6(0x1000003A, 0, 0);
+            sndEvtRequestScriptStart(0x1000003A, 0, 0);
             break;
     }
     if ((gGameSession->eventState == 0) || ((s16)arg0->killCountdown >= 0x39)) {
@@ -3177,7 +3177,7 @@ void func_mine_mesa_8017EAC0(void)
     slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (slot != NULL) {
         Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &slot->extra.tmd->coords[8], 0x21, NULL);
-        SndEvt_EnqueueType6(SOUND_ACTOR_800100_ATTACK, 0, 0);
+        sndEvtRequestScriptStart(SOUND_ACTOR_800100_ATTACK, 0, 0);
     }
 }
 

@@ -194,13 +194,13 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
     } while (i < 2);
     if (arg0->rowInputEnabled == one) {
         if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
             if (selected >= 2) {
                 selected = 0;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selected -= 1;
             if (selected < 0) {
                 selected += 2;
@@ -274,13 +274,13 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     } while (i < 4);
     if (arg0->rowInputEnabled == one) {
         if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
             if (selected >= count) {
                 selected = 0;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selected -= 1;
             if (selected < 0) {
                 selected += count;
@@ -333,13 +333,13 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     } while (i < 2);
     if (arg0->rowInputEnabled == one) {
         if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
             if (selected >= n2) {
                 selected = 0;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selected -= 1;
             if (selected < 0) {
                 selected += n2;
@@ -391,13 +391,13 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     } while (i < 2);
     if (arg0->rowInputEnabled == one) {
         if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
             if (selected >= n2) {
                 selected = 0;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selected -= 1;
             if (selected < 0) {
                 selected += n2;
@@ -449,13 +449,13 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     } while (i < 2);
     if (arg0->rowInputEnabled == one) {
         if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selected += one;
             if (selected >= columnCount) {
                 selected = 0;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selected -= 1;
             if (selected < 0) {
                 selected += columnCount;
@@ -497,7 +497,7 @@ static void func_options_801D4B64(Task* task)
     status = obj->panel.control.word;
     if (status == 1) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             obj->resultValue = status;
             obj->result      = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -899,13 +899,13 @@ static void func_options_801D4D0C(Task* task)
     Ui_InsertDrawTPage(obj->panel.otIndex.signedValue + 1, 0);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + 1)) % 3;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP | PAD_BUTTON_LEFT) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + 2)) % 3;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
@@ -936,7 +936,7 @@ static void func_options_801D5954(UiList* arg0, UiObject* arg1)
         Ui_SetHolderParam(D_options_801D5DA4, 0, 0);
     }
     if ((arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
-        SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+        sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         Ui_SpawnFromDesc(&D_options_801D5EFC, 0, 1, 1, arg1);
         arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
@@ -952,7 +952,7 @@ static void func_options_801D5A4C(UiList* arg0, UiObject* arg1)
         Ui_SetHolderParam(D_options_801D5DDC, 0, 0);
     }
     if ((arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
-        SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+        sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         Mc_ResetSaveFlags();
     }
 }

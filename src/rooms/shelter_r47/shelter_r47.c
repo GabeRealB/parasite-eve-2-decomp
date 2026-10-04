@@ -621,7 +621,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
         switch (arg2->warp) {
             case 2:
                 if ((gameFlagGetNibble(GAME_FLAG_083) == 1) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_POINT_2_SOUND_PLAYED) == 0)) {
-                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
                     gameFlagSetNibble(GAME_FLAG_SHELTER_R47_POINT_2_SOUND_PLAYED, 1);
                 }
                 break;
@@ -788,7 +788,7 @@ static void func_shelter_r47_80180324(Task* task)
 {
     switch (task->state) {
         case 0:
-            SndEvt_EnqueueType6(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
             task->spawnArg1.value = gGameSession->location.loc.view;
             task->killCountdown   = gGameSession->eventState;
             task->state++;
@@ -801,10 +801,10 @@ static void func_shelter_r47_80180324(Task* task)
                     switch (gGameSession->location.loc.view) {
                         case 2:
                         case 3:
-                            SndEvt_EnqueueType6(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
+                            sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
                             break;
                         case 4:
-                            SndEvt_EnqueueType6(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
+                            sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
                             break;
                     }
                 }
@@ -819,7 +819,7 @@ static void func_shelter_r47_80180324(Task* task)
                             if (task->spawnArg1.value == 3) {
                                 SndEvt_EnqueueTypeA(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
                             } else {
-                                SndEvt_EnqueueType6(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
+                                sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
                             }
                             break;
                         case 5:
@@ -853,7 +853,7 @@ static s32 func_shelter_r47_801805D8(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 static s32 func_shelter_r47_8018061C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 0x11), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 0x11), 0, 0);
     }
     return 0;
 }

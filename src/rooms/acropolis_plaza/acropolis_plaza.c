@@ -4262,7 +4262,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 7:
             if (work->elapsedFrames == 0x1E) {
-                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 3), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 3), 0, 0);
             }
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= 0x3D) {
@@ -4307,7 +4307,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
         case 11:
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= 0xB) {
-                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0x0B), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0x0B), 0, 0);
                 Task_SpawnFromTable(D_acropolis_plaza_80183824, 8, 8, 0);
                 work->elapsedFrames = 0;
                 task->state         = task->state + 1;
@@ -4450,14 +4450,14 @@ void func_acropolis_plaza_8017F620(Task* task)
 
 /// Start an idle voice silently and finish this tick; its volume envelope
 /// begins on the next call. Already-active voices continue to the update.
-#define _acropolisPlazaStartAmbience(state, sndId) \
-    do {                                           \
-        if (*(state) == 0) {                       \
-            SndEvt_EnqueueType6((sndId), 0, 0x7F); \
-            SndEvt_EnqueueTypeB((sndId), 0);       \
-            *(state) = 1;                          \
-            return;                                \
-        }                                          \
+#define _acropolisPlazaStartAmbience(state, sndId)      \
+    do {                                                \
+        if (*(state) == 0) {                            \
+            sndEvtRequestScriptStart((sndId), 0, 0x7F); \
+            SndEvt_EnqueueTypeB((sndId), 0);            \
+            *(state) = 1;                               \
+            return;                                     \
+        }                                               \
     } while (0)
 
 /// Ambience voice driver: starts the voice named by `sndId` the first time

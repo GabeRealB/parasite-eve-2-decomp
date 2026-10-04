@@ -1985,7 +1985,7 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* f
     if (temp_s0 == 2 && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
         if (((const DirectionActionRequest*)firstArg)->actionId == 1) {
             Gp_UnlinkObj4A(0, &D_dryfield_night_saloon_g_r_801887DC[13]);
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 0x0C), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 0x0C), 0, 0);
         } else if (((const DirectionActionRequest*)firstArg)->actionId == temp_s0) {
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
@@ -2138,7 +2138,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu | Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
             if (task->status != 0xFE) {
                 if (task->status == 0xFF) {
                     obj->result = USER_INTERFACE_RESULT_CONFIRM;

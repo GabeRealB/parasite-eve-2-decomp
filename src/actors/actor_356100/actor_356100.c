@@ -2190,7 +2190,7 @@ static void func_actor_356100_80167818(Task* arg0)
     } else if (work->stateTimer == 0) {
         sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51030008;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->stateTimer = 1;
     }
     func_actor_356100_80163508(arg0);
@@ -2595,7 +2595,7 @@ static void func_actor_356100_80169180(Task* arg0)
         actorRenderComposeCoord(arg0->extra.tmd->coords);
         work->stateTimer = 0;
         pan              = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        SndEvt_EnqueueType6(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_START, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_START, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
     }
     work->stateTimer = (s16)((u16)work->stateTimer + 1);
     func_actor_356100_80163508(arg0);
@@ -2607,28 +2607,28 @@ static void func_actor_356100_80169180(Task* arg0)
         s32 pan;
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        SndEvt_EnqueueType6(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_IMPACT, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_IMPACT, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
         Gp_SpawnPadLerp(6, 0xFF, 0x80);
     }
     if (work->stateTimer == 0x4D) {
         s32 pan;
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 2), pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 2), pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
         Gp_SpawnPadLerp(8, 0x7F, 0x30);
     }
     if (work->stateTimer == 0x58) {
         s32 pan;
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 1), pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 1), pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
         Gp_SpawnPadLerp(6, 0x7F, 0x30);
     }
     if (work->stateTimer == 0xCE) {
         s32 pan;
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        SndEvt_EnqueueType6(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_END, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_END, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
     }
     if ((u32)((u16)work->stateTimer - 0x29) < 5U) {
         Gp_SpawnEff(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[3], 0, 0);

@@ -1380,7 +1380,7 @@ static const EnemyTaskFuncTable3 D_actor_223600_80149E4C = {
 /// The common path records the state change in `stateEntered` and the dispatched
 /// state in `prevState`, runs the state handler from `D_actor_223600_80149E4C`,
 /// turns the animation latch `func_actor_223600_8014B464` raises into a
-/// `SndEvt_EnqueueType6` cue -- the top nibble of the enemy's `placeKey` in
+/// `sndEvtRequestScriptStart` cue -- the top nibble of the enemy's `placeKey` in
 /// bits 8-11, with the model's pan and depth -- and finally relights the model
 /// through `func_800D7A9C` while `relightPending` is set, setting
 /// `relightPending` again when the session's `viewReady` or the state handler
@@ -1424,7 +1424,7 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
     if (reaction != 0) {
         cue = reaction | (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(
+        sndEvtRequestScriptStart(
             cue, pan,
             (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }

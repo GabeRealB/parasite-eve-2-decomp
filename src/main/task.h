@@ -72,8 +72,6 @@ void taskNoopCallback(Task* unusedTask);
 /// it as the callback of a task that attaches no body.
 void taskCountdownCallback(Task* task);
 
-s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);
-
 void Task_KillMaybeSpawn(Task* task);
 
 #endif // MAIN_PRIVATE_TASK_H

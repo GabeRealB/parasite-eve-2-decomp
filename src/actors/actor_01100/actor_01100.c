@@ -1568,7 +1568,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 died   = 1;
                 sndId  = (work->waterRoom << 0x16) | 0x400B0006;
                 sndId |= (u8)work->placeIndex << 8;
-                SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
+                sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 reaction = ACTOR_01100_REACTION_FALL;
                 if (work->downState == ACTOR_01100_DOWN_RISING) {
                     reaction = ACTOR_01100_REACTION_FALL_AGAIN;
@@ -1618,7 +1618,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
+                    sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 work->hitFromBehind = fromBehind;
                 func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
@@ -1627,7 +1627,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
+                    sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 work->state = ACTOR_01100_STATE_FLINCH;
                 _actor01100ClearObjPair(work);
@@ -1640,7 +1640,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
+                    sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 work->flinchPhase = 0;
                 work->state       = ACTOR_01100_STATE_FALL;
@@ -1657,7 +1657,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
+                    sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 work->flinchPhase = 0;
                 work->state       = ACTOR_01100_STATE_FALL_AGAIN;
@@ -1678,7 +1678,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
+                    sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
                 break;
@@ -1686,7 +1686,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 if (work->hp > 0) {
                     sndId  = (work->waterRoom << 0x16) | 0x400B0007;
                     sndId |= (u8)work->placeIndex << 8;
-                    SndEvt_EnqueueType6(sndId, (s8)scratch->pan, (s8)scratch->depth);
+                    sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
                 break;
@@ -2184,7 +2184,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                         work->splashPart = 0;
                     }
                     Gp_SpawnEff(gRoomEffectWaterSprayId, &gGfxViewCoord, eff, &scratch->shortVector);
-                    SndEvt_EnqueueType6(((u8)work->placeIndex << 8) | 0x404B000D, (s8)scratch->pan, (s8)scratch->depth);
+                    sndEvtRequestScriptStart(((u8)work->placeIndex << 8) | 0x404B000D, (s8)scratch->pan, (s8)scratch->depth);
                 }
             }
         }
@@ -2678,7 +2678,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
         obj->key    = Gp_PackObjPair(enemy, 3);
         obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else if (work->stateCounter == 0x20) {
-        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), (s8)scratch->pan, (s8)scratch->depth);
+        sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), (s8)scratch->pan, (s8)scratch->depth);
     }
     if (((u32)((u16)work->stateCounter - 0x17) < 0x15U) && (work->stateStep == 1) &&
         (Gp_CountRec18Hi(work->contacts[ACTOR_01100_BODY_LEFT_HAND], 0x10000) != 0)) {
@@ -2822,7 +2822,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
         obj->key    = Gp_PackObjPair(enemy, 4);
         obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else if (work->stateCounter == 0x2D) {
-        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), (s8)scratch->pan, (s8)scratch->depth);
+        sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), (s8)scratch->pan, (s8)scratch->depth);
     }
     if (((u32)((u16)work->stateCounter - 0x24) < 0x18U) && (work->stateStep == 1) &&
         (Gp_CountRec18Hi(work->contacts[ACTOR_01100_BODY_RIGHT_HAND], 0x10000) != 0)) {
@@ -2952,7 +2952,7 @@ static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, 
                     Gp_CopyCoordOffset(spawned, part, &scratch->shortVector);
                     taskReparent(task, spawned);
                 }
-                SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B000A), (s8)scratch->pan, (s8)scratch->depth);
+                sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B000A), (s8)scratch->pan, (s8)scratch->depth);
             }
         }
     }
@@ -3119,7 +3119,7 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, 
     if (work->strideFrame == 1) {
         snd = 0x400B0002;
     do_sound:
-        SndEvt_EnqueueType6((work->waterRoom << 22) | snd | ((u8)work->placeIndex << 8), (s8)scratch->pan, (s8)scratch->depth);
+        sndEvtRequestScriptStart((work->waterRoom << 22) | snd | ((u8)work->placeIndex << 8), (s8)scratch->pan, (s8)scratch->depth);
     }
     if (work->strideFrame == 0x2E) {
         actorCoords = task->extra.tmd->coords;
@@ -3324,7 +3324,7 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, 
     time               = (u16)work->stateCounter + 1;
     work->stateCounter = time;
     if ((s16)time >= 5) {
-        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0003), (s8)scratch->pan, (s8)scratch->depth);
+        sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0003), (s8)scratch->pan, (s8)scratch->depth);
         work->stateCounter = -0x7FFF;
     }
     scratch->splashPart = ACTOR_01100_PART_CHEST;
@@ -3502,7 +3502,7 @@ static void Actor01100_Fn06198(Task* task)
             }
         fire:
             id = (flag << 22) | (0x400B000B | (Actor01100_D15670 << 8));
-            SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(soundCoord), (s8)worldCoordGetOriginAudioDepth(soundCoord));
+            sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(soundCoord), (s8)worldCoordGetOriginAudioDepth(soundCoord));
             work->body.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             task->killCountdown = 0x1E;
             task->state        += 1;
@@ -3542,7 +3542,7 @@ static void Actor01100_Fn0638C(Task* task)
     soundBase  = (variant << 22) | 0x400B000C;
     sound      = soundBase | (Actor01100_D15670 << 8);
     pan        = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     effect = Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0031FFF, NULL);
     if (effect != NULL) {
         taskReparent(task, effect->task);
@@ -3934,7 +3934,7 @@ static void Actor01100_Fn06E4C(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// `stateCounter`, then bumps `stateStep`. Every later frame steps that
 /// countdown, and on the frame it reaches zero cues the 0x400B0004 event - the
 /// low byte of `placeIndex` in bits 8..15, `waterRoom` in bit 22, pan and depth
-/// from the scratch block - through `SndEvt_EnqueueType6`. The scratch block's
+/// from the scratch block - through `sndEvtRequestScriptStart`. The scratch block's
 /// `splashPart` then takes 0xC while bit 0 of `gDisplayState.animFrame` is set
 /// and 8 otherwise, and `motionEnded` ends the sub-state by clearing both the
 /// state and the latch.
@@ -3949,7 +3949,7 @@ static void Actor01100_Fn06F38(Enemy* enemy, Task* task, _Actor01100Work* work, 
     if (work->stateCounter != 0) {
         work->stateCounter--;
         if (work->stateCounter == 0) {
-            SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0004), (s8)scratch->pan, (s8)scratch->depth);
+            sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0004), (s8)scratch->pan, (s8)scratch->depth);
         }
     }
     if (gDisplayState.animFrame & 1) {
@@ -4054,7 +4054,7 @@ static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, 
     time               = (u16)work->stateCounter + 1;
     work->stateCounter = time;
     if ((s16)time >= 0xD) {
-        SndEvt_EnqueueType6((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0003), (s8)scratch->pan, (s8)scratch->depth);
+        sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0003), (s8)scratch->pan, (s8)scratch->depth);
         work->stateCounter = -0x7FFF;
     }
     scratch->splashPart = ACTOR_01100_PART_CHEST;

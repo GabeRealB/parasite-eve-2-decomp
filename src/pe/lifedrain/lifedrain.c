@@ -197,13 +197,13 @@ void func_lifedrain_8012EF48(Task* arg0)
             }
             actorRenderComposeCoord(coord);
             if (arg0->spawnArg1.value != 0) {
-                SndEvt_EnqueueType6(D_lifedrain_80130AD4[mem->index + 3],
-                                    (s8)worldCoordGetOriginAudioPan(coord),
-                                    (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(D_lifedrain_80130AD4[mem->index + 3],
+                                         (s8)worldCoordGetOriginAudioPan(coord),
+                                         (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
-                SndEvt_EnqueueType6(D_lifedrain_80130AD4[mem->index],
-                                    (s8)worldCoordGetOriginAudioPan(coord),
-                                    (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(D_lifedrain_80130AD4[mem->index],
+                                         (s8)worldCoordGetOriginAudioPan(coord),
+                                         (s8)worldCoordGetOriginAudioDepth(coord));
             }
             return;
         case 2: {

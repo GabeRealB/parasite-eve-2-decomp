@@ -123,7 +123,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             D_neo_ark_submarine_gallery_8018591C.fade.phase      = SCREEN_FADE_RUNNING;
             D_neo_ark_submarine_gallery_8018591C.fade.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_neo_ark_submarine_gallery_8018591C.fade);
-            SndEvt_EnqueueType6(SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND, 0, 0);
             arg0->state++;
             break;
         case 4:

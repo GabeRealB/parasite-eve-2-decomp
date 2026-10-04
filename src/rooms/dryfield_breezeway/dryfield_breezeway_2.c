@@ -974,7 +974,7 @@ static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
         work->lineEndX        += (prompt->screen.xy.x - work->lineEndX) >> 2;
         work->lineEndY        += (prompt->screen.xy.y - work->lineEndY) >> 2;
         if (work->lineEndX != work->previousLineEndX || work->lineEndY != work->previousLineEndY) {
-            SndEvt_EnqueueType6(SOUND_BREEZEWAY_CURSOR_MOVE, 0, 0);
+            sndEvtRequestScriptStart(SOUND_BREEZEWAY_CURSOR_MOVE, 0, 0);
         }
     }
 
@@ -1372,7 +1372,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
                 Gp_SpawnEff(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, (s32)(gRandomLcgState >> 16) % limit + 0x40, &eff->move);
             }
             if (eff->step == 0) {
-                SndEvt_EnqueueType6(SOUND_BREEZEWAY_EFFECT_LOOP, 0, 0);
+                sndEvtRequestScriptStart(SOUND_BREEZEWAY_EFFECT_LOOP, 0, 0);
                 eff->step = 1;
             }
         } else if (gGameSession->location.loc.view == 3) {
@@ -1386,7 +1386,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (!((gRandomLcgState >> 16) & 3)) {
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(SOUND_BREEZEWAY_EFFECT_BURST, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(SOUND_BREEZEWAY_EFFECT_BURST, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                     eff->step = 2;
                 }
             }

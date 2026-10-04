@@ -1081,7 +1081,7 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
                 return;
             }
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 0);
-            SndEvt_EnqueueType6(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2, 0, 0);
             goto L_advance;
         case 3:
             var_v0 = SndVoice_HasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2);
@@ -1127,7 +1127,7 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
-            SndEvt_EnqueueType6(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT, 0, 0);
             goto L_advance;
         case 3:
             var_v0 = SndVoice_HasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT);
@@ -1179,7 +1179,7 @@ s32 func_shelter_b1_pod_access_tunnel_8017DDD8(Task* task, s32 msgId, s32 arg2, 
 s32 func_shelter_b1_pod_access_tunnel_8017DDE0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 6) {
-        SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
+        sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
     }
     return 0;
 }

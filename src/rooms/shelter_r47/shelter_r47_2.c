@@ -1173,7 +1173,7 @@ static void func_shelter_r47_80183484(Task* task)
             }
         } else {
             if (shade == 0) {
-                SndEvt_EnqueueType6(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 0, 0);
             }
             p              = gGpuPrimCursor;
             gGpuPrimCursor = p + 1;

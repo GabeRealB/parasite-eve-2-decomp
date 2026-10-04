@@ -879,7 +879,7 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             break;
         case 3:
             if (--arg0->killCountdown == 0) {
-                SndEvt_EnqueueType6(SOUND_SHELTER_B4_UPPER_SEWER_EXIT_TRANSIT, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SHELTER_B4_UPPER_SEWER_EXIT_TRANSIT, 0, 0);
                 arg0->state++;
             }
             break;
@@ -960,7 +960,7 @@ s32 func_shelter_b4_upper_sewer_8017DB58(Task* arg0, s32 arg1, s32 arg2, s32 arg
 {
     if (arg2 == 4) {
         func_shelter_b4_upper_sewer_8017E59C(1);
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 4), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 4), 0, 0);
     }
     return 0;
 }

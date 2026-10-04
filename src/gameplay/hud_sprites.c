@@ -690,14 +690,14 @@ void Gp_StartAreaBgm(s16* arg0)
         return;
     }
     if (cfg->hp <= 0) {
-        SndEvt_EnqueueType6((gGameSession->deathVariant << 16) | 0x70000001, 0, 0);
+        sndEvtRequestScriptStart((gGameSession->deathVariant << 16) | 0x70000001, 0, 0);
     } else {
         type = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType;
         if (type == 1) {
-            SndEvt_EnqueueType6(((gGameSession->deathVariant + 0x31) << 16) | 0x70000001, 0, 0);
+            sndEvtRequestScriptStart(((gGameSession->deathVariant + 0x31) << 16) | 0x70000001, 0, 0);
         } else if (type == 3) {
             SndEvt_EnqueueType7(SOUND_AREA_BANK_ALL, 1);
-            SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_DEATH, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_DEATH, 0, 0);
         }
     }
     *arg0 = 1;

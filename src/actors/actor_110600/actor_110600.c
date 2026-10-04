@@ -1463,7 +1463,7 @@ static s32 func_actor_110600_80134564(_Actor110600Work* work)
 /// `lookYawTarget` in 0x100 steps, and the turn that leaves, clamped to ±0x400, is
 /// handed to joints 5 and 3 of the model root (the second a quarter of it).
 /// Finally the id `func_actor_110600_80134564` reports is queued through
-/// `SndEvt_EnqueueType6` with the model root's pan and depth; the bits 12..15
+/// `sndEvtRequestScriptStart` with the model root's pan and depth; the bits 12..15
 /// of the enemy's `field_8` are appended to it.
 static void func_actor_110600_80134728(Task* arg0)
 {
@@ -1604,7 +1604,7 @@ static void func_actor_110600_80134728(Task* arg0)
     if (sound != 0) {
         soundId = sound | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(soundId, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
 }
 
@@ -2206,8 +2206,8 @@ static void func_actor_110600_80135B84(Task* arg0)
         work->state = ACTOR_110600_STATE_CHASE;
     }
     if (Actor110600_HasRec10000(work->attackContacts)) {
-        SndEvt_EnqueueType6(SOUND_STRANGER_ATTACK_HIT, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
-                            (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(SOUND_STRANGER_ATTACK_HIT, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
+                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     }
 }
@@ -2380,7 +2380,7 @@ static void func_actor_110600_80136210(Task* arg0)
             displaySetShakeY(0);
         } else {
             pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            SndEvt_EnqueueType6(SOUND_STRANGER_HURT, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+            sndEvtRequestScriptStart(SOUND_STRANGER_HURT, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         }
         work->hitCooldown = Gp_GetIdParam2(scratch->hitKey);
         kind              = Gp_GetIdParam0(scratch->hitKey) & 0xFFFF;

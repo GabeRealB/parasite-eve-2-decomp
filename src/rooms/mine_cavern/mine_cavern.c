@@ -355,7 +355,7 @@ s32 func_mine_cavern_8017DC9C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 s32 func_mine_cavern_8017DD38(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0xD) {
-        SndEvt_EnqueueType6(0x54020000 | 0xD, 0, 0);
+        sndEvtRequestScriptStart(0x54020000 | 0xD, 0, 0);
     }
     return 0;
 }
@@ -490,7 +490,7 @@ void func_mine_cavern_8017E18C(Task* task)
         case 0x7C:
         case 0x60:
         case 0x8C:
-            SndEvt_EnqueueType6(0x1000003A, 0, 0x30);
+            sndEvtRequestScriptStart(0x1000003A, 0, 0x30);
             break;
         case 0x50:
         case 0x12:
@@ -498,7 +498,7 @@ void func_mine_cavern_8017E18C(Task* task)
         case 0x70:
         case 0x87:
         case 0x218:
-            SndEvt_EnqueueType6(0x10000039, 0, 0x30);
+            sndEvtRequestScriptStart(0x10000039, 0, 0x30);
             break;
     }
     if ((gGameSession->evtSkipped != 0) || (task->killCountdown >= 0x219)) {

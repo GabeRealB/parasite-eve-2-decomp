@@ -1335,10 +1335,10 @@ s32 func_acropolis_cafeteria_8017E22C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 0xA:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 0x0A), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 0x0A), 0, 0);
             break;
         case 0xB:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 0x0B), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 0x0B), 0, 0);
             break;
     }
     return 0;

@@ -37,7 +37,7 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
     if (mode == 1) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             if (obj->owner->spawnArg1.value != prompt->currentItemIndex) {
-                SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
                 if (obj->owner->status != track->sequenceId) {
                     SndEvt_EnqueueType2(0, 0x3C);
                     obj->owner->state  = mode;

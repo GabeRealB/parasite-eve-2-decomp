@@ -108,7 +108,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 func_dryfield_water_tower_8017DCB4();
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskMessageDispatch(D_dryfield_water_tower_801876A0, 0x13EC, 0, 0);
-                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 9), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 9), 0, 0);
             } else {
                 gGameSession->eventState                                   = 0;
                 gGameSession->hideHud                                      = 0;

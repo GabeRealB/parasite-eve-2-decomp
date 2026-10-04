@@ -704,7 +704,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
         return;
     }
     if (prev == 0) {
-        SndEvt_EnqueueType6(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
+        sndEvtRequestScriptStart(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     } else if (vol == 0) {
         SndEvt_EnqueueType7(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0x1E);
     } else {
@@ -908,7 +908,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                     break;
             }
             if (play && work->scale >= 0x20) {
-                SndEvt_EnqueueType6(SOUND_ACROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(SOUND_ACROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             block->outerRadius = (((task->spawnArg1.value >> 8) & 0xFF) * 0x600) / block->otz;
             block->innerRadius = (((task->spawnArg1.value >> 8) & 0xFF) * 0xC0) / block->otz;

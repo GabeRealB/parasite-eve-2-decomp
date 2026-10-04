@@ -175,7 +175,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
-            SndEvt_EnqueueType6(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1, 0, 0);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 0);
             goto L_advance;
         case 3:
@@ -221,7 +221,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017DB70(Task* task, s32 msgId, s32 arg2, 
 s32 func_shelter_b2_pod_access_tunnel_8017DB78(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 4) {
-        SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
+        sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
     }
     return 0;
 }

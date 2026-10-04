@@ -56,7 +56,7 @@ void gluttonRainFall(Enemy* enemy, Task* task)
             task->state++;
             snd = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000C;
             pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-            SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         }
     }
 

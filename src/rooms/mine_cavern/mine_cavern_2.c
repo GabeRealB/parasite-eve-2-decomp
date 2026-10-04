@@ -2700,37 +2700,37 @@ static void func_mine_cavern_801825C8(s16 arg0)
                     SndEvt_EnqueueType7(SOUND_MINE_CAVERN_GLOW_POINT_0, 1);
                     break;
                 case 3:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     break;
                 case 4:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     break;
                 case 5:
                 case 25:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     break;
                 case 18:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     break;
                 case 19:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0xD);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0xD);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0xD);
                     break;
                 case 21:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 22:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 23:
                 case 24:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     break;
             }
@@ -2738,23 +2738,23 @@ static void func_mine_cavern_801825C8(s16 arg0)
         case 1:
             switch (view) {
                 case 2:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     break;
                 case 3:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 4:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     break;
                 case 20:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 22:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     break;
                 case 5:
@@ -2784,38 +2784,38 @@ static void func_mine_cavern_801825C8(s16 arg0)
             switch (view) {
                 case 5:
                 case 25:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 6:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 7:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
                     break;
                 case 14:
                 case 15:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     break;
                 case 16:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
                     break;
                 case 17:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     break;
                 case 8:
                 case 21:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
                     break;
                 case 23:
                 case 24:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     break;
                 case 2:
@@ -2838,20 +2838,20 @@ static void func_mine_cavern_801825C8(s16 arg0)
         case 3:
             switch (view) {
                 case 2:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
                     break;
                 case 7:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
                     break;
                 case 8:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
                     break;
                 case 6:
                 case 20:
-                    SndEvt_EnqueueType6(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
                     SndEvt_EnqueueTypeA(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
                     break;
                 case 3:
@@ -3119,7 +3119,7 @@ found:
             }
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54020014;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)(worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords) / 2));
+            sndEvtRequestScriptStart(id, pan, (s8)(worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords) / 2));
             arg1->state++;
         }
     }

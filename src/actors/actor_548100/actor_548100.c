@@ -1069,8 +1069,8 @@ static void func_actor_548100_80132808(Task* arg0)
                 Gp_SetItemSeenBit(0x120, 1);
                 Gp_SetItemSeenBit(0x12C, 1);
             }
-            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
-            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 0, 0);
             gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 1);
             arg0->state = 9;
             func_actor_548100_801330EC();
@@ -1098,7 +1098,7 @@ static void func_actor_548100_80132808(Task* arg0)
             return;
         }
         if (Gp_GetCapEventKey() == 0x15) {
-            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
             gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 0);
         }
         arg0->state = 2;
@@ -2301,7 +2301,7 @@ static void func_actor_548100_80134E94(Task* arg0)
             if (work->usedItem == 0x120) {
                 value = 1;
             }
-            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
             gameFlagSetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), value);
             Gp_ClearCollectedBit(work->usedItem);
         }
@@ -2321,7 +2321,7 @@ static void func_actor_548100_80134F64(Task* arg0)
             // The player took the battery back: empty the socket.
             gameFlagSetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), 0);
             gameFlagSetNibble(GAME_FLAG_110, 1);
-            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
         }
         arg0->state = 2;
     }
@@ -2341,7 +2341,7 @@ static void func_actor_548100_80134FEC(Task* arg0)
         if (work->thirdProgress == work->thirdLength) {
             SndEvt_EnqueueType7(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 1);
             if (D_actor_548100_80135B4C->powersDoor != 0) {
-                SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_COMPLETE, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_COMPLETE, 0, 0);
                 Gp_RunCapCmd(0xC, 0);
                 arg0->state = 0xA;
             } else {

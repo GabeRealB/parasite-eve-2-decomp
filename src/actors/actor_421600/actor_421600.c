@@ -3039,13 +3039,13 @@ static void func_actor_421600_801354D8(Task* arg0)
                     work->state = 21;
                     deathSound  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010008;
                     deathPan    = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    SndEvt_EnqueueType6(deathSound, deathPan,
-                                        (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    sndEvtRequestScriptStart(deathSound, deathPan,
+                                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                 } else {
                     hurtSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010008;
                     hurtPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    SndEvt_EnqueueType6(hurtSound, hurtPan,
-                                        (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    sndEvtRequestScriptStart(hurtSound, hurtPan,
+                                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                     nextDeathState = 20;
                 setDeathState:
                     work->state = nextDeathState;
@@ -3071,8 +3071,8 @@ static void func_actor_421600_801354D8(Task* arg0)
                 }
                 hitSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
                 hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                SndEvt_EnqueueType6(hitSound, hitPan,
-                                    (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                sndEvtRequestScriptStart(hitSound, hitPan,
+                                         (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
             debugMode = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
             if (debugMode == 1) {
@@ -3699,7 +3699,7 @@ static void func_actor_421600_8013947C(Task* arg0)
         desertChaserAnimTick(arg0);
         sound = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010009;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         ctx->hp -= 0xF;
         func_800DA6E8(&ctx->node, 0xF, 0);
         if (ctx->hp <= 0) {
@@ -3707,8 +3707,8 @@ static void func_actor_421600_8013947C(Task* arg0)
         }
         eventSound = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010007;
         eventPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(eventSound, eventPan,
-                            (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(eventSound, eventPan,
+                                 (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts));
@@ -3874,7 +3874,7 @@ static void func_actor_421600_8013A554(Task* arg0)
         work->lungeDistance = 0;
         sound               = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010006;
         pan                 = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         return;
     }
     scratch       = SCRATCH_STACK_RESERVE_BLOCK(_Actor421600LungeScratch);

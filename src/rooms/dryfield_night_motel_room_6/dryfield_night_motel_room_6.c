@@ -1012,7 +1012,7 @@ s32 func_dryfield_night_motel_room_6_80181BF8(Task* task, s32 msgId, s32 arg2, s
 s32 func_dryfield_night_motel_room_6_80181C00(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6, 0x0C), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6, 0x0C), 0, 0);
     }
     return 0;
 }

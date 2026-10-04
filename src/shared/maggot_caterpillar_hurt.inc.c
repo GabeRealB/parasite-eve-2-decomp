@@ -30,7 +30,7 @@ void maggotCaterpillarHurtState(Task* arg0)
             work->turnRate     = 0;
             sound              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0004;
             pan                = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
         case 1:
             if (work->animFrame >= 0x15) {

@@ -3204,7 +3204,7 @@ harmless — `ret`'s value from the entry block is dead there. Inputs:
 
 ## `(s8)worldCoordGetOriginAudioPan()` ashl dest stays in `$v0`; `pan <<= 24; pan >>= 24` writes `$s0`
 
-`pan = (s8)worldCoordGetOriginAudioPan(obj)` then `SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(obj))`
+`pan = (s8)worldCoordGetOriginAudioPan(obj)` then `sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(obj))`
 expands the assignment ashl into a temp tied to the call's `$v0`:
 
 ```
@@ -3223,7 +3223,7 @@ Assigning the call first and shifting the local in place does not:
 pan = worldCoordGetOriginAudioPan(obj);
 pan <<= 24;
 pan >>= 24;
-SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
+sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
 ```
 
 Splitting `pan` / `pan2` per arm also gets the saved-reg ashl dest (the
@@ -3247,7 +3247,7 @@ conversion to the use:
 ```c
 s8  pan;                      /* or: s32 pan = worldCoordGetOriginAudioPan(o);       */
 pan = worldCoordGetOriginAudioPan(o);
-SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(o));
+sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(o));
 ```
 
 expands to an SI copy of `$v0` plus a `QI` subreg, and the sign-extend is
@@ -4738,7 +4738,7 @@ join:
    bne  v1, v0, done      ; ONE shared compare, $v0 carries the mark
    jal  worldCoordGetOriginAudioPan      ; ... and ONE shared call block
    jal  worldCoordGetOriginAudioDepth
-   jal  SndEvt_EnqueueType6
+   jal  sndEvtRequestScriptStart
 ```
 
 `if (work->animFrame == 0x2C) { snd = T[..+8] | ...; call; }` and
@@ -9238,7 +9238,7 @@ goto case1;
 `Actor01600_Fn01420` is the example. `TOUCH_REG(bits)` after
 `bits = 0x40100000` keeps `lui 0x4010` above an independent `lw` of the
 spawn pointer; without it the scheduler emits `lw` then `lui`. After the
-following `jal`, copy the first two `SndEvt_EnqueueType6` args into temps
+following `jal`, copy the first two `sndEvtRequestScriptStart` args into temps
 and `TOUCH_REG` each so `move a0` / `move a1` precede `sll v0,24` of the
 third arg's `(s8)`:
 
@@ -9247,7 +9247,7 @@ a0id  = id;
 a1pan = pan;
 TOUCH_REG(a0id);
 TOUCH_REG(a1pan);
-SndEvt_EnqueueType6(a0id, a1pan, (s8)depth);
+sndEvtRequestScriptStart(a0id, a1pan, (s8)depth);
 ```
 
 **`maspsx` hangs unless stdin is closed (fixed).** `maspsx.py` prints
@@ -11895,7 +11895,7 @@ instruction and shifting every later label. `SndVoice_Alloc` only matches with
 the `s32` + `(s8)` form.
 
 `_gSndBankSlots` is a `SndBankSlot[16]` array (stride `0x10`, via
-`SndBankSlot_Get` / `SndBankSlot_Free`). `SndVoice_Alloc` indexes the separate
+`sndBankSlotGet` / `SndBankSlot_Free`). `SndVoice_Alloc` indexes the separate
 `SndScript_Voices[8]` array (stride `0x40`) by `voiceIdx - 16`: SPU voices
 `0..15` belong to the MIDI sequencer, and scripts allocate voices `16..23`.
 The current declaration and access express those separate arrays directly;
@@ -13013,7 +13013,7 @@ var = (s32)((u32)(var * scale) / 65535);
 
 ## SndVoice voice list (script-owned)
 
-`SndVoice_Attach` inserts a `_SndVoice` at the head of a doubly-linked list owned
+`_sndVoiceAttach` inserts a `_SndVoice` at the head of a doubly-linked list owned
 by its `_SndScript`:
 
 | Offset | Role |
@@ -13025,8 +13025,8 @@ by its `_SndScript`:
 
 Insert-at-head: if head exists, rewire `new->next = old`, `old->prev = new`,
 `new->prev = NULL`, `script->voices = new`, `new->script = script`. If the script is
-NULL, only clear the voice's three link fields. Pair with `SndVoice_Detach`
-(unlink/free) and `SndScript_TickVoices` (walk via `next`).
+NULL, only clear the voice's three link fields. Pair with `_sndVoiceDetach`
+(unlink/release the record, retaining its script pointer) and `SndScript_TickVoices` (walk via `next`).
 
 ## Local jump table via struct assignment of function pointers
 
@@ -16792,30 +16792,31 @@ Two ingredients:
    produces `sll v1,a1,24; sra v1,v1,24` rather than `sll v0; sra v1,v0`:
 
 ```c
-temp = (s8)arg1;
-switch (temp) {
+signedSceneEvent = (s8)sceneEvent;
+switch (signedSceneEvent) {
 case 0x14:
-    arg1 = 0;
+    sceneEvent = STAGE_MUSIC_DEFAULT_COLUMN;
     break;
 case 0x1D:
-    arg1 = 1;
+    sceneEvent = 1;
     break;
 default:
-    temp = arg1 << 24;
-    temp = temp >> 24; /* must be two stmts — `(value<<24)>>24` regallocs via $v0 */
-    arg1 = arg1 - arg2;
-    temp = temp < ((arg2 & 0xFF) + 1); /* slt v1,v1,v0 then beqz v1 */
-    if (temp != 0) {
-        arg1 = 0;
+    signedSceneEvent = sceneEvent << 24;
+    signedSceneEvent = signedSceneEvent >> 24; /* must be two stmts — `(value<<24)>>24` regallocs via $v0 */
+    sceneEvent = sceneEvent - sceneEventOffset;
+    signedSceneEvent = signedSceneEvent < ((sceneEventOffset & 0xFF) + 1); /* slt v1,v1,v0 then beqz v1 */
+    beforeSceneEventBase = signedSceneEvent;
+    if (beforeSceneEventBase != 0) {
+        sceneEvent = STAGE_MUSIC_DEFAULT_COLUMN;
     }
     break;
 }
 ```
 
-`temp = temp < …; if (temp != 0)` is what turns the compare into `slt v1,v1,v0`
+`signedSceneEvent = signedSceneEvent < …` followed by `beforeSceneEventBase = signedSceneEvent; if (beforeSceneEventBase != 0)` is what turns the compare into `slt v1,v1,v0`
 (reuse the cast reg) instead of `slt v0,v1,v0`.
 
-`TaskIdMap_RemapIndex` case 5 is the pure example.
+`stageMusicSelectColumn` case 5 is the pure example.
 
 ## Force multiply-before-base for `base + index * size`
 
@@ -17929,7 +17930,7 @@ GCC 2.8.1 lays this out as fallthrough setup → `j`/`move v0,s3` → `li v0,-1`
 → epilogue, with `beqz` to the `li`. Early `return orig` from the outer
 `if (index == 0)` path merges into `ret_orig`.
 
-`SndEvt_EnqueueType6` is the pure example.
+`sndEvtRequestScriptStart` is the pure example.
 
 ## Switch case stores of `field_30` vs a shared `next` temp
 
@@ -23085,7 +23086,7 @@ trailing `lb`/`sb`), it is that function's local array initializer: GCC emits
 the template while expanding the declaration, so it lands at the same place -
 after the first function's jtbl, before the second's own - with no file-scope
 symbol and no struct wrapper to make the copy an assignment.
-`SndLoad_ResolveSpuAddr` + `rowCounts` in `TaskIdMap_RemapIndex` is the pure
+`SndLoad_ResolveSpuAddr` + `columnCounts` in `stageMusicSelectColumn` is the pure
 example of that case.
 
 ## Volatile load-status flags keep `%hi` in `$a0` across reloads
@@ -29567,7 +29568,7 @@ Assign the load first:
 
 ```c
 val = *Gp_SelItemRec;
-SndEvt_EnqueueType6(3, 0, 0);
+sndEvtRequestScriptStart(3, 0, 0);
 ```
 
 `Gp_DrawLoadCmd` is the example. The post-call load stuck at 68.6%
@@ -36579,7 +36580,7 @@ scratch->work.angles.vx = -pitch;
 
 ## Don't reuse a `for`-loop counter as the `(s8)` dest before a second `jal`
 
-`temp = (s8)worldCoordGetOriginAudioPan(coord)` then `SndEvt_EnqueueType6(..., temp, (s8)worldCoordGetOriginAudioDepth(coord))` wants the sign-extend split across the second call:
+`temp = (s8)worldCoordGetOriginAudioPan(coord)` then `sndEvtRequestScriptStart(..., temp, (s8)worldCoordGetOriginAudioDepth(coord))` wants the sign-extend split across the second call:
 
 ```
 move   a0, coord
@@ -39201,7 +39202,7 @@ is `regs` alone and the diff is a rotation of the callee-saved set rather than
 one wrong pair, look for a temp whose scope is wider than its use.
 
 The same holds when the "loops" are just two `if` blocks that each call
-`SndEvt_EnqueueType6`. The tell is a whole expression chain computed directly
+`sndEvtRequestScriptStart`. The tell is a whole expression chain computed directly
 in a callee-saved register (`lhu s0,8(v0); srl s0; sll s0; ori s0,s0,6`) where
 yours computes it in `$v0` and only the last op writes `$s2`. A CALL_INSN does
 not end a basic block, so a local used in only one block is allocated by
@@ -45178,7 +45179,7 @@ statement, call included, inside each case.
 ```c
 case 0:
     id = ((arg0->field_20->field_8 >> 12) << 8) | 0x40100006;
-    SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     break;
 ```
 
@@ -45486,7 +45487,7 @@ if (work->animFrame == 0x14) {
 
     snd = Table[work->soundSet + 0xC] | ((ctx->field_8 >> 12) << 8);
     pan = (s8)worldCoordGetOriginAudioPan(self);
-    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
+    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
 }
 ```
 
@@ -47945,7 +47946,7 @@ beqz   $v1, .L88          # delay: addu $a1, $zero, $zero
 against your `beqz $v1, .L84 / nop` with the block in the order
 `lw $a0 …; move $a1, zero`. The fix is never a barrier or a pin: reorder the C
 so the block *starts* with the register op. `func_shelter_b6_nursery_8017FD3C`
-is the unsolved example — `SndEvt_EnqueueType6(task->spawnArg2, 0, 0)` always
+is the unsolved example — `sndEvtRequestScriptStart(task->spawnArg2, 0, 0)` always
 expands a0 first, so the block begins with the load and the slot stays a `nop`
 (92.75%).
 
@@ -48681,8 +48682,8 @@ into one copy by `jump.c`'s cross-jumping, even when the argument comes from a
 different place:
 
 ```c
-case 0: if (rec.field_8 != 0) { SndEvt_EnqueueType6(rec.field_8, 0, 0); goto advance; } ...
-case 3: if (rec.field_C != 0) { SndEvt_EnqueueType6(rec.field_C, 0, 0); goto advance; } ...
+case 0: if (rec.field_8 != 0) { sndEvtRequestScriptStart(rec.field_8, 0, 0); goto advance; } ...
+case 3: if (rec.field_C != 0) { sndEvtRequestScriptStart(rec.field_C, 0, 0); goto advance; } ...
 ```
 
 The target keeps both copies. A `SOFT_BARRIER()` between the call and the
@@ -48690,7 +48691,7 @@ The target keeps both copies. A `SOFT_BARRIER()` between the call and the
 and it emits nothing:
 
 ```c
-SndEvt_EnqueueType6(rec.field_8, 0, 0);
+sndEvtRequestScriptStart(rec.field_8, 0, 0);
 SOFT_BARRIER();
 goto advance;
 ```
@@ -50998,7 +50999,7 @@ two of the three cases, each written the way the matched sibling
 
 ```c
 pan = (s8)worldCoordGetOriginAudioPan(coord);
-SndEvt_EnqueueType6(work->sparkSound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+sndEvtRequestScriptStart(work->sparkSound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
 ```
 
 That stalled at 94.97% saving `ra/s2/s1/s0` where the target saves `ra/s1/s0`,
@@ -51284,7 +51285,7 @@ block's first instruction and thus stealable.
 ```c
 zero = 0;
 TOUCH_REG(zero);
-SndEvt_EnqueueType6((s32)task->spawnArg2, zero, zero);
+sndEvtRequestScriptStart((s32)task->spawnArg2, zero, zero);
 ```
 
 `func_mist_parking_80182628` is the example (92.75% -> 100%). No register pin is
@@ -53821,7 +53822,7 @@ struct traffic. Restructuring the `switch` cannot fix it.
 ## A `switch` decision tree with a `slti` high-bound check needs a *third*, invisible case
 
 `func_acropolis_roof_garden_8017D868` is a room message handler whose entire
-body is one `SndEvt_EnqueueType6` call, yet the target opens with a three-test
+body is one `sndEvtRequestScriptStart` call, yet the target opens with a three-test
 decision tree:
 
 ```
@@ -53861,7 +53862,7 @@ The match is therefore
 
 ```c
 switch (arg2) {
-    case 3:  SndEvt_EnqueueType6(0x510D0003, 0, 0); break;
+    case 3:  sndEvtRequestScriptStart(0x510D0003, 0, 0); break;
     case 5:  break;
     case 9:  break;
 }
@@ -54709,7 +54710,7 @@ store in each arm* instead of assigning a local the join stores once. Here the
 
 ```c
 if (work->field_4 != 0x561) {
-    SndEvt_EnqueueType6(0x510E0004, 0, 0);
+    sndEvtRequestScriptStart(0x510E0004, 0, 0);
     work->field_8 = 0;
     work->field_A = 0;
     task->state   = 7;      /* was: state = 7; … task->state = state; */
@@ -54843,8 +54844,8 @@ argument, each arm calling the same sound function with a different constant:
 s32 F(s32 arg0, s32 arg1, s32 arg2)
 {
     switch (arg2) {
-        case 4: SndEvt_EnqueueType6(0x52200004, 0, 0); break;
-        case 5: SndEvt_EnqueueType6(0x52200005, 0, 0); break;
+        case 4: sndEvtRequestScriptStart(0x52200004, 0, 0); break;
+        case 5: sndEvtRequestScriptStart(0x52200005, 0, 0); break;
     }
     return 0;
 }
@@ -58940,7 +58941,7 @@ the last mismatch, 99.8% to 100%.
 ## Repeated call sequences want a `static __inline__`, not shared function locals
 
 The same function plays a positional sound in four places: build an event id
-from a field, call `worldCoordGetOriginAudioPan`, then `SndEvt_EnqueueType6` with
+from a field, call `worldCoordGetOriginAudioPan`, then `sndEvtRequestScriptStart` with
 `worldCoordGetOriginAudioDepth`. Written with two locals declared once at the top of the
 function, the id and the pan came out in `$s1` / `$s0` — swapped against the
 target's `$s0` / `$s1` — at all four sites, and no amount of reordering fixed it:
@@ -61964,7 +61965,7 @@ chain collides and one file is silently overwritten by another.
 
 ```c
 pan = (s8)worldCoordGetOriginAudioPan(coord);
-SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
 ```
 
 The ROM straddles the second call with the extension - `sll s0,v0,0x18` before
@@ -69558,7 +69559,7 @@ followed by `{`) before believing a "missing" body.
 ### Cross-jumped call with an `(s8)` argument: one local per arm, not one shared
 
 `func_actor_503500_80145A2C` ends in two arms that differ only in the sound id:
-each loads `lui/ori a0`, and the `SndEvt_EnqueueType6` call after them is
+each loads `lui/ori a0`, and the `sndEvtRequestScriptStart` call after them is
 shared. Writing the call once after an `if` that sets `pan`/`depth`/`id` gives
 `addu a2,v0,a2` instead of `addu a2,a2,v0`. Writing the call in each arm lets
 jump2 cross-jump the tail, which fixes that, but a single `pan` assigned in both
@@ -69573,10 +69574,10 @@ per arm keeps each one block-local, and the shift pair then goes straight into
 ```c
 if (gGameSession->eventState != 0) {
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(0x40230013, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    sndEvtRequestScriptStart(0x40230013, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
 } else {
     pan2 = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(0x4023000E, pan2, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    sndEvtRequestScriptStart(0x4023000E, pan2, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
 }
 ```
 
@@ -71565,7 +71566,7 @@ fills. Gotos keep the zero-both tail *before* the hit-flag check. Example:
 
 ## `(s8)worldCoordGetOriginAudioPan()` ashl dest stays in `$v0`; `pan <<= 24; pan >>= 24` writes `$s0`
 
-`pan = (s8)worldCoordGetOriginAudioPan(obj)` then `SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(obj))`
+`pan = (s8)worldCoordGetOriginAudioPan(obj)` then `sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(obj))`
 expands the assignment ashl into a temp tied to the call's `$v0`:
 
 ```
@@ -71584,7 +71585,7 @@ Assigning the call first and shifting the local in place does not:
 pan = worldCoordGetOriginAudioPan(obj);
 pan <<= 24;
 pan >>= 24;
-SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
+sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
 ```
 
 Splitting `pan` / `pan2` per arm also gets the saved-reg ashl dest (the
@@ -72368,7 +72369,7 @@ testing against it first.
 ## The declared width of a `(s8)`-cast call result decides *where* the `sll`/`sra` lands
 
 `func_actor_444000_801435CC` reads a pan value from `worldCoordGetOriginAudioPan` (which
-returns `s32`), narrows it to a byte and hands it to `SndEvt_EnqueueType6`.
+returns `s32`), narrows it to a byte and hands it to `sndEvtRequestScriptStart`.
 The target sign-extends immediately after the call, in the *next* call's delay
 slot:
 
@@ -72393,7 +72394,7 @@ assignment, which is what the target shows:
 s32 pan;
 
 pan = (s8)worldCoordGetOriginAudioPan(((TmdObject*)arg0->extra)->coords);
-SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(((TmdObject*)arg0->extra)->coords));
+sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(((TmdObject*)arg0->extra)->coords));
 ```
 
 The third argument stays an inline `(s8)` cast, and *there* the extension does
@@ -75628,7 +75629,7 @@ coordinate, a `worldCoordGetOriginAudioPan` byte and a `worldCoordGetOriginAudio
 if (!(rec->flags & 0x20) && (work->lastCueFlags & 0x20)) {
     snd = (((u16)arg0->field_20->field_8 >> 0xC) << 8) | 0x40780001;
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
 }
 ```
 
@@ -76975,7 +76976,7 @@ sibling `ActorsShared80168a28` already writes:
 ```c
 s32 pan;
 pan = (s8)worldCoordGetOriginAudioPan(coord);
-SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
 ```
 
 A QImode object only has to be converted where it is *used*, so GCC delays the
@@ -76992,7 +76993,7 @@ the narrowing cast - it prints a *no-op* `(s32)` over a callee that already
 returns `s32`, so the seed looks like it has the cast covered:
 
 ```c
-SndEvt_EnqueueType6(temp_s0, (s32)temp_s1, (s32)worldCoordGetOriginAudioDepth(coord));
+sndEvtRequestScriptStart(temp_s0, (s32)temp_s1, (s32)worldCoordGetOriginAudioDepth(coord));
 ```
 
 Only the target's `sll $v0,$v0,24` / `sra $a2,$v0,24` on the call result says
@@ -79003,7 +79004,7 @@ pan *after* the call, into a byte temporary, and widens it at the use:
 
 ```c
 s8 temp_s0 = worldCoordGetOriginAudioPan(self);
-SndEvt_EnqueueType6(temp_s1, (s32)temp_s0, (s32)worldCoordGetOriginAudioDepth(self));
+sndEvtRequestScriptStart(temp_s1, (s32)temp_s0, (s32)worldCoordGetOriginAudioDepth(self));
 ```
 
 That is two pseudos: a QImode one holding the raw call result, and a
@@ -79024,7 +79025,7 @@ that to the argument, which is what the ROM does:
 
 ```c
 s32 pan = (s8)worldCoordGetOriginAudioPan(self);
-SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
+sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
 ```
 
 ```
@@ -80281,7 +80282,7 @@ base_6.i SHA256: `a3c99af57dc06762d946df742867c8df18b8097702d162a5c438de9ad9c1a3
 ## Nested abs expression can change unrelated saved-register homes (Actor00100_Fn09CCC)
 
 In GCC 2.8.1, replacing a separate conditional negation and depth update with
-`SndEvt_EnqueueType6(sound, (s8)pan, (s8)(depth + abs(worldCoordGetOriginAudioPan(coord)) / 2))`
+`sndEvtRequestScriptStart(sound, (s8)pan, (s8)(depth + abs(worldCoordGetOriginAudioPan(coord)) / 2))`
 changed the sound temporaries from global ranges to block-local ranges.
 Actor00100_Fn09CCC base_6 -> base_7 improved 96.214% -> 99.673%;
 the planned sound homes s0/s2/s1 and abs result v0 were observed.
@@ -80371,7 +80372,7 @@ The permuter widened an s8 pan into an s32 temporary before worldCoordGetOriginA
 A controlled normal-header variant reproduced the whole gain (distance
 1607 -> 1227) with just `s32 pan = (s8)worldCoordGetOriginAudioPan(...)`; the winner's
 chained zero stores were unnecessary. The original s8 local was widened
-only in the later SndEvt_EnqueueType6 argument expression.
+only in the later sndEvtRequestScriptStart argument expression.
 
 base_2 .rtl UIDs 278/279 perform the left/right shifts into SI pseudo 102
 before depth call UID286. In .sched2 the shifts use s1, and .dbr puts the
@@ -81635,7 +81636,7 @@ Input SHA256 (`base_1.i`, the matching candidate):
 ## A `(s8)` cast inlined as a call argument is a birthing insn, and sched1 launches it into the call's delay slot
 
 `func_actor_207200_8014C870` enqueues a sound effect in three arms, each as
-`SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord))` with `pan`
+`sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord))` with `pan`
 computed by a preceding `worldCoordGetOriginAudioPan` call. Written the obvious way — a `s8 pan`
 local assigned `(s8)worldCoordGetOriginAudioPan(coord)` on its own line — the result is 90.5%:
 the coord-to-`$a0` copy lands in `worldCoordGetOriginAudioDepth`'s delay slot and the pan
@@ -81654,7 +81655,7 @@ where the target has the extension *before* the call and its `sra` in the slot:
 Only the source form changes. Inlining the casts as arguments,
 
 ```c
-    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
 ```
 
 scores 100% (0 differences, `blocks=7/7 instructions=133/133`). The `sll`/`sra`
@@ -88141,7 +88142,7 @@ read is the only regs diff.
 ### Duplicated call arms need their own locals, or the shared ones steal callee-saved registers
 
 `Actor01900_Fn02A50` picks a sound id with `hp <= 0 ? 0x400A0008 : 0x400A0007`
-and feeds it through `worldCoordGetOriginAudioPan` / `worldCoordGetOriginAudioDepth` to `SndEvt_EnqueueType6`.
+and feeds it through `worldCoordGetOriginAudioPan` / `worldCoordGetOriginAudioDepth` to `sndEvtRequestScriptStart`.
 Every single-local form was 99.988% at best: a plain `if`/`else` (or ternary)
 is hoisted by jump.c's `x = b; if (...) x = a`; loading `hp` into the result
 local blocks that (the jump then references `x`) but leaves the test in the
@@ -88159,7 +88160,7 @@ already does) matched:
 if (enemy->hp <= 0) {
     deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0008;
     deathPan   = (s8)worldCoordGetOriginAudioPan((GfxCoord*)arg0->field_2C->field_8);
-    SndEvt_EnqueueType6(deathSound, deathPan, (s8)worldCoordGetOriginAudioDepth((GfxCoord*)arg0->field_2C->field_8));
+    sndEvtRequestScriptStart(deathSound, deathPan, (s8)worldCoordGetOriginAudioDepth((GfxCoord*)arg0->field_2C->field_8));
 } else {
     hitSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0007;
     ...
@@ -90395,7 +90396,7 @@ instruction count matches.
 
 m2c reads the `sb` in a call's delay slot as a use of `$a3` at the call, so a
 byte loaded just before the call and stored in that slot comes out as a fourth
-argument: `SndEvt_EnqueueType6(0x54060003, 0, 0, temp_a3)`, when the project
+argument: `sndEvtRequestScriptStart(0x54060003, 0, 0, temp_a3)`, when the project
 declares the callee with three parameters. Following m2c there is a dead end -
 the call does not compile - and the obvious repair, casting to a
 four-parameter pointer type, "works" only by adding `andi a3,t0,0xff` (the `s32`
@@ -90408,7 +90409,7 @@ The target is the three-argument call with the store written *before* it:
 temp_a3                = gMcSaveData.location.loc.view;   /* lbu a3,4(v0) */
 gMcSaveData.location.loc.view = 6;
 D_mine_refuge_80182ADC = temp_a3;
-SndEvt_EnqueueType6(0x54060003, 0, 0);
+sndEvtRequestScriptStart(0x54060003, 0, 0);
 ```
 
 `temp_a3`'s live range now ends before the call, so an ordinary temp takes
@@ -90483,7 +90484,7 @@ A room message handler that cues one sound is one compare and one call:
 s32 func_neo_ark_eve_access_tunnel_8017DE9C(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 1) {
-        SndEvt_EnqueueType6(0x55080000 | 1, 0, 0);
+        sndEvtRequestScriptStart(0x55080000 | 1, 0, 0);
     }
     return 0;
 }
@@ -90870,7 +90871,7 @@ Inputs: `base_25.i` (100.000%) `12238417d88f79205ec5e97a73a05cdde4292130bee920d1
 `Actor00400_Fn00C84` picks a sound id from `work->strideCount & 1` and the target
 keeps both arms whole (`beqz` slot = shared `lui a1`, `j` over the `ori`), i.e.
 the `jump.c` "`x = b; if (...) x = a;`" hoist did not fire. Duplicating the whole
-id/pan/`SndEvt_EnqueueType6` block into both arms (the known lever) fixes the
+id/pan/`sndEvtRequestScriptStart` block into both arms (the known lever) fixes the
 branch, but with function-scope `id`/`pan` locals each is now set in two blocks,
 so they leave local-alloc for `global.c` and reshuffle every callee-saved
 register (98.7%). Declaring `s32 id` / `s32 pan` *inside each arm* gives each arm
@@ -91446,7 +91447,7 @@ it, and a `goto` to that label from the later cases:
     case 3:
         var_a0 = 0x550E0003;
 block_6:
-        SndEvt_EnqueueType6(var_a0, 0, 0);   /* label inside case 3 */
+        sndEvtRequestScriptStart(var_a0, 0, 0);   /* label inside case 3 */
         break;
     case 0x65:
         if (Gp_GetCapEventKey() == 0) {
@@ -91478,7 +91479,7 @@ own label, and give the *earlier* cases an explicit `goto`:
         }
         id = 0x550E0004;
     play:
-        SndEvt_EnqueueType6(id, 0, 0);
+        sndEvtRequestScriptStart(id, 0, 0);
         break;
     }
     return 0;
@@ -95771,7 +95772,7 @@ argument:
 
 ```c
 pan = (s8)worldCoordGetOriginAudioPan(coord);
-SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
 ```
 
 That form matches elsewhere in the same TU, but here it scored 85.5% with one
@@ -95798,7 +95799,7 @@ and `expand_call` precomputes an argument containing a call as a unit — the
 `a0 = coord` setup for `worldCoordGetOriginAudioDepth` is emitted first:
 
 ```c
-SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
+sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
                     (s8)worldCoordGetOriginAudioDepth(coord));
 ```
 
@@ -99859,7 +99860,7 @@ the position sched2 gave the arm-specific `ori` sets the boundary:
 The form that reaches retail's boundary is the one already recorded for
 `func_actor_510900_80137868` ("Duplicating a whole statement into both arms is a
 cross-jumping lever"), taken all the way: duplicate the **whole**
-`SndEvt_EnqueueType6(...)` statement - `worldCoordGetOriginAudioPan` and `worldCoordGetOriginAudioDepth`
+`sndEvtRequestScriptStart(...)` statement - `worldCoordGetOriginAudioPan` and `worldCoordGetOriginAudioDepth`
 included - in both arms. Cross-jumping then folds the identical trailing call
 sequence into the join, each arm keeps only its constant and its reload, and the
 join starts exactly at the `lhu`. This function is a second worked example of
@@ -102271,7 +102272,7 @@ join:
 sll  a1, s1, 24        /* the argument setup lives at the join */
 sra  a1, a1, 24
 sll  a2, s2, 24
-jal  SndEvt_EnqueueType6
+jal  sndEvtRequestScriptStart
 sra  a2, a2, 24
 ```
 
@@ -102287,11 +102288,11 @@ with `branch=1 regs=6 reorder=2 insert=1 delete=1`.
 
 ```c
 if (arg0 != 0) {
-    SndEvt_EnqueueType6(0x55170007, pan, depth);
+    sndEvtRequestScriptStart(0x55170007, pan, depth);
 } else if (rand() & 1) {
-    SndEvt_EnqueueType6(0x55170005, pan, depth);
+    sndEvtRequestScriptStart(0x55170005, pan, depth);
 } else {
-    SndEvt_EnqueueType6(0x55170006, pan, depth);
+    sndEvtRequestScriptStart(0x55170006, pan, depth);
 }
 ```
 
@@ -104328,7 +104329,7 @@ matched sibling in the same TU does
 
 ```c
 s32 pan = (s8)worldCoordGetOriginAudioPan(((TmdObject*)arg0->extra)->coords);
-SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(...));
+sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(...));
 ```
 
 collapses it to one SI sign-extension of the call result, which is what keeps
@@ -105989,7 +105990,7 @@ using `$a0`.
 
 ## One pan/obj local per sound call site, and `(v << 16) >> 13` keeps a sign-extend a truncating store drops (func_actor_107600_801332D4, 2026-09-16)
 
-Four `pan = (s8)worldCoordGetOriginAudioPan(o); SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(o));`
+Four `pan = (s8)worldCoordGetOriginAudioPan(o); sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(o));`
 sites sharing one `obj`/`pan` pair of function-scope locals cost an extra
 callee-saved register (`$s4`, 93%). Target reuses `$s0` for each site's object
 and pan because each is a separate short-lived pseudo. Giving every site its
@@ -112027,7 +112028,7 @@ frame:
 ```c
         sfx = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200013;
         pan = (s8)worldCoordGetOriginAudioPan(((TmdObject*)arg0->extra)->coords);
-        SndEvt_EnqueueType6(sfx, pan, (s8)worldCoordGetOriginAudioDepth(...));
+        sndEvtRequestScriptStart(sfx, pan, (s8)worldCoordGetOriginAudioDepth(...));
 ```
 
 with `sfx`/`pan` declared once for the whole function and reassigned in each
@@ -117013,12 +117014,12 @@ style (`func_actor_105100_80135F50` writes `state = work->actionStep` and uses
 ## A cast written inline at the call site is a call-crossing temp; through a local it is not
 
 `func_actor_105100_80133A14` pipes a `(s8)worldCoordGetOriginAudioPan(...)` pan and a
-`(s8)worldCoordGetOriginAudioDepth(...)` depth into `SndEvt_EnqueueType6` in three of its four
+`(s8)worldCoordGetOriginAudioDepth(...)` depth into `sndEvtRequestScriptStart` in three of its four
 paths. Written through a named local --
 
 ```c
     pan = (s8)worldCoordGetOriginAudioPan(self);
-    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
+    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
 ```
 
 -- the build stops at 96.7%: the function's long-lived `work` pointer sits in
@@ -117027,7 +117028,7 @@ register off (`regs=46`, the only structural diagnostic left). Inlining the
 cast instead --
 
 ```c
-    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
 ```
 
 -- is 100%. The two forms allocate the same expression differently: in the
@@ -117103,7 +117104,7 @@ struct-typing the body is what loses it.
 The same function re-confirmed "A cast written inline at the call site is a
 call-crossing temp; through a local it is not": `s32 pan` assigned from
 `(s8)worldCoordGetOriginAudioPan(...)`, with `(s8)worldCoordGetOriginAudioDepth(...)` inline at the
-`SndEvt_EnqueueType6` call, is what produces the target's `sll $s0,$v0,24` /
+`sndEvtRequestScriptStart` call, is what produces the target's `sll $s0,$v0,24` /
 `sra $s0,$s0,24` / `move $a1,$s0` triple plus the depth's own `sll`/`sra`. The
 m2c `s8 temp` local instead extends at the use site and loses the depth's
 extension outright (`insert=3 delete=4`, `regs=6`; fixing it alone is 98.609%).
@@ -118123,7 +118124,7 @@ duplicated source tail rather than statement order.
 **Symptom:** 96.7%, `regs=64`. Retail: `beqz v0, else` with `move a0,s2` in its
 delay slot, then per-arm `lhu`/`srl` for a sound id, and at the join
 `sll; jal worldCoordGetOriginAudioPan` with `or s1,v0,t0` in the call's delay slot. Writing the
-if/else to pick `snd` and one shared `SndEvt_EnqueueType6(snd, (s8)Pan(c), (s8)Depth(c))`
+if/else to pick `snd` and one shared `sndEvtRequestScriptStart(snd, (s8)Pan(c), (s8)Depth(c))`
 after it puts `move a0` in `jal`'s slot instead, and shifts global-alloc
 priorities enough to swap two pairs of callee-saved registers.
 
@@ -118133,7 +118134,7 @@ priorities enough to swap two pairs of callee-saved registers.
 across the join label into the branch's slot. The per-arm refs also restored
 the retail allocation order (`regs` went to 0 in the same build).
 
-**Fix:** put the full call (`snd = ...; SndEvt_EnqueueType6(...)`) in both
+**Fix:** put the full call (`snd = ...; sndEvtRequestScriptStart(...)`) in both
 arms. The remaining stack-store order of spilled constants (`sw zero,0x14(sp)`
 before `sw t0,0x1c(sp)`) followed from writing `i = 0;` ahead of the two
 constant assignments with a `do/while`.
@@ -121936,7 +121937,7 @@ differences; promoted to `src/actors/lib/actors_shared_801330ac.c`.
 ## A halfword table field loads `lhu` into an `s16` local and `lh` into an `s32` one - the local's width picks the load, not the field (func_neo_ark_substation_8017D608, 2026-09-17)
 
 `func_neo_ark_substation_8017D608` reads a `(panOffset, attenuation)` pair out of an `s16` table
-and hands both to `SndEvt_EnqueueType6` as signed bytes:
+and hands both to `sndEvtRequestScriptStart` as signed bytes:
 
 ```
 lh   $a1,0x0($v0)        target: signed halfword loads, byte-extracted at the call
@@ -126750,7 +126751,7 @@ in six sizes, sharing almost no code:
     USA/actors/actor_110300  0x68   jal func_actor_110300_801320C4, func_800D7A9C
     USA/actors/actor_146300  0x7C   jal actorRenderComposeCoord, func_800D7A9C, func_actor_146300_801327CC
     USA/actors/actor_260400  0x84   jal actorRenderComposeCoord, func_800D7A9C, func_actor_260400_8014A200, ...
-    USA/actors/actor_110800  0x304  jal func_actor_110800_80132368, SndEvt_EnqueueType6 (x7), ...
+    USA/actors/actor_110800  0x304  jal func_actor_110800_80132368, sndEvtRequestScriptStart (x7), ...
 
 The scratch env for the actor_110300 body that day was handed
 `src/actors/actor_260400/actor_260400_2.c` as its host - whose same-named
@@ -138506,7 +138507,7 @@ Retained source/dump evidence and prediction are under
 ## func_actor_421600_801373D4: widen a signed-byte pan before a second call
 
 GCC 2.8.1 expands `s8 pan = (s8)worldCoordGetOriginAudioPan(coord)` into a QI local;
-when passed to `SndEvt_EnqueueType6` after `worldCoordGetOriginAudioDepth`, its SI sign
+when passed to `sndEvtRequestScriptStart` after `worldCoordGetOriginAudioDepth`, its SI sign
 extension appears after the depth call. Keeping the cast but declaring `s32 pan`
 places the extension at assignment. In this function the shifts occupy the load
 and call delay slots before/at `worldCoordGetOriginAudioDepth`, removing a copy and a nop while
@@ -140895,7 +140896,7 @@ duplicated `li v0,2; sw` tail after reload, so the block layout does not change:
 ```c
 } else {
     D_8018D789 ^= work->field_C;
-    SndEvt_EnqueueType6(0x54140004, 0, 0);
+    sndEvtRequestScriptStart(0x54140004, 0, 0);
     task->state = 2;   /* duplicate of the tail store: 4th qty, merged later */
     return;
 }

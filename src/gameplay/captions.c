@@ -174,7 +174,7 @@ void func_800E44A0(Task* task)
 resumeView:
     if (D_801156A4 & 0x20) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 5) {
-            SndEvt_EnqueueType6(0, 0, 0);
+            sndEvtRequestScriptStart(0, 0, 0);
         }
         D_801155BB  = 0;
         D_8011566E  = 0;
@@ -393,7 +393,7 @@ resumeView:
                         D_801155C0 = (s16)oldChoice;
                     }
                     if ((D_801155C0 != (s16)oldChoice) && (D_801155BE != 0)) {
-                        SndEvt_EnqueueType6(SOUND_SYSTEM_CURSOR, 0, 0);
+                        sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
                     }
                     func_800E62C0();
                     confirmMask = Pad_MaskConfirm;
@@ -412,7 +412,7 @@ resumeView:
                                 } else {
                                     soundId = SOUND_SYSTEM_CONFIRM;
                                 playChoiceSound:
-                                    SndEvt_EnqueueType6(soundId, 0, 0);
+                                    sndEvtRequestScriptStart(soundId, 0, 0);
                                 }
                                 goto confirmChoice;
                             }

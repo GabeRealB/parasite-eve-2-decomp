@@ -96,7 +96,7 @@ void generatorBodyHit(Task* arg0)
             work->hitCooldown = val;
         }
         snd = gGeneratorSoundIds[2] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     }
 end:
     Gp_ClearRec18Occupied(work->contacts);

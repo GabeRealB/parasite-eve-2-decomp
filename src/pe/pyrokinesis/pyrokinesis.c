@@ -68,7 +68,7 @@ STATIC_ASSERT_SIZEOF(_PyrokinesisWork, 0x58);
 
 static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1);
 
-/// The `SndEvt_EnqueueType6` id of the ignition roar, three per PE level,
+/// The `sndEvtRequestScriptStart` id of the ignition roar, three per PE level,
 /// indexed by `EffectWork.index * 3 + Task::spawnArg1` (level by cast variant).
 static s32 D_pyrokinesis_80131DD8[] = {
     0xE00B0002,
@@ -175,8 +175,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             mem->period     = (gRandomLcgState >> 16) & 0xFFF;
             mem->index      = (Gp_StateC08.attachId % 10) - 1;
             pan             = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_pyrokinesis_80131DD8[mem->index * 3 + arg0->spawnArg1.value], pan,
-                                (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(D_pyrokinesis_80131DD8[mem->index * 3 + arg0->spawnArg1.value], pan,
+                                     (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_SpawnPadLerp((s16)(mem->index * 2 + 8), 0xFF, 8);
             if (mem->index == 1) {
                 arg0->spawnArg1.value = 1;

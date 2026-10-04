@@ -1296,7 +1296,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
     }
     if (task->spawnArg1.value == 0x5A) {
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD, 3), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD, 3), 0, 0);
     }
 }
 

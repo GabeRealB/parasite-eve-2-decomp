@@ -83,7 +83,7 @@ static _NecrosisLevelTuning D_necrosis_801306BC[] = {
     { 0x0540, 0x0014 },
 };
 
-/// The `SndEvt_EnqueueType6` id for each `D_necrosis_801306BC` row.
+/// The `sndEvtRequestScriptStart` id for each `D_necrosis_801306BC` row.
 static s32 D_necrosis_801306C8[] = { 0xE0150001, 0xE0180001, 0xE01B0001 };
 
 static void func_necrosis_8012FE64(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -174,8 +174,8 @@ void func_necrosis_8012EF34(Task* arg0)
             Gp_LinkObj(7, &work->gridBody);
             work->gridBody.flags = (work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             pan                  = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_necrosis_801306C8[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
-                                (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(D_necrosis_801306C8[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
+                                     (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_SpawnPadLerp(D_necrosis_801306BC[mem->index].travelFrames + 0xC, 0xFF, 8);
             arg0->state = 1;
             /* fallthrough */

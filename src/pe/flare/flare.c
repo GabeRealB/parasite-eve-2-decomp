@@ -64,7 +64,7 @@ void flareEffectTask(Task* arg0)
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
         pan = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(SOUND_FLARE_USE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(SOUND_FLARE_USE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         arg0->state = 1;
     }
     tick = mem->age;

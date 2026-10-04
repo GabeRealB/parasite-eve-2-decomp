@@ -1643,7 +1643,7 @@ void func_dryfield_general_store_8017DFB4(Task* arg0)
     switch (arg0->state) {
         case 0:
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E55C, ACTOR_COMMAND_MESSAGE_APPLY);
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 0x0F), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 0x0F), 0, 0);
             arg0->killCountdown = 0x5A;
             arg0->state++;
             return;

@@ -204,7 +204,7 @@ void func_dryfield_warehouse_8017D5E8(Task* task)
         return;
     }
     if (D_dryfield_warehouse_801821B8 == 0) {
-        SndEvt_EnqueueType6(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
+        sndEvtRequestScriptStart(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
     } else if (vol == 0) {
         SndEvt_EnqueueType7(SOUND_WAREHOUSE_AMBIENCE, 0x1E);
     } else {

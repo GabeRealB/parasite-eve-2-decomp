@@ -47,7 +47,7 @@ void golemKnightBishopKneelSeq(Task* arg0)
         case 1:
             if (work->animFrame == 0x2C) {
                 snd = gGolemKnightBishopAnimCues[work->soundSet + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrame >= 0x42) {
                 work->anim         = 0x10;
@@ -64,7 +64,7 @@ void golemKnightBishopKneelSeq(Task* arg0)
         case 2:
             if (work->animFrame == 0x19) {
                 snd = gGolemKnightBishopAnimCues[work->soundSet + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrame >= 0x31) {
                 work->anim         = 0x14;

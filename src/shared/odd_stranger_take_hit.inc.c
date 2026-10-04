@@ -147,11 +147,11 @@ void oddStrangerTakeHit(Task* arg0)
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0008;
                 deathPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                SndEvt_EnqueueType6(deathSound, deathPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                sndEvtRequestScriptStart(deathSound, deathPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             } else {
                 hitSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0007;
                 hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                SndEvt_EnqueueType6(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                sndEvtRequestScriptStart(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
             work->hitCooldown = Gp_GetIdParam2(s->hitKey);
             switch (Gp_GetIdParam0(s->hitKey) & 0xFFFF) {

@@ -940,7 +940,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
     depth = worldCoordGetOriginAudioDepth(&D_shelter_b6_nursery_801879A0);
     switch (arg0->state) {
         case 0:
-            SndEvt_EnqueueType6(SOUND_SHELTER_B6_NURSERY_AMBIENCE, (s8)pan, (s8)depth);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B6_NURSERY_AMBIENCE, (s8)pan, (s8)depth);
             arg0->state++;
             break;
         case 1:

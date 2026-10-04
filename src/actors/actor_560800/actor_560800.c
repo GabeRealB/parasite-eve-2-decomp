@@ -5986,7 +5986,7 @@ void func_actor_560800_801365D0(u16 arg0)
 
 void func_actor_560800_80136678(s32 arg0)
 {
-    SndEvt_EnqueueType6(D_actor_560800_8016F57C[arg0], 0, 0);
+    sndEvtRequestScriptStart(D_actor_560800_8016F57C[arg0], 0, 0);
 }
 
 /// Task state handler for the second spawn mode: states 1 and 2 — and state 0,

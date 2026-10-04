@@ -162,7 +162,7 @@ static void Telephone_SaveRow(UiList* prompt, UiObject* obj)
     Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Telephone_Data_801819F8, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     sel = prompt->rowInputEnabled;
     if (sel == 1 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
-        SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
+        sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         gDisplayState.gameMode = DISPLAY_GAME_MODAL;
         Ui_SpawnFromDesc(&D_800611E4, 1, 0, 0, obj);
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -177,7 +177,7 @@ static void Telephone_PlayDataRow(UiList* prompt, UiObject* obj)
 {
     Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Telephone_Data_80181A00, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
+        sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CAC, 0, 1, 1, obj);
         obj->result             = USER_INTERFACE_RESULT_CONFIRM;
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -192,7 +192,7 @@ static void Telephone_WeaponDataRow(UiList* prompt, UiObject* obj)
 {
     Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Telephone_Data_80181A0C, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
+        sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CC8, 0, 1, 1, obj);
         obj->result             = USER_INTERFACE_RESULT_CONFIRM;
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -207,7 +207,7 @@ static void Telephone_PeDataRow(UiList* prompt, UiObject* obj)
 {
     Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Telephone_Data_80181A18, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-        SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
+        sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         Ui_SpawnFromDesc(&Telephone_Data_80181CC8, 1, 1, 1, obj);
         obj->result             = USER_INTERFACE_RESULT_CONFIRM;
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;

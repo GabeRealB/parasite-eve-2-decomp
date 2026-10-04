@@ -262,7 +262,7 @@ void Gp_AttachListTask(Task* task)
             if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-                SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         }
@@ -441,7 +441,7 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
             Ui_SpawnFromDesc(&D_8010EF30, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -504,7 +504,7 @@ draw:
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_DISMISS;
         }
     }
@@ -581,12 +581,12 @@ void Gp_ReloadPromptTask(Task* arg0)
         (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
         if (arg0->state < 0x20) {
             if (arg0->state < 0x10) {
-                SndEvt_EnqueueType6(SOUND_AMMO_LOAD, 0, 0);
+                sndEvtRequestScriptStart(SOUND_AMMO_LOAD, 0, 0);
             } else {
-                SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             }
         } else {
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         }
         arg0->killCountdown = 0xBC;
     } else if (arg0->state < 0x20) {
@@ -633,7 +633,7 @@ void Gp_AttachPromptTask(Task* arg0)
         arg0->state                    = arg0->state + 1;
     } else if (arg0->state == 1) {
         if (obj->panel.state == USER_INTERFACE_PANEL_OPEN) {
-            SndEvt_EnqueueType6(SOUND_WEAPON_EQUIP, 0, 0);
+            sndEvtRequestScriptStart(SOUND_WEAPON_EQUIP, 0, 0);
             arg0->state = arg0->state + 1;
         }
     }
@@ -704,9 +704,9 @@ void Gp_EquipPromptTask(Task* arg0)
     } else if (arg0->state == 1) {
         if (obj->panel.state == USER_INTERFACE_PANEL_OPEN) {
             if ((u32)(arg0->spawnArg1.value - 0x80) < 0x20U) {
-                SndEvt_EnqueueType6(SOUND_WEAPON_EQUIP, 0, 0);
+                sndEvtRequestScriptStart(SOUND_WEAPON_EQUIP, 0, 0);
             } else {
-                SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             }
             arg0->state = arg0->state + 1;
         }
@@ -747,7 +747,7 @@ void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             val = Gp_SelItemRec->itemId;
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if ((u32)(val - 0x80) < 0x20U) {
                 Gp_ReloadMode = 0;
                 one           = 1;
@@ -786,7 +786,7 @@ void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
     Text_DrawString(&req, Gp_StrExchange);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             val = 0;
             if (Gp_SelItemRec != NULL) {
                 val = Gp_SelItemRec->itemId;

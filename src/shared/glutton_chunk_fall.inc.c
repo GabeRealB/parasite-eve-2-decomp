@@ -37,7 +37,7 @@ void gluttonChunkFall(Enemy* enemy, Task* task)
         task->extra.tmd->coords->coord.t[1] = -0x32;
         work->stateTicks                    = 0;
         pan                                 = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(SOUND_GLUTTON_CHUNK_LAND, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        sndEvtRequestScriptStart(SOUND_GLUTTON_CHUNK_LAND, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         task->state++;
     }
 

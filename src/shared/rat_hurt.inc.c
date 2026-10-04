@@ -30,7 +30,7 @@ case0:
     work->step          = 1;
     snd                 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070002;
     pan                 = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     return;
 case1:
     if (work->animFrame < 0x18) {

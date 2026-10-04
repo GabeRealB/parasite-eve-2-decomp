@@ -766,7 +766,7 @@ void Gp_StepCdAudioCmd(void)
             save23            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
             p->sceneAudioMode = one;
             if (save23 != 0) {
-                SndEvt_EnqueueType6(0, 0, 0);
+                sndEvtRequestScriptStart(0, 0, 0);
             }
             if (p->sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
                 p->paceToSceneTiming = one;
@@ -789,7 +789,7 @@ void Gp_StepCdAudioCmd(void)
                 break;
             }
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
-                SndEvt_EnqueueType6(0, 0, 0);
+                sndEvtRequestScriptStart(0, 0, 0);
             }
             memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
             sceneStream             = p->sceneStream;

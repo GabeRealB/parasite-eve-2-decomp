@@ -782,8 +782,8 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
     func_shelter_1f_heliport_801807C0();
     Gpu_ResetGraphAndOt();
     Tmd_AllocMissingBuffers();
-    SndEvt_EnqueueType6(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, 0, 0);
-    SndEvt_EnqueueType6(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, 0, 0);
+    sndEvtRequestScriptStart(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, 0, 0);
+    sndEvtRequestScriptStart(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, 0, 0);
     arg0->state = arg0->state + 1;
 }
 

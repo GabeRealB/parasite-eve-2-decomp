@@ -44,7 +44,7 @@ void golemKnightBishopRecoverSeq(Task* arg0)
                 work->flickerTimer           = 0;
                 work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan                          = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(work->vanishSound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(work->vanishSound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
     }

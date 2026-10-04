@@ -2249,7 +2249,7 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
             save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             if (save->state.location.loc.view != confirmedId) {
                 save->state.location.loc.view = work->hotspotId;
-                SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_SELECT, 0, 0);
+                sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_SELECT, 0, 0);
                 // Arm the enemy caption when this confirm is what first shows that view.
                 if ((work->hotspotId == ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY) && !(gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 2)) {
                     work->enemySceneArmed = 1;
@@ -2268,7 +2268,7 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
                 work->screenLevel -= ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP;
                 sfx                = SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_DARKER;
             play:
-                SndEvt_EnqueueType6(sfx, 0, 0);
+                sndEvtRequestScriptStart(sfx, 0, 0);
             }
         }
         if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0xB) &&
@@ -2690,7 +2690,7 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
             Gp_StartCapSlot(3, 1, 0);
         } else if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_LEFT) {
             Gp_ClearCollectedBit(0x104);
-            SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
+            sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
             gameFlagSetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | 1);
             gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 2);
             func_acropolis_security_room_8017FD64(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
@@ -2728,7 +2728,7 @@ static void func_acropolis_security_room_8017F300(Task* task)
             Gp_StartCapSlot(4, 1, 0);
         } else if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_RIGHT) {
             Gp_ClearCollectedBit(0x103);
-            SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
+            sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
             gameFlagSetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | 2);
             func_acropolis_security_room_8017FD64(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
             work->usedKey            = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
@@ -2965,7 +2965,7 @@ static void func_acropolis_security_room_8017FE6C(Task* task)
     fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
     work->timer = work->timer + 4;
     if (work->timer == 0x80) {
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 2), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 2), 0, 0);
     }
     if (work->timer >= 0x100) {
         work->timer                                                = 0;
@@ -3035,7 +3035,7 @@ static void func_acropolis_security_room_801800A4(Task* task)
     fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
     work->timer = work->timer + 4;
     if (work->timer == 0x80) {
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 2), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 2), 0, 0);
     }
     if (work->timer >= 0x100) {
         work->timer                                                = 0;
@@ -3131,7 +3131,7 @@ L_case0:
         return;
     }
     memFillBytes(alloc, 0, sizeof(_AcropolisSecurityRoomMovieLoopWork));
-    SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0, 0);
+    sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0, 0);
     goto advance;
 
 L_case1:

@@ -849,7 +849,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             ev = D_actor_342000_80165070->work;
             if (ev->alertPlayed == 0) {
-                SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
                 ev->alertPlayed = 1;
             }
             break;
@@ -1001,7 +1001,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             break;
         case ACTOR_342000_STAGING_DOORS_CLOSING:
             if (work->stagingStep == 0) {
-                SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 0, 0);
                 work->doorSoundPlaying = 1;
                 work->stagingStep++;
             }
@@ -1045,7 +1045,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             return;
         case ACTOR_342000_STAGING_DOORS_SHUT:
             SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 1);
-            SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_DOORS_SHUT, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_DOORS_SHUT, 0, 0);
             taskReparent(arg0, Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C));
             actor444000GluttonSetShakeLevel(3);
             break;
@@ -1379,7 +1379,7 @@ void func_actor_342000_80164260(void)
 
     work = D_actor_342000_80165070->work;
     if (work->alertPlayed == 0) {
-        SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
+        sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
         work->alertPlayed = 1;
     }
 }

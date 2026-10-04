@@ -64,7 +64,7 @@ static _AntibodyLevelTuning D_antibody_80130BD4[] = {
     { 0x0010, 0x00F0, 0x0007, 0x0400, 0x0180, 0x0800, 0x0004 },
 };
 
-/// The `SndEvt_EnqueueType6` id for each `D_antibody_80130BD4` row, played
+/// The `sndEvtRequestScriptStart` id for each `D_antibody_80130BD4` row, played
 /// once when `func_antibody_8012EF34` seeds the cast.
 static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
@@ -147,8 +147,8 @@ void func_antibody_8012EF34(Task* arg0)
                     s32 pan;
 
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(D_antibody_80130C00[mem->index], pan,
-                                        (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(D_antibody_80130C00[mem->index], pan,
+                                             (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 return;
             }

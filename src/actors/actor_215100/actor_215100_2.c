@@ -1917,7 +1917,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;
-                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5), 0, 0);
                 gDisplayState.spriteVariant                                = 1;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_actor_215100_8015E678.areaId;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_actor_215100_8015E678.warp;

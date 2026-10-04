@@ -56,7 +56,7 @@ void maggotCaterpillarAmbushState(Task* actor)
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55200006;
                     pan0  = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sound, (s32)pan0, (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(sound, (s32)pan0, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
@@ -80,7 +80,7 @@ void maggotCaterpillarAmbushState(Task* actor)
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55200006;
                     pan1  = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sound, (s32)pan1, (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(sound, (s32)pan1, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
@@ -111,7 +111,7 @@ void maggotCaterpillarAmbushState(Task* actor)
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 sound                   = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
                 pan2                    = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(sound, (s32)pan2, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
         case 3:

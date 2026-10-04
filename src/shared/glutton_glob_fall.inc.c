@@ -30,7 +30,7 @@ void gluttonGlobFall(Enemy* enemy, Task* task)
         work->stateTicks  = 0;
         sfx               = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000C;
         pan               = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(sfx, pan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
+        sndEvtRequestScriptStart(sfx, pan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
         task->state++;
         return;
     }

@@ -476,7 +476,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
                     arg0->killCountdown                       = 0xBC;
                     arg0->state                               = arg0->state + 1;
                 } else {
-                    SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                     list->scrollDirection       = USER_INTERFACE_LIST_STEP_PREVIOUS;
                     list->scrollPixelsRemaining = (s8)(u8)list->rowHeight;
                 }

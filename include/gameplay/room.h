@@ -122,7 +122,7 @@ enum { WORLD_COLLISION_FOOTSTEP_SILENT = 0 };
 
 /// Paired footstep sound-script requests for one collision surface.
 ///
-/// Each field is a 32-bit encoded request accepted by `SndEvt_EnqueueType6`.
+/// Each field is a 32-bit encoded request accepted by `sndEvtRequestScriptStart`.
 /// Room records use type-1 requests, which select the currently loaded bank.
 /// Standard playback uses the base for animation cue 2 and base + 1 for cue 1,
 /// then adds 100 to select a companion's entries. A zero base is silent and

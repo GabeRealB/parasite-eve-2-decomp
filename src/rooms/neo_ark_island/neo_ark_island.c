@@ -660,7 +660,7 @@ s32 func_neo_ark_island_8017EA34(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             }
             id = 0x550E0004;
         play:
-            SndEvt_EnqueueType6(id, 0, 0);
+            sndEvtRequestScriptStart(id, 0, 0);
             break;
     }
     return 0;
@@ -673,8 +673,8 @@ static void func_neo_ark_island_8017EA94(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_island_80181B48;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    SndEvt_EnqueueType6(SOUND_NEO_ARK_ISLAND_AMBIENCE_1, 0, 0);
-    SndEvt_EnqueueType6(SOUND_NEO_ARK_ISLAND_AMBIENCE_2, 0, 0);
+    sndEvtRequestScriptStart(SOUND_NEO_ARK_ISLAND_AMBIENCE_1, 0, 0);
+    sndEvtRequestScriptStart(SOUND_NEO_ARK_ISLAND_AMBIENCE_2, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
     D_80115598  = 1;
 }

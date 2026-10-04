@@ -115,7 +115,7 @@ case2:
     }
     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070004;
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((s32)((gRandomLcgState >> 16) & 0xF) < gRatAttackRepeatChance[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
         work->step   = 0;

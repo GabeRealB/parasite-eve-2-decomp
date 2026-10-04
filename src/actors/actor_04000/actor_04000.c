@@ -1777,7 +1777,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             id         = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
             pan        = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             break;
         case 0x77:
             work->state = ACTOR_04000_STATE_HIDDEN;
@@ -2024,7 +2024,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
             }
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             break;
         case 0x32:
             work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2120,7 +2120,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
         case 0xD:
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case 0xE:
@@ -2318,7 +2318,7 @@ found:
         Actor04000_Fn03D30(arg1, sc->hitYaw, sc->hitKey);
         snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280003;
         pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
         func_800E2C78(arg0, sc->hitKey, sc->damage, 0);
         func_800DA6E8(&arg0->node, sc->damage, 0);
         arg0->hp -= sc->damage;
@@ -2530,7 +2530,7 @@ static void Actor04000_Fn04FA4(Enemy* arg0, Task* arg1)
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 16, 0, 0)) {
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x53100006;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
         }
         arg1->extra.tmd->coords->coord.t[1] = 0;
         work->state                         = ACTOR_04000_STATE_ROUSE;
@@ -2893,7 +2893,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
     if (id != 0) {
         snd = id | ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
     }
     if (gGameSession->viewReady != 0) {
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -71,7 +71,7 @@ void golemKnightBishopStrikeSeq(Task* arg0)
                 }
                 work->fadeState   = GOLEM_KNIGHT_BISHOP_FADE_APPEAR;
                 work->appearSound = gGolemKnightBishopApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(work->appearSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(work->appearSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 work->interruptDamage = 0;
                 work->reactionLock    = 1;
             }
@@ -166,11 +166,11 @@ void golemKnightBishopStrikeSeq(Task* arg0)
                 work->strikeBody.key    = Gp_PackPair(gGolemKnightBishopAttacks, 1);
                 work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 cue                     = gGolemKnightBishopStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (work->animFrame == 0x1C) {
                 work->strikeBody.coord = &arg0->extra.tmd->coords[12];
                 cue                    = gGolemKnightBishopStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrame == 0x23) {
                 work->step                   = 6;
@@ -180,7 +180,7 @@ void golemKnightBishopStrikeSeq(Task* arg0)
                 work->colorBlendFadeFrames   = 0xA;
                 work->strikeBody.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
         case 6:

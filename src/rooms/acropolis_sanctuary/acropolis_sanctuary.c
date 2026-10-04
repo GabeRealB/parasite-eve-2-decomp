@@ -2004,7 +2004,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 request.blendFrames          = 0xF;
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(initialWork->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);
-                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), 0, 0);
                 func_800E8634(D_acropolis_sanctuary_801820F0, 0, D_acropolis_sanctuary_801821C8);
                 arg0->state = arg0->state + 1;
             }
@@ -2046,7 +2046,7 @@ void func_acropolis_sanctuary_8017DCE0(s32 arg0)
             return;
         case 2:
             SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), 0);
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 8), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 8), 0, 0);
             return;
     }
 }

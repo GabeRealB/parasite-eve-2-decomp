@@ -14,7 +14,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
+                sndEvtRequestScriptStart(id | 9, 0, 0);
                 if (!(gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & 2)) {
                     gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) | 2);
                     if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
@@ -34,7 +34,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
+                sndEvtRequestScriptStart(id | 9, 0, 0);
                 if (gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & 2) {
                     gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & ~2);
                     if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
@@ -54,7 +54,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
+                sndEvtRequestScriptStart(id | 9, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) ^ 1);
                 if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
@@ -82,7 +82,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
+                sndEvtRequestScriptStart(id | 9, 0, 0);
                 Gp_StartCapSlot(8, 0, 0);
                 break;
             case 1:
@@ -90,7 +90,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
+                sndEvtRequestScriptStart(id | 9, 0, 0);
                 Gp_StartCapSlot(9, 0, 0);
                 break;
             case 2:
@@ -98,7 +98,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     id = 0x52170000;
                 }
-                SndEvt_EnqueueType6(id | 9, 0, 0);
+                sndEvtRequestScriptStart(id | 9, 0, 0);
                 Gp_StartCapSlot(0xA, 0, 0);
                 break;
             case 3:

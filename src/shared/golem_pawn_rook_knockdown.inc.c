@@ -53,12 +53,12 @@ void golemPawnRookKnockdownState(Task* arg0)
             if (work->animFrame == 0x14) {
                 snd = gGolemPawnRookVoiceCues[work->soundSet + 0xC] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)worldCoordGetOriginAudioPan(self);
-                SndEvt_EnqueueType6(snd, (s32)pan, (s8)worldCoordGetOriginAudioDepth(self));
+                sndEvtRequestScriptStart(snd, (s32)pan, (s8)worldCoordGetOriginAudioDepth(self));
             }
             if (work->animFrame == 0x2C) {
                 snd  = gGolemPawnRookVoiceCues[work->soundSet + 8] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan2 = (s8)worldCoordGetOriginAudioPan(self);
-                SndEvt_EnqueueType6(snd, (s32)pan2, (s8)worldCoordGetOriginAudioDepth(self));
+                sndEvtRequestScriptStart(snd, (s32)pan2, (s8)worldCoordGetOriginAudioDepth(self));
             }
             if (work->animFrame >= 0x42) {
                 work->anim        = 0x19;
@@ -82,7 +82,7 @@ void golemPawnRookKnockdownState(Task* arg0)
             if (work->animFrame == 0x19) {
                 snd  = gGolemPawnRookVoiceCues[work->soundSet + 8] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan3 = (s8)worldCoordGetOriginAudioPan(self);
-                SndEvt_EnqueueType6(snd, (s32)pan3, (s8)worldCoordGetOriginAudioDepth(self));
+                sndEvtRequestScriptStart(snd, (s32)pan3, (s8)worldCoordGetOriginAudioDepth(self));
             }
             if (work->animFrame >= 0x31) {
                 work->anim        = 0x1D;

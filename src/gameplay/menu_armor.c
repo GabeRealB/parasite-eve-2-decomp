@@ -243,7 +243,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 s32               count;
 
                 menu = &D_8010E8AC;
-                SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 table = Gp_GetItemTable(scan);
                 count = scan->rowCount;
                 table = &table[scan->firstRow];
@@ -256,7 +256,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 rec->attachSlot = menu->selectedItemIndex + 1;
                 obj->result     = USER_INTERFACE_RESULT_DISMISS;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
-                SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
@@ -286,7 +286,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 s32 count;
 
                 slot = D_8010E8AC.selectedItemIndex + 1;
-                SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 rec   = Gp_GetItemTable(scan);
                 count = scan->rowCount;
                 rec   = &rec[scan->firstRow];
@@ -363,7 +363,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_DISMISS;
         }
     }

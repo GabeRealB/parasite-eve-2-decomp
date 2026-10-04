@@ -47,6 +47,7 @@ static s16 Stage_MusicCountdownFrames;
 StageMusicParams gStageMusicParams;
 
 #include "main/stage.h"
+#include "stage.h"
 
 extern TmdSource D_80725F44;
 
@@ -151,7 +152,7 @@ static void Task_AllocIdMap(Task* task)
             gStageRoomSong = 0;
         }
         temp_a0                    = gGameSession->location.loc.stage;
-        ret                        = TaskIdMap_RemapIndex(temp_a0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent, Stage_SceneEventLimits[temp_a0 - 1]);
+        ret                        = stageMusicSelectColumn(temp_a0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent, Stage_SceneEventLimits[temp_a0 - 1]);
         field34                    = task->spawnArg1.value;
         gStageMusicRow             = ret;
         Stage_MusicCountdownActive = 0;
@@ -354,7 +355,7 @@ void Stage_RequestSpecialFlag(s32 unused)
             gStageAmbientOn = 0;
         } else if (gStageAmbientOn == 0) {
             one = 1;
-            SndEvt_EnqueueType6(SOUND_STAGE_AMBIENT, 0, 0);
+            sndEvtRequestScriptStart(SOUND_STAGE_AMBIENT, 0, 0);
             gStageAmbientOn = one;
         }
     }

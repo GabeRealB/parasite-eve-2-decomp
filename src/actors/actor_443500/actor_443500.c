@@ -2588,10 +2588,10 @@ static void func_actor_443500_801321F0(Task* task)
         if (work->loopTicks == ACTOR_443500_PIERCE_CARRADINE_LOOP_SOUND_TICK) {
             switch (gGameSession->location.loc.view) {
                 case 5:
-                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 9, 0);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 9, 0);
                     break;
                 case 4:
-                    SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
                     break;
                 case 3:
                     SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 0x1E);

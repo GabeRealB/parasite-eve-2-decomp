@@ -86,14 +86,14 @@ void maggotCaterpillarEntranceState(Task* arg0)
                 } while (indexOrSound < 5);
                 indexOrSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x510D0012;
                 pan1         = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(indexOrSound, pan1, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(indexOrSound, pan1, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
         case 3:
             if (work->animFrame == 0x1E) {
                 indexOrSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51090007;
                 pan2         = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(indexOrSound, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(indexOrSound, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             indexOrSound = 0;
             if (work->animFrame == 0x27) {
@@ -125,7 +125,7 @@ void maggotCaterpillarEntranceState(Task* arg0)
             if (work->animFrame == 0x28) {
                 indexOrSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
                 pan3         = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(indexOrSound, pan3, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(indexOrSound, pan3, (s8)worldCoordGetOriginAudioDepth(coord));
                 work->fallSpeed       = 0x80;
                 work->body.flags     |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;

@@ -3316,7 +3316,7 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task)
             }
             id  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000E;
             pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             break;
         }
         case 12: {

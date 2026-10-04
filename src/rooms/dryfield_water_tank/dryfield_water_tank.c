@@ -969,7 +969,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
             if (Gp_GetCapEventKey() == 0xA) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 3);
-                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 4), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 4), 0, 0);
                 Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
                 func_dryfield_water_tank_8017DB48();
             } else {
@@ -1072,7 +1072,7 @@ static void func_dryfield_water_tank_8017D9D4(Task* task)
     task->msgTable = D_dryfield_water_tank_8017F324;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     Task_SpawnFromTable(D_dryfield_water_tank_801868A4, 0, 0, 0);
-    SndEvt_EnqueueType6(SOUND_WATER_TANK_AMBIENCE, 0, 0);
+    sndEvtRequestScriptStart(SOUND_WATER_TANK_AMBIENCE, 0, 0);
     func_dryfield_water_tank_8017DB48();
     task->state = (s32)(task->state + 1);
 }
@@ -1308,8 +1308,8 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             taskMessageDispatch(*playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_PLAY_SOUNDS:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 2), 0, 0);
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 8), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 2), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 8), 0, 0);
             break;
     }
     work->request = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_NONE;

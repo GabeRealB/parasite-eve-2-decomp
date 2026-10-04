@@ -207,7 +207,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FBE0(Task* task, s32 msgId, s32
 s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 9), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 9), 0, 0);
     }
     return 0;
 }

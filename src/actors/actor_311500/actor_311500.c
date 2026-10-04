@@ -533,7 +533,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
     switch (state) {
         case ACTOR_311500_DEATH_STEP_CRY:
             pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            SndEvt_EnqueueType6(SOUND_ACTOR_311500_DEATH, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+            sndEvtRequestScriptStart(SOUND_ACTOR_311500_DEATH, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             work->stepFrame = 0;
             work->step++;
             break;
@@ -661,8 +661,8 @@ case0:
             func_actor_311500_80162C34(actor, obj);
             if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
                 pan = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
-                SndEvt_EnqueueType6(SOUND_ACTOR_311500_HURT, pan,
-                                    (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
+                sndEvtRequestScriptStart(SOUND_ACTOR_311500_HURT, pan,
+                                         (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
                 work->step    = 0;
                 actor->state += 1;
             }

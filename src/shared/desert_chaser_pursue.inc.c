@@ -254,7 +254,7 @@ void desertChaserPursue(Task* arg0)
                 work->animId      = 3;
                 work->animRequest = state;
                 pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                SndEvt_EnqueueType6(SOUND_DESERT_CHASER_LUNGE, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                sndEvtRequestScriptStart(SOUND_DESERT_CHASER_LUNGE, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
 #if !DESERT_CHASER_RUN_SEQUENCE
                 work->broadcast.context.loc.stage = 9;
                 work->broadcast.context.loc.area  = 1;

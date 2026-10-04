@@ -314,7 +314,7 @@ void Gp_SetupDirWarp(void)
                 Gp_DirFlags             = 0;
                 cfg->interactionPressed = 0;
                 if (D_80114CF0 != 0 && cfg->hp > 0) {
-                    SndEvt_EnqueueType6(D_80114CF0, 0, 0);
+                    sndEvtRequestScriptStart(D_80114CF0, 0, 0);
                 }
                 return;
             }
@@ -409,7 +409,7 @@ void Gp_CommitWarp(void)
 
     if (D_80114CF0 != 0) {
         if (cfg->hp > 0) {
-            SndEvt_EnqueueType6(D_80114CF0, 0, 0);
+            sndEvtRequestScriptStart(D_80114CF0, 0, 0);
         }
     }
 

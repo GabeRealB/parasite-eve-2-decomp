@@ -3107,7 +3107,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
                             work->code   = (work->code & 0xFF0) | hs->id;
                             work->digitCount++;
                         }
-                        SndEvt_EnqueueType6(SOUND_ACROPOLIS_BRIDGE_KEYPAD_BEEP, 0, 0);
+                        sndEvtRequestScriptStart(SOUND_ACROPOLIS_BRIDGE_KEYPAD_BEEP, 0, 0);
                         break;
                     }
                     hs++;
@@ -3541,7 +3541,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
     }
 
     if (work->code != ACROPOLIS_BRIDGE_KEYPAD_CODE_CORRECT) {
-        SndEvt_EnqueueType6(SOUND_ACROPOLIS_BRIDGE_CODE_REJECTED, 0, 0);
+        sndEvtRequestScriptStart(SOUND_ACROPOLIS_BRIDGE_CODE_REJECTED, 0, 0);
         work->blinkCount = 0;
         work->timer      = 0;
         task->state      = 7;
@@ -3549,7 +3549,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
         ActorCommand msg = { { { 1, 0xE } }, 2 };
 
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-        SndEvt_EnqueueType6(SOUND_ACROPOLIS_BRIDGE_CODE_ACCEPTED, 0, 0);
+        sndEvtRequestScriptStart(SOUND_ACROPOLIS_BRIDGE_CODE_ACCEPTED, 0, 0);
         task->state = 6;
     }
     func_acropolis_bridge_8017E60C(work->code, 0);
@@ -5460,8 +5460,8 @@ static __inline__ void bridge_play_snd(Task* task, Enemy* enemy, s32 base)
 
     snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | base;
     pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    SndEvt_EnqueueType6(snd, pan,
-                        (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+    sndEvtRequestScriptStart(snd, pan,
+                             (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 
 /// Runs the bridge enemy's plunge into the gorge. On the first frame (work

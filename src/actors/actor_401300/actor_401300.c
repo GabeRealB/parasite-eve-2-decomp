@@ -2141,8 +2141,8 @@ static void func_actor_401300_80133A3C(Task* arg0)
     }
     if (snd != 0) {
         i = snd | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        SndEvt_EnqueueType6(i, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
-                            (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(i, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
+                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
 }
 
@@ -2560,11 +2560,11 @@ static void func_actor_401300_80134F90(Task* arg0)
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400D0008;
                 deathPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                SndEvt_EnqueueType6(deathSound, deathPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                sndEvtRequestScriptStart(deathSound, deathPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             } else {
                 hitSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400D0007;
                 hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                SndEvt_EnqueueType6(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                sndEvtRequestScriptStart(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
             work->hitCooldown = Gp_GetIdParam2(s->hitKey);
             switch (Gp_GetIdParam0(s->hitKey) & 0xFFFF) {
@@ -3164,7 +3164,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
             } else if ((run->distance < 0x898 && Actor401300_Abs(actorNormalizeYaw(ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]) - work->withdrawPoint.pad)) < 0x200) || work->stateTimer > 0xB4) {
                 work->animId      = 0x20;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_WOODLAND_STRANGER_WITHDRAW, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords), (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_WOODLAND_STRANGER_WITHDRAW, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords), (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                 work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             run->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
@@ -3817,7 +3817,7 @@ static void func_actor_401300_801397F8(Task* arg0)
     } else if (work->stateTimer == 0) {
         sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51030008;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->stateTimer = 1;
     }
     func_actor_401300_80133A3C(arg0);
@@ -5004,8 +5004,8 @@ static void func_actor_401300_8013E930(Task* arg0)
                 work->playerButtonHold.pressCount = 0x7F;
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
                     Gp_SpawnPadLerp(0x10, 8, 0xFF);
-                    SndEvt_EnqueueType6(SOUND_PLAYER_STRUCK, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
-                                        (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+                    sndEvtRequestScriptStart(SOUND_PLAYER_STRUCK, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
+                                             (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
                     work->playerHeld             = 1;
                     work->playerAnim.source.sets = D_actor_401300_801588F0;
                     leap->delta.vx               = work->leapStartPos.vx - task->extra.tmd->coords->coord.t[0];
@@ -5593,11 +5593,11 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
             case 4:
                 if (work->playerAnimFrames == 0xF) {
                     if (Actor401300_InRangeFlag(player) == 1) {
-                        SndEvt_EnqueueType6(SOUND_NEO_ARK_WOODLAND_STRANGER_HIT, (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
-                                            (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_NEO_ARK_WOODLAND_STRANGER_HIT, (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
+                                                 (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
                     } else {
-                        SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 0x13), (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
-                                            (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 0x13), (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
+                                                 (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
                     }
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &player->extra.tmd->coords[1], 0x80003A00, NULL);
@@ -5617,11 +5617,11 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
             case 5:
                 if (work->playerAnimFrames == 0xD) {
                     if (Actor401300_InRangeFlag(player) == 1) {
-                        SndEvt_EnqueueType6(SOUND_NEO_ARK_WOODLAND_STRANGER_HIT, (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
-                                            (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_NEO_ARK_WOODLAND_STRANGER_HIT, (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
+                                                 (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
                     } else {
-                        SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 0x13), (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
-                                            (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 0x13), (s8)worldCoordGetOriginAudioPan(player->extra.tmd->coords),
+                                                 (s8)worldCoordGetOriginAudioDepth(player->extra.tmd->coords));
                     }
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         Gp_SpawnEff(EFFECT_DUST_PUFF, &player->extra.tmd->coords[1], 0x80003A00, NULL);

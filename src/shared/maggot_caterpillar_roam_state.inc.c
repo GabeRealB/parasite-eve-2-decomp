@@ -62,7 +62,7 @@ void maggotCaterpillarRoamState(Task* arg0)
             if (work->animFrame == 0xC) {
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0001;
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrame >= 0x29) {
                 work->animFrame = 0xB;

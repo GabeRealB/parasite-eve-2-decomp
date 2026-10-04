@@ -737,9 +737,9 @@ void func_actor_450900_80131E38(Task* task)
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     depth = (s8)worldCoordGetOriginAudioDepth(coord);
                     if (rand() & 1) {
-                        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_1, pan, depth);
+                        sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_1, pan, depth);
                     } else {
-                        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_2, pan, depth);
+                        sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_2, pan, depth);
                     }
                     Gp_AllyAnimId(&Actor450900AllyAnim.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.companionCopy, 0);
@@ -776,9 +776,9 @@ void func_actor_450900_8013207C(Task* task)
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     depth = (s8)worldCoordGetOriginAudioDepth(coord);
                     if (rand() & 1) {
-                        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_PLAYER_VOICE_1, pan, depth);
+                        sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_PLAYER_VOICE_1, pan, depth);
                     } else {
-                        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_PLAYER_VOICE_2, pan, depth);
+                        sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_PLAYER_VOICE_2, pan, depth);
                     }
                     TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.playerCopy, 0);
                     Gp_PlayerWeaponId(&D_actor_450900_80135FEC.source.index);
@@ -959,11 +959,11 @@ void func_actor_450900_80132684(s32 arg0)
     pan   = (s8)worldCoordGetOriginAudioPan(coord);
     depth = (s8)worldCoordGetOriginAudioDepth(coord);
     if (arg0 != 0) {
-        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_3, pan, depth);
+        sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_3, pan, depth);
     } else if (rand() & 1) {
-        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_1, pan, depth);
+        sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_1, pan, depth);
     } else {
-        SndEvt_EnqueueType6(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_2, pan, depth);
+        sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_2, pan, depth);
     }
 }
 

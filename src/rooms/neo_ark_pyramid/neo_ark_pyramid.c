@@ -522,7 +522,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
                 task->state = 0xA;
                 break;
             }
-            SndEvt_EnqueueType6(SOUND_NEO_ARK_PYRAMID_ROTATE, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NEO_ARK_PYRAMID_ROTATE, 0, 0);
             task->killCountdown = 0;
             task->state++;
             break;
@@ -533,11 +533,11 @@ void func_neo_ark_pyramid_8017D600(Task* task)
                 gameFlagSetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT, gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) + 1);
                 func_neo_ark_pyramid_8017DAC0(0);
                 if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) >= 4) {
-                    SndEvt_EnqueueType6(SOUND_NEO_ARK_PYRAMID_ROTATE_DONE, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_PYRAMID_ROTATE_DONE, 0, 0);
                     Gp_RunCapCmd(2, 0);
                     task->state++;
                 } else {
-                    SndEvt_EnqueueType6(SOUND_NEO_ARK_PYRAMID_ROTATE_STOP, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_PYRAMID_ROTATE_STOP, 0, 0);
                     task->state = 1;
                 }
             } else {

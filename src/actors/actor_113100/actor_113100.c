@@ -1326,10 +1326,10 @@ static void func_actor_113100_80132104(Task* task)
                     if (gGameSession->location.loc.view == 0x10) {
                         snd = 0x51130013;
                     }
-                    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 if ((rec->flags & ANIMATION_RECORD_CUE_1) && (gGameSession->location.loc.view != 0x10)) {
-                    SndEvt_EnqueueType6(SOUND_MIST_PARKING_PIERCE_STEP_2, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(SOUND_MIST_PARKING_PIERCE_STEP_2, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
         }

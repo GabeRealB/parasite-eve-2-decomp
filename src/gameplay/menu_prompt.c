@@ -1262,7 +1262,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
         if (Gp_ItemOrderMode == 0) {
             Gp_SelItemRec = sel;
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-                SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 obj = Ui_SpawnFromDesc(&D_8010EE6C, 0, 1, 1, arg1);
                 if (obj != NULL) {
                     Ui_ClampDialogRect(&(obj)->panel, arg0, &(arg1)->panel);
@@ -1276,7 +1276,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
             scan2 = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             idx1  = Gp_ScanIndexOf(scan2, Gp_SelItemRec);
             idx2  = Gp_ScanIndexOf(scan2, sel);
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (idx1 >= 0) {
                 if (idx2 >= 0) {
                     Gp_MoveItemSlot(scan2, idx1, idx2);
@@ -1477,14 +1477,14 @@ static void Gp_ItemListTask(Task* arg0)
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
             } else if (Gp_ItemOrderMode == 0) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-                    SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                     obj->resultValue = 1;
                     obj->result      = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
                     padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2);
                 }
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-                SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 Gp_ItemOrderMode = 0;
             }
         }
@@ -1559,7 +1559,7 @@ void Gp_ItemDestCursorTask(Task* arg0)
             if (cursor.unk2 < (s16)child->panel.bounds.unsignedRect.y) {
                 child = D_80114D98[0];
             }
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             obj->panel.control.word   = USER_INTERFACE_PANEL_INACTIVE;
             y                         = cursor.unk2;
             child->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
@@ -1635,7 +1635,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                 Gp_CountAmmoRows(&D_8010E9A4, 0);
                 if (D_8010E9A4.itemCount >= 2U || (D_8010E9A4.itemCount == 1 && player->weapon == PLAYER_STATUS_EQUIPMENT_NONE)) {
                     UiObject* spawned;
-                    SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     spawned = Ui_SpawnFromDesc(&D_8010ECE4, 0, 1, 0x10, obj);
                     if (spawned != NULL) {
                         _gpSetSpawnOffset(spawned, -8, -0x5C);
@@ -1660,7 +1660,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                     p->weapon = rec->itemId - 0x7F;
                     Gp_SetItemSeenBit(rec->itemId, 1);
                     Gp_ItemOrderMode = 0;
-                    SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 } else {
                     Task* parent;
                     parent = obj->owner->parent;
@@ -1668,7 +1668,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                         Gp_ItemOrderMode                                           = 0;
                         ((UiObject*)parent->spawnArg2.pointer)->panel.control.word = mode;
                         obj->panel.control.word                                    = USER_INTERFACE_PANEL_INACTIVE;
-                        SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                        sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     }
                 }
             }
@@ -1819,7 +1819,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
                 s32 yOffset;
                 s32 xOffset;
                 currentWeapon = gPlayerStatus.weapon + 0x7F;
-                SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 child = Ui_SpawnFromDesc(&D_8010ECC8, currentWeapon, 1, 0x10, obj);
                 if (child != NULL) {
                     yOffset                            = -0x5C;
@@ -1835,13 +1835,13 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 if (Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weapon, Gp_SelItemRec->itemId, -1) >= 0) {
                     Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
-                    SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     Gp_ItemOrderMode = 0;
                 } else {
                     parent = obj->owner->parent;
                     if (parent != NULL) {
                         parentObj = parent->spawnArg2.pointer;
-                        SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                        sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                         Gp_ItemOrderMode              = 0;
                         parentObj->panel.control.word = mode;
                         obj->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
@@ -1911,7 +1911,7 @@ void Gp_WeaponMenuTask(Task* arg0)
     status = obj->panel.control.word;
     if (status == 1) {
         if (menu->actionResult == USER_INTERFACE_LIST_ACTION_AT_END) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             D_80114D98[1]->resultValue        = -0xA0;
             D_80114D98[1]->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
             obj->panel.control.word           = USER_INTERFACE_PANEL_INACTIVE;
@@ -1928,7 +1928,7 @@ void Gp_WeaponMenuTask(Task* arg0)
                 s32     vis;
 
                 parentObj = parent->spawnArg2.pointer;
-                SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                 *(s32*)&cursor           = Ui_GetCursorFixed();
                 other                    = &D_8010E854;
                 row                      = cursor.unk2 - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
@@ -1950,7 +1950,7 @@ void Gp_WeaponMenuTask(Task* arg0)
             Task*     parent;
             UiObject* parentObj;
 
-            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             parent = arg0->parent;
             if (parent != 0) {
                 parentObj = parent->spawnArg2.pointer;
@@ -2142,7 +2142,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
                 const ItemDesc* desc;
                 desc = &Gp_ItemDescs[Gp_SelItemRec->itemId];
                 if (!(desc->flags & ITEM_FLAG_NO_ATTACHMENT)) {
-                    SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     if (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE) {
                         Gp_SelItemRec->attachSlot = prompt->currentItemIndex + 1;
                     }
@@ -2163,7 +2163,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         } else {
             if (rec == NULL) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-                    SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     child = Ui_SpawnFromDesc(&D_8010ED00, 0, 1, 0x10, obj);
                     if (child != NULL) {
                         s32 yOffset;
@@ -2179,7 +2179,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
             } else {
                 Gp_SelItemRec = rec;
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-                    SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     dialog = Ui_SpawnFromDesc(&D_8010EE6C, 4, 1, 1, obj);
                     if (dialog != NULL) {
                         Ui_ClampDialogRect(&(dialog)->panel, prompt, &(obj)->panel);
@@ -2327,11 +2327,11 @@ void Gp_ArmorMenuTask(Task* arg0)
         if (status == 1) {
             Ui_SmoothCursor(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentTop.signedValue + 7);
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
-                SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                 arg0->state             = status;
                 menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
-                SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                 D_80114D98[0]->panel.control.word = status;
                 D_8010E884.selectedItemIndex      = D_8010E884.itemCount - 1;
                 obj->panel.control.word           = USER_INTERFACE_PANEL_INACTIVE;
@@ -2352,11 +2352,11 @@ void Gp_ArmorMenuTask(Task* arg0)
                             Gp_SelItemRec = table;
                             locals.y      = obj->panel.contentTop.unsignedValue + 0xF;
                             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-                                SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                                sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                                 func_800CF090(&D_8010E9F4, obj);
                                 if (D_8010E9F4.itemCount != 0) {
                                     UiObject* spawned;
-                                    SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                                    sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                                     spawned = Ui_SpawnFromDesc(&D_8010ECAC, 0, 1, 0x10, obj);
                                     if (spawned != NULL) {
                                         s32 yOffset;
@@ -2379,7 +2379,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                     }
                 } else if ((flag == status) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
                     if ((u32)(Gp_SelItemRec->itemId - 0x60) < 0x20U) {
-                        SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                        sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                         Gp_EquipMod(Gp_SelItemRec->itemId);
                         Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
                         Gp_ItemOrderMode = 0;
@@ -2402,7 +2402,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         Ui_UpdateListNoAnim(menu, obj);
         val = menu->actionResult;
         if (val == USER_INTERFACE_LIST_ACTION_AT_START) {
-            SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             arg0->state = val;
         }
     }
@@ -2459,7 +2459,7 @@ void Gp_ArmorMenuTask(Task* arg0)
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                 Task*     parent;
                 UiObject* parentObj;
-                SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 parent = arg0->parent;
                 if (parent != 0) {
                     parentObj = parent->spawnArg2.pointer;
@@ -2485,7 +2485,7 @@ void Gp_ArmorMenuTask(Task* arg0)
 
                     parentObj             = parent->spawnArg2.pointer;
                     *(s32*)&locals.cursor = Ui_GetCursorFixed();
-                    SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                     other                    = &D_8010E854;
                     row                      = locals.cursor.unk2 - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
                     row                      = row / other->rowHeight;

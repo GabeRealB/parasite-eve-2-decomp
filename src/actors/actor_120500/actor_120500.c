@@ -377,7 +377,7 @@ void func_actor_120500_80131E58(Task* arg0)
             if (queue->movieReady == 0) {
                 return;
             }
-            SndEvt_EnqueueType6(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0, 0);
             SetDispMask(1);
             goto advance;
         case 3:

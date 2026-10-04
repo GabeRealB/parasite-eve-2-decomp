@@ -487,7 +487,7 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
             break;
         }
         if (D_neo_ark_shrine_8018686C[state] == 0) {
-            SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_TILE_SLIDE, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_TILE_SLIDE, 0, 0);
             slot                                                                     = work->selection;
             ord                                                                      = (u16*)&D_neo_ark_shrine_8018686C[slot];
             prev                                                                     = *ord;
@@ -502,7 +502,7 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
         switch (temp_v0) {
             case 1:
                 if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED) == 0) {
-                    SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_PUZZLE_SOLVED, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PUZZLE_SOLVED, 0, 0);
                     gameFlagSetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED, 1);
                     gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHRINE, 0);
                     Gp_StartCapSlot(3, 0, 0);
@@ -513,11 +513,11 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
                 arg0->state = 9;
                 break;
             case 3:
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_MECHANISM_ACTIVATE, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_ACTIVATE, 0, 0);
                 arg0->state = 7;
                 break;
             case 4:
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_MECHANISM_ACTIVATE, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_ACTIVATE, 0, 0);
                 arg0->state = 0xE;
                 break;
         }
@@ -610,7 +610,7 @@ static s16 func_neo_ark_shrine_8017E254(void)
             gGameSession->location.loc.room                            = 4;
         }
         gGameSession->roomObjsDirty = 1;
-        SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_MECHANISM_REVERT, 0, 0);
+        sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_REVERT, 0, 0);
         Gp_SpawnPadLerp(0x28, 0x30, 0x60);
     }
     if (D_neo_ark_shrine_8018686C[0] == 5 && D_neo_ark_shrine_8018686C[4] == 6 &&

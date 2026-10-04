@@ -900,7 +900,7 @@ s32 func_dryfield_cellar_8017D6F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 s32 func_dryfield_cellar_8017D6FC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
-        SndEvt_EnqueueType6(0x52220000 | 3, 0, 0);
+        sndEvtRequestScriptStart(0x52220000 | 3, 0, 0);
     }
     return 0;
 }

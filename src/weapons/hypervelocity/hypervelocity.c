@@ -284,7 +284,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             if (work->scale >= 0x81) {
                 if (work->period == 0) {
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(SOUND_HYPERVELOCITY_DISCHARGE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(SOUND_HYPERVELOCITY_DISCHARGE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 work->period += (u16)work->step * 2;
                 if (work->period >= 0x100) {

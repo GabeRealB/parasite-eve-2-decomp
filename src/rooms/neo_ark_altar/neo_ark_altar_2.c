@@ -763,7 +763,7 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED, 1);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_ALTAR, 0);
             SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 3), 0);
-            SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED, 0, 0);
             Gp_RunCapCmd1(1);
             Gp_ApplyAreaRecs(D_neo_ark_altar_8018007C);
             break;
@@ -878,29 +878,29 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
     if (work->enteredTile != 0) {
         if (D_neo_ark_altar_8017F050[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || bad1 == 1) {
             if (work->enteredTile == 1) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);
             }
             if (work->enteredTile == 2) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);
             }
             if (work->enteredTile == 3) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);
             }
             if (work->enteredTile == 4) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);
             }
         } else {
             if (work->enteredTile == 1) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);
             }
             if (work->enteredTile == 2) {
-                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
+                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
             }
             if (work->enteredTile == 3) {
-                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
+                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
             }
             if (work->enteredTile == 4) {
-                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
+                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
             }
         }
     }
@@ -910,7 +910,7 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
                 goto fail2;
             }
             if (i == 15) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED, 0, 0);
                 return 2;
             }
         }
@@ -921,29 +921,29 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
     if (work->enteredTile != 0) {
         if (D_neo_ark_altar_8017F068[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || bad2 == 1) {
             if (work->enteredTile == 1) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);
             }
             if (work->enteredTile == 2) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);
             }
             if (work->enteredTile == 3) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);
             }
             if (work->enteredTile == 4) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);
             }
         } else {
             if (work->enteredTile == 1) {
-                SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);
             }
             if (work->enteredTile == 2) {
-                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
+                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
             }
             if (work->enteredTile == 3) {
-                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
+                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
             }
             if (work->enteredTile == 4) {
-                SndEvt_EnqueueType6(0x55140000 | work->enteredTile, 0, 0);
+                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
             }
         }
     }

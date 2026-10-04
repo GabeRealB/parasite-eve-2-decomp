@@ -43,7 +43,7 @@ static EffectBandShape D_plasma_8012FF34[] = {
     { 0x0300, 0x0400, 0x0400 },
 };
 
-/// The `SndEvt_EnqueueType6` id for each `D_plasma_8012FF34` row.
+/// The `sndEvtRequestScriptStart` id for each `D_plasma_8012FF34` row.
 static s32 D_plasma_8012FF48[] = { 0xE0160001, 0xE0190001, 0xE01C0001 };
 
 /// Three 16-entry columns of per-wedge jitter. `func_plasma_8012EF34` fills
@@ -108,8 +108,8 @@ void func_plasma_8012EF34(Task* arg0)
             }
             arg0->state = st;
             pan         = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_plasma_8012FF48[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
-                                (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(D_plasma_8012FF48[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
+                                     (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_SpawnPadLerp((s16)(mem->index * 4 + 0x10), 0xFF, 8);
             return;
         case 1:

@@ -578,7 +578,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                     break;
                 case 1:
                     if ((work->soundLoopFrames % DRYFIELD_WAREHOUSE_CUTSCENE_SOUND_LOOP_FRAMES) == 0) {
-                        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 3), 0, 0);
+                        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 3), 0, 0);
                     }
                     break;
             }
@@ -664,7 +664,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                     break;
             }
             if (work->commandFrames == 10) {
-                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 4), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 4), 0, 0);
             }
             work->commandFrames++;
             return;
@@ -678,7 +678,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                     break;
                 case 1:
                     if ((work->soundLoopFrames % DRYFIELD_WAREHOUSE_CUTSCENE_SOUND_LOOP_FRAMES) == 0) {
-                        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 3), 0, 0);
+                        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 3), 0, 0);
                     }
                     break;
             }

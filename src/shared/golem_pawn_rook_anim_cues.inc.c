@@ -21,13 +21,13 @@ void golemPawnRookPlayAnimCues(Task* arg0)
                 snd = gGolemPawnRookVoiceCues[work->soundSet * 2 - 1] |
                       ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)worldCoordGetOriginAudioPan(self);
-                SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
+                sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
             }
             if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->prevCueFlags & ANIMATION_RECORD_CUE_1)) {
                 snd = gGolemPawnRookVoiceCues[work->soundSet * 2] |
                       ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan2 = (s8)worldCoordGetOriginAudioPan(self);
-                SndEvt_EnqueueType6(snd, pan2, (s8)worldCoordGetOriginAudioDepth(self));
+                sndEvtRequestScriptStart(snd, pan2, (s8)worldCoordGetOriginAudioDepth(self));
             }
             work->prevCueFlags = (u16)(rec->flags & ANIMATION_RECORD_CUE_MASK);
         }

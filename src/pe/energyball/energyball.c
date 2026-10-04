@@ -76,7 +76,7 @@ static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2);
 static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// The energy ball's sound-script ids. Only the first three are read, indexed by
-/// the cast's level: the cast starts its entry with `SndEvt_EnqueueType6` and
+/// the cast's level: the cast starts its entry with `sndEvtRequestScriptStart` and
 /// later passes the same id to `SndEvt_EnqueueType7`.
 static s32 D_energyball_8013117C[] = {
     0xE02B0002,
@@ -126,7 +126,7 @@ void func_energyball_8012EF48(Task* arg0)
                 gEnergyBallInFlightCount = 0;
             }
             if (gEnergyBallInFlightCount == 0) {
-                SndEvt_EnqueueType6(D_energyball_8013117C[mem->index], 0, 0);
+                sndEvtRequestScriptStart(D_energyball_8013117C[mem->index], 0, 0);
             }
             for (i = 0; i < 0x10; i++) {
                 rng                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -386,7 +386,7 @@ void func_energyball_8012F180(Task* arg0)
                     taskReparent(arg0, spawned->task);
                 }
                 snd = D_energyball_8013117C;
-                SndEvt_EnqueueType6(snd[mem->index + 3], 0, 0);
+                sndEvtRequestScriptStart(snd[mem->index + 3], 0, 0);
                 Gp_UnlinkObj(&work->body);
                 mem->angle  = D_energyball_80131194[mem->index].fullSize;
                 arg0->state = 3;

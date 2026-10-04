@@ -66,7 +66,7 @@ void maggotCaterpillarPounceState(Task* arg0)
             if (work->animFrame == 0x28) {
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 work->reactionMode = MAGGOT_CATERPILLAR_REACTION_NORMAL;
                 if (((Enemy*)arg0->spawnArg2.pointer)->hp <= 0) {
                     work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD;
@@ -102,7 +102,7 @@ void maggotCaterpillarPounceState(Task* arg0)
             if (work->animFrame == 0x10) {
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
                 pan1  = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan1, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(sound, (s32)pan1, (s8)worldCoordGetOriginAudioDepth(coord));
                 work->reactionMode = MAGGOT_CATERPILLAR_REACTION_REBOUND;
                 if (((Enemy*)arg0->spawnArg2.pointer)->hp <= 0) {
                     work->yaw    = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;

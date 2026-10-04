@@ -33,12 +33,12 @@ void skullStalkerIdleTick(Task* arg0)
                 ctx = arg0->spawnArg2.pointer;
                 id  = 0x40480007;
                 snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
             } else {
                 ctx = arg0->spawnArg2.pointer;
                 id  = 0x402E0006;
                 snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
             }
             work->animFrames     = 0;
             work->hiding         = 0;
@@ -51,12 +51,12 @@ void skullStalkerIdleTick(Task* arg0)
             ctx = arg0->spawnArg2.pointer;
             id  = 0x40480008;
             snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-            SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+            sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
         } else {
             ctx = arg0->spawnArg2.pointer;
             id  = 0x402E0007;
             snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-            SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+            sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
         }
         work->senseBody.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->frontSenseBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -73,12 +73,12 @@ void skullStalkerIdleTick(Task* arg0)
                     ctx = arg0->spawnArg2.pointer;
                     id  = 0x40480007;
                     snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
                 } else {
                     ctx = arg0->spawnArg2.pointer;
                     id  = 0x402E0006;
                     snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
                 }
                 work->animFrames     = 0;
                 work->hiding         = 0;
@@ -98,12 +98,12 @@ void skullStalkerIdleTick(Task* arg0)
                 ctx = arg0->spawnArg2.pointer;
                 id  = 0x40480008;
                 snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
             } else {
                 ctx = arg0->spawnArg2.pointer;
                 id  = 0x402E0007;
                 snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
             }
             work->animFrames = 0;
         }

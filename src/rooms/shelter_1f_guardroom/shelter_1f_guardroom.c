@@ -295,7 +295,7 @@ s32 func_shelter_1f_guardroom_8017D7E8(Task* task, s32 msgId, s32 arg2, s32 arg3
 s32 func_shelter_1f_guardroom_8017D7F0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_GUARDROOM, 3), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_GUARDROOM, 3), 0, 0);
     }
     return 0;
 }

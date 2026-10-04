@@ -1520,7 +1520,7 @@ void func_acropolis_square_80181AEC(Task* task)
             D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
             actorRenderComposeCoord(&D_acropolis_square_801888CC);
             pan = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
-            SndEvt_EnqueueType6(
+            sndEvtRequestScriptStart(
                 SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan, (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
             goto advance;
 
@@ -1535,8 +1535,8 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
                 actorRenderComposeCoord(&D_acropolis_square_801888CC);
                 pan2 = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
-                SndEvt_EnqueueType6(SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan2,
-                                    (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
+                sndEvtRequestScriptStart(SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan2,
+                                         (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
             }
             if (gGameSession->eventState != 0) {
                 return;
@@ -1580,8 +1580,8 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
                 actorRenderComposeCoord(&D_acropolis_square_801888CC);
                 pan3 = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
-                SndEvt_EnqueueType6(SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan3,
-                                    (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
+                sndEvtRequestScriptStart(SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan3,
+                                         (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
             }
             break;
     }
@@ -1689,7 +1689,7 @@ s32 func_acropolis_square_80182108(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 s32 func_acropolis_square_80182110(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    SndEvt_EnqueueType6(D_acropolis_square_80183B34[arg2], 0, 0);
+    sndEvtRequestScriptStart(D_acropolis_square_80183B34[arg2], 0, 0);
     return 0;
 }
 

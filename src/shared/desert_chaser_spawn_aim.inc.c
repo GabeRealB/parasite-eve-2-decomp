@@ -61,7 +61,7 @@ void desertChaserSpawnAim(Task* arg0)
         work->playerMove.keepControl       = 1;
         work->playerMove.displacement.vz   = z;
         pan                                = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(SOUND_COMMON(7), (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(SOUND_COMMON(7), (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
 #if !DESERT_CHASER_RUN_SEQUENCE
         Gp_SpawnPadLerp(8, 0xFF, 8);
 #endif
@@ -71,7 +71,7 @@ void desertChaserSpawnAim(Task* arg0)
     if (((s16)tick == 0xF) && (work->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
         sound    = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000A;
         eventPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, (s32)eventPan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
             Gp_SpawnEff(EFFECT_DUST_PUFF, player->extra.tmd->coords + 1, 0x80003A00, NULL);
         }

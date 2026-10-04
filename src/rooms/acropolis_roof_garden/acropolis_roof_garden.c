@@ -1127,7 +1127,7 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
         return;
     }
     if (prev == 0) {
-        SndEvt_EnqueueType6(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
+        sndEvtRequestScriptStart(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
     } else if (vol == 0) {
         SndEvt_EnqueueType7(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0x1E);
     } else {
@@ -1180,7 +1180,7 @@ s32 func_acropolis_roof_garden_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg
 {
     switch (arg2) {
         case 3:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 3), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 3), 0, 0);
             break;
         case 5:
             break;
@@ -1218,19 +1218,19 @@ void func_acropolis_roof_garden_8017D970(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
         case 0x14:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 6), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 6), 0, 0);
             break;
         case 0x27:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 7), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 7), 0, 0);
             break;
         case 0x39:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 8), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 8), 0, 0);
             break;
         case 0x63:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 9), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 9), 0, 0);
             break;
         case 0x72:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0A), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0A), 0, 0);
             D_acropolis_roof_garden_80183C0C = NULL;
             taskKill(arg0);
             break;
@@ -1245,10 +1245,10 @@ void func_acropolis_roof_garden_8017DA48(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
         case 0x4C:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
             break;
         case 0x64:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
             D_acropolis_roof_garden_80183C0C = NULL;
             taskKill(arg0);
             break;

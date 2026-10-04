@@ -598,7 +598,7 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
 s32 func_dryfield_breezeway_8017DBA4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
-        SndEvt_EnqueueType6(0x52160000 | 7, 0, 0);
+        sndEvtRequestScriptStart(0x52160000 | 7, 0, 0);
     }
     return 0;
 }

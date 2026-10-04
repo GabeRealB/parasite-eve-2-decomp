@@ -1817,7 +1817,7 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
         if (!(list->flags & USER_INTERFACE_LIST_SYSTEM_CURSOR_SOUND)) {
             sound = SOUND_MENU_CURSOR;
         }
-        SndEvt_EnqueueType6(sound, 0, 0);
+        sndEvtRequestScriptStart(sound, 0, 0);
     }
 }
 

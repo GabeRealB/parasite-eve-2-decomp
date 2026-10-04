@@ -94,8 +94,8 @@ static void func_neo_ark_bridge_8017E888(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_bridge_80181F30;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    SndEvt_EnqueueType6(SOUND_NEO_ARK_BRIDGE_AMBIENCE_1, 0, 0);
-    SndEvt_EnqueueType6(SOUND_NEO_ARK_BRIDGE_AMBIENCE_2, 0, 0);
+    sndEvtRequestScriptStart(SOUND_NEO_ARK_BRIDGE_AMBIENCE_1, 0, 0);
+    sndEvtRequestScriptStart(SOUND_NEO_ARK_BRIDGE_AMBIENCE_2, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }
 

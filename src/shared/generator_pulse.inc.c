@@ -38,7 +38,7 @@ void generatorPulse(Task* arg0)
                     sndId             = gGeneratorPulseSoundId |
                             ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sndId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(sndId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 } else {
                     work->stateFrames = work->stateFrames + 1;
                 }

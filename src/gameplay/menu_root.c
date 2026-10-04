@@ -480,7 +480,7 @@ void Gp_MenuRootTask(Task* arg0)
             arg0->spawnArg2.pointer = obj;
             gGameSession->uiOpen    = 1;
             if (arg0->spawnArg1.value != 0x44) {
-                SndEvt_EnqueueType6(SOUND_MENU_OPEN, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_OPEN, 0, 0);
             }
             break;
         }
@@ -496,7 +496,7 @@ void Gp_MenuRootTask(Task* arg0)
             }
             Ui_TeardownTree(obj, obj->owner);
             if ((arg0->spawnArg1.value != 0x44) && (arg0->spawnArg1.value != 0x42)) {
-                SndEvt_EnqueueType6(SOUND_MENU_CLOSE, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CLOSE, 0, 0);
             }
             arg0->killCountdown = 0xC;
             Stage_SetFadeMax(0xFF);
@@ -658,7 +658,7 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
             GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             arg1->state = arg1->state + 1;
             if (arg0->resultValue == 0x101) {
-                SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             }
         }
     }

@@ -96,7 +96,7 @@ death:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070005;
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     return;
 dying:
     ratSquash(arg1);

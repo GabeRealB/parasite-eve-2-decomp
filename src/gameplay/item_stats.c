@@ -617,7 +617,7 @@ void func_800C5F70(Task* arg0)
         if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (CdCmd_IsIdle() & 0xFFFF)) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskConfirm | PAD_BUTTON_TRIANGLE) != 0) {
                 if (!(arg0->spawnArg1.value & 0x20000)) {
-                    SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 }
                 GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -727,7 +727,7 @@ void Gp_KeyItemSubMenuTask(Task* arg0)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
@@ -814,7 +814,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
     flag = arg0->rowInputEnabled;
     if (flag == 1) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (gGameSession->cutsceneHold == flag) {
                 Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -826,7 +826,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
                 }
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -878,10 +878,10 @@ void Gp_KeyItemMenuTask(Task* arg0)
                     obj->result = USER_INTERFACE_RESULT_CANCEL;
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                     if (gGameSession->cutsceneHold == 1) {
-                        SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                        sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                         obj->result = USER_INTERFACE_RESULT_CANCEL;
                     } else {
-                        SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                        sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                         obj->resultValue = 1;
                         obj->result      = USER_INTERFACE_RESULT_CONFIRM;
                     }

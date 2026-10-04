@@ -1929,10 +1929,10 @@ s32 func_acropolis_promenade_8017D938(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 0xA:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 9), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 9), 0, 0);
             break;
         case 0x67:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 0x0A), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 0x0A), 0, 0);
             break;
     }
     return 0;

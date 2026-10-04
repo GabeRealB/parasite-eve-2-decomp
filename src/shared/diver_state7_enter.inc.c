@@ -15,6 +15,6 @@ void diverState7Enter(Task* arg0)
     work->animRequest = DIVER_ANIM_REQUEST_BLEND;
     sound             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
     pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     work->subState++;
 }

@@ -34,7 +34,7 @@ void roomDepartureTask(Task* arg0)
                 arg0->state = 4;
                 break;
             }
-            SndEvt_EnqueueType6(ROOM_DEPARTURE.sndEvent, 0, 0);
+            sndEvtRequestScriptStart(ROOM_DEPARTURE.sndEvent, 0, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 3:

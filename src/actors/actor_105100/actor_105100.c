@@ -1111,7 +1111,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
                 scratch->flashOffset.vz = 0xC8;
                 Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, &arg0->extra.tmd->coords[3], 0, &scratch->flashOffset);
                 snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000D;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             func_800DA6E8(&ctx->node, damage, 0);
             if (damage != 0) {
@@ -1403,8 +1403,8 @@ static void func_actor_105100_8013345C(Task* arg0, Enemy* arg1)
             if (work->animFrame == 0x58) {
                 work->fireballSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330004;
                 pan                 = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(work->fireballSound, pan,
-                                    (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(work->fireballSound, pan,
+                                         (s8)worldCoordGetOriginAudioDepth(coord));
                 return;
             }
             return;
@@ -1481,7 +1481,7 @@ static void func_actor_105100_801336B8(Task* arg0, Enemy* arg1)
                 work->ringEffect = Gp_SpawnEff((EFFECT_SHELTER_B6_TRAINING_SUMMON_RING | EFFECT_SPAWN_UNLIMITED), arg0->extra.tmd->coords, 0x3C, &pos);
                 snd              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330007;
                 pan              = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrame >= 0x5A) {
                 switch (work->beamPattern) {
@@ -1508,7 +1508,7 @@ static void func_actor_105100_801336B8(Task* arg0, Enemy* arg1)
                 work->actionStep = 2;
                 work->beamSound  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330008;
                 pan2             = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(work->beamSound, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(work->beamSound, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
                 return;
             }
             return;
@@ -1584,7 +1584,7 @@ static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
             pos.vz                       = 0x1F4;
             work->ringEffect             = Gp_SpawnEff((EFFECT_SHELTER_B6_TRAINING_CHARGE_RING | EFFECT_SPAWN_UNLIMITED), arg0->extra.tmd->coords, work->timer + 0xA, &pos);
             work->chargeSound            = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330009;
-            SndEvt_EnqueueType6(work->chargeSound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+            sndEvtRequestScriptStart(work->chargeSound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
             break;
         case 1:
             if (--work->timer <= 0) {
@@ -1593,12 +1593,12 @@ static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
                 SndEvt_EnqueueType7(work->chargeSound, 1);
                 work->chargeSound = 0;
                 snd               = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000B;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
                 Gp_SpawnPadLerp(0xF, 8, 0xFF);
             }
             if (work->timer == 0x5A) {
                 snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000A;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
             }
             break;
         case 2:
@@ -1669,7 +1669,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
                 work->knockbackFrame = 0;
                 Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
-                SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 scratch->pushDirection.vx = 0;
                 scratch->pushDirection.vy = -1000;
                 scratch->pushDirection.vz = 0;
@@ -1698,7 +1698,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
             }
             if (work->knockbackFrame == 0x10) {
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55190003;
-                SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             count = ++work->knockbackFrame;
             if ((work->knockbackFromBehind != 0 && count >= 0x1E) || (work->knockbackFromBehind == 0 && count >= 0x20)) {
@@ -1742,12 +1742,12 @@ static void func_actor_105100_80134130(Task* arg0)
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->animCues & ANIMATION_RECORD_CUE_2)) {
             snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330001;
             pan = (s8)worldCoordGetOriginAudioPan(self);
-            SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
+            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
         }
         if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->animCues & ANIMATION_RECORD_CUE_1)) {
             snd  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330002;
             pan2 = (s8)worldCoordGetOriginAudioPan(self);
-            SndEvt_EnqueueType6(snd, pan2, (s8)worldCoordGetOriginAudioDepth(self));
+            sndEvtRequestScriptStart(snd, pan2, (s8)worldCoordGetOriginAudioDepth(self));
         }
         work->animCues = (u16)(rec->flags & ANIMATION_RECORD_CUE_MASK);
     }
@@ -1852,12 +1852,12 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             }
             if (work->animFrame == 0xB) {
                 snd = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000E;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 Gp_SpawnPadLerp(0xA, 0xFF, 0x40);
             }
             if (work->animFrame == 0x28) {
                 snd = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330003;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
             }
             if (work->animFrame == 0x36) {
@@ -2169,7 +2169,7 @@ body:
         case ACTOR_105100_FIREBALL_FLY:
             if (++work->timer == 4) {
                 snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330005;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (coord->coord.t[1] >= -0xF9F) {
                 work->body.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -2195,7 +2195,7 @@ body:
                 work->step        = ACTOR_105100_FIREBALL_BURST;
                 Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_ORANGE_BURST, coord, 0, NULL);
                 snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330006;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
         case ACTOR_105100_FIREBALL_BURST:
@@ -2599,7 +2599,7 @@ static void func_actor_105100_80135FCC(Task* arg0)
     Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL, NULL, 0, NULL);
     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000C;
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
 }
 
 /// `ACTION_BUILDUP`: step 0 starts the held animation, breaks a charge in

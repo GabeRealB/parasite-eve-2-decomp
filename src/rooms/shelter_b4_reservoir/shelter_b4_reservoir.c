@@ -1076,7 +1076,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             break;
         case 3:
             if (--arg0->killCountdown == 0) {
-                SndEvt_EnqueueType6(SOUND_SHELTER_B4_RESERVOIR_EXIT_TRANSIT, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SHELTER_B4_RESERVOIR_EXIT_TRANSIT, 0, 0);
                 arg0->state++;
             }
             break;
@@ -1146,7 +1146,7 @@ s32 func_shelter_b4_reservoir_8017E3C4(Task* task, s32 msgId, s32 arg2, s32 arg3
 s32 func_shelter_b4_reservoir_8017E3CC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 2) {
-        SndEvt_EnqueueType6(0x542D0000 | 2, 0, 0);
+        sndEvtRequestScriptStart(0x542D0000 | 2, 0, 0);
     }
     return 0;
 }

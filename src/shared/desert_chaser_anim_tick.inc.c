@@ -194,10 +194,10 @@ void desertChaserAnimTick(Task* task)
 #if DESERT_CHASER_CUE_NEEDS_PLACE
         soundId = sound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        sndEvtRequestScriptStart(soundId, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 #else
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 #endif
     }
 }

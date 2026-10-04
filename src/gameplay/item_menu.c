@@ -297,7 +297,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             work->panes[work->focusedPane ^ 1]->owner->state = 1;
             if ((arg0->result != 0x26) && flag) {
                 val = Gp_CanMoveItems();
-                SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 work->focusedPane = 0;
                 Ui_SpawnFromDesc(&D_8010D7F0, val, 1, 1, work->panes[0]);
                 break;
@@ -517,7 +517,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
         Gp_SelItemRec = rec;
         if (arg1->owner->state == 1) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-                SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 spawned = Ui_SpawnFromDesc(&D_8010D764, arg1->owner->spawnArg1, 1, 1, arg1);
                 if (spawned != NULL) {
                     spawned->panel.bounds.unsignedRect.x = arg1->panel.contentOriginX.unsignedValue + arg1->panel.contentLeft.unsignedValue + 0x14;
@@ -525,14 +525,14 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                     arg1->panel.control.word             = USER_INTERFACE_PANEL_INACTIVE;
                 }
             } else if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) && (item != 0)) {
-                SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             idx   = arg1->owner->spawnArg1.value;
             item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0)->itemId;
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             item = -1;
             if (Gp_ItemMoveWork->swapPane != arg1->owner->spawnArg1.value) {
                 flags = arg1->owner->status;
@@ -670,7 +670,7 @@ void Gp_ItemPaneTask(Task* arg0)
                     goto children;
                 }
             do_snd:
-                SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
+                sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                 obj->result = 0xA;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
@@ -742,7 +742,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
         rec       = Gp_GetScanSlot((&Gp_MoveScanSrc + (idx)), Gp_InvLists[idx].selectedItemIndex, 0);
         item      = rec->itemId;
         qty       = rec->qty;
-        SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+        sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         if ((u32)(item - 0xA0) < 0x20U) {
             scanOwner = arg1->owner;
             if (scanOwner->status != 0) {
@@ -824,7 +824,7 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
             idx  = arg1->owner->spawnArg1.value;
             rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0);
             item = rec->itemId;
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
 
             owner = arg1->owner;
             flags = owner->parent->status;
@@ -1124,7 +1124,7 @@ void func_800BDF6C(Task* task)
             }
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             transferQty = split->containerQty - split->containerInitialQty;
             if (transferQty > 0) {
                 sourceScan = &Gp_MoveScanSrc;
@@ -1145,13 +1145,13 @@ void func_800BDF6C(Task* task)
             goto set_result;
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             result                  = USER_INTERFACE_RESULT_CANCEL;
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             goto set_result;
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             result = USER_INTERFACE_RESULT_DISMISS;
         set_result:
             obj->result = result;
@@ -1288,21 +1288,21 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             switch (arg0->currentItemIndex) {
                 case ITEM_MENU_PROMPT_ALL:
-                    SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     arg1->result = 0x26;
                     break;
                 case ITEM_MENU_PROMPT_SELECT:
-                    SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     arg1->result = USER_INTERFACE_RESULT_CONFIRM;
                     break;
                 case ITEM_MENU_PROMPT_DISCARD:
-                    SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                     _gpDropOrphanedWeaponLoads();
                     arg1->result = 0x27;
                     break;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             if (arg0->selectedItemIndex == ITEM_MENU_PROMPT_DISCARD) {
                 _gpDropOrphanedWeaponLoads();
                 arg1->result = 0x27;
@@ -1386,49 +1386,49 @@ void Gp_ItemPickupTilt(Task* arg0)
                     case GAME_LOCATION_KEY(1, 6, 0, 0): {
                         s32 temp;
                         temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                        SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_OPEN, temp,
-                                            (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_OPEN, temp,
+                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                         break;
                     }
                     case GAME_LOCATION_KEY(1, 12, 0, 0): {
                         s32 temp;
                         temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                        SndEvt_EnqueueType6(SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_OPEN, temp,
-                                            (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_OPEN, temp,
+                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                     }
                     case GAME_LOCATION_KEY(2, 27, 0, 0): {
                         s32 temp;
                         temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                        SndEvt_EnqueueType6(SOUND_TRAILER_COACH_ITEM_LID_OPEN, temp,
-                                            (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_TRAILER_COACH_ITEM_LID_OPEN, temp,
+                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                         break;
                     }
                     case GAME_LOCATION_KEY(3, 27, 0, 0): {
                         s32 temp;
                         temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                        SndEvt_EnqueueType6(SOUND_NIGHT_TRAILER_COACH_ITEM_LID_OPEN, temp,
-                                            (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_NIGHT_TRAILER_COACH_ITEM_LID_OPEN, temp,
+                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                         break;
                     }
                     case GAME_LOCATION_KEY(4, 16, 0, 0): {
                         s32 temp;
                         temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                        SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_ITEM_LID_OPEN, temp,
-                                            (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_SHELTER_B1_STERILIZATION_ITEM_LID_OPEN, temp,
+                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                         break;
                     }
                     case GAME_LOCATION_KEY(4, 31, 0, 0): {
                         s32 temp;
                         temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                        SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_ITEM_LID_OPEN, temp,
-                                            (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_ITEM_LID_OPEN, temp,
+                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                         break;
                     }
                     case GAME_LOCATION_KEY(4, 39, 0, 0): {
                         s32 temp;
                         temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                        SndEvt_EnqueueType6(SOUND_SHELTER_B3_DUMPING_HOLE_ITEM_LID_OPEN, temp,
-                                            (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                        sndEvtRequestScriptStart(SOUND_SHELTER_B3_DUMPING_HOLE_ITEM_LID_OPEN, temp,
+                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                         break;
                     }
                 }
@@ -1454,15 +1454,15 @@ void Gp_ItemPickupTilt(Task* arg0)
                 case GAME_LOCATION_KEY(1, 6, 0, 0): {
                     s32 temp;
                     temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    SndEvt_EnqueueType6(SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_CLOSE, temp,
-                                        (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_CLOSE, temp,
+                                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                     break;
                 }
                 case GAME_LOCATION_KEY(1, 12, 0, 0): {
                     s32 temp;
                     temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    SndEvt_EnqueueType6(SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_CLOSE, temp,
-                                        (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    sndEvtRequestScriptStart(SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_CLOSE, temp,
+                                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                     break;
                 }
                 case GAME_LOCATION_KEY(2, 27, 0, 0):
@@ -1470,29 +1470,29 @@ void Gp_ItemPickupTilt(Task* arg0)
                 case GAME_LOCATION_KEY(3, 27, 0, 0): {
                     s32 temp;
                     temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    SndEvt_EnqueueType6(SOUND_NIGHT_TRAILER_COACH_ITEM_LID_CLOSE, temp,
-                                        (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    sndEvtRequestScriptStart(SOUND_NIGHT_TRAILER_COACH_ITEM_LID_CLOSE, temp,
+                                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                     break;
                 }
                 case GAME_LOCATION_KEY(4, 16, 0, 0): {
                     s32 temp;
                     temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_ITEM_LID_CLOSE, temp,
-                                        (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    sndEvtRequestScriptStart(SOUND_SHELTER_B1_STERILIZATION_ITEM_LID_CLOSE, temp,
+                                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                     break;
                 }
                 case GAME_LOCATION_KEY(4, 31, 0, 0): {
                     s32 temp;
                     temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    SndEvt_EnqueueType6(SOUND_SHELTER_B2_LAB_ITEM_LID_CLOSE, temp,
-                                        (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_ITEM_LID_CLOSE, temp,
+                                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                     break;
                 }
                 case GAME_LOCATION_KEY(4, 39, 0, 0): {
                     s32 temp;
                     temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    SndEvt_EnqueueType6(SOUND_SHELTER_B3_DUMPING_HOLE_ITEM_LID_CLOSE, temp,
-                                        (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    sndEvtRequestScriptStart(SOUND_SHELTER_B3_DUMPING_HOLE_ITEM_LID_CLOSE, temp,
+                                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                     break;
                 }
             }

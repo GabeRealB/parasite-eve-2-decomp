@@ -26,7 +26,7 @@ void golemPawnRookSilenceScreamState(Task* arg0)
                 scratch->vz        = 0;
                 work->screamEffect = Gp_SpawnEff(gRoomEffectFlashId, &arg0->extra.tmd->coords[4], 0x96, scratch);
                 sound              = gGolemPawnRookScreamCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+                sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
             }
             work->shieldRaised = work->shieldHp > 0;
             if ((s16)(work->timer % 10) == 0) {
@@ -70,7 +70,7 @@ void golemPawnRookSilenceScreamState(Task* arg0)
             work->step     = 0;
             work->anim     = 2;
             sound          = gGolemPawnRookSilenceCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-            SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+            sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
             break;
         case 3:
             if (!(work->animFrame & 3)) {

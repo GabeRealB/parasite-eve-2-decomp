@@ -772,7 +772,7 @@ s32 func_shelter_b1_sterilization_room_801803EC(Task* arg0, s32 arg1, RoomEventM
 s32 func_shelter_b1_sterilization_room_80180430(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
-        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x16), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x16), 0, 0);
     }
     return 0;
 }
@@ -964,7 +964,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_DOOR_OPEN, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B1_STERILIZATION_DOOR_OPEN, 0, 0);
             task->state++;
             break;
         case 1:
@@ -981,7 +981,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE,
                                           &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].placementIndex],
                                           0);
-            SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_DOOR_CLOSE, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B1_STERILIZATION_DOOR_CLOSE, 0, 0);
             fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             task->state++;
             break;
@@ -1025,7 +1025,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                             Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624.source.index);
                             TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_shelter_b1_sterilization_room_80188624, 0);
                             pan = (s8)worldCoordGetOriginAudioPan(coord);
-                            SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                            sndEvtRequestScriptStart(SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                             task->killCountdown = 0;
                         }
                         attachment         = &Gp_StateC08;

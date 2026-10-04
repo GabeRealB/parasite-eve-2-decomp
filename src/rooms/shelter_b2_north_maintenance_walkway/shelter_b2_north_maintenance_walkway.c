@@ -794,7 +794,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, Roo
 s32 func_shelter_b2_north_maintenance_walkway_8017DCE4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
-        SndEvt_EnqueueType6(0x541E0000 | 7, 0, 0);
+        sndEvtRequestScriptStart(0x541E0000 | 7, 0, 0);
     }
     return 0;
 }

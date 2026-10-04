@@ -1283,7 +1283,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
         taskReparent(arg0, child);
     }
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0A), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0A), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     func_actor_503500_80137290(6);
     arg0->exitCallback = func_actor_503500_80145480;
     arg0->state       += 1;
@@ -1308,7 +1308,7 @@ static void func_actor_503500_801450A0(Task* arg0)
                 }
                 coord = arg0->extra.tmd->coords;
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0B), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0B), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                 work->phaseFrames = 0;
                 work->phase++;
             }
@@ -1511,7 +1511,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     work->effectTask = child;
     taskReparent(arg0, child);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0C), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0C), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     func_actor_503500_80137290(6);
     arg0->exitCallback = func_actor_503500_80145950;
     arg0->state       += 1;
@@ -1540,11 +1540,11 @@ static void func_actor_503500_80145754(Task* arg0)
                 } else if (work->phaseFrames == 0x3E) {
                     coord = arg0->extra.tmd->coords;
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x14), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x14), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                 } else if (work->phaseFrames == 0x5A) {
                     coord2 = arg0->extra.tmd->coords;
                     pan2   = (s8)worldCoordGetOriginAudioPan(coord2);
-                    SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0D), pan2, (s8)(worldCoordGetOriginAudioDepth(coord2) / 2));
+                    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0D), pan2, (s8)(worldCoordGetOriginAudioDepth(coord2) / 2));
                 }
                 return;
             case ACTOR_503500_YELLOW_FLASH_ATTACK_STRIKE:
@@ -1679,10 +1679,10 @@ static void func_actor_503500_80145A2C(Task* arg0)
     taskReparent(arg0, child);
     if (gGameSession->eventState != 0) {
         pan = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x13), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x13), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     } else {
         pan2 = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0E), pan2, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0E), pan2, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     }
     func_actor_503500_80137290(8);
     arg0->exitCallback = func_actor_503500_80145E98;
@@ -1708,7 +1708,7 @@ static void func_actor_503500_80145C50(Task* arg0)
                 work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 coord             = arg0->extra.tmd->coords;
                 pan               = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             }
             goto next;
         case ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE:

@@ -66,7 +66,7 @@ static _CombustionLevelTuning D_combustion_80130980[] = {
     { 0x004C, 0x01F3, 0x0009, 0x0019 },
 };
 
-/// The `SndEvt_EnqueueType6` id for each `D_combustion_80130980` row.
+/// The `sndEvtRequestScriptStart` id for each `D_combustion_80130980` row.
 static s32 D_combustion_80130998[] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
 
 /// The effect coordinate's world Y at ignition, saved by
@@ -114,8 +114,8 @@ void func_combustion_8012EF34(Task* arg0)
             actorRenderComposeCoord(coord);
             mem->move.vz = 0x200;
             pan          = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_combustion_80130998[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
-                                (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(D_combustion_80130998[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
+                                     (s8)worldCoordGetOriginAudioDepth(coord));
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;

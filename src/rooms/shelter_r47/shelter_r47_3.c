@@ -1734,7 +1734,7 @@ static void func_shelter_r47_801844A0(Task* task)
 
     if (st->screenOnDelay != 0) {
         if (--st->screenOnDelay == 0) {
-            SndEvt_EnqueueType6(SOUND_SHELTER_R47_MAP_TERMINAL_SCREEN_ON, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_SCREEN_ON, 0, 0);
         }
     }
     func_shelter_r47_801851B8(task);
@@ -1840,7 +1840,7 @@ static void func_shelter_r47_80184658(Task* task)
                 st->panelTargetWidth  = 0;
                 st->panelTargetHeight = 0;
                 task->state           = 6;
-                SndEvt_EnqueueType6(SOUND_SHELTER_R47_MAP_TERMINAL_PAGE_SWITCH, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_PAGE_SWITCH, 0, 0);
                 SndEvt_EnqueueType7(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 1);
                 return;
             case SHELTER_R47_MAP_HOTSPOT_TITLE:
@@ -2074,7 +2074,7 @@ static void func_shelter_r47_801856AC(Task* task)
     state = (ShelterR47MapTerminalWork*)task->work;
     func_shelter_r47_801851B8(task);
     if (state->mapWidth >= SHELTER_R47_MAP_WIDTH_PANEL) {
-        SndEvt_EnqueueType6(SOUND_SHELTER_R47_MAP_TERMINAL_SCREEN_ON, 0, 0);
+        sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_SCREEN_ON, 0, 0);
         state->panelTargetWidth  = SHELTER_R47_MAP_PANEL_WIDTH;
         state->panelTargetHeight = SHELTER_R47_MAP_PANEL_HEIGHT;
         task->state              = 2;

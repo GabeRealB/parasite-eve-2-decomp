@@ -101,7 +101,7 @@ static EffectBandShape D_inferno_801304E4[] = {
     { 0x0200, 0x0600, 0x0300 },
 };
 
-/// The `SndEvt_EnqueueType6` id the inferno cast plays, indexed by
+/// The `sndEvtRequestScriptStart` id the inferno cast plays, indexed by
 /// the cast's level, `Gp_StateC08.attachId % 10 - 1`.
 /// The same index also picks the state `func_inferno_8012EF88` advances to,
 /// which is why the three ids and the three state chains run in step.
@@ -142,8 +142,8 @@ void func_inferno_8012EF88(Task* arg0)
             mem->scale = 0x200;
             mem->angle = 0xFF;
             pan        = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_inferno_801304F0[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
-                                (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(D_inferno_801304F0[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
+                                     (s8)worldCoordGetOriginAudioDepth(coord));
             arg0->state = ((u16)(Gp_StateC08.attachId % 10) - 1) * 4 + 1;
             return;
         case 1:

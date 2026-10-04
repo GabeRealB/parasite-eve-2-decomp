@@ -13,7 +13,7 @@
 #include "sound.h"
 #include "main/sound_types.h"
 #include "sound_types.h"
-#include "task.h"
+#include "stage.h"
 
 typedef struct _SndVoice _SndVoice;
 
@@ -486,8 +486,6 @@ static s32 SndVoice_DriveSlots(s32* unused);
 
 static void SndVoice_ScanCandidates(_SndScriptSlotPick* candidates, u16 arg1, s32 arg2, u16 arg3);
 
-/// Advances a script's 16.16 tick clock by one step: a whole tick, or 0.6 of
-/// one when the display region is 1.
 static inline void _sndScriptAdvanceClock(_SndScript* script);
 
 /// Decides whether a note plays with reverb, from its own level against a
@@ -509,13 +507,13 @@ static s8 SndVoice_SelectStealCandidate(_SndScriptSlotPick* candidates, s32 retr
 
 static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* slot, SndScriptEntryControls* entryControls);
 
-static void SndVoice_Detach(void* context);
+static void _sndVoiceDetach(void* context);
 
 static SndBankSlot* _sndBankSlotFind(u16 bankId, s32 matchMode);
 
 static _SndVoice* SndVoice_Alloc(s32 arg0);
 
-static void SndVoice_Attach(_SndScript* arg0, _SndVoice* voice);
+static void _sndVoiceAttach(_SndScript* script, _SndVoice* voice);
 
 static s32 SndVoice_Tick(_SndVoice* voice);
 
@@ -683,86 +681,95 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
     return arg0;
 }
 
-s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2)
+s32 stageMusicSelectColumn(s32 stage, s32 sceneEvent, s32 sceneEventBase)
 {
-    // Music rows each stage has, indexed by the 1-based stage; slot 0 is unused.
-    u8  rowCounts[6] = { 0, 8, 7, 11, 12, 10 };
-    s32 temp;
+    enum { STAGE_MUSIC_DEFAULT_COLUMN = 0 };
+    // Columns per area's row, indexed by stage. Stage 0 has no music table.
+    u8  columnCounts[] = { 0, 8, 7, 11, 12, 10 };
+    s32 signedSceneEvent;
+    s32 beforeSceneEventBase;
+    s32 sceneEventOffset;
 
-    arg2 = arg2 - 1;
+    sceneEventOffset = sceneEventBase - 1;
 
-    switch (arg0 & 0xFF) {
-        case 1:
-        case 2:
+    switch (stage & 0xFF) {
+        case GAME_STAGE_ACROPOLIS:
+        case GAME_STAGE_DRYFIELD:
             break;
-        case 3:
-            temp = (s8)arg1;
-            if (temp >= 9) {
-                if ((temp == 0x1A) || (temp == 0x1D)) {
-                    arg1 = 0xA;
+        case GAME_STAGE_DRYFIELD_NIGHT:
+            // Later night-time events share the last two columns.
+            signedSceneEvent = (s8)sceneEvent;
+            if (signedSceneEvent >= 9) {
+                if ((signedSceneEvent == 0x1A) || (signedSceneEvent == 0x1D)) {
+                    sceneEvent = 0xA;
                 } else {
-                    arg1 = 9;
+                    sceneEvent = 9;
                 }
             }
             break;
-        case 4:
-            temp = (s8)arg1;
-            if (temp >= 0x14) {
-                switch ((s8)(arg1 - 0x17)) {
+        case GAME_STAGE_MINE_SHELTER:
+            // Translate the Shelter event range, including its late-event overrides.
+            signedSceneEvent = (s8)sceneEvent;
+            if (signedSceneEvent >= 0x14) {
+                switch ((s8)(sceneEvent - 0x17)) {
                     case 0:
-                        arg1 = 0xB - arg2;
+                        sceneEvent = 0xB - sceneEventOffset;
                         break;
                     case 3:
-                        arg1 = 0x10 - arg2;
+                        sceneEvent = 0x10 - sceneEventOffset;
                         break;
                     case 5:
-                        arg1 = 0x11 - arg2;
+                        sceneEvent = 0x11 - sceneEventOffset;
                         break;
                     case 6:
-                        arg1 = 0x12 - arg2;
+                        sceneEvent = 0x12 - sceneEventOffset;
                         break;
                     case 7:
-                        arg1 = 0x13 - arg2;
+                        sceneEvent = 0x13 - sceneEventOffset;
                         break;
                     default:
-                        arg1 = 0xF - arg2;
+                        sceneEvent = 0xF - sceneEventOffset;
                         break;
                 }
-            } else if (temp < 9) {
-                arg1 = 0;
+            } else if (signedSceneEvent < 9) {
+                sceneEvent = STAGE_MUSIC_DEFAULT_COLUMN;
             } else {
-                arg1 = arg1 - arg2;
+                sceneEvent = sceneEvent - sceneEventOffset;
             }
             break;
-        case 5:
-            temp = (s8)arg1;
-            switch (temp) {
+        case GAME_STAGE_SHELTER_NEO_ARK:
+            // Events 20 and 29 select columns 0 and 1; the rest use the event base.
+            signedSceneEvent = (s8)sceneEvent;
+            switch (signedSceneEvent) {
                 case 0x14:
-                    arg1 = 0;
+                    sceneEvent = STAGE_MUSIC_DEFAULT_COLUMN;
                     break;
                 case 0x1D:
-                    arg1 = 1;
+                    sceneEvent = 1;
                     break;
                 default:
-                    temp = arg1 << 24;
-                    temp = temp >> 24;
-                    arg1 = arg1 - arg2;
-                    temp = temp < ((arg2 & 0xFF) + 1);
-                    if (temp != 0) {
-                        arg1 = 0;
+                    signedSceneEvent = sceneEvent << 24;
+                    signedSceneEvent = signedSceneEvent >> 24;
+                    sceneEvent       = sceneEvent - sceneEventOffset;
+                    // Keep the signed comparison result in the event temporary's register.
+                    signedSceneEvent     = signedSceneEvent < ((sceneEventOffset & 0xFF) + 1);
+                    beforeSceneEventBase = signedSceneEvent;
+                    if (beforeSceneEventBase != 0) {
+                        sceneEvent = STAGE_MUSIC_DEFAULT_COLUMN;
                     }
                     break;
             }
             break;
         default:
-            arg1 = 0;
+            sceneEvent = STAGE_MUSIC_DEFAULT_COLUMN;
             break;
     }
 
-    if ((u32)(arg1 & 0xFF) >= (u32)rowCounts[arg0 & 0xFF]) {
-        arg1 = 0;
+    // Clamp the narrowed column, including negative or wrapped event results.
+    if ((u32)(sceneEvent & 0xFF) >= columnCounts[stage & 0xFF]) {
+        sceneEvent = STAGE_MUSIC_DEFAULT_COLUMN;
     }
-    return arg1 & 0xFF;
+    return sceneEvent & 0xFF;
 }
 
 static void Snd_ClearBusy(void)
@@ -898,7 +905,7 @@ s32 Snd_InitBanks(u32 unused)
     entry = Snd_BankInitTable;
 loop:
     slot     = *(s8*)(entry->bankType + (s32)map);
-    bankSlot = SndBankSlot_Get(slot);
+    bankSlot = sndBankSlotGet(slot);
     id       = entry->bankId;
     // Subtraction preserves the scaled slot first in the address addition.
     bank             = banks - -slot;
@@ -921,7 +928,7 @@ loop:
     return -1;
 }
 
-s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
+s32 sndEvtRequestScriptStart(s32 soundId, s32 panOffset, s32 attenuation)
 {
     /// Entry flag refusing a script-start request under the reduced-volume policy.
     ///
@@ -951,64 +958,66 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     /// Several slots may share one nonzero offset. Callers still need a
     /// completed `hONE` image; this comparison only interprets the stored offset.
     enum { SOUND_BANK_ENTRY_ABSENT = 0 };
-    s32                     orig;
+    enum { SOUND_SCRIPT_REQUEST_ENTRY_MASK = 0xFF };
+    s32                     originalSoundId;
     SndBankSlot*            bankSlot;
     SndBankHdr*             header;
     SndScriptEntryControls* entry;
-    u16                     offset;
-    u32                     index;
+    u16                     entryOffset;
+    u32                     entryIndex;
     SndEvt*                 event;
     SndEvtScriptArgs*       args;
 
-    orig = arg0;
-    if ((arg0 == 0) || (arg0 == 8)) {
-        return orig;
+    // Preserve the caller id for the result while resolving the queued bank id.
+    originalSoundId = soundId;
+    if ((soundId == SOUND_SCRIPT_REQUEST_NO_OP) || (soundId == SOUND_SCRIPT_REQUEST_NO_OP_8)) {
+        return originalSoundId;
     }
     // A published load refuses script starts of that bank type.
     if (gSndLoadBankId != SOUND_LOAD_BANK_NONE) {
-        if ((gSndLoadBankId & SOUND_BANK_TYPE_MASK) == (((u32)arg0 >> 16) & SOUND_BANK_TYPE_MASK)) {
-            return -1;
+        if ((gSndLoadBankId & SOUND_BANK_TYPE_MASK) == (((u32)soundId >> 16) & SOUND_BANK_TYPE_MASK)) {
+            return SOUND_SCRIPT_START_UNAVAILABLE;
         }
     }
-    arg0     = _sndScriptRemapType1Id(arg0);
-    bankSlot = _sndBankSlotFind((u32)arg0 >> 16, SOUND_BANK_SLOT_MATCH_ID);
+    soundId  = _sndScriptRemapType1Id(soundId);
+    bankSlot = _sndBankSlotFind((u32)soundId >> 16, SOUND_BANK_SLOT_MATCH_ID);
     if (bankSlot == NULL) {
-        return -2;
+        return SOUND_SCRIPT_START_INVALID_ENTRY;
     }
-    index  = (u32)arg0 & 0xFF;
-    header = bankSlot->image;
-    if (index >= header->entryCount) {
-        return -2;
+    entryIndex = (u32)soundId & SOUND_SCRIPT_REQUEST_ENTRY_MASK;
+    header     = bankSlot->image;
+    if (entryIndex >= header->entryCount) {
+        return SOUND_SCRIPT_START_INVALID_ENTRY;
     }
-    offset = *(header->entryOffsets + index);
-    if (offset == SOUND_BANK_ENTRY_ABSENT) {
-        return -3;
+    entryOffset = *(header->entryOffsets + entryIndex);
+    if (entryOffset == SOUND_BANK_ENTRY_ABSENT) {
+        return SOUND_SCRIPT_START_ENTRY_ABSENT;
     }
     // A nonzero offset addresses the slot's oneC block within this loaded image.
-    entry = (SndScriptEntryControls*)((u8*)header + offset);
+    entry = (SndScriptEntryControls*)((u8*)header + entryOffset);
     if (gSndVolumeReducedMode != SOUND_VOLUME_MODE_NORMAL) {
         if ((entry->flags & SOUND_SCRIPT_REJECT_IN_REDUCED_VOLUME_MODE) != 0) {
-            return -5;
+            return SOUND_SCRIPT_START_REDUCED_VOLUME;
         }
     }
-    if (D_80082138[(u32)arg0 >> 28] == 0) {
+    if (D_80082138[(u32)soundId >> 28] == 0) {
         if ((entry->flags & SOUND_SCRIPT_ALLOW_DISABLED_TYPE) == 0) {
-            return -4;
+            return SOUND_SCRIPT_START_TYPE_DISABLED;
         }
     }
     event = sndEvtAlloc();
     if (event == NULL) {
-        return -1;
+        return SOUND_SCRIPT_START_UNAVAILABLE;
     }
     event->command          = SOUND_EVENT_SCRIPT_START;
     args                    = &event->args.script;
-    args->soundId           = arg0;
-    args->panOffset         = arg1;
-    args->level.attenuation = arg2;
+    args->soundId           = soundId;
+    args->panOffset         = panOffset;
+    args->level.attenuation = attenuation;
     args->bankSlot          = bankSlot;
     args->entryControls     = entry;
     sndEvtEnqueue(event);
-    return orig;
+    return originalSoundId;
 }
 
 void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
@@ -1511,11 +1520,18 @@ void SndVoice_KeyOffMatching(void)
     }
 }
 
-/// Advances a script's 16.16 tick clock by one step: a whole tick, or 0.6 of
-/// one when the display region is 1.
+/// Adds one waiting update to the script's 16.16 command clock.
+///
+/// PAL adds 39321/65536 of a tick (0.6 rounded down); every other display
+/// region adds one tick. Called only while a Loop, Wait or note delay is still
+/// pending, so immediately executable commands consume time without adding it.
 static inline void _sndScriptAdvanceClock(_SndScript* script)
 {
-    script->tickClock += (gDisplayState.region == MODE_PAL ? 0x9999 : 0x10000);
+    enum {
+        SOUND_SCRIPT_CLOCK_STEP_PAL   = 0x9999,
+        SOUND_SCRIPT_CLOCK_STEP_WHOLE = 0x10000
+    };
+    script->tickClock += (gDisplayState.region == MODE_PAL ? SOUND_SCRIPT_CLOCK_STEP_PAL : SOUND_SCRIPT_CLOCK_STEP_WHOLE);
 }
 
 /// Decides whether a note plays with reverb, from its own level against a
@@ -1699,7 +1715,7 @@ static s32 SndScript_Exec(_SndScript* script)
                 voice->note      = note;
                 countdown        = note->gateTicks == 0 ? SOUND_SCRIPT_NOTE_HELD : note->gateTicks << 16;
                 voice->gateClock = countdown;
-                SndVoice_Attach(script, voice);
+                _sndVoiceAttach(script, voice);
                 envelopeOffset = note->pitchEnvelopeOffset;
                 if (envelopeOffset != SOUND_SCRIPT_NOTE_NO_ENVELOPE) {
                     SndVoice_SetupEnvelope(voice, envelopeOffset, pitch & 0xFFFF, bankLayer);
@@ -2142,49 +2158,67 @@ static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* sl
     p->useUnduckedVolume = (flags & SOUND_SCRIPT_USE_UNDUCKED_VOLUME) != 0;
 }
 
-static void SndVoice_Detach(void* context)
+/// Releases and unlinks a script voice when the SPU voice ends or is stolen.
+///
+/// `context` is the `_SndVoice` registered with the SPU; `NULL` is ignored.
+/// The live script and neighbors must still exist. Clears the allocation mark,
+/// hardware voice number and neighbor links, retaining the script pointer and
+/// note/envelope data. The SPU caller manages its hardware slot and callback
+/// registration; this callback only releases the script's voice record.
+static void _sndVoiceDetach(void* context)
 {
-    _SndVoice* arg0 = context;
+    _SndVoice* voice = context;
     union {
         _SndVoice*  voice;
         _SndScript* script;
-    } temp_v0;
-    _SndVoice* temp_v1;
+    } neighborOrOwner;
+    _SndVoice* nextVoice;
 
-    if (arg0 != NULL) {
-        temp_v0.voice   = arg0->prev;
-        arg0->allocated = 0;
-        arg0->spuVoice  = 0;
-        if (temp_v0.voice == NULL) {
-            temp_v1 = arg0->next;
-            if (temp_v1 == NULL) {
-                temp_v0.script = arg0->script;
-                if (temp_v0.script != NULL) {
-                    temp_v0.script->voices = NULL;
-                }
-            } else {
-                temp_v0.script = arg0->script;
-                if (temp_v0.script != NULL) {
-                    temp_v0.script->voices = temp_v1;
-                }
-                temp_v0.voice       = arg0->next;
-                temp_v0.voice->prev = NULL;
-            }
-        } else {
-            temp_v1 = arg0->next;
-            if (temp_v1 == NULL) {
-                temp_v0.voice->next = NULL;
-            } else {
-                temp_v0.voice->next = temp_v1;
-                temp_v1             = arg0->next;
-                temp_v0.voice       = arg0->prev;
-                temp_v1->prev       = temp_v0.voice;
-            }
-        }
-        arg0->prev = NULL;
-        arg0->next = NULL;
+    /// Unlinks `voice` using its captured previous link in `neighborOrOwner.voice`.
+    ///
+    /// Requires the local `_SndVoice* voice`, `_SndVoice* nextVoice` and the
+    /// voice/script pointer union `neighborOrOwner`; updates the latter two
+    /// temporaries and clears only the voice's neighbor links.
+#define SOUND_SCRIPT_UNLINK_VOICE()                                  \
+    do {                                                             \
+        if (neighborOrOwner.voice == NULL) {                         \
+            nextVoice = voice->next;                                 \
+            if (nextVoice == NULL) {                                 \
+                neighborOrOwner.script = voice->script;              \
+                if (neighborOrOwner.script != NULL) {                \
+                    neighborOrOwner.script->voices = NULL;           \
+                }                                                    \
+            } else {                                                 \
+                neighborOrOwner.script = voice->script;              \
+                if (neighborOrOwner.script != NULL) {                \
+                    neighborOrOwner.script->voices = nextVoice;      \
+                }                                                    \
+                neighborOrOwner.voice       = voice->next;           \
+                neighborOrOwner.voice->prev = NULL;                  \
+            }                                                        \
+        } else {                                                     \
+            nextVoice = voice->next;                                 \
+            if (nextVoice == NULL) {                                 \
+                neighborOrOwner.voice->next = NULL;                  \
+            } else {                                                 \
+                neighborOrOwner.voice->next = nextVoice;             \
+                nextVoice                   = voice->next;           \
+                neighborOrOwner.voice       = voice->prev;           \
+                nextVoice->prev             = neighborOrOwner.voice; \
+            }                                                        \
+        }                                                            \
+        voice->prev = NULL;                                          \
+        voice->next = NULL;                                          \
+    } while (0)
+
+    if (voice != NULL) {
+        neighborOrOwner.voice = voice->prev;
+        voice->allocated      = 0;
+        voice->spuVoice       = 0;
+        SOUND_SCRIPT_UNLINK_VOICE();
     }
 }
+#undef SOUND_SCRIPT_UNLINK_VOICE
 
 /// Finds the first sound-script slot whose attached descriptor matches `bankId`.
 ///
@@ -2235,10 +2269,10 @@ static SndBankSlot* _sndBankSlotFind(u16 bankId, s32 matchMode)
     return NULL;
 }
 
-SndBankSlot* SndBankSlot_Get(s32 arg0)
+SndBankSlot* sndBankSlotGet(s32 slotIndex)
 {
-    if ((u8)arg0 < ARRAY_SIZE(_gSndBankSlots)) {
-        return &_gSndBankSlots[(s8)arg0];
+    if ((u8)slotIndex < ARRAY_SIZE(_gSndBankSlots)) {
+        return &_gSndBankSlots[(s8)slotIndex];
     }
     return NULL;
 }
@@ -2270,29 +2304,34 @@ static _SndVoice* SndVoice_Alloc(s32 arg0)
     /* Ranges 1 and 2 cover hardware voices 16..23. */
     ptr           = &SndScript_Voices[voiceIdx - 16];
     ptr->spuVoice = voiceIdx;
-    Spu_SetVoiceCallbacks(voiceIdx, SndVoice_Detach, ptr);
+    Spu_SetVoiceCallbacks(voiceIdx, _sndVoiceDetach, ptr);
     ptr->allocated = 1;
     return ptr;
 }
 
-static void SndVoice_Attach(_SndScript* arg0, _SndVoice* voice)
+/// Links a script voice at the head of its owner's doubly linked voice list.
+///
+/// `voice` must be live and outside any active voice list, and `script` must
+/// remain live until the voice is detached. A `NULL` script clears only its three list fields;
+/// it does not unlink an existing owner. Allocation and SPU state are untouched.
+static void _sndVoiceAttach(_SndScript* script, _SndVoice* voice)
 {
-    _SndVoice* temp_v0;
+    _SndVoice* previousHead;
 
-    if (arg0 != NULL) {
-        temp_v0 = arg0->voices;
-        if (temp_v0 != NULL) {
-            arg0->voices  = voice;
-            voice->next   = temp_v0;
-            temp_v0->prev = voice;
-            voice->prev   = NULL;
-            voice->script = arg0;
+    if (script != NULL) {
+        previousHead = script->voices;
+        if (previousHead != NULL) {
+            script->voices     = voice;
+            voice->next        = previousHead;
+            previousHead->prev = voice;
+            voice->prev        = NULL;
+            voice->script      = script;
             return;
         }
-        arg0->voices  = voice;
-        voice->script = arg0;
-        voice->next   = NULL;
-        voice->prev   = NULL;
+        script->voices = voice;
+        voice->script  = script;
+        voice->next    = NULL;
+        voice->prev    = NULL;
         return;
     }
     voice->next   = NULL;

@@ -1456,7 +1456,7 @@ static void func_neo_ark_shrine_8017F578(Task* task)
     work->fallFrames++;
     if (work->fallFrames == 4) {
         Gp_SpawnPadLerp(0x18, 0x40, 0xFF);
-        SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_PROP_1_FALL, 0, 0);
+        sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PROP_1_FALL, 0, 0);
     }
     // The drop accelerates harder every frame, and stops dead at floor height.
     work->fallAcceleration += 1;
@@ -1513,7 +1513,7 @@ static void func_neo_ark_shrine_8017F738(Task* task)
     coord = task->extra.tmd->coords;
     work->fallFrames++;
     if (work->fallFrames == 2) {
-        SndEvt_EnqueueType6(SOUND_NEO_ARK_SHRINE_PROP_2_FALL, 0, 0);
+        sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PROP_2_FALL, 0, 0);
     }
     if (work->fallFrames == 0x12) {
         Gp_SpawnPadLerp(0xA, 0xA0, 0xFF);

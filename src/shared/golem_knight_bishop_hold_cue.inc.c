@@ -20,7 +20,7 @@ void golemKnightBishopHoldCueTimer(Task* arg0)
         if (work->grabReleaseTimer == 0x14) {
             sound = gGolemKnightBishopHoldCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             pan   = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
         timer                  = work->grabReleaseTimer + 1;
         work->grabReleaseTimer = timer;

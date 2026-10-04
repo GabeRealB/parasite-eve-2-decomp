@@ -331,7 +331,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
                             if (hs->id == DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_HASH) {
                                 work->entryOpen    = 1;
                                 work->entryCleared = 1;
-                                SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
+                                sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
                             }
                             break;
                         }

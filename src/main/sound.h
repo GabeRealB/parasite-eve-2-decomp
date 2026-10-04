@@ -217,7 +217,14 @@ void SndVoice_ApplyMasterVolume(s8 arg0);
 
 s8 SndVoice_GetMasterVolume(void);
 
-SndBankSlot* SndBankSlot_Get(s32 arg0);
+/// Returns the stable sound-script bank slot selected by the low byte of `slotIndex`.
+///
+/// Low bytes 0..15 select a slot; all others return `NULL`. Higher bits are
+/// ignored. The borrowed record survives releases and reloads, so finding it
+/// does not guarantee a completed image or initialized sample tables: it can
+/// hold a boot reservation or a released image. Callers accessing those
+/// resources must keep their contents loaded through their last use.
+SndBankSlot* sndBankSlotGet(s32 slotIndex);
 
 void SndBankSlot_Free(s32 arg0);
 

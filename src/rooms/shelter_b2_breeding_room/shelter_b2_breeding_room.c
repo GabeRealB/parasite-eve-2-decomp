@@ -135,10 +135,10 @@ s32 func_shelter_b2_breeding_room_8017D758(Task* arg0, s32 arg1, s32 arg2, s32 a
 {
     switch (arg2) {
         case 7:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 7), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 7), 0, 0);
             break;
         case 0x68:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 8), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 8), 0, 0);
             break;
     }
     return 0;

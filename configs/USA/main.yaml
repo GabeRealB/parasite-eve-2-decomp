@@ -141,7 +141,7 @@ segments:
       # jtbl_80014064 (Midi_HandleMetaSysex) + absolute jtbl_800140A4 (SndLoad_ProcessSector
       # still asm) + jtbl_800140C4 (SndLoad_FeedSector), all from 410B0.c.
       - [0x4864, .rodata, "sndevt"]
-      # jtbl_800140E8 + TaskIdMap_RemapIndex's rowCounts template and jtbl + StopMatching / TickEnvelope jtbls
+      # jtbl_800140E8 + stageMusicSelectColumn's columnCounts template and jtbl + StopMatching / TickEnvelope jtbls
       - [0x48e8, .rodata, "sndscript"]
       # jtbl_800141C4 (CdAudio_DriveStream) + jtbl from CdAudio_DriveSeek +
       # jtbl from CdAudio_DriveRead + jtbl from CdAudio_DrivePhase1

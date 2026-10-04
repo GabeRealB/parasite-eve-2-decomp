@@ -631,7 +631,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 work->knockbackFrame = 0;
                 Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
-                SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 scratch->pushDirection.vx = 0;
                 scratch->pushDirection.vy = -1000;
                 scratch->pushDirection.vz = 0;
@@ -665,10 +665,10 @@ static void func_actor_205200_8014C0C0(Task* arg0)
             if (work->knockbackFrame == 0x10) {
                 if (work->room == ACTOR_205200_ROOM_CORRIDOR) {
                     sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55180002;
-                    SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 } else {
                     sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55190003;
-                    SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
             count = ++work->knockbackFrame;

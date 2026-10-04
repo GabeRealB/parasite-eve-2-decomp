@@ -50,10 +50,10 @@ void skullStalkerHits(Task* arg0)
             case 0x10000:
                 if (work->variant != 0) {
                     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit;
-                    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 } else {
                     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit2;
-                    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
                 Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
@@ -84,10 +84,10 @@ void skullStalkerHits(Task* arg0)
                 if (damage != 0) {
                     if (work->variant != 0) {
                         snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit;
-                        SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                        sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     } else {
                         snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit2;
-                        SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                        sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     }
                     Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
                     Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);

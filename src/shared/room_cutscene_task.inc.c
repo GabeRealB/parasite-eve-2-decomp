@@ -41,7 +41,7 @@ void roomCutsceneTask(Task* task)
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
             if (script->startSound != 0) {
-                SndEvt_EnqueueType6(script->startSound, 0, 0);
+                sndEvtRequestScriptStart(script->startSound, 0, 0);
             }
             task->state++;
             break;
@@ -89,7 +89,7 @@ void roomCutsceneTask(Task* task)
             break;
         case 7:
             if (script->skipScene == 0) {
-                SndEvt_EnqueueType6(script->afterSceneSound, 0, 0);
+                sndEvtRequestScriptStart(script->afterSceneSound, 0, 0);
             }
             flag = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
             if (flag > 0) {
@@ -152,7 +152,7 @@ void roomCutsceneTask(Task* task)
             task->state++;
             break;
         case 14:
-            SndEvt_EnqueueType6(script->endSound, 0, 0);
+            sndEvtRequestScriptStart(script->endSound, 0, 0);
             Gp_MsgPlayerWeapon(1);
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
                 Gp_MsgAllyWeapon(1);

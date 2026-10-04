@@ -1979,7 +1979,7 @@ static void func_actor_206100_8014C458(Task* task)
                 if ((sub->attackFrames & 7) == 0) {
                     sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4004000B;
                     pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-                    SndEvt_EnqueueType6(
+                    sndEvtRequestScriptStart(
                         sound, pan,
                         (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
                 }
@@ -2120,7 +2120,7 @@ static void func_actor_206100_8014CD08(Task* task)
     coord             = tmd->coords;
     work->stateFrames = work->stateFrames + 1;
     if (work->stateFrames == 3) {
-        SndEvt_EnqueueType6(SOUND_NEO_ARK_SUB_GALLERY_DIVER_DEPART, 0, 0);
+        sndEvtRequestScriptStart(SOUND_NEO_ARK_SUB_GALLERY_DIVER_DEPART, 0, 0);
     }
     if (work->stateFrames == 0x22) {
         coord->coord.t[0]                                          = 0;
@@ -2189,7 +2189,7 @@ static void func_actor_206100_8014CE60(Task* task)
             taskKill(work->waveTask);
         }
         if (work->stateFrames == frame) {
-            SndEvt_EnqueueType6(SOUND_NEO_ARK_SUB_GALLERY_DIVER_REAPPEAR, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NEO_ARK_SUB_GALLERY_DIVER_REAPPEAR, 0, 0);
         }
     }
     if (work->stateFrames == 0xC) {
@@ -2344,8 +2344,8 @@ static void func_actor_206100_8014D14C(Task* task)
     }
     if (sub->stateFrames == 0x54) {
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, pan,
-                            (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        sndEvtRequestScriptStart(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, pan,
+                                 (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
     if (sub->stateFrames == 0x77) {
         SndEvt_EnqueueType7(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, 1);
@@ -2520,7 +2520,7 @@ static void func_actor_206100_8014D574(Task* task)
         } while (i < 0x20);
         sound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x551E0006;
         pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         work->stateFrames = 0;
         work->goalY       = 0x1E78;
         work->subState    = work->subState + 1;
@@ -2935,7 +2935,7 @@ static void func_actor_206100_8014E0C0(Task* task)
         case 1:
             sound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
             pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-            SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             work->recoilPhase = work->recoilPhase + 1;
             break;
         case 2:
@@ -3594,8 +3594,8 @@ static void func_actor_206100_8014F7B4(Task* task)
     work    = task->work;
     soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x551E0005;
     pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    SndEvt_EnqueueType6(soundId, pan,
-                        (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+    sndEvtRequestScriptStart(soundId, pan,
+                             (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     next              = task->work;
     next->animBlend   = 0xA;
     next->animStep    = 0x10;
@@ -3738,8 +3738,8 @@ static void func_actor_206100_8014FBE4(Task* task)
     work->state       = work->state + 1;
     soundId           = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
     pan               = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    SndEvt_EnqueueType6(soundId, pan,
-                        (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+    sndEvtRequestScriptStart(soundId, pan,
+                             (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 
 /// Idle-state tick: re-arms the animation request, then advances the clip

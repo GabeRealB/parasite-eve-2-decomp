@@ -30,5 +30,5 @@ void footstepWalkPlaySteps(Task* task)
     }
     id += 0x64;
     pan = (s8)worldCoordGetOriginAudioPan(obj);
-    SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
+    sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
 }

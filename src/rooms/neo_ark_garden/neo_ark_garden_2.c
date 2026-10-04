@@ -396,7 +396,7 @@ WorldCollisionTrigger D_neo_ark_garden_801828D4[7] = {
 /// `EffectWork::scale` restarts at 4, and once it has run down the current
 /// view's pair of 0x550F0003 / 0x550F0004 loops is enqueued every tick. In
 /// views 2, 4 and 5 the first such tick with `state` still 1 also plays them
-/// once through `SndEvt_EnqueueType6` and moves `state` to 2. Views 2 and 4
+/// once through `sndEvtRequestScriptStart` and moves `state` to 2. Views 2 and 4
 /// additionally roll two 1-in-4 chances per tick, while no event is running,
 /// to spawn effect 0x60070 at the first two points of
 /// `D_neo_ark_garden_801813E0`; view 4 also updates the last two points, and
@@ -424,8 +424,8 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             if (work->scale == 0) {
                 if (task->state == 1) {
                     task->state = 2;
-                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
-                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
                 }
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
@@ -462,8 +462,8 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             if (work->scale == 0) {
                 if (task->state == 1) {
                     task->state = 2;
-                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
-                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
                 }
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
@@ -493,8 +493,8 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             if (work->scale == 0) {
                 if (task->state == 1) {
                     task->state = 2;
-                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
-                    SndEvt_EnqueueType6(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);
                 }
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
                 SndEvt_EnqueueTypeA(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);

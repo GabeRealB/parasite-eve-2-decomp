@@ -58,7 +58,7 @@ static _MetabolismLevelTuning D_metabolism_8012FB54[] = {
     { 0x0010, 0x00E0, 0x0040, 0x0600 },
 };
 
-/// The `SndEvt_EnqueueType6` id for each `D_metabolism_8012FB54` row.
+/// The `sndEvtRequestScriptStart` id for each `D_metabolism_8012FB54` row.
 static s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 
 /// Scratch angles for the fan, one per wedge: `(i << 10)` plus a 10-bit
@@ -128,8 +128,8 @@ void func_metabolism_8012EF34(Task* arg0)
             }
             Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             pan                = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_metabolism_8012FB6C[mem->index], pan,
-                                (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(D_metabolism_8012FB6C[mem->index], pan,
+                                     (s8)worldCoordGetOriginAudioDepth(coord));
             /* fallthrough */
         case 1:
             actorRenderComposeCoord(coord);

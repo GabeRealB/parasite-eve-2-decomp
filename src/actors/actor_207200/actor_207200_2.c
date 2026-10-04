@@ -855,7 +855,7 @@ static void func_actor_207200_8014B628(Task* arg0)
             if (work->animFrames == 5) {
                 id  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480004;
                 pan = (s8)worldCoordGetOriginAudioPan(obj);
-                SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
+                sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
             }
             if (work->animFrames >= 0x2D) {
                 work->animId     = ACTOR_207200_ANIM_IDLE;
@@ -1002,7 +1002,7 @@ static void func_actor_207200_8014B87C(Task* arg0)
             if (work->animFrames == 30) {
                 work->frontAttackLanded = 0;
                 id                      = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480002;
-                SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrames == 42) {
                 work->frontAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -1012,7 +1012,7 @@ static void func_actor_207200_8014B87C(Task* arg0)
             }
             if (work->frontAttackLanded != 0 && work->animFrames == 45) {
                 id = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480005;
-                SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animId == ACTOR_207200_ANIM_FRONT_ATTACK && work->animFrames >= 60) {
                 if (work->headLost != 0) {
@@ -1057,7 +1057,7 @@ static void func_actor_207200_8014B87C(Task* arg0)
             work->forwardSpeed = 0;
             if (work->animFrames == 10) {
                 id = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480006;
-                SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrames >= 90) {
                 if (work->headLost != 0) {
@@ -1183,7 +1183,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 }
                 if (work->state == ACTOR_207200_STATE_DORMANT) {
                     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480006;
-                    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     work->animId        = ACTOR_207200_ANIM_RECOIL;
                     work->animFrames    = 0;
                     work->state         = ACTOR_207200_STATE_RECOIL;
@@ -1311,7 +1311,7 @@ static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
         if (work->headLost == 0) {
             ctx->hp = 1;
             snd     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480003;
-            SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             effArg = &work->headLossEffectArg;
             func_800FDB18(5, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
             func_800FDB18(5, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
@@ -1326,7 +1326,7 @@ static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
     } else {
         if (work->animId == ACTOR_207200_ANIM_IDLE) {
             snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480006;
-            SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             work->animId        = ACTOR_207200_ANIM_RECOIL;
             work->animFrames    = 0;
             work->state         = ACTOR_207200_STATE_RECOIL;
@@ -1335,7 +1335,7 @@ static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
             return;
         }
         snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480001;
-        SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     }
 }
 

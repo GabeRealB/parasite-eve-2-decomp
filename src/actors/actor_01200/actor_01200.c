@@ -1053,7 +1053,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, &ofs);
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             break;
         case 0x32:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1150,7 +1150,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             Gp_SpawnEff(EFFECT_030, arg1->extra.tmd->coords, 0x10030, &ofs);
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case 0xE:
@@ -1589,7 +1589,7 @@ static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
     if (id != 0) {
         snd = id | ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
     }
     if (work->field_3D8 != 0) {
         func_800D7A9C(arg1->extra.tmd, (VECTOR*)arg1->extra.tmd->coords->workm.t, 0, 3);

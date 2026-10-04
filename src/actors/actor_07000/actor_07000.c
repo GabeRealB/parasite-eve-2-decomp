@@ -928,10 +928,10 @@ void sucklercephKill(Task* arg0, u8 arg1)
     if (((gRandomLcgState >> 0x10) & 2) || (arg1 & 0xFF)) {
         if (work->variant != 0) {
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000B;
-            SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         } else {
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0003;
-            SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         }
         work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->blastBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -942,10 +942,10 @@ void sucklercephKill(Task* arg0, u8 arg1)
     } else {
         if (work->variant != 0) {
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000C;
-            SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         } else {
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0004;
-            SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         }
         work->state = SUCKLERCEPH_STATE_SLUMP_DEATH;
     }
@@ -1193,7 +1193,7 @@ default_body:
                 if (work->watchFrames >= 5) {
                     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), 0);
                     soundId = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460005;
-                    SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     arg1->state             = 2;
                     work->deathPhase        = ACTOR_07000_SLOUCH_DEATH_PHASE_BEGIN;
@@ -1250,11 +1250,11 @@ static void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2)
             work->forwardSpeed = 0;
             if (work->animFrames == 10) {
                 soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460003;
-                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrames == 105) {
                 soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460006;
-                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrames >= 110) {
                 work->animId = ACTOR_07000_SLOUCH_ANIM_IDLE;
@@ -1347,7 +1347,7 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             }
             if (work->animFrames == 40) {
                 soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460001;
-                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrames >= 32 && work->animFrames < 42) {
                 amount = work->stretchTarget;
@@ -1399,7 +1399,7 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             work->animId = ACTOR_07000_SLOUCH_ANIM_FIDGET;
             if (work->animFrames == 105) {
                 soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460006;
-                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrames >= 110) {
                 Actor07000_Fn046B8(arg0, 0);
@@ -1417,7 +1417,7 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             }
             if (work->animFrames == 30) {
                 soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460001;
-                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrames >= 25 && work->animFrames < 35) {
                 amount = work->stretchTarget;
@@ -1616,7 +1616,7 @@ static void Actor07000_Fn04274(Task* arg0, s32 arg1)
     if (enemy->hp <= 0) {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), 0);
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460005;
-        SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         arg0->state             = 2;
         work->deathPhase        = ACTOR_07000_SLOUCH_DEATH_PHASE_BEGIN;
@@ -1624,7 +1624,7 @@ static void Actor07000_Fn04274(Task* arg0, s32 arg1)
     }
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), 0);
     soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460004;
-    SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     state = work->state;
     if (state <= ACTOR_07000_SLOUCH_STATE_ENGAGED) {
         if ((u32)arg1 >= 0x33) {
@@ -1712,7 +1712,7 @@ static void Actor07000_Fn04468(Enemy* arg0, Task* arg1)
             switch (work->deathPhase) {
                 case ACTOR_07000_SLOUCH_DEATH_PHASE_BEGIN:
                     if (work->hasBurst == 0) {
-                        SndEvt_EnqueueType6(SOUND_COMMON(0x0D), 0, 0);
+                        sndEvtRequestScriptStart(SOUND_COMMON(0x0D), 0, 0);
                         obj->flags = TMD_OBJECT_SEMI_TRANS;
                         Actor07000_Fn05FF8(arg1);
                     }
@@ -1924,7 +1924,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     arg0->state += 1;
     pan          = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(SOUND_SUCKLERCEPH_PROJECTILE_LAUNCH, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(SOUND_SUCKLERCEPH_PROJECTILE_LAUNCH, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     Actor07000_Fn04E60(arg0);
 }
 
@@ -2000,16 +2000,16 @@ default_body:
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->velocity.vy   = work->velocity.vy + 0xA;
     if (Gp_CountRec18Hi(contacts, 0x10000) != 0) {
-        SndEvt_EnqueueType6(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
-                            (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
+                                 (s8)worldCoordGetOriginAudioDepth(coord));
         if (child != NULL) {
             child->spawnArg1.value = 3;
         }
         goto block_16;
     }
     if (Gp_FindRec18(contacts, 0) != 0) {
-        SndEvt_EnqueueType6(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
-                            (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
+                                 (s8)worldCoordGetOriginAudioDepth(coord));
         if (child != NULL) {
             if (hit->response.direction.vy >= -0xC00) {
                 child->spawnArg1.value = 3;
@@ -2248,7 +2248,7 @@ static void Actor07000_Fn05400(Enemy* arg0, Task* arg1)
                 if (coord->coord.t[1] > 0) {
                     sound = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                     work->twistActive                   = 1;
                     work->twist.vx                      = 0x400;
                     work->fallSpeed                     = 0;
@@ -2322,7 +2322,7 @@ static void Actor07000_Fn0595C(Task* arg0)
 /// Low byte 1 is the reveal. Unless the task already runs one of the two live
 /// states, the model is placed at the spawn point bits 8..11 select from the
 /// current map's table - `D_shelter_b3_dumping_hole_8018B74C` on map 0x27, where the appearance sound
-/// is cued through `SndEvt_EnqueueType6` as well, `D_shelter_b3_garbage_incinerator_801874C4` on 0x28 - the
+/// is cued through `sndEvtRequestScriptStart` as well, `D_shelter_b3_garbage_incinerator_801874C4` on 0x28 - the
 /// buffers are re-armed, the 0x80 and 4 bits are cleared from the model's flag
 /// word, the enemy's `node.state.parts.flags` is zeroed, both render nodes are revealed, and
 /// the model is turned to the spawn point's heading. Low byte 3 is the hide:
@@ -2370,7 +2370,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
                 coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].z;
                 sound             = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54270006);
                 pan               = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (gGameSession->location.loc.area == 0x28) {
                 rot.vx            = 0;
                 rot.vy            = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].heading;

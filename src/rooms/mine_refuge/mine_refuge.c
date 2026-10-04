@@ -564,7 +564,7 @@ void func_mine_refuge_8017FA08(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_PANEL_OPEN, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_PANEL_OPEN, 0, 0);
             D_mine_refuge_80182AD8 = Task_SpawnFromTable(&D_actor_548100_801358D8, 0, 0, 0);
             task->state            = task->state + 1;
             return;
@@ -579,7 +579,7 @@ void func_mine_refuge_8017FA08(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_PANEL_CLOSE, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_PANEL_CLOSE, 0, 0);
             taskKill(task);
             break;
     }
@@ -624,7 +624,7 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, s32 arg3)
             temp_a3                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6U;
             D_mine_refuge_80182ADC[0]                                  = temp_a3;
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3), 0, 0);
             Gp_RunCapCmd(0xD, 0);
             Task_SpawnFromTable(D_mine_refuge_801818B4, 1, 0, 0);
         }
@@ -657,13 +657,13 @@ s32 func_mine_refuge_8017FD48(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 0xC:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0C), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0C), 0, 0);
             break;
         case 0x63:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0F), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0F), 0, 0);
             break;
         case 0x67:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0D), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0D), 0, 0);
             break;
     }
     return 0;

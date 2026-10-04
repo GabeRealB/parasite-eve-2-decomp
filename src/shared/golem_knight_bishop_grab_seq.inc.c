@@ -89,7 +89,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                     TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->playerPlacement, 0);
                     Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
                     snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
-                    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(pcoord), (s8)worldCoordGetOriginAudioDepth(pcoord));
+                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(pcoord), (s8)worldCoordGetOriginAudioDepth(pcoord));
                 } else {
                     work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_IDLE;
                     work->step     = 0;
@@ -108,7 +108,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
             work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_APPEAR;
             work->colorBlendFadeFrames   = 0x1E;
             work->appearSound            = gGolemKnightBishopApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-            SndEvt_EnqueueType6(work->appearSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(work->appearSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             break;
         case 2:
             if (work->animFrame >= 0x29) {
@@ -193,7 +193,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                         work->grabReleaseTimer       = 0;
                         work->colorBlendFadeFrames   = 0x1E;
                         work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                        SndEvt_EnqueueType6(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                        sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     }
                 } else {
                     golemKnightBishopPickHitReaction(arg0, work->interruptDamage);
@@ -240,7 +240,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                     work->step                   = 4;
                     work->colorBlendFadeFrames   = 0x1E;
                     work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                    SndEvt_EnqueueType6(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             } else if (work->animFrame == 0x1A) {
                 ((GameActor*)player->work)->state = 0xA;
@@ -276,7 +276,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                 case 1:
                     if ((CdCmd_IsIdle() & 0xFFFF) == 1) {
                         coord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-                        SndEvt_EnqueueType6(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                        sndEvtRequestScriptStart(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                         work->timer = 2;
                     }
                     break;

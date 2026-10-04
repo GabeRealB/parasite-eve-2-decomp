@@ -322,7 +322,7 @@ void Gp_EnqueueStageSnd6(s32 arg0, s32 arg1, s32 arg2)
         arg0 &= 0xF0FFFFFF;
         arg0 |= gGameSession->location.loc.stage << 24;
     }
-    SndEvt_EnqueueType6(arg0, (s8)arg1, (s8)arg2);
+    sndEvtRequestScriptStart(arg0, (s8)arg1, (s8)arg2);
 }
 
 s32 Gp_PackStageSndId(s32 arg0)

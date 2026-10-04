@@ -121,7 +121,7 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             D_shelter_b1_elevator_hall_801849F0.fade.phase      = SCREEN_FADE_RUNNING;
             D_shelter_b1_elevator_hall_801849F0.fade.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_shelter_b1_elevator_hall_801849F0.fade);
-            SndEvt_EnqueueType6(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT, 0, 0);
             goto advance;
         case 5:
             if (SndVoice_HasActiveId(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT) != 0) {
@@ -161,10 +161,10 @@ s32 func_shelter_b1_elevator_hall_8017DB6C(Task* arg0, s32 arg1, s32 arg2, s32 a
 {
     switch (arg2) {
         case 6:
-            SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             break;
         case 8:
-            SndEvt_EnqueueType6(SOUND_SHELTER_B1_ELEVATOR_RIDE, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SHELTER_B1_ELEVATOR_RIDE, 0, 0);
             break;
     }
     return 0;

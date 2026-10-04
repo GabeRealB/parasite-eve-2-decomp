@@ -399,7 +399,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_SOUND:
-                SndEvt_EnqueueType6(work->command->operand0.value, (s8)work->command->operand1.value, (s8)work->command->operand2.value);
+                sndEvtRequestScriptStart(work->command->operand0.value, (s8)work->command->operand1.value, (s8)work->command->operand2.value);
                 D_801156E0.attenuation = work->command->operand2.value;
                 break;
 

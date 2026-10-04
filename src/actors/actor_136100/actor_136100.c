@@ -1583,7 +1583,7 @@ static void func_actor_136100_80132748(Task* arg0)
                     return;
                 case 1:
                     if (++work->bodyRequestFrames == 0x11) {
-                        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, 0x0E), 0, 0);
+                        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, 0x0E), 0, 0);
                     }
                     if (work->bodyRequestFrames < 0x15) {
                         return;
@@ -1705,7 +1705,7 @@ static void func_actor_136100_80132BC0(Task* arg0)
                         func_actor_136100_PlayAnim(arg0, 1, 1, 0xA);
                         break;
                     }
-                    SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 9), 0, 0);
+                    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 9), 0, 0);
                     func_actor_136100_PlayAnim(arg0, 2, 1, 0xA);
                     work->companionRepeatDelay = 0xF;
                     work->companionRepeatCount++;
@@ -1818,7 +1818,7 @@ static void func_actor_136100_80133238(Task* arg0)
                     return;
                 case 1:
                     if (++work->bodyRequestFrames == 0xF) {
-                        SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, 0x0F), 0, 0);
+                        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, 0x0F), 0, 0);
                         work->bodyRequest = 0;
                     }
                     return;

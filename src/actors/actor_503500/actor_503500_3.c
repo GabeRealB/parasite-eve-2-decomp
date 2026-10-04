@@ -1046,8 +1046,8 @@ static void func_actor_503500_80134408(Task* arg0)
             work->selfAttackCommand      = 0;
             func_actor_503500_80135FB4(arg0, 0xE, 0x20);
             pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[3]);
-            SndEvt_EnqueueType6(SOUND_BRAHMAN_DEATH_LOOP, pan,
-                                (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[3]) / 2));
+            sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan,
+                                     (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[3]) / 2));
             work->stateStep = work->stateStep + 1;
             break;
         case 1:
@@ -1097,7 +1097,7 @@ static void func_actor_503500_801345F4(Task* arg0)
             if (work->stateFrames == 2) {
                 coord = &arg0->extra.tmd->coords[3];
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x12), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x12), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             }
             if (++work->stateFrames >= 0x97) {
                 task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 4, 0x64, arg0);
@@ -2842,8 +2842,8 @@ static void func_actor_503500_80137678(Task* arg0)
                 ApplyMatrixLV(&m.mat, &work->velocity.vector, &work->velocity.vector);
                 func_actor_503500_80135D00(arg0->parent, 0xC);
                 actorRenderComposeCoord(coord);
-                SndEvt_EnqueueType6(SOUND_BRAHMAN_PART_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
-                                    (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                sndEvtRequestScriptStart(SOUND_BRAHMAN_PART_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
+                                         (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                 work->stateFrames = 0;
                 work->stateStep++;
             }
@@ -2861,8 +2861,8 @@ static void func_actor_503500_80137678(Task* arg0)
                 case ACTOR_503500_PINK_FLASH_EMITTER_DYING_FADE_FRAME:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                    SndEvt_EnqueueType6(SOUND_COMMON(0x0D), (s8)worldCoordGetOriginAudioPan(coord),
-                                        (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                    sndEvtRequestScriptStart(SOUND_COMMON(0x0D), (s8)worldCoordGetOriginAudioPan(coord),
+                                             (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                     break;
                 case ACTOR_503500_PINK_FLASH_EMITTER_DYING_BLACKEN_FRAME:
                     Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
@@ -3544,8 +3544,8 @@ static void func_actor_503500_80139014(Task* arg0)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 work->detached      = 1;
                 actorRenderComposeCoord(coord);
-                SndEvt_EnqueueType6(SOUND_BRAHMAN_PART_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
-                                    (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                sndEvtRequestScriptStart(SOUND_BRAHMAN_PART_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
+                                         (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                 work->stateStep++;
             }
             break;
@@ -3595,8 +3595,8 @@ static void func_actor_503500_80139014(Task* arg0)
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                    SndEvt_EnqueueType6(SOUND_COMMON(0x0D), (s8)worldCoordGetOriginAudioPan(coord),
-                                        (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                    sndEvtRequestScriptStart(SOUND_COMMON(0x0D), (s8)worldCoordGetOriginAudioPan(coord),
+                                             (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                     break;
                 case 15:
                     Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);

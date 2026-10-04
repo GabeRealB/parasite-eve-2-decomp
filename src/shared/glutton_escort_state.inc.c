@@ -85,7 +85,7 @@ void gluttonEscortState(Task* arg0)
         case 0x74:
             sfx = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
             pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            SndEvt_EnqueueType6(
+            sndEvtRequestScriptStart(
                 sfx, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             break;
         case 0x1A4:

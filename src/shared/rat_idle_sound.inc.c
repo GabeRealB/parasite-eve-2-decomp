@@ -19,6 +19,6 @@ void ratIdleSound(Task* arg0)
         gRandomLcgState      = random;
         snd                  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070001;
         pan                  = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(snd, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(snd, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
 }

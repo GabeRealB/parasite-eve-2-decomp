@@ -55,7 +55,7 @@ void gluttonChunkSpawn(Enemy* enemy, Task* task)
 
     sfx = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000B;
     pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    SndEvt_EnqueueType6(sfx, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+    sndEvtRequestScriptStart(sfx, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gfxRotMatrixY(&task->extra.tmd->coords->coord, (gRandomLcgState >> 0x10) & 0x1FF, 1);

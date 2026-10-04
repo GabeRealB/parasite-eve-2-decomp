@@ -1307,7 +1307,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
             work->angle = 0x300;
             if ((Gp_GetViewIndex() & 0xFF) == 7 && work->step == 0) {
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 6), pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 6), pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 work->step = 1;
             }
             break;

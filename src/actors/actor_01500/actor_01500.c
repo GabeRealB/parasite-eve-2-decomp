@@ -1164,7 +1164,7 @@ static void Actor01500_Fn00AFC(Task* actor, s32 damage)
         work->deathPending = 1;
     }
     id = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01500_SOUND_DAMAGE;
-    SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     if (enemy->hp <= (Actor01500_D09FB8.hpMax * 60) / 100) {
         work->posture = ACTOR_01500_POSTURE_CRIPPLED;
         if (work->action != ACTOR_01500_ACTION_GROUNDED) {
@@ -2222,7 +2222,7 @@ static void Actor01500_Fn02A1C(Task* arg0)
         if ((s16)(work->animFrame % 3) == 1) {
             soundId = objectSoundId | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             pan     = (s8)worldCoordGetOriginAudioPan(object);
-            SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(object));
+            sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(object));
         }
         if (work->loopSoundTimer > 0) {
             if (--work->loopSoundTimer <= 0) {

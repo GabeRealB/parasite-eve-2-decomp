@@ -547,7 +547,7 @@ void Gp_ItemCmdMenuTask(Task* arg0)
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                     obj->result = USER_INTERFACE_RESULT_CANCEL;
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-                    SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                     obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
             }
@@ -1276,7 +1276,7 @@ void Gp_PickupTask(Task* arg0)
         Ui_SpawnFromDesc(desc, 0, 0, 1, obj);
         if (arg0->spawnArg1.value != 0) {
             Gp_SetCollectedBit(Gp_PubItemLoc);
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             one     = 1;
             spawned = Ui_SpawnFromDesc(desc + 3, Gp_PubItemLoc | 0x10000, one, one, obj);
             if (spawned != NULL) {
@@ -1773,7 +1773,7 @@ void Gp_CheckItemInfoButton(UiObject* arg0)
 
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) && (Gp_SelItemRec != NULL) && (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE)) {
         one = 1;
-        SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+        sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         Ui_SpawnFromDesc(&D_8010EFA0, (s32)Gp_SelItemRec->itemId, one, one, arg0);
         arg0->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }

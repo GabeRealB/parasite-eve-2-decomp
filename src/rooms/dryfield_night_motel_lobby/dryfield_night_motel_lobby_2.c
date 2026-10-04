@@ -708,7 +708,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
 
     switch (key) {
         case 0:
-            SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             if (work->digitCount < 7) {
                 if (D_dryfield_night_motel_lobby_801844D8[0] != 0 || D_dryfield_night_motel_lobby_801844D8[1] != 0xA) {
                     D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
@@ -731,7 +731,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
         case 7:
         case 8:
         case 9:
-            SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             if (work->digitCount < 7) {
                 D_dryfield_night_motel_lobby_801844D8[work->digitCount] = 0xA;
                 D_dryfield_night_motel_lobby_801844D8[6]                = D_dryfield_night_motel_lobby_801844D8[5];
@@ -745,7 +745,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
             }
             break;
         case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_DOUBLE_ZERO:
-            SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             if (work->digitCount < 7) {
                 if (D_dryfield_night_motel_lobby_801844D8[0] != 0 || D_dryfield_night_motel_lobby_801844D8[1] != 0xA) {
                     D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
@@ -770,7 +770,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
             }
             break;
         case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_HASH:
-            SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             work->digitCount   = 0;
             work->entryCleared = 1;
             for (i = 0; i < 7; i++) {
@@ -778,7 +778,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
             }
             break;
         case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_CLEAR:
-            SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             work->digitCount   = 0;
             work->entryCleared = 1;
             for (i = 0; i < 7; i++) {
@@ -789,7 +789,7 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
             if (func_dryfield_night_motel_lobby_80180734() != 0) {
                 work->codeAccepted = 1;
             } else {
-                SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ERROR, 0, 0);
+                sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ERROR, 0, 0);
             }
             break;
     }
@@ -952,7 +952,7 @@ static void func_dryfield_night_motel_lobby_80181138(Task* arg0)
 
 static void func_dryfield_night_motel_lobby_8018119C(Task* arg0)
 {
-    SndEvt_EnqueueType6(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ACCEPT, 0, 0);
+    sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ACCEPT, 0, 0);
     arg0->state = (s32)(arg0->state + 1);
 }
 

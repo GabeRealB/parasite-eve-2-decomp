@@ -140,7 +140,7 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
 
     snd = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000B;
     pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 
     work->rainEffect = Gp_SpawnEff(EFFECT_GLUTTON_RAIN_BLOB, task->extra.tmd->coords, 0, NULL);
     if (work->rainEffect != NULL) {

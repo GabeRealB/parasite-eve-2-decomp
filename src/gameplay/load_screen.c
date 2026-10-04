@@ -186,7 +186,7 @@ void func_800AA548(s32 arg0)
     warpEntry = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (gGameSession->areaSetupDone != 0) {
         if (warpEntry.arrivalSound != DIRECTION_WARP_SOUND_NONE) {
-            SndEvt_EnqueueType6(warpEntry.arrivalSound, 0, 0);
+            sndEvtRequestScriptStart(warpEntry.arrivalSound, 0, 0);
         }
         if (warpEntry.mapFlagId != DIRECTION_WARP_MAP_FLAG_NONE) {
             gameFlagSetNibble(warpEntry.mapFlagId, DIRECTION_WARP_MAP_FLAG_ARRIVED);

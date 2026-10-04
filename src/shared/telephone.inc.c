@@ -453,7 +453,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     }
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
@@ -758,7 +758,7 @@ static inline void Telephone_MenuTask(Task* task)
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
         if (task->state != 0) {
-            SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
+            sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
         }
         gGameSession->uiOpen = 0;
         obj->result          = USER_INTERFACE_RESULT_CANCEL;
@@ -788,7 +788,7 @@ static inline void Telephone_MenuTask(Task* task)
                     obj->resultValue = 0x34;
                 } else {
                     Ui_TeardownTree(childObj, childObj->owner);
-                    SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
+                    sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
                     uiStartPanelOpening(&(obj)->panel, task);
                     obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }

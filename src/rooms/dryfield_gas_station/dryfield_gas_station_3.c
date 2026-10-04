@@ -643,8 +643,8 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_START_AUDIO:
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[0], 0);
-            SndEvt_EnqueueType6(SOUND_GAS_STATION_CUTSCENE_LOOP, 0, 0);
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x12), 0, 0);
+            sndEvtRequestScriptStart(SOUND_GAS_STATION_CUTSCENE_LOOP, 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x12), 0, 0);
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLAY_ANIMATION:
             cur = task->work;
@@ -659,7 +659,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_BLEND:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x13), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x13), 0, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E5C, 0);
             cur = task->work;
             if (cur->player != NULL) {

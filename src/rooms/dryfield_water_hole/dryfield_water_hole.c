@@ -1325,7 +1325,7 @@ s32 func_dryfield_water_hole_8017D73C(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (arg2 == 2) {
         Gp_RunCapCmd1(2);
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
-        SndEvt_EnqueueType6(SOUND_WATER_HOLE_LOCKED, 0, 0);
+        sndEvtRequestScriptStart(SOUND_WATER_HOLE_LOCKED, 0, 0);
     }
     return 0;
 }
@@ -1344,10 +1344,10 @@ s32 func_dryfield_water_hole_8017D78C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 4:
-            SndEvt_EnqueueType6(SOUND_WATER_HOLE_LOCKED, 0, 0);
+            sndEvtRequestScriptStart(SOUND_WATER_HOLE_LOCKED, 0, 0);
             break;
         case 5:
-            SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_HOLE, 5), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_HOLE, 5), 0, 0);
             break;
     }
     return 0;

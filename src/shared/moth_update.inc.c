@@ -63,6 +63,6 @@ default_body:
 
         id   = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070008;
         temp = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        SndEvt_EnqueueType6(id, temp, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+        sndEvtRequestScriptStart(id, temp, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
     }
 }

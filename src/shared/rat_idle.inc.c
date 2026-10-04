@@ -123,7 +123,7 @@ post:
         snd                   = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070003;
         gRandomLcgState       = rng6;
         pan                   = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
     ratIdleSound(arg0);
 }

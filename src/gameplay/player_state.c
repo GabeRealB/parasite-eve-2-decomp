@@ -989,7 +989,7 @@ void Gp_PlayerStepSfx(Task* arg0)
     if ((u16)inner->hitRegion == 1) {
         snd = 6;
     }
-    SndEvt_EnqueueType6(snd, temp, temp2);
+    sndEvtRequestScriptStart(snd, temp, temp2);
 }
 
 void func_8010B210(Task* arg0)

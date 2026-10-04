@@ -42,7 +42,7 @@ void sucklercephDropState(Enemy* arg0, Task* arg1)
             coord = arg1->extra.tmd->coords;
             if (coord->coord.t[1] >= 0) {
                 soundId = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0008;
-                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 work->state                         = SUCKLERCEPH_STATE_AWAKE;
                 work->awakeStage                    = SUCKLERCEPH_AWAKE_STAGE_CRAWL;
                 work->forwardSpeed                  = 0;

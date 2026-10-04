@@ -60,7 +60,7 @@ static _ApobiosisLevelParams D_apobiosis_80130B5C[] = {
     { 0x0008, 0x0600, 0x0140, 0x0400 },
 };
 
-/// The `SndEvt_EnqueueType6` id the cast plays, one per `D_apobiosis_80130B5C`
+/// The `sndEvtRequestScriptStart` id the cast plays, one per `D_apobiosis_80130B5C`
 /// row, so the sound follows the cast's level like the burst does.
 static s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
 
@@ -82,7 +82,7 @@ static Task* D_apobiosis_80130BA0;
 /// so a longer combo casts a wider burst. State 0 parents the effect
 /// coordinate on `EffectWork.parent` at the origin, publishes the task in
 /// `D_apobiosis_80130BA0` so every shard can reparent onto it, plays the row's
-/// `SndEvt_EnqueueType6` id panned at the coordinate, and seeds
+/// `sndEvtRequestScriptStart` id panned at the coordinate, and seeds
 /// `D_apobiosis_80130B80` with `stripCount * 2` angles - the ring's two rows of
 /// azimuths. State 1 flashes at `step`, drags the coordinate down 0x400,
 /// grows `scale` by the row's `radiusStep` each frame and redraws both the
@@ -122,8 +122,8 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 coord->composeStamp  = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(D_apobiosis_80130B74[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
-                                    (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(D_apobiosis_80130B74[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
+                                         (s8)worldCoordGetOriginAudioDepth(coord));
                 arg0->state = 1;
                 mem->index  = Gp_StateC08.attachId % 10 - 1;
                 mem->scale  = 0x200;

@@ -2112,7 +2112,7 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     if ((id & SOUND_BANK_TYPE_MASK) == 0x4000) {
         slot = slot - 1 + D_80082122;
     }
-    bankSlot = SndBankSlot_Get(slot);
+    bankSlot = sndBankSlotGet(slot);
     if (bankSlot == NULL) {
         goto fail;
     }

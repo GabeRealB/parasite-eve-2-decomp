@@ -1922,7 +1922,7 @@ static void func_actor_800300_80162658(Task* arg0)
             if ((u16)actor->hitRegion == 1) {
                 sound = 6;
             }
-            SndEvt_EnqueueType6(sound, pan, depth);
+            sndEvtRequestScriptStart(sound, pan, depth);
         }
     }
     Gp_TickActorAnimState(arg0);

@@ -8,7 +8,7 @@ void roomCutsceneSoundTask(Task* task)
     switch (task->state) {
         case 0x50:
         case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
+            sndEvtRequestScriptStart(task->spawnArg2.value, 0, 0);
             task->state += 1;
             break;
         case 0x78:

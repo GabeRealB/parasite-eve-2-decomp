@@ -68,7 +68,7 @@ void stalkerZebraIvoryStepClip4(Task* arg0)
         sound   = id | voice;
         pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->animFrame == start1) {
         stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->anchorPos);
@@ -83,7 +83,7 @@ void stalkerZebraIvoryStepClip4(Task* arg0)
         sound   = id | voice;
         pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->animFrame >= start0 && work->animFrame <= end0) {
         stalkerZebraIvoryPinPartXZ(arg0, 8, &work->anchorPos);

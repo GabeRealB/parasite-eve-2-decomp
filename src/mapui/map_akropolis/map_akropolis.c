@@ -207,7 +207,7 @@ static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1)
     sel = arg0->rowInputEnabled;
     if (sel == 1) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
+            sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             if (item == 0x10C) {

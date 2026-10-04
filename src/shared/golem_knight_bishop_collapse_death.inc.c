@@ -53,7 +53,7 @@ void golemKnightBishopCollapseDeathSeq(Task* arg0)
             if (work->animFrame == frames) {
                 snd = gGolemKnightBishopAnimCues[work->soundSet + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             timer       = work->timer - 1;
             work->timer = timer;

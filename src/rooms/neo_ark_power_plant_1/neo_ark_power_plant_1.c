@@ -130,7 +130,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
     if (D_neo_ark_power_plant_1_8017F01C != 0) {
         if (--D_neo_ark_power_plant_1_8017F01C == 0) {
             if (gGameSession->location.loc.view == 7) {
-                SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0x0A), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0x0A), 0, 0);
                 return;
             }
             SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0x0A), 1);

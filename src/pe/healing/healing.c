@@ -60,7 +60,7 @@ static _HealingLevelTuning D_healing_8012FC1C[] = {
     { 0x0010, 0x00E0, 0x0050, 0x0600 },
 };
 
-/// The `SndEvt_EnqueueType6` id for each `D_healing_8012FC1C` row.
+/// The `sndEvtRequestScriptStart` id for each `D_healing_8012FC1C` row.
 static s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
 
 static void func_healing_8012F7FC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -118,8 +118,8 @@ void func_healing_8012EF34(Task* arg0)
             mem->angle    = 0x80;
             state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
             pan           = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(D_healing_8012FC34[mem->index], pan,
-                                (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(D_healing_8012FC34[mem->index], pan,
+                                     (s8)worldCoordGetOriginAudioDepth(coord));
             /* fallthrough */
         case 1:
             bright = mem->scale;

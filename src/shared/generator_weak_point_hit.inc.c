@@ -56,7 +56,7 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
                 Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32FF1400, NULL);
                 snd  = gGeneratorSoundIds[1];
                 snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (damage > 0) {
                 if (part->hitEffectCooldown == 0) {
                     if ((Gp_GetIdParam0(part->contacts[0].key.value) & 0xFFFF) == 7) {
@@ -71,7 +71,7 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
                 }
                 snd  = gGeneratorSoundIds[0];
                 snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
         }
     }

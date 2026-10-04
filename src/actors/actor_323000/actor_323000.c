@@ -3021,7 +3021,7 @@ static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2);
 /// Effect and sound step of the tick: for the clip in `animId`, watches
 /// the clip each relevant slot plays, and the first frame one reaches a
 /// watched value spawns effect 0x60054 at the matching coordinate and returns
-/// the `SndEvt_EnqueueType6` id to play (0 where only effects fire).
+/// the `sndEvtRequestScriptStart` id to play (0 where only effects fire).
 /// `lastCueFrames` remembers each slot's last clip so the step fires once; it is
 /// cleared when none of the watched clips is playing.
 s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
@@ -3361,7 +3361,7 @@ static void func_actor_323000_8016420C(Enemy* enemy, Task* task)
             Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80006800, p);
             id  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000D;
             pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             ofs2.vy = -0x258;
             ofs2.vx = 0;
             ofs2.vz = -0x384;

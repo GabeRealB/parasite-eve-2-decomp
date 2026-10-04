@@ -31,6 +31,6 @@ void maggotCaterpillarBurnStep(Task* arg0)
         work->burnSoundTimer = 0x24;
         sound                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0005;
         pan                  = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(coord));
     }
 }

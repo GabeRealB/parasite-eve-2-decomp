@@ -52,7 +52,7 @@ void mothDeath(Enemy* arg0, Task* arg1)
                     work->attackBody.flags = work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
                     id                     = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
                     pan                    = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                     worldTargetUnlinkNode(&arg0->node);
                     Gp_ReleaseStateF0Add(arg1, 8);
                     work->timer     = 1;

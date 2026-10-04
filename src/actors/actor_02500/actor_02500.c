@@ -878,7 +878,7 @@ static void Actor02500_Fn00494(Task* actor)
                         work->actionStep        = ACTOR_02500_DEATH_STEP_BEGIN;
                         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         soundId                 = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4019000A;
-                        SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     } else {
                         if (work->flinchGuard == 0) {
                             work->action     = ACTOR_02500_ACTION_FLINCH;
@@ -886,7 +886,7 @@ static void Actor02500_Fn00494(Task* actor)
                         }
                         work->flinchGuard = 0;
                         soundId           = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190009;
-                        SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     }
                     switch (param0 & 0xFFFF) {
                         case 0:
@@ -964,7 +964,7 @@ static void Actor02500_Fn00494(Task* actor)
     if (Gp_FindRec18(work->attackContacts, 0) != 0) {
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         soundId                 = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190006;
-        SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     }
     Gp_ClearRec18Occupied(work->attackContacts);
     if (Gp_CountRec18Hi(work->noticeContacts, 0x10000) != 0 && work->action == ACTOR_02500_ACTION_WANDER) {
@@ -1138,7 +1138,7 @@ static void Actor02500_Fn00DD8(Task* actor)
             } else if (frame == 42) {
                 sound = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190005;
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (frame == 44) {
                 work->flinchGuard       = 0;
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1176,18 +1176,18 @@ static void Actor02500_Fn01144(Task* actor)
         gRandomLcgState      = random;
         sound                = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190008;
         pan                  = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
     if (work->speed != 0) {
         work->stepSoundFrames++;
         if (work->stepSoundFrames == 9) {
             sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190001;
             pan9  = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(sound, pan9, (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(sound, pan9, (s8)worldCoordGetOriginAudioDepth(coord));
         } else if (work->stepSoundFrames == 18) {
             sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190002;
             pan18 = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(sound, pan18, (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(sound, pan18, (s8)worldCoordGetOriginAudioDepth(coord));
             work->stepSoundFrames = 0;
         }
     } else {
@@ -1254,7 +1254,7 @@ static void Actor02500_Fn012F0(Task* actor)
                 work->dustTimer  = 0x14;
                 sound            = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190003;
                 pan              = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
         case ACTOR_02500_AMBUSH_STEP_DUST:
@@ -1980,7 +1980,7 @@ static void Actor02500_Fn02750(Enemy* ctx, Task* task)
             done  = 1;
             sound = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190007;
             pan   = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
         Gp_ClearRec18Occupied(contacts);
         timer       = work->timer + 1;

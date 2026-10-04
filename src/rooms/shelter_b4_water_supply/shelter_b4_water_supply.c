@@ -801,7 +801,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             break;
         case 3:
             if (--arg0->killCountdown == 0) {
-                SndEvt_EnqueueType6(SOUND_SHELTER_B4_WATER_SUPPLY_EXIT_TRANSIT, 0, 0);
+                sndEvtRequestScriptStart(SOUND_SHELTER_B4_WATER_SUPPLY_EXIT_TRANSIT, 0, 0);
                 arg0->state++;
             }
             break;
@@ -881,7 +881,7 @@ s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, const void* fir
 s32 func_shelter_b4_water_supply_8017DAE4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 6) {
-        SndEvt_EnqueueType6(0x542E0000 | 6, 0, 0);
+        sndEvtRequestScriptStart(0x542E0000 | 6, 0, 0);
     }
     return 0;
 }

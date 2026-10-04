@@ -107,7 +107,7 @@ void func_neo_ark_altar_8017D668(Task* task)
                 gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_0F9, 1);
                 Gp_ApplyAreaRecs(D_neo_ark_altar_801800A0);
             }
-            SndEvt_EnqueueType6(SOUND_NEO_ARK_ALTAR_SWITCH_TOGGLE, 0, 0);
+            sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SWITCH_TOGGLE, 0, 0);
             task->killCountdown = 0x1E;
             task->state++;
             break;
