@@ -9,8 +9,9 @@
  * burst effects, a death script, model hidden - or it slumps and its body is
  * flattened into the floor by a decaying Y scale before the enemy is
  * destroyed. It takes damage and critical kills from player hits (0x20000
- * contacts), is pushed out of walls (0x30000), and can be told by message to
- * collapse away (modes 4/5). A spawn-arg mode picks one of two sound banks and
+ * contacts), is pushed back by the room's walls and clear of other enemies'
+ * bodies (0x30000 contacts), and can be told by message to stand still giving
+ * off puffs (commands 4/5). A spawn-arg mode picks one of two sound banks and
  * an alternate texture page/CLUT.
  *
  * Include this header in the prologue and each fragment at its function's
@@ -29,55 +30,93 @@
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 
-/// The Sucklerceph's 0x2E4-byte work block, which both of its
-/// spawn handlers allocate with `memCalloc` and park in `Task::work`. After the
-/// animation context and its three slots come the colour and light matrices the
-/// model is pointed at, then four `WorldCollisionBody` bodies, each followed by the
-/// `WorldCollisionContact` table its `context.contacts` names.
-typedef struct SucklercephWork {
-    /* 0x000 */ AnimationContext      context;
-    /* 0x014 */ AnimationSlot         slots[3];
-    /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to animationInitContext
-    /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
-    /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
-    /* 0x0FC */ WorldCollisionBody    objFC;
-    /* 0x11C */ WorldCollisionContact rec11C;
-    /* 0x134 */ WorldCollisionBody    obj134;
-    /* 0x154 */ WorldCollisionContact rec154[4]; // the body's contact table; also the enemy's `recs`
-    /* 0x1B4 */ WorldCollisionBody    obj1B4;
-    /* 0x1D4 */ WorldCollisionContact rec1D4;
-    /* 0x1EC */ WorldCollisionBody    obj1EC;
-    /* 0x20C */ WorldCollisionContact rec20C;
-    /* 0x224 */ byte                  pad_224[0x50];
-    /* 0x274 */ VECTOR3               field_274; // root translation before the last step
-    /* 0x280 */ byte                  pad_280[4];
-    /* 0x284 */ EffectSpawnArg        field_284; // hit-effect coordinate and parameters
-    /* 0x28C */ MATRIX                field_28C; // root transform saved when the enemy dies
-    /* 0x2AC */ s32                   field_2AC; // scale factor of the model's second part
-    /* 0x2B0 */ s16                   field_2B0; // heading, stepped 0x20 a frame toward the player
-    /* 0x2B2 */ s16                   field_2B2; // reaction state the per-frame dispatch switches on
-    /* 0x2B4 */ s16                   field_2B4; // phase of the death sequence
-    /* 0x2B6 */ s16                   field_2B6; // frames spent in the death phase
-    /* 0x2B8 */ s16                   field_2B8; // animation id the work is playing
-    /* 0x2BA */ s16                   field_2BA; // id the two helper slots last saw
-    /* 0x2BC */ u16                   field_2BC; // frames spent on the current id
-    /* 0x2BE */ s16                   field_2BE; // step length along the facing
-    /* 0x2C0 */ byte                  pad_2C0[6];
-    /* 0x2C6 */ s16                   field_2C6;
-    /* 0x2C8 */ s16                   field_2C8; // live stage: 1 alive, 2 dying
-    /* 0x2CA */ s16                   field_2CA; // Y scale folded onto the saved transform
-    /* 0x2CC */ s16                   field_2CC;
-    /* 0x2CE */ s16                   field_2CE; // remaining hit cooldown
-    /* 0x2D0 */ u16                   field_2D0; // frames until the next idle sound
-    /* 0x2D2 */ s16                   field_2D2; // non-zero: the animation rebind is suppressed
-    /* 0x2D4 */ u16                   field_2D4; // frame or event counter of the dying stages
-    /* 0x2D6 */ s16                   field_2D6; // spawn arg's low half; picks the sound set
-    /* 0x2D8 */ s16                   field_2D8; // latched once the dormant enemy is touched
-    /* 0x2DA */ s16                   field_2DA; // non-zero: the death spawns a final effect
-    /* 0x2DC */ s16                   field_2DC; // spawn arg's high half
-    /* 0x2DE */ s16                   field_2DE; // fall speed while dropping into place
-    /* 0x2E0 */ s16                   field_2E0; // non-zero once the drop has hit something
-    /* 0x2E2 */ s16                   field_2E2; // non-zero: the drop has been armed
+/// Values of `SucklercephWork::state`, the behaviour the per-frame dispatch runs.
+enum {
+    SUCKLERCEPH_STATE_DORMANT       = 0, // rocks in place until the player comes near or a hit lands
+    SUCKLERCEPH_STATE_AWAKE         = 1, // runs `SucklercephWork::awakeStage`
+    SUCKLERCEPH_STATE_STATUS_HOLD   = 3, // held still until the enemy's status buildup runs out, then awake again
+    SUCKLERCEPH_STATE_PUFFING       = 4, // room command: stands frozen, giving off a puff every 16 frames
+    SUCKLERCEPH_STATE_PUFFING_DEATH = 5, // the same, dying on the third puff; nothing selects it
+    SUCKLERCEPH_STATE_SLUMP_DEATH   = 6  // killed without bursting: the body stays visible and is flattened
+};
+
+/// Values of `SucklercephWork::awakeStage`.
+enum {
+    SUCKLERCEPH_AWAKE_STAGE_NONE  = 0, // dormant, hidden or waiting to drop
+    SUCKLERCEPH_AWAKE_STAGE_CRAWL = 1, // turns toward the player and crawls
+    SUCKLERCEPH_AWAKE_STAGE_SWELL = 2  // swells for five frames, then dies
+};
+
+/// Values of `SucklercephWork::deathPhase`.
+enum {
+    SUCKLERCEPH_DEATH_PHASE_COUNTDOWN = 0, // `Task::killCountdown` runs out while the swelling goes down
+    SUCKLERCEPH_DEATH_PHASE_FLATTEN   = 1, // the saved root transform is squashed along Y
+    SUCKLERCEPH_DEATH_PHASE_LINGER    = 2  // waits until `deathFrames` reaches 61, then destroys the enemy
+};
+
+/// Values of `SucklercephWork::animId`: indices into the package's table of
+/// animation sets, whose entry 0 is empty. The table's third set is never
+/// requested.
+enum {
+    SUCKLERCEPH_ANIM_IDLE  = 1, // dormant, puffing and slumping
+    SUCKLERCEPH_ANIM_CRAWL = 2  // awake, and after a drop has landed
+};
+
+/// Work block of a Sucklerceph task.
+///
+/// Both spawn handlers allocate it zeroed and keep it at `Task::work`. It holds
+/// the animation context and its storage for the model's three parts, the
+/// matrices the model is lit through, four collision spheres hung off the
+/// root, each followed by its own contact table, and the state machine: `state`
+/// picks the behaviour, `awakeStage` the step of the awake one, and
+/// `deathPhase` the step of the task's death state.
+///
+/// Speeds are game-coordinate units a frame, headings 4096ths of a turn and
+/// scales 0x1000 for 1.0.
+typedef struct {
+    AnimationContext      anim;                                  // animation playback of the model
+    AnimationSlot         slots[3];                              // one per model part; 1 and 2 play `animId`, 0 is never started
+    u8                    poses[3][ANIMATION_POSE_BUFFER_BYTES]; // blend pose of each slot
+    MATRIX                colorMtx;                              // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;                              // storage for the model's `TmdObject::lightMtx`
+    WorldCollisionBody    senseBody;                             // radius-3000 sphere with no key of its own; a player-body contact wakes the dormant enemy, which then disables it
+    WorldCollisionContact senseContact;                          // contact of `senseBody`
+    WorldCollisionBody    body;                                  // radius-200 sphere 200 above the root, tested against the room grid, the floor and other bodies
+    WorldCollisionContact contacts[4];                           // contacts of `body`: wall push-back, the player's touch, hits and other enemies; also the enemy's hit records
+    WorldCollisionBody    attackBody;                            // radius-1000 sphere carrying the enemy's attack key; enabled by the burst until it touches something
+    WorldCollisionContact attackContact;                         // contact of `attackBody`
+    WorldCollisionBody    blastBody;                             // radius-1000 sphere carrying the hit key 0x22323, which enemy bodies take as damage; enabled by the burst, disabled as the death countdown starts
+    WorldCollisionContact blastContact;                          // contact of `blastBody`; never read
+    byte                  field_224[0x50];                       // never accessed
+    VECTOR3               prevRootPos;                           // root position before the last step; restored when the collision step reports a conflict
+    byte                  field_280[4];                          // never accessed
+    EffectSpawnArg        hitEffectArg;                          // argument record of the effect a survived hit spawns, hung off model part 1
+    MATRIX                savedRootMtx;                          // root matrix when the death countdown ended; each flatten frame rescales a copy of it
+    u32                   swellScale;                            // scale of model part 1; grows 200 a frame while swelling, falls 300 a frame in the death countdown, clamped to 0x1000..0x13E8 when applied
+    s16                   heading;                               // root heading, turned toward the player by at most 0x20 a frame
+    s16                   state;                                 // `SUCKLERCEPH_STATE_*`
+    s16                   deathPhase;                            // `SUCKLERCEPH_DEATH_PHASE_*`
+    s16                   deathFrames;                           // frames since the death countdown ended; a status hold also clears it and never reads it
+    s16                   animId;                                // requested animation, `SUCKLERCEPH_ANIM_*`
+    s16                   appliedAnim;                           // animation last applied to slots 1 and 2; 0 forces `animId` to be applied again
+    u16                   animFrames;                            // frames since `animId` was applied, wrapped by the dormant and crawl loops; the puffing states count the frames between puffs in it
+    s16                   forwardSpeed;                          // distance the root moves along its facing each step; negative backs away
+    byte                  field_2C0[6];                          // never accessed
+    s16                   field_2C6;                             // set to 1 by every dormant frame and never read; role unproven
+    s16                   awakeStage;                            // `SUCKLERCEPH_AWAKE_STAGE_*`
+    s16                   flattenScaleY;                         // Y scale of the death flatten; falls 0x50 a frame from 0x1000 until it is 0x200 or less
+    s16                   field_2CC;                             // set to 15 by a survived hit and never read; role unproven
+    s16                   hitCooldown;                           // frames before another hit is taken; set from the hit's id parameter 2
+    s16                   idleSoundFrames;                       // frames until the next idle sound; redrawn from 80..179 each time
+    s16                   animFrozen;                            // 1 holds the animation: `animId` is neither applied nor advanced
+    s16                   swellFrames;                           // frames spent swelling; the fifth kills the enemy. The unreached puffing death counts its puffs here
+    s16                   variant;                               // low half of the spawn argument: non-zero takes the sounds from character bank 0x46 instead of 0x2E, and 1 at a standing spawn also moves the model one texture page and CLUT row on
+    s16                   wakeRequested;                         // set by a player-body contact on `senseBody` or a survived hit under the idle animation; wakes the enemy on its next dormant frame
+    s16                   hasBurst;                              // 1 once the enemy has burst; the end of the death countdown then spawns the ground glow
+    s16                   field_2DC;                             // high half of the spawn argument, never 1 (that value cancels the spawn) and never read; role unproven
+    s16                   fallSpeed;                             // downward speed of the drop into place
+    s16                   dropCollided;                          // 1 once the drop has been pushed back by the room; the fall then accelerates twice as fast
+    s16                   dropArmed;                             // 1 once a room command has started the drop; cleared when the enemy is hidden again
 } SucklercephWork;
 STATIC_ASSERT_SIZEOF(SucklercephWork, 0x2E4);
 

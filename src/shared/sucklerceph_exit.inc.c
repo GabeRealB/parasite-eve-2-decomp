@@ -9,13 +9,13 @@ void sucklercephExit(Task* task)
     Enemy*           enemy;
 
     enemy = task->spawnArg2.pointer;
-    work  = (SucklercephWork*)task->work;
+    work  = task->work;
 
     enemy->recs = 0;
     worldTargetUnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->objFC);
-    Gp_UnlinkObj(&work->obj134);
-    Gp_UnlinkObj(&work->obj1B4);
-    Gp_UnlinkObj(&work->obj1EC);
+    Gp_UnlinkObj(&work->senseBody);
+    Gp_UnlinkObj(&work->body);
+    Gp_UnlinkObj(&work->attackBody);
+    Gp_UnlinkObj(&work->blastBody);
     enemyTaskExit(task);
 }

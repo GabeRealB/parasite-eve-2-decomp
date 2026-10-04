@@ -30,11 +30,11 @@ void sucklercephContacts(Task* arg0)
     ActorContactFrame*     scratch;
     s32                    i;
 
-    work     = (SucklercephWork*)arg0->work;
+    work     = arg0->work;
     scratch  = (ActorContactFrame*)SCRATCH_STACK_RESERVE_BYTES(0x4C);
     coord    = arg0->extra.tmd->coords;
     enemy    = arg0->spawnArg2.pointer;
-    movement = func_800E0C10(work->rec154, &scratch->delta, 4, &scratch->result);
+    movement = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), &scratch->result);
     switch (movement) {
         case 0:
             break;
@@ -44,15 +44,15 @@ void sucklercephContacts(Task* arg0)
             coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
         case 2:
-            coord->coord.t[0] = work->field_274.vx;
-            coord->coord.t[1] = work->field_274.vy;
-            coord->coord.t[2] = work->field_274.vz;
+            coord->coord.t[0] = work->prevRootPos.vx;
+            coord->coord.t[1] = work->prevRootPos.vy;
+            coord->coord.t[2] = work->prevRootPos.vz;
             break;
     }
-    if (work->field_2CE != 0) {
-        work->field_2CE--;
-        if (work->field_2CE <= 0) {
-            work->field_2CE = 0;
+    if (work->hitCooldown != 0) {
+        work->hitCooldown--;
+        if (work->hitCooldown <= 0) {
+            work->hitCooldown = 0;
         }
     }
     dx                       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -61,69 +61,69 @@ void sucklercephContacts(Task* arg0)
     dz                       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     scratch->delta.vector.vz = dz;
     distance                 = SquareRoot0((dx * dx) + (dz * dz));
-    if (distance < 0x320 && work->field_2C8 == 1) {
-        work->field_2D2 = 1;
-        work->field_2C8 = 2;
+    if (distance < 0x320 && work->awakeStage == SUCKLERCEPH_AWAKE_STAGE_CRAWL) {
+        work->animFrozen = 1;
+        work->awakeStage = SUCKLERCEPH_AWAKE_STAGE_SWELL;
     }
-    for (i = 0; i < 4; i++) {
-        switch (work->rec154[i].key.value & 0xFFFF0000) {
+    for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
+        switch (work->contacts[i].key.value & 0xFFFF0000) {
             case 0x10000:
-                if (work->field_2C8 == 1) {
-                    work->field_2D2 = 1;
-                    work->field_2C8 = 2;
+                if (work->awakeStage == SUCKLERCEPH_AWAKE_STAGE_CRAWL) {
+                    work->animFrozen = 1;
+                    work->awakeStage = SUCKLERCEPH_AWAKE_STAGE_SWELL;
                 }
                 break;
             case 0x20000:
-                if (work->field_2CE == 0) {
-                    damage = Gp_ComputeDamage(work->rec154[i].key.value, distance, 0, 0);
-                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->rec154[i].key.value, 0) != 0) {
+                if (work->hitCooldown == 0) {
+                    damage = Gp_ComputeDamage(work->contacts[i].key.value, distance, 0, 0);
+                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
                         sucklercephKill(arg0, 1);
                         arg0->killCountdown = 5;
                         arg0->state         = 2;
-                        work->field_2B4     = 0;
+                        work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
                         enemy->hp           = -1;
                     } else {
-                        func_800E2C78(enemy, work->rec154[i].key.value, damage, 0);
+                        func_800E2C78(enemy, work->contacts[i].key.value, damage, 0);
                         sucklercephTakeDamage(arg0, damage);
-                        effect = Gp_GetIdParam0(work->rec154[i].key.value) & 0xFFFF;
+                        effect = Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF;
                         switch (effect) {
                             case 1:
-                                work->field_2D2 = 1;
-                                work->field_2C8 = 2;
+                                work->animFrozen = 1;
+                                work->awakeStage = SUCKLERCEPH_AWAKE_STAGE_SWELL;
                                 break;
                             case 3:
-                                Gp_SetObjFlag4(enemy, work->rec154[i].key.value, 0);
+                                Gp_SetObjFlag4(enemy, work->contacts[i].key.value, 0);
                                 break;
                             case 2:
                             case 9:
-                                Gp_SetObjFlag2(enemy, work->rec154[i].key.value, 0);
+                                Gp_SetObjFlag2(enemy, work->contacts[i].key.value, 0);
                                 break;
                         }
                         if (enemy->hp > 0) {
-                            func_800FDB18(Gp_GetIdParam1(work->rec154[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, NULL, &work->field_284);
+                            func_800FDB18(Gp_GetIdParam1(work->contacts[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, NULL, &work->hitEffectArg);
                         }
-                        hitCooldown = Gp_GetIdParam2(work->rec154[i].key.value);
+                        hitCooldown = Gp_GetIdParam2(work->contacts[i].key.value);
                         if (hitCooldown > 0) {
-                            work->field_2CE = hitCooldown;
+                            work->hitCooldown = hitCooldown;
                         }
                     }
                 }
                 break;
             case 0x30000:
-                wallDx                   = coord->workm.t[0] - work->rec154[i].point.vx;
+                wallDx                   = coord->workm.t[0] - work->contacts[i].point.vx;
                 scratch->delta.vector.vy = 0;
                 scratch->delta.vector.vx = wallDx;
-                wallDz                   = coord->workm.t[2] - work->rec154[i].point.vz;
+                wallDz                   = coord->workm.t[2] - work->contacts[i].point.vz;
                 scratch->delta.vector.vz = wallDz;
                 distance                 = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
-                distance                 = work->rec154[i].distance - distance;
+                distance                 = work->contacts[i].distance - distance;
                 distance                 = (distance <= 0) ? 0 : distance;
-                scratch->delta.vector.vx = coord->workm.t[0] - work->rec154[i].point.vx;
-                scratch->delta.vector.vy = coord->workm.t[1] - work->rec154[i].point.vy;
-                scratch->delta.vector.vz = coord->workm.t[2] - work->rec154[i].point.vz;
+                scratch->delta.vector.vx = coord->workm.t[0] - work->contacts[i].point.vx;
+                scratch->delta.vector.vy = coord->workm.t[1] - work->contacts[i].point.vy;
+                scratch->delta.vector.vz = coord->workm.t[2] - work->contacts[i].point.vz;
                 VectorNormal(&scratch->delta.vector, &scratch->normal);
                 ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
-                if (work->field_2B8 == 1 || work->field_2B8 == 2) {
+                if (work->animId == SUCKLERCEPH_ANIM_IDLE || work->animId == SUCKLERCEPH_ANIM_CRAWL) {
                     coord->coord.t[0] += (distance * scratch->delta.vector.vx) >> 12;
                     pushY              = distance * scratch->delta.vector.vy;
                     if (pushY < 0) {
@@ -134,10 +134,10 @@ void sucklercephContacts(Task* arg0)
                 break;
         }
     }
-    Gp_ClearRec18Occupied(work->rec154);
-    effectRec = &work->rec1D4;
-    if ((work->field_2C8 != 0) && (Gp_FindRec18(effectRec, 0) != 0)) {
-        work->obj1B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    Gp_ClearRec18Occupied(work->contacts);
+    effectRec = &work->attackContact;
+    if ((work->awakeStage != SUCKLERCEPH_AWAKE_STAGE_NONE) && (Gp_FindRec18(effectRec, 0) != 0)) {
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(effectRec);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x4C);

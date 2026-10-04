@@ -1,7 +1,7 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
 /// Death-state handler of the first enemy, under the `gSceneCombatState.actorControl` mode byte:
-/// mode 2 hides the model and mode 1 does nothing. Otherwise `field_2B4` steps
+/// mode 2 hides the model and mode 1 does nothing. Otherwise `deathPhase` steps
 /// the death through three phases. Phase 0 shrinks the model and counts the
 /// kill countdown down; when it runs out the death sound plays, state 0xF0 is
 /// released, an optional final effect is spawned, the root transform is saved
@@ -19,7 +19,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
     s32              soundId;
 
     obj   = task->extra.tmd;
-    work  = (SucklercephWork*)task->work;
+    work  = task->work;
     coord = obj->coords;
     model = obj;
     switch (gSceneCombatState.actorControl) {
@@ -31,20 +31,20 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
-            switch (work->field_2B4) {
-                case 0:
-                    work->obj1EC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    work->field_2AC    -= 0x12C;
+            switch (work->deathPhase) {
+                case SUCKLERCEPH_DEATH_PHASE_COUNTDOWN:
+                    work->blastBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                    work->swellScale      -= 0x12C;
                     task->killCountdown--;
-                    if ((u32)((u16)work->field_2B2 - 5) >= 2 && task->killCountdown == 3) {
+                    if (work->state != SUCKLERCEPH_STATE_PUFFING_DEATH && work->state != SUCKLERCEPH_STATE_SLUMP_DEATH && task->killCountdown == 3) {
                         model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
-                    if (work->field_2B2 == 6) {
-                        work->field_2B8 = 1;
+                    if (work->state == SUCKLERCEPH_STATE_SLUMP_DEATH) {
+                        work->animId = SUCKLERCEPH_ANIM_IDLE;
                         sucklercephTickAnim(task);
                     }
                     if (task->killCountdown <= 0) {
-                        if (work->field_2D6 != 0) {
+                        if (work->variant != 0) {
                             soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000D;
                             SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                         } else {
@@ -53,42 +53,42 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                         }
                         task->killCountdown = 0;
                         Gp_ReleaseStateF0Add(task, 0x2E);
-                        if (work->field_2DA != 0) {
+                        if (work->hasBurst != 0) {
                             Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, NULL);
                         }
-                        work->field_2B4 = 1;
-                        work->field_2B6 = 0;
-                        work->field_2CA = 0x1000;
-                        work->field_28C = coord->coord;
-                        enemy->recs     = NULL;
+                        work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_FLATTEN;
+                        work->deathFrames   = 0;
+                        work->flattenScaleY = ONE;
+                        work->savedRootMtx  = coord->coord;
+                        enemy->recs         = NULL;
                         worldTargetUnlinkNode(&enemy->node);
-                        Gp_UnlinkObj(&work->objFC);
-                        Gp_UnlinkObj(&work->obj134);
-                        Gp_UnlinkObj(&work->obj1B4);
-                        Gp_UnlinkObj(&work->obj1EC);
+                        Gp_UnlinkObj(&work->senseBody);
+                        Gp_UnlinkObj(&work->body);
+                        Gp_UnlinkObj(&work->attackBody);
+                        Gp_UnlinkObj(&work->blastBody);
                     }
                     break;
-                case 1:
-                    if ((u32)((u16)work->field_2B2 - 5) >= 2) {
-                        work->field_2B4 = 2;
+                case SUCKLERCEPH_DEATH_PHASE_FLATTEN:
+                    if (work->state != SUCKLERCEPH_STATE_PUFFING_DEATH && work->state != SUCKLERCEPH_STATE_SLUMP_DEATH) {
+                        work->deathPhase = SUCKLERCEPH_DEATH_PHASE_LINGER;
                     }
-                    work->field_2B6++;
-                    if (work->field_2B6 >= 0x3D) {
-                        work->field_2B4 = 2;
+                    work->deathFrames++;
+                    if (work->deathFrames >= 0x3D) {
+                        work->deathPhase = SUCKLERCEPH_DEATH_PHASE_LINGER;
                     }
                     sucklercephFlatten(task);
-                    if (work->field_2B6 == 0xA) {
+                    if (work->deathFrames == 0xA) {
                         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     }
                     break;
-                case 2:
-                    work->field_2B6++;
-                    if (work->field_2B6 >= 0x3D) {
+                case SUCKLERCEPH_DEATH_PHASE_LINGER:
+                    work->deathFrames++;
+                    if (work->deathFrames >= 0x3D) {
                         enemyDestroy(enemy, task);
                     }
                     return;
             }
-            if ((u32)((u16)work->field_2B2 - 5) >= 2) {
+            if (work->state != SUCKLERCEPH_STATE_PUFFING_DEATH && work->state != SUCKLERCEPH_STATE_SLUMP_DEATH) {
                 sucklercephTickAnim(task);
                 sucklercephScalePart(task, &task->extra.tmd->coords[1]);
                 task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;

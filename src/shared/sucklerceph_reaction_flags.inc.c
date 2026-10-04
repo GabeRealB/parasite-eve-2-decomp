@@ -15,25 +15,25 @@ void sucklercephReactionFlags(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     flags = enemy->reactionFlags;
-    work  = (SucklercephWork*)arg0->work;
+    work  = arg0->work;
     if (flags != 0) {
         if (flags & 1) {
-            work->field_2D4 += 1;
-            work->field_2AC += 0xC8;
-            if ((s16)work->field_2D4 >= 5) {
+            work->swellFrames += 1;
+            work->swellScale  += 0xC8;
+            if (work->swellFrames >= 5) {
                 sucklercephKill(arg0, 0);
                 arg0->killCountdown = 5;
-                work->field_2B4     = 0;
+                work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
                 arg0->state         = 2;
                 enemy->hp           = 0;
             }
         }
         if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
             enemy->reactionFlags &= 0xFD;
-            work->field_2B2       = 3;
-            work->field_2B6       = 0;
-            work->field_2BE       = 0;
-            work->field_2D2       = 1;
+            work->state           = SUCKLERCEPH_STATE_STATUS_HOLD;
+            work->deathFrames     = 0;
+            work->forwardSpeed    = 0;
+            work->animFrozen      = 1;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
             tick = Gp_TickObjFlag4(enemy);

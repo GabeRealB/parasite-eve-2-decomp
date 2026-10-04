@@ -115670,8 +115670,8 @@ a register problem.
 
 The fix is to name what each address belongs to instead of adding to a temp -
 `(TmdObject*)value->extra`, `GfxCoord* coord = obj->coords` with
-`&coord[1].coord` for `+0x54`, `&work->field_DC`, `&work->rec154[0]`,
-`&work->objFC` - and to take the field set, the declaration order and the
+`&coord[1].coord` for `+0x54`, `&work->lightMtx`, `work->contacts`,
+`&work->senseBody` - and to take the field set, the declaration order and the
 compound-literal forms from the matched sibling `func_actor_107000_80133690` in
 the same TU, which builds the identical 0x2E4-byte block. Two differences beyond
 the arithmetic remain visible in the target and are load-bearing: the sibling's

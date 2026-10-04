@@ -477,6 +477,13 @@ one fragment per function. Each package names its own work type `DiverWork`
 before including the fragments and spells the members they reach alike; the
 header lists them. Animation request values use `DIVER_ANIM_REQUEST_`.
 
+`sucklerceph` owns the included Sucklerceph enemy shared by `actor_04600` and
+`actor_07000`. Its implementation interface is `src/shared/sucklerceph.h`, one
+fragment per function. `SucklercephWork` is the task's work block; its
+behaviour, awake stage, death phase and animation values use
+`SUCKLERCEPH_STATE_`, `SUCKLERCEPH_AWAKE_STAGE_`, `SUCKLERCEPH_DEATH_PHASE_` and
+`SUCKLERCEPH_ANIM_`.
+
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
 `jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the

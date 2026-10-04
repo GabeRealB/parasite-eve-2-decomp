@@ -27,25 +27,25 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
     obj   = arg0->extra.tmd;
     enemy = arg0->spawnArg2.pointer;
     state = arg0->state;
-    work  = (SucklercephWork*)arg0->work;
+    work  = arg0->work;
     coord = obj->coords;
     if (state == 1) {
         mode = request->command;
         if (mode == 4) {
             Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x400, &gSucklercephCollapseFxOffset);
-            work->field_2B8 = 1;
+            work->animId = SUCKLERCEPH_ANIM_IDLE;
             sucklercephTickAnim(arg0);
-            work->field_2BC = 0;
-            work->field_2B2 = 4;
+            work->animFrames = 0;
+            work->state      = SUCKLERCEPH_STATE_PUFFING;
             return 0;
         }
         if (mode == 5) {
             Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x400, &gSucklercephCollapseFxOffset);
-            work->field_2B8 = 1;
+            work->animId = SUCKLERCEPH_ANIM_IDLE;
             sucklercephTickAnim(arg0);
-            work->field_2BC = 0;
-            work->field_2D4 = 0;
-            work->field_2B2 = 4;
+            work->animFrames  = 0;
+            work->swellFrames = 0;
+            work->state       = SUCKLERCEPH_STATE_PUFFING;
             return 0;
         }
     }
@@ -70,29 +70,29 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
                 coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].y;
                 coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].z;
             }
-            heading         = rot.vy;
-            work->field_2B0 = heading;
-            magnitude       = heading >= 0 ? heading : -heading;
+            heading       = rot.vy;
+            work->heading = heading;
+            magnitude     = heading >= 0 ? heading : -heading;
             if (magnitude >= 0x801) {
                 if (heading >= 0x801) {
-                    work->field_2B0 = heading - 0x1000;
+                    work->heading = heading - 0x1000;
                 } else if (heading < -0x800) {
-                    work->field_2B0 = heading + 0x1000;
+                    work->heading = heading + 0x1000;
                 }
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
             arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.parts.flags = 0;
-            work->objFC.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->obj134.flags           |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->senseBody.flags        |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            work->body.flags             |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             RotMatrix(&rot, &coord->coord);
-            work->field_2BE                       = 0xC8;
-            work->field_2E2                       = 1;
-            work->field_2DE                       = 0x64;
-            work->field_2E0                       = 0;
-            work->field_2B2                       = 1;
-            work->field_2C8                       = 1;
+            work->forwardSpeed                    = 0xC8;
+            work->dropArmed                       = 1;
+            work->fallSpeed                       = 0x64;
+            work->dropCollided                    = 0;
+            work->state                           = SUCKLERCEPH_STATE_AWAKE;
+            work->awakeStage                      = SUCKLERCEPH_AWAKE_STAGE_CRAWL;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(arg0->extra.tmd->coords);
         }
@@ -102,8 +102,8 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
         arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->objFC.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj134.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->senseBody.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         rot.vz                        = 0;
         rot.vy                        = 0;
         rot.vx                        = 0;
@@ -113,10 +113,10 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
         coord->coord.t[0]                     = 0;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg0->extra.tmd->coords);
-        arg0->state     = 3;
-        work->field_2E2 = 0;
-        work->field_2B2 = 0;
-        work->field_2C8 = 0;
+        arg0->state      = 3;
+        work->dropArmed  = 0;
+        work->state      = SUCKLERCEPH_STATE_DORMANT;
+        work->awakeStage = SUCKLERCEPH_AWAKE_STAGE_NONE;
     }
     return 0;
 }

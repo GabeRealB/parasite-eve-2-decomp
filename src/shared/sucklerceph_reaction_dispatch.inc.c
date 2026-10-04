@@ -1,6 +1,6 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Per-frame dispatch of the first enemy on its reaction state `field_2B2`:
+/// Per-frame dispatch of the first enemy on its reaction state `state`:
 /// 0 is the dormant arm `sucklercephDormantTick` and 1 the live handler
 /// `sucklercephAwakeTick`. State 3 suppresses the rebind until
 /// `Gp_TickObjFlag2` reports the reaction over, then returns the enemy to the
@@ -16,55 +16,54 @@ void sucklercephReactionDispatch(Task* arg0)
     Enemy*           enemy;
     u16              frames;
 
-    work = (SucklercephWork*)arg0->work;
-    switch (work->field_2B2) {
-        case 0:
+    work = arg0->work;
+    switch (work->state) {
+        case SUCKLERCEPH_STATE_DORMANT:
             sucklercephDormantTick(arg0);
             return;
-        case 1:
+        case SUCKLERCEPH_STATE_AWAKE:
             sucklercephAwakeTick(arg0);
             return;
-        case 3:
-            work->field_2D2 = 1;
+        case SUCKLERCEPH_STATE_STATUS_HOLD:
+            work->animFrozen = 1;
             if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
-                work->field_2D2 = 0;
-                work->field_2B2 = 1;
-                work->field_2C8 = 1;
-                work->field_2BE = 0;
+                work->animFrozen   = 0;
+                work->state        = SUCKLERCEPH_STATE_AWAKE;
+                work->awakeStage   = SUCKLERCEPH_AWAKE_STAGE_CRAWL;
+                work->forwardSpeed = 0;
             }
             sucklercephStep(arg0);
             return;
-        case 4:
-            work->field_2AC = 0x1000;
+        case SUCKLERCEPH_STATE_PUFFING:
+            work->swellScale = ONE;
             sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
-            frames          = work->field_2BC + 1;
-            work->field_2BC = frames;
+            frames           = work->animFrames + 1;
+            work->animFrames = frames;
             if ((s16)frames >= 0x10) {
                 Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
-                work->field_2BC = 0;
+                work->animFrames = 0;
             }
             goto suppress_rebind;
         default:
             return;
-        case 5:
-            work->field_2AC = 0x1000;
+        case SUCKLERCEPH_STATE_PUFFING_DEATH:
+            work->swellScale = ONE;
             sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
-            frames          = work->field_2BC + 1;
-            work->field_2BC = frames;
+            frames           = work->animFrames + 1;
+            work->animFrames = frames;
             if ((s16)frames >= 0x10) {
                 Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
-                work->field_2BC = 0;
-                frames          = work->field_2D4 + 1;
-                work->field_2D4 = frames;
-                if ((s16)frames >= 3) {
+                work->animFrames = 0;
+                work->swellFrames++;
+                if (work->swellFrames >= 3) {
                     enemy               = arg0->spawnArg2.pointer;
                     arg0->killCountdown = 5;
-                    work->field_2B4     = 0;
+                    work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
                     arg0->state         = 2;
                     enemy->hp           = 0;
                 }
             }
         suppress_rebind:
-            work->field_2D2 = 1;
+            work->animFrozen = 1;
     }
 }

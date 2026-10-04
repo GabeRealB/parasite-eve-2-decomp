@@ -231,8 +231,8 @@ typedef struct ActorShared801511c8Work {
 /// model, and the angle it is scaled by.
 typedef struct Actor107000Work {
     /* 0x000 */ byte                  pad_0[0x11A];
-    /* 0x11A */ u16                   field_11A; // flag word of the render node at 0xFC, `SucklercephWork::objFC.flags`
-    /* 0x11C */ WorldCollisionContact field_11C; // that node's collision table, `SucklercephWork::rec11C`
+    /* 0x11A */ u16                   field_11A; // flag word of the render node at 0xFC, `SucklercephWork::senseBody.flags`
+    /* 0x11C */ WorldCollisionContact field_11C; // that node's collision table, `SucklercephWork::senseContact`
     /* 0x134 */ byte                  pad_134[0x1E];
     /* 0x152 */ u16                   field_152;
     /* 0x154 */ WorldCollisionContact field_154[4];
@@ -926,7 +926,7 @@ typedef struct Actor107000Spawn2Work {
 } Actor107000Spawn2Work;
 STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
 
-/// Node 3's attack row, packed by `Gp_PackPair` into `obj1B4`, and the enemy
+/// Node 3's attack row, packed by `Gp_PackPair` into `SucklercephWork::attackBody`, and the enemy
 /// parameters whose `attacks` point at it; its `hpMax` seeds the enemy's
 /// `field_40`.
 extern DamageAttack gSucklercephAttack;
@@ -1094,81 +1094,7 @@ static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
     { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
 };
 
-/// Per-frame dispatch of the caged specimen, on the reaction state in
-/// `field_2B2`: 0 is the dormant arm `sucklercephDormantTick` and 1 the
-/// live handler `sucklercephAwakeTick`. 3 is the arm the reaction
-/// dispatch shoots when the enemy's `reactionFlags` carry buildup - it suppresses
-/// the rebind, waits out `Gp_TickObjFlag2` on the spawn arg and, once
-/// that expires, wakes the specimen: the rebind is released and
-/// `field_2B2`/`field_2C8` move to 1, the live stage. The arm ends in
-/// `sucklercephStep` either way.
-///
-/// 4 and 5 are the two collapse arms. Both drive the model's second coordinate
-/// through `sucklercephScalePart`, count `field_2BC` up and spawn the
-/// 0x60080 effect on the model's coordinate every 0x10 frames; 5 also counts
-/// `field_2D4` and, on the third count, writes the same death sequence the
-/// reaction dispatch does - a five-frame countdown, `field_2B4` cleared and the
-/// task moved to state 2 - with the spawn arg's `field_40` cleared alongside.
-/// Both arms end by re-suppressing the rebind, and the join the compiler builds
-/// from their two assignments is what the original binary shows.
-void sucklercephReactionDispatch(Task* arg0)
-{
-    Actor107000Work* work;
-    Enemy*           enemy;
-    u16              frames;
-
-    work = (Actor107000Work*)arg0->work;
-    switch (work->field_2B2) {
-        case 0:
-            sucklercephDormantTick(arg0);
-            return;
-        case 1:
-            sucklercephAwakeTick(arg0);
-            return;
-        case 3:
-            work->field_2D2 = 1;
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
-                work->field_2D2 = 0;
-                work->field_2B2 = 1;
-                work->field_2C8 = 1;
-                work->field_2BE = 0;
-            }
-            sucklercephStep(arg0);
-            return;
-        case 4:
-            work->field_2AC = 0x1000;
-            sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
-            frames          = work->field_2BC + 1;
-            work->field_2BC = frames;
-            if ((s16)frames >= 0x10) {
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
-                work->field_2BC = 0;
-            }
-            goto suppress_rebind;
-        default:
-            return;
-        case 5:
-            work->field_2AC = 0x1000;
-            sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
-            frames          = work->field_2BC + 1;
-            work->field_2BC = frames;
-            if ((s16)frames >= 0x10) {
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
-                work->field_2BC = 0;
-                frames          = work->field_2D4 + 1;
-                work->field_2D4 = frames;
-                if ((s16)frames >= 3) {
-                    enemy               = arg0->spawnArg2.pointer;
-                    arg0->killCountdown = 5;
-                    work->field_2B4     = 0;
-                    arg0->state         = 2;
-                    enemy->hp           = 0;
-                }
-            }
-        suppress_rebind:
-            work->field_2D2 = 1;
-    }
-}
+#include "../../shared/sucklerceph_reaction_dispatch.inc.c"
 
 #include "../../shared/sucklerceph_inlines.inc.c"
 
@@ -1195,7 +1121,7 @@ static inline s32 _actor07000ClampToZero(s32 value)
 
 void sucklercephKill(Task* arg0, u8 arg1)
 {
-    Actor107000Work* work;
+    SucklercephWork* work;
     Enemy*           enemy;
     TmdObject*       obj;
     GfxCoord*        coord;
@@ -1203,33 +1129,33 @@ void sucklercephKill(Task* arg0, u8 arg1)
 
     obj             = arg0->extra.tmd;
     enemy           = arg0->spawnArg2.pointer;
-    work            = (Actor107000Work*)arg0->work;
+    work            = arg0->work;
     coord           = obj->coords;
     enemy->hp       = 0;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if (((gRandomLcgState >> 0x10) & 2) || (arg1 & 0xFF)) {
-        if (work->field_2D6 != 0) {
+        if (work->variant != 0) {
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000B;
             SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         } else {
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0003;
             SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         }
-        work->field_1D2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->field_20A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->blastBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 1, NULL);
         Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x300, &Actor07000_D08068);
         Gp_SpawnScript18(Actor07000_D06938, Actor07000_D06944);
-        work->field_2DA = 1;
+        work->hasBurst = 1;
     } else {
-        if (work->field_2D6 != 0) {
+        if (work->variant != 0) {
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000C;
             SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         } else {
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0004;
             SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         }
-        work->field_2B2 = 6;
+        work->state = SUCKLERCEPH_STATE_SLUMP_DEATH;
     }
 }
 
