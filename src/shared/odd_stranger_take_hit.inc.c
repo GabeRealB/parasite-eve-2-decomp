@@ -37,10 +37,10 @@ void oddStrangerTakeHit(Task* arg0)
     if (enemy->hp > 0) {
         head  = SCRATCH_STACK_CURSOR(ActorHitScratch);
         s     = (SCRATCH_STACK_CURSOR(ActorHitScratch) = head - 1);
-        s->id = actorFindHit(&head[-1].hitPos, work->field_8F0);
+        s->id = actorFindHit(&head[-1].hitPos, work->hitContacts);
 #if ODD_STRANGER_VARIANT == 2
         if (s->id == 0) {
-            s->id = actorFindHit(&s->hitPos, work->field_A30);
+            s->id = actorFindHit(&s->hitPos, work->gridContacts);
         }
 #endif
         if (s->id != 0) {
@@ -50,15 +50,15 @@ void oddStrangerTakeHit(Task* arg0)
                 s->hitPos.vy = player->extra.tmd->coords->workm.t[1];
                 s->hitPos.vz = player->extra.tmd->coords->workm.t[2];
             }
-            if (work->field_C28 == 1) {
+            if (work->playerHeld == 1) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                work->field_C28 = 0;
-                if (work->field_0 == 0xB || work->field_0 == 0xC || work->field_0 == 0xD || work->field_0 == 0xE) {
-                    work->field_0 = 0x13;
+                work->playerHeld = 0;
+                if (work->state == ODD_STRANGER_STATE_GRAB || work->state == ODD_STRANGER_STATE_GRAB_PULL || work->state == ODD_STRANGER_STATE_GRAB_STRIKE || work->state == ODD_STRANGER_STATE_GRAB_RELEASE) {
+                    work->state = ODD_STRANGER_STATE_FALL_BACK;
                 }
             }
-            work->field_C24                       = 0;
-            work->field_C26                       = 0;
+            work->dashCount                       = 0;
+            work->sidestepCount                   = 0;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(arg0->extra.tmd->coords);
             s->dir.vx = arg0->extra.tmd->coords->workm.t[0];
@@ -73,17 +73,17 @@ void oddStrangerTakeHit(Task* arg0)
             s->yaw    = yaw - ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
             s->yaw    = actorNormalizeYaw(s->yaw);
             oddStrangerSpawnHitEffect(arg0, s->yaw, s->id);
-            work->field_8B0 = 0;
-            work->field_8AE = 0;
-            s->effect       = -1;
-            state           = work->field_0;
-            if (state != 0x13 && state != 0x14 && state != 0x11 && state != 0x1F && state != 0x20 && state != 0xF && state != 0x10 && state != 4) {
+            work->lookYaw       = 0;
+            work->lookYawTarget = 0;
+            s->effect           = -1;
+            state               = work->state;
+            if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_DOWN && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_RISE_BACK && state != ODD_STRANGER_STATE_RISE_FRONT && state != ODD_STRANGER_STATE_STATUS_HOLD) {
                 s->m = arg0->extra.tmd->coords->coord;
                 gfxRotMatrixY(&s->m, s->yaw, 0);
                 dir = &s->dir;
                 gfxReadMatrixZAxis(&s->m, dir);
                 VectorNormalSS(dir, dir);
-                if (work->field_BEC > 0) {
+                if (work->recentDamageTimer > 0) {
                     gte_lddp(-0x19);
                     gte_ldsv(dir);
                     gte_gpf12();
@@ -119,9 +119,9 @@ void oddStrangerTakeHit(Task* arg0)
                 mag = -mag;
             }
             if (mag >= 0x501) {
-                state = work->field_0;
-                if (state != 0x13) {
-                    if (state != 0x14 && state != 0x11 && state != 0x1F && state != 0x20 && state != 0xF && state != 0x10 && state != 4) {
+                state = work->state;
+                if (state != ODD_STRANGER_STATE_FALL_BACK) {
+                    if (state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_DOWN && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_RISE_BACK && state != ODD_STRANGER_STATE_RISE_FRONT && state != ODD_STRANGER_STATE_STATUS_HOLD) {
                         damage    = s->damage * 2;
                         s->damage = damage;
                         if (damage != 0) {
@@ -133,15 +133,15 @@ void oddStrangerTakeHit(Task* arg0)
             func_800E2C78(enemy, s->id, s->damage, 0);
             enemy->hp -= s->damage;
             func_800DA6E8(&enemy->node, s->damage, 0);
-            work->field_BEA += s->damage;
-            effect           = s->effect;
+            work->recentDamage += s->damage;
+            effect              = s->effect;
             if (effect != -1) {
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
-            if (work->field_0 == 0x17) {
+            if (work->state == ODD_STRANGER_STATE_DORMANT_SCRIPTED) {
                 SndEvt_EnqueueType7(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, 1);
             }
-            if ((work->field_0 == 0xC || work->field_0 == 0xD || work->field_0 == 0xE) && config->hp > 0 && work->field_C28 == 1) {
+            if ((work->state == ODD_STRANGER_STATE_GRAB_PULL || work->state == ODD_STRANGER_STATE_GRAB_STRIKE || work->state == ODD_STRANGER_STATE_GRAB_RELEASE) && config->hp > 0 && work->playerHeld == 1) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             }
             if (enemy->hp <= 0) {
@@ -153,25 +153,25 @@ void oddStrangerTakeHit(Task* arg0)
                 hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 SndEvt_EnqueueType6(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
-            work->field_BE8 = Gp_GetIdParam2(s->id);
+            work->hitCooldown = Gp_GetIdParam2(s->id);
             switch (Gp_GetIdParam0(s->id) & 0xFFFF) {
                 case 4:
-                    state = work->field_0;
-                    if (state != 0x13 && state != 0x14 && state != 0x1F && state != 0x20
+                    state = work->state;
+                    if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT
 #if ODD_STRANGER_VARIANT == 1
-                        && state != 4
+                        && state != ODD_STRANGER_STATE_STATUS_HOLD
 #endif
-                        && state != 0x11) {
-                        if (work->field_0 == 0x10 && work->field_6 < 0x21) {
-                            work->field_0 = 0x20;
-                        } else if (work->field_0 == 0xF && work->field_6 < 0xC) {
-                            work->field_0 = 0x1F;
+                        && state != ODD_STRANGER_STATE_DOWN) {
+                        if (work->state == ODD_STRANGER_STATE_RISE_FRONT && work->stateTimer < 0x21) {
+                            work->state = ODD_STRANGER_STATE_REFALL_FRONT;
+                        } else if (work->state == ODD_STRANGER_STATE_RISE_BACK && work->stateTimer < 0xC) {
+                            work->state = ODD_STRANGER_STATE_REFALL_BACK;
                         } else {
                             mag = s->yaw;
                             if (mag < 0) {
                                 mag = -mag;
                             }
-                            work->field_0 = (mag < 0x400) ? 0x13 : 0x14;
+                            work->state = (mag < 0x400) ? ODD_STRANGER_STATE_FALL_BACK : ODD_STRANGER_STATE_FALL_FRONT;
                         }
                     }
                     break;
@@ -180,134 +180,134 @@ void oddStrangerTakeHit(Task* arg0)
                 case 6:
                 case 7:
 #if ODD_STRANGER_VARIANT == 2
-                    if (work->field_0 == 0x18 || work->field_0 == 0x16 || work->field_0 == 0x17) {
-                        work->field_0 = 6;
+                    if (work->state == ODD_STRANGER_STATE_PATROL || work->state == ODD_STRANGER_STATE_DORMANT || work->state == ODD_STRANGER_STATE_DORMANT_SCRIPTED) {
+                        work->state = ODD_STRANGER_STATE_ALERT;
                     }
 #endif
-                    state = work->field_0;
-                    if (state == 0x13 || state == 0x14 || state == 0xF || state == 0x10 || state == 4 || state == 0x11) {
-                        if (work->field_89E == 0xB || work->field_89E == 0x17 || work->field_89E == 8 || work->field_89E == 0xA) {
-                            work->field_89A = 1;
-                            work->field_8A8 = 0xB;
+                    state = work->state;
+                    if (state == ODD_STRANGER_STATE_FALL_BACK || state == ODD_STRANGER_STATE_FALL_FRONT || state == ODD_STRANGER_STATE_RISE_BACK || state == ODD_STRANGER_STATE_RISE_FRONT || state == ODD_STRANGER_STATE_STATUS_HOLD || state == ODD_STRANGER_STATE_DOWN) {
+                        if (work->animId == 0xB || work->animId == 0x17 || work->animId == 8 || work->animId == 0xA) {
+                            work->blendActive = 1;
+                            work->blendAnimId = 0xB;
                         } else {
-                            work->field_89A = 1;
-                            work->field_8A8 = 0x19;
+                            work->blendActive = 1;
+                            work->blendAnimId = 0x19;
                         }
-                        work->field_8A6 = 2;
-                    } else if (work->field_BEA >= ODD_STRANGER_STAGGER_DAMAGE || s->crit == 1) {
-                        if (work->field_0 == 0x10 && work->field_6 < 0x21) {
-                            work->field_0 = 0x20;
-                        } else if (work->field_0 == 0xF && work->field_6 < 0xC) {
-                            work->field_0 = 0x1F;
+                        work->blendRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
+                    } else if (work->recentDamage >= ODD_STRANGER_STAGGER_DAMAGE || s->crit == 1) {
+                        if (work->state == ODD_STRANGER_STATE_RISE_FRONT && work->stateTimer < 0x21) {
+                            work->state = ODD_STRANGER_STATE_REFALL_FRONT;
+                        } else if (work->state == ODD_STRANGER_STATE_RISE_BACK && work->stateTimer < 0xC) {
+                            work->state = ODD_STRANGER_STATE_REFALL_BACK;
                         } else {
                             mag = s->yaw;
                             if (mag < 0) {
                                 mag = -mag;
                             }
-                            work->field_0 = (mag < 0x400) ? 0x13 : 0x14;
+                            work->state = (mag < 0x400) ? ODD_STRANGER_STATE_FALL_BACK : ODD_STRANGER_STATE_FALL_FRONT;
                         }
                     } else {
-                        work->field_8A8 = 0xD;
-                        work->field_89A = 1;
-                        work->field_8A6 = 2;
+                        work->blendAnimId  = 0xD;
+                        work->blendActive  = 1;
+                        work->blendRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
                     }
                     break;
                 case 2:
                     Gp_SetObjFlag2(enemy, s->id, 0);
-                    state = work->field_0;
-                    if (state == 0x11 || state == 4) {
-                        work->field_0 = 4;
-                    } else if (work->field_0 == 0x10 && work->field_6 < 0x21) {
-                        work->field_0 = 0x20;
-                    } else if (work->field_0 == 0xF && work->field_6 < 0xC) {
-                        work->field_0 = 0x1F;
+                    state = work->state;
+                    if (state == ODD_STRANGER_STATE_DOWN || state == ODD_STRANGER_STATE_STATUS_HOLD) {
+                        work->state = ODD_STRANGER_STATE_STATUS_HOLD;
+                    } else if (work->state == ODD_STRANGER_STATE_RISE_FRONT && work->stateTimer < 0x21) {
+                        work->state = ODD_STRANGER_STATE_REFALL_FRONT;
+                    } else if (work->state == ODD_STRANGER_STATE_RISE_BACK && work->stateTimer < 0xC) {
+                        work->state = ODD_STRANGER_STATE_REFALL_BACK;
                     } else {
                         mag = s->yaw;
                         if (mag < 0) {
                             mag = -mag;
                         }
-                        work->field_0 = (mag < 0x400) ? 0x13 : 0x14;
+                        work->state = (mag < 0x400) ? ODD_STRANGER_STATE_FALL_BACK : ODD_STRANGER_STATE_FALL_FRONT;
                     }
                     break;
                 case 3:
-                    state = work->field_0;
-                    if (state == 0x18 || state == 0x16 || state == 0x17) {
-                        work->field_0 = 6;
+                    state = work->state;
+                    if (state == ODD_STRANGER_STATE_PATROL || state == ODD_STRANGER_STATE_DORMANT || state == ODD_STRANGER_STATE_DORMANT_SCRIPTED) {
+                        work->state = ODD_STRANGER_STATE_ALERT;
                     }
                     Gp_SetObjFlag4(enemy, s->id, 0);
                     break;
                 case 1:
                     enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
-                    state                 = work->field_0;
+                    state                 = work->state;
 #if ODD_STRANGER_VARIANT == 1
-                    if (state != 0x13 && state != 0x14 && state != 0x1F && state != 0x20 && state != 4 && state != 0x11) {
+                    if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_STATUS_HOLD && state != ODD_STRANGER_STATE_DOWN) {
 #else
-                    if (state != 0x13 && state != 0x14 && state != 0x1F && state != 0x20 && state != 0x11 && state != 4) {
+                    if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_DOWN && state != ODD_STRANGER_STATE_STATUS_HOLD) {
 #endif
-                        if (work->field_0 == 0x10 && work->field_6 < 0x21) {
-                            work->field_0 = 0x20;
-                        } else if (work->field_0 == 0xF && work->field_6 < 0xC) {
-                            work->field_0 = 0x1F;
+                        if (work->state == ODD_STRANGER_STATE_RISE_FRONT && work->stateTimer < 0x21) {
+                            work->state = ODD_STRANGER_STATE_REFALL_FRONT;
+                        } else if (work->state == ODD_STRANGER_STATE_RISE_BACK && work->stateTimer < 0xC) {
+                            work->state = ODD_STRANGER_STATE_REFALL_BACK;
                         } else {
                             mag = s->yaw;
                             if (mag < 0) {
                                 mag = -mag;
                             }
-                            work->field_0 = (mag < 0x400) ? 0x13 : 0x14;
+                            work->state = (mag < 0x400) ? ODD_STRANGER_STATE_FALL_BACK : ODD_STRANGER_STATE_FALL_FRONT;
                         }
                     }
                     break;
                 case 8:
-                    state = work->field_0;
+                    state = work->state;
 #if ODD_STRANGER_VARIANT == 1
-                    if (state != 0x13 && state != 0x14 && state != 0x1F && state != 0x20 && state != 4 && state != 0x11) {
+                    if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_STATUS_HOLD && state != ODD_STRANGER_STATE_DOWN) {
 #else
-                    if (state != 0x13 && state != 0x14 && state != 0x1F && state != 0x20 && state != 0x11 && state != 4) {
+                    if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_DOWN && state != ODD_STRANGER_STATE_STATUS_HOLD) {
 #endif
                         mag = s->yaw;
                         if (mag < 0) {
                             mag = -mag;
                         }
                         if (mag < 0x501) {
-                            if (work->field_0 == 0x10 && work->field_6 < 0x21) {
-                                work->field_0 = 0x20;
-                            } else if (work->field_0 == 0xF && work->field_6 < 0xC) {
-                                work->field_0 = 0x1F;
+                            if (work->state == ODD_STRANGER_STATE_RISE_FRONT && work->stateTimer < 0x21) {
+                                work->state = ODD_STRANGER_STATE_REFALL_FRONT;
+                            } else if (work->state == ODD_STRANGER_STATE_RISE_BACK && work->stateTimer < 0xC) {
+                                work->state = ODD_STRANGER_STATE_REFALL_BACK;
                             } else {
                                 mag = s->yaw;
                                 if (mag < 0) {
                                     mag = -mag;
                                 }
-                                work->field_0 = (mag < 0x400) ? 0x13 : 0x14;
+                                work->state = (mag < 0x400) ? ODD_STRANGER_STATE_FALL_BACK : ODD_STRANGER_STATE_FALL_FRONT;
                             }
                         }
                     }
                     break;
                 case 9:
-                    state = work->field_0;
-                    if (state != 0x13 && state != 0x14 && state != 0x1F && state != 0x20 && state != 4 && state != 0x11) {
-                        if (work->field_0 == 0x10 && work->field_6 < 0x21) {
-                            work->field_0 = 0x20;
-                        } else if (work->field_0 == 0xF && work->field_6 < 0xC) {
-                            work->field_0 = 0x1F;
+                    state = work->state;
+                    if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_STATUS_HOLD && state != ODD_STRANGER_STATE_DOWN) {
+                        if (work->state == ODD_STRANGER_STATE_RISE_FRONT && work->stateTimer < 0x21) {
+                            work->state = ODD_STRANGER_STATE_REFALL_FRONT;
+                        } else if (work->state == ODD_STRANGER_STATE_RISE_BACK && work->stateTimer < 0xC) {
+                            work->state = ODD_STRANGER_STATE_REFALL_BACK;
                         } else {
                             mag = s->yaw;
                             if (mag < 0) {
                                 mag = -mag;
                             }
-                            work->field_0 = (mag < 0x400) ? 0x13 : 0x14;
+                            work->state = (mag < 0x400) ? ODD_STRANGER_STATE_FALL_BACK : ODD_STRANGER_STATE_FALL_FRONT;
                         }
                     }
                     break;
             }
             timer = 5;
-        } else if (work->field_BEC > 0) {
-            timer = (u16)work->field_BEC - 1;
+        } else if (work->recentDamageTimer > 0) {
+            timer = (u16)work->recentDamageTimer - 1;
         } else {
-            work->field_BEA = 0;
+            work->recentDamage = 0;
             goto block_bec;
         }
-        work->field_BEC = timer;
+        work->recentDamageTimer = timer;
     block_bec:
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
             s->damage = Gp_TickObjFlag4(enemy);
@@ -318,43 +318,43 @@ void oddStrangerTakeHit(Task* arg0)
                 enemy->hp -= s->damage;
                 func_800DA6E8(&enemy->node, s->damage, 0);
 #if ODD_STRANGER_VARIANT == 1
-                if (work->field_0 == 7 || work->field_0 == 0x1E || work->field_0 == 0xB || work->field_0 == 0x1B) {
-                    work->field_0 = 5;
-                } else if (work->field_0 == 4) {
-                    work->field_2 = -1;
+                if (work->state == ODD_STRANGER_STATE_CHASE || work->state == ODD_STRANGER_STATE_STALK || work->state == ODD_STRANGER_STATE_GRAB || work->state == ODD_STRANGER_STATE_WATCH) {
+                    work->state = ODD_STRANGER_STATE_FLINCH;
+                } else if (work->state == ODD_STRANGER_STATE_STATUS_HOLD) {
+                    work->prevState = -1;
                 } else {
-                    if (work->field_0 == 0x13 || work->field_0 == 0x14 || work->field_0 == 0xF || work->field_0 == 0x10 || work->field_0 == 0x11) {
-                        if (work->field_89E == 0xB || work->field_89E == 0x17 || work->field_89E == 8 || work->field_89E == 0xA) {
-                            work->field_89A = 1;
-                            work->field_8A8 = 0xB;
+                    if (work->state == ODD_STRANGER_STATE_FALL_BACK || work->state == ODD_STRANGER_STATE_FALL_FRONT || work->state == ODD_STRANGER_STATE_RISE_BACK || work->state == ODD_STRANGER_STATE_RISE_FRONT || work->state == ODD_STRANGER_STATE_DOWN) {
+                        if (work->animId == 0xB || work->animId == 0x17 || work->animId == 8 || work->animId == 0xA) {
+                            work->blendActive = 1;
+                            work->blendAnimId = 0xB;
                         } else {
-                            work->field_89A = 1;
-                            work->field_8A8 = 0x19;
+                            work->blendActive = 1;
+                            work->blendAnimId = 0x19;
                         }
                     } else {
-                        work->field_89A = 1;
-                        work->field_8A8 = 0xD;
+                        work->blendActive = 1;
+                        work->blendAnimId = 0xD;
                     }
-                    work->field_8A6 = 2;
+                    work->blendRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
                 }
 #else
-                state = work->field_0;
-                value = (u16)work->field_0;
-                if (state == 7 || state == 0x1E || state == 0xB || state == 0x1B) {
-                    work->field_0 = 5;
-                } else if ((u16)(value - 0x13) < 2 || state == 0xF || state == 0x10 || state == 4 || state == 0x11) {
-                    if (work->field_89E == 0xB || work->field_89E == 0x17 || work->field_89E == 8 || work->field_89E == 0xA) {
-                        work->field_89A = 1;
-                        work->field_8A8 = 0xB;
+                state = work->state;
+                value = (u16)work->state;
+                if (state == ODD_STRANGER_STATE_CHASE || state == ODD_STRANGER_STATE_STALK || state == ODD_STRANGER_STATE_GRAB || state == ODD_STRANGER_STATE_WATCH) {
+                    work->state = ODD_STRANGER_STATE_FLINCH;
+                } else if ((u16)(value - ODD_STRANGER_STATE_FALL_BACK) < 2 || state == ODD_STRANGER_STATE_RISE_BACK || state == ODD_STRANGER_STATE_RISE_FRONT || state == ODD_STRANGER_STATE_STATUS_HOLD || state == ODD_STRANGER_STATE_DOWN) {
+                    if (work->animId == 0xB || work->animId == 0x17 || work->animId == 8 || work->animId == 0xA) {
+                        work->blendActive = 1;
+                        work->blendAnimId = 0xB;
                     } else {
-                        work->field_89A = 1;
-                        work->field_8A8 = 0x19;
+                        work->blendActive = 1;
+                        work->blendAnimId = 0x19;
                     }
-                    work->field_8A6 = 2;
+                    work->blendRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
                 } else {
-                    work->field_89A = 1;
-                    work->field_8A8 = 0xD;
-                    work->field_8A6 = 2;
+                    work->blendActive  = 1;
+                    work->blendAnimId  = 0xD;
+                    work->blendRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
                 }
 #endif
             }
@@ -363,55 +363,55 @@ void oddStrangerTakeHit(Task* arg0)
 #if ODD_STRANGER_VARIANT == 1
             if (s->id != 0) {
                 if ((Gp_GetIdParam0(s->id) & 0xFFFF) == 4 || (Gp_GetIdParam0(s->id) & 0xFFFF) == 6) {
-                    if ((u16)(work->field_89E - 2) < 2) {
+                    if ((u16)(work->animId - 2) < 2) {
 #else
             value = s->id;
             if (value != 0) {
                 if ((Gp_GetIdParam0(value) & 0xFFFF) == 4 || (Gp_GetIdParam0(s->id) & 0xFFFF) == 6) {
-                    animState = work->field_89E;
+                    animState = work->animId;
                     if (animState == 2 || animState == 3) {
 #endif
-                        work->field_0 = 0x21;
+                        work->state = ODD_STRANGER_STATE_DEATH_BURST_WALK;
                     } else {
-                        work->field_0 = 0x1D;
+                        work->state = ODD_STRANGER_STATE_DEATH_BURST;
                     }
                 } else {
-                    state = work->field_0;
-                    if (state != 0x13 && state != 0x14
+                    state = work->state;
+                    if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT
 #if ODD_STRANGER_VARIANT == 1
-                        && state != 4
+                        && state != ODD_STRANGER_STATE_STATUS_HOLD
 #endif
-                        && state != 0x11) {
-                        if (work->field_0 == 0x10 && work->field_6 < 0x21) {
-                            work->field_0 = 0x20;
-                        } else if (work->field_0 == 0xF && work->field_6 < 0xC) {
-                            work->field_0 = 0x1F;
+                        && state != ODD_STRANGER_STATE_DOWN) {
+                        if (work->state == ODD_STRANGER_STATE_RISE_FRONT && work->stateTimer < 0x21) {
+                            work->state = ODD_STRANGER_STATE_REFALL_FRONT;
+                        } else if (work->state == ODD_STRANGER_STATE_RISE_BACK && work->stateTimer < 0xC) {
+                            work->state = ODD_STRANGER_STATE_REFALL_BACK;
                         } else {
                             mag = s->yaw;
                             if (mag < 0) {
                                 mag = -mag;
                             }
-                            work->field_0 = (mag < 0x400) ? 0x13 : 0x14;
+                            work->state = (mag < 0x400) ? ODD_STRANGER_STATE_FALL_BACK : ODD_STRANGER_STATE_FALL_FRONT;
                         }
                     }
                 }
             } else {
-                if (work->field_C28 == 1) {
+                if (work->playerHeld == 1) {
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, ODD_STRANGER_DEATH_RELEASE_ARG, 0);
-                    work->field_C28 = 0;
+                    work->playerHeld = 0;
                 }
-                state = work->field_0;
+                state = work->state;
 #if ODD_STRANGER_VARIANT == 1
-                if (state != 0x13 && state != 0x14 && state != 0x15 && state != 0x1D && state != 0 && state != 4 && state != 0x1F && state != 0x20 && state != 0x11) {
+                if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_DEATH_BURN && state != ODD_STRANGER_STATE_DEATH_BURST && state != ODD_STRANGER_STATE_HIDDEN && state != ODD_STRANGER_STATE_STATUS_HOLD && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_DOWN) {
 #else
-                if ((u16)(state - 0x13) >= 3 && state != 0x1D && state != 0x21 && state != 0 && state != 0x1F && state != 0x20 && state != 0x11) {
+                if ((u16)(state - ODD_STRANGER_STATE_FALL_BACK) >= 3 && state != ODD_STRANGER_STATE_DEATH_BURST && state != ODD_STRANGER_STATE_DEATH_BURST_WALK && state != ODD_STRANGER_STATE_HIDDEN && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT && state != ODD_STRANGER_STATE_DOWN) {
 #endif
-                    if (work->field_0 == 0x10 && work->field_6 < 0x21) {
-                        work->field_0 = 0x20;
-                    } else if (work->field_0 == 0xF && work->field_6 < 0xC) {
-                        work->field_0 = 0x1F;
+                    if (work->state == ODD_STRANGER_STATE_RISE_FRONT && work->stateTimer < 0x21) {
+                        work->state = ODD_STRANGER_STATE_REFALL_FRONT;
+                    } else if (work->state == ODD_STRANGER_STATE_RISE_BACK && work->stateTimer < 0xC) {
+                        work->state = ODD_STRANGER_STATE_REFALL_BACK;
                     } else {
-                        work->field_0 = 0x14;
+                        work->state = ODD_STRANGER_STATE_FALL_FRONT;
                     }
                 }
             }

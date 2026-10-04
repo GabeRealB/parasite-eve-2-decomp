@@ -2,15 +2,15 @@
 
 /// Turn-aim state body, as in `Actor01900_Fn04D14`: take a 0x10
 /// chase scratch off the scratch stack and, on the live-actor flag, key the
-/// two animation nodes, the frame counter and the `field_C06` clip phase.
-/// Once `field_8` has counted 7 frames the arm aims at the player - the yaw
+/// two animation nodes, the frame counter and the `dashRateStep` clip phase.
+/// Once `exitCounter` has counted 7 frames the arm aims at the player - the yaw
 /// toward `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` goes in `playerYaw`, the wrapped yaw toward
 /// `gPlayerStatus.coordMtx` in `yaw` - and the root is turned by the facing
 /// yaw plus a +-0x60 clamp of the turn's 1000 bias. The forward draw
-/// `field_C04` is the doubled frame parameter (halved while `field_89A` is
+/// `slideStep` is the doubled frame parameter (halved while `blendActive` is
 /// up, forced to 2 while the frame counter runs), and the actor slides along
-/// it when the `0x12C` probe reports the step is clear. `field_C06` walks 8 ->
-/// -1 -> 0 as `field_8A2` passes 0x18 and 0x12, and the 0 arm runs the
+/// it when the `0x12C` probe reports the step is clear. `dashRateStep` walks 8 ->
+/// -1 -> 0 as `animRate` passes 0x18 and 0x12, and the 0 arm runs the
 /// five-frame exit window that re-aims once more and picks state 0xB when the
 /// actor faces away from the player, else state 0x1A.
 void oddStrangerChase(Task* arg0)
@@ -27,23 +27,23 @@ void oddStrangerChase(Task* arg0)
     s32                yaw;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = ODD_STRANGER_SWING_RADIUS;
-        work->field_898        = 1;
-        work->field_89E        = 3;
-        work->field_89A        = 0;
-        work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.radius    = ODD_STRANGER_SWING_RADIUS;
+        work->animRequest       = ODD_STRANGER_ANIM_REQUEST_BLEND;
+        work->animId            = 3;
+        work->blendActive       = 0;
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         oddStrangerDrive(arg0);
-        work->field_C06           = 8;
-        work->field_6             = 0;
-        work->field_8             = 0;
+        work->dashRateStep        = 8;
+        work->stateTimer          = 0;
+        work->exitCounter         = 0;
         gOddStrangerChaseDistance = 0;
-        work->field_C24++;
+        work->dashCount++;
         return;
     }
     head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
@@ -52,21 +52,21 @@ void oddStrangerChase(Task* arg0)
     arg0->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
     oddStrangerDrive(arg0);
 #if ODD_STRANGER_VARIANT == 1
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) == 1) {
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
 #else
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 0) {
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
 #endif
-        work->field_8++;
+        work->exitCounter++;
     } else {
-        oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
+        oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
-    if (work->field_8 >= 7) {
+    if (work->exitCounter >= 7) {
         chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                   (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
         chase->yaw       = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
         chase->yaw       = actorNormalizeYaw(chase->yaw);
-        work->field_0    = 0x1A;
+        work->state      = ODD_STRANGER_STATE_SLIDE;
     }
     coord       = arg0->extra.tmd->coords;
     chase->turn = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -95,28 +95,28 @@ void oddStrangerChase(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     coord                                 = arg0->extra.tmd->coords;
-    work->field_8AE                       = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->lookYawTarget                   = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_C04                       = work->field_8A2 * 8;
-    if (work->field_89A != 0) {
-        work->field_C04 = work->field_C04 >> 1;
+    work->slideStep                       = work->animRate * 8;
+    if (work->blendActive != 0) {
+        work->slideStep = work->slideStep >> 1;
     }
-    if (work->field_8 != 0) {
-        work->field_C04 = 2;
+    if (work->exitCounter != 0) {
+        work->slideStep = 2;
     }
-    if ((detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C04) << 0x10) != 0) {
-        actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->field_C04);
+    if ((detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->slideStep) << 0x10) != 0) {
+        actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->slideStep);
     }
-    gOddStrangerChaseDistance += (u16)work->field_C04;
-    if (work->field_C06 == 8 && work->field_8A2 >= 0x18) {
-        work->field_C06 = -1;
+    gOddStrangerChaseDistance += (u16)work->slideStep;
+    if (work->dashRateStep == 8 && work->animRate >= 0x18) {
+        work->dashRateStep = -1;
     }
-    if (work->field_C06 == -1 && work->field_8A2 == 0x12) {
-        work->field_C06 = 0;
-        work->field_6   = 0;
+    if (work->dashRateStep == -1 && work->animRate == 0x12) {
+        work->dashRateStep = 0;
+        work->stateTimer   = 0;
     }
-    if (work->field_C06 == 0) {
-        if (++work->field_6 == 5) {
+    if (work->dashRateStep == 0) {
+        if (++work->stateTimer == 5) {
             chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
             actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
@@ -130,17 +130,17 @@ void oddStrangerChase(Task* arg0)
 #if ODD_STRANGER_SIGHT_TEST
                 && detectSightBlocked(arg0) != 1
 #endif
-                && work->ODD_STRANGER_SIGHT_COOLDOWN == 0) {
-                work->field_0 = 0xB;
+                && work->grabCooldown == 0) {
+                work->state = ODD_STRANGER_STATE_GRAB;
             } else {
-                work->field_0 = 0x1A;
-                work->field_2 = -1;
+                work->state     = ODD_STRANGER_STATE_SLIDE;
+                work->prevState = -1;
             }
         }
     }
-    work->field_8A2 += (u16)work->field_C06;
-    if (work->ODD_STRANGER_SIGHT_COOLDOWN != 0) {
-        work->ODD_STRANGER_SIGHT_COOLDOWN--;
+    work->animRate += (u16)work->dashRateStep;
+    if (work->grabCooldown != 0) {
+        work->grabCooldown--;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }

@@ -12,15 +12,15 @@ void oddStrangerGrab(Task* arg0)
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         player                                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        work->field_8D0.radius                  = ODD_STRANGER_BODY_RADIUS;
-        work->field_B50.flags                  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags                  |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.radius                    = ODD_STRANGER_BODY_RADIUS;
+        work->attackBody.flags                 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags                   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags           = 0;
-        work->field_898                         = 1;
-        work->field_8A2                         = 0x10;
-        work->field_89E                         = 5;
+        work->animRequest                       = ODD_STRANGER_ANIM_REQUEST_BLEND;
+        work->animRate                          = 0x10;
+        work->animId                            = 5;
         player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(player->extra.tmd->coords);
         msg         = &gOddStrangerGrabTransform.value;
@@ -52,16 +52,16 @@ void oddStrangerGrab(Task* arg0)
     gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
-    if (work->field_89E == 5 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if (work->animId == 5 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
 #if ODD_STRANGER_VARIANT == 2
-        work->field_0 = 0xD;
+        work->state = ODD_STRANGER_STATE_GRAB_STRIKE;
 #endif
-        work->field_8B8.coord      = arg0->extra.tmd->coords + ODD_STRANGER_GRAB_FX_PART;
-        work->field_8B8.spawnArgLo = 0x200;
-        work->field_8B8.spawnArgHi = 2;
-        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, arg0->extra.tmd->coords + 5, NULL, &work->field_8B8);
+        work->effectArg.coord      = arg0->extra.tmd->coords + ODD_STRANGER_GRAB_FX_PART;
+        work->effectArg.spawnArgLo = 0x200;
+        work->effectArg.spawnArgHi = 2;
+        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
 #if ODD_STRANGER_VARIANT == 1
-        work->field_0 = 0xD;
+        work->state = ODD_STRANGER_STATE_GRAB_STRIKE;
 #endif
     }
 }

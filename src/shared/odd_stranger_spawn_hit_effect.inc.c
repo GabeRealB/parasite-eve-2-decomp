@@ -4,7 +4,7 @@
 /// picked by the signed damage `arg1`: the `gRandomLcgState` draw's low bits
 /// bucket `|arg1|` into below 0x200 / above 0x600 / positive / non-positive,
 /// each selecting from its own run of `gOddStrangerHitOffsets`. The chosen
-/// offset goes into the work block's `field_8C0` and the `field_8B8` argument
+/// offset goes into the work block's `effectOffset` and the `effectArg` argument
 /// record, which anchors it at the model's second coordinate part, scale
 /// 0x300 and count 2 — the effect `func_800FDB18` then spawns hangs off the
 /// part the vector's `pad` names. The 8-byte scratch the offset is built in is
@@ -66,14 +66,14 @@ void oddStrangerSpawnHitEffect(Task* arg0, s16 arg1, s32 arg2)
             *sc = gOddStrangerHitOffsets[11];
         }
     }
-    work->field_8B8.coord      = &arg0->extra.tmd->coords[1];
-    work->field_8B8.spawnArgLo = 0x300;
-    work->field_8B8.spawnArgHi = 2;
+    work->effectArg.coord      = &arg0->extra.tmd->coords[1];
+    work->effectArg.spawnArgLo = 0x300;
+    work->effectArg.spawnArgHi = 2;
 #if ODD_STRANGER_HIT_FX_OFFSET
-    work->field_8C0 = *sc;
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->field_8C0, &work->field_8B8);
+    work->effectOffset = *sc;
+    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->effectOffset, &work->effectArg);
 #else
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], sc, &work->field_8B8);
+    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], sc, &work->effectArg);
 #endif
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

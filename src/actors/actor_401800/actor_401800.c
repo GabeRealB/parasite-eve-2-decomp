@@ -99,7 +99,7 @@ extern TaskMessageEntry D_actor_401800_80155A80[8];
 // unresolved (see the local actors/rooms data review).
 
 /// Frame counter the chase body of `func_actor_80136EAC` accumulates its step
-/// `field_C04` into and the init body clears; the aim-and-rescale body reads it
+/// `slideStep` into and the init body clears; the aim-and-rescale body reads it
 /// back as the phase of the step it walks. Same role `Actor01900_D172FC` plays
 /// for actor 01900.
 extern u16 gOddStrangerChaseDistance;
@@ -1140,8 +1140,8 @@ static __inline__ void Actor401800_BindMatrices(Task* actor)
 
     work          = actor->work;
     obj           = actor->extra.tmd;
-    obj->lightMtx = &work->field_B88;
-    obj->colorMtx = &work->field_BA8;
+    obj->lightMtx = &work->lightMtx;
+    obj->colorMtx = &work->colorMtx;
 }
 
 /// Enemy init: allocates the work block, binds the model matrices, sets up both
@@ -1162,7 +1162,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
 
     root        = actor->extra.tmd->coords;
     obj         = actor->extra.tmd;
-    work        = memCalloc(0xC78, 0);
+    work        = memCalloc(sizeof(OddStrangerWork), 0);
     actor->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, actor);
@@ -1182,41 +1182,41 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     enemy->reactionFlags          = 0;
     enemy->hp                     = (s16)D_actor_401800_8013E6F0.hpMax;
     enemy->param                  = &D_actor_401800_8013E6F0;
-    enemy->recs                   = work->field_8F0;
-    animationInitContext(&((OddStrangerWork*)work)->rig.anim, gOddStrangerAnimSets, obj,
-                         ((OddStrangerWork*)work)->rig.poses, ((OddStrangerWork*)work)->rig.slots);
-    animationInitContext(&((OddStrangerWork*)work)->blend.anim, gOddStrangerAnimSets, obj,
-                         ((OddStrangerWork*)work)->blend.poses, ((OddStrangerWork*)work)->blend.slots);
-    work->field_898 = 2;
-    work->field_89E = 2;
-    work->field_89A = 0;
-    work->field_8B0 = 0;
-    work->field_8AE = 0;
-    work->field_8A4 = 0x10;
-    work->field_8A2 = 0x10;
+    enemy->recs                   = work->hitContacts;
+    animationInitContext(&work->rig.anim, gOddStrangerAnimSets, obj,
+                         work->rig.poses, work->rig.slots);
+    animationInitContext(&work->blend.anim, gOddStrangerAnimSets, obj,
+                         work->blend.poses, work->blend.slots);
+    work->animRequest   = ODD_STRANGER_ANIM_REQUEST_RESET;
+    work->animId        = 2;
+    work->blendActive   = 0;
+    work->lookYaw       = 0;
+    work->lookYawTarget = 0;
+    work->chaseRate     = 0x10;
+    work->animRate      = 0x10;
     if ((s16)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) & 1) == 1) {
-        work->field_8A4++;
+        work->chaseRate++;
     } else {
-        work->field_8A4--;
+        work->chaseRate--;
     }
     oddStrangerDrive(actor);
 
-    work->field_A10.context.contacts = work->field_A30;
-    work->field_A10.coord            = root;
-    work->field_A10.pos.vx           = 0;
-    work->field_A10.pos.vy           = -0xAC;
-    work->field_A10.pos.vz           = 0;
-    work->field_A10.key              = 0x30012;
-    work->field_A10.radius           = 0x12C;
-    work->field_A10.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->field_A10);
-    work->field_BE8        = 0;
-    work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    Gp_InitRec18Table(work->field_A10.context.contacts, 0xC, 0);
+    work->gridBody.context.contacts = work->gridContacts;
+    work->gridBody.coord            = root;
+    work->gridBody.pos.vx           = 0;
+    work->gridBody.pos.vy           = -0xAC;
+    work->gridBody.pos.vz           = 0;
+    work->gridBody.key              = 0x30012;
+    work->gridBody.radius           = 0x12C;
+    work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work->gridBody);
+    work->hitCooldown     = 0;
+    work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+    Gp_InitRec18Table(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
 
-    body                   = &work->field_8D0;
+    body                   = &work->hitBody;
     body->coord            = &actor->extra.tmd->coords[2];
-    body->context.contacts = work->field_8F0;
+    body->context.contacts = work->hitContacts;
     body->pos.vx           = 0;
     body->pos.vy           = 0;
     body->pos.vz           = 0;
@@ -1225,14 +1225,14 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(body->context.contacts, 0xC, 0);
+    Gp_InitRec18Table(body->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
 
     dir.vx                 = 0;
     dir.vy                 = 0;
     dir.vz                 = 0;
-    head                   = &work->field_B50;
+    head                   = &work->attackBody;
     head->coord            = &actor->extra.tmd->coords[6];
-    head->context.contacts = &work->field_B70;
+    head->context.contacts = work->attackContacts;
     v                      = &dir;
     head->pos.vx           = v->vx;
     head->pos.vy           = v->vy;
@@ -1240,11 +1240,11 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     head->radius           = 0x180;
     head->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, head);
-    Gp_InitRec18Table(head->context.contacts, 1, 0);
+    Gp_InitRec18Table(head->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
 
-    work->field_14     = 0;
-    work->field_C[0].x = actor->extra.tmd->coords->coord.t[0];
-    work->field_C[0].z = actor->extra.tmd->coords->coord.t[2];
+    work->patrolTarget      = 0;
+    work->patrolPoints[0].x = actor->extra.tmd->coords->coord.t[0];
+    work->patrolPoints[0].z = actor->extra.tmd->coords->coord.t[2];
     gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, v);
     dir.vy = 0;
     VectorNormalSS(v, v);
@@ -1252,8 +1252,8 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     gte_ldsv(v);
     gte_gpf12();
     gte_stsv(v);
-    work->field_C[1].x = actor->extra.tmd->coords->coord.t[0] + dir.vx;
-    work->field_C[1].z = actor->extra.tmd->coords->coord.t[2] + dir.vz;
+    work->patrolPoints[1].x = actor->extra.tmd->coords->coord.t[0] + dir.vx;
+    work->patrolPoints[1].z = actor->extra.tmd->coords->coord.t[2] + dir.vz;
 
     actor->msgTable    = D_actor_401800_80155A80;
     root->parent       = &gGfxViewCoord;
@@ -1264,49 +1264,49 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     pos.vz = root->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    work->field_8B8.coord      = &actor->extra.tmd->coords[1];
-    work->field_8B8.spawnArgLo = 0x300;
-    work->field_8B8.spawnArgHi = 2;
+    work->effectArg.coord      = &actor->extra.tmd->coords[1];
+    work->effectArg.spawnArgLo = 0x300;
+    work->effectArg.spawnArgHi = 2;
     kind                       = (actor->spawnArg1.value >> 16);
     switch (kind & 0xF) {
         case 2:
-            work->field_2 = -1;
-            work->field_0 = 0;
+            work->prevState = -1;
+            work->state     = ODD_STRANGER_STATE_HIDDEN;
             break;
         case 4:
-            work->field_2 = -1;
-            work->field_0 = 0x16;
+            work->prevState = -1;
+            work->state     = ODD_STRANGER_STATE_DORMANT;
             break;
         default:
-            work->field_2 = -1;
-            work->field_0 = 0x18;
+            work->prevState = -1;
+            work->state     = ODD_STRANGER_STATE_PATROL;
             Tmd_AllocBuffers(obj);
             break;
     }
     switch (actor->spawnArg1.value & 0xF) {
         case 2:
-            work->field_C10 = D_actor_401800_8013E700[0].field_0;
-            work->field_C12 = D_actor_401800_8013E700[0].field_2;
-            work->field_C14 = D_actor_401800_8013E700[0].field_4;
-            work->field_C16 = D_actor_401800_8013E700[0].field_6;
+            work->downFramesBase = D_actor_401800_8013E700[0].field_0;
+            work->sidestepAngle  = D_actor_401800_8013E700[0].field_2;
+            work->sidestepDelay  = D_actor_401800_8013E700[0].field_4;
+            work->noticeRadius   = D_actor_401800_8013E700[0].field_6;
             break;
         case 1:
-            work->field_C10 = D_actor_401800_8013E700[2].field_0;
-            work->field_C12 = D_actor_401800_8013E700[2].field_2;
-            work->field_C14 = D_actor_401800_8013E700[2].field_4;
-            work->field_C16 = D_actor_401800_8013E700[2].field_6;
+            work->downFramesBase = D_actor_401800_8013E700[2].field_0;
+            work->sidestepAngle  = D_actor_401800_8013E700[2].field_2;
+            work->sidestepDelay  = D_actor_401800_8013E700[2].field_4;
+            work->noticeRadius   = D_actor_401800_8013E700[2].field_6;
             break;
         case 0:
         default:
-            work->field_C10 = D_actor_401800_8013E700[1].field_0;
-            work->field_C12 = D_actor_401800_8013E700[1].field_2;
-            work->field_C14 = D_actor_401800_8013E700[1].field_4;
-            work->field_C16 = D_actor_401800_8013E700[1].field_6;
+            work->downFramesBase = D_actor_401800_8013E700[1].field_0;
+            work->sidestepAngle  = D_actor_401800_8013E700[1].field_2;
+            work->sidestepDelay  = D_actor_401800_8013E700[1].field_4;
+            work->noticeRadius   = D_actor_401800_8013E700[1].field_6;
             break;
     }
 
     actorRescaleYaw(actor->extra.tmd->coords, 0x1194);
-    work->field_C7C = 0;
+    work->bodyPosCursor = 0;
     actor->state++;
 }
 
@@ -1411,35 +1411,35 @@ static void func_actor_401800_80136560(Task* arg0)
     kind = (arg0->spawnArg1.value >> 16);
     work = arg0->work;
     if ((kind & 0xF0) == 0x10) {
-        work->field_0 = 0x1E;
+        work->state = ODD_STRANGER_STATE_STALK;
         return;
     }
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = 0x12C;
-        work->field_898        = 1;
-        work->field_89A        = 0;
-        work->field_89E        = 3;
-        work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->field_8A2        = work->field_8A4;
+        work->hitBody.radius    = 0x12C;
+        work->animRequest       = ODD_STRANGER_ANIM_REQUEST_BLEND;
+        work->blendActive       = 0;
+        work->animId            = 3;
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->animRate          = work->chaseRate;
         oddStrangerDrive(arg0);
-        work->field_C24 = 0;
-        work->field_6   = 0;
-        work->field_8   = 0;
+        work->dashCount   = 0;
+        work->stateTimer  = 0;
+        work->exitCounter = 0;
         return;
     }
-    work->field_6++;
+    work->stateTimer++;
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
     block                          = head - 0x10;
     SCRATCH_HEAD_AT(scratch, void) = block;
     s                              = (ActorChaseScratch*)block;
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
-        oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+        oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     coord                                         = arg0->extra.tmd->coords;
     ((ActorChaseScratch*)(head - 0x10))->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -1457,19 +1457,19 @@ static void func_actor_401800_80136560(Task* arg0)
     s->yaw                                        = actorNormalizeYaw(s->yaw);
     turnCoord                                     = arg0->extra.tmd->coords;
     s->turn                                       = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]));
-    work->field_8AE                               = s->turn;
+    work->lookYawTarget                           = s->turn;
     if (abs(s->yaw - s->playerYaw) < 0x44) {
-        if (((s16)work->field_C14 + work->field_C26 / 2) < work->field_6) {
+        if (((s16)work->sidestepDelay + work->sidestepCount / 2) < work->stateTimer) {
             if (abs(s->turn) < 0x80) {
                 if (Actor401800_ChaseOutOfRange(&s->delta, 0x708) && detectSightBlocked(arg0) != 1) {
-                    work->field_0 = 0xA;
+                    work->state = ODD_STRANGER_STATE_SIDESTEP;
                 }
             }
         }
     }
     if (s->turn < 0x200) {
-        if (!Actor401800_ChaseOutOfRange(&s->delta, 0x44C) && detectSightBlocked(arg0) != 1 && work->field_8CA == 0) {
-            work->field_0 = 0xB;
+        if (!Actor401800_ChaseOutOfRange(&s->delta, 0x44C) && detectSightBlocked(arg0) != 1 && work->grabCooldown == 0) {
+            work->state = ODD_STRANGER_STATE_GRAB;
         }
     }
     if (s->turn > 0x30) {
@@ -1483,20 +1483,20 @@ static void func_actor_401800_80136560(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_89E == 3) {
-        if (work->field_89A == 0) {
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->field_8A4 + 2) * 0x42) / 18) != 0) {
-                actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->field_8A4 + 2) * 0x42) / 18);
+    if (work->animId == 3) {
+        if (work->blendActive == 0) {
+            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x42) / 18) != 0) {
+                actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x42) / 18);
             }
-        } else if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, (((work->field_8A4 + 2) * 0x42) / 18) >> 2) != 0) {
-            actorMoveForwardNonzero(arg0->extra.tmd->coords, (((work->field_8A4 + 2) * 0x42) / 18) >> 2);
+        } else if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, (((work->chaseRate + 2) * 0x42) / 18) >> 2) != 0) {
+            actorMoveForwardNonzero(arg0->extra.tmd->coords, (((work->chaseRate + 2) * 0x42) / 18) >> 2);
         }
     } else if (work->rig.slots[1].status.fields.flags & 1) {
-        work->field_89E = 3;
-        work->field_898 = 1;
+        work->animId      = 3;
+        work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
     }
-    if (work->field_8CA != 0) {
-        work->field_8CA--;
+    if (work->grabCooldown != 0) {
+        work->grabCooldown--;
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
@@ -1586,32 +1586,32 @@ static void func_actor_401800_801381E4(Task* arg0)
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     gactor = (GameActor*)player->work;
     config = &gPlayerStatus;
-    if (work->field_4 != 0) {
-        work->field_8CA               = 0xA;
-        work->field_8D0.radius        = 0x12C;
-        work->field_C26               = 0;
-        work->field_C28               = 0;
-        work->field_B50.flags         = (u16)(work->field_B50.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->field_A10.flags         = (u16)(work->field_A10.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+    if (work->stateEntered != 0) {
+        work->grabCooldown            = 0xA;
+        work->hitBody.radius          = 0x12C;
+        work->sidestepCount           = 0;
+        work->playerHeld              = 0;
+        work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = 0;
-        work->field_898               = 1;
-        work->field_8A2               = 0x10;
-        work->field_89E               = 4;
+        work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
+        work->animRate                = 0x10;
+        work->animId                  = 4;
         oddStrangerDrive(arg0);
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
-        work->field_BF8.vx = arg0->extra.tmd->coords->coord.t[0];
-        work->field_BF8.vy = arg0->extra.tmd->coords->coord.t[1];
-        work->field_BF8.vz = arg0->extra.tmd->coords->coord.t[2];
-        work->field_6      = 0;
+        ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        work->grabStartPos.vx = arg0->extra.tmd->coords->coord.t[0];
+        work->grabStartPos.vy = arg0->extra.tmd->coords->coord.t[1];
+        work->grabStartPos.vz = arg0->extra.tmd->coords->coord.t[2];
+        work->stateTimer      = 0;
         return;
     }
-    step          = (u16)work->field_6 + 1;
-    work->field_6 = step;
+    step             = (u16)work->stateTimer + 1;
+    work->stateTimer = step;
     if ((s16)step == 1) {
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
-        work->field_BF8.vx = arg0->extra.tmd->coords->coord.t[0];
-        work->field_BF8.vy = arg0->extra.tmd->coords->coord.t[1];
-        work->field_BF8.vz = arg0->extra.tmd->coords->coord.t[2];
+        ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        work->grabStartPos.vx = arg0->extra.tmd->coords->coord.t[0];
+        work->grabStartPos.vy = arg0->extra.tmd->coords->coord.t[1];
+        work->grabStartPos.vz = arg0->extra.tmd->coords->coord.t[2];
         Actor401800_ViewWalk(arg0->extra.tmd->coords, &sv, &dir);
         ang = actorViewYaw(arg0->extra.tmd->coords, &dir);
         gfxRotMatrixY(&arg0->extra.tmd->coords[0].coord, ang, 0);
@@ -1619,12 +1619,12 @@ static void func_actor_401800_801381E4(Task* arg0)
         dir.vx                                = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         dir.vy                                = 0;
         dir.vz                                = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
-        work->field_8AE                       = 0;
-        work->field_8B0                       = 0;
+        work->lookYawTarget                   = 0;
+        work->lookYaw                         = 0;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->field_C26                       = 0;
-        work->field_C28                       = 0;
-        work->field_8CA                       = 0xA;
+        work->sidestepCount                   = 0;
+        work->playerHeld                      = 0;
+        work->grabCooldown                    = 0xA;
     }
     oddStrangerDrive(arg0);
     if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && gactor->mode != GAME_ACTOR_MODE_SCRIPTED) {
@@ -1639,8 +1639,8 @@ static void func_actor_401800_801381E4(Task* arg0)
                 D_actor_401800_80155AF8.pressCount = 8;
                 do {
                     if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401800_80155AF8, 0) == 0) {
-                        work->field_0                      = 0xC;
-                        work->field_C28                    = 1;
+                        work->state                        = ODD_STRANGER_STATE_GRAB_PULL;
+                        work->playerHeld                   = 1;
                         gOddStrangerPlayerAnim.animationId = 1;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gOddStrangerPlayerAnim, 0);
                     }
@@ -1648,8 +1648,8 @@ static void func_actor_401800_801381E4(Task* arg0)
             }
         }
     }
-    if (work->field_89E == 4 && (work->rig.slots[1].status.fields.flags & 1)) {
-        work->field_0 = 7;
+    if (work->animId == 4 && (work->rig.slots[1].status.fields.flags & 1)) {
+        work->state = ODD_STRANGER_STATE_CHASE;
     }
     if ((u32)(work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x11U) {
         dir.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
@@ -1665,8 +1665,8 @@ static void func_actor_401800_801381E4(Task* arg0)
             arg0->extra.tmd->coords->coord.t[2]  += dir.vz;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
-            oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
+        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+            oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
 }
@@ -1678,12 +1678,12 @@ static void func_actor_401800_801381E4(Task* arg0)
 #include "../../shared/odd_stranger_grab_release.inc.c"
 
 /// Per-frame body of the live actor armed into state 1: raises the same
-/// animation slots as `func_actor_401800_8013971C` but leaves `field_89E = 0xA`
-/// (with `field_898 = 1` and `field_89A` cleared), then, while that slot is
+/// animation slots as `func_actor_401800_8013971C` but leaves `animId = 0xA`
+/// (with `animRequest = 1` and `blendActive` cleared), then, while that slot is
 /// still `0xA`, advances the actor along its own local Z by a fixed `-0x57`
 /// once `detectPlayerOutOfReach` says the path is clear. The `0xA` branch
 /// then flips the slots to `0xB`/2 and ticks the animation a second time before
-/// the two contact records are rebuilt, after which work bit 0 picks `field_0`
+/// the two contact records are rebuilt, after which work bit 0 picks `state`
 /// from the enemy's HP sign and its buildup bit (`reactionFlags`).
 static void func_actor_401800_8013945C(Task* arg0)
 {
@@ -1692,50 +1692,50 @@ static void func_actor_401800_8013945C(Task* arg0)
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         arg0->extra.tmd->flags        = 0;
-        work->field_8D0.radius        = 0x12C;
-        work->field_B50.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.radius          = 0x12C;
+        work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
-        work->field_898               = 1;
-        work->field_89E               = 0xA;
-        work->field_89A               = 0;
-        work->field_8A2               = 0x10;
-        work->field_8B0               = 0;
-        work->field_8AE               = 0;
+        work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
+        work->animId                  = 0xA;
+        work->blendActive             = 0;
+        work->animRate                = 0x10;
+        work->lookYaw                 = 0;
+        work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
-        work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    if ((work->field_89E == 0xA) && ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0)) {
+    if ((work->animId == 0xA) && ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0)) {
         actorStepForward(arg0->extra.tmd->coords, -0x57);
     }
     oddStrangerDrive(arg0);
-    if ((work->rig.slots[1].status.fields.flags & 1) && (work->field_89E == 0xA)) {
-        work->field_89E = 0xB;
-        work->field_898 = 2;
+    if ((work->rig.slots[1].status.fields.flags & 1) && (work->animId == 0xA)) {
+        work->animId      = 0xB;
+        work->animRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
         oddStrangerDrive(arg0);
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if ((work->rig.slots[1].status.fields.flags & 1) && (work->field_89E == 0xB)) {
-        work->field_8D0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+    if ((work->rig.slots[1].status.fields.flags & 1) && (work->animId == 0xB)) {
+        work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
-            work->field_0 = 0x15;
+            work->state = ODD_STRANGER_STATE_DEATH_BURN;
         } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            work->field_0 = 4;
+            work->state = ODD_STRANGER_STATE_STATUS_HOLD;
         } else {
-            work->field_0 = 0x11;
+            work->state = ODD_STRANGER_STATE_DOWN;
         }
     }
 }
 
 /// Per-frame body of the live actor: arms the animation slots and the two
-/// `field_8D0` / `field_A10` nodes, re-seeds the 0x8E8 and 0xA28 contact
-/// records, then — while work bit 0x100 is set — picks `field_0` from the
+/// `hitBody` / `gridBody` nodes, re-seeds the 0x8E8 and 0xA28 contact
+/// records, then — while work bit 0x100 is set — picks `state` from the
 /// enemy's HP sign and its buildup bit (`reactionFlags`). Same body as `Actor01900_Fn09BE8`.
 static void func_actor_401800_8013971C(Task* arg0)
 {
@@ -1744,40 +1744,40 @@ static void func_actor_401800_8013971C(Task* arg0)
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         arg0->extra.tmd->flags        = 0;
-        work->field_8D0.radius        = 0x12C;
-        work->field_B50.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.radius          = 0x12C;
+        work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
-        work->field_898               = 2;
-        work->field_89E               = 0xB;
-        work->field_8A2               = 0x10;
-        work->field_8B0               = 0;
-        work->field_8AE               = 0;
+        work->animRequest             = ODD_STRANGER_ANIM_REQUEST_RESET;
+        work->animId                  = 0xB;
+        work->animRate                = 0x10;
+        work->lookYaw                 = 0;
+        work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
-        work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     oddStrangerDrive(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 0x100) {
-        work->field_8D0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
-            work->field_0 = 0x15;
+            work->state = ODD_STRANGER_STATE_DEATH_BURN;
         } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            work->field_0 = 4;
+            work->state = ODD_STRANGER_STATE_STATUS_HOLD;
         } else {
-            work->field_0 = 0x11;
+            work->state = ODD_STRANGER_STATE_DOWN;
         }
     }
 }
 
 /// Second per-frame body of the live actor: as `func_actor_401800_8013971C`,
-/// but it arms the animation slots with `field_89E = 0x19` and skips the
+/// but it arms the animation slots with `animId = 0x19` and skips the
 /// `field_5A` clip rebuild.
 static void func_actor_401800_80139870(Task* arg0)
 {
@@ -1786,40 +1786,40 @@ static void func_actor_401800_80139870(Task* arg0)
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         arg0->extra.tmd->flags        = 0;
-        work->field_8D0.radius        = 0x12C;
-        work->field_B50.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.radius          = 0x12C;
+        work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
-        work->field_898               = 2;
-        work->field_89E               = 0x19;
-        work->field_8A2               = 0x10;
-        work->field_8B0               = 0;
-        work->field_8AE               = 0;
+        work->animRequest             = ODD_STRANGER_ANIM_REQUEST_RESET;
+        work->animId                  = 0x19;
+        work->animRate                = 0x10;
+        work->lookYaw                 = 0;
+        work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
-        work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     oddStrangerDrive(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 0x100) {
-        work->field_8D0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
-            work->field_0 = 0x15;
+            work->state = ODD_STRANGER_STATE_DEATH_BURN;
         } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            work->field_0 = 4;
+            work->state = ODD_STRANGER_STATE_STATUS_HOLD;
         } else {
-            work->field_0 = 0x11;
+            work->state = ODD_STRANGER_STATE_DOWN;
         }
     }
 }
 
 /// Third per-frame body of the live actor: `func_actor_401800_8013971C` with
-/// the animation slots armed at 1 / 0xC, and its `field_0` selector driven by
+/// the animation slots armed at 1 / 0xC, and its `state` selector driven by
 /// work bit 0 instead of bit 8. Same body as `func_actor_401800_8013971C`
 /// apart from those three constants.
 static void func_actor_401800_801399C4(Task* arg0)
@@ -1829,34 +1829,34 @@ static void func_actor_401800_801399C4(Task* arg0)
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         arg0->extra.tmd->flags        = 0;
-        work->field_8D0.radius        = 0x12C;
-        work->field_B50.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.radius          = 0x12C;
+        work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
-        work->field_898               = 1;
-        work->field_89E               = 0xC;
-        work->field_8A2               = 0x10;
-        work->field_8B0               = 0;
-        work->field_8AE               = 0;
+        work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
+        work->animId                  = 0xC;
+        work->animRate                = 0x10;
+        work->lookYaw                 = 0;
+        work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
-        work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     oddStrangerDrive(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 1) {
-        work->field_8D0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp <= 0) {
-            work->field_0 = 0x15;
+            work->state = ODD_STRANGER_STATE_DEATH_BURN;
         } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            work->field_0 = 4;
+            work->state = ODD_STRANGER_STATE_STATUS_HOLD;
         } else {
-            work->field_0 = 0x11;
+            work->state = ODD_STRANGER_STATE_DOWN;
         }
     }
 }
@@ -1864,11 +1864,11 @@ static void func_actor_401800_801399C4(Task* arg0)
 #include "../../shared/odd_stranger_die.inc.c"
 
 /// Countdown body: on the live-actor flag re-allocates the model's buffers,
-/// copies the root coordinate over its `field_BC8` home and restarts the step
+/// keeps a copy of `colorMtx` in `savedColorMtx` and restarts the step
 /// counter in state 0xE. The counter then runs to 0x961, rerolling the LCG each
 /// frame past it and bailing for that frame on every 0xF-th draw; the surviving
 /// frames re-test the squared XZ offset to the player against
-/// `field_C16` and arm `gSceneCombatState` state 6 on a miss — bit 0x50000 there arms
+/// `noticeRadius` and arm `gSceneCombatState` state 6 on a miss — bit 0x50000 there arms
 /// it the same way. After the shared per-frame tick the body flips between
 /// states 0xE and 0xF, one LCG draw per attempt, on the two `rig.slots[1].status` mask
 /// bits. Same shape as `oddStrangerDormant`.
@@ -1884,57 +1884,57 @@ static void func_actor_401800_80139D60(Task* arg0)
     u32              lcg;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         obj        = arg0->extra.tmd;
         enemy      = arg0->spawnArg2.pointer;
         obj->flags = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8D0.radius        = 0x12C;
-        work->field_B50.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->hitBody.radius          = 0x12C;
+        work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = 0;
-        work->field_6                 = 0;
-        work->field_BC8               = work->field_BA8;
-        work->field_89E               = 0xE;
-        work->field_898               = 1;
-        work->field_8A2               = work->field_8A4;
+        work->stateTimer              = 0;
+        work->savedColorMtx           = work->colorMtx;
+        work->animId                  = 0xE;
+        work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
+        work->animRate                = work->chaseRate;
     }
-    step = (u16)work->field_6;
-    if (work->field_6 >= 0x961) {
+    step = (u16)work->stateTimer;
+    if (work->stateTimer >= 0x961) {
         lcg             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = lcg;
         if (!((lcg >> 16) & 0xF)) {
             return;
         }
     } else {
-        work->field_6 = (s16)(step + 1);
+        work->stateTimer = (s16)(step + 1);
     }
     coord    = arg0->extra.tmd->coords;
     d        = &delta;
     delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     d->vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    if (!oddStrangerOutOfRange(d, work->field_C16)) {
-        work->field_0 = 6;
+    if (!oddStrangerOutOfRange(d, work->noticeRadius)) {
+        work->state = ODD_STRANGER_STATE_ALERT;
     }
     if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
-        work->field_0 = 6;
+        work->state = ODD_STRANGER_STATE_ALERT;
     }
     oddStrangerDrive(arg0);
-    if (work->field_89E == 0xE) {
+    if (work->animId == 0xE) {
         if (work->rig.slots[1].status.fields.flags & 2) {
             lcg             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState = lcg;
             if ((lcg >> 16) & 1) {
-                work->field_89E = 0xF;
-                work->field_898 = 1;
+                work->animId      = 0xF;
+                work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
                 oddStrangerDrive(arg0);
             }
         }
     }
-    if (work->field_89E == 0xF && (work->rig.slots[1].status.fields.flags & 1)) {
-        work->field_89E = 0xE;
-        work->field_898 = 1;
+    if (work->animId == 0xF && (work->rig.slots[1].status.fields.flags & 1)) {
+        work->animId      = 0xE;
+        work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
         oddStrangerDrive(arg0);
     }
 }
@@ -1963,49 +1963,49 @@ static void func_actor_401800_8013B784(Task* arg0)
     ActorChaseScratch* aim;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = 0x12C;
-        work->field_898        = 2;
-        work->field_8A2        = 0x10;
-        work->field_89E        = 0x13;
-        work->field_89A        = 0;
-        work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->hitBody.radius    = 0x12C;
+        work->animRequest       = ODD_STRANGER_ANIM_REQUEST_RESET;
+        work->animRate          = 0x10;
+        work->animId            = 0x13;
+        work->blendActive       = 0;
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         oddStrangerDrive(arg0);
         oddStrangerDrive(arg0);
-        work->field_6   = 0;
-        work->field_8B0 = 0;
+        work->stateTimer = 0;
+        work->lookYaw    = 0;
         return;
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
-    if (work->field_8AE < aim->turn) {
-        if (aim->turn - work->field_8AE >= 0x29) {
-            work->field_8AE = (u16)work->field_8AE + 0x28;
+    if (work->lookYawTarget < aim->turn) {
+        if (aim->turn - work->lookYawTarget >= 0x29) {
+            work->lookYawTarget = (u16)work->lookYawTarget + 0x28;
         } else {
-            work->field_8AE = aim->turn;
+            work->lookYawTarget = aim->turn;
         }
-    } else if (work->field_8AE - aim->turn >= 0x29) {
-        work->field_8AE = (u16)work->field_8AE - 0x28;
+    } else if (work->lookYawTarget - aim->turn >= 0x29) {
+        work->lookYawTarget = (u16)work->lookYawTarget - 0x28;
     } else {
-        work->field_8AE = aim->turn;
+        work->lookYawTarget = aim->turn;
     }
-    if (work->field_8AE == aim->turn && detectSightBlocked(arg0) != 1 && work->field_8CA == 0) {
-        work->field_0 = 0xB;
+    if (work->lookYawTarget == aim->turn && detectSightBlocked(arg0) != 1 && work->grabCooldown == 0) {
+        work->state = ODD_STRANGER_STATE_GRAB;
     }
     coord     = arg0->extra.tmd->coords;
     aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-    work->field_898 = 2;
+    work->animRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
     oddStrangerDrive(arg0);
-    if (work->field_8CA != 0) {
-        work->field_8CA--;
+    if (work->grabCooldown != 0) {
+        work->grabCooldown--;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
@@ -2024,21 +2024,21 @@ static void func_actor_401800_8013BB10(Task* arg0)
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         arg0->extra.tmd->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->field_8D0.radius        = 0x12C;
-        work->field_A10.flags         = (u16)(work->field_A10.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+        work->hitBody.radius          = 0x12C;
+        work->gridBody.flags          = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->field_8AE               = 0;
-        work->field_6                 = 0U;
+        work->lookYawTarget           = 0;
+        work->stateTimer              = 0U;
         vec.vx                        = 0x64;
         vec.vz                        = 0;
         vec.vy                        = 0;
         Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         Gp_ReleaseStateF0Add(arg0, 0xA);
     }
-    next          = work->field_6 + 1;
-    work->field_6 = next;
+    next             = work->stateTimer + 1;
+    work->stateTimer = next;
     if ((s16)next == 3) {
         D_80114B34[5].data.model = &gOddStrangerBurstModelA;
         vec.vz                   = 0x64;
@@ -2046,22 +2046,22 @@ static void func_actor_401800_8013BB10(Task* arg0)
         vec.vx                   = 0;
         actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
     }
-    if (work->field_6 == 5) {
+    if (work->stateTimer == 5) {
         D_80114B34[5].data.model = &_gActor401800Model12280;
         vec.vy                   = 0;
         vec.vx                   = 0;
         actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
     }
-    if (work->field_6 == 7) {
+    if (work->stateTimer == 7) {
         D_80114B34[5].data.model = &gOddStrangerBurstModelA;
         actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
     }
-    if (work->field_6 == 9) {
+    if (work->stateTimer == 9) {
         D_80114B34[5].data.model = &gOddStrangerBurstModelC;
         actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
     }
-    if (work->field_6 >= 0x3D) {
-        work->field_0 = 0;
+    if (work->stateTimer >= 0x3D) {
+        work->state = ODD_STRANGER_STATE_HIDDEN;
     }
 }
 
@@ -2141,12 +2141,12 @@ static void func_actor_401800_8013E138(Task* arg0)
     OddStrangerWork* work;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                                                = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        work->field_B50.flags                                     = (u16)(work->field_B50.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->field_A10.flags                                     = (u16)(work->field_A10.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+        work->attackBody.flags                                    = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->gridBody.flags                                      = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
     }
 }
 
@@ -2167,23 +2167,23 @@ static void func_actor_401800_8013E4F0(Task* arg0)
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         arg0->extra.tmd->flags        = 0;
-        work->field_8D0.radius        = 0x12C;
-        work->field_B50.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->hitBody.radius          = 0x12C;
+        work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
-        work->field_898               = 2;
-        work->field_89E               = 0x16;
-        work->field_8B0               = 0;
-        work->field_8AE               = 0;
-        work->field_6                 = 0;
-        work->field_8A2               = work->field_8A4;
+        work->animRequest             = ODD_STRANGER_ANIM_REQUEST_RESET;
+        work->animId                  = 0x16;
+        work->lookYaw                 = 0;
+        work->lookYawTarget           = 0;
+        work->stateTimer              = 0;
+        work->animRate                = work->chaseRate;
     }
-    work->field_6 = (u16)(work->field_6 + 1);
+    work->stateTimer = (u16)(work->stateTimer + 1);
     oddStrangerDrive(arg0);
     if (work->rig.slots[1].status.fields.flags & 1) {
-        work->field_0 = 7;
+        work->state = ODD_STRANGER_STATE_CHASE;
     }
 }
 

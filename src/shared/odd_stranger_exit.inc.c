@@ -7,18 +7,18 @@ void oddStrangerExit(Task* task)
     OddStrangerWork* work;
     Enemy*           enemy;
 
-    work  = (OddStrangerWork*)task->work;
+    work  = task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
     if (work != NULL) {
-        if (work->field_C1C != NULL) {
-            taskKill(work->field_C1C);
+        if (work->childTask0 != NULL) {
+            taskKill(work->childTask0);
         }
-        if (work->field_C20 != NULL) {
-            taskKill(work->field_C20);
+        if (work->childTask1 != NULL) {
+            taskKill(work->childTask1);
         }
-        Gp_UnlinkObj(&work->field_B50);
-        Gp_UnlinkObj(&work->field_8D0);
-        Gp_UnlinkObj(&work->field_A10);
+        Gp_UnlinkObj(&work->attackBody);
+        Gp_UnlinkObj(&work->hitBody);
+        Gp_UnlinkObj(&work->gridBody);
         enemy->recs = 0;
     }
     enemyDestroy(enemy, task);

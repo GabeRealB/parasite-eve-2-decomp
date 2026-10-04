@@ -26006,7 +26006,7 @@ same field must *keep* two widths at once.
 
 **`lhu` vs `lw` is the same class, and its tell is the opcode alone.** In
 `oddStrangerStunned` the loop guard tests bits `0x102` at
-`Actor401000Work` + 0x68, and the target loads a **word** (`lw $v0, 0x68($s0)`)
+`OddStrangerWork` + 0x68, and the target loads a **word** (`lw $v0, 0x68($s0)`)
 while 13 guards in the same overlay read that offset with `lhu`. `0x102` fits a
 `u16`, so the constant-fits-the-type tell above stays silent: only the opcode
 says the original read wider. The rename cost then picks the shape — 13 use
@@ -97614,9 +97614,9 @@ here `Gp_GetIdParam1(0x1001)` next to `func_800FDB18`, or `Gp_PackObjPair((GpObj
 with message `0x3FF`. Read that sibling's *source*, not just its asm: it also
 carried the statement order the next paragraph needed.
 
-The neighbouring `field_8B8` block (an `EffectSpawnArg` the effect call fills) needed
+The neighbouring `effectArg` block (an `EffectSpawnArg` the effect call fills) needed
 that order rather than a different register: with the pointer store written
-*first*, `work->field_8B8.coord = index->field_2C->field_8 + 5;` before the two
+*first*, `work->effectArg.coord = index->field_2C->field_8 + 5;` before the two
 constant halfword stores, sched1 issues the `field_8` load chain early, the
 value is born while `$v0` still holds the `0x2C` pointer and lands in `$v1`, and
 the store sinks into the following call's delay slot — the target's order. With
@@ -107820,7 +107820,7 @@ temporaries, not a scheduling or allocation problem:
 
 m2c's `lh v1,0x8AC(s1); subu s6,v0,v1; move s5,v1` comes from giving the subtraction its own
 statement after the load: local-alloc needs the sum first and copies. Writing
-`weight = work->field_8AC;` with `0x1000 - weight` **inline at the call** leaves one register -
+`weight = work->blendWeight;` with `0x1000 - weight` **inline at the call** leaves one register -
 loop.c hoists the invariant subtraction before the loop, which is where the target computes it.
 The other two leftovers were the same class: `addu $v0,$v0,$s1` (m2c's inline
 `M2C_FIELD(temp_s1 + i*0x28, ...)`) where the target has `addu $v0,$s1,$v0` (the canonical
@@ -107833,8 +107833,8 @@ So a ~98% m2c seed is not "one edit from a match" when a matched twin exists: th
 matched bodies` list (here `Actor01900_Fn01950`, `1.00` in all four classes) or
 `overlay_dup_index.py find` first, and transcribe the twin's committed body — 100.000% on the
 first build here. The body's offsets are the twin's (`anim` at `0x1C`, `slots[19]` at `0x30`,
-`blendAnim` at `0x458`, `blendSlots[19]` at `0x46C`, a `0x13E` gap to `field_8A2`), so only the
-per-overlay struct names change; `(u8)(work->field_8A2 - 3)` on an `s16` member still emits
+`blendAnim` at `0x458`, `blendSlots[19]` at `0x46C`, a `0x13E` gap to `animRate`), so only the
+per-overlay struct names change; `(u8)(work->animRate - 3)` on an `s16` member still emits
 `lbu`, not `lh`+`andi` (combine narrows the subreg-of-MEM load), so the width in the target's
 `.s` is not evidence about the member's declared type. The twin in `actor_401000`
 (`func_actor_401000_80132A84`) is an unmatched, leased duplicate, so this stayed an overlay-local
@@ -107844,16 +107844,16 @@ body rather than a `promote`.
 
 The previous entry's rule — transcribe a matched twin instead of editing m2c toward it —
 had a second, sharper instance in the same TU. `func_actor_401800_80139870` is
-`func_actor_401800_8013971C` with one constant changed (`work->field_89E = 0x19`, not `0xB`);
+`func_actor_401800_8013971C` with one constant changed (`work->animId = 0x19`, not `0xB`);
 the m2c seed still scored 90.75% because of two *spellings*, not two behaviours:
 
 ```c
 /* m2c:   */  var_v0 = 0x15;                        /* shared temp, one trailing store */
               if (e->field_40 > 0) { var_v0 = 4; if (!(e->field_4C & 2)) var_v0 = 0x11; }
-              work->field_0 = var_v0;
-/* target: */ if (e->field_40 <= 0)      work->field_0 = 0x15;
-              else if (e->field_4C & 2)  work->field_0 = 4;
-              else                       work->field_0 = 0x11;
+              work->state = var_v0;
+/* target: */ if (e->field_40 <= 0)      work->state = 0x15;
+              else if (e->field_4C & 2)  work->state = 4;
+              else                       work->state = 0x11;
 ```
 
 The shared temp is live across the middle arm's condition, which the compiler evaluates in
@@ -107864,15 +107864,15 @@ lands in the branch delay slot. Same class as section [29] (shared `var_v0` in d
 epilogues) but for a plain field chain with no jump table, and the visible difference is the
 register *identity* rather than operand order. The other leftover was `lui a1,0x6b; ori
 a1,a1,0xd960; addu a1,s0,a1` — m2c's `temp_s0 + 0x8E8` — against the target's
-`addiu a1,s0,0x8e8`, which `&work->field_8E8` reproduces; when a twin exists that already names
+`addiu a1,s0,0x8e8`, which `work->hitContacts` reproduces; when a twin exists that already names
 the offset as a struct member, the seed's pointer arithmetic is a spelling problem too.
 That `lui`/`ori` pair is the fingerprint: m2c writes a byte offset as `ptr + N` on a *typed*
 pointer, so GCC scales it, and the constant is `N * sizeof(struct)` (`0x6BD960 == 0x8E8 * 0xC1C`,
 which also hands you the struct size). Any `lui`/`ori` + `addu` where the target has a plain
 `addiu` is this, never a real symbol address — `0x6B/0xD960` does not look like one, and the
 wrong instinct is to hunt for the symbol it names. (Third instance of this rule in the TU:
-`func_actor_401800_801399C4` is `func_actor_401800_80139870` with `field_898 = 1`,
-`field_89E = 0xC` and the `field_68` test on bit 0; transcribing the twin and fixing the two
+`func_actor_401800_801399C4` is `func_actor_401800_80139870` with `animRequest = 1`,
+`animId = 0xC` and the `field_68` test on bit 0; transcribing the twin and fixing the two
 `+ 0x8E8` / `+ 0xA28` spellings was also 100.000% on the first build.)
 
 Both fixes were applied at once: 100.000% on the first build, all penalties zero.
@@ -107889,7 +107889,7 @@ lh  v0,0x6(s2)      /* target   */
 lhu v0,0x6(s2)      /* candidate */
 ```
 
-`Actor401800Work.field_6` was declared `u16` (copied from the 401800 header). Declaring it
+`OddStrangerWork.stateTimer` was declared `u16` (copied from the 401800 header). Declaring it
 `s16` — as both twins do (`_Actor401300Work.stateTimer`, `Actor01900Work.field_6`) — made the
 build 100.000%, and the overlay's own checksum still passed with no change to the other
 matched reader of that field.
@@ -107898,16 +107898,16 @@ That other reader is the trap. `func_actor_401800_8013E4F0` (matched, same overl
 field with `lhu`:
 
 ```c
-work->field_6 = (u16)(work->field_6 + 1);   /* lhu; addiu; sh */
+work->stateTimer = (u16)(work->stateTimer + 1);   /* lhu; addiu; sh */
 ```
 
 which reads like evidence for `u16`. It is not evidence at all: combine narrows
 `(u16)(s16 + 1)` to an HImode add, and an HImode add does not care about the top bits, so the
 load may stay zero-extending and the `(u16)` cast absorbs the signed declaration without
-changing a single instruction. (Same mechanism as the `(u8)(work->field_8A2 - 3)` note above:
+changing a single instruction. (Same mechanism as the `(u8)(work->animRate - 3)` note above:
 a narrowing cast around arithmetic hides the member's real signedness.)
 
-A bare comparison does not narrow — `field_6 == 0` needs the whole sign-extended SImode value,
+A bare comparison does not narrow — `stateTimer == 0` needs the whole sign-extended SImode value,
 so the load's signedness is the declaration's and nothing else. Rule: when two reads of one
 halfword disagree, the declaration is decided by the read no narrowing can explain; re-check
 the narrowing readers by rebuilding rather than by reading their `.s`, because their casts are
@@ -107957,13 +107957,13 @@ into a search.
 
 ## One `s16` field loads `lh` at one use and `lhu` at the next, and both are right (oddStrangerGrabRelease, 2026-09-16)
 
-`oddStrangerGrabRelease` reads `Actor401800Work.field_C04` three times; the target loads it
+`oddStrangerGrabRelease` reads `OddStrangerWork.releaseStep` three times; the target loads it
 two different ways:
 
 ```asm
-lh   a2,0xC04(s2)      /* func_actor_401800_80133558(coord,0x12C,work->field_C04) */
+lh   a2,0xC04(s2)      /* func_actor_401800_80133558(coord,0x12C,work->releaseStep) */
 lhu  s4,0xC04(s2)      /* the same field, handed to the inlined step helper's s16 amount */
-lhu  v0,0xC04(s2)      /* work->field_C04 / 2 */
+lhu  v0,0xC04(s2)      /* work->releaseStep / 2 */
 ```
 
 One `s16` declaration produced all three. GCC 2.8.1 loads an HImode memory operand
@@ -107973,7 +107973,7 @@ parameter, an HImode division, an `x != 0` test - the load stays zero-extending 
 recovered later with `sll 16` / `sra 16`:
 
 ```
-lhu  v0,0xC04(s2)      /* work->field_C04 / 2, field_C04 declared s16 */
+lhu  v0,0xC04(s2)      /* work->releaseStep / 2, releaseStep declared s16 */
 sll  v0,v0,16
 sra  v1,v0,16
 srl  v0,v0,31
@@ -108027,7 +108027,7 @@ constant `amount` folds the branch away either way.
 ## A chain whose arms all end in the same statement: m2c's reversed test is the polarity to write (func_actor_401800_8013B784, 2026-09-16)
 
 `func_actor_401800_8013B784` turns its stored yaw toward the target yaw by at most
-`0x28` a frame, and both arms of the step write the same `work->field_8AE = aim->angle`
+`0x28` a frame, and both arms of the step write the same `work->lookYawTarget = aim->angle`
 when the gap is under `0x29`. The target branches *both* arms forward to one shared
 store, each arm carrying its own step store in the delay slot of its `j`:
 
@@ -108063,8 +108063,8 @@ label; if your build reaches that block from one arm only, flip the test.
 
 The step arithmetic also needs its own unsigned read: the field is `s16`, and the target
 loads it `lh` for the comparison and `lhu` for the `+-0x28`. One `s16` declaration gives
-both if the step is written `(u16)work->field_8AE + 0x28` (same splitting as the
-`field_C04` entry above), which is why the arm's two loads differ in signedness.
+both if the step is written `(u16)work->lookYawTarget + 0x28` (same splitting as the
+`releaseStep` entry above), which is why the arm's two loads differ in signedness.
 
 ## The BRIEF's `INCLUDE_ASM site` block quotes the *next* function's doc comment (oddStrangerHoldAim, 2026-09-16)
 
@@ -108102,7 +108102,7 @@ into a `s32` without a cast - two instructions come out wrong:
 ```
 
 The fix is to declare the clamp local `s32` and load it with an explicit cast:
-`s32 clampedAngle = (u16)work->field_8B0;` (the `(u16)` keeps the load `lhu`,
+`s32 clampedAngle = (u16)work->lookYaw;` (the `(u16)` keeps the load `lhu`,
 which is what the target has). A signed `s32` makes `clampedAngle = -0x400` a
 signed constant, and because the value is now wider than the field, GCC cannot
 elide the `sll 16 / sra 16` the s16 parameter forces on the quotient.
@@ -108181,9 +108181,9 @@ bnez v0,L_9E6C          <- the *else* clause, laid out after the LCG block
 addiu v0,v1,1
 ```
 
-Writing `if (work->field_6 < 0x961) { increment } else { LCG }` gives the same
+Writing `if (work->stateTimer < 0x961) { increment } else { LCG }` gives the same
 two arms with `beqz` and the LCG block as the fall-through (96.9%, 20/19 blocks);
-the source that produces the target is the negated spelling, `if (work->field_6
+the source that produces the target is the negated spelling, `if (work->stateTimer
 >= 0x961) { LCG } else { increment }`, which puts the increment in the else
 clause and the LCG in the fall-through (100%). The corpus entry "If/else branch
 polarity" is this same rule for `== 0`, where the test is a simple branch and no
@@ -108207,10 +108207,10 @@ The difference from the two entries above — "`shape` 1.00 is an equality" and
 two functions are the same body with **different constants, different state
 slots and different callees**, so an `.s` diff comes back dirty and the `.s`
 recipe will not fire. 401300 arms `field_970.field_1C` with 0x280 where this one
-arms `field_8C8.field_1C` with 0x12C, rescales at 0x1964 against 0x1194, tests a
+arms `hitBody.radius` with 0x12C, rescales at 0x1964 against 0x1194, tests a
 4-argument contact helper for `== 0` where this one tests a 3-argument one for
 `!= 1`, and names its aim state slots shifted by one (`field_8A2` / `field_8A6` /
-`field_89C` against `field_89E` / `field_8A2` / `field_898`). Port the sibling's
+`field_89C` against `animId` / `animRate` / `animRequest`). Port the sibling's
 C as a template and check every constant and call against this function's own
 listing; do not expect the text to transfer unchanged.
 
@@ -108233,7 +108233,7 @@ that follows, which looks like it proves the upper bits are dead:
 
 ```c
 kind = arg0->field_36;                            /* field_36 is s16 */
-if ((kind & 0xF0) == 0x10) { work->field_0 = 0x1E; return; }
+if ((kind & 0xF0) == 0x10) { work->state = 0x1E; return; }
 ```
 
 ```asm
@@ -108358,9 +108358,9 @@ the function in the host file.
 
 ## Which variable a shared tail assigns through decides the register every implied equality canonicalises to (`func_actor_401800_80133B78`, 2026-09-16)
 
-`func_actor_401800_80133B78` is a 20-case switch over `field_89E` that returns a
+`func_actor_401800_80133B78` is a 20-case switch over `animId` that returns a
 `0x400A00xx` event id when `field_5A & 0x3FF` reaches a value its state cares
-about, latched by `field_8B4`. Its matched sibling `Actor01900_Fn01A7C`
+about, latched by `lastCueFrame`. Its matched sibling `Actor01900_Fn01A7C`
 (`src/actors/lib/actor_101900_text.c`) gives the statement shape, and copying it
 produced 97.067% — every block in place, `regs`/`stack` at zero, and a 2-instruction
 gap: the first of a case's two checks hoisted its `lui` into the `beq` delay slot
@@ -108377,7 +108377,7 @@ substitution outright:
                           (reg/v:SI 81)) ...)
 ```
 
-`prev` (82) became `id` (81). The store is `work->field_8B4 = prev;` on the
+`prev` (82) became `id` (81). The store is `work->lastCueFrame = prev;` on the
 fall-through of `if (prev != id)`, so `record_jump_equiv` had recorded the
 implied equality, and `make_regs_eqv` (cse.c) picks the canonical register of the
 merged quantity by lifetime — "Among pseudos, if NEW will live longer than any
@@ -108397,11 +108397,11 @@ The fix is to give the shared tail the same variable:
 
 ```c
             prev            = work->field_5A & 0x3FF;
-            work->field_8B4 = prev;
+            work->lastCueFrame = prev;
             break;
 ```
 
-instead of `work->field_8B4 = work->field_5A & 0x3FF;`. `prev` then lives past
+instead of `work->lastCueFrame = work->field_5A & 0x3FF;`. `prev` then lives past
 `id`'s last use, becomes the canonical register, and the store keeps it —
 100.000%, all penalties zero. Both spellings assemble to the same `lhu; andi; sw`
 in the tail itself; which one the source used is only visible two cases away, in
@@ -108420,10 +108420,10 @@ and not an allocation.
 `oddStrangerPatrol` is the patrol body its twins `Actor01900_Fn06F40`
 and `func_actor_401300_80139AB0` are, with the helpers inlined. Written the same
 way — the waypoint delta into `s->delta`, then
-`if (!overlayOutOfRange(&s->delta, 0xA0) || work->field_6 >= 0x15)` — it
+`if (!overlayOutOfRange(&s->delta, 0xA0) || work->stateTimer >= 0x15)` — it
 scored 95.168% with 22 instructions too few, all of the loss inside one block:
 the target stores the three delta fields **twice**, re-materialising
-`work->field_C[work->field_14].x - coord->t[0]` for the second store of each.
+`work->patrolPoints[work->patrolTarget].x - coord->t[0]` for the second store of each.
 
 CSE does not remove it. A second *load* from the same address is forwarded (that
 is the mechanism behind the store-forwarding entries above), but a second
@@ -108434,12 +108434,12 @@ live. Writing the three assignments out twice reproduces the target exactly, and
 the two sets of stores are the block's whole deficit:
 
 ```c
-    s->delta.vx = work->field_C[work->field_14].x - arg0->field_2C->field_8->coord.t[0];
+    s->delta.vx = work->patrolPoints[work->patrolTarget].x - arg0->field_2C->field_8->coord.t[0];
     s->delta.vy = 0;
-    s->delta.vz = work->field_C[work->field_14].z - arg0->field_2C->field_8->coord.t[2];
-    s->delta.vx = work->field_C[work->field_14].x - arg0->field_2C->field_8->coord.t[0];
+    s->delta.vz = work->patrolPoints[work->patrolTarget].z - arg0->field_2C->field_8->coord.t[2];
+    s->delta.vx = work->patrolPoints[work->patrolTarget].x - arg0->field_2C->field_8->coord.t[0];
     s->delta.vy = 0;
-    s->delta.vz = work->field_C[work->field_14].z - arg0->field_2C->field_8->coord.t[2];
+    s->delta.vz = work->patrolPoints[work->patrolTarget].z - arg0->field_2C->field_8->coord.t[2];
 ```
 
 So a block that is a few instructions *short* of the target, with `delete`
@@ -108664,7 +108664,7 @@ The seed was m2c's shape, one variable written by every arm and stored once at t
 ```c
 var_v0 = 0x15;
 if (enemy->hp > 0) { var_v0 = 4; if (!(enemy->reactionFlags & 2)) var_v0 = 0x11; }
-work->field_0 = var_v0;
+work->state = var_v0;
 ```
 
 Every arm writes that one pseudo and the join block reads it, so it is live across three block
@@ -108683,11 +108683,11 @@ local quantities and `local-alloc` hands them `$v0`, the first register it reach
 
 ```c
 if (enemy->hp <= 0) {
-    work->field_0 = 0x15;
+    work->state = 0x15;
 } else if (enemy->reactionFlags & 2) {
-    work->field_0 = 4;
+    work->state = 4;
 } else {
-    work->field_0 = 0x11;
+    work->state = 0x11;
 }
 ```
 
@@ -108837,7 +108837,7 @@ Two details that are easy to get wrong when retyping:
 
 * The third scratch slot is the **radius**, not a third delta component. 401300
   passes the literal `3000` there and gets `addiu $v1,$zero,0xBB8 / sw $v1,0x8`;
-  ours passes `work->field_C16`, which comes out as `lhu` + `sll 16`/`sra 16`
+  ours passes `work->noticeRadius`, which comes out as `lhu` + `sll 16`/`sra 16`
   because the field is `u16` and the helper's parameter is `s16`. Declaring the
   field `s16` would emit `lh` and lose the pair.
 * `GfxCoord` starts with `composeStamp`, then `coord`, so
@@ -108932,12 +108932,12 @@ target's single `sh` still comes out — GCC merges the arms' stores into one va
 ```c
 if (kind == 1) {
     if (func_actor_401000_80132824(arg0) == kind) {
-        work->field_0 = 6;
+        work->state = 6;
     } else {
-        work->field_0 = 0xA;
+        work->state = 0xA;
     }
 } else {
-    work->field_0 = 6;
+    work->state = 6;
 }
 ```
 
@@ -108983,16 +108983,16 @@ if (cfg->hp > 0) { ... }
 The address becomes one pseudo live to the last use, so it takes a callee-saved register of its own
 (here `$s7`, pushing the enemy to `$s8`), and the three loads shrink to the `0x18` displacement.
 
-**The widened halfword.** `field_C0C` is read three ways and only one of them is signed — `lh` for the
+**The widened halfword.** `releaseStep` is read three ways and only one of them is signed — `lh` for the
 `func_actor_401000_80132590` probe, `lhu` for the step helper's amount and for the halving — while the
 write stores `-0x78`. Declaring the field `u16` gets the two `lhu` loads and the `sll 16 / sra 16`
 sign-extension, but turns the store into `li v0,0xff88`; declaring it `s16` fixes the store
 (`addiu v0,zero,-0x78`) and makes the other two `lh` unless the *widening* read is written unsigned:
 
 ```c
-work->field_C0C                                        /* lh  */;
-actorMoveForwardNonzero(coord, (u16)work->field_C0C)  /* lhu */;
-work->field_C0C = (s16)(u16)work->field_C0C / 2;             /* lhu + sll/sra + /2 bias */;
+work->releaseStep                                        /* lh  */;
+actorMoveForwardNonzero(coord, (u16)work->releaseStep)  /* lhu */;
+work->releaseStep = (s16)(u16)work->releaseStep / 2;             /* lhu + sll/sra + /2 bias */;
 ```
 
 The `(u16)` cast does not survive as an RTL node — both are HImode — but it does set the unsignedp
@@ -109019,8 +109019,8 @@ sltiu   $v0, $v1, 0xF
 beqz    $v0, .Lskip
 ```
 
-is `switch (work->field_89E)` with cases `0xB`/`0xC`/`0x17`/`0x18`/`0x19`, not
-`switch (work->field_89E - 0xB)` with cases 0/1/12/13/14. m2c writes the second
+is `switch (work->animId)` with cases `0xB`/`0xC`/`0x17`/`0x18`/`0x19`, not
+`switch (work->animId - 0xB)` with cases 0/1/12/13/14. m2c writes the second
 form and it compiles to the same object, so the score cannot choose between the
 two - but the tell is that `-0xB` and `0xF` are exactly `min` and
 `max - min + 1` of the case list. Take the raw form: the folded one needs a
@@ -109030,7 +109030,7 @@ either way.
 
 ### The arms' two stores cross-jump into one, constants and all
 
-Those two arms are `work->field_0 = 0xF;` and `work->field_0 = 0x10;`, and the
+Those two arms are `work->state = 0xF;` and `work->state = 0x10;`, and the
 ROM joins them into a single `sh $v0,0($a2)` with the constant materialised in
 each arm - `j .Lstore` with `addiu $v0,$zero,0xF` in its delay slot for the
 first, a falling-through `addiu $v0,$zero,0x10` for the second. So a shared store
@@ -109171,9 +109171,9 @@ re-derived from the target `.s` after the shape was in place:
 | | 80134F98 (twin) | 8013A5F0 (target) |
 |---|---|---|
 | turn clamp | `> 0x10` / `< -0x10` | `> 0` / `< 0`, i.e. zero-or-negative |
-| `field_89E` | 9 | 0x13 |
-| `field_8D0.field_1C = 0x1AE` | after `func_actor_401000_80132EF0` | before the 0x898/0x8A2/0x89E writes |
-| spawn-arm tail | `Gp_ArmStateF0(1)` | `work->field_6 = 0` |
+| `animId` | 9 | 0x13 |
+| `hitBody.radius = 0x1AE` | after `func_actor_401000_80132EF0` | before the 0x898/0x8A2/0x89E writes |
+| spawn-arm tail | `Gp_ArmStateF0(1)` | `work->stateTimer = 0` |
 
 The clamp is the one to read carefully off the asm rather than off the twin's
 source: `if (x > 0) x = 0; if (x < 0) x = 0;` is two independent tests, not an
@@ -109336,7 +109336,7 @@ five scored 87.733% with the block topology matching.
 A store followed by a call whose argument needs a register copy:
 
 ```c
-work->field_8A4 = clip;
+work->chaseRate = clip;
 func_actor_401000_80132EF0(actor);
 ```
 
@@ -109371,7 +109371,7 @@ into a named local before the release:
 ```c
     __asm__ volatile("sw %0, 0x1F8003FC" ::"r"(tail) : "memory");
     coord->coord.m[2][2] = m22;
-    work->field_C7C      = 0;
+    work->bodyPosCursor      = 0;
     Gp_ClearRec18Occupied(rec);      /* rec set above the asm */
 ```
 
@@ -109393,20 +109393,20 @@ lhu v0,0x18(v0)       # ->coord.t[0]
 
 — which only happens when the source spells the chain out at each use site:
 `actor->field_2C->field_8->coord.t[0]`. Write the chain where the target reloads
-and keep the local where it does not (here `field_A10.field_8 = root`,
+and keep the local where it does not (here `gridBody.field_8 = root`,
 `root->parent` / `root->composeStamp` / `Gp_UpdateCoord` / `root->workm.t[]`).
 
 The same choice moves a *base register*, and that can reorder a store. The second
 `body->field_18` write sits after the node's `Gp_InitRec18Table`, next to the
-`head = &work->field_B50` that reloads `$s0`:
+`head = &work->attackBody` that reloads `$s0`:
 
 ```c
     body->field_18           = 0x30000;   /* 0x18($s0), WAR on $s0 */
-    work->field_8D0.field_18 = 0x30000;   /* 0x8E8($s3), no conflict */
+    work->hitBody.field_18 = 0x30000;   /* 0x8E8($s3), no conflict */
 ```
 
 With `body->...` the store must stay before the `addiu $s0,$s3,0xB50` that
-clobbers its base (`reorder=4`, 98.793%); the `work->field_8D0....` form addresses
+clobbers its base (`reorder=4`, 98.793%); the `work->hitBody....` form addresses
 from `$s3` and lets the `addiu` go first, matching the target (98.954%).
 `body->field_8` / `field_C` / the rest keep the local, which is why only this one
 store names the node through `work`.
@@ -109598,7 +109598,7 @@ Three things made it one-shot:
    `_OutOfRange` / `_MoveForward`; `src/actors/actor_401000/actor_401000.c` already
    carries the 401000 copies of all five, and they expand to the same RTL. The one
    place the two differ is the helper *boundary*, not the body: this target inlines
-   `OutOfRange` straight after the `s->angle < 0x200` test with a `&& work->field_C1B == 0`
+   `OutOfRange` straight after the `s->angle < 0x200` test with a `&& work->grabCooldown == 0`
    short-circuit, where the 401300 twin stops at the range call.
 
 3. **Read `else if` constants off the target, not off the twin.** The tail here is
