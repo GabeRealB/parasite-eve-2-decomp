@@ -101004,7 +101004,7 @@ the other one.** This body's `index->work` is the *actor* block (0x4C8,
 beside `func_actor_350700_801630C0`, which stores three *words* at
 0x4B8/0x4BC/0x4C0 - but that body runs on the *controller* block, the 0x50C
 allocation `func_actor_350700_80162B30` parks in a different task's `work`
-(the twin of `Actor335800MainWork`, still without a header here). The same
+(the twin of `_Actor335800GaryDouglasWork`, still without a header here). The same
 split explains `ActorsShared80132860Work::target` sitting at 0x4B8: it is the
 controller's, while the actor's own `target` is at 0x480
 (`ActorsShared80162540Work`). Telling them apart needs the state table, not the

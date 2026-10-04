@@ -72,23 +72,40 @@ typedef struct {
 } _Actor335800FlintWork;
 STATIC_ASSERT_SIZEOF(_Actor335800FlintWork, 0x4C8);
 
-/// Work block of the overlay's parent walker, allocated zeroed by its spawn
-/// routine and kept at `Task::work`: a twenty-part rig and the walk state,
-/// the two child tasks the spawn routine starts, whose models the visibility
-/// command drives alongside the walker's, `freeCountdown`, the frames until
-/// the model buffers are freed, -1 disabling the countdown, and `field_508`,
-/// the flag bits of the last animation record the tick latched.
-typedef struct Actor335800MainWork {
-    ActorAnimRig20  rig;
-    ActorModelState model;
-    ActorWalkState  walk;
-    Task*           child0;
-    Task*           child1;
-    s16             field_504;
-    s16             freeCountdown;
-    s32             field_508;
-} Actor335800MainWork;
-STATIC_ASSERT_SIZEOF(Actor335800MainWork, 0x50C);
+/// Values of `_Actor335800GaryDouglasWork::lightState`.
+enum {
+    ACTOR_335800_GARY_DOUGLAS_LIGHT_DIMMED        = -1, // The matrices are at half strength and no ground shadow is drawn
+    ACTOR_335800_GARY_DOUGLAS_LIGHT_DIM_REQUESTED = 0,  // The next tick that draws the model halves the matrices and moves to `_DIMMED`
+    ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL          = 1   // The matrices are as the room's lights built them, and the ground shadow is drawn
+};
+
+/// Work block of Gary Douglas's body, the package's twenty-part scripted
+/// walker.
+///
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens as `ActorMotionWalkWork` does - the
+/// twenty-part rig, the model state and the walk a room script sends the
+/// actor on - and the model object borrows `model.light` and `model.color`
+/// for as long as the block lives. The two models hung off the body share
+/// those matrices.
+///
+/// What follows `walk` is the package's own: the tasks of the two attached
+/// models, which a draw-mode request keeps in step with the body's; the
+/// dimming an actor command asks for, which lasts until the next view
+/// relights the model; the delayed free of the model's buffers once the
+/// model has been hidden; and the animation cues of the previous tick, whose
+/// end fires the gun's muzzle flash.
+typedef struct {
+    ActorAnimRig20  rig;           // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    ActorModelState model;         // Clip and bank the rig plays, and the matrices the model is lit with
+    ActorWalkState  walk;          // Scripted walk: destination, closing rotation, per-frame velocity and the step in progress
+    Task*           headTask;      // Child task drawing the head-and-hat model, which hangs from body part 4; NULL if its spawn failed, which the draw-mode handler does not test
+    Task*           gunTask;       // Child task drawing the long gun, which hangs from body part 8, where its muzzle flash appears; NULL if its spawn failed, likewise untested
+    s16             lightState;    // `ACTOR_335800_GARY_DOUGLAS_LIGHT_*`: `_FULL` from spawn and from every view that comes up, since each relights the model
+    s16             freeCountdown; // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    s32             prevCueFlags;  // `ANIMATION_RECORD_CUE_MASK` bits of slot 1's record on the previous ticked frame, so cue 2 fires the muzzle flash once, as it ends
+} _Actor335800GaryDouglasWork;
+STATIC_ASSERT_SIZEOF(_Actor335800GaryDouglasWork, 0x50C);
 
 extern ActorTransform D_actor_335800_80164F80;
 
@@ -1209,13 +1226,13 @@ void func_actor_335800_80162588(Task* arg0)
 
 static void func_actor_335800_80162640(Task* arg0)
 {
-    Actor335800MainWork* work;
-    GameLocationKey      key;
-    GameLocationKey*     sessionKey;
-    GameLocationKey*     keyAddr;
-    Task*                spawned;
+    _Actor335800GaryDouglasWork* work;
+    GameLocationKey              key;
+    GameLocationKey*             sessionKey;
+    GameLocationKey*             keyAddr;
+    Task*                        spawned;
 
-    work = memCalloc(0x50C, false);
+    work = memCalloc(sizeof(_Actor335800GaryDouglasWork), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
@@ -1234,14 +1251,14 @@ static void func_actor_335800_80162640(Task* arg0)
         AreaPlacement* place;
         s32            idx;
 
-        work->child0 = spawned;
-        model        = spawned->extra.tmd;
-        idx          = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionKey   = &gGameSession->location.loc;
-        key.stage    = sessionKey->stage;
-        key.area     = sessionKey->area;
-        key.room     = sessionKey->room;
-        key.view     = sessionKey->view;
+        work->headTask = spawned;
+        model          = spawned->extra.tmd;
+        idx            = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        sessionKey     = &gGameSession->location.loc;
+        key.stage      = sessionKey->stage;
+        key.area       = sessionKey->area;
+        key.room       = sessionKey->room;
+        key.view       = sessionKey->view;
         areaSyncLocationVariant(&key);
         layout                   = Gp_GetNestedAreaRec(&key);
         place                    = gpAreaPlaceAt(layout->placements, idx);
@@ -1259,14 +1276,14 @@ static void func_actor_335800_80162640(Task* arg0)
         AreaPlacement* place;
         s32            idx;
 
-        work->child1 = spawned;
-        model        = spawned->extra.tmd;
-        idx          = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionKey   = (keyAddr = &gGameSession->location.loc);
-        key.stage    = sessionKey->stage;
-        key.area     = sessionKey->area;
-        key.room     = keyAddr->room;
-        key.view     = gGameSession->location.loc.view;
+        work->gunTask = spawned;
+        model         = spawned->extra.tmd;
+        idx           = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        sessionKey    = (keyAddr = &gGameSession->location.loc);
+        key.stage     = sessionKey->stage;
+        key.area      = sessionKey->area;
+        key.room      = keyAddr->room;
+        key.view      = gGameSession->location.loc.view;
         areaSyncLocationVariant(&key);
         layout                   = Gp_GetNestedAreaRec(&key);
         place                    = gpAreaPlaceAt(layout->placements, idx);
@@ -1285,14 +1302,14 @@ static void func_actor_335800_80162640(Task* arg0)
 
 static void func_actor_335800_80162844(Task* task)
 {
-    TmdObject*             ext      = task->extra.tmd;
-    Actor335800MainWork*   work     = (Actor335800MainWork*)task->work;
-    TaskFunc               funcs[2] = { func_actor_335800_80162FF4, func_actor_335800_80162FFC };
-    VECTOR3                pos;
-    GfxCoord*              coord;
-    const AnimationRecord* rec;
-    s32                    i;
-    s32                    j;
+    TmdObject*                   ext      = task->extra.tmd;
+    _Actor335800GaryDouglasWork* work     = (_Actor335800GaryDouglasWork*)task->work;
+    TaskFunc                     funcs[2] = { func_actor_335800_80162FF4, func_actor_335800_80162FFC };
+    VECTOR3                      pos;
+    GfxCoord*                    coord;
+    const AnimationRecord*       rec;
+    s32                          i;
+    s32                          j;
 
     funcs[work->walk.motion](task);
     coord                     = task->extra.tmd->coords;
@@ -1313,13 +1330,13 @@ static void func_actor_335800_80162844(Task* task)
             }
             rec = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
             if (rec != NULL) {
-                if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_508 & ANIMATION_RECORD_CUE_2)) {
+                if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->prevCueFlags & ANIMATION_RECORD_CUE_2)) {
                     Gp_SpawnEff(EFFECT_SHOTGUN_MUZZLE_FLASH, &task->extra.tmd->coords[8], 0xD, NULL);
                 }
-                work->field_508 = rec->flags & ANIMATION_RECORD_CUE_MASK;
+                work->prevCueFlags = rec->flags & ANIMATION_RECORD_CUE_MASK;
             }
         }
-        if (work->field_504 == 0) {
+        if (work->lightState == ACTOR_335800_GARY_DOUGLAS_LIGHT_DIM_REQUESTED) {
             for (i = 0; i < 3; i++) {
                 for (j = 0; j < 3; j++) {
                     work->model.color.m[i][j] >>= 1;
@@ -1328,16 +1345,16 @@ static void func_actor_335800_80162844(Task* task)
                 work->model.color.t[i] >>= 1;
                 work->model.light.t[i] >>= 1;
             }
-            work->field_504 = -1;
+            work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_DIMMED;
         }
-        if (work->field_504 > 0) {
+        if (work->lightState >= ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL) {
             if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
                 Gp_DrawEffGroundQuad(&pos, 0x300, gRoomEffectState->groundShadowShade);
             }
         }
     }
     if (gGameSession->viewReady != 0) {
-        work->field_504 = 1;
+        work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL;
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
@@ -1389,15 +1406,15 @@ static void func_actor_335800_80162F7C(Task* arg0)
 
 static void func_actor_335800_80162F9C(Task* arg0)
 {
-    TmdObject*           ext;
-    Actor335800MainWork* work;
+    TmdObject*                   ext;
+    _Actor335800GaryDouglasWork* work;
 
-    work          = (Actor335800MainWork*)arg0->work;
+    work          = (_Actor335800GaryDouglasWork*)arg0->work;
     ext           = arg0->extra.tmd;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
     func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
-    work->field_504 = 1;
+    work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL;
 }
 
 static void func_actor_335800_80162FF4(Task* arg0)
@@ -1408,10 +1425,10 @@ static void func_actor_335800_80162FF4(Task* arg0)
 /// the stack and runs the entry `walk.motionStep` selects.
 static void func_actor_335800_80162FFC(Task* task)
 {
-    Actor335800MainWork* work;
-    TaskFuncTable4       handlers;
+    _Actor335800GaryDouglasWork* work;
+    TaskFuncTable4               handlers;
 
-    work     = (Actor335800MainWork*)task->work;
+    work     = (_Actor335800GaryDouglasWork*)task->work;
     handlers = D_actor_335800_80161E3C;
     handlers.funcs[work->walk.motionStep](task);
 }
@@ -1423,12 +1440,12 @@ static void func_actor_335800_80162FFC(Task* task)
 /// `walk.lastDistance` with `ACTOR_WALK_DISTANCE_NONE` and advances the step.
 static void func_actor_335800_80163124(Task* task)
 {
-    Actor335800MainWork* work;
-    GfxCoord*            coord;
-    VECTOR               vec;
+    _Actor335800GaryDouglasWork* work;
+    GfxCoord*                    coord;
+    VECTOR                       vec;
 
     coord = task->extra.tmd->coords;
-    work  = (Actor335800MainWork*)task->work;
+    work  = (_Actor335800GaryDouglasWork*)task->work;
 
     vec = D_actor_335800_80161E4C;
     ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
@@ -1446,16 +1463,16 @@ static void func_actor_335800_80163124(Task* task)
 
 s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
-    Actor335800MainWork* work;
-    TmdObject*           obj;
-    TmdObject*           objA;
-    TmdObject*           objB;
-    s32                  ret;
+    _Actor335800GaryDouglasWork* work;
+    TmdObject*                   obj;
+    TmdObject*                   objA;
+    TmdObject*                   objB;
+    s32                          ret;
 
-    work = (Actor335800MainWork*)task->work;
+    work = (_Actor335800GaryDouglasWork*)task->work;
     obj  = task->extra.tmd;
-    objA = work->child0->extra.tmd;
-    objB = work->child1->extra.tmd;
+    objA = work->headTask->extra.tmd;
+    objB = work->gunTask->extra.tmd;
     ret  = 0;
     switch (mode) {
         case 0:
@@ -1487,11 +1504,11 @@ s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode, s32 arg3)
 
 s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
-    Actor335800MainWork* work;
+    _Actor335800GaryDouglasWork* work;
 
-    work = (Actor335800MainWork*)arg0->work;
+    work = (_Actor335800GaryDouglasWork*)arg0->work;
     if (request->command == 0) {
-        work->field_504 = 0;
+        work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_DIM_REQUESTED;
     }
     return 0;
 }
