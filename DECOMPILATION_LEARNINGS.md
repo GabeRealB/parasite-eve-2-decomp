@@ -103737,15 +103737,15 @@ Scratch `nonmatchings/Actor01600_Fn052C4-vacuum`.
 
 A halfword field read into a *short* local and then both compared and stored
 loads twice where the target loads once. `Actor01600_Fn05F80` switches on
-`work->field_546` and stores that same value into `work->field_506` in each
+`work->scriptedAnim` and stores that same value into `work->animRequest` in each
 case arm:
 
 ```c
 s16 state;                       /* HImode pseudo */
-state = work->field_546;         /* (set (reg/v:HI N) (mem/s:HI ...)) */
+state = work->scriptedAnim;         /* (set (reg/v:HI N) (mem/s:HI ...)) */
 switch (state) {
     case 7:
-        work->field_506 = state; /* needs the HI pseudo */
+        work->animRequest = state; /* needs the HI pseudo */
 ```
 
 The load RTL is a plain HImode move, so the backend picks `movhi_internal2/3`
@@ -103767,20 +103767,20 @@ SImode pseudo whose HImode store is a plain truncation:
 
 ```c
 s32 state;                      /* SImode pseudo */
-state = work->field_546;        /* lh: (sign_extend:SI (mem:HI)) */
-work->field_506 = state;        /* sh of the same register */
+state = work->scriptedAnim;        /* lh: (sign_extend:SI (mem:HI)) */
+work->animRequest = state;        /* sh of the same register */
 ```
 
 Symptom to recognise: the diff is one extra `lhu` of a field you also store, per
 site, on a function whose structure already matches. It is not a reload and not
 a scheduling wobble - the extra load sits *before* the intervening call, so no
 eviction is involved. The same shape appears one level up: assigning
-`work->field_50A` straight to a halfword field re-loads it with `lhu` even though
+`work->animFrame` straight to a halfword field re-loads it with `lhu` even though
 an `lh` of the same address is already live in a register.
 
 The mirror case is a *narrow* value widening for a store. `kind`, loaded with
 `lbu` from a `u8` and used in `kind == 1` / `== 2` / `== 4`, was declared `u8`;
-the store `work->field_54A = kind` (a halfword field) then zero-extends the byte
+the store `work->colorRefresh = kind` (a halfword field) then zero-extends the byte
 into a new HImode pseudo, and CSE hands that pseudo to the comparisons - which
 puts an `andi v1,s3,0xff` at the head of *every* path that reaches them, five
 times over. Declaring the local `u32` makes the load `lbu` into SImode, the
@@ -103896,7 +103896,7 @@ Inputs: `base_1.i`
 
 ## A callee with no prototype is a `call_value`, and the `$v0` it defines re-homes the epilogue (Actor01600_Fn04C64, 2026-09-16)
 
-`Actor01600_Fn04C64` ends with `Gp_ClearRec18Occupied(&work->field_444)` and the
+`Actor01600_Fn04C64` ends with `Gp_ClearRec18Occupied(work->pathProbe.contacts)` and the
 target's tail reads:
 
 ```
