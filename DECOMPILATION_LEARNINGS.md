@@ -147173,3 +147173,41 @@ about the caller's pointer, not the helper:
 The helper has to be defined above every site (GCC 2.8.1 inlines only a body it
 has already seen), so its include position in each carrier is part of the
 change.
+
+## A constant inside a loop-invariant subscript is hoisted with it; a member offset stays a displacement (Actor02100_Fn02924, 2026-10-04)
+
+`Actor02100_Fn02924` reads three colour components of a per-weapon record
+inside its segment loop. The target sets up three registers before the loop and
+loads every component with a zero displacement:
+
+```
+sll   v0,s2,0x1        /* style * 3 */
+addu  v0,v0,s2
+addiu v1,v0,2
+sll   t4,v1,0x1        /* (style * 3 + 2) * 2 */
+addiu v1,v0,3
+sll   t3,v1,0x1        /* (style * 3 + 3) * 2 */
+...
+addu  v0,t4,v0         /* + weapon * 16 */
+addu  v0,v0,t5         /* + table */
+lbu   v0,0(v0)
+```
+
+That is `row[weapon].values[(style * 3) + 2]` on a record that is one flat
+`s16 values[8]`: the constant is part of the subscript, the whole subscript is
+loop-invariant, and `loop.c` moves each of the three out as its own pseudo.
+Declaring the same bytes as members does not compile to it, whichever way the
+colours are shaped:
+
+- `s16 aimTicks, recoverTicks; s16 colors[2][3];` read as `.colors[style][c]`
+  makes `style * 6` the only invariant and folds `4 + c * 2` into the load's
+  displacement. Two callee-saved registers fewer, 11 instructions shorter.
+- `s16 colors[6];` read as `.colors[(style * 3) + c]` hoists the subscripts but
+  leaves the member's offset 4 as the displacement, and `c == 0` loses its
+  `addiu`. Two instructions shorter.
+
+So a zero displacement on a load whose index register was built as
+`(i * n + k) << shift` says the constant `k` was written in the subscript, and
+the record was indexed from its start. Name the positions with an enum rather
+than forcing members onto it; the union that used to give this record both a
+member view and a `shorts[8]` view existed only for this.

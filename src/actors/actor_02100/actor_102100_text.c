@@ -59,15 +59,22 @@ typedef struct {
 } _Actor02100VectorScratch;
 STATIC_ASSERT_SIZEOF(_Actor02100VectorScratch, 0x18);
 
-typedef struct Actor02100Fn011C4Scratch {
-    /* 0x00 */ VECTOR  transformed;
-    /* 0x10 */ VECTOR  delta;
-    /* 0x20 */ VECTOR3 lock;
-    /* 0x2C */ s32     pad_2C;
-    /* 0x30 */ SVECTOR from;
-    /* 0x38 */ SVECTOR to;
-} Actor02100Fn011C4Scratch;
-STATIC_ASSERT_SIZEOF(Actor02100Fn011C4Scratch, 0x40);
+/// 0x40-byte block the scan for an enemy target takes from the scratch stack
+/// and reuses for every enemy it measures.
+///
+/// The range and facing tests work in world space, where the watcher's
+/// coordinate and an enemy's lock position both are; the sight test works in
+/// view space, where the room's occluders are, so the lock position is rotated
+/// by the view first.
+typedef struct {
+    VECTOR  viewPos;       // enemy's lock position in view space
+    VECTOR  delta;         // offset from the watcher to the enemy's lock position, in world units
+    VECTOR3 lockPos;       // enemy's lock position in the world
+    byte    unknown_2C[4]; // never accessed; role unproven
+    SVECTOR from;          // sight segment's enemy end: the world lock position as the rotation's input, then `viewPos` narrowed
+    SVECTOR to;            // sight segment's other end: the watcher's origin in view space
+} _Actor02100EnemyScanScratch;
+STATIC_ASSERT_SIZEOF(_Actor02100EnemyScanScratch, 0x40);
 
 /// 0x20-byte scratch block taken from the scratch stack by
 /// `Actor02100_Fn00DCC`: the world-space delta between the two coordinates,
@@ -79,26 +86,28 @@ typedef struct Actor02100Sight {
 } Actor02100Sight;
 STATIC_ASSERT_SIZEOF(Actor02100Sight, 0x20);
 
-/// 8-byte block taken from the scratch stack by `Actor02100_Fn034E0`: the
-/// projected screen position (`stsxy`) and the quartered depth (`stszotz`).
-typedef struct Actor02100Screen {
-    /* 0x0 */ DVECTOR sxy;
-    /* 0x4 */ s32     sz;
-} Actor02100Screen;
-STATIC_ASSERT_SIZEOF(Actor02100Screen, 8);
+/// 8-byte block the projection of the beam's two points takes from the scratch
+/// stack: where the GTE's results for one point are stored before they are
+/// copied into `_Actor02100Work`.
+typedef struct {
+    DVECTOR sxy;   // screen position of the point
+    s32     depth; // ordering depth of the point: a quarter of its projected z
+} _Actor02100BeamProjectScratch;
+STATIC_ASSERT_SIZEOF(_Actor02100BeamProjectScratch, 0x8);
 
-/// 0x28-byte scratch `Actor02100_Fn01FF0` takes from the scratch stack while it
-/// re-aims the actor. `shortVec` is the local offset fed to the GTE,
-/// `transformed` that offset rotated by the coordinate's matrix and translated
-/// by its position, and `delta` the same point mapped back into the
-/// coordinate's own frame; the difference between `delta` and the stored target
-/// position is what `Gp_OrientAlong` turns into the actor's facing matrix.
-typedef struct Actor02100Fn01FF0Scratch {
-    /* 0x00 */ VECTOR  transformed;
-    /* 0x10 */ VECTOR  delta;
-    /* 0x20 */ SVECTOR shortVec;
-} Actor02100Fn01FF0Scratch;
-STATIC_ASSERT_SIZEOF(Actor02100Fn01FF0Scratch, 0x28);
+/// 0x28-byte block taken from the scratch stack to turn the line of fire onto
+/// the target.
+///
+/// The line starts at the muzzle, not at the watcher's origin, so the muzzle is
+/// brought into the frame `_Actor02100Work::targetPos` is kept in before the
+/// two are subtracted. What remains is the direction `_Actor02100Work::aim` is
+/// built along.
+typedef struct {
+    VECTOR  aimVector;    // working vector: the muzzle in view space, then the offset from `muzzle` to the target the aim matrix is built along
+    VECTOR  muzzle;       // the muzzle rotated from view space into the watcher's axes, the frame of `_Actor02100Work::targetPos`
+    SVECTOR muzzleOffset; // rotation's input: the muzzle in the watcher's own frame, `ACTOR_02100_MUZZLE_OFFSET` along the forward axis
+} _Actor02100AimScratch;
+STATIC_ASSERT_SIZEOF(_Actor02100AimScratch, 0x28);
 
 /// 0x48-byte block `Actor02100_Fn01FF0` reserves on entry and releases on
 /// return. Only `shortVec` is read - it is the spawn offset passed to the two
@@ -110,69 +119,85 @@ typedef struct Actor02100Fn01FF0Block {
 } Actor02100Fn01FF0Block;
 STATIC_ASSERT_SIZEOF(Actor02100Fn01FF0Block, 0x48);
 
-/// Entry of `Actor02100_D03D88`, selected by `_Actor02100Work::weapon`, read
-/// through two views of the same sixteen bytes. `bounds` holds the frame
-/// counts that drive the state machine: `stepFrames` advances state 0 to state 1
-/// once it reaches `field_0`, and returns state 6 to state 0 once it reaches
-/// `field_2`. The remaining twelve bytes are two RGB triplets, one component
-/// per short; `Actor02100_Fn02924` selects a triplet with its style argument
-/// and reads each component's low byte, so it indexes the whole entry as
-/// `shorts` and reaches the triplets at indices 2..7.
-typedef union Actor02100Fn01FF0Timing {
-    struct Actor02100Fn01FF0TimingBounds {
-        /* 0x0 */ s16  field_0;
-        /* 0x2 */ s16  field_2;
-        /* 0x4 */ byte pad_4[0xC];
-    } bounds;
-    s16 shorts[8];
-} Actor02100Fn01FF0Timing;
-STATIC_ASSERT_SIZEOF(Actor02100Fn01FF0Timing, 0x10);
+/// The two ways the watcher's beam is drawn. The value selects a colour in a
+/// weapon's `_Actor02100WeaponParams` and a pair in its row of edge offsets.
+enum {
+    ACTOR_02100_BEAM_STYLE_SIGHT = 0, // sight line an attack follows the target with while it aims and locks
+    ACTOR_02100_BEAM_STYLE_FIRE  = 1, // firing beam of the beam attack, whose centre line is drawn grey
+    ACTOR_02100_BEAM_STYLE_COUNT = 2
+};
 
-/// 0x3C-byte block `Actor02100_Fn02924` takes from the scratch stack while it
-/// draws one beam between the two screen points in `_Actor02100Work`. `delta` is
-/// the span between those points, which `VectorNormalS` turns into `normal`;
-/// the y component of `normal` is then negated, so that scaling the pair by a
-/// width gives the sideways offset of a beam edge. The beam is drawn as eight
-/// segments: `depth` is the current segment's depth, `depthStep` the depth
-/// added per segment, and `stepX`/`stepY` the per-segment step of the centre
-/// line. `x` and `y` hold one segment's six corners - the two centre-line
-/// points, then the two points of each edge.
-typedef struct Actor02100Fn02924Scratch {
-    /* 0x00 */ VECTOR  delta;
-    /* 0x10 */ SVECTOR normal;
-    /* 0x18 */ s32     depth;
-    /* 0x1C */ s32     depthStep;
-    /* 0x20 */ s16     x[6];
-    /* 0x2C */ s16     y[6];
-    /* 0x38 */ s16     stepX;
-    /* 0x3A */ s16     stepY;
-} Actor02100Fn02924Scratch;
-STATIC_ASSERT_SIZEOF(Actor02100Fn02924Scratch, 0x3C);
+/// Positions in `_Actor02100WeaponParams::values`.
+///
+/// The colours are one triplet per `ACTOR_02100_BEAM_STYLE_*`. The three colour
+/// positions are those of the first style, and each further style's
+/// components lie three positions on.
+enum {
+    ACTOR_02100_WEAPON_PARAM_AIM_TICKS     = 0, // ticks the aim step follows the target for before the attack locks
+    ACTOR_02100_WEAPON_PARAM_RECOVER_TICKS = 1, // ticks the recovery step lasts before the watcher resumes
+    ACTOR_02100_WEAPON_PARAM_RED           = 2, // red of the sight line, 0 to 255
+    ACTOR_02100_WEAPON_PARAM_GREEN         = 3, // green of the sight line
+    ACTOR_02100_WEAPON_PARAM_BLUE          = 4, // blue of the sight line
+    ACTOR_02100_WEAPON_PARAM_COUNT         = 2 + (ACTOR_02100_BEAM_STYLE_COUNT * 3)
+};
 
-/// One beam style in an `Actor02100_D03DD8` row. Each value is scaled by the
-/// beam normal and added to the centre line, so the pair places the beam's two
-/// edges; every stored row holds a negative and a positive offset of the same
-/// size, which makes the beam symmetric about its centre.
-typedef struct Actor02100Fn02924Edges {
-    /* 0x0 */ s16 first;
-    /* 0x2 */ s16 second;
-} Actor02100Fn02924Edges;
+/// One weapon's attack timing and beam colours, selected by
+/// `_Actor02100Work::weapon`.
+///
+/// Both attacks open with an aim step and end with a recovery step, and both
+/// take those steps' lengths from here. A colour is the one the beam has on its
+/// centre line, from which it fades to black at both edges. The gun never
+/// draws a firing beam, so its second colour is unused.
+///
+/// The record is a row of shorts read by position, not a set of members: the
+/// drawing code reaches a colour component by an index counted from the start
+/// of the row.
+typedef struct {
+    s16 values[ACTOR_02100_WEAPON_PARAM_COUNT]; // indexed by `ACTOR_02100_WEAPON_PARAM_*`
+} _Actor02100WeaponParams;
+STATIC_ASSERT_SIZEOF(_Actor02100WeaponParams, 0x10);
 
-/// Row of `Actor02100_D03DD8`, selected by `_Actor02100Work::weapon`. The
-/// style argument of `Actor02100_Fn02924` picks one of the two entries, and
-/// picks the matching colour triplet out of `Actor02100_D03D88`.
-typedef struct Actor02100Fn02924Widths {
-    /* 0x0 */ Actor02100Fn02924Edges styles[2];
-} Actor02100Fn02924Widths;
+/// 0x3C-byte block taken from the scratch stack while one beam is drawn
+/// between the two screen points in `_Actor02100Work`.
+///
+/// The beam is drawn as eight segments of equal length. Each is a centre line
+/// and, on either side of it, a quad reaching out to one edge of the beam. An
+/// edge lies off the centre line across the beam, by an offset that shrinks
+/// with the segment's depth.
+typedef struct {
+    VECTOR  span;      // offset from the first screen point to the second; z is 0
+    SVECTOR direction; // `span` as a unit vector, 4096 for 1.0, with y negated: (vy, vx) is then the direction across the beam
+    s32     depth;     // ordering depth of the segment being drawn, taken at its end towards the second point
+    s32     depthStep; // depth added per segment, an eighth of the difference between the two points
+    s16     x[6];      // screen x of the segment's corners: [0] and [1] the ends of its centre line, [2] and [3] those ends on the first edge, [4] and [5] on the second
+    s16     y[6];      // screen y of the same corners
+    s16     stepX;     // screen x added per segment, an eighth of `span`
+    s16     stepY;     // screen y added per segment, an eighth of `span`
+} _Actor02100BeamDrawScratch;
+STATIC_ASSERT_SIZEOF(_Actor02100BeamDrawScratch, 0x3C);
 
-/// Entry of `Actor02100_D03E1C`: the corners of one of the two quads a segment
-/// is built from, as indices into `Actor02100Fn02924Scratch::x` and `y`. Both
-/// entries name the centre-line pair first and one edge second, and the quad is
-/// shaded from the beam colour on those first two corners to black on the
-/// other two, so each quad fades outwards from the centre line.
-typedef struct Actor02100Fn02924Corners {
-    /* 0x0 */ s16 corners[4];
-} Actor02100Fn02924Corners;
+/// Where the two edges of a beam lie, for one weapon and one beam style.
+///
+/// Each value is an offset across the beam from its centre line. It is scaled
+/// by 0x300 over a segment's depth to give the offset on screen, so the beam
+/// narrows with distance. Every stored pair is a negative and a positive
+/// offset of the same size, which makes the beam symmetric about its centre.
+typedef struct {
+    s16 first;  // offset of the edge the first quad of a segment reaches
+    s16 second; // offset of the edge the second quad reaches
+} _Actor02100BeamEdges;
+STATIC_ASSERT_SIZEOF(_Actor02100BeamEdges, 0x4);
+
+/// The corners of one of the two quads a beam segment is built from.
+///
+/// Both quads name the two ends of the centre line first and the same ends on
+/// one edge after them. A quad is shaded from the beam's colour on its first
+/// two corners to black on the other two, so each fades outwards from the
+/// centre line.
+typedef struct {
+    s16 index[4]; // corners in drawing order, as indices into `_Actor02100BeamDrawScratch::x` and `y`
+} _Actor02100BeamQuadCorners;
+STATIC_ASSERT_SIZEOF(_Actor02100BeamQuadCorners, 0x8);
 
 /// Values of `_Actor02100Work::mode`: what the per-frame tick runs.
 enum {
@@ -314,13 +339,13 @@ static SVECTOR _gActor02100WatcherBodyVerts[40];
 static SVECTOR _gActor02100WatcherBodyNormals[32];
 static u32     _gActor02100WatcherBodyStream[243];
 
-extern DamageAttack             Actor02100_D03D64[5];
-extern EnemyParams              Actor02100_D03D78;
-extern Actor02100Fn01FF0Timing  Actor02100_D03D88[];
-extern Actor02100Fn02924Widths  Actor02100_D03DD8[];
-extern s16                      Actor02100_D03E00[];
-extern Actor02100Fn02924Corners Actor02100_D03E1C[];
-extern s16                      Actor02100_D03E2C[];
+extern DamageAttack               Actor02100_D03D64[5];
+extern EnemyParams                Actor02100_D03D78;
+extern _Actor02100WeaponParams    Actor02100_D03D88[];
+extern _Actor02100BeamEdges       Actor02100_D03DD8[][ACTOR_02100_BEAM_STYLE_COUNT];
+extern s16                        Actor02100_D03E00[];
+extern _Actor02100BeamQuadCorners Actor02100_D03E1C[];
+extern s16                        Actor02100_D03E2C[];
 
 static void Actor02100_Fn03168(Task* arg0);
 static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1);
@@ -378,27 +403,27 @@ DamageAttack Actor02100_D03D64[5] = {
 
 EnemyParams Actor02100_D03D78 = { Actor02100_D03D64, 70, 15, 0, 0, 100, 0, 0, 0 };
 
-Actor02100Fn01FF0Timing Actor02100_D03D88[5] = {
-    { .shorts = { 30, 90, 48, 0, 0, 255, 0, 0 } },
-    { .shorts = { 90, 90, 48, 0, 0, 255, 0, 0 } },
-    { .shorts = { 30, 180, 8, 16, 32, 32, 64, 128 } },
-    { .shorts = { 30, 180, 24, 24, 0, 32, 32, 0 } },
-    { .shorts = { 30, 180, 48, 48, 48, 0, 64, 16 } },
+_Actor02100WeaponParams Actor02100_D03D88[5] = {
+    { { 30, 90, 48, 0, 0, 255, 0, 0 } },
+    { { 90, 90, 48, 0, 0, 255, 0, 0 } },
+    { { 30, 180, 8, 16, 32, 32, 64, 128 } },
+    { { 30, 180, 24, 24, 0, 32, 32, 0 } },
+    { { 30, 180, 48, 48, 48, 0, 64, 16 } },
 };
 
-Actor02100Fn02924Widths Actor02100_D03DD8[5] = {
-    { { { -4, 4 }, { -6, 6 } } },
-    { { { -10, 10 }, { -14, 14 } } },
-    { { { -10, 10 }, { -10, 10 } } },
-    { { { -10, 10 }, { -10, 10 } } },
-    { { { -4, 4 }, { -6, 6 } } },
+_Actor02100BeamEdges Actor02100_D03DD8[5][ACTOR_02100_BEAM_STYLE_COUNT] = {
+    { { -4, 4 }, { -6, 6 } },
+    { { -10, 10 }, { -14, 14 } },
+    { { -10, 10 }, { -10, 10 } },
+    { { -10, 10 }, { -10, 10 } },
+    { { -4, 4 }, { -6, 6 } },
 };
 
 s16 Actor02100_D03E00[8] = { 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000 };
 
 TaskDesc Actor02100_D03E10 = { { { TASK_BODY_TMD, 0x60 } }, Actor02100_Fn03168, { .model = &_gActor02100WatcherBody } };
 
-Actor02100Fn02924Corners Actor02100_D03E1C[2] = {
+_Actor02100BeamQuadCorners Actor02100_D03E1C[2] = {
     { { 0, 1, 2, 3 } },
     { { 0, 1, 4, 5 } },
 };
@@ -1043,22 +1068,22 @@ static void Actor02100_Fn00DCC(Task* arg0)
 
 static void Actor02100_Fn011C4(Task* arg0)
 {
-    Actor02100Fn011C4Scratch* scratch;
-    Task*                     list;
-    Task*                     head;
-    Task*                     current;
-    Enemy*                    enemy;
-    _Actor02100Work*          work;
-    GfxCoord*                 coord;
-    u32                       index;
-    u32                       dist;
+    _Actor02100EnemyScanScratch* scratch;
+    Task*                        list;
+    Task*                        head;
+    Task*                        current;
+    Enemy*                       enemy;
+    _Actor02100Work*             work;
+    GfxCoord*                    coord;
+    u32                          index;
+    u32                          dist;
 
     list  = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
     coord = arg0->extra.tmd->coords;
     head  = list->firstChild;
     work  = arg0->work;
     if (head != NULL) {
-        scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor02100Fn011C4Scratch);
+        scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100EnemyScanScratch);
         current = head;
         SOFT_TOUCH_REG(head);
         do {
@@ -1068,10 +1093,10 @@ static void Actor02100_Fn011C4(Task* arg0)
                 index = 0;
             }
             if (Actor02100_D03E2C[index] == 0 && enemy->hp > 0) {
-                Gp_GetLockPos(&enemy->node, &scratch->lock);
-                scratch->delta.vx = scratch->lock.vx - coord->coord.t[0];
-                scratch->delta.vy = scratch->lock.vy - coord->coord.t[1];
-                scratch->delta.vz = scratch->lock.vz - coord->coord.t[2];
+                Gp_GetLockPos(&enemy->node, &scratch->lockPos);
+                scratch->delta.vx = scratch->lockPos.vx - coord->coord.t[0];
+                scratch->delta.vy = scratch->lockPos.vy - coord->coord.t[1];
+                scratch->delta.vz = scratch->lockPos.vz - coord->coord.t[2];
                 if ((scratch->delta.vx * coord->coord.m[0][2]) +
                         (scratch->delta.vy * coord->coord.m[1][2]) +
                         (scratch->delta.vz * coord->coord.m[2][2]) >
@@ -1081,22 +1106,22 @@ static void Actor02100_Fn011C4(Task* arg0)
                                        (scratch->delta.vz * scratch->delta.vz));
                     if ((work->targetDistance == 0 || dist < work->targetDistance) &&
                         dist < Actor02100_D03E00[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex & 7]) {
-                        scratch->from.vx = scratch->lock.vx;
-                        scratch->from.vy = scratch->lock.vy;
-                        scratch->from.vz = scratch->lock.vz;
+                        scratch->from.vx = scratch->lockPos.vx;
+                        scratch->from.vy = scratch->lockPos.vy;
+                        scratch->from.vz = scratch->lockPos.vz;
                         gte_SetRotMatrix(&gGfxViewCoord.workm);
                         gte_ldv0(&scratch->from);
                         gte_rtv0();
-                        gte_stlvnl(&scratch->transformed);
-                        scratch->transformed.vx += gGfxViewCoord.workm.t[0];
-                        scratch->transformed.vy += gGfxViewCoord.workm.t[1];
-                        scratch->transformed.vz += gGfxViewCoord.workm.t[2];
-                        scratch->from.vx         = scratch->transformed.vx;
-                        scratch->from.vy         = scratch->transformed.vy;
-                        scratch->from.vz         = scratch->transformed.vz;
-                        scratch->to.vx           = coord->workm.t[0];
-                        scratch->to.vy           = coord->workm.t[1];
-                        scratch->to.vz           = coord->workm.t[2];
+                        gte_stlvnl(&scratch->viewPos);
+                        scratch->viewPos.vx += gGfxViewCoord.workm.t[0];
+                        scratch->viewPos.vy += gGfxViewCoord.workm.t[1];
+                        scratch->viewPos.vz += gGfxViewCoord.workm.t[2];
+                        scratch->from.vx     = scratch->viewPos.vx;
+                        scratch->from.vy     = scratch->viewPos.vy;
+                        scratch->from.vz     = scratch->viewPos.vz;
+                        scratch->to.vx       = coord->workm.t[0];
+                        scratch->to.vy       = coord->workm.t[1];
+                        scratch->to.vz       = coord->workm.t[2];
                         if (Actor02100_Fn0337C(&scratch->from, &scratch->to) == 0) {
                             work->target         = current;
                             work->targetDistance = dist;
@@ -1107,7 +1132,7 @@ static void Actor02100_Fn011C4(Task* arg0)
             }
             current = current->nextSibling;
         } while (current != head);
-        SCRATCH_STACK_RELEASE_BLOCK(Actor02100Fn011C4Scratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_Actor02100EnemyScanScratch);
     }
 }
 
@@ -1196,50 +1221,47 @@ cleanup:
 /// reproduces this function's schedule and register allocation.
 static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
 {
-    Actor02100Fn01FF0Scratch* scratch;
+    _Actor02100AimScratch*    scratch;
     _Actor02100VectorScratch* shortScratch;
     _Actor02100Work*          work;
     _Actor02100Work*          nextWork;
     _Actor02100Work*          nextWork2;
     GfxCoord*                 coord;
     SVECTOR*                  shortVec;
-    u8*                       head0;
     u8*                       head1;
     u8*                       head2;
 
-    coord                    = arg0->extra.tmd->coords;
-    head0                    = SCRATCH_STACK_CURSOR(u8);
-    scratch                  = (Actor02100Fn01FF0Scratch*)(head0 - 0x28);
-    SCRATCH_STACK_CURSOR(u8) = (u8*)scratch;
-    work                     = arg0->work;
+    coord   = arg0->extra.tmd->coords;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100AimScratch);
+    work    = arg0->work;
 
-    scratch->shortVec.vx = 0;
-    scratch->shortVec.vy = 0;
-    scratch->shortVec.vz = ACTOR_02100_MUZZLE_OFFSET;
+    scratch->muzzleOffset.vx = 0;
+    scratch->muzzleOffset.vy = 0;
+    scratch->muzzleOffset.vz = ACTOR_02100_MUZZLE_OFFSET;
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&scratch->shortVec);
+    gte_ldv0(&scratch->muzzleOffset);
     gte_rtv0();
-    gte_stlvnl(&scratch->transformed);
-    scratch->transformed.vx += coord->workm.t[0];
-    scratch->transformed.vy += coord->workm.t[1];
-    scratch->transformed.vz += coord->workm.t[2];
-    ApplyTransposeMatrixLV(&coord->workm, &scratch->transformed, &scratch->delta);
-    scratch->transformed.vx = work->targetPos.vx - scratch->delta.vx;
-    scratch->transformed.vy = work->targetPos.vy - scratch->delta.vy;
-    scratch->transformed.vz = work->targetPos.vz - scratch->delta.vz;
-    Gp_OrientAlong(&scratch->transformed, &work->aim, 0);
+    gte_stlvnl(&scratch->aimVector);
+    scratch->aimVector.vx += coord->workm.t[0];
+    scratch->aimVector.vy += coord->workm.t[1];
+    scratch->aimVector.vz += coord->workm.t[2];
+    ApplyTransposeMatrixLV(&coord->workm, &scratch->aimVector, &scratch->muzzle);
+    scratch->aimVector.vx = work->targetPos.vx - scratch->muzzle.vx;
+    scratch->aimVector.vy = work->targetPos.vy - scratch->muzzle.vy;
+    scratch->aimVector.vz = work->targetPos.vz - scratch->muzzle.vz;
+    Gp_OrientAlong(&scratch->aimVector, &work->aim, 0);
 
     // Release the aim block and reserve a vector block in its place for the
     // beam's end point.
     head1                      = SCRATCH_STACK_CURSOR(u8);
     nextWork                   = arg0->work;
-    shortScratch               = (_Actor02100VectorScratch*)(head1 + sizeof(Actor02100Fn01FF0Scratch) - sizeof(_Actor02100VectorScratch));
+    shortScratch               = (_Actor02100VectorScratch*)(head1 + sizeof(_Actor02100AimScratch) - sizeof(_Actor02100VectorScratch));
     nextWork->beamPoints[0].vx = 0;
     nextWork->beamPoints[0].vy = 0;
     nextWork->beamPoints[0].vz = ACTOR_02100_MUZZLE_OFFSET;
     shortScratch->shortVec.vx  = 0;
     shortScratch->shortVec.vy  = 0;
-    SCRATCH_STACK_CURSOR(u8)   = head1 + sizeof(Actor02100Fn01FF0Scratch);
+    SCRATCH_STACK_CURSOR(u8)   = head1 + sizeof(_Actor02100AimScratch);
     shortScratch->shortVec.vz  = nextWork->beamLength;
     SCRATCH_STACK_CURSOR(u8)   = (u8*)shortScratch;
     gte_SetRotMatrix(&nextWork->aim);
@@ -1401,7 +1423,7 @@ static void Actor02100_Fn016EC(Task* arg0)
             }
             if (work->stepFrames >= 2) {
                 Actor02100_Fn034E0(arg0);
-                Actor02100_Fn02924(arg0, 0);
+                Actor02100_Fn02924(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
             }
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             frame                         = (u16)work->stepFrames + 1;
@@ -1409,7 +1431,7 @@ static void Actor02100_Fn016EC(Task* arg0)
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            if (frame >= Actor02100_D03D88[work->weapon].bounds.field_0) {
+            if (frame >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_AIM_TICKS]) {
                 work->stepFrames = 0;
                 work->step       = ACTOR_02100_BEAM_STEP_LOCK;
             }
@@ -1422,7 +1444,7 @@ static void Actor02100_Fn016EC(Task* arg0)
             }
             Actor02100_BuildVectors(arg0, work);
             Actor02100_Fn034E0(arg0);
-            Actor02100_Fn02924(arg0, 0);
+            Actor02100_Fn02924(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
             frame            = (u16)work->stepFrames + 1;
             work->stepFrames = frame;
             if (frame >= 0xF) {
@@ -1436,7 +1458,7 @@ static void Actor02100_Fn016EC(Task* arg0)
 
         case ACTOR_02100_BEAM_STEP_FIRE:
             Actor02100_Fn034E0(arg0);
-            Actor02100_Fn02924(arg0, 1);
+            Actor02100_Fn02924(arg0, ACTOR_02100_BEAM_STYLE_FIRE);
             frame = work->stepFrames;
             if (frame == 1) {
                 work->playerStrikeBody.key = Gp_PackPair(Actor02100_D03D64, work->weapon);
@@ -1479,7 +1501,7 @@ static void Actor02100_Fn016EC(Task* arg0)
         case ACTOR_02100_BEAM_STEP_RECOVER:
             frame            = (u16)work->stepFrames + 1;
             work->stepFrames = frame;
-            if (frame >= Actor02100_D03D88[work->weapon].bounds.field_2) {
+            if (frame >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_RECOVER_TICKS]) {
                 work->stepFrames  = 0;
                 work->step        = ACTOR_02100_BEAM_STEP_AIM;
                 work->mode        = work->patrolRange != 0;
@@ -1499,32 +1521,29 @@ static void Actor02100_Fn016EC(Task* arg0)
 /// writes the facing matrix at `aim`.
 static __inline__ void Actor02100_OrientScratch(Task* arg0)
 {
-    Actor02100Fn01FF0Scratch* scratch;
-    _Actor02100Work*          work;
-    GfxCoord*                 coord;
-    u8*                       head;
+    _Actor02100AimScratch* scratch;
+    _Actor02100Work*       work;
+    GfxCoord*              coord;
 
-    coord                    = arg0->extra.tmd->coords;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    work                     = arg0->work;
-    scratch                  = (Actor02100Fn01FF0Scratch*)(head - 0x28);
-    SCRATCH_STACK_CURSOR(u8) = (u8*)scratch;
+    coord   = arg0->extra.tmd->coords;
+    work    = arg0->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100AimScratch);
 
-    scratch->shortVec.vx = 0;
-    scratch->shortVec.vy = 0;
-    scratch->shortVec.vz = ACTOR_02100_MUZZLE_OFFSET;
+    scratch->muzzleOffset.vx = 0;
+    scratch->muzzleOffset.vy = 0;
+    scratch->muzzleOffset.vz = ACTOR_02100_MUZZLE_OFFSET;
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&scratch->shortVec);
+    gte_ldv0(&scratch->muzzleOffset);
     gte_rtv0();
-    gte_stlvnl(&scratch->transformed);
-    scratch->transformed.vx += coord->workm.t[0];
-    scratch->transformed.vy += coord->workm.t[1];
-    scratch->transformed.vz += coord->workm.t[2];
-    ApplyTransposeMatrixLV(&coord->workm, &scratch->transformed, &scratch->delta);
-    scratch->transformed.vx = work->targetPos.vx - scratch->delta.vx;
-    scratch->transformed.vy = work->targetPos.vy - scratch->delta.vy;
-    scratch->transformed.vz = work->targetPos.vz - scratch->delta.vz;
-    Gp_OrientAlong(&scratch->transformed, &work->aim, 0);
+    gte_stlvnl(&scratch->aimVector);
+    scratch->aimVector.vx += coord->workm.t[0];
+    scratch->aimVector.vy += coord->workm.t[1];
+    scratch->aimVector.vz += coord->workm.t[2];
+    ApplyTransposeMatrixLV(&coord->workm, &scratch->aimVector, &scratch->muzzle);
+    scratch->aimVector.vx = work->targetPos.vx - scratch->muzzle.vx;
+    scratch->aimVector.vy = work->targetPos.vy - scratch->muzzle.vy;
+    scratch->aimVector.vz = work->targetPos.vz - scratch->muzzle.vz;
+    Gp_OrientAlong(&scratch->aimVector, &work->aim, 0);
 }
 
 /// Refreshes the two vectors the actor's facing matrix defines: the near one at
@@ -1558,7 +1577,7 @@ static __inline__ void Actor02100_UpdateVectors(Task* arg0)
 /// Releases the block `Actor02100_OrientScratch` leaves on the scratch stack.
 static __inline__ void Actor02100_ReleaseScratch28(void)
 {
-    SCRATCH_STACK_RELEASE_BLOCK(Actor02100Fn01FF0Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100AimScratch);
 }
 
 /// Seven-state attack cycle, run from `Actor02100_Fn031C4`. State 0 holds the
@@ -1615,13 +1634,13 @@ static void Actor02100_Fn01FF0(Task* arg0)
             }
             if (work->stepFrames >= 2) {
                 Actor02100_Fn034E0(arg0);
-                Actor02100_Fn02924(arg0, 0);
+                Actor02100_Fn02924(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
             }
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            if (++work->stepFrames >= Actor02100_D03D88[work->weapon].bounds.field_0) {
+            if (++work->stepFrames >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_AIM_TICKS]) {
                 work->stepFrames = 0;
                 work->step       = ACTOR_02100_GUN_STEP_LOCK;
             }
@@ -1689,7 +1708,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
             break;
 
         case ACTOR_02100_GUN_STEP_RECOVER:
-            if (++work->stepFrames >= Actor02100_D03D88[work->weapon].bounds.field_2) {
+            if (++work->stepFrames >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_RECOVER_TICKS]) {
                 work->stepFrames  = 0;
                 work->step        = ACTOR_02100_GUN_STEP_AIM;
                 work->mode        = work->patrolRange != 0;
@@ -1715,43 +1734,38 @@ static void Actor02100_Fn01FF0(Task* arg0)
 /// line in flat grey instead of the table colour.
 static void Actor02100_Fn02924(Task* arg0, s32 arg1)
 {
-    Actor02100Fn02924Corners* corners;
-    POLY_G4*                  quad;
-    DR_TPAGE*                 mode;
-    LINE_F2*                  line;
-    Actor02100Fn02924Scratch* scratch;
-    u8*                       head;
-    u8*                       newHead;
-    u_long*                   quadSlot;
-    u_long*                   modeSlot;
-    u_long*                   lineSlot;
-    s32                       next;
-    s32                       offsetX0;
-    s32                       offsetX1;
-    s32                       normalY;
-    u8                        blue;
-    s32                       offsetY0;
-    s32                       offsetY1;
-    s32                       depth;
-    s32                       corner;
-    s32                       segment;
-    s32                       spanX;
-    s32                       spanY;
-    s32                       spanZ;
-    _Actor02100Work*          work;
+    _Actor02100BeamQuadCorners* corners;
+    POLY_G4*                    quad;
+    DR_TPAGE*                   mode;
+    LINE_F2*                    line;
+    _Actor02100BeamDrawScratch* scratch;
+    u_long*                     quadSlot;
+    u_long*                     modeSlot;
+    u_long*                     lineSlot;
+    s32                         next;
+    s32                         offsetX0;
+    s32                         offsetX1;
+    s32                         negatedY;
+    u8                          blue;
+    s32                         offsetY0;
+    s32                         offsetY1;
+    s32                         depth;
+    s32                         corner;
+    s32                         segment;
+    s32                         spanX;
+    s32                         spanY;
+    s32                         spanZ;
+    _Actor02100Work*            work;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    work                     = arg0->work;
-    newHead                  = head - 0x3C;
-    SCRATCH_STACK_CURSOR(u8) = newHead;
-    scratch                  = (Actor02100Fn02924Scratch*)newHead;
+    work    = arg0->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100BeamDrawScratch);
 
-    ((Actor02100Fn02924Scratch*)(head - 0x3C))->delta.vx = work->beamScreenX[1] - work->beamScreenX[0];
-    scratch->delta.vy                                    = work->beamScreenY[1] - work->beamScreenY[0];
-    scratch->delta.vz                                    = 0;
-    VectorNormalS((VECTOR*)newHead, &scratch->normal);
-    normalY            = -scratch->normal.vy;
-    scratch->normal.vy = normalY;
+    scratch->span.vx = work->beamScreenX[1] - work->beamScreenX[0];
+    scratch->span.vy = work->beamScreenY[1] - work->beamScreenY[0];
+    scratch->span.vz = 0;
+    VectorNormalS(&scratch->span, &scratch->direction);
+    negatedY              = -scratch->direction.vy;
+    scratch->direction.vy = negatedY;
 
     spanX = work->beamScreenX[1] - work->beamScreenX[0];
     if (spanX < 0) {
@@ -1779,13 +1793,13 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
             scratch->x[1] = (u16)((u16)work->beamScreenX[0] + (scratch->stepX * next));
             corner        = 0;
             offsetX0 =
-                (s32)((s32)(scratch->normal.vy * Actor02100_D03DD8[work->weapon].styles[arg1].first * 0x300) >>
+                (s32)((s32)(scratch->direction.vy * Actor02100_D03DD8[work->weapon][arg1].first * 0x300) >>
                       0xC) /
                 (s32)scratch->depth;
             scratch->x[2] = (s16)(scratch->x[0] + offsetX0);
             scratch->x[3] = (s16)(scratch->x[1] + offsetX0);
             offsetX1 =
-                (s32)((s32)(scratch->normal.vy * Actor02100_D03DD8[work->weapon].styles[arg1].second * 0x300) >>
+                (s32)((s32)(scratch->direction.vy * Actor02100_D03DD8[work->weapon][arg1].second * 0x300) >>
                       0xC) /
                 (s32)scratch->depth;
             scratch->x[4] = (s16)(scratch->x[0] + offsetX1);
@@ -1793,13 +1807,13 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
             scratch->y[0] = (u16)((u16)work->beamScreenY[0] + (scratch->stepY * segment));
             scratch->y[1] = (u16)((u16)work->beamScreenY[0] + (scratch->stepY * next));
             offsetY0 =
-                (s32)((s32)(scratch->normal.vx * Actor02100_D03DD8[work->weapon].styles[arg1].first * 0x300) >>
+                (s32)((s32)(scratch->direction.vx * Actor02100_D03DD8[work->weapon][arg1].first * 0x300) >>
                       0xC) /
                 (s32)scratch->depth;
             scratch->y[2] = (s16)(scratch->y[0] + offsetY0);
             scratch->y[3] = (s16)(scratch->y[1] + offsetY0);
             offsetY1 =
-                (s32)((s32)(scratch->normal.vx * Actor02100_D03DD8[work->weapon].styles[arg1].second * 0x300) >>
+                (s32)((s32)(scratch->direction.vx * Actor02100_D03DD8[work->weapon][arg1].second * 0x300) >>
                       0xC) /
                 (s32)scratch->depth;
             scratch->y[4] = (s16)(scratch->y[0] + offsetY1);
@@ -1811,20 +1825,20 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
                 setlen(quad, 8);
                 setcode(quad, 0x3A);
                 corners  = &Actor02100_D03E1C[corner];
-                quad->x0 = (u16)scratch->x[corners->corners[0]];
-                quad->y0 = (u16)scratch->y[corners->corners[0]];
-                quad->x1 = (u16)scratch->x[corners->corners[1]];
-                quad->y1 = (u16)scratch->y[corners->corners[1]];
-                quad->x2 = (u16)scratch->x[corners->corners[2]];
-                quad->y2 = (u16)scratch->y[corners->corners[2]];
-                quad->x3 = (u16)scratch->x[corners->corners[3]];
-                quad->y3 = (u16)scratch->y[corners->corners[3]];
-                quad->r0 = (u8)Actor02100_D03D88[work->weapon].shorts[(arg1 * 3) + 2];
-                quad->g0 = (u8)Actor02100_D03D88[work->weapon].shorts[(arg1 * 3) + 3];
-                quad->b0 = (u8)Actor02100_D03D88[work->weapon].shorts[(arg1 * 3) + 4];
-                quad->r1 = (u8)Actor02100_D03D88[work->weapon].shorts[(arg1 * 3) + 2];
-                quad->g1 = (u8)Actor02100_D03D88[work->weapon].shorts[(arg1 * 3) + 3];
-                blue     = (u8)Actor02100_D03D88[work->weapon].shorts[(arg1 * 3) + 4];
+                quad->x0 = (u16)scratch->x[corners->index[0]];
+                quad->y0 = (u16)scratch->y[corners->index[0]];
+                quad->x1 = (u16)scratch->x[corners->index[1]];
+                quad->y1 = (u16)scratch->y[corners->index[1]];
+                quad->x2 = (u16)scratch->x[corners->index[2]];
+                quad->y2 = (u16)scratch->y[corners->index[2]];
+                quad->x3 = (u16)scratch->x[corners->index[3]];
+                quad->y3 = (u16)scratch->y[corners->index[3]];
+                quad->r0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_RED];
+                quad->g0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_GREEN];
+                quad->b0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_BLUE];
+                quad->r1 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_RED];
+                quad->g1 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_GREEN];
+                blue     = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_BLUE];
                 quad->r2 = 0;
                 quad->g2 = 0;
                 quad->b2 = 0;
@@ -1849,14 +1863,14 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
             line->y0 = (u16)scratch->y[0];
             line->x1 = (u16)scratch->x[1];
             line->y1 = (u16)scratch->y[1];
-            if (arg1 == 1) {
+            if (arg1 == ACTOR_02100_BEAM_STYLE_FIRE) {
                 line->r0 = 0x80U;
                 line->g0 = 0x80U;
                 line->b0 = 0x80U;
             } else {
-                line->r0 = (u8)Actor02100_D03D88[work->weapon].shorts[(arg1 * 3) + 2];
-                line->g0 = (u8)Actor02100_D03D88[work->weapon].shorts[(arg1 * 3) + 3];
-                line->b0 = (u8)Actor02100_D03D88[work->weapon].shorts[(arg1 * 3) + 4];
+                line->r0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_RED];
+                line->g0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_GREEN];
+                line->b0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_BLUE];
             }
             setaddr(line,
                     getaddr((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + (u32)gGpuCurrentOt));
@@ -1874,7 +1888,7 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
         segment += 1;
     } while (segment < 8);
 
-    SCRATCH_STACK_RELEASE_BYTES(0x3C);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100BeamDrawScratch);
 }
 
 static void Actor02100_Fn03168(Task* arg0)
@@ -2014,31 +2028,28 @@ static void Actor02100_Fn03488(Task* arg0)
 /// screen x/y in `beamScreenX`/`beamScreenY` and depth in `beamScreenDepth`.
 static void Actor02100_Fn034E0(Task* arg0)
 {
-    Actor02100Screen* scratch;
-    GfxCoord*         coord;
-    _Actor02100Work*  work;
-    s32               i;
-    u8*               head;
-    s32               y;
+    _Actor02100BeamProjectScratch* scratch;
+    GfxCoord*                      coord;
+    _Actor02100Work*               work;
+    s32                            i;
+    s32                            y;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    work                     = arg0->work;
-    SCRATCH_STACK_CURSOR(u8) = head - 8;
-    scratch                  = SCRATCH_STACK_CURSOR(Actor02100Screen);
-    coord                    = arg0->extra.tmd->coords;
+    work    = arg0->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100BeamProjectScratch);
+    coord   = arg0->extra.tmd->coords;
     for (i = 0; i < 2; i++) {
         gte_SetRotMatrix(&coord->workm);
         gte_SetTransMatrix(&coord->workm);
         gte_ldv0(&work->beamPoints[i]);
         gte_rtps();
         gte_stsxy(&scratch->sxy);
-        gte_stszotz(&scratch->sz);
+        gte_stszotz(&scratch->depth);
         work->beamScreenX[i]     = scratch->sxy.vx;
         y                        = scratch->sxy.vy;
         work->beamScreenY[i]     = y;
-        work->beamScreenDepth[i] = scratch->sz;
+        work->beamScreenDepth[i] = scratch->depth;
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100BeamProjectScratch);
 }
 
 static void Actor02100_Fn035D4(Enemy* arg0, Task* arg1)
