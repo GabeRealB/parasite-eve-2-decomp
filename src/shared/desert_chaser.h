@@ -439,6 +439,24 @@ typedef struct {
     s16     criticalEffect; // Spawn argument of the critical-hit effect (-1 none spawned, 0 a critical roll, 3 a doubled hit that dealt damage)
 } DesertChaserDamageScratch;
 STATIC_ASSERT_SIZEOF(DesertChaserDamageScratch, 0x30);
+
+/// Scratch-stack block of the armed chaser's two turn-step states, in which
+/// it turns a little further each tick while it shuffles along its facing.
+///
+/// A state reserves one block a tick. It measures the turn to the player,
+/// spreads it over the ticks the state has left, rebuilds the root's
+/// rotation about Y at the heading that gives, and slides the root along the
+/// new facing: backward in the step, forward in the probe. The block is
+/// released before the state returns, and nothing in it carries over to the
+/// next tick. Angles are 4096ths of a turn.
+typedef struct {
+    SVECTOR offset;       // Player's position minus the root's, world units; `vx` and `vz` give the bearing. Then the root's Z axis after the turn, normalised and scaled to the slide added to the root's X and Z
+    s16     turn;         // Turn from the facing to the player, wrapped to [-0x800, 0x800]. Past a quarter turn on one side - the negative in the step, the positive in the probe - half a turn is taken off, so the chaser turns its back on the player instead
+    s16     heading;      // Heading the root's rotation is rebuilt at: the facing plus `turn` / `stepsLeft`
+    s16     stepsLeft;    // Ticks the turn is spread over: 30 less the ticks the state has run, with 1 in place of 0
+    byte    unknown_E[2]; // Reserved with the block and never accessed; role unproven
+} DesertChaserTurnStepScratch;
+STATIC_ASSERT_SIZEOF(DesertChaserTurnStepScratch, 0x10);
 #endif
 
 /// 0x1C-byte block `func_actor_323000_801645A4` pushes on the scratch stack:

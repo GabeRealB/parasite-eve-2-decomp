@@ -190,9 +190,9 @@ typedef struct Actor01900StateTable {
 } Actor01900StateTable;
 STATIC_ASSERT_SIZEOF(Actor01900StateTable, 0x80);
 
-extern EnemyParams        Actor01900_D0AC54;
-extern ActorSpawnParamRow Actor01900_D0AC64[];
-extern AnimationSet*      Actor01900_D17174[46];
+extern EnemyParams          Actor01900_D0AC54;
+extern ActorStrangerVariant Actor01900_D0AC64[];
+extern AnimationSet*        Actor01900_D17174[46];
 // Typed callback views for the task message dispatcher.
 
 extern TaskMessageEntry Actor01900_D1728C[8];
@@ -236,7 +236,7 @@ DamageAttack Actor01900_D0AC4C[2] = {
 
 EnemyParams Actor01900_D0AC54 = { Actor01900_D0AC4C, 160, 42, 48, 4, 100, 10, 100, 0 };
 
-ActorSpawnParamRow Actor01900_D0AC64[3] = {
+ActorStrangerVariant Actor01900_D0AC64[3] = {
     { 15, 400, 8, 2000, { 0, 0, 0, 0 } },
     { 0, 300, 12, 2500, { 0, 0, 0, 0 } },
     { 0, 200, 7, 3000, { 0, 0, 0, 0 } },
@@ -1331,23 +1331,23 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     }
     switch (actor->spawnArg1.value & 0xF) {
         case 2:
-            work->downFramesBase = Actor01900_D0AC64[0].field_0;
-            work->sidestepAngle  = Actor01900_D0AC64[0].field_2;
-            work->sidestepDelay  = Actor01900_D0AC64[0].field_4;
-            work->noticeRange    = Actor01900_D0AC64[0].field_6;
+            work->downFramesBase = Actor01900_D0AC64[0].downFramesBase;
+            work->sidestepAngle  = Actor01900_D0AC64[0].sidestepAngle;
+            work->sidestepDelay  = Actor01900_D0AC64[0].sidestepDelay;
+            work->noticeRange    = Actor01900_D0AC64[0].noticeRadius;
             break;
         case 1:
-            work->downFramesBase = Actor01900_D0AC64[2].field_0;
-            work->sidestepAngle  = Actor01900_D0AC64[2].field_2;
-            work->sidestepDelay  = Actor01900_D0AC64[2].field_4;
-            work->noticeRange    = Actor01900_D0AC64[2].field_6;
+            work->downFramesBase = Actor01900_D0AC64[2].downFramesBase;
+            work->sidestepAngle  = Actor01900_D0AC64[2].sidestepAngle;
+            work->sidestepDelay  = Actor01900_D0AC64[2].sidestepDelay;
+            work->noticeRange    = Actor01900_D0AC64[2].noticeRadius;
             break;
         case 0:
         default:
-            work->downFramesBase = Actor01900_D0AC64[1].field_0;
-            work->sidestepAngle  = Actor01900_D0AC64[1].field_2;
-            work->sidestepDelay  = Actor01900_D0AC64[1].field_4;
-            work->noticeRange    = Actor01900_D0AC64[1].field_6;
+            work->downFramesBase = Actor01900_D0AC64[1].downFramesBase;
+            work->sidestepAngle  = Actor01900_D0AC64[1].sidestepAngle;
+            work->sidestepDelay  = Actor01900_D0AC64[1].sidestepDelay;
+            work->noticeRange    = Actor01900_D0AC64[1].noticeRadius;
             break;
     }
 
@@ -3273,12 +3273,12 @@ static void Actor01900_Fn09BE8(Task* arg0)
 
 static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
 {
-    VECTOR               pos;
-    Actor01900StateTable states;
-    _Actor01900Work*     work;
-    ActorViewScratch*    scratch;
-    ActorViewScratch*    head;
-    s32                  state;
+    VECTOR                    pos;
+    Actor01900StateTable      states;
+    _Actor01900Work*          work;
+    ActorPartPositionScratch* scratch;
+    ActorPartPositionScratch* head;
+    s32                       state;
 
     work   = actor->work;
     states = Actor01900_D001BC;
@@ -3324,9 +3324,9 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
             return;
     }
 
-    head                                   = SCRATCH_STACK_CURSOR(ActorViewScratch);
-    SCRATCH_STACK_CURSOR(ActorViewScratch) = head - 1;
-    scratch                                = head - 1;
+    head                                           = SCRATCH_STACK_CURSOR(ActorPartPositionScratch);
+    SCRATCH_STACK_CURSOR(ActorPartPositionScratch) = head - 1;
+    scratch                                        = head - 1;
 
     if (work->hitCooldown > 0) {
         work->hitCooldown = (s16)((u16)work->hitCooldown - 1);
@@ -3354,16 +3354,16 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
         work->state = ACTOR_01900_STATE_ALERT;
     }
 
-    scratch->pos.vx = 0;
-    scratch->pos.vy = 0;
-    scratch->pos.vz = 0;
-    actorTransformToView(actor->extra.tmd->coords + 2, &scratch->pos);
+    scratch->position.vx = 0;
+    scratch->position.vy = 0;
+    scratch->position.vz = 0;
+    actorTransformToView(actor->extra.tmd->coords + 2, &scratch->position);
 
-    work->bodyPosHistory[work->bodyPosCursor].vx = scratch->pos.vx;
-    work->bodyPosHistory[work->bodyPosCursor].vy = scratch->pos.vy;
-    work->bodyPosHistory[work->bodyPosCursor].vz = scratch->pos.vz;
+    work->bodyPosHistory[work->bodyPosCursor].vx = scratch->position.vx;
+    work->bodyPosHistory[work->bodyPosCursor].vy = scratch->position.vy;
+    work->bodyPosHistory[work->bodyPosCursor].vz = scratch->position.vz;
 
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorPartPositionScratch);
     work->bodyPosCursor = (u16)work->bodyPosCursor + 1;
     if (work->bodyPosCursor == ARRAY_SIZE(work->bodyPosHistory)) {
         work->bodyPosCursor = 0;
@@ -3373,9 +3373,9 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
         enemy->bodyPos.vy = work->bodyPosHistory[work->bodyPosCursor].vy;
         enemy->bodyPos.vz = work->bodyPosHistory[work->bodyPosCursor].vz;
     } else {
-        enemy->bodyPos.vx = scratch->pos.vx;
-        enemy->bodyPos.vy = scratch->pos.vy;
-        enemy->bodyPos.vz = scratch->pos.vz;
+        enemy->bodyPos.vx = scratch->position.vx;
+        enemy->bodyPos.vy = scratch->position.vy;
+        enemy->bodyPos.vz = scratch->position.vz;
     }
     enemy->coord = &gGfxViewCoord;
 }

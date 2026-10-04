@@ -66,7 +66,7 @@ extern EnemyParams D_actor_401000_8013E09C;
 
 /// Three combat-parameter records `func_actor_401000_80133274` picks between
 /// with `Task::spawnArg1 & 0xF`.
-extern ActorSpawnParamRow D_actor_401000_8013E0AC[3];
+extern ActorStrangerVariant D_actor_401000_8013E0AC[3];
 
 /// Animation table `func_actor_401000_80133274` writes to `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
@@ -178,7 +178,7 @@ DamageAttack D_actor_401000_8013E094[2] = {
 
 EnemyParams D_actor_401000_8013E09C = { D_actor_401000_8013E094, 180, 42, 82, 4, 100, 10, 100, 0 };
 
-ActorSpawnParamRow D_actor_401000_8013E0AC[3] = {
+ActorStrangerVariant D_actor_401000_8013E0AC[3] = {
     { 20, 900, 12, 2000, { 0, 0, 0, 0 } },
     { 10, 800, 12, 2500, { 0, 0, 0, 0 } },
     { 0, 500, 12, 3000, { 0, 0, 0, 0 } },
@@ -1279,23 +1279,23 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
     }
     switch (actor->spawnArg1.value & 0xF) {
         case 2:
-            work->downFramesBase = D_actor_401000_8013E0AC[0].field_0;
-            work->sidestepAngle  = D_actor_401000_8013E0AC[0].field_2;
-            work->sidestepDelay  = D_actor_401000_8013E0AC[0].field_4;
-            work->noticeRadius   = D_actor_401000_8013E0AC[0].field_6;
+            work->downFramesBase = D_actor_401000_8013E0AC[0].downFramesBase;
+            work->sidestepAngle  = D_actor_401000_8013E0AC[0].sidestepAngle;
+            work->sidestepDelay  = D_actor_401000_8013E0AC[0].sidestepDelay;
+            work->noticeRadius   = D_actor_401000_8013E0AC[0].noticeRadius;
             break;
         case 1:
-            work->downFramesBase = D_actor_401000_8013E0AC[2].field_0;
-            work->sidestepAngle  = D_actor_401000_8013E0AC[2].field_2;
-            work->sidestepDelay  = D_actor_401000_8013E0AC[2].field_4;
-            work->noticeRadius   = D_actor_401000_8013E0AC[2].field_6;
+            work->downFramesBase = D_actor_401000_8013E0AC[2].downFramesBase;
+            work->sidestepAngle  = D_actor_401000_8013E0AC[2].sidestepAngle;
+            work->sidestepDelay  = D_actor_401000_8013E0AC[2].sidestepDelay;
+            work->noticeRadius   = D_actor_401000_8013E0AC[2].noticeRadius;
             break;
         case 0:
         default:
-            work->downFramesBase = D_actor_401000_8013E0AC[1].field_0;
-            work->sidestepAngle  = D_actor_401000_8013E0AC[1].field_2;
-            work->sidestepDelay  = D_actor_401000_8013E0AC[1].field_4;
-            work->noticeRadius   = D_actor_401000_8013E0AC[1].field_6;
+            work->downFramesBase = D_actor_401000_8013E0AC[1].downFramesBase;
+            work->sidestepAngle  = D_actor_401000_8013E0AC[1].sidestepAngle;
+            work->sidestepDelay  = D_actor_401000_8013E0AC[1].sidestepDelay;
+            work->noticeRadius   = D_actor_401000_8013E0AC[1].noticeRadius;
             break;
     }
 

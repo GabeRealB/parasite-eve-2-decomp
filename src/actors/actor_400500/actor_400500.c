@@ -2978,13 +2978,13 @@ static __inline__ void pop_scratch(s32 n)
 
 static __inline__ u8* push_proj(void)
 {
-    u8*                  head  = SCRATCH_STACK_CURSOR(u8);
-    ActorProjectScratch* block = (ActorProjectScratch*)(head - 0x18);
+    u8*                      head  = SCRATCH_STACK_CURSOR(u8);
+    ActorOriginDepthScratch* block = (ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch));
 
-    SCRATCH_STACK_CURSOR(ActorProjectScratch)     = block;
-    ((ActorProjectScratch*)(head - 0x18))->vec.vx = 0;
-    block->vec.vy                                 = 0;
-    block->vec.vz                                 = 0;
+    SCRATCH_STACK_CURSOR(ActorOriginDepthScratch)                                   = block;
+    ((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->origin.vx = 0;
+    block->origin.vy                                                                = 0;
+    block->origin.vz                                                                = 0;
     return head;
 }
 
@@ -3036,7 +3036,7 @@ static void func_actor_400500_80135770(Task* arg0)
     u8                           mode;
     s16                          trans;
     s16                          trans_y;
-    ActorProjectScratch*         proj;
+    ActorOriginDepthScratch*     proj;
     SVECTOR*                     vecp;
     MATRIX*                      workm;
 
@@ -3159,24 +3159,24 @@ static void func_actor_400500_80135770(Task* arg0)
             func_actor_400500_80132AB0(arg0, -0xFA0, ((u16)work->shadowShade >> 2) & 0xFF);
             func_actor_400500_80132AB0(arg0, -0x3E8, (u8)work->shadowShade);
             head = push_proj();
-            proj = (ActorProjectScratch*)(head - 0x18);
+            proj = (ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch));
             Gp_UpdateCoord(part2);
-            vecp  = &proj->vec;
+            vecp  = &proj->origin;
             workm = &part2->workm;
             gte_SetRotMatrix(workm);
             gte_SetTransMatrix(workm);
             gte_ldv0(vecp);
             gte_rtps();
-            gte_stsxy(&((ActorProjectScratch*)(head - 0x18))->sxy);
-            gte_stdp(&((ActorProjectScratch*)(head - 0x18))->dp);
-            gte_stflg(&((ActorProjectScratch*)(head - 0x18))->flag);
-            gte_stszotz(&((ActorProjectScratch*)(head - 0x18))->otz);
+            gte_stsxy(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->screenPos);
+            gte_stdp(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->depthCue);
+            gte_stflg(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->flag);
+            gte_stszotz(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->otz);
             if (proj->flag < 0) {
                 proj->otz = 0;
             }
             proj->otz = (proj->otz >> 4) + 0x1E;
             frameCaptureQueue(proj->otz);
-            pop_scratch(0x18);
+            pop_scratch(sizeof(ActorOriginDepthScratch));
             return;
     }
 }

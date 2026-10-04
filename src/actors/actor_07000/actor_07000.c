@@ -1483,24 +1483,24 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
 
 static void Actor07000_Fn03E08(Task* arg0)
 {
-    s32                    movement;
-    s32                    dx;
-    s32                    dy;
-    s32                    dz;
-    s32                    reaction;
-    s32                    cooldown;
-    u32                    random;
-    u32                    kind;
-    u32                    damage;
-    s32                    i;
-    _Actor07000SlouchWork* work;
-    GfxCoord*              coord;
-    Enemy*                 enemy;
-    void*                  head;
-    ActorDeltaFrame38*     scratch;
+    s32                       movement;
+    s32                       dx;
+    s32                       dy;
+    s32                       dz;
+    s32                       reaction;
+    s32                       cooldown;
+    u32                       random;
+    u32                       kind;
+    u32                       damage;
+    s32                       i;
+    _Actor07000SlouchWork*    work;
+    GfxCoord*                 coord;
+    Enemy*                    enemy;
+    void*                     head;
+    ActorContactDeltaScratch* scratch;
 
     work     = arg0->work;
-    head     = SCRATCH_STACK_RESERVE_BYTES(0x38);
+    head     = SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorContactDeltaScratch));
     coord    = arg0->extra.tmd->coords;
     enemy    = arg0->spawnArg2.pointer;
     scratch  = head;
@@ -1604,7 +1604,7 @@ static void Actor07000_Fn03E08(Task* arg0)
     }
     Gp_ClearRec18Occupied(work->contacts);
     Gp_ClearRec18Occupied(work->attackContacts);
-    SCRATCH_STACK_RELEASE_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactDeltaScratch);
 }
 
 /// Hit reaction of the specimen. `arg1` comes off the context's HP countdown
@@ -2296,13 +2296,13 @@ static void Actor07000_Fn05400(Enemy* arg0, Task* arg1)
 /// tables are released either way.
 static void Actor07000_Fn0595C(Task* arg0)
 {
-    ActorDeltaFrame38*     scratch;
-    _Actor07000SlouchWork* work;
-    GfxCoord*              coord;
-    s32                    movement;
+    ActorContactDeltaScratch* scratch;
+    _Actor07000SlouchWork*    work;
+    GfxCoord*                 coord;
+    s32                       movement;
 
     work     = arg0->work;
-    scratch  = (ActorDeltaFrame38*)SCRATCH_STACK_RESERVE_BYTES(0x38);
+    scratch  = SCRATCH_STACK_RESERVE_BLOCK(ActorContactDeltaScratch);
     coord    = arg0->extra.tmd->coords;
     movement = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL);
     switch (movement) {
@@ -2328,7 +2328,7 @@ static void Actor07000_Fn0595C(Task* arg0)
     }
     Gp_ClearRec18Occupied(work->contacts);
     Gp_ClearRec18Occupied(work->attackContacts);
-    SCRATCH_STACK_RELEASE_BYTES(0x38);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactDeltaScratch);
 }
 
 /// Message 0x7DB handler of the second form's table (`Actor07000_D0D7C0`,

@@ -5461,15 +5461,15 @@ static const Actor401300StateTable D_actor_401300_80131F34 = { {
 
 static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
 {
-    VECTOR                pos;
-    Actor401300StateTable states;
-    _Actor401300Work*     work;
-    ActorViewScratch*     scratch;
-    ActorViewScratch*     head;
-    Task*                 player;
-    PlayerStatus*         config;
-    s32                   state;
-    s32                   action;
+    VECTOR                    pos;
+    Actor401300StateTable     states;
+    _Actor401300Work*         work;
+    ActorPartPositionScratch* scratch;
+    ActorPartPositionScratch* head;
+    Task*                     player;
+    PlayerStatus*             config;
+    s32                       state;
+    s32                       action;
 
     work   = actor->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -5517,9 +5517,9 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
             return;
     }
 
-    head                                   = SCRATCH_STACK_CURSOR(ActorViewScratch);
-    SCRATCH_STACK_CURSOR(ActorViewScratch) = head - 1;
-    scratch                                = head - 1;
+    head                                           = SCRATCH_STACK_CURSOR(ActorPartPositionScratch);
+    SCRATCH_STACK_CURSOR(ActorPartPositionScratch) = head - 1;
+    scratch                                        = head - 1;
 
     if (work->hitCooldown > 0) {
         work->hitCooldown--;
@@ -5536,13 +5536,13 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
 
     state = work->state;
     if ((state != ACTOR_401300_STATE_DEATH_BURN) && (state != ACTOR_401300_STATE_PLAY_DOWN) && (state != ACTOR_401300_STATE_HIDDEN) && (state != ACTOR_401300_STATE_DEAD) && (state != ACTOR_401300_STATE_DEATH_BURST) && (state != ACTOR_401300_STATE_DEATH_BURST_WALK)) {
-        scratch->pos.vx = 0;
-        scratch->pos.vy = 0;
-        scratch->pos.vz = 0;
-        actorTransformToView(actor->extra.tmd->coords + 1, &scratch->pos);
-        work->hitBody.pos.vx         = scratch->pos.vx;
-        work->hitBody.pos.vy         = scratch->pos.vy;
-        work->hitBody.pos.vz         = scratch->pos.vz;
+        scratch->position.vx = 0;
+        scratch->position.vy = 0;
+        scratch->position.vz = 0;
+        actorTransformToView(actor->extra.tmd->coords + 1, &scratch->position);
+        work->hitBody.pos.vx         = scratch->position.vx;
+        work->hitBody.pos.vy         = scratch->position.vy;
+        work->hitBody.pos.vz         = scratch->position.vz;
         work->gridCoord.coord.t[0]   = actor->extra.tmd->coords->coord.t[0];
         work->gridCoord.coord.t[1]   = actor->extra.tmd->coords->coord.t[1] - 0x15E;
         work->gridCoord.coord.t[2]   = actor->extra.tmd->coords->coord.t[2];
@@ -5684,16 +5684,16 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
         work->state = ACTOR_401300_STATE_ALERT;
     }
 
-    scratch->pos.vx = 0;
-    scratch->pos.vy = 0;
-    scratch->pos.vz = 0;
-    actorTransformToView(actor->extra.tmd->coords + 2, &scratch->pos);
+    scratch->position.vx = 0;
+    scratch->position.vy = 0;
+    scratch->position.vz = 0;
+    actorTransformToView(actor->extra.tmd->coords + 2, &scratch->position);
 
-    work->bodyPosHistory[work->bodyPosCursor].vx = scratch->pos.vx;
-    work->bodyPosHistory[work->bodyPosCursor].vy = scratch->pos.vy;
-    work->bodyPosHistory[work->bodyPosCursor].vz = scratch->pos.vz;
+    work->bodyPosHistory[work->bodyPosCursor].vx = scratch->position.vx;
+    work->bodyPosHistory[work->bodyPosCursor].vy = scratch->position.vy;
+    work->bodyPosHistory[work->bodyPosCursor].vz = scratch->position.vz;
 
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorPartPositionScratch);
     work->bodyPosCursor++;
     if (work->bodyPosCursor == ARRAY_SIZE(work->bodyPosHistory)) {
         work->bodyPosCursor = 0;
@@ -5703,9 +5703,9 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
         enemy->bodyPos.vy = work->bodyPosHistory[work->bodyPosCursor].vy;
         enemy->bodyPos.vz = work->bodyPosHistory[work->bodyPosCursor].vz;
     } else {
-        enemy->bodyPos.vx = scratch->pos.vx;
-        enemy->bodyPos.vy = scratch->pos.vy;
-        enemy->bodyPos.vz = scratch->pos.vz;
+        enemy->bodyPos.vx = scratch->position.vx;
+        enemy->bodyPos.vy = scratch->position.vy;
+        enemy->bodyPos.vz = scratch->position.vz;
     }
     enemy->coord = &gGfxViewCoord;
 }

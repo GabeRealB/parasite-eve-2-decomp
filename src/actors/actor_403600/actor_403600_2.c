@@ -471,19 +471,19 @@ loop:
 /// Projects the origin of coordinate 1 and passes its depth on.
 static __inline__ u8* _actor403600ProjectDepth(GfxCoord* coord)
 {
-    ActorProjectScratch* block;
+    ActorOriginDepthScratch* block;
 
-    block         = SCRATCH_STACK_RESERVE_BLOCK(ActorProjectScratch);
-    block->vec.vx = 0;
-    block->vec.vy = 0;
-    block->vec.vz = 0;
+    block            = SCRATCH_STACK_RESERVE_BLOCK(ActorOriginDepthScratch);
+    block->origin.vx = 0;
+    block->origin.vy = 0;
+    block->origin.vz = 0;
     Gp_UpdateCoord(coord);
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
-    gte_ldv0(&block->vec);
+    gte_ldv0(&block->origin);
     gte_rtps();
-    gte_stsxy(&block->sxy);
-    gte_stdp(&block->dp);
+    gte_stsxy(&block->screenPos);
+    gte_stdp(&block->depthCue);
     gte_stflg(&block->flag);
     gte_stszotz(&block->otz);
     if (block->flag < 0) {
@@ -491,7 +491,7 @@ static __inline__ u8* _actor403600ProjectDepth(GfxCoord* coord)
     }
     block->otz = (block->otz >> 4) + 0x1E;
     frameCaptureQueue(block->otz);
-    return (u8*)SCRATCH_STACK_RELEASE_BLOCK(ActorProjectScratch);
+    return (u8*)SCRATCH_STACK_RELEASE_BLOCK(ActorOriginDepthScratch);
 }
 
 static u8* func_actor_403600_80138DCC(Task* arg0)

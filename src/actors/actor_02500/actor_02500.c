@@ -772,37 +772,37 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     actor->state            = 1;
 }
 
-/// Per-frame collision and damage pass. Carves a `ActorWallPushFrame` off
+/// Per-frame collision and damage pass. Carves an `ActorOverlapPushScratch` off
 /// the scratchpad stack, lets `func_800E0C10` resolve this frame's movement
 /// into it, then walks the three `hitContacts` records: kind 2 is a hit that
 /// costs the enemy HP and plays a sound, kinds 1 and 3 push it away from the
 /// obstacle, and the strongest push is applied to the coordinate at the end.
 static void Actor02500_Fn00494(Task* actor)
 {
-    u32                 lastId;
-    _Actor02500Work*    work;
-    Enemy*              ctx;
-    GfxCoord*           coord;
-    GfxCoord*           target;
-    ActorWallPushFrame* head;
-    ActorWallPushFrame* frame;
-    VECTOR*             normal;
-    s32                 i;
-    s32                 push;
-    s32                 bestPush;
-    s32                 damage;
-    s32                 param0;
-    s32                 cooldown;
-    s32                 soundId;
+    u32                      lastId;
+    _Actor02500Work*         work;
+    Enemy*                   ctx;
+    GfxCoord*                coord;
+    GfxCoord*                target;
+    ActorOverlapPushScratch* head;
+    ActorOverlapPushScratch* frame;
+    VECTOR*                  normal;
+    s32                      i;
+    s32                      push;
+    s32                      bestPush;
+    s32                      damage;
+    s32                      param0;
+    s32                      cooldown;
+    s32                      soundId;
 
     bestPush = 0;
     lastId   = 0;
     work     = actor->work;
-    head     = SCRATCH_STACK_CURSOR(ActorWallPushFrame);
-    frame = SCRATCH_STACK_CURSOR(ActorWallPushFrame) = head - 1;
-    coord                                            = actor->extra.tmd->coords;
-    ctx                                              = actor->spawnArg2.pointer;
-    work->blocked                                    = 0;
+    head     = SCRATCH_STACK_CURSOR(ActorOverlapPushScratch);
+    frame = SCRATCH_STACK_CURSOR(ActorOverlapPushScratch) = head - 1;
+    coord                                                 = actor->extra.tmd->coords;
+    ctx                                                   = actor->spawnArg2.pointer;
+    work->blocked                                         = 0;
     switch (func_800E0C10(work->gridContacts, &frame->delta, ARRAY_SIZE(work->gridContacts), NULL)) {
         case 0:
             break;
@@ -921,7 +921,7 @@ static void Actor02500_Fn00494(Task* actor)
                 if (bestPush < push) {
                     bestPush = push;
                     VectorNormal(&frame->delta.vector, normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->pushDirection);
                 }
                 break;
             case 3:
@@ -935,14 +935,14 @@ static void Actor02500_Fn00494(Task* actor)
                 if (bestPush < push) {
                     bestPush = push;
                     VectorNormal(&frame->delta.vector, normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->pushDirection);
                 }
                 break;
         }
     }
     if (bestPush > 0) {
-        coord->coord.t[0] += (bestPush * frame->dir.vx) >> 0xC;
-        coord->coord.t[2] += (bestPush * frame->dir.vz) >> 0xC;
+        coord->coord.t[0] += (bestPush * frame->pushDirection.vx) >> 0xC;
+        coord->coord.t[2] += (bestPush * frame->pushDirection.vz) >> 0xC;
     }
     Gp_ClearRec18Occupied(work->hitContacts);
     if (Gp_FindRec18(work->attackContacts, 0) != 0) {
@@ -957,7 +957,7 @@ static void Actor02500_Fn00494(Task* actor)
         Gp_ArmStateF0(1);
     }
     Gp_ClearRec18Occupied(work->noticeContacts);
-    SCRATCH_STACK_RELEASE_BYTES(0x30);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorOverlapPushScratch);
 }
 
 static void Actor02500_Fn00B18(Task* actor)

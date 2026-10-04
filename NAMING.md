@@ -488,8 +488,9 @@ declares for itself. Animation request values use
 `DESERT_CHASER_ANIM_REQUEST_`, and the armed builds' collision spheres are
 indexed by `DESERT_CHASER_SPHERE_`. `DesertChaserAvoidScratch` is the scratch
 block of the armed builds' avoid walk, holding `DESERT_CHASER_AVOID_BEARINGS`
-bearings in each build, and `DesertChaserDamageScratch` the block of their
-damage step. `DesertChaserStateTable` holds an armed package's
+bearings in each build, `DesertChaserDamageScratch` the block of their
+damage step and `DesertChaserTurnStepScratch` the block of their two turn-step
+states. `DesertChaserStateTable` holds an armed package's
 `DESERT_CHASER_STATE_COUNT` state handlers, and `DesertChaserVariant` is one of
 the four tunings both armed packages define and the spawn argument picks from.
 
@@ -501,6 +502,9 @@ work block, state values use `ODD_STRANGER_STATE_` and animation request
 values `ODD_STRANGER_ANIM_REQUEST_`. `OddStrangerStateTable` holds a package's
 `ODD_STRANGER_STATE_COUNT` state handlers, and `OddStrangerTransformStorage`
 is the static allocation of the placement a grab sends the player.
+The three tunings a package defines, picked by the spawn argument, are
+`ActorStrangerVariant` records in `include/actors/actor.h`: public because
+`actor_01900` seeds its own work block from the same record.
 
 `stalkerZebraIvory` owns the included pose, animation-request and
 pending-action code shared by the Zebra Stalker (`actor_400600`) and the Ivory

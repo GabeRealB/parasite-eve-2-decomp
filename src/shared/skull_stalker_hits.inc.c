@@ -8,25 +8,25 @@
 /// applies the id's side effect instead.
 void skullStalkerHits(Task* arg0)
 {
-    SkullStalkerWork*  work;
-    ActorDeltaFrame38* sc;
-    ActorDeltaFrame38* head;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    Enemy*             enemy;
-    s32                i;
-    s32                sndHit;
-    s32                sndHit2;
-    u32                damage;
-    s32                snd;
+    SkullStalkerWork*         work;
+    ActorContactDeltaScratch* sc;
+    ActorContactDeltaScratch* head;
+    TmdObject*                obj;
+    GfxCoord*                 coord;
+    Enemy*                    enemy;
+    s32                       i;
+    s32                       sndHit;
+    s32                       sndHit2;
+    u32                       damage;
+    s32                       snd;
 
-    work                                    = arg0->work;
-    head                                    = SCRATCH_STACK_CURSOR(ActorDeltaFrame38);
-    SCRATCH_STACK_CURSOR(ActorDeltaFrame38) = head - 1;
-    sc                                      = head - 1;
-    obj                                     = arg0->extra.tmd;
-    coord                                   = obj->coords;
-    enemy                                   = arg0->spawnArg2.pointer;
+    work                                           = arg0->work;
+    head                                           = SCRATCH_STACK_CURSOR(ActorContactDeltaScratch);
+    SCRATCH_STACK_CURSOR(ActorContactDeltaScratch) = head - 1;
+    sc                                             = head - 1;
+    obj                                            = arg0->extra.tmd;
+    coord                                          = obj->coords;
+    enemy                                          = arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->bodyContacts, &head[-1].delta, ARRAY_SIZE(work->bodyContacts), NULL)) {
         case 0:
@@ -115,5 +115,5 @@ void skullStalkerHits(Task* arg0)
         i++;
     } while (i < ARRAY_SIZE(work->bodyContacts));
     Gp_ClearRec18Occupied(work->bodyContacts);
-    SCRATCH_STACK_CURSOR(ActorDeltaFrame38) = SCRATCH_STACK_CURSOR(ActorDeltaFrame38) + 1;
+    SCRATCH_STACK_CURSOR(ActorContactDeltaScratch) = SCRATCH_STACK_CURSOR(ActorContactDeltaScratch) + 1;
 }

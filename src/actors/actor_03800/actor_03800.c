@@ -1008,45 +1008,45 @@ static void Actor03800_Fn00974(Task* arg0)
 }
 
 /// Keeps the deepest contact seen so far: when `depth` beats `best`, it
-/// becomes the new `best`, and `frame->dir` the direction to push out along -
-/// the offset in `frame->delta` normalised and carried into the collision
-/// grid's frame.
-#define _ACTOR03800_KEEP_DEEPEST(best, depth, frame)                                                   \
-    do {                                                                                               \
-        if ((best) < (depth)) {                                                                        \
-            (best) = (depth);                                                                          \
-            VectorNormal(&(frame)->delta.vector, &(frame)->normal);                                    \
-            ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &(frame)->normal, &(frame)->dir); \
-        }                                                                                              \
+/// becomes the new `best`, and `frame->pushDirection` the direction to push
+/// out along - the offset in `frame->delta` normalised and carried into the
+/// collision grid's frame.
+#define _ACTOR03800_KEEP_DEEPEST(best, depth, frame)                                                             \
+    do {                                                                                                         \
+        if ((best) < (depth)) {                                                                                  \
+            (best) = (depth);                                                                                    \
+            VectorNormal(&(frame)->delta.vector, &(frame)->normal);                                              \
+            ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &(frame)->normal, &(frame)->pushDirection); \
+        }                                                                                                        \
     } while (0)
 
 static void Actor03800_Fn00A98(Task* arg0)
 {
-    _Actor03800Work*    work;
-    ActorWallPushFrame* frame;
-    Enemy*              ctx;
-    GfxCoord*           coord;
-    GfxCoord*           sourceCoord;
-    s32                 push;
-    s32                 reaction;
-    s32                 result;
-    s32                 i;
-    s32                 depth;
-    s32                 boundedDepth;
-    s32                 dx;
-    s32                 dy;
-    s32                 dz;
-    u32                 lastId;
-    u32                 id;
-    u32                 hitId;
-    u32                 damage;
+    _Actor03800Work*         work;
+    ActorOverlapPushScratch* frame;
+    Enemy*                   ctx;
+    GfxCoord*                coord;
+    GfxCoord*                sourceCoord;
+    s32                      push;
+    s32                      reaction;
+    s32                      result;
+    s32                      i;
+    s32                      depth;
+    s32                      boundedDepth;
+    s32                      dx;
+    s32                      dy;
+    s32                      dz;
+    u32                      lastId;
+    u32                      id;
+    u32                      hitId;
+    u32                      damage;
 
     push     = 0;
     reaction = 0;
     lastId   = 0;
     work     = arg0->work;
-    SCRATCH_STACK_RESERVE_BLOCK(ActorWallPushFrame);
-    frame  = SCRATCH_STACK_CURSOR(ActorWallPushFrame);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorOverlapPushScratch);
+    frame  = SCRATCH_STACK_CURSOR(ActorOverlapPushScratch);
     coord  = work->rootCoord;
     ctx    = arg0->spawnArg2.pointer;
     result = func_800E0C10(work->gridContacts, &frame->delta, ARRAY_SIZE(work->gridContacts), NULL);
@@ -1208,8 +1208,8 @@ static void Actor03800_Fn00A98(Task* arg0)
         }
     }
     if (push > 0 && work->mode == ACTOR_03800_MODE_FLOOR) {
-        coord->coord.t[0] += (push * frame->dir.vx) >> 0xC;
-        coord->coord.t[2] += (push * frame->dir.vz) >> 0xC;
+        coord->coord.t[0] += (push * frame->pushDirection.vx) >> 0xC;
+        coord->coord.t[2] += (push * frame->pushDirection.vz) >> 0xC;
     }
     Gp_ClearRec18Occupied(work->hitContacts);
     work->attackTouched = 0;
@@ -1224,7 +1224,7 @@ static void Actor03800_Fn00A98(Task* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->attackContacts);
-    SCRATCH_STACK_RELEASE_BLOCK(ActorWallPushFrame);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorOverlapPushScratch);
 }
 
 static void Actor03800_Fn01150(Task* arg0)

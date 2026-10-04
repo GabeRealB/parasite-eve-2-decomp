@@ -6,33 +6,33 @@
 /// push at the end.
 void ratContacts(Task* actor)
 {
-    RatWork*               work;
-    ActorWallPushFrame*    frame;
-    Enemy*                 ctx;
-    GfxCoord*              coord;
-    GfxCoord*              sourceCoord;
-    WorldCollisionContact* effectRec;
-    WorldCollisionContact* contactRec;
-    s32                    push;
-    s32                    result;
-    s32                    i;
-    s32                    depth;
-    s32                    x;
-    s32                    y;
-    s32                    z;
-    s32                    boundedDepth;
-    s32                    cooldownParam;
-    u32                    lastId;
-    u32                    id;
-    u32                    slot;
-    u32                    hitId;
-    u32                    damage;
+    RatWork*                 work;
+    ActorOverlapPushScratch* frame;
+    Enemy*                   ctx;
+    GfxCoord*                coord;
+    GfxCoord*                sourceCoord;
+    WorldCollisionContact*   effectRec;
+    WorldCollisionContact*   contactRec;
+    s32                      push;
+    s32                      result;
+    s32                      i;
+    s32                      depth;
+    s32                      x;
+    s32                      y;
+    s32                      z;
+    s32                      boundedDepth;
+    s32                      cooldownParam;
+    u32                      lastId;
+    u32                      id;
+    u32                      slot;
+    u32                      hitId;
+    u32                      damage;
 
     push   = 0;
     lastId = 0;
     work   = actor->work;
-    SCRATCH_STACK_RESERVE_BLOCK(ActorWallPushFrame);
-    frame  = SCRATCH_STACK_CURSOR(ActorWallPushFrame);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorOverlapPushScratch);
+    frame  = SCRATCH_STACK_CURSOR(ActorOverlapPushScratch);
     coord  = actor->extra.tmd->coords;
     ctx    = actor->spawnArg2.pointer;
     result = func_800E0C10(work->gridContacts, &frame->delta, 4, NULL);
@@ -131,7 +131,7 @@ void ratContacts(Task* actor)
                 if (push < depth) {
                     push = depth;
                     VectorNormal(&frame->delta.vector, &frame->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &frame->normal, &frame->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &frame->normal, &frame->pushDirection);
                 }
                 break;
             case 3:
@@ -150,14 +150,14 @@ void ratContacts(Task* actor)
                 if (push < depth) {
                     push = depth;
                     VectorNormal(&frame->delta.vector, &frame->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &frame->normal, &frame->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &frame->normal, &frame->pushDirection);
                 }
                 break;
         }
     }
     if (push > 0) {
-        coord->coord.t[0] += (push * frame->dir.vx) >> 0xC;
-        coord->coord.t[2] += (push * frame->dir.vz) >> 0xC;
+        coord->coord.t[0] += (push * frame->pushDirection.vx) >> 0xC;
+        coord->coord.t[2] += (push * frame->pushDirection.vz) >> 0xC;
     }
     Gp_ClearRec18Occupied(work->hitContacts);
     effectRec = work->attackContacts;
@@ -173,5 +173,5 @@ void ratContacts(Task* actor)
         work->targetCoord       = sourceCoord;
     }
     Gp_ClearRec18Occupied(contactRec);
-    SCRATCH_STACK_RELEASE_BLOCK(ActorWallPushFrame);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorOverlapPushScratch);
 }

@@ -12,12 +12,12 @@
 /// it as the enemy's `field_1C` while the `animId` clip is 0x14/0x15.
 void oddStrangerTick(Enemy* enemy, Task* actor)
 {
-    VECTOR                pos;
-    OddStrangerStateTable states;
-    OddStrangerWork*      work;
-    ActorViewScratch*     scratch;
-    ActorViewScratch*     head;
-    s32                   state;
+    VECTOR                    pos;
+    OddStrangerStateTable     states;
+    OddStrangerWork*          work;
+    ActorPartPositionScratch* scratch;
+    ActorPartPositionScratch* head;
+    s32                       state;
 #if ODD_STRANGER_VARIANT == 2
     s32 stop;
     s32 index;
@@ -65,9 +65,9 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
             return;
     }
 
-    head                                   = SCRATCH_STACK_CURSOR(ActorViewScratch);
-    SCRATCH_STACK_CURSOR(ActorViewScratch) = head - 1;
-    scratch                                = head - 1;
+    head                                           = SCRATCH_STACK_CURSOR(ActorPartPositionScratch);
+    SCRATCH_STACK_CURSOR(ActorPartPositionScratch) = head - 1;
+    scratch                                        = head - 1;
 
     if (work->hitCooldown > 0) {
         work->hitCooldown = (s16)((u16)work->hitCooldown - 1);
@@ -117,16 +117,16 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
         work->state = ODD_STRANGER_STATE_ALERT;
     }
 
-    scratch->pos.vx = 0;
-    scratch->pos.vy = 0;
-    scratch->pos.vz = 0;
-    actorTransformToView(actor->extra.tmd->coords + 2, &scratch->pos);
+    scratch->position.vx = 0;
+    scratch->position.vy = 0;
+    scratch->position.vz = 0;
+    actorTransformToView(actor->extra.tmd->coords + 2, &scratch->position);
 
-    work->bodyPosHistory[work->bodyPosCursor].vx = scratch->pos.vx;
-    work->bodyPosHistory[work->bodyPosCursor].vy = scratch->pos.vy;
-    work->bodyPosHistory[work->bodyPosCursor].vz = scratch->pos.vz;
+    work->bodyPosHistory[work->bodyPosCursor].vx = scratch->position.vx;
+    work->bodyPosHistory[work->bodyPosCursor].vy = scratch->position.vy;
+    work->bodyPosHistory[work->bodyPosCursor].vz = scratch->position.vz;
 
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorPartPositionScratch);
     work->bodyPosCursor = (u16)work->bodyPosCursor + 1;
     if (work->bodyPosCursor == ARRAY_SIZE(work->bodyPosHistory)) {
         work->bodyPosCursor = 0;
@@ -136,9 +136,9 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
         enemy->bodyPos.vy = work->bodyPosHistory[work->bodyPosCursor].vy;
         enemy->bodyPos.vz = work->bodyPosHistory[work->bodyPosCursor].vz;
     } else {
-        enemy->bodyPos.vx = scratch->pos.vx;
-        enemy->bodyPos.vy = scratch->pos.vy;
-        enemy->bodyPos.vz = scratch->pos.vz;
+        enemy->bodyPos.vx = scratch->position.vx;
+        enemy->bodyPos.vy = scratch->position.vy;
+        enemy->bodyPos.vz = scratch->position.vz;
     }
     enemy->coord = &gGfxViewCoord;
 #if ODD_STRANGER_VARIANT == 2

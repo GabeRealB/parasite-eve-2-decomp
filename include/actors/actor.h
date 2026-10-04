@@ -207,19 +207,6 @@ typedef struct ActorFacingScratch {
 } ActorFacingScratch;
 STATIC_ASSERT_SIZEOF(ActorFacingScratch, 0x18);
 
-/// The scratch-pad block of a turn spread over several steps: `vec` is the
-/// offset to the player and then the facing it leaves, `delta` the whole turn
-/// to make, `steps` the steps it is spread over and `yaw` the heading after
-/// this step.
-typedef struct ActorTurnStepScratch {
-    SVECTOR vec;
-    s16     delta;
-    s16     yaw;
-    s16     steps;
-    s16     pad;
-} ActorTurnStepScratch;
-STATIC_ASSERT_SIZEOF(ActorTurnStepScratch, 0x10);
-
 /// The scratch-stack block of a state body that turns an actor a limited step
 /// toward a target each frame: the offset to the target and the yaw worked out
 /// from it.
@@ -304,33 +291,56 @@ typedef struct {
 } ActorBodyPushScratch;
 STATIC_ASSERT_SIZEOF(ActorBodyPushScratch, 0x34);
 
-/// A model coordinate's translation carried into view space.
-typedef struct ActorViewScratch {
-    byte    pad_0[0x10];
-    SVECTOR pos;
-} ActorViewScratch;
-STATIC_ASSERT_SIZEOF(ActorViewScratch, 0x18);
+/// Scratch-stack block of an enemy's per-frame update, in which the world
+/// position of one of its model parts is worked out.
+///
+/// The update reserves one block before it runs the enemy's state. Afterwards
+/// it zeroes `position` and carries it from the part's frame up the parent
+/// chain to the view coordinate, which leaves the part's origin in world
+/// space. That is where the enemy's body is that frame: the update copies it
+/// out as the centre of the hit sphere, as the newest entry of the history
+/// of body positions and as the position the enemy record publishes. An
+/// update that releases the block first still reads `position` afterwards,
+/// while the bytes are intact.
+typedef struct {
+    byte    unknown_0[0x10]; // Reserved with the block and never accessed; role unproven
+    SVECTOR position;        // Zeroed, then carried from the part's frame into the view coordinate's: the part's origin, world units; `pad` is never written
+} ActorPartPositionScratch;
+STATIC_ASSERT_SIZEOF(ActorPartPositionScratch, 0x18);
 
-/// Projecting a point, usually an actor's origin through one of its
-/// coordinates, to find its ordering-table depth. The results follow in the
-/// order `rtps` writes them: screen position, depth cue, flags and depth.
-typedef struct ActorProjectScratch {
-    SVECTOR vec;
-    s32     sxy;
-    s32     dp;
-    s32     flag;
-    s32     otz;
-} ActorProjectScratch;
-STATIC_ASSERT_SIZEOF(ActorProjectScratch, 0x18);
+/// Scratch-stack block of the projection that finds how deep one of an
+/// actor's coordinates lies in the ordering table.
+///
+/// The projection reserves one block, sends the coordinate's own origin
+/// through the coordinate's composed matrix with one perspective transform and
+/// stores the four results. Only the flag word and the depth are used: an
+/// enemy that samples the scene behind it queues its frame capture at the
+/// depth left in `otz`, a caller's bias behind the coordinate. The block is
+/// released before the projection returns.
+typedef struct {
+    SVECTOR origin;    // Point projected: zero on all three axes, the coordinate's own origin; `pad` is never written
+    s32     screenPos; // Projected screen position, X in bits 0..15 and Y in bits 16..31; stored, never read
+    s32     depthCue;  // Depth-cueing interpolation value of the projection; stored, never read
+    s32     flag;      // GTE FLAG word of the projection; a set bit 31 marks a failed projection, which zeroes `otz`
+    s32     otz;       // Origin's screen Z / 4 as stored, then a sixteenth of that plus the caller's bias: the ordering-table depth the capture is queued at
+} ActorOriginDepthScratch;
+STATIC_ASSERT_SIZEOF(ActorOriginDepthScratch, 0x18);
 
-/// Four points projected together, with the first one's screen position and
-/// the depth the primitive drawn from them is sorted at.
-typedef struct ActorQuadScratch {
-    SVECTOR v[4];
-    s32     sxy;
-    s32     otz;
-} ActorQuadScratch;
-STATIC_ASSERT_SIZEOF(ActorQuadScratch, 0x28);
+/// Scratch-stack block of a camera-facing sprite: one textured quad built in
+/// screen space around the projected root of an actor.
+///
+/// The drawer stages the root's world position in `corners[0]`, projects it
+/// with one perspective transform and drops the sprite when `otz` is under
+/// 20. It then lays the four corners out around the projected centre, a size
+/// divided by `otz` away from it on each axis, and copies them into the
+/// primitive. One block serves one sprite and is released before the drawer
+/// returns.
+typedef struct {
+    SVECTOR corners[4];   // [0] first holds the root's world position, narrowed to s16, and in a drawer that rolls the sprite the roll's angles; then the quad's corners in screen pixels: top left, top right, bottom left, bottom right. A rolled sprite's are offsets from the centre until each is turned and has the centre added
+    s32     screenCentre; // Projected root: screen X in bits 0..15, Y in bits 16..31
+    s32     otz;          // Root's screen Z / 4: the divisor of the sprite's size, and the ordering-table depth of the quad
+} ActorScreenQuadScratch;
+STATIC_ASSERT_SIZEOF(ActorScreenQuadScratch, 0x28);
 
 /// Picking the next point to walk to relative to the player: the offset to
 /// the player, turned and scaled into a step toward the new point, the
@@ -347,16 +357,25 @@ typedef struct ActorMoveScratch {
 } ActorMoveScratch;
 STATIC_ASSERT_SIZEOF(ActorMoveScratch, 0x38);
 
-/// A 0x38-byte scratch-pad frame around the 16.16 step `func_800E0C10` or
-/// `func_800E0FEC` resolves into `delta`. The frame is taken whole so the
-/// caller's own scratch, taken below the head, stays clear of it; nothing
-/// else in it is read.
-typedef struct ActorDeltaFrame38 {
-    byte                pad_0[0x20];
-    WorldCollisionDelta delta;
-    byte                pad_30[0x8];
-} ActorDeltaFrame38;
-STATIC_ASSERT_SIZEOF(ActorDeltaFrame38, 0x38);
+/// Scratch-stack block of a contact step that keeps a single vector: the
+/// correction resolved from an actor's contact records.
+///
+/// A step reserves one block, has the push-back of the room's collision grid
+/// resolved from the records into `delta`, and adds the whole units of that
+/// correction to the actor's root. A step that goes on to take hits reuses
+/// `delta` for the offset from the root to the player, whose length is the
+/// range the hit's damage is worked out for. The block is released before
+/// the step returns, and nothing in it carries over to the next frame.
+///
+/// No step touches the bytes either side of `delta`, so the size is that of
+/// the reservation alone and what else the block was laid out to hold is
+/// unproven.
+typedef struct {
+    byte                unknown_0[0x20]; // Reserved with the block and never accessed; role unproven
+    WorldCollisionDelta delta;           // Correction resolved from the contact records, in signed 16.16 units; then the player's position minus the root's, in whole world units
+    byte                unknown_30[0x8]; // Reserved with the block and never accessed; role unproven
+} ActorContactDeltaScratch;
+STATIC_ASSERT_SIZEOF(ActorContactDeltaScratch, 0x38);
 
 /// The same frame at 0x48 bytes, for the steps that take the larger block.
 typedef struct ActorDeltaFrame48 {
@@ -396,16 +415,27 @@ typedef struct ActorPushFrame {
 } ActorPushFrame;
 STATIC_ASSERT_SIZEOF(ActorPushFrame, 0x58);
 
-/// The scratch-pad frame of a contact walk: `delta` receives the move
-/// `func_800E0C10` resolves and is then reused for each contact's offset,
-/// `normal` is that offset normalised, and `dir` the normal carried into the
-/// collision grid's frame, along which the deepest contact pushes.
-typedef struct ActorWallPushFrame {
-    WorldCollisionDelta delta;
-    VECTOR              normal;
-    VECTOR              dir;
-} ActorWallPushFrame;
-STATIC_ASSERT_SIZEOF(ActorWallPushFrame, 0x30);
+/// Scratch-stack block of a small enemy's contact pass, which ends by pushing
+/// the enemy out of the body it overlaps most.
+///
+/// The pass reserves one block, has the push-back of the room's collision
+/// grid resolved from the grid sphere's contact records into `delta`, and
+/// adds the whole units of that correction to the root. It then walks the
+/// hit sphere's records, reusing `delta` for each. A damaging contact, kind
+/// 0x20000, takes the offset to the attacking player, whose length is the
+/// range the damage is worked out for. A contact with a player's body, kind
+/// 0x10000, or an enemy's, kind 0x30000, takes the offset from that body's
+/// centre; the overlap is the record's summed radii less that offset's
+/// length. The deepest overlap leaves its direction in `normal` and
+/// `pushDirection`, and once the walk is over the root is moved that deep
+/// along `pushDirection` on X and Z. The block is released before the pass
+/// returns.
+typedef struct {
+    WorldCollisionDelta delta;         // Correction resolved from the grid contacts, in signed 16.16 units; then, in whole world units, the offset to the attacker or from the centre of the body being tested
+    VECTOR              normal;        // `delta` of the deepest overlap met so far, normalised: away from that body, 4096 = 1.0
+    VECTOR              pushDirection; // `normal` turned into the frame of the collision grid's coordinate; the root is pushed along its X and Z
+} ActorOverlapPushScratch;
+STATIC_ASSERT_SIZEOF(ActorOverlapPushScratch, 0x30);
 
 /// The scratch-pad block of an attack that pulls the player in: the
 /// animation argument sent with message 0x3F4, the placement sent with
@@ -529,17 +559,21 @@ typedef struct ActorEffectState {
 } ActorEffectState;
 STATIC_ASSERT_SIZEOF(ActorEffectState, 0xE8);
 
-/// A row of a small table the spawn argument's low nibble selects; its four
-/// halfwords are copied into the work block when the enemy is set up, and
-/// the tail is not copied.
-typedef struct ActorSpawnParamRow {
-    s16  field_0;
-    s16  field_2;
-    s16  field_4;
-    s16  field_6;
-    byte pad_8[0x4];
-} ActorSpawnParamRow;
-STATIC_ASSERT_SIZEOF(ActorSpawnParamRow, 0xC);
+/// One tuning of a Stranger: the four values the enemy keeps in its work
+/// block from the moment it is set up.
+///
+/// A Stranger package defines three tunings, and the low four bits of the
+/// spawn argument pick one: 2 the first, 1 the third, anything else the
+/// second. Each member is copied to the member of the work block that has
+/// the same role, and the enemy reads only that copy afterwards.
+typedef struct {
+    s16  downFramesBase; // Ticks the downed state lasts, before a random few more
+    s16  sidestepAngle;  // Angle between the bearing to the player and the direction a sidestep moves in, 4096 units per turn
+    s16  sidestepDelay;  // Ticks a chase must have run before it sidesteps, raised by half the sidesteps made since the last hit or grab
+    s16  noticeRadius;   // Distance at which a dormant or patrolling Stranger notices the player, world units
+    byte unknown_8[0x4]; // Never read, and zero in every table; role unproven
+} ActorStrangerVariant;
+STATIC_ASSERT_SIZEOF(ActorStrangerVariant, 0xC);
 
 /// One room's limits on the height of an actor's root.
 ///
@@ -825,13 +859,16 @@ typedef struct {
 } ActorCutsceneCue;
 STATIC_ASSERT_SIZEOF(ActorCutsceneCue, 0x8);
 
-/// One entry of a sprite frame table: the texture-page coordinates of the
-/// frame, each in the low byte of its halfword.
-typedef struct ActorSpriteUv {
-    u8 u;
-    u8 pad_1;
-    u8 v;
-    u8 pad_3;
+/// Where one cell of an animated sprite's sheet starts: an entry of the table
+/// the sprite's frame picks its cell from.
+///
+/// The coordinates are texels within the texture page the drawer selects. The
+/// drawer supplies the cell's size, 32 texels square in every table.
+typedef struct {
+    u8   u;         // Left texture column of the cell, in texels
+    byte unknown_1; // Never read, and zero in every table; role unproven
+    u8   v;         // Top texture row of the cell, in texels
+    byte unknown_3; // Never read, and zero in every table; role unproven
 } ActorSpriteUv;
 STATIC_ASSERT_SIZEOF(ActorSpriteUv, 0x4);
 

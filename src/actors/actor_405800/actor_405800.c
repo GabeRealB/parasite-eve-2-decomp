@@ -62,19 +62,6 @@
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
-/// 0x18-byte scratch from the scratch stack used by `func_actor_405800_80133800`
-/// to project the third model part's origin. `vec` is the zero vector fed to
-/// RTPS through that part's `workm`; `sxy` is `gte_stsxy`, `p` is `gte_stdp`,
-/// `flag` is `gte_stflg`, and `otz` is `gte_stszotz`.
-typedef struct Actor405800PerspScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     sxy;
-    /* 0x0C */ s32     p;
-    /* 0x10 */ s32     flag;
-    /* 0x14 */ s32     otz;
-} Actor405800PerspScratch;
-STATIC_ASSERT_SIZEOF(Actor405800PerspScratch, 0x18);
-
 /// Values of `_Actor405800IvoryStalkerWork::cloakRequest`.
 enum {
     ACTOR_405800_CLOAK_HIDE      = 0,    // cloak, then fade the body out and drop it from lock-on
@@ -1946,34 +1933,34 @@ static __inline__ void Actor405800_ProjectPart(GfxCoord* part)
 {
     void**                   scratch;
     u8*                      head;
-    Actor405800PerspScratch* block;
+    ActorOriginDepthScratch* block;
     SVECTOR*                 vec;
     MATRIX*                  wm;
 
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (Actor405800PerspScratch*)(head - 0x18);
+    block                          = (ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch));
     SCRATCH_HEAD_AT(scratch, void) = block;
-    block->vec.vx                  = 0;
-    block->vec.vy                  = 0;
-    block->vec.vz                  = 0;
+    block->origin.vx               = 0;
+    block->origin.vy               = 0;
+    block->origin.vz               = 0;
     Gp_UpdateCoord(part);
-    vec = &block->vec;
+    vec = &block->origin;
     wm  = &part->workm;
     gte_SetRotMatrix(wm);
     gte_SetTransMatrix(wm);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&((Actor405800PerspScratch*)(head - 0x18))->sxy);
-    gte_stdp(&((Actor405800PerspScratch*)(head - 0x18))->p);
-    gte_stflg(&((Actor405800PerspScratch*)(head - 0x18))->flag);
-    gte_stszotz(&((Actor405800PerspScratch*)(head - 0x18))->otz);
+    gte_stsxy(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->screenPos);
+    gte_stdp(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->depthCue);
+    gte_stflg(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->flag);
+    gte_stszotz(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->otz);
     if (block->flag < 0) {
         block->otz = 0;
     }
     block->otz = (block->otz >> 4) + 0x1E;
     frameCaptureQueue(block->otz);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor405800PerspScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorOriginDepthScratch);
 }
 
 static void func_actor_405800_80133800(Task* arg0)

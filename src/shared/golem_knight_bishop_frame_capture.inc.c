@@ -5,24 +5,24 @@
 /// (at depth `arg1` when the projection fails).
 void golemKnightBishopQueueFrameCapture(GfxCoord* arg0, s32 arg1)
 {
-    u8*                  head;
-    ActorProjectScratch* block;
-    SVECTOR*             vec;
+    u8*                      head;
+    ActorOriginDepthScratch* block;
+    SVECTOR*                 vec;
 
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    block                                     = (ActorProjectScratch*)(head - sizeof(ActorProjectScratch));
-    SCRATCH_STACK_CURSOR(ActorProjectScratch) = block;
-    block->vec.vx                             = 0;
-    block->vec.vy                             = 0;
-    block->vec.vz                             = 0;
+    head                                          = SCRATCH_STACK_CURSOR(u8);
+    block                                         = (ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch));
+    SCRATCH_STACK_CURSOR(ActorOriginDepthScratch) = block;
+    block->origin.vx                              = 0;
+    block->origin.vy                              = 0;
+    block->origin.vz                              = 0;
     Gp_UpdateCoord(arg0);
-    vec = &block->vec;
+    vec = &block->origin;
     gte_SetRotMatrix(&arg0->workm);
     gte_SetTransMatrix(&arg0->workm);
     gte_ldv0(vec);
     gte_rtps();
-    gte_stsxy(&block->sxy);
-    gte_stdp(&block->dp);
+    gte_stsxy(&block->screenPos);
+    gte_stdp(&block->depthCue);
     gte_stflg(&block->flag);
     gte_stszotz(&block->otz);
     if (block->flag < 0) {
@@ -30,5 +30,5 @@ void golemKnightBishopQueueFrameCapture(GfxCoord* arg0, s32 arg1)
     }
     block->otz = (block->otz >> 4) + arg1;
     frameCaptureQueue(block->otz);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorOriginDepthScratch);
 }
