@@ -377,8 +377,14 @@ def main() -> None:
         # Every reference C declares as a function says type:func, so one that
         # does not is data; and only an externally linked symbol can be meant.
         want_code = d.attrs.get('type') == 'func'
-        return {(j, n, code) for j in pool for n, code in symbols_at[j].get(d.addr, ())
-                if code == want_code and (j, n) not in PRIVATE}
+        found = {(j, n, code) for j in pool for n, code in symbols_at[j].get(d.addr, ())
+                 if code == want_code and (j, n) not in PRIVATE}
+        if not found and not want_code:
+            # A slot's load address: where every image of the slot begins. No
+            # object starts there by name, so the images themselves are what
+            # the reference can mean.
+            found = {(j, f'{j}_VRAM', False) for j in pool if ranges[j][0] == d.addr}
+        return found
 
     def family(image):
         """The family an overlay's config belongs to; a core image is its own."""

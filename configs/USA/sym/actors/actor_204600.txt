@@ -99,6 +99,6 @@ gSkullStalkerAnimSets = 0x801502C8; // size:0xC defined:True
 gSkullStalkerSparkOffset = 0x801502D4; // size:0x8 defined:True
 gSkullStalkerHitFxOffset = 0x801502DC; // size:0x8 defined:True
 
-D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True
+D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
 
 D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True owner=shelter_b3_dumping_hole

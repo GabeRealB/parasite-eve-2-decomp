@@ -158,7 +158,7 @@ D_actor_461800_80133F90 = 0x80133F90; // size:0x4E0 defined:True
 D_actor_461800_80134470 = 0x80134470; // size:0xC0 defined:True
 gFootstepWalkMode = 0x801438A8; // size:0x2 defined:True
 
-D_neo_ark_r31_8017DC54 = 0x8017DC54; // absolute:True
+D_neo_ark_r31_8017DC54 = 0x8017DC54; // absolute:True owner=neo_ark_r31 shared=rooms
 footstepWalkSpawn = 0x8013307C; // type:func
 footstepWalkUpdate = 0x801331E4; // type:func
 footstepWalkPlaySteps = 0x8013365C; // type:func

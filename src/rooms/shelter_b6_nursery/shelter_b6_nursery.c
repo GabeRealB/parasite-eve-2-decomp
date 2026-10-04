@@ -109,7 +109,7 @@ extern EvsCommand D_actor_450800_8013A33C[];
 extern EvsCommand D_actor_450800_8013A84C[];
 // Script in the companion actor slot; this address also holds a task table
 // when a different actor package is loaded.
-extern EvsCommand D_nursery_script_8013A8DC[];
+extern EvsCommand D_actor_450800_8013A8DC[];
 extern EvsCommand D_actor_450800_8013AF8C[];
 extern EvsCommand D_actor_450800_8013BA84[];
 
@@ -1014,7 +1014,7 @@ static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
     } else if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 1) {
         func_800E8614(D_actor_450800_8013A84C, 1);
     } else {
-        func_800E8614(D_nursery_script_8013A8DC, 1);
+        func_800E8614(D_actor_450800_8013A8DC, 1);
     }
     arg0->state++;
 }

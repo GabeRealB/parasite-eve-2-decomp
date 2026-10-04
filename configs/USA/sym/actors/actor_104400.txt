@@ -678,6 +678,6 @@ Actor04400_D107E4 = 0x80142604; // size:0xC defined:True
 Actor04400_D107F0 = 0x80142610; // size:0xC defined:True
 Actor04400_D107FC = 0x8014261C; // size:0xC defined:True
 
-D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True
+D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
 
 D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True owner=shelter_b3_dumping_hole

@@ -39,6 +39,8 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
+// Exported instance: a room spawns from this package's table by name.
+#define gStrideWalkTasks gActor460200StrideWalkTasks
 #include "../../shared/screen_negative.h"
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"

@@ -138,11 +138,11 @@ _gActor342400Animation11BA0Indices = 0x801739AC; // size:0x14 defined:True
 _gActor342400Animation11BA0 = 0x801739C0; // size:0x28 defined:True
 gMadChaserWaveEnemyCount = 0x80173AAC; // size:0x2 defined:True
 
-D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True
+D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
 
 D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True owner=shelter_b3_dumping_hole
 
-D_shelter_b3_garbage_incinerator_80187328 = 0x80187328; // absolute:True
+D_shelter_b3_garbage_incinerator_80187328 = 0x80187328; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
 madChaserTwistSpine = 0x801639A8; // type:func
 madChaserLinkBodies = 0x80165E4C; // type:func
 madChaserPinPart = 0x80169654; // type:func

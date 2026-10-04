@@ -516,7 +516,7 @@ static WorldCoordPointLight _gDryfieldR08AlternatePointLights[] = {
 WorldCoordRoomLights D_dryfield_r08_80180B58 = { 0, NULL, ARRAY_SIZE(_gDryfieldR08AlternatePointLights), _gDryfieldR08AlternatePointLights, 0, NULL };
 
 AreaResource D_dryfield_r08_80180B70[2] = {
-    { 132, 213, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013D390 },
+    { 132, 213, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_121300_8013D390 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

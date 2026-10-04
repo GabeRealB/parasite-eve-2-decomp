@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_460200.
 gStrideWalkAnimParams = 0x80148130; // size:0x30 defined:True
-gStrideWalkTasks = 0x80148118; // size:0x18 defined:True
+gActor460200StrideWalkTasks = 0x80148118; // size:0x18 defined:True
 gStrideWalkMessages = 0x801480E8; // size:0x30 defined:True
 _gActor460200SoldierCBodySkeleton = 0x80148160; // size:0x2D0 defined:True
 _gActor460200SoldierCBodyPartVerts = 0x80148430; // size:0x50 defined:True

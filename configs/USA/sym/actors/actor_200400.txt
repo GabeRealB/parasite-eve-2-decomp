@@ -352,17 +352,17 @@ D_shelter_b4_reservoir_80184F80 = 0x80184F80; // absolute:True owner=shelter_b4_
 D_shelter_b2_septic_tank_801836A4 = 0x801836A4; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_801836B4 = 0x801836B4; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_801832BC = 0x801832BC; // absolute:True owner=shelter_b2_septic_tank
-D_shelter_b4_upper_sewer_801866F8 = 0x801866F8; // absolute:True
-D_shelter_b4_upper_sewer_80186708 = 0x80186708; // absolute:True
-D_shelter_b4_upper_sewer_80186438 = 0x80186438; // absolute:True
+D_shelter_b4_upper_sewer_801866F8 = 0x801866F8; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
+D_shelter_b4_upper_sewer_80186708 = 0x80186708; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
+D_shelter_b4_upper_sewer_80186438 = 0x80186438; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
 D_neo_ark_bridge_801820BC = 0x801820BC; // absolute:True owner=neo_ark_bridge shared=rooms
 D_neo_ark_bridge_801820CC = 0x801820CC; // absolute:True owner=neo_ark_bridge shared=rooms
 D_neo_ark_bridge_80181FF8 = 0x80181FF8; // absolute:True owner=neo_ark_bridge
 D_neo_ark_submarine_gallery_80181B0C = 0x80181B0C; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 D_neo_ark_submarine_gallery_80181B1C = 0x80181B1C; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 D_neo_ark_submarine_gallery_80181A48 = 0x80181A48; // absolute:True owner=neo_ark_submarine_gallery
-D_neo_ark_submarine_tunnel_80181F94 = 0x80181F94; // absolute:True
-D_neo_ark_submarine_tunnel_80181E90 = 0x80181E90; // absolute:True
+D_neo_ark_submarine_tunnel_80181F94 = 0x80181F94; // absolute:True owner=neo_ark_submarine_tunnel shared=rooms
+D_neo_ark_submarine_tunnel_80181E90 = 0x80181E90; // absolute:True owner=neo_ark_submarine_tunnel shared=rooms
 D_neo_ark_pavilion_80183A64 = 0x80183A64; // absolute:True owner=neo_ark_pavilion shared=rooms
 D_neo_ark_pavilion_80183A74 = 0x80183A74; // absolute:True owner=neo_ark_pavilion shared=rooms
 D_neo_ark_pavilion_801839A0 = 0x801839A0; // absolute:True owner=neo_ark_pavilion
@@ -372,9 +372,9 @@ D_neo_ark_island_80181C24 = 0x80181C24; // absolute:True owner=neo_ark_island
 D_shelter_b2_main_corridor_80182EEC = 0x80182EEC; // absolute:True owner=shelter_b2_main_corridor shared=rooms
 D_shelter_b2_main_corridor_80182EFC = 0x80182EFC; // absolute:True owner=shelter_b2_main_corridor
 D_shelter_b2_main_corridor_80182E28 = 0x80182E28; // absolute:True owner=shelter_b2_main_corridor shared=rooms
-D_shelter_b4_lower_sewer_8018210C = 0x8018210C; // absolute:True
-D_shelter_b4_lower_sewer_8018211C = 0x8018211C; // absolute:True
-D_shelter_b4_lower_sewer_80181E6C = 0x80181E6C; // absolute:True
+D_shelter_b4_lower_sewer_8018210C = 0x8018210C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
+D_shelter_b4_lower_sewer_8018211C = 0x8018211C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
+D_shelter_b4_lower_sewer_80181E6C = 0x80181E6C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
 Actor00400_D15F20 = 0x8015FD40; // size:0xF0 defined:True
 Actor00400_D16010 = 0x8015FE30; // size:0x18 defined:True
 Actor00400_D16028 = 0x8015FE48; // size:0x24 defined:True

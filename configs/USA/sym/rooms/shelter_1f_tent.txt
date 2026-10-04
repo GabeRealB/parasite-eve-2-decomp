@@ -83,7 +83,7 @@ D_shelter_1f_tent_801843B8 = 0x801843B8; // size:0x8 defined:True
 gRoomCutsceneSoundTask = 0x801843C0; // size:0x4 defined:True
 D_shelter_1f_tent_801843C4 = 0x801843C4; // size:0x18 defined:True
 D_actor_460200_8013FC80 = 0x8013FC80; // absolute:True owner=actor_460200
-D_80148118 = 0x80148118; // absolute:True
+gActor460200StrideWalkTasks = 0x80148118; // absolute:True owner=actor_460200 shared=actors
 D_actor_460200_8015152C = 0x8015152C; // absolute:True owner=actor_460200
 D_map_neo_ark_8017C380 = 0x8017C380; // absolute:True owner=map_neo_ark
 D_acropolis_square_80188888 = 0x80188888; // absolute:True

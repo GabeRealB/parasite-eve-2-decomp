@@ -49,7 +49,7 @@ D_actor_310600_8017965C = 0x8017965C; // size:0x4 defined:True
 D_actor_310600_80179660 = 0x80179660; // size:0x2C defined:True
 D_actor_310600_8017968C = 0x8017968C; // size:0x8 defined:True
 
-D_acropolis_cafeteria_80182AD8 = 0x80182AD8; // absolute:True
+D_acropolis_cafeteria_80182AD8 = 0x80182AD8; // absolute:True owner=acropolis_cafeteria shared=rooms
 modelPlacementAttachChild = 0x801627A4; // type:func
 actorMsgPlaceEuler = 0x80162C18; // type:func
 modelPlacementAttachPart = 0x80162948; // type:func

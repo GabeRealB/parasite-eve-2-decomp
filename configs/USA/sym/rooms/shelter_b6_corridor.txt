@@ -36,7 +36,7 @@ gScreenWaveColumns = 0x8018056C; // size:0x50 defined:True
 D_actor_101100_80147400 = 0x80147400; // absolute:True owner=actor_101100
 D_actor_205200_8014CA60 = 0x8014CA60; // absolute:True owner=actor_205200
 D_actor_205200_801567C4 = 0x801567C4; // absolute:True owner=actor_205200
-D_80168EA4 = 0x80168EA4; // absolute:True
+D_actor_350500_80168EA4 = 0x80168EA4; // absolute:True owner=actor_350500 shared=actors
 D_map_neo_ark_8017C0F0 = 0x8017C0F0; // absolute:True owner=map_neo_ark
 D_shelter_b6_corridor_8017F684 = 0x8017F684; // size:0x1B0 defined:True
 D_shelter_b6_corridor_8017F2F4 = 0x8017F2F4; // size:0x18 defined:True

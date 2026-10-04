@@ -67,7 +67,7 @@ extern TaskDesc gActor105400GeneratorTasks[];
 
 extern TaskDesc D_actor_151000_8013D2E0;
 
-extern TaskDesc D_8013D390[];
+extern TaskDesc D_actor_121300_8013D390[];
 
 extern TaskDesc gActor105300GeneratorTasks[];
 
@@ -121,7 +121,7 @@ extern TaskDesc Actor02000_D15FD0[];
 
 extern TaskDesc D_actor_100300_80148110[];
 
-extern TaskDesc D_80148118[];
+extern TaskDesc gActor460200StrideWalkTasks[];
 
 extern TaskDesc D_actor_105600_801482C0[];
 
@@ -253,11 +253,11 @@ extern TaskDesc D_actor_300700_80165B88;
 
 extern TaskDesc Actor02500_D05B88[];
 
-extern TaskDesc D_80167A18[];
+extern TaskDesc D_actor_510900_80167A18[];
 
 extern TaskDesc D_actor_301200_80168E98[];
 
-extern TaskDesc D_80168EA4[];
+extern TaskDesc D_actor_350500_80168EA4;
 
 extern TaskDesc D_actor_311500_80169338;
 

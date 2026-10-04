@@ -299,9 +299,9 @@ D_map_shelter_8017C2D8 = 0x8017C2D8; // absolute:True owner=map_shelter
 D_map_neo_ark_8017CDFC = 0x8017CDFC; // absolute:True owner=map_neo_ark
 D_801D7000 = 0x801D7000; // absolute:True
 D_801FD000 = 0x801FD000; // absolute:True
-D_80131E20 = 0x80131E20; // absolute:True
-D_80149E20 = 0x80149E20; // absolute:True
-D_80161E20 = 0x80161E20; // absolute:True
+D_80131E20 = 0x80131E20; // absolute:True shared=actors
+D_80149E20 = 0x80149E20; // absolute:True shared=actors
+D_80161E20 = 0x80161E20; // absolute:True shared=actors
 D_80400000 = 0x80400000; // absolute:True
 
 D_80114B34 = 0x80114B34; // absolute:True size:0x48
