@@ -18,7 +18,7 @@ void oddStrangerStalk(Task* arg0)
     GfxCoord*          coord;
     GfxCoord*          facing;
     ActorChaseScratch* head;
-    ActorChaseScratch* s;
+    ActorChaseScratch* chase;
 #if ODD_STRANGER_VARIANT == 1
     s16 yaw;
 #endif
@@ -48,36 +48,36 @@ void oddStrangerStalk(Task* arg0)
     work->exitCounter++;
     head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
-    s                                       = head - 1;
+    chase                                   = head - 1;
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         if (ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 1) {
             oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     oddStrangerDrive(arg0);
-    s->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
-                          (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
+    chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                              (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
 #if ODD_STRANGER_VARIANT == 1
-    yaw                 = ratan2(s->delta.vx, s->delta.vz) + 0x800;
-    s->yaw              = yaw;
-    s->yaw              = actorNormalizeYaw(yaw);
-    coord               = arg0->extra.tmd->coords;
-    s->turn             = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    work->lookYawTarget = s->turn;
+    yaw                  = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+    chase->yawFromPlayer = yaw;
+    chase->yawFromPlayer = actorNormalizeYaw(yaw);
+    coord                = arg0->extra.tmd->coords;
+    chase->turn          = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->lookYawTarget  = chase->turn;
 #else
-    s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
-    s->yaw = actorNormalizeYaw(s->yaw);
+    chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+    chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
 #endif
     if (detectSightBlocked(arg0) != 1) {
         work->stateTimer    = 0;
         coord               = arg0->extra.tmd->coords;
-        s->turn             = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-        work->lookYawTarget = s->turn;
-        if (s->turn < 0x200) {
-            if (!oddStrangerOutOfRange(&s->delta, 0x44C) && work->grabCooldown == 0) {
+        chase->turn         = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->lookYawTarget = chase->turn;
+        if (chase->turn < 0x200) {
+            if (!oddStrangerOutOfRange(&chase->delta, 0x44C) && work->grabCooldown == 0) {
                 work->state = ODD_STRANGER_STATE_GRAB;
             }
         }
@@ -90,8 +90,8 @@ void oddStrangerStalk(Task* arg0)
         work->stateTimer++;
 #endif
         coord               = arg0->extra.tmd->coords;
-        s->turn             = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-        work->lookYawTarget = s->turn;
+        chase->turn         = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        work->lookYawTarget = chase->turn;
         if (work->sidestepSide == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 16) & 1) {
@@ -101,24 +101,24 @@ void oddStrangerStalk(Task* arg0)
             }
         }
         if (work->sidestepSide == 1) {
-            s->turn += ODD_STRANGER_STALK_TURN_BIAS;
+            chase->turn += ODD_STRANGER_STALK_TURN_BIAS;
         } else {
-            s->turn -= ODD_STRANGER_STALK_TURN_BIAS;
+            chase->turn -= ODD_STRANGER_STALK_TURN_BIAS;
         }
         if (work->stateTimer >= 0xF1) {
             work->stateTimer   = 0;
             work->sidestepSide = -work->sidestepSide;
         }
     }
-    if (s->turn > 0x20) {
-        s->turn = 0x20;
+    if (chase->turn > 0x20) {
+        chase->turn = 0x20;
     }
-    if (s->turn < -0x20) {
-        s->turn = -0x20;
+    if (chase->turn < -0x20) {
+        chase->turn = -0x20;
     }
-    facing   = arg0->extra.tmd->coords;
-    s->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->turn, 1);
+    facing       = arg0->extra.tmd->coords;
+    chase->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 2) {

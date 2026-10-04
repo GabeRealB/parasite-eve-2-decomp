@@ -87,12 +87,12 @@ void oddStrangerSidestep(Task* arg0)
         gte_lddp(work->sidestepStep);
         gte_ldsv(&work->sidestepDir);
         gte_gpf12();
-        gte_stsv(aim);
+        gte_stsv(&aim->delta);
     } else {
         gte_lddp(work->sidestepStep >> 1);
         gte_ldsv(&work->sidestepDir);
         gte_gpf12();
-        gte_stsv(aim);
+        gte_stsv(&aim->delta);
     }
     if ((u32)((u16)work->stateTimer - 0xC) < 0xAU) {
         coord              = arg0->extra.tmd->coords;

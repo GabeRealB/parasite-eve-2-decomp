@@ -216,16 +216,21 @@ typedef struct ActorTurnScratch {
 } ActorTurnScratch;
 STATIC_ASSERT_SIZEOF(ActorTurnScratch, 0xC);
 
-/// The scratch-pad block of a turn toward the player that also weighs where
-/// the player is facing: the offset to the player, the player's yaw, the yaw
-/// from the player back to the actor, the wrapped turn toward the player and
-/// the clamped turn applied. Aiming steps that only turn use `turn` alone.
-typedef struct ActorChaseScratch {
-    SVECTOR delta;
-    s16     playerYaw;
-    s16     yaw;
-    s16     turn;
-    s16     angle;
+/// The scratch-stack block of a state body that steers an actor by where the
+/// player is: the offset to the player and the yaws worked out from it.
+///
+/// One block serves one frame of one state. Every body fills `delta` and
+/// `turn`. Only a body that also weighs which way the player is looking fills
+/// `playerYaw` and `yawFromPlayer`, and only one that keeps the turn to the
+/// player apart from the heading it sets uses `heading`; the words a body does
+/// not use are left as the scratch stack had them. Yaws are 4096 units per
+/// turn, and a wrapped one lies in [-0x800, 0x800].
+typedef struct {
+    SVECTOR delta;         // Player's position minus the actor's, world units; a sidestep then overwrites it with the displacement it moves the actor by that frame
+    s16     playerYaw;     // Heading the player faces
+    s16     yawFromPlayer; // Bearing from the player to the actor, wrapped: the reverse of `delta`'s. Next to `playerYaw` when the player faces the actor, more than a quarter turn off it when the actor is behind
+    s16     turn;          // Wrapped turn from the actor's heading to the player. A body turning at the player limits it and adds the actor's heading, or replaces it with that heading outright, which leaves the heading it sets; a sidestep works out the heading it moves along here instead
+    s16     heading;       // Heading the actor is given where `turn` has to survive: a limited turn that keeps the player off to one side, added to the actor's heading, or the heading a turn-around starts from
 } ActorChaseScratch;
 STATIC_ASSERT_SIZEOF(ActorChaseScratch, 0x10);
 

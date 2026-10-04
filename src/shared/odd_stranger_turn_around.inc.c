@@ -42,9 +42,9 @@ void oddStrangerTurnAround(Task* arg0)
         coord               = arg0->extra.tmd->coords;
         aim->turn           = actorNormalizeYaw(ratan2(head[-1].delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         facing              = arg0->extra.tmd->coords;
-        aim->angle          = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-        work->turnYaw       = aim->angle;
-        work->turnYawTarget = aim->angle + (u16)aim->turn * 2;
+        aim->heading        = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        work->turnYaw       = aim->heading;
+        work->turnYawTarget = aim->heading + (u16)aim->turn * 2;
         SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
         return;
     }

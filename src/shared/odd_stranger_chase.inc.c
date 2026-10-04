@@ -3,9 +3,9 @@
 /// Turn-aim state body, as in `Actor01900_Fn04D14`: take a 0x10
 /// chase scratch off the scratch stack and, on the live-actor flag, key the
 /// two animation nodes, the frame counter and the `dashRateStep` clip phase.
-/// Once `exitCounter` has counted 7 frames the arm aims at the player - the yaw
-/// toward `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` goes in `playerYaw`, the wrapped yaw toward
-/// `gPlayerStatus.coordMtx` in `yaw` - and the root is turned by the facing
+/// Once `exitCounter` has counted 7 frames the arm aims at the player - the
+/// player's own facing yaw goes in `playerYaw`, the wrapped yaw from the player
+/// back to the actor in `yawFromPlayer` - and the root is turned by the facing
 /// yaw plus a +-0x60 clamp of the turn's 1000 bias. The forward draw
 /// `slideStep` is the doubled frame parameter (halved while `blendActive` is
 /// up, forced to 2 while the frame counter runs), and the actor slides along
@@ -62,11 +62,11 @@ void oddStrangerChase(Task* arg0)
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->exitCounter >= 7) {
-        chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
-                                  (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-        chase->yaw       = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-        chase->yaw       = actorNormalizeYaw(chase->yaw);
-        work->state      = ODD_STRANGER_STATE_SLIDE;
+        chase->playerYaw     = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                                      (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
+        chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+        chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
+        work->state          = ODD_STRANGER_STATE_SLIDE;
     }
     coord       = arg0->extra.tmd->coords;
     chase->turn = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -74,25 +74,25 @@ void oddStrangerChase(Task* arg0)
     if (turn >= 0) {
         diffPos = turn - 1000;
         if (ABS(diffPos) < 0x60) {
-            chase->angle = chase->turn - 1000;
+            chase->heading = chase->turn - 1000;
         } else if (diffPos > 0) {
-            chase->angle = 0x60;
+            chase->heading = 0x60;
         } else {
-            chase->angle = -0x60;
+            chase->heading = -0x60;
         }
     } else {
         diffNeg = turn + 1000;
         if (ABS(diffNeg) < 0x60) {
-            chase->angle = chase->turn + 1000;
+            chase->heading = chase->turn + 1000;
         } else if (diffNeg > 0) {
-            chase->angle = 0x60;
+            chase->heading = 0x60;
         } else {
-            chase->angle = -0x60;
+            chase->heading = -0x60;
         }
     }
-    facing        = arg0->extra.tmd->coords;
-    chase->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->angle, 1);
+    facing          = arg0->extra.tmd->coords;
+    chase->heading += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->heading, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     coord                                 = arg0->extra.tmd->coords;
     work->lookYawTarget                   = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -120,9 +120,9 @@ void oddStrangerChase(Task* arg0)
             chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
             actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
-            chase->yaw = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-            chase->yaw = actorNormalizeYaw(chase->yaw);
-            yaw        = chase->yaw - chase->playerYaw;
+            chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+            chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
+            yaw                  = chase->yawFromPlayer - chase->playerYaw;
             if (yaw < 0) {
                 yaw = -yaw;
             }

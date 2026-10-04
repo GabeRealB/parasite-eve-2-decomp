@@ -1158,9 +1158,9 @@ Without it, all four spellings of "add `K` to one halfword, then add the other"
 fold to the same node and put `K` on the *wrong* operand:
 
 ```
-/* work->sidestepAngle + (aim->angle + 0x171)
-   aim->angle + 0x171 + work->sidestepAngle
-   aim->angle + (0x171 + work->sidestepAngle)      -- all identical */
+/* work->sidestepAngle + (aim->turn + 0x171)
+   aim->turn + 0x171 + work->sidestepAngle
+   aim->turn + (0x171 + work->sidestepAngle)      -- all identical */
 lhu  $2, 2902(b56)      /* constant rides B56 */
 lhu  $3, 12(angle)
 addu $2, $2, 369
@@ -1172,8 +1172,8 @@ halfword it was added to, which is what the target shows:
 
 ```c
 u16 angle;                          /* the truncating temp is the whole trick */
-angle      = aim->angle + 0x171;
-aim->angle = work->sidestepAngle + angle;
+angle      = aim->turn + 0x171;
+aim->turn = work->sidestepAngle + angle;
 ```
 
 ```
@@ -88003,13 +88003,13 @@ What matches: store the normalized result to the field, test a reload of it,
 and read the field again for the stored value:
 
 ```c
-s->turn = actorNormalizeYaw(...);
-turn    = s->turn;               /* sign_extend(subreg) - a distinct pseudo to cse */
+chase->turn = actorNormalizeYaw(...);
+turn    = chase->turn;               /* sign_extend(subreg) - a distinct pseudo to cse */
 if (turn >= 0) {
     diffPos = turn - 1000;
     if (((diffPos < 0) ? -diffPos : diffPos) < 0x60) {
-        s->angle = s->turn - 1000; /* cse maps the read to the stored pseudo, not to `turn` */
-    } else if (diffPos > 0) { s->angle = 0x60; } else { s->angle = -0x60; }
+        chase->heading = chase->turn - 1000; /* cse maps the read to the stored pseudo, not to `turn` */
+    } else if (diffPos > 0) { chase->heading = 0x60; } else { chase->heading = -0x60; }
 } else { /* same with diffNeg = turn + 1000 */ }
 ```
 
@@ -88100,7 +88100,7 @@ if (enemy->hp <= 0) {
 ```
 
 Same function: a hand-written yaw wrap loop left the loop variable in `$v1`
-instead of `$a1`; `s->yaw = actorNormalizeYaw(s->yaw)` (the overlay's
+instead of `$a1`; `chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer)` (the overlay's
 existing inline) put it in `$a1`, because the inline's return pseudo, not the
 loop variable, is what gets stored and passed.
 
@@ -108116,7 +108116,7 @@ constant `amount` folds the branch away either way.
 ## A chain whose arms all end in the same statement: m2c's reversed test is the polarity to write (func_actor_401800_8013B784, 2026-09-16)
 
 `func_actor_401800_8013B784` turns its stored yaw toward the target yaw by at most
-`0x28` a frame, and both arms of the step write the same `work->lookYawTarget = aim->angle`
+`0x28` a frame, and both arms of the step write the same `work->lookYawTarget = aim->turn`
 when the gap is under `0x29`. The target branches *both* arms forward to one shared
 store, each arm carrying its own step store in the delay slot of its `j`:
 
@@ -109687,7 +109687,7 @@ Three things made it one-shot:
    `_OutOfRange` / `_MoveForward`; `src/actors/actor_401000/actor_401000.c` already
    carries the 401000 copies of all five, and they expand to the same RTL. The one
    place the two differ is the helper *boundary*, not the body: this target inlines
-   `OutOfRange` straight after the `s->angle < 0x200` test with a `&& work->grabCooldown == 0`
+   `OutOfRange` straight after the `chase->turn < 0x200` test with a `&& work->grabCooldown == 0`
    short-circuit, where the 401300 twin stops at the range call.
 
 3. **Read `else if` constants off the target, not off the twin.** The tail here is
@@ -131645,7 +131645,7 @@ is a bare `move`.
 ```c
 yaw   = wrapped;        /* sra */
 yaw16 = yaw;            /* folded away; leaves move */
-aim->angle = yaw;       /* sh, sra result */
+aim->turn = yaw;       /* sh, sra result */
 if (work->field_8AE < yaw16) { ... }   /* slt, the copy */
 ```
 
@@ -135734,10 +135734,10 @@ This preserved the required call-crossing range while resolving all eleven
 coordinate sites. Splitting only the tail would leave the delta pointer sharing
 the call-crossing turn range.
 
-The push also needed an intermediate value: `block = head - 0x10; *scratch =
-block; s = (ActorChaseScratch*)block;`. Base_5 `.cse` retains the temporary,
-its store, then the copy into the long-lived `s`. The temporary gets v0 and `s`
-gets s2, supplying the target's copy and allowing removal of the seed's redundant
+The push also needed an intermediate value: `block = head - 1; *scratch =
+block; chase = block;`. Base_5 `.cse` retains the temporary,
+its store, then the copy into the long-lived `chase`. The temporary gets v0 and
+`chase` gets s2, supplying the target's copy and allowing removal of the seed's redundant
 saved actor alias. This resolved every remaining register site, distance 300→240.
 
 The permuter's one-trip reset loop had improved distance 675→355. Reusing a flags

@@ -1403,9 +1403,9 @@ static void func_actor_401800_80136560(Task* arg0)
     GfxCoord*          turnCoord;
     GfxCoord*          facing;
     void**             scratch;
-    u8*                head;
-    u8*                block;
-    ActorChaseScratch* s;
+    ActorChaseScratch* head;
+    ActorChaseScratch* block;
+    ActorChaseScratch* chase;
     s32                kind;
 
     kind = (arg0->spawnArg1.value >> 16);
@@ -1433,54 +1433,54 @@ static void func_actor_401800_80136560(Task* arg0)
         return;
     }
     work->stateTimer++;
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = head - 0x10;
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    s                              = (ActorChaseScratch*)block;
+    scratch                                     = SCRATCH_HEAD_ADDR;
+    head                                        = SCRATCH_HEAD_AT(scratch, ActorChaseScratch);
+    block                                       = head - 1;
+    SCRATCH_HEAD_AT(scratch, ActorChaseScratch) = block;
+    chase                                       = block;
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
-    coord                                         = arg0->extra.tmd->coords;
-    ((ActorChaseScratch*)(head - 0x10))->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    s->delta.vy                                   = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    s->delta.vz                                   = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    arg0->extra.tmd->coords->composeStamp         = GRAPHICS_COORD_DIRTY;
+    coord                                 = arg0->extra.tmd->coords;
+    head[-1].delta.vx                     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    chase->delta.vy                       = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    chase->delta.vz                       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     oddStrangerDrive(arg0);
-    s->playerYaw                                  = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
-                                                           gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
-    coord                                         = arg0->extra.tmd->coords;
-    ((ActorChaseScratch*)(head - 0x10))->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    s->delta.vy                                   = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    s->delta.vz                                   = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    s->yaw                                        = ratan2(s->delta.vx, s->delta.vz) + 0x800;
-    s->yaw                                        = actorNormalizeYaw(s->yaw);
-    turnCoord                                     = arg0->extra.tmd->coords;
-    s->turn                                       = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]));
-    work->lookYawTarget                           = s->turn;
-    if (abs(s->yaw - s->playerYaw) < 0x44) {
+    chase->playerYaw     = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
+                                  gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
+    coord                = arg0->extra.tmd->coords;
+    head[-1].delta.vx    = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    chase->delta.vy      = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    chase->delta.vz      = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+    chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
+    turnCoord            = arg0->extra.tmd->coords;
+    chase->turn          = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]));
+    work->lookYawTarget  = chase->turn;
+    if (abs(chase->yawFromPlayer - chase->playerYaw) < 0x44) {
         if (((s16)work->sidestepDelay + work->sidestepCount / 2) < work->stateTimer) {
-            if (abs(s->turn) < 0x80) {
-                if (Actor401800_ChaseOutOfRange(&s->delta, 0x708) && detectSightBlocked(arg0) != 1) {
+            if (abs(chase->turn) < 0x80) {
+                if (Actor401800_ChaseOutOfRange(&chase->delta, 0x708) && detectSightBlocked(arg0) != 1) {
                     work->state = ODD_STRANGER_STATE_SIDESTEP;
                 }
             }
         }
     }
-    if (s->turn < 0x200) {
-        if (!Actor401800_ChaseOutOfRange(&s->delta, 0x44C) && detectSightBlocked(arg0) != 1 && work->grabCooldown == 0) {
+    if (chase->turn < 0x200) {
+        if (!Actor401800_ChaseOutOfRange(&chase->delta, 0x44C) && detectSightBlocked(arg0) != 1 && work->grabCooldown == 0) {
             work->state = ODD_STRANGER_STATE_GRAB;
         }
     }
-    if (s->turn > 0x30) {
-        s->turn = 0x30;
+    if (chase->turn > 0x30) {
+        chase->turn = 0x30;
     }
-    if (s->turn < -0x30) {
-        s->turn = -0x30;
+    if (chase->turn < -0x30) {
+        chase->turn = -0x30;
     }
-    facing   = arg0->extra.tmd->coords;
-    s->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->turn, 1);
+    facing       = arg0->extra.tmd->coords;
+    chase->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 3) {

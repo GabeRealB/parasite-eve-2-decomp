@@ -281,6 +281,21 @@ typedef struct Actor401300LungeScratch {
 } Actor401300LungeScratch;
 STATIC_ASSERT_SIZEOF(Actor401300LungeScratch, 0x24);
 
+/// The scratch-stack block of the charge.
+///
+/// It has the size of `ActorChaseScratch` and the same vector and turn, but
+/// the charge keeps what the grid push reported where that block holds a
+/// heading, and never touches the two words that block keeps for the player's
+/// yaws.
+typedef struct {
+    SVECTOR delta;      // Player's position minus the actor's, world units; on a catch it is reversed to turn the player, then replaced by the player's forward axis and the step the player is knocked along it
+    s16     field_8;    // Neither read nor written by the charge; role unproven
+    s16     field_A;    // Neither read nor written by the charge; role unproven
+    s16     turn;       // Wrapped turn from the actor's heading to the player, limited and added to the heading to steer; on a catch, the turn from the player's heading to the actor
+    s16     gridPushed; // 1 when the grid contacts moved the actor this frame, else 0
+} _Actor401300ChargeScratch;
+STATIC_ASSERT_SIZEOF(_Actor401300ChargeScratch, 0x10);
+
 /// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
 /// each spawn in `func_actor_401300_8013B6E8`.
 
@@ -3176,14 +3191,14 @@ static void func_actor_401300_801376E4(Task* arg0)
     GfxCoord*          coord;
     GfxCoord*          facing;
     ActorChaseScratch* head;
-    ActorChaseScratch* s;
+    ActorChaseScratch* chase;
 
     work = arg0->work;
     if (work->stateEntered != 0) {
         head                                                      = SCRATCH_STACK_CURSOR(ActorChaseScratch);
         obj                                                       = arg0->extra.tmd;
         SCRATCH_STACK_CURSOR(ActorChaseScratch)                   = head - 1;
-        s                                                         = head - 1;
+        chase                                                     = head - 1;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
@@ -3196,23 +3211,23 @@ static void func_actor_401300_801376E4(Task* arg0)
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         func_actor_401300_80133A3C(arg0);
-        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
+        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
         coord               = arg0->extra.tmd->coords;
-        s->turn             = actorNormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        chase->turn         = actorNormalizeYaw(ratan2(head[-1].delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         facing              = arg0->extra.tmd->coords;
-        s->angle            = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-        work->turnYaw       = s->angle;
-        work->turnYawTarget = s->angle + (u16)s->turn * 2;
+        chase->heading      = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        work->turnYaw       = chase->heading;
+        work->turnYawTarget = chase->heading + (u16)chase->turn * 2;
         SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
         return;
     }
     head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
-    s                                       = head - 1;
+    chase                                   = head - 1;
     func_actor_401300_80133A3C(arg0);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->turnYaw == work->turnYawTarget) {
-        if (work->field_D1C < 2 || overlayOutOfRange(&s->delta, 0x384)) {
+        if (work->field_D1C < 2 || overlayOutOfRange(&chase->delta, 0x384)) {
             work->state = ACTOR_401300_STATE_WITHDRAW;
         } else {
             work->state = ACTOR_401300_STATE_GRAB;
@@ -3325,12 +3340,12 @@ static void func_actor_401300_80137D78(Task* arg0)
         gte_lddp(work->sidestepStep);
         gte_ldsv(&work->sidestepDir);
         gte_gpf12();
-        gte_stsv(aim);
+        gte_stsv(&aim->delta);
     } else {
         gte_lddp(work->sidestepStep >> 1);
         gte_ldsv(&work->sidestepDir);
         gte_gpf12();
-        gte_stsv(aim);
+        gte_stsv(&aim->delta);
     }
     if (work->stateTimer >= 0xC && work->stateTimer < 0x16) {
         coord              = arg0->extra.tmd->coords;
@@ -4381,8 +4396,8 @@ static void func_actor_401300_8013CBAC(Task* arg0)
     aim->delta.vy       = config->coordMtx->t[1] - root2->coord.t[1];
     aim->delta.vz       = config->coordMtx->t[2] - root2->coord.t[2];
     yaw                 = ratan2(head[-1].delta.vx, aim->delta.vz) + 0x800;
-    aim->yaw            = yaw;
-    aim->yaw            = actorNormalizeYaw(yaw);
+    aim->yawFromPlayer  = yaw;
+    aim->yawFromPlayer  = actorNormalizeYaw(yaw);
     coord               = arg0->extra.tmd->coords;
     angle               = ratan2(aim->delta.vx, aim->delta.vz);
     aim->turn           = actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -4640,19 +4655,19 @@ static __inline__ void Actor401300_MoveForwardSave(McSaveData* save, GfxCoord* c
 
 static void func_actor_401300_8013DADC(Task* arg0)
 {
-    _Actor401300Work*  work;
-    Task*              task;
-    GameActor*         player;
-    PlayerStatus*      config;
-    Enemy*             enemy;
-    TmdObject*         obj;
-    GfxCoord*          root;
-    SVECTOR**          scratch;
-    ActorChaseScratch* head;
-    ActorChaseScratch* aim;
-    s16                amount;
-    s16                ret;
-    McSaveData*        save;
+    _Actor401300Work*          work;
+    Task*                      task;
+    GameActor*                 player;
+    PlayerStatus*              config;
+    Enemy*                     enemy;
+    TmdObject*                 obj;
+    GfxCoord*                  root;
+    void**                     scratch;
+    _Actor401300ChargeScratch* head;
+    _Actor401300ChargeScratch* aim;
+    s16                        amount;
+    s16                        ret;
+    McSaveData*                save;
 
     work   = arg0->work;
     task   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -4679,24 +4694,24 @@ static void func_actor_401300_8013DADC(Task* arg0)
         work->jointPairStep   = 0x40;
         return;
     }
-    scratch = (SVECTOR**)SCRATCH_HEAD_ADDR;
+    scratch = SCRATCH_HEAD_ADDR;
     config  = &gPlayerStatus;
     work->stateTimer++;
     root              = arg0->extra.tmd->coords;
-    head              = (ActorChaseScratch*)SCRATCH_HEAD_AT(scratch, SVECTOR);
+    head              = SCRATCH_HEAD_AT(scratch, _Actor401300ChargeScratch);
     head[-1].delta.vx = config->coordMtx->t[0] - root->coord.t[0];
-    aim               = (ActorChaseScratch*)(SCRATCH_HEAD_AT(scratch, SVECTOR) = (SVECTOR*)(head - 1));
+    aim               = (SCRATCH_HEAD_AT(scratch, _Actor401300ChargeScratch) = head - 1);
     aim->delta.vy     = config->coordMtx->t[1] - root->coord.t[1];
     aim->delta.vz     = config->coordMtx->t[2] - root->coord.t[2];
     save              = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     func_actor_401300_80133A3C(arg0);
     switch (work->animId) {
         case 0x1B:
-            if ((aim->angle = func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57)) != 0 &&
+            if ((aim->gridPushed = func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57)) != 0 &&
                 work->stateTimer >= 0x15) {
                 work->blockedFrames++;
             } else {
-                if (aim->angle != 1) {
+                if (aim->gridPushed != 1) {
                     func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
                 }
                 work->blockedFrames = 0;
@@ -4735,11 +4750,11 @@ static void func_actor_401300_8013DADC(Task* arg0)
             Actor401300_ResetActorYaw(arg0);
             break;
         case 0x1C:
-            if ((aim->angle = func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57)) != 0 &&
+            if ((aim->gridPushed = func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57)) != 0 &&
                 work->stateTimer >= 0x15) {
                 work->blockedFrames++;
             } else {
-                if (aim->angle != 1) {
+                if (aim->gridPushed != 1) {
                     func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
                 }
                 work->blockedFrames = 0;
@@ -4842,7 +4857,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
             work->state = ACTOR_401300_STATE_PATROL;
             break;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor401300ChargeScratch);
 }
 
 /// `actorMoveForwardNonzero` testing `actorsFrozen` through a `McSaveData*`.

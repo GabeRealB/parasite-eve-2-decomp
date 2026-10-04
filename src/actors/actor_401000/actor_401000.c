@@ -1537,12 +1537,12 @@ static void func_actor_401000_80135AA4(Task* arg0)
     chase->playerYaw = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
                               gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
-    chase->yaw          = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-    chase->yaw          = actorNormalizeYaw(chase->yaw);
-    coord               = arg0->extra.tmd->coords;
-    chase->turn         = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    work->lookYawTarget = chase->turn;
-    diff                = chase->yaw - chase->playerYaw;
+    chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+    chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
+    coord                = arg0->extra.tmd->coords;
+    chase->turn          = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->lookYawTarget  = chase->turn;
+    diff                 = chase->yawFromPlayer - chase->playerYaw;
     if (ABS(diff) < 0x44) {
         if (work->sidestepDelay + work->sidestepCount / 2 < work->stateTimer) {
             angle = chase->turn;
