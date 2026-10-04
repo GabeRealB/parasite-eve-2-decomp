@@ -35,72 +35,74 @@
 
 #include "overlay.h"
 
-/// Work block for the `actor_303600` overlay's cutscene controller.
+/// Work block of the package's cutscene controller, the task that starts the
+/// cutscene's event script and carries out the cues that script posts.
 ///
-/// `func_actor_303600_8016216C` allocates it with `memMalloc(0x10, 0)`, zeroes
-/// it with `memFillBytes` and parks the pointer in the task's `Task::work` slot
-/// (0x1C); reach the block with
-/// `(Actor303600Work*)task->work`.  The same function publishes the task
-/// itself in `D_actor_303600_8016E4C0` and stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task
-/// in `field_0`.
+/// The controller allocates it cleared into `Task::work` when it arms, so its
+/// size is that allocation's. A script callback posts a cue in `command`, and
+/// the controller's next tick carries it out and clears it:
 ///
-/// `command` is the request the overlay's state machine dispatches on:
-/// `func_actor_303600_80161F40` switches on it through
-/// `jtbl_actor_303600_80161E24` (values 0..8) and clears it again on the way
-/// out.  `field_C` records the message the dispatcher last sent and `field_E`
-/// is the "a message is outstanding" flag that
-/// `func_actor_303600_801624B0` / `func_actor_303600_8016253C` test before
-/// sending another.
-typedef struct Actor303600Work {
-    /* 0x0 */ Task* field_0; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task
-    /* 0x4 */ u16   command; // state-machine request, see jtbl_actor_303600_80161E24
-    /* 0x6 */ s16   field_6; // cleared alongside command
-    /* 0x8 */ byte  pad_8[0x4];
-    /* 0xC */ s16   field_C; // message id last dispatched
-    /* 0xE */ u16   field_E; // set to 1 while a dispatched message is outstanding
-} Actor303600Work;
-STATIC_ASSERT_SIZEOF(Actor303600Work, 0x10);
+/// - 0: none.
+/// - 1 to 5: broadcast the same-numbered actor command to the scene's actors;
+///   4 also starts a white flash that fades away.
+/// - 6 and 7: start a fade to white, fast and slow.
+/// - 8: cover the screen in black and start the fading white flash over it.
+///
+/// Actor command 9, the last the cutscene sends, does not go through
+/// `command`: either of two script callbacks broadcasts it directly.
+typedef struct {
+    Task* player;           // Player task when the controller armed; never read
+    u16   command;          // Cue the script posted, carried out and cleared on the controller's next tick (values above)
+    s16   field_6;          // Cleared with each posted cue and never read; role unproven
+    byte  pad_8[0x4];       // Never accessed
+    s16   lastActorCommand; // Actor command last broadcast (1 to 5, or 9); never read
+    u16   endCommandSent;   // Actor command 9 has been broadcast (0 not yet, 1 sent), so its two senders send it once between them
+} _Actor303600CutsceneWork;
+STATIC_ASSERT_SIZEOF(_Actor303600CutsceneWork, 0x10);
 
-/// Light / colour matrix pair the overlay's actor hands to its model: the pair
-/// `func_actor_303600_80162950` allocates with `memCalloc(0x44, 0)` and parks
-/// in its own task's `Task::work` slot (0x1C), so
-/// reach it with `(Actor303600LightMats*)task->work`.  The four bytes after
-/// the two matrices are part of the allocation and are never read here.
-typedef struct Actor303600LightMats {
-    /* 0x00 */ MATRIX lightMtx;
-    /* 0x20 */ MATRIX colorMtx;
-    /* 0x40 */ byte   pad_40[0x4];
-} Actor303600LightMats;
-STATIC_ASSERT_SIZEOF(Actor303600LightMats, 0x44);
+/// Height of one shaft segment's model in world units, and so the pitch the
+/// segments are stacked at.
+#define ACTOR_303600_SHAFT_SEGMENT_HEIGHT 8000
 
-/// Work block of the task `func_actor_303600_80162A7C` dispatches through
-/// `D_actor_303600_80161E48`: `func_actor_303600_801626C0` allocates it with
-/// `memCalloc(0x3C, 0)`, parks it in `Task::work` (0x1C), fills `children` with
-/// the five model tasks it spawns -- one
-/// `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1 each, spread
-/// 8000 units apart in y and spliced under this task's own coordinate, so
-/// `children[i]` owns the light matrices -- and installs the 0x7DB handler
-/// table in `Task::msgTable`.  `func_actor_303600_801627B8` then moves the rig
-/// each frame: `field_28` (a 16.16 speed) ramps toward `field_38` at `field_34`
-/// a frame and stops once it passes it, and `field_18` accumulates `field_28`
-/// and is folded back into +/-4000 before its integer half becomes the task
-/// coordinate's `t[1]` (the `lh` from 0x1A).  The words this block does not yet
-/// name are the same shape, so `field_28`/`field_34`/`field_38` are the three
-/// the 0x7DB handler below arms.
-typedef struct Actor303600RigWork {
-    /* 0x00 */ Task*   children[5];
-    /* 0x14 */ s32     field_14;
-    /* 0x18 */ Fixed16 field_18;
-    /* 0x1C */ s32     field_1C;
-    /* 0x20 */ s32     field_20;
-    /* 0x24 */ s32     field_24;
-    /* 0x28 */ s32     field_28;
-    /* 0x2C */ s32     field_2C;
-    /* 0x30 */ s32     field_30;
-    /* 0x34 */ s32     field_34;
-    /* 0x38 */ s32     field_38;
-} Actor303600RigWork;
-STATIC_ASSERT_SIZEOF(Actor303600RigWork, 0x3C);
+/// Work block of one segment of the package's scrolling shaft: the light
+/// matrices its model draws with.
+///
+/// The segment's task allocates it zeroed into `Task::work`, so its size is
+/// that allocation's, and points its model at the two matrices, which the
+/// model borrows for as long as the task lives.
+typedef struct {
+    MATRIX lightMtx;    // Light-direction matrix the model borrows, filled from the package's three flat lights
+    MATRIX colorMtx;    // Light-colour matrix the model borrows, filled with `lightMtx`
+    byte   pad_40[0x4]; // Never accessed
+} _Actor303600ShaftSegmentWork;
+STATIC_ASSERT_SIZEOF(_Actor303600ShaftSegmentWork, 0x44);
+
+/// Work block of the package's scrolling shaft, a tube of five identical
+/// segments stacked along Y that slides past without end.
+///
+/// The shaft's task allocates it zeroed into `Task::work`, so its size is that
+/// allocation's. The segments hang under the task's own coordinate, so moving
+/// that coordinate moves the whole stack. Each frame `scrollSpeed` changes by
+/// `scrollAccel` until it passes `scrollSpeedLimit`, and is added to `scrollY`,
+/// which wraps by one segment height to stay within half a segment of zero;
+/// the segments being identical, the wrap does not show. An actor command
+/// sent to the task sets the ramp.
+///
+/// The speed, its step and its limit are signed 16.16 world units a frame.
+typedef struct {
+    Task*   segments[5];      // Segment model tasks in order of increasing Y; left NULL from the first failed spawn on, never read
+    s32     field_14;         // Never accessed; role unproven
+    Fixed16 scrollY;          // Y translation of the stack, within half a segment height of zero
+    s32     field_1C;         // Never accessed; role unproven
+    s32     field_20;         // Never accessed; role unproven
+    s32     field_24;         // Never accessed; role unproven
+    s32     scrollSpeed;      // Added to `scrollY` each frame
+    s32     field_2C;         // Never accessed; role unproven
+    s32     field_30;         // Never accessed; role unproven
+    s32     scrollAccel;      // Added to `scrollSpeed` each frame; cleared once the speed passes the limit
+    s32     scrollSpeedLimit; // Speed the ramp ends at: above it for a positive `scrollAccel`, below it otherwise
+} _Actor303600ShaftWork;
+STATIC_ASSERT_SIZEOF(_Actor303600ShaftWork, 0x3C);
 
 extern Task*    D_actor_303600_8016E4C0;
 extern Task*    D_actor_303600_8016E4C4;
@@ -16886,49 +16888,49 @@ void func_actor_303600_80161E60(Task* task)
 /// Command dispatcher the cutscene controller steps while the cutscene is up.
 /// Commands 1-5 send the slot-4 task message 0x7DA carrying the session's two id
 /// bytes and the command as selector, latching it in the published work block's
-/// `field_C`; 4 then kills the fade in `D_actor_303600_8016E4C4` and spawns
+/// `lastActorCommand`; 4 then kills the fade in `D_actor_303600_8016E4C4` and spawns
 /// `D_actor_303600_80162E98` entry 1. 6 and 7 spawn entry 2, and 8 kills the fade
 /// and spawns entries 3 and 1. The command is cleared on the way out.
 static void func_actor_303600_80161F40(Task* arg0)
 {
-    Actor303600Work* work = (Actor303600Work*)arg0->work;
-    Actor303600Work* w;
-    ActorCommand     msg;
+    _Actor303600CutsceneWork* work = arg0->work;
+    _Actor303600CutsceneWork* w;
+    ActorCommand              msg;
 
     switch (work->command) {
         case 0:
             break;
         case 1:
-            w                     = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+            w                     = D_actor_303600_8016E4C0->work;
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 1;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            w->field_C = 1;
+            w->lastActorCommand = 1;
             break;
         case 2:
-            w                     = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+            w                     = D_actor_303600_8016E4C0->work;
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 2;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            w->field_C = 2;
+            w->lastActorCommand = 2;
             break;
         case 3:
-            w                     = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+            w                     = D_actor_303600_8016E4C0->work;
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 3;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            w->field_C = 3;
+            w->lastActorCommand = 3;
             break;
         case 4:
-            w                     = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+            w                     = D_actor_303600_8016E4C0->work;
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 4;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            w->field_C = 4;
+            w->lastActorCommand = 4;
             if (D_actor_303600_8016E4C4 != NULL) {
                 taskKill(D_actor_303600_8016E4C4);
                 D_actor_303600_8016E4C4 = NULL;
@@ -16936,12 +16938,12 @@ static void func_actor_303600_80161F40(Task* arg0)
             Task_SpawnFromTable(D_actor_303600_80162E98, 1, 4, 0);
             break;
         case 5:
-            w                     = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+            w                     = D_actor_303600_8016E4C0->work;
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 5;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            w->field_C = 5;
+            w->lastActorCommand = 5;
             break;
         case 6:
             Task_SpawnFromTable(D_actor_303600_80162E98, 2, 8, 0);
@@ -16964,8 +16966,8 @@ static void func_actor_303600_80161F40(Task* arg0)
 /// Cutscene controller for the overlay. State 0 arms it once: it waits while the
 /// attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is live, so the state is
 /// left where it is and the task returns; otherwise it allocates the
-/// `Actor303600Work` block, zeroes it, parks the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task in
-/// `field_0` and publishes itself in `D_actor_303600_8016E4C0` with
+/// `_Actor303600CutsceneWork` block, zeroes it, parks the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task in
+/// `player` and publishes itself in `D_actor_303600_8016E4C0` with
 /// `D_actor_303600_8016E4C4` cleared, then falls into state 1, which hands the
 /// overlay's two cutscene script blocks to `func_800E8634`. State 2 waits for
 /// the session's `eventState` to clear -- the cutscene having finished -- and then
@@ -16975,7 +16977,7 @@ static void func_actor_303600_80161F40(Task* arg0)
 /// instead.
 void func_actor_303600_8016216C(Task* arg0)
 {
-    Actor303600Work* work;
+    _Actor303600CutsceneWork* work;
 
     switch (arg0->state) {
         case 0:
@@ -16988,7 +16990,7 @@ void func_actor_303600_8016216C(Task* arg0)
                 taskKill(arg0);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->field_0           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_303600_8016E4C0 = arg0;
                 D_actor_303600_8016E4C4 = NULL;
             }
@@ -17093,49 +17095,49 @@ void func_actor_303600_801623CC(Task* arg0)
     }
 }
 
-/// One-shot announcement of the cutscene: while the work block's "message
-/// outstanding" flag is still clear, hand the slot-4 task the session's two id
-/// bytes plus selector 9 as message 0x7DA, record 9 in the work block and raise
-/// the flag so the message goes out only once.
+/// One-shot announcement of the cutscene: while the work block's
+/// `endCommandSent` latch is still clear, hand the slot-4 task the session's two id
+/// bytes plus selector 9 as message 0x7DA, record 9 in `lastActorCommand` and
+/// raise the latch so the message goes out only once.
 void func_actor_303600_801624B0(void)
 {
-    Actor303600Work* work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-    ActorCommand     msg;
+    _Actor303600CutsceneWork* work = D_actor_303600_8016E4C0->work;
+    ActorCommand              msg;
 
-    if (work->field_E == 0) {
+    if (work->endCommandSent == 0) {
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 9;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-        work->field_C = 9;
-        work->field_E = 1;
+        work->lastActorCommand = 9;
+        work->endCommandSent   = 1;
     }
 }
 
 /// Cutscene teardown: kill the task a previous cutscene left in
-/// `D_actor_303600_8016E4C4`, then, while the work block's message flag is
-/// still clear, send the same 0x7DA announcement
+/// `D_actor_303600_8016E4C4`, then, while the work block's `endCommandSent`
+/// latch is still clear, send the same 0x7DA announcement
 /// `func_actor_303600_801624B0` sends and latch selector 9.  Finishes by
 /// spawning the overlay's own continuation task -- `D_actor_303600_80162E98`
 /// entry 3 -- so this runs exactly once per cutscene.
 void func_actor_303600_8016253C(void)
 {
-    Actor303600Work* work;
-    ActorCommand     msg;
+    _Actor303600CutsceneWork* work;
+    ActorCommand              msg;
 
     if (D_actor_303600_8016E4C4 != NULL) {
         taskKill(D_actor_303600_8016E4C4);
         D_actor_303600_8016E4C4 = NULL;
     }
 
-    work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-    if (work->field_E == 0) {
+    work = D_actor_303600_8016E4C0->work;
+    if (work->endCommandSent == 0) {
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 9;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-        work->field_C = 9;
-        work->field_E = 1;
+        work->lastActorCommand = 9;
+        work->endCommandSent   = 1;
     }
 
     Task_SpawnFromTable(D_actor_303600_80162E98, 3, 0, 0);
@@ -17143,7 +17145,7 @@ void func_actor_303600_8016253C(void)
 
 void func_actor_303600_80162600(s16 arg0)
 {
-    Actor303600Work* work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+    _Actor303600CutsceneWork* work = D_actor_303600_8016E4C0->work;
 
     work->command = arg0;
     work->field_6 = 0;
@@ -17178,26 +17180,26 @@ void func_actor_303600_80162698(void)
     CdCmd_CancelReplaceAndActivate();
 }
 
-/// Spawn state of the overlay's rig controller: allocates the work block the
-/// later states read through `Task::work` (`memCalloc(0x3C, 0)`, the struct's
-/// own size), clears the task's own root coordinate, then spawns the five child
-/// models -- one `Task_SpawnFromTable` of `D_actor_303600_8016E468` entry 1
-/// each, parked in `children` and spread 8000 apart in Y.  The spread reaches
-/// the coordinate through the strength-reduced `i * 8000 - 16000` loop.c folds
-/// into an accumulator, so its initialiser is scheduled at the loop head beside
-/// the hoisted `%hi` of the spawn table.  A failed spawn stops the loop early, a
+/// Spawn state of the package's scrolling shaft: allocates the work block the
+/// later states read through `Task::work`, clears the task's own root
+/// coordinate, then spawns the five segment models -- one `Task_SpawnFromTable`
+/// of `D_actor_303600_8016E468` entry 1 each, parked in `segments` and stacked
+/// one segment height apart in Y, centred on the task's coordinate.  The spread
+/// reaches the coordinate through the strength-reduced `i * 8000 - 16000`
+/// loop.c folds into an accumulator, so its initialiser is scheduled at the
+/// loop head beside the hoisted `%hi` of the spawn table.  A failed spawn stops the loop early, a
 /// failed allocation kills the task instead of leaving a half-built controller,
 /// and the last three statements install the 0x7DB handler table at
 /// `Task::msgTable`, the shared kill callback and the next state.
 static void func_actor_303600_801626C0(Task* task)
 {
-    Actor303600RigWork* work;
-    GfxCoord*           coord;
-    GfxCoord*           childCoord;
-    Task*               child;
-    s32                 i;
+    _Actor303600ShaftWork* work;
+    GfxCoord*              coord;
+    GfxCoord*              childCoord;
+    Task*                  child;
+    s32                    i;
 
-    work = memCalloc(0x3C, 0);
+    work = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         taskKill(task);
         return;
@@ -17207,14 +17209,14 @@ static void func_actor_303600_801626C0(Task* task)
     coord->coord.t[0] = 0;
     coord->coord.t[1] = 0;
     coord->coord.t[2] = 0;
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < (s32)ARRAY_SIZE(work->segments); i++) {
         child = Task_SpawnFromTable(D_actor_303600_8016E468, 1, 0, task);
         if (child == NULL) {
             break;
         }
-        work->children[i]      = child;
+        work->segments[i]      = child;
         childCoord             = child->extra.tmd->coords;
-        childCoord->coord.t[1] = i * 0x1F40 - 0x3E80;
+        childCoord->coord.t[1] = i * ACTOR_303600_SHAFT_SEGMENT_HEIGHT - 2 * ACTOR_303600_SHAFT_SEGMENT_HEIGHT;
         childCoord->coord.t[0] = 0;
         childCoord->coord.t[2] = 0;
     }
@@ -17223,43 +17225,44 @@ static void func_actor_303600_801626C0(Task* task)
     task->state       += 1;
 }
 
-/// Per-frame rig motion, run on the work block `func_actor_303600_801626C0`
-/// fills in: ramp the 16.16 speed `field_28` toward the limit `field_38` at
-/// `field_34` a frame, drop the ramp once the speed passes the limit in the
-/// ramp's own direction, integrate the speed into the angle accumulator
-/// `field_18`, fold that back into +/-4000, and publish its integer half as the
-/// model coordinate's Y.  The accel is read once for the sum and once for the
-/// limit test -- the second read is the branch's own copy of it in the target.
+/// Per-frame motion of the scrolling shaft: ramp `scrollSpeed` by `scrollAccel`
+/// toward `scrollSpeedLimit`, drop the ramp once the speed passes the limit in
+/// the ramp's own direction, add the speed to `scrollY`, wrap that by one
+/// segment height back within half a segment of zero, and publish its integer
+/// half as the task coordinate's Y.  The accel is read once for the sum and
+/// once for the limit test -- the second read is the branch's own copy of it in
+/// the target.
 static void func_actor_303600_801627B8(Task* task)
 {
-    Actor303600RigWork* work  = (Actor303600RigWork*)task->work;
-    GfxCoord*           coord = task->extra.tmd->coords;
-    s32                 speed;
-    s32                 angle;
-    s32                 var;
+    _Actor303600ShaftWork* work  = task->work;
+    GfxCoord*              coord = task->extra.tmd->coords;
+    s32                    speed;
+    s32                    y;
+    s32                    passedLimit;
 
-    speed          = work->field_28 + work->field_34;
-    work->field_28 = speed;
-    if (work->field_34 > 0) {
-        var = speed > work->field_38;
+    speed             = work->scrollSpeed + work->scrollAccel;
+    work->scrollSpeed = speed;
+    if (work->scrollAccel > 0) {
+        passedLimit = speed > work->scrollSpeedLimit;
     } else {
-        var = speed < work->field_38;
+        passedLimit = speed < work->scrollSpeedLimit;
     }
-    if (var != 0) {
-        work->field_34 = 0;
+    if (passedLimit != 0) {
+        work->scrollAccel = 0;
     }
-    angle               = work->field_18.word + work->field_28;
-    work->field_18.word = angle;
-    if (angle > 0x0FA00000) {
-        work->field_18.word = angle - 0x1F400000;
-    } else if (angle < -0x0FA00000) {
-        work->field_18.word = angle + 0x1F400000;
+    y                  = work->scrollY.word + work->scrollSpeed;
+    work->scrollY.word = y;
+    // The segments are identical, so a jump of one segment height is unseen.
+    if (y > (ACTOR_303600_SHAFT_SEGMENT_HEIGHT / 2) << 16) {
+        work->scrollY.word = y - (ACTOR_303600_SHAFT_SEGMENT_HEIGHT << 16);
+    } else if (y < -((ACTOR_303600_SHAFT_SEGMENT_HEIGHT / 2) << 16)) {
+        work->scrollY.word = y + (ACTOR_303600_SHAFT_SEGMENT_HEIGHT << 16);
     }
-    coord->coord.t[1]   = work->field_18.halves.integer;
+    coord->coord.t[1]   = work->scrollY.halves.integer;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Exit callback the rig controller installs at `Task::exitCallback`, and the
+/// Exit callback the scrolling shaft installs at `Task::exitCallback`, and the
 /// third entry of its state table: kills the task.
 static void func_actor_303600_80162850(Task* task)
 {
@@ -17270,24 +17273,25 @@ static void func_actor_303600_80162850(Task* task)
 /// `func_actor_303600_801626C0` installs at `Task::msgTable`.  The payload is
 /// the 0x7DA record `Gp_SendMsgType9` forwards back to the slot-4 task's
 /// type-9 children, so the halfword switched on here is the sender's selector:
-/// 0 arms the rig's speed at 384.0 (16.16) with a positive ramp, 1 with a
-/// negative one (-6.0 toward -48.0), and every other selector exits the task
+/// 0 sets the shaft's scroll speed to 384.0 (16.16 world units a frame) and
+/// ramps it by +8.0 a frame toward 768.0, 1 ramps whatever speed it has by
+/// -6.0 a frame toward -768.0, and every other selector exits the task
 /// through its own `Task::exitCallback`.  `func_actor_303600_801627B8` is what
 /// consumes the ramped speed.
 s32 func_actor_303600_80162870(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
-    Actor303600RigWork* work;
+    _Actor303600ShaftWork* work;
 
-    work = (Actor303600RigWork*)task->work;
+    work = task->work;
     switch (msg->command) {
         case 0:
-            work->field_28 = 0x01800000;
-            work->field_34 = 0x00080000;
-            work->field_38 = 0x03000000;
+            work->scrollSpeed      = 384 << 16;
+            work->scrollAccel      = 8 << 16;
+            work->scrollSpeedLimit = 768 << 16;
             break;
         case 1:
-            work->field_34 = 0xFFFA0000;
-            work->field_38 = 0xFD000000;
+            work->scrollAccel      = -(6 << 16);
+            work->scrollSpeedLimit = -(768 << 16);
             break;
         default:
             task->exitCallback(task);
@@ -17296,7 +17300,7 @@ s32 func_actor_303600_80162870(Task* task, s32 msgId, ActorCommand* msg, s32 arg
     return 0;
 }
 
-/// State table of the rig controller: spawn, per-frame motion and the kill
+/// State table of the scrolling shaft: spawn, per-frame motion and the kill
 /// callback. Dispatched by `func_actor_303600_80162A7C`.
 static const TaskFuncTable3 D_actor_303600_80161E48 = { {
     func_actor_303600_801626C0,
@@ -17304,7 +17308,7 @@ static const TaskFuncTable3 D_actor_303600_80161E48 = { {
     func_actor_303600_80162850,
 } };
 
-/// State table of the rig's model tasks: spawn, an empty per-frame tick and
+/// State table of the shaft's segment tasks: spawn, an empty per-frame tick and
 /// `taskKill`. Dispatched by `func_actor_303600_801628E4`.
 static const TaskFuncTable3 D_actor_303600_80161E54 = { {
     func_actor_303600_80162950,
@@ -17312,7 +17316,7 @@ static const TaskFuncTable3 D_actor_303600_80161E54 = { {
     taskKill,
 } };
 
-/// Per-frame dispatcher of the rig's model tasks: runs their spawn, tick or
+/// Per-frame dispatcher of the shaft's segment tasks: runs their spawn, tick or
 /// exit state from `D_actor_303600_80161E54`, skipping the frame while
 /// `gSceneCombatState.actorControl` is set.
 void func_actor_303600_801628E4(Task* task)
@@ -17329,20 +17333,20 @@ void func_actor_303600_801628E4(Task* task)
 /// `work` slot, and splices this task's model root under its spawn parent's.
 static void func_actor_303600_80162950(Task* task)
 {
-    Task*                 parent      = task->spawnArg2.pointer;
-    TmdObject*            obj         = task->extra.tmd;
-    GfxCoord*             coord       = obj->coords;
-    TmdObject*            parentObj   = parent->extra.tmd;
-    GfxCoord*             parentCoord = parentObj->coords;
-    Actor303600LightMats* mats;
+    Task*                         parent      = task->spawnArg2.pointer;
+    TmdObject*                    obj         = task->extra.tmd;
+    GfxCoord*                     coord       = obj->coords;
+    TmdObject*                    parentObj   = parent->extra.tmd;
+    GfxCoord*                     parentCoord = parentObj->coords;
+    _Actor303600ShaftSegmentWork* work;
 
-    mats = memCalloc(0x44, 0);
-    if (mats == NULL) {
+    work = memCalloc(sizeof(*work), 0);
+    if (work == NULL) {
         taskKill(task);
         return;
     }
 
-    task->work          = mats;
+    task->work          = work;
     coord->parent       = parentCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_303600_80162A0C(task);
@@ -17359,19 +17363,19 @@ static void func_actor_303600_80162A04(Task* task)
 /// block and loads the overlay's three flat lights into them.
 static void func_actor_303600_80162A0C(Task* task)
 {
-    Actor303600LightMats* mats = (Actor303600LightMats*)task->work;
-    TmdObject*            obj  = task->extra.tmd;
-    GsF_LIGHT*            light;
-    s32                   i;
+    _Actor303600ShaftSegmentWork* work = task->work;
+    TmdObject*                    obj  = task->extra.tmd;
+    GsF_LIGHT*                    light;
+    s32                           i;
 
-    obj->lightMtx = &mats->lightMtx;
-    obj->colorMtx = &mats->colorMtx;
+    obj->lightMtx = &work->lightMtx;
+    obj->colorMtx = &work->colorMtx;
     for (i = 0, light = D_actor_303600_8016E490; i < 3; i++, light++) {
-        Gfx_SetFlatLight(i, light, &mats->lightMtx, &mats->colorMtx);
+        Gfx_SetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
     }
 }
 
-/// Per-frame dispatcher of the rig controller: runs its spawn, motion or exit
+/// Per-frame dispatcher of the scrolling shaft: runs its spawn, motion or exit
 /// state from `D_actor_303600_80161E48`, skipping the frame while
 /// `gSceneCombatState.actorControl` is set.
 void func_actor_303600_80162A7C(Task* task)

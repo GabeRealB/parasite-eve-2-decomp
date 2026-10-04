@@ -46395,13 +46395,13 @@ the `0x80` allocator use the `0x80` block.
 
 The companion case, and the one that nearly cost a wrong struct. In
 `actor_303600` the overlay's documented work block is the 0x44 light/colour
-matrix pair `func_actor_303600_80162950` allocates, and the 0x7DB handler
+matrix pair (`_Actor303600ShaftSegmentWork`) `func_actor_303600_80162950` allocates, and the 0x7DB handler
 `func_actor_303600_80162870` writes `0x28`, `0x34` and `0x38` of
 `task->work` — all three *inside* that pair's second `MATRIX` (0x20..0x3F, at
 `m[1][1]`, `t[0]`, `t[1]`). That reading compiles and is wrong. The block is a
-separate 0x3C-byte structure, and the same task's state-1 handler
+separate 0x3C-byte structure (`_Actor303600ShaftWork`), and the same task's state-1 handler
 `func_actor_303600_801627B8` reads those three offsets as plain `s32`
-(`field_28 += field_34`, clamped against `field_38`) — a motion triple no matrix
+(`scrollSpeed += scrollAccel`, clamped against `scrollSpeedLimit`) — a motion triple no matrix
 work produces.
 
 Here the handler and the allocator are in different units of the overlay, so the
@@ -53362,14 +53362,14 @@ addu  v1, v1, v0
 blez  a0, ...
 ```
 
-One read in the C (`speed = work->field_28 + work->field_34;` then
-`if (work->field_34 > 0)`) keeps the accel in a single register and emits no
+One read in the C (`speed = work->scrollSpeed + work->scrollAccel;` then
+`if (work->scrollAccel > 0)`) keeps the accel in a single register and emits no
 `move`: 94.1%, `insert=0 delete=1`, and every later branch four bytes short.
 Reading the field a second time, once for the sum and once for the test, is what
 puts the `move` there - `cse` inserts `(set p2 p1)` for the second load and
 `reload_cse_regs` emits the copy - for 100%.
 
-The store to `work->field_28` between the two reads does **not** stop this. cse's
+The store to `work->scrollSpeed` between the two reads does **not** stop this. cse's
 `invalidate` walks the store's own address range
 (`set_nonvarying_address_components` + `refers_to_mem_p`) and removes only the
 entries that overlap it, so a store to another field of the same base leaves the
@@ -53378,7 +53378,7 @@ load's equivalence in the table; only a *varying* address, a non-scalar or
 across sibling-field stores rather than assuming `cse` merged it.
 
 The fold at the end of the same function is the documented cross-jump shape in
-`if`/`else if` form: both arms are `field_18 = angle +/- 0x1F400000`, and jump
+`if`/`else if` form: both arms are `scrollY.word = y +/- 0x1F400000`, and jump
 optimization merges the identical `addu` + `sw` into one shared tail with each
 arm's constant left as a `lui` in the delay slot of the `j`/`beqz` that enters
 it. Write both arms out; the shared `addu v0,v1,v0` is not a `goto` in the C.
@@ -100328,23 +100328,23 @@ The fix is the ordinary record the matched siblings use (`ActorCommand`) — one
 address-taken 4-byte struct, which is also what makes the payload's fields live:
 
 ```c
-    Actor303600Work*  work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
+    _Actor303600CutsceneWork* work = D_actor_303600_8016E4C0->work;
     ActorCommand          msg;
 
-    if (work->field_E == 0) {
+    if (work->endCommandSent == 0) {
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command        = 9;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (s32)&msg, 0x7DB);
-        work->field_C = 9;
-        work->field_E = 1;
+        work->lastActorCommand = 9;
+        work->endCommandSent   = 1;
     }
 ```
 
 100% on the first build, no pins. Two things come out of the same edit and are
 worth reading off the target together. `$s0` is the literal `9` — `addiu
 $s0,$zero,0x9` before the first `jal`, `sh $s0,0xC($s1)` after the second — and
-`$s1` is the work pointer: the payload field and the latched `work->field_C`
+`$s1` is the work pointer: the payload field and the latched `work->lastActorCommand`
 are the *same constant*, so cse1 hands both stores one pseudo, that pseudo is
 live across the `gameGetTaskSlot` call, and local-alloc parks it in a
 callee-saved register. The 0x28 frame and the second save are that pseudo's
@@ -100383,7 +100383,7 @@ each entry is `0x00808080`, the r/g/b triple -- so the walker becomes
 ```
 
 100% on the first build of the retyped seed, and again for the same body written
-with the real `Actor303600LightMats` / `Task*` / `TmdObject*` types. The same
+with the real `_Actor303600ShaftSegmentWork` / `Task*` / `TmdObject*` types. The same
 trap applies to any `M2C_UNK*` walker in a seed: when the target's `addiu`
 disagrees with the seed's increment constant, the element type is wrong, not the
 constant.
