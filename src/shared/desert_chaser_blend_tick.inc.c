@@ -16,7 +16,7 @@ void desertChaserBlendTick(Task* task)
     work   = task->work;
     weight = work->blendWeight;
     anim   = &work->rig.anim;
-    for (i = 1; i < 0x12; i++) {
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         if (i < 0xB) {
             work->blend.slots[i].rate = work->blendRate;
             work->rig.slots[i].rate   = (work->animRate - 3);

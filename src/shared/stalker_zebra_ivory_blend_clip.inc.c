@@ -13,19 +13,19 @@ void stalkerZebraIvoryBlendClip(Task* arg0)
     if (work->animPlaying == work->animClip) {
         i = 1;
         do {
-            work->slots[i].rate = work->animStep;
+            work->rig.slots[i].rate = work->animStep;
 #if STALKER_ZEBRA_IVORY_REBLEND_SAME_CLIP
-            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animClip, 0, work->animBlend);
 #endif
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work->rig.slots));
     } else {
         i = 1;
         do {
-            work->slots[i].rate = work->animStep;
-            animationSeekSlotWithBlend(&work->anim, i, work->animClip, 0, work->animBlend);
+            work->rig.slots[i].rate = work->animStep;
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animClip, 0, work->animBlend);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work->rig.slots));
         work->animBlend = 0;
     }
     work->animPlaying = work->animClip;

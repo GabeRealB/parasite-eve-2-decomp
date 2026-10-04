@@ -25,10 +25,10 @@ static __inline__ void stalkerZebraIvoryTickAnimInline(Task* arg0)
     }
     i = 1;
     do {
-        work->slots[i].rate = work->animStep;
-        animationTickSlot(&work->anim, i);
+        work->rig.slots[i].rate = work->animStep;
+        animationTickSlot(&work->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work->rig.slots));
 }
 
 /// Wraps the actor's `pitch`, `yaw` and `roll` to 12 bits and rebuilds the

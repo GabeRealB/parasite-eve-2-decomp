@@ -18,9 +18,10 @@
  *
  *   pose        `pitch`, `yaw`, `roll` (s16 root angles, 4096ths of a turn);
  *               `anchorPos` (SVECTOR3, the pinned part's view-space position)
- *   animation   `anim` (AnimationContext) and `slots` (AnimationSlot[0x12]);
- *               the request `animRequest`, `animClip`, `animStep`,
- *               `animBlend`, `animPlaying` and its frame `animFrame` (s16)
+ *   animation   `rig` (ActorAnimRig18), of which they drive slots 1 to 17
+ *               through `rig.anim` and `rig.slots`; the request
+ *               `animRequest`, `animClip`, `animStep`, `animBlend`,
+ *               `animPlaying` and its frame `animFrame` (s16)
  *   states      `state`, `subState`, `timer`, `playerDistance` (s16);
  *               `countdown` (u16)
  *   reactions   `pendingAction`, `pendingArmed` (s16); `roomCommand` (u8)

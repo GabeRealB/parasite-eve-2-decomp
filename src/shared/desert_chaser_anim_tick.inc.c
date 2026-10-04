@@ -65,7 +65,7 @@ void desertChaserAnimTick(Task* task)
                 index                           = seekWork->appliedAnim * DESERT_CHASER_CLIP_COUNT;
                 animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
-            } while (seekIndex < 0x12);
+            } while (seekIndex < ARRAY_SIZE(work->rig.slots));
             seekWork->appliedAnim = seekWork->animId;
         }
         work->animRequest = DESERT_CHASER_ANIM_REQUEST_PLAYING;
@@ -79,7 +79,7 @@ void desertChaserAnimTick(Task* task)
             work->rig.slots[resetIndex].rate = resetWork->animRate;
             animationResetSlot(&resetWork->rig.anim, resetSlotIndex, resetWork->animId);
             resetIndex += 1;
-        } while (resetIndex < 0x12);
+        } while (resetIndex < ARRAY_SIZE(work->rig.slots));
         resetWork->appliedAnim = resetWork->animId;
         work->animRequest      = DESERT_CHASER_ANIM_REQUEST_PLAYING;
         work->animFrames       = 0U;
@@ -97,7 +97,7 @@ void desertChaserAnimTick(Task* task)
             secondaryWork->rig.slots[secondaryIndex].rate = secondaryWork->blendRate;
             animationResetSlot(&secondaryWork->blend.anim, secondarySlotIndex, secondaryWork->blendAnimId);
             secondaryIndex += 1;
-        } while (secondaryIndex < 0x12);
+        } while (secondaryIndex < ARRAY_SIZE(secondaryWork->rig.slots));
         work->blendRequest = DESERT_CHASER_ANIM_REQUEST_PLAYING;
     }
     work->animFrames = (u16)(work->animFrames + 1);
@@ -109,7 +109,7 @@ void desertChaserAnimTick(Task* task)
             tickWork->rig.slots[tickIndex].rate = tickWork->animRate;
             animationTickSlot(&tickWork->rig.anim, tickSlotIndex);
             tickIndex += 1;
-        } while (tickIndex < 0x12);
+        } while (tickIndex < ARRAY_SIZE(tickWork->rig.slots));
     } else {
         desertChaserBlendTick(task);
         if (work->blend.slots[1].status.fields.flags & DESERT_CHASER_BLEND_DONE) {

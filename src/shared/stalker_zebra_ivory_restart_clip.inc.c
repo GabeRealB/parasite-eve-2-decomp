@@ -10,9 +10,9 @@ void stalkerZebraIvoryRestartClip(Task* arg0)
     work = (StalkerZebraIvoryWork*)arg0->work;
     i    = 1;
     do {
-        work->slots[i].rate = work->animStep;
-        animationResetSlot(&work->anim, i, work->animClip);
+        work->rig.slots[i].rate = work->animStep;
+        animationResetSlot(&work->rig.anim, i, work->animClip);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work->rig.slots));
     work->animPlaying = work->animClip;
 }

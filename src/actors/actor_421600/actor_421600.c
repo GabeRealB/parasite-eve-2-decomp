@@ -2349,7 +2349,7 @@ void desertChaserBlendTick(Task* arg0)
         }
         next  = index + 1;
         index = next;
-    } while (next < 0x12);
+    } while (next < ARRAY_SIZE(work->rig.slots));
 }
 
 /// Per-frame effect dispatch keyed on `animId` and the low ten bits of

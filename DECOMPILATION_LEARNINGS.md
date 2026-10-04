@@ -3422,9 +3422,9 @@ needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
 
 ## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `rate` is `sb 0x1D`
 
-`_Actor400500GrayStalkerWork` opens with `AnimationContext` (0x14) then `AnimationSlot slots[0x12]`
-(0x28 each). `slots[i].rate` is at `0x14 + i*0x28 + 9`. A `AnimationSlot*`
-walk from `&slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
+`_Actor400500GrayStalkerWork` opens with its `ActorAnimRig18 rig`: an `AnimationContext` (0x14) then `AnimationSlot slots[18]`
+(0x28 each). `rig.slots[i].rate` is at `0x14 + i*0x28 + 9`. A `AnimationSlot*`
+walk from `&rig.slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
 work base:
 
 ```
@@ -71560,9 +71560,9 @@ needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
 
 ## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `rate` is `sb 0x1D`
 
-`_Actor400500GrayStalkerWork` opens with `AnimationContext` (0x14) then `AnimationSlot slots[0x12]`
-(0x28 each). `slots[i].rate` is at `0x14 + i*0x28 + 9`. A `AnimationSlot*`
-walk from `&slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
+`_Actor400500GrayStalkerWork` opens with its `ActorAnimRig18 rig`: an `AnimationContext` (0x14) then `AnimationSlot slots[18]`
+(0x28 each). `rig.slots[i].rate` is at `0x14 + i*0x28 + 9`. A `AnimationSlot*`
+walk from `&rig.slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
 work base:
 
 ```

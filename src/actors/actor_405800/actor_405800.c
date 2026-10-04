@@ -127,105 +127,103 @@ enum {
 /// into chunks; 9..0xB drop it from the ceiling onto its back and rejoin 1.
 /// Task state 3 kills the arm tasks and destroys the enemy 0x12D frames later.
 typedef struct {
-    MATRIX                savedRootMtx;                             // root matrix when the corpse began to burn; each frame rescales a copy of it
-    MATRIX                colorMtx;                                 // storage for the `TmdObject::colorMtx` of the body and both arm models
-    MATRIX                lightMtx;                                 // storage for their `TmdObject::lightMtx`
-    byte                  field_60[0x10];                           // never accessed
-    VECTOR                prevRootPos;                              // root position at the start of the frame; X and Z are restored when the collision step reports a conflict
-    s16                   pitch;                                    // root pitch in 4096ths of a turn; swept through half a turn by a leap to the ceiling or a drop from it
-    s16                   yaw;                                      // root heading in 4096ths of a turn
-    s16                   roll;                                     // root roll in 4096ths of a turn; half a turn apart on its feet and on the ceiling or its back
-    byte                  field_86[2];                              // never accessed
-    SVECTOR3              anchorPos;                                // view-space X and Z a part is pinned to while the root moves around it; `vy` is never accessed
-    byte                  field_8E[2];                              // never accessed
-    s16                   spawnX;                                   // root X at spawn; never read
-    s16                   floorY;                                   // root Y at spawn: the height every leap, drop and fall lands on
-    s16                   spawnZ;                                   // root Z at spawn; never read
-    byte                  field_96[2];                              // never accessed
-    s16                   leapX;                                    // X a leap back or a drop brings the root to; after a hold, the X step per frame of the hop off the player
-    s16                   leapY;                                    // height the leap to the ceiling rises to (-0x9C4) or the hop off the player lands on (`floorY`)
-    s16                   leapZ;                                    // Z counterpart of `leapX`
-    byte                  field_9E[0xA];                            // never accessed
-    SVECTOR               targetPos;                                // point it hunts: the player's root, or (0x834, the player's Y, 0xD48) while a battle has the player at X 15000 or beyond
-    AnimationContext      anim;                                     // animation playback of the model
-    AnimationSlot         slots[0x12];                              // one per model part; 1..17 play `animClip`, and slot 1's status tells when it ended
-    u8                    poses[0x12][ANIMATION_POSE_BUFFER_BYTES]; // blend pose of each slot
-    WorldCollisionBody    body;                                     // sphere on part 3 that takes hits; left out of pair tests while the hold has the player
-    WorldCollisionContact bodyContacts[8];                          // contacts of `body`; also the enemy's hit records
-    WorldCollisionBody    gridBody;                                 // larger sphere on the root tested against the room grid, except during a hold or a leap to the ceiling
-    WorldCollisionContact gridContacts[8];                          // contacts of `gridBody`; they give the push-out of each frame
-    WorldCollisionBody    rightArmInner;                            // attack sphere nearer the root of part 7; shares `rightArmContacts`
-    WorldCollisionBody    leftArmInner;                             // attack sphere nearer the root of part 10; shares `leftArmContacts`
-    WorldCollisionBody    rightArmOuter;                            // attack sphere far along part 7; enabled only on frames 0x16..0x1B of the right-arm strike
-    WorldCollisionBody    leftArmOuter;                             // attack sphere far along part 10; enabled only on frames 0x16..0x1B of the left-arm strike
-    WorldCollisionContact rightArmContacts[1];                      // contacts of the two right-arm spheres
-    WorldCollisionContact leftArmContacts[1];                       // contacts of the two left-arm spheres
-    WorldCollisionBody    capsuleBody;                              // probe on the root, tested against the room grid only while a grab or a leap back looks for walls
-    WorldCollisionCapsule capsule;                                  // its shape: from the root to the target for a grab, 6000 behind the root for a leap back
-    WorldCollisionContact capsuleContacts[8];                       // contacts of `capsuleBody`; the first grid face among them is the wall
-    EffectSpawnArg        effectArg;                                // argument record of the effects its hits spawn, hung off part 3
-    Task*                 armTasks[2];                              // tasks of the arm models (0 left on part 10, 1 right on part 7), shown only while that arm is swung out
-    byte                  field_82C[4];                             // never accessed
-    s16                   cloakTimer;                               // frames the holding phase of a cloak fade has lasted
-    s16                   cloakLevel;                               // grey level of the cloak shading, 0 (none) to 0xFF
-    s16                   colorBlend;                               // the model's `TmdObject::shading.colorBlend`, 0 to `TMD_OBJECT_COLOR_BLEND_ONE`
-    s16                   hideHoldFrames;                           // frames a hide holds the cloak before the body fades out; longer at lower health
-    s16                   hideCooldownReset;                        // value `hideCooldown` starts from when a show completes; longer at lower health, 0x1E..0x5D after an idle
-    s16                   hideCooldown;                             // frames before another hide may be requested
-    u16                   previousAnimationFlags;                   // Slot 1's ANIMATION_SLOT_* results as the last running update's tick left them
-    s16                   corpseScaleY;                             // Y-axis scale of the burning corpse's root matrix (4.12, ONE = unscaled); lowered every frame of the burn
-    u16                   frameCount;                               // frames the enemy has run, counted from a random start; never read
-    s16                   stateFrames;                              // frames spent in the current state or sub-state
-    s16                   holdFrames;                               // frames since the hold caught the player
-    s16                   state;                                    // index into the state table of the current task state
-    s16                   subState;                                 // index into the step table of the current state
-    s16                   animBlend;                                // frames a blend request takes; cleared when the blend starts
-    s16                   moveAccel;                                // added to `moveSpeed` each frame; itself grows each frame
-    s16                   moveSpeed;                                // vertical speed of a leap, a drop or a fall
-    s16                   animStep;                                 // playback rate of slots 1..17; `ANIMATION_RATE_ONE` is normal speed
-    s16                   playerDistance;                           // horizontal distance from the root to `targetPos`
-    u16                   bearingFromPlayer;                        // heading from `targetPos` to the root relative to the player's heading, 0..0xFFF; 0 when the player faces it
-    u16                   targetBearing;                            // heading of `targetPos` relative to `yaw`, 0..0xFFF
-    s16                   pendingArmed;                             // 1 when a hit or a status tick dealt damage this frame; lets `pendingAction` be consumed
-    s16                   pendingAction;                            // `STALKER_ZEBRA_IVORY_PENDING_*` awaiting the state machine
-    s16                   timer;                                    // frames before the walk may pick its next attack
-    s16                   leapCooldown;                             // frames before another leap to the ceiling or drop from it; 0x12C after one
-    s16                   nextAnchorPart;                           // the walking part (8 or 0xB) the walk is not pinning; never read
-    byte                  field_862[4];                             // never accessed
-    s16                   shadowShade;                              // brightness of the limb shadows, 0 to 0xFF
-    byte                  field_868[2];                             // never accessed
-    s16                   shadowHeight;                             // height the limb shadows are laid at: `floorY`, or -0x9C4 once a leap nears the ceiling
-    byte                  field_86C[2];                             // never accessed
-    s16                   animRequest;                              // `STALKER_ZEBRA_IVORY_ANIM_REQUEST_*`
-    s16                   animPlaying;                              // clip last applied to the slots
-    s16                   animClip;                                 // requested clip: index into the animation set table
-    s16                   animFrame;                                // frames since `animClip` was applied; rescaled when a blend repeats it at a new step
-    s16                   hitCooldown;                              // frames before another hit is taken; set from the hit's id parameter 2
-    s16                   armSwingAngles[2];                        // yaw each arm model has swung out by (0 left, 1 right): eased to 0x380 while the arm is out, back to 0 after
-    u16                   countdown;                                // frames left on its back before it rights itself, 0x1E..0x9D
-    s16                   walkStep;                                 // `animStep` the walk clip takes from its next loop; raised for a distant target
-    s16                   turnStep;                                 // heading change per frame of the walk
-    u16                   idleFrames;                               // frames left of the idle, 0x5A..0x99
-    s16                   holdLoops;                                // bite clips the hold has completed; the hold ends at 4
-    byte                  field_886[2];                             // never accessed
-    s8                    damageOverTimeSeen;                       // set once the enemy has carried a damage-over-time status; never read
-    byte                  field_889[1];                             // never accessed
-    u8                    roomCommand;                              // kind of the last room command (1..4); never read
-    u8                    playerDied;                               // set by message 2014, broadcast when damage takes the player's last health; ends a hold
-    u8                    holdKilledPlayer;                         // 1 once a bite has taken the player's last health; the release then leaves the player's animation and scripted mode alone
-    u8                    rightArmOut;                              // 1 while the right-arm strike keeps its arm model swung out
-    u8                    leftArmOut;                               // 1 while the left-arm strike keeps its arm model swung out
-    u8                    holding;                                  // 1 while the current move must finish before the death sequence starts
-    u8                    onCeiling;                                // 1 while it hangs from the ceiling
-    u8                    onBack;                                   // 1 once it has landed on its back; cleared when it rights itself
-    u8                    distanceMode;                             // how the probe's wall contact is measured (0 hit or miss, 1 X/Z distance, 2 X/Y distance)
-    u8                    walkHurried;                              // 1 once the walk has raised its steps for a target beyond 3000
-    byte                  field_894[1];                             // never accessed
-    u8                    cloakRequest;                             // `ACTOR_405800_CLOAK_*`; 0 once the fade has finished
-    s8                    cloakPhase;                               // step of the running cloak fade (0 first ramp, 1 hold, 2 second ramp)
-    u8                    field_897;                                // 0 lets a finished fade keep `WORLD_TARGET_KEEP_SCANNED` on the target; nothing writes it, role unproven
-    u8                    stunKind;                                 // `ACTOR_405800_STUN_*`
-    byte                  field_899[3];                             // never accessed
+    MATRIX                savedRootMtx;           // root matrix when the corpse began to burn; each frame rescales a copy of it
+    MATRIX                colorMtx;               // storage for the `TmdObject::colorMtx` of the body and both arm models
+    MATRIX                lightMtx;               // storage for their `TmdObject::lightMtx`
+    byte                  field_60[0x10];         // never accessed
+    VECTOR                prevRootPos;            // root position at the start of the frame; X and Z are restored when the collision step reports a conflict
+    s16                   pitch;                  // root pitch in 4096ths of a turn; swept through half a turn by a leap to the ceiling or a drop from it
+    s16                   yaw;                    // root heading in 4096ths of a turn
+    s16                   roll;                   // root roll in 4096ths of a turn; half a turn apart on its feet and on the ceiling or its back
+    byte                  field_86[2];            // never accessed
+    SVECTOR3              anchorPos;              // view-space X and Z a part is pinned to while the root moves around it; `vy` is never accessed
+    byte                  field_8E[2];            // never accessed
+    s16                   spawnX;                 // root X at spawn; never read
+    s16                   floorY;                 // root Y at spawn: the height every leap, drop and fall lands on
+    s16                   spawnZ;                 // root Z at spawn; never read
+    byte                  field_96[2];            // never accessed
+    s16                   leapX;                  // X a leap back or a drop brings the root to; after a hold, the X step per frame of the hop off the player
+    s16                   leapY;                  // height the leap to the ceiling rises to (-0x9C4) or the hop off the player lands on (`floorY`)
+    s16                   leapZ;                  // Z counterpart of `leapX`
+    byte                  field_9E[0xA];          // never accessed
+    SVECTOR               targetPos;              // point it hunts: the player's root, or (0x834, the player's Y, 0xD48) while a battle has the player at X 15000 or beyond
+    ActorAnimRig18        rig;                    // playback of the model's parts: slots 1 to 17 play `animClip`, and slot 1's status tells when it ended
+    WorldCollisionBody    body;                   // sphere on part 3 that takes hits; left out of pair tests while the hold has the player
+    WorldCollisionContact bodyContacts[8];        // contacts of `body`; also the enemy's hit records
+    WorldCollisionBody    gridBody;               // larger sphere on the root tested against the room grid, except during a hold or a leap to the ceiling
+    WorldCollisionContact gridContacts[8];        // contacts of `gridBody`; they give the push-out of each frame
+    WorldCollisionBody    rightArmInner;          // attack sphere nearer the root of part 7; shares `rightArmContacts`
+    WorldCollisionBody    leftArmInner;           // attack sphere nearer the root of part 10; shares `leftArmContacts`
+    WorldCollisionBody    rightArmOuter;          // attack sphere far along part 7; enabled only on frames 0x16..0x1B of the right-arm strike
+    WorldCollisionBody    leftArmOuter;           // attack sphere far along part 10; enabled only on frames 0x16..0x1B of the left-arm strike
+    WorldCollisionContact rightArmContacts[1];    // contacts of the two right-arm spheres
+    WorldCollisionContact leftArmContacts[1];     // contacts of the two left-arm spheres
+    WorldCollisionBody    capsuleBody;            // probe on the root, tested against the room grid only while a grab or a leap back looks for walls
+    WorldCollisionCapsule capsule;                // its shape: from the root to the target for a grab, 6000 behind the root for a leap back
+    WorldCollisionContact capsuleContacts[8];     // contacts of `capsuleBody`; the first grid face among them is the wall
+    EffectSpawnArg        effectArg;              // argument record of the effects its hits spawn, hung off part 3
+    Task*                 armTasks[2];            // tasks of the arm models (0 left on part 10, 1 right on part 7), shown only while that arm is swung out
+    byte                  field_82C[4];           // never accessed
+    s16                   cloakTimer;             // frames the holding phase of a cloak fade has lasted
+    s16                   cloakLevel;             // grey level of the cloak shading, 0 (none) to 0xFF
+    s16                   colorBlend;             // the model's `TmdObject::shading.colorBlend`, 0 to `TMD_OBJECT_COLOR_BLEND_ONE`
+    s16                   hideHoldFrames;         // frames a hide holds the cloak before the body fades out; longer at lower health
+    s16                   hideCooldownReset;      // value `hideCooldown` starts from when a show completes; longer at lower health, 0x1E..0x5D after an idle
+    s16                   hideCooldown;           // frames before another hide may be requested
+    u16                   previousAnimationFlags; // Slot 1's ANIMATION_SLOT_* results as the last running update's tick left them
+    s16                   corpseScaleY;           // Y-axis scale of the burning corpse's root matrix (4.12, ONE = unscaled); lowered every frame of the burn
+    u16                   frameCount;             // frames the enemy has run, counted from a random start; never read
+    s16                   stateFrames;            // frames spent in the current state or sub-state
+    s16                   holdFrames;             // frames since the hold caught the player
+    s16                   state;                  // index into the state table of the current task state
+    s16                   subState;               // index into the step table of the current state
+    s16                   animBlend;              // frames a blend request takes; cleared when the blend starts
+    s16                   moveAccel;              // added to `moveSpeed` each frame; itself grows each frame
+    s16                   moveSpeed;              // vertical speed of a leap, a drop or a fall
+    s16                   animStep;               // playback rate of slots 1..17; `ANIMATION_RATE_ONE` is normal speed
+    s16                   playerDistance;         // horizontal distance from the root to `targetPos`
+    u16                   bearingFromPlayer;      // heading from `targetPos` to the root relative to the player's heading, 0..0xFFF; 0 when the player faces it
+    u16                   targetBearing;          // heading of `targetPos` relative to `yaw`, 0..0xFFF
+    s16                   pendingArmed;           // 1 when a hit or a status tick dealt damage this frame; lets `pendingAction` be consumed
+    s16                   pendingAction;          // `STALKER_ZEBRA_IVORY_PENDING_*` awaiting the state machine
+    s16                   timer;                  // frames before the walk may pick its next attack
+    s16                   leapCooldown;           // frames before another leap to the ceiling or drop from it; 0x12C after one
+    s16                   nextAnchorPart;         // the walking part (8 or 0xB) the walk is not pinning; never read
+    byte                  field_862[4];           // never accessed
+    s16                   shadowShade;            // brightness of the limb shadows, 0 to 0xFF
+    byte                  field_868[2];           // never accessed
+    s16                   shadowHeight;           // height the limb shadows are laid at: `floorY`, or -0x9C4 once a leap nears the ceiling
+    byte                  field_86C[2];           // never accessed
+    s16                   animRequest;            // `STALKER_ZEBRA_IVORY_ANIM_REQUEST_*`
+    s16                   animPlaying;            // clip last applied to the slots
+    s16                   animClip;               // requested clip: index into the animation set table
+    s16                   animFrame;              // frames since `animClip` was applied; rescaled when a blend repeats it at a new step
+    s16                   hitCooldown;            // frames before another hit is taken; set from the hit's id parameter 2
+    s16                   armSwingAngles[2];      // yaw each arm model has swung out by (0 left, 1 right): eased to 0x380 while the arm is out, back to 0 after
+    u16                   countdown;              // frames left on its back before it rights itself, 0x1E..0x9D
+    s16                   walkStep;               // `animStep` the walk clip takes from its next loop; raised for a distant target
+    s16                   turnStep;               // heading change per frame of the walk
+    u16                   idleFrames;             // frames left of the idle, 0x5A..0x99
+    s16                   holdLoops;              // bite clips the hold has completed; the hold ends at 4
+    byte                  field_886[2];           // never accessed
+    s8                    damageOverTimeSeen;     // set once the enemy has carried a damage-over-time status; never read
+    byte                  field_889[1];           // never accessed
+    u8                    roomCommand;            // kind of the last room command (1..4); never read
+    u8                    playerDied;             // set by message 2014, broadcast when damage takes the player's last health; ends a hold
+    u8                    holdKilledPlayer;       // 1 once a bite has taken the player's last health; the release then leaves the player's animation and scripted mode alone
+    u8                    rightArmOut;            // 1 while the right-arm strike keeps its arm model swung out
+    u8                    leftArmOut;             // 1 while the left-arm strike keeps its arm model swung out
+    u8                    holding;                // 1 while the current move must finish before the death sequence starts
+    u8                    onCeiling;              // 1 while it hangs from the ceiling
+    u8                    onBack;                 // 1 once it has landed on its back; cleared when it rights itself
+    u8                    distanceMode;           // how the probe's wall contact is measured (0 hit or miss, 1 X/Z distance, 2 X/Y distance)
+    u8                    walkHurried;            // 1 once the walk has raised its steps for a target beyond 3000
+    byte                  field_894[1];           // never accessed
+    u8                    cloakRequest;           // `ACTOR_405800_CLOAK_*`; 0 once the fade has finished
+    s8                    cloakPhase;             // step of the running cloak fade (0 first ramp, 1 hold, 2 second ramp)
+    u8                    field_897;              // 0 lets a finished fade keep `WORLD_TARGET_KEEP_SCANNED` on the target; nothing writes it, role unproven
+    u8                    stunKind;               // `ACTOR_405800_STUN_*`
+    byte                  field_899[3];           // never accessed
 } _Actor405800IvoryStalkerWork;
 STATIC_ASSERT_SIZEOF(_Actor405800IvoryStalkerWork, 0x89C);
 
@@ -1779,7 +1777,7 @@ static void func_actor_405800_801334B8(Task* arg0)
     work->effectArg.spawnArgLo    = 0x100;
     work->effectArg.spawnArgHi    = 2;
     enemy->hp = enemy->hpMax = D_actor_405800_801418FC.hpMax;
-    animationInitContext(&work->anim, D_actor_405800_80151410, model, work->poses, work->slots);
+    animationInitContext(&work->rig.anim, D_actor_405800_80151410, model, work->rig.poses, work->rig.slots);
 
     w2              = (_Actor405800IvoryStalkerWork*)arg0->work;
     w2->animStep    = 0x10;
@@ -2003,7 +2001,7 @@ static void func_actor_405800_80133800(Task* arg0)
             func_actor_405800_801375C4(arg0);
             func_actor_405800_8013315C(arg0);
             stalkerZebraIvoryTickAnimInline(arg0);
-            work->previousAnimationFlags = work->slots[1].status.fields.flags;
+            work->previousAnimationFlags = work->rig.slots[1].status.fields.flags;
             root->composeStamp           = GRAPHICS_COORD_DIRTY;
             stalkerZebraIvoryApplyRotationInline(arg0);
             func_actor_405800_80136388(arg0);

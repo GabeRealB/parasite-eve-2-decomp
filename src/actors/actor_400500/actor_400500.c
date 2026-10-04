@@ -122,89 +122,87 @@ enum {
 /// fades the body out and takes it off lock-on, and every attack, recoil and
 /// fall starts by requesting a show.
 typedef struct {
-    AnimationContext      anim;                                     // animation playback of the model
-    AnimationSlot         slots[0x12];                              // one per model part; 1..17 play `animId`, and slot 1's status tells when it ended
-    u8                    poses[0x12][ANIMATION_POSE_BUFFER_BYTES]; // blend pose of each slot
-    byte                  field_404[0x404];                         // never accessed
-    MATRIX                savedRootMtx;                             // root matrix at the start of the death shrink; each frame rescales a copy of it
-    WorldCollisionBody    body;                                     // sphere on part 3 that takes hits; shrunk while the grab reaches out
-    WorldCollisionContact bodyContacts[3];                          // contacts of `body`; also the enemy's hit records
-    WorldCollisionBody    rightArmOuter;                            // attack sphere far along part 7; enabled only while the right arm strikes
-    WorldCollisionBody    rightArmInner;                            // attack sphere nearer the root of part 7; shares `rightArmContacts`
-    WorldCollisionContact rightArmContacts[1];                      // contacts of the two right-arm spheres
-    WorldCollisionBody    leftArmOuter;                             // attack sphere far along part 10; enabled only while the left arm strikes
-    WorldCollisionBody    leftArmInner;                             // attack sphere nearer the root of part 10; shares `leftArmContacts`
-    WorldCollisionContact leftArmContacts[1];                       // contacts of the two left-arm spheres
-    EffectSpawnArg        effectArg;                                // argument record of the effects its hits spawn, hung off part 3
-    s16                   pitch;                                    // root pitch in 4096ths of a turn; swept through half a turn by a drop or a jump
-    s16                   yaw;                                      // root heading in 4096ths of a turn
-    s16                   roll;                                     // root roll in 4096ths of a turn; half a turn apart on the ceiling and on the floor
-    byte                  field_94E[2];                             // never accessed
-    s16                   dropStartX;                               // root X when the drop from the ceiling began; the drop lands back on it
-    byte                  field_952[2];                             // never accessed
-    s16                   dropStartZ;                               // root Z when the drop from the ceiling began; the drop lands back on it
-    byte                  field_956[6];                             // never accessed
-    MATRIX                colorMtx;                                 // storage for the model's `TmdObject::colorMtx`
-    MATRIX                lightMtx;                                 // storage for the model's `TmdObject::lightMtx`
-    byte                  field_99C[4];                             // never accessed
-    SVECTOR3              anchorPos;                                // view-space X and Z a part is pinned to while the root moves around it; `vy` is never accessed
-    byte                  field_9A6[0x16];                          // never accessed
-    s16                   armReachAngle;                            // turn of parts 6 and 9 towards the target while the grab reaches; eased back to zero after
-    byte                  field_9BE[2];                             // never accessed
-    VECTOR                rootPos;                                  // root position at the start of the frame; never read
-    SVECTOR               playerPrevPos;                            // the player's root position when the previous frame ended
-    SVECTOR               playerLocalMove;                          // the player's movement since then, turned into the Stalker's heading; `vz` biases the attack ranges
-    SVECTOR3              toTarget;                                 // offset from the root to the player, or to the patrol point while the player is in zone 5
-    byte                  field_9E6[0xA];                           // never accessed
-    Task*                 armTasks[2];                              // tasks of the arm models (0 left on part 10, 1 right on part 7), shown only during an arm strike
-    s16                   animRate;                                 // playback rate of slots 1..17; `ANIMATION_RATE_ONE` is normal speed
-    s16                   animRequest;                              // `ACTOR_400500_ANIM_REQUEST_*`
-    s16                   appliedAnim;                              // animation last applied to the slots
-    s16                   animId;                                   // requested animation: index into the animation set table
-    s16                   animFrames;                               // frames since `animId` was applied; rescaled when a blend repeats it at a new rate
-    s16                   shrinkScaleY;                             // Y scale of the death shrink, 0x1000 = 1.0
-    u16                   stateFrames;                              // frames spent in the current state or sub-state
-    u16                   state;                                    // index into the state table of the current task state
-    u16                   subState;                                 // index into the step table of the current state
-    u16                   deathStep;                                // step of the fall a kill on the ceiling runs before the death sequence
-    byte                  field_A0C[2];                             // never accessed
-    s16                   animBlendFrames;                          // frames a blend request takes; cleared when the blend starts
-    s16                   moveAccel;                                // added to `moveSpeed` each frame; itself changes by 2 each frame
-    s16                   moveSpeed;                                // vertical speed of a drop or a jump
-    byte                  field_A14[2];                             // never accessed
-    s16                   targetDist;                               // horizontal length of `toTarget`
-    s16                   playerCaught;                             // 1 once the grab has caught the player; the grab then carries the player with part 8
-    s16                   zone;                                     // id of the `ActorZone` holding the root, 0 outside them all
-    u16                   playerZone;                               // id of the `ActorZone` holding the player, 0 outside them all or without a player
-    u16                   posture;                                  // `ACTOR_400500_POSTURE_*`
-    s16                   cloakLevel;                               // grey level of the cloak shading, 0 (none) to 0xFF
-    u16                   patrolFrames;                             // frames the player has spent in zone 5; bit 8 picks the end of the patrol line `toTarget` aims at
-    s16                   colorBlend;                               // the model's `TmdObject::shading.colorBlend`, 0 to `TMD_OBJECT_COLOR_BLEND_ONE`
-    u16                   armSwingAngle;                            // yaw an arm model has swung out by, 0 to 0x200 in steps of 0x80
-    s16                   shadowShade;                              // brightness of the limb shadows, 0 to 0xFF
-    s16                   cloakTimer;                               // frames the holding phase of a cloak fade has lasted
-    s16                   hideHoldFrames;                           // frames a hide holds the cloak before the body fades out
-    s16                   hideCooldownReset;                        // value `hideCooldown` starts from when a show completes; longer at lower health
-    s16                   hideCooldown;                             // frames before another hide may be requested
-    s16                   attackCooldown;                           // frames before the next attack; 0x3C after one ends
-    s16                   attackCooling;                            // 1 while `attackCooldown` was still running this frame
-    u16                   targetBearing;                            // heading of `toTarget` relative to `yaw`, 0..0xFFF
-    s16                   turnRequest;                              // `ACTOR_400500_TURN_*`
-    s16                   turnStarted;                              // 1 once the requested turn's animation has been started
-    s16                   hitTaken;                                 // 1 when a hit or a status tick dealt damage; lets `hitReaction` be consumed
-    s16                   hitReaction;                              // `ACTOR_400500_HIT_REACTION_*` awaiting the state machine
-    s16                   lastHitReaction;                          // the last reaction a hit asked for; never cleared, so the death can tell a blast
-    s16                   deathHeld;                                // 1 while the current move must finish before the death sequence starts
-    s16                   hitCooldown;                              // frames before another hit is taken; set from the hit's id parameter 2
-    s8                    cloakRequest;                             // `ACTOR_400500_CLOAK_*`
-    s8                    cloakPhase;                               // step of the running cloak fade (0 first ramp, 1 hold, 2 second ramp)
-    s8                    grabStep;                                 // player animation of a grab (0 none, 1 caught, 2 start the follow-up, 3 release follow-up, 4 hit follow-up)
-    s8                    ceilingFallPending;                       // asks a ceiling crawl to fall onto its back; the crawl states take it, but nothing sets it
-    s8                    knockdownPending;                         // set by a hit whose id parameter 0 is 8 or 9; the next state step enters the knockdown
-    u8                    roomCommand;                              // kind of the last room command (1..4); 1 starts the room-driven sequence, whose steps wait for 2, 3 and 4
-    u8                    commandActive;                            // 1 from room command 1 until command 4 is taken; keeps `WORLD_TARGET_KEEP_SCANNED` off the target
-    u8                    grabLanded;                               // 1 once the grab has hit the player; picks the player's follow-up animation
-    byte                  field_A4E[2];                             // never accessed
+    ActorAnimRig18        rig;                 // playback of the model's parts: slots 1 to 17 play `animId`, and slot 1's status tells when it ended
+    byte                  field_404[0x404];    // never accessed
+    MATRIX                savedRootMtx;        // root matrix at the start of the death shrink; each frame rescales a copy of it
+    WorldCollisionBody    body;                // sphere on part 3 that takes hits; shrunk while the grab reaches out
+    WorldCollisionContact bodyContacts[3];     // contacts of `body`; also the enemy's hit records
+    WorldCollisionBody    rightArmOuter;       // attack sphere far along part 7; enabled only while the right arm strikes
+    WorldCollisionBody    rightArmInner;       // attack sphere nearer the root of part 7; shares `rightArmContacts`
+    WorldCollisionContact rightArmContacts[1]; // contacts of the two right-arm spheres
+    WorldCollisionBody    leftArmOuter;        // attack sphere far along part 10; enabled only while the left arm strikes
+    WorldCollisionBody    leftArmInner;        // attack sphere nearer the root of part 10; shares `leftArmContacts`
+    WorldCollisionContact leftArmContacts[1];  // contacts of the two left-arm spheres
+    EffectSpawnArg        effectArg;           // argument record of the effects its hits spawn, hung off part 3
+    s16                   pitch;               // root pitch in 4096ths of a turn; swept through half a turn by a drop or a jump
+    s16                   yaw;                 // root heading in 4096ths of a turn
+    s16                   roll;                // root roll in 4096ths of a turn; half a turn apart on the ceiling and on the floor
+    byte                  field_94E[2];        // never accessed
+    s16                   dropStartX;          // root X when the drop from the ceiling began; the drop lands back on it
+    byte                  field_952[2];        // never accessed
+    s16                   dropStartZ;          // root Z when the drop from the ceiling began; the drop lands back on it
+    byte                  field_956[6];        // never accessed
+    MATRIX                colorMtx;            // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;            // storage for the model's `TmdObject::lightMtx`
+    byte                  field_99C[4];        // never accessed
+    SVECTOR3              anchorPos;           // view-space X and Z a part is pinned to while the root moves around it; `vy` is never accessed
+    byte                  field_9A6[0x16];     // never accessed
+    s16                   armReachAngle;       // turn of parts 6 and 9 towards the target while the grab reaches; eased back to zero after
+    byte                  field_9BE[2];        // never accessed
+    VECTOR                rootPos;             // root position at the start of the frame; never read
+    SVECTOR               playerPrevPos;       // the player's root position when the previous frame ended
+    SVECTOR               playerLocalMove;     // the player's movement since then, turned into the Stalker's heading; `vz` biases the attack ranges
+    SVECTOR3              toTarget;            // offset from the root to the player, or to the patrol point while the player is in zone 5
+    byte                  field_9E6[0xA];      // never accessed
+    Task*                 armTasks[2];         // tasks of the arm models (0 left on part 10, 1 right on part 7), shown only during an arm strike
+    s16                   animRate;            // playback rate of slots 1..17; `ANIMATION_RATE_ONE` is normal speed
+    s16                   animRequest;         // `ACTOR_400500_ANIM_REQUEST_*`
+    s16                   appliedAnim;         // animation last applied to the slots
+    s16                   animId;              // requested animation: index into the animation set table
+    s16                   animFrames;          // frames since `animId` was applied; rescaled when a blend repeats it at a new rate
+    s16                   shrinkScaleY;        // Y scale of the death shrink, 0x1000 = 1.0
+    u16                   stateFrames;         // frames spent in the current state or sub-state
+    u16                   state;               // index into the state table of the current task state
+    u16                   subState;            // index into the step table of the current state
+    u16                   deathStep;           // step of the fall a kill on the ceiling runs before the death sequence
+    byte                  field_A0C[2];        // never accessed
+    s16                   animBlendFrames;     // frames a blend request takes; cleared when the blend starts
+    s16                   moveAccel;           // added to `moveSpeed` each frame; itself changes by 2 each frame
+    s16                   moveSpeed;           // vertical speed of a drop or a jump
+    byte                  field_A14[2];        // never accessed
+    s16                   targetDist;          // horizontal length of `toTarget`
+    s16                   playerCaught;        // 1 once the grab has caught the player; the grab then carries the player with part 8
+    s16                   zone;                // id of the `ActorZone` holding the root, 0 outside them all
+    u16                   playerZone;          // id of the `ActorZone` holding the player, 0 outside them all or without a player
+    u16                   posture;             // `ACTOR_400500_POSTURE_*`
+    s16                   cloakLevel;          // grey level of the cloak shading, 0 (none) to 0xFF
+    u16                   patrolFrames;        // frames the player has spent in zone 5; bit 8 picks the end of the patrol line `toTarget` aims at
+    s16                   colorBlend;          // the model's `TmdObject::shading.colorBlend`, 0 to `TMD_OBJECT_COLOR_BLEND_ONE`
+    u16                   armSwingAngle;       // yaw an arm model has swung out by, 0 to 0x200 in steps of 0x80
+    s16                   shadowShade;         // brightness of the limb shadows, 0 to 0xFF
+    s16                   cloakTimer;          // frames the holding phase of a cloak fade has lasted
+    s16                   hideHoldFrames;      // frames a hide holds the cloak before the body fades out
+    s16                   hideCooldownReset;   // value `hideCooldown` starts from when a show completes; longer at lower health
+    s16                   hideCooldown;        // frames before another hide may be requested
+    s16                   attackCooldown;      // frames before the next attack; 0x3C after one ends
+    s16                   attackCooling;       // 1 while `attackCooldown` was still running this frame
+    u16                   targetBearing;       // heading of `toTarget` relative to `yaw`, 0..0xFFF
+    s16                   turnRequest;         // `ACTOR_400500_TURN_*`
+    s16                   turnStarted;         // 1 once the requested turn's animation has been started
+    s16                   hitTaken;            // 1 when a hit or a status tick dealt damage; lets `hitReaction` be consumed
+    s16                   hitReaction;         // `ACTOR_400500_HIT_REACTION_*` awaiting the state machine
+    s16                   lastHitReaction;     // the last reaction a hit asked for; never cleared, so the death can tell a blast
+    s16                   deathHeld;           // 1 while the current move must finish before the death sequence starts
+    s16                   hitCooldown;         // frames before another hit is taken; set from the hit's id parameter 2
+    s8                    cloakRequest;        // `ACTOR_400500_CLOAK_*`
+    s8                    cloakPhase;          // step of the running cloak fade (0 first ramp, 1 hold, 2 second ramp)
+    s8                    grabStep;            // player animation of a grab (0 none, 1 caught, 2 start the follow-up, 3 release follow-up, 4 hit follow-up)
+    s8                    ceilingFallPending;  // asks a ceiling crawl to fall onto its back; the crawl states take it, but nothing sets it
+    s8                    knockdownPending;    // set by a hit whose id parameter 0 is 8 or 9; the next state step enters the knockdown
+    u8                    roomCommand;         // kind of the last room command (1..4); 1 starts the room-driven sequence, whose steps wait for 2, 3 and 4
+    u8                    commandActive;       // 1 from room command 1 until command 4 is taken; keeps `WORLD_TARGET_KEEP_SCANNED` off the target
+    u8                    grabLanded;          // 1 once the grab has hit the player; picks the player's follow-up animation
+    byte                  field_A4E[2];        // never accessed
 } _Actor400500GrayStalkerWork;
 STATIC_ASSERT_SIZEOF(_Actor400500GrayStalkerWork, 0xA50);
 
@@ -2164,8 +2162,8 @@ static s32 func_actor_400500_80133358(Task* arg0)
         return ret;
     check_hit:
         hit = (_Actor400500GrayStalkerWork*)arg0->work;
-        if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -2238,8 +2236,8 @@ static s32 func_actor_400500_80133460(Task* arg0)
             work->hitReaction  = ACTOR_400500_HIT_REACTION_NONE;
         }
         hit = (_Actor400500GrayStalkerWork*)arg0->work;
-        if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -2298,10 +2296,10 @@ static inline void _actor400500TickAnim(Task* task)
     }
     i = 1;
     do {
-        work->slots[i].rate = work->animRate;
-        animationTickSlot(&work->anim, i);
+        work->rig.slots[i].rate = work->animRate;
+        animationTickSlot(&work->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work->rig.slots));
 }
 
 /// Returns 1 when slot 1 reports a reached boundary, control jump, or held boundary pose.
@@ -2309,8 +2307,8 @@ static inline s32 _actor400500HitFlagged(Task* task)
 {
     _Actor400500GrayStalkerWork* work = (_Actor400500GrayStalkerWork*)task->work;
 
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;
@@ -2728,10 +2726,10 @@ static void func_actor_400500_801348D8(Task* arg0, s32 arg1)
         }
         i = 1;
         do {
-            work2->slots[i].rate = work2->animRate;
-            animationTickSlot(&work2->anim, i);
+            work2->rig.slots[i].rate = work2->animRate;
+            animationTickSlot(&work2->rig.anim, i);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work2->rig.slots));
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&gGfxViewCoord);
         joint->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2774,10 +2772,10 @@ static void func_actor_400500_801348D8(Task* arg0, s32 arg1)
         }
         i = 1;
         do {
-            work3->slots[i].rate = work3->animRate;
-            animationTickSlot(&work3->anim, i);
+            work3->rig.slots[i].rate = work3->animRate;
+            animationTickSlot(&work3->rig.anim, i);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work3->rig.slots));
         work->animRate = ANIMATION_RATE_ONE;
     }
 }
@@ -2875,8 +2873,8 @@ static void func_actor_400500_80135414(Task* arg0)
     enemy->recs                   = work->bodyContacts;
     enemy->param                  = &D_actor_400500_80153C90;
     enemy->hp = enemy->hpMax = D_actor_400500_80153C90.hpMax;
-    animationInitContext(&work->anim, (AnimationSet**)D_actor_400500_80153CC0, extra, work->poses,
-                         work->slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_400500_80153CC0, extra, work->rig.poses,
+                         work->rig.slots);
     coord->parent = &gGfxViewCoord;
     _actor400500SetAnim(arg0, 2, 0x18);
     _actor400500TickAnim(arg0);
@@ -3245,10 +3243,10 @@ static void func_actor_400500_80135EBC(Task* arg0)
         }
         i = 1;
         do {
-            work2->slots[i].rate = work2->animRate;
-            animationTickSlot(&work2->anim, i);
+            work2->rig.slots[i].rate = work2->animRate;
+            animationTickSlot(&work2->rig.anim, i);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work2->rig.slots));
         work3 = (_Actor400500GrayStalkerWork*)arg0->work;
         if ((work3->cloakRequest >= 0) || (((u8)work3->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != ACTOR_400500_CLOAK_SHOW)) {
             flag                = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
@@ -3280,10 +3278,10 @@ static void func_actor_400500_80135EBC(Task* arg0)
         }
         i = 1;
         do {
-            work4->slots[i].rate = work4->animRate;
-            animationTickSlot(&work4->anim, i);
+            work4->rig.slots[i].rate = work4->animRate;
+            animationTickSlot(&work4->rig.anim, i);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work4->rig.slots));
     }
     sp10.funcs[(s16)work->subState](arg0);
     work3 = (_Actor400500GrayStalkerWork*)arg0->work;
@@ -3368,10 +3366,10 @@ static void func_actor_400500_801361EC(Task* arg0)
             }
             i = 1;
             do {
-                work2->slots[i].rate = work2->animRate;
-                animationTickSlot(&work2->anim, i);
+                work2->rig.slots[i].rate = work2->animRate;
+                animationTickSlot(&work2->rig.anim, i);
                 i++;
-            } while (i < 0x12);
+            } while (i < ARRAY_SIZE(work2->rig.slots));
             switch ((s16)((u16)work->zone - 1)) {
                 case 3:
                     if (heading != 0x400) {
@@ -4175,10 +4173,10 @@ static void func_actor_400500_801375B8(Task* arg0)
     }
     i = 1;
     do {
-        work4->slots[i].rate = work4->animRate;
-        animationTickSlot(&work4->anim, i);
+        work4->rig.slots[i].rate = work4->animRate;
+        animationTickSlot(&work4->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work4->rig.slots));
     work->stateFrames   = 0;
     work->playerCaught  = 0;
     work->armReachAngle = 0;
@@ -4368,8 +4366,8 @@ static void func_actor_400500_8013771C(Task* arg0)
         }
     }
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4409,18 +4407,18 @@ static void func_actor_400500_80138088(Task* arg0)
     }
     i = 1;
     do {
-        work2->slots[i].rate = work2->animRate;
-        animationTickSlot(&work2->anim, i);
+        work2->rig.slots[i].rate = work2->animRate;
+        animationTickSlot(&work2->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work2->rig.slots));
 
     work->armReachAngle += -(work->armReachAngle * 16) >> 7;
     _actor400500TurnPart(&arg0->extra.tmd->coords[6], work->armReachAngle);
     _actor400500TurnPart(&arg0->extra.tmd->coords[9], work->armReachAngle);
 
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4514,10 +4512,10 @@ static void func_actor_400500_801385D0(Task* arg0)
         }
         i = 1;
         do {
-            work2->slots[i].rate = work2->animRate;
-            animationTickSlot(&work2->anim, i);
+            work2->rig.slots[i].rate = work2->animRate;
+            animationTickSlot(&work2->rig.anim, i);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work2->rig.slots));
     }
 }
 
@@ -4554,8 +4552,8 @@ static void func_actor_400500_801387E8(Task* arg0)
         }
     }
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4636,10 +4634,10 @@ static void func_actor_400500_8013899C(Task* arg0)
         }
         i = 1;
         do {
-            work2->slots[i].rate = work2->animRate;
-            animationTickSlot(&work2->anim, i);
+            work2->rig.slots[i].rate = work2->animRate;
+            animationTickSlot(&work2->rig.anim, i);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work2->rig.slots));
         work3                     = (_Actor400500GrayStalkerWork*)arg0->work;
         work3->ceilingFallPending = 0;
     }
@@ -4675,8 +4673,8 @@ static void func_actor_400500_80138B78(Task* arg0)
         }
     }
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4726,8 +4724,8 @@ static void func_actor_400500_80138DC4(Task* arg0)
     u32                          rnd;
 
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4801,10 +4799,10 @@ static void func_actor_400500_80138EA0(Task* arg0)
     }
     i = 1;
     do {
-        work2->slots[i].rate = work2->animRate;
-        animationTickSlot(&work2->anim, i);
+        work2->rig.slots[i].rate = work2->animRate;
+        animationTickSlot(&work2->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work2->rig.slots));
     work3                     = (_Actor400500GrayStalkerWork*)arg0->work;
     work3->hitTaken           = 0;
     work3->hitReaction        = ACTOR_400500_HIT_REACTION_NONE;
@@ -4851,10 +4849,10 @@ static void func_actor_400500_8013905C(Task* arg0)
     }
     i = 1;
     do {
-        work2->slots[i].rate = work2->animRate;
-        animationTickSlot(&work2->anim, i);
+        work2->rig.slots[i].rate = work2->animRate;
+        animationTickSlot(&work2->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work2->rig.slots));
 }
 
 static void func_actor_400500_801391B0(Task* arg0)
@@ -4930,10 +4928,10 @@ static void func_actor_400500_801392D8(Task* arg0)
     }
     i = 1;
     do {
-        work2->slots[i].rate = work2->animRate;
-        animationTickSlot(&work2->anim, i);
+        work2->rig.slots[i].rate = work2->animRate;
+        animationTickSlot(&work2->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work2->rig.slots));
     work3                     = (_Actor400500GrayStalkerWork*)arg0->work;
     work3->hitTaken           = 0;
     work3->hitReaction        = ACTOR_400500_HIT_REACTION_NONE;
@@ -5030,10 +5028,10 @@ static void func_actor_400500_801395D0(Task* arg0)
         }
         i = 1;
         do {
-            work2->slots[i].rate = work2->animRate;
-            animationTickSlot(&work2->anim, i);
+            work2->rig.slots[i].rate = work2->animRate;
+            animationTickSlot(&work2->rig.anim, i);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work2->rig.slots));
     }
     sp.funcs[(s16)work->subState](arg0);
     work3                     = (_Actor400500GrayStalkerWork*)arg0->work;
@@ -5171,10 +5169,10 @@ static void func_actor_400500_8013973C(Task* arg0)
         }
         i = 1;
         do {
-            workAnim->slots[i].rate = workAnim->animRate;
-            animationTickSlot(&workAnim->anim, i);
+            workAnim->rig.slots[i].rate = workAnim->animRate;
+            animationTickSlot(&workAnim->rig.anim, i);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(workAnim->rig.slots));
         root->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(root);
         work->stateFrames = 0;
@@ -5211,8 +5209,8 @@ static void func_actor_400500_80139AC4(Task* arg0)
         }
         if (flag == 0) {
             hit = (_Actor400500GrayStalkerWork*)arg0->work;
-            if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-                (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+            if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+                (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
                 cond = 1;
             } else {
                 cond = 0;
@@ -5265,10 +5263,10 @@ static void func_actor_400500_80139C1C(Task* arg0)
     }
     i = 1;
     do {
-        work2->slots[i].rate = work2->animRate;
-        animationTickSlot(&work2->anim, i);
+        work2->rig.slots[i].rate = work2->animRate;
+        animationTickSlot(&work2->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work2->rig.slots));
     work3                     = (_Actor400500GrayStalkerWork*)arg0->work;
     work3->hitTaken           = 0;
     work3->hitReaction        = ACTOR_400500_HIT_REACTION_NONE;
@@ -5366,10 +5364,10 @@ static void func_actor_400500_80139F6C(Task* arg0)
     }
     i = 1;
     do {
-        work2->slots[i].rate = work2->animRate;
-        animationTickSlot(&work2->anim, i);
+        work2->rig.slots[i].rate = work2->animRate;
+        animationTickSlot(&work2->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work2->rig.slots));
     work3                     = (_Actor400500GrayStalkerWork*)arg0->work;
     work3->hitTaken           = 0;
     work3->hitReaction        = ACTOR_400500_HIT_REACTION_NONE;
@@ -5429,8 +5427,8 @@ static void func_actor_400500_8013A0B8(Task* arg0)
         Gp_UpdateCoord(coords);
     }
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -5476,10 +5474,10 @@ static void func_actor_400500_8013A0B8(Task* arg0)
             }
             i = 1;
             do {
-                anim->slots[i].rate = anim->animRate;
-                animationTickSlot(&anim->anim, i);
+                anim->rig.slots[i].rate = anim->animRate;
+                animationTickSlot(&anim->rig.anim, i);
                 i++;
-            } while (i < 0x12);
+            } while (i < ARRAY_SIZE(anim->rig.slots));
             coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coords);
             work3 = (_Actor400500GrayStalkerWork*)arg0->work;
@@ -5565,10 +5563,10 @@ static void func_actor_400500_8013A484(Task* arg0)
     }
     i = 1;
     do {
-        work2->slots[i].rate = work2->animRate;
-        animationTickSlot(&work2->anim, i);
+        work2->rig.slots[i].rate = work2->animRate;
+        animationTickSlot(&work2->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work2->rig.slots));
 }
 
 static void func_actor_400500_8013A5D8(Task* arg0)
@@ -5712,10 +5710,10 @@ static void func_actor_400500_8013A8E4(Task* arg0)
     }
     i = 1;
     do {
-        work2->slots[i].rate = work2->animRate;
-        animationTickSlot(&work2->anim, i);
+        work2->rig.slots[i].rate = work2->animRate;
+        animationTickSlot(&work2->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work2->rig.slots));
     worldTargetUnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
@@ -5761,13 +5759,13 @@ static void func_actor_400500_8013AA98(Task* arg0)
     }
     i = 1;
     do {
-        work2->slots[i].rate = work2->animRate;
-        animationTickSlot(&work2->anim, i);
+        work2->rig.slots[i].rate = work2->animRate;
+        animationTickSlot(&work2->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work2->rig.slots));
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -5865,10 +5863,10 @@ static void func_actor_400500_8013AD60(Task* arg0)
         }
         i = 1;
         do {
-            work2->slots[i].rate = work2->animRate;
-            animationTickSlot(&work2->anim, i);
+            work2->rig.slots[i].rate = work2->animRate;
+            animationTickSlot(&work2->rig.anim, i);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work2->rig.slots));
     }
     if (enemy->hp > 0) {
         sp.funcs[(s16)work->subState](arg0);
@@ -5931,10 +5929,10 @@ static void func_actor_400500_8013AF44(Task* arg0)
         }
         i = 1;
         do {
-            work3->slots[i].rate = work3->animRate;
-            animationTickSlot(&work3->anim, i);
+            work3->rig.slots[i].rate = work3->animRate;
+            animationTickSlot(&work3->rig.anim, i);
             i++;
-        } while (i < 0x12);
+        } while (i < ARRAY_SIZE(work3->rig.slots));
         switch ((s16)((u16)work->zone - 1)) {
             case 3:
                 if (heading != 0x400) {
@@ -6203,10 +6201,10 @@ static void func_actor_400500_8013B5E0(Task* arg0)
     }
     i = 1;
     do {
-        work2->slots[i].rate = work2->animRate;
-        animationTickSlot(&work2->anim, i);
+        work2->rig.slots[i].rate = work2->animRate;
+        animationTickSlot(&work2->rig.anim, i);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work2->rig.slots));
 }
 
 static s32 func_actor_400500_8013B720(GfxCoord* arg0, MATRIX* arg1)
@@ -6327,8 +6325,8 @@ static void func_actor_400500_8013BBB0(Task* arg0)
         work->stateFrames = work->stateFrames + 1;
     }
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6386,8 +6384,8 @@ static void func_actor_400500_8013BD64(Task* arg0)
         work->stateFrames = work->stateFrames + 1;
     }
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6579,8 +6577,8 @@ static void func_actor_400500_8013C218(Task* arg0)
         work->stateFrames = work->stateFrames + 1;
     }
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6607,8 +6605,8 @@ static void func_actor_400500_8013C348(Task* arg0)
 
     work  = (_Actor400500GrayStalkerWork*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6636,8 +6634,8 @@ static void func_actor_400500_8013C3C4(Task* arg0)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (_Actor400500GrayStalkerWork*)arg0->work;
     if (enemy->hp > 0) {
-        if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -6672,8 +6670,8 @@ static void func_actor_400500_8013C474(Task* arg0)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (_Actor400500GrayStalkerWork*)arg0->work;
     if (enemy->hp > 0) {
-        if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -6704,8 +6702,8 @@ static void func_actor_400500_8013C508(Task* arg0)
 
     hit   = (_Actor400500GrayStalkerWork*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6760,8 +6758,8 @@ static void func_actor_400500_8013C61C(Task* arg0)
         work->stateFrames = work->stateFrames + 1;
     }
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6787,8 +6785,8 @@ static void func_actor_400500_8013C750(Task* arg0)
     s32                          cond;
 
     work = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6879,8 +6877,8 @@ static void func_actor_400500_8013C9D4(Task* arg0)
     s32                          cond;
 
     work = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7352,8 +7350,8 @@ static void func_actor_400500_8013D59C(Task* arg0)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (_Actor400500GrayStalkerWork*)arg0->work;
     if (enemy->hp > 0) {
-        if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -7384,8 +7382,8 @@ static void func_actor_400500_8013D630(Task* arg0)
 
     hit   = (_Actor400500GrayStalkerWork*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7440,8 +7438,8 @@ static void func_actor_400500_8013D744(Task* arg0)
         work->stateFrames = work->stateFrames + 1;
     }
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7467,8 +7465,8 @@ static void func_actor_400500_8013D878(Task* arg0)
     s32                          cond;
 
     work = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7641,10 +7639,10 @@ static void func_actor_400500_8013DC4C(Task* arg0)
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     i    = 1;
     do {
-        work->slots[i].rate = work->animRate;
-        animationResetSlot(&work->anim, i, work->animId);
+        work->rig.slots[i].rate = work->animRate;
+        animationResetSlot(&work->rig.anim, i, work->animId);
         i++;
-    } while (i < 0x12);
+    } while (i < ARRAY_SIZE(work->rig.slots));
     work->appliedAnim = work->animId;
 }
 
@@ -7669,15 +7667,15 @@ static void func_actor_400500_8013DCD4(Task* arg0)
     do {
         if (same) {
             do {
-                work->slots[i].rate = work->animRate;
+                work->rig.slots[i].rate = work->animRate;
                 i++;
-            } while (i < 0x12);
+            } while (i < ARRAY_SIZE(work->rig.slots));
         } else {
             do {
-                work->slots[i].rate = work->animRate;
-                animationSeekSlotWithBlend(&work->anim, i, work->animId, 0, work->animBlendFrames);
+                work->rig.slots[i].rate = work->animRate;
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, work->animBlendFrames);
                 i++;
-            } while (i < 0x12);
+            } while (i < ARRAY_SIZE(work->rig.slots));
             work->animBlendFrames = 0;
         }
     } while (0);
@@ -7701,8 +7699,8 @@ static s32 func_actor_400500_8013DDEC(Task* arg0)
 {
     _Actor400500GrayStalkerWork* work = (_Actor400500GrayStalkerWork*)arg0->work;
 
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;

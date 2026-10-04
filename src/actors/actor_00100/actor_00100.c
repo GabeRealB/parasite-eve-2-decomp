@@ -1640,7 +1640,7 @@ void desertChaserBlendTick(Task* arg0)
 
     work = arg0->work;
     anim = &work->rig.anim;
-    for (index = 1; index < 0x12; index++) {
+    for (index = 1; index < ARRAY_SIZE(work->rig.slots); index++) {
         part = index - 1;
         switch (part) {
             case 0:
