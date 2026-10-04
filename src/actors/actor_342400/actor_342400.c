@@ -274,7 +274,7 @@ static void func_actor_342400_801631DC(s16 arg0);
 
 void madChaserWavePairCull(Task* arg0)
 {
-    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
+    OverlayEncounterPairWork* work = arg0->work;
     Enemy*                    enemy;
     Task*                     task;
     GfxCoord*                 coord;
@@ -294,7 +294,7 @@ void madChaserWavePairCull(Task* arg0)
             work->enemy0 = NULL;
         }
     } else {
-        work->goneMask |= 1;
+        work->goneMask |= OVERLAY_ENCOUNTER_PAIR_GONE_ENEMY0;
     }
     if (work->enemy1 != NULL) {
         enemy = work->enemy1;
@@ -310,7 +310,7 @@ void madChaserWavePairCull(Task* arg0)
             work->enemy1 = NULL;
         }
     } else {
-        work->goneMask |= 2;
+        work->goneMask |= OVERLAY_ENCOUNTER_PAIR_GONE_ENEMY1;
     }
 }
 

@@ -4,7 +4,7 @@
 /// spawn argument, restarts the frame counter and advances.
 void madChaserWavePairRevealFirst(Task* arg0)
 {
-    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
+    OverlayEncounterPairWork* work = arg0->work;
     Enemy*                    enemy;
     Task*                     task;
     TmdObject*                obj;

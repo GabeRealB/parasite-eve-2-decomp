@@ -10,7 +10,7 @@ void madChaserWavePairSpawn(Task* arg0)
     Task*                     task;
     TmdObject*                obj;
 
-    work = memCalloc(0xC, 0);
+    work = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         goto kill;
     }

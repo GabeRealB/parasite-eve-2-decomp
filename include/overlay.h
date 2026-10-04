@@ -350,15 +350,28 @@ typedef struct {
 } OverlayEncounterSingleWork;
 STATIC_ASSERT_SIZEOF(OverlayEncounterSingleWork, 0x8);
 
-/// Work block of an encounter slot task that holds a pair of enemies: the two
-/// enemies, the frames counted before the second is released, and a mask with
-/// bit 0 set once the first is gone and bit 1 once the second is; the task
-/// ends when both are.
-typedef struct OverlayEncounterPairWork {
-    Enemy* enemy0;
-    Enemy* enemy1;
-    s16      frames;
-    s16      goneMask;
+/// Bits of `OverlayEncounterPairWork::goneMask`.
+enum {
+    OVERLAY_ENCOUNTER_PAIR_GONE_ENEMY0 = 1 << 0, // the spawner no longer holds its first enemy
+    OVERLAY_ENCOUNTER_PAIR_GONE_ENEMY1 = 1 << 1, // the spawner no longer holds its second enemy
+    OVERLAY_ENCOUNTER_PAIR_GONE_BOTH   = OVERLAY_ENCOUNTER_PAIR_GONE_ENEMY0 | OVERLAY_ENCOUNTER_PAIR_GONE_ENEMY1
+};
+
+/// Work block of a scripted encounter's two-enemy spawner: the task an
+/// `OverlayEncounterSlot` row starts to spawn a pair of enemies hidden, bring
+/// the first out at once and the second after a delay, and watch both until
+/// the row is done.
+///
+/// The spawner allocates the block zeroed and the task's teardown frees it.
+/// Either spawn may fail, leaving that pointer null from the start; the task
+/// only gives up when both do. The enemies belong to their own tasks and are
+/// only borrowed here: the spawner clears a pointer once that enemy is dead or
+/// has been sent away, and one tick later records it in `goneMask`.
+typedef struct {
+    Enemy* enemy0;   // First enemy of the pair, brought out as soon as the pair is spawned; null once it is gone or if it never spawned
+    Enemy* enemy1;   // Second enemy of the pair, brought out after the spawner's delay; null once it is gone or if it never spawned
+    s16    frames;   // Frames counted since the first enemy was brought out; the second follows once they pass the spawner's delay, and the count stops there
+    s16    goneMask; // Which of the two the spawner has seen gone (`OVERLAY_ENCOUNTER_PAIR_GONE_`); the row is done once both are
 } OverlayEncounterPairWork;
 STATIC_ASSERT_SIZEOF(OverlayEncounterPairWork, 0xC);
 

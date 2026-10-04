@@ -4,7 +4,7 @@
 /// the same command, then advances.
 void madChaserWavePairRevealSecond(Task* arg0)
 {
-    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
+    OverlayEncounterPairWork* work = arg0->work;
     Enemy*                    enemy;
     Task*                     task;
     TmdObject*                obj;
@@ -13,7 +13,7 @@ void madChaserWavePairRevealSecond(Task* arg0)
     enemy = work->enemy1;
     madChaserWavePairDropDead(arg0);
     if (work->enemy1 != NULL) {
-        if (++work->frames <= 0x3C) {
+        if (++work->frames <= 60) {
             return;
         }
         task                   = work->enemy1->task;

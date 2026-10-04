@@ -3687,7 +3687,7 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     Task*                     task;
     TmdObject*                obj;
 
-    work = memCalloc(0xC, 0);
+    work = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         goto kill;
     }
@@ -4021,8 +4021,8 @@ static void func_shelter_b3_dumping_hole_80183C8C(Task* arg0)
 static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 {
     ActorCommand              request;
-    OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
-    Enemy*                    t0  = ent->enemy0;
+    OverlayEncounterPairWork* work = arg0->work;
+    Enemy*                    t0   = work->enemy0;
 
     if (t0 != NULL) {
         Task*      t00            = t0->task;
@@ -4035,22 +4035,22 @@ static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
         request.command           = arg0->spawnArg1.value;
         TASK_MESSAGE_DISPATCH_POINTER(t00, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
     }
-    ent->frames  = 0;
+    work->frames = 0;
     arg0->state += 1;
 }
 
 static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
 {
-    OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
-    Enemy*                    t   = ent->enemy1;
+    OverlayEncounterPairWork* work = arg0->work;
+    Enemy*                    t    = work->enemy1;
 
     func_shelter_b3_dumping_hole_80183F04(arg0);
-    if (ent->enemy1 != NULL) {
-        if ((s16)(ent->frames += 1) < 0x3D) {
+    if (work->enemy1 != NULL) {
+        if (++work->frames <= 60) {
             return;
         }
         {
-            Task*        t00 = ent->enemy1->task;
+            Task*        t00 = work->enemy1->task;
             TmdObject*   p   = t00->extra.tmd;
             ActorCommand request;
             p->texturePageOffset      = 3;
@@ -4062,15 +4062,16 @@ static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(t00, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
         }
     }
-    ent->frames  = 0;
+    work->frames = 0;
     arg0->state += 1;
 }
 
 static void func_shelter_b3_dumping_hole_80183E08(Task* arg0)
 {
-    OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
+    OverlayEncounterPairWork* work = arg0->work;
+
     func_shelter_b3_dumping_hole_80183F04(arg0);
-    if (ent->goneMask == 3) {
+    if (work->goneMask == OVERLAY_ENCOUNTER_PAIR_GONE_BOTH) {
         D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
     }
@@ -4093,21 +4094,21 @@ static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2)
 
 static void func_shelter_b3_dumping_hole_80183F04(Task* arg0)
 {
-    OverlayEncounterPairWork* p = (OverlayEncounterPairWork*)arg0->work;
+    OverlayEncounterPairWork* work = arg0->work;
 
-    if (p->enemy0 != NULL) {
-        if (p->enemy0->hp <= 0) {
-            p->enemy0 = NULL;
+    if (work->enemy0 != NULL) {
+        if (work->enemy0->hp <= 0) {
+            work->enemy0 = NULL;
         }
     } else {
-        p->goneMask |= 1;
+        work->goneMask |= OVERLAY_ENCOUNTER_PAIR_GONE_ENEMY0;
     }
-    if (p->enemy1 != NULL) {
-        if (p->enemy1->hp <= 0) {
-            p->enemy1 = NULL;
+    if (work->enemy1 != NULL) {
+        if (work->enemy1->hp <= 0) {
+            work->enemy1 = NULL;
         }
     } else {
-        p->goneMask |= 2;
+        work->goneMask |= OVERLAY_ENCOUNTER_PAIR_GONE_ENEMY1;
     }
 }
 
