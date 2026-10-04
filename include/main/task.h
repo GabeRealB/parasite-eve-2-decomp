@@ -36,6 +36,11 @@ extern bool gTaskDeferModelBufferAllocation;
 /// 0x80005, which spawns its task from that entry.
 extern TaskDesc D_800626EC[6];
 
+/// Task descriptors of bank 1. Entry 0x32 is a model descriptor whose model is
+/// not fixed: callers store the model in its `data.model` just before spawning
+/// `EFFECT_FLYING_BODY_PART`, which spawns its task from that entry.
+extern TaskDesc D_800670D0[];
+
 extern TaskDesc Stage_MusicTaskDesc;
 
 Task* Task_SpawnFromTable(TaskDesc* table, s32 idx, TaskSpawnArg arg2, TaskSpawnArg arg3);

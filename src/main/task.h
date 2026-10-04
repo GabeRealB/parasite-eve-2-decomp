@@ -18,8 +18,6 @@ extern TaskDesc D_80062780[];
 
 extern TaskDesc D_800626AC[];
 
-extern TaskDesc D_800670D0[];
-
 extern TaskDesc D_800676A8[];
 
 extern TaskDesc D_80067734[];

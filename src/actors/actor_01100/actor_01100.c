@@ -57,37 +57,24 @@
 #include "overlay.h"
 #include "../../shared/actor_contacts.h"
 
-/// 0x58-byte work block the body at 0x80137C88 allocates with
-/// `memCalloc(0x58, 0)` and parks in `Task::work` (0x1C). The same block lies
-/// under the `Actor101100Work` of the four
-/// sibling slots (`actor_101100`, `actor_201100`, `actor_204900`,
-/// `actor_301100`), whose 0x28 run is the `WorldCollisionCapsule` filled in here: the
-/// object's `context.capsule` points at it and its `contacts` at the one-entry `WorldCollisionContact`
-/// collision table at 0x40, which is where the 0x58 bytes end.
-typedef struct ActorsShared80137fb8Work {
-    /// Effect velocity: the random direction vector rotated by the actor's
-    /// coordinate and scaled by a 0x1000-fraction draw. Its X and Z are added to
-    /// the coordinate's translation afterwards, its Y is not.
-    /* 0x00 */ SVECTOR vel;
-    /// Collision body linked as kind 3 with a `Gp_PackPair` payload.
-    /* 0x08 */ WorldCollisionBody    obj;
-    /* 0x28 */ WorldCollisionCapsule rec;
-    /* 0x40 */ WorldCollisionContact rec18[1];
-} ActorsShared80137fb8Work;
-STATIC_ASSERT_SIZEOF(ActorsShared80137fb8Work, 0x58);
-
-/// One 12-bit fixed-point factor per column of the matrix `ActorsShared801385e0`
-/// scales (`0x1000` is 1.0). The body reads the first three words; its only call
-/// site copies the four words at `D_actor_104900_80131E30` - `0x1400`, `0x1400`,
-/// `0x1400`, 0 - onto its own frame and passes that address, so the trailing word
-/// is part of what the caller copies but nothing here reads it.
-typedef struct ActorsShared801385e0Scale {
-    /* 0x00 */ s32 vx;
-    /* 0x04 */ s32 vy;
-    /* 0x08 */ s32 vz;
-    /* 0x0C */ s32 pad_C;
-} ActorsShared801385e0Scale;
-STATIC_ASSERT_SIZEOF(ActorsShared801385e0Scale, 0x10);
+/// Work block of the two kinds of task the spit state launches: the globs the
+/// Mossback throws three at a time, and the clouds its larger variant puts out
+/// on either side of its head.
+///
+/// The task's first state allocates it zeroed and keeps it at `Task::work`;
+/// the exit callback unlinks `body` before the task is killed. `body` rides on
+/// the task's own coordinate and reports into `contacts`.
+///
+/// A glob is a capsule: each tick it moves by `velocity` and covers the
+/// stretch it has just crossed, until a contact ends the flight. A cloud stays
+/// where it was put and is a sphere, so `velocity` and `capsule` stay zero.
+typedef struct {
+    SVECTOR               velocity;    // glob only: movement per tick in world units, thrown along the launch yaw with a random climb and speed; each tick adds 10 to its Y
+    WorldCollisionBody    body;        // attack body on the task's coordinate; taken out of the grid and pair tests once it has struck, and for a cloud's last 0x14 ticks
+    WorldCollisionCapsule capsule;     // glob only: shape of `body`, radius 0x96 at both ends, with end 1 trailing by the tick's movement
+    WorldCollisionContact contacts[1]; // contact table of `body`; a glob's is emptied every tick
+} _Actor01100SpitWork;
+STATIC_ASSERT_SIZEOF(_Actor01100SpitWork, 0x58);
 
 /// Indices into `_Actor01100Work::bodies` and `_Actor01100Work::contacts`.
 enum {
@@ -250,12 +237,29 @@ typedef struct {
 } _Actor01100Scratch;
 STATIC_ASSERT_SIZEOF(_Actor01100Scratch, 0x68);
 
-typedef void (*ActorsShared80138efcState)(Enemy* enemy, Task* task, _Actor01100Work* work,
-                                          _Actor01100Scratch* scratch);
+/// A handler of the enemy task: one of the three task states, or one of the
+/// `ACTOR_01100_STATE_*` handlers the per-frame task state runs.
+///
+/// Wider than a `TaskFunc`: the task's callback looks up the enemy record, the
+/// work block at `Task::work` and a scratch block borrowed for the call, and
+/// hands all four on; the per-frame state passes the same four to the handler
+/// of `_Actor01100Work::state`.
+typedef void (*_Actor01100StateFunc)(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 
-typedef struct ActorsShared80138efcStateTable {
-    ActorsShared80138efcState funcs[26];
-} ActorsShared80138efcStateTable;
+/// Handlers of the enemy task's three states, indexed by `Task::state`: set-up,
+/// arming the collision bodies once the CD command queue is idle, and the
+/// per-frame tick. Wrapped in a struct so the task's callback can copy the
+/// whole table onto its stack by assignment.
+typedef struct {
+    _Actor01100StateFunc funcs[3];
+} _Actor01100TaskStateTable;
+
+/// Handlers of the per-frame tick, indexed by `_Actor01100Work::state`
+/// (`ACTOR_01100_STATE_*`). Wrapped in a struct for the same copy by
+/// assignment.
+typedef struct {
+    _Actor01100StateFunc funcs[ACTOR_01100_STATE_FALL_AGAIN + 1];
+} _Actor01100StateTable;
 
 /* The loop that arms the two hand bodies walks a scalar byte offset to each
    body's contact table rather than indexing `contacts`: the ROM adds the base
@@ -276,18 +280,6 @@ extern u8 Actor01100_D15670;
 /// Pair table the spawn state packs into the collision body's `WorldCollisionBody.key`.
 extern DamageAttack Actor01100_D074F8[6];
 
-/// One of the actor's three state handlers - spawn/setup, per-frame tick and
-/// teardown. Wider than the usual two-argument `EnemyTaskFunc` shape: the
-/// handlers also take the actor's work block (`Task::work`) and the
-/// `_Actor01100Scratch` the dispatcher borrows around the call.
-typedef void (*Actor101100StateFunc)(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
-
-/// Fixed-size table of `Actor101100StateFunc` callbacks. Copied onto the stack
-/// by `Actor01100_Fn06554` so the call uses a local jump table.
-typedef struct {
-    Actor101100StateFunc funcs[3];
-} Actor101100StateFuncTable3;
-
 /// Scratchpad stack pointer, initialised by GameMain.
 
 // Typed callback views for the task message dispatcher.
@@ -297,12 +289,6 @@ extern DamageAttack     Actor01100_D074D0[];
 extern TaskDesc         Actor01100_D155E0[];
 static TmdSource        _gActor01100BruteMossbackBurstArm;
 static TmdSource        _gActor01100BruteMossbackBurstHead;
-
-typedef struct {
-    void* tmd;
-} Actor104900EffSlot;
-
-extern Actor104900EffSlot D_80067330;
 
 /// Scales column `col` of `m` by `fac` through the GTE's GPF, using `sv` as
 /// the working vector.
@@ -334,7 +320,7 @@ static void Actor01100_Fn05E68(Task* task);
 static void Actor01100_Fn06198(Task* task);
 static void Actor01100_Fn0638C(Task* task);
 static void Actor01100_Fn0668C(Task* task);
-static void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1);
+static void Actor01100_Fn067C0(MATRIX* arg0, VECTOR* arg1);
 static s32  Actor01100_Fn06954(GfxCoord* arg0, s32 arg1);
 static s32  Actor01100_Fn06AC8(GfxCoord* arg0);
 static void Actor01100_Fn06E4C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
@@ -349,7 +335,7 @@ static void Actor01100_Fn073DC(Task* task);
 
 /// The enemy task's three states - set-up, the per-frame dispatcher and
 /// teardown - which `Actor01100_Fn06554` runs by `Task::state`.
-static const Actor101100StateFuncTable3 Actor01100_D00004 = { {
+static const _Actor01100TaskStateTable Actor01100_D00004 = { {
     Actor01100_Fn0097C,
     Actor01100_Fn00CF0,
     Actor01100_Fn02960,
@@ -357,7 +343,7 @@ static const Actor101100StateFuncTable3 Actor01100_D00004 = { {
 
 /// Scale copied onto the stack and passed to `Actor01100_Fn067C0` when the
 /// placement `entryId` is 0x31: 0x1400 on each axis.
-static const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
+static const VECTOR Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
 
 extern DamageAttack Actor01100_D074F8[6];
 s32                 Actor01100_Fn0670C(Task*, s32, s32, s32);
@@ -1074,20 +1060,20 @@ static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, u8 rate)
 /// scales the identity matrix by 0x1400.
 static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unusedWork, _Actor01100Scratch* unusedScratch)
 {
-    _Actor01100Work*          work;
-    TmdObject*                extra;
-    GfxCoord*                 parts;
-    GfxRotationWords*         mtx;
-    SceneCombatState*         combat;
-    u8                        param1[8];
-    u8                        param2[8];
-    ActorsShared801385e0Scale scale;
-    s8                        entryId;
-    u32                       placeIndex;
-    u32                       locationWord;
-    u16                       hp;
-    s32                       i;
-    GfxCoord*                 endCoords;
+    _Actor01100Work*  work;
+    TmdObject*        extra;
+    GfxCoord*         parts;
+    GfxRotationWords* mtx;
+    SceneCombatState* combat;
+    u8                param1[8];
+    u8                param2[8];
+    VECTOR            scale;
+    s8                entryId;
+    u32               placeIndex;
+    u32               locationWord;
+    u16               hp;
+    s32               i;
+    GfxCoord*         endCoords;
 
     extra                  = task->extra.tmd;
     parts                  = extra->coords;
@@ -1924,7 +1910,7 @@ static void Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, 
 
 /// Per-frame state handlers `Actor01100_Fn02960` copies to its stack and
 /// indexes by `_Actor01100Work::state`.
-static const ActorsShared80138efcStateTable Actor01100_D00064 = { {
+static const _Actor01100StateTable Actor01100_D00064 = { {
     Actor01100_Fn06E4C,
     Actor01100_Fn035E4,
     Actor01100_Fn03740,
@@ -1966,19 +1952,19 @@ static const ActorsShared80138efcStateTable Actor01100_D00064 = { {
 /// once `mode` reaches 0x10.
 static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
-    ActorsShared80138efcStateTable table;
-    GfxCoord*                      part;
-    GfxCoord*                      root;
-    s32                            restart;
-    s32                            randBit;
-    s32                            slot;
-    AnimationPose*                 pose;
-    s32                            blend;
-    s32                            animId;
-    s32                            savedY;
-    s32                            eff;
-    s16                            dy;
-    s16                            walk;
+    _Actor01100StateTable table;
+    GfxCoord*             part;
+    GfxCoord*             root;
+    s32                   restart;
+    s32                   randBit;
+    s32                   slot;
+    AnimationPose*        pose;
+    s32                   blend;
+    s32                   animId;
+    s32                   savedY;
+    s32                   eff;
+    s16                   dy;
+    s16                   walk;
 
     table   = Actor01100_D00064;
     restart = 0;
@@ -3182,8 +3168,9 @@ static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model)
     TmdObject*  owner;
     TmdObject*  tmd;
 
-    D_80067330.tmd = model;
-    eff            = Gp_SpawnEff(EFFECT_FLYING_BODY_PART, &task->extra.tmd->coords[6], 0x200, 0);
+    // The effect's descriptor, entry 0x32 of bank 1, takes its model from the caller.
+    D_800670D0[0x32].data.model = model;
+    eff                         = Gp_SpawnEff(EFFECT_FLYING_BODY_PART, &task->extra.tmd->coords[6], 0x200, 0);
     if (eff != NULL) {
         owner                  = task->extra.tmd;
         tmd                    = eff->task->extra.tmd;
@@ -3390,16 +3377,16 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// its `addiu` free for sched2 to hoist, which this body's schedule does not.
 static void Actor01100_Fn05E68(Task* task)
 {
-    ActorsShared80137fb8Work* work;
-    WorldCollisionCapsule*    rec;
-    GfxCoord*                 coord;
-    EffectWork*               eff;
-    WorldCollisionBody*       obj;
-    SVECTOR*                  vec;
-    s32                       angle;
+    _Actor01100SpitWork*   work;
+    WorldCollisionCapsule* rec;
+    GfxCoord*              coord;
+    EffectWork*            eff;
+    WorldCollisionBody*    obj;
+    SVECTOR*               vec;
+    s32                    angle;
 
     coord = task->extra.tmd->coords;
-    work  = memCalloc(0x58, 0);
+    work  = memCalloc(sizeof(_Actor01100SpitWork), 0);
     if (work == NULL) {
         Task_CallExit(task);
         return;
@@ -3427,18 +3414,18 @@ static void Actor01100_Fn05E68(Task* task)
     gte_lddp(((gRandomLcgState >> 16) & 0x1F) + 0x28);
     gte_ldsv(vec);
     gte_gpf12();
-    gte_stsv(&work->vel);
+    gte_stsv(&work->velocity);
 
     gfxSetRotIdentity(&coord->coord);
 
-    coord->coord.t[0]  += work->vel.vx;
+    coord->coord.t[0]  += work->velocity.vx;
     gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     coord->coord.t[1]  += (gRandomLcgState >> 16) & 0x7F;
-    coord->coord.t[2]  += work->vel.vz;
+    coord->coord.t[2]  += work->velocity.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    obj                  = &work->obj;
-    rec                  = &work->rec;
+    obj                  = &work->body;
+    rec                  = &work->capsule;
     obj->coord           = coord;
     obj->context.capsule = rec;
     obj->pos.vx          = 0;
@@ -3448,7 +3435,7 @@ static void Actor01100_Fn05E68(Task* task)
     obj->key             = Gp_PackPair(&Actor01100_D074D0[0], 5);
     obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
 
-    rec->contacts   = work->rec18;
+    rec->contacts   = work->contacts;
     rec->ends[1].vx = 0;
     rec->ends[1].vy = 0;
     rec->ends[1].vz = 0;
@@ -3457,7 +3444,7 @@ static void Actor01100_Fn05E68(Task* task)
     rec->ends[0].vz = 0;
     rec->end0Radius = 0x96;
     rec->end1Radius = 0x96;
-    Gp_InitRec18Table(work->rec18, 1, 0);
+    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
     Gp_LinkObj(3, obj);
     obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
@@ -3469,34 +3456,34 @@ static void Actor01100_Fn05E68(Task* task)
 
 static void Actor01100_Fn06198(Task* task)
 {
-    ActorsShared80137fb8Work* work;
-    WorldCollisionCapsule*    d4;
-    WorldCollisionContact*    rec;
-    GfxCoord*                 coord;
-    GfxCoord*                 soundCoord;
-    Task*                     child;
-    u32                       stageAreaKey;
-    s32                       flag;
-    s32                       id;
-    s16                       countdown;
+    _Actor01100SpitWork*   work;
+    WorldCollisionCapsule* d4;
+    WorldCollisionContact* rec;
+    GfxCoord*              coord;
+    GfxCoord*              soundCoord;
+    Task*                  child;
+    u32                    stageAreaKey;
+    s32                    flag;
+    s32                    id;
+    s16                    countdown;
 
     work          = task->work;
     stageAreaKey  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
     stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
     coord         = task->extra.tmd->coords;
     soundCoord    = coord;
-    d4            = &work->rec;
+    d4            = &work->capsule;
     flag          = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        d4->ends[1].vx      = -work->vel.vx;
-        d4->ends[1].vy      = -work->vel.vy;
-        d4->ends[1].vz      = -work->vel.vz;
-        coord->coord.t[0]  += work->vel.vx;
-        rec                 = work->rec18;
-        coord->coord.t[1]  += work->vel.vy;
-        coord->coord.t[2]  += work->vel.vz;
+        d4->ends[1].vx      = -work->velocity.vx;
+        d4->ends[1].vy      = -work->velocity.vy;
+        d4->ends[1].vz      = -work->velocity.vz;
+        coord->coord.t[0]  += work->velocity.vx;
+        rec                 = work->contacts;
+        coord->coord.t[1]  += work->velocity.vy;
+        coord->coord.t[2]  += work->velocity.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->vel.vy        = work->vel.vy + 0xA;
+        work->velocity.vy   = work->velocity.vy + 0xA;
         if (Gp_CountRec18Hi(rec, 0x10000) != 0) {
             child = task->firstChild;
             if (child != NULL) {
@@ -3516,11 +3503,11 @@ static void Actor01100_Fn06198(Task* task)
         fire:
             id = (flag << 22) | (0x400B000B | (Actor01100_D15670 << 8));
             SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(soundCoord), (s8)worldCoordGetOriginAudioDepth(soundCoord));
-            work->obj.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+            work->body.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             task->killCountdown = 0x1E;
             task->state        += 1;
         }
-        Gp_ClearRec18Occupied(work->rec18);
+        Gp_ClearRec18Occupied(work->contacts);
         countdown           = task->killCountdown - 1;
         task->killCountdown = countdown;
         if ((countdown << 0x10) <= 0) {
@@ -3531,22 +3518,22 @@ static void Actor01100_Fn06198(Task* task)
 
 static void Actor01100_Fn0638C(Task* task)
 {
-    EffectWork*               effect;
-    s32                       variant;
-    s32                       soundBase;
-    WorldCollisionContact*    rec;
-    ActorsShared80137fb8Work* work;
-    s32                       stageAreaKey;
-    s32                       sound;
-    s32                       pan;
-    WorldCollisionBody*       obj;
-    GfxCoord*                 coord;
-    GfxRotationWords*         rotation;
+    EffectWork*            effect;
+    s32                    variant;
+    s32                    soundBase;
+    WorldCollisionContact* rec;
+    _Actor01100SpitWork*   work;
+    s32                    stageAreaKey;
+    s32                    sound;
+    s32                    pan;
+    WorldCollisionBody*    obj;
+    GfxCoord*              coord;
+    GfxRotationWords*      rotation;
 
     coord        = task->extra.tmd->coords;
     stageAreaKey = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
     variant      = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
-    work         = memCalloc(sizeof(ActorsShared80137fb8Work), 0);
+    work         = memCalloc(sizeof(_Actor01100SpitWork), 0);
     if (work == NULL) {
         Task_CallExit(task);
         return;
@@ -3562,13 +3549,13 @@ static void Actor01100_Fn0638C(Task* task)
     }
     task->killCountdown   = 0x5A;
     rotation              = (GfxRotationWords*)&coord->coord;
-    obj                   = &work->obj;
+    obj                   = &work->body;
     rotation->m00M01      = ONE;
     rotation->m02M10      = 0;
     rotation->m11M12      = ONE;
     rotation->m20M21      = 0;
     rotation->m22         = ONE;
-    rec                   = work->rec18;
+    rec                   = work->contacts;
     coord->composeStamp   = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]    += 0x30;
     obj->coord            = coord;
@@ -3593,10 +3580,10 @@ static void Actor01100_Fn0638C(Task* task)
 /// `splashPart` cleared.
 void Actor01100_Fn06554(Task* task)
 {
-    Actor101100StateFuncTable3 sp;
-    Enemy*                     enemy;
-    void*                      work;
-    _Actor01100Scratch*        scratch;
+    _Actor01100TaskStateTable sp;
+    Enemy*                    enemy;
+    void*                     work;
+    _Actor01100Scratch*       scratch;
 
     sp      = Actor01100_D00004;
     enemy   = task->spawnArg2.pointer;
@@ -3701,7 +3688,7 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags, s32 arg3)
     return 0;
 }
 
-static void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
+static void Actor01100_Fn067C0(MATRIX* arg0, VECTOR* arg1)
 {
     void**   scratch;
     SVECTOR* head;
@@ -4161,7 +4148,7 @@ static void Actor01100_Fn0736C(Task* arg0)
 /// back off the object list and kills the task.
 static void Actor01100_Fn073A8(Task* arg0)
 {
-    Gp_UnlinkObj(&((ActorsShared80137fb8Work*)arg0->work)->obj);
+    Gp_UnlinkObj(&((_Actor01100SpitWork*)arg0->work)->body);
     taskKill(arg0);
 }
 
@@ -4175,13 +4162,13 @@ static void Actor01100_Fn073A8(Task* arg0)
 /// then ticks down and the task calls its exit callback once it reaches zero.
 static void Actor01100_Fn073DC(Task* task)
 {
-    ActorsShared80137fb8Work* work;
-    GfxCoord*                 coord;
-    WorldCollisionBody*       obj;
-    EffectWork*               eff;
-    s16                       countdown;
+    _Actor01100SpitWork* work;
+    GfxCoord*            coord;
+    WorldCollisionBody*  obj;
+    EffectWork*          eff;
+    s16                  countdown;
 
-    work  = (ActorsShared80137fb8Work*)task->work;
+    work  = task->work;
     coord = task->extra.tmd->coords;
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
@@ -4192,13 +4179,13 @@ static void Actor01100_Fn073DC(Task* task)
                     taskReparent(task, eff->task);
                 }
             }
-            if (Gp_CountRec18Hi(&work->rec18[0], 0x10000) != 0) {
-                obj         = &work->obj;
+            if (Gp_CountRec18Hi(&work->contacts[0], 0x10000) != 0) {
+                obj         = &work->body;
                 obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
         }
         if (task->killCountdown == 0x14) {
-            obj         = &work->obj;
+            obj         = &work->body;
             obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         }
         countdown           = (u16)task->killCountdown - 1;

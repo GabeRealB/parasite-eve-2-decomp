@@ -115955,10 +115955,10 @@ penalties 0)
 ## A nested member folds its offsets too -- and assigning the pointer local per branch is what keeps *two* `addiu`s (ActorsShared8013845cSub1, 2026-09-16)
 
 The pointer-local rule above generalises from `arr[3].field` to a plain nested
-member: `work->obj.flags &= 0x3FFF;` on a `WorldCollisionBody` at 0x08 folds both offsets
+member: `work->body.flags &= 0x3FFF;` on a `WorldCollisionBody` at 0x08 folds both offsets
 into one displacement (`lhu v0,0x26($s1)`), where the target has the inner base
 as a value (`addiu $v1,$s1,8` / `lhu v0,0x1e($v1)`). Because the value also
-feeds a store, combine cannot fold it back, so `obj = &work->obj; obj->flags &= mask;`
+feeds a store, combine cannot fold it back, so `obj = &work->body; obj->flags &= mask;`
 reproduces the pair. The register the folded form leaves free is what reorg
 then has nothing to put in the delay slot -- the tell is a `nop` where the
 target fills the slot.
@@ -115997,7 +115997,7 @@ there. GCC also neither sinks nor hoists a load by itself: it emits the load
 where the C first reads the value. So the source assigned it at function scope:
 
 ```c
-work  = (Actor101100Work*)task->work;
+work  = task->work;
 coord = ((TmdObject*)task->extra)->coords;
 ```
 
@@ -116137,7 +116137,7 @@ never mentioned `task`.
 
 **Fix.** Restore the handler's real arity. This family's slot handlers take
 four arguments - `(enemy, task, work, scratch)`, the shape
-`include/actors/actor_101100.h` names `Actor101100StateFunc` - and the callee
+`src/actors/actor_01100/actor_01100.c` names `_Actor01100StateFunc` - and the callee
 `func_actor_104900_80137498` takes four as well (its prologue saves all of
 `$a0`-`$a3`, `addu $s5,$a3,$zero` among them). Declaring the fourth parameter
 and forwarding all four keeps 5, 6 and 7 live to the call, so the walk reaches
@@ -138849,9 +138849,9 @@ single-set addiu is placed after them. A `u16` temp used on the far side of
 the scratch `sw` is re-zero-extended (`andi`); keep the widened value in an
 `s32`.
 
-## A struct global keeps its store ahead of a later field load (`func_actor_104900_80137498`)
+## A store into a struct global stays ahead of a later field load (`func_actor_104900_80137498`)
 
-A scalar store to `D_80067330` and `lw` of `task->extra` do not alias: the load is a varying `MEM_IN_STRUCT` and the store is a fixed non-struct address, so `true_dependence` drops the edge and sched1 sinks the `sw` past the load. Declaring the global as a one-word struct (`{ void *tmd; }`) makes the store `MEM_IN_STRUCT` too. The exception no longer applies, the `sw` stays before the load, and the basic-block count does not change. `void *volatile` does not: a volatile reference still moves past a non-volatile one.
+A scalar store to the word at `0x80067330` and `lw` of `task->extra` do not alias: the load is a varying `MEM_IN_STRUCT` and the store is a fixed non-struct address, so `true_dependence` drops the edge and sched1 sinks the `sw` past the load. That word is the model slot of a resident task descriptor, and storing it as what it is - `D_800670D0[0x32].data.model` - makes the store `MEM_IN_STRUCT` too. The exception no longer applies, the `sw` stays before the load, and the basic-block count does not change. So a target that keeps such a store ahead of the loads says the destination is a member of an aggregate: look for the table the address falls in before wrapping the word in a struct of its own. `void *volatile` does not: a volatile reference still moves past a non-volatile one.
 
 The address order around that store is a LUID tie. Both the slot `lui` and the TMD `addiu` have priority 1, and `rank_for_schedule` keeps the higher LUID next to the `sw`. Expanding the destination first puts the slot `lui` earlier. Assigning the symbol to a fresh `u8 *` and then storing that pointer emits `lui`/`addiu` in `$v0` and the slot `lui` in `$v1`, which is the target order. The same temporary as `void *` splits the `lo_sum` into `$v1` and reuses `$v0` for the slot. One temporary per store; reusing a `void *` across the three calls did not.
 
