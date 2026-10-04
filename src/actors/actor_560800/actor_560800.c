@@ -98,137 +98,137 @@ typedef struct {
 } _Actor560800CutsceneWork;
 STATIC_ASSERT_SIZEOF(_Actor560800CutsceneWork, 0x68);
 
-/// Work block of the sub-task `_Actor560800CutsceneWork::kyle` points at, spawned
-/// from `D_actor_560800_801718F0` index 5 (`func_actor_560800_80132C60`).
-/// That function allocates it with `memMalloc(0x4CC, 0)`, `memFillBytes`s the same
-/// 0x4CC bytes and stores it in its own `Task::work` (0x1C), so the size below
-/// is the allocation, not a guess. It is a third work block in this overlay,
-/// distinct from `_Actor560800CutsceneWork` and `ScreenFadeWork`.
+/// Work block of one of the cast's models: Eve's, Kyle Madigan's and No. 9's
+/// bodies, and the hands, handgun and gunblade that ride on a body's part.
 ///
-/// `rig` is the model's animation rig; the spawn routine stores 0x14 in
-/// `field_4BA`, the slot count the reset loop walks.
+/// Each of those tasks allocates the block zeroed at its full size and keeps
+/// it at `Task::work`; the model object borrows `light` and `color` for as
+/// long as the block lives. A body binds `rig` to its model and plays one clip
+/// at a time over every slot it drives, following `animChain` from clip to
+/// clip, and the cutscene's cue handlers change the clip from outside. An
+/// attachment hangs from a part of its body and moves with it: it uses the two
+/// matrices and reads `relit`, which nothing sets for it, and leaves the rest
+/// zero.
 ///
-/// `field_4B8` is the animation id the slots are seeded with, `field_4BA` the
-/// slot count the reset loop walks 1..count, and `field_4C8` the 0x10 written into each
-/// slot's `field_9`. `field_4CA` is a phase counter the same handler reads.
-/// `field_4B4` is the animation script `func_actor_560800_80132498` walks by
-/// `field_4B8`, with `field_4BE` as its hold counter.
-typedef struct Actor560800AnimWork {
-    /* 0x000 */ ActorAnimRig20      rig;
-    /* 0x474 */ MATRIX              light;
-    /* 0x494 */ MATRIX              color;
-    /* 0x4B4 */ ActorAnimChainLink* field_4B4;
-    /* 0x4B8 */ s16                 field_4B8;
-    /* 0x4BA */ u16                 field_4BA;
-    /* 0x4BC */ u16                 field_4BC;
-    /* 0x4BE */ s16                 field_4BE;
-    /* 0x4C0 */ s16                 field_4C0;
-    /* 0x4C2 */ s16                 field_4C2;
-    /* 0x4C4 */ s16                 field_4C4;
-    /* 0x4C6 */ s16                 field_4C6;
-    /* 0x4C8 */ s16                 field_4C8;
-    /* 0x4CA */ s16                 field_4CA;
-} Actor560800AnimWork;
-STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
+/// Only Kyle's task reads the three turn angles and `animPaused`. The angles
+/// are composed onto his parts after his clip is applied. A running clip
+/// rewrites the parts every frame, so an angle lasts until it is changed;
+/// while `animPaused` holds the pose the angles are applied once and then
+/// cleared, since they would otherwise accumulate. Eve's cue handler stores to
+/// `part4Yaw` and `animPaused` in her block as well, to no effect.
+typedef struct {
+    ActorAnimRig20      rig;             // Playback storage; Kyle uses all twenty slots, Eve and No. 9 the first nineteen
+    MATRIX              light;           // Light-direction matrix lent to the model object
+    MATRIX              color;           // Light-colour matrix lent to the model object
+    ActorAnimChainLink* animChain;       // The body's chain of clips: one link per clip, indexed by `animId`
+    u16                 animId;          // Clip the slots were last seeded with, an index into the body's animation sets
+    u16                 slotCount;       // Rig slots the body uses, slot 0 included: slots 1 to `slotCount` - 1 are seeded and ticked (20 for Kyle, 19 for Eve and No. 9)
+    u16                 relit;           // Nonzero while the model is lit afresh each frame from the room's lights at the place it stands
+    u16                 animHold;        // Frames `animId` has been held, for a link that lasts a fixed time
+    s16                 part4Yaw;        // Kyle: turn about Y composed onto his part 4, 4096 to a turn
+    s16                 floorQuadHidden; // No. 9: nonzero stops the square drawn on the floor below the body
+    s16                 part2Roll;       // Kyle: turn about Z composed onto his part 2, 4096 to a turn
+    s16                 part4Pitch;      // Kyle: turn about X composed onto his part 4 after `part4Yaw`, 4096 to a turn
+    s16                 animRate;        // Playback rate named by the last change of clip, `ANIMATION_RATE_ONE` for normal speed; a restart gives it to the slots, a blend only records it, and the chain passes it on to the next link
+    s16                 animPaused;      // Kyle: nonzero holds the pose - the slots are not ticked and the chain does not advance
+} _Actor560800CastWork;
+STATIC_ASSERT_SIZEOF(_Actor560800CastWork, 0x4CC);
 
-/// Work block `func_actor_560800_801376E0` allocates with `memMalloc(0x28C, 0)`
-/// and stores in its own `Task::work` (0x1C), so the size below is the
-/// allocation, not a guess. A fourth work block in this overlay, distinct from
-/// `_Actor560800CutsceneWork`, `Actor560800AnimWork` and `ScreenFadeWork`, and the
-/// one `func_actor_560800_80137820` and `func_actor_560800_80136AA8` drive.
+/// Work block of one of the scene's three prop models: a jointed chain, the
+/// copy of a chain that falls away once the chain is broken, and the carrier.
 ///
-/// It opens with `rig`, the playback storage of the part's seven-part model the
-/// way every actor carries it: the handler resets and ticks slots 1 to 6, each
-/// with its own encoded-pose entry, and slot 0 is never started. `light` /
-/// `color` go to the object's `field_1C` / `field_20` (the lower offset is the
-/// light matrix, as in every actor).
+/// Each of those tasks allocates the block zeroed at its full size and keeps
+/// it at `Task::work`; the model object borrows `light` and `color` for as
+/// long as the block lives. The three use different members, and what one
+/// leaves alone stays zero unless noted.
 ///
-/// `field_26C` is the task the spawn argument named, handed to `taskReparent`;
-/// `field_270` / `field_274` / `field_278` are the three `gRandomLcgState` draws
-/// `func_actor_560800_801376E0` takes at spawn; `field_280` is the slot count it
-/// seeds from the spawner's `spawnArg1`, which `func_actor_560800_80137820` then
-/// walks 1..count with `animationResetSlot`. `field_27C` / `field_27E` and the
-/// 0x38 bytes of `rot` (`Mem_CopyUnaligned`'s source and destination in
-/// `func_actor_560800_80136AA8`) belong to the handlers, not to the spawner.
-typedef struct Actor560800ModelWork {
-    /* 0x000 */ ActorAnimRig7 rig;
-    /* 0x19C */ MATRIX        light;
-    /* 0x1BC */ MATRIX        color;
-    /* 0x1DC */ SVECTOR       rot[7];
-    /* 0x214 */ SVECTOR       swing[7];
-    /* 0x24C */ s16           field_24C;
-    /* 0x24E */ s16           field_24E;
-    /* 0x250 */ s16           field_250;
-    /* 0x252 */ byte          pad_252[2];
-    /* 0x254 */ s16           field_254;
-    /* 0x256 */ u16           field_256;
-    /* 0x258 */ s16           field_258;
-    /* 0x25A */ byte          pad_25A[2];
-    /* 0x25C */ u16           swingDir[8];
-    /* 0x26C */ Task*         field_26C;
-    /* 0x270 */ u32           field_270;
-    /* 0x274 */ u32           field_274;
-    /* 0x278 */ s16           field_278;
-    /* 0x27A */ byte          pad_27A[2];
-    /* 0x27C */ s16           field_27C;
-    /* 0x27E */ s16           field_27E;
-    /* 0x280 */ s16           field_280;
-    /* 0x282 */ s16           field_282;
-    /* 0x284 */ byte          pad_284[2];
-    /* 0x286 */ s16           field_286;
-    /* 0x288 */ s16           field_288;
-    /* 0x28A */ s16           field_28A;
-} Actor560800ModelWork;
-STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
+/// A chain is a seven-part model, one of eight its group spawns and numbers.
+/// Its root sits at `position` plus `offset`. While it bends, each part's
+/// rotation is rebuilt every frame from `rot`: the root sways, and parts 1 to
+/// 5 turn a step at a time towards the body part the group follows. A group
+/// command instead plays the chain's own clip over `rig`, or breaks the chain,
+/// which spawns the falling copy in the chain's pose and ends the chain's
+/// task.
+///
+/// The falling copy keeps the pose it was given, turns parts 3 to 5 further by
+/// `swing`, and moves along Y by a `speed` that grows every frame until it has
+/// gone far enough to be removed.
+///
+/// The carrier is a single model that travels along Y while its second part
+/// is scaled by `pulseScale`, and that ends the scene by moving off together
+/// with No. 9's body.
+typedef struct {
+    ActorAnimRig7 rig;            // Chain: playback storage for its clip, bound at spawn; slot 0, the root's, is never started
+    MATRIX        light;          // Light-direction matrix lent to the model object
+    MATRIX        color;          // Light-colour matrix lent to the model object
+    SVECTOR       rot[7];         // Chain and falling copy: rotation of the model part at the same index, 4096 to a turn
+    SVECTOR       swing[7];       // Falling copy: rotation added about X and Z to parts 3 to 5, on top of `rot`
+    SVECTOR       offset;         // Chain: displacement of the root from `position`; only Y moves, dipping when the tip comes near the target and easing back
+    SVECTOR       position;       // Chain: where the last placement put the root, in its parent's space; the group steps its Y while the chains travel to the first arrangement
+    u16           swingDir[7];    // Falling copy: per part, bit 0 would make `swing`'s X rise and bit 1 its Z; cleared at spawn and never set, so both fall by 20 a frame
+    Task*         parent;         // Task named at spawn, below which this one hangs: the chain group for a chain or a falling copy, the cutscene for the carrier
+    u32           swayPhase;      // Chain: random draw taken at spawn that offsets the phase of the root's sway, so the eight do not sway in step
+    u32           field_274;      // Chain: second random draw taken at spawn; never read, role unproven
+    s16           pulseScale;     // Carrier: X and Z scale of its second part, `ONE` for the model's own size; each of its states grows it towards 0x1800 or shrinks it. A chain stores a ten-bit random draw here and never reads it
+    byte          unknown_27A[2]; // Never accessed
+    s16           pulseGrowing;   // Carrier: direction of the next step of `pulseScale` (0 shrinking, 1 growing), set by the state before each step. A placement stores 1 in a chain's when it uses the third table, else 0, and no chain reads it
+    s16           dipStep;        // Chain: step of the dip in `offset` (0 waiting for the tip to come near the target, 1 dipping, 2 easing back)
+    s16           chainNumber;    // Chain: which of the eight it is, 1 to 8. Also the clip it plays, and what decides whether a state or view hides it; odd-numbered chains turn and sway at twice the step. A falling copy holds the carrier's Y here instead, unread
+    s16           carryStep;      // Carrier: step of its closing sequence (0 Y advances by 100 a frame to -3000, 1 on to -1200 while the part grows, 2 the part shrinks back below the model's own size, 3 the carrier and No. 9's body both move by -20 a frame)
+    byte          unknown_284[2]; // Never accessed
+    s16           speed;          // Carrier and falling copy: units the root moves along Y each frame; raised as it goes
+    s16           fallDistance;   // Falling copy: distance moved so far
+    s16           fallStartY;     // Falling copy: Y of its root when its task started
+} _Actor560800PropWork;
+STATIC_ASSERT_SIZEOF(_Actor560800PropWork, 0x28C);
 
-/// Work block of the message-handler task whose `Task::msgTable` table is
-/// `D_actor_560800_801756D4`: `func_actor_560800_801386D4` allocates it with
-/// `memMalloc(0x4C, 0)`, `memFillBytes`s the same 0x4C bytes and stores it in that
-/// task's `Task::work` (0x1C), so the size below is the allocation, not a
-/// guess. A fifth work block in this overlay, distinct from `_Actor560800CutsceneWork`,
-/// `Actor560800AnimWork`, `Actor560800ModelWork` and `ScreenFadeWork`.
-///
-/// `parts` is the eight part tasks the same function spawns from
-/// `D_actor_560800_8017575C` (index 1, spawn arg `i + 1`) and parks one per
-/// slot; its teardown path clears a slot back to NULL after parking the part
-/// task it names in state 4. `func_actor_560800_80139360` walks the slots and
-/// applies message 0x7D5 to the `TmdObject` each part carries.
-///
-/// `field_40` is the task the spawner passed as `Task::spawnArg2`, reparented
-/// to this one - the same role `Actor560800ModelWork::field_26C` plays. While
-/// its `field_4A` is 0x83 or 0x22, `world` is the matrix `Gp_ComposeParentWorld`
-/// composes from part 9 of the controller's `eve` / `no9` model; the
-/// translation is then overwritten with the returned position, `t[1]` biased
-/// by -0x78.
-typedef struct Actor560800PartsWork {
-    /* 0x00 */ MATRIX world;
-    /* 0x20 */ Task*  parts[8];
-    /* 0x40 */ Task*  field_40;
-    /* 0x44 */ s16    field_44;
-    /* 0x46 */ s16    field_46;
-    /* 0x48 */ s16    field_48;
-    /* 0x4A */ s16    field_4A;
-} Actor560800PartsWork;
-STATIC_ASSERT_SIZEOF(Actor560800PartsWork, 0x4C);
+/// Body the chains reach for, kept in
+/// `_Actor560800ChainGroupWork::targetEntryId`. The values are the entry ids
+/// the bodies' placement records carry in the area layout.
+enum {
+    ACTOR_560800_CHAIN_TARGET_NO9 = 0x22, // No. 9's body
+    ACTOR_560800_CHAIN_TARGET_EVE = 0x83, // Eve's body
+};
 
-/// The 0xA8-byte block `func_actor_560800_80136AA8` pushes on the scratchpad
-/// stack (`0x1F8003FC`). `chain` is the rotation accumulated down the part
-/// chain, `link` that rotation times the current part's, and `joint` the next
-/// part's translation carried through them; `pos` sums the joints from the root
-/// and `ang` the parts' rotations, with `aim` their sum against the current
-/// part. `rot` is the working copy of `Actor560800ModelWork::rot`, copied in and
-/// back out around the walk.
-typedef struct Actor560800ChainScratch {
-    /* 0x00 */ MATRIX  chain;
-    /* 0x20 */ MATRIX  link;
-    /* 0x40 */ SVECTOR pos;
-    /* 0x48 */ SVECTOR ang;
-    /* 0x50 */ SVECTOR aim;
-    /* 0x58 */ SVECTOR joint;
-    /* 0x60 */ byte    pad_60[0x10];
-    /* 0x70 */ SVECTOR rot[7];
-} Actor560800ChainScratch;
-STATIC_ASSERT_SIZEOF(Actor560800ChainScratch, 0xA8);
+/// Work block of the task that owns the scene's eight chains, allocated zeroed
+/// at its full size and kept at `Task::work`.
+///
+/// The group spawns the chains, numbers them 1 to 8 and holds their tasks. It
+/// has no model of its own: a placement message arranges the chains from one
+/// of five tables, a draw message shows or hides them all, and the cutscene's
+/// commands choose the next arrangement and the body to reach for, set the
+/// chains travelling or playing their clips, and break them one at a time.
+/// Every frame it records where the body part the chains reach for is, which
+/// each chain reads back through its `parent`.
+typedef struct {
+    MATRIX targetWorld;     // World matrix of part 9 of the body `targetEntryId` names, with 0x78 taken off the Y of its translation; the chains turn towards the translation, which is not valid until a command has named a body
+    Task*  chains[8];       // The chains, in spawn order; NULL once one has been broken or removed
+    Task*  cutscene;        // The cutscene task, named at spawn: the group hangs below it and reads the cast's bodies from its work block
+    s16    field_44;        // Cleared by the command that sets the chains travelling; never read, role unproven
+    s16    placeMode;       // Arrangement the next placement makes (0-2 the chains at the first, second or third table's positions under the group's root; 3 each chain freed into view space at the placement plus the fourth table's position; 4 chains 5 to 8 removed and the rest hung below the carrier in the fifth table's pose); every placement returns it to 0
+    s16    placeResetsBend; // Nonzero when the next placement in modes 0-2 also loads each chain's root rotation from the table and straightens its other parts; cleared by that placement
+    s16    targetEntryId;   // Body the chains reach for (0 none yet, `ACTOR_560800_CHAIN_TARGET_EVE`, `ACTOR_560800_CHAIN_TARGET_NO9`)
+} _Actor560800ChainGroupWork;
+STATIC_ASSERT_SIZEOF(_Actor560800ChainGroupWork, 0x4C);
+
+/// Scratch block of a chain's bend, on the scratch stack for one walk down
+/// its parts.
+///
+/// The walk goes from the root outwards. For each part it works out where the
+/// next joint lies with the rotations set so far, measures the bearing from
+/// there to the target, and turns the part one step towards it; angles are
+/// 4096 to a turn. The block is cleared when it is reserved.
+typedef struct {
+    MATRIX  chain;            // Rotation accumulated from the root through the parts already turned
+    MATRIX  link;             // `chain` times the current part's rotation before it is turned
+    SVECTOR pos;              // Position of the current part's joint, summed from the root's
+    SVECTOR ang;              // Sum of `rot` over the root and the parts already turned
+    SVECTOR aim;              // `ang` plus the current part's rotation; its X then becomes the error against the bearing to the target
+    SVECTOR joint;            // The next part's joint, carried through `link` to a position and then through `chain` to the step added to `pos`
+    byte    unknown_60[0x10]; // Never accessed
+    SVECTOR rot[7];           // Working copy of `_Actor560800PropWork::rot`, copied in before the walk and back out after it
+} _Actor560800ChainScratch;
+STATIC_ASSERT_SIZEOF(_Actor560800ChainScratch, 0xA8);
 
 extern ActorTransform D_actor_560800_80175314[];
 extern ActorTransform D_actor_560800_801753D4[];
@@ -249,8 +249,8 @@ extern ActorAnimChainLink D_actor_560800_8016EBE8[];
 extern ActorTransform     D_actor_560800_8016F1CC[6];
 
 /// Animation bank `func_actor_560800_801376E0` hands `animationInitContext` as its
-/// second argument: a null entry then one animation set per slot of
-/// `Actor560800ModelWork`, indexed by the animation id.
+/// second argument: a null entry then one animation set per chain, indexed by
+/// `_Actor560800PropWork::chainNumber`.
 extern AnimationSet* D_actor_560800_801752F0[];
 
 /// Elapsed frames, one per phase id 1..3, written by
@@ -4115,7 +4115,7 @@ extern s32 D_actor_560800_80175714[];
 extern s32 D_actor_560800_8017572C[];
 
 /// Per-frame handler of a model task: state 0 allocates its
-/// `Actor560800ModelWork`, parents the root coordinate to `gGfxViewCoord`,
+/// `_Actor560800PropWork`, parents the root coordinate to `gGfxViewCoord`,
 /// publishes the task as `D_actor_560800_801757AC` and resets the root matrix
 /// to identity. States 2/5 lift the root
 /// by 5 while pulsing the second coordinate's X/Z scale in steps of 0x32, state
@@ -4135,7 +4135,7 @@ static inline void Actor560800_PlaySe(s16 arg4);
 static inline void Actor560800_PlaySeB(s32 arg4);
 static inline void Actor560800_SpawnSparksA(Task* task);
 static inline void Actor560800_SpawnSparksB(Task* task);
-static inline void Actor560800_ResetAnimSlots(Actor560800AnimWork* anim, s16 clip);
+static inline void Actor560800_ResetAnimSlots(_Actor560800CastWork* anim, s16 clip);
 static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate);
 static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate);
 static void        func_actor_560800_80135BD8(Task* arg0);
@@ -4255,12 +4255,12 @@ static s32 func_actor_560800_80132340(Task* arg0)
     return 0;
 }
 
-/// Cross-fades slots 1..`field_4BA`-1 of `work`'s animation context to animation
+/// Cross-fades slots 1..`slotCount` - 1 of `work`'s animation context to animation
 /// `id` over `frames` frames.
 #define _ACTOR560800_BLEND_SLOTS(work, id, frames)                                \
     do {                                                                          \
         u16 _i;                                                                   \
-        for (_i = 1; _i < (work)->field_4BA; _i++) {                              \
+        for (_i = 1; _i < (work)->slotCount; _i++) {                              \
             animationSeekSlotWithBlend(&(work)->rig.anim, _i, (id), 0, (frames)); \
         }                                                                         \
     } while (0)
@@ -4268,38 +4268,38 @@ static s32 func_actor_560800_80132340(Task* arg0)
 /// Restarts the animation clip's hold counter.
 #define _actor560800ResetAnimHold(work) \
     do {                                \
-        (work)->field_4BE = 0;          \
+        (work)->animHold = 0;           \
     } while (0)
 
-/// Reseeds the animation slots of the task's own `Actor560800AnimWork`: the
-/// id goes to `field_4B8` with `rate` in `field_4C8`, `field_4BE` is cleared,
-/// and slots 1..`field_4BA` are blended through `animationSeekSlotWithBlend`.
+/// Reseeds the animation slots of the task's own `_Actor560800CastWork`: the
+/// id goes to `animId` with `rate` in `animRate`, `animHold` is cleared,
+/// and slots 1..`slotCount` - 1 are blended through `animationSeekSlotWithBlend`.
 static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
 {
-    Actor560800AnimWork* w;
-    u16                  i;
+    _Actor560800CastWork* w;
+    u16                   i;
 
-    w            = (Actor560800AnimWork*)arg0->work;
-    w->field_4B8 = id;
-    w->field_4C8 = rate;
+    w           = arg0->work;
+    w->animId   = id;
+    w->animRate = rate;
     _actor560800ResetAnimHold(w);
-    for (i = 1; i < w->field_4BA; i++) {
+    for (i = 1; i < w->slotCount; i++) {
         animationSeekSlotWithBlend(&w->rig.anim, i, id, 0, 10);
     }
 }
 
-/// Cross-fades animation slots 1..`field_4BA` of `work`'s rig to animation
+/// Cross-fades animation slots 1..`slotCount` - 1 of `work`'s rig to animation
 /// `id` over `frames` frames.
 #define _ACTOR560800_BLEND_SLOTS(work, id, frames)                                \
     do {                                                                          \
         u16 _i;                                                                   \
-        for (_i = 1; _i < (work)->field_4BA; _i++) {                              \
+        for (_i = 1; _i < (work)->slotCount; _i++) {                              \
             animationSeekSlotWithBlend(&(work)->rig.anim, _i, (id), 0, (frames)); \
         }                                                                         \
     } while (0)
 
-/// Ticks every animation slot, then advances the script at `field_4B4`: a step
-/// with a non-zero hold waits `holdFrames` frames in `field_4BE`, a zero hold waits
+/// Ticks every animation slot, then advances the chain at `animChain`: a link
+/// with a non-zero hold waits `holdFrames` frames in `animHold`, a zero hold waits
 /// for every slot to hold its boundary pose (`ANIMATION_SLOT_SETTLED`). Returns 1 when the next
 /// step's id is negative (the script ended), 0 otherwise.
 ///
@@ -4308,38 +4308,38 @@ static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
 /// for the register choice and the jump layout.
 static s32 func_actor_560800_80132498(Task* arg0)
 {
-    Actor560800AnimWork* work;
-    u16                  i;
-    u16                  done;
+    _Actor560800CastWork* work;
+    u16                   i;
+    u16                   done;
 
-    work = (Actor560800AnimWork*)arg0->work;
+    work = arg0->work;
     if (arg0->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
         return 0;
     }
-    for (i = 1; i < work->field_4BA; i++) {
+    for (i = 1; i < work->slotCount; i++) {
         animationTickSlot(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
-    for (; i < work->field_4BA; i++) {
+    for (; i < work->slotCount; i++) {
         if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
             done = 0;
             break;
         }
     }
-    if (work->field_4B4[(u16)work->field_4B8].holdFrames != 0) {
-        if ((u16)work->field_4BE >= work->field_4B4[(u16)work->field_4B8].holdFrames) {
-            if (work->field_4B4[(u16)work->field_4B8].nextAnimId >= 0) {
-                Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].nextAnimId, work->field_4C8);
+    if (work->animChain[work->animId].holdFrames != 0) {
+        if (work->animHold >= work->animChain[work->animId].holdFrames) {
+            if (work->animChain[work->animId].nextAnimId >= 0) {
+                Actor560800_ReseedAnim(arg0, work->animChain[work->animId].nextAnimId, work->animRate);
             } else {
                 return 1;
             }
         } else {
-            work->field_4BE++;
+            work->animHold++;
         }
     } else if (done) {
-        if (work->field_4B4[(u16)work->field_4B8].nextAnimId >= 0) {
-            Actor560800_ReseedAnim(arg0, work->field_4B4[(u16)work->field_4B8].nextAnimId, work->field_4C8);
+        if (work->animChain[work->animId].nextAnimId >= 0) {
+            Actor560800_ReseedAnim(arg0, work->animChain[work->animId].nextAnimId, work->animRate);
         } else {
             return 1;
         }
@@ -4348,31 +4348,31 @@ static s32 func_actor_560800_80132498(Task* arg0)
 }
 
 /// Spawn handler of the floor-quad model task: state 0 allocates its
-/// `Actor560800AnimWork`, seeds animation 0 (or 2 when `spawnArg1` is set),
+/// `_Actor560800CastWork`, seeds animation 0 (or 2 when `spawnArg1` is set),
 /// and state 1 sends message 0x7D4 once when `spawnArg1` is 1. Every frame
 /// draws the floor quad and ticks the animation script.
 void func_actor_560800_801326C4(Task* arg0)
 {
-    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->work;
-    SVECTOR              ofs;
-    VECTOR               pos;
+    _Actor560800CastWork* work = arg0->work;
+    SVECTOR               ofs;
+    VECTOR                pos;
 
     switch (arg0->state) {
         case 0: {
             u16 failed;
             {
-                TmdObject*           tmd   = arg0->extra.tmd;
-                GfxCoord*            coord = tmd->coords;
-                Actor560800AnimWork* block = memMalloc(sizeof(*block), false);
-                AreaPlacement*       place;
-                u8                   id;
+                TmdObject*            tmd   = arg0->extra.tmd;
+                GfxCoord*             coord = tmd->coords;
+                _Actor560800CastWork* block = memMalloc(sizeof(*block), false);
+                AreaPlacement*        place;
+                u8                    id;
 
                 arg0->work = block;
                 if (block == NULL) {
                     failed = 1;
                 } else {
                     coord->parent = &gGfxViewCoord;
-                    memFillBytes(arg0->work, 0, sizeof(Actor560800AnimWork));
+                    memFillBytes(arg0->work, 0, sizeof(_Actor560800CastWork));
                     tmd->lightMtx  = &block->light;
                     tmd->colorMtx  = &block->color;
                     arg0->msgTable = D_actor_560800_8016F34C;
@@ -4395,34 +4395,34 @@ void func_actor_560800_801326C4(Task* arg0)
                 return;
             }
             arg0->extra.tmd->flags &= ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            work                    = (Actor560800AnimWork*)arg0->work;
+            work                    = arg0->work;
             {
                 TmdObject* obj = arg0->extra.tmd;
                 animationInitContext(&work->rig.anim, D_actor_560800_8016EB04, obj, work->rig.poses, work->rig.slots);
             }
-            work->field_4BA = 0x13;
-            work->field_4B4 = D_actor_560800_8016ECAC;
+            work->slotCount = 0x13;
+            work->animChain = D_actor_560800_8016ECAC;
             if (arg0->spawnArg1.value == 0) {
-                Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
-                u16                  i;
-                s32                  fade = 0x10;
+                _Actor560800CastWork* w = arg0->work;
+                u16                   i;
+                s32                   fade = ANIMATION_RATE_ONE;
 
-                w->field_4B8 = 0;
-                w->field_4C8 = fade;
-                w->field_4BE = 0;
-                for (i = 1; i < w->field_4BA; i++) {
+                w->animId   = 0;
+                w->animRate = fade;
+                w->animHold = 0;
+                for (i = 1; i < w->slotCount; i++) {
                     w->rig.slots[i].rate = fade;
                     animationResetSlot(&w->rig.anim, i, 0);
                 }
             } else {
-                Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
-                u16                  i;
-                s32                  fade = 0x10;
+                _Actor560800CastWork* w = arg0->work;
+                u16                   i;
+                s32                   fade = ANIMATION_RATE_ONE;
 
-                w->field_4B8 = 2;
-                w->field_4C8 = fade;
-                w->field_4BE = 0;
-                for (i = 1; i < w->field_4BA; i++) {
+                w->animId   = 2;
+                w->animRate = fade;
+                w->animHold = 0;
+                for (i = 1; i < w->slotCount; i++) {
                     w->rig.slots[i].rate = fade;
                     animationResetSlot(&w->rig.anim, i, 2);
                 }
@@ -4436,8 +4436,8 @@ void func_actor_560800_801326C4(Task* arg0)
             s32 arg = arg0->spawnArg1.value;
             if (arg == 1) {
                 TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_560800_8016F154, 0);
-                work->field_4BC = arg;
-                arg0->state    += 1;
+                work->relit  = arg;
+                arg0->state += 1;
             }
         } break;
     }
@@ -4446,7 +4446,7 @@ void func_actor_560800_801326C4(Task* arg0)
     ofs.vz = 0;
     Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &ofs);
     func_actor_560800_80132498(arg0);
-    if (work->field_4BC != 0) {
+    if (work->relit != 0) {
         TmdObject* obj = arg0->extra.tmd;
 
         pos.vx = obj->coords->workm.t[0];
@@ -4458,16 +4458,16 @@ void func_actor_560800_801326C4(Task* arg0)
 
 void func_actor_560800_80132A14(Task* arg0)
 {
-    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->work;
-    VECTOR               pos;
+    _Actor560800CastWork* work = arg0->work;
+    VECTOR                pos;
 
     if (arg0->state == 0) {
-        TmdObject*           tmd    = arg0->extra.tmd;
-        Task*                parent = arg0->spawnArg2.pointer;
-        GfxCoord*            coord  = tmd->coords;
-        Actor560800AnimWork* block;
-        AreaPlacement*       place;
-        u8                   id;
+        TmdObject*            tmd    = arg0->extra.tmd;
+        Task*                 parent = arg0->spawnArg2.pointer;
+        GfxCoord*             coord  = tmd->coords;
+        _Actor560800CastWork* block;
+        AreaPlacement*        place;
+        u8                    id;
 
         block      = memMalloc(sizeof(*block), false);
         arg0->work = block;
@@ -4486,7 +4486,7 @@ void func_actor_560800_80132A14(Task* arg0)
                 coord->parent = &parent->extra.tmd->coords[8];
                 break;
         }
-        memFillBytes(arg0->work, 0, sizeof(Actor560800AnimWork));
+        memFillBytes(arg0->work, 0, sizeof(_Actor560800CastWork));
         tmd->lightMtx = &work->light;
         tmd->colorMtx = &work->color;
         if (arg0->spawnArg1.value < 2) {
@@ -4519,7 +4519,7 @@ void func_actor_560800_80132A14(Task* arg0)
         arg0->state   += 1;
         return;
     }
-    if (work->field_4BC != 0) {
+    if (work->relit != 0) {
         TmdObject* obj = arg0->extra.tmd;
 
         pos.vx = obj->coords->workm.t[0];
@@ -4531,25 +4531,25 @@ void func_actor_560800_80132A14(Task* arg0)
 
 void func_actor_560800_80132C60(Task* arg0)
 {
-    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->work;
-    SVECTOR              ofs;
-    VECTOR               pos;
+    _Actor560800CastWork* work = arg0->work;
+    SVECTOR               ofs;
+    VECTOR                pos;
 
     if (arg0->state == 0) {
         u16 failed;
         {
-            TmdObject*           tmd   = arg0->extra.tmd;
-            GfxCoord*            coord = tmd->coords;
-            Actor560800AnimWork* block = memMalloc(sizeof(*block), false);
-            AreaPlacement*       place;
-            u8                   id;
+            TmdObject*            tmd   = arg0->extra.tmd;
+            GfxCoord*             coord = tmd->coords;
+            _Actor560800CastWork* block = memMalloc(sizeof(*block), false);
+            AreaPlacement*        place;
+            u8                    id;
 
             arg0->work = block;
             if (block == NULL) {
                 failed = 1;
             } else {
                 coord->parent = &gGfxViewCoord;
-                memFillBytes(arg0->work, 0, sizeof(Actor560800AnimWork));
+                memFillBytes(arg0->work, 0, sizeof(_Actor560800CastWork));
                 tmd->lightMtx  = &block->light;
                 tmd->colorMtx  = &block->color;
                 arg0->msgTable = D_actor_560800_8016F34C;
@@ -4571,22 +4571,22 @@ void func_actor_560800_80132C60(Task* arg0)
             taskKill(arg0);
             return;
         }
-        work = (Actor560800AnimWork*)arg0->work;
+        work = arg0->work;
         {
             TmdObject* obj = arg0->extra.tmd;
             animationInitContext(&work->rig.anim, D_actor_560800_8016EA74, obj, work->rig.poses, work->rig.slots);
         }
-        work->field_4BA = 0x14;
-        work->field_4B4 = D_actor_560800_8016EC1C;
+        work->slotCount = 0x14;
+        work->animChain = D_actor_560800_8016EC1C;
         {
-            Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
-            u16                  i;
-            s32                  fade = 0x10;
+            _Actor560800CastWork* w = arg0->work;
+            u16                   i;
+            s32                   fade = ANIMATION_RATE_ONE;
 
-            w->field_4B8 = 0;
-            w->field_4C8 = fade;
-            w->field_4BE = 0;
-            for (i = 1; i < w->field_4BA; i++) {
+            w->animId   = 0;
+            w->animRate = fade;
+            w->animHold = 0;
+            for (i = 1; i < w->slotCount; i++) {
                 w->rig.slots[i].rate = fade;
                 animationResetSlot(&w->rig.anim, i, 0);
             }
@@ -4597,19 +4597,19 @@ void func_actor_560800_80132C60(Task* arg0)
     ofs.vy = 0x380;
     ofs.vz = 0;
     Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &ofs);
-    if (work->field_4CA == 0) {
+    if (work->animPaused == 0) {
         func_actor_560800_80132498(arg0);
     }
-    gfxRotMatrixY(&arg0->extra.tmd->coords[4].coord, work->field_4C0, 0);
-    gfxRotMatrixX(&arg0->extra.tmd->coords[4].coord, work->field_4C6, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixZ(&arg0->extra.tmd->coords[2].coord, work->field_4C4, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixY(&arg0->extra.tmd->coords[4].coord, work->part4Yaw, 0);
+    gfxRotMatrixX(&arg0->extra.tmd->coords[4].coord, work->part4Pitch, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixZ(&arg0->extra.tmd->coords[2].coord, work->part2Roll, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_4CA != 0) {
-        work->field_4C0 = 0;
-        work->field_4C6 = 0;
-        work->field_4C4 = 0;
+    if (work->animPaused != 0) {
+        work->part4Yaw   = 0;
+        work->part4Pitch = 0;
+        work->part2Roll  = 0;
     }
-    if (work->field_4BC != 0) {
+    if (work->relit != 0) {
         TmdObject* obj = arg0->extra.tmd;
 
         pos.vx = obj->coords->workm.t[0];
@@ -4621,25 +4621,25 @@ void func_actor_560800_80132C60(Task* arg0)
 
 void func_actor_560800_80132F64(Task* arg0)
 {
-    Actor560800AnimWork* work = (Actor560800AnimWork*)arg0->work;
-    SVECTOR              ofs;
-    VECTOR               pos;
+    _Actor560800CastWork* work = arg0->work;
+    SVECTOR               ofs;
+    VECTOR                pos;
 
     if (arg0->state == 0) {
         u16 failed;
         {
-            TmdObject*           tmd   = arg0->extra.tmd;
-            GfxCoord*            coord = tmd->coords;
-            Actor560800AnimWork* block = memMalloc(sizeof(*block), false);
-            AreaPlacement*       place;
-            u8                   id;
+            TmdObject*            tmd   = arg0->extra.tmd;
+            GfxCoord*             coord = tmd->coords;
+            _Actor560800CastWork* block = memMalloc(sizeof(*block), false);
+            AreaPlacement*        place;
+            u8                    id;
 
             arg0->work = block;
             if (block == NULL) {
                 failed = 1;
             } else {
                 coord->parent = &gGfxViewCoord;
-                memFillBytes(arg0->work, 0, sizeof(Actor560800AnimWork));
+                memFillBytes(arg0->work, 0, sizeof(_Actor560800CastWork));
                 tmd->lightMtx  = &block->light;
                 tmd->colorMtx  = &block->color;
                 arg0->msgTable = D_actor_560800_8016F34C;
@@ -4661,36 +4661,36 @@ void func_actor_560800_80132F64(Task* arg0)
             taskKill(arg0);
             return;
         }
-        work = (Actor560800AnimWork*)arg0->work;
+        work = arg0->work;
         {
             TmdObject* obj = arg0->extra.tmd;
             animationInitContext(&work->rig.anim, D_actor_560800_8016EB30, obj, work->rig.poses, work->rig.slots);
         }
-        work->field_4BA = 0x13;
-        work->field_4B4 = D_actor_560800_8016ECC4;
+        work->slotCount = 0x13;
+        work->animChain = D_actor_560800_8016ECC4;
         {
-            Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
-            u16                  i;
-            s32                  fade = 0x10;
+            _Actor560800CastWork* w = arg0->work;
+            u16                   i;
+            s32                   fade = ANIMATION_RATE_ONE;
 
-            w->field_4B8 = 0;
-            w->field_4C8 = fade;
-            w->field_4BE = 0;
-            for (i = 1; i < w->field_4BA; i++) {
+            w->animId   = 0;
+            w->animRate = fade;
+            w->animHold = 0;
+            for (i = 1; i < w->slotCount; i++) {
                 w->rig.slots[i].rate = fade;
                 animationResetSlot(&w->rig.anim, i, 0);
             }
         }
         arg0->state += 1;
     }
-    if (!(arg0->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && work->field_4C2 == 0) {
+    if (!(arg0->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && work->floorQuadHidden == 0) {
         ofs.vx = 0;
         ofs.vy = 0x380;
         ofs.vz = 0;
         Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &ofs);
     }
     func_actor_560800_80132498(arg0);
-    if (work->field_4BC != 0) {
+    if (work->relit != 0) {
         TmdObject* obj = arg0->extra.tmd;
 
         pos.vx = obj->coords->workm.t[0];
@@ -5115,15 +5115,16 @@ static void func_actor_560800_80133970(Task* arg0)
     work->playerCue.id = 0;
 }
 
-/// Handles the pending request in `eveCue.id` and clears it: 1 and 28 reset the
-/// animation sub-task's `field_4C0` / `field_4CA`, 28 also reseeds its slots
-/// from clip 3 at the 0x10 rate, and 22 / 24 send 0x7D5 to `chainGroup`.
+/// Handles the pending request in `eveCue.id` and clears it: 1 and 28 store to
+/// `part4Yaw` / `animPaused` in Eve's work block, which her task never reads,
+/// 28 also restarts her slots in clip 3 at `ANIMATION_RATE_ONE`, and 22 / 24
+/// send 0x7D5 to `chainGroup`.
 static void func_actor_560800_80134258(Task* task)
 {
     _Actor560800CutsceneWork* work;
-    Actor560800AnimWork*      anim;
-    Actor560800AnimWork*      ctx;
-    Actor560800AnimWork*      ctx2;
+    _Actor560800CastWork*     anim;
+    _Actor560800CastWork*     ctx;
+    _Actor560800CastWork*     ctx2;
     SVECTOR                   unused;
     u16                       i;
     u16                       rate;
@@ -5134,59 +5135,59 @@ static void func_actor_560800_80134258(Task* task)
         case 38:
             break;
         case 1:
-            ctx            = (Actor560800AnimWork*)work->eve->work;
-            ctx->field_4C0 = 0;
-            ctx->field_4CA = 1;
+            ctx             = work->eve->work;
+            ctx->part4Yaw   = 0;
+            ctx->animPaused = 1;
             break;
         case 22:
         case 24:
             taskMessageDispatch(work->chainGroup, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             break;
         case 28:
-            ctx2            = (Actor560800AnimWork*)work->eve->work;
-            ctx2->field_4C0 = 0;
-            ctx2->field_4CA = 0;
-            anim            = (Actor560800AnimWork*)work->eve->work;
-            i               = 1;
-            anim->field_4B8 = 3;
-            rate            = 0x10;
-            anim->field_4C8 = rate;
-            anim->field_4BE = 0;
-            if (i < anim->field_4BA) {
+            ctx2             = work->eve->work;
+            ctx2->part4Yaw   = 0;
+            ctx2->animPaused = 0;
+            anim             = work->eve->work;
+            i                = 1;
+            anim->animId     = 3;
+            rate             = ANIMATION_RATE_ONE;
+            anim->animRate   = rate;
+            anim->animHold   = 0;
+            if (i < anim->slotCount) {
                 do {
                     anim->rig.slots[i].rate = rate;
                     animationResetSlot(&anim->rig.anim, i, 3);
                     i++;
-                } while (i < anim->field_4BA);
+                } while (i < anim->slotCount);
             }
             break;
     }
     work->eveCue.id = 0;
 }
 
-static inline void Actor560800_ResetAnimSlots(Actor560800AnimWork* anim, s16 clip)
+static inline void Actor560800_ResetAnimSlots(_Actor560800CastWork* anim, s16 clip)
 {
     u16 i;
     u16 rate;
 
-    anim->field_4B8 = clip;
-    i               = 1;
-    rate            = 0x10;
-    anim->field_4C8 = rate;
-    anim->field_4BE = 0;
-    if (i < anim->field_4BA) {
+    anim->animId   = clip;
+    i              = 1;
+    rate           = ANIMATION_RATE_ONE;
+    anim->animRate = rate;
+    anim->animHold = 0;
+    if (i < anim->slotCount) {
         do {
             anim->rig.slots[i].rate = rate;
             animationResetSlot(&anim->rig.anim, i, clip);
             i++;
-        } while (i < anim->field_4BA);
+        } while (i < anim->slotCount);
     }
 }
 
 static void func_actor_560800_80134384(Task* task)
 {
     _Actor560800CutsceneWork* work;
-    Actor560800AnimWork*      anim;
+    _Actor560800CastWork*     anim;
     u16                       i;
     u16                       rate;
 
@@ -5196,48 +5197,48 @@ static void func_actor_560800_80134384(Task* task)
         case 38:
             break;
         case 2:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 1);
+            Actor560800_ResetAnimSlots(work->no9->work, 1);
             break;
         case 4:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 5);
+            Actor560800_ResetAnimSlots(work->no9->work, 5);
             break;
         case 6:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0xc);
+            Actor560800_ResetAnimSlots(work->no9->work, 0xc);
             break;
         case 8:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0x28);
+            Actor560800_ResetAnimSlots(work->no9->work, 0x28);
             break;
         case 10:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0x17);
+            Actor560800_ResetAnimSlots(work->no9->work, 0x17);
             break;
         case 11:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0x18);
+            Actor560800_ResetAnimSlots(work->no9->work, 0x18);
             break;
         case 13:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0x19);
+            Actor560800_ResetAnimSlots(work->no9->work, 0x19);
             break;
         case 15:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0xc);
+            Actor560800_ResetAnimSlots(work->no9->work, 0xc);
             break;
         case 17:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0x29);
+            Actor560800_ResetAnimSlots(work->no9->work, 0x29);
             break;
         case 22:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0x1f);
+            Actor560800_ResetAnimSlots(work->no9->work, 0x1f);
             break;
         case 23:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0x1d);
+            Actor560800_ResetAnimSlots(work->no9->work, 0x1d);
             break;
         case 24:
             switch (work->no9Cue.step) {
                 case 0:
-                    anim            = (Actor560800AnimWork*)work->no9->work;
-                    anim->field_4B8 = 0x2D;
-                    i               = 1;
-                    rate            = 0x10;
-                    anim->field_4C8 = rate;
-                    anim->field_4BE = 0;
-                    if (i >= anim->field_4BA) {
+                    anim           = work->no9->work;
+                    anim->animId   = 0x2D;
+                    i              = 1;
+                    rate           = ANIMATION_RATE_ONE;
+                    anim->animRate = rate;
+                    anim->animHold = 0;
+                    if (i >= anim->slotCount) {
                         work->no9Cue.counter = 0;
                         work->no9Cue.step++;
                         return;
@@ -5246,7 +5247,7 @@ static void func_actor_560800_80134384(Task* task)
                         anim->rig.slots[i].rate = rate;
                         animationResetSlot(&anim->rig.anim, i, 0x2D);
                         i++;
-                        if (i < anim->field_4BA) {
+                        if (i < anim->slotCount) {
                             continue;
                         }
                         work->no9Cue.counter = 0;
@@ -5257,54 +5258,54 @@ static void func_actor_560800_80134384(Task* task)
                     if (++work->no9Cue.counter < 0xB5) {
                         return;
                     }
-                    Actor560800_ReseedAnim(work->no9, 0x1D, 0x10);
+                    Actor560800_ReseedAnim(work->no9, 0x1D, ANIMATION_RATE_ONE);
                     break;
                 default:
                     return;
             }
             break;
         case 26:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0x21);
-            ((Actor560800AnimWork*)work->no9->work)->field_4C2 = 1;
+            Actor560800_ResetAnimSlots(work->no9->work, 0x21);
+            ((_Actor560800CastWork*)work->no9->work)->floorQuadHidden = 1;
             break;
         case 27:
-            Actor560800_ResetAnimSlots((Actor560800AnimWork*)work->no9->work, 0x24);
+            Actor560800_ResetAnimSlots(work->no9->work, 0x24);
             break;
     }
     work->no9Cue.id = 0;
 }
 
-/// Reseeds the sub-task's animation slots from clip 0x20 -- writing the slot
-/// count with the 0x10 restart rate and every slot's `rate` -- then spawns
+/// Restarts Kyle's animation slots in clip 0x20 -- writing `animRate` and every
+/// slot's `rate` with `ANIMATION_RATE_ONE` -- then spawns
 /// effect 0x6002B on the ninth per-part coordinate of the task at `kyle`
 /// and posts the pad event that releases the input lock.
 ///
 /// The rate is held in a local rather than written as two literals: both uses
-/// have to reach the same register, and 0x10 is live across the loop's
+/// have to reach the same register, and the rate is live across the loop's
 /// `animationResetSlot` call. `unused` is declared and never referenced - the
 /// ROM's frame is 0x30 and the local is what reserves its 8 bytes.
 void func_actor_560800_80134B14(s32 arg0)
 {
     _Actor560800CutsceneWork* work;
-    Actor560800AnimWork*      anim;
+    _Actor560800CastWork*     anim;
     SVECTOR                   unused;
     u16                       i;
     u16                       rate;
 
     work = D_actor_560800_8017578C->work;
-    anim = (Actor560800AnimWork*)work->kyle->work;
+    anim = work->kyle->work;
 
-    anim->field_4B8 = 0x20;
-    rate            = 0x10;
-    anim->field_4C8 = rate;
-    anim->field_4BE = 0;
-    i               = 1;
-    if (i < anim->field_4BA) {
+    anim->animId   = 0x20;
+    rate           = ANIMATION_RATE_ONE;
+    anim->animRate = rate;
+    anim->animHold = 0;
+    i              = 1;
+    if (i < anim->slotCount) {
         do {
             anim->rig.slots[i].rate = rate;
             animationResetSlot(&anim->rig.anim, i, 0x20);
             i++;
-        } while (i < anim->field_4BA);
+        } while (i < anim->slotCount);
     }
     Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], 0x21, NULL);
     Pad_PostEvent(0, 1, 0xFF, 2);
@@ -5312,57 +5313,57 @@ void func_actor_560800_80134B14(s32 arg0)
 
 static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate)
 {
-    Actor560800AnimWork* w;
-    u16                  i;
-    u32                  first;
-    u32                  count;
+    _Actor560800CastWork* w;
+    u16                   i;
+    u32                   first;
+    u32                   count;
 
-    w            = (Actor560800AnimWork*)task->work;
-    w->field_4B8 = id;
-    w->field_4C8 = rate;
+    w           = task->work;
+    w->animId   = id;
+    w->animRate = rate;
     _actor560800ResetAnimHold(w);
-    count = w->field_4BA;
+    count = w->slotCount;
     __asm__("" : "=r"(first) : "0"((u16)1));
     if (first < count) {
         i = 1;
         do {
             animationSeekSlotWithBlend(&w->rig.anim, i, id, 0, 10);
             i++;
-        } while (i < w->field_4BA);
+        } while (i < w->slotCount);
     }
 }
 
 static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate)
 {
-    Actor560800AnimWork* anim;
-    u16                  i;
+    _Actor560800CastWork* anim;
+    u16                   i;
 
-    anim            = (Actor560800AnimWork*)task->work;
-    i               = 1;
-    anim->field_4B8 = id;
-    anim->field_4C8 = rate;
-    anim->field_4BE = 0;
-    if (i < anim->field_4BA) {
+    anim           = task->work;
+    i              = 1;
+    anim->animId   = id;
+    anim->animRate = rate;
+    anim->animHold = 0;
+    if (i < anim->slotCount) {
         do {
             anim->rig.slots[i].rate = rate;
             animationResetSlot(&anim->rig.anim, i, id);
             i++;
-        } while (i < anim->field_4BA);
+        } while (i < anim->slotCount);
     }
 }
 
 static void func_actor_560800_80134BFC(Task* arg0)
 {
     _Actor560800CutsceneWork* work;
-    Actor560800AnimWork*      ctx;
-    Actor560800AnimWork*      ctx2;
-    Actor560800AnimWork*      ctx3;
-    Actor560800AnimWork*      ctx4;
-    Actor560800AnimWork*      ctx5;
-    Actor560800AnimWork*      ctx6;
-    Actor560800AnimWork*      ctx7;
-    Actor560800AnimWork*      blend;
-    Actor560800AnimWork*      anim;
+    _Actor560800CastWork*     ctx;
+    _Actor560800CastWork*     ctx2;
+    _Actor560800CastWork*     ctx3;
+    _Actor560800CastWork*     ctx4;
+    _Actor560800CastWork*     ctx5;
+    _Actor560800CastWork*     ctx6;
+    _Actor560800CastWork*     ctx7;
+    _Actor560800CastWork*     blend;
+    _Actor560800CastWork*     anim;
     GfxCoord*                 coord;
     u32                       first;
     u32                       count;
@@ -5373,29 +5374,29 @@ static void func_actor_560800_80134BFC(Task* arg0)
         case 0:
             break;
         case 1:
-            ((Actor560800AnimWork*)work->kyle->work)->field_4CA = 1;
+            ((_Actor560800CastWork*)work->kyle->work)->animPaused = 1;
             break;
         case 2:
-            ((Actor560800AnimWork*)work->kyle->work)->field_4C0 = 0x155;
+            ((_Actor560800CastWork*)work->kyle->work)->part4Yaw = 0x155;
             break;
         case 4:
             switch (work->kyleCue.step) {
                 case 0: {
-                    Actor560800AnimWork* reseed;
+                    _Actor560800CastWork* reseed;
 
-                    ctx               = (Actor560800AnimWork*)work->kyle->work;
-                    ctx->field_4C0    = 0;
-                    ctx->field_4CA    = 0;
-                    reseed            = (Actor560800AnimWork*)work->kyle->work;
-                    reseed->field_4B8 = 1;
-                    reseed->field_4C8 = 0x10;
-                    reseed->field_4BE = 0;
+                    ctx              = work->kyle->work;
+                    ctx->part4Yaw    = 0;
+                    ctx->animPaused  = 0;
+                    reseed           = work->kyle->work;
+                    reseed->animId   = 1;
+                    reseed->animRate = ANIMATION_RATE_ONE;
+                    reseed->animHold = 0;
                     _ACTOR560800_BLEND_SLOTS(reseed, 1, 10);
                     work->kyleCue.step++;
                     return;
                 }
                 case 1:
-                    ((Actor560800AnimWork*)work->kyle->work)->field_4CA = 1;
+                    ((_Actor560800CastWork*)work->kyle->work)->animPaused = 1;
                     break;
                 default:
                     return;
@@ -5404,7 +5405,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
         case 14:
             switch (work->kyleCue.step) {
                 case 0:
-                    Actor560800_ResetSlots(work->kyle, 0x19, 0x10);
+                    Actor560800_ResetSlots(work->kyle, 0x19, ANIMATION_RATE_ONE);
                     work->kyleCue.step++;
                     return;
                 case 1:
@@ -5412,7 +5413,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     coord->coord.t[0] -= 0x1E;
                     if (work->kyle->extra.tmd->coords->coord.t[0] < D_actor_560800_8016F1CC[5].pos.vx) {
                         TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, &D_actor_560800_8016F1CC[5], 0);
-                        Actor560800_BlendSlotsFirst(work->kyle, 0x1A, 0x10);
+                        Actor560800_BlendSlotsFirst(work->kyle, 0x1A, ANIMATION_RATE_ONE);
                         work->kyleCue.id = 0;
                     }
                     work->kyle->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5422,15 +5423,15 @@ static void func_actor_560800_80134BFC(Task* arg0)
             }
             break;
         case 15:
-            Actor560800_ResetSlots(work->kyle, 5, 0x10);
+            Actor560800_ResetSlots(work->kyle, 5, ANIMATION_RATE_ONE);
             break;
         case 18:
-            Actor560800_ResetSlots(work->kyle, 0x1F, 0x10);
+            Actor560800_ResetSlots(work->kyle, 0x1F, ANIMATION_RATE_ONE);
             break;
         case 20:
             switch (work->kyleCue.step) {
                 case 0:
-                    ((Actor560800AnimWork*)work->kyle->work)->field_4BC = 1;
+                    ((_Actor560800CastWork*)work->kyle->work)->relit = 1;
                     Actor560800_PlaySeB(3);
                     taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
                     work->kyleCue.counter = 0;
@@ -5466,11 +5467,11 @@ static void func_actor_560800_80134BFC(Task* arg0)
             }
             break;
         case 21:
-            ((Actor560800AnimWork*)work->kyle->work)->field_4BC = 0;
-            Actor560800_ResetSlots(work->kyle, 0xA, 0x10);
+            ((_Actor560800CastWork*)work->kyle->work)->relit = 0;
+            Actor560800_ResetSlots(work->kyle, 0xA, ANIMATION_RATE_ONE);
             break;
         case 22:
-            Actor560800_ResetSlots(work->kyle, 0xB, 0x10);
+            Actor560800_ResetSlots(work->kyle, 0xB, ANIMATION_RATE_ONE);
             break;
         case 23:
             taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
@@ -5487,35 +5488,35 @@ static void func_actor_560800_80134BFC(Task* arg0)
             if (work->kyleGun != NULL) {
                 taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             }
-            ctx2            = (Actor560800AnimWork*)work->kyle->work;
-            ctx2->field_4C0 = 0x155;
-            ctx2->field_4BC = 1;
+            ctx2           = work->kyle->work;
+            ctx2->part4Yaw = 0x155;
+            ctx2->relit    = 1;
             break;
         case 25:
-            ctx3            = (Actor560800AnimWork*)work->kyle->work;
-            ctx3->field_4C0 = 0;
-            ctx3->field_4C4 = -0x71;
-            Actor560800_ResetSlots(work->kyle, 0x1F, 0x10);
+            ctx3            = work->kyle->work;
+            ctx3->part4Yaw  = 0;
+            ctx3->part2Roll = -0x71;
+            Actor560800_ResetSlots(work->kyle, 0x1F, ANIMATION_RATE_ONE);
             break;
         case 26:
-            ctx4            = (Actor560800AnimWork*)work->kyle->work;
-            ctx4->field_4C4 = 0;
-            ctx4->field_4BC = 0;
-            Actor560800_ResetSlots(work->kyle, 0xD, 0x10);
+            ctx4            = work->kyle->work;
+            ctx4->part2Roll = 0;
+            ctx4->relit     = 0;
+            Actor560800_ResetSlots(work->kyle, 0xD, ANIMATION_RATE_ONE);
             break;
         case 28:
-            Actor560800_ResetSlots(work->kyle, 0x1A, 0x10);
+            Actor560800_ResetSlots(work->kyle, 0x1A, ANIMATION_RATE_ONE);
             break;
         case 30:
-            ctx5             = (Actor560800AnimWork*)work->kyle->work;
-            ctx5->field_4C6 -= 0x1E;
-            if (ctx5->field_4C6 >= -0x155) {
+            ctx5              = work->kyle->work;
+            ctx5->part4Pitch -= 0x1E;
+            if (ctx5->part4Pitch >= -0x155) {
                 return;
             }
             break;
         case 32:
-            ((Actor560800AnimWork*)work->kyle->work)->field_4C6 = 0;
-            Actor560800_ResetSlots(work->kyle, 0xF, 0x10);
+            ((_Actor560800CastWork*)work->kyle->work)->part4Pitch = 0;
+            Actor560800_ResetSlots(work->kyle, 0xF, ANIMATION_RATE_ONE);
             break;
         case 33:
             if ((u32)D_actor_560800_801757A4 > (u32)gDisplayState.frameCount) {
@@ -5523,17 +5524,17 @@ static void func_actor_560800_80134BFC(Task* arg0)
             } else {
                 D_actor_560800_80175798 = gDisplayState.frameCount - D_actor_560800_801757A4;
             }
-            Actor560800_ResetSlots(work->kyle, 0x10, 0x10);
+            Actor560800_ResetSlots(work->kyle, 0x10, ANIMATION_RATE_ONE);
             break;
         case 35:
             switch (work->kyleCue.step) {
                 case 0: {
-                    Actor560800AnimWork* reseed;
+                    _Actor560800CastWork* reseed;
 
-                    reseed            = (Actor560800AnimWork*)work->kyle->work;
-                    reseed->field_4B8 = 7;
-                    reseed->field_4C8 = 0x10;
-                    reseed->field_4BE = 0;
+                    reseed           = work->kyle->work;
+                    reseed->animId   = 7;
+                    reseed->animRate = ANIMATION_RATE_ONE;
+                    reseed->animHold = 0;
                     _ACTOR560800_BLEND_SLOTS(reseed, 7, 10);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
@@ -5543,7 +5544,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     if (++work->kyleCue.counter < 0x5B) {
                         return;
                     }
-                    Actor560800_BlendSlotsFirst(work->kyle, 0x14, 0x10);
+                    Actor560800_BlendSlotsFirst(work->kyle, 0x14, ANIMATION_RATE_ONE);
                     break;
                 default:
                     return;
@@ -5552,7 +5553,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
         case 36:
             switch (work->kyleCue.step) {
                 case 0:
-                    Actor560800_ResetSlots(work->kyle, 0xE, 0x10);
+                    Actor560800_ResetSlots(work->kyle, 0xE, ANIMATION_RATE_ONE);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
                     return;
@@ -5562,12 +5563,12 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     }
                     Pad_PostEvent(0, 1, 0xFF, 2);
                     Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], 0x21, NULL);
-                    blend            = (Actor560800AnimWork*)work->no9->work;
-                    blend->field_4B8 = 0x20;
-                    blend->field_4C8 = 8;
-                    blend->field_4BE = 0;
+                    blend           = work->no9->work;
+                    blend->animId   = 0x20;
+                    blend->animRate = ANIMATION_RATE_ONE / 2;
+                    blend->animHold = 0;
                     SOFT_BARRIER();
-                    count = blend->field_4BA;
+                    count = blend->slotCount;
                     SOFT_BARRIER();
                     __asm__("" : "=r"(first) : "0"((u16)1));
                     if (first < count) {
@@ -5575,7 +5576,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                         do {
                             animationSeekSlotWithBlend(&blend->rig.anim, i, 0x20, 0, 5);
                             i++;
-                        } while (i < blend->field_4BA);
+                        } while (i < blend->slotCount);
                     }
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
@@ -5591,38 +5592,38 @@ static void func_actor_560800_80134BFC(Task* arg0)
             }
             break;
         case 37:
-            ((Actor560800AnimWork*)work->kyle->work)->field_4CA = 0;
-            ctx6                                                = (Actor560800AnimWork*)work->kyle->work;
-            ctx6->field_4C0                                    -= 0x3C;
-            if (ctx6->field_4C0 >= -0x200) {
+            ((_Actor560800CastWork*)work->kyle->work)->animPaused = 0;
+            ctx6                                                  = work->kyle->work;
+            ctx6->part4Yaw                                       -= 0x3C;
+            if (ctx6->part4Yaw >= -0x200) {
                 return;
             }
             break;
         case 38:
-            ctx7 = (Actor560800AnimWork*)work->kyle->work;
+            ctx7 = work->kyle->work;
             switch (work->kyleCue.step) {
                 case 0:
-                    anim = (Actor560800AnimWork*)work->kyle->work;
+                    anim = work->kyle->work;
                     SOFT_TOUCH_REG(anim);
-                    anim->field_4B8 = 3;
-                    anim->field_4C8 = 0x10;
-                    anim->field_4BE = 0;
+                    anim->animId   = 3;
+                    anim->animRate = ANIMATION_RATE_ONE;
+                    anim->animHold = 0;
                     _ACTOR560800_BLEND_SLOTS(anim, 3, 10);
                     work->kyleCue.step++;
                     return;
                 case 1:
-                    ctx7->field_4C0 += 0x3C;
-                    if (ctx7->field_4C0 < 0) {
+                    ctx7->part4Yaw += 0x3C;
+                    if (ctx7->part4Yaw < 0) {
                         return;
                     }
-                    ctx7->field_4C0 = 0;
+                    ctx7->part4Yaw = 0;
                     break;
                 default:
                     return;
             }
             break;
         case 39:
-            Actor560800_ResetSlots(work->kyle, 0x22, 8);
+            Actor560800_ResetSlots(work->kyle, 0x22, ANIMATION_RATE_ONE / 2);
             break;
     }
     work->kyleCue.id = 0;
@@ -5907,39 +5908,39 @@ void func_actor_560800_80136378(s16 arg0)
 }
 
 /// The same animation reseed as `func_actor_560800_801364A0`, reached through
-/// `eve` instead of `no9`: the id goes to `field_4B8` with 0x10 as the
-/// restart rate in `field_4C8`, `field_4BE` is cleared, and slots 1..`field_4BA`
-/// are blended through `animationSeekSlotWithBlend`.
+/// `eve` instead of `no9`: the id goes to `animId` with `ANIMATION_RATE_ONE`
+/// in `animRate`, `animHold` is cleared, and slots 1..`slotCount` - 1 are
+/// blended through `animationSeekSlotWithBlend`.
 void func_actor_560800_801363F8(u16 arg0)
 {
     _Actor560800CutsceneWork* work;
-    Actor560800AnimWork*      anim;
+    _Actor560800CastWork*     anim;
 
     work = D_actor_560800_8017578C->work;
-    anim = (Actor560800AnimWork*)work->eve->work;
+    anim = work->eve->work;
 
-    anim->field_4B8 = arg0;
-    anim->field_4C8 = 0x10;
-    anim->field_4BE = 0;
+    anim->animId   = arg0;
+    anim->animRate = ANIMATION_RATE_ONE;
+    anim->animHold = 0;
     _ACTOR560800_BLEND_SLOTS(anim, arg0, 10);
 }
 
 /// Reseeds the animation slots of the sub-task at `no9` from `arg0`: the
-/// id goes to `field_4B8` with 0x10 as the restart rate in `field_4C8`,
-/// `field_4BE` is cleared, and slots 1..`field_4BA` are blended through
+/// id goes to `animId` with `ANIMATION_RATE_ONE` in `animRate`,
+/// `animHold` is cleared, and slots 1..`slotCount` - 1 are blended through
 /// `animationSeekSlotWithBlend`. `func_actor_560800_801363F8` is the same body reached
 /// through `eve`.
 void func_actor_560800_801364A0(u16 arg0)
 {
     _Actor560800CutsceneWork* work;
-    Actor560800AnimWork*      anim;
+    _Actor560800CastWork*     anim;
 
     work = D_actor_560800_8017578C->work;
-    anim = (Actor560800AnimWork*)work->no9->work;
+    anim = work->no9->work;
 
-    anim->field_4B8 = arg0;
-    anim->field_4C8 = 0x10;
-    anim->field_4BE = 0;
+    anim->animId   = arg0;
+    anim->animRate = ANIMATION_RATE_ONE;
+    anim->animHold = 0;
     _ACTOR560800_BLEND_SLOTS(anim, arg0, 10);
 }
 
@@ -5972,14 +5973,14 @@ void func_actor_560800_801365B0(s16 arg0)
 void func_actor_560800_801365D0(u16 arg0)
 {
     _Actor560800CutsceneWork* work;
-    Actor560800AnimWork*      anim;
+    _Actor560800CastWork*     anim;
 
     work = D_actor_560800_8017578C->work;
-    anim = (Actor560800AnimWork*)work->kyle->work;
+    anim = work->kyle->work;
 
-    anim->field_4B8 = arg0;
-    anim->field_4C8 = 0x10;
-    anim->field_4BE = 0;
+    anim->animId   = arg0;
+    anim->animRate = ANIMATION_RATE_ONE;
+    anim->animHold = 0;
     _ACTOR560800_BLEND_SLOTS(anim, arg0, 10);
 }
 
@@ -6155,32 +6156,32 @@ void func_actor_560800_80136A88(Task* task)
     taskKill(task);
 }
 
-/// Swings the model's chain of parts toward the named task's work block: while
-/// the pieces are walked 1..5 on the scratchpad stack, each part's X rotation
-/// steps by `speed` toward the heading of that block's `world` translation seen
-/// from the part's joint, and the joint positions accumulate through the GTE.
+/// Bends a chain toward its group's target: while parts 1..5 are walked on the
+/// scratchpad stack, each part's X rotation steps by the local `speed` toward
+/// the bearing of the group's `targetWorld` translation seen from the part's
+/// joint, and the joint positions accumulate through the GTE.
 /// Part 0's X rotation oscillates on a `D_actor_560800_801752E8` phase. The
-/// closing switch drives `field_27E`: close enough in Y/Z starts the dip in
-/// `field_24E`, which then returns to zero.
+/// closing switch drives `dipStep`: close enough in Y/Z starts the dip in
+/// `offset.vy`, which then returns to zero.
 static void func_actor_560800_80136AA8(Task* arg0)
 {
-    Actor560800ChainScratch* top;
-    Actor560800ModelWork*    work;
-    Actor560800ChainScratch* s;
-    Actor560800PartsWork*    target;
-    s16                      i;
-    s16                      speed;
-    s32                      a;
+    _Actor560800ChainScratch*   top;
+    _Actor560800PropWork*       work;
+    _Actor560800ChainScratch*   s;
+    _Actor560800ChainGroupWork* group;
+    s16                         i;
+    s16                         speed;
+    s32                         a;
 
-    top  = SCRATCH_STACK_CURSOR(Actor560800ChainScratch);
-    work = (Actor560800ModelWork*)arg0->work;
-    s = SCRATCH_STACK_CURSOR(Actor560800ChainScratch) = top - 1;
-    target                                            = (Actor560800PartsWork*)work->field_26C->work;
-    memFillBytes(s, 0, sizeof(Actor560800ChainScratch));
+    top  = SCRATCH_STACK_CURSOR(_Actor560800ChainScratch);
+    work = arg0->work;
+    s = SCRATCH_STACK_CURSOR(_Actor560800ChainScratch) = top - 1;
+    group                                              = work->parent->work;
+    memFillBytes(s, 0, sizeof(_Actor560800ChainScratch));
     Mem_CopyUnaligned(work->rot, s->rot, sizeof(s->rot));
-    if (work->field_280 & 1) {
+    if (work->chainNumber & 1) {
         speed = 2;
-        switch (((D_actor_560800_801752E8 + work->field_270) * 2) & 0x300) {
+        switch (((D_actor_560800_801752E8 + work->swayPhase) * 2) & 0x300) {
             case 0x0:
             case 0x300:
                 s->rot[0].vx += 4;
@@ -6196,7 +6197,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
         }
     } else {
         speed = 1;
-        switch (((D_actor_560800_801752E8 + work->field_270) * 2) & 0x700) {
+        switch (((D_actor_560800_801752E8 + work->swayPhase) * 2) & 0x700) {
             case 0x0:
             case 0x100:
             case 0x600:
@@ -6231,12 +6232,12 @@ static void func_actor_560800_80136AA8(Task* arg0)
         gte_ldclmv(&arg0->extra.tmd->coords[i].coord);
         gte_rtir();
         gte_stclmv(&s->link);
-        gte_ldclmv((char*)&arg0->extra.tmd->coords[i].coord + 2);
+        gte_ldclmv(&arg0->extra.tmd->coords[i].coord.m[0][1]);
         gte_rtir();
-        gte_stclmv((char*)&s->link + 2);
-        gte_ldclmv((char*)&arg0->extra.tmd->coords[i].coord + 4);
+        gte_stclmv(&s->link.m[0][1]);
+        gte_ldclmv(&arg0->extra.tmd->coords[i].coord.m[0][2]);
         gte_rtir();
-        gte_stclmv((char*)&s->link + 4);
+        gte_stclmv(&s->link.m[0][2]);
         s->joint.vx = arg0->extra.tmd->coords[i + 1].coord.t[0];
         s->joint.vy = arg0->extra.tmd->coords[i + 1].coord.t[1];
         s->joint.vz = arg0->extra.tmd->coords[i + 1].coord.t[2];
@@ -6251,7 +6252,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
         s->aim.vy    = (s->ang.vy + s->rot[i].vy) % 0x1000;
         s->aim.vz    = (s->ang.vz + s->rot[i].vz) % 0x1000;
         if (s->rot[0].vy == 0) {
-            a = ratan2(s->joint.vy - target->world.t[1], target->world.t[2] - s->joint.vz) % 0x1000;
+            a = ratan2(s->joint.vy - group->targetWorld.t[1], group->targetWorld.t[2] - s->joint.vz) % 0x1000;
             if (a < 0) {
                 a += 0x1000;
             }
@@ -6269,7 +6270,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
                 }
             }
         } else {
-            a = ratan2(target->world.t[1] - s->joint.vy, target->world.t[2] - s->joint.vz) % 0x1000;
+            a = ratan2(group->targetWorld.t[1] - s->joint.vy, group->targetWorld.t[2] - s->joint.vz) % 0x1000;
             if (a < 0) {
                 a += 0x1000;
             }
@@ -6294,12 +6295,12 @@ static void func_actor_560800_80136AA8(Task* arg0)
         gte_ldclmv(&arg0->extra.tmd->coords[i].coord);
         gte_rtir();
         gte_stclmv(&s->chain);
-        gte_ldclmv((char*)&arg0->extra.tmd->coords[i].coord + 2);
+        gte_ldclmv(&arg0->extra.tmd->coords[i].coord.m[0][1]);
         gte_rtir();
-        gte_stclmv((char*)&s->chain + 2);
-        gte_ldclmv((char*)&arg0->extra.tmd->coords[i].coord + 4);
+        gte_stclmv(&s->chain.m[0][1]);
+        gte_ldclmv(&arg0->extra.tmd->coords[i].coord.m[0][2]);
         gte_rtir();
-        gte_stclmv((char*)&s->chain + 4);
+        gte_stclmv(&s->chain.m[0][2]);
         s->joint.vx = arg0->extra.tmd->coords[i + 1].coord.t[0];
         s->joint.vy = arg0->extra.tmd->coords[i + 1].coord.t[1];
         s->joint.vz = arg0->extra.tmd->coords[i + 1].coord.t[2];
@@ -6318,44 +6319,44 @@ static void func_actor_560800_80136AA8(Task* arg0)
         s->pos.vz += s->joint.vz;
     }
     Mem_CopyUnaligned(s->rot, work->rot, sizeof(s->rot));
-    switch (work->field_27E) {
+    switch (work->dipStep) {
         case 0:
-            if (abs(s->pos.vy - target->world.t[1]) < 300) {
-                if (abs(s->pos.vz - target->world.t[2]) < 200) {
-                    work->field_27E = 1;
+            if (abs(s->pos.vy - group->targetWorld.t[1]) < 300) {
+                if (abs(s->pos.vz - group->targetWorld.t[2]) < 200) {
+                    work->dipStep = 1;
                 }
             }
             break;
         case 1:
-            work->field_24E -= 20;
-            if (work->field_24E < -100) {
-                work->field_27E = 2;
+            work->offset.vy -= 20;
+            if (work->offset.vy < -100) {
+                work->dipStep = 2;
             }
             break;
         case 2:
-            work->field_24E += 2;
-            if (work->field_24E > 0) {
-                work->field_24E = 0;
-                work->field_27E = 0;
+            work->offset.vy += 2;
+            if (work->offset.vy > 0) {
+                work->offset.vy = 0;
+                work->dipStep   = 0;
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor560800ChainScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor560800ChainScratch);
 }
 
-/// Sets up the animated model part the spawn argument names: allocates its
-/// `Actor560800ModelWork`, hangs it off `Task::work`, points the object's light
-/// and colour matrices into it, makes the named task this one's parent and hands
-/// the part to `animationInitContext` with the overlay's animation bank. The three
-/// `gRandomLcgState` draws taken along the way seed the handlers' random headings,
-/// and the slot count comes from the spawner's `spawnArg1`.
+/// Sets up a chain or its falling copy: allocates its `_Actor560800PropWork`,
+/// hangs it off `Task::work`, points the object's light and colour matrices
+/// into it, makes the task the spawn argument names this one's `parent` and
+/// binds the rig with the overlay's animation bank. Of the three
+/// `gRandomLcgState` draws taken along the way only `swayPhase` is read again,
+/// and `chainNumber` comes from the spawner's `spawnArg1`.
 static void func_actor_560800_801376E0(Task* arg0)
 {
-    Actor560800ModelWork* mem;
-    Actor560800ModelWork* work;
+    _Actor560800PropWork* mem;
+    _Actor560800PropWork* work;
     TmdObject*            obj;
     GfxCoord*             coord;
-    Task*                 child;
+    Task*                 parent;
 
     obj        = arg0->extra.tmd;
     coord      = obj->coords;
@@ -6366,37 +6367,37 @@ static void func_actor_560800_801376E0(Task* arg0)
         return;
     }
     memFillBytes(mem, 0, sizeof(*mem));
-    work            = (Actor560800ModelWork*)arg0->work;
-    child           = (Task*)arg0->spawnArg2.pointer;
-    work->field_26C = child;
-    coord->parent   = child->extra.tmd->coords;
-    obj->lightMtx   = &work->light;
-    obj->colorMtx   = &work->color;
-    taskReparent(work->field_26C, arg0);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->field_270 = gRandomLcgState >> 16;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->field_274 = gRandomLcgState >> 16;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->field_278 = (gRandomLcgState >> 16) & 0x3FF;
+    work          = arg0->work;
+    parent        = arg0->spawnArg2.pointer;
+    work->parent  = parent;
+    coord->parent = parent->extra.tmd->coords;
+    obj->lightMtx = &work->light;
+    obj->colorMtx = &work->color;
+    taskReparent(work->parent, arg0);
+    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->swayPhase  = gRandomLcgState >> 16;
+    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_274  = gRandomLcgState >> 16;
+    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->pulseScale = (gRandomLcgState >> 16) & 0x3FF;
     animationInitContext(&work->rig.anim, D_actor_560800_801752F0, obj, work->rig.poses, work->rig.slots);
-    work->field_280 = arg0->spawnArg1.value;
+    work->chainNumber = arg0->spawnArg1.value;
 }
 
-/// Per-frame handler of the animated model part `func_actor_560800_801376E0`
-/// sets up. State 1 hides the part (`TmdObject::flags` bit 0x80) for the
-/// part ids the current view excludes and otherwise runs
-/// `func_actor_560800_80136AA8`; state 2 resets the rig's slots 1 to 6 to
-/// `field_280`, state 3 ticks them, state 4 copies the coordinates of a part
-/// spawned from `D_actor_560800_8017575C` and state 5 kills the task a frame
-/// later. Every frame that survives rebuilds the root translation and, while
+/// Per-frame handler of a chain `func_actor_560800_801376E0` sets up. State 1
+/// hides the chain (`TmdObject::flags` bit 0x80) for the chain numbers the
+/// current view excludes and otherwise runs `func_actor_560800_80136AA8`;
+/// state 2 restarts the rig's slots 1 to 6 in the clip `chainNumber` names,
+/// state 3 ticks them, state 4 spawns the falling copy from
+/// `D_actor_560800_8017575C` and gives it this chain's part coordinates, and
+/// state 5 kills the task a frame later. Every frame that survives rebuilds the root translation and, while
 /// visible, drives `func_shelter_b1_pod_service_gantry_8017F450` and the periodic `Gp_SpawnEff`.
 void func_actor_560800_80137820(Task* arg0)
 {
-    Actor560800ModelWork* work;
+    _Actor560800PropWork* work;
     TmdObject*            extra;
     GfxCoord*             coord;
-    Actor560800ModelWork* anim;
+    _Actor560800PropWork* anim;
     Task*                 child;
     s32                   i;
     u32                   tick;
@@ -6407,7 +6408,7 @@ void func_actor_560800_80137820(Task* arg0)
 
     extra = arg0->extra.tmd;
     state = arg0->state;
-    work  = (Actor560800ModelWork*)arg0->work;
+    work  = arg0->work;
     coord = extra->coords;
     obj   = extra;
     switch (state) {
@@ -6417,7 +6418,7 @@ void func_actor_560800_80137820(Task* arg0)
             return;
         case 1:
             if (Gp_FindViewIndex(gGameSession->location.loc.view) == 0x16) {
-                switch (work->field_280) {
+                switch (work->chainNumber) {
                     case 1:
                     case 3:
                         obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -6429,8 +6430,8 @@ void func_actor_560800_80137820(Task* arg0)
                         goto done;
                 }
             }
-            if (work->field_280 < 8) {
-                if (work->field_280 >= 5) {
+            if (work->chainNumber < 8) {
+                if (work->chainNumber >= 5) {
                     obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     return;
                 }
@@ -6438,15 +6439,15 @@ void func_actor_560800_80137820(Task* arg0)
             func_actor_560800_80136AA8(arg0);
             break;
         case 2:
-            if (work->field_280 < 4) {
-                if (work->field_280 >= 2) {
+            if (work->chainNumber < 4) {
+                if (work->chainNumber >= 2) {
                     obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     return;
                 }
             }
             i    = 1;
-            id   = work->field_280;
-            anim = (Actor560800ModelWork*)arg0->work;
+            id   = work->chainNumber;
+            anim = arg0->work;
             do {
                 anim->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
                 animationResetSlot(&anim->rig.anim, i & 0xFFFF, id);
@@ -6455,7 +6456,7 @@ void func_actor_560800_80137820(Task* arg0)
             arg0->state++;
             break;
         case 3:
-            anim = (Actor560800ModelWork*)arg0->work;
+            anim = arg0->work;
             i    = 1;
             do {
                 animationTickSlot(&anim->rig.anim, i & 0xFFFF);
@@ -6480,7 +6481,7 @@ void func_actor_560800_80137820(Task* arg0)
                 Mem_CopyUnaligned(&arg0->extra.tmd->coords[i & 0xFFFF].coord,
                                   &child->extra.tmd->coords[i & 0xFFFF].coord, 0x20);
                 i++;
-            } while ((u32)(i & 0xFFFF) < 7U);
+            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->rot));
             arg0->killCountdown = 0;
             arg0->state++;
             break;
@@ -6492,28 +6493,28 @@ void func_actor_560800_80137820(Task* arg0)
             break;
     }
 done:
-    coord->coord.t[0]   = work->field_254 + work->field_24C;
-    coord->coord.t[1]   = (s16)work->field_256 + work->field_24E;
-    coord->coord.t[2]   = work->field_258 + work->field_250;
+    coord->coord.t[0]   = work->position.vx + work->offset.vx;
+    coord->coord.t[1]   = work->position.vy + work->offset.vy;
+    coord->coord.t[2]   = work->position.vz + work->offset.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        func_shelter_b1_pod_service_gantry_8017F450(&arg0->extra.tmd->coords[6], work->field_280, 0x100, 0x3C36);
+        func_shelter_b1_pod_service_gantry_8017F450(&arg0->extra.tmd->coords[6], work->chainNumber, 0x100, 0x3C36);
         if (Gp_FindViewIndex(gGameSession->location.loc.view) != 0x16) {
             tick = D_actor_560800_801752E8 + 1;
-            if (!(tick & 0x7F) && ((tick >> 7) & 7) == work->field_280) {
+            if (!(tick & 0x7F) && ((tick >> 7) & 7) == work->chainNumber) {
                 Gp_SpawnEff(EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE, &arg0->extra.tmd->coords[2], 0x800, NULL);
             }
         }
     }
 }
 
-/// Per-frame handler of the model part. State 0 runs the spawner, parents the
+/// Per-frame handler of a chain's falling copy. State 0 runs the spawner, parents the
 /// root coordinate to `D_actor_560800_801757AC`'s and records its height; state
 /// 1 swings parts 3-5 on X/Z by 20 between +-0x154, rebuilds their rotation
 /// matrices and sinks the root, killing the task once its height passes 10000.
 void func_actor_560800_80137BEC(Task* task)
 {
-    Actor560800ModelWork* work;
+    _Actor560800PropWork* work;
     GfxCoord*             coord;
     TmdObject*            extra;
     VECTOR                vec;
@@ -6522,20 +6523,20 @@ void func_actor_560800_80137BEC(Task* task)
     u16                   t286;
     u16                   t288;
 
-    work  = (Actor560800ModelWork*)task->work;
+    work  = task->work;
     coord = task->extra.tmd->coords;
     switch (task->state) {
         case 0:
             func_actor_560800_801376E0(task);
             coord->parent          = D_actor_560800_801757AC->extra.tmd->coords;
             task->extra.tmd->flags = 0;
-            work                   = (Actor560800ModelWork*)task->work;
+            work                   = task->work;
             i                      = 1;
             do {
                 work->swingDir[i & 0xFFFF] = 0;
                 i                         += 1;
             } while ((u32)(i & 0xFFFF) < 6U);
-            work->field_28A     = coord->coord.t[1];
+            work->fallStartY    = coord->coord.t[1];
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             task->state++;
             break;
@@ -6572,11 +6573,11 @@ void func_actor_560800_80137BEC(Task* task)
                               work->rot[j].vz + work->swing[j].vz, GRAPHICS_ROTATION_COMPOSE);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 6U);
-            t286              = work->field_286 + 4;
-            t288              = work->field_288 + t286;
-            work->field_288   = t288;
-            work->field_286   = t286;
-            coord->coord.t[1] = work->field_28A + task->spawnArg1.value -
+            t286               = work->speed + 4;
+            t288               = work->fallDistance + t286;
+            work->fallDistance = t288;
+            work->speed        = t286;
+            coord->coord.t[1]  = work->fallStartY + task->spawnArg1.value -
                                 D_actor_560800_801757AC->extra.tmd->coords->coord.t[1] +
                                 (s16)t288;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -6593,27 +6594,28 @@ void func_actor_560800_80137BEC(Task* task)
     func_800D7A9C(extra, &vec, 0, 3);
 }
 
-/// Message handler of the parts task that loads a pose table into all eight
-/// parts, chosen by `Actor560800PartsWork::field_46`: 0-2 place each part at
-/// its table position and, while `field_48` is set, rebuild its rotation from
-/// the table with the child joints reset; 3 resets each part's matrix, hangs
-/// it off `gGfxViewCoord` and offsets it from the message position; 4 kills
-/// parts 4-7, reparents the rest to `D_actor_560800_801757AC`'s model and
-/// raises the `D_actor_560800_801752E8` / `801752EC` flags.
+/// Placement handler of the chain group, which loads a pose table into all
+/// eight chains, chosen by `_Actor560800ChainGroupWork::placeMode`: 0-2 place each
+/// chain at its table position and, while `placeResetsBend` is set, rebuild its
+/// rotation from the table with the other parts straightened; 3 resets each
+/// chain's root matrix, hangs it off `gGfxViewCoord` and offsets it from the
+/// message position; 4 kills chains 4-7, reparents the rest to
+/// `D_actor_560800_801757AC`'s model and raises the
+/// `D_actor_560800_801752E8` / `801752EC` flags.
 void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg, s32 arg3)
 {
-    Actor560800PartsWork* work;
-    u16                   flag;
-    ActorTransform*       pose;
-    Actor560800ModelWork* part;
-    GfxCoord*             coord;
-    GfxMatrix*            mat;
-    s32                   i;
-    s32                   j;
+    _Actor560800ChainGroupWork* work;
+    u16                         flag;
+    ActorTransform*             pose;
+    _Actor560800PropWork*       chain;
+    GfxCoord*                   coord;
+    GfxMatrix*                  mat;
+    s32                         i;
+    s32                         j;
 
-    work = (Actor560800PartsWork*)task->work;
+    work = task->work;
     flag = 0;
-    switch (work->field_46) {
+    switch (work->placeMode) {
         case 0:
             pose = D_actor_560800_80175314;
             break;
@@ -6628,8 +6630,8 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg, s32 arg3)
             pose = D_actor_560800_80175554;
             i    = 0;
             do {
-                if (work->parts[i & 0xFFFF] != NULL) {
-                    coord                     = work->parts[i & 0xFFFF]->extra.tmd->coords;
+                if (work->chains[i & 0xFFFF] != NULL) {
+                    coord                     = work->chains[i & 0xFFFF]->extra.tmd->coords;
                     mat                       = (GfxMatrix*)&coord->coord;
                     mat->rotationWords.m00M01 = ONE;
                     mat->rotationWords.m02M10 = 0;
@@ -6637,122 +6639,122 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg, s32 arg3)
                     mat->rotationWords.m20M21 = 0;
                     mat->rotationWords.m22    = ONE;
                     coord->parent             = &gGfxViewCoord;
-                    part                      = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
-                    part->field_254           = msg->vx + pose->pos.vx;
-                    part->field_256           = msg->vy + pose->pos.vy;
-                    part->field_258           = msg->vz + pose->pos.vz;
-                    part->field_24C           = 0;
-                    part->field_24E           = 0;
-                    part->field_250           = 0;
+                    chain                     = work->chains[i & 0xFFFF]->work;
+                    chain->position.vx        = msg->vx + pose->pos.vx;
+                    chain->position.vy        = msg->vy + pose->pos.vy;
+                    chain->position.vz        = msg->vz + pose->pos.vz;
+                    chain->offset.vx          = 0;
+                    chain->offset.vy          = 0;
+                    chain->offset.vz          = 0;
                 }
                 i++;
                 pose++;
-            } while ((u32)(i & 0xFFFF) < 8U);
+            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->chains));
             return;
         case 4:
             i = 0;
             do {
                 if ((i & 0xFFFF) >= 4U) {
-                    taskKill(work->parts[i & 0xFFFF]);
-                    work->parts[i & 0xFFFF] = NULL;
+                    taskKill(work->chains[i & 0xFFFF]);
+                    work->chains[i & 0xFFFF] = NULL;
                 }
                 i++;
-            } while ((u32)(i & 0xFFFF) < 8U);
+            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->chains));
             pose = D_actor_560800_80175614;
             i    = 0;
             do {
-                if (work->parts[i & 0xFFFF] != NULL) {
-                    part            = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
-                    coord           = work->parts[i & 0xFFFF]->extra.tmd->coords;
-                    coord->parent   = D_actor_560800_801757AC->extra.tmd->coords;
-                    part->field_254 = pose->pos.vx;
-                    part->field_256 = pose->pos.vy;
-                    part->field_258 = pose->pos.vz;
+                if (work->chains[i & 0xFFFF] != NULL) {
+                    chain              = work->chains[i & 0xFFFF]->work;
+                    coord              = work->chains[i & 0xFFFF]->extra.tmd->coords;
+                    coord->parent      = D_actor_560800_801757AC->extra.tmd->coords;
+                    chain->position.vx = pose->pos.vx;
+                    chain->position.vy = pose->pos.vy;
+                    chain->position.vz = pose->pos.vz;
                     gfxRotMatrixY(&coord->coord, pose->rot.vy, 1);
                     gfxRotMatrixX(&coord->coord, pose->rot.vx + 0x400, GRAPHICS_ROTATION_COMPOSE);
                     gfxRotMatrixZ(&coord->coord, pose->rot.vz, GRAPHICS_ROTATION_COMPOSE);
-                    part->rot[0].vx = pose->rot.vx;
-                    part->rot[0].vy = pose->rot.vy;
-                    part->rot[0].vz = pose->rot.vz;
-                    part->field_27C = flag;
-                    j               = 1;
+                    chain->rot[0].vx    = pose->rot.vx;
+                    chain->rot[0].vy    = pose->rot.vy;
+                    chain->rot[0].vz    = pose->rot.vz;
+                    chain->pulseGrowing = flag;
+                    j                   = 1;
                     do {
-                        gfxRotMatrixY(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, 1);
-                        gfxRotMatrixX(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
-                        gfxRotMatrixZ(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
-                        part->rot[j & 0xFFFF].vx = 0;
-                        part->rot[j & 0xFFFF].vy = 0;
-                        part->rot[j & 0xFFFF].vz = 0;
+                        gfxRotMatrixY(&work->chains[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, 1);
+                        gfxRotMatrixX(&work->chains[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
+                        gfxRotMatrixZ(&work->chains[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
+                        chain->rot[j & 0xFFFF].vx = 0;
+                        chain->rot[j & 0xFFFF].vy = 0;
+                        chain->rot[j & 0xFFFF].vz = 0;
                         j++;
-                    } while ((u32)(j & 0xFFFF) < 7U);
+                    } while ((u32)(j & 0xFFFF) < ARRAY_SIZE(chain->rot));
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 }
                 i++;
                 pose++;
-            } while ((u32)(i & 0xFFFF) < 8U);
-            work->field_46          = 0;
+            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->chains));
+            work->placeMode         = 0;
             D_actor_560800_801752E8 = 1;
             D_actor_560800_801752EC = 1;
             return;
     }
     i = 0;
     do {
-        if (work->parts[i & 0xFFFF] != NULL) {
-            part                                  = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
-            coord                                 = work->parts[i & 0xFFFF]->extra.tmd->coords;
+        if (work->chains[i & 0xFFFF] != NULL) {
+            chain                                 = work->chains[i & 0xFFFF]->work;
+            coord                                 = work->chains[i & 0xFFFF]->extra.tmd->coords;
             task->extra.tmd->coords->coord.t[0]   = msg->vx;
             task->extra.tmd->coords->coord.t[1]   = msg->vy;
             task->extra.tmd->coords->coord.t[2]   = msg->vz;
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            part->field_254                       = pose->pos.vx;
-            part->field_256                       = pose->pos.vy;
-            part->field_258                       = pose->pos.vz;
-            part->field_27C                       = flag;
-            if (work->field_48 != 0) {
+            chain->position.vx                    = pose->pos.vx;
+            chain->position.vy                    = pose->pos.vy;
+            chain->position.vz                    = pose->pos.vz;
+            chain->pulseGrowing                   = flag;
+            if (work->placeResetsBend != 0) {
                 gfxRotMatrixY(&coord->coord, pose->rot.vy, 1);
                 gfxRotMatrixX(&coord->coord, pose->rot.vx + 0x400, GRAPHICS_ROTATION_COMPOSE);
                 gfxRotMatrixZ(&coord->coord, pose->rot.vz, GRAPHICS_ROTATION_COMPOSE);
-                part->rot[0].vx = pose->rot.vx;
-                part->rot[0].vy = pose->rot.vy;
-                part->rot[0].vz = pose->rot.vz;
-                j               = 1;
+                chain->rot[0].vx = pose->rot.vx;
+                chain->rot[0].vy = pose->rot.vy;
+                chain->rot[0].vz = pose->rot.vz;
+                j                = 1;
                 do {
-                    gfxRotMatrixY(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, 1);
-                    gfxRotMatrixX(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
-                    gfxRotMatrixZ(&work->parts[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
-                    part->rot[j & 0xFFFF].vx = 0;
-                    part->rot[j & 0xFFFF].vy = 0;
-                    part->rot[j & 0xFFFF].vz = 0;
+                    gfxRotMatrixY(&work->chains[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, 1);
+                    gfxRotMatrixX(&work->chains[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
+                    gfxRotMatrixZ(&work->chains[i & 0xFFFF]->extra.tmd->coords[j & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
+                    chain->rot[j & 0xFFFF].vx = 0;
+                    chain->rot[j & 0xFFFF].vy = 0;
+                    chain->rot[j & 0xFFFF].vz = 0;
                     j++;
-                } while ((u32)(j & 0xFFFF) < 7U);
+                } while ((u32)(j & 0xFFFF) < ARRAY_SIZE(chain->rot));
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         i++;
         pose++;
-    } while ((u32)(i & 0xFFFF) < 8U);
-    work->field_48 = 0;
-    work->field_46 = 0;
+    } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->chains));
+    work->placeResetsBend = 0;
+    work->placeMode       = 0;
 }
 
-/// Message handler of the parts task (`D_actor_560800_801756D4`): command 0
-/// rebuilds each part's colour matrix from its world translation, 5 and 6 put
-/// all eight parts into state 2 / 1, and the rest set this task's state and the
-/// `Actor560800PartsWork` halfwords at 0x44-0x4A.
+/// Command handler of the chain group (`D_actor_560800_801756D4`): command 0
+/// relights each chain from its world translation, 5 and 6 put all eight
+/// chains into state 2 / 1, and the rest set this task's state and the
+/// group's `placeMode`, `placeResetsBend` and `targetEntryId`.
 void func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
-    Actor560800PartsWork* work;
-    Task*                 part;
-    TmdObject*            extra;
-    VECTOR                vec;
-    s32                   i;
+    _Actor560800ChainGroupWork* work;
+    Task*                       part;
+    TmdObject*                  extra;
+    VECTOR                      vec;
+    s32                         i;
 
-    work = (Actor560800PartsWork*)task->work;
+    work = task->work;
     switch (msg->command) {
         case 0:
             i = 0;
             do {
-                part = work->parts[i & 0xFFFF];
+                part = work->chains[i & 0xFFFF];
                 if (part != NULL) {
                     extra  = part->extra.tmd;
                     vec.vx = extra->coords->workm.t[0];
@@ -6761,47 +6763,47 @@ void func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg, s32 ar
                     func_800D7A9C(extra, &vec, 0, 3);
                 }
                 i += 1;
-            } while ((u32)(i & 0xFFFF) < 8U);
+            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->chains));
             break;
         case 1:
-            work->field_46 = 1;
-            work->field_48 = 1;
-            work->field_4A = 0x83;
+            work->placeMode       = 1;
+            work->placeResetsBend = 1;
+            work->targetEntryId   = ACTOR_560800_CHAIN_TARGET_EVE;
             break;
         case 2:
             task->state    = 2;
             work->field_44 = 0;
             break;
         case 3:
-            task->state    = 1;
-            work->field_46 = 2;
+            task->state     = 1;
+            work->placeMode = 2;
             break;
         case 4:
-            work->field_46 = 0;
-            work->field_48 = 1;
+            work->placeMode       = 0;
+            work->placeResetsBend = 1;
             break;
         case 5:
-            task->state    = 1;
-            work->field_46 = 3;
-            i              = 0;
+            task->state     = 1;
+            work->placeMode = 3;
+            i               = 0;
             do {
-                work->parts[i & 0xFFFF]->state = 2;
-                i                             += 1;
-            } while ((u32)(i & 0xFFFF) < 8U);
+                work->chains[i & 0xFFFF]->state = 2;
+                i                              += 1;
+            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->chains));
             break;
         case 6:
-            task->state    = 1;
-            work->field_46 = 4;
-            i              = 0;
+            task->state     = 1;
+            work->placeMode = 4;
+            i               = 0;
             do {
-                work->parts[i & 0xFFFF]->state = 1;
-                i                             += 1;
-            } while ((u32)(i & 0xFFFF) < 8U);
+                work->chains[i & 0xFFFF]->state = 1;
+                i                              += 1;
+            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->chains));
             break;
         case 7:
-            task->state    = 1;
-            work->field_46 = 4;
-            work->field_4A = 0x22;
+            task->state         = 1;
+            work->placeMode     = 4;
+            work->targetEntryId = ACTOR_560800_CHAIN_TARGET_NO9;
             break;
         case 8:
             task->state = 3;
@@ -6809,31 +6811,31 @@ void func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg, s32 ar
     }
 }
 
-/// Handler of the parts task. State 0 allocates its `Actor560800PartsWork`,
-/// roots the model at `gGfxViewCoord`, reparents the spawner's task, spawns the
-/// eight part tasks and swaps `gRandomLcgState` out for a zero seed; state 2 grows
-/// each part's `field_256` up to its `D_actor_560800_80175314` limit; state 3
-/// bursts effects on the first remaining part, puts it into state 4 and drops
-/// it. Every frame the world position follows part 9 of the controller model
-/// `field_4A` selects.
+/// Handler of the chain group. State 0 allocates its `_Actor560800ChainGroupWork`,
+/// roots its coordinate at `gGfxViewCoord`, hangs the task below the cutscene's, spawns the
+/// eight chains and swaps `gRandomLcgState` out for a zero seed; state 2 grows
+/// each chain's `position.vy` up to its `D_actor_560800_80175314` limit; state 3
+/// bursts effects on the first remaining chain, puts it into state 4 and drops
+/// it. Every frame `targetWorld` follows part 9 of the body
+/// `targetEntryId` selects.
 void func_actor_560800_801386D4(Task* task)
 {
-    Actor560800PartsWork* work;
-    Actor560800PartsWork* w;
-    Actor560800PartsWork* spawned;
-    Actor560800PartsWork* grow;
-    Actor560800ModelWork* model;
-    GfxCoord*             root;
-    GfxCoord*             partCoord;
-    GfxCoord*             effCoord;
-    GfxCoord*             c;
-    Task*                 part;
-    SVECTOR               pos;
-    s32                   i;
-    s32                   n;
-    s16                   k;
+    _Actor560800ChainGroupWork* work;
+    _Actor560800ChainGroupWork* w;
+    _Actor560800ChainGroupWork* spawned;
+    _Actor560800ChainGroupWork* grow;
+    _Actor560800PropWork*       chain;
+    GfxCoord*                   root;
+    GfxCoord*                   partCoord;
+    GfxCoord*                   effCoord;
+    GfxCoord*                   c;
+    Task*                       part;
+    SVECTOR                     pos;
+    s32                         i;
+    s32                         n;
+    s16                         k;
 
-    work = (Actor560800PartsWork*)task->work;
+    work = task->work;
     switch (task->state) {
         case 0:
             root       = task->extra.coordBody->coord;
@@ -6846,14 +6848,14 @@ void func_actor_560800_801386D4(Task* task)
                 memFillBytes(task->work, 0, sizeof(*w));
                 i                 = 0;
                 spawned           = w;
-                spawned->field_40 = (Task*)task->spawnArg2.pointer;
+                spawned->cutscene = task->spawnArg2.pointer;
                 task->msgTable    = D_actor_560800_801756D4;
-                taskReparent(spawned->field_40, task);
+                taskReparent(spawned->cutscene, task);
                 do {
-                    spawned->parts[i & 0xFFFF] =
+                    spawned->chains[i & 0xFFFF] =
                         Task_SpawnFromTable(D_actor_560800_8017575C, 1, (i & 0xFFFF) + 1, task);
                     i++;
-                } while ((u32)(i & 0xFFFF) < 8U);
+                } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(spawned->chains));
                 D_actor_560800_801757A8 = gRandomLcgState;
                 gRandomLcgState         = 0;
             }
@@ -6865,23 +6867,23 @@ void func_actor_560800_801386D4(Task* task)
             grow = work;
             n    = 0;
             do {
-                part = grow->parts[n & 0xFFFF];
+                part = grow->chains[n & 0xFFFF];
                 if (part != NULL) {
-                    model             = (Actor560800ModelWork*)part->work;
-                    partCoord         = part->extra.tmd->coords;
-                    model->field_256 += D_actor_560800_801756EC[n & 0xFFFF];
-                    if (D_actor_560800_80175314[n & 0xFFFF].pos.vy < (s16)model->field_256) {
-                        model->field_256 = D_actor_560800_80175314[n & 0xFFFF].pos.vy;
+                    chain               = part->work;
+                    partCoord           = part->extra.tmd->coords;
+                    chain->position.vy += D_actor_560800_801756EC[n & 0xFFFF];
+                    if (D_actor_560800_80175314[n & 0xFFFF].pos.vy < chain->position.vy) {
+                        chain->position.vy = D_actor_560800_80175314[n & 0xFFFF].pos.vy;
                     }
                     partCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 }
                 n++;
-            } while ((u32)(n & 0xFFFF) < 8U);
+            } while ((u32)(n & 0xFFFF) < ARRAY_SIZE(grow->chains));
             break;
         case 3:
-            for (k = 0; k < 8; k++) {
-                if (work->parts[k] != NULL) {
-                    effCoord = &work->parts[k]->extra.tmd->coords[3];
+            for (k = 0; k < ARRAY_SIZE(work->chains); k++) {
+                if (work->chains[k] != NULL) {
+                    effCoord = &work->chains[k]->extra.tmd->coords[3];
                     Gp_SpawnEff(gRoomEffectWaterSprayId, effCoord, 0x10002380, 0);
                     Gp_SpawnEff(gRoomEffectWaterSprayId, effCoord, 0x04003480, 0);
                     i = 0;
@@ -6890,34 +6892,34 @@ void func_actor_560800_801386D4(Task* task)
                         i++;
                         Gp_SpawnEff(EFFECT_1B4, effCoord, 0x02202300, 0);
                     } while ((u32)(i & 0xFFFF) < 4U);
-                    work->parts[k]->state = 4;
-                    work->parts[k]        = NULL;
+                    work->chains[k]->state = 4;
+                    work->chains[k]        = NULL;
                     break;
                 }
             }
             task->state = 1;
             break;
     }
-    w = (Actor560800PartsWork*)task->work;
-    if (w->field_4A == 0x83) {
-        c = ((_Actor560800CutsceneWork*)w->field_40->work)->eve->extra.tmd->coords;
-        Gp_ComposeParentWorld(&c[9], &w->world, &pos);
-    } else if (w->field_4A == 0x22) {
-        c = ((_Actor560800CutsceneWork*)w->field_40->work)->no9->extra.tmd->coords;
-        Gp_ComposeParentWorld(&c[9], &w->world, &pos);
+    w = task->work;
+    if (w->targetEntryId == ACTOR_560800_CHAIN_TARGET_EVE) {
+        c = ((_Actor560800CutsceneWork*)w->cutscene->work)->eve->extra.tmd->coords;
+        Gp_ComposeParentWorld(&c[9], &w->targetWorld, &pos);
+    } else if (w->targetEntryId == ACTOR_560800_CHAIN_TARGET_NO9) {
+        c = ((_Actor560800CutsceneWork*)w->cutscene->work)->no9->extra.tmd->coords;
+        Gp_ComposeParentWorld(&c[9], &w->targetWorld, &pos);
     }
-    w->world.t[0] = pos.vx;
-    w->world.t[1] = pos.vy - 0x78;
-    w->world.t[2] = pos.vz;
+    w->targetWorld.t[0] = pos.vx;
+    w->targetWorld.t[1] = pos.vy - 0x78;
+    w->targetWorld.t[2] = pos.vz;
 }
 
 void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
-    Actor560800ModelWork* work;
+    _Actor560800PropWork* work;
     TmdObject*            extra;
     VECTOR                vec;
 
-    work = (Actor560800ModelWork*)task->work;
+    work = task->work;
     switch (msg->command) {
         case 0:
             extra  = task->extra.tmd;
@@ -6932,8 +6934,8 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg, s32 ar
         case 2:
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_801756FC, 0);
-            work->field_278 = 0x1000;
-            task->state     = 2;
+            work->pulseScale = 0x1000;
+            task->state      = 2;
             break;
         case 3:
             task->state = 3;
@@ -6944,43 +6946,43 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg, s32 ar
         case 5:
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_80175714, 0);
-            work->field_278 = 0x1000;
-            task->state     = 5;
+            work->pulseScale = 0x1000;
+            task->state      = 5;
             break;
         case 6:
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_8017572C, 0);
-            work->field_282 = 0;
+            work->carryStep = 0;
             task->state     = 6;
             break;
     }
 }
 
-/// Per-frame pulse of the model part: while bit 0 of
-/// `D_actor_560800_801752E8` is set it raises `field_286`, which sinks the root
-/// coordinate. Once `field_278` has reached 0x800 the second coordinate is reset
-/// to identity and scaled on X/Z by `field_278`, which swings between 0x1000 and
-/// 0x1800 in steps of 0x32 with `field_27C` as the direction. The dead `w = work`
+/// Per-frame pulse of the carrier: while bit 0 of
+/// `D_actor_560800_801752E8` is set it raises `speed`, which sinks the root
+/// coordinate. Once `pulseScale` has reached 0x800 the second coordinate is reset
+/// to identity and scaled on X/Z by `pulseScale`, which swings between 0x1000 and
+/// 0x1800 in steps of 0x32 with `pulseGrowing` as the direction. The dead `w = work`
 /// store is what the match needs: see DECOMPILATION_LEARNINGS.md, "birthing".
 static void func_actor_560800_80138BCC(Task* task)
 {
-    Actor560800ModelWork* work;
+    _Actor560800PropWork* work;
     GfxCoord*             coord;
     GfxCoord*             c;
-    Actor560800ModelWork* w;
+    _Actor560800PropWork* w;
     MATRIX*               m;
     VECTOR                scale;
 
-    work  = (Actor560800ModelWork*)task->work;
+    work  = task->work;
     coord = task->extra.tmd->coords;
     if (D_actor_560800_801752E8 & 1) {
-        work->field_286++;
+        work->speed++;
     }
     w                  = work;
-    coord->coord.t[1] -= work->field_286;
-    if (work->field_278 >= 0x800) {
-        work->field_27C      = 0;
-        w                    = (Actor560800ModelWork*)task->work;
+    coord->coord.t[1] -= work->speed;
+    if (work->pulseScale >= 0x800) {
+        work->pulseGrowing   = 0;
+        w                    = task->work;
         c                    = task->extra.tmd->coords;
         m                    = &c[1].coord;
         MATRIX_PAIR(m, 0, 0) = 0x1000;
@@ -6989,56 +6991,56 @@ static void func_actor_560800_80138BCC(Task* task)
         MATRIX_PAIR(m, 2, 0) = 0;
         m->m[2][2]           = 0x1000;
         c++;
-        if (w->field_27C == 0) {
-            w->field_278 -= 0x32;
-            if (w->field_278 < 0x1000) {
-                w->field_27C = 1;
+        if (w->pulseGrowing == 0) {
+            w->pulseScale -= 0x32;
+            if (w->pulseScale < 0x1000) {
+                w->pulseGrowing = 1;
             }
-        } else if (w->field_27C == 1) {
-            w->field_278 += 0x32;
-            if (w->field_278 > 0x1800) {
-                w->field_27C = 0;
+        } else if (w->pulseGrowing == 1) {
+            w->pulseScale += 0x32;
+            if (w->pulseScale > 0x1800) {
+                w->pulseGrowing = 0;
             }
         }
-        scale.vx = w->field_278;
+        scale.vx = w->pulseScale;
         scale.vy = 0x1000;
-        scale.vz = w->field_278;
+        scale.vz = w->pulseScale;
         ScaleMatrix(&c->coord, &scale);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Per-frame rise of the model part, driven by `field_282`: phase 0 lifts the
+/// Closing sequence of the carrier, driven by `carryStep`: phase 0 lifts the
 /// root coordinate until it clears -3000, phase 1 keeps lifting while pulsing
 /// the second coordinate's X/Z scale in steps of 0x32 until -1200, and phase 2
-/// pulses in steps of 0xC8 until `field_278` drops below 0x1000. Phase 3 sinks
-/// this part and the one `_Actor560800CutsceneWork::no9` names together. Each case
+/// pulses in steps of 0xC8 until `pulseScale` drops below 0x1000. Phase 3 sinks
+/// the carrier and the body `_Actor560800CutsceneWork::no9` names together. Each case
 /// needs its own matrix pointer: a shared one is set twice, loses sched1's
 /// birthing priority, and swaps the `work`/`field_8` loads.
 static void func_actor_560800_80138D04(Task* task)
 {
-    Actor560800ModelWork* work;
+    _Actor560800PropWork* work;
     GfxCoord*             coord;
     GfxCoord*             c;
     GfxCoord*             other;
-    Actor560800ModelWork* w;
+    _Actor560800PropWork* w;
     MATRIX*               m;
     MATRIX*               m2;
     VECTOR                scale;
     s32                   one;
 
-    work  = (Actor560800ModelWork*)task->work;
+    work  = task->work;
     coord = task->extra.tmd->coords;
-    switch (work->field_282) {
+    switch (work->carryStep) {
         case 0:
             if (coord->coord.t[1] >= -3000) {
-                work->field_282++;
+                work->carryStep++;
             }
             break;
         case 1:
-            if (work->field_278 <= 0x1800) {
-                work->field_27C      = 1;
-                w                    = (Actor560800ModelWork*)task->work;
+            if (work->pulseScale <= 0x1800) {
+                work->pulseGrowing   = 1;
+                w                    = task->work;
                 c                    = task->extra.tmd->coords;
                 m                    = &c[1].coord;
                 one                  = 0x1000;
@@ -7048,30 +7050,30 @@ static void func_actor_560800_80138D04(Task* task)
                 MATRIX_PAIR(m, 2, 0) = 0;
                 m->m[2][2]           = one;
                 c++;
-                if (w->field_27C == 0) {
-                    w->field_278 -= 0x32;
-                    if (w->field_278 < one) {
-                        w->field_27C = 1;
+                if (w->pulseGrowing == 0) {
+                    w->pulseScale -= 0x32;
+                    if (w->pulseScale < one) {
+                        w->pulseGrowing = 1;
                     }
-                } else if (w->field_27C == 1) {
-                    w->field_278 += 0x32;
-                    if (w->field_278 > 0x1800) {
-                        w->field_27C = 0;
+                } else if (w->pulseGrowing == 1) {
+                    w->pulseScale += 0x32;
+                    if (w->pulseScale > 0x1800) {
+                        w->pulseGrowing = 0;
                     }
                 }
-                scale.vx = w->field_278;
+                scale.vx = w->pulseScale;
                 scale.vy = 0x1000;
-                scale.vz = w->field_278;
+                scale.vz = w->pulseScale;
                 ScaleMatrix(&c->coord, &scale);
             }
             if (coord->coord.t[1] >= -1200) {
-                work->field_282++;
+                work->carryStep++;
             }
             break;
         case 2:
-            if (work->field_278 >= 0x1000) {
-                work->field_27C       = 0;
-                w                     = (Actor560800ModelWork*)task->work;
+            if (work->pulseScale >= 0x1000) {
+                work->pulseGrowing    = 0;
+                w                     = task->work;
                 c                     = task->extra.tmd->coords;
                 m2                    = &c[1].coord;
                 one                   = 0x1000;
@@ -7081,23 +7083,23 @@ static void func_actor_560800_80138D04(Task* task)
                 MATRIX_PAIR(m2, 2, 0) = 0;
                 m2->m[2][2]           = one;
                 c++;
-                if (w->field_27C == 0) {
-                    w->field_278 -= 0xC8;
-                    if (w->field_278 < one) {
-                        w->field_27C = 1;
+                if (w->pulseGrowing == 0) {
+                    w->pulseScale -= 0xC8;
+                    if (w->pulseScale < one) {
+                        w->pulseGrowing = 1;
                     }
-                } else if (w->field_27C == 1) {
-                    w->field_278 += 0xC8;
-                    if (w->field_278 > 0x1800) {
-                        w->field_27C = 0;
+                } else if (w->pulseGrowing == 1) {
+                    w->pulseScale += 0xC8;
+                    if (w->pulseScale > 0x1800) {
+                        w->pulseGrowing = 0;
                     }
                 }
-                scale.vx = w->field_278;
+                scale.vx = w->pulseScale;
                 scale.vy = 0x1000;
-                scale.vz = w->field_278;
+                scale.vz = w->pulseScale;
                 ScaleMatrix(&c->coord, &scale);
             } else {
-                work->field_282++;
+                work->carryStep++;
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
@@ -7115,9 +7117,9 @@ static void func_actor_560800_80138D04(Task* task)
 
 void func_actor_560800_80138FC8(Task* task)
 {
-    Actor560800ModelWork* work;
-    Actor560800ModelWork* w;
-    Actor560800ModelWork* mem;
+    _Actor560800PropWork* work;
+    _Actor560800PropWork* w;
+    _Actor560800PropWork* mem;
     TmdObject*            obj;
     GfxCoord*             coord;
     GfxCoord*             c;
@@ -7132,16 +7134,16 @@ void func_actor_560800_80138FC8(Task* task)
         case 0:
             obj        = task->extra.tmd;
             root       = obj->coords;
-            task->work = memMalloc(sizeof(Actor560800ModelWork), false);
+            task->work = memMalloc(sizeof(_Actor560800PropWork), false);
             if (task->work == NULL) {
                 taskKill(task);
             } else {
                 memFillBytes(task->work, 0, sizeof(*mem));
-                mem            = (Actor560800ModelWork*)task->work;
-                root->parent   = &gGfxViewCoord;
-                mem->field_26C = (Task*)task->spawnArg2.pointer;
-                obj->lightMtx  = &mem->light;
-                obj->colorMtx  = &mem->color;
+                mem           = task->work;
+                root->parent  = &gGfxViewCoord;
+                mem->parent   = task->spawnArg2.pointer;
+                obj->lightMtx = &mem->light;
+                obj->colorMtx = &mem->color;
                 taskReparent(task->spawnArg2.pointer, task);
                 task->msgTable          = D_actor_560800_80175744;
                 D_actor_560800_801757AC = task;
@@ -7159,12 +7161,12 @@ void func_actor_560800_80138FC8(Task* task)
             break;
         case 2:
             coord              = task->extra.tmd->coords;
-            work               = (Actor560800ModelWork*)task->work;
+            work               = task->work;
             coord->coord.t[1] += 5;
-            if (work->field_278 <= 0x1800) {
-                work->field_27C       = 1;
+            if (work->pulseScale <= 0x1800) {
+                work->pulseGrowing    = 1;
                 c                     = task->extra.tmd->coords;
-                w                     = (Actor560800ModelWork*)task->work;
+                w                     = task->work;
                 m2                    = &c[1].coord;
                 MATRIX_PAIR(m2, 0, 0) = 0x1000;
                 MATRIX_PAIR(m2, 0, 2) = 0;
@@ -7172,32 +7174,32 @@ void func_actor_560800_80138FC8(Task* task)
                 MATRIX_PAIR(m2, 2, 0) = 0;
                 m2->m[2][2]           = 0x1000;
                 c++;
-                if (w->field_27C == 0) {
-                    w->field_278 -= 0x32;
-                    if (w->field_278 < 0x1000) {
-                        w->field_27C = 1;
+                if (w->pulseGrowing == 0) {
+                    w->pulseScale -= 0x32;
+                    if (w->pulseScale < 0x1000) {
+                        w->pulseGrowing = 1;
                     }
-                } else if (w->field_27C == 1) {
-                    w->field_278 += 0x32;
-                    if (w->field_278 > 0x1800) {
-                        w->field_27C = 0;
+                } else if (w->pulseGrowing == 1) {
+                    w->pulseScale += 0x32;
+                    if (w->pulseScale > 0x1800) {
+                        w->pulseGrowing = 0;
                     }
                 }
-                scale.vx = w->field_278;
+                scale.vx = w->pulseScale;
                 scale.vy = 0x1000;
-                scale.vz = w->field_278;
+                scale.vz = w->pulseScale;
                 ScaleMatrix(&c->coord, &scale);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
         case 3:
             coord              = task->extra.tmd->coords;
-            work               = (Actor560800ModelWork*)task->work;
+            work               = task->work;
             coord->coord.t[1] += 1;
-            if (work->field_278 >= 0x800) {
-                work->field_27C       = 0;
+            if (work->pulseScale >= 0x800) {
+                work->pulseGrowing    = 0;
                 c                     = task->extra.tmd->coords;
-                w                     = (Actor560800ModelWork*)task->work;
+                w                     = task->work;
                 m3                    = &c[1].coord;
                 MATRIX_PAIR(m3, 0, 0) = 0x1000;
                 MATRIX_PAIR(m3, 0, 2) = 0;
@@ -7205,20 +7207,20 @@ void func_actor_560800_80138FC8(Task* task)
                 MATRIX_PAIR(m3, 2, 0) = 0;
                 m3->m[2][2]           = 0x1000;
                 c++;
-                if (w->field_27C == 0) {
-                    w->field_278 -= 0xA;
-                    if (w->field_278 < 0x1000) {
-                        w->field_27C = 1;
+                if (w->pulseGrowing == 0) {
+                    w->pulseScale -= 0xA;
+                    if (w->pulseScale < 0x1000) {
+                        w->pulseGrowing = 1;
                     }
-                } else if (w->field_27C == 1) {
-                    w->field_278 += 0xA;
-                    if (w->field_278 > 0x1800) {
-                        w->field_27C = 0;
+                } else if (w->pulseGrowing == 1) {
+                    w->pulseScale += 0xA;
+                    if (w->pulseScale > 0x1800) {
+                        w->pulseGrowing = 0;
                     }
                 }
-                scale.vx = w->field_278;
+                scale.vx = w->pulseScale;
                 scale.vy = 0x1000;
-                scale.vz = w->field_278;
+                scale.vz = w->pulseScale;
                 ScaleMatrix(&c->coord, &scale);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -7228,12 +7230,12 @@ void func_actor_560800_80138FC8(Task* task)
             break;
         case 5:
             coord              = task->extra.tmd->coords;
-            work               = (Actor560800ModelWork*)task->work;
+            work               = task->work;
             coord->coord.t[1] += 5;
-            if (work->field_278 <= 0x1800) {
-                work->field_27C       = 1;
+            if (work->pulseScale <= 0x1800) {
+                work->pulseGrowing    = 1;
                 c                     = task->extra.tmd->coords;
-                w                     = (Actor560800ModelWork*)task->work;
+                w                     = task->work;
                 m5                    = &c[1].coord;
                 MATRIX_PAIR(m5, 0, 0) = 0x1000;
                 MATRIX_PAIR(m5, 0, 2) = 0;
@@ -7241,20 +7243,20 @@ void func_actor_560800_80138FC8(Task* task)
                 MATRIX_PAIR(m5, 2, 0) = 0;
                 m5->m[2][2]           = 0x1000;
                 c++;
-                if (w->field_27C == 0) {
-                    w->field_278 -= 0x32;
-                    if (w->field_278 < 0x1000) {
-                        w->field_27C = 1;
+                if (w->pulseGrowing == 0) {
+                    w->pulseScale -= 0x32;
+                    if (w->pulseScale < 0x1000) {
+                        w->pulseGrowing = 1;
                     }
-                } else if (w->field_27C == 1) {
-                    w->field_278 += 0x32;
-                    if (w->field_278 > 0x1800) {
-                        w->field_27C = 0;
+                } else if (w->pulseGrowing == 1) {
+                    w->pulseScale += 0x32;
+                    if (w->pulseScale > 0x1800) {
+                        w->pulseGrowing = 0;
                     }
                 }
-                scale.vx = w->field_278;
+                scale.vx = w->pulseScale;
                 scale.vy = 0x1000;
-                scale.vz = w->field_278;
+                scale.vz = w->pulseScale;
                 ScaleMatrix(&c->coord, &scale);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -7269,20 +7271,20 @@ void func_actor_560800_80138FC8(Task* task)
 
 /// Message 0x7D5 handler of the task `D_actor_560800_801756D4` belongs to: the
 /// visibility switch `func_actor_560800_801393EC` performs on a single model,
-/// applied to every part task its `Actor560800PartsWork` still holds. `arg2` is
-/// the sub-command - 1 clears the 0x84 pair of bits in the part's
-/// `TmdObject::flags` and 2 sets it, anything else leaves the parts alone.
+/// applied to every chain its `_Actor560800ChainGroupWork` still holds. `arg2` is
+/// the sub-command - 1 clears the 0x84 pair of bits in the chain's
+/// `TmdObject::flags` and 2 sets it, anything else leaves the chains alone.
 void func_actor_560800_80139360(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
-    Actor560800PartsWork* work;
-    TmdObject*            obj;
-    Task*                 part;
-    s32                   i;
+    _Actor560800ChainGroupWork* work;
+    TmdObject*                  obj;
+    Task*                       part;
+    s32                         i;
 
-    work = (Actor560800PartsWork*)task->work;
+    work = task->work;
     i    = 0;
     do {
-        part = work->parts[i & 0xFFFF];
+        part = work->chains[i & 0xFFFF];
         if (part != NULL) {
             obj = part->extra.tmd;
             switch (arg2) {
@@ -7297,7 +7299,7 @@ void func_actor_560800_80139360(Task* task, s32 arg1, s32 arg2, s32 arg3)
             }
         }
         i += 1;
-    } while ((u32)(i & 0xFFFF) < 8U);
+    } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->chains));
 }
 
 void func_actor_560800_801393EC(Task* task, s32 arg1, s32 arg2, s32 arg3)

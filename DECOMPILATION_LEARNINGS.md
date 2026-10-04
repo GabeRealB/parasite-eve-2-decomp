@@ -100094,12 +100094,12 @@ guard and loop, so the shape is the original source's, not a local quirk.
 
 ## A constant used before a loop and inside it needs one local, not two literals
 
-The same function writes 0x10 to `field_4C8` and to every slot's `field_9`
+The same function writes 0x10 to `animRate` and to every slot's `field_9`
 inside the loop. The target materializes it once, early, and both uses read that
 register (`sh s2,0x4c8(s0)`, `sb s2,0x1d(v0)`); two literal `0x10`s instead give
 
 ```
-li    v0,0x10        # the field_4C8 store
+li    v0,0x10        # the animRate store
 sh    v0,0x4c8(s0)
 ...
 li    s3,0x10        # a second materialization in the loop preheader
@@ -105588,7 +105588,7 @@ already been given a jump over it, which dbr retargets to the epilogue.
 
 A related register fix in the same function: holding the script step in a
 local (`entry = &table[idx]`) put it in `$v1`; re-indexing
-`work->field_4B4[(u16)work->field_4B8]` at every use (CSE merges them) gave
+`work->animChain[work->animId]` at every use (CSE merges them) gave
 the target's `$a0`/`$v1`/`$a2` choice for the step, the hold counter and the id.
 
 ### Switch case: `j` to the epilogue with the shared tail store in its delay slot means `break`, not `store; return`
