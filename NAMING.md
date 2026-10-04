@@ -465,7 +465,10 @@ declares for itself. Animation request values use
 `DESERT_CHASER_ANIM_REQUEST_`, and the armed builds' collision spheres are
 indexed by `DESERT_CHASER_SPHERE_`. `DesertChaserAvoidScratch` is the scratch
 block of the armed builds' avoid walk, holding `DESERT_CHASER_AVOID_BEARINGS`
-bearings in each build.
+bearings in each build, and `DesertChaserDamageScratch` the block of their
+damage step. `DesertChaserStateTable` holds an armed package's
+`DESERT_CHASER_STATE_COUNT` state handlers, and `DesertChaserVariant` is one of
+the four tunings both armed packages define and the spawn argument picks from.
 
 `stalkerZebraIvory` owns the included pose, animation-request and
 pending-action code shared by the Zebra Stalker (`actor_400600`) and the Ivory

@@ -62,27 +62,6 @@
 #define DESERT_CHASER_BUILD DESERT_CHASER_WATER_TOWER
 #include "../../shared/desert_chaser.h"
 
-typedef struct Actor421600DamageScratch {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ byte pad_C[4];
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s16  field_12;
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ byte pad_16[2];
-    /* 0x18 */ s16  field_18;
-    /* 0x1A */ s16  field_1A;
-    /* 0x1C */ s16  field_1C;
-    /* 0x1E */ byte pad_1E[2];
-    /* 0x20 */ s32  field_20;
-    /* 0x24 */ s32  field_24;
-    /* 0x28 */ s32  field_28;
-    /* 0x2C */ s16  field_2C;
-    /* 0x2E */ s16  field_2E;
-} Actor421600DamageScratch;
-STATIC_ASSERT_SIZEOF(Actor421600DamageScratch, 0x30);
-
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// The contact routines' scratch position.
@@ -118,15 +97,7 @@ typedef struct Actor421600RouteScratch {
 } Actor421600RouteScratch;
 STATIC_ASSERT_SIZEOF(Actor421600RouteScratch, 0x3C);
 
-typedef struct Actor421600ParamRow {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ u16 field_6;
-} Actor421600ParamRow;
-STATIC_ASSERT_SIZEOF(Actor421600ParamRow, 0x8);
-
-extern Actor421600ParamRow D_actor_421600_8013EF48[];
+extern DesertChaserVariant D_actor_421600_8013EF48[];
 extern EnemyParams         D_actor_421600_8013EF38;
 extern u8                  D_actor_421600_80151028[];
 // Message-table callbacks use the argument views required by this TU.
@@ -192,11 +163,6 @@ typedef struct Actor421600UpdateScratch {
 } Actor421600UpdateScratch;
 STATIC_ASSERT_SIZEOF(Actor421600UpdateScratch, 0x1C);
 
-typedef struct Actor421600StateTable {
-    TaskFunc fn[40];
-} Actor421600StateTable;
-STATIC_ASSERT_SIZEOF(Actor421600StateTable, 0xA0);
-
 // Contact animations share endpoints with the following bank and hit positions.
 // The alternate views include the sixth slot written by the contact handler.
 // The rear endpoint overwrites hitOffsets[0].vx/vy; no restoration was found
@@ -257,7 +223,7 @@ DamageAttack D_actor_421600_8013EF24[5] = {
 
 EnemyParams D_actor_421600_8013EF38 = { D_actor_421600_8013EF24, 200, 75, 50, 4, 100, 10, 100, 0 };
 
-Actor421600ParamRow D_actor_421600_8013EF48[4] = {
+DesertChaserVariant D_actor_421600_8013EF48[4] = {
     { 60, 36, 10, 150 },
     { 40, 26, 10, 120 },
     { 20, 18, 10, 120 },
@@ -2809,26 +2775,26 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
 
     switch (actor->spawnArg1.value & 0xF) {
         case 2:
-            work->windupFrames       = D_actor_421600_8013EF48[0].field_2;
-            work->downFramesBase     = D_actor_421600_8013EF48[0].field_0;
-            work->roamLookDelay      = D_actor_421600_8013EF48[0].field_4;
-            work->chaseHoldoffFrames = D_actor_421600_8013EF48[0].field_6;
+            work->windupFrames       = D_actor_421600_8013EF48[0].windupFrames;
+            work->downFramesBase     = D_actor_421600_8013EF48[0].downFramesBase;
+            work->roamLookDelay      = D_actor_421600_8013EF48[0].roamLookDelay;
+            work->chaseHoldoffFrames = D_actor_421600_8013EF48[0].chaseHoldoffFrames;
             break;
 
         case 1:
-            work->windupFrames       = D_actor_421600_8013EF48[2].field_2;
-            work->downFramesBase     = D_actor_421600_8013EF48[2].field_0;
-            work->roamLookDelay      = D_actor_421600_8013EF48[2].field_4;
-            work->chaseHoldoffFrames = D_actor_421600_8013EF48[2].field_6;
+            work->windupFrames       = D_actor_421600_8013EF48[2].windupFrames;
+            work->downFramesBase     = D_actor_421600_8013EF48[2].downFramesBase;
+            work->roamLookDelay      = D_actor_421600_8013EF48[2].roamLookDelay;
+            work->chaseHoldoffFrames = D_actor_421600_8013EF48[2].chaseHoldoffFrames;
             break;
 
         case 0:
 
         default:
-            work->windupFrames       = D_actor_421600_8013EF48[1].field_2;
-            work->downFramesBase     = D_actor_421600_8013EF48[1].field_0;
-            work->roamLookDelay      = D_actor_421600_8013EF48[1].field_4;
-            work->chaseHoldoffFrames = D_actor_421600_8013EF48[1].field_6;
+            work->windupFrames       = D_actor_421600_8013EF48[1].windupFrames;
+            work->downFramesBase     = D_actor_421600_8013EF48[1].downFramesBase;
+            work->roamLookDelay      = D_actor_421600_8013EF48[1].roamLookDelay;
+            work->chaseHoldoffFrames = D_actor_421600_8013EF48[1].chaseHoldoffFrames;
             break;
     }
 
@@ -2858,64 +2824,64 @@ static __inline__ s32 Actor421600_FindDamageHit(WorldCollisionContact* records,
 
 static void func_actor_421600_801354D8(Task* arg0)
 {
-    s32                       callAngle;
-    s32                       debugMode;
-    PlayerStatus*             config = &gPlayerStatus;
-    s16                       effect;
-    s16                       delta;
-    s16                       z;
-    s32                       state5;
-    s16                       damageState;
-    s16                       deathState;
-    s16                       hurtState;
-    s16                       poisonState;
-    s16                       state0;
-    s16                       state1;
-    s16                       state2;
-    s16                       state3;
-    s16                       state4;
-    s16                       wrapped;
-    s16                       hitState;
-    s16                       nextDeathState;
-    GfxCoord*                 objectCoord;
-    s32                       tickDamage;
-    s32                       dxSquared;
-    s32                       dySquared;
-    s32                       yaw;
-    s32                       deathSound;
-    s32                       hurtSound;
-    s32                       hitSound;
-    s32                       doubleDamage;
-    s32                       dx;
-    s32                       dy;
-    s32                       dz;
-    s32                       distance;
-    SVECTOR*                  hitPos;
-    s32                       soundBase;
-    s32                       deathPan;
-    s32                       hurtPan;
-    s32                       hitPan;
-    u16                       totalDamage;
-    u32                       kind;
-    DesertChaserWork*         work;
-    Enemy*                    enemy;
-    Actor421600DamageScratch* scratch;
-    Actor421600DamageScratch* head;
+    s32                        callAngle;
+    s32                        debugMode;
+    PlayerStatus*              config = &gPlayerStatus;
+    s16                        effect;
+    s16                        delta;
+    s16                        z;
+    s32                        state5;
+    s16                        damageState;
+    s16                        deathState;
+    s16                        hurtState;
+    s16                        poisonState;
+    s16                        state0;
+    s16                        state1;
+    s16                        state2;
+    s16                        state3;
+    s16                        state4;
+    s16                        wrapped;
+    s16                        hitState;
+    s16                        nextDeathState;
+    GfxCoord*                  objectCoord;
+    s32                        tickDamage;
+    s32                        dxSquared;
+    s32                        dySquared;
+    s32                        yaw;
+    s32                        deathSound;
+    s32                        hurtSound;
+    s32                        hitSound;
+    s32                        doubleDamage;
+    s32                        dx;
+    s32                        dy;
+    s32                        dz;
+    s32                        distance;
+    SVECTOR*                   hitPos;
+    s32                        soundBase;
+    s32                        deathPan;
+    s32                        hurtPan;
+    s32                        hitPan;
+    u16                        totalDamage;
+    u32                        kind;
+    DesertChaserWork*          work;
+    Enemy*                     enemy;
+    DesertChaserDamageScratch* scratch;
+    DesertChaserDamageScratch* head;
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
     if (enemy->hp > 0) {
-        head              = SCRATCH_STACK_CURSOR(Actor421600DamageScratch);
-        scratch           = (SCRATCH_STACK_CURSOR(Actor421600DamageScratch) = head - 1);
-        scratch->field_20 = Actor421600_FindDamageHit(
-            work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, (SVECTOR*)&scratch->field_18);
-        if (scratch->field_20 == 0) {
-            hitPos            = (SVECTOR*)&scratch->field_18;
-            scratch->field_20 = Actor421600_FindDamageHit(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, hitPos);
+        head            = SCRATCH_STACK_CURSOR(DesertChaserDamageScratch);
+        scratch         = (SCRATCH_STACK_CURSOR(DesertChaserDamageScratch) = head - 1);
+        scratch->hitKey = Actor421600_FindDamageHit(
+            work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, &scratch->hitPos);
+        if (scratch->hitKey == 0) {
+            hitPos          = &scratch->hitPos;
+            scratch->hitKey = Actor421600_FindDamageHit(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, hitPos);
         }
-        if (scratch->field_20 != 0) {
-            scratch->field_2E = -1;
-            work->hitCooldown = Gp_GetIdParam2(scratch->field_20);
-            kind              = Gp_GetIdParam0(scratch->field_20) & 0xFFFF;
+        if (scratch->hitKey != 0) {
+            scratch->criticalEffect = -1;
+            work->hitCooldown       = Gp_GetIdParam2(scratch->hitKey);
+            kind                    = Gp_GetIdParam0(scratch->hitKey) & 0xFFFF;
             switch (kind) {
                 case 0:
                 case 6:
@@ -2963,7 +2929,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                     } else if (state3 != 21 && state3 != 7) {
                         work->state = 20;
                     }
-                    Gp_SetObjFlag2(enemy, scratch->field_20, 0);
+                    Gp_SetObjFlag2(enemy, scratch->hitKey, 0);
                     break;
                 case 3:
                     state4 = work->state;
@@ -2974,7 +2940,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                     if (work->state == 0x21) {
                         work->state = 0x22;
                     }
-                    Gp_SetObjFlag4(enemy, scratch->field_20, 0);
+                    Gp_SetObjFlag4(enemy, scratch->hitKey, 0);
                     break;
                 case 1:
                     state5 = work->state;
@@ -2993,32 +2959,30 @@ static void func_actor_421600_801354D8(Task* arg0)
             }
             dx                                    = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
             dxSquared                             = dx * dx;
-            scratch->field_0                      = dx;
+            scratch->toPlayer.vx                  = dx;
             dy                                    = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
             dySquared                             = dy * dy;
-            scratch->field_4                      = dy;
+            scratch->toPlayer.vy                  = dy;
             dz                                    = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-            scratch->field_8                      = dz;
+            scratch->toPlayer.vz                  = dz;
             distance                              = SquareRoot0(dxSquared + dySquared + (dz * dz));
-            scratch->field_28                     = distance;
-            scratch->field_24                     = Gp_ComputeDamage(scratch->field_20, distance, 0, 0);
+            scratch->playerDistance               = distance;
+            scratch->damage                       = Gp_ComputeDamage(scratch->hitKey, distance, 0, 0);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(arg0->extra.tmd->coords);
-            scratch->field_10 = (u16)arg0->extra.tmd->coords->workm.t[0];
-            scratch->field_12 = (u16)arg0->extra.tmd->coords->workm.t[1];
-            scratch->field_14 = (u16)arg0->extra.tmd->coords->workm.t[2];
-            scratch->field_10 =
-                (u16)(scratch->field_18 - arg0->extra.tmd->coords->workm.t[0]);
-            scratch->field_12 =
-                (u16)(scratch->field_1A - arg0->extra.tmd->coords->workm.t[1]);
-            z                 = scratch->field_1C - arg0->extra.tmd->coords->workm.t[2];
-            scratch->field_14 = (u16)z;
-            yaw               = ratan2((s16)scratch->field_10, z);
-            objectCoord       = arg0->extra.tmd->coords;
+            scratch->hitOffset.vx = arg0->extra.tmd->coords->workm.t[0];
+            scratch->hitOffset.vy = arg0->extra.tmd->coords->workm.t[1];
+            scratch->hitOffset.vz = arg0->extra.tmd->coords->workm.t[2];
+            scratch->hitOffset.vx = scratch->hitPos.vx - arg0->extra.tmd->coords->workm.t[0];
+            scratch->hitOffset.vy = scratch->hitPos.vy - arg0->extra.tmd->coords->workm.t[1];
+            z                     = scratch->hitPos.vz - arg0->extra.tmd->coords->workm.t[2];
+            scratch->hitOffset.vz = z;
+            yaw                   = ratan2(scratch->hitOffset.vx, z);
+            objectCoord           = arg0->extra.tmd->coords;
             delta =
                 yaw - ratan2(-objectCoord->workm.m[2][0], objectCoord->workm.m[2][2]);
-            wrapped           = delta;
-            scratch->field_2C = delta;
+            wrapped         = delta;
+            scratch->hitYaw = delta;
             if (delta < 0) {
                 while (1) {
                     if (wrapped >= -0x800)
@@ -3032,37 +2996,37 @@ static void func_actor_421600_801354D8(Task* arg0)
                     wrapped -= 0x1000;
                 }
             }
-            callAngle         = wrapped;
-            scratch->field_2C = callAngle;
-            desertChaserHitEffect(arg0, callAngle, scratch->field_20);
+            callAngle       = wrapped;
+            scratch->hitYaw = callAngle;
+            desertChaserHitEffect(arg0, callAngle, scratch->hitKey);
             work->lookYaw       = 0;
             work->lookYawTarget = 0;
-            if (Gp_RollEnemyChance(enemy, scratch->field_20, 0) != 0) {
-                scratch->field_2E = 0;
-                scratch->field_24 = (s32)(scratch->field_24 * 4);
+            if (Gp_RollEnemyChance(enemy, scratch->hitKey, 0) != 0) {
+                scratch->criticalEffect = 0;
+                scratch->damage         = scratch->damage * 4;
             }
             damageState = work->state;
             if ((damageState == 4) || (damageState == 0xB) || (damageState == 0x11) ||
                 (damageState == 0x24)) {
-                doubleDamage      = scratch->field_24 * 2;
-                scratch->field_24 = doubleDamage;
+                doubleDamage    = scratch->damage * 2;
+                scratch->damage = doubleDamage;
                 if (doubleDamage != 0) {
-                    scratch->field_2E = 3;
+                    scratch->criticalEffect = 3;
                 }
             }
-            func_800E2C78(enemy, scratch->field_20, scratch->field_24, 0);
-            effect = scratch->field_2E;
+            func_800E2C78(enemy, scratch->hitKey, scratch->damage, 0);
+            effect = scratch->criticalEffect;
             if (effect != -1) {
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, (s32)(effect), 0);
             }
-            scratch->field_24 = (s32)(scratch->field_24 * 2);
-            enemy->hp         = (s16)((u16)enemy->hp - (u16)scratch->field_24);
-            func_800DA6E8(&enemy->node, scratch->field_24, 0);
-            totalDamage        = work->recentDamage + (u16)scratch->field_24;
+            scratch->damage = scratch->damage * 2;
+            enemy->hp       = (s16)((u16)enemy->hp - (u16)scratch->damage);
+            func_800DA6E8(&enemy->node, scratch->damage, 0);
+            totalDamage        = work->recentDamage + (u16)scratch->damage;
             work->recentDamage = totalDamage;
             if (enemy->hp <= 0) {
                 D_actor_421600_80151268 -= 1;
-                if ((Gp_GetIdParam0(scratch->field_20) & 0xFFFF) == 4) {
+                if ((Gp_GetIdParam0(scratch->hitKey) & 0xFFFF) == 4) {
                     nextDeathState = 8;
                     goto setDeathState;
                 }
@@ -3119,12 +3083,12 @@ static void func_actor_421600_801354D8(Task* arg0)
             }
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            scratch->field_24 = Gp_TickObjFlag4(enemy);
+            scratch->damage = Gp_TickObjFlag4(enemy);
             if (Gp_ObjFlag4Expired(enemy) != 0) {
                 enemy->reactionFlags = (u8)(enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR);
             }
-            enemy->hp  = (s16)((u16)enemy->hp - (u16)scratch->field_24);
-            tickDamage = scratch->field_24;
+            enemy->hp  = (s16)((u16)enemy->hp - (u16)scratch->damage);
+            tickDamage = scratch->damage;
             if (tickDamage != 0) {
                 func_800DA6E8(&enemy->node, tickDamage, 0);
                 if (enemy->hp <= 0) {
@@ -3146,7 +3110,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                 }
             }
         }
-        SCRATCH_STACK_RELEASE_BYTES(0x30);
+        SCRATCH_STACK_RELEASE_BLOCK(DesertChaserDamageScratch);
     }
 }
 
@@ -4815,51 +4779,51 @@ static void func_actor_421600_8013C8E0(Task* arg0)
 
 #include "../../shared/desert_chaser_turn_step_probe.inc.c"
 
-static const Actor421600StateTable D_actor_421600_80131EFC = { { func_actor_421600_8013E858,
-                                                                 func_actor_421600_80135F6C,
-                                                                 func_actor_421600_80136138,
-                                                                 func_actor_421600_8013A554,
-                                                                 desertChaserStunned,
-                                                                 func_actor_421600_8013B00C,
-                                                                 func_actor_421600_8013B4C4,
-                                                                 func_actor_421600_8013B8E0,
-                                                                 func_actor_421600_8013C8E0,
-                                                                 desertChaserTurnStep,
-                                                                 desertChaserTurnStepProbe,
-                                                                 desertChaserStagger,
-                                                                 desertChaserCollapse,
-                                                                 NULL,
-                                                                 NULL,
-                                                                 NULL,
-                                                                 NULL,
-                                                                 func_actor_421600_8013A404,
-                                                                 NULL,
-                                                                 NULL,
-                                                                 desertChaserFlinch,
-                                                                 func_actor_421600_801366F4,
-                                                                 func_actor_421600_801369A0,
-                                                                 NULL,
-                                                                 desertChaserApproach,
-                                                                 NULL,
-                                                                 NULL,
-                                                                 NULL,
-                                                                 desertChaserPursue,
-                                                                 func_actor_421600_8013E9D8,
-                                                                 desertChaserSpawnAim,
-                                                                 func_actor_421600_80138D24,
-                                                                 func_actor_421600_8013903C,
-                                                                 desertChaserSteer,
-                                                                 func_actor_421600_8013EAAC,
-                                                                 func_actor_421600_8013947C,
-                                                                 func_actor_421600_8013EB7C,
-                                                                 desertChaserStrike,
-                                                                 desertChaserRoam,
-                                                                 func_actor_421600_8013BA70 } };
-static void                        func_actor_421600_8013D658(Enemy* enemy, Task* actor)
+static const DesertChaserStateTable D_actor_421600_80131EFC = { { func_actor_421600_8013E858,
+                                                                  func_actor_421600_80135F6C,
+                                                                  func_actor_421600_80136138,
+                                                                  func_actor_421600_8013A554,
+                                                                  desertChaserStunned,
+                                                                  func_actor_421600_8013B00C,
+                                                                  func_actor_421600_8013B4C4,
+                                                                  func_actor_421600_8013B8E0,
+                                                                  func_actor_421600_8013C8E0,
+                                                                  desertChaserTurnStep,
+                                                                  desertChaserTurnStepProbe,
+                                                                  desertChaserStagger,
+                                                                  desertChaserCollapse,
+                                                                  NULL,
+                                                                  NULL,
+                                                                  NULL,
+                                                                  NULL,
+                                                                  func_actor_421600_8013A404,
+                                                                  NULL,
+                                                                  NULL,
+                                                                  desertChaserFlinch,
+                                                                  func_actor_421600_801366F4,
+                                                                  func_actor_421600_801369A0,
+                                                                  NULL,
+                                                                  desertChaserApproach,
+                                                                  NULL,
+                                                                  NULL,
+                                                                  NULL,
+                                                                  desertChaserPursue,
+                                                                  func_actor_421600_8013E9D8,
+                                                                  desertChaserSpawnAim,
+                                                                  func_actor_421600_80138D24,
+                                                                  func_actor_421600_8013903C,
+                                                                  desertChaserSteer,
+                                                                  func_actor_421600_8013EAAC,
+                                                                  func_actor_421600_8013947C,
+                                                                  func_actor_421600_8013EB7C,
+                                                                  desertChaserStrike,
+                                                                  desertChaserRoam,
+                                                                  func_actor_421600_8013BA70 } };
+static void                         func_actor_421600_8013D658(Enemy* enemy, Task* actor)
 {
-    PlayerStatus*         config;
-    VECTOR                pos;
-    Actor421600StateTable states;
+    PlayerStatus*          config;
+    VECTOR                 pos;
+    DesertChaserStateTable states;
 
     s16                       view;
     s16                       height;
@@ -5093,7 +5057,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
             }
         }
     }
-    states.fn[work->state](actor);
+    states.handlers[work->state](actor);
     if (work->state == 1 && work->lastCommand.fields.command == 0) {
         if ((Gp_GetViewIndex() & 0xFF) == 5)
             work->state = 2;

@@ -87,6 +87,7 @@ STATIC_ASSERT_SIZEOF(DesertChaserContactPushStepStorage, 16);
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 #define DESERT_CHASER_CONTACTS         5
 #define DESERT_CHASER_AVOID_BEARINGS   16 /* bearings the avoid walk's scratch block holds */
+#define DESERT_CHASER_STATE_COUNT      39 /* handlers `DesertChaserWork::state` indexes */
 #define DESERT_CHASER_RUN_SEQUENCE     0
 #define DESERT_CHASER_STATE_TURN_RIGHT 8
 #define DESERT_CHASER_STATE_TURN_LEFT  9
@@ -102,7 +103,8 @@ STATIC_ASSERT_SIZEOF(DesertChaserContactPushStepStorage, 16);
 #define DESERT_CHASER_CLOSE_IN 2000
 #else
 #define DESERT_CHASER_CONTACTS         12
-#define DESERT_CHASER_AVOID_BEARINGS   8 /* half the regular build's, though its tables hold more contacts */
+#define DESERT_CHASER_AVOID_BEARINGS   8  /* half the regular build's, though its tables hold more contacts */
+#define DESERT_CHASER_STATE_COUNT      40 /* the run adds one state to the regular build's */
 #define DESERT_CHASER_RUN_SEQUENCE     1
 #define DESERT_CHASER_STATE_TURN_RIGHT 9
 #define DESERT_CHASER_STATE_TURN_LEFT  10
@@ -386,6 +388,57 @@ STATIC_ASSERT_SIZEOF(DesertChaserAvoidScratch, 0x70);
 #else
 STATIC_ASSERT_SIZEOF(DesertChaserAvoidScratch, 0x58);
 #endif
+#endif
+
+#if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
+/// The armed chaser's state handlers, indexed by `DesertChaserWork::state`.
+///
+/// Each armed package defines one table, and its per-frame update copies the
+/// table to the stack before calling the entry of the current state. The call
+/// is unconditional, so a `NULL` entry marks a state the chaser must never be
+/// put in.
+typedef struct {
+    TaskFunc handlers[DESERT_CHASER_STATE_COUNT]; // Handler of each state, taking the chaser's task
+} DesertChaserStateTable;
+STATIC_ASSERT_SIZEOF(DesertChaserStateTable, DESERT_CHASER_STATE_COUNT * sizeof(TaskFunc));
+
+/// One tuning of the armed chaser: the four timings a chaser keeps in its
+/// work block from the moment it is set up.
+///
+/// Both armed packages define the same four tunings. The low four bits of the
+/// spawn argument pick one of the first three -- 2 the first, 1 the third,
+/// anything else the second -- and their down time and windup shorten in
+/// that order. The regular build gives the fourth to a chaser the Dryfield
+/// breezeway's command 2 sets pursuing; the Water Tower build never reads it.
+/// Each member seeds the `DesertChaserWork` member of the same name.
+typedef struct {
+    u16 downFramesBase;     // Ticks the downed state lasts, before a random 0..15 more
+    s16 windupFrames;       // Ticks the pursuit crouches before it may lunge
+    s16 roamLookDelay;      // Ticks a roam runs before it looks for the player
+    u16 chaseHoldoffFrames; // Ticks a pack command keeps the roam from starting a pursuit
+} DesertChaserVariant;
+STATIC_ASSERT_SIZEOF(DesertChaserVariant, 0x8);
+
+/// Scratch-stack block of the armed chaser's damage step, which runs every
+/// frame the chaser has health left.
+///
+/// The step looks for a damaging contact, kind 0x20000, on the front sphere
+/// and then the rear one. When it finds one it works out where the hit landed
+/// relative to the facing, picks the reaction, and scales the damage by the
+/// player's range, a critical roll and the state the chaser was caught in.
+/// The damage-over-time tick that follows reuses `damage` alone. Nothing
+/// carries over from one frame to the next. Angles are 4096ths of a turn.
+typedef struct {
+    VECTOR  toPlayer;       // Player's position minus the root's; never read back, and `pad` is never written
+    SVECTOR hitOffset;      // `hitPos` minus the root's composed translation; `vx` and `vz` give the hit's bearing, and `pad` is never written
+    SVECTOR hitPos;         // Point of the contact found; `pad` is never written
+    s32     hitKey;         // Key of the contact found: the kind over the attack's packed id; 0 when neither sphere holds a damaging contact
+    s32     damage;         // Damage of the hit: the roll for the range, quadrupled by a critical roll and doubled in the stunned and reaction states; then the damage of the over-time tick
+    s32     playerDistance; // Length of `toPlayer`, the range the damage is rolled for; never read back
+    s16     hitYaw;         // Bearing of `hitOffset` off the chaser's facing, wrapped to [-0x800, 0x800]
+    s16     criticalEffect; // Spawn argument of the critical-hit effect (-1 none spawned, 0 a critical roll, 3 a doubled hit that dealt damage)
+} DesertChaserDamageScratch;
+STATIC_ASSERT_SIZEOF(DesertChaserDamageScratch, 0x30);
 #endif
 
 /// 0x1C-byte block `func_actor_323000_801645A4` pushes on the scratch stack:
