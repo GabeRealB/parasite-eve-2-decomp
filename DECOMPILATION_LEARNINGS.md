@@ -2023,9 +2023,9 @@ sibling minus its extra post-loop store.
 ```c
 i = 1;
 do {
-    animationResetSlot(&work->anim, i, work->field_47C);
+    animationResetSlot(&work->rig.anim, i, work->animId);
     i++;
-} while (i < 0x13);
+} while (i < ARRAY_SIZE(work->rig.slots));
 ```
 
 `func_actor_110700_8013201C`. Distinct from "m2c's split counter + offset

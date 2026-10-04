@@ -18,16 +18,21 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor_messages.h"
 
-/// The actor's work block, allocated by the setup state and parked in
-/// `Task::work`. It holds the model's animation context and slot array and the
-/// light and colour matrices the model is drawn under.
-typedef struct Actor110700Work {
-    ActorAnimRig19 rig;
-    MATRIX         colorMtx;
-    MATRIX         lightMtx;
-    s32            animId; // animation the slots were last seeded with; 0 until message 0x7D3 arrives
-} Actor110700Work;
-STATIC_ASSERT_SIZEOF(Actor110700Work, 0x480);
+/// Work block of the No. 9 golem as a room script poses it: what its body
+/// model plays and the matrices it is lit with.
+///
+/// The setup state allocates it zeroed and keeps it at `Task::work` for the
+/// task's life. The model object borrows `light` and `color`, and the
+/// animation context borrows the rig's slots and pose buffers, for as long as
+/// the block lives. Nothing is played until a script sends
+/// `ACTOR_MESSAGE_PLAY_ANIMATION`; each request restarts every driven slot.
+typedef struct {
+    ActorAnimRig19 rig;    // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    MATRIX         color;  // Light-colour matrix lent to the model object
+    MATRIX         light;  // Light-direction matrix lent to the model object
+    s32            animId; // Entry of the package's animation-set table the last play request seeded the slots with (0 none yet: the slots are not ticked)
+} _Actor110700No9GolemWork;
+STATIC_ASSERT_SIZEOF(_Actor110700No9GolemWork, 0x480);
 
 /// The actor's message table: handlers for 0x7D3 (start an animation), 0x7D4
 /// (place the actor) and 0x7D5 (visibility), then the terminator.
@@ -245,20 +250,20 @@ void func_actor_110700_80131E24(Task* task)
 /// destroyed instead.
 static void func_actor_110700_80131E78(Enemy* enemy, Task* task)
 {
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    Actor110700Work* work;
+    GfxCoord*                 coord;
+    TmdObject*                obj;
+    _Actor110700No9GolemWork* work;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    work  = memCalloc(sizeof(Actor110700Work), false);
+    work  = memCalloc(sizeof(_Actor110700No9GolemWork), false);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     task->work    = work;
-    obj->lightMtx = &work->lightMtx;
-    obj->colorMtx = &work->colorMtx;
+    obj->lightMtx = &work->light;
+    obj->colorMtx = &work->color;
     obj->flags    = 0;
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_110700_8013BFC0, obj, work->rig.poses, work->rig.slots);
     work->animId        = 0;
@@ -272,17 +277,17 @@ static void func_actor_110700_80131E78(Enemy* enemy, Task* task)
 /// coordinate on the scratch stack and hands it to `Gp_UpdateActorColor`.
 static void func_actor_110700_80131F44(Enemy* enemy, Task* task)
 {
-    Actor110700Work* work;
-    GfxCoord*        coord;
-    VECTOR*          block;
-    s32              i;
+    _Actor110700No9GolemWork* work;
+    GfxCoord*                 coord;
+    VECTOR*                   block;
+    s32                       i;
 
-    work  = (Actor110700Work*)task->work;
+    work  = task->work;
     coord = &task->extra.tmd->coords[1];
     SCRATCH_STACK_RESERVE_BYTES(0x10);
     block = SCRATCH_STACK_CURSOR(VECTOR);
     if (work->animId != 0) {
-        for (i = 1; i < 0x13; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
@@ -297,16 +302,16 @@ static void func_actor_110700_80131F44(Enemy* enemy, Task* task)
 /// id in the work block and reseeding slots 1..0x12 with it.
 s32 func_actor_110700_8013201C(Task* task, s32 msgId, AnimationPlayRequest* args, s32 arg3)
 {
-    Actor110700Work* work;
-    s32              i;
+    _Actor110700No9GolemWork* work;
+    s32                       i;
 
-    work         = (Actor110700Work*)task->work;
+    work         = task->work;
     work->animId = args->animationId;
     i            = 1;
     do {
         animationResetSlot(&work->rig.anim, i, work->animId);
         i++;
-    } while (i < 0x13);
+    } while (i < ARRAY_SIZE(work->rig.slots));
     return 0;
 }
 
