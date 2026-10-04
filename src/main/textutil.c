@@ -11,27 +11,14 @@
 #include "text.h"
 #include "main/ui_types.h"
 
-/// A CLUT upload record: the rectangle a CLUT belongs at and the CLUT itself.
-/// Each CLUT is followed by one, but nothing reads them.
-typedef struct {
-    s32     field_0;
-    RECT    rect;
-    u_long* clut;
-    s32     field_10;
-    s32     field_14[3];
-} _TextClutRecord;
+#include "gameplay/collision.h"
+#include "gameplay/gpu_image_upload.h"
 
 /// Fill palettes (64 entries) for Text_LoadClutImages → (256, 243).
 static u_long Text_FillClutPixels[];
 
-/// Unreferenced.
-static _TextClutRecord Text_FillClut;
-
 /// Outline palettes (48 entries) for Text_LoadClutImages → (0x3D0, 0x1FF).
 static u_long Text_OutlineClutPixels[];
-
-/// Unreferenced.
-static _TextClutRecord Text_OutlineClut;
 
 /// How `_textParseLine` finished the line it copied.
 enum {
@@ -56,15 +43,28 @@ static s32 Text_DrawMultiLineScroll(UiObject* object, s32 arg1, s32 arg2, u8* ar
 static u_long Text_FillClutPixels[] = {
 #include "assets/text_clut0.inc"
 };
-/// Unreferenced.
-static _TextClutRecord Text_FillClut = { 0, { 0x100, 0xF3, 0x40, 1 }, Text_FillClutPixels, 0xFF, { 0 } };
+/// Upload list for the fill palettes: one copy to (256, 243) and the end record.
+///
+/// The palette data carries the list form that gameplay's `Gp_LoadImages`
+/// walks, but the resident executable never reads it: `Text_LoadClutImages`
+/// uploads the same words to the same rectangle itself.
+static GpuImageUpload Text_FillClut[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0x100, 0xF3, 0x40, 1 }, Text_FillClutPixels },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+};
 
 /// Outline palettes (48 entries) for Text_LoadClutImages → (0x3D0, 0x1FF).
 static u_long Text_OutlineClutPixels[] = {
 #include "assets/text_clut1.inc"
 };
-/// Unreferenced.
-static _TextClutRecord Text_OutlineClut = { 0, { 0x100, 0xF0, 0x30, 1 }, Text_OutlineClutPixels, 0xFF, { 0 } };
+/// Upload list for the outline palettes: one copy to (256, 240) and the end record.
+///
+/// Never read, like `Text_FillClut`. Its destination is not where
+/// `Text_LoadClutImages` uploads these words.
+static GpuImageUpload Text_OutlineClut[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0x100, 0xF0, 0x30, 1 }, Text_OutlineClutPixels },
+    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+};
 
 GameFlagStageHeader* Gp_FlagBanks[] = {
     NULL,
