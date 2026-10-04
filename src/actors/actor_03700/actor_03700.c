@@ -140,17 +140,24 @@ extern s16 Actor03700_D07F98[];
 /// Halfword wave table `Actor03700_Fn03320` indexes by `swayPhase`.
 extern s16 Actor03700_D07FD4[];
 
-/// 8-byte rise step: while `animFrame` is below `threshold` the Y and
-/// forward displacements are spread over `steps` frames.
-typedef struct Actor103700Rise {
-    /* 0x0 */ s16 threshold;
-    /* 0x2 */ s16 steps;
-    /* 0x4 */ s16 dy;
-    /* 0x6 */ s16 dist;
-} Actor103700Rise;
+/// One segment of the path a perched actor leaves its perch along.
+///
+/// A take-off table lists its segments in frame order, the last one ending on
+/// the take-off animation's final tick. Each tick of the take-off, the first
+/// segment whose `lastFrame` is not below `_Actor03700Work::animFrame` moves
+/// the model's root: `deltaY / frameCount` in height and `advance / frameCount`
+/// along `_Actor03700Work::yaw`. Both quotients truncate, so a segment can
+/// fall a few units short of its totals.
+typedef struct {
+    s16 lastFrame;  // last tick of the take-off animation the segment covers
+    s16 frameCount; // ticks the segment lasts: `lastFrame` less the previous segment's, or `lastFrame` + 1 for the first
+    s16 deltaY;     // height the root changes by over the whole segment; positive is down
+    s16 advance;    // distance the root covers along its facing over the whole segment; negative moves it backwards
+} _Actor03700TakeoffSegment;
+STATIC_ASSERT_SIZEOF(_Actor03700TakeoffSegment, 0x8);
 
-extern Actor103700Rise Actor03700_D07FF4[];
-extern Actor103700Rise Actor03700_D0802C[];
+extern _Actor03700TakeoffSegment Actor03700_D07FF4[];
+extern _Actor03700TakeoffSegment Actor03700_D0802C[];
 
 /// The enemy's parameters. The spawn stores them in `Enemy::param` and
 /// seeds hit points from `hpMax`, which retail addresses as its own label.
@@ -166,14 +173,18 @@ extern AnimationSet* Actor03700_D080FC[];
 /// Halfword table indexed by the low 7 bits of a hit id; 3 cancels the damage.
 extern s16 Actor03700_D08074[];
 
-/// 0x18-byte scratch the approach helpers carve off the scratchpad stack: the
-/// offset to the target and its `VectorNormalS`. `Actor03700_Fn029C0` never
-/// gives it back; `Actor03700_Fn027DC` does.
-typedef struct Actor103700SteerScratch {
-    /* 0x00 */ VECTOR  delta;
-    /* 0x10 */ SVECTOR normal;
-} Actor103700SteerScratch;
-STATIC_ASSERT_SIZEOF(Actor103700SteerScratch, 0x18);
+/// Scratch-stack block of the entrance actions, which fly the model's root in
+/// a straight line to `_Actor03700Work::targetPos`.
+///
+/// `ACTION_ENTER_LOW`, `ACTION_ENTER_HIGH` and `ACTION_SCRIPTED_ENTRY` reserve
+/// it on every tick and fill it only on the ticks of the flight. Nothing in
+/// it carries over to the next tick. `ACTION_ENTER_LOW` and `ACTION_ENTER_HIGH`
+/// release it before returning; `ACTION_SCRIPTED_ENTRY` leaves it reserved.
+typedef struct {
+    VECTOR  toTarget;  // `targetPos` minus the root's position, world units; `pad` is never written
+    SVECTOR direction; // `toTarget` normalised, 4096 = 1.0; the root moves a fixed fraction of it each tick
+} _Actor03700EntryScratch;
+STATIC_ASSERT_SIZEOF(_Actor03700EntryScratch, 0x18);
 
 /* `D_80067704` selects the model stream the next `Gp_SpawnEff` builds its
  * `TmdObject` from. */
@@ -588,7 +599,7 @@ s16 Actor03700_D07FD4[16] = {
     0,
 };
 
-Actor103700Rise Actor03700_D07FF4[7] = {
+_Actor03700TakeoffSegment Actor03700_D07FF4[7] = {
     { 20, 21, 0, 0 },
     { 23, 3, 45, 5 },
     { 26, 3, 170, 47 },
@@ -598,7 +609,7 @@ Actor103700Rise Actor03700_D07FF4[7] = {
     { 50, 10, 0, 0 },
 };
 
-Actor103700Rise Actor03700_D0802C[9] = {
+_Actor03700TakeoffSegment Actor03700_D0802C[9] = {
     { 10, 11, 0, 0 },
     { 17, 7, 0, -20 },
     { 22, 5, 4, -276 },
@@ -1239,9 +1250,9 @@ static void Actor03700_Fn00D5C(Task* task)
             break;
         case 2:
             for (i = 0; i < 7; i++) {
-                if (Actor03700_D07FF4[i].threshold >= work->animFrame) {
-                    coord->coord.t[1] += Actor03700_D07FF4[i].dy / Actor03700_D07FF4[i].steps;
-                    dist               = Actor03700_D07FF4[i].dist / Actor03700_D07FF4[i].steps;
+                if (Actor03700_D07FF4[i].lastFrame >= work->animFrame) {
+                    coord->coord.t[1] += Actor03700_D07FF4[i].deltaY / Actor03700_D07FF4[i].frameCount;
+                    dist               = Actor03700_D07FF4[i].advance / Actor03700_D07FF4[i].frameCount;
                     coord->coord.t[0] += (rsin(work->yaw) * dist) >> 12;
                     coord->coord.t[2] += (rcos(work->yaw) * dist) >> 12;
                     break;
@@ -1285,9 +1296,9 @@ static void Actor03700_Fn00F88(Task* task)
             break;
         case 2:
             for (i = 0; i < 9; i++) {
-                if (Actor03700_D0802C[i].threshold >= work->animFrame) {
-                    coord->coord.t[1] += Actor03700_D0802C[i].dy / Actor03700_D0802C[i].steps;
-                    dist               = Actor03700_D0802C[i].dist / Actor03700_D0802C[i].steps;
+                if (Actor03700_D0802C[i].lastFrame >= work->animFrame) {
+                    coord->coord.t[1] += Actor03700_D0802C[i].deltaY / Actor03700_D0802C[i].frameCount;
+                    dist               = Actor03700_D0802C[i].advance / Actor03700_D0802C[i].frameCount;
                     coord->coord.t[0] += (rsin(work->yaw) * dist) >> 12;
                     coord->coord.t[2] += (rcos(work->yaw) * dist) >> 12;
                     break;
@@ -1928,14 +1939,14 @@ static void Actor03700_Fn025C8(Task* task)
 /// `gSceneCombatState`.
 static void Actor03700_Fn027DC(Task* task)
 {
-    Actor103700SteerScratch* s;
+    _Actor03700EntryScratch* scratch;
     _Actor03700Work*         work;
     GfxCoord*                coord;
     s32                      d;
 
-    s     = (Actor103700SteerScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor103700SteerScratch));
-    work  = task->work;
-    coord = task->extra.tmd->coords;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor03700EntryScratch);
+    work    = task->work;
+    coord   = task->extra.tmd->coords;
     switch (work->actionStep) {
         case 0:
             if (--work->timer <= 0) {
@@ -1943,13 +1954,13 @@ static void Actor03700_Fn027DC(Task* task)
             }
             break;
         case 1:
-            s->delta.vx = work->targetPos.vx - coord->coord.t[0];
-            s->delta.vy = work->targetPos.vy - coord->coord.t[1];
-            s->delta.vz = work->targetPos.vz - coord->coord.t[2];
-            VectorNormalS(&s->delta, &s->normal);
-            coord->coord.t[0] += (s->normal.vx * 75) >> 11;
-            coord->coord.t[1] += (s->normal.vy * 75) >> 11;
-            coord->coord.t[2] += (s->normal.vz * 75) >> 11;
+            scratch->toTarget.vx = work->targetPos.vx - coord->coord.t[0];
+            scratch->toTarget.vy = work->targetPos.vy - coord->coord.t[1];
+            scratch->toTarget.vz = work->targetPos.vz - coord->coord.t[2];
+            VectorNormalS(&scratch->toTarget, &scratch->direction);
+            coord->coord.t[0] += (scratch->direction.vx * 75) >> 11;
+            coord->coord.t[1] += (scratch->direction.vy * 75) >> 11;
+            coord->coord.t[2] += (scratch->direction.vz * 75) >> 11;
             d                  = (s32)work->targetPos.vy - coord->coord.t[1];
             if ((d < 0 ? -d : d) < 150) {
                 work->actionStep = 2;
@@ -1965,7 +1976,7 @@ static void Actor03700_Fn027DC(Task* task)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor103700SteerScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor03700EntryScratch);
 }
 
 static void Actor03700_Fn029C0(Task* task)
@@ -1973,15 +1984,14 @@ static void Actor03700_Fn029C0(Task* task)
     _Actor03700Work*         work;
     TmdObject*               obj;
     GfxCoord*                coord;
-    Actor103700SteerScratch* scratch;
+    _Actor03700EntryScratch* scratch;
     Enemy*                   ctx;
 
-    scratch                                       = SCRATCH_STACK_CURSOR(Actor103700SteerScratch) - 1;
-    SCRATCH_STACK_CURSOR(Actor103700SteerScratch) = scratch;
-    obj                                           = task->extra.tmd;
-    coord                                         = obj->coords;
-    work                                          = task->work;
-    ctx                                           = (Enemy*)task->spawnArg2.pointer;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor03700EntryScratch);
+    obj     = task->extra.tmd;
+    coord   = obj->coords;
+    work    = task->work;
+    ctx     = (Enemy*)task->spawnArg2.pointer;
 
     switch (work->actionStep) {
         case 0:
@@ -2009,13 +2019,13 @@ static void Actor03700_Fn029C0(Task* task)
             }
             break;
         case 2:
-            scratch->delta.vx = work->targetPos.vx - coord->coord.t[0];
-            scratch->delta.vy = work->targetPos.vy - coord->coord.t[1];
-            scratch->delta.vz = work->targetPos.vz - coord->coord.t[2];
-            VectorNormalS(&scratch->delta, &scratch->normal);
-            coord->coord.t[0] += (scratch->normal.vx * 5) >> 9;
-            coord->coord.t[1] += (scratch->normal.vy * 5) >> 9;
-            coord->coord.t[2] += (scratch->normal.vz * 5) >> 9;
+            scratch->toTarget.vx = work->targetPos.vx - coord->coord.t[0];
+            scratch->toTarget.vy = work->targetPos.vy - coord->coord.t[1];
+            scratch->toTarget.vz = work->targetPos.vz - coord->coord.t[2];
+            VectorNormalS(&scratch->toTarget, &scratch->direction);
+            coord->coord.t[0] += (scratch->direction.vx * 5) >> 9;
+            coord->coord.t[1] += (scratch->direction.vy * 5) >> 9;
+            coord->coord.t[2] += (scratch->direction.vz * 5) >> 9;
             work->turnRate     = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             Actor03700_Fn01F48(task);
 
