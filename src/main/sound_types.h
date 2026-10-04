@@ -11,6 +11,14 @@
 /// Per-frame audio callback; return -1 to remove the registration.
 typedef s32 (*AudioTickPoll)(s32* arg);
 
+/// Notifies a per-frame audio callback's owner that its registration has ended.
+///
+/// An optional companion to `AudioTickPoll`, supplied with it at registration
+/// and NULL when the owner needs no notice. It runs once, when the poll asks
+/// to be removed, before the registration leaves the list and while per-frame
+/// processing is held off. It is handed nothing - not the poll's argument, nor
+/// the registration - so an owner must find its own state, and its result is
+/// not used. Every registration in the game passes NULL.
 typedef void (*AudioTickOnRemove)(void);
 
 /// Tells the owner of an SPU voice that the voice is no longer its own.

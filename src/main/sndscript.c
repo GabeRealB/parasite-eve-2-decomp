@@ -750,8 +750,8 @@ void Snd_PollAsync(s32 unused)
 
 void Snd_RegisterTickCallbacks(void)
 {
-    AudioTick_Insert(Midi_Tick, 0, 0x4800, 0);
-    AudioTick_Insert(SndVoice_DriveSlots, 0, 0x8800, 0);
+    AudioTick_Insert(Midi_Tick, NULL, 0x4800, 0);
+    AudioTick_Insert(SndVoice_DriveSlots, NULL, 0x8800, 0);
     D_80082130 = 0x3D010;
     D_80082128 = 0x63810;
     D_80082124 = D_80082128;

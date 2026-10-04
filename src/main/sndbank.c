@@ -396,7 +396,7 @@ setup_events:
     temp_v0  = SndHeap_Malloc(4);
     *temp_v0 = 0;
 
-    AudioTick_Insert(&Snd_ReverbWarmupCb, 0, 0x8801, temp_v0);
+    AudioTick_Insert(&Snd_ReverbWarmupCb, NULL, 0x8801, temp_v0);
     if (D58028_SpuTimerEnabled) {
         DisableEvent(D648E0_SpuTimerED);
         CloseEvent(D648E0_SpuTimerED);
@@ -926,7 +926,7 @@ static s32 Spu_TimerReentryWork(void)
 static void AudioTick_Reset(void)
 {
     AudioTick_List.poll     = 0;
-    AudioTick_List.onRemove = 0;
+    AudioTick_List.onRemove = NULL;
     AudioTick_List.id       = 0;
     AudioTick_List.arg      = 0;
     AudioTick_List.next     = NULL;
@@ -963,16 +963,16 @@ static void AudioTick_Process(void)
 
 static AudioTickNode* AudioTick_Remove(AudioTickNode* arg0)
 {
-    AudioTickOnRemove callback;
+    AudioTickOnRemove onRemove;
     AudioTickNode*    head;
     AudioTickNode*    prev;
     AudioTickNode*    curr;
 
     head              = &AudioTick_List;
-    callback          = arg0->onRemove;
+    onRemove          = arg0->onRemove;
     AudioTick_Enabled = 0;
-    if (callback != NULL) {
-        callback();
+    if (onRemove != NULL) {
+        onRemove();
     }
 
     prev = head;
