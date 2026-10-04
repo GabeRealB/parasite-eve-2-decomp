@@ -11725,7 +11725,7 @@ does not match.
 `gte_ldclmv`, `gte_stclmv` already emit real MIPS). `gfxMatrixToEuler` is the
 template.
 
-TMD POLY_FT3 draw (`func_8009D388`) uses the same header for RTPT / NCLIP /
+TMD POLY_FT3 draw (`tmdDrawStreamPrimFt3`) uses the same header for RTPT / NCLIP /
 AVSZ3 (splat still tags these as "Handwritten" because of COP2): call
 `gte_rtpt()` (`0x4A280030`), `gte_nclip()` (`0x4B400006`) and `gte_avsz3()`
 (`0x4B58002D`).
@@ -30163,14 +30163,14 @@ The target finishes the `r2` store first (`lw`/`nop`/`sw`) and uses
 into a temp before the byte stores:
 
 ```c
-*(s32*)&poly->r2 = stream[4];
-color = stream[5];
-setlen(poly, 12);
-setcode(poly, 0x3E);
-*(s32*)&poly->r3 = color;
+GPU_PRIMITIVE_COLOR_WORD(quad, 2) = elements[TMD_GT4_UNLIT_COLOR_WORD_INDEX + 2];
+corner3ColorWord = elements[TMD_GT4_UNLIT_COLOR_WORD_INDEX + 3];
+setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+setcode(quad, TMD_GT4_UNLIT_SEMI_TRANS_COMMAND);
+GPU_PRIMITIVE_COLOR_WORD(quad, 3) = corner3ColorWord;
 ```
 
-`gpStreamPrimGt4Unlit` is the example. Writing `r3` from `stream[5]` directly
+`tmdBuildStreamGt4Unlit` is the example. Writing `r3` from `elements[5]` directly
 stuck at 96.8%.
 
 ## Assign-in-`&&` so a later store keeps the compared byte
@@ -30947,7 +30947,7 @@ triangle->clut   += (s8)layerClutRowByte * (1 << MODEL_LIGHTING_OFFSET_LAYER_CLU
 
 `tmdBuildStreamGt3PreXformOffsetLayer` is the example. The same reload split is
 in `_modelLightingInitGt3OffsetLayerTexture` and `_modelLightingInitGt4OffsetLayerTexture`.
-`gpStreamPrimGt4PreXformOffsetLayer` still spells the sequence inline.
+`tmdBuildStreamGt4PreXformOffsetLayer` uses the quad helper with texture word index 2.
 
 ## Finish the 2D byte offset before adding the table base
 
@@ -34195,8 +34195,8 @@ The paired `lw 68(scratch)` is `scratch->bodyToRoom.t[0]` (offset 0x44). Volatil
 
 ## Hoist `&field_24` and AND `TMD_GTE_ERROR_FLAG` for TMD FLAG clip (not `>= 0`)
 
-`func_8009D388` (POLY_FT3) tests FLAG with `if (ws->gteFlag >= 0)` and
-computes `&ws->gteFlag` inside the loop (`addiu v0, a3, 0x24` after
+`tmdDrawStreamPrimFt3` (POLY_FT3) tests FLAG with `if (workspace->gteFlag >= 0)` and
+computes `&workspace->gteFlag` inside the loop (`addiu v0, a3, 0x24` after
 RTPT). The POLY_F3 sibling wants:
 
 ```
@@ -34225,7 +34225,7 @@ if ((ws->gteFlag & clipMask) == 0) {
 ```
 
 `setlen` 4 / `setcode` 0x20 / poly size 0x14. `func_8009DB00` is the
-example. Same prologue is used by `func_8009D518` / `func_8009D718` /
+example. Same prologue is used by `tmdDrawStreamPrimFt4` / `func_8009D718` /
 `func_8009D900`.
 
 ## Quad TMD: shared 4th-vertex draw, `gte_avsz4`, pin `mask` to `$t1`
@@ -34264,7 +34264,7 @@ draw:
 }
 ```
 
-`func_8009D518` (POLY_FT4) / `func_8009D900` (POLY_F4) are the same
+`tmdDrawStreamPrimFt4` (POLY_FT4) / `func_8009D900` (POLY_F4) are the same
 shape with different SXY offsets and a live `poly+7`. Those
 `setlen`/`setcode` siblings already occupy `$t1` with `poly+7`, so
 unpinned coloring puts `opz` in `$t2` and `mask` in `$t3`. Pin the
@@ -35452,7 +35452,7 @@ gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] &
 ```
 
 `gpDrawStreamPrimGt3ElemColor` is the example. Same `$a1`/`$a0`/`$v1`/`$v0`
-pattern as a single-`gte_ldv3` handler (`func_8009D388`).
+pattern as a single-`gte_ldv3` handler (`tmdDrawStreamPrimFt3`).
 
 ## Volatile `move` after a chained load so it does not fill the first delay
 

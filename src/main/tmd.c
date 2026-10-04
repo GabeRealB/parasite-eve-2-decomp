@@ -323,13 +323,13 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = gpDrawStreamPrimG4CornerColorsSemiTrans;
                     break;
                 case 0x1C:
-                    handler = func_8009D388;
+                    handler = tmdDrawStreamPrimFt3;
                     break;
                 case 0x1E:
                     handler = func_8009DCB8;
                     break;
                 case 0x5C:
-                    handler = func_8009D518;
+                    handler = tmdDrawStreamPrimFt4;
                     break;
                 case 0x5E:
                     handler = func_8009DE48;
@@ -471,7 +471,7 @@ void tmdProcessStream(TmdObject* obj)
             case 0x7B:
             case 0x171:
             case 0x8079:
-                handler = gpStreamPrimGt4PreXform;
+                handler = tmdBuildStreamGt4PreXform;
                 break;
             case 0x4039:
                 handler = tmdBuildStreamGt3PreXformEnvLayer;
@@ -480,9 +480,9 @@ void tmdProcessStream(TmdObject* obj)
                 }
                 break;
             case 0x4079:
-                handler = gpStreamPrimGt4PreXformLayer;
+                handler = tmdBuildStreamGt4PreXformEnvLayer;
                 if (flag != 0) {
-                    handler = gpStreamPrimGt4PreXformOffsetLayer;
+                    handler = tmdBuildStreamGt4PreXformOffsetLayer;
                 }
                 break;
             case 0x18:
@@ -491,7 +491,7 @@ void tmdProcessStream(TmdObject* obj)
                 break;
             case 0x58:
             case 0x5A:
-                handler = gpStreamPrimGt4OneNormal;
+                handler = tmdBuildStreamGt4OneNormal;
                 break;
             case 0x1C:
             case 0x1E:
@@ -514,7 +514,7 @@ void tmdProcessStream(TmdObject* obj)
                 handler = tmdBuildStreamGt4CornerColors;
                 break;
             case 0x156:
-                handler = gpStreamPrimGt4Unlit;
+                handler = tmdBuildStreamGt4Unlit;
                 break;
             case 4:
                 handler = modelLightingStreamPrimF3;

@@ -152,9 +152,76 @@ u32* gpDrawStreamPrimGt3ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream
 /// than the record's, so the parameter goes unread.
 u32* gpDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* func_8009D388(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+/// Projects, culls and links opaque raw-texture triangles from TMD stream records.
+///
+/// Draw resolution selects this callback for `0x1C`. `elements` begins after
+/// the three-word record header. Its first three u16 values encode vertex
+/// byte offsets; masking with 0xFFF8 discards the low three bits and selects
+/// complete eight-byte SVECTOR entries in `workspace->verts`. The meaning of
+/// the discarded bits is unproven. The source array's extent is not supplied.
+/// Drawing reads two words per element; `modelLightingStreamPrimFt3` needs
+/// words 2..4 for persistent texture data, so a complete element needs at least
+/// five words. `elemStride` counts u32 words and `elemCount` starts at 0..65535.
+/// The payload must cover every full stride; bounds are unchecked.
+///
+/// The caller supplies the part's GTE transform and ZSF3. GTE FLAG bit 31 or
+/// nonpositive NCLIP(0,1,2) rejects a triangle without changing its packet or
+/// OT. Accepted triangles receive screen XY in pixels, seven payload words
+/// and command 0x25 (opaque FT3, texture RGB bypasses colour modulation).
+/// Texture and colour bytes are preserved; raw-texture drawing ignores RGB.
+/// `objectFlags` is unused, including blend and reverse-culling flags.
+///
+/// `primWrite` must address one writable, word-aligned 32-byte POLY_FT3 slot
+/// per element in the selected half's second region, with texture initialized.
+/// Accepted packets prepend to `workspace->ot` using AVSZ3 at bucket
+/// `(((u32)OTZ << gDisplayState.otDepthShift) >> 4) & 1023` (shift 0..3 in
+/// normal drawing). The OT base includes the object's signed entry displacement;
+/// every resulting bucket must fit its backing table. Links retain 24 address
+/// bits. Packet and OT storage must remain GPU-visible until consumption ends.
+///
+/// Advances `primWrite` by one slot per element, including rejected triangles,
+/// and returns `elements + initial elemCount * elemStride`, leaving the next
+/// record or marker unconsumed. Consumes `elemCount` to -1 even for an empty
+/// record, which reads no payload and advances neither cursor. GTE FLAG/result
+/// scratch is updated for nonempty records; `preXformWrite` is unchanged. All
+/// input storage is borrowed; no pointer is retained by the callback.
+u32* tmdDrawStreamPrimFt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-u32* func_8009D518(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+/// Projects, culls and links opaque raw-texture quads from TMD stream records.
+///
+/// Draw resolution selects this callback for `0x5C`. `elements` begins after
+/// the three-word record header. Words 0..1 pack four u16 vertex byte offsets,
+/// in corner order. Each is masked with 0xFFF8 and must select a complete
+/// eight-byte SVECTOR in `workspace->verts`; discarded low-bit roles and the
+/// array's full extent are unproven. Drawing reads two words per element;
+/// `modelLightingStreamPrimFt4` initializes texture fields from words 2..4,
+/// so full elements need at least five. `elemStride` counts u32 words and
+/// `elemCount` starts at 0..65535. Every full stride must be readable.
+///
+/// The caller supplies the part's GTE transform and ZSF4. Projects corners
+/// 0,1,2 together, stores their XY after a successful projection, then projects
+/// corner 3. Either projection's GTE FLAG bit 31 rejects the quad. Facing keeps
+/// NCLIP(0,1,2) > 0 or, if that fails, NCLIP(1,2,3) < 0. Rejected quads may
+/// retain the first three XY writes; they are not linked. Accepted quads receive
+/// corner 3's XY, nine payload words and command 0x2D (opaque FT4, texture RGB
+/// bypasses colour modulation). Texture and RGB bytes persist; drawing ignores
+/// RGB. `objectFlags` is unused, including blend and reverse-culling flags.
+///
+/// `primWrite` must provide one writable, word-aligned 40-byte POLY_FT4 slot
+/// per element in the selected half's second region, with texture initialized.
+/// Accepted packets prepend to `workspace->ot` using AVSZ4 at bucket
+/// `(((u32)OTZ << gDisplayState.otDepthShift) >> 4) & 1023` (shift 0..3 in
+/// normal drawing). The OT base includes the object's signed entry displacement;
+/// each bucket must fit the backing table. Links retain 24 address bits. Bounds
+/// are unchecked; packet and OT storage must outlive GPU consumption.
+///
+/// Advances `primWrite` by one slot per element, including rejected quads,
+/// and returns `elements + initial elemCount * elemStride`, leaving the next
+/// record or marker unconsumed. Consumes `elemCount` to -1 even for an empty
+/// record, which reads no payload and advances neither cursor. GTE FLAG/result
+/// scratch is updated for nonempty records; `preXformWrite` is unchanged.
+/// Workspace, stream and vertices are borrowed; no pointer is retained.
+u32* tmdDrawStreamPrimFt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 u32* func_8009D718(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
@@ -245,15 +312,31 @@ u32* gpXformStreamVertsUnlit(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// contain all elements and slots. All storage is borrowed; no pointer is retained.
 u32* tmdBuildStreamGt3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's pre-transformed textured-quad records (`0x71`, `0x79`,
-/// `0x7B`, `0x171`, `0x8079`): each element contributes one quad to the buffer
-/// half's first region, with the element's texture words written into it.
+/// Initializes persistent texture fields for pre-transformed Gouraud textured quads.
 ///
-/// The opcode says the quad's vertices are already in screen space, so there is
-/// no transform or cull for this command to do. It writes the polygon's `u`/`v`
-/// fields, and adds the model's texture page and CLUT to the primitive's own,
-/// which are stored relative to the model.
-u32* gpStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Construction selects this callback for `0x71`, `0x79`, `0x7B`, `0x171`
+/// and `0x8079`. `elements` begins after the three-word record header. Words
+/// 0..1 contain four depth-cache byte references used during drawing. Words 2
+/// and 3 pack U0/V0 with encoded CLUT and U1/V1 with texture-page settings;
+/// word 4 packs U2/V2 in its low half and U3/V3 in its high half. UV coordinates
+/// are unsigned texel bytes. `elemStride` is in u32 words, at least five for
+/// nonempty records; the payload must cover every full stride.
+///
+/// `preXformWrite` must provide one writable, word-aligned 52-byte POLY_GT4
+/// slot per element within the selected half's first region. Signed workspace
+/// `texturePageOffset` (-128..127 encoded units) and `encodedClutOffset`
+/// (-8192..8128, 64 per palette row) relocate the copied addresses, wrapping
+/// to u16. Projection commands supply positions and colours later; drawing
+/// sets length/code and links. Construction preserves those fields and all
+/// SDK pads, including the halfwords beside U2/V2 and U3/V3.
+///
+/// The caller supplies `elemCount` (0..65535). Advances `preXformWrite` by
+/// one packet per element and returns `elements + initial count * elemStride`,
+/// leaving the following marker unconsumed. Consumes the count to -1 even for
+/// an empty record, which reads no payload and advances neither cursor.
+/// `primWrite` is unchanged. `objectFlags` is passed as zero and ignored.
+/// Capacities are unchecked. All storage is borrowed; no pointer is retained.
+u32* tmdBuildStreamGt4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Handler of a stream's pre-transformed flat-quad records (`0x45`): each
 /// element contributes one untextured, unlit quad to the buffer half's first
@@ -487,31 +570,60 @@ u32* tmdBuildStreamGt4CornerColors(TmdStreamWorkspace* workspace, s32 objectFlag
 /// storage is borrowed for the call; no pointer is retained by this callback.
 u32* tmdBuildStreamGt3OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's one-normal textured-quad records (`0x58`, `0x5A`): each
-/// element contributes one quad to the buffer half's second region, with the
-/// element's texture words written into it.
+/// Initializes persistent texture fields for one-normal Gouraud textured quads.
 ///
-/// The record is not pre-transformed, so its quad is built in the region the
-/// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
-/// and adds the model's texture page and CLUT to the primitive's own, which are
-/// stored relative to the model. The element carries one normal where the
-/// per-corner-normal records carry one per corner, so the whole quad is lit from
-/// that one normal and the element is a word shorter than the one
-/// `tmdBuildStreamGt4` reads.
-u32* gpStreamPrimGt4OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `tmdProcessStream` selects this construction callback for `0x58`/`0x5A`.
+/// `elements` starts after the three-word record header. Words 0..1 pack four
+/// vertex byte references; the whole of word 2 is the face normal's unsigned
+/// byte offset into the normal array. Those references are not read here.
+/// Words 3 and 4 pack unsigned byte U/V texel coordinates with encoded
+/// CLUT and page settings; word 5 packs U2/V2 and U3/V3 in its low/high halves.
+/// `elemStride` counts u32 words and must be at least six for a nonempty record.
+/// This minimum readable extent does not establish a fixed element size.
+///
+/// `primWrite` must provide one writable, word-aligned 52-byte POLY_GT4 slot
+/// per element within the selected half's second region. Adds workspace
+/// `texturePageOffset` (-128..127 encoded units) and `encodedClutOffset`
+/// (-8192..8128, 64 per palette row), wrapping both address sums to u16.
+/// Drawing supplies positions, face-normal lighting, length/code and links.
+/// Construction preserves those fields and all SDK pads beside UV pairs.
+///
+/// With initial `elemCount` 0..65535, advances `primWrite` by one packet per
+/// element and returns `elements + initial count * elemStride`, leaving the
+/// next record or marker unconsumed. Consumes the count to -1 even for an empty
+/// record, which reads no payload and advances neither cursor. `preXformWrite`
+/// is unchanged. `objectFlags` is passed as zero and ignored. The stream must
+/// cover every full stride and the packet region every slot; capacities are
+/// unchecked. All storage is borrowed; no pointer is retained.
+u32* tmdBuildStreamGt4OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's unlit textured-quad records (`0x156`): each element
-/// contributes one quad to the buffer half's second region, with the element's
-/// own four colours and its texture words written into it.
+/// Initializes unlit Gouraud textured quads with element colours and fixed semitransparency.
 ///
-/// The record holds the quad's colours in place of the normals a lit quad's
-/// record carries, so nothing lights this quad and the packet is complete once
-/// this command has written it: its length and its primitive code, `0x3E` — the
-/// semi-transparent gouraud textured quad — are set here rather than at draw
-/// time from the model's flags. The element's texture words are written as they
-/// are for a lit quad, with the model's texture page and CLUT added to the
-/// primitive's own, which are stored relative to the model.
-u32* gpStreamPrimGt4Unlit(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Construction selects this callback for `0x156`. `elements` begins after
+/// the three-word record header. Words 0..1 pack four vertex references for
+/// drawing. Words 2..5 copy all four corner RGB/pad words; corner 0's high byte
+/// is then replaced with command 0x3E, enabling semitransparent colour-modulated
+/// GT4 drawing independently of object flags. The packet length is twelve
+/// payload words. Words 6 and 7 pack U0/V0 with CLUT and U1/V1 with page
+/// settings; word 8 packs U2/V2 and U3/V3 in its low/high halves. UV coordinates
+/// are unsigned texel bytes. No normals or lighting are used.
+///
+/// `primWrite` must provide one writable, word-aligned 52-byte POLY_GT4 slot
+/// per element within the selected half's second region. Copied GPU addresses
+/// receive signed workspace `texturePageOffset` (-128..127 encoded units) and
+/// `encodedClutOffset` (-8192..8128, 64 per palette row), with u16 wrapping.
+/// UV pad halfwords and screen XY persist. Drawing projects/culls the vertices
+/// and links accepted packets, leaving the prebuilt colours, length and code.
+///
+/// The caller supplies `elemCount` (0..65535) and `elemStride` in u32 words,
+/// at least nine for a nonempty record. Every full stride must be readable and
+/// every packet slot writable; bounds are unchecked. Advances `primWrite` by
+/// one packet per element and returns `elements + initial count * elemStride`,
+/// leaving the following record/marker unconsumed. Consumes the count to -1
+/// even for an empty record, which reads no payload and advances neither cursor.
+/// `preXformWrite` is unchanged; `objectFlags` is passed as zero and ignored.
+/// All storage is borrowed; no pointer is retained by the callback.
+u32* tmdBuildStreamGt4Unlit(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Initializes persistent texture fields for flat textured-triangle stream records.
 ///
@@ -756,24 +868,34 @@ u32* tmdBuildStreamGt4LayeredBase(TmdStreamWorkspace* workspace, s32 objectFlags
 /// an empty record reads no payload and advances neither cursor.
 u32* tmdBuildStreamGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's layered pre-transformed textured-quad records (`0x4079`):
-/// each element contributes two quads to the buffer half's first region — the base
-/// the model is drawn from, and the semi-transparent layer drawn over it.
+/// Initializes texture fields in pre-transformed environment/base quad pairs.
 ///
-/// The `0x4000` bit is the whole of the difference between these records and
-/// `gpStreamPrimGt4PreXform`'s, which contribute the base quad alone. The base is
-/// textured as it is there, from the element's texture words with the model's
-/// texture page and CLUT added. The layer is the draw pass's to texture: the
-/// record's vertex commands write its coordinates there and give it texture
-/// coordinates derived from the vertices' normals, and the page it draws from is
-/// chosen from what those commands leave behind. Of the layer's own words this
-/// command sets only its page and CLUT, at a fixed pair (`0x3F`, `0x3C10`).
+/// Construction selects this callback for `0x4079` outside stage 2, areas
+/// 15 and 16. `elements` starts after the three-word record header. Words 0..1
+/// pack four depth-cache byte references for drawing. Words 2 and 3 pack U0/V0
+/// with encoded CLUT and U1/V1 with page settings; word 4 packs U2/V2 in its
+/// low half and U3/V3 in its high half. UV coordinates are unsigned texel bytes.
+/// References are not read here. `elemStride` counts u32 words, at least five
+/// for a nonempty record; every full stride must be readable.
 ///
-/// The opcode says the quad's vertices are already in screen space, so there is no
-/// transform or cull for this command to do. Where the layer is textured from the
-/// object's page and CLUT offsets instead, the walk takes the record's other
-/// handler.
-u32* gpStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `preXformWrite` must provide two writable, word-aligned 52-byte POLY_GT4
+/// slots per element in the selected half's first region. The first is the
+/// environment layer: seeds a 4-bit additive page at VRAM word coordinates
+/// (960,256) and CLUT at (256,240). Projection supplies its positions, colours
+/// and normal-derived UVs later. The environment drawer replaces its page with
+/// a direct-colour page, which ignores the retained CLUT. The second is the
+/// opaque base: receives element texture data plus workspace `texturePageOffset`
+/// (-128..127 encoded units) and `encodedClutOffset` (-8192..8128, 64 per row).
+/// Address sums wrap to u16. Tags, length/code, colours, XY and SDK pads persist
+/// for projection and drawing; construction performs neither phase.
+///
+/// With initial `elemCount` 0..65535, advances `preXformWrite` by two packets
+/// per element and returns `elements + initial count * elemStride`, leaving
+/// the next marker unconsumed. Consumes the count to -1 even for an empty record,
+/// which reads no payload and advances neither cursor. `primWrite` is unchanged.
+/// `objectFlags` is passed as zero and ignored. Capacities are unchecked. All
+/// storage is borrowed for the call; no pointer is retained.
+u32* tmdBuildStreamGt4PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Initializes texture fields in pre-transformed offset-layer/base triangle pairs.
 ///
@@ -807,21 +929,35 @@ u32* gpStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream
 /// which reads no payload and advances neither cursor.
 u32* tmdBuildStreamGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's layered pre-transformed textured-quad records (`0x4079`)
-/// whose semi-transparent layer is textured from the object: each element
-/// contributes two quads to the buffer half's first region, with the element's
-/// texture words written into both.
+/// Initializes texture fields in pre-transformed offset-layer/base quad pairs.
 ///
-/// The opcode says the quads' vertices are already in screen space, so there is no
-/// transform for this command to do. `0x4000` asks for two primitives per element —
-/// the base the model is drawn from, and the semi-transparent layer drawn over it —
-/// and that layer is normally the transform pass's to texture, from a page of its
-/// own. The walk takes this handler where the layer is textured from the record
-/// instead: the same `u`/`v` fields go into both primitives, the base takes the
-/// model's texture page and CLUT added to the record's own, and the layer takes the
-/// object's extra page and CLUT offsets in their place, along with the
-/// semi-transparency rate it blends at.
-u32* gpStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Construction selects this callback for `0x4079` in stage 2, areas 15 and
+/// 16. `elements` starts after the three-word record header. Words 0..1 pack
+/// four depth-cache byte references for drawing; none are read here. Words 2
+/// and 3 pack U0/V0 with CLUT and U1/V1 with page settings; word 4 packs U2/V2
+/// and U3/V3 in its low/high halves. UV coordinates are unsigned texel bytes.
+/// Both packets receive that texture suffix, with independent GPU addresses.
+///
+/// The first packet is the blended layer: adds the live object's signed
+/// `layerTexturePageOffset` (-128..127 encoded units) and `layerClutRowOffset`
+/// (-128..127 palette rows, 64 encoded CLUT units per row). Page relocation
+/// wraps to u16 before ABR bit 5 is set; bit 6 is preserved, yielding mode 1 or
+/// 3. Drawing supplies the semitransparent command separately. The second is
+/// the opaque base: independently adds workspace `texturePageOffset`
+/// (-128..127) and `encodedClutOffset` (-8192..8128). CLUT sums wrap to u16.
+/// Tags, length/code, colours, screen XY and SDK pads persist for later phases.
+///
+/// The caller supplies `elemCount` (0..65535) and `elemStride` in u32 words,
+/// at least five for a nonempty record, with every full stride readable.
+/// `preXformWrite` must provide two writable, word-aligned 52-byte POLY_GT4
+/// slots per element in the selected half's first region. Advances that cursor
+/// by two packets per element and returns `elements + initial count * elemStride`,
+/// leaving the next record/marker unconsumed. Consumes the count to -1 even for
+/// an empty record, which reads no payload and advances neither cursor.
+/// `primWrite` is unchanged; `objectFlags` is passed as zero and ignored.
+/// Capacities are unchecked. Workspace, live object, stream and packet storage
+/// are borrowed for the call; no pointer is retained.
+u32* tmdBuildStreamGt4PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Reserves one untextured Gouraud quad packet per element during TMD buffer construction.
 ///

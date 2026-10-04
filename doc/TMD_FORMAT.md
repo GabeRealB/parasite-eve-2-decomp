@@ -323,10 +323,14 @@ displacements. Projection supplies the layer's U/V; its environment draw
 handler replaces the seeded page with a direct-colour page, leaving the CLUT
 stored but unused by that texture format.
 
-The pre-transformed pair (`0x39`, `0x79`) is the exception to *only* the second:
-those handlers fill the first slot's page and CLUT as well, with the fixed pair
-`0x3F`/`0x3C10` (`gpStreamPrimGt4PreXformLayer` is the `0x79` one). The base slot
-takes the same element words there as its unlayered handler does.
+`tmdBuildStreamGt4PreXformEnvLayer` does the same for the quad pair (`0x4079`):
+the first slot receives `getTPage(0, GPU_BLEND_ADD, 960, 256)` / `getClut(256, 240)`
+(`0x3F` / `0x3C10`), while the opaque base receives words 2..4 with the model's
+base displacements. Its draw handler also replaces the layer page with a
+direct-colour environment page. In stage 2 areas 15 and 16,
+`tmdBuildStreamGt4PreXformOffsetLayer` copies those texture words to both slots
+with independent layer/base offsets, setting only ABR bit 5 on the layer's
+relocated page and retaining bit 6.
 
 **`0x8000` / `0x10000` / `0x20000` — the model brings its own transform
 routine.** These resolve to init handlers at `0x8013xxxx`, which is inside the

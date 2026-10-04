@@ -539,14 +539,14 @@ static inline void _modelLightingInitGt3OffsetLayerTexture(POLY_GT3* triangle, c
 
 /// Initializes the offset-layer texture of one layered Gouraud quad.
 ///
-/// `quad` must be a writable, four-byte-aligned `POLY_GT4` for the first
-/// packet in a layered pair. `elementWords` starts after a `0x4078` record's
-/// three-word header and provides at least seven readable, four-byte-aligned
-/// u32 words. Words 0..3 pack four vertex and four normal references and are
-/// not read here. Words 4 and 5 pack unsigned byte U/V texel coordinates with
-/// encoded CLUT and texture-page settings. Word 6 packs U2/V2 in its low half
-/// and U3/V3 in its high half. This minimum readable extent does not establish
-/// the element's full stride.
+/// `quad` is the writable, four-byte-aligned first `POLY_GT4` of a layered
+/// pair. `elementWords` is the aligned payload base after the record header;
+/// `uv0ClutWordIndex` selects three consecutive readable u32 words within
+/// that element. The index is nonnegative and index + 2 must fit s32. It is
+/// 4 for `0x4078` and 2 for `0x4079`; this does not establish the full stride.
+/// The first two words pack unsigned byte U/V texel coordinates with encoded
+/// CLUT and page settings. The third packs U2/V2 in its low half and U3/V3 in
+/// its high half. Their destination halfword views preserve SDK pad2/pad3.
 ///
 /// `workspace->obj` must be a live object. Its `layerTexturePageOffset` adds
 /// -128..127 encoded page units; `layerClutRowOffset` adds -128..127 palette
@@ -557,15 +557,12 @@ static inline void _modelLightingInitGt3OffsetLayerTexture(POLY_GT3* triangle, c
 /// The tag, colours/command, positions and SDK pad fields remain untouched.
 /// All storage is borrowed for the call; no pointer is retained and neither
 /// workspace nor object is modified.
-static inline void _modelLightingInitGt4OffsetLayerTexture(POLY_GT4* quad, const u32* elementWords,
+static inline void _modelLightingInitGt4OffsetLayerTexture(POLY_GT4* quad, const u32* elementWords, s32 uv0ClutWordIndex,
                                                            const TmdStreamWorkspace* workspace)
 {
     enum {
-        MODEL_LIGHTING_GT4_OFFSET_LAYER_UV0_CLUT_WORD  = 4,      // Packed U0/V0 bytes and encoded CLUT
-        MODEL_LIGHTING_GT4_OFFSET_LAYER_UV1_TPAGE_WORD = 5,      // Packed U1/V1 bytes and encoded page settings
-        MODEL_LIGHTING_GT4_OFFSET_LAYER_UV2_UV3_WORD   = 6,      // U2/V2 in the low half, U3/V3 in the high half
-        MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT  = 1 << 5, // OR after relocation; retains ABR bit 6 (mode 1 or 3)
-        MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT     = 6       // Signed palette rows to encoded CLUT units (64 per row)
+        MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT = 1 << 5, // OR after relocation; retains ABR bit 6 (mode 1 or 3)
+        MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT    = 6       // Signed palette rows to encoded CLUT units (64 per row)
     };
     u32 layerTexturePage;
     u8  layerClutRowByte;
@@ -576,11 +573,11 @@ static inline void _modelLightingInitGt4OffsetLayerTexture(POLY_GT4* quad, const
                       OFFSET_OF(POLY_GT4, pad3) == OFFSET_OF(POLY_GT4, u3) + sizeof(u16),
                   model_lighting_gt4_offset_layer_uv_pair_layout);
 
-    MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[MODEL_LIGHTING_GT4_OFFSET_LAYER_UV0_CLUT_WORD];
-    MODEL_LIGHTING_UV1_TPAGE_WORD(quad) = elementWords[MODEL_LIGHTING_GT4_OFFSET_LAYER_UV1_TPAGE_WORD];
+    MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[uv0ClutWordIndex];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(quad) = elementWords[uv0ClutWordIndex + 1];
     // Split the packed U/V pairs without overwriting the adjacent pad2/pad3.
-    *(u16*)&quad->u2 = (u16)elementWords[MODEL_LIGHTING_GT4_OFFSET_LAYER_UV2_UV3_WORD];
-    *(u16*)&quad->u3 = (u16)(elementWords[MODEL_LIGHTING_GT4_OFFSET_LAYER_UV2_UV3_WORD] >> 16);
+    *(u16*)&quad->u2 = (u16)elementWords[uv0ClutWordIndex + 2];
+    *(u16*)&quad->u3 = (u16)(elementWords[uv0ClutWordIndex + 2] >> 16);
     // The page sum wraps to u16 before its ABR mode is adjusted.
     quad->tpage += workspace->obj->layerTexturePageOffset;
     // Keep the row byte unsigned until the CLUT calculation restores its sign.
@@ -588,7 +585,7 @@ static inline void _modelLightingInitGt4OffsetLayerTexture(POLY_GT4* quad, const
     layerTexturePage  = quad->tpage;
     layerTexturePage |= MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
     quad->tpage       = layerTexturePage;
-    quad->clut       += (s8)layerClutRowByte << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT;
+    quad->clut       += (s8)layerClutRowByte * (1 << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT);
 }
 
 /// Initializes one Gouraud textured triangle's texture from a per-corner-colour element.
@@ -724,6 +721,56 @@ static inline void _modelLightingInitGt3PreXformOffsetLayerTexture(POLY_GT3* tri
     layerTexturePage |= MODEL_LIGHTING_OFFSET_LAYER_TPAGE_ABR_LOW_BIT;
     triangle->tpage   = layerTexturePage;
     triangle->clut   += (s8)layerClutRowByte * (1 << MODEL_LIGHTING_OFFSET_LAYER_CLUT_ROW_SHIFT);
+}
+
+/// Completes and links a projected, front-facing raw-texture triangle.
+///
+/// The GTE must retain this triangle's screen XY and depths with valid ZSF3.
+/// `triangle` is its prebuilt, aligned POLY_FT3 slot; texture fields persist.
+/// `gteResultDestination` addresses `workspace->gteResult`. Its OT and the
+/// packet must remain GPU-visible through consumption. The display shift is
+/// 0..3 in normal drawing; the wrapped bucket must fit the displaced OT base.
+static inline void _tmdLinkProjectedRawFt3(POLY_FT3* triangle, TmdStreamWorkspace* workspace,
+                                           s32* gteResultDestination, const DisplayState* displayState)
+{
+    enum {
+        TMD_FT3_RAW_TEXTURE_COMMAND = 0x25, // Opaque FT3, texture RGB bypasses colour modulation
+        TMD_FT3_OT_INDEX_SHIFT      = 4     // Sixteen scaled depth units per OT tag
+    };
+
+    gte_stsxy3_ft3(triangle);
+    gte_avsz3();
+    setlen(triangle, (sizeof(*triangle) - sizeof(triangle->tag)) / sizeof(u32));
+    setcode(triangle, TMD_FT3_RAW_TEXTURE_COMMAND);
+    gte_stotz(gteResultDestination);
+    addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_FT3_OT_INDEX_SHIFT &
+                           (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+            triangle);
+}
+
+/// Completes and links a projected, front-facing raw-texture quad.
+///
+/// The first three XY pairs are already stored in the aligned prebuilt
+/// `quad`; GTE SXY2 holds corner 3 and the depth FIFO holds all four depths.
+/// ZSF4 must be initialized. `gteResultDestination` is `&workspace->gteResult`.
+/// Texture fields persist. The wrapped display-scaled bucket must fit the
+/// displaced OT base; packet and OT storage must outlive GPU consumption.
+static inline void _tmdLinkProjectedRawFt4(POLY_FT4* quad, TmdStreamWorkspace* workspace,
+                                           s32* gteResultDestination, const DisplayState* displayState)
+{
+    enum {
+        TMD_FT4_RAW_TEXTURE_COMMAND = 0x2D, // Opaque FT4, texture RGB bypasses colour modulation
+        TMD_FT4_OT_INDEX_SHIFT      = 4
+    };
+
+    gte_stsxy2(&quad->x3);
+    gte_avsz4();
+    setlen(quad, (sizeof(*quad) - sizeof(quad->tag)) / sizeof(u32));
+    setcode(quad, TMD_FT4_RAW_TEXTURE_COMMAND);
+    gte_stotz(gteResultDestination);
+    addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_FT4_OT_INDEX_SHIFT &
+                           (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+            quad);
 }
 
 u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
@@ -1716,100 +1763,97 @@ u32* gpDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream
     return stream;
 }
 
-u32* func_8009D388(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimFt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    TmdStreamWorkspace* ws;
-    POLY_FT3*           poly;
-    s32*                opz;
-    DisplayState*       ds;
-    u16*                rec;
-    u8*                 verts;
+    enum { TMD_FT3_VERTEX_BYTE_OFFSET_MASK = 0xFFF8 }; // Keep aligned eight-byte vertex offsets
+    POLY_FT3*           triangle;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    const u16*          vertexRefs;
+    const u8*           vertexBytes;
 
-    ws   = arg0;
-    poly = (POLY_FT3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        opz = &ws->gteResult;
-        ds  = &gDisplayState;
+    triangle = (POLY_FT3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            // Stream halfwords encode byte offsets; low reference bits are discarded.
+            vertexRefs  = (const u16*)elements;
+            vertexBytes = (const u8*)workspace->verts;
+            gte_ldv3(vertexBytes + (vertexRefs[0] & TMD_FT3_VERTEX_BYTE_OFFSET_MASK),
+                     vertexBytes + (vertexRefs[1] & TMD_FT3_VERTEX_BYTE_OFFSET_MASK),
+                     vertexBytes + (vertexRefs[2] & TMD_FT3_VERTEX_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag >= 0) {
+            gte_stflg(&workspace->gteFlag);
+            if (workspace->gteFlag >= 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                if (ws->gteResult > 0) {
-                    gte_stsxy3_ft3(poly);
-                    gte_avsz3();
-                    setlen(poly, 7);
-                    setcode(poly, 0x25);
-                    gte_stotz(opz);
-                    addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                gte_stopz(gteResultDestination);
+                if (workspace->gteResult > 0) {
+                    _tmdLinkProjectedRawFt3(triangle, workspace, gteResultDestination, displayState);
                 }
             }
-            poly++;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Rejected triangles consume their construction-reserved slots too.
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
-u32* func_8009D518(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* tmdDrawStreamPrimFt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    TmdStreamWorkspace* ws;
-    POLY_FT4*           poly;
-    s32*                opz;
-    DisplayState*       ds;
-    u32                 clipMask;
-    s32*                flg;
-    u16*                rec;
-    u8*                 verts;
+    enum { TMD_FT4_VERTEX_BYTE_OFFSET_MASK = 0xFFF8 }; // Keep aligned eight-byte vertex offsets
+    POLY_FT4*           quad;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 projectionErrorMask;
+    s32*                gteFlagDestination;
+    const u16*          vertexRefs;
+    const u8*           vertexBytes;
 
-    ws   = arg0;
-    poly = (POLY_FT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        flg      = &ws->gteFlag;
-        clipMask = TMD_GTE_ERROR_FLAG;
-        opz      = &ws->gteResult;
-        ds       = &gDisplayState;
+    quad = (POLY_FT4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        gteFlagDestination   = &workspace->gteFlag;
+        projectionErrorMask  = TMD_GTE_ERROR_FLAG;
+        gteResultDestination = &workspace->gteResult;
+        displayState         = &gDisplayState;
         do {
-            rec   = (u16*)arg2;
-            verts = (u8*)ws->verts;
-            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            vertexRefs  = (const u16*)elements;
+            vertexBytes = (const u8*)workspace->verts;
+            gte_ldv3(vertexBytes + (vertexRefs[0] & TMD_FT4_VERTEX_BYTE_OFFSET_MASK),
+                     vertexBytes + (vertexRefs[1] & TMD_FT4_VERTEX_BYTE_OFFSET_MASK),
+                     vertexBytes + (vertexRefs[2] & TMD_FT4_VERTEX_BYTE_OFFSET_MASK));
             gte_rtpt();
-            gte_stflg(flg);
-            if ((ws->gteFlag & clipMask) == 0) {
+            gte_stflg(gteFlagDestination);
+            if ((workspace->gteFlag & projectionErrorMask) == 0) {
                 gte_nclip();
-                gte_stopz(opz);
-                gte_stsxy3_ft4(poly);
-                gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
+                gte_stopz(gteResultDestination);
+                // Retain the first facing result while projecting the fourth corner.
+                gte_stsxy3_ft4(quad);
+                gte_ldv0((const u8*)workspace->verts + (vertexRefs[3] & TMD_FT4_VERTEX_BYTE_OFFSET_MASK));
                 gte_rtps();
-                gte_stflg(flg);
-                if ((ws->gteFlag & clipMask) == 0) {
-                    if (ws->gteResult > 0) {
-                        goto draw;
+                gte_stflg(gteFlagDestination);
+                if ((workspace->gteFlag & projectionErrorMask) == 0) {
+                    if (workspace->gteResult > 0) {
+                        goto drawQuad;
                     }
+                    // The FIFO now holds corners 1,2,3; either half may face forward.
                     gte_nclip();
-                    gte_stopz(opz);
-                    if (ws->gteResult < 0) {
-                    draw:
-                        gte_stsxy2(&poly->x3);
-                        gte_avsz4();
-                        setlen(poly, 9);
-                        setcode(poly, 0x2D);
-                        gte_stotz(opz);
-                        addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                    gte_stopz(gteResultDestination);
+                    if (workspace->gteResult < 0) {
+                    drawQuad:
+                        _tmdLinkProjectedRawFt4(quad, workspace, gteResultDestination, displayState);
                     }
                 }
             }
-            poly++;
-            arg2 += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Rejected quads may keep partial XY writes and still consume a slot.
+            quad++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return arg2;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
 u32* func_8009D718(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
@@ -2382,25 +2426,20 @@ u32* tmdBuildStreamGt3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u
     return elements;
 }
 
-u32* gpStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4* poly;
+    enum { TMD_GT4_PRE_XFORM_UV0_CLUT_WORD_INDEX = 2 };
+    POLY_GT4* quad;
 
-    poly = (POLY_GT4*)ws->preXformWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
-            *(u16*)&poly->u2                    = (u16)stream[4];
-            *(u16*)&poly->u3                    = ((u16*)&stream[4])[1];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    quad = (POLY_GT4*)workspace->preXformWrite;
+    // Seed texture data before projection commands supply positions and colours.
+    while (workspace->elemCount-- > 0) {
+        _modelLightingInitGt4TextureWords(quad, elements, TMD_GT4_PRE_XFORM_UV0_CLUT_WORD_INDEX, workspace);
+        quad++;
+        elements += workspace->elemStride;
     }
-    ws->preXformWrite = (u8*)poly;
-    return stream;
+    workspace->preXformWrite = (u8*)quad;
+    return elements;
 }
 
 u32* modelLightingStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
@@ -2584,54 +2623,50 @@ u32* tmdBuildStreamGt3OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, 
     return elements;
 }
 
-u32* gpStreamPrimGt4OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt4OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4* poly;
+    enum { TMD_GT4_ONE_NORMAL_UV0_CLUT_WORD_INDEX = 3 };
+    POLY_GT4* quad;
 
-    poly = (POLY_GT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[3];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[4];
-            *(u16*)&poly->u2                    = (u16)stream[5];
-            *(u16*)&poly->u3                    = ((u16*)&stream[5])[1];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    quad = (POLY_GT4*)workspace->primWrite;
+    // Drawing lights all four corners from the element's face normal.
+    while (workspace->elemCount-- > 0) {
+        _modelLightingInitGt4TextureWords(quad, elements, TMD_GT4_ONE_NORMAL_UV0_CLUT_WORD_INDEX, workspace);
+        quad++;
+        elements += workspace->elemStride;
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
-u32* gpStreamPrimGt4Unlit(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt4Unlit(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4* poly;
-    s32       color;
+    enum {
+        TMD_GT4_UNLIT_COLOR_WORD_INDEX    = 2,
+        TMD_GT4_UNLIT_UV0_CLUT_WORD_INDEX = 6,
+        TMD_GT4_UNLIT_SEMI_TRANS_COMMAND  = 0x3E
+    };
+    POLY_GT4* quad;
+    u32       corner3ColorWord;
 
-    poly = (POLY_GT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
+    quad = (POLY_GT4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
         do {
-            GPU_PRIMITIVE_COLOR_WORD(poly, 0) = stream[2];
-            GPU_PRIMITIVE_COLOR_WORD(poly, 1) = stream[3];
-            GPU_PRIMITIVE_COLOR_WORD(poly, 2) = stream[4];
-            color                             = stream[5];
-            setlen(poly, 12);
-            setcode(poly, 0x3E);
-            GPU_PRIMITIVE_COLOR_WORD(poly, 3)   = color;
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[6];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[7];
-            *(u16*)&poly->u2                    = (u16)stream[8];
-            *(u16*)&poly->u3                    = ((u16*)&stream[8])[1];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Copy all four colour bytes; only corner 0's command is replaced.
+            GPU_PRIMITIVE_COLOR_WORD(quad, 0) = elements[TMD_GT4_UNLIT_COLOR_WORD_INDEX];
+            GPU_PRIMITIVE_COLOR_WORD(quad, 1) = elements[TMD_GT4_UNLIT_COLOR_WORD_INDEX + 1];
+            GPU_PRIMITIVE_COLOR_WORD(quad, 2) = elements[TMD_GT4_UNLIT_COLOR_WORD_INDEX + 2];
+            corner3ColorWord                  = elements[TMD_GT4_UNLIT_COLOR_WORD_INDEX + 3];
+            setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+            setcode(quad, TMD_GT4_UNLIT_SEMI_TRANS_COMMAND);
+            GPU_PRIMITIVE_COLOR_WORD(quad, 3) = corner3ColorWord;
+            _modelLightingInitGt4TextureWords(quad, elements, TMD_GT4_UNLIT_UV0_CLUT_WORD_INDEX, workspace);
+            quad++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
 u32* modelLightingStreamPrimFt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
@@ -2765,7 +2800,7 @@ u32* tmdBuildStreamGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags
     if (workspace->elemCount-- > 0) {
         do {
             // Layer and base share UVs, with independent stream-relative GPU addresses.
-            _modelLightingInitGt4OffsetLayerTexture(quad, elements, workspace);
+            _modelLightingInitGt4OffsetLayerTexture(quad, elements, MODEL_LIGHTING_GT4_OFFSET_LAYER_UV0_CLUT_WORD, workspace);
             quad++;
             _modelLightingInitGt4TextureWords(quad, elements, MODEL_LIGHTING_GT4_OFFSET_LAYER_UV0_CLUT_WORD, workspace);
             quad++;
@@ -2815,28 +2850,26 @@ u32* tmdBuildStreamGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 object
     return elements;
 }
 
-u32* gpStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt4PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4* poly;
+    enum {
+        TMD_GT4_ENV_INITIAL_TEXTURE_DEPTH_4BIT = 0,
+        TMD_GT4_ENV_BASE_UV0_CLUT_WORD_INDEX   = 2
+    };
+    POLY_GT4* quad;
 
-    poly = (POLY_GT4*)ws->preXformWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            poly->tpage = 0x3F;
-            poly->clut  = 0x3C10;
-            poly++;
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
-            *(u16*)&poly->u2                    = (u16)stream[4];
-            *(u16*)&poly->u3                    = ((u16*)&stream[4])[1];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    quad = (POLY_GT4*)workspace->preXformWrite;
+    while (workspace->elemCount-- > 0) {
+        // Projection supplies the environment UVs; drawing replaces its page.
+        quad->tpage = getTPage(TMD_GT4_ENV_INITIAL_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 960, 256);
+        quad->clut  = getClut(256, 240);
+        quad++;
+        _modelLightingInitGt4TextureWords(quad, elements, TMD_GT4_ENV_BASE_UV0_CLUT_WORD_INDEX, workspace);
+        quad++;
+        elements += workspace->elemStride;
     }
-    ws->preXformWrite = (u8*)poly;
-    return stream;
+    workspace->preXformWrite = (u8*)quad;
+    return elements;
 }
 
 u32* tmdBuildStreamGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
@@ -2857,38 +2890,22 @@ u32* tmdBuildStreamGt3PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 obj
     return elements;
 }
 
-u32* gpStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt4PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT4* poly;
-    s32       tpage;
-    s32       tmp;
+    enum { TMD_GT4_PRE_XFORM_OFFSET_LAYER_UV0_CLUT_WORD_INDEX = 2 };
+    POLY_GT4* quad;
 
-    poly = (POLY_GT4*)ws->preXformWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
-            *(u16*)&poly->u2                    = (u16)stream[4];
-            *(u16*)&poly->u3                    = ((u16*)&stream[4])[1];
-            poly->tpage                        += ws->obj->layerTexturePageOffset;
-            tmp                                 = (u8)ws->obj->layerClutRowOffset;
-            tpage                               = poly->tpage;
-            tpage                              |= 0x20;
-            poly->tpage                         = tpage;
-            poly->clut                         += (s8)tmp << 6;
-            poly++;
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
-            *(u16*)&poly->u2                    = (u16)stream[4];
-            *(u16*)&poly->u3                    = ((u16*)&stream[4])[1];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    quad = (POLY_GT4*)workspace->preXformWrite;
+    while (workspace->elemCount-- > 0) {
+        // Both packets share UVs; their GPU addresses have independent displacements.
+        _modelLightingInitGt4OffsetLayerTexture(quad, elements, TMD_GT4_PRE_XFORM_OFFSET_LAYER_UV0_CLUT_WORD_INDEX, workspace);
+        quad++;
+        _modelLightingInitGt4TextureWords(quad, elements, TMD_GT4_PRE_XFORM_OFFSET_LAYER_UV0_CLUT_WORD_INDEX, workspace);
+        quad++;
+        elements += workspace->elemStride;
     }
-    ws->preXformWrite = (u8*)poly;
-    return stream;
+    workspace->preXformWrite = (u8*)quad;
+    return elements;
 }
 
 u32* modelLightingReserveStreamPrimG4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)

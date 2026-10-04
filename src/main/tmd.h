@@ -423,7 +423,7 @@ u32* tmdDrawStreamPrimGt3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags
 /// already written by a projection command (offsets 0..4092 in normal drawing's
 /// 1024-entry cache). Valid entries retain screen Z (0..65535); any corner
 /// marked `TMD_VERTEX_DEPTH_INVALID` rejects the whole quad before averaging.
-/// Drawing needs at least two words per element; `gpStreamPrimGt4PreXform`
+/// Drawing needs at least two words per element; `tmdBuildStreamGt4PreXform`
 /// constructs texture fields from words 2..4, so complete elements need at
 /// least five. The stream must contain count * stride payload words.
 ///
@@ -467,7 +467,7 @@ u32* tmdDrawStreamPrimGt4PreXformSemiTrans(TmdStreamWorkspace* workspace, s32 ob
 /// a preceding projection command (offsets 0..4092 in normal drawing's
 /// 1024-entry cache). Entries retain screen Z (0..65535); any corner marked
 /// `TMD_VERTEX_DEPTH_INVALID` rejects the quad before averaging. Drawing reads
-/// two words per element, while `gpStreamPrimGt4PreXform` initializes texture
+/// two words per element, while `tmdBuildStreamGt4PreXform` initializes texture
 /// data from words 2..4, so a complete element needs at least five words.
 /// The stream must contain count * stride payload words; bounds are unchecked.
 ///
