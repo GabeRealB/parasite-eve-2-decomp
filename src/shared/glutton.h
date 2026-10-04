@@ -169,15 +169,6 @@ typedef struct GluttonSpawnScratch {
 } GluttonSpawnScratch;
 STATIC_ASSERT_SIZEOF(GluttonSpawnScratch, 0xC);
 
-/// Scratchpad frame the hit-effect spawner `func_actor_403200_80134044` carves
-/// off the scratch-pad stack to hand `func_800FDB18` an effect rotation together with
-/// the `EffectSpawnArg` naming the coordinate the effect hangs off.
-typedef struct GluttonEffScratch {
-    SVECTOR        rot; // effect rotation, chosen from the attack's param 0
-    EffectSpawnArg eff; // coordinate, 0x500, 3
-} GluttonEffScratch;
-STATIC_ASSERT_SIZEOF(GluttonEffScratch, 0x10);
-
 /// Work block shared by four of the projectiles the Glutton flings: the
 /// thrown hit sphere, the glob, the debris chunk and the rain blob.
 ///
