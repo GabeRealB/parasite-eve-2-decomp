@@ -3849,7 +3849,7 @@ and so says nothing about how the original declared it.
 The cheap way to settle it is the sibling: when the body is a copy of another
 overlay's, that overlay's header already answered the question.
 `Actor400600Work::field_744`/`field_746` and
-`Actor405800Work::field_870`/`field_872` are this same "clip now playing" /
+`_Actor405800IvoryStalkerWork::animPlaying`/`animClip` are this same "clip now playing" /
 "clip requested" pair, both declared `s16`, and both targets load both halves
 with `lh` - three overlays agreeing beats one ambiguous store.
 
@@ -4204,7 +4204,7 @@ block split by a call rather than two `case`s.
 ## Negative halfword store: `u16` emits `ori 0xF63C`, `s16` emits `addiu -0x9C4`
 
 `func_actor_405800_80134E80` is the `actor_400600` hop with an extra
-`field_866` window and `field_86A = -0x9C4` on frame 0x15. With `field_86A`
+`shadowShade` window and `shadowHeight = -0x9C4` on frame 0x15. With `shadowHeight`
 typed `u16`, the store was the only leftover (99.976%, `regs=1`):
 
 ```
@@ -4218,9 +4218,9 @@ payload is identical; only the materialisation differs.
 
 The field is a signed height (seeded from Y, later passed as `s16` into
 `func_actor_405800_80132E3C`). The already-matched caller already loaded it
-with `lh`, so changing `Actor405800Work::field_86A` from `u16` to `s16`
-matched this function without disturbing the copies from `field_92`. Do not
-cast at the store: `work->field_86A = (s16)-0x9C4` still converts through
+with `lh`, so changing `_Actor405800IvoryStalkerWork::shadowHeight` from `u16` to `s16`
+matched this function without disturbing the copies from `floorY`. Do not
+cast at the store: `work->shadowHeight = (s16)-0x9C4` still converts through
 the unsigned dest.
 
 ## Cross-block CSE: a load survives a branch, and only a clobber parts it
@@ -4255,7 +4255,7 @@ readers, which load into `u16` and so still emit `lhu`.
 
 `func_actor_405800_801373E0` is a leaf that still reloads `index->work` on
 every success path except the first (`lw a0, 0x1c(a3)` then `j` to the shared
-`sh field_846` / `sh field_848` tail). Nearby functions get that reload for
+`sh state` / `sh subState` tail). Nearby functions get that reload for
 free because a call invalidates memory. Here CSE proves the pointer equals the
 live `work` local and deletes the load. Then `index` dies in block 0, keeps
 `$a0`, and `work` is pushed to `$a1` — the shared tail uses `$a1`, so jump2
@@ -4271,9 +4271,9 @@ instead of `li v0, 1` (126 insns). Pin the return value through the clobber:
 ```c
 ret = 1;
 TOUCH_REG_MEM(ret);   /* volatile +r and memory; li v0,1 stays first */
-work2 = (Actor405800Work*)arg0->work;
-work2->field_846 = 8;
-work2->field_848 = 0;
+work2 = (_Actor405800IvoryStalkerWork*)arg0->work;
+work2->state = 8;
+work2->subState = 0;
 return ret;
 ```
 
@@ -4283,8 +4283,8 @@ plain `return 1` so it falls through into the tail instead of jumping.
 
 The two `return 0` sites are not the same block: `(bits & 0xF) == 0` failures
 are an inner `return 0` that sits between the first tail and the `(bits & 7)`
-arm; later `field_890 == 0` failures fall through to the outer `return 0`;
-`field_890 != 0` failures jump back to the inner one.
+arm; later `onCeiling == 0` failures fall through to the outer `return 0`;
+`onCeiling != 0` failures jump back to the inner one.
 
 ## Interleave two stores of the same constant around another to keep it live
 
@@ -4294,10 +4294,10 @@ The target keeps `8` in `$v1` across both stores, overlapping `0x10` in `$v0`:
 ```
 li    v1, 8
 li    v0, 0x10
-sh    v0, field_850
+sh    v0, animStep
 li    v0, 1
-sh    v1, field_84A
-sh    v1, field_872
+sh    v1, animBlend
+sh    v1, animClip
 ```
 
 Writing the stores in that visible order (`850 = 0x10; 84A = 8; 872 = 8`) lets
@@ -64183,7 +64183,7 @@ element-wise stores it replaced. Both declarations carry initializers, table
 second:
 
 ```c
-Actor405800Work* work      = (Actor405800Work*)task->work;
+_Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
 TaskFunc         states[2] = { handler0, handler1 };
 ```
 
@@ -75052,29 +75052,29 @@ controlled experiment, not a permuter discovery.
 
 **Symptom.** `func_actor_405800_80139928` (shape-sibling of matched
 `func_actor_400600_8013C124`) was 99.2% with only two independent `lhu`s swapped.
-Retail does `lhu field_848; lhu t[2]` after `sh field_98` plus a load-delay nop
-on `t[0]`. Writing `work->field_848 = work->field_848 + 1` last kept the nop
+Retail does `lhu subState; lhu t[2]` after `sh leapX` plus a load-delay nop
+on `t[0]`. Writing `work->subState = work->subState + 1` last kept the nop
 (the increment chain was already scheduled in the backward pass) but ranked the
-`t[2]` load first of the post-store pair. Moving the increment before `field_9C`
-flipped that pair, yet birthed the `field_848` load at `LAUNCH_PRIORITY` while
-`sh field_98` was still pending, so it filled the `t[0]` delay and delayed the
-store (87%, same object as m2c). Putting `field_88F = 1` immediately after
-`field_98` filled the delay with `sb` (95.9%). `SOFT_BARRIER()` after the store
+`t[2]` load first of the post-store pair. Moving the increment before `leapZ`
+flipped that pair, yet birthed the `subState` load at `LAUNCH_PRIORITY` while
+`sh leapX` was still pending, so it filled the `t[0]` delay and delayed the
+store (87%, same object as m2c). Putting `holding = 1` immediately after
+`leapX` filled the delay with `sb` (95.9%). `SOFT_BARRIER()` after the store
 added an insn.
 
-**Fix.** Load the counter into its own local between the `field_98` store and
-the `field_9C` assignment, then write `next + 1` after the flag:
+**Fix.** Load the counter into its own local between the `leapX` store and
+the `leapZ` assignment, then write `next + 1` after the flag:
 
 ```c
-work->field_98  = coord->coord.t[0];
-next            = work->field_848;
-work->field_9C  = coord->coord.t[2];
-work->field_88F = 1;
-work->field_848 = next + 1;
+work->leapX    = coord->coord.t[0];
+next           = work->subState;
+work->leapZ    = coord->coord.t[2];
+work->holding  = 1;
+work->subState = next + 1;
 ```
 
 The extra statement gives the counter load an LUID between the two coordinate
-accesses, so sched1 ranks it first of the post-store pair, while `sh field_98`
+accesses, so sched1 ranks it first of the post-store pair, while `sh leapX`
 still has no ready filler and keeps the nop. `func_actor_405800_80139928`.
 
 ## Two-entry `TaskFunc` table: initializer vs assignment moves the first `lui`
@@ -82268,7 +82268,7 @@ its own variable.
 ```
 
 99.914% on that one line (`regs` 20 → 2). The house style already does this —
-`Actor405800Work* work2;` appears eight times — so a second local is not an
+`_Actor405800IvoryStalkerWork* work2;` appears eight times — so a second local is not an
 artefact here.
 
 **A near-identical sibling is not evidence about this function's source.**

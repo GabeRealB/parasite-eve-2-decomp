@@ -14,19 +14,19 @@ void stalkerZebraIvoryRightItself(Task* arg0)
     work  = (StalkerZebraIvoryWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
 #if STALKER_ZEBRA_IVORY_RIGHTING_PINS_PART
-    stalkerZebraIvoryPinPartXZ(arg0, 0xE, &work->field_88);
+    stalkerZebraIvoryPinPartXZ(arg0, 0xE, &work->anchorPos);
 #endif
     if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         work->yaw          = (work->yaw + 0x800) & 0xFFF;
         work2              = (StalkerZebraIvoryWork*)arg0->work;
         work2->animStep    = 0x10;
         work2->animClip    = 2;
-        work2->animRequest = 2;
+        work2->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_RESTART;
         stalkerZebraIvoryApplyRotationInline(arg0);
         stalkerZebraIvoryTickAnimInline(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->anchorPos);
         work->onBack    = 0;
         work3           = (StalkerZebraIvoryWork*)arg0->work;
         work3->state    = 2;

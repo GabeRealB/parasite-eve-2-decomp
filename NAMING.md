@@ -449,6 +449,14 @@ use `MAD_CHASER_ANIM_REQUEST_`, `MAD_CHASER_HIT_REACTION_` and
 `MAD_CHASER_COMMAND_`. The scripted waves that spawn the enemy are the separate
 `src/shared/mad_chaser_waves.h`.
 
+`stalkerZebraIvory` owns the included pose, animation-request and
+pending-action code shared by the Zebra Stalker (`actor_400600`) and the Ivory
+Stalker (`actor_405800`). Its implementation interface is
+`src/shared/stalker_zebra_ivory.h`, one fragment per function. Each package
+names its own work type `StalkerZebraIvoryWork` before including the fragments
+and spells the members they reach alike. Animation request and pending action
+values use `STALKER_ZEBRA_IVORY_ANIM_REQUEST_` and `STALKER_ZEBRA_IVORY_PENDING_`.
+
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
 `jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the

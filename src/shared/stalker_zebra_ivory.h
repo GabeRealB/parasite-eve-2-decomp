@@ -12,9 +12,11 @@
  * The packages use different work types: each names its own
  * `StalkerZebraIvoryWork` before including the fragments, and both name the
  * members the fragments reach alike - the root angles `pitch`, `yaw`, `roll`
- * at 0x80; the state and sub-state; the animation request `animRequest`,
- * `animClip`, `animStep`, `animBlend`, `animPlaying` and frame `animFrame`;
- * the pending action and its arming flag; the hold flags; the posture flags
+ * at 0x80; the pinned part's position `anchorPos`; the state and sub-state;
+ * the animation request `animRequest`, `animClip`, `animStep`, `animBlend`,
+ * `animPlaying` and frame `animFrame`; the pending action and its arming
+ * flag; `holding` and `holdKilledPlayer`; the arm flags `leftArmOut` and
+ * `rightArmOut`; the room command `roomCommand`; the posture flags
  * `onCeiling` and `onBack`; and the capsule body with its contact table.
  *
  * Include this header in the prologue and each fragment at its function's
@@ -62,6 +64,23 @@
 #include "main/task_types.h"
 
 #include "main/task_types.h"
+
+/// Values of the work block's `animRequest`.
+enum {
+    STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND   = 1, // blend into `animClip` over `animBlend` frames
+    STALKER_ZEBRA_IVORY_ANIM_REQUEST_RESTART = 2, // cut straight to `animClip`
+    STALKER_ZEBRA_IVORY_ANIM_REQUEST_PLAYING = 3  // `animClip` has been applied and is playing
+};
+
+/// Values of the work block's `pendingAction`, the reaction a hit asks for.
+enum {
+    STALKER_ZEBRA_IVORY_PENDING_NONE      = 0,
+    STALKER_ZEBRA_IVORY_PENDING_LIGHT     = 1, // light recoil (state 3)
+    STALKER_ZEBRA_IVORY_PENDING_HEAVY     = 2, // heavy recoil (state 4)
+    STALKER_ZEBRA_IVORY_PENDING_STATUS    = 3, // status hold (state 5); on the ceiling, knocked off it (state 0xE)
+    STALKER_ZEBRA_IVORY_PENDING_BLAST     = 4, // heavy recoil (state 4); a blast that kills bursts the body
+    STALKER_ZEBRA_IVORY_PENDING_KNOCKDOWN = 5  // knockdown (state 0xF); on the ceiling, knocked off it (state 0xE)
+};
 
 void stalkerZebraIvoryTurnToward(Task* arg0, SVECTOR* target, s32 step);
 void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, SVECTOR3* out);

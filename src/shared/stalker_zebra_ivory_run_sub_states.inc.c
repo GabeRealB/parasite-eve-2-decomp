@@ -1,6 +1,6 @@
 /* Part of the Ivory/Zebra Stalker library; see stalker_zebra_ivory.h. */
 
-/// Clears the queued mode, then, unless an armed pending action takes over,
+/// Folds both arms away, then, unless an armed pending action takes over,
 /// runs the sub-state handler `gStalkerZebraIvorySubStates` gives for
 /// `subState`.
 void stalkerZebraIvoryRunSubStates(Task* arg0)

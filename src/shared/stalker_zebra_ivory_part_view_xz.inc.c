@@ -2,7 +2,7 @@
 
 /// Refreshes the view coordinate and coordinate `index` of the actor's model,
 /// then stores that coordinate's view-space X and Z translation to `out`; `vy`
-/// is left untouched. Every caller passes the work block's `field_88`.
+/// is left untouched. Every caller passes the work block's `anchorPos`.
 void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, SVECTOR3* out)
 {
     MATRIX    local;

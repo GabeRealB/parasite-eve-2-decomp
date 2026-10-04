@@ -1,26 +1,26 @@
 /* Part of the Ivory/Zebra Stalker library; see stalker_zebra_ivory.h. Inline helpers the fragments use. */
 
-/// Serves the animation request (`animRequest` 1 blends to `animClip`, 2
-/// restarts it, 3 counts frames in `animFrame`) and ticks body slots 1-17 at
-/// `animStep`.
+/// Serves the animation request (`animRequest`: a blend goes to `animClip`, a
+/// restart cuts to it, playing counts frames in `animFrame`) and ticks body
+/// slots 1-17 at `animStep`.
 static __inline__ void stalkerZebraIvoryTickAnimInline(Task* arg0)
 {
     StalkerZebraIvoryWork* work = (StalkerZebraIvoryWork*)arg0->work;
     s32                    i;
 
-    if (work->animRequest == 1) {
+    if (work->animRequest == STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND) {
         if (work->animPlaying != work->animClip) {
             work->animFrame = 0;
         } else {
             work->animFrame = stalkerZebraIvoryScaleFrame(arg0, work->animFrame);
         }
         stalkerZebraIvoryBlendClip(arg0);
-        work->animRequest = 3;
-    } else if (work->animRequest == 2) {
+        work->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_PLAYING;
+    } else if (work->animRequest == STALKER_ZEBRA_IVORY_ANIM_REQUEST_RESTART) {
         stalkerZebraIvoryRestartClip(arg0);
-        work->animRequest = 3;
+        work->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_PLAYING;
         work->animFrame   = 0;
-    } else if (work->animRequest == 3) {
+    } else if (work->animRequest == STALKER_ZEBRA_IVORY_ANIM_REQUEST_PLAYING) {
         work->animFrame++;
     }
     i = 1;
