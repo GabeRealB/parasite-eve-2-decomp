@@ -40,18 +40,22 @@
 
 #include "rooms/shelter_r48.h"
 
-/// Work block `func_actor_503500_80132778` allocates (`memCalloc(0xC)`) and
-/// parks in `Task::work`. Each spawn packs `field_0 & 0xFFF` and
-/// `field_4 & 0xF000` into the `Gp_SpawnEff` argument; `field_8` is a 16.16
-/// period whose integer half is the `Task::killCountdown` limit between
-/// spawns. Flag nibble 0x12A states 2..4 decay the first two and stretch the
-/// period until it passes 0x10 and the task dies.
-typedef struct Actor503500EffWork {
-    /* 0x0 */ s32     field_0;
-    /* 0x4 */ s32     field_4;
-    /* 0x8 */ Fixed16 field_8;
-} Actor503500EffWork;
-STATIC_ASSERT_SIZEOF(Actor503500EffWork, 0xC);
+/// Work block of a drift-sprite emitter, a coordinate task that sheds Shelter
+/// R48's drift sprites from one fixed point of the room.
+///
+/// Each sprite is spawned on the emitter's own coordinate, drifting narrowly
+/// upward, with `spriteSize` and `cellPeriod` packed into its spawn argument.
+/// While the room's scene state winds the emitter down the sprites shrink,
+/// run through their cells faster and come less often, and the emitter ends
+/// once `spawnInterval` passes sixteen frames.
+///
+/// The emitter's task allocates the block zeroed and keeps it in `Task::work`.
+typedef struct {
+    s32     spriteSize;    // Size the next sprite is spawned with, a perspective numerator; only bits 0..11 reach the sprite. Shrinks to a floor while winding down
+    s32     cellPeriod;    // Frames the next sprite shows each animation cell, in 1/4096 of a frame; only the whole frames reach the sprite. Shrinks to one frame while winding down
+    Fixed16 spawnInterval; // Running frames between sprites: one is spawned when the task's frame count passes the integer half. Grows while winding down
+} _Actor503500DriftSpriteEmitterWork;
+STATIC_ASSERT_SIZEOF(_Actor503500DriftSpriteEmitterWork, 0xC);
 
 /// Spawn positions `func_actor_503500_80132778` indexes by `Task::spawnArg1`.
 extern SVECTOR D_actor_503500_8014B97C[];
@@ -1667,11 +1671,25 @@ static void func_actor_503500_80132F58(void);
 
 void func_actor_503500_80132778(Task* task)
 {
-    GfxCoord*           coord;
-    GfxRotationWords*   rot;
-    Actor503500EffWork* work;
-    SVECTOR*            pos;
-    u8                  done;
+    enum {
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE         = 0xC00,      // Sprite size until the emitter winds down
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE_STEP    = 0x10,       // Size lost per winding-down frame
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE_MIN     = 0x100,      // Floor of the shrinking size
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_CELL_PERIOD         = 0x4000,     // Four frames per cell until the emitter winds down
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_CELL_PERIOD_STEP    = 0x20,       // 1/128 of a frame lost per winding-down frame
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_CELL_PERIOD_MIN     = 0x1000,     // Floor of the shrinking period, one frame per cell
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_INTERVAL      = 0x60000,    // Six frames between sprites until the emitter winds down
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_INTERVAL_STEP = 0x1000,     // 1/16 of a frame gained per winding-down frame
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_INTERVAL_MAX  = 0x100000,   // Sixteen frames; the emitter ends once its interval is longer
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_SIZE_MASK     = 0xFFF,      // Size bits of the drift sprite's spawn argument
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_PERIOD_MASK   = 0xF000,     // Frames-per-cell nibble of the drift sprite's spawn argument
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_NARROW_UPWARD = 0x03800000, // Movement kind 3 (random, narrowly upward) at speed 0x80
+    };
+    GfxCoord*                           coord;
+    GfxRotationWords*                   rot;
+    _Actor503500DriftSpriteEmitterWork* work;
+    SVECTOR*                            pos;
+    u8                                  done;
 
     coord = task->extra.coordBody->coord;
     if (task->state == 0) {
@@ -1686,23 +1704,23 @@ void func_actor_503500_80132778(Task* task)
         rot->m20M21         = 0;
         rot->m22            = ONE;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        work                = memCalloc(0xC, false);
+        work                = memCalloc(sizeof(*work), false);
         if (work == NULL) {
             taskKill(task);
             return;
         }
-        task->work         = work;
-        work->field_0      = 0xC00;
-        work->field_4      = 0x4000;
-        work->field_8.word = 0x60000;
+        task->work               = work;
+        work->spriteSize         = ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE;
+        work->cellPeriod         = ACTOR_503500_DRIFT_SPRITE_EMITTER_CELL_PERIOD;
+        work->spawnInterval.word = ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_INTERVAL;
         task->state++;
     }
-    work = (Actor503500EffWork*)task->work;
+    work = task->work;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        if (work->field_8.halves.integer < ++task->killCountdown) {
+        if (work->spawnInterval.halves.integer < ++task->killCountdown) {
             task->killCountdown = 0;
             Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord,
-                        (work->field_4 & 0xF000) | 0x03800000 | (work->field_0 & 0xFFF), NULL);
+                        (work->cellPeriod & ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_PERIOD_MASK) | ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_NARROW_UPWARD | (work->spriteSize & ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_SIZE_MASK), NULL);
         }
     }
     switch (GameFlag_GetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE)) {
@@ -1719,17 +1737,18 @@ void func_actor_503500_80132778(Task* task)
             if (gGameSession->eventState != 0) {
                 return;
             }
-            work->field_4 -= 0x20;
-            if (work->field_4 < 0x1000) {
-                work->field_4 = 0x1000;
+            // Winding down: later sprites are smaller and shorter-lived.
+            work->cellPeriod -= ACTOR_503500_DRIFT_SPRITE_EMITTER_CELL_PERIOD_STEP;
+            if (work->cellPeriod < ACTOR_503500_DRIFT_SPRITE_EMITTER_CELL_PERIOD_MIN) {
+                work->cellPeriod = ACTOR_503500_DRIFT_SPRITE_EMITTER_CELL_PERIOD_MIN;
             }
-            work->field_0 -= 0x10;
-            if (work->field_0 < 0x100) {
-                work->field_0 = 0x100;
+            work->spriteSize -= ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE_STEP;
+            if (work->spriteSize < ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE_MIN) {
+                work->spriteSize = ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE_MIN;
             }
         case 4:
-            work->field_8.word += 0x1000;
-            done                = work->field_8.word > 0x100000;
+            work->spawnInterval.word += ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_INTERVAL_STEP;
+            done                      = work->spawnInterval.word > ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_INTERVAL_MAX;
             break;
         default:
             taskKill(task);
