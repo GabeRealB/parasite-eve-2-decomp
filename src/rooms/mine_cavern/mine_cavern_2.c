@@ -96,28 +96,6 @@ typedef struct {
 } _MineCavernTargetWork;
 STATIC_ASSERT_SIZEOF(_MineCavernTargetWork, 0x14C);
 
-typedef struct {
-    u8  center[3];
-    u8  rim[3];
-    u16 retained;
-} MineCavernGlowPalette;
-extern MineCavernGlowPalette D_mine_cavern_8018E350;
-extern MineCavernGlowPalette D_mine_cavern_8018E358;
-
-// Bounded byte views preserve the legacy per-channel loads.
-extern u8 MineCavernGlowByte8018E350[1] __asm__("D_mine_cavern_8018E350");
-extern u8 MineCavernGlowByte8018E351[1] __asm__("D_mine_cavern_8018E350+1");
-extern u8 MineCavernGlowByte8018E352[1] __asm__("D_mine_cavern_8018E350+2");
-extern u8 MineCavernGlowByte8018E353[1] __asm__("D_mine_cavern_8018E350+3");
-extern u8 MineCavernGlowByte8018E354[1] __asm__("D_mine_cavern_8018E350+4");
-extern u8 MineCavernGlowByte8018E355[1] __asm__("D_mine_cavern_8018E350+5");
-extern u8 MineCavernGlowByte8018E358[1] __asm__("D_mine_cavern_8018E358");
-extern u8 MineCavernGlowByte8018E359[1] __asm__("D_mine_cavern_8018E358+1");
-extern u8 MineCavernGlowByte8018E35A[1] __asm__("D_mine_cavern_8018E358+2");
-extern u8 MineCavernGlowByte8018E35B[1] __asm__("D_mine_cavern_8018E358+3");
-extern u8 MineCavernGlowByte8018E35C[1] __asm__("D_mine_cavern_8018E358+4");
-extern u8 MineCavernGlowByte8018E35D[1] __asm__("D_mine_cavern_8018E358+5");
-
 extern SVECTOR D_mine_cavern_80188F64[];
 extern SVECTOR D_mine_cavern_80188F7C[];
 extern SVECTOR D_mine_cavern_80188F84[];
@@ -140,21 +118,6 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task);
 /// Current screen id at 0x8007218B.
 
 static void func_mine_cavern_80183860(Task* arg0);
-
-/// Colour of the glow fan's centre vertex, one channel per symbol.
-///
-/// Each channel is its own symbol, reloaded on every use, and is declared as an
-/// array because the fan's position stores are only ordered against loads from
-/// aggregate memory: the scheduler treats a halfword store into the primitive
-/// and a load from a plain scalar global as independent, but not a load from an
-/// array element.
-
-/// Colour of the glow fan's two rim vertices, declared as the centre colour is.
-
-/// Colour of the point glow fans' centre vertex, one channel per symbol and
-/// declared as arrays for the same reason as the cavern glow's colours.
-
-/// Colour of the point glow fans' two rim vertices.
 
 /// Mode byte the cavern enemy's hit check switches on: 1 skips the check and 2
 /// hides the model and skips it. Its wider role is unproven.
@@ -2141,9 +2104,34 @@ AreaApplyRec D_mine_cavern_8018E32C[9] = {
     { 255, 0, 0, 0 },
 };
 
-MineCavernGlowPalette D_mine_cavern_8018E350 = { { 48, 32, 0 }, { 0, 0, 0 }, 1128 };
+/// Colour of the glow fans drawn at the cavern's six fixed glow points: the
+/// centre vertex of a fan, then the two rim vertices of each of its triangles.
+///
+/// Every channel is a variable of its own, read afresh for each triangle. The
+/// fans are drawn additively, so the black rim fades the centre colour out.
+static u8 _gMineCavernFixedGlowCenterRed   = 48;
+static u8 _gMineCavernFixedGlowCenterGreen = 32;
+static u8 _gMineCavernFixedGlowCenterBlue  = 0;
+static u8 _gMineCavernFixedGlowRimRed      = 0;
+static u8 _gMineCavernFixedGlowRimGreen    = 0;
+static u8 _gMineCavernFixedGlowRimBlue     = 0;
 
-MineCavernGlowPalette D_mine_cavern_8018E358 = { { 42, 25, 0 }, { 0, 0, 0 }, 1960 };
+/// Halfword stored after the fixed glow's colours. Nothing in the package reads
+/// it, so its role is unproven.
+u16 D_mine_cavern_8018E356 = 1128;
+
+/// Colour of the glow fan drawn at the spot of each destroyed target, laid out
+/// and read as the fixed glow's colour is.
+static u8 _gMineCavernTargetGlowCenterRed   = 42;
+static u8 _gMineCavernTargetGlowCenterGreen = 25;
+static u8 _gMineCavernTargetGlowCenterBlue  = 0;
+static u8 _gMineCavernTargetGlowRimRed      = 0;
+static u8 _gMineCavernTargetGlowRimGreen    = 0;
+static u8 _gMineCavernTargetGlowRimBlue     = 0;
+
+/// Halfword stored after the target glow's colours. Nothing in the package
+/// reads it, so its role is unproven.
+u16 D_mine_cavern_8018E35E = 1960;
 
 static void func_mine_cavern_80181CAC(s16 point);
 static void func_mine_cavern_80181D80(s16 point);
@@ -2419,17 +2407,17 @@ static void func_mine_cavern_80181864(void)
             // Preserve the textured-triangle-sized reservation for this gouraud packet.
             gGpuPrimCursor = (u8*)prim + sizeof(POLY_GT3);
             setPolyG3(prim);
-            prim->r0 = MineCavernGlowByte8018E350[0];
-            prim->g0 = MineCavernGlowByte8018E351[0];
-            prim->b0 = MineCavernGlowByte8018E352[0];
+            prim->r0 = _gMineCavernFixedGlowCenterRed;
+            prim->g0 = _gMineCavernFixedGlowCenterGreen;
+            prim->b0 = _gMineCavernFixedGlowCenterBlue;
             prim->x0 = x;
             prim->y0 = y;
-            prim->r1 = MineCavernGlowByte8018E353[0];
-            prim->g1 = MineCavernGlowByte8018E354[0];
-            prim->b1 = MineCavernGlowByte8018E355[0];
-            prim->r2 = MineCavernGlowByte8018E353[0];
-            prim->g2 = MineCavernGlowByte8018E354[0];
-            prim->b2 = MineCavernGlowByte8018E355[0];
+            prim->r1 = _gMineCavernFixedGlowRimRed;
+            prim->g1 = _gMineCavernFixedGlowRimGreen;
+            prim->b1 = _gMineCavernFixedGlowRimBlue;
+            prim->r2 = _gMineCavernFixedGlowRimRed;
+            prim->g2 = _gMineCavernFixedGlowRimGreen;
+            prim->b2 = _gMineCavernFixedGlowRimBlue;
             setSemiTrans(prim, 1);
             prim->x1 = x + ((rsin(i << 9) * radius) >> shift);
             prim->y1 = y + ((rcos(i << 9) * radius) >> shift);
@@ -2533,17 +2521,17 @@ static void func_mine_cavern_80181D80(s16 point)
             // Preserve the textured-triangle-sized reservation for this gouraud packet.
             gGpuPrimCursor = (u8*)prim + sizeof(POLY_GT3);
             setPolyG3(prim);
-            prim->r0 = MineCavernGlowByte8018E358[0];
-            prim->g0 = MineCavernGlowByte8018E359[0];
-            prim->b0 = MineCavernGlowByte8018E35A[0];
+            prim->r0 = _gMineCavernTargetGlowCenterRed;
+            prim->g0 = _gMineCavernTargetGlowCenterGreen;
+            prim->b0 = _gMineCavernTargetGlowCenterBlue;
             prim->x0 = x;
             prim->y0 = y;
-            prim->r1 = MineCavernGlowByte8018E35B[0];
-            prim->g1 = MineCavernGlowByte8018E35C[0];
-            prim->b1 = MineCavernGlowByte8018E35D[0];
-            prim->r2 = MineCavernGlowByte8018E35B[0];
-            prim->g2 = MineCavernGlowByte8018E35C[0];
-            prim->b2 = MineCavernGlowByte8018E35D[0];
+            prim->r1 = _gMineCavernTargetGlowRimRed;
+            prim->g1 = _gMineCavernTargetGlowRimGreen;
+            prim->b1 = _gMineCavernTargetGlowRimBlue;
+            prim->r2 = _gMineCavernTargetGlowRimRed;
+            prim->g2 = _gMineCavernTargetGlowRimGreen;
+            prim->b2 = _gMineCavernTargetGlowRimBlue;
             setSemiTrans(prim, 1);
             prim->x1 = x + ((rsin(i << 9) * radius) >> 12);
             prim->y1 = y + ((rcos(i << 9) * radius) >> 12);

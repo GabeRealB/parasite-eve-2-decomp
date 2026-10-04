@@ -146995,6 +146995,18 @@ the flag goes through `ROOM_EVENT_ACTIVE`: naming `gRoomEventActive` directly
 in a fragment tests the object's address where the room's symbol is the wider
 object, and the image came out 8 bytes short.
 
+`mine_cavern` is the same finding with colours. Its two glow fans read six
+consecutive bytes each (centre and rim RGB), every load through its own
+`lui`/`lbu %lo`. They had been defined as an 8-byte struct and read through
+twelve `extern u8 view[1] __asm__("sym+N")` aliases, on the belief that the
+loads needed aggregate memory to stay ordered against the primitive's stores.
+Reading the struct's members instead puts its address in a saved register
+(`lui`/`addiu` once, then `lbu N($s7)`), spills a local and grows the image by
+16 bytes; twelve plain `static u8` scalars and a `u16` after each six match
+with no alias and no struct. A `.align 2` in front of a run of byte loads'
+storage in the build's `.s` is the sign that an aggregate is standing in for
+scalars.
+
 ## A room built per stage names the other build's objects, and two calls to one address are two names (dryfield_factory, 2026-09-30)
 
 The Dryfield factory's day (stage 2) and night packages are one source. Where

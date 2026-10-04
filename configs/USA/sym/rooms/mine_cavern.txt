@@ -1,12 +1,4 @@
 // Overlay-local symbols for mine_cavern.
-D_mine_cavern_8018E351 = 0x8018E351; // type:u8 size:0x1
-D_mine_cavern_8018E352 = 0x8018E352; // type:u8 size:0x1
-D_mine_cavern_8018E353 = 0x8018E353; // type:u8 size:0x1
-D_mine_cavern_8018E355 = 0x8018E355; // type:u8 size:0x1
-D_mine_cavern_8018E359 = 0x8018E359; // type:u8 size:0x1
-D_mine_cavern_8018E35A = 0x8018E35A; // type:u8 size:0x1
-D_mine_cavern_8018E35B = 0x8018E35B; // type:u8 size:0x1
-D_mine_cavern_8018E35D = 0x8018E35D; // type:u8 size:0x1
 D_mine_cavern_8018EB50 = 0x8018EB50; // size:0x4 defined:True
 D_mine_cavern_8018EB54 = 0x8018EB54; // size:0x4 defined:True
 D_mine_cavern_80188F64 = 0x80188F64; // size:0x18 defined:True
@@ -263,8 +255,20 @@ D_mine_cavern_801887B4 = 0x801887B4; // size:0x288 defined:True
 D_mine_cavern_80188A3C = 0x80188A3C; // size:0x2E8 defined:True
 D_mine_cavern_80188D24 = 0x80188D24; // size:0x240 defined:True
 D_mine_cavern_80183C6C = 0x80183C6C; // size:0x38 defined:True
-D_mine_cavern_8018E350 = 0x8018E350; // size:0x8 defined:True
-D_mine_cavern_8018E358 = 0x8018E358; // size:0x8 defined:True
+_gMineCavernFixedGlowCenterRed = 0x8018E350; // type:u8 size:0x1 defined:True
+_gMineCavernFixedGlowCenterGreen = 0x8018E351; // type:u8 size:0x1 defined:True
+_gMineCavernFixedGlowCenterBlue = 0x8018E352; // type:u8 size:0x1 defined:True
+_gMineCavernFixedGlowRimRed = 0x8018E353; // type:u8 size:0x1 defined:True
+_gMineCavernFixedGlowRimGreen = 0x8018E354; // type:u8 size:0x1 defined:True
+_gMineCavernFixedGlowRimBlue = 0x8018E355; // type:u8 size:0x1 defined:True
+D_mine_cavern_8018E356 = 0x8018E356; // type:u16 size:0x2 defined:True
+_gMineCavernTargetGlowCenterRed = 0x8018E358; // type:u8 size:0x1 defined:True
+_gMineCavernTargetGlowCenterGreen = 0x8018E359; // type:u8 size:0x1 defined:True
+_gMineCavernTargetGlowCenterBlue = 0x8018E35A; // type:u8 size:0x1 defined:True
+_gMineCavernTargetGlowRimRed = 0x8018E35B; // type:u8 size:0x1 defined:True
+_gMineCavernTargetGlowRimGreen = 0x8018E35C; // type:u8 size:0x1 defined:True
+_gMineCavernTargetGlowRimBlue = 0x8018E35D; // type:u8 size:0x1 defined:True
+D_mine_cavern_8018E35E = 0x8018E35E; // type:u16 size:0x2 defined:True
 
 func_mine_cavern_80180320 = 0x80180320; // type:func
 
