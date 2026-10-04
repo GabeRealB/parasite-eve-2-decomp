@@ -1474,7 +1474,7 @@ static AnimationSet _gActor800300Animation0AD50 = {
     { NULL, _gActor800300Animation0AD50Bank1, NULL, NULL, _gActor800300Animation0AD50Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_800300_8016CB98[79] = {
+AnimationBank D_actor_800300_8016CB98 = { { {
     NULL,
     &_gActor800300Animation07E3C,
     &_gActor800300Animation08218,
@@ -1554,7 +1554,7 @@ AnimationSet* D_actor_800300_8016CB98[79] = {
     NULL,
     NULL,
     NULL,
-};
+} } };
 
 static void func_actor_800300_80161E80(Task* arg0);
 static void func_actor_800300_80162064(Task* arg0);

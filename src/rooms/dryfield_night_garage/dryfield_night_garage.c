@@ -51,10 +51,10 @@
 
 /// Task descriptor table and cutscene script blobs owned by the main
 /// executable.
-extern TaskDesc   D_actor_136300_8013B11C;
-extern s32        D_actor_136300_8013B570;
-extern EvsCommand D_8013B590[];
-extern EvsCommand D_actor_136300_8013C388[];
+extern TaskDesc       D_actor_136300_8013B11C;
+extern ActorTransform D_actor_136300_8013B570;
+extern EvsCommand     D_8013B590[];
+extern EvsCommand     D_actor_136300_8013C388[];
 
 /// The 0xFFFF-terminated item id lists `func_dryfield_night_garage_8017D754`
 /// chooses from, and the one it returns when no case matches.
