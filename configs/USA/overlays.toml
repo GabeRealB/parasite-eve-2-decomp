@@ -481,8 +481,7 @@ label = "1.6 KB, 3 functions; role unknown"
 id = 43
 objects = [
   { kind = "packageId" },
-  { unit = "aya_20900/aya_20900", rodata = "0x4", text = "0x1C" },
-  { kind = "data", at = "0x62C" },
+  { unit = "aya_20900/aya_20900", rodata = "0x4", text = "0x1C", data = "0x62C" },
 ]
 
 [aya.overlays.replay_bonus]

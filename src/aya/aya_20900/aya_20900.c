@@ -246,3 +246,11 @@ void func_aya_20900_80115CFC(Task* arg0)
             return;
     }
 }
+
+/// The package's task descriptors, spawned by gameplay from entry 0.
+TaskDesc D_aya_20900_80115D9C[4] = {
+    { { { TASK_BODY_NONE, 0xC0 } }, func_aya_20900_80115CFC, { NULL } },
+    { { { TASK_BODY_NONE, 0xC0 } }, NULL, { NULL } },
+    { { { TASK_BODY_NONE, 0xC0 } }, NULL, { NULL } },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_aya_20900_8011578C, { NULL } },
+};
