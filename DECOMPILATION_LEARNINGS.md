@@ -3826,10 +3826,10 @@ load the declared *mode* asks for and never notices that EQ/NE makes a
 zero-extension as good as a sign-extension:
 
 ```c
-/* field_50E declared u16 */  /* lhu $v1, 0x50E($s0) */
-if (work->field_50E == work->field_510) { ... }
+/* animPlaying declared u16 */  /* lhu $v1, 0x50E($s0) */
+if (work->animPlaying == work->animClip) { ... }
 
-/* field_50E declared s16 */  /* lh  $v1, 0x50E($s0) */
+/* animPlaying declared s16 */  /* lh  $v1, 0x50E($s0) */
 ```
 
 So a target `lh` on a halfword whose only other appearance is a compare means
@@ -3840,7 +3840,7 @@ changes in the 100% `base_1.c` (preprocessed
 `673ed3b63566099595c330182a22fd9eecc9f67c3f95082ea6ace7553d352f31`).
 
 What misled the header was the site that *writes* the field: the same overlay's
-`func_actor_206100_8014F284` does `work->field_50E = (u16)work->field_510;` and
+`func_actor_206100_8014F284` does `work->animPlaying = (u16)work->animClip;` and
 emits `lhu`/`sh`. A HImode store is `movhi` under either signedness, so that
 `lhu` is about the store, not the type, and the `(u16)` cast is a no-op in both
 spellings. A halfword whose only load feeds a `sh` never asks for an extension
@@ -13075,7 +13075,7 @@ the object comes out with `li`/`sb` above the multi-load and scores 96% with
 ```c
     sp                  = D_actor_206100_80149E94;  /* the 5-word copy stays here */
     enemy->node.flags = 1;                          /* …so this must follow it */
-    sp.funcs[(s16)work->field_522](task);
+    sp.funcs[(s16)work->subState](task);
 ```
 
 `func_actor_206100_8014F524` is the example, and unlike the 3-word case above
@@ -14681,7 +14681,7 @@ duplicate half).
 
 `func_actor_206100_8014DEAC` is the version of this where **both** operands come
 from memory and a store sits between the two reads. Its `else` arm reads
-`field_4F4[field_548]` twice with a `vec` store in between, and the target loads
+`waypoints[waypointIndex]` twice with a `vec` store in between, and the target loads
 the index and the base *once* each and folds them offset first
 (`sll v1, v1, 3` / `addu v1, v1, v0`). Left inline, the store invalidates both
 loads (every register-addressed memory entry goes - `cse.c:invalidate_memory`)
@@ -14693,8 +14693,8 @@ inline:
 SVECTOR* ring;
 u32      index;   /* u8 here costs an `andi 0xff` before the shift */
 
-ring  = sub->field_4F4;
-index = sub->field_548;      /* the index load schedules one slot late unless
+ring  = sub->waypoints;
+index = sub->waypointIndex;      /* the index load schedules one slot late unless
                                 it is assigned before the other loads */
 vec.vx = ring[index].vx - (u16)coord2->coord.t[0];
 vec.vy = 0;
@@ -43611,10 +43611,10 @@ is the copy cross-jumping would have deleted.
 
 The shippable alternative to the `SOFT_BARRIER` above, and usually the shape the
 original source had. `func_actor_206100_8014B0AC` retires the actor in a
-`switch (field_54D)` whose case 1 sub-state 2 and whose `case 0` else arm both
-end in the same fifty instructions — ramp `field_53C`, rebuild three part
+`switch (neckRetracted)` whose case 1 sub-state 2 and whose `case 0` else arm both
+end in the same fifty instructions — ramp `neckScale`, rebuild three part
 matrices, clear three `composeStamp`s, `Gp_UpdateCoord(c4)`. Written the obvious way, with
-one `work->field_53A = 0;` at the join after the if/else, both arms end in a
+one `work->neckPhase = 0;` at the join after the if/else, both arms end in a
 `j` to that join and cross-jumping merges them: the sub-state-2 copy disappears
 and the overlay drops from 97.5% to 79.5% (`delete=77`).
 
@@ -43626,7 +43626,7 @@ that skips its own join block means the store was never at the join: it is
 written inside each arm, and reorg moved the if arm's copy into the delay slot.
 Writing it that way leaves the two tails one instruction apart, which is enough
 — cross-jumping needs an identical suffix, so the merge never happens and the
-match lands at 100%. The sub-state-2 arm does not clear `field_53A` at all.
+match lands at 100%. The sub-state-2 arm does not clear `neckPhase` at all.
 
 Read the pattern off the delay slots before reaching for a barrier: `nop` in one
 arm's slot and the shared statement in the other's, with the jump targeting past
@@ -67701,7 +67701,7 @@ Writing that third load as the fused dereference-store it looks like in the
 target —
 
 ```c
-work                                      = (Actor206100Work*)task->work;
+work                                      = task->work;
 coord                                     = ((TmdObject*)task->extra)->coords;
 ((Enemy*)task->spawnArg2)->node.flags = 1;
 ```
@@ -67715,7 +67715,7 @@ Giving the pointer its own local, on a line *above* the `coord` statement,
 restores the target order and scores 100.000% with every penalty zero:
 
 ```c
-work                = (Actor206100Work*)task->work;
+work                = task->work;
 enemy               = (Enemy*)task->spawnArg2;   /* lw 0x20, ranked alone */
 coord               = ((TmdObject*)task->extra)->coords;
 enemy->node.flags = 1;
@@ -67743,8 +67743,8 @@ what that comparator is competing with, because there the block *ends* with the
 store and two halfword counter stores precede it:
 
 ```c
-work->field_51E = work->field_51E + 1;
-work->field_526 = work->field_526 + 0x10;
+work->stateFrames = work->stateFrames + 1;
+work->goalY = work->goalY + 0x10;
 ((TmdObject*)task->extra)->coords->composeStamp = 0;
 ```
 
@@ -67758,9 +67758,9 @@ pointer above the counters is the whole fix:
 
 ```c
 coord           = ((TmdObject*)task->extra)->coords;
-work            = (Actor206100Work*)task->work;
-work->field_51E = work->field_51E + 1;
-work->field_526 = work->field_526 + 0x10;
+work            = task->work;
+work->stateFrames = work->stateFrames + 1;
+work->goalY = work->goalY + 0x10;
 coord->composeStamp      = 0;
 ```
 
@@ -76940,13 +76940,13 @@ written anywhere in the function. Write the array instead:
 ```c
 void func_actor_206100_8014F608(Task* task)
 {
-    Actor206100Work* work                = (Actor206100Work*)task->work;
+    _Actor206100Work* work                = task->work;
     void             (*states[2])(Task*) = {
         func_actor_206100_8014F9C4,
         func_actor_206100_8014FA08,
     };
 
-    states[(s16)work->field_522](task);
+    states[(s16)work->subState](task);
 }
 ```
 
@@ -77094,7 +77094,7 @@ sibling `func_actor_400500_801348D8` does:
 stride = (Actor206100AnimStride*)work + 1;   /* addiu $s2,$s1,0x28 */
 do {
     ...
-    stride->field_1D = (u8)work->field_51A;  /* lbu $v0,0x51A($s1) */
+    stride->field_1D = (u8)work->animStep;  /* lbu $v0,0x51A($s1) */
     stride++;
 } while (i < 0xF);                           /* addiu $s2,$s2,0x28 */
 ```
@@ -77108,7 +77108,7 @@ immediates. Read the split as the source's own: when a loop walks a stride and
 accesses an offset inside the record, model the record.
 
 The `(u8)` cast is enough to get the byte load; the field does not have to be
-declared `u8`. `(u8)work->field_51A` over an `s16` field emits `lbu`, as the
+declared `u8`. `(u8)work->animStep` over an `s16` field emits `lbu`, as the
 matched `(u8)work2->animRate` does in `func_actor_400500_801348D8`, so an
 `lh`/`andi` pair is not the risk it looks like and the field can keep the width
 the rest of the overlay stores it with.
@@ -77137,11 +77137,11 @@ which is also what changes its home (`$v0` -> `$v1`, so it stops sharing `$v0`
 with the `0x400` constant):
 
 ```c
-work->obj_364.field_8  = &((TmdObject*)task->extra)->coords[1];  /* base_1: 87.88% */
-work->obj_364.field_C  = (WorldCollisionContact*)work->pad_384;
+work->trunkBody.field_8  = &((TmdObject*)task->extra)->coords[1];  /* base_1: 87.88% */
+work->trunkBody.field_C  = (WorldCollisionContact*)work->hitContacts;
 ...
-work->obj_364.flags    = 1;
-Gp_LinkObj(2, &work->obj_364);
+work->trunkBody.flags    = 1;
+Gp_LinkObj(2, &work->trunkBody);
 ```
 
 So when the target hoists a load but leaves its store in the delay slot, the
@@ -77151,10 +77151,10 @@ the committed `func_actor_403100_80132320` (`src/actors/actor_403100/`), whose
 C reads `field_8` first and whose asm hoists its `lw $a2, 0x8($v1)` the same way.
 
 Reordering alone is not enough: going with the reordering, a local
-`WorldCollisionBody* obj = &work->obj_364;` used for the field stores cost an extra address
+`WorldCollisionBody* obj = &work->trunkBody;` used for the field stores cost an extra address
 register (`$s5`), a `move a1, s5`, a 0x30 frame and four extra instructions
 (87.88% with `regs=68 insert=4`, 66/62 instructions). Naming
-`work->obj_364.field_X` directly keeps the base at the work block and folds
+`work->trunkBody.field_X` directly keeps the base at the work block and folds
 0x364 into each displacement. This is the mirror of "A struct member array that
 is also a call argument is a pointer local": that entry adds a pointer local the
 target had, this one removes a pointer local the target did not — the base has
@@ -77191,14 +77191,14 @@ it; fix the ordering before chasing the register penalty.
 ## Move the statement that carries a reload chain, not the independent load beside it
 
 `func_actor_206100_8014AF74` sat at 91.81% on three hunks that all read as
-scheduling. Its eff_4C0 block is a pointer chain followed by two stores, and
+scheduling. Its effectArg block is a pointer chain followed by two stores, and
 the pointer chain is a *second* walk of `task->extra`:
 
 ```c
 coord                 = tmd->field_8;
-work->eff_4C0.spawnArgLo = 0x580;
-work->eff_4C0.spawnArgHi = 3;
-work->eff_4C0.coord      = &((TmdObject*)task->extra)->coords[1];
+work->effectArg.spawnArgLo = 0x580;
+work->effectArg.spawnArgHi = 3;
+work->effectArg.coord      = &((TmdObject*)task->extra)->coords[1];
 ```
 
 That last statement is `lw $2,44($19)` / `lw $2,8($2)` / `addiu $2,$2,80` /
@@ -77214,9 +77214,9 @@ Writing the block pointer-first fixes all three hunks at once (100.000%,
 
 ```c
 coord                 = tmd->field_8;
-work->eff_4C0.coord      = &((TmdObject*)task->extra)->coords[1]; /* to the head */
-work->eff_4C0.spawnArgLo = 0x580;
-work->eff_4C0.spawnArgHi = 3;
+work->effectArg.coord      = &((TmdObject*)task->extra)->coords[1]; /* to the head */
+work->effectArg.spawnArgLo = 0x580;
+work->effectArg.spawnArgHi = 3;
 ```
 
 `.lreg` is the read-out and it costs nothing to read: `;; Register 90 in 2.` /
@@ -116963,7 +116963,7 @@ once at the label inside the `if`:
 ```c
     var_s0 = 1;                       /* block with the branch: reg_values[$s0] = 1 */
     if (temp_v1 == 3) {
-        field_512 = (s16)((u16)field_512 + 1);   /* folds to + $s0 */
+        animFrames = (s16)((u16)animFrames + 1);   /* folds to + $s0 */
 block_9:
         var_s0 = 1;
     }
@@ -116980,7 +116980,7 @@ what decides the fold:
 
 ```c
     if (state == 1) { ... } else if (state == 2) { ... } else if (state == 3) {
-        next->field_512 = next->field_512 + 1;   /* stays addiu */
+        next->animFrames = next->animFrames + 1;   /* stays addiu */
     }
     for (i = 1; i < 0xF; i++) {
         animationTickSlot(&next->anim, i);
@@ -117051,9 +117051,9 @@ Give the value a source-level home in that block -- a `s16` assigned between the
 two `if` statements, used by the loop:
 
 ```c
-    if ((s16)work->field_51E < 0x1E) { ... }
+    if ((s16)work->stateFrames < 0x1E) { ... }
     y = -0x64;                       /* its insn lands in the bne's block */
-    if ((s16)work->field_51E == 0x1E) {
+    if ((s16)work->stateFrames == 0x1E) {
         i = 0;
         coord = ...;
         do { vec.vy = y; ... } while (i < 0x20);
@@ -117138,10 +117138,10 @@ two stores into an accessor and *calling* it is what works:
 ```c
 static __inline__ void set_state(Task* task, s32 state)
 {
-    Actor206100Work* next = (Actor206100Work*)task->work;
+    _Actor206100Work* next = task->work;
 
-    next->field_520 = state;
-    next->field_522 = 0;
+    next->state = state;
+    next->subState = 0;
 }
 ...
             set_state(task, 8);   /* one call per arm */
@@ -117182,7 +117182,7 @@ target `d42d84699b29db682eca202e9b7f23b01a87ddb2fb05d4d8171a7dab35adde0f`.
 
 ## The same `lh`+`lhu` pair can come from the use or from a cast - rebuild each one alone (func_actor_206100_8014E0C0, 2026-09-16)
 
-`func_actor_206100_8014E0C0` reads its `s16` `field_542` twice in one statement
+`func_actor_206100_8014E0C0` reads its `s16` `recoilPitch` twice in one statement
 and the target has both a signed and an unsigned load:
 
 ```
@@ -117202,10 +117202,10 @@ matches first try") do not decide the next one by themselves:
   shift) and `combine` folds it into `lh` (`# 20 extendhisi2_internal/1`); the
   addend's high bits are dead, the sum going back through `sh`, so its load stays
   a `movhi` (`# 19 movhi_internal2/3`, printed `lhu`).  Written as
-  `field_542 + ((s32) - (field_542 * 0x10) >> 7)` with no cast at all - and with
+  `recoilPitch + ((s32) - (recoilPitch * 0x10) >> 7)` with no cast at all - and with
   a `(u16)` on the left operand - the object is byte-identical either way.
 - **The casts are load-bearing three cases later.** Case 2's
-  `(u16)work->field_544 - (u16)work->field_542` must keep its two casts: without
+  `(u16)work->recoilPeak - (u16)work->recoilPitch` must keep its two casts: without
   them both operands are `sign_extend`ed (`lh v1,0x544` / `lh v0,0x542`) and the
   score drops 6.7 points to 93.264%, where with them they are
   `zero_extendhisi2` (`lhu`) and it matches.  Nothing in that expression's shape
@@ -117245,7 +117245,7 @@ to come from.  Two widths on one address here is three single-bit tests of the
 field has since replaced:
 
 ```c
-next = (Actor206100Work*)task->work;
+next = task->work;
 if ((next->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (next->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (next->animStatus & ANIMATION_SLOT_SETTLED)) {
     cond = 1;
 } else {
@@ -117309,7 +117309,7 @@ is allocated for them and the field stays `4($s0)`:
 
 ```c
     do {
-        if (work->field_551 < 5 && D_actor_206100_80158CBC[i].enemy == NULL) {
+        if (work->bogDiversSpawned < 5 && D_actor_206100_80158CBC[i].enemy == NULL) {
             if (D_actor_206100_80158CBC[i].timer == 0) {
                 ...
             } else {
@@ -117357,7 +117357,7 @@ and read it back into the single local:
 
 ```c
     task->work = memCalloc(0x558, 0);
-    work        = (Actor206100Work*)task->work;
+    work        = task->work;
     if (work == NULL) { ... }
 ```
 
@@ -117375,7 +117375,7 @@ Inputs: m2c 96.901% `452ec82624fcbddf`; the read-back store 97.851%
 
 The `regs`-shaped family of `reload_cse` entries above rewrite a constant *set*
 or a copy.  This one is an operand: `func_actor_206100_8014C274` advances a
-halfword with `field_512 = (s16)((u16)field_512 + 1);` and the target keeps the
+halfword with `animFrames = (s16)((u16)animFrames + 1);` and the target keeps the
 immediate --
 
 ```
@@ -117403,7 +117403,7 @@ first statement before the add, the scheduling is untouched:
     slot = 1;
     if (kind == 3) {
         TOUCH_REG(slot);
-        anim->field_512 = (s16)((u16)anim->field_512 + 1);
+        anim->animFrames = (s16)((u16)anim->animFrames + 1);
 block_13:
         slot = 1;
     }
@@ -117551,9 +117551,9 @@ falls through to the shared store.
 Written as a chain
 
 ```c
-    if ((s16)sub->field_51E == 0x54 || (s16)sub->field_51E == 0x5B || (s16)sub->field_51E == 0x62 ||
-        (s16)sub->field_51E == 0x69 || (s16)sub->field_51E == 0x70 || (s16)sub->field_51E == 0x77) {
-        sub->field_555 = 1;
+    if ((s16)sub->stateFrames == 0x54 || (s16)sub->stateFrames == 0x5B || (s16)sub->stateFrames == 0x62 ||
+        (s16)sub->stateFrames == 0x69 || (s16)sub->stateFrames == 0x70 || (s16)sub->stateFrames == 0x77) {
+        sub->shotRequested = 1;
     }
 ```
 
@@ -117575,18 +117575,18 @@ the chain existing, not something to arrange separately.
 
 `func_actor_206100_8014D14C` reads `task->work` three times: for the `animStatus`
 test, for the state change its `true` arm makes, and for the steering tail that
-folds `field_43E` toward the walk target. Written through one local, as the
+folds `rotation.vy` toward the walk target. Written through one local, as the
 sibling `func_actor_206100_8014FA08` writes its own two reads:
 
 ```c
-    work = (Actor206100Work*)task->work;
+    work = task->work;
     if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (work->animStatus & ANIMATION_SLOT_SETTLED)) { ... }
     ...
-    work = (Actor206100Work*)task->work;
-    work->field_520 = 2;
-    work->field_522 = 0;
+    work = task->work;
+    work->state = 2;
+    work->subState = 0;
     ...
-    work       = (Actor206100Work*)task->work;   /* steering tail */
+    work       = task->work;   /* steering tail */
 ```
 
 the three stores are one pseudo with three definitions. `global_alloc` homes the
@@ -117801,7 +117801,7 @@ function sat at 99.85%, and the whole remaining diff was two lines of prologue:
 ```
 
 Both registers hold a small constant the body stores from more than one basic
-block: 1 at five sites, 2 at two (`field_52C = 2` in the heavy-damage arm and
+block: 1 at five sites, 2 at two (`hitReaction = 2` in the heavy-damage arm and
 again in the id-5/6 arm of a jump table). CSE resets its table per block, so a
 *literal* at sites in different blocks becomes a fresh `li reg,C` per block,
 each with a def-to-use span of one instruction. `loop.c`'s `move_movables` will
@@ -117831,7 +117831,7 @@ Two boundaries are load-bearing:
   fails case 3 for every insn, so a C variable is never hoisted — assigning it
   inside the loop drops the score to 97.6% and the prologue loses the `li`.
 - **Sites the target re-materialises must stay literals.** The tail's
-  `field_52C = 2` and the `field_4C & 0x0C` block's `field_52A` / `field_52C`
+  `hitReaction = 2` and the `field_4C & 0x0C` block's `hitTaken` / `hitReaction`
   stores are `addiu $v0,$zero,C` in the target, so the locals' live ranges end
   at the id-5/6 arm. Storing the local in the tail instead keeps the register
   live over the whole tail and the store becomes `sh $fp,0x52C` — a 100%
@@ -140702,7 +140702,7 @@ second `if` for the pair keeps the loads but turns the tail into
 The three-test form also holds where the result is materialised first -
 `if (...) cond = 1; else cond = 0;` followed by `if (cond)` - which is how both
 Divers write it: it replaced the `fields.flags` / `word` status unions of
-`_Actor00400Work::animStatus` (18 sites) and `Actor206100Work::animStatus` (3),
+`_Actor00400Work::animStatus` (18 sites) and `_Actor206100Work::animStatus` (3),
 leaving a plain `u16` beside the unrelated halfword that shared its word.
 
 Two adjacent `u8` fields tested for zero merge the same way:
