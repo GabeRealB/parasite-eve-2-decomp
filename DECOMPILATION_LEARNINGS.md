@@ -64945,7 +64945,7 @@ where it *starts* differs: `actor_143900`, `actor_151000` and `actor_461800`
 put a 0x40-byte state prefix ahead of `AnimationContext anim`, while `actor_110300`
 and `actor_110800` start with `anim` at offset 0. Every field name shifts with
 it rather than changing - the animation-id pair is 0x4B6/0x4B8 in
-`Actor143900Work`/`FootstepWalkWork` and 0x476/0x478 here, exactly 0x40 lower -
+`_Actor143900Work`/`FootstepWalkWork` and 0x476/0x478 here, exactly 0x40 lower -
 so the two blocks are the same object at different bases, not two structures.
 
 Two things follow, and both cost a build if missed:
@@ -86282,7 +86282,7 @@ strength reduction *after* that hoist, which is what moves it behind.
 Read the explicit-offset version as a rewrite of GCC's own strength reduction,
 not as a reconstruction: when the target walks a pointer with a byte offset but
 the callee's first argument is a struct member, write the index form and let
-loop.c produce the walk. The family idiom agrees — `Actor143900Work` and
+loop.c produce the walk. The family idiom agrees — `_Actor143900Work` and
 `FootstepWalkWork` both put `AnimationContext` at 0x40 and the slots at 0x54, so
 `slots[1]` is the 0x7C the target's `addiu $s0,$zero,0x7C` starts at.
 

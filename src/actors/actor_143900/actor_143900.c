@@ -29,8 +29,10 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_r49.h"
-#define SCRIPTED_WALK_MODE   gScriptedWalkModeValue
-#define SCRIPTED_WALK_WORK_T Actor143900Work
+#define SCRIPTED_WALK_MODE gScriptedWalkModeValue
+// The scripted walk's update and walk-to handler run on the first walker's
+// block; the second walker's copies of the two rebind the type to its own.
+#define SCRIPTED_WALK_WORK_T _Actor143900Work
 #include "../../shared/scripted_walk.h"
 #include "../../shared/walker.h"
 
@@ -45,25 +47,21 @@ extern s16 gScriptedWalkMode[2];
 /// walk code addresses the mode.
 extern s16 gScriptedWalkModeValue __asm__("gScriptedWalkMode");
 
-/// Work block of the overlay's first actor variant, allocated zeroed by its
-/// spawn routine and kept both in `gScriptedWalkWork` and at
-/// `Task::work`; every other function of the variant reaches it through the
-/// global.
+/// Work block of the package's first walker, allocated zeroed by the walker's
+/// spawn state and kept both at `Task::work` and in `gScriptedWalkWork`.
 ///
-/// `light` and `color` are the two matrices the block supplies to the model:
-/// the spawn routine points the object's `lightMtx` / `colorMtx` at them.
-/// `rig` and `st` are the model's animation rig and state, and `turnFrames`
-/// the frames of turning left while animation 3 plays, which the 0x7DB
-/// handler latches.
-typedef struct Actor143900Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig20  rig;
-    ActorEnemyState st;
-    s16             turnFrames;
-    byte            pad_4EE[0x2];
-} Actor143900Work;
-STATIC_ASSERT_SIZEOF(Actor143900Work, 0x4F0);
+/// It is the block of a scripted walker that carries nothing: the two light
+/// matrices, the rig, the animation request and the turn countdown, which is
+/// where `ScriptedWalkAttachmentsWork`, the block of the package's second
+/// walker, goes on to its two attachment tasks.
+typedef struct {
+    MATRIX          light;      // Light-direction matrix lent to the model object
+    MATRIX          color;      // Light-colour matrix lent to the model object
+    ActorAnimRig20  rig;        // Playback storage of the twenty-part model; slots 1 to 19 are driven
+    ActorEnemyState st;         // Animation request, heading last given the root and frames of walk left
+    s16             turnFrames; // Frames the update still turns the model for while the turn clip plays; command 0 starts 20
+} _Actor143900Work;
+STATIC_ASSERT_SIZEOF(_Actor143900Work, 0x4F0);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -74,7 +72,7 @@ STATIC_ASSERT_SIZEOF(Actor143900Work, 0x4F0);
 
 /// The first variant's work block, published by its dispatcher
 /// `func_actor_143900_80132324` and its spawn routine.
-extern Actor143900Work* gScriptedWalkWork;
+extern _Actor143900Work* gScriptedWalkWork;
 
 /// The first variant's task, published by its spawn routine so the
 /// visibility and play-animation handlers can reach it.
@@ -1167,7 +1165,7 @@ u8 D_actor_143900_80149688[48] = {
     0,
 };
 
-Actor143900Work* gScriptedWalkWork = NULL;
+_Actor143900Work* gScriptedWalkWork = NULL;
 
 Task* D_actor_143900_801496BC = NULL;
 
@@ -1209,14 +1207,14 @@ void func_actor_143900_80131E24(void)
 /// each use instead of staying in a callee-saved register.
 static void func_actor_143900_80131E70(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    Actor143900Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
+    VECTOR            vec;
+    _Actor143900Work* work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
 
     obj               = task->extra.tmd;
     coord             = obj->coords;
-    work              = memCalloc(0x4F0, 0);
+    work              = memCalloc(sizeof(_Actor143900Work), false);
     gScriptedWalkWork = work;
     task->work        = work;
     if (work == NULL) {
@@ -1261,7 +1259,7 @@ void func_actor_143900_80132324(Task* task)
         func_actor_143900_80132380,
     };
 
-    gScriptedWalkWork = (Actor143900Work*)task->work;
+    gScriptedWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1424,7 +1422,7 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #undef SCRIPTED_WALK_MODE
 #define SCRIPTED_WALK_MODE gScriptedWalkModeValue
 #undef SCRIPTED_WALK_WORK_T
-#define SCRIPTED_WALK_WORK_T Actor143900Work
+#define SCRIPTED_WALK_WORK_T _Actor143900Work
 
 /// Two-state dispatcher of the second variant: publishes the task's work block
 /// in `D_actor_143900_801496C4` on the way through, then calls the handler its
@@ -1608,4 +1606,4 @@ s32 func_actor_143900_80133360(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 #undef SCRIPTED_WALK_MODE
 #define SCRIPTED_WALK_MODE gScriptedWalkModeValue
 #undef SCRIPTED_WALK_WORK_T
-#define SCRIPTED_WALK_WORK_T Actor143900Work
+#define SCRIPTED_WALK_WORK_T _Actor143900Work
