@@ -49,7 +49,7 @@
 /// display node `obj` the exit callback hands back to `Gp_UnlinkObj`, the
 /// one-entry contact table `rec` that `obj.context.contacts` addresses, the child
 /// task `field_4B8` spawned from `D_actor_323300_8017255C`, and the walk,
-/// which this actor runs without accumulators or an arrival threshold.
+/// which this actor runs without integrating a velocity or checking arrival.
 /// `field_500` enables the cue the per-frame runner posts, and `field_502` is
 /// the frames until the model buffers are freed, -1 disabling the countdown.
 typedef struct Actor323300Work {
@@ -481,7 +481,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
     VECTOR vec;
     s32    i;
 
-    states[(s16)work->walk.motion](arg0);
+    states[work->walk.motion](arg0);
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);
@@ -634,15 +634,15 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
             SndEvt_EnqueueType7(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 1);
             break;
         case 12:
-            w->walk.motion      = 1;
-            w->walk.motionStep  = 0;
-            w->walk.target.vx   = place->pos.vx;
-            w->walk.target.vy   = place->pos.vy;
-            w->walk.target.vz   = place->pos.vz;
-            w->walk.rotX        = place->rot.vx;
-            w->walk.rotY        = place->rot.vy;
-            w->walk.rotZ        = place->rot.vz;
-            w->model.nextAnimId = 2;
+            w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+            w->walk.motionStep   = 0;
+            w->walk.target.vx    = place->pos.vx;
+            w->walk.target.vy    = place->pos.vy;
+            w->walk.target.vz    = place->pos.vz;
+            w->walk.targetRot.vx = place->rot.vx;
+            w->walk.targetRot.vy = place->rot.vy;
+            w->walk.targetRot.vz = place->rot.vz;
+            w->model.nextAnimId  = 2;
 
             preset = &D_actor_323300_801725C8;
             work   = (Actor323300Work*)arg0->work;
@@ -726,7 +726,7 @@ static void func_actor_323300_801626F4(Task* arg0)
         func_actor_323300_801627B4,
     };
 
-    states[(s16)work->walk.motionStep](arg0);
+    states[work->walk.motionStep](arg0);
 }
 
 static void func_actor_323300_80162748(Task* arg0)
@@ -739,15 +739,15 @@ static void func_actor_323300_80162748(Task* arg0)
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = 8;
     }
-    work->walk.step.vx = 0;
-    work->walk.step.vy = 0;
-    work->walk.step.vz = 0;
+    work->walk.velocity.vx = 0;
+    work->walk.velocity.vy = 0;
+    work->walk.velocity.vz = 0;
     work->walk.motionStep++;
 }
 
 /// State handler at index 1 of the two-entry table `func_actor_323300_801626F4`
 /// dispatches, the turn-to-face body. Euler-extracts the root coordinate into `vec`
-/// and, while the yaw gap to the target `work->walk.rotY` stays under 0x41,
+/// and, while the yaw gap to the target `work->walk.targetRot.vy` stays under 0x41,
 /// snaps `vec.vy` to that target, plays anim 0x7D3 through
 /// `actorMotionPlayAnim19` and parks all 18 animation slots at 0x16 --
 /// `walk.motion` and `walk.motionStep` go back to zero, so the handler re-runs. A wider
@@ -768,7 +768,7 @@ static void func_actor_323300_801627B4(Task* arg0)
     work  = (Actor323300Work*)arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.rotY - (u16)vec.vy;
+    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
     if (ABS(diff) >= 0x41) {
         vy = vec.vy;
         if (diff < 0) {
@@ -777,12 +777,12 @@ static void func_actor_323300_801627B4(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy = work->walk.rotY;
+        vec.vy = work->walk.targetRot.vy;
         actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725DC, 0);
         for (i = 1; i < 0x13; i++) {
             work->rig.slots[i].rate = 0x16;
         }
-        work->walk.motion     = 0;
+        work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
         work->walk.motionStep = 0;
     }
 

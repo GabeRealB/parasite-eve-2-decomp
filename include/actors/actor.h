@@ -647,28 +647,43 @@ typedef struct {
 } ActorModelState;
 STATIC_ASSERT_SIZEOF(ActorModelState, 0x44);
 
+/// Which of its two handlers a scripted walker's tick runs, kept in
+/// `ActorWalkState::motion`.
+enum {
+    ACTOR_WALK_MOTION_IDLE    = 0, // No walk in progress: the package's idle handler runs
+    ACTOR_WALK_MOTION_WALKING = 1, // A walk in progress: the handler runs the step `motionStep` selects
+};
+
+/// `ActorWalkState::lastDistance` before a walk's first arrival check: larger
+/// than any distance the check measures, so that check only records.
+#define ACTOR_WALK_DISTANCE_NONE 0x7FFF
+
 /// The walk a scripted walker keeps after its model state: an actor the room
-/// script places and walks from point to point. A walk heads for `target`:
-/// each frame `step` is added into the 16.16 accumulators `acc`, whose high
-/// halves move the root coordinate and whose low halves carry over, until the
-/// remaining distance falls below `limit` on every axis, 0x7FFF disabling the
-/// check; an actor that walks without one leaves `limit` unused. `rotX`, `rotY` and `rotZ` are the placement rotation, and `rotY` the
-/// yaw the final turn steers toward. `motion` selects the handler the tick
-/// runs, and `motionStep` the step of the walk sequence that handler is on.
-typedef struct ActorWalkState {
-    VECTOR3 target;
-    byte    pad_C[0x4];
-    VECTOR3 step;
-    byte    pad_1C[0x4];
-    Fixed16 acc[3];
+/// script places and sends from point to point.
+///
+/// A walk request copies the destination's position and rotation into
+/// `target` and `targetRot` and sets `motion`; the package's sequence of
+/// steps then carries the walk out, and the step that ends it returns
+/// `motion` to idle. The steps and what each does are the package's own.
+///
+/// A walker that moves under `velocity` adds it into `carry` each frame, moves
+/// the root coordinate by the integer halves and keeps the fractions, so a
+/// velocity below one unit a frame still moves the actor. One whose sequence
+/// stops on arrival measures its X and Z distance to `target` each frame and
+/// has arrived once neither is smaller than `lastDistance`, which reaching
+/// and passing the target both cause.
+///
+/// No walker's own code reads or writes the fourth words of the two SDK
+/// vectors or `pad_2C`, and the block is allocated zeroed.
+typedef struct {
+    VECTOR  target;       // Destination of the walk, a position the root coordinate's translation is to reach
+    VECTOR  velocity;     // Displacement added each frame, in signed 16.16 units; zero while standing
+    Fixed16 carry[3];     // X, Y and Z displacement not yet applied; only the fractions survive a frame
     byte    pad_2C[0x4];
-    SVECTOR limit;
-    u16     rotX;
-    u16     rotY;
-    u16     rotZ;
-    byte    pad_3E[0x2];
-    s16     motion;
-    s16     motionStep;
+    SVECTOR lastDistance; // Absolute X and Z distance to `target` at the last arrival check, `ACTOR_WALK_DISTANCE_NONE` before the first; Y is only seeded
+    SVECTOR targetRot;    // Rotation of the destination, 4096 to a turn; the closing turn steers the yaw to `vy`, the other angles are not read
+    s16     motion;       // Handler the tick runs (0 `ACTOR_WALK_MOTION_IDLE`, 1 `ACTOR_WALK_MOTION_WALKING`)
+    s16     motionStep;   // Step of the package's walk sequence in progress, counted from 0
 } ActorWalkState;
 STATIC_ASSERT_SIZEOF(ActorWalkState, 0x44);
 

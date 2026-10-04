@@ -1191,13 +1191,13 @@ static void func_actor_113100_80131E58(Task* task)
         enemyTaskExit(task);
         return;
     }
-    task->work             = work;
-    work->model.animId     = ACTOR_MODEL_STATE_NONE;
-    work->model.bank       = ACTOR_MODEL_STATE_NONE;
-    work->field_53D        = -1;
-    work->walk.acc[0].word = 0;
-    work->walk.acc[1].word = 0;
-    work->walk.acc[2].word = 0;
+    task->work               = work;
+    work->model.animId       = ACTOR_MODEL_STATE_NONE;
+    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->field_53D          = -1;
+    work->walk.carry[0].word = 0;
+    work->walk.carry[1].word = 0;
+    work->walk.carry[2].word = 0;
     if (gGameSession->location.loc.variant == 2) {
         work->field_534 = Task_SpawnFromTable(D_actor_113100_80144308, 1, 8, task);
     }
@@ -1271,8 +1271,8 @@ static void func_actor_113100_80131E58(Task* task)
 /// draws the ground shadow under that part. `gSceneCombatState.actorControl` gates the rest: a
 /// nonzero value skips it. The live path dispatches `func_actor_113100_80132F40`
 /// or `func_actor_113100_80132FB4` from a two-entry stack table indexed by
-/// `walk.motion`, integrates the 16.16 step at `walk.step` into `walk.acc[0].word` /
-/// `walk.acc[1].word` / `walk.acc[2].word` and the root translation, ticks slots 1..0x13
+/// `walk.motion`, integrates the 16.16 step at `walk.velocity` into `walk.carry[0].word` /
+/// `walk.carry[1].word` / `walk.carry[2].word` and the root translation, ticks slots 1..0x13
 /// once `model.ticking` has latched, and plays ids 0x5113000F / 0x51130013 /
 /// 0x51130010 from the slot-1 cue flags. While the model is visible it clears
 /// the occupancy table, ramps `field_538` toward 0 or 0x1000 according to
@@ -1300,17 +1300,17 @@ static void func_actor_113100_80132104(Task* task)
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         funcs[work->walk.motion](task);
-        coord                   = task->extra.tmd->coords;
-        work->walk.acc[0].word += work->walk.step.vx;
-        work->walk.acc[1].word += work->walk.step.vy;
-        work->walk.acc[2].word += work->walk.step.vz;
-        coord->coord.t[0]      += (s16)(work->walk.acc[0].word >> 16);
-        coord->coord.t[1]      += (s16)(work->walk.acc[1].word >> 16);
-        coord->coord.t[2]      += (s16)(work->walk.acc[2].word >> 16);
-        coord->composeStamp     = GRAPHICS_COORD_DIRTY;
-        work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
-        work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
-        work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
+        coord                     = task->extra.tmd->coords;
+        work->walk.carry[0].word += work->walk.velocity.vx;
+        work->walk.carry[1].word += work->walk.velocity.vy;
+        work->walk.carry[2].word += work->walk.velocity.vz;
+        coord->coord.t[0]        += work->walk.carry[0].halves.integer;
+        coord->coord.t[1]        += work->walk.carry[1].halves.integer;
+        coord->coord.t[2]        += work->walk.carry[2].halves.integer;
+        coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+        work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
+        work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
+        work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
         if (work->model.ticking != 0) {
             for (i = 1; i < 0x14; i++) {
                 animationTickSlot(&work->rig.anim, i);
@@ -1370,8 +1370,8 @@ static void func_actor_113100_80132104(Task* task)
 /// with the heading the work block latched in `field_53A`: more than 0x41 away
 /// it steps `field_53A` 0x40 toward the model and only re-splats the identity
 /// 3x3, within 0x41 it turns the root coordinate to `field_53A` and then
-/// rotates the local forward offset (0, 0, 0x200000) into `walk.step` with
-/// `ApplyMatrixLV`, raises the three halves at `walk.limit` to 0x7FFF and
+/// rotates the local forward offset (0, 0, 0x200000) into `walk.velocity` with
+/// `ApplyMatrixLV`, raises the three halves at `walk.lastDistance` to 0x7FFF and
 /// publishes preset 0x7D3. Both arms clear `GfxCoord::composeStamp` -- the node's
 /// recompute bit -- and end at the same epilogue.
 ///
@@ -1427,10 +1427,10 @@ static void func_actor_113100_801324DC(Task* task)
         delta.vx = 0;
         delta.vy = 0;
         delta.vz = 0x200000;
-        ApplyMatrixLV(&coord->coord, &delta, (VECTOR*)&work->walk.step);
-        work->walk.limit.vx         = 0x7FFF;
-        work->walk.limit.vy         = 0x7FFF;
-        work->walk.limit.vz         = 0x7FFF;
+        ApplyMatrixLV(&coord->coord, &delta, &work->walk.velocity);
+        work->walk.lastDistance.vx  = ACTOR_WALK_DISTANCE_NONE;
+        work->walk.lastDistance.vy  = ACTOR_WALK_DISTANCE_NONE;
+        work->walk.lastDistance.vz  = ACTOR_WALK_DISTANCE_NONE;
         preset.source.index         = 0;
         preset.animationId          = 2;
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -1447,11 +1447,11 @@ static void func_actor_113100_801324DC(Task* task)
 /// `walk.target.vx` / `walk.target.vz` have drifted from the root coordinate's
 /// translation -- each axis as the 16-bit magnitude of the difference, the
 /// signed 32-bit subtraction only picking the direction -- and once both
-/// magnitudes reach the thresholds `walk.limit.vx` / `.vz` it publishes the
+/// magnitudes are no smaller than `walk.lastDistance.vx` / `.vz` it publishes the
 /// 0x7D3 preset (`field_4` the animation id, `field_C` 5) and clears the
-/// `walk.step` vector, bumping `walk.motionStep` on to the next handler. Below the
-/// thresholds it latches the magnitudes back into `walk.limit`, so the pair
-/// tracks the last distance that was too small.
+/// `walk.velocity` vector, bumping `walk.motionStep` on to the next handler. While
+/// either is still shrinking it latches the magnitudes back into
+/// `walk.lastDistance`, so the pair tracks the distance at the last check.
 static void func_actor_113100_8013264C(Task* task)
 {
     Actor113100Work*     work;
@@ -1475,21 +1475,21 @@ static void func_actor_113100_8013264C(Task* task)
         dz = (u16)coord->coord.t[2] - (u16)work->walk.target.vz;
     }
     d.vz = dz;
-    if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
+    if (d.vx >= work->walk.lastDistance.vx && d.vz >= work->walk.lastDistance.vz) {
         preset.source.index         = 0;
         preset.animationId          = work->model.nextAnimId;
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         func_actor_113100_801331E8(task, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
-        work->walk.step.vx = 0;
-        work->walk.step.vy = 0;
-        work->walk.step.vz = 0;
+        work->walk.velocity.vx = 0;
+        work->walk.velocity.vy = 0;
+        work->walk.velocity.vz = 0;
         work->walk.motionStep++;
         return;
     }
-    work->walk.limit.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->walk.limit.vz = d.vz < 0 ? -d.vz : d.vz;
+    work->walk.lastDistance.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->walk.lastDistance.vz = d.vz < 0 ? -d.vz : d.vz;
 }
 
 /// The 0x7D5 entry of `D_actor_113100_80144338`: the visibility control the
@@ -1588,16 +1588,16 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Act
     s32                   i;
     TmdObject*            ext;
 
-    w                   = (Actor113100Work*)task->work;
-    w->walk.motion      = 1;
-    w->walk.motionStep  = 0;
-    w->walk.target.vx   = place->pos.vx;
-    w->walk.target.vy   = place->pos.vy;
-    w->walk.target.vz   = place->pos.vz;
-    w->walk.rotX        = place->rot.vx;
-    w->walk.rotY        = place->rot.vy;
-    w->walk.rotZ        = place->rot.vz;
-    preset.source.index = 0;
+    w                    = (Actor113100Work*)task->work;
+    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    w->walk.motionStep   = 0;
+    w->walk.target.vx    = place->pos.vx;
+    w->walk.target.vy    = place->pos.vy;
+    w->walk.target.vz    = place->pos.vz;
+    w->walk.targetRot.vx = place->rot.vx;
+    w->walk.targetRot.vy = place->rot.vy;
+    w->walk.targetRot.vz = place->rot.vz;
+    preset.source.index  = 0;
     if (anim != NULL) {
         preset.animationId  = anim->animationId;
         w->model.nextAnimId = anim->nextAnimId;
@@ -1767,7 +1767,7 @@ static void func_actor_113100_80132FB4(Task* arg0)
 
     work     = (Actor113100Work*)arg0->work;
     handlers = D_actor_113100_80131E48;
-    handlers.funcs[(s16)work->walk.motionStep](arg0);
+    handlers.funcs[work->walk.motionStep](arg0);
 }
 
 /// Builds the offset from the actor's own translation (work + 0x4F0) to the
@@ -1819,7 +1819,7 @@ static void func_actor_113100_801330E8(Task* arg0)
     work  = (Actor113100Work*)arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.rotY - (u16)vec.vy;
+    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
     if (ABS(diff) >= 0x41) {
         vy = vec.vy;
         if (diff < 0) {
@@ -1828,14 +1828,14 @@ static void func_actor_113100_801330E8(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy                      = work->walk.rotY;
+        vec.vy                      = work->walk.targetRot.vy;
         preset.source.index         = 0;
         preset.animationId          = work->model.nextAnimId;
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         func_actor_113100_801331E8(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
-        work->walk.motion     = 0;
+        work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
         work->walk.motionStep = 0;
     }
 

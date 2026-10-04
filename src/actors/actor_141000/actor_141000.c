@@ -2245,7 +2245,7 @@ static void func_actor_141000_80133260(Task* arg0)
 }
 
 /// Per-frame tick of the model actor: runs the motion handler `walk.motion` selects, steps the 16.16 accumulators
-/// by `step` and moves the coordinate by their integer part, ticks the
+/// by `velocity` and moves the coordinate by their integer part, ticks the
 /// animation slots and ground shadow while visible, runs the texture-upload
 /// state, and counts `field_4C9` down to the buffer free.
 static void func_actor_141000_801332A0(Task* task)
@@ -2257,18 +2257,18 @@ static void func_actor_141000_801332A0(Task* task)
     GfxCoord*        coord;
     s32              i;
 
-    funcs[(s16)work->walk.motion](task);
-    coord                   = task->extra.tmd->coords;
-    work->walk.acc[0].word += work->walk.step.vx;
-    work->walk.acc[1].word += work->walk.step.vy;
-    work->walk.acc[2].word += work->walk.step.vz;
-    coord->coord.t[0]      += (s16)(work->walk.acc[0].word >> 16);
-    coord->coord.t[1]      += (s16)(work->walk.acc[1].word >> 16);
-    coord->coord.t[2]      += (s16)(work->walk.acc[2].word >> 16);
-    coord->composeStamp     = GRAPHICS_COORD_DIRTY;
-    work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
-    work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
-    work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
+    funcs[work->walk.motion](task);
+    coord                     = task->extra.tmd->coords;
+    work->walk.carry[0].word += work->walk.velocity.vx;
+    work->walk.carry[1].word += work->walk.velocity.vy;
+    work->walk.carry[2].word += work->walk.velocity.vz;
+    coord->coord.t[0]        += work->walk.carry[0].halves.integer;
+    coord->coord.t[1]        += work->walk.carry[1].halves.integer;
+    coord->coord.t[2]        += work->walk.carry[2].halves.integer;
+    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
+    work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
+    work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);
@@ -2353,16 +2353,16 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, Acto
     s32                   i;
     TmdObject*            ext;
 
-    w                   = (Actor141000Work*)task->work;
-    w->walk.motion      = 1;
-    w->walk.motionStep  = 0;
-    w->walk.target.vx   = place->pos.vx;
-    w->walk.target.vy   = place->pos.vy;
-    w->walk.target.vz   = place->pos.vz;
-    w->walk.rotX        = place->rot.vx;
-    w->walk.rotY        = place->rot.vy;
-    w->walk.rotZ        = place->rot.vz;
-    preset.source.index = 0;
+    w                    = (Actor141000Work*)task->work;
+    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    w->walk.motionStep   = 0;
+    w->walk.target.vx    = place->pos.vx;
+    w->walk.target.vy    = place->pos.vy;
+    w->walk.target.vz    = place->pos.vz;
+    w->walk.targetRot.vx = place->rot.vx;
+    w->walk.targetRot.vy = place->rot.vy;
+    w->walk.targetRot.vz = place->rot.vz;
+    preset.source.index  = 0;
     if (anim != NULL) {
         preset.animationId  = anim->animationId;
         w->model.nextAnimId = anim->nextAnimId;
@@ -2435,13 +2435,13 @@ static void func_actor_141000_8013392C(Task* arg0)
         return;
     }
 
-    arg0->work             = work;
-    work->model.animId     = ACTOR_MODEL_STATE_NONE;
-    work->model.bank       = ACTOR_MODEL_STATE_NONE;
-    work->field_4C9        = -1;
-    work->walk.acc[0].word = 0;
-    work->walk.acc[1].word = 0;
-    work->walk.acc[2].word = 0;
+    arg0->work               = work;
+    work->model.animId       = ACTOR_MODEL_STATE_NONE;
+    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->field_4C9          = -1;
+    work->walk.carry[0].word = 0;
+    work->walk.carry[1].word = 0;
+    work->walk.carry[2].word = 0;
 
     func_actor_141000_801339DC(arg0);
 
@@ -2480,7 +2480,7 @@ static void func_actor_141000_80133A00(Task* arg0)
 
     work     = (Actor141000Work*)arg0->work;
     handlers = D_actor_141000_80131E58;
-    handlers.funcs[(s16)work->walk.motionStep](arg0);
+    handlers.funcs[work->walk.motionStep](arg0);
 }
 
 /// State 0 of the main-body table `D_actor_141000_80131E58`: turns the root
@@ -2519,10 +2519,10 @@ static void func_actor_141000_80133A68(Task* task)
 /// State 1 of the actor's main-body table `D_actor_141000_80131E58`, the step
 /// after the turn-to-face state. Rotates the constant
 /// local-space offset `D_actor_141000_80131E68` through the root part's matrix
-/// into `work->walk.step`, halving it first while `field_4C8` is clear -- the
+/// into `work->walk.velocity`, halving it first while `field_4C8` is clear -- the
 /// variant `func_actor_141000_80133F6C` latches through message 0x7DB -- then
-/// opens the per-axis stop threshold to 0x7FFF, which disables it for the
-/// update loop, and advances the state.
+/// seeds `walk.lastDistance` with `ACTOR_WALK_DISTANCE_NONE` and advances the
+/// state.
 static void func_actor_141000_80133B28(Task* arg0)
 {
     Actor141000Work* work;
@@ -2538,16 +2538,16 @@ static void func_actor_141000_80133B28(Task* arg0)
         vec.vy >>= 1;
         vec.vz >>= 1;
     }
-    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->walk.step);
-    work->walk.limit.vx   = 0x7FFF;
-    work->walk.limit.vy   = 0x7FFF;
-    work->walk.limit.vz   = 0x7FFF;
-    work->walk.motionStep = work->walk.motionStep + 1;
+    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
+    work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.motionStep      = work->walk.motionStep + 1;
 }
 
 /// State 3 of the main-body table `D_actor_141000_80131E58`, after the approach
 /// test: turns the root part to the placement yaw. Euler-extracts the root coordinate into `vec`, and
-/// while the yaw gap to the target `work->walk.rotY` is at least 0x41 it steps
+/// while the yaw gap to the target `work->walk.targetRot.vy` is at least 0x41 it steps
 /// `vec.vy` toward it by 0x40 -- the step is taken on an `s32` widening of the
 /// extracted yaw, which the common tail adds to -- and otherwise snaps the yaw
 /// to the target and plays anim 0x7D3 with a preset carrying the `model.nextAnimId`
@@ -2567,7 +2567,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
     work  = (Actor141000Work*)arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.rotY - (u16)vec.vy;
+    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
     if (ABS(diff) >= 0x41) {
         vy = vec.vy;
         if (diff < 0) {
@@ -2576,14 +2576,14 @@ static void func_actor_141000_80133BD8(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy                      = work->walk.rotY;
+        vec.vy                      = work->walk.targetRot.vy;
         preset.source.index         = 0;
         preset.animationId          = work->model.nextAnimId;
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
-        work->walk.motion     = 0;
+        work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
         work->walk.motionStep = 0;
     }
 

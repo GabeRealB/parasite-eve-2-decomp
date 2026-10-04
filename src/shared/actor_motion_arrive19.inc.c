@@ -2,9 +2,9 @@
 
 /// State 2 of the main-body table `D_actor_141000_80131E58`: the approach
 /// test. Once the X/Z distance from the root coordinate to `target` stops
-/// shrinking below `limit`, plays anim 0x7D3 with a preset carrying the
-/// `model.nextAnimId` byte, clears `step` and advances the state; otherwise records
-/// the distance as the new `limit`.
+/// shrinking below `lastDistance`, plays anim 0x7D3 with a preset carrying the
+/// `model.nextAnimId` byte, clears `velocity` and advances the state; otherwise records
+/// the distance as the new `lastDistance`.
 void actorMotionArrive19(Task* arg0)
 {
     ActorMotion19Work*   work;
@@ -28,19 +28,19 @@ void actorMotionArrive19(Task* arg0)
         dz = (u16)coord->coord.t[2] - (u16)work->walk.target.vz;
     }
     d.vz = dz;
-    if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
+    if (d.vx >= work->walk.lastDistance.vx && d.vz >= work->walk.lastDistance.vz) {
         preset.source.index         = 0;
         preset.animationId          = work->model.nextAnimId;
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
-        work->walk.step.vx = 0;
-        work->walk.step.vy = 0;
-        work->walk.step.vz = 0;
+        work->walk.velocity.vx = 0;
+        work->walk.velocity.vy = 0;
+        work->walk.velocity.vz = 0;
         work->walk.motionStep++;
         return;
     }
-    work->walk.limit.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->walk.limit.vz = d.vz < 0 ? -d.vz : d.vz;
+    work->walk.lastDistance.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->walk.lastDistance.vz = d.vz < 0 ? -d.vz : d.vz;
 }

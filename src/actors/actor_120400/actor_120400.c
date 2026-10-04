@@ -893,14 +893,14 @@ static void func_actor_120400_80131E5C(Task* arg0)
         enemyTaskExit(arg0);
         return;
     }
-    arg0->work             = work;
-    work->model.animId     = ACTOR_MODEL_STATE_NONE;
-    work->model.bank       = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown    = -1;
-    work->walk.acc[0].word = 0;
-    work->walk.acc[1].word = 0;
-    work->walk.acc[2].word = 0;
-    spawned                = Task_SpawnFromTable(D_actor_120400_8013E748, 1, 8, arg0);
+    arg0->work               = work;
+    work->model.animId       = ACTOR_MODEL_STATE_NONE;
+    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->freeCountdown      = -1;
+    work->walk.carry[0].word = 0;
+    work->walk.carry[1].word = 0;
+    work->walk.carry[2].word = 0;
+    spawned                  = Task_SpawnFromTable(D_actor_120400_8013E748, 1, 8, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         AreaVariant*   layout;
@@ -958,7 +958,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
 /// The parent's per-frame update: the motion handler -- entry `walk.motion` of
 /// the pair `{func_actor_120400_801327F0, func_actor_120400_801327F8}`, idle or
 /// the walk sequence -- runs first, then
-/// the three 16.16 step accumulators at 0x4D8..0x4E0 take this frame's `step`,
+/// the three 16.16 words of `walk.carry` take this frame's `velocity`,
 /// their integer halves are added onto the root coordinate's translation and
 /// the fraction is dropped, and `composeStamp` is cleared so the tree rebuilds. With
 /// `model.ticking` set every animation slot is ticked. Unless the model is hidden
@@ -978,17 +978,17 @@ static void func_actor_120400_80132050(Task* arg0)
     s32                  i;
 
     funcs[work->walk.motion](arg0);
-    coord                   = arg0->extra.tmd->coords;
-    work->walk.acc[0].word += work->walk.step.vx;
-    work->walk.acc[1].word += work->walk.step.vy;
-    work->walk.acc[2].word += work->walk.step.vz;
-    coord->coord.t[0]      += (s16)(work->walk.acc[0].word >> 16);
-    coord->coord.t[1]      += (s16)(work->walk.acc[1].word >> 16);
-    coord->coord.t[2]      += (s16)(work->walk.acc[2].word >> 16);
-    coord->composeStamp     = GRAPHICS_COORD_DIRTY;
-    work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
-    work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
-    work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
+    coord                     = arg0->extra.tmd->coords;
+    work->walk.carry[0].word += work->walk.velocity.vx;
+    work->walk.carry[1].word += work->walk.velocity.vy;
+    work->walk.carry[2].word += work->walk.velocity.vz;
+    coord->coord.t[0]        += work->walk.carry[0].halves.integer;
+    coord->coord.t[1]        += work->walk.carry[1].halves.integer;
+    coord->coord.t[2]        += work->walk.carry[2].halves.integer;
+    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
+    work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
+    work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
             animationTickSlot(&work->rig.anim, i);
@@ -1016,7 +1016,7 @@ static void func_actor_120400_80132050(Task* arg0)
 
 /// Message 0x7DD handler of the parent: starts the walk sequence toward a
 /// placement. The position and rotation are copied into `target` and
-/// `walk.rotX`..`walk.rotZ`, `walk.motion` selects the walk and `walk.motionStep` restarts
+/// `walk.targetRot`, `walk.motion` selects the walk and `walk.motionStep` restarts
 /// it, and a start preset is built on the stack -- bank id 0, the optional
 /// `animationId` and `nextAnimId` (0x10 and 1 when absent), 1, 5 and 1 --
 /// and then applied in-line. A changed bank id latches `model.bank` and reseeds
@@ -1035,16 +1035,16 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Acto
     s32                   i;
     TmdObject*            ext;
 
-    w                   = (Actor120400MainWork*)task->work;
-    w->walk.motion      = 1;
-    w->walk.motionStep  = 0;
-    w->walk.target.vx   = place->pos.vx;
-    w->walk.target.vy   = place->pos.vy;
-    w->walk.target.vz   = place->pos.vz;
-    w->walk.rotX        = place->rot.vx;
-    w->walk.rotY        = place->rot.vy;
-    w->walk.rotZ        = place->rot.vz;
-    preset.source.index = 0;
+    w                    = (Actor120400MainWork*)task->work;
+    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    w->walk.motionStep   = 0;
+    w->walk.target.vx    = place->pos.vx;
+    w->walk.target.vy    = place->pos.vy;
+    w->walk.target.vz    = place->pos.vz;
+    w->walk.targetRot.vx = place->rot.vx;
+    w->walk.targetRot.vy = place->rot.vy;
+    w->walk.targetRot.vz = place->rot.vz;
+    preset.source.index  = 0;
     if (anim != NULL) {
         preset.animationId  = anim->animationId;
         w->model.nextAnimId = anim->nextAnimId;
@@ -1148,8 +1148,8 @@ static void func_actor_120400_801327F8(Task* task)
 #include "../../shared/actor_motion_face.inc.c"
 
 /// Walk step 1: rotates the constant forward offset `D_actor_120400_80131E4C`
-/// through the root part's matrix into `step`, opens the arrival threshold to
-/// 0x7FFF, which disables it, and advances the step.
+/// through the root part's matrix into `velocity`, seeds `lastDistance` with
+/// `ACTOR_WALK_DISTANCE_NONE` and advances the step.
 static void func_actor_120400_80132920(Task* task)
 {
     Actor120400MainWork* work;
@@ -1160,10 +1160,10 @@ static void func_actor_120400_80132920(Task* task)
     work  = (Actor120400MainWork*)task->work;
 
     vec = D_actor_120400_80131E4C;
-    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->walk.step);
-    work->walk.limit.vx = 0x7FFF;
-    work->walk.limit.vy = 0x7FFF;
-    work->walk.limit.vz = 0x7FFF;
+    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
+    work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
     work->walk.motionStep++;
 }
 

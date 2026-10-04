@@ -13,16 +13,16 @@ s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, ActorMotion
     s32                   i;
     TmdObject*            ext;
 
-    w                   = (Actor350500Work*)task->work;
-    w->walk.motion      = 1;
-    w->walk.motionStep  = 0;
-    w->walk.target.vx   = place->pos.vx;
-    w->walk.target.vy   = place->pos.vy;
-    w->walk.target.vz   = place->pos.vz;
-    w->walk.rotX        = place->rot.vx;
-    w->walk.rotY        = place->rot.vy;
-    w->walk.rotZ        = place->rot.vz;
-    preset.source.index = 0;
+    w                    = (Actor350500Work*)task->work;
+    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    w->walk.motionStep   = 0;
+    w->walk.target.vx    = place->pos.vx;
+    w->walk.target.vy    = place->pos.vy;
+    w->walk.target.vz    = place->pos.vz;
+    w->walk.targetRot.vx = place->rot.vx;
+    w->walk.targetRot.vy = place->rot.vy;
+    w->walk.targetRot.vz = place->rot.vz;
+    preset.source.index  = 0;
     if (anim != NULL) {
         preset.animationId  = anim->animationId;
         w->model.nextAnimId = anim->nextAnimId;

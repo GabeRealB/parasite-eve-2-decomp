@@ -1,7 +1,7 @@
 /* Part of the reversing walker library; see reversing_walker.h. */
 
-/// the counter at `walk.motion` indexes, then integrates the local-space `step`
-/// into the 16.16 accumulators at `walk.acc`, adds their high halves to the
+/// the counter at `walk.motion` indexes, then integrates the local-space `velocity`
+/// into the 16.16 accumulators at `walk.carry`, adds their high halves to the
 /// root coordinate's translation and truncates them back to 16 bits. Ticks the
 /// animation slots while `model.ticking` is set, and -- unless the display object's
 /// `flags` carry 0x80 -- draws the ground-shadow quad from the second
@@ -17,18 +17,18 @@ void reverseWalkUpdate(Task* arg0)
     GfxCoord*        coord;
     s32              i;
 
-    funcs[(s16)work->walk.motion](arg0);
-    coord                   = arg0->extra.tmd->coords;
-    work->walk.acc[0].word += work->walk.step.vx;
-    work->walk.acc[1].word += work->walk.step.vy;
-    work->walk.acc[2].word += work->walk.step.vz;
-    coord->coord.t[0]      += (s16)(work->walk.acc[0].word >> 16);
-    coord->coord.t[1]      += (s16)(work->walk.acc[1].word >> 16);
-    coord->coord.t[2]      += (s16)(work->walk.acc[2].word >> 16);
-    coord->composeStamp     = GRAPHICS_COORD_DIRTY;
-    work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
-    work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
-    work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
+    funcs[work->walk.motion](arg0);
+    coord                     = arg0->extra.tmd->coords;
+    work->walk.carry[0].word += work->walk.velocity.vx;
+    work->walk.carry[1].word += work->walk.velocity.vy;
+    work->walk.carry[2].word += work->walk.velocity.vz;
+    coord->coord.t[0]        += work->walk.carry[0].halves.integer;
+    coord->coord.t[1]        += work->walk.carry[1].halves.integer;
+    coord->coord.t[2]        += work->walk.carry[2].halves.integer;
+    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
+    work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
+    work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);

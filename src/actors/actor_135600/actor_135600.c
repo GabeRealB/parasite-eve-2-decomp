@@ -770,13 +770,13 @@ static void func_actor_135600_80132234(Task* task)
         enemyTaskExit(task);
         return;
     }
-    task->work             = work;
-    work->model.animId     = ACTOR_MODEL_STATE_NONE;
-    work->model.bank       = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown    = -1;
-    work->walk.acc[0].word = 0;
-    work->walk.acc[1].word = 0;
-    work->walk.acc[2].word = 0;
+    task->work               = work;
+    work->model.animId       = ACTOR_MODEL_STATE_NONE;
+    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->freeCountdown      = -1;
+    work->walk.carry[0].word = 0;
+    work->walk.carry[1].word = 0;
+    work->walk.carry[2].word = 0;
 
     spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 1, 8, task);
     if (spawned != NULL) {
@@ -821,7 +821,7 @@ static void func_actor_135600_80132234(Task* task)
 /// Draws the ground shadow under the second part unless the model is hidden,
 /// then -- only while `gSceneCombatState.actorControl` is clear -- runs the handler `walk.motion`
 /// selects, advances the root coordinate by the high halves of the 16.16
-/// accumulators fed from `step` (re-zeroing each high half), ticks slots 1 to
+/// accumulators fed from `velocity` (re-zeroing each high half), ticks slots 1 to
 /// 19 while `model.ticking` is set, rebuilds the second part's coordinate and the
 /// actor colour while `gGameSession->viewReady` is set, and counts `freeCountdown`
 /// down while non-negative, freeing the model's buffers when it reaches zero.
@@ -841,17 +841,17 @@ static void func_actor_135600_801324D0(Task* arg0)
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         funcs[work->walk.motion](arg0);
-        coord                   = arg0->extra.tmd->coords;
-        work->walk.acc[0].word += work->walk.step.vx;
-        work->walk.acc[1].word += work->walk.step.vy;
-        work->walk.acc[2].word += work->walk.step.vz;
-        coord->coord.t[0]      += (s16)(work->walk.acc[0].word >> 16);
-        coord->coord.t[1]      += (s16)(work->walk.acc[1].word >> 16);
-        coord->coord.t[2]      += (s16)(work->walk.acc[2].word >> 16);
-        coord->composeStamp     = GRAPHICS_COORD_DIRTY;
-        work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
-        work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
-        work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
+        coord                     = arg0->extra.tmd->coords;
+        work->walk.carry[0].word += work->walk.velocity.vx;
+        work->walk.carry[1].word += work->walk.velocity.vy;
+        work->walk.carry[2].word += work->walk.velocity.vz;
+        coord->coord.t[0]        += work->walk.carry[0].halves.integer;
+        coord->coord.t[1]        += work->walk.carry[1].halves.integer;
+        coord->coord.t[2]        += work->walk.carry[2].halves.integer;
+        coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+        work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
+        work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
+        work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
         if (work->model.ticking != 0) {
             for (i = 1; i < 0x14; i++) {
                 animationTickSlot(&work->rig.anim, i);
@@ -1043,14 +1043,14 @@ static void func_actor_135600_80132E00(Task* task)
 
     work     = (Actor135600Work*)task->work;
     handlers = D_actor_135600_80131E48;
-    handlers.funcs[(s16)work->walk.motionStep](task);
+    handlers.funcs[work->walk.motionStep](task);
 }
 
 #include "../../shared/actor_motion_face.inc.c"
 
 /// Step 1: rotates the forward offset `D_actor_135600_80131E58` through the
-/// root part's matrix into `work->walk.step`, opens the per-axis stop threshold to
-/// 0x7FFF, which disables it, and advances the step.
+/// root part's matrix into `work->walk.velocity`, seeds `walk.lastDistance` with
+/// `ACTOR_WALK_DISTANCE_NONE` and advances the step.
 static void func_actor_135600_80132F28(Task* task)
 {
     Actor135600Work* work;
@@ -1061,10 +1061,10 @@ static void func_actor_135600_80132F28(Task* task)
     work  = (Actor135600Work*)task->work;
 
     vec = D_actor_135600_80131E58;
-    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->walk.step);
-    work->walk.limit.vx = 0x7FFF;
-    work->walk.limit.vy = 0x7FFF;
-    work->walk.limit.vz = 0x7FFF;
+    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
+    work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
     work->walk.motionStep++;
 }
 

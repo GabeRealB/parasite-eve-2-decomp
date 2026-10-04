@@ -2,7 +2,7 @@
 
 /// State handler at index 3 of `D_actor_350700_80161E30`, the turn-to-face body
 /// that follows `reverseWalkFaceTarget`. Euler-extracts the root coordinate into
-/// `vec`, and while the yaw gap to the target `work->walk.rotY` is at least
+/// `vec`, and while the yaw gap to the target `work->walk.targetRot.vy` is at least
 /// 0x61 it steps `vec.vy` toward it by 0x60 -- the step is taken on an `s32`
 /// widening of the extracted yaw -- and otherwise snaps the yaw to the target
 /// and plays anim 0x7D3, clearing the two body counters. Either way the root
@@ -22,7 +22,7 @@ void reverseWalkTurnToYaw(Task* arg0)
     work  = (Actor350500Work*)arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.rotY - (u16)vec.vy;
+    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
     if (ABS(diff) >= 0x61) {
         vy = vec.vy;
         if (diff < 0) {
@@ -31,14 +31,14 @@ void reverseWalkTurnToYaw(Task* arg0)
             vec.vy = vy + 0x60;
         }
     } else {
-        vec.vy                      = work->walk.rotY;
+        vec.vy                      = work->walk.targetRot.vy;
         preset.source.index         = 0;
         preset.animationId          = 1;
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 4;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
-        work->walk.motion     = 0;
+        work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
         work->walk.motionStep = 0;
     }
 

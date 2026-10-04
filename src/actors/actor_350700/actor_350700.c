@@ -592,7 +592,7 @@ void reverseWalkRunStep(Task* arg0)
 
     work     = (Actor350500Work*)arg0->work;
     handlers = D_actor_350700_80161E30;
-    handlers.funcs[(s16)work->walk.motionStep](arg0);
+    handlers.funcs[work->walk.motionStep](arg0);
 }
 
 #include "../../shared/reversing_walker_face.inc.c"
@@ -650,14 +650,14 @@ static void func_actor_350700_80162B30(Task* arg0)
         enemyTaskExit(arg0);
         return;
     }
-    arg0->work             = work;
-    work->model.animId     = ACTOR_MODEL_STATE_NONE;
-    work->model.bank       = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown    = -1;
-    work->walk.acc[0].word = 0;
-    work->walk.acc[1].word = 0;
-    work->walk.acc[2].word = 0;
-    spawned                = Task_SpawnFromTable(D_actor_350700_801708DC, 1, 8, arg0);
+    arg0->work               = work;
+    work->model.animId       = ACTOR_MODEL_STATE_NONE;
+    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->freeCountdown      = -1;
+    work->walk.carry[0].word = 0;
+    work->walk.carry[1].word = 0;
+    work->walk.carry[2].word = 0;
+    spawned                  = Task_SpawnFromTable(D_actor_350700_801708DC, 1, 8, arg0);
     if (spawned != NULL) {
         TmdObject*     model;
         AreaVariant*   layout;
@@ -721,7 +721,7 @@ static void func_actor_350700_80162B30(Task* arg0)
 /// Per-frame tick of the parent actor: dispatches through the local two-entry
 /// table `walk.motion` indexes -- the empty `func_actor_350700_801633F8` or the
 /// step dispatcher `func_actor_350700_80163400` -- then integrates the
-/// per-frame deltas in `walk.step` into the 16.16 accumulators `walk.acc`,
+/// per-frame deltas in `walk.velocity` into the 16.16 accumulators `walk.carry`,
 /// adds their high halves to the root coordinate's translation, clears `composeStamp`
 /// and truncates the accumulators back to 16 bits. Ticks the animation slots
 /// while `model.ticking` is set; and, unless the display object's `flags` carry
@@ -741,17 +741,17 @@ static void func_actor_350700_80162D5C(Task* arg0)
     s32              i;
 
     funcs[work->walk.motion](arg0);
-    coord                   = arg0->extra.tmd->coords;
-    work->walk.acc[0].word += work->walk.step.vx;
-    work->walk.acc[1].word += work->walk.step.vy;
-    work->walk.acc[2].word += work->walk.step.vz;
-    coord->coord.t[0]      += (s16)(work->walk.acc[0].word >> 16);
-    coord->coord.t[1]      += (s16)(work->walk.acc[1].word >> 16);
-    coord->coord.t[2]      += (s16)(work->walk.acc[2].word >> 16);
-    coord->composeStamp     = GRAPHICS_COORD_DIRTY;
-    work->walk.acc[0].word  = (u16)work->walk.acc[0].word;
-    work->walk.acc[1].word  = (u16)work->walk.acc[1].word;
-    work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
+    coord                     = arg0->extra.tmd->coords;
+    work->walk.carry[0].word += work->walk.velocity.vx;
+    work->walk.carry[1].word += work->walk.velocity.vy;
+    work->walk.carry[2].word += work->walk.velocity.vz;
+    coord->coord.t[0]        += work->walk.carry[0].halves.integer;
+    coord->coord.t[1]        += work->walk.carry[1].halves.integer;
+    coord->coord.t[2]        += work->walk.carry[2].halves.integer;
+    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
+    work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
+    work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
             animationTickSlot(&work->rig.anim, i);
@@ -849,15 +849,15 @@ static void func_actor_350700_80163400(Task* task)
 
     work     = (Actor135600Work*)task->work;
     handlers = D_actor_350700_80161E68;
-    handlers.funcs[(s16)work->walk.motionStep](task);
+    handlers.funcs[work->walk.motionStep](task);
 }
 
 #include "../../shared/actor_motion_face.inc.c"
 
 /// Step 1 of the parent: rotates the constant forward offset
-/// `D_actor_350700_80161E78` through the root part's matrix into `work->walk.step`,
-/// opens the per-axis stop threshold to 0x7FFF, which disables it, and
-/// advances the step.
+/// `D_actor_350700_80161E78` through the root part's matrix into `work->walk.velocity`,
+/// seeds `walk.lastDistance` with `ACTOR_WALK_DISTANCE_NONE` and advances the
+/// step.
 static void func_actor_350700_80163528(Task* task)
 {
     Actor135600Work* work;
@@ -868,10 +868,10 @@ static void func_actor_350700_80163528(Task* task)
     work  = (Actor135600Work*)task->work;
 
     vec = D_actor_350700_80161E78;
-    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->walk.step);
-    work->walk.limit.vx = 0x7FFF;
-    work->walk.limit.vy = 0x7FFF;
-    work->walk.limit.vz = 0x7FFF;
+    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
+    work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
+    work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
     work->walk.motionStep++;
 }
 

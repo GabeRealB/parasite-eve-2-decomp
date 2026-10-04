@@ -29,7 +29,7 @@
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, whose
 /// matrices the model is lit with, then the walk, which this actor runs
-/// without an arrival threshold.
+/// without an arrival check.
 typedef struct Actor317000Work {
     ActorAnimRig19   rig;
     ActorModelState  model;
@@ -331,8 +331,8 @@ TaskMessageEntry D_actor_317000_8016CF50[6] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_317000_80162CA0 },
     { TASK_MESSAGE_TABLE_END, NULL },
 }; /// Per-frame tick. Runs the state body `Actor317000Work::walk.motion` selects
-/// from a two-entry stack table, then integrates the 16.16 position: `step` is
-/// added to `walk.acc`, `step.vy` gains 0x120000 while `field_4C4` is raised, the
+/// from a two-entry stack table, then integrates the 16.16 position: `velocity` is
+/// added to `walk.carry`, `velocity.vy` gains 0x120000 while `field_4C4` is raised, the
 /// integer halves move the root coordinate and only the fractions are kept.
 /// The animation slots tick, the second coordinate is refreshed while
 /// `gGameSession->viewReady` is set, `field_4C6` ramps up by 0x40 to 0x1000 or
@@ -346,22 +346,22 @@ static void func_actor_317000_80161E68(Task* task)
     GfxCoord*        coord;
     s32              i;
 
-    states[(s16)work->walk.motion](task);
+    states[work->walk.motion](task);
 
-    coord                   = task->extra.tmd->coords;
-    work->walk.acc[0].word += work->walk.step.vx;
-    work->walk.acc[1].word += work->walk.step.vy;
-    work->walk.acc[2].word += work->walk.step.vz;
+    coord                     = task->extra.tmd->coords;
+    work->walk.carry[0].word += work->walk.velocity.vx;
+    work->walk.carry[1].word += work->walk.velocity.vy;
+    work->walk.carry[2].word += work->walk.velocity.vz;
     if (work->field_4C4 != 0) {
-        work->walk.step.vy += 0x120000;
+        work->walk.velocity.vy += 0x120000;
     }
-    coord->coord.t[0]     += work->walk.acc[0].halves.integer;
-    coord->coord.t[1]     += work->walk.acc[1].halves.integer;
-    coord->coord.t[2]     += work->walk.acc[2].halves.integer;
-    coord->composeStamp    = GRAPHICS_COORD_DIRTY;
-    work->walk.acc[0].word = work->walk.acc[0].halves.fraction;
-    work->walk.acc[1].word = work->walk.acc[1].halves.fraction;
-    work->walk.acc[2].word = work->walk.acc[2].halves.fraction;
+    coord->coord.t[0]       += work->walk.carry[0].halves.integer;
+    coord->coord.t[1]       += work->walk.carry[1].halves.integer;
+    coord->coord.t[2]       += work->walk.carry[2].halves.integer;
+    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
+    work->walk.carry[0].word = work->walk.carry[0].halves.fraction;
+    work->walk.carry[1].word = work->walk.carry[1].halves.fraction;
+    work->walk.carry[2].word = work->walk.carry[2].halves.fraction;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);
@@ -442,7 +442,7 @@ static void func_actor_317000_801620BC(Task* task)
             ang.vy = y + 0x40;
         }
     } else {
-        work->walk.motion     = 0;
+        work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
         work->walk.motionStep = 0;
     }
     RotMatrix(&ang, &coord->coord);
@@ -527,7 +527,7 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 
 /// Message 0x7DD handler of the table `func_actor_317000_8016267C` installs,
 /// and the actor's spawn body. The placement's position and rotation are
-/// copied into the work's `target` and `field_4B8..field_4BC`, `walk.motion` --
+/// copied into the work's `walk.target` and `walk.targetRot`, `walk.motion` --
 /// the index `func_actor_317000_80161E68` dispatches on -- is latched to 1, and
 /// the animation preset is filled: bank 0, the start clip from `anim`
 /// (`animationId`, or 2 when `anim` is absent), `nextAnimId` into
@@ -551,15 +551,15 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Acto
     s32                   i;
     TmdObject*            ext;
 
-    w                   = (Actor317000Work*)task->work;
-    w->walk.motion      = 1;
-    w->walk.target.vx   = place->pos.vx;
-    w->walk.target.vy   = place->pos.vy;
-    w->walk.target.vz   = place->pos.vz;
-    w->walk.rotX        = place->rot.vx;
-    w->walk.rotY        = place->rot.vy;
-    w->walk.rotZ        = place->rot.vz;
-    preset.source.index = 0;
+    w                    = (Actor317000Work*)task->work;
+    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    w->walk.target.vx    = place->pos.vx;
+    w->walk.target.vy    = place->pos.vy;
+    w->walk.target.vz    = place->pos.vz;
+    w->walk.targetRot.vx = place->rot.vx;
+    w->walk.targetRot.vy = place->rot.vy;
+    w->walk.targetRot.vz = place->rot.vz;
+    preset.source.index  = 0;
     if (anim != NULL) {
         preset.animationId  = anim->animationId;
         w->model.nextAnimId = anim->nextAnimId;
@@ -628,13 +628,13 @@ static void func_actor_317000_8016267C(Task* arg0)
         return;
     }
 
-    arg0->work             = work;
-    work->model.animId     = ACTOR_MODEL_STATE_NONE;
-    work->model.bank       = ACTOR_MODEL_STATE_NONE;
-    work->field_4C8        = -1;
-    work->walk.acc[0].word = 0;
-    work->walk.acc[1].word = 0;
-    work->walk.acc[2].word = 0;
+    arg0->work               = work;
+    work->model.animId       = ACTOR_MODEL_STATE_NONE;
+    work->model.bank         = ACTOR_MODEL_STATE_NONE;
+    work->field_4C8          = -1;
+    work->walk.carry[0].word = 0;
+    work->walk.carry[1].word = 0;
+    work->walk.carry[2].word = 0;
 
     func_actor_317000_80162744(arg0);
     func_actor_317000_80162BC4(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
@@ -682,12 +682,12 @@ static void func_actor_317000_80162768(Task* arg0)
 
     work     = (Actor317000Work*)arg0->work;
     handlers = D_actor_317000_80161E30;
-    handlers.funcs[(s16)work->walk.motionStep](arg0);
+    handlers.funcs[work->walk.motionStep](arg0);
 }
 
 /// Step handler at index 0 of `D_actor_317000_80161E30`: Euler-extracts the
 /// root coordinate into `vec`, and while the yaw gap to the target
-/// `work->walk.rotY` is at least 0x41 it steps `vec.vy` toward it by 0x40 --
+/// `work->walk.targetRot.vy` is at least 0x41 it steps `vec.vy` toward it by 0x40 --
 /// the step is taken on an `s32` widening of the extracted yaw -- and
 /// otherwise snaps the yaw to the target and plays anim 0x7D3 with a preset
 /// whose `field_4` is the literal 2, clearing the `field_4C4` flag and
@@ -707,7 +707,7 @@ static void func_actor_317000_801627D0(Task* arg0)
     work  = (Actor317000Work*)arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.rotY - (u16)vec.vy;
+    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
     if (ABS(diff) >= 0x41) {
         vy = vec.vy;
         if (diff < 0) {
@@ -716,7 +716,7 @@ static void func_actor_317000_801627D0(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy                      = work->walk.rotY;
+        vec.vy                      = work->walk.targetRot.vy;
         preset.source.index         = 0;
         preset.animationId          = 2;
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -740,7 +740,7 @@ static void func_actor_317000_801627D0(Task* arg0)
 /// Step handler at index 1 of `D_actor_317000_80161E30`, reached by the
 /// `walk.motionStep` advance `func_actor_317000_801627D0` ends with: rotates the constant local-space
 /// offset `D_actor_317000_80161E40` through the root part's matrix into
-/// `work->walk.step`, then raises the flag at 0x4C4 and moves the dispatcher on.
+/// `work->walk.velocity`, then raises the flag at 0x4C4 and moves the dispatcher on.
 static void func_actor_317000_801628D8(Task* task)
 {
     Actor317000Work* work;
@@ -751,7 +751,7 @@ static void func_actor_317000_801628D8(Task* task)
     work  = (Actor317000Work*)task->work;
 
     vec = D_actor_317000_80161E40;
-    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->walk.step);
+    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
     work->field_4C4 = 1;
     work->walk.motionStep++;
 }
@@ -759,7 +759,7 @@ static void func_actor_317000_801628D8(Task* task)
 /// Step handler at index 2 of `D_actor_317000_80161E30`, the step after
 /// `func_actor_317000_801628D8` and reached by the `walk.motionStep` advance that
 /// body ends with. While the root coordinate's Y is below -0x30 it does
-/// nothing; above it the rise is over: the local-space `work->walk.step` the
+/// nothing; above it the rise is over: the local-space `work->walk.velocity` the
 /// previous body wrote is cleared, the animation is re-applied through message
 /// 0x7D3 with the latched `model.nextAnimId` state, and sound 0x400A000B is queued
 /// panned and attenuated from the root coordinate's matrix. The `field_4C4`
@@ -785,10 +785,10 @@ static void func_actor_317000_80162950(Task* arg0)
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x0B), pan, (s8)worldCoordGetOriginAudioDepth(coord));
 
-    work->walk.step.vx = 0;
-    work->walk.step.vy = 0;
-    work->walk.step.vz = 0;
-    work->field_4C4    = 0;
+    work->walk.velocity.vx = 0;
+    work->walk.velocity.vy = 0;
+    work->walk.velocity.vz = 0;
+    work->field_4C4        = 0;
     work->walk.motionStep++;
 }
 

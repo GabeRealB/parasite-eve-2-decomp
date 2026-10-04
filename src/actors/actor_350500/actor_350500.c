@@ -260,7 +260,7 @@ void reverseWalkRunStep(Task* arg0)
 
     work     = (Actor350500Work*)arg0->work;
     handlers = D_actor_350500_80161E30;
-    handlers.funcs[(s16)work->walk.motionStep](arg0);
+    handlers.funcs[work->walk.motionStep](arg0);
 }
 
 #include "../../shared/reversing_walker_face.inc.c"

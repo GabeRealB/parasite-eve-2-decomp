@@ -1,7 +1,7 @@
 /* Part of the actor motion library; see actor_motion.h. */
 
 /// Walk step 3, the turn to the placement yaw: Euler-extracts the root
-/// coordinate into `vec`, and while the yaw gap to `walk.rotY` is at least
+/// coordinate into `vec`, and while the yaw gap to `walk.targetRot.vy` is at least
 /// 0x41 steps `vec.vy` toward it by 0x40, taking the step on an `s32` widening
 /// of the extracted yaw. Otherwise it snaps the yaw to the target, plays the
 /// preset carrying the `model.nextAnimId` byte through the 0x7D3 handler and clears
@@ -21,7 +21,7 @@ void actorMotionTurnToYaw(Task* arg0)
     work  = (ActorMotionWork*)arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.rotY - (u16)vec.vy;
+    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
     if (ABS(diff) >= 0x41) {
         vy = vec.vy;
         if (diff < 0) {
@@ -30,14 +30,14 @@ void actorMotionTurnToYaw(Task* arg0)
             vec.vy = vy + 0x40;
         }
     } else {
-        vec.vy                      = work->walk.rotY;
+        vec.vy                      = work->walk.targetRot.vy;
         preset.source.index         = 0;
         preset.animationId          = work->model.nextAnimId;
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
-        work->walk.motion     = 0;
+        work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
         work->walk.motionStep = 0;
     }
 

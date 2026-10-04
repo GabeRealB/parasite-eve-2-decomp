@@ -2,7 +2,7 @@
 
 /// The 0x7DD entry of `D_actor_135600_8013B0F4`: starts the motion sequence,
 /// storing the placement position as `target` and its rotation in
-/// `walk.rotX`..`walk.rotZ`, then applies a start preset -- `anim`'s
+/// `walk.targetRot`, then applies a start preset -- `anim`'s
 /// `animationId` and `nextAnimId`, or animation 0xD and next id 1 when `anim`
 /// is absent -- with the body of
 /// `func_actor_135600_801330A8` written out inline. Returns 0.
@@ -15,16 +15,16 @@ s32 actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, ActorMotio
     s32                   i;
     TmdObject*            ext;
 
-    w                   = (ActorMotionWork*)task->work;
-    w->walk.motion      = 1;
-    w->walk.motionStep  = 0;
-    w->walk.target.vx   = place->pos.vx;
-    w->walk.target.vy   = place->pos.vy;
-    w->walk.target.vz   = place->pos.vz;
-    w->walk.rotX        = place->rot.vx;
-    w->walk.rotY        = place->rot.vy;
-    w->walk.rotZ        = place->rot.vz;
-    preset.source.index = 0;
+    w                    = (ActorMotionWork*)task->work;
+    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    w->walk.motionStep   = 0;
+    w->walk.target.vx    = place->pos.vx;
+    w->walk.target.vy    = place->pos.vy;
+    w->walk.target.vz    = place->pos.vz;
+    w->walk.targetRot.vx = place->rot.vx;
+    w->walk.targetRot.vy = place->rot.vy;
+    w->walk.targetRot.vz = place->rot.vz;
+    preset.source.index  = 0;
     if (anim != NULL) {
         preset.animationId  = anim->animationId;
         w->model.nextAnimId = anim->nextAnimId;
