@@ -1980,3 +1980,82 @@ AnimationBank D_mm1_8012D184 = { { {
     NULL,
 } } };
 #endif
+
+/// The spawn state's tables, between the weapon's animation bank and the shell's model.
+SVECTOR gGrenadeShellMuzzleOffsets[2] = {
+    { 0, 0x1E0, 0x80, 0 },
+    { 0, 0x220, 0x80, 0 },
+};
+
+/// Impact clip id per attachment, indexed by `ammunitionIndex - GRENADE_ROUND_FIRST`.
+u16 gGrenadeShellBlastRadii[4] = { 0x1F4, 0x4B0, 0x7D0, 0 };
+
+/// Per-ammo launch speed.
+u8 gGrenadeShellSpeeds[4] = { 0x0C, 0x08, 0, 0 };
+
+/* Each package carries its own shell model. */
+#if GRENADE_VARIANT == 0
+static TmdBone _gGrenadePistolModel0E324Skeleton[1] = {
+#include "assets/grenade_pistol_model_0E324_skeleton.inc"
+};
+
+static u32 _gGrenadePistolModel0E324PartVerts[1] = {
+#include "assets/grenade_pistol_model_0E324_partVerts.inc"
+};
+
+static SVECTOR _gGrenadePistolModel0E324Verts[8] = {
+#include "assets/grenade_pistol_model_0E324_verts.inc"
+};
+
+static SVECTOR _gGrenadePistolModel0E324Normals[8] = {
+#include "assets/grenade_pistol_model_0E324_normals.inc"
+};
+
+static u32 _gGrenadePistolModel0E324Stream[48] = {
+#include "assets/grenade_pistol_model_0E324_stream.inc"
+};
+
+TmdSource D_grenade_pistol_8012B5A4 = {
+    0,
+    312,
+    0,
+    1,
+    _gGrenadePistolModel0E324PartVerts,
+    _gGrenadePistolModel0E324Verts,
+    _gGrenadePistolModel0E324Normals,
+    _gGrenadePistolModel0E324Skeleton,
+    _gGrenadePistolModel0E324Stream,
+};
+#elif GRENADE_VARIANT == 1
+static TmdBone _gMm1Model101C4Skeleton[1] = {
+#include "assets/mm1_model_101C4_skeleton.inc"
+};
+
+static u32 _gMm1Model101C4PartVerts[1] = {
+#include "assets/mm1_model_101C4_partVerts.inc"
+};
+
+static SVECTOR _gMm1Model101C4Verts[8] = {
+#include "assets/mm1_model_101C4_verts.inc"
+};
+
+static SVECTOR _gMm1Model101C4Normals[8] = {
+#include "assets/mm1_model_101C4_normals.inc"
+};
+
+static u32 _gMm1Model101C4Stream[48] = {
+#include "assets/mm1_model_101C4_stream.inc"
+};
+
+TmdSource D_mm1_8012D444 = {
+    0,
+    312,
+    0,
+    1,
+    _gMm1Model101C4PartVerts,
+    _gMm1Model101C4Verts,
+    _gMm1Model101C4Normals,
+    _gMm1Model101C4Skeleton,
+    _gMm1Model101C4Stream,
+};
+#endif

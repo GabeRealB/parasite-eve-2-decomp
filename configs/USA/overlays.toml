@@ -122,9 +122,8 @@ slots = [
     { kind = "model", at = "0xA74", in_c = true },
     { kind = "modelSource", at = "0x10CC", in_c = true },
     { kind = "animation", at = "0x10F0", sets = ["0x1280", "0x1924", "0x2184", "0x29E8", "0x2CFC", "0x3458", "0x3BE0", "0x3EB4", "0x4244", "0x46CC", "0x48C8", "0x4BA0", "0x4E44", "0x5044", "0x5398", "0x564C", "0x596C", "0x6130", "0x73C8", "0x7F40", "0x865C", "0x8ADC", "0x8CB4", "0x9218", "0x940C", "0x988C", "0xA3F0", "0xA974", "0xB41C", "0xB5F4", "0xBD28", "0xC218", "0xC7A4", "0xD0F0", "0xD9C8", "0xE0FC"], in_c = true },
-    { unit = "grenade_pistol/grenade_pistol_work", data = "0xE260" },
-    { kind = "model", at = "0xE27C" },
-    { kind = "modelSource", at = "0xE3E4" },
+    { kind = "model", at = "0xE27C", in_c = true },
+    { kind = "modelSource", at = "0xE3E4", in_c = true },
   ] },
   { package = "mm1", prefix = "mm1", id = 19, label = "MM1", defines = { GRENADE_VARIANT = 1 }, objects = [
     { kind = "packageId" },
@@ -132,9 +131,8 @@ slots = [
     { kind = "model", at = "0xA7C", in_c = true },
     { kind = "modelSource", at = "0x12D4", in_c = true },
     { kind = "animation", at = "0x12F8", sets = ["0x1488", "0x1B2C", "0x2404", "0x2C64", "0x34C8", "0x37DC", "0x3F38", "0x46C0", "0x4994", "0x4D24", "0x51AC", "0x53A8", "0x5680", "0x5924", "0x5B24", "0x5E78", "0x612C", "0x644C", "0x6C10", "0x7EA8", "0x8A20", "0x913C", "0x95BC", "0x9794", "0x9CF8", "0x9EEC", "0xA36C", "0xA544", "0xACFC", "0xB7A4", "0xCE20", "0xD4BC", "0xDF5C", "0xE570", "0xEE28", "0xF5C8", "0xFF9C"], in_c = true },
-    { unit = "grenade_pistol/grenade_pistol_work", data = "0x10100" },
-    { kind = "model", at = "0x1011C" },
-    { kind = "modelSource", at = "0x10284" },
+    { kind = "model", at = "0x1011C", in_c = true },
+    { kind = "modelSource", at = "0x10284", in_c = true },
   ] },
 ]
 
