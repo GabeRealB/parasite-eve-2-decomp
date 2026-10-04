@@ -108,9 +108,9 @@ gScreenWaveRows = 0x80158BFC; // size:0xC0 defined:True
 D_actor_206100_80158CBC = 0x80158CBC; // size:0x10 defined:True
 D_actor_206100_80158CCC = 0x80158CCC; // size:0xC defined:True
 
-D_neo_ark_submarine_gallery_80181A48 = 0x80181A48; // absolute:True
+D_neo_ark_submarine_gallery_80181A48 = 0x80181A48; // absolute:True owner=neo_ark_submarine_gallery
 
-D_neo_ark_submarine_gallery_801818B8 = 0x801818B8; // absolute:True
+D_neo_ark_submarine_gallery_801818B8 = 0x801818B8; // absolute:True owner=neo_ark_submarine_gallery
 
 D_neo_ark_submarine_gallery_801818BC = 0x801818BC; // absolute:True owner=neo_ark_submarine_gallery
 

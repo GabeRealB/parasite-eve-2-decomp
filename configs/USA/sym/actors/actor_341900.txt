@@ -28,8 +28,8 @@ D_actor_341900_80163A48 = 0x80163A48; // size:0x18 defined:True
 D_actor_341900_80163A60 = 0x80163A60; // size:0x18 defined:True
 D_actor_341900_80163A78 = 0x80163A78; // size:0x20 defined:True
 gActor444000Animation20BD4 = 0x801529F4; // absolute:True owner=actor_444000
-gActor444000Animation21014 = 0x80152E34; // absolute:True
-gActor444000Animation2C240 = 0x8015E060; // absolute:True
+gActor444000Animation21014 = 0x80152E34; // absolute:True owner=actor_444000
+gActor444000Animation2C240 = 0x8015E060; // absolute:True owner=actor_444000
 gActor444000Animation20C80 = 0x80152AA0; // absolute:True owner=actor_444000
 gActor444000Animation212D8 = 0x801530F8; // absolute:True owner=actor_444000
 gActor444000Animation2C2CC = 0x8015E0EC; // absolute:True owner=actor_444000

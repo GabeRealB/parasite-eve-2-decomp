@@ -30,7 +30,7 @@ D_actor_401800_80155AC4 = 0x80155AC4; // absolute:True owner=actor_401800
 D_actor_202900_80156E24 = 0x80156E24; // absolute:True owner=actor_202900
 D_actor_210600_8015A4EC = 0x8015A4EC; // absolute:True owner=actor_210600
 D_actor_310600_801796A4 = 0x801796A4; // absolute:True owner=actor_310600
-D_map_akropolis_8017AE9C = 0x8017AE9C; // absolute:True
+D_map_akropolis_8017AE9C = 0x8017AE9C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017AEDC = 0x8017AEDC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017AF1C = 0x8017AF1C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017AF3C = 0x8017AF3C; // absolute:True owner=map_akropolis
@@ -112,7 +112,7 @@ _gAcropolisCafeteriaModel09A20Normals = 0x80186E20; // size:0x1C0 defined:True
 _gAcropolisCafeteriaModel09A20Stream = 0x80186FE0; // size:0x538 defined:True
 gAcropolisCafeteriaModel09A20 = 0x80187518; // size:0x24 defined:True
 gActor202900Animation06098 = 0x8014FEB8; // absolute:True owner=actor_202900
-gActor310600Animation04ADC = 0x801668FC; // absolute:True
+gActor310600Animation04ADC = 0x801668FC; // absolute:True owner=actor_310600
 gActor210600Animation07EF4 = 0x80151D14; // absolute:True owner=actor_210600
 gActor210600Animation0A050 = 0x80153E70; // absolute:True
 D_acropolis_cafeteria_8018B394 = 0x8018B394; // size:0x10 defined:True

@@ -70,7 +70,7 @@ gRoomEventMsg = 0x80185700; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_8013E500 = 0x8013E500; // absolute:True
 D_actor_223600_80150B48 = 0x80150B48; // absolute:True owner=actor_223600
-D_map_dryfield_8017AE44 = 0x8017AE44; // absolute:True
+D_map_dryfield_8017AE44 = 0x8017AE44; // absolute:True owner=map_dryfield
 gRoomEventTaskDesc = 0x8017E158; // size:0xC defined:True
 gStoreTaskDescs = 0x8017E164; // size:0x24 defined:True
 D_dryfield_general_store_8017E188 = 0x8017E188; // size:0x30 defined:True

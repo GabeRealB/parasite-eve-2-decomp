@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_107600.
 gMistShootingGalleryModel093FC = 0x80186AE0; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryModel095EC = 0x80186CD0; // absolute:True
+gMistShootingGalleryModel095EC = 0x80186CD0; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel097DC = 0x80186EC0; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel099CC = 0x801870B0; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel09BBC = 0x801872A0; // absolute:True owner=mist_shooting_gallery
@@ -11,7 +11,7 @@ gMistShootingGalleryModel0A37C = 0x80187A60; // absolute:True owner=mist_shootin
 gMistShootingGalleryModel0A56C = 0x80187C50; // absolute:True
 gMistShootingGalleryModel0A81C = 0x80188034; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0AB30 = 0x80188198; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryModel0AC94 = 0x801882FC; // absolute:True
+gMistShootingGalleryModel0AC94 = 0x801882FC; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0ADF8 = 0x80188460; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0AF5C = 0x801885C4; // absolute:True owner=mist_shooting_gallery
 gMistShootingGalleryModel0B0D0 = 0x801887B4; // absolute:True

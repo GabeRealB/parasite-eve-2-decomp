@@ -53,10 +53,10 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
 D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200
 Actor02500_D05B88 = 0x801679A8; // absolute:True owner=actor_302500
-D_map_dryfield_8017B1C4 = 0x8017B1C4; // absolute:True
-D_map_dryfield_8017B1D4 = 0x8017B1D4; // absolute:True
-D_map_dryfield_8017B204 = 0x8017B204; // absolute:True
-D_map_dryfield_8017B284 = 0x8017B284; // absolute:True
+D_map_dryfield_8017B1C4 = 0x8017B1C4; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B1D4 = 0x8017B1D4; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B204 = 0x8017B204; // absolute:True owner=map_dryfield
+D_map_dryfield_8017B284 = 0x8017B284; // absolute:True owner=map_dryfield
 gRoomEventActive = 0x8017FB58; // size:0x4 defined:True
 gRoomEventReq = 0x8017FB5C; // size:0x14 defined:True
 

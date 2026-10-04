@@ -96,7 +96,7 @@ D_map_akropolis_8017B35C = 0x8017B35C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B41C = 0x8017B41C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B48C = 0x8017B48C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B4FC = 0x8017B4FC; // absolute:True owner=map_akropolis
-D_map_akropolis_8017B54C = 0x8017B54C; // absolute:True
+D_map_akropolis_8017B54C = 0x8017B54C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B5BC = 0x8017B5BC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B5EC = 0x8017B5EC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B65C = 0x8017B65C; // absolute:True owner=map_akropolis

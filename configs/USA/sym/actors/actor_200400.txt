@@ -346,8 +346,8 @@ _gActor00400DiverEnergyBallNormals = 0x801596BC; // size:0xC8 defined:True
 _gActor00400DiverEnergyBallStream = 0x80159784; // size:0x438 defined:True
 _gActor00400DiverEnergyBall = 0x80159BBC; // size:0x24 defined:True
 Actor00400_D0FDC0 = 0x80159BE0; // size:0x8 defined:True
-D_shelter_b4_reservoir_801851D4 = 0x801851D4; // absolute:True
-D_shelter_b4_reservoir_801851E4 = 0x801851E4; // absolute:True
+D_shelter_b4_reservoir_801851D4 = 0x801851D4; // absolute:True owner=shelter_b4_reservoir
+D_shelter_b4_reservoir_801851E4 = 0x801851E4; // absolute:True owner=shelter_b4_reservoir
 D_shelter_b4_reservoir_80184F80 = 0x80184F80; // absolute:True
 D_shelter_b2_septic_tank_801836A4 = 0x801836A4; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_801836B4 = 0x801836B4; // absolute:True owner=shelter_b2_septic_tank
@@ -360,12 +360,12 @@ D_neo_ark_bridge_801820CC = 0x801820CC; // absolute:True
 D_neo_ark_bridge_80181FF8 = 0x80181FF8; // absolute:True owner=neo_ark_bridge
 D_neo_ark_submarine_gallery_80181B0C = 0x80181B0C; // absolute:True
 D_neo_ark_submarine_gallery_80181B1C = 0x80181B1C; // absolute:True
-D_neo_ark_submarine_gallery_80181A48 = 0x80181A48; // absolute:True
+D_neo_ark_submarine_gallery_80181A48 = 0x80181A48; // absolute:True owner=neo_ark_submarine_gallery
 D_neo_ark_submarine_tunnel_80181F94 = 0x80181F94; // absolute:True
 D_neo_ark_submarine_tunnel_80181E90 = 0x80181E90; // absolute:True
 D_neo_ark_pavilion_80183A64 = 0x80183A64; // absolute:True
 D_neo_ark_pavilion_80183A74 = 0x80183A74; // absolute:True
-D_neo_ark_pavilion_801839A0 = 0x801839A0; // absolute:True
+D_neo_ark_pavilion_801839A0 = 0x801839A0; // absolute:True owner=neo_ark_pavilion
 D_neo_ark_island_80181CE8 = 0x80181CE8; // absolute:True owner=neo_ark_island
 D_neo_ark_island_80181CF8 = 0x80181CF8; // absolute:True owner=neo_ark_island
 D_neo_ark_island_80181C24 = 0x80181C24; // absolute:True owner=neo_ark_island

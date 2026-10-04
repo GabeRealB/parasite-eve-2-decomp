@@ -70,7 +70,7 @@ D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
 D_actor_300700_80165B88 = 0x80165B88; // absolute:True owner=actor_300700
 Actor02500_D05B88 = 0x801679A8; // absolute:True owner=actor_302500
 D_map_dryfield_full_8017BAB8 = 0x8017BAB8; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017BB28 = 0x8017BB28; // absolute:True
+D_map_dryfield_full_8017BB28 = 0x8017BB28; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017BB78 = 0x8017BB78; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017BBE8 = 0x8017BBE8; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017BC08 = 0x8017BC08; // absolute:True owner=map_dryfield_full

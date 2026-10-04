@@ -27,7 +27,7 @@ D_actor_311500_80169338 = 0x80169338; // size:0xC defined:True
 
 gAcropolisFireEscapeCollision04CE8Normals = 0x80181E74; // absolute:True
 
-gAcropolisFireEscapeCollision04CE8Verts = 0x80181EC4; // absolute:True
+gAcropolisFireEscapeCollision04CE8Verts = 0x80181EC4; // absolute:True owner=acropolis_fire_escape
 
 gAcropolisFireEscapeCollision04CE8Faces = 0x8018207C; // absolute:True
 ActorContact_TurnJoint = 0x801626CC; // type:func

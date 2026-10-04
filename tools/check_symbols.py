@@ -172,6 +172,11 @@ def image_definitions(elf: Path) -> dict[tuple[str, int], bool]:
 MARKER = re.compile(r'^(LM\d+|__gnu_compiled_c|gcc2_compiled\.|.*_(TEXT|DATA|RODATA|BSS|VRAM)(_(START|END))?)$')
 
 
+# (image, name) of every file-local symbol. Another image cannot have been
+# linked against one, so such a symbol is never what a reference means.
+PRIVATE: set[tuple[str, str]] = set()
+
+
 def image_symbols_at(elf: Path) -> dict[int, list[tuple[str, bool]]]:
     """What an image defines at each address: (name, is code), markers left out."""
     out = defaultdict(set)
@@ -190,6 +195,8 @@ def image_symbols_at(elf: Path) -> dict[int, list[tuple[str, bool]]]:
             # An overlay links as one section holding code and data alike, so
             # the section says nothing; the symbol's own type does.
             out[s['st_value']].add((name, s['st_info']['type'] == 'STT_FUNC'))
+            if s['st_info']['bind'] == 'STB_LOCAL':
+                PRIVATE.add((elf.stem, name))
     return {a: sorted(v) for a, v in out.items()}
 
 
@@ -367,9 +374,11 @@ def main() -> None:
             pool = [j for j in configs if j != image and canon(j) != canon(image) and overlaps(image, j)]
         else:
             pool = [j for j in covering(d.addr) if j in resident[image] and j in configs]
-        want_code = True if d.attrs.get('type') == 'func' else None
+        # Every reference C declares as a function says type:func, so one that
+        # does not is data; and only an externally linked symbol can be meant.
+        want_code = d.attrs.get('type') == 'func'
         return {(j, n, code) for j in pool for n, code in symbols_at[j].get(d.addr, ())
-                if want_code is None or code == want_code}
+                if code == want_code and (j, n) not in PRIVATE}
 
     def family(image):
         """The family an overlay's config belongs to; a core image is its own."""
