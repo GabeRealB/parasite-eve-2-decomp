@@ -76539,7 +76539,7 @@ suppression clause of `true_dependence` becomes the deciding one:
 		    && ! MEM_IN_STRUCT_P (mem) && ! rtx_addr_varies_p (mem))
 ```
 
-`x` is the later load. Written as a struct field (`work->field_54`,
+`x` is the later load. Written as a struct field (`work->roll`,
 `(mem/s:HI (plus (reg) (const_int 84)))`) it is in-struct *and* varying, so the
 clause fires and no dependence is recorded. Written m2c-style
 (`M2C_FIELD(work, u16 *, 0x54)`, `(mem:HI ...)`) it is not in-struct, the clause
@@ -76582,7 +76582,7 @@ inside the arm, and it holds the constant in `$v1` and the compared halfword in
 ```
 lw   v0,0x1c(a0)      # work = arg0->work
 li   v1,2
-lh   v0,0x144(v0)     # work->field_144
+lh   v0,0x144(v0)     # work->behaviour
 lw   a1,8(a0)         # parent, dead in this block
 beq  v0,v1,...
 ```
@@ -76594,8 +76594,8 @@ other way round (`lh v1,0x144(v0)` / `li v0,2`) - the `regs 4` plus the two
 
 ```c
 parent = arg0->parent;
-work   = (Actor107600Work*)arg0->work;
-if (work->field_144 != 2) {
+work   = arg0->work;
+if (work->behaviour != ACTOR_107600_MOUNT_FIXED) {
     ((MistShootingGalleryWork*)parent->work)->liveTargets--;
 }
 arg0->state++;
@@ -76656,7 +76656,7 @@ constant, reads like a single cast wrapped around the whole expression:
 
 ```c
 /* BAD - the division's operand is still `u16`, so GCC picks the unsigned form */
-coord->field_4 = (u16)((s16)(coord->field_4 / 100) * work->field_168);
+coord->field_4 = (u16)((s16)(coord->field_4 / 100) * work->widthPercent);
 ```
 
 That emits `multu` with the unsigned magic and **no** sign correction. The
@@ -76677,7 +76677,7 @@ The cast has to sit on the operand, so the *division itself* is signed:
 
 ```c
 /* GOOD - `(s16)x` is the dividend, so `mult` + `sra 31` / `subu` come back */
-coord->field_4 = (u16)((s16)coord->field_4 / 100 * work->field_168);
+coord->field_4 = (u16)((s16)coord->field_4 / 100 * work->widthPercent);
 ```
 
 The `(u16)` on the outside is then free: it only types the store (`sh` against
@@ -76698,7 +76698,7 @@ was declared as. In this overlay the field is `MATRIX.m[0][0]`, declared
 ```c
 /* Same object, no invented type: the `u16` temp truncates the load */
 u16 x = coord->coord.m[0][0];
-coord->coord.m[0][0] = (s16)x / 100 * work->field_168;
+coord->coord.m[0][0] = (s16)x / 100 * work->widthPercent;
 ```
 
 Both forms score 100% and compile to byte-identical objects, so read the
@@ -76734,10 +76734,10 @@ assembly is the delay-slot filler, not the source order.
 ```c
 dist = func_80103D8C(block->vx, block->vz);
 *scratch = (u8*)*scratch + 0x10;
-work->field_14C = dist;
+work->playerDistance = dist;
 ```
 
-Written the other way round - `work->field_14C = func_80103D8C(...);` before the
+Written the other way round - `work->playerDistance = func_80103D8C(...);` before the
 release - the reload is born after the store, takes `$v0`, and the `nop` comes
 back however the rest of the C is arranged.
 
@@ -105844,9 +105844,9 @@ was what let the *preceding* range-test branch take `lui $v1` into its delay slo
 `index->field_1C` and jumps to one shared `sh v0,0x158(v1); sh zero,0x15A(v1)`
 tail - the body of the sibling setter `func_actor_107600_80134B98`, which GCC
 2.8.1 does not inline on its own (the plain call builds a frame). Writing
-`index->field_1C->field_158 = 2; index->field_1C->field_15A = 0;` per case keeps
-two loads (93%). A block-scoped `{ Actor107600Work* w = arg0->field_1C;
-w->field_158 = N; w->field_15A = 0; break; }` per case loads once, and
+`index->field_1C->state = 2; index->field_1C->step = 0;` per case keeps
+two loads (93%). A block-scoped `{ _Actor107600TargetWork* w = arg0->field_1C;
+w->state = N; w->step = 0; break; }` per case loads once, and
 cross-jumping merges the stores into the shared tail - 100%.
 
 The jump table sat last in the leading rodata at a non-8-aligned offset, so
@@ -105866,7 +105866,7 @@ the order exactly:
 ```c
     TmdObject*       ext      = arg0->extra;
     GfxCoord*      coord    = (GfxCoord*)ext->field_8;
-    Actor107600Work* work     = (Actor107600Work*)arg0->work;
+    _Actor107600MountWork* work = arg0->work;
     TaskFunc         funcs[2] = { fnA, fnB };
 ```
 
