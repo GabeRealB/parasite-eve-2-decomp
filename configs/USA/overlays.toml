@@ -380,8 +380,8 @@ objects = [
 
 [weapons.overlays.unused_86]
 # One image issued under five ids: the packages are byte-identical apart from
-# the id. They hold no code and no program data: everything after the id is
-# one animation bank, which is an asset and stays in assembly.
+# the id. They hold no code: everything after the id is one animation bank,
+# defined by a data-only unit from generated includes.
 slots = [
   { package = "unused_86", id = 14, label = "unused weapon slot 0x86" },
   { package = "unused_87", id = 15, label = "unused weapon slot 0x87" },
@@ -391,7 +391,8 @@ slots = [
 ]
 objects = [
   { kind = "packageId" },
-  { kind = "data", at = "0x4" },
+  { unit = "unused_86/unused_86", data = "0x4" },
+  { kind = "animation", at = "0x4", sets = ["0x194", "0x838", "0x1184", "0x1A5C", "0x2190", "0x29F0", "0x3254", "0x3568", "0x3CC4", "0x444C", "0x4720", "0x4AB0", "0x4F38", "0x5134", "0x540C", "0x56B0", "0x58B0", "0x5C04", "0x5EB8", "0x61D8", "0x699C", "0x7C34", "0x87AC", "0x8EC8", "0x9348", "0x9520", "0x9A84", "0x9C78", "0xA0F8", "0xA2D4", "0xA9C4", "0xB5B0", "0xBED8", "0xC2A8", "0xC924", "0xCEF0"], in_c = true },
 ]
 
 
