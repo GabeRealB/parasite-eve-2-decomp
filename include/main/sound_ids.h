@@ -122,7 +122,7 @@ enum {
     /// Brahman part death: played as a dead part re-parents to the view and flies
     /// off/rises.
     SOUND_BRAHMAN_PART_DEATH = SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 4),
-    /// Brahman 0x224 part's attack window: collision pairs enabled at parent arm
+    /// Brahman arm's attack window: collision pairs enabled at parent arm
     /// coordinate 6/12.
     SOUND_BRAHMAN_ARM_STRIKE = SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 9),
     /// Brahman death-sequence sound for the body and its parts, faded out (0x2D) as the
