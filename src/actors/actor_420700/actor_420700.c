@@ -24,46 +24,55 @@
 #include "main/tmd_types.h"
 #include "../../shared/scripted_walk.h"
 
-/// The animation request and head turn the actor keeps right after its rig.
+/// The animation request and the head turn the actor keeps right after its
+/// rig.
 ///
-/// The first three members are the ones `ActorEnemyState` opens with, used
-/// the same way; the block then goes its own way, so it is not that type.
+/// The scripted walk library's slot reset reads `animId` and records
+/// `appliedAnimId` through the block's `st` member, so those two keep the
+/// library's names. The first three members are the ones `ActorEnemyState`
+/// opens with, used the same way; from `turnMode` on the layout is the
+/// package's own, so the block is not that type.
 typedef struct {
     s16 state;         // Step of the animation (0 none, else `ACTOR_ENEMY_ANIM_BLEND`, `_RESET` or `_TICK`)
-    s16 appliedAnimId; // Clip the slots were last seeded with
-    s16 animId;        // Clip the last play request selected
-    s16 turnMode;      // What the head turn does each frame (`ACTOR_420700_TURN_*`), as message 0x7DB last set it
-    s16 turnWeight;    // Share of the remaining angle the head turns each frame, 0 to 0x1000 for none to all of it
+    s16 appliedAnimId; // Clip the slots were last seeded with; recorded, never read
+    s16 animId;        // Clip the last play request selected, an index into the actor's animation sets
+    s16 turnMode;      // What the head turn does each frame (`ACTOR_420700_TURN_*`), as the last actor command set it
+    s16 turnWeight;    // Share of the remaining angle the head turns each frame, 0 to `ONE` for none to all of it
     s16 field_A;       // Cleared by each play request; never read, role unproven
 } _Actor420700State;
 STATIC_ASSERT_SIZEOF(_Actor420700State, 0xC);
 
 /// What the actor's head turn does each frame, kept in
-/// `_Actor420700State::turnMode`: the command message 0x7DB carries.
+/// `_Actor420700State::turnMode`: the command `ACTOR_COMMAND_MESSAGE_APPLY`
+/// carries.
 enum {
     ACTOR_420700_TURN_AUTO    = 0, // Toward the player, the weight rising while the player faces away from the actor and falling otherwise
     ACTOR_420700_TURN_PLAYER  = 1, // Toward the player, the weight rising from 0
-    ACTOR_420700_TURN_RELEASE = 2, // Toward the player, the weight falling from 0x1000
+    ACTOR_420700_TURN_RELEASE = 2, // Toward the player, the weight falling from `ONE`
     ACTOR_420700_TURN_POINT   = 3, // Toward a fixed point of the room, the weight rising from 0
 };
 
-/// Work block of the overlay's actor, allocated zeroed by its state-0 handler
-/// and kept both in `gScriptedWalkWork` and at `Task::work`; the task
-/// dispatcher republishes it every tick, and every other function in the
-/// overlay reaches it through the global. `light` and `color` are the model's
-/// matrices and `rig` and `st` its animation rig and state.
-typedef struct Actor420700Work {
-    MATRIX            light;
-    MATRIX            color;
-    ActorAnimRig20    rig;
-    _Actor420700State st;
-    byte              pad_4C0[0xE0];
-} Actor420700Work;
-STATIC_ASSERT_SIZEOF(Actor420700Work, 0x5A0);
+/// Work block of the overlay's actor, allocated zeroed at its full size by the
+/// spawn step and kept both at `Task::work` and in `gScriptedWalkWork`, which
+/// the actor's task handler republishes every tick.
+///
+/// The model object borrows `light` and `color` for as long as the block
+/// lives. The matrices, the rig and the request at the start of `st` sit where
+/// the scripted walkers' blocks keep theirs, which is what lets the package
+/// carry that library's slot tick and slot reset under the library's name for
+/// the block. It has no walk, and the rest of `st` is its own.
+typedef struct {
+    MATRIX            light;         // Light-direction matrix lent to the model object
+    MATRIX            color;         // Light-colour matrix lent to the model object
+    ActorAnimRig20    rig;           // Playback storage of the model's parts; slots 1 to 19 are driven
+    _Actor420700State st;            // Animation request and head-turn state
+    byte              pad_4C0[0xE0]; // Rest of the allocation; the package neither reads nor writes it, contents unproven
+} _Actor420700Work;
+STATIC_ASSERT_SIZEOF(_Actor420700Work, 0x5A0);
 
 /// The work block above, published by the task dispatcher
 /// `func_actor_420700_80132340` and by the state-0 handler.
-extern Actor420700Work* gScriptedWalkWork;
+extern _Actor420700Work* gScriptedWalkWork;
 
 /// The actor's own task, the `task` the state-0 handler
 /// `func_actor_420700_80131E24` is entered with. Its `Task::extra` holds the
@@ -1002,7 +1011,7 @@ u8 D_actor_420700_8013EF8C[84] = {
     128,
 };
 
-Actor420700Work* gScriptedWalkWork;
+_Actor420700Work* gScriptedWalkWork;
 
 Task* D_actor_420700_8013EFE4;
 
@@ -1023,14 +1032,14 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task);
 /// context before running the first step body.
 static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
 {
-    VECTOR     vec;
-    GfxCoord*  coord;
-    TmdObject* obj;
-    void*      work;
+    VECTOR            vec;
+    GfxCoord*         coord;
+    TmdObject*        obj;
+    _Actor420700Work* work;
 
     obj               = task->extra.tmd;
     coord             = obj->coords;
-    work              = memCalloc(0x5A0, 0);
+    work              = memCalloc(sizeof(_Actor420700Work), 0);
     gScriptedWalkWork = work;
     task->work        = work;
     if (work == NULL) {
@@ -1106,8 +1115,8 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
         if (gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_PLAYER ||
             gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_POINT) {
             gScriptedWalkWork->st.turnWeight += 0x80;
-            if (gScriptedWalkWork->st.turnWeight > 0x1000) {
-                gScriptedWalkWork->st.turnWeight = 0x1000;
+            if (gScriptedWalkWork->st.turnWeight > ONE) {
+                gScriptedWalkWork->st.turnWeight = ONE;
             }
         } else {
             gScriptedWalkWork->st.turnWeight -= 0x80;
@@ -1141,8 +1150,8 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
             D_actor_420700_8013EFF0 = -0x80;
         }
         gScriptedWalkWork->st.turnWeight += D_actor_420700_8013EFF0;
-        if (gScriptedWalkWork->st.turnWeight > 0x1000) {
-            gScriptedWalkWork->st.turnWeight = 0x1000;
+        if (gScriptedWalkWork->st.turnWeight > ONE) {
+            gScriptedWalkWork->st.turnWeight = ONE;
         }
         if (gScriptedWalkWork->st.turnWeight < 0) {
             gScriptedWalkWork->st.turnWeight = 0;
@@ -1253,8 +1262,8 @@ static void func_actor_420700_801325C8(void)
 /// eight-frame transition; the requested duration is unused.
 s32 func_actor_420700_80132644(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
 {
-    s32              offset;
-    Actor420700Work* work;
+    s32               offset;
+    _Actor420700Work* work;
 
     if (args->animationId < 0x15) {
         switch (args->source.index) {
@@ -1314,7 +1323,7 @@ s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2, s32 arg3)
 
 /// Message 0x7DB handler: records the `st.turnMode` mode the ramp
 /// `func_actor_420700_80132064` runs and seeds `st.turnWeight` at the end that mode
-/// walks away from -- 0 for the rising modes 1 and 3, 0x1000 for the falling
+/// walks away from -- 0 for the rising modes 1 and 3, `ONE` for the falling
 /// mode 2. Mode 0 is accepted as a no-op, and a block whose leading id is not
 /// 0x1B02 is rejected with -1 without touching the work block.
 ///
@@ -1337,7 +1346,7 @@ s32 func_actor_420700_80132784(Task* task, s32 arg1, ActorCommand* args, s32 arg
             gScriptedWalkWork->st.turnWeight = 0;
             break;
         case ACTOR_420700_TURN_RELEASE:
-            gScriptedWalkWork->st.turnWeight = 0x1000;
+            gScriptedWalkWork->st.turnWeight = ONE;
             break;
     }
     return 0;
