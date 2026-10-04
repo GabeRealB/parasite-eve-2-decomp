@@ -518,14 +518,14 @@ void func_actor_341900_80162200(Task* arg0)
             taskKill(arg0);
         } else {
             memFillBytes(mtx, 0, sizeof(*mtx));
-            mtx->field_40                   = (Task*)arg0->spawnArg2.pointer;
+            mtx->parent                     = arg0->spawnArg2.pointer;
             extra->flags                    = 0;
             arg0->extra.tmd->coords->parent = &gGfxViewCoord;
             extra->lightMtx                 = &mtx->light;
             extra->colorMtx                 = &mtx->color;
             extra->otOffset                 = 0x1F;
             arg0->msgTable                  = D_actor_341900_80163A38;
-            taskReparent(mtx->field_40, arg0);
+            taskReparent(mtx->parent, arg0);
         }
         arg0->state++;
     }

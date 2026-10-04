@@ -121,8 +121,8 @@ extern AnimationSet**   D_actor_361100_80171BA8[1];
 
 extern TaskMessageEntry D_actor_361100_80171BB8[5];
 
-void func_80138C9C(ActorEffectState* state);
-void func_801353D0(ActorEffectState* state, GfxCoord* coord);
+void func_80138C9C(Actor403600Ripple* state);
+void func_801353D0(Actor403600Ripple* state, GfxCoord* coord);
 
 static void func_actor_361100_80161FF8(Task* arg0);
 static void func_actor_361100_80162B18(Task* task);
@@ -942,8 +942,8 @@ static void func_actor_361100_80162B0C(void);
 /// (half the remaining 0x18000-byte window past the write pointer, times the
 /// per-chunk rate) and uploads the coordinate, and 10 exits the task.
 ///
-/// State 0 allocates the `ActorEffectState` trail block into
-/// `Task::work`, seeds its `field_8E` / `field_E0` halfwords and ticks it 0x1E
+/// State 0 allocates the `Actor403600Ripple` block into
+/// `Task::work`, sets its `emitting` and `shallow` and ticks it 0x1E
 /// times, then resets the body's coordinate matrix to identity with the fixed
 /// translation (0x1CA2, 0x712, 0x189C) and parks the view coordinate in its
 /// `parent` slot. A failed allocation takes the exit call and is *not* branched
@@ -951,16 +951,16 @@ static void func_actor_361100_80162B0C(void);
 /// the original.
 void func_actor_361100_80161E3C(Task* arg0)
 {
-    ActorEffectState* state;
-    GfxCoord*         coord;
-    MATRIX*           mtx;
-    s32               i;
-    u8*               writePtr;
-    u32               streamLeft;
-    u8*               modePtr;
-    u8                mode;
+    Actor403600Ripple* state;
+    GfxCoord*          coord;
+    MATRIX*            mtx;
+    s32                i;
+    u8*                writePtr;
+    u32                streamLeft;
+    u8*                modePtr;
+    u8                 mode;
 
-    state   = (ActorEffectState*)arg0->work;
+    state   = arg0->work;
     modePtr = &gGameSession->location.loc.view;
     coord   = arg0->extra.coordBody->coord;
     if (Fs_ChunkOutputSizes[2] != -1) {
@@ -968,14 +968,14 @@ void func_actor_361100_80161E3C(Task* arg0)
         streamLeft &= ~7;
         writePtr    = (u8*)Fs_ActorLoadBase2 + Fs_ChunkOutputSizes[2];
         if (arg0->state == 0) {
-            state = memCalloc(sizeof(ActorEffectState), false);
+            state = memCalloc(sizeof(Actor403600Ripple), false);
             if (state == NULL) {
                 Task_CallExit(arg0);
                 i = 0;
             }
             arg0->work      = state;
-            state->field_E0 = 1;
-            state->field_8E = 1;
+            state->shallow  = 1;
+            state->emitting = 1;
             i               = 0;
             do {
                 func_80138C9C(state);

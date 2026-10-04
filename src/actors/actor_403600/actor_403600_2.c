@@ -170,7 +170,7 @@ extern ViewCamera D_actor_403600_80160700;
 static void func_actor_403600_80138EF8(struct Enemy* enemy, Task* task);
 static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1);
 static void func_actor_403600_8013C864(Task* arg0);
-static void func_actor_403600_80138C9C(ActorEffectState* arg0);
+static void func_actor_403600_80138C9C(Actor403600Ripple* arg0);
 static u8*  func_actor_403600_80138DCC(Task* arg0);
 static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1);
 static s32  func_actor_403600_8013D9A8(Task* arg0);
@@ -410,37 +410,38 @@ void func_actor_403600_80138C68(Task* arg0)
     taskKill(arg0);
 }
 
-/// Advances the trail by one step: moves the head back one slot in the two
-/// 0x20-entry rings, clears it, ramps the strength up while `field_8E` is set
-/// (restarting the phase on a rising edge) or down otherwise, and writes the
-/// phase and strength into the new head while the strength is non-zero.
-static void func_actor_403600_80138C9C(ActorEffectState* state)
+/// Advances the ripple by one step: moves `head` back one slot in the two
+/// sample rings, clears it, ramps the source's strength up while `emitting` is
+/// set (restarting its phase on a rising edge) or down otherwise, and records
+/// the source's phase and strength in the new head while the strength is
+/// non-zero.
+static void func_actor_403600_80138C9C(Actor403600Ripple* state)
 {
     s32 head;
 
-    state->field_80      += 0x1F;
-    state->field_80      %= 0x20;
-    head                  = state->field_80;
-    state->field_0[head]  = 0;
-    state->field_40[head] = 0;
-    if (state->field_8E != 0) {
-        if (state->field_8C == 0) {
-            state->field_84 = 0;
+    state->head          += ACTOR_403600_RIPPLE_SAMPLE_COUNT - 1;
+    state->head          %= ACTOR_403600_RIPPLE_SAMPLE_COUNT;
+    head                  = state->head;
+    state->phase[head]    = 0;
+    state->strength[head] = 0;
+    if (state->emitting != 0) {
+        if (state->wasEmitting == 0) {
+            state->sourcePhase = 0;
         }
-        if (state->field_88 < 0x1000) {
-            state->field_88 += 0x200;
+        if (state->sourceStrength < 0x1000) {
+            state->sourceStrength += 0x200;
         }
-    } else if (state->field_88 > 0) {
-        state->field_88 -= 0x80;
+    } else if (state->sourceStrength > 0) {
+        state->sourceStrength -= 0x80;
     }
-    state->field_8C = state->field_8E;
-    if (state->field_88 != 0) {
-        state->field_0[head]  = state->field_84;
-        state->field_40[head] = state->field_88;
-        if (state->field_E0 == 0) {
-            state->field_84 += 0x180;
+    state->wasEmitting = state->emitting;
+    if (state->sourceStrength != 0) {
+        state->phase[head]    = state->sourcePhase;
+        state->strength[head] = state->sourceStrength;
+        if (state->shallow == 0) {
+            state->sourcePhase += 0x180;
         } else {
-            state->field_84 += 0x100;
+            state->sourcePhase += 0x100;
         }
     }
 }

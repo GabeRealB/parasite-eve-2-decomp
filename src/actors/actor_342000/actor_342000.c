@@ -501,8 +501,8 @@ void func_actor_342000_8016201C(Task* arg0)
             taskKill(arg0);
         } else {
             memFillBytes(mtx, 0, sizeof(*mtx));
-            mtx->field_40 = (Task*)arg0->spawnArg2.pointer;
-            extra->flags  = 0;
+            mtx->parent  = arg0->spawnArg2.pointer;
+            extra->flags = 0;
             if (arg0->spawnArg1.value != 0) {
                 extra->otOffset = 0x1F;
             }
@@ -510,7 +510,7 @@ void func_actor_342000_8016201C(Task* arg0)
             extra->colorMtx                 = &mtx->color;
             extra->lightMtx                 = &mtx->light;
             arg0->msgTable                  = D_actor_342000_801648A8;
-            taskReparent(mtx->field_40, arg0);
+            taskReparent(mtx->parent, arg0);
         }
         arg0->state += 1;
     }

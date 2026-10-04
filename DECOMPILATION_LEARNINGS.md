@@ -9154,8 +9154,9 @@ local header spellings. Ported verbatim it scored 100.000% on the second build.
 
 Two things to check before trusting the result, because equal instructions do
 not mean equal declarations: the sibling's scratch struct must have the same
-field offsets (here `ActorRepelScratch` was already `0x88` with `offset` /
-`last` / `pos` / `kind` / `len` / `dist` / `i` / `hit` in the same places), and
+field offsets (here `_ActorContactFindPushScratch` was already `0x88` with `push` /
+`uncappedPush` / `position` / `kind` / `pushLength` / `marks` / `recordIndex` /
+`hit` in the same places), and
 any inlined helper the sibling calls must be reproduced rather than called —
 the twin inlined `actorCalcPush`, so a local `actorCalcPush` had to
 be written out. A sibling in `src/<family>/lib/` is also *already promoted*;
@@ -109280,9 +109281,9 @@ Two smaller tells that the helper boundary was the thing being missed:
   per use (`lui $v0 / lw $v0,0x3FC($v0)`). That extra live-across-call value is
   the same allocno-inflation symptom.
 * `AimScratch`/`RotScratch` are per-overlay types (this one needed
-  `ActorAimScratch` 0x10 and `ActorScaleRotScratch` 0x34 in
+  `ActorChaseScratch` 0x10 and `ActorScaleRotScratch` 0x34 in
   `include/actors/actor_401000.h`); they are structural twins of
-  `ActorAimScratch` / `ActorScaleRotScratch`, so the tx/Rx siblings'
+  `ActorChaseScratch` / `ActorScaleRotScratch`, so the tx/Rx siblings'
   headers give both the layout and the doc-comment wording.
 
 Inputs: `base_4.i` SHA256
@@ -109724,8 +109725,8 @@ Three things made it one-shot:
 1. **Port the twin's whole declaration block, including the locals that look
    redundant.** The target's allocation is: `work` in `$s3`, `index` in `$s4`,
    the scratch chase block in `$s2`, and separate `$s0`/`$s1` for the two
-   temporaries each turn/aim block reuses. Declaring `ActorAimScratch* head;`
-   *and* `ActorAimScratch* s;` (the same value, `head - 1`) rather than one
+   temporaries each turn/aim block reuses. Declaring `ActorChaseScratch* head;`
+   *and* `ActorChaseScratch* s;` (the same value, `head - 1`) rather than one
    pointer is what produced the target's `lw v0,0(a0); addiu v0,v0,-0x10; sw v0,0(a0)`
    followed by `addu s2,v0,$zero` in the `jal` delay slot. As the entry on
    `oddStrangerDie` says from the other direction: the twin's object

@@ -382,7 +382,10 @@ introducing a qualifier; do not assume that they are one API.
 `actor_contacts.h` uses the prefix `actorContact`. The block of its push
 along obstacle bearings is `ActorContactBearingPushScratch`, private to that
 interface; the markers its bearing slots take use
-`ACTOR_CONTACT_BEARING_PUSH_`. `ActorContactPushScratch` in
+`ACTOR_CONTACT_BEARING_PUSH_`. The block of the walk that finds the push
+out of the last obstacle record is `_ActorContactFindPushScratch`, defined in
+the one fragment that uses it; its end marker is
+`ACTOR_CONTACT_FIND_PUSH_MARK_END`. `ActorContactPushScratch` in
 `include/actors/actor.h` is a different block, that of the push resolved from
 the contact records' own correction.
 

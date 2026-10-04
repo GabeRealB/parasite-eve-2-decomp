@@ -163,7 +163,7 @@ void func_actor_403600_80134398(Task* arg0);
 static const SVECTOR D_actor_403600_80131E2C;
 static const CVECTOR D_actor_403600_80131E34;
 
-static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1);
+static void func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1);
 static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx);
 
 void func_actor_403600_80134288(Task*);
@@ -929,8 +929,8 @@ typedef struct {
 static void        func_actor_403600_801327A0(_Actor403600GridQuad* arg0);
 static void        func_actor_403600_8013289C(s32 x, s32 corner, SVECTOR* arg2, s32 fade);
 static inline void _actor403600ApplyMatrixSv(MATRIX* m, SVECTOR* in, SVECTOR* out);
-static inline void _actor403600TrailTick(ActorEffectState* state);
-static inline s32  _actor403600TrailEmpty(ActorEffectState* state);
+static inline void _actor403600TrailTick(Actor403600Ripple* state);
+static inline s32  _actor403600TrailEmpty(Actor403600Ripple* state);
 static u32*        func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 static u32*        func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 static u32*        func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
@@ -1884,7 +1884,7 @@ block_22:
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
 }
 
-static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
+static void func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1)
 {
     s32                            radii[16];
     s32                            heights[16];
@@ -1950,16 +1950,16 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
 
     i = 0;
     do {
-        firstAngle  = arg0->field_80 + i * 2;
+        firstAngle  = arg0->head + i * 2;
         index       = firstAngle % 32;
-        firstRadius = (rsin(arg0->field_0[index]) * arg0->field_40[index]) >> 12;
+        firstRadius = (rsin(arg0->phase[index]) * arg0->strength[index]) >> 12;
         value       = (firstRadius * (16 - i)) / 16;
         firstRadius = value >> 3;
-        if (arg0->field_E0 == 1) {
+        if (arg0->shallow == 1) {
             firstRadius = value >> 8;
         }
         radii[i]   = firstRadius;
-        value      = (arg0->field_40[index] * (15 - i)) >> 10;
+        value      = (arg0->strength[index] * (15 - i)) >> 10;
         heights[i] = value;
         if (scratch->nclip > 0) {
             heights[i] = -value;
@@ -1981,7 +1981,7 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
         i            = 0;
         height       = heightBase;
         radiusOffset = 0;
-        angle        = arg0->field_80;
+        angle        = arg0->head;
         do {
             /* The screen the quad corners are clamped to. */
             s32 screenW = 320;
@@ -1990,7 +1990,7 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
             angle                   %= 32;
             poly                     = (_Actor403600GridQuad*)D_actor_403600_8016069C;
             D_actor_403600_8016069C += sizeof(_Actor403600GridQuad);
-            rotation                 = -rcos(arg0->field_0[angle]) >> 3;
+            rotation                 = -rcos(arg0->phase[angle]) >> 3;
             scratch->texelOffset.vx  = rsin(rotation);
             scratch->texelOffset.vy  = rcos(rotation);
             scratch->texelOffset.vz  = 0;
@@ -2124,48 +2124,49 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
 
 static const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
 
-/// Advances the trail by one step: moves the head back one slot in the two
-/// 0x20-entry rings, clears it, ramps the strength up while `field_8E` is set
-/// (restarting the phase on a rising edge) or down otherwise, and writes the
-/// phase and strength into the new head while the strength is non-zero.
-static inline void _actor403600TrailTick(ActorEffectState* state)
+/// Advances the ripple by one step: moves `head` back one slot in the two
+/// sample rings, clears it, ramps the source's strength up while `emitting` is
+/// set (restarting its phase on a rising edge) or down otherwise, and records
+/// the source's phase and strength in the new head while the strength is
+/// non-zero.
+static inline void _actor403600TrailTick(Actor403600Ripple* state)
 {
     s32 head;
 
-    state->field_80      += 0x1F;
-    state->field_80      %= 0x20;
-    head                  = state->field_80;
-    state->field_0[head]  = 0;
-    state->field_40[head] = 0;
-    if (state->field_8E != 0) {
-        if (state->field_8C == 0) {
-            state->field_84 = 0;
+    state->head          += ACTOR_403600_RIPPLE_SAMPLE_COUNT - 1;
+    state->head          %= ACTOR_403600_RIPPLE_SAMPLE_COUNT;
+    head                  = state->head;
+    state->phase[head]    = 0;
+    state->strength[head] = 0;
+    if (state->emitting != 0) {
+        if (state->wasEmitting == 0) {
+            state->sourcePhase = 0;
         }
-        if (state->field_88 < 0x1000) {
-            state->field_88 += 0x200;
+        if (state->sourceStrength < 0x1000) {
+            state->sourceStrength += 0x200;
         }
-    } else if (state->field_88 > 0) {
-        state->field_88 -= 0x80;
+    } else if (state->sourceStrength > 0) {
+        state->sourceStrength -= 0x80;
     }
-    state->field_8C = state->field_8E;
-    if (state->field_88 != 0) {
-        state->field_0[head]  = state->field_84;
-        state->field_40[head] = state->field_88;
-        if (state->field_E0 == 0) {
-            state->field_84 += 0x180;
+    state->wasEmitting = state->emitting;
+    if (state->sourceStrength != 0) {
+        state->phase[head]    = state->sourcePhase;
+        state->strength[head] = state->sourceStrength;
+        if (state->shallow == 0) {
+            state->sourcePhase += 0x180;
         } else {
-            state->field_84 += 0x100;
+            state->sourcePhase += 0x100;
         }
     }
 }
 
-/// Whether every slot of the trail's first ring is zero.
-static inline s32 _actor403600TrailEmpty(ActorEffectState* state)
+/// Whether every sample of the ripple has phase zero.
+static inline s32 _actor403600TrailEmpty(Actor403600Ripple* state)
 {
     s32 i;
 
-    for (i = 0; i < 0x20; i++) {
-        if (state->field_0[i] != 0) {
+    for (i = 0; i < ACTOR_403600_RIPPLE_SAMPLE_COUNT; i++) {
+        if (state->phase[i] != 0) {
             return 0;
         }
     }
@@ -2174,21 +2175,21 @@ static inline s32 _actor403600TrailEmpty(ActorEffectState* state)
 
 void func_actor_403600_80135C28(Task* arg0)
 {
-    SVECTOR           sp10;
-    MATRIX*           mtx;
-    ActorEffectState* temp_s0;
-    ActorEffectState* temp_v0_2;
-    GfxCoord*         temp_s4;
-    s32               temp_v1_2;
-    s32               temp_v0_9;
-    s32               temp_v1_10;
-    s32               var_a1;
-    Task*             temp_a0;
-    TmdObject*        temp_a0_5;
-    TmdObject*        temp_a1;
-    Task*             temp_s2;
-    TmdObject*        temp_v0;
-    Actor403600Work*  ownerWork;
+    SVECTOR            sp10;
+    MATRIX*            mtx;
+    Actor403600Ripple* temp_s0;
+    Actor403600Ripple* temp_v0_2;
+    GfxCoord*          temp_s4;
+    s32                temp_v1_2;
+    s32                temp_v0_9;
+    s32                temp_v1_10;
+    s32                var_a1;
+    Task*              temp_a0;
+    TmdObject*         temp_a0_5;
+    TmdObject*         temp_a1;
+    Task*              temp_s2;
+    TmdObject*         temp_v0;
+    Actor403600Work*   ownerWork;
 
     temp_a0   = arg0->spawnArg2.pointer;
     ownerWork = temp_a0->work;
@@ -2202,43 +2203,43 @@ void func_actor_403600_80135C28(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        temp_v0_2 = memCalloc(0xE8, 0);
+        temp_v0_2 = memCalloc(sizeof(Actor403600Ripple), false);
         if (temp_v0_2 != NULL) {
-            arg0->work          = temp_v0_2;
-            temp_v0_2->field_E0 = 0;
-            sp10                = D_actor_403600_80131E2C;
+            arg0->work         = temp_v0_2;
+            temp_v0_2->shallow = 0;
+            sp10               = D_actor_403600_80131E2C;
             Gp_CopyCoordOffset(arg0, &temp_s2->parent->extra.tmd->coords[1], &sp10);
-            mtx                              = &temp_v0_2->field_90.coord;
-            MATRIX_PAIR(mtx, 0, 0)           = 0x1000;
-            MATRIX_PAIR(mtx, 0, 2)           = 0;
-            MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
-            MATRIX_PAIR(mtx, 2, 0)           = 0;
-            mtx->m[2][2]                     = 0x1000;
-            temp_v0_2->field_90.coord.t[0]   = 0;
-            temp_v0_2->field_90.coord.t[1]   = 0;
-            temp_v0_2->field_90.coord.t[2]   = 0;
-            temp_v0_2->field_90.composeStamp = GRAPHICS_COORD_DIRTY;
-            temp_v0_2->field_90.parent       = temp_s4;
-            temp_v1_2                        = arg0->spawnArg1.value;
-            arg0->killCountdown              = 0x10;
+            mtx                               = &temp_v0_2->clipCoord.coord;
+            MATRIX_PAIR(mtx, 0, 0)            = 0x1000;
+            MATRIX_PAIR(mtx, 0, 2)            = 0;
+            MATRIX_PAIR(mtx, 1, 1)            = 0x1000;
+            MATRIX_PAIR(mtx, 2, 0)            = 0;
+            mtx->m[2][2]                      = 0x1000;
+            temp_v0_2->clipCoord.coord.t[0]   = 0;
+            temp_v0_2->clipCoord.coord.t[1]   = 0;
+            temp_v0_2->clipCoord.coord.t[2]   = 0;
+            temp_v0_2->clipCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+            temp_v0_2->clipCoord.parent       = temp_s4;
+            temp_v1_2                         = arg0->spawnArg1.value;
+            arg0->killCountdown               = 0x10;
             switch (temp_v1_2) {
                 case 1:
-                    temp_v0_2->field_8E = temp_v1_2;
+                    temp_v0_2->emitting = temp_v1_2;
                     var_a1              = 0;
                     do {
                         _actor403600TrailTick(temp_v0_2);
                         var_a1 += 1;
                     } while (var_a1 < 0x10);
-                    temp_v0_2->field_E4 = 8;
+                    temp_v0_2->clipCountdown = 8;
                     break;
                 case 2:
-                    arg0->killCountdown = 0x2E;
-                    temp_v0_2->field_E4 = 0x1F;
+                    arg0->killCountdown      = 0x2E;
+                    temp_v0_2->clipCountdown = 0x1F;
                     gfxRotMatrixZ(mtx, 0x800, GRAPHICS_ROTATION_COMPOSE);
                     temp_s4->composeStamp = GRAPHICS_COORD_DIRTY;
                     break;
                 default:
-                    temp_v0_2->field_8E = 1;
+                    temp_v0_2->emitting = 1;
                     var_a1              = 0;
                     do {
                         _actor403600TrailTick(temp_v0_2);
@@ -2252,41 +2253,41 @@ void func_actor_403600_80135C28(Task* arg0)
             return;
         }
     }
-    temp_s0 = (ActorEffectState*)arg0->work;
+    temp_s0 = arg0->work;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         switch (arg0->spawnArg1.value) {
             case 1:
-                temp_v0_9         = temp_s0->field_E4 - 1;
-                temp_s0->field_E4 = temp_v0_9;
+                temp_v0_9              = temp_s0->clipCountdown - 1;
+                temp_s0->clipCountdown = temp_v0_9;
                 if (temp_v0_9 == 0) {
                     temp_a0_5               = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
                     D_actor_403600_801606A0 = NULL;
                     temp_a0_5->flags        = (u16)(temp_a0_5->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
                 } else if (temp_v0_9 > 0) {
-                    D_actor_403600_801606A0 = &temp_s0->field_90;
-                    Gp_UpdateCoord(&temp_s0->field_90);
+                    D_actor_403600_801606A0 = &temp_s0->clipCoord;
+                    Gp_UpdateCoord(&temp_s0->clipCoord);
                 }
                 break;
             case 2:
-                temp_v1_10        = temp_s0->field_E4 - 1;
-                temp_s0->field_E4 = temp_v1_10;
+                temp_v1_10             = temp_s0->clipCountdown - 1;
+                temp_s0->clipCountdown = temp_v1_10;
                 if (temp_v1_10 == 0) {
                     temp_a1                 = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
-                    D_actor_403600_801606A0 = &temp_s0->field_90;
+                    D_actor_403600_801606A0 = &temp_s0->clipCoord;
                     temp_a1->flags          = (u16)(temp_a1->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
-                    Gp_UpdateCoord(&temp_s0->field_90);
+                    Gp_UpdateCoord(&temp_s0->clipCoord);
                 } else if (temp_v1_10 >= -7) {
-                    D_actor_403600_801606A0 = &temp_s0->field_90;
-                    Gp_UpdateCoord(&temp_s0->field_90);
+                    D_actor_403600_801606A0 = &temp_s0->clipCoord;
+                    Gp_UpdateCoord(&temp_s0->clipCoord);
                 } else if (temp_v1_10 == -8) {
                     D_actor_403600_801606A0 = NULL;
                 }
                 break;
         }
         if (arg0->killCountdown > 0) {
-            temp_s0->field_8E = 1;
+            temp_s0->emitting = 1;
         } else {
-            temp_s0->field_8E = 0;
+            temp_s0->emitting = 0;
         }
         arg0->killCountdown = (s16)((u16)arg0->killCountdown - 1);
         _actor403600TrailTick(temp_s0);

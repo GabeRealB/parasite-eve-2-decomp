@@ -38,25 +38,6 @@
 
 #include "overlay.h"
 
-/// Working state of the push-out walk over an actor's contact records: the
-/// coordinate's world translation, the push that moves it out of the latest
-/// solid record (capped in length), that push's XZ part, the record cursor and
-/// whether any solid record was met. `dist` receives the end marker at the
-/// terminating record.
-typedef struct ActorRepelScratch {
-    byte    pad_0[0x20];
-    SVECTOR offset;
-    SVECTOR last;
-    SVECTOR pos;
-    s32     kind;
-    u32     len;
-    s16     dist[32];
-    s16     i;
-    byte    pad_82[4];
-    s16     hit;
-} ActorRepelScratch;
-STATIC_ASSERT_SIZEOF(ActorRepelScratch, 0x88);
-
 /// Scratch-stack block of an actor's push out of its world contacts.
 ///
 /// A push reserves one block, has its contact records resolved into `delta`,
@@ -470,12 +451,20 @@ typedef struct {
 } ActorPlayerHoldScratch;
 STATIC_ASSERT_SIZEOF(ActorPlayerHoldScratch, 0x2C);
 
-/// The scratch-pad block of a point placed relative to a coordinate: `offset`
-/// in the coordinate's frame, and `result` the world position it is rotated
-/// and moved to.
-typedef struct ActorOffsetScratch {
-    SVECTOR offset;
-    VECTOR  result;
+/// Scratch-stack block of a projectile placed at an offset from the enemy
+/// that fires it.
+///
+/// The projectile's spawn handler reserves one block, fills `offset` with the
+/// package's fixed offset in the frame of the parent's root part and has it
+/// turned by that part's own rotation into `rotated`. The projectile's root
+/// then takes the parent root's matrix, with `rotated` added to its
+/// translation, and hangs off the view coordinate. Nothing reads the block
+/// after that. The handler releases it as it ends, except where the
+/// projectile's work block cannot be allocated: that path returns with the
+/// block still reserved.
+typedef struct {
+    SVECTOR offset;  // Where the projectile starts, in the frame of the parent's root part; `pad` is never written
+    VECTOR  rotated; // `offset` turned by the parent root's local rotation, with no translation applied: what is added to the parent root's translation. `pad` is never written
 } ActorOffsetScratch;
 STATIC_ASSERT_SIZEOF(ActorOffsetScratch, 0x18);
 
@@ -528,23 +517,17 @@ typedef struct {
 } ActorRangeBearingScratch;
 STATIC_ASSERT_SIZEOF(ActorRangeBearingScratch, 0x7C);
 
-/// The scratch-pad block of a head turned to aim at the player: `view` is the
-/// head coordinate in view space, `delta` the player's offset from it, and
-/// `local` that offset rotated into the body's frame and clamped.
-typedef struct ActorAimScratch {
-    MATRIX view;
-    VECTOR delta;
-    VECTOR local;
-} ActorAimScratch;
-STATIC_ASSERT_SIZEOF(ActorAimScratch, 0x40);
-
-/// Work block of a model that draws with its own lighting: the light and
-/// colour matrices its `TmdObject::lightMtx` / `colorMtx` point at, and the
-/// task that spawned it, which the spawn routine reparents to it.
-typedef struct ActorLitWork {
-    MATRIX light;
-    MATRIX color;
-    Task*  field_40;
+/// Work block of a task that draws one model with lighting of its own and
+/// does nothing else with it.
+///
+/// The task allocates the block on its first tick, clears it and keeps it at
+/// `Task::work`. The block supplies the two matrices the task's model does not
+/// own, which the room's lights are worked into each tick at the model's
+/// position, and remembers the task it was spawned for.
+typedef struct {
+    MATRIX light;  // Light matrix the model's `TmdObject::lightMtx` points at
+    MATRIX color;  // Colour matrix the model's `TmdObject::colorMtx` points at
+    Task*  parent; // Task this one was spawned for, taken from `Task::spawnArg2`, and made a child of
 } ActorLitWork;
 STATIC_ASSERT_SIZEOF(ActorLitWork, 0x44);
 
@@ -566,25 +549,6 @@ typedef struct {
     s16 id;    // Value returned for a point inside, or `ACTOR_ZONE_END`
 } ActorZone;
 STATIC_ASSERT_SIZEOF(ActorZone, 0xA);
-
-/// The state of the effect actor_403600's `func_actor_403600_80138C9C` and
-/// `func_actor_403600_801353D0` drive, which actor_361100 also runs through
-/// those two functions: two tables of 0x20 halfwords, the ramp words and
-/// halfwords after them, the coordinate the effect hangs off, and two more
-/// words.
-typedef struct ActorEffectState {
-    s16      field_0[0x20];
-    s16      field_40[0x20];
-    s32      field_80;
-    s32      field_84;
-    s32      field_88;
-    s16      field_8C;
-    s16      field_8E;
-    GfxCoord field_90;
-    s32      field_E0;
-    s32      field_E4;
-} ActorEffectState;
-STATIC_ASSERT_SIZEOF(ActorEffectState, 0xE8);
 
 /// One tuning of a Stranger: the four values the enemy keeps in its work
 /// block from the moment it is set up.

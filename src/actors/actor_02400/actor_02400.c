@@ -1347,12 +1347,12 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     gte_SetRotMatrix(&parentCoord->coord);
     gte_ldv0(offset);
     gte_rtv0();
-    gte_stlvnl(&scratch->result);
+    gte_stlvnl(&scratch->rotated);
     coord->parent       = &gGfxViewCoord;
     coord->coord        = parentCoord->coord;
-    coord->coord.t[0]   = parentCoord->coord.t[0] + scratch->result.vx;
-    coord->coord.t[1]   = parentCoord->coord.t[1] + scratch->result.vy;
-    coord->coord.t[2]   = parentCoord->coord.t[2] + scratch->result.vz;
+    coord->coord.t[0]   = parentCoord->coord.t[0] + scratch->rotated.vx;
+    coord->coord.t[1]   = parentCoord->coord.t[1] + scratch->rotated.vy;
+    coord->coord.t[2]   = parentCoord->coord.t[2] + scratch->rotated.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->direction.vx  = parentCoord->coord.m[0][2];
     work->direction.vy  = parentCoord->coord.m[1][2];
