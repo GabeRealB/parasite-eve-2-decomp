@@ -45174,7 +45174,7 @@ than its role: `func_<addr>` becomes `func_<overlay>_<addr>`, `jtbl_<addr>`
 becomes `jtbl_<overlay>_<addr>`, and a pattern written against main's names
 will quietly match nothing in an overlay.
 
-## u16 field + `(s16)` reload gives `lh` / `lhu` / `lh` of the same halfword
+## `lh` / `lhu` / `lh` of one halfword does not make the field `u16`
 
 A signed compare, an unsigned store into a sibling `s16`, and a signed table
 index can all hit the same offset:
@@ -45189,18 +45189,21 @@ lh   v0, 0x348(s1)     /* table index */
 sh   a0, 0x34A(s1)
 ```
 
-Type the field `u16` and cast at the signed uses. GCC then emits three
-separate loads instead of CSEing the compare into the index:
+Typing the field `u16` and casting at the signed uses gives those three
+separate loads, and that is how this was first matched. It is not the only
+spelling, and so not evidence of the field's type: the halfword-to-halfword
+copy loads `lhu` whatever the signedness. With the block in a `static inline`
+helper, a plain `s16` field and no casts compiles to the same bytes:
 
 ```c
-if ((s16)work->field_348 != work->field_34A) {
-    work->field_34A = work->field_348;              /* lhu + sh */
-    val = table[(s16)work->field_348];              /* lh */
+if (work->anim != work->playingAnim) {              /* lh, lh */
+    work->playingAnim = work->anim;                 /* lhu + sh */
+    val = table[work->anim];                        /* lh */
 }
 ```
 
-Keeping the field as `s16` reuses the compare's `lh` for the `sllv` scale and
-drops the extra `lhu`. `Actor03800_Fn02998` is the example. The vacuum L-label
+`Actor03800_Fn02998`, which expands `_actor03800TickAnim`, is the example.
+Try the uncast `s16` field before settling on a `u16` one. The vacuum L-label
 `Actor03800_L02A1C` is one of its interior blocks — match the parent `Fn`
 (see "A vacuum `L`-label is a basic block, not a function").
 
@@ -45223,9 +45226,9 @@ j     L027F8
 The C is a local seeded from the field and modified in place:
 
 ```c
-next = work->field_362;              /* CSE folds the load to `ang` */
+next = work->yaw;                    /* CSE folds the load to `ang` */
 if (diff <= 0) { next -= step; } else { next += step; }
-work->field_362 = next;
+work->yaw = next;
 ```
 
 That only holds when `next` is `s32`. Declared `s16` — the width of the field it
@@ -45242,7 +45245,7 @@ gets its own store, the two `sh v0,0x362(s0)` tails no longer cross-jump onto
 one label, and the sibling block that reaches the same store keeps its own copy.
 Score went 94.8% → 100% on `Actor03800_Fn026F8` from `s16 cur` → `s32 next`
 alone. The same asymmetry runs the other way for the *non*-in-place form
-(`work->field_362 = cur - step;`), which wants a plain `s32` load anyway — so
+(`work->yaw = cur - step;`), which wants a plain `s32` load anyway — so
 when one turn block folds and its twin does not, look at the local's width
 before touching the control flow.
 
@@ -46703,11 +46706,11 @@ after `y`'s last use. A dead store does it, because `REGNO_LAST_UID` is set by
 
 ```c
 delta = turn;
-if (work->field_370 != 0) {
+if (work->hitWall != 0) {
     delta = turn + 0x800;      /* addiu a1,a0,0x800, not addiu a1,a1,0x800 */
-    work->field_370 = 0;
+    work->hitWall = 0;
 }
-work->field_364 = (work->field_362 + delta) & 0xFFF;   /* delta's last use */
+work->targetYaw = (work->yaw + delta) & 0xFFF;         /* delta's last use */
 turn            = 0;                                   /* dead store */
 ```
 
@@ -47151,9 +47154,9 @@ forces you to touch a line like this, preserve the pointer's live range and
 register allocation; a typed pointer with an explicit register binding can keep
 the shape without reusing an unrelated owner type.
 
-## One `u16` field read as both `lhu` and `lh` in the same function
+## One halfword field read as both `lhu` and `lh` in the same function
 
-`Actor03800_Fn02584` touches `field_34C` four times and splat shows two
+`Actor03800_Fn02584` touches `animFrame` four times and splat shows two
 different loads:
 
 ```
@@ -47162,21 +47165,22 @@ lh    $v0, 0x34C($a1)      # slti 0x11            -> signed compare
 ```
 
 That is one field, not two. `sltiu` after `addiu -8` is GCC's rewrite of
-`x >= 8 && x <= 0x10`, and it only loads `lhu` when `x` is *unsigned* — a
-signed `x` would keep the `lh`. So the `lhu` fixes the declared type as `u16`.
-The `slti` is then a genuinely signed comparison, and the way to ask for it on
-a `u16` field is an explicit cast:
+`x >= 8 && x <= 0x10`, and on this function the rewrite loads the halfword
+`lhu` for an `s16` `x` as well as for a `u16` one, so the `lhu` does not fix
+the declared type. The `slti` is a genuinely signed comparison. An `s16` field
+gives both loads with no cast:
 
 ```c
-if (work->field_34C >= 8 && work->field_34C <= 0x10) { ... }   /* lhu */
-if ((s16)work->field_34C >= 0x11)                   { ... }   /* lh  */
+if (work->animFrame >= 8 && work->animFrame <= 0x10) { ... }   /* lhu */
+if (work->animFrame >= 0x11)                         { ... }   /* lh  */
 ```
 
-`combine` folds the `lhu` + `sll 16` + `sra 16` of the cast back into a single
-`lh`, so the cast costs nothing. Read the load width and signedness per *use*
-before deciding a field's type: a mixed pair is normal C, not a struct
-mistake, and picking `s16` to satisfy the `slti` breaks the range check
-instead.
+A `u16` field gives the same bytes with `(s16)` at the second line - `combine`
+folds the cast's `lhu` + `sll 16` + `sra 16` back into a single `lh` - and
+that is how the function was first matched. Read the load width and
+signedness per *use* before deciding a field's type: a mixed pair is normal C,
+not a struct mistake, and where both declarations match, the one needing no
+casts across all the field's users is the one to keep.
 
 ## The same mixed pair across *two* functions: fix the comparison, not the field
 
@@ -47278,7 +47282,7 @@ beq   a1, v0, case1
 sh    a1, 0x36A(a0)     /* the same register stored back */
 ```
 
-Holding it in an `s16` local (`s16 state = work->field_354;`) does **not**
+Holding it in an `s16` local (`s16 state = work->actionStep;`) does **not**
 produce that. GCC 2.8.1 keeps an HImode local in HImode, so the `switch` gets
 the sign-extending `lh` it needs for the comparison while the later `sh` of
 `state` takes a second, zero-extending load of the same field:
@@ -47296,7 +47300,7 @@ an SImode local as soon as more than one use needs it, and let the `sh` narrow
 it again.
 
 ```c
-s32 state = work->field_354;   /* one lh, reused by beqz/beq and sh */
+s32 state = work->actionStep;  /* one lh, reused by beqz/beq and sh */
 
 switch (state) {
 case 0:
@@ -51656,7 +51660,7 @@ block's first insn, here it is two real call sites that never got merged.
 
 ### The `(s16)` cast only folds into `lh` if the local is `int`-wide
 
-"One `u16` field read as both `lhu` and `lh`" says an explicit `(s16)` cast on a
+"One halfword field read as both `lhu` and `lh`" says an explicit `(s16)` cast on a
 `u16` field folds back into a single `lh`. It only does so when the value's
 destination is word-sized. Assigning the cast to an `s16` local keeps the
 truncation visible and `combine` gives up:
@@ -71988,7 +71992,7 @@ Actor03800_Fn034B0: the m2c seed loaded actor->field_20 only inside case 0, afte
 
 Earliest meaningful divergence is .rtl UID 17, offset-32 load in entry. Incoming actor r80 becomes block-local (4 references/12 insns instead of global 4/24); context r82 spans dispatch and is assigned a0 in .greg, sharing the incoming argument register after that value dies. Flag allocation is unchanged. This is a source load-placement and lifetime change, not evidence that declaration order itself selects a register. Caching also preserves the target's read-before-write ordering.
 
-A separate controlled base_2 reversed independent 22A/2AA halfword updates. The second update's r89/r90 retained v0, and third update's r91/r92 retained v1, exchanging field values. Sched2 then placed the 22A store last, for the call delay slot, reaching exact match. Observed homes and scheduler output support this particular intervention; local quantity priority calculations were not traced and are not generalized.
+A separate controlled base_2 reversed the independent `gridBody.flags`/`attackBody.flags` halfword updates. The second update's r89/r90 retained v0, and third update's r91/r92 retained v1, exchanging field values. Sched2 then placed the `gridBody.flags` store last, for the call delay slot, reaching exact match. Observed homes and scheduler output support this particular intervention; local quantity priority calculations were not traced and are not generalized.
 
 Evidence: tools/permuter_findings/Actor03800_Fn034B0/ (session 1f7d1f1cdcec496eb650b4ceb4787b28), retained PERMUTER_ANALYSIS.md and base_1/base_2 dumps. Baseline preprocessed SHA256 1a4327b257fa23d6dbca01be9f60681124f37a8df64c0e9d782da7b75b8e5518; paired improved input 746ae5b2bc93e1db3bead8ca0533d8e0bca43579d68a33135a4fd5c97d06098e; compiler 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Full fingerprints and controlled predictions are retained in the session notes.
 

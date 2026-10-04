@@ -221,8 +221,8 @@ typedef struct ActorShared801511c8Work {
 /// over the work's *six* helper slots, mirroring `Actor207200Work`'s
 /// `field_48C`/`field_48E`/`field_490`.
 ///
-/// `field_36A`/`field_36E` are the same pair `Actor103800Work` and
-/// `ActorShared80137e18Work` carry: the reaction sub-state the damage branch
+/// `field_36A`/`field_36E` are the same pair `ActorShared80137e18Work`
+/// carries: the reaction sub-state the damage branch
 /// writes (3 here, 5 once the 0x600A5 spawn is armed) and a word cleared
 /// alongside it.
 ///
