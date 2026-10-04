@@ -44,6 +44,7 @@
 
 #include "overlay.h"
 #include "gameplay/animation.h"
+#include "types.h"
 /// Signed effect-age argument whose low bit selects one of the two flame cells.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
@@ -2033,3 +2034,5 @@ AnimationBank D_hypervelocity_8012EDD0 = { { {
     NULL,
     NULL,
 } } };
+
+s16 D_hypervelocity_8012EF0C[16] = { 0 };

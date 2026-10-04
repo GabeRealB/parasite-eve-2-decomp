@@ -1078,3 +1078,6 @@ AnimationBank D_m4a1_bayonet_8012D25C = { { {
     NULL,
     NULL,
 } } };
+
+GfxCoord gBladeTrailBase[8] = { 0 };
+GfxCoord gBladeTrailTip[8]  = { 0 };

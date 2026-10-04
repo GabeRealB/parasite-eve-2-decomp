@@ -43,6 +43,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "types.h"
 /// Read-only XYZ translation words from the launch sprite's `GfxCoord::workm.t`.
 #define SPRITE_QUAD_POSITION_SOURCE_TYPE const long
 #define SPRITE_QUAD_POS(p, i)            ((p)[i])
@@ -1822,6 +1823,13 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     NULL,
 } } };
 
-/// Not zero and never read: the original toolchain left this word in the
-/// alignment gap between the bank and the next unit's data.
+/// A word between the bank and the work state that nothing refers to. Its
+/// value is not zero and its purpose is not established.
 u32 D_m4a1_javelin_8012EB5C = 0x102232DD;
+
+u16     D_m4a1_javelin_8012EB60 = 0;
+u16     D_m4a1_javelin_8012EB62 = 0;
+s16     D_m4a1_javelin_8012EB64 = 0;
+s16     D_m4a1_javelin_8012EB66 = 0;
+SVECTOR D_m4a1_javelin_8012EB68 = { 0, 0, 0, 0 };
+s32     D_m4a1_javelin_8012EB70 = 0;

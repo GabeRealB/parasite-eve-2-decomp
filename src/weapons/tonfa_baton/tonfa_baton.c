@@ -1351,3 +1351,6 @@ AnimationBank D_tonfa_baton_8012BAB0 = { { {
     NULL,
     NULL,
 } } };
+
+GfxCoord gBladeTrailBase[8] = { 0 };
+GfxCoord gBladeTrailTip[8]  = { 0 };

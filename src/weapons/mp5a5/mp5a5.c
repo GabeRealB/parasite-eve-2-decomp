@@ -1083,3 +1083,5 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     NULL,
     NULL,
 } } };
+
+s16 gMuzzleFlashAngles[4] = { 0, 0, 0, 0 };

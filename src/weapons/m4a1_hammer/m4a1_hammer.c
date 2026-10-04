@@ -32,6 +32,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "gameplay/animation.h"
+#include "types.h"
 /// Signed texture-frame counter for the six-cell sprite's forward declaration.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
@@ -1242,3 +1243,17 @@ AnimationBank D_m4a1_hammer_8012D4F4 = { { {
     NULL,
     NULL,
 } } };
+
+/// Jitter table for the eight sparks the charged hammer throws: `[0..7]` are
+/// the spin angles, `[8..15]` the heights and `[16..23]` the radii.
+s16 D_m4a1_hammer_8012D630[24] = { 0 };
+
+/// Parent task the hammer effect re-attaches itself to each time it restarts.
+Task* D_m4a1_hammer_8012D660 = NULL;
+
+/// Nothing reads the word after the task pointer; it keeps the offset of the
+/// vector that follows.
+static s32 s_unused_8012D664 = 0;
+
+/// Offset vector handed to the `beamStripDraw` sprite draw.
+SVECTOR D_m4a1_hammer_8012D668 = { 0, 0, 0, 0 };

@@ -29,6 +29,7 @@
 #include "main/tmd_types.h"
 #include "../../shared/blade_trail.h"
 #include "gameplay/animation.h"
+#include "types.h"
 
 /// The near end of the gunblade beam inside the muzzle frame, `(0, 0x60, 0x80)`;
 /// the task's own coordinate starts there. The far end follows it directly, and
@@ -1202,3 +1203,16 @@ AnimationBank D_gunblade_8012E108 = { { {
     NULL,
     NULL,
 } } };
+
+/// The running beam task and its `EffectWork`, cached on entry to state 0 so
+/// `func_gunblade_8011E008` can reach them from outside the task.
+Task*       D_gunblade_8012E244 = NULL;
+EffectWork* D_gunblade_8012E248 = NULL;
+
+/// Nothing reads the two words after the work pointer; they keep the offset of
+/// the trails that follow.
+static s32 s_unused_8012E24C[2] = { 0, 0 };
+
+/// The eight-segment beam trails, one array per end of the blade.
+GfxCoord gBladeTrailBase[8] = { 0 };
+GfxCoord gBladeTrailTip[8]  = { 0 };
