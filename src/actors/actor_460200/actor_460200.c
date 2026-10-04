@@ -44,19 +44,34 @@
 #include "../../shared/walker.h"
 #include "../../shared/stride_walk.h"
 
-// The animation copy spans the bank and its following records.
-// Keep the typed fields and the complete copied word range together.
+/// The clips the soldiers' scenes add to the player's animation bank, with the
+/// copy request that installs them and the scene-actor play requests stored
+/// after it.
+///
+/// Every event script of the package that plays an animation on the player
+/// first sends it the copy request. The copy takes
+/// `ANIMATION_BANK_EXTENSION_CAPACITY` words from the start of the storage,
+/// which is the whole of it and more than the clip table holds: the fifteen
+/// table words occupy extended ids 47-61, and the copy request and the three
+/// play requests are written into the bank after them. The player's requests
+/// select ids 47-57 and 61 only, so none of those following words is played
+/// as a clip.
+///
+/// The play requests are not the player's. They are the first three of the
+/// run of requests the scripts send to the scene's second placed actor, and
+/// are part of this object only because the copied span reaches over them;
+/// the rest of the run follows as separate objects.
 typedef union {
     struct {
-        AnimationSet*            sets[15];
-        AnimationBankCopyRequest copy;
-        AnimationPlayRequest     arguments[3];
-    } data;
-    s32 words[32];
-} Actor460200AnimStorage5E30;
-STATIC_ASSERT_SIZEOF(Actor460200AnimStorage5E30, 128);
+        AnimationSet*            sets[15];             // Player clips for extended ids 47-61; NULL at the three ids (58-60) nothing requests
+        AnimationBankCopyRequest copy;                 // Installs the whole of this storage in the player's bank extension
+        AnimationPlayRequest     actorPlayRequests[3]; // Requests for animation ids 1, 4 and 5 of the scene's second placed actor; nothing references the first
+    } data;                                            // The records by name
+    s32 words[ANIMATION_BANK_EXTENSION_CAPACITY];      // The same storage as the copy reads it
+} _Actor460200AnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_Actor460200AnimationBankExtensionStorage, ANIMATION_BANK_EXTENSION_CAPACITY * sizeof(s32));
 
-extern Actor460200AnimStorage5E30 D_actor_460200_80135E30;
+extern _Actor460200AnimationBankExtensionStorage D_actor_460200_80135E30;
 
 s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
 
@@ -164,8 +179,8 @@ void                        func_actor_460200_801320E0(s32);
 static void                 func_actor_460200_80132124(void);
 void                        func_actor_460200_80132204(s8);
 
-extern Actor460200AnimStorage5E30 D_actor_460200_80135E30;
-void                              func_actor_460200_80131E24(Task*);
+extern _Actor460200AnimationBankExtensionStorage D_actor_460200_80135E30;
+void                                             func_actor_460200_80131E24(Task*);
 
 static AnimationSet _gActor460200Animation1C038;
 static AnimationSet _gActor460200Animation1C304;
@@ -460,7 +475,7 @@ RECT gScreenNegativeStripRect = { 0, 0, 16, 240 };
 
 AnimationPlayRequest D_actor_460200_80135E1C = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-Actor460200AnimStorage5E30 D_actor_460200_80135E30 = { .data = { { &_gActor460200Animation022B4, &_gActor460200Animation02520, &_gActor460200Animation026C0, &_gActor460200Animation029E0, &_gActor460200Animation02B8C, &_gActor460200Animation02DE0, &_gActor460200Animation03020, &_gActor460200Animation031D0, &_gActor460200Animation033B8, &_gActor460200Animation03584, &_gActor460200Animation03BF4, NULL, NULL, NULL, &_gActor460200Animation03FAC }, { { .words = D_actor_460200_80135E30.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
+_Actor460200AnimationBankExtensionStorage D_actor_460200_80135E30 = { .data = { { &_gActor460200Animation022B4, &_gActor460200Animation02520, &_gActor460200Animation026C0, &_gActor460200Animation029E0, &_gActor460200Animation02B8C, &_gActor460200Animation02DE0, &_gActor460200Animation03020, &_gActor460200Animation031D0, &_gActor460200Animation033B8, &_gActor460200Animation03584, &_gActor460200Animation03BF4, NULL, NULL, NULL, &_gActor460200Animation03FAC }, { { .words = D_actor_460200_80135E30.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
 
 AnimationPlayRequest D_actor_460200_80135EB0 = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -650,16 +665,16 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_460200_8013624C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80135E30.data.arguments[1] } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80135E30.data.actorPlayRequests[1] } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .pointer = &D_actor_460200_80136264 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80135E30.data.arguments[2] } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80135E30.data.actorPlayRequests[2] } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80136130 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80135EB0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80135E30.data.arguments[1] } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_80135E30.data.actorPlayRequests[1] } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .pointer = &D_actor_460200_8013627C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_460200_801361EC } }, { .value = 0 } },
