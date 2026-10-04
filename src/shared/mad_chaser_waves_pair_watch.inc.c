@@ -8,7 +8,7 @@ void madChaserWavePairWatch(Task* arg0)
 
     madChaserWavePairCull(arg0);
     if (work->goneMask == 3) {
-        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
     }
 }

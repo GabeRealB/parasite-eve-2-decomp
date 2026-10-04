@@ -1098,22 +1098,22 @@ TaskMessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
 };
 
 OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[16] = {
-    { 0, 801, { 0, 0 }, 0 },
-    { 1, 2305, { 0, 0 }, 0 },
-    { 2, 513, { 0, 0 }, 0 },
-    { 0, 1041, { 0, 0 }, 0 },
-    { 0, 2049, { 0, 0 }, 0 },
-    { 2, 2305, { 0, 0 }, 0 },
-    { 1, 769, { 0, 0 }, 0 },
-    { 1, 2561, { 0, 0 }, 0 },
-    { 2, 1025, { 0, 0 }, 0 },
-    { 0, 2561, { 0, 0 }, 0 },
-    { 1, 1025, { 0, 0 }, 0 },
-    { 1, 2561, { 0, 0 }, 0 },
-    { 2, 1281, { 0, 0 }, 0 },
-    { 0, 2817, { 0, 0 }, 0 },
-    { 1, 2817, { 0, 0 }, 0 },
-    { 0, 769, { 0, 0 }, 0 },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(3, 2), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(9, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(2, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(4, 1), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(8, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(9, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(3, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(10, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(4, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(10, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(4, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(10, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(5, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(11, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(11, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(3, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
 };
 
 TaskDesc D_shelter_b3_dumping_hole_8018B83C[4] = {
@@ -3719,7 +3719,7 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
         obj->clutRowOffset     = 5;
         enemy->hp              = 1;
     }
-    D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
+    D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
     arg0->state++;
 }
 
@@ -3734,7 +3734,7 @@ static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
 
     count = 0;
     for (i = 0; i < 16; i++) {
-        if (D_shelter_b3_dumping_hole_8018B7BC[i].status == 1) {
+        if (D_shelter_b3_dumping_hole_8018B7BC[i].status == OVERLAY_ENCOUNTER_SLOT_LIVE) {
             count++;
         }
     }
@@ -3856,7 +3856,7 @@ static void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
         return;
     }
     for (i = 15; i >= 0; i--) {
-        D_shelter_b3_dumping_hole_8018B7BC[i].status = 0;
+        D_shelter_b3_dumping_hole_8018B7BC[i].status = OVERLAY_ENCOUNTER_SLOT_WAITING;
     }
     D_shelter_b3_dumping_hole_8018F4D4_value = 0;
     arg0->work                               = work;
@@ -3898,7 +3898,7 @@ static void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
     if (((OverlayEncounterCtrlWork*)arg0->work)->stop != 4) {
         func_shelter_b3_dumping_hole_801833EC(arg0);
         for (i = 0; i < 0x10; i++) {
-            if (D_shelter_b3_dumping_hole_8018B7BC[i].status == 2) {
+            if (D_shelter_b3_dumping_hole_8018B7BC[i].status == OVERLAY_ENCOUNTER_SLOT_DONE) {
                 count++;
             }
         }
@@ -3919,7 +3919,7 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
         enemy      = Gp_SpawnEnemyFromTable(&D_80142604, 1, 0, NULL);
         if (enemy != NULL) {
             u16 idx;
-            D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
+            D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
             idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4_value;
             work->enemy                                                                   = enemy;
             enemy->placeKey                                                               = idx << ENEMY_PLACE_INDEX_SHIFT;
@@ -3954,7 +3954,7 @@ static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 static void func_shelter_b3_dumping_hole_80183A98(Task* arg0)
 {
     if (((OverlayEncounterSingleWork*)arg0->work)->enemy->hp <= 0) {
-        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
     }
 }
@@ -3968,7 +3968,7 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, NULL);
         if (enemy != NULL) {
             u16 idx;
-            D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
+            D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
             idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4_value;
             work->enemy                                                                   = enemy;
             enemy->placeKey                                                               = idx << ENEMY_PLACE_INDEX_SHIFT;
@@ -4003,7 +4003,7 @@ static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 static void func_shelter_b3_dumping_hole_80183C38(Task* arg0)
 {
     if (((OverlayEncounterSingleWork*)arg0->work)->enemy->hp <= 0) {
-        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
     }
 }
@@ -4067,7 +4067,7 @@ static void func_shelter_b3_dumping_hole_80183E08(Task* arg0)
     OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
     func_shelter_b3_dumping_hole_80183F04(arg0);
     if (ent->goneMask == 3) {
-        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
     }
 }

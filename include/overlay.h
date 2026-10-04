@@ -275,17 +275,40 @@ static __inline__ s32 overlayOutOfRange(SVECTOR* d, s16 r)
     return ret;
 }
 
-/// One enemy slot of a scripted encounter, in the table its controller works
-/// through in order. `kind` selects the task that holds the slot's enemies
-/// (one enemy from either of two tables, or a pair), and `command` is what
-/// that task sends them as message 0x7DB once they are released. `status` is
-/// 0 while the slot waits, 1 while its enemies are alive and 2 once they are
-/// gone.
-typedef struct OverlayEncounterSlot {
-    s16  kind;
-    s16  command;
-    byte pad_4[0x2];
-    s16  status;
+/// Values of `OverlayEncounterSlot::status`.
+enum {
+    OVERLAY_ENCOUNTER_SLOT_WAITING = 0, // not started, or its spawner could not spawn
+    OVERLAY_ENCOUNTER_SLOT_LIVE    = 1, // its spawner holds at least one enemy
+    OVERLAY_ENCOUNTER_SLOT_DONE    = 2  // its enemies are dead or were removed
+};
+
+/// The action an encounter slot's command asks of its enemy: come out of
+/// hiding at one of the room's `OverlayEncounterSpot` rows.
+#define OVERLAY_ENCOUNTER_COMMAND_APPEAR 1
+
+/// Composes an `OverlayEncounterSlot::command` that brings the enemy out at
+/// row `spot` (0..15) of the room's `OverlayEncounterSpot` table.
+///
+/// `entryMove` (0..15) picks the move the enemy comes out with. Only the Mad
+/// Chaser decodes it; the other enemies compare the whole low byte with the
+/// action, so their slots need 0 here. A room whose controller picks the spot
+/// itself adds it to the command afterwards and passes 0 for `spot`.
+#define OVERLAY_ENCOUNTER_APPEAR_COMMAND(spot, entryMove) (((spot) << 8) | ((entryMove) << 4) | OVERLAY_ENCOUNTER_COMMAND_APPEAR)
+
+/// One row of a scripted encounter's table: a spawner task its controller
+/// starts. The first three rows start together and each later one, in table
+/// order, once fewer than three rows are live.
+///
+/// The spawner started for row `i` gets `(i << 16) + command` as its spawn
+/// argument. It spawns its enemies hidden, brings each out after a delay by
+/// sending it the low half of that argument as an `ActorCommand`, and writes
+/// `status` back through the row index in the high half. The encounter is over
+/// once every row is done.
+typedef struct {
+    s16  kind;       // Spawner the row starts (0 one Mad Chaser, 1 one of the Sucklerceph package's other enemy, 2 a pair of Sucklercephs)
+    s16  command;    // Command its enemies are brought out with: action in bits 0..3, entry move in 4..7, spot row in 8..11
+    byte field_4[2]; // Never read or written, zero in every table; role unproven
+    s16  status;     // Progress of the row (`OVERLAY_ENCOUNTER_SLOT_`); the controller resets it when it starts
 } OverlayEncounterSlot;
 STATIC_ASSERT_SIZEOF(OverlayEncounterSlot, 0x8);
 

@@ -42,6 +42,6 @@ void madChaserWavePairSpawn(Task* arg0)
         obj->clutRowOffset     = 5;
         enemy->hp              = 1;
     }
-    gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
+    gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
     arg0->state++;
 }

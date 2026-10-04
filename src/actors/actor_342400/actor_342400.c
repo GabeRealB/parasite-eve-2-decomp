@@ -73,23 +73,23 @@ TaskMessageEntry D_actor_342400_8016BF48[2] = {
 };
 
 OverlayEncounterSlot gMadChaserWaveSlots[17] = {
-    { 1, 1, { 0, 0 }, 0 },
-    { 0, 1, { 0, 0 }, 0 },
-    { 2, 1, { 0, 0 }, 0 },
-    { 2, 1, { 0, 0 }, 0 },
-    { 1, 1, { 0, 0 }, 0 },
-    { 0, 17, { 0, 0 }, 0 },
-    { 0, 33, { 0, 0 }, 0 },
-    { 2, 1, { 0, 0 }, 0 },
-    { 0, 1, { 0, 0 }, 0 },
-    { 2, 1, { 0, 0 }, 0 },
-    { 0, 1, { 0, 0 }, 0 },
-    { 1, 1, { 0, 0 }, 0 },
-    { 2, 1, { 0, 0 }, 0 },
-    { 1, 1, { 0, 0 }, 0 },
-    { 0, 17, { 0, 0 }, 0 },
-    { 0, 33, { 0, 0 }, 0 },
-    { 2, 1, { 0, 0 }, 0 },
+    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 1), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 2), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 1, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 1), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 0, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 2), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+    { 2, OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
 };
 
 void func_actor_342400_80162748(Task*);
@@ -325,7 +325,7 @@ static void func_actor_342400_80162324(Task* arg0)
 
     count = 0;
     for (i = 0; i < 17; i++) {
-        if (gMadChaserWaveSlots[i].status == 1) {
+        if (gMadChaserWaveSlots[i].status == OVERLAY_ENCOUNTER_SLOT_LIVE) {
             count++;
         }
     }
@@ -491,7 +491,7 @@ static void func_actor_342400_801628F0(Task* arg0)
         return;
     }
     for (i = 16; i >= 0; i--) {
-        gMadChaserWaveSlots[i].status = 0;
+        gMadChaserWaveSlots[i].status = OVERLAY_ENCOUNTER_SLOT_WAITING;
     }
     gMadChaserWaveEnemyCount = 0;
     arg0->work               = work;
@@ -523,7 +523,7 @@ static void func_actor_342400_80162AB0(Task* arg0)
     if (work->stop != 4) {
         func_actor_342400_80162324(arg0);
         for (i = 0; i < 17; i++) {
-            if (gMadChaserWaveSlots[i].status == 2) {
+            if (gMadChaserWaveSlots[i].status == OVERLAY_ENCOUNTER_SLOT_DONE) {
                 count++;
             }
         }
@@ -545,7 +545,7 @@ static void func_actor_342400_80162B60(Task* arg0)
         arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(D_actor_342400_80173A54, 1, 0, 0);
         if (enemy != NULL) {
-            gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
+            gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
             work->enemy                                                    = enemy;
             enemy->placeKey                                                = gMadChaserWaveEnemyCount << 12;
             gMadChaserWaveEnemyCount++;
@@ -596,7 +596,7 @@ static void func_actor_342400_80162CBC(Task* arg0)
     task  = enemy->task;
     coord = task->extra.tmd->coords;
     if (enemy->hp <= 0) {
-        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
         return;
     }
@@ -605,7 +605,7 @@ static void func_actor_342400_80162CBC(Task* arg0)
         msg.context.loc.area  = 0x2C;
         msg.command           = 5;
         TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
     }
 }
@@ -621,7 +621,7 @@ static void func_actor_342400_80162DA0(Task* arg0)
         arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, 0);
         if (enemy != NULL) {
-            gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
+            gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
             work->enemy                                                    = enemy;
             enemy->placeKey                                                = gMadChaserWaveEnemyCount << 12;
             gMadChaserWaveEnemyCount++;
@@ -654,7 +654,7 @@ static void func_actor_342400_80162F1C(Task* arg0)
     task  = enemy->task;
     coord = task->extra.tmd->coords;
     if (enemy->hp <= 0) {
-        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
         return;
     }
@@ -663,7 +663,7 @@ static void func_actor_342400_80162F1C(Task* arg0)
         msg.context.loc.area  = 0;
         msg.command           = 5;
         TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
     }
 }
