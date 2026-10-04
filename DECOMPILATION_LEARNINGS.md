@@ -371,7 +371,7 @@ took `$a1`. Instruction text was otherwise identical.
 
 Related: post-`gte_stsv` component adds must go through the arg block
 (`*(s16*)&arg->pad_0[0x10] += …`) rather than `vec->vx`, or they address
-`2(vec)` instead of `0x12($s2)`. A `u16` compare/step of `field_B9E` must share
+`2(vec)` instead of `0x12($s2)`. A `u16` compare/step of `stretchGoal` must share
 one `<< 16` (`>> 16` for the signed compare, `>> 19` for the add) or the
 halfword is loaded `lh` and the `>> 3` misses the `beqz` delay slot.
 
@@ -387,7 +387,7 @@ A rate loop had to emit `sb` / `sb` / `offA++` in the `bnez` delay. Putting the 
 
 `SOFT_BARRIER()` after the first store is the same fence and is not a loop. `.lreg` refs drop back, `offA` / `j` / `offB` allocate `$v1` / `$a1` / `$a0`, and the scratch matches.
 
-Case 2 also had to assign `field_BAE = 1` *before* `j = 1`. Otherwise that 1 CSEs with `j` and the switch compare's 1 dies at `beq`, so it sits in `$v0` and is overwritten by `li $v0, 2`. With the store first, the compare 1 lives into case 2 in `$a3`.
+Case 2 also had to assign `hitFromBehind = 1` *before* `j = 1`. Otherwise that 1 CSEs with `j` and the switch compare's 1 dies at `beq`, so it sits in `$v0` and is overwritten by `li $v0, 2`. With the store first, the compare 1 lives into case 2 in `$a3`.
 
 Preprocessed inputs: `base_7.c`
 `9d0d7cddd6373e599287f453445c9735053ff441ff12026f572eee9315c359c4`;
@@ -115941,8 +115941,8 @@ m2c's reconstruction of this handler assigned a local and stored it once:
 ```c
 s8 var_v0;
 var_v0 = 0xE;
-if (work->field_BAE == 0) var_v0 = 0xB;
-work->field_BA4 = var_v0;      /* 91.92%, regs=2 */
+if (work->hitFromBehind == 0) var_v0 = 0xB;
+work->motion = var_v0;      /* 91.92%, regs=2 */
 ```
 
 `var_v0` lands in `$v1`; the ROM has `$v0`. Only the register differs, and the
@@ -115969,10 +115969,10 @@ scored 91.92% with the same dump.
 Writing the two arms as stores to the field instead removes the allocno:
 
 ```c
-if (work->field_BAE == 0) {
-    work->field_BA4 = 0xB;
+if (work->hitFromBehind == 0) {
+    work->motion = 0xB;
 } else {
-    work->field_BA4 = 0xE;
+    work->motion = 0xE;
 }
 ```
 
@@ -116414,8 +116414,8 @@ it once after the chain:
 ```c
 v = 0x200;
 if (idx >= 3) { v = -0x200; if (idx >= 6) { ... } }
-work->field_B8C = v;
-if (work->field_B8C == 0) { ... }      /* 91.14%, regs=31 */
+work->stateCounter = v;
+if (work->stateCounter == 0) { ... }      /* 91.14%, regs=31 */
 ```
 
 Retail has the same instruction *sequence* but three things are wrong with it:
@@ -116426,15 +116426,15 @@ stores to the field instead fixes all three at once:
 
 ```c
 if (idx < 3) {
-    work->field_B8C = 0x200;
+    work->stateCounter = 0x200;
 } else if (idx < 6) {
-    work->field_B8C = -0x200;
+    work->stateCounter = -0x200;
 } else { ... }
-if (work->field_B8C == 0) { ... }      /* 100.000%, all penalties zero */
+if (work->stateCounter == 0) { ... }      /* 100.000%, all penalties zero */
 ```
 
 The six stores are not what ships: `.jump2` merges the identical arm tails into
-the one `sh v0,0xB8C(s0)` the ROM has, exactly as in the `field_BA4` case above.
+the one `sh v0,0xB8C(s0)` the ROM has, exactly as in the `motion` case above.
 What changes is everything the merge had been deciding:
 
 * **Each arm's constant becomes its own block-local quantity**, so local-alloc
@@ -116460,7 +116460,7 @@ What changes is everything the merge had been deciding:
   is a scheduling boundary, so it costs 79 instructions and reorders the prologue
   block. The stores buy the same references for free.
 
-Before reaching for the store form, `*(volatile s16*)&work->field_B8C = v;` also
+Before reaching for the store form, `*(volatile s16*)&work->stateCounter = v;` also
 reproduces the `lh` (cse skips the lookup when `sets[i].src_volatile`,
 cse.c:6599, and a volatile MEM hashes to `do_not_record`, cse.c:1972) — 93.23%,
 and it is a useful *diagnostic* that the fold is what separates the two objects.
@@ -116572,15 +116572,15 @@ address, and that callee is itself an unpromoted duplicate. Same shape as
 
 ## A two-valued `if`/`else` needs its store *inside* each arm: `jump` hoists the other arm's constant before the branch and the value never shares the flag's register (func_actor_104900_801390D8, 2026-09-16)
 
-The handler picks 0xF or 0x10 for `field_BA4` from the flag at 0xBAE, and m2c's
+The handler picks 0xF or 0x10 for `motion` from `hitFromBehind`, and m2c's
 shape - a local set before/inside the `if` and stored once afterwards - scores
 85.7% with the flag and the value in different registers, no matter which of the
 three equivalent writings it is given:
 
 ```c
-v = 0x10; if (work->field_BAE == 0) { v = 0xF; }        /* 85.7% */
-v = (work->field_BAE == 0) ? 0xF : 0x10;                /* 85.7%, same object */
-if (work->field_BAE != 0) { v = 0x10; } else { v = 0xF; }   /* 94.9% */
+v = 0x10; if (work->hitFromBehind == 0) { v = 0xF; }        /* 85.7% */
+v = (work->hitFromBehind == 0) ? 0xF : 0x10;                /* 85.7%, same object */
+if (work->hitFromBehind != 0) { v = 0x10; } else { v = 0xF; }   /* 94.9% */
 ```
 
 Retail is `lbu $v0,0xBAE($a2)` / `bnez $v0,JOIN` / `li $v0,0x10` / `li $v0,0xF`
@@ -116605,10 +116605,10 @@ the way, and the store-in-each-arm form removes both:
 Writing the *store* into each arm instead of a shared local fixes both:
 
 ```c
-if (work->field_BAE == 0) {
-    work->field_BA4 = 0xF;
+if (work->hitFromBehind == 0) {
+    work->motion = 0xF;
 } else {
-    work->field_BA4 = 0x10;
+    work->motion = 0x10;
 }                                        /* 100.000%, all penalties zero */
 ```
 
@@ -116622,9 +116622,9 @@ the join. So the "constant in the delay slot, constant in the fallthrough, one
 store after" shape is a *reorg* result - not the if-conversion the m2c source
 invites.
 
-Two smaller notes from the same body. `field_B8C` is an `s16` in the struct but
+Two smaller notes from the same body. `stateCounter` is an `s16` in the struct but
 this handler reads it unsigned (`lhu`, then `addiu`, then `sh`), so the read has
-to be written `(u16)work->field_B8C` - the field type stays signed because
+to be written `(u16)work->stateCounter` - the field type stays signed because
 `ActorsShared80138d58` decrements it signed. And the second half wants two
 *nested* `if`s on `(s16)count` against 0x28/0x3C, not a selected constant: each
 arm then carries its own sign-extension, and jump.c's cross-jumping merges only
@@ -138666,7 +138666,7 @@ the lever is the *number of sets*, not the number of refs.
 ## A single-set compare is launched ahead of the load it should separate (`func_actor_104900_80135FDC`)
 
 Backward `sched1` gives `LAUNCH_PRIORITY` to a set whose pseudo has
-`REG_N_SETS == 1` and is live (`birthing_insn_p`). A `slti` of `field_B90`
+`REG_N_SETS == 1` and is live (`birthing_insn_p`). A `slti` of `playerBearing`
 was that set, so it was scheduled before `extra->coords` and the pointer load
 could not sit in the compare's delay. Giving the coordinate its own local,
 written *after* the compare, makes both birth; the load's later LUID wins the
@@ -143817,9 +143817,9 @@ single pointer local
 
 ```c
 for (i = 1; i < 0x15; i++) {
-    slot       = &work->slots[i];
+    slot       = &work->rig.slots[i];
     slot->rate = rate;
-    slot       = &work->slots2[i];
+    slot       = &work->flinchRig.slots[i];
     slot->rate = rate;
 }
 ```
@@ -143830,7 +143830,7 @@ into two offset bivs (`li v1,0x8c` / `li a0,0x538`, each `+= 0x28`) with
 `addu v0,s1,v1` before each store. Reusing the one pseudo also gives the second
 address an anti-dependence on the first store, which is the ordering
 (`addu; sb; addu; sb`, both through `$v0`) that the offset form needed a
-`SOFT_BARRIER` for. Writing `work->slots[i].rate` directly instead folds both
+`SOFT_BARRIER` for. Writing `work->rig.slots[i].rate` directly instead folds both
 into one walking pointer. Try the reused pointer before a hand-built offset.
 
 ## A `MATRIX` column walk is `m[0][i]`, `m[1][i]`, `m[2][i]`, not a column-overlay pointer (func_actor_107600_80134608, 2026-09-26)
