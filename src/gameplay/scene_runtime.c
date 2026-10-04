@@ -240,14 +240,22 @@ STATIC_ASSERT_SIZEOF(_AnimationTickScratch, 0x18);
 enum { ANIMATION_BLEND_FRACTION_BITS = 12 };
 STATIC_ASSERT((1 << ANIMATION_BLEND_FRACTION_BITS) == ONE, animation_blend_fraction_matches_one);
 
-/// 8-byte mask/flag record. `Gp_SndMaskTable` is a 0-terminated table of these.
-/// `Gp_ApplySndMasks` / `Gp_ApplySndBankMasks` walk it: if `arg0 & mask`, apply `flags`
-/// to `SndEvt_EnqueueType7` / `SndBank_SetEnableFlags`.
-typedef struct _GpSndMaskRec {
-    /* 0x0 */ s32 mask;
-    /* 0x4 */ s32 flags;
-} GpSndMaskRec;
-STATIC_ASSERT_SIZEOF(GpSndMaskRec, 8);
+/// One bit of a scene stream's sound-bank mask and the sound-bank type it selects.
+///
+/// A scene stream's `soundBankMask` names the script-sound bank types that
+/// must stay silent while its CD audio plays. Before the audio starts, every
+/// type whose bit is set has its running sounds stopped and its request gate
+/// closed; when the scene ends or is cancelled the same gates reopen. Sounds
+/// stopped at the start are not restarted.
+///
+/// `SOUND_BANK_TYPE_ALL_NON_AMBIENT` selects every type at once. Its stop
+/// spares the ambient type, but its request gate covers all sixteen types.
+/// A table of these rows ends at the first row whose `mask` is zero.
+typedef struct {
+    s32 mask;       // The `soundBankMask` bit that selects this row; zero ends the table
+    s32 bankTypeId; // Sound request id with only its bank type set (bits 28..31), naming every bank of that type
+} _CdCmdSceneSoundBankBit;
+STATIC_ASSERT_SIZEOF(_CdCmdSceneSoundBankBit, 8);
 
 /// One unpacked RGB555 colour on the scratch stack, in GTE short-vector form.
 ///
@@ -317,8 +325,8 @@ s16 D_80114D1C;
 
 s32 D_80114D20;
 
-/// 0-terminated `GpSndMaskRec` table walked by `Gp_ApplySndMasks` / `Gp_ApplySndBankMasks`.
-extern GpSndMaskRec Gp_SndMaskTable[];
+/// 0-terminated `_CdCmdSceneSoundBankBit` table walked by `Gp_ApplySndMasks` / `Gp_ApplySndBankMasks`.
+extern _CdCmdSceneSoundBankBit Gp_SndMaskTable[];
 
 /// Printed when an enemy's work block cannot be allocated.
 static const char Gp_StrNewEnemyNull[];
@@ -340,21 +348,6 @@ static const TaskFuncTable3 D_80093A5C;
 enum {
     SCENE_PLACED_ACTOR_BANK = 9,
 };
-
-/// Looks up one child of the scene task.
-///
-/// Dispatch passes `messageId` and the handler does not read it. `selector`
-/// is a packed `Enemy::placeKey` for a placed actor, or a byte id for any
-/// other child. `reply` must address one `Task*`; the handler writes the
-/// matching child there, or NULL when none matches. Returns 0 on a match
-/// and -1 when none matches.
-typedef s32 (*_SceneFindChildHandler)(Task* scene, s32 messageId, s32 selector, Task** reply);
-
-/// Runs the exit routine of every placed actor among the scene task's children.
-///
-/// Dispatch still supplies the message ID and both argument words. The handler
-/// reads none of them and returns 0.
-typedef s32 (*_SceneExitPlacedHandler)(Task* scene, s32 messageId, s32 firstArg, s32 secondArg);
 
 extern TaskMessageEntry Gp_Slot4MsgTable[5];
 
@@ -460,13 +453,13 @@ extern TaskDesc D_8011922C[];
 
 extern TaskDesc D_801637C8[];
 
-GpSndMaskRec Gp_SndMaskTable[7] = {
-    { 1, 0 },
+_CdCmdSceneSoundBankBit Gp_SndMaskTable[7] = {
+    { 1, SOUND_ID(SOUND_BANK_TYPE_COMMON, 0, 0) },
     { 4, SOUND_SCRIPT_REQUEST_TYPE_1 },
-    { 8, 0x50000000 },
-    { 2, 0x20000000 },
-    { 16, 0x40000000 },
-    { 32, -0x80000000 },
+    { 8, SOUND_AREA_BANK_ALL },
+    { 2, SOUND_BANK_TYPE_WEAPON_ALL },
+    { 16, SOUND_BANK_TYPE_CHARACTER_ALL },
+    { 32, SOUND_BANK_TYPE_ALL_NON_AMBIENT },
     { 0, 0 },
 };
 TaskDesc D_8010D1FC = { { { TASK_BODY_NONE, 192 } }, func_800B06F0, { NULL } };
@@ -722,10 +715,10 @@ void Gp_StepCdAudioCmd(void)
             p->step = p->step + 1;
             break;
         case 5: {
-            StreamSlot*   sceneStream;
-            s32           bits;
-            u16           maskbits;
-            GpSndMaskRec* entry;
+            StreamSlot*              sceneStream;
+            s32                      bits;
+            u16                      maskbits;
+            _CdCmdSceneSoundBankBit* entry;
 
             sceneStream = p->sceneStream;
             sector      = sceneStream->startSector;
@@ -741,8 +734,8 @@ void Gp_StepCdAudioCmd(void)
                 do {
                     entry = &Gp_SndMaskTable[(u16)i_s1];
                     if (bits & entry->mask) {
-                        SndEvt_EnqueueType7(entry->flags, 0);
-                        SndBank_SetEnableFlags(0, entry->flags);
+                        SndEvt_EnqueueType7(entry->bankTypeId, 0);
+                        SndBank_SetEnableFlags(0, entry->bankTypeId);
                     }
                     i_s1++;
                 } while (Gp_SndMaskTable[(u16)i_s1].mask != 0);
@@ -786,11 +779,11 @@ void Gp_StepCdAudioCmd(void)
             break;
         }
         case 7: {
-            StreamSlot*   sceneStream;
-            s32           i;
-            s32           bits;
-            u16           maskbits;
-            GpSndMaskRec* entry;
+            StreamSlot*              sceneStream;
+            s32                      i;
+            s32                      bits;
+            u16                      maskbits;
+            _CdCmdSceneSoundBankBit* entry;
 
             if (CdAudio_Phase.playStep != CD_AUDIO_PLAY_STEP_DONE) {
                 break;
@@ -814,7 +807,7 @@ void Gp_StepCdAudioCmd(void)
                 do {
                     entry = &Gp_SndMaskTable[(u16)i];
                     if (bits & entry->mask) {
-                        SndBank_SetEnableFlags(1, entry->flags);
+                        SndBank_SetEnableFlags(1, entry->bankTypeId);
                     }
                     i++;
                 } while (Gp_SndMaskTable[(u16)i].mask != 0);
@@ -840,10 +833,10 @@ void Gp_StepCdAudioCmd(void)
             break;
         }
         case 8: {
-            s32           i;
-            s32           bits;
-            u16           maskbits;
-            GpSndMaskRec* entry;
+            s32                      i;
+            s32                      bits;
+            u16                      maskbits;
+            _CdCmdSceneSoundBankBit* entry;
 
             if (CdAudio_Phase.waveLoadStep != CD_AUDIO_WAVE_LOAD_STEP_DONE) {
                 break;
@@ -855,7 +848,7 @@ void Gp_StepCdAudioCmd(void)
                 do {
                     entry = &Gp_SndMaskTable[(u16)i];
                     if (bits & entry->mask) {
-                        SndBank_SetEnableFlags(1, entry->flags);
+                        SndBank_SetEnableFlags(1, entry->bankTypeId);
                     }
                     i++;
                 } while (Gp_SndMaskTable[(u16)i].mask != 0);
@@ -889,9 +882,9 @@ end_check:
 
 static void Gp_ApplySndMasks(u16 arg0)
 {
-    s32           i;
-    s32           bits;
-    GpSndMaskRec* entry;
+    s32                      i;
+    s32                      bits;
+    _CdCmdSceneSoundBankBit* entry;
 
     i = 0;
     if (Gp_SndMaskTable[0].mask != 0) {
@@ -899,8 +892,8 @@ static void Gp_ApplySndMasks(u16 arg0)
         do {
             entry = &Gp_SndMaskTable[(u16)i];
             if (bits & entry->mask) {
-                SndEvt_EnqueueType7(entry->flags, 0);
-                SndBank_SetEnableFlags(0, entry->flags);
+                SndEvt_EnqueueType7(entry->bankTypeId, 0);
+                SndBank_SetEnableFlags(0, entry->bankTypeId);
             }
             i++;
         } while (Gp_SndMaskTable[(u16)i].mask != 0);
@@ -909,9 +902,9 @@ static void Gp_ApplySndMasks(u16 arg0)
 
 void Gp_ApplySndBankMasks(u16 arg0)
 {
-    s32           i;
-    s32           bits;
-    GpSndMaskRec* entry;
+    s32                      i;
+    s32                      bits;
+    _CdCmdSceneSoundBankBit* entry;
 
     i = 0;
     if (Gp_SndMaskTable[0].mask != 0) {
@@ -919,7 +912,7 @@ void Gp_ApplySndBankMasks(u16 arg0)
         do {
             entry = &Gp_SndMaskTable[(u16)i];
             if (bits & entry->mask) {
-                SndBank_SetEnableFlags(1, entry->flags);
+                SndBank_SetEnableFlags(1, entry->bankTypeId);
             }
             i++;
         } while (Gp_SndMaskTable[(u16)i].mask != 0);
