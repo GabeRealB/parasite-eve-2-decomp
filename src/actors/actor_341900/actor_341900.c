@@ -106,87 +106,52 @@ STATIC_ASSERT_SIZEOF(_Actor341900EventWork, 0x70);
 /// and read by the sequence helpers that hang their work off its `Task::work`.
 extern Task* D_actor_341900_80164208;
 
-/// 8-byte record of `D_actor_341900_80163A98`, indexed by `Task::spawnArg1`.
-/// `func_actor_341900_801625B4` copies the first three halves onto part 0's
-/// `GfxCoord::coord.t` and hangs that part off entry `field_6` of the
-/// spawner model's own coordinate array, so a record is a spawn offset plus the
-/// bone the actor is attached to. The first three records are all zero and only
-/// `field_6` is under 9 in the rest, which is what sizes a model's part array.
-typedef struct Actor341900SpawnPos {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 field_6;
-} Actor341900SpawnPos;
-STATIC_ASSERT_SIZEOF(Actor341900SpawnPos, 0x8);
-
-extern Actor341900SpawnPos D_actor_341900_80163A98[6];
-
-/// Work block `func_actor_341900_80162330` allocates with `memMalloc(0x258, 0)`
-/// and parks in its own task's opaque `Task::work` slot. `field_248` is the
-/// task that spawned this actor, copied there from
-/// `Task::spawnArg2`; `func_actor_341900_801625B4` walks it to the spawner's
-/// model to inherit its spawn position and its colour flag.
+/// Where one task of the Glutton's display model hangs on the body's model:
+/// the body part its root coordinate is made a child of, and its translation
+/// from that part.
 ///
-/// `field_66` is the animation frame, masked to 10 bits, and
-/// `func_actor_341900_80162708` acts on two of its values: at 0x12 and 0x18 it
-/// reparents the actor to a freshly spawned script and clears its message
-/// state, recording each in `field_230` so a frame fires once rather than
-/// every tick it is current. That whole check runs behind `field_254`, which
-/// is matched against `Task::state` and so gates it to the one state the
-/// actor's dispatcher handles it in. `field_24C` and `field_250` are the
-/// actor's second and third child tasks, refreshed every tick alongside the
-/// model.
-typedef struct Actor341900TaskWork {
-    /* 0x000 */ byte  pad_0[0x66];
-    /* 0x066 */ u16   field_66;
-    /* 0x068 */ byte  pad_68[0x1C8];
-    /* 0x230 */ s32   field_230;
-    /* 0x234 */ byte  pad_234[0x14];
-    /* 0x248 */ Task* field_248;
-    /* 0x24C */ Task* field_24C;
-    /* 0x250 */ Task* field_250;
-    /* 0x254 */ u16   field_254;
-    /* 0x256 */ byte  pad_256[0x2];
-} Actor341900TaskWork;
-STATIC_ASSERT_SIZEOF(Actor341900TaskWork, 0x258);
+/// The model's tasks are spawned with the index of their record as
+/// `Task::spawnArg1`. The body places itself in the view and never reads its
+/// own record; the two legs hang from the body's root part with no offset.
+typedef struct {
+    s16 offsetX;    // Translation of the task's root part from the parent part, in the parent part's X
+    s16 offsetY;    // Likewise in Y
+    s16 offsetZ;    // Likewise in Z
+    s16 parentPart; // Index of the body model's part coordinate the task's root part hangs from
+} _Actor341900GluttonPartAttachment;
+STATIC_ASSERT_SIZEOF(_Actor341900GluttonPartAttachment, 0x8);
 
-/// The same 0x258-byte block as `Actor341900TaskWork`, seen from
-/// `func_actor_341900_80162330`, which fills it: the playback rig of the
-/// part's model and the light/colour matrix pair the model draws with. The
-/// body drives slots 1 to 7 of `rig`; each of the two children allocates the
-/// same block and drives slots 0 to 3.
-typedef struct Actor341900AnimWork {
-    /* 0x000 */ ActorAnimRig8 rig;
-    /* 0x1D4 */ MATRIX        light;
-    /* 0x1F4 */ MATRIX        color;
-    /* 0x214 */ s32           field_214;
-    /* 0x218 */ s32           field_218;
-    /* 0x21C */ s32           field_21C;
-    /* 0x220 */ s32           field_220;
-    /* 0x224 */ s32           field_224;
-    /* 0x228 */ byte          pad_228[0x20];
-    /* 0x248 */ Task*         field_248;
-    /* 0x24C */ Task*         field_24C;
-    /* 0x250 */ Task*         field_250;
-    /* 0x254 */ u16           field_254;
-    /* 0x256 */ byte          pad_256[0x2];
-} Actor341900AnimWork;
-STATIC_ASSERT_SIZEOF(Actor341900AnimWork, 0x258);
+extern _Actor341900GluttonPartAttachment D_actor_341900_80163A98[6];
 
-/// Animation command `func_actor_341900_80161FD0` copies into
-/// `Actor341900AnimWork::field_214..field_224`: `field_4` is the animation id
-/// and the low half of `field_C` the blend handed to `animationSeekSlotWithBlend` (0 resets
-/// the slots instead).
-typedef struct Actor341900AnimCmd {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ u16 field_4;
-    /* 0x06 */ u16 pad_6;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} Actor341900AnimCmd;
-STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
+/// Animation id of the clip the Glutton advances in, as the event requests it
+/// of the body. Two cues of this clip each make the body start a pad-vibration
+/// script.
+enum { ACTOR_341900_GLUTTON_CLIP_ADVANCE = 1 };
+
+/// Work block of each task that makes up the Glutton's display model: the
+/// body, its two legs and the three further parts hung off the body.
+///
+/// All six tasks share one spawn step, which allocates the block zeroed at
+/// this size and keeps it at `Task::work`. The block supplies what the task's
+/// model does not own: the light and colour matrices it is drawn with and, for
+/// the body and the legs, the playback rig over the model. A leg registers
+/// itself with the body as it spawns; the body then ticks both legs' playback
+/// after its own and applies every play request it takes to all three.
+typedef struct {
+    ActorAnimRig8        rig;               // Playback over the task's model: the body drives slots 1 to 7 and a leg slots 0 to 3; the other parts never bind it
+    MATRIX               light;             // Light matrix the model's `TmdObject::lightMtx` points at
+    MATRIX               color;             // Colour matrix the model's `TmdObject::colorMtx` points at
+    AnimationPlayRequest playRequest;       // Body only: the last play request it took, copied whole. Its `animationId` is also the entry of the package's follow-up clip table consulted once every driven slot has settled; nothing writes a leg's, so it stays 0
+    byte                 unknown_228[0x8];  // Zeroed allocation bytes; no access established and role unproven
+    s32                  lastCue;           // Body only: cue index of slot 2's current pose on the previous tick of the advance clip, so a cue is answered only on the first tick that shows it
+    byte                 unknown_234[0x14]; // Zeroed allocation bytes; no access established and role unproven
+    Task*                parent;            // Task this one was spawned for and made a child of: the event task for the body, the body for a leg or part
+    Task*                legRight;          // Body only: the right leg's task, whose playback the body ticks after its own. The leg stores itself here as it spawns
+    Task*                legLeft;           // Body only: the left leg's task, likewise
+    u16                  requestedClip;     // Body only: low 16 bits of `playRequest.animationId`, kept beside it; the body checks its cues only while this is `ACTOR_341900_GLUTTON_CLIP_ADVANCE`
+    byte                 unknown_256[0x2];  // Zeroed allocation bytes; no access established and role unproven
+} _Actor341900GluttonModelWork;
+STATIC_ASSERT_SIZEOF(_Actor341900GluttonModelWork, 0x258);
 
 /// Main-executable globals with no module header yet: `gPlayerStatus.weapon` is the
 /// base weapon id records are numbered from, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the
@@ -204,8 +169,8 @@ extern AnimationSet* D_actor_341900_801639AC[3];
 extern AnimationSet* D_actor_341900_801639B8[3];
 extern AnimationSet* D_actor_341900_801639C4[3];
 /// Animation id `func_actor_341900_80161E58` hands every slot to
-/// `animationSeekSlotWithBlend`, indexed by `Actor341900AnimWork::field_218`; a negative
-/// entry skips the call.
+/// `animationSeekSlotWithBlend`, indexed by `_Actor341900GluttonModelWork::playRequest.animationId`; a
+/// negative entry skips the call.
 extern s16 D_actor_341900_801639D0[];
 /// Shut placements of the two door halves (`_Actor341900EventWork::doors`),
 /// sent to them by `ACTOR_341900_STAGING_DOORS_SHUT`; the first also seeds both
@@ -251,7 +216,7 @@ void               func_actor_341900_80163638(void);
 void               func_actor_341900_80163658(void);
 void               func_actor_341900_80163678(void);
 
-s32 func_actor_341900_80161FD0(Task*, s32, Actor341900AnimCmd*, s32);
+s32 func_actor_341900_80161FD0(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_341900_8016332C(Task*, s32, s32, s32);
 
 static AnimationPackedPose _gActor341900Animation01B5CBank1[6] = {
@@ -332,7 +297,7 @@ TaskMessageEntry D_actor_341900_80163A78[4] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_341900_80161FD0 },
 };
 
-Actor341900SpawnPos D_actor_341900_80163A98[6] = {
+_Actor341900GluttonPartAttachment D_actor_341900_80163A98[6] = {
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
@@ -453,17 +418,17 @@ static void        func_actor_341900_80162AD4(Task* arg0);
 /// returns 1; otherwise returns 0. The gotos reproduce retail's block layout.
 static s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
 {
-    Actor341900AnimWork* work;
-    Actor341900AnimWork* ctx;
-    u16                  i;
-    u16                  done;
-    u16                  start;
-    u16                  anim;
-    s32                  first;
+    _Actor341900GluttonModelWork* work;
+    _Actor341900GluttonModelWork* ctx;
+    u16                           i;
+    u16                           done;
+    u16                           start;
+    u16                           anim;
+    s32                           first;
 
     anim  = arg1 == 8;
     start = anim;
-    work  = (Actor341900AnimWork*)arg0->work;
+    work  = arg0->work;
     for (i = start; i < arg1; i++) {
         animationTickSlot(&work->rig.anim, i);
     }
@@ -476,9 +441,9 @@ static s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
     }
 check:
     if (done) {
-        if (D_actor_341900_801639D0[work->field_218] >= 0) {
-            anim  = D_actor_341900_801639D0[work->field_218];
-            ctx   = (Actor341900AnimWork*)arg0->work;
+        if (D_actor_341900_801639D0[work->playRequest.animationId] >= 0) {
+            anim  = D_actor_341900_801639D0[work->playRequest.animationId];
+            ctx   = arg0->work;
             first = arg1 == 8;
             goto loop;
         fail:
@@ -499,10 +464,10 @@ check:
 /// `animationSeekSlotWithBlend` blends into it.
 static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
 {
-    Actor341900AnimWork* ctx;
-    u16                  i;
+    _Actor341900GluttonModelWork* ctx;
+    u16                           i;
 
-    ctx = (Actor341900AnimWork*)task->work;
+    ctx = task->work;
     if (blend == 0) {
         for (i = n == 8; i < n; i++) {
             ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
@@ -515,21 +480,25 @@ static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
     }
 }
 
-/// Records an animation command in the work block and applies it to the
-/// actor and both of its child tasks.
-s32 func_actor_341900_80161FD0(Task* arg0, s32 arg1, Actor341900AnimCmd* cmd, s32 arg3)
+/// Records a play request in the body's work block and applies it to the body
+/// and both of its legs.
+///
+/// `blendFrames` alone selects the transition: zero restarts the slots on the
+/// clip and anything else blends into it over that many frames. `blend` is
+/// stored and not consulted.
+s32 func_actor_341900_80161FD0(Task* arg0, s32 arg1, AnimationPlayRequest* cmd, s32 arg3)
 {
-    Actor341900AnimWork* work;
+    _Actor341900GluttonModelWork* work;
 
-    work            = (Actor341900AnimWork*)arg0->work;
-    work->field_214 = cmd->field_0;
-    work->field_218 = work->field_254 = cmd->field_4;
-    work->field_21C                   = cmd->field_8;
-    work->field_220                   = cmd->field_C;
-    work->field_224                   = cmd->field_10;
-    Actor341900_SetAnim(arg0, cmd->field_4, cmd->field_C, 8);
-    Actor341900_SetAnim(work->field_24C, cmd->field_4, cmd->field_C, 4);
-    Actor341900_SetAnim(work->field_250, cmd->field_4, cmd->field_C, 4);
+    work                           = arg0->work;
+    work->playRequest.source.index = cmd->source.index;
+    work->playRequest.animationId = work->requestedClip = cmd->animationId;
+    work->playRequest.blend                             = cmd->blend;
+    work->playRequest.blendFrames                       = cmd->blendFrames;
+    work->playRequest.enableWorldCollision              = cmd->enableWorldCollision;
+    Actor341900_SetAnim(arg0, cmd->animationId, cmd->blendFrames, 8);
+    Actor341900_SetAnim(work->legRight, cmd->animationId, cmd->blendFrames, 4);
+    Actor341900_SetAnim(work->legLeft, cmd->animationId, cmd->blendFrames, 4);
 }
 
 /// Turns the model's world translation into the light/colour matrix pair the
@@ -569,18 +538,18 @@ void func_actor_341900_80162200(Task* arg0)
 }
 
 /// Shared first tick of the actor's three parts, selected by `spawnArg1`:
-/// allocates and clears the `Actor341900AnimWork` block, binds its matrices to
-/// the model, applies the area's tpage/clut, sets up the part's animation
+/// allocates and clears the `_Actor341900GluttonModelWork` block, binds its
+/// matrices to the model, applies the area's tpage/clut, sets up the part's animation
 /// slots (eight for the body, four for each of the two children, which also
 /// register themselves with the spawner) and reparents the spawner to it.
 static void func_actor_341900_80162330(Task* arg0)
 {
-    TmdObject*           extra;
-    Actor341900AnimWork* work;
-    Actor341900AnimWork* ctx;
-    Actor341900AnimWork* w;
-    AreaPlacement*       rec;
-    u16                  i;
+    TmdObject*                    extra;
+    _Actor341900GluttonModelWork* work;
+    _Actor341900GluttonModelWork* ctx;
+    _Actor341900GluttonModelWork* w;
+    AreaPlacement*                rec;
+    u16                           i;
 
     extra      = arg0->extra.tmd;
     work       = memMalloc(sizeof(*work), false);
@@ -591,7 +560,7 @@ static void func_actor_341900_80162330(Task* arg0)
     }
     w = work;
     memFillBytes(w, 0, sizeof(*w));
-    w->field_248    = (Task*)arg0->spawnArg2.pointer;
+    w->parent       = arg0->spawnArg2.pointer;
     extra->lightMtx = &w->light;
     extra->colorMtx = &w->color;
     arg0->msgTable  = D_actor_341900_80163A78;
@@ -605,7 +574,7 @@ static void func_actor_341900_80162330(Task* arg0)
     switch (arg0->spawnArg1.value) {
         case 0:
             animationInitContext(&w->rig.anim, D_actor_341900_801639AC, extra, w->rig.poses, w->rig.slots);
-            ctx = (Actor341900AnimWork*)arg0->work;
+            ctx = arg0->work;
             for (i = 1; i < 8; i++) {
                 ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
                 animationResetSlot(&ctx->rig.anim, i, 0);
@@ -616,25 +585,25 @@ static void func_actor_341900_80162330(Task* arg0)
             do {
             } while (0);
         case 1:
-            ((Actor341900AnimWork*)w->field_248->work)->field_24C = arg0;
+            ((_Actor341900GluttonModelWork*)w->parent->work)->legRight = arg0;
             animationInitContext(&w->rig.anim, D_actor_341900_801639B8, extra, w->rig.poses, w->rig.slots);
-            ctx = (Actor341900AnimWork*)arg0->work;
+            ctx = arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
                 animationResetSlot(&ctx->rig.anim, i, 0);
             }
             break;
         case 2:
-            ((Actor341900AnimWork*)w->field_248->work)->field_250 = arg0;
+            ((_Actor341900GluttonModelWork*)w->parent->work)->legLeft = arg0;
             animationInitContext(&w->rig.anim, D_actor_341900_801639C4, extra, w->rig.poses, w->rig.slots);
-            ctx = (Actor341900AnimWork*)arg0->work;
+            ctx = arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
                 animationResetSlot(&ctx->rig.anim, i, 0);
             }
             break;
     }
-    taskReparent(w->field_248, arg0);
+    taskReparent(w->parent, arg0);
 }
 
 /// Attaches the actor to the bone its spawn record names, copies that record's
@@ -642,28 +611,28 @@ static void func_actor_341900_80162330(Task* arg0)
 /// pushes the part's translation through the draw matrix.
 void func_actor_341900_801625B4(Task* arg0)
 {
-    Actor341900TaskWork* work = (Actor341900TaskWork*)arg0->work;
-    TmdObject*           extra;
-    TmdObject*           mdl;
-    GfxCoord*            coord;
-    VECTOR               pos;
+    _Actor341900GluttonModelWork* work = arg0->work;
+    TmdObject*                    extra;
+    TmdObject*                    mdl;
+    GfxCoord*                     coord;
+    VECTOR                        pos;
 
     if (arg0->state == 0) {
         func_actor_341900_80162330(arg0);
-        work = (Actor341900TaskWork*)arg0->work;
+        work = arg0->work;
 
         extra               = arg0->extra.tmd;
         coord               = extra->coords;
-        coord->parent       = &(work->field_248)->extra.tmd->coords[D_actor_341900_80163A98[arg0->spawnArg1.value].field_6];
-        coord->coord.t[0]   = D_actor_341900_80163A98[arg0->spawnArg1.value].field_0;
-        coord->coord.t[1]   = D_actor_341900_80163A98[arg0->spawnArg1.value].field_2;
-        coord->coord.t[2]   = D_actor_341900_80163A98[arg0->spawnArg1.value].field_4;
+        coord->parent       = &work->parent->extra.tmd->coords[D_actor_341900_80163A98[arg0->spawnArg1.value].parentPart];
+        coord->coord.t[0]   = D_actor_341900_80163A98[arg0->spawnArg1.value].offsetX;
+        coord->coord.t[1]   = D_actor_341900_80163A98[arg0->spawnArg1.value].offsetY;
+        coord->coord.t[2]   = D_actor_341900_80163A98[arg0->spawnArg1.value].offsetZ;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->state++;
     }
 
     arg0->extra.tmd->flags =
-        (work->field_248)->extra.tmd->flags;
+        work->parent->extra.tmd->flags;
 
     mdl    = arg0->extra.tmd;
     pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
@@ -673,18 +642,19 @@ void func_actor_341900_801625B4(Task* arg0)
 }
 
 /// Per-state body of the actor task. State 0 publishes the part's draw
-/// matrix, state 1 watches the work block's frame counter for the two frames
-/// that respawn the actor's script, and every state but 0 then refreshes the
-/// three child tasks and pushes the translation of the model's second
-/// coordinate through the draw matrix.
+/// matrix. State 1, while `ACTOR_341900_GLUTTON_CLIP_ADVANCE` is the requested
+/// clip, watches the cue index of slot 2's current pose for the two cues that
+/// start a pad-vibration script under the task. Every state but 0 then ticks
+/// the body's and both legs' playback and pushes the translation of the model's
+/// second coordinate through the draw matrix.
 void func_actor_341900_80162708(Task* arg0)
 {
-    Actor341900TaskWork* work;
-    TmdObject*           mdl;
-    VECTOR               pos;
-    s32                  frame;
+    _Actor341900GluttonModelWork* work;
+    TmdObject*                    mdl;
+    VECTOR                        pos;
+    s32                           cue;
 
-    work = (Actor341900TaskWork*)arg0->work;
+    work = arg0->work;
     switch (arg0->state) {
         case 0:
             func_actor_341900_80162330(arg0);
@@ -692,29 +662,30 @@ void func_actor_341900_80162708(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (work->field_254 == arg0->state) {
-                frame = work->field_66 & 0x3FF;
-                if ((frame == 0x12) && (work->field_230 != frame)) {
+            // Each of the two cues fires once, on the tick the pose first reaches it.
+            if (work->requestedClip == ACTOR_341900_GLUTTON_CLIP_ADVANCE) {
+                cue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                if ((cue == 0x12) && (work->lastCue != cue)) {
                     taskReparent(arg0,
                                  Gp_SpawnScript18(D_80144A74, D_80144A7C));
                     func_80143490(3);
                 }
-                frame = work->field_66 & 0x3FF;
-                if ((frame == 0x18) && (work->field_230 != frame)) {
+                cue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                if ((cue == 0x18) && (work->lastCue != cue)) {
                     taskReparent(arg0,
                                  Gp_SpawnScript18(D_80144A74, D_80144A7C));
                     func_80143490(3);
                 }
-                work->field_230 = work->field_66 & 0x3FF;
+                work->lastCue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            work = (Actor341900TaskWork*)arg0->work;
+            work = arg0->work;
             break;
     }
 
-    work = (Actor341900TaskWork*)arg0->work;
+    work = arg0->work;
     func_actor_341900_80161E58(arg0, 8);
-    func_actor_341900_80161E58(work->field_24C, 4);
-    func_actor_341900_80161E58(work->field_250, 4);
+    func_actor_341900_80161E58(work->legRight, 4);
+    func_actor_341900_80161E58(work->legLeft, 4);
 
     mdl    = arg0->extra.tmd;
     pos.vx = arg0->extra.tmd->coords[1].workm.t[0];

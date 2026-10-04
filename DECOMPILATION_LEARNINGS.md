@@ -79967,11 +79967,11 @@ Give the same local a second definition from the same expression after the
 call:
 
 ```c
-Actor341900TaskWork* work = (Actor341900TaskWork*)arg0->work;
+_Actor341900GluttonModelWork* work = arg0->work;
 
 if (arg0->state == 0) {
     func_actor_341900_80162330(arg0);
-    work = (Actor341900TaskWork*)arg0->work;   /* kills the first value */
+    work = arg0->work;   /* kills the first value */
     ...
 }
 /* tail use of `work` */
@@ -80012,15 +80012,15 @@ case, and again after the `switch` -- is what moves it:
 
 ```c
 case 1:
-    if (work->field_254 == arg0->state) {
+    if (work->requestedClip == ACTOR_341900_GLUTTON_CLIP_ADVANCE) {
         ...
-        work->field_230 = work->field_66 & 0x3FF;
+        work->lastCue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
-    work = (Actor341900TaskWork*)arg0->work;   /* first definition */
+    work = arg0->work;   /* first definition */
     break;
 }
 
-work = (Actor341900TaskWork*)arg0->work;       /* duplicate; CSE drops one */
+work = arg0->work;       /* duplicate; CSE drops one */
 func_actor_341900_80161E58(arg0, 8);
 ```
 
