@@ -167,40 +167,56 @@ typedef struct {
 } _Actor02500Work;
 STATIC_ASSERT_SIZEOF(_Actor02500Work, 0x348);
 
-/// Work block of the small helper task `Actor02500_L02634` spawns, also parked
-/// at `Task::work`. It opens with a list node and its one-entry
-/// `WorldCollisionContact` table, then the spawned effect and the countdown/state
-/// pair `Actor02500_Fn02874` runs on.
-typedef struct Actor02500EffWork {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact rec18[1];
-    /* 0x38 */ EffectWork*           field_38;
-    /* 0x3C */ s16                   field_3C;
-    /* 0x3E */ s16                   field_3E;
-} Actor02500EffWork;
-STATIC_ASSERT_SIZEOF(Actor02500EffWork, 0x40);
+/// Values of `_Actor02500CorpsePoisonWork::releaseStep`.
+enum {
+    ACTOR_02500_CORPSE_POISON_RELEASE_BEGIN  = 0, // unlinks the sphere, dismisses the decal and starts the 30-tick wait
+    ACTOR_02500_CORPSE_POISON_RELEASE_LINGER = 1  // waits out `timer`, then destroys the task
+};
 
-typedef struct Actor02500OffsetPair {
+/// Work block of the poison a dead scorpion leaves where it fell.
+///
+/// The collapse spawns the package's second task for it, which allocates the
+/// block zeroed and keeps it at `Task::work`. The task takes a copy of the
+/// corpse's root transform and detaches from the scorpion, so the poison
+/// outlives it: a decal on the ground and a sphere of radius 200 keyed with
+/// the package's second attack, whose reaction is poison.
+///
+/// It stands for 240 ticks, or until the sphere holds a contact with the
+/// player's body or the battle has no holds left, and takes 30 more to go.
+typedef struct {
+    WorldCollisionBody    body;        // sphere of radius 200 at the task's coordinate, keyed with the poison attack; unlinked on release
+    WorldCollisionContact contacts[1]; // contact of `body`; an entry of the player's category ends the poison
+    EffectWork*           decal;       // the ground decal, sent to its fade-out on release; NULL when the effect could not be spawned
+    s16                   timer;       // ticks the poison has stood, to 240; on release, the 30 ticks left before the task is destroyed
+    s16                   releaseStep; // `ACTOR_02500_CORPSE_POISON_RELEASE_*`, once the task's state is its release
+} _Actor02500CorpsePoisonWork;
+STATIC_ASSERT_SIZEOF(_Actor02500CorpsePoisonWork, 0x40);
+
+/// One horizontal direction of the ring of dust around a scorpion digging out.
+///
+/// A unit vector in the root's XZ plane, 4096 for one unit. Scaled by the
+/// ring's radius it is the offset of one puff from the root.
+typedef struct {
     s16 x;
     s16 z;
-} Actor02500OffsetPair;
+} _Actor02500DustDirection;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-extern EnemyParams          Actor02500_D05B38;
-extern DamageAttack         Actor02500_D05B30[];
-extern s16                  Actor02500_D05B48[];
-extern s16                  Actor02500_D05B58[];
-extern s16                  Actor02500_D05B68[];
-extern s16                  Actor02500_D05B78[];
-extern TaskDesc             Actor02500_D05B88[];
-extern AnimationSet*        Actor02500_D05BA0[12];
-extern s16                  Actor02500_D05BD0[];
-extern Actor02500OffsetPair Actor02500_D05BE8[];
-static TmdSource            _gActor02500ScorpionBurstHead;
-static TmdSource            _gActor02500ScorpionBurstPincer2;
-static TmdSource            _gActor02500ScorpionBurstPincer1;
-extern void*                D_80067704[1];
+extern EnemyParams              Actor02500_D05B38;
+extern DamageAttack             Actor02500_D05B30[];
+extern s16                      Actor02500_D05B48[];
+extern s16                      Actor02500_D05B58[];
+extern s16                      Actor02500_D05B68[];
+extern s16                      Actor02500_D05B78[];
+extern TaskDesc                 Actor02500_D05B88[];
+extern AnimationSet*            Actor02500_D05BA0[12];
+extern s16                      Actor02500_D05BD0[];
+extern _Actor02500DustDirection Actor02500_D05BE8[];
+static TmdSource                _gActor02500ScorpionBurstHead;
+static TmdSource                _gActor02500ScorpionBurstPincer2;
+static TmdSource                _gActor02500ScorpionBurstPincer1;
+extern void*                    D_80067704[1];
 
 static void Actor02500_Fn00078(Enemy* ctx, Task* actor);
 static void Actor02500_Fn01AC8(Enemy* ctx, Task* actor);
@@ -631,7 +647,7 @@ s16 Actor02500_D05BD0[12] = {
     4,
 };
 
-Actor02500OffsetPair Actor02500_D05BE8[8] = {
+_Actor02500DustDirection Actor02500_D05BE8[8] = {
     { 0, 4096 },
     { 2896, 2896 },
     { 4096, 0 },
@@ -1181,23 +1197,23 @@ static void Actor02500_Fn01144(Task* actor)
 
 static void Actor02500_Fn012F0(Task* actor)
 {
-    TmdObject*            obj;
-    _Actor02500Work*      work;
-    GfxCoord*             coord;
-    s16                   timer2;
-    s16                   timer3;
-    s16                   timer4;
-    s16                   effectTimer;
-    s32                   sound;
-    s32                   dist;
-    s32                   dx;
-    s32                   dz;
-    s32                   index;
-    s32                   i;
-    s32                   pan;
-    u32                   random;
-    ActorFaceScratch*     scratch;
-    Actor02500OffsetPair* pair;
+    TmdObject*                obj;
+    _Actor02500Work*          work;
+    GfxCoord*                 coord;
+    s16                       timer2;
+    s16                       timer3;
+    s16                       timer4;
+    s16                       effectTimer;
+    s32                       sound;
+    s32                       dist;
+    s32                       dx;
+    s32                       dz;
+    s32                       index;
+    s32                       i;
+    s32                       pan;
+    u32                       random;
+    ActorFaceScratch*         scratch;
+    _Actor02500DustDirection* direction;
 
     coord   = actor->extra.tmd->coords;
     obj     = actor->extra.tmd;
@@ -1279,10 +1295,10 @@ static void Actor02500_Fn012F0(Task* actor)
             gRandomLcgState = random;
             index           = (((u16)work->dustTimer >> 2) ^ 1) & 1;
             for (; i < 4; i++) {
-                pair            = &Actor02500_D05BE8[index + i * 2];
-                scratch->rot.vx = (pair->x * dist) >> 0xC;
+                direction       = &Actor02500_D05BE8[index + i * 2];
+                scratch->rot.vx = (direction->x * dist) >> 0xC;
                 scratch->rot.vy = 0;
-                scratch->rot.vz = (pair->z * dist) >> 0xC;
+                scratch->rot.vz = (direction->z * dist) >> 0xC;
                 Gp_SpawnEff(EFFECT_DUST_PUFF, actor->extra.tmd->coords, 0x80002400, &scratch->rot);
             }
         }
@@ -1905,96 +1921,99 @@ void Actor02500_Fn02574(Task* arg0)
 
 static void Actor02500_Fn025D0(Enemy* ctx, Task* task)
 {
-    Actor02500EffWork*     work;
-    GfxCoord*              coord;
-    WorldCollisionContact* rec;
-    GfxCoord*              parentCoord;
-    void*                  effect;
+    _Actor02500CorpsePoisonWork* work;
+    GfxCoord*                    coord;
+    WorldCollisionContact*       contacts;
+    GfxCoord*                    parentCoord;
+    EffectWork*                  decal;
 
     coord       = task->extra.tmd->coords;
     parentCoord = task->parent->extra.tmd->coords;
-    work        = memCalloc(0x40, 0);
+    work        = memCalloc(sizeof(_Actor02500CorpsePoisonWork), 0);
     if (work == NULL) {
         enemyDestroy(ctx, task);
         return;
     }
-    task->work                 = work;
-    coord->parent              = &gGfxViewCoord;
-    coord->coord               = parentCoord->coord;
-    coord->coord.t[0]          = parentCoord->coord.t[0];
-    coord->coord.t[1]          = parentCoord->coord.t[1];
-    coord->coord.t[2]          = parentCoord->coord.t[2];
-    coord->composeStamp        = GRAPHICS_COORD_DIRTY;
-    effect                     = Gp_SpawnEff((EFFECT_GROUND_DECAL | EFFECT_SPAWN_UNLIMITED), coord, 0x10280, NULL);
-    work->obj.coord            = coord;
-    rec                        = work->rec18;
-    work->field_38             = effect;
-    work->obj.context.contacts = rec;
-    work->obj.pos.vx           = 0;
-    work->obj.pos.vy           = 0;
-    work->obj.pos.vz           = 0;
-    work->obj.key              = Gp_PackPair(Actor02500_D05B30, 1);
-    work->obj.radius           = 0xC8;
-    work->obj.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj);
-    Gp_InitRec18Table(rec, 1, 0);
-    work->obj.flags = (u16)(work->obj.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    task->work = work;
+    // Stand where the corpse lies, under the view rather than the scorpion.
+    coord->parent               = &gGfxViewCoord;
+    coord->coord                = parentCoord->coord;
+    coord->coord.t[0]           = parentCoord->coord.t[0];
+    coord->coord.t[1]           = parentCoord->coord.t[1];
+    coord->coord.t[2]           = parentCoord->coord.t[2];
+    coord->composeStamp         = GRAPHICS_COORD_DIRTY;
+    decal                       = Gp_SpawnEff((EFFECT_GROUND_DECAL | EFFECT_SPAWN_UNLIMITED), coord, 0x10280, NULL);
+    work->body.coord            = coord;
+    contacts                    = work->contacts;
+    work->decal                 = decal;
+    work->body.context.contacts = contacts;
+    work->body.pos.vx           = 0;
+    work->body.pos.vy           = 0;
+    work->body.pos.vz           = 0;
+    work->body.key              = Gp_PackPair(Actor02500_D05B30, 1);
+    work->body.radius           = 200;
+    work->body.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->body);
+    Gp_InitRec18Table(contacts, ARRAY_SIZE(work->contacts), 0);
+    work->body.flags = (u16)(work->body.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     taskDetachFromParent(task);
     task->state = 1;
 }
 
 static void Actor02500_Fn02750(Enemy* ctx, Task* task)
 {
-    s32                    sound;
-    GfxCoord*              coord;
-    WorldCollisionContact* rec;
-    s32                    done;
-    s32                    pan;
-    u16                    timer;
-    Actor02500EffWork*     work;
+    s32                          sound;
+    GfxCoord*                    coord;
+    WorldCollisionContact*       contacts;
+    s32                          done;
+    s32                          pan;
+    u16                          timer;
+    _Actor02500CorpsePoisonWork* work;
 
     coord = task->extra.tmd->coords;
     work  = task->work;
     done  = 0;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        rec = work->rec18;
-        if (Gp_CountRec18Hi(rec, 0x10000) != 0) {
+        contacts = work->contacts;
+        // A contact of the player's category: the poison has been delivered.
+        if (Gp_CountRec18Hi(contacts, 0x10000) != 0) {
             done  = 1;
             sound = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190007;
             pan   = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
-        Gp_ClearRec18Occupied(rec);
-        timer          = work->field_3C + 1;
-        work->field_3C = timer;
-        if ((s16)timer >= 0xF1) {
+        Gp_ClearRec18Occupied(contacts);
+        timer       = work->timer + 1;
+        work->timer = timer;
+        if ((s16)timer > 240) {
             done = 1;
         }
         if (gSceneCombatState.battleRefs == 0) {
             done = 1;
         }
         if (done != 0) {
-            work->field_3E = 0;
-            task->state    = 2;
+            work->releaseStep = ACTOR_02500_CORPSE_POISON_RELEASE_BEGIN;
+            task->state       = 2;
         }
     }
 }
 
 static void Actor02500_Fn02874(Enemy* ctx, Task* task)
 {
-    Actor02500EffWork* work = task->work;
+    _Actor02500CorpsePoisonWork* work = task->work;
 
-    switch (work->field_3E) {
-        case 0:
-            Gp_UnlinkObj(&work->obj);
-            if (work->field_38 != NULL) {
-                work->field_38->task->state = 3;
+    switch (work->releaseStep) {
+        case ACTOR_02500_CORPSE_POISON_RELEASE_BEGIN:
+            Gp_UnlinkObj(&work->body);
+            if (work->decal != NULL) {
+                // The decal's state 3 fades it out and ends its task.
+                work->decal->task->state = 3;
             }
-            work->field_3C = 0x1E;
-            work->field_3E = 1;
+            work->timer       = 30;
+            work->releaseStep = ACTOR_02500_CORPSE_POISON_RELEASE_LINGER;
             break;
-        case 1:
-            if (--work->field_3C > 0) {
+        case ACTOR_02500_CORPSE_POISON_RELEASE_LINGER:
+            if (--work->timer > 0) {
                 break;
             }
             enemyDestroy(ctx, task);
