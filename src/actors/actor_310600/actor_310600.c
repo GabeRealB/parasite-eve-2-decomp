@@ -34,52 +34,51 @@
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
 
-/// 0x538-byte work block `func_actor_310600_80161E64` allocates with
-/// `memCalloc` and hangs off `Task::work`. The display node at `obj` is
-/// linked by `Gp_LinkObj` at spawn (its `context.contacts` points at `rec`, the
-/// `WorldCollisionContact` table `Gp_InitRec18Table` fills) and unlinked again by the
-/// exit callback `func_actor_310600_80162A24`.
+/// Work block of Rupert Broderick's body, the package's scripted actor.
 ///
-/// `light` / `color` are the actor's own lighting and colour matrices;
-/// `func_actor_310600_80162A58` republishes them onto the model's
-/// `TmdObject::lightMtx` / `colorMtx` in place of the shared defaults
-/// `Gp_BindDefaultMtx` installs.
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens with the twenty-part rig and the bytes that
+/// say what the rig is playing; the model object borrows `light` and `color`
+/// for as long as the block lives.
 ///
-/// The block is fronted by the animation context `func_actor_310600_8016246C`
-/// drives: the `AnimationContext` (`animationInitContext` takes the block address), the
-/// twenty `AnimationSlot`s immediately above it, and the 0x140-byte table
-/// `animationInitContext` also takes at 0x334. `field_474` is the once-only latch the
-/// slots are started through, and `field_476` / `field_475` are the animation
-/// bank index and the animation id, latched on change and re-read from the
-/// block by the loops below them.
-typedef struct Actor310600Work {
-    /* 0x000 */ ActorAnimRig20        rig;
-    /* 0x474 */ s8                    field_474;
-    /* 0x475 */ s8                    field_475;
-    /* 0x476 */ s8                    field_476;
-    /* 0x477 */ s8                    field_477;
-    /* 0x478 */ s16                   field_478;
-    /* 0x47A */ s16                   field_47A;
-    /* 0x47C */ s16                   field_47C;
-    /* 0x47E */ u16                   field_47E;
-    /* 0x480 */ MATRIX                light;
-    /* 0x4A0 */ MATRIX                color;
-    /* 0x4C0 */ WorldCollisionBody    obj;
-    /* 0x4E0 */ WorldCollisionContact rec;
-    /* 0x4F8 */ s32                   field_4F8;
-    /* 0x4FC */ s32                   field_4FC;
-    /* 0x500 */ s32                   field_500;
-    /* 0x504 */ byte                  pad_504[0x4];
-    /* 0x508 */ VECTOR3               step; // local-space offset `ApplyMatrixLV` rotates into world space
-    /* 0x514 */ byte                  pad_514[0x4];
-    /* 0x518 */ s32                   field_518;
-    /* 0x51C */ s32                   field_51C;
-    /* 0x520 */ s32                   field_520;
-    /* 0x524 */ byte                  pad_524[0x4];
-    /* 0x528 */ SVECTOR               limit; // per-axis stop threshold; 0x7FFF on all three disables it
-    /* 0x530 */ byte                  pad_530[0x8];
-} Actor310600Work;
-STATIC_ASSERT_SIZEOF(Actor310600Work, 0x538);
+/// A clip can carry a list of cue frames. `cueFrame` counts the clip's ticks
+/// against that list, and clips 1 and 2 count the cues they have reached in
+/// `shotCueCount`, which decides whether a cue is still one of the shots.
+///
+/// The actor has a collision sphere of its own, which the spawn state links
+/// and the exit callback unlinks, so `body` and the table it borrows sit
+/// between the matrices and the walk.
+///
+/// The walk is a scripted walker's: a walk request records the destination
+/// and sets `walkMotion`, and the tick then runs the step `walkStep` selects
+/// - turn to face `walkTarget`, set `walkVelocity` straight ahead, stop on
+/// arrival. From `walkTarget` on the members are laid out as `ActorWalkState`
+/// lays them out, but the block is not that type: it keeps the two selectors
+/// ahead of the matrices and ends before the place that type gives them, and
+/// nothing here accesses the eight bytes where that type keeps the
+/// destination's rotation.
+typedef struct {
+    ActorAnimRig20        rig;              // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    s8                    ticking;          // Set once a clip has been applied, never cleared: the slots are ticked each frame
+    s8                    animId;           // Clip the slots were last seeded with, within `bank` (`ACTOR_MODEL_STATE_NONE` before the first request); also selects the clip's cue list
+    s8                    bank;             // Index, in the package's animation bank table, of the bank the rig is bound to (`ACTOR_MODEL_STATE_NONE` before the first request)
+    s8                    freeCountdown;    // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    s16                   cueFrame;         // Ticks since the clip was applied, counted only while the clip has a cue list; a cue fires on the tick this equals its frame
+    s16                   shotCueCount;     // Cues clip 1 or 2 has reached since it was applied: the first five each spawn a muzzle flash, a later one starts the room's follow-up task instead
+    s16                   walkMotion;       // Handler the tick runs (0 `ACTOR_WALK_MOTION_IDLE`, 1 `ACTOR_WALK_MOTION_WALKING`)
+    s16                   walkStep;         // Step of the walk in progress (0 turn to face the target, 1 set the velocity, 2 move until arrival)
+    MATRIX                light;            // Light-direction matrix lent to the model object
+    MATRIX                color;            // Light-colour matrix lent to the model object
+    WorldCollisionBody    body;             // Sphere on part 1, linked for the task's life; its pair pass is enabled while the model is shown
+    WorldCollisionContact contacts[1];      // One-entry table `body` borrows. The entry is marked LAST; an occupied contact is cleared each frame the model is drawn and never read
+    VECTOR                walkTarget;       // Destination of the walk, a position the root coordinate's translation is to reach; the fourth word is never accessed
+    VECTOR                walkVelocity;     // Displacement added each frame, in signed 16.16 units; zero while standing. The fourth word is never accessed
+    Fixed16               walkCarry[3];     // X, Y and Z displacement not yet applied; only the fractions survive a frame
+    byte                  pad_524[0x4];     // never accessed
+    SVECTOR               walkLastDistance; // Absolute X and Z distance to `walkTarget` at the last arrival check, `ACTOR_WALK_DISTANCE_NONE` before the first; Y is only seeded
+    byte                  pad_530[0x8];     // never accessed
+} _Actor310600RupertBroderickWork;
+STATIC_ASSERT_SIZEOF(_Actor310600RupertBroderickWork, 0x538);
 
 /// Spawn table entry 1 is this actor's `Task::state` dispatcher; the type-1
 /// setup entry it is spawned from is `func_actor_310600_80161E64`.
@@ -91,16 +90,17 @@ extern TaskDesc D_actor_310600_801796A4[];
 
 extern TaskMessageEntry D_actor_310600_801796BC[];
 
-/// Per-animation cue lists: `D_actor_310600_80179660[field_475]` is a
-/// zero-terminated list of the frames at which that animation fires its effect.
+/// Per-animation cue lists: the entry `_Actor310600RupertBroderickWork::animId`
+/// selects is a zero-terminated list of the frames at which that animation
+/// fires its effect.
 extern s16*    D_actor_310600_80179660[];
 extern SVECTOR D_actor_310600_80179694;
 extern s32     D_actor_310600_8017969C;
 extern s32     D_actor_310600_801796A0;
 
 extern AnimationSet*  D_actor_310600_8017962C[5];
-extern AnimationSet** D_actor_310600_80179640[1]; // animation bank table `work->field_476` indexes
-extern s8             D_actor_310600_80179644[];  // extra ticks owed to the animation id in `work->field_475`
+extern AnimationSet** D_actor_310600_80179640[1]; // animation bank table `_Actor310600RupertBroderickWork::bank` indexes
+extern s8             D_actor_310600_80179644[];  // extra ticks owed to the animation id in `_Actor310600RupertBroderickWork::animId`
 
 /// Spawn table of the follow-up task queued once the cue has fired five times.
 
@@ -142,7 +142,8 @@ static const TaskFuncTable3 D_actor_310600_80161E3C = { {
 } };
 
 /// The actor's movement steps, which `func_actor_310600_80162A7C` runs by
-/// `field_47E`: turn to face the target point, start moving, stop on arrival.
+/// `_Actor310600RupertBroderickWork::walkStep`: turn to face the target point,
+/// start moving, stop on arrival.
 static const TaskFuncTable3 D_actor_310600_80161E48 = { {
     func_actor_310600_80162AD8,
     func_actor_310600_80162B98,
@@ -413,28 +414,28 @@ TaskMessageEntry D_actor_310600_801796BC[5] = {
 
 static void func_actor_310600_80161E64(Task* task)
 {
-    Actor310600Work*    work;
-    WorldCollisionBody* obj;
+    _Actor310600RupertBroderickWork* work;
+    WorldCollisionBody*              obj;
 
-    work = memCalloc(0x538, 0);
+    work = memCalloc(sizeof(_Actor310600RupertBroderickWork), 0);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
     }
-    task->work      = work;
-    work->field_475 = -1;
-    work->field_476 = -1;
-    work->field_477 = -1;
-    work->field_47C = 0;
-    work->field_47E = 0;
-    work->field_518 = 0;
-    work->field_51C = 0;
-    work->field_520 = 0;
+    task->work              = work;
+    work->animId            = ACTOR_MODEL_STATE_NONE;
+    work->bank              = ACTOR_MODEL_STATE_NONE;
+    work->freeCountdown     = -1;
+    work->walkMotion        = ACTOR_WALK_MOTION_IDLE;
+    work->walkStep          = 0;
+    work->walkCarry[0].word = 0;
+    work->walkCarry[1].word = 0;
+    work->walkCarry[2].word = 0;
     Task_SpawnFromTable(D_actor_310600_801796A4, 1, 8, task);
     func_actor_310600_80162A58(task);
-    obj                   = &work->obj;
+    obj                   = &work->body;
     obj->coord            = &task->extra.tmd->coords[1];
-    obj->context.contacts = &work->rec;
+    obj->context.contacts = work->contacts;
     obj->key              = 0x30000;
     obj->radius           = 0x100;
     obj->pos.vx           = 0;
@@ -443,7 +444,7 @@ static void func_actor_310600_80161E64(Task* task)
     obj->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, obj);
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(obj->context.contacts, 1, 0);
+    Gp_InitRec18Table(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
     task->msgTable = D_actor_310600_801796BC;
     func_actor_310600_801625F0(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     task->exitCallback = func_actor_310600_80162A24;
@@ -451,65 +452,65 @@ static void func_actor_310600_80161E64(Task* task)
 }
 
 /// The actor's per-frame handler. Runs the entry of its second state table that
-/// `field_47C` selects, then advances the root part by `step`: each axis'
-/// accumulator carries a 16.16 offset whose whole part is added to the world
+/// `walkMotion` selects, then advances the root part by `walkVelocity`: each
+/// axis of `walkCarry` carries a 16.16 offset whose whole part is added to the world
 /// translation and whose fraction is kept, and clearing `composeStamp` makes
 /// `actorRenderComposeCoordChain` rebuild the composed matrix from it.
 ///
-/// Once the slots have been started (`field_474`) every animation slot is
-/// ticked, and the frame counter `field_478` is walked against the cue list
-/// `D_actor_310600_80179660[field_475]` -- a zero-terminated list of frames at
+/// Once the slots have been started (`ticking`) every animation slot is
+/// ticked, and the frame counter `cueFrame` is walked against the cue list
+/// `D_actor_310600_80179660[animId]` -- a zero-terminated list of frames at
 /// which the animation currently playing fires an effect. The effect is chosen
 /// by the animation id: ids 1 and 2 spawn 0x6006A and ask slot 4 for the
-/// follow-up message, but only for the first five of them, after which the
+/// follow-up message, but only for the first five of them (`shotCueCount`), after which the
 /// other payload is sent and `D_acropolis_cafeteria_80182AD8` is spawned instead; id 3 spawns
 /// 0x6006D. The remaining ids have no cue.
 ///
 /// While the model is visible its ground shadow is drawn at the root part's
 /// world position and the occupancy table is cleared, and while the session
 /// flag at `field_4D` is set the second part is re-derived and re-lit.
-/// `field_477` is the teardown countdown: it frees the model buffers on the
+/// `freeCountdown` is the teardown countdown: it frees the model buffers on the
 /// tick it reaches zero and then stops at -1.
 static void func_actor_310600_80161FA0(Task* task)
 {
-    TmdObject*       ext      = task->extra.tmd;
-    Actor310600Work* work     = (Actor310600Work*)task->work;
-    TaskFunc         funcs[2] = { func_actor_310600_80162A74, func_actor_310600_80162A7C };
-    VECTOR3          pos;
-    GfxCoord*        coord;
-    s16*             cues;
-    s16*             cue;
-    s32              i;
+    TmdObject*                       ext      = task->extra.tmd;
+    _Actor310600RupertBroderickWork* work     = (_Actor310600RupertBroderickWork*)task->work;
+    TaskFunc                         funcs[2] = { func_actor_310600_80162A74, func_actor_310600_80162A7C };
+    VECTOR3                          pos;
+    GfxCoord*                        coord;
+    s16*                             cues;
+    s16*                             cue;
+    s32                              i;
 
-    funcs[work->field_47C](task);
-    coord               = task->extra.tmd->coords;
-    work->field_518    += work->step.vx;
-    work->field_51C    += work->step.vy;
-    work->field_520    += work->step.vz;
-    coord->coord.t[0]  += (s16)(work->field_518 >> 16);
-    coord->coord.t[1]  += (s16)(work->field_51C >> 16);
-    coord->coord.t[2]  += (s16)(work->field_520 >> 16);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_518     = (u16)work->field_518;
-    work->field_51C     = (u16)work->field_51C;
-    work->field_520     = (u16)work->field_520;
-    if (work->field_474 != 0) {
-        for (i = 1; i < 0x14; i++) {
+    funcs[work->walkMotion](task);
+    coord                    = task->extra.tmd->coords;
+    work->walkCarry[0].word += work->walkVelocity.vx;
+    work->walkCarry[1].word += work->walkVelocity.vy;
+    work->walkCarry[2].word += work->walkVelocity.vz;
+    coord->coord.t[0]       += work->walkCarry[0].halves.integer;
+    coord->coord.t[1]       += work->walkCarry[1].halves.integer;
+    coord->coord.t[2]       += work->walkCarry[2].halves.integer;
+    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
+    work->walkCarry[0].word  = work->walkCarry[0].halves.fraction;
+    work->walkCarry[1].word  = work->walkCarry[1].halves.fraction;
+    work->walkCarry[2].word  = work->walkCarry[2].halves.fraction;
+    if (work->ticking != 0) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
-    if (work->field_475 > 0) {
-        cues = D_actor_310600_80179660[work->field_475];
+    if (work->animId > 0) {
+        cues = D_actor_310600_80179660[work->animId];
         if (cues != NULL) {
             if (*cues != 0) {
                 cue = cues;
                 do {
-                    if (*cue == work->field_478) {
+                    if (*cue == work->cueFrame) {
                         coord = &task->extra.tmd->coords[8];
-                        switch (work->field_475) {
+                        switch (work->animId) {
                             case 1:
                             case 2:
-                                if ((s16)work->field_47A++ < 5) {
+                                if (work->shotCueCount++ < 5) {
                                     Gp_SpawnEff(EFFECT_ACTOR_MUZZLE_FLASH, coord, 9, NULL);
                                     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_8017969C, 0);
                                 } else {
@@ -526,65 +527,66 @@ static void func_actor_310600_80161FA0(Task* task)
                     cue++;
                 } while (*cue != 0);
             }
-            work->field_478++;
+            work->cueFrame++;
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
-        Gp_ClearRec18Occupied(&work->rec);
+        Gp_ClearRec18Occupied(work->contacts);
     }
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
-    if (work->field_477 >= 0) {
-        if (work->field_477 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(ext);
         }
-        work->field_477--;
+        work->freeCountdown--;
     }
 }
 
-/// Arrival handler of the actor's second state table (`field_47E`), reached once
-/// `func_actor_310600_80162B98` has laid down the per-frame `step` offset: takes
-/// each horizontal axis' gap between the target point `field_4F8` / `field_500`
+/// Arrival handler of the actor's second state table (`walkStep`), reached once
+/// `func_actor_310600_80162B98` has laid down the per-frame `walkVelocity`: takes
+/// each horizontal axis' gap between the target point `walkTarget.vx` / `walkTarget.vz`
 /// and the root part's world translation -- the low 16 bits of the signed
 /// difference, as in `func_actor_310600_80162AD8` -- and compares it against the
-/// axis' stop threshold in `limit`, which starts at 0x7FFF. Both gaps past their
+/// axis' stop threshold in `walkLastDistance`, which starts at
+/// `ACTOR_WALK_DISTANCE_NONE`. Both gaps past their
 /// threshold means the actor has stopped closing in: the arrival preset of
 /// message 0x7D3 is queued (animation bank 0, id 0xD, path 1, param 0xA), but
-/// only while `field_475` still holds 0xC, and then `step` and the two counters
-/// are cleared and the handler returns without re-arming. Otherwise each
+/// only while `animId` still holds 0xC, and then `walkVelocity`, `walkMotion`
+/// and `walkStep` are cleared and the handler returns without re-arming. Otherwise each
 /// threshold is pulled down to the gap just measured, so the next tick that
 /// fails to shrink it is the one that fires.
 static void func_actor_310600_8016231C(Task* arg0)
 {
-    Actor310600Work*     work;
-    GfxCoord*            coord;
-    SVECTOR              d;
-    s32                  dx;
-    s32                  dz;
-    AnimationPlayRequest cmd;
+    _Actor310600RupertBroderickWork* work;
+    GfxCoord*                        coord;
+    SVECTOR                          d;
+    s32                              dx;
+    s32                              dz;
+    AnimationPlayRequest             cmd;
 
-    work  = (Actor310600Work*)arg0->work;
+    work  = (_Actor310600RupertBroderickWork*)arg0->work;
     coord = (arg0->extra.tmd)->coords;
-    if (work->field_4F8 - coord->coord.t[0] >= 0) {
-        dx = (u16)work->field_4F8 - (u16)coord->coord.t[0];
+    if (work->walkTarget.vx - coord->coord.t[0] >= 0) {
+        dx = (u16)work->walkTarget.vx - (u16)coord->coord.t[0];
     } else {
-        dx = (u16)coord->coord.t[0] - (u16)work->field_4F8;
+        dx = (u16)coord->coord.t[0] - (u16)work->walkTarget.vx;
     }
     d.vx = dx;
-    if (work->field_500 - coord->coord.t[2] >= 0) {
-        dz = (u16)work->field_500 - (u16)coord->coord.t[2];
+    if (work->walkTarget.vz - coord->coord.t[2] >= 0) {
+        dz = (u16)work->walkTarget.vz - (u16)coord->coord.t[2];
     } else {
-        dz = (u16)coord->coord.t[2] - (u16)work->field_500;
+        dz = (u16)coord->coord.t[2] - (u16)work->walkTarget.vz;
     }
     d.vz = dz;
-    if (d.vx >= work->limit.vx && d.vz >= work->limit.vz) {
-        if (work->field_475 == 0xC) {
+    if (d.vx >= work->walkLastDistance.vx && d.vz >= work->walkLastDistance.vz) {
+        if (work->animId == 0xC) {
             cmd.source.index         = 0;
             cmd.animationId          = 0xD;
             cmd.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -592,15 +594,15 @@ static void func_actor_310600_8016231C(Task* arg0)
             cmd.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             func_actor_310600_8016246C(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &cmd, 0);
         }
-        work->step.vx   = 0;
-        work->step.vy   = 0;
-        work->step.vz   = 0;
-        work->field_47C = 0;
-        work->field_47E = 0;
+        work->walkVelocity.vx = 0;
+        work->walkVelocity.vy = 0;
+        work->walkVelocity.vz = 0;
+        work->walkMotion      = ACTOR_WALK_MOTION_IDLE;
+        work->walkStep        = 0;
         return;
     }
-    work->limit.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->limit.vz = d.vz < 0 ? -d.vz : d.vz;
+    work->walkLastDistance.vx = d.vx < 0 ? -d.vx : d.vx;
+    work->walkLastDistance.vz = d.vz < 0 ? -d.vz : d.vz;
 }
 
 /// Animation preset handler of message 0x7D3: re-seeds the slot array off bank
@@ -613,41 +615,41 @@ static void func_actor_310600_8016231C(Task* arg0)
 /// The two byte stores must stay in this order. The second one is a QImode
 /// store to a varying address, so cse treats it as aliasing everything and
 /// drops the equivalence the first one recorded; that is what keeps
-/// `work->field_476` a reload instead of the register `cmd->source.index` arrived in.
+/// `work->bank` a reload instead of the register `cmd->source.index` arrived in.
 s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, s32 arg3)
 {
-    Actor310600Work* work;
-    TmdObject*       ext;
-    s32              i;
-    s32              j;
+    _Actor310600RupertBroderickWork* work;
+    TmdObject*                       ext;
+    s32                              i;
+    s32                              j;
 
-    work = (Actor310600Work*)task->work;
+    work = (_Actor310600RupertBroderickWork*)task->work;
     ext  = task->extra.tmd;
-    if (cmd->source.index != work->field_476) {
-        work->field_476 = cmd->source.index;
-        work->field_475 = -1;
-        animationInitContext(&work->rig.anim, D_actor_310600_80179640[work->field_476], ext, work->rig.poses,
+    if (cmd->source.index != work->bank) {
+        work->bank   = cmd->source.index;
+        work->animId = ACTOR_MODEL_STATE_NONE;
+        animationInitContext(&work->rig.anim, D_actor_310600_80179640[work->bank], ext, work->rig.poses,
                              work->rig.slots);
     }
-    if (cmd->animationId != work->field_475) {
-        work->field_475 = cmd->animationId;
+    if (cmd->animationId != work->animId) {
+        work->animId = cmd->animationId;
         if (cmd->blend != ANIMATION_BLEND_RESET) {
-            for (i = 1; i < 0x14; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->field_475, 0, cmd->blendFrames);
+            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, cmd->blendFrames);
             }
         } else {
-            for (i = 1; i < 0x14; i++) {
-                animationResetSlot(&work->rig.anim, i, work->field_475);
+            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+                animationResetSlot(&work->rig.anim, i, work->animId);
             }
         }
-        for (j = 0; j <= D_actor_310600_80179644[work->field_475]; j++) {
-            for (i = 1; i < 0x14; i++) {
+        for (j = 0; j <= D_actor_310600_80179644[work->animId]; j++) {
+            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
                 animationTickSlot(&work->rig.anim, i);
             }
         }
-        work->field_474 = 1;
-        work->field_478 = 0;
-        work->field_47A = 0;
+        work->ticking      = 1;
+        work->cueFrame     = 0;
+        work->shotCueCount = 0;
     }
     return 0;
 }
@@ -658,34 +660,34 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, 
 /// the 0x8000 flag comes off the actor's own object, and 0x4 is cleared. Modes 1
 /// and 3 show it: 0x80 comes off, 0x8000 goes on, the buffers are reinstated
 /// through `Tmd_AllocBuffers`, and 0x4 is set. Mode 2 additionally latches
-/// `field_477` to 2. Returns 1 for a mode outside 0..3.
+/// `freeCountdown` to 2. Returns 1 for a mode outside 0..3.
 ///
 /// `work` and `w` are the same block on purpose. cse turns the second load of
 /// `task->work` into a copy of the first and keeps the copy's register for the
 /// mode 0..2 walks, because the only later use of the first load's register is
 /// the `obj` assignment in the entry block -- so mode 3's walk reads the first
 /// load's register and the other three read the copy's, the split the target
-/// has. Writing `&work->obj` inside case 3 instead leaves cse canonicalizing the
+/// has. Writing `&work->body` inside case 3 instead leaves cse canonicalizing the
 /// walks the other way, and the overlay comes out three instructions short.
 s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
-    Actor310600Work*    work;
-    Actor310600Work*    w;
-    TmdObject*          ext;
-    WorldCollisionBody* p;
-    WorldCollisionBody* obj;
-    s32                 i;
-    s32                 ret;
+    _Actor310600RupertBroderickWork* work;
+    _Actor310600RupertBroderickWork* w;
+    TmdObject*                       ext;
+    WorldCollisionBody*              p;
+    WorldCollisionBody*              obj;
+    s32                              i;
+    s32                              ret;
 
-    work = (Actor310600Work*)task->work;
+    work = (_Actor310600RupertBroderickWork*)task->work;
     ext  = task->extra.tmd;
-    w    = (Actor310600Work*)task->work;
-    obj  = &work->obj;
+    w    = (_Actor310600RupertBroderickWork*)task->work;
+    obj  = &work->body;
     ret  = 0;
     switch (arg2) {
         case 0:
             ext->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            p           = &w->obj;
+            p           = &w->body;
             for (i = 0; i <= 0; i++) {
                 p->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 p++;
@@ -694,7 +696,7 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
             break;
         case 1:
             ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            p           = &w->obj;
+            p           = &w->body;
             for (i = 0; i <= 0; i++) {
                 p->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 p++;
@@ -704,13 +706,13 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
             break;
         case 2:
             ext->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            p           = &w->obj;
+            p           = &w->body;
             for (i = 0; i <= 0; i++) {
                 p->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 p++;
             }
-            w->field_477 = 2;
-            ext->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            w->freeCountdown = 2;
+            ext->flags      |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -758,62 +760,62 @@ void func_actor_310600_801629CC(Task* task)
 
 static void func_actor_310600_80162A24(Task* arg0)
 {
-    Gp_UnlinkObj(&((Actor310600Work*)arg0->work)->obj);
+    Gp_UnlinkObj(&((_Actor310600RupertBroderickWork*)arg0->work)->body);
     enemyTaskExit(arg0);
 }
 
 static void func_actor_310600_80162A58(Task* arg0)
 {
-    TmdObject*       ext;
-    Actor310600Work* work;
+    TmdObject*                       ext;
+    _Actor310600RupertBroderickWork* work;
 
-    work          = (Actor310600Work*)arg0->work;
+    work          = (_Actor310600RupertBroderickWork*)arg0->work;
     ext           = arg0->extra.tmd;
     ext->lightMtx = &work->light;
     ext->colorMtx = &work->color;
 }
 
 /// Entry 0 of the two-entry stack table `func_actor_310600_80161FA0` dispatches
-/// through by `field_47C`: the idle handler, which does nothing. Entry 1 is
+/// through by `walkMotion`: the idle handler, which does nothing. Entry 1 is
 /// `func_actor_310600_80162A7C`; both receive the current task.
 static void func_actor_310600_80162A74(Task* task)
 {
 }
 
-/// Runs the entry of the actor's second state table that `field_47E` selects -
+/// Runs the entry of the actor's second state table that `walkStep` selects -
 /// the counter `func_actor_310600_80162AD8` and `func_actor_310600_80162B98`
 /// bump as they finish, so the table steps through the handlers in turn. Copies
 /// the table onto the stack first, the same dispatch `func_actor_310600_801629CC`
 /// performs over `state`.
 static void func_actor_310600_80162A7C(Task* task)
 {
-    Actor310600Work* work;
-    TaskFuncTable3   fns;
+    _Actor310600RupertBroderickWork* work;
+    TaskFuncTable3                   fns;
 
-    work = (Actor310600Work*)task->work;
+    work = (_Actor310600RupertBroderickWork*)task->work;
     fns  = D_actor_310600_80161E48;
-    fns.funcs[(s16)work->field_47E](task);
+    fns.funcs[work->walkStep](task);
 }
 
 /// Turns the actor's root part to face the work block's stored point: normalises
 /// the offset from the part's own translation, takes its yaw with `ratan2`, and
 /// rebuilds the local matrix from that yaw alone. Clearing `composeStamp` makes
 /// `actorRenderComposeCoordChain` recompute the composed matrix from it, and bumping
-/// `field_47E` moves the actor on to the next handler of its state table.
+/// `walkStep` moves the actor on to the next handler of its state table.
 static void func_actor_310600_80162AD8(Task* task)
 {
-    Actor310600Work* work;
-    GfxCoord*        coord;
-    VECTOR           delta;
-    SVECTOR          dir;
-    SVECTOR          rot;
+    _Actor310600RupertBroderickWork* work;
+    GfxCoord*                        coord;
+    VECTOR                           delta;
+    SVECTOR                          dir;
+    SVECTOR                          rot;
 
-    work  = (Actor310600Work*)task->work;
+    work  = (_Actor310600RupertBroderickWork*)task->work;
     coord = task->extra.tmd->coords;
 
-    delta.vx = work->field_4F8 - coord->coord.t[0];
-    delta.vy = work->field_4FC - coord->coord.t[1];
-    delta.vz = work->field_500 - coord->coord.t[2];
+    delta.vx = work->walkTarget.vx - coord->coord.t[0];
+    delta.vy = work->walkTarget.vy - coord->coord.t[1];
+    delta.vz = work->walkTarget.vz - coord->coord.t[2];
     VectorNormalS(&delta, &dir);
 
     rot.vx = 0;
@@ -825,48 +827,49 @@ static void func_actor_310600_80162AD8(Task* task)
     coord->param.rot.vz = rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_47E++;
+    work->walkStep++;
 }
 
-/// State handler reached by the `field_47E` advance `func_actor_310600_80162AD8`
+/// State handler reached by the `walkStep` advance `func_actor_310600_80162AD8`
 /// ends with: rotates the constant local-space offset
-/// `D_actor_310600_80161E54` through the root part's matrix into `work->step`,
-/// opens the per-axis stop threshold to 0x7FFF, which disables it for the update
-/// loop, and advances `field_47E` again so the dispatcher runs the next handler.
+/// `D_actor_310600_80161E54` through the root part's matrix into `work->walkVelocity`,
+/// opens the per-axis stop threshold `walkLastDistance` to
+/// `ACTOR_WALK_DISTANCE_NONE`, which disables it for the update
+/// loop, and advances `walkStep` again so the dispatcher runs the next handler.
 static void func_actor_310600_80162B98(Task* task)
 {
-    Actor310600Work* work;
-    GfxCoord*        coord;
-    VECTOR           vec;
+    _Actor310600RupertBroderickWork* work;
+    GfxCoord*                        coord;
+    VECTOR                           vec;
 
     coord = task->extra.tmd->coords;
-    work  = (Actor310600Work*)task->work;
+    work  = (_Actor310600RupertBroderickWork*)task->work;
 
     vec = D_actor_310600_80161E54;
-    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);
-    work->limit.vx = 0x7FFF;
-    work->limit.vy = 0x7FFF;
-    work->limit.vz = 0x7FFF;
-    work->field_47E++;
+    ApplyMatrixLV(&coord->coord, &vec, &work->walkVelocity);
+    work->walkLastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
+    work->walkLastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
+    work->walkLastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
+    work->walkStep++;
 }
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Sends the actor walking to the point `arg2`: stores it as the target the
 /// movement steps of `D_actor_310600_80161E48` turn toward and close in on,
-/// switches the tick onto those steps (`field_47C`), and starts animation 0xC
+/// switches the tick onto those steps (`walkMotion`), and starts animation 0xC
 /// of bank 0 through `func_actor_310600_8016246C`. `arg1` is unused.
 s32 func_actor_310600_80162C94(Task* arg0, s32 arg1, VECTOR* arg2, s32 arg3)
 {
-    Actor310600Work*     work;
-    AnimationPlayRequest cmd;
+    _Actor310600RupertBroderickWork* work;
+    AnimationPlayRequest             cmd;
 
-    work = (Actor310600Work*)arg0->work;
+    work = (_Actor310600RupertBroderickWork*)arg0->work;
 
-    work->field_47C = 1;
-    work->field_4F8 = arg2->vx;
-    work->field_4FC = arg2->vy;
-    work->field_500 = arg2->vz;
+    work->walkMotion    = ACTOR_WALK_MOTION_WALKING;
+    work->walkTarget.vx = arg2->vx;
+    work->walkTarget.vy = arg2->vy;
+    work->walkTarget.vz = arg2->vz;
 
     cmd.source.index         = 0;
     cmd.animationId          = 0xC;

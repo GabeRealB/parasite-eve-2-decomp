@@ -1798,17 +1798,17 @@ but which register is left with the *latest* use. Consuming the load's pseudo in
 the entry block flips it:
 
 ```c
-work = (Actor310600Work*)task->work;
+work = (_Actor310600RupertBroderickWork*)task->work;
 ext  = task->extra;
-w    = (Actor310600Work*)task->work;   /* the second read: cse -> copy of work */
-obj  = &work->obj;                      /* takes work's last use back to block 0 */
+w    = (_Actor310600RupertBroderickWork*)task->work;   /* the second read: cse -> copy of work */
+obj  = &work->body;                     /* takes work's last use back to block 0 */
 ...
-    p = &w->obj;                        /* modes 0..2: keep the copy's register */
+    p = &w->body;                       /* modes 0..2: keep the copy's register */
 ...
     p = obj;                            /* mode 3: reads the copy's home too, now */
 ```
 
-`&work->obj` written inside case 3 instead (i.e. no `obj` local) leaves the load's
+`&work->body` written inside case 3 instead (i.e. no `obj` local) leaves the load's
 pseudo canonical, and the overlay comes out three instructions short - a `regs`
 penalty of 3 with `branch 0`: every instruction present and in order, only the
 `addiu` base register of three preheaders wrong. When a two-read CSE copy is
@@ -49347,9 +49347,9 @@ there is no callee `.s` to count argument registers in, so recognising the copy
 is the only route:
 
 ```c
-work = (Actor310600Work*)task->work;
+work = (_Actor310600RupertBroderickWork*)task->work;
 fns  = D_actor_310600_80161E48;              /* TaskFuncTable3 fns; */
-fns.funcs[(s16)work->field_47E](task);
+fns.funcs[work->walkStep](task);
 ```
 
 Exact on the second build. Worth recognising on sight: the one shared body is
@@ -85119,14 +85119,14 @@ Inputs: `base_2.i` (two independent `if`s, each with the tail spelled out,
 ## `overlay_dup_index.py find` cannot see a family body that differs by offsets and rodata
 
 **Problem:** `func_actor_310600_80162B98` is an actor state handler that rotates
-a constant local-space offset through the root part's matrix into `work->step`,
+a constant local-space offset through the root part's matrix into `work->walkVelocity`,
 opens the three per-axis stop thresholds to 0x7FFF and advances the handler
 counter. `func_actor_335800_80163CA0`, `ActorsShared80132920` and
 `func_actor_317000_801628D8` are the same body, 32 instructions each.
 
 **Symptom:** `overlay_dup_index.py find` reports `same body: 1 copies` - itself.
 Equality is decided on disassembly *text*, and the copies differ in every
-`sh`/`addiu` displacement (the work block's `step` sits at 0x490 in one overlay
+`sh`/`addiu` displacement (the work block's `walkVelocity` sits at 0x490 in one overlay
 and 0x508 in another) and in the `lui`/`addiu` pair that materialises each
 overlay's own `.rodata` copy of the offset. Neither `=` nor `~` matches, so the
 index is blind to the family and its silence is not evidence that the body is
@@ -85145,14 +85145,14 @@ is worth recognising before spending attempts on the seed.
 
 ```c
     coord = ((TmdObject*)task->extra)->coords;
-    work  = (Actor310600Work*)task->work;
+    work  = (_Actor310600RupertBroderickWork*)task->work;
 
     vec = D_actor_310600_80161E54;
-    ApplyMatrixLV(&coord->coord, &vec, (VECTOR*)&work->step);
-    work->limit.vx = 0x7FFF;
-    work->limit.vy = 0x7FFF;
-    work->limit.vz = 0x7FFF;
-    work->field_47E++;
+    ApplyMatrixLV(&coord->coord, &vec, &work->walkVelocity);
+    work->walkLastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
+    work->walkLastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
+    work->walkLastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
+    work->walkStep++;
 ```
 
 Example: `func_actor_310600_80162B98` (50.156% -> 100.000%, one build).
@@ -101002,9 +101002,9 @@ insn 117's dep list is `(insn_list 90 (insn_list 95 … (insn_list 114 (insn_lis
 Moving the assignment before the stores in the C is the whole fix:
 
 ```c
-    obj           = &work->obj;
+    obj           = &work->body;
     obj->coords  = &((TmdObject*)task->extra)->coords[1];  /* was written last */
-    obj->field_C  = &work->rec;
+    obj->field_C  = work->contacts;
 ```
 
 100.000% on the next build, every penalty zero. The register change is downstream
@@ -127065,14 +127065,14 @@ the read is a genuine load, not a reuse of the register that was stored:
 
 ```
 lbu   v1,0(s2)        # (u8)cmd->animId
-sb    v0,0x475(s1)    # work->field_475 = -1
-sb    v1,0x476(s1)    # work->field_476 = cmd->animId
+sb    v0,0x475(s1)    # work->animId = -1
+sb    v1,0x476(s1)    # work->bank = cmd->animId
 lb    v1,0x476(s1)    # <- reload
 sll   v1,v1,2         # ... index into the bank table
 ```
 
-The natural source (`work->field_475 = -1; work->field_476 = cmd->animId;` then
-`D[work->field_476]`) instead *forwards* the stored register — 93.2% with
+The natural source (`work->animId = -1; work->bank = cmd->animId;` then
+`D[work->bank]`) instead *forwards* the stored register — 93.2% with
 `regs=12`, the read coming out as `sll 0x18` / `sra 0x16` off the `lbu`
 register. Both come from the same three statements; only their order differs.
 
@@ -127102,9 +127102,9 @@ Within `cse_insn` the invalidation (cse.c:7404) runs *before* the destinations
 are inserted (:7480), so a store's own entry survives its own `writes.all`, but
 not the *next* QImode store's. That makes the source order load-bearing:
 
-* `sb field_475` then `sb field_476` then read -> the 476 entry is inserted
+* `sb animId` then `sb bank` then read -> the `bank` entry is inserted
   after the last invalidation and the read forwards to the register;
-* `sb field_476` then `sb field_475` then read -> the 475 store wipes the 476
+* `sb bank` then `sb animId` then read -> the `animId` store wipes the `bank`
   entry, the read has nothing to fold to, and it stays a load.
 
 Fix: store the value **first**, then the unrelated byte, then read. The emitted
@@ -129517,7 +129517,7 @@ is 3-4 instructions and a dozen branch targets off (95.7% here).
 **Fix.** Write it as the `switch` it was:
 
 ```c
-switch (work->field_475) {
+switch (work->animId) {
     case 1:
     case 2:  ... break;
     case 3:  ... break;
@@ -129534,7 +129534,7 @@ come out as the `slti` range rather than two `beq`s.
 ## An aggregate initializer's `(clobber (mem:BLK))` pins a local table's address loads below the register saves (func_actor_310600_80161FA0, 2026-09-17)
 
 **Symptom.** A two-entry function-pointer table built on the stack and called
-through, `funcs[work->field_47C]()`. Writing it as element assignments
+through, `funcs[work->walkMotion]()`. Writing it as element assignments
 
 ```c
 funcs[0] = func_A;
