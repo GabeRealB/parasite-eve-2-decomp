@@ -181,79 +181,43 @@ typedef struct {
 } GolemPawnRookWork;
 STATIC_ASSERT_SIZEOF(GolemPawnRookWork, 0x6E4);
 
-/// 0xF0-byte body block `Actor05600_Fn031B0` parks at `Task::work`.
-/// The two leading matrices are the light/colour pair published on the model
-/// root's `TmdObject`; the three `WorldCollisionBody` bodies collide against `rec60`
-/// (shared by the first two) and, through the `WorldCollisionCapsule` between them,
-/// `recD0`. `field_EE` mirrors the placement table's variant flag.
-typedef struct GolemPawnRookFxWork {
-    MATRIX                colorMtx;
-    MATRIX                lightMtx;
-    WorldCollisionBody    obj40;
-    WorldCollisionContact rec60[1];
-    WorldCollisionBody    obj78;
-    WorldCollisionBody    obj98;
-    WorldCollisionCapsule d4rec;
-    WorldCollisionContact recD0[1];
-    s16                   field_E8;
-    s16                   field_EA;
-    /// Teardown step: 0 unlinks the three bodies, 1 counts `field_E8` up to
-    /// the frame the task is destroyed on.
-    s16 field_EC;
-    s16 field_EE;
-} GolemPawnRookFxWork;
-STATIC_ASSERT_SIZEOF(GolemPawnRookFxWork, 0xF0);
+/// Work block of a grenade the Grenade Launcher fires, allocated at this size
+/// by the grenade task's spawn state and kept at `Task::work`.
+///
+/// It holds the matrices the grenade's model is lit by, the collision bodies
+/// that end its flight, and the counters its flight and teardown states run
+/// on. Two spheres at the grenade's origin share one contact: one carries the
+/// package's grenade attack to the player, the other strikes the room's other
+/// enemies. A thin capsule trailing the grenade finds the room surface it has
+/// flown into. The flight ends, and the burst effect is spawned, on a contact
+/// of either sphere, on a surface that blocks probes, or after 0x5A frames.
+typedef struct {
+    MATRIX                colorMtx;          // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;          // storage for the model's `TmdObject::lightMtx`
+    WorldCollisionBody    playerStrikeBody;  // sphere of radius 0x64 whose key carries entry 3 of the package's `DamageAttack` table to the player
+    WorldCollisionContact strikeContacts[1]; // contact table both strike spheres share: what the grenade touched; a hit on the player also starts a pad rumble
+    WorldCollisionBody    enemyStrikeBody;   // sphere of the same size whose key, 0x22B2B, is an attack of the category enemies take damage from
+    WorldCollisionBody    wallBody;          // capsule tested against the room grid, clipped at its first contact
+    WorldCollisionCapsule wallCapsule;       // its shape: radius 1, from the grenade's origin to 0x1F4 behind it along the axis it flies on
+    WorldCollisionContact wallContacts[1];   // the surface the capsule met; cleared once read, since one that lets probes through does not stop the grenade
+    s16                   timer;             // frame counter of the running state: in flight, frames since the last smoke puff (one every fourth); in teardown, frames since the bodies were unlinked
+    s16                   flightFrames;      // frames flown; the grenade bursts at 0x5A
+    s16                   teardownStep;      // step of the teardown state (0 unlinks the three bodies, 1 waits 0x3D frames and destroys the task)
+    s16                   burstStyle;        // spawn argument of the burst effect (0 rings and bouncing sparks, for a grenade whose attack inflicts Darkness; 1 a spray of smoke puffs)
+} GolemPawnRookGrenadeWork;
+STATIC_ASSERT_SIZEOF(GolemPawnRookGrenadeWork, 0xF0);
 
-/// 0x40-byte scratch carved off the scratch stack by `Actor05600_Fn02548`:
-/// the converted matrix, the `gte_rtv0` output and the two vectors fed through
-/// it (`rot` and `vec` are also the pair handed to `Actor05600_Fn02950`).
-typedef struct GolemPawnRookAimScratch {
-    MATRIX  mtx;
-    VECTOR  pos;
-    SVECTOR rot;
-    SVECTOR vec;
-} GolemPawnRookAimScratch;
-STATIC_ASSERT_SIZEOF(GolemPawnRookAimScratch, 0x40);
-
-/// 0x48-byte scratch carved off the scratch stack by `Actor05600_Fn02950`:
-/// the beam is walked in eight steps from `vec` to `rot`, each step projected
-/// into `cur` (packed screen xy) and `curZ` (OTZ). `xs`/`ys` hold the two
-/// projected ends followed by the four offset corners the ribbon polygons are
-/// cut from.
-typedef struct GolemPawnRookBeamScratch {
-    VECTOR  vec;
-    SVECTOR pt;
-    SVECTOR step;
-    s32     prev;
-    s32     cur;
-    s32     prevZ;
-    s32     curZ;
-    s16     xs[6];
-    s16     ys[6];
-} GolemPawnRookBeamScratch;
-STATIC_ASSERT_SIZEOF(GolemPawnRookBeamScratch, 0x48);
-
-/// 0x38-byte scratch carved off the scratch stack by
-/// `Actor05600_Fn031B0`. `rot` first holds the local offset the root
-/// coordinate is translated by (through `gte_rtv0` into `pos`), then the
-/// placement angles `RotMatrix` turns into `mtx` for the three `rtir` column
-/// transforms that overwrite the root coordinate's matrix.
-typedef struct GolemPawnRookPlaceScratch {
-    SVECTOR rot;
-    VECTOR  pos;
-    MATRIX  mtx;
-} GolemPawnRookPlaceScratch;
-STATIC_ASSERT_SIZEOF(GolemPawnRookPlaceScratch, 0x38);
-
-/// Scratch-pad block of that enemy's push-back and hit: the deltas the
-/// collision walk resolves, their normal, the push, and the effect offset and
-/// target.
-typedef struct GolemPawnRookHitScratch {
-    WorldCollisionDelta delta;
-    VECTOR              normal;
-    VECTOR              push;
-    SVECTOR             effOfs;
-    SVECTOR             target;
+/// Scratch-stack block of the per-frame hit and push handler.
+///
+/// Reserved for the length of the call. Positions taken from a coordinate's
+/// composed matrix and from a contact are in the space the coordinates are
+/// composed into; nothing in the block carries from one frame to the next.
+typedef struct {
+    WorldCollisionDelta delta;         // push-back resolved from a contact table, in its fixed-point view; then, as a whole-unit vector, the attacking player's position less the root's for a weapon hit, or part 3's position less the contact's for an overlap
+    VECTOR              normal;        // `delta` of the deepest overlap, normalised (0x1000 for 1)
+    VECTOR              pushDirection; // `normal` turned onto the room grid's axes; the root is pushed along its x and z by the overlap's depth
+    SVECTOR             effectOffset;  // where the hit effect appears, as an offset from part 3 along that part's axes; afterwards the position of the player's part 4, where the sight check starts
+    SVECTOR             rootPos;       // position of the golem's root, where the sight check ends
 } GolemPawnRookHitScratch;
 STATIC_ASSERT_SIZEOF(GolemPawnRookHitScratch, 0x40);
 

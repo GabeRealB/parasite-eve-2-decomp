@@ -135,6 +135,19 @@ typedef struct {
 } ActorScaleScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleScratch, 0x30);
 
+/// The scratch-stack block a spawned child's root coordinate is placed with.
+///
+/// A projectile's spawn state starts its root as the transform of the
+/// coordinate it is launched from, moves it by an offset along that
+/// transform's axes, and then turns it by a rotation applied in its own frame.
+/// One block serves one placement and is released by the spawn state.
+typedef struct {
+    SVECTOR operand;  // short vector being worked on: the launch offset along the root's axes, then the Euler angles of the turn (0x1000 to a full turn)
+    VECTOR  offset;   // `operand` carried through the root's rotation, added to its translation; once that is done a spawn state may reuse it for an offset of its own
+    MATRIX  rotation; // the turn built from `operand`, multiplied onto the root's rotation a column at a time; its translation is never set or read
+} ActorChildPlaceScratch;
+STATIC_ASSERT_SIZEOF(ActorChildPlaceScratch, 0x38);
+
 /// Scratch-stack block of a uniform matrix scale that takes the translation
 /// along: the rotation is scaled by `ScaleMatrix`, the translation on the GTE.
 ///

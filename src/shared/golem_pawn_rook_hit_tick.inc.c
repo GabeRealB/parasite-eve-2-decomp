@@ -192,12 +192,12 @@ void golemPawnRookTakeHits(Task* arg0)
                         break;
                 }
                 if (lastId != work->hurtContacts[i].key.value) {
-                    lastId             = work->hurtContacts[i].key.value;
-                    scratch->effOfs.vx = 0;
-                    scratch->effOfs.vy = 0;
-                    scratch->effOfs.vz = (work->hitFromFront == 1) ? 0x12C : -0x96;
+                    lastId                   = work->hurtContacts[i].key.value;
+                    scratch->effectOffset.vx = 0;
+                    scratch->effectOffset.vy = 0;
+                    scratch->effectOffset.vz = (work->hitFromFront == 1) ? 0x12C : -0x96;
                     func_800FDB18(Gp_GetIdParam1(work->hurtContacts[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[3],
-                                  &scratch->effOfs, &work->hitEffectArg);
+                                  &scratch->effectOffset, &work->hitEffectArg);
                 }
                 cooldown = Gp_GetIdParam2(work->hurtContacts[i].key.value);
                 if (cooldown > 0) {
@@ -280,15 +280,15 @@ void golemPawnRookTakeHits(Task* arg0)
                 if (maxPush < push) {
                     maxPush = push;
                     VectorNormal(&scratch->delta.vector, &scratch->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->push);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
                 }
                 break;
         }
     }
 
     if (maxPush > 0) {
-        self->coord.t[0] += (maxPush * scratch->push.vx) >> 12;
-        self->coord.t[2] += (maxPush * scratch->push.vz) >> 12;
+        self->coord.t[0] += (maxPush * scratch->pushDirection.vx) >> 12;
+        self->coord.t[2] += (maxPush * scratch->pushDirection.vz) >> 12;
     }
     Gp_ClearRec18Occupied(work->hurtContacts);
     if (work->strikeContacts[0].flags & 1) {
@@ -297,17 +297,17 @@ void golemPawnRookTakeHits(Task* arg0)
     }
     work->playerSpotted = 0;
     if (Gp_CountRec18Hi(work->sightContacts, 0x10000) != 0) {
-        part               = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4];
-        scratch->effOfs.vx = part->workm.t[0];
-        scratch->effOfs.vy = part->workm.t[1];
-        scratch->effOfs.vz = part->workm.t[2];
-        scratch->target.vx = self->workm.t[0];
-        scratch->target.vy = self->workm.t[1];
-        scratch->target.vz = self->workm.t[2];
-        if (detectSegmentHitsWall(&scratch->effOfs, &scratch->target) == 0) {
+        part                     = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4];
+        scratch->effectOffset.vx = part->workm.t[0];
+        scratch->effectOffset.vy = part->workm.t[1];
+        scratch->effectOffset.vz = part->workm.t[2];
+        scratch->rootPos.vx      = self->workm.t[0];
+        scratch->rootPos.vy      = self->workm.t[1];
+        scratch->rootPos.vz      = self->workm.t[2];
+        if (detectSegmentHitsWall(&scratch->effectOffset, &scratch->rootPos) == 0) {
             work->playerSpotted = 1;
         }
     }
     Gp_ClearRec18Occupied(work->sightContacts);
-    SCRATCH_STACK_RELEASE_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BLOCK(GolemPawnRookHitScratch);
 }

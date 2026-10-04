@@ -55,7 +55,6 @@
 
 #include "rooms/acropolis_helicopter_landing_pad.h"
 #include "../../shared/actor_messages.h"
-#include "../../shared/golem_pawn_rook.h"
 #include "../../shared/no9_golem.h"
 
 s32 func_actor_510900_801391B8(Task*, s32, s32, s32);
@@ -2706,15 +2705,15 @@ static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
 /// distance to the player in units of 1000, clamped to the last entry.
 static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
 {
-    Actor510900ChildFx*        work;
-    GolemPawnRookPlaceScratch* scratch;
-    TmdObject*                 tmd;
-    GfxCoord*                  coord;
-    GfxCoord*                  parentCoords;
-    GfxCoord*                  parentCoord;
-    s32                        dx;
-    s32                        dz;
-    s32                        idx;
+    Actor510900ChildFx*     work;
+    ActorChildPlaceScratch* scratch;
+    TmdObject*              tmd;
+    GfxCoord*               coord;
+    GfxCoord*               parentCoords;
+    GfxCoord*               parentCoord;
+    s32                     dx;
+    s32                     dz;
+    s32                     idx;
 
     tmd          = arg1->extra.tmd;
     coord        = tmd->coords;
@@ -2727,7 +2726,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     }
     arg1->work    = work;
     tmd->flags    = 0;
-    scratch       = (GolemPawnRookPlaceScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GolemPawnRookPlaceScratch));
+    scratch       = SCRATCH_STACK_RESERVE_BLOCK(ActorChildPlaceScratch);
     tmd->lightMtx = &work->lightMtx;
     tmd->colorMtx = &work->colorMtx;
 
@@ -2737,39 +2736,39 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     Gp_UpdateCoord(parentCoord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
 
-    scratch->rot.vx = -0xA5;
-    scratch->rot.vy = -0x235;
-    scratch->rot.vz = 0xA0;
+    scratch->operand.vx = -0xA5;
+    scratch->operand.vy = -0x235;
+    scratch->operand.vz = 0xA0;
     gte_SetRotMatrix(&coord->coord);
-    gte_ldv0(&scratch->rot);
+    gte_ldv0(&scratch->operand);
     gte_rtv0();
-    gte_stlvnl(&scratch->pos);
+    gte_stlvnl(&scratch->offset);
     coord->parent      = &gGfxViewCoord;
-    coord->coord.t[0] += scratch->pos.vx;
-    coord->coord.t[1] += scratch->pos.vy;
-    coord->coord.t[2] += scratch->pos.vz;
+    coord->coord.t[0] += scratch->offset.vx;
+    coord->coord.t[1] += scratch->offset.vy;
+    coord->coord.t[2] += scratch->offset.vz;
 
-    scratch->rot.vx = -0x160;
-    scratch->rot.vy = 0;
-    scratch->rot.vz = 0;
-    RotMatrix(&scratch->rot, &scratch->mtx);
+    scratch->operand.vx = -0x160;
+    scratch->operand.vy = 0;
+    scratch->operand.vz = 0;
+    RotMatrix(&scratch->operand, &scratch->rotation);
     gte_SetRotMatrix(&coord->coord);
-    gte_ldclmv(&scratch->mtx);
+    gte_ldclmv(&scratch->rotation);
     gte_rtir();
     gte_stclmv(&coord->coord);
-    gte_ldclmv(&scratch->mtx.m[0][1]);
+    gte_ldclmv(&scratch->rotation.m[0][1]);
     gte_rtir();
     gte_stclmv(&coord->coord.m[0][1]);
-    gte_ldclmv(&scratch->mtx.m[0][2]);
+    gte_ldclmv(&scratch->rotation.m[0][2]);
     gte_rtir();
     gte_stclmv(&coord->coord.m[0][2]);
 
-    dx              = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    scratch->pos.vy = 0;
-    scratch->pos.vx = dx;
-    dz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    scratch->pos.vz = dz;
-    idx             = SquareRoot0((dx * dx) + (dz * dz)) / 1000;
+    dx                 = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    scratch->offset.vy = 0;
+    scratch->offset.vx = dx;
+    dz                 = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    scratch->offset.vz = dz;
+    idx                = SquareRoot0((dx * dx) + (dz * dz)) / 1000;
     if (idx >= 0xC) {
         idx = 0xB;
     }
@@ -2809,7 +2808,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     work->obj78.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
     arg1->state = 1;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemPawnRookPlaceScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChildPlaceScratch);
 }
 
 /// Per-frame handler of the effect child while it is alive: spins the object by

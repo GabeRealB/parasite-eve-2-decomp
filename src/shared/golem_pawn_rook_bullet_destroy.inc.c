@@ -5,21 +5,21 @@
 /// destroys the child once 0x3D frames have passed.
 void golemPawnRookBulletDestroy(Enemy* arg0, Task* arg1)
 {
-    GolemPawnRookFxWork* work;
-    u16                  temp_v0;
+    GolemPawnRookGrenadeWork* work;
+    u16                       temp_v0;
 
-    work = (GolemPawnRookFxWork*)arg1->work;
-    switch (work->field_EC) {
+    work = arg1->work;
+    switch (work->teardownStep) {
         case 0:
-            Gp_UnlinkObj(&work->obj40);
-            Gp_UnlinkObj(&work->obj78);
-            Gp_UnlinkObj(&work->obj98);
-            work->field_E8 = 0;
-            work->field_EC = 1;
+            Gp_UnlinkObj(&work->playerStrikeBody);
+            Gp_UnlinkObj(&work->enemyStrikeBody);
+            Gp_UnlinkObj(&work->wallBody);
+            work->timer        = 0;
+            work->teardownStep = 1;
             return;
         case 1:
-            temp_v0        = work->field_E8 + 1;
-            work->field_E8 = temp_v0;
+            temp_v0     = work->timer + 1;
+            work->timer = temp_v0;
             if ((s16)temp_v0 >= 0x3D) {
                 enemyDestroy(arg0, arg1);
             }
