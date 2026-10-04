@@ -48,91 +48,111 @@
 #include "main/tmd_types.h"
 #include "../../shared/frame_capture.h"
 
-/// A quad of the screen distortion grid. Its texture is the copy of the frame
-/// the grid is drawn over, which is wider than one texture page reaches, so a
-/// vertex's U is kept relative to a page shifted right by its `pageN` (0 or
-/// 0x40 pixels), held in what a POLY_FT4 leaves as padding. Once all four
-/// vertices are placed they are brought onto one page, which `tpage` names.
-typedef struct Actor403600GridQuad {
-    u_long  tag;
-    u_char  r0, g0, b0, code;
-    short   x0, y0;
-    u_char  u0, v0;
-    u_short clut;
-    short   x1, y1;
-    u_char  u1, v1;
-    u_short tpage;
-    short   x2, y2;
-    u_char  u2, v2;
-    u_char  page0, page1;
-    short   x3, y3;
-    u_char  u3, v3;
-    u_char  page2, page3;
-} Actor403600GridQuad;
-STATIC_ASSERT_SIZEOF(Actor403600GridQuad, sizeof(POLY_FT4));
-
-/// The position and texture coordinate of one vertex of a grid quad, which
-/// every vertex of a POLY_FT4 lays out alike.
-typedef struct Actor403600GridVertex {
-    s16 x;
+/// Position and texture coordinate of one vertex of a grid quad, laid out as
+/// every vertex of a POLY_FT4 is.
+typedef struct {
+    s16 x; // Screen position, relative to the centre of the screen
     s16 y;
-    u8  u;
+    u8  u; // Texel of the frame copy drawn at the vertex; `u` is relative to the vertex's page
     u8  v;
-} Actor403600GridVertex;
+} _Actor403600GridVertex;
+STATIC_ASSERT_SIZEOF(_Actor403600GridVertex, 6);
 
-/// Scratch block `func_actor_403600_80132E40` lays the chains out in.
-typedef struct Actor403600ChainScratch {
-    SVECTOR a;       // the segment being placed, or a vector being rotated
-    SVECTOR b;       // a part's position relative to the view, or the axis a basis is built about
-    MATRIX  basis;   // the transposed view rotation, then the basis a segment is turned by
-    MATRIX  rot;     // a part's rotation while it is turned
+/// A quad of the grids this package distorts the screen with, in the layout of
+/// a POLY_FT4.
+///
+/// Its texture is the copy of the frame the grid is drawn over. That copy is
+/// 320 pixels wide and a texture page reaches 256, so a vertex's U is kept
+/// relative to a page shifted right by its `pageN`, held in what a POLY_FT4
+/// leaves as padding. Once all four vertices are placed they are brought onto
+/// one page, which `tpage` names. `clut` is never set: the copy is direct
+/// colour.
+typedef struct {
+    u_long                 tag;
+    u_char                 r0, g0, b0, code;
+    _Actor403600GridVertex vertex0;
+    u_short                clut;
+    _Actor403600GridVertex vertex1;
+    u_short                tpage;
+    _Actor403600GridVertex vertex2;
+    u_char                 page0, page1; // Shift of the page `vertex0` and `vertex1` measure U from (0 or 0x40 pixels)
+    _Actor403600GridVertex vertex3;
+    u_char                 page2, page3; // The same for `vertex2` and `vertex3`
+} _Actor403600GridQuad;
+STATIC_ASSERT_SIZEOF(_Actor403600GridQuad, sizeof(POLY_FT4));
+
+/// The x and y of a grid vertex as the one word a primitive keeps them in, for
+/// copying both at once.
+///
+/// `vertex` is an `_Actor403600GridVertex` lvalue at a word-aligned address,
+/// which every vertex of an `_Actor403600GridQuad` is. It is named once and
+/// not evaluated beyond taking its address; the result is a `u32` lvalue with
+/// `x` in the low half.
+#define ACTOR_403600_GRID_VERTEX_XY_WORD(vertex) (*(u32*)&(vertex).x)
+
+/// Scratch block the chains hanging from the boss are laid out in.
+///
+/// Positions and directions are world-oriented and relative to the view, the
+/// frame the chain joints are kept in. Nothing reads or writes the `pad` runs,
+/// whose role is unproven.
+typedef struct {
+    SVECTOR segment;   // The segment being placed: its offset from the joint before it, or its direction while its part is turned
+    SVECTOR aux;       // Second vector of the step at hand: a part's position, the pull on the chain, or the axis a basis is built about
+    MATRIX  basis;     // The transposed view rotation, then the basis a segment's part is turned by
+    MATRIX  rot;       // The transposed rotation of the part a segment hangs from, then the segment's own rotation as it is composed
     byte    pad_50[0x10];
-    SVECTOR dirs[3]; // direction of each segment, as the joints are placed
+    SVECTOR dirs[3];   // Unit direction (4096 = 1) of each segment placed this frame
     byte    pad_78[8];
-    SVECTOR drift;   // sideways push the segments take while the actor's drift is set
-} Actor403600ChainScratch;
-STATIC_ASSERT_SIZEOF(Actor403600ChainScratch, 0x88);
+    SVECTOR sweepPull; // The body chain's pull weighted by the boss's `chainSweep`, added to the limb segments while that is set
+} _Actor403600ChainScratch;
+STATIC_ASSERT_SIZEOF(_Actor403600ChainScratch, 0x88);
 
-/// 0x1C-byte scratch block used while building the screen transition grid.
-typedef struct Actor403600ScreenScratch {
-    /* 0x00 */ u8      pad_0[0x10];
-    /* 0x10 */ s32     otz;
-    /* 0x14 */ SVECTOR offset;
-} Actor403600ScreenScratch;
-STATIC_ASSERT_SIZEOF(Actor403600ScreenScratch, 0x1C);
+/// Scratch block the screen distortion grid is built in.
+///
+/// Nothing reads or writes `pad_0`, whose role is unproven.
+typedef struct {
+    byte    pad_0[0x10];
+    s32     otz;      // Ordering-table slot each quad is linked at; always 0, the front
+    SVECTOR field_14; // Zeroed and handed to every vertex placement, which never reads it; role unproven
+} _Actor403600ScreenDistortionScratch;
+STATIC_ASSERT_SIZEOF(_Actor403600ScreenDistortionScratch, 0x1C);
 
-/// 0x78-byte scratch block used to project the radial effect grid.
-typedef struct Actor403600EffectScratch {
-    /* 0x00 */ s32     dp;
-    /* 0x04 */ s32     flag;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     nclip;
-    /* 0x10 */ s32     sxy;
-    /* 0x14 */ SVECTOR projected;
-    /* 0x1C */ SVECTOR vec;
-    /* 0x24 */ s32     maxOtz;
-    /* 0x28 */ MATRIX  matrix;
-    /* 0x48 */ SVECTOR points[3];
-    /* 0x60 */ s32     pad_60[2];
-    /* 0x68 */ s32     sxy3[3];
-    /* 0x74 */ s32     pad_74;
-} Actor403600EffectScratch;
-STATIC_ASSERT_SIZEOF(Actor403600EffectScratch, 0x78);
+/// Scratch block the radial distortion grid is built in: twelve sectors about
+/// the effect's Y axis, each sixteen quads long from the centre outwards.
+///
+/// Nothing reads or writes the `pad` runs, whose role is unproven.
+typedef struct {
+    s32     dp;             // Depth cue of the last projection; never read
+    s32     flag;           // GTE flag of the last projection; negative when it failed
+    s32     otz;            // A quarter of the projected vertex's view depth, then the ordering-table slot its quad is linked at
+    s32     nclip;          // Winding of the probe points on screen, which tells the side the grid is seen from; positive reverses the texel displacement
+    s32     sxy;            // Packed screen position of the projected vertex
+    SVECTOR localVertex;    // The vertex in its sector's frame: distance from the centre along x, the wave's lift along y
+    SVECTOR texelOffset;    // Direction the vertex's texel is displaced in, then that displacement in pixels
+    s32     maxOtz;         // Highest ordering-table slot a quad was linked at; the frame copy is queued just behind it
+    MATRIX  sectorMatrix;   // The effect's transform turned about its Y axis to the sector being built
+    SVECTOR probePoints[3]; // The effect's origin and a step of 0x1000 along its Z and its X axis, projected to find `nclip`
+    byte    pad_60[8];
+    s32     probeSxy[3];    // Screen positions of the probe points; never read
+    byte    pad_74[4];
+} _Actor403600RadialGridScratch;
+STATIC_ASSERT_SIZEOF(_Actor403600RadialGridScratch, 0x78);
 
-/// Scratch block `func_actor_403600_80134398` works in while it steers and
-/// draws a projectile.
-typedef struct Actor403600ProjectileScratch {
-    VECTOR  target;  // world position of the part the projectile homes on
-    SVECTOR dir;     // that part relative to the view, then the steering direction
-    DVECTOR sxy;     // screen position of the trail point being drawn
-    s32     dp;      // depth cue of that point
-    s32     flag;    // GTE flag of the projection; negative when it failed
-    s32     otz;     // screen depth of that point
-    s32     pad_28;
-    SVECTOR spin;    // half-extents of the quad being drawn, turned by the point's angle
-    MATRIX  viewRot; // the view rotation, transposed to take view space back to world space
-} Actor403600ProjectileScratch;
-STATIC_ASSERT_SIZEOF(Actor403600ProjectileScratch, 0x54);
+/// Scratch block a projectile is steered and drawn in.
+///
+/// Nothing reads or writes `pad_28`, whose role is unproven.
+typedef struct {
+    VECTOR  target;         // Position of the player's part the projectile homes on, in the frame the projectile moves in
+    SVECTOR dir;            // That part relative to the view, then the steering direction, then the frame's step
+    DVECTOR sxy;            // Screen position of the trail point being drawn
+    s32     dp;             // Depth cue of that point; never read
+    s32     flag;           // GTE flag of the projection; negative when it failed
+    s32     otz;            // A quarter of that point's view depth
+    byte    pad_28[4];
+    SVECTOR cornerOffset;   // Offset from the point to the first corner of its quad; the other corners are its quarter turns
+    MATRIX  inverseViewRot; // The view rotation transposed, which takes view space back to world orientation
+} _Actor403600ProjectileScratch;
+STATIC_ASSERT_SIZEOF(_Actor403600ProjectileScratch, 0x54);
 
 static const SVECTOR D_actor_403600_80131E24;
 extern DamageAttack  D_actor_403600_801420F0;
@@ -906,8 +926,8 @@ typedef struct {
     MATRIX  local;    // Model-to-reference transform
 } _Actor403600QuadScratch;
 
-static void        func_actor_403600_801327A0(Actor403600GridQuad* arg0);
-static void        func_actor_403600_8013289C(s32 x, s32 corner, Actor403600GridVertex* arg2, s32 fade);
+static void        func_actor_403600_801327A0(_Actor403600GridQuad* arg0);
+static void        func_actor_403600_8013289C(s32 x, s32 corner, SVECTOR* arg2, s32 fade);
 static inline void _actor403600ApplyMatrixSv(MATRIX* m, SVECTOR* in, SVECTOR* out);
 static inline void _actor403600TrailTick(ActorEffectState* state);
 static inline s32  _actor403600TrailEmpty(ActorEffectState* state);
@@ -933,7 +953,7 @@ static u32*        func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags,
 
 #include "../../shared/frame_capture.inc.c"
 
-static void func_actor_403600_801327A0(Actor403600GridQuad* arg0)
+static void func_actor_403600_801327A0(_Actor403600GridQuad* arg0)
 {
     s32 temp_a0;
     s32 temp_a1;
@@ -943,12 +963,12 @@ static void func_actor_403600_801327A0(Actor403600GridQuad* arg0)
     s32 min;
     u8  adjust;
 
-    temp_t2 = arg0->u0 + arg0->page0;
+    temp_t2 = arg0->vertex0.u + arg0->page0;
     min     = temp_t2;
     max     = temp_t2;
-    temp_t1 = arg0->u1 + arg0->page1;
-    temp_a1 = arg0->u2 + arg0->page2;
-    temp_a0 = arg0->u3 + arg0->page3;
+    temp_t1 = arg0->vertex1.u + arg0->page1;
+    temp_a1 = arg0->vertex2.u + arg0->page2;
+    temp_a0 = arg0->vertex3.u + arg0->page3;
     if (temp_t1 < min) {
         min = temp_t1;
     } else if (max < temp_t1) {
@@ -967,15 +987,15 @@ static void func_actor_403600_801327A0(Actor403600GridQuad* arg0)
     if ((max >= 0x100) || (adjust = 0, min >= 0x40)) {
         adjust = 0x40;
     }
-    arg0->tpage = (s16)(((u32)(adjust + 0x1C0) >> 6) | 0x110);
-    arg0->u0    = (u8)(temp_t2 - adjust);
-    arg0->u1    = (u8)(temp_t1 - adjust);
-    arg0->u2    = (u8)(temp_a1 - adjust);
-    arg0->u3    = (u8)(temp_a0 - adjust);
-    arg0->page3 = adjust;
-    arg0->page2 = adjust;
-    arg0->page1 = adjust;
-    arg0->page0 = adjust;
+    arg0->tpage     = (s16)(((u32)(adjust + 0x1C0) >> 6) | 0x110);
+    arg0->vertex0.u = (u8)(temp_t2 - adjust);
+    arg0->vertex1.u = (u8)(temp_t1 - adjust);
+    arg0->vertex2.u = (u8)(temp_a1 - adjust);
+    arg0->vertex3.u = (u8)(temp_a0 - adjust);
+    arg0->page3     = adjust;
+    arg0->page2     = adjust;
+    arg0->page1     = adjust;
+    arg0->page0     = adjust;
 }
 
 /* Places vertex `corner` of a grid quad on screen: the vertex is moved to
@@ -983,35 +1003,36 @@ static void func_actor_403600_801327A0(Actor403600GridQuad* arg0)
  * clamped to the 320x240 frame (the clamp is folded back into the vertex), and
  * given the texture coordinate of the frame copy beneath it.
  * The quad arrives as an integer because the same variable then holds the
- * vertex's screen x. The third argument's value is never read. */
-static void func_actor_403600_8013289C(s32 x, s32 corner, Actor403600GridVertex* arg2, s32 fade)
+ * vertex's screen x: only one variable keeps both in the register the build
+ * requires. The third argument's value is never read. */
+static void func_actor_403600_8013289C(s32 x, s32 corner, SVECTOR* arg2, s32 fade)
 {
-    Actor403600GridVertex* vtx;
-    s16                    vx;
-    s16                    vy;
-    s32                    y;
-    s32                    top;
-    s32                    seed;
-    s32                    seed2;
-    s32                    seed3;
-    u8*                    page;
+    _Actor403600GridVertex* vtx;
+    s16                     vx;
+    s16                     vy;
+    s32                     y;
+    s32                     top;
+    s32                     seed;
+    s32                     seed2;
+    s32                     seed3;
+    u8*                     page;
 
     switch (corner) {
         case 0:
-            vtx  = (Actor403600GridVertex*)&((Actor403600GridQuad*)x)->x0;
-            page = &((Actor403600GridQuad*)x)->page0;
+            vtx  = &((_Actor403600GridQuad*)x)->vertex0;
+            page = &((_Actor403600GridQuad*)x)->page0;
             break;
         case 1:
-            vtx  = (Actor403600GridVertex*)&((Actor403600GridQuad*)x)->x1;
-            page = &((Actor403600GridQuad*)x)->page1;
+            vtx  = &((_Actor403600GridQuad*)x)->vertex1;
+            page = &((_Actor403600GridQuad*)x)->page1;
             break;
         case 2:
-            vtx  = (Actor403600GridVertex*)&((Actor403600GridQuad*)x)->x2;
-            page = &((Actor403600GridQuad*)x)->page2;
+            vtx  = &((_Actor403600GridQuad*)x)->vertex2;
+            page = &((_Actor403600GridQuad*)x)->page2;
             break;
         default:
-            vtx  = (Actor403600GridVertex*)&((Actor403600GridQuad*)x)->x3;
-            page = &((Actor403600GridQuad*)x)->page3;
+            vtx  = &((_Actor403600GridQuad*)x)->vertex3;
+            page = &((_Actor403600GridQuad*)x)->page3;
             break;
     }
     vx                      = vtx->x;
@@ -1053,22 +1074,22 @@ static void func_actor_403600_8013289C(s32 x, s32 corner, Actor403600GridVertex*
 
 static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* arg2)
 {
-    s32                       fade;
-    s32                       x;
-    s32                       y;
-    s32                       seed;
-    s32                       step;
-    u8*                       head;
-    TILE*                     tile;
-    DR_TPAGE*                 draw_mode;
-    Actor403600GridQuad*      poly;
-    Actor403600GridQuad*      previous;
-    Actor403600GridQuad*      above;
-    Actor403600ScreenScratch* scratch;
+    s32                                  fade;
+    s32                                  x;
+    s32                                  y;
+    s32                                  seed;
+    s32                                  step;
+    u8*                                  head;
+    TILE*                                tile;
+    DR_TPAGE*                            draw_mode;
+    _Actor403600GridQuad*                poly;
+    _Actor403600GridQuad*                previous;
+    _Actor403600GridQuad*                above;
+    _Actor403600ScreenDistortionScratch* scratch;
 
-    head                     = SCRATCH_STACK_CURSOR(u8) - 0x1C;
+    head                     = SCRATCH_STACK_CURSOR(u8) - sizeof(_Actor403600ScreenDistortionScratch);
     SCRATCH_STACK_CURSOR(u8) = head;
-    scratch                  = (Actor403600ScreenScratch*)head;
+    scratch                  = (_Actor403600ScreenDistortionScratch*)head;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         seed                    = rand();
         D_actor_403600_80160698 = seed;
@@ -1076,57 +1097,57 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
     } else {
         D_actor_403600_80160698 = arg2->gridSeed;
     }
-    scratch->offset.vx = 0;
-    scratch->offset.vy = 0;
-    scratch->offset.vz = 0;
-    fade               = work->screenDistortion;
+    scratch->field_14.vx = 0;
+    scratch->field_14.vy = 0;
+    scratch->field_14.vz = 0;
+    fade                 = work->screenDistortion;
     for (y = -0x78; y < 0x78; y += 0x10) {
         for (x = -0xA0; x < 0xA0; x += 0x10) {
-            poly                    = (Actor403600GridQuad*)D_actor_403600_8016069C;
+            poly                    = (_Actor403600GridQuad*)D_actor_403600_8016069C;
             D_actor_403600_8016069C = (u8*)(poly + 1);
 
             // Vertices shared with the quad to the left or above are copied
             // from it; only the grid's outer edge is placed afresh.
             if (x == -0xA0) {
-                poly->x2 = x;
-                poly->y2 = y + 0x10;
-                func_actor_403600_8013289C((s32)poly, 2, (Actor403600GridVertex*)&scratch->offset, fade);
+                poly->vertex2.x = x;
+                poly->vertex2.y = y + 0x10;
+                func_actor_403600_8013289C((s32)poly, 2, &scratch->field_14, fade);
             } else {
-                previous                       = poly - 1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = GPU_PRIMITIVE_XY_WORD(previous, 3);
-                poly->u2                       = previous->u3;
-                poly->v2                       = previous->v3;
-                poly->page2                    = previous->page3;
+                previous                                        = poly - 1;
+                ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex2) = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex3);
+                poly->vertex2.u                                 = previous->vertex3.u;
+                poly->vertex2.v                                 = previous->vertex3.v;
+                poly->page2                                     = previous->page3;
             }
             if (y == -0x78) {
                 if (x == -0xA0) {
-                    poly->x0 = x;
-                    poly->y0 = y;
-                    func_actor_403600_8013289C((s32)poly, 0, (Actor403600GridVertex*)&scratch->offset, fade);
+                    poly->vertex0.x = x;
+                    poly->vertex0.y = y;
+                    func_actor_403600_8013289C((s32)poly, 0, &scratch->field_14, fade);
                 } else {
-                    previous                       = poly - 1;
-                    GPU_PRIMITIVE_XY_WORD(poly, 0) = GPU_PRIMITIVE_XY_WORD(previous, 1);
-                    poly->u0                       = previous->u1;
-                    poly->v0                       = previous->v1;
-                    poly->page0                    = previous->page1;
+                    previous                                        = poly - 1;
+                    ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0) = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex1);
+                    poly->vertex0.u                                 = previous->vertex1.u;
+                    poly->vertex0.v                                 = previous->vertex1.v;
+                    poly->page0                                     = previous->page1;
                 }
-                poly->x1 = x + 0x10;
-                poly->y1 = y;
-                func_actor_403600_8013289C((s32)poly, 1, (Actor403600GridVertex*)&scratch->offset, fade);
+                poly->vertex1.x = x + 0x10;
+                poly->vertex1.y = y;
+                func_actor_403600_8013289C((s32)poly, 1, &scratch->field_14, fade);
             } else {
-                above                          = poly - 20;
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = GPU_PRIMITIVE_XY_WORD(above, 2);
-                poly->u0                       = above->u2;
-                poly->v0                       = above->v2;
-                poly->page0                    = above->page2;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = GPU_PRIMITIVE_XY_WORD(above, 3);
-                poly->u1                       = above->u3;
-                poly->v1                       = above->v3;
-                poly->page1                    = above->page3;
+                above                                           = poly - 20;
+                ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0) = ACTOR_403600_GRID_VERTEX_XY_WORD(above->vertex2);
+                poly->vertex0.u                                 = above->vertex2.u;
+                poly->vertex0.v                                 = above->vertex2.v;
+                poly->page0                                     = above->page2;
+                ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex1) = ACTOR_403600_GRID_VERTEX_XY_WORD(above->vertex3);
+                poly->vertex1.u                                 = above->vertex3.u;
+                poly->vertex1.v                                 = above->vertex3.v;
+                poly->page1                                     = above->page3;
             }
-            poly->x3 = x + 0x10;
-            poly->y3 = y + 0x10;
-            func_actor_403600_8013289C((s32)poly, 3, (Actor403600GridVertex*)&scratch->offset, fade);
+            poly->vertex3.x = x + 0x10;
+            poly->vertex3.y = y + 0x10;
+            func_actor_403600_8013289C((s32)poly, 3, &scratch->field_14, fade);
             func_actor_403600_801327A0(poly);
             if (fade < 0xC00) {
                 setlen(poly, 9);
@@ -1158,7 +1179,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
         addPrim(gGpuCurrentOt - 1, draw_mode);
     }
     frameCaptureQueue(0);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600ScreenDistortionScratch));
 }
 
 /// Rotates `in` by `m` into `out`.
@@ -1172,39 +1193,39 @@ static inline void _actor403600ApplyMatrixSv(MATRIX* m, SVECTOR* in, SVECTOR* ou
 
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600FxWork* arg2)
 {
-    Task*                    actor;
-    GfxCoord*                center;
-    u8*                      head;
-    Actor403600ChainScratch* scratch;
-    s32                      i;
+    Task*                     actor;
+    GfxCoord*                 center;
+    u8*                       head;
+    _Actor403600ChainScratch* scratch;
+    s32                       i;
 
     actor  = arg0->parent;
     center = &actor->extra.tmd->coords[8];
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         head    = SCRATCH_STACK_CURSOR(u8);
-        scratch = (Actor403600ChainScratch*)(SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor403600ChainScratch));
+        scratch = (_Actor403600ChainScratch*)(SCRATCH_STACK_CURSOR(u8) = head - sizeof(_Actor403600ChainScratch));
         Gp_UpdateCoord(&actor->extra.tmd->coords[11]);
         if (arg2->chainsSet == 0) {
             TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
-            scratch->b.vx = center->workm.t[0] - gGfxViewCoord.workm.t[0];
-            scratch->b.vy = center->workm.t[1] - gGfxViewCoord.workm.t[1];
-            scratch->b.vz = center->workm.t[2] - gGfxViewCoord.workm.t[2];
+            scratch->aux.vx = center->workm.t[0] - gGfxViewCoord.workm.t[0];
+            scratch->aux.vy = center->workm.t[1] - gGfxViewCoord.workm.t[1];
+            scratch->aux.vz = center->workm.t[2] - gGfxViewCoord.workm.t[2];
 
-            gfxRotateSv(&scratch->basis, &scratch->b);
+            gfxRotateSv(&scratch->basis, &scratch->aux);
 
-            scratch->a.vx = 0;
-            scratch->a.vy = 0;
-            scratch->a.vz = -0x485;
-            gfxRotateSv(&center->workm, &scratch->a);
+            scratch->segment.vx = 0;
+            scratch->segment.vy = 0;
+            scratch->segment.vz = -0x485;
+            gfxRotateSv(&center->workm, &scratch->segment);
 
-            gfxRotateSv(&scratch->basis, &scratch->a);
+            gfxRotateSv(&scratch->basis, &scratch->segment);
 
             i = 0;
             do {
-                arg2->chain[i]     = scratch->b;
-                arg2->chain[i].vx += scratch->a.vx * i;
-                arg2->chain[i].vy += scratch->a.vy * i;
-                arg2->chain[i].vz += scratch->a.vz * i;
+                arg2->chain[i]     = scratch->aux;
+                arg2->chain[i].vx += scratch->segment.vx * i;
+                arg2->chain[i].vy += scratch->segment.vy * i;
+                arg2->chain[i].vz += scratch->segment.vz * i;
                 i++;
             } while (i < 4);
 
@@ -1212,81 +1233,81 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
             do {
                 GfxCoord* limb = &actor->extra.tmd->coords[i * 4 + 15];
                 Gp_UpdateCoord(limb);
-                scratch->b.vx = limb->workm.t[0] - gGfxViewCoord.workm.t[0];
-                scratch->b.vy = limb->workm.t[1] - gGfxViewCoord.workm.t[1];
-                scratch->b.vz = limb->workm.t[2] - gGfxViewCoord.workm.t[2];
-                gfxRotateSv(&scratch->basis, &scratch->b);
+                scratch->aux.vx = limb->workm.t[0] - gGfxViewCoord.workm.t[0];
+                scratch->aux.vy = limb->workm.t[1] - gGfxViewCoord.workm.t[1];
+                scratch->aux.vz = limb->workm.t[2] - gGfxViewCoord.workm.t[2];
+                gfxRotateSv(&scratch->basis, &scratch->aux);
 
-                scratch->a.vx = 0;
-                scratch->a.vy = 0x898;
-                scratch->a.vz = 0;
-                gfxRotateSv(&center->workm, &scratch->a);
+                scratch->segment.vx = 0;
+                scratch->segment.vy = 0x898;
+                scratch->segment.vz = 0;
+                gfxRotateSv(&center->workm, &scratch->segment);
 
-                gfxRotateSv(&scratch->basis, &scratch->a);
-                arg2->limbTips[i].vx = scratch->b.vx + scratch->a.vx;
-                arg2->limbTips[i].vy = scratch->b.vy + scratch->a.vy;
-                arg2->limbTips[i].vz = scratch->b.vz + scratch->a.vz;
+                gfxRotateSv(&scratch->basis, &scratch->segment);
+                arg2->limbTips[i].vx = scratch->aux.vx + scratch->segment.vx;
+                arg2->limbTips[i].vy = scratch->aux.vy + scratch->segment.vy;
+                arg2->limbTips[i].vz = scratch->aux.vz + scratch->segment.vz;
                 i++;
             } while (i < 2);
             arg2->chainsSet += 1;
         } else {
             TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
-            scratch->b.vx = center->workm.t[0] - gGfxViewCoord.workm.t[0];
-            scratch->b.vy = center->workm.t[1] - gGfxViewCoord.workm.t[1];
-            scratch->b.vz = center->workm.t[2] - gGfxViewCoord.workm.t[2];
+            scratch->aux.vx = center->workm.t[0] - gGfxViewCoord.workm.t[0];
+            scratch->aux.vy = center->workm.t[1] - gGfxViewCoord.workm.t[1];
+            scratch->aux.vz = center->workm.t[2] - gGfxViewCoord.workm.t[2];
 
-            gfxRotateSv(&scratch->basis, &scratch->b);
-            arg2->chain[0] = scratch->b;
+            gfxRotateSv(&scratch->basis, &scratch->aux);
+            arg2->chain[0] = scratch->aux;
 
-            scratch->b.vx = 0;
-            scratch->b.vy = 0;
-            scratch->b.vz = -(work->chainPullExtra + 0x200);
-            gfxRotateSv(&center->workm, &scratch->b);
-            gfxRotateSv(&scratch->basis, &scratch->b);
+            scratch->aux.vx = 0;
+            scratch->aux.vy = 0;
+            scratch->aux.vz = -(work->chainPullExtra + 0x200);
+            gfxRotateSv(&center->workm, &scratch->aux);
+            gfxRotateSv(&scratch->basis, &scratch->aux);
 
             if (work->chainSweep != 0) {
                 gte_lddp(work->chainSweep);
-                gte_ldsv(&scratch->b);
+                gte_ldsv(&scratch->aux);
                 gte_gpf12();
-                gte_stsv(&scratch->drift);
+                gte_stsv(&scratch->sweepPull);
             }
 
             i = 0;
             do {
-                scratch->a.vx   = arg2->chain[i + 1].vx - arg2->chain[i].vx;
-                scratch->a.vy   = arg2->chain[i + 1].vy - arg2->chain[i].vy;
-                scratch->a.vz   = arg2->chain[i + 1].vz - arg2->chain[i].vz;
-                scratch->a.vx  += scratch->b.vx;
-                scratch->a.vy  += scratch->b.vy;
-                scratch->a.vz  += scratch->b.vz;
-                scratch->b.vx >>= 1;
-                scratch->b.vy >>= 1;
-                scratch->b.vz >>= 1;
-                VectorNormalSS(&scratch->a, &scratch->a);
-                scratch->dirs[i] = scratch->a;
+                scratch->segment.vx  = arg2->chain[i + 1].vx - arg2->chain[i].vx;
+                scratch->segment.vy  = arg2->chain[i + 1].vy - arg2->chain[i].vy;
+                scratch->segment.vz  = arg2->chain[i + 1].vz - arg2->chain[i].vz;
+                scratch->segment.vx += scratch->aux.vx;
+                scratch->segment.vy += scratch->aux.vy;
+                scratch->segment.vz += scratch->aux.vz;
+                scratch->aux.vx    >>= 1;
+                scratch->aux.vy    >>= 1;
+                scratch->aux.vz    >>= 1;
+                VectorNormalSS(&scratch->segment, &scratch->segment);
+                scratch->dirs[i] = scratch->segment;
                 gte_lddp(0x485);
-                gte_ldsv(&scratch->a);
+                gte_ldsv(&scratch->segment);
                 gte_gpf12();
-                gte_stsv(&scratch->a);
-                arg2->chain[i + 1].vx = arg2->chain[i].vx + scratch->a.vx;
-                arg2->chain[i + 1].vy = arg2->chain[i].vy + scratch->a.vy;
-                arg2->chain[i + 1].vz = arg2->chain[i].vz + scratch->a.vz;
+                gte_stsv(&scratch->segment);
+                arg2->chain[i + 1].vx = arg2->chain[i].vx + scratch->segment.vx;
+                arg2->chain[i + 1].vy = arg2->chain[i].vy + scratch->segment.vy;
+                arg2->chain[i + 1].vz = arg2->chain[i].vz + scratch->segment.vz;
                 i++;
             } while (i < 3);
 
             i = 0;
             do {
                 GfxCoord* segment = &actor->extra.tmd->coords[i + 9];
-                _actor403600ApplyMatrixSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->a);
+                _actor403600ApplyMatrixSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
                 TransposeMatrix(&center->workm, &scratch->rot);
-                gfxRotateSv(&scratch->rot, &scratch->a);
-                scratch->b.vx = 0;
-                scratch->b.vy = 0x1000;
-                scratch->b.vz = 0;
-                scratch->a.vx = -scratch->a.vx;
-                scratch->a.vy = -scratch->a.vy;
-                scratch->a.vz = -scratch->a.vz;
-                Gfx_OrthonormalBasis(&scratch->basis, &scratch->a, &scratch->b);
+                gfxRotateSv(&scratch->rot, &scratch->segment);
+                scratch->aux.vx     = 0;
+                scratch->aux.vy     = 0x1000;
+                scratch->aux.vz     = 0;
+                scratch->segment.vx = -scratch->segment.vx;
+                scratch->segment.vy = -scratch->segment.vy;
+                scratch->segment.vz = -scratch->segment.vz;
+                Gfx_OrthonormalBasis(&scratch->basis, &scratch->segment, &scratch->aux);
                 gte_MulMatrix0(&scratch->rot, &segment->workm, &scratch->rot);
                 gte_MulMatrix0(&scratch->basis, &scratch->rot, &scratch->rot);
                 gte_MulMatrix0(&center->workm, &scratch->rot, &scratch->rot);
@@ -1302,43 +1323,43 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 GfxCoord* limb = &actor->extra.tmd->coords[i * 4 + 15];
                 TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
                 Gp_UpdateCoord(limb);
-                scratch->b.vx = limb->workm.t[0] - gGfxViewCoord.workm.t[0];
-                scratch->b.vy = limb->workm.t[1] - gGfxViewCoord.workm.t[1];
-                scratch->b.vz = limb->workm.t[2] - gGfxViewCoord.workm.t[2];
-                gfxRotateSv(&scratch->basis, &scratch->b);
+                scratch->aux.vx = limb->workm.t[0] - gGfxViewCoord.workm.t[0];
+                scratch->aux.vy = limb->workm.t[1] - gGfxViewCoord.workm.t[1];
+                scratch->aux.vz = limb->workm.t[2] - gGfxViewCoord.workm.t[2];
+                gfxRotateSv(&scratch->basis, &scratch->aux);
 
-                scratch->a.vx = 0;
-                scratch->a.vy = work->limbPullExtra + 0x200;
-                scratch->a.vz = 0;
-                gfxRotateSv(&limb->workm, &scratch->a);
-                gfxRotateSv(&scratch->basis, &scratch->a);
+                scratch->segment.vx = 0;
+                scratch->segment.vy = work->limbPullExtra + 0x200;
+                scratch->segment.vz = 0;
+                gfxRotateSv(&limb->workm, &scratch->segment);
+                gfxRotateSv(&scratch->basis, &scratch->segment);
 
-                scratch->a.vx += arg2->limbTips[i].vx - scratch->b.vx;
-                scratch->a.vy += arg2->limbTips[i].vy - scratch->b.vy;
-                scratch->a.vz += arg2->limbTips[i].vz - scratch->b.vz;
+                scratch->segment.vx += arg2->limbTips[i].vx - scratch->aux.vx;
+                scratch->segment.vy += arg2->limbTips[i].vy - scratch->aux.vy;
+                scratch->segment.vz += arg2->limbTips[i].vz - scratch->aux.vz;
                 if (work->chainSweep != 0) {
-                    scratch->a.vx += scratch->drift.vx;
-                    scratch->a.vy += scratch->drift.vy;
-                    scratch->a.vz += scratch->drift.vz;
+                    scratch->segment.vx += scratch->sweepPull.vx;
+                    scratch->segment.vy += scratch->sweepPull.vy;
+                    scratch->segment.vz += scratch->sweepPull.vz;
                 }
-                VectorNormalSS(&scratch->a, &scratch->a);
-                scratch->dirs[i] = scratch->a;
+                VectorNormalSS(&scratch->segment, &scratch->segment);
+                scratch->dirs[i] = scratch->segment;
                 gte_lddp(0x898);
-                gte_ldsv(&scratch->a);
+                gte_ldsv(&scratch->segment);
                 gte_gpf12();
-                gte_stsv(&scratch->a);
-                arg2->limbTips[i].vx = scratch->b.vx + scratch->a.vx;
-                arg2->limbTips[i].vy = scratch->b.vy + scratch->a.vy;
-                arg2->limbTips[i].vz = scratch->b.vz + scratch->a.vz;
+                gte_stsv(&scratch->segment);
+                arg2->limbTips[i].vx = scratch->aux.vx + scratch->segment.vx;
+                arg2->limbTips[i].vy = scratch->aux.vy + scratch->segment.vy;
+                arg2->limbTips[i].vz = scratch->aux.vz + scratch->segment.vz;
 
-                _actor403600ApplyMatrixSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->a);
+                _actor403600ApplyMatrixSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
                 TransposeMatrix(&limb->workm, &scratch->rot);
-                gfxRotateSv(&scratch->rot, &scratch->a);
-                scratch->b.vx = 0;
-                scratch->b.vy = 0;
-                scratch->b.vz = 0x1000;
-                Gfx_OrthonormalBasis(&scratch->basis, &scratch->a, &scratch->b);
-                gte_ReadMatrixColumn(&scratch->basis, 2, &scratch->b);
+                gfxRotateSv(&scratch->rot, &scratch->segment);
+                scratch->aux.vx = 0;
+                scratch->aux.vy = 0;
+                scratch->aux.vz = 0x1000;
+                Gfx_OrthonormalBasis(&scratch->basis, &scratch->segment, &scratch->aux);
+                gte_ReadMatrixColumn(&scratch->basis, 2, &scratch->aux);
 
                 scratch->basis.m[0][0] = -scratch->basis.m[0][0];
                 scratch->basis.m[1][0] = -scratch->basis.m[1][0];
@@ -1346,9 +1367,9 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 scratch->basis.m[0][2] = scratch->basis.m[0][1];
                 scratch->basis.m[1][2] = scratch->basis.m[1][1];
                 scratch->basis.m[2][2] = scratch->basis.m[2][1];
-                scratch->basis.m[0][1] = scratch->b.vx;
-                scratch->basis.m[1][1] = scratch->b.vy;
-                scratch->basis.m[2][1] = scratch->b.vz;
+                scratch->basis.m[0][1] = scratch->aux.vx;
+                scratch->basis.m[1][1] = scratch->aux.vy;
+                scratch->basis.m[2][1] = scratch->aux.vz;
 
                 gte_MulMatrix0(&scratch->basis, &limb->coord, &limb->coord);
                 limb->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1356,7 +1377,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 i++;
             } while (i < 2);
         }
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403600ChainScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600ChainScratch));
     }
 }
 
@@ -1444,16 +1465,16 @@ void func_actor_403600_80134398(Task* arg0)
     GfxCoord*              target;
     GfxCoord*              view;
     /* The setup and draw phases reuse this pointer; steering has its own counter. */
-    void*                         shared;
-    s32                           steeringPass;
-    Task*                         owner;
-    Actor403600ProjectileWork*    work;
-    GfxCoord*                     coord;
-    Actor403600ProjectileScratch* scratch;
-    Actor403600ProjectileWork*    newWork;
-    SVECTOR*                      temp_v0_4;
-    SVECTOR*                      temp_v1;
-    SVECTOR*                      point;
+    void*                          shared;
+    s32                            steeringPass;
+    Task*                          owner;
+    Actor403600ProjectileWork*     work;
+    GfxCoord*                      coord;
+    _Actor403600ProjectileScratch* scratch;
+    Actor403600ProjectileWork*     newWork;
+    SVECTOR*                       temp_v0_4;
+    SVECTOR*                       temp_v1;
+    SVECTOR*                       point;
 
     coord  = arg0->extra.coordBody->coord;
     sp10   = D_actor_403600_80131E24;
@@ -1466,13 +1487,13 @@ void func_actor_403600_80134398(Task* arg0)
         Task_CallExit(arg0);
         return;
     }
-    SCRATCH_STACK_RESERVE_BLOCK(Actor403600ProjectileScratch);
-    scratch = SCRATCH_STACK_CURSOR(Actor403600ProjectileScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(_Actor403600ProjectileScratch);
+    scratch = SCRATCH_STACK_CURSOR(_Actor403600ProjectileScratch);
     if (arg0->state == 0) {
         newWork = memCalloc(0x15C, 0);
         if (newWork == NULL) {
             Task_CallExit(arg0);
-            SCRATCH_STACK_RELEASE_BLOCK(Actor403600ProjectileScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
             return;
         }
         arg0->work             = newWork;
@@ -1571,7 +1592,7 @@ block_22:
     work   = arg0->work;
     target = &player->extra.tmd->coords[1];
     Gp_UpdateCoord(target);
-    TransposeMatrix(&gGfxViewCoord.workm, &scratch->viewRot);
+    TransposeMatrix(&gGfxViewCoord.workm, &scratch->inverseViewRot);
     view            = &gGfxViewCoord;
     var_s4          = target->workm.t[0] - view->workm.t[0];
     scratch->dir.vx = (s16)var_s4;
@@ -1583,7 +1604,7 @@ block_22:
     var_s4          = target->workm.t[2] - view->workm.t[2];
     scratch->dir.vz = (s16)var_s4;
     *cameraVector   = scratch->dir;
-    gteValue1       = &scratch->viewRot;
+    gteValue1       = &scratch->inverseViewRot;
     gte_SetRotMatrix(gteValue1);
     gte_ldv0(cameraVector);
     gte_rtv0();
@@ -1763,20 +1784,20 @@ block_22:
                         if (arg0->status != 2) {
                             temp_a0_4 = scratch->otz;
                             if (temp_a0_4 >= 0) {
-                                scratch->spin.vx = (u16)((s32)(ds->screenDistance * 0x96) / temp_a0_4);
+                                scratch->cornerOffset.vx = (u16)((s32)(ds->screenDistance * 0x96) / temp_a0_4);
                             } else {
-                                scratch->spin.vx = 0x1000U;
+                                scratch->cornerOffset.vx = 0x1000U;
                             }
-                            temp_v1_8                  = (u16)scratch->sxy.vx - (u16)scratch->spin.vx;
+                            temp_v1_8                  = (u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx;
                             ((POLY_FT4*)shared)->x2    = temp_v1_8;
                             ((POLY_FT4*)shared)->x0    = temp_v1_8;
-                            temp_v1_9                  = (u16)scratch->sxy.vx + (u16)scratch->spin.vx;
+                            temp_v1_9                  = (u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vx;
                             ((POLY_FT4*)shared)->x3    = temp_v1_9;
                             ((POLY_FT4*)shared)->x1    = temp_v1_9;
-                            temp_v1_10                 = (u16)scratch->sxy.vy - (u16)scratch->spin.vx;
+                            temp_v1_10                 = (u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vx;
                             ((POLY_FT4*)shared)->y1    = temp_v1_10;
                             ((POLY_FT4*)shared)->y0    = temp_v1_10;
-                            temp_v1_11                 = (u16)scratch->sxy.vy + (u16)scratch->spin.vx;
+                            temp_v1_11                 = (u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx;
                             ((POLY_FT4*)shared)->tpage = 0x29;
                             ((POLY_FT4*)shared)->y3    = temp_v1_11;
                             ((POLY_FT4*)shared)->y2    = temp_v1_11;
@@ -1803,10 +1824,10 @@ block_22:
                                     (POLY_FT4*)shared);
                         }
                     } else if (var_s4 >= (var_fp - 4)) {
-                        temp_s0_6        = (u16)point->pad;
-                        scratch->spin.vx = rsin(temp_s0_6);
-                        scratch->spin.vy = rcos(temp_s0_6);
-                        scratch->spin.vz = 0;
+                        temp_s0_6                = (u16)point->pad;
+                        scratch->cornerOffset.vx = rsin(temp_s0_6);
+                        scratch->cornerOffset.vy = rcos(temp_s0_6);
+                        scratch->cornerOffset.vz = 0;
                         if (scratch->otz >= 0) {
                             var_a0 = (var_s4 * 2) + 0x78;
                             if ((var_fp >= var_s4) && (arg0->status == 2)) {
@@ -1816,19 +1837,19 @@ block_22:
                             }
                             gteValue7 = (var_a0 * ds->screenDistance) / scratch->otz;
                             gte_lddp(gteValue7);
-                            temp_v0_4 = &scratch->spin;
+                            temp_v0_4 = &scratch->cornerOffset;
                             gte_ldsv(temp_v0_4);
                             gte_gpf12();
                             gte_stsv(temp_v0_4);
                         }
-                        ((POLY_FT4*)shared)->x0    = (s16)((u16)scratch->sxy.vx + (u16)scratch->spin.vx);
-                        ((POLY_FT4*)shared)->y0    = (s16)((u16)scratch->sxy.vy + (u16)scratch->spin.vy);
-                        ((POLY_FT4*)shared)->x1    = (s16)((u16)scratch->sxy.vx + (u16)scratch->spin.vy);
-                        ((POLY_FT4*)shared)->y1    = (s16)((u16)scratch->sxy.vy - (u16)scratch->spin.vx);
-                        ((POLY_FT4*)shared)->x2    = (s16)((u16)scratch->sxy.vx - (u16)scratch->spin.vy);
-                        ((POLY_FT4*)shared)->y2    = (s16)((u16)scratch->sxy.vy + (u16)scratch->spin.vx);
-                        ((POLY_FT4*)shared)->x3    = (s16)((u16)scratch->sxy.vx - (u16)scratch->spin.vx);
-                        ((POLY_FT4*)shared)->y3    = (s16)((u16)scratch->sxy.vy - (u16)scratch->spin.vy);
+                        ((POLY_FT4*)shared)->x0    = (s16)((u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vx);
+                        ((POLY_FT4*)shared)->y0    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vy);
+                        ((POLY_FT4*)shared)->x1    = (s16)((u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vy);
+                        ((POLY_FT4*)shared)->y1    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vx);
+                        ((POLY_FT4*)shared)->x2    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vy);
+                        ((POLY_FT4*)shared)->y2    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx);
+                        ((POLY_FT4*)shared)->x3    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx);
+                        ((POLY_FT4*)shared)->y3    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vy);
                         temp_v1_13                 = (u8)(u16)point->pad & 0x20;
                         ((POLY_FT4*)shared)->v1    = 0x18;
                         ((POLY_FT4*)shared)->v0    = 0x18;
@@ -1860,67 +1881,67 @@ block_22:
             } while (var_s4 < 0x20);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor403600ProjectileScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
 }
 
 static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
 {
-    s32                       radii[16];
-    s32                       heights[16];
-    s32                       corner[4];
-    s32                       i;
-    s32                       j;
-    s32                       firstAngle;
-    s32                       angle;
-    s32                       index;
-    s32                       value;
-    s32                       firstRadius;
-    s32                       rotation;
-    s32                       mirrorXY;
-    s32                       projectedX;
-    s32                       projectedY;
-    s32                       screenX;
-    s32                       screenY;
-    s32                       min;
-    s32                       max;
-    s32                       adjust;
-    s32                       radiusOffset;
-    s32                       scale;
-    s32                       scanCount;
-    s32*                      height;
-    MATRIX*                   matrix;
-    s32*                      heightBase;
-    s32*                      scan;
-    u16                       oldY;
-    u8*                       head;
-    u8*                       newHead;
-    Actor403600GridQuad*      after;
-    Actor403600GridQuad*      previous;
-    Actor403600GridQuad*      mirror;
-    Actor403600GridQuad*      poly;
-    SVECTOR*                  vec;
-    Actor403600EffectScratch* scratch;
+    s32                            radii[16];
+    s32                            heights[16];
+    s32                            corner[4];
+    s32                            i;
+    s32                            j;
+    s32                            firstAngle;
+    s32                            angle;
+    s32                            index;
+    s32                            value;
+    s32                            firstRadius;
+    s32                            rotation;
+    s32                            mirrorXY;
+    s32                            projectedX;
+    s32                            projectedY;
+    s32                            screenX;
+    s32                            screenY;
+    s32                            min;
+    s32                            max;
+    s32                            adjust;
+    s32                            radiusOffset;
+    s32                            scale;
+    s32                            scanCount;
+    s32*                           height;
+    MATRIX*                        matrix;
+    s32*                           heightBase;
+    s32*                           scan;
+    u16                            oldY;
+    u8*                            head;
+    u8*                            newHead;
+    _Actor403600GridQuad*          after;
+    _Actor403600GridQuad*          previous;
+    _Actor403600GridQuad*          mirror;
+    _Actor403600GridQuad*          poly;
+    SVECTOR*                       vec;
+    _Actor403600RadialGridScratch* scratch;
 
     head                       = SCRATCH_STACK_CURSOR(u8);
-    newHead                    = head - 0x78;
+    newHead                    = head - sizeof(_Actor403600RadialGridScratch);
     SCRATCH_STACK_CURSOR(void) = newHead;
-    scratch                    = (Actor403600EffectScratch*)newHead;
+    scratch                    = (_Actor403600RadialGridScratch*)newHead;
     Gp_UpdateCoord(arg1);
     gte_SetRotMatrix(&arg1->workm);
     gte_SetTransMatrix(&arg1->workm);
 
-    scratch->points[1].vz = 0x1000;
-    scratch->points[2].vx = 0x1000;
-    scratch->points[0].vx = 0;
-    scratch->points[0].vy = 0;
-    scratch->points[0].vz = 0;
-    scratch->points[1].vx = 0;
-    scratch->points[1].vy = 0;
-    scratch->points[2].vy = 0;
-    scratch->points[2].vz = 0;
-    gte_ldv3(&scratch->points[0], &scratch->points[1], &scratch->points[2]);
+    scratch->probePoints[1].vz = 0x1000;
+    scratch->probePoints[2].vx = 0x1000;
+    scratch->probePoints[0].vx = 0;
+    scratch->probePoints[0].vy = 0;
+    scratch->probePoints[0].vz = 0;
+    scratch->probePoints[1].vx = 0;
+    scratch->probePoints[1].vy = 0;
+    scratch->probePoints[2].vy = 0;
+    scratch->probePoints[2].vz = 0;
+    gte_ldv3(&scratch->probePoints[0], &scratch->probePoints[1], &scratch->probePoints[2]);
     gte_rtpt();
-    gte_stsxy3(&scratch->sxy3[0], &scratch->sxy3[1], &scratch->sxy3[2]);
+    gte_stsxy3(&scratch->probeSxy[0], &scratch->probeSxy[1], &scratch->probeSxy[2]);
     gte_stdp(&scratch->dp);
     gte_stflg(&scratch->flag);
     gte_stszotz(&scratch->otz);
@@ -1948,11 +1969,11 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
     } while (i < 16);
 
     scratch->maxOtz = 0;
-    matrix          = &scratch->matrix;
-    vec             = &scratch->vec;
+    matrix          = &scratch->sectorMatrix;
+    vec             = &scratch->texelOffset;
     heightBase      = heights;
     do {
-        scratch->matrix = arg1->workm;
+        scratch->sectorMatrix = arg1->workm;
         gfxRotMatrixY(matrix, (j << 12) / 12, 0);
         gte_SetTransMatrix(&arg1->workm);
         gte_SetRotMatrix(matrix);
@@ -1967,21 +1988,21 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
             s32 screenH = 240;
 
             angle                   %= 32;
-            poly                     = (Actor403600GridQuad*)D_actor_403600_8016069C;
-            D_actor_403600_8016069C += sizeof(POLY_FT4);
+            poly                     = (_Actor403600GridQuad*)D_actor_403600_8016069C;
+            D_actor_403600_8016069C += sizeof(_Actor403600GridQuad);
             rotation                 = -rcos(arg0->field_0[angle]) >> 3;
-            scratch->vec.vx          = rsin(rotation);
-            scratch->vec.vy          = rcos(rotation);
-            scratch->vec.vz          = 0;
+            scratch->texelOffset.vx  = rsin(rotation);
+            scratch->texelOffset.vy  = rcos(rotation);
+            scratch->texelOffset.vz  = 0;
             gte_ldv0(vec);
             gte_rtv0();
-            scratch->projected.vx = scale;
-            scratch->projected.vz = 0;
+            scratch->localVertex.vx = scale;
+            scratch->localVertex.vz = 0;
             /* A byte offset stepped beside `i`: indexing `radii` by `i` frees
              * that register and moves the allocation of the whole loop. */
-            scratch->projected.vy = *(s32*)((u8*)radii + radiusOffset);
+            scratch->localVertex.vy = *(s32*)((u8*)radii + radiusOffset);
             gte_stsv(vec);
-            gte_ldv0(&scratch->projected);
+            gte_ldv0(&scratch->localVertex);
             gte_rtps();
             gte_stsxy(&scratch->sxy);
             gte_stdp(&scratch->dp);
@@ -1992,31 +2013,31 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
             gte_gpf12();
             gte_stsv(vec);
 
-            GPU_PRIMITIVE_XY_WORD(poly, 0) = scratch->sxy;
-            oldY                           = poly->y0;
-            projectedX                     = scratch->vec.vx + 0xA0;
-            screenX                        = (s16)poly->x0 + projectedX;
-            projectedY                     = scratch->vec.vy + 0x78;
-            screenY                        = (s16)poly->y0 + projectedY;
+            ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0) = scratch->sxy;
+            oldY                                            = poly->vertex0.y;
+            projectedX                                      = scratch->texelOffset.vx + 0xA0;
+            screenX                                         = (s16)poly->vertex0.x + projectedX;
+            projectedY                                      = scratch->texelOffset.vy + 0x78;
+            screenY                                         = (s16)poly->vertex0.y + projectedY;
             if (screenY >= screenH) {
-                poly->y0 = oldY + (screenH - 1) - screenY;
-                screenY  = screenH - 1;
+                poly->vertex0.y = oldY + (screenH - 1) - screenY;
+                screenY         = screenH - 1;
             } else if (screenY < 0) {
-                poly->y0 = oldY - screenY;
-                screenY  = 0;
+                poly->vertex0.y = oldY - screenY;
+                screenY         = 0;
             }
             if (screenX >= screenW) {
-                poly->x0 = (u16)poly->x0 + (screenW - 1) - screenX;
+                poly->vertex0.x = (u16)poly->vertex0.x + (screenW - 1) - screenX;
             } else if (screenX < 0) {
-                poly->x0 = (u16)poly->x0 - screenX;
-                screenX  = 0;
+                poly->vertex0.x = (u16)poly->vertex0.x - screenX;
+                screenX         = 0;
             }
             poly->page0 = 0;
             if (screenX >= 0x100) {
                 poly->page0 = 0x40;
             }
-            poly->v0 = screenY;
-            poly->u0 = screenX - poly->page0;
+            poly->vertex0.v = screenY;
+            poly->vertex0.u = screenX - poly->page0;
             /* The next height is read at a byte offset scaled apart from the
              * base: indexing `heightBase[i + 1]` folds the +1 into the load. */
             if (scratch->flag >= 0 && i != 15 && (*height != 0 || (index = i + 1, index *= 4, *(s32*)((s32)heightBase + index) != 0))) {
@@ -2030,27 +2051,27 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
             }
             previous = poly - 1;
             if (i != 0) {
-                GPU_PRIMITIVE_XY_WORD(previous, 1) = GPU_PRIMITIVE_XY_WORD(poly, 0);
-                previous->u1                       = poly->u0;
+                ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex1) = ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0);
+                previous->vertex1.u                                 = poly->vertex0.u;
                 do {
-                    previous->v1    = poly->v0;
-                    previous->page1 = poly->page0;
+                    previous->vertex1.v = poly->vertex0.v;
+                    previous->page1     = poly->page0;
                     if (j != 0) {
-                        mirrorXY = GPU_PRIMITIVE_XY_WORD(previous, 0);
+                        mirrorXY = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex0);
                         mirror   = poly - 17;
                     } else {
-                        mirrorXY = GPU_PRIMITIVE_XY_WORD(previous, 0);
+                        mirrorXY = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex0);
                         mirror   = poly + 175;
                     }
-                    GPU_PRIMITIVE_XY_WORD(mirror, 2) = mirrorXY;
-                    mirror->u2                       = previous->u0;
+                    ACTOR_403600_GRID_VERTEX_XY_WORD(mirror->vertex2) = mirrorXY;
+                    mirror->vertex2.u                                 = previous->vertex0.u;
                 } while (0);
-                mirror->v2                       = previous->v0;
-                mirror->page2                    = previous->page0;
-                GPU_PRIMITIVE_XY_WORD(mirror, 3) = GPU_PRIMITIVE_XY_WORD(previous, 1);
-                mirror->u3                       = previous->u1;
-                mirror->v3                       = previous->v1;
-                mirror->page3                    = previous->page1;
+                mirror->vertex2.v                                 = previous->vertex0.v;
+                mirror->page2                                     = previous->page0;
+                ACTOR_403600_GRID_VERTEX_XY_WORD(mirror->vertex3) = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex1);
+                mirror->vertex3.u                                 = previous->vertex1.u;
+                mirror->vertex3.v                                 = previous->vertex1.v;
+                mirror->page3                                     = previous->page1;
             }
             height++;
             radiusOffset += 4;
@@ -2068,10 +2089,10 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
          * reached at a negative displacement, as the build requires. */
         after = poly + 1;
         do {
-            corner[0] = after[-1].u0 + after[-1].page0;
-            corner[1] = after[-1].u1 + after[-1].page1;
-            corner[2] = after[-1].u2 + after[-1].page2;
-            corner[3] = after[-1].u3 + after[-1].page3;
+            corner[0] = after[-1].vertex0.u + after[-1].page0;
+            corner[1] = after[-1].vertex1.u + after[-1].page1;
+            corner[2] = after[-1].vertex2.u + after[-1].page2;
+            corner[3] = after[-1].vertex3.u + after[-1].page3;
             min       = corner[0];
             max       = corner[0];
             for (scanCount = 1; scanCount < 4; scanCount++) {
@@ -2086,19 +2107,19 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
             } else {
                 adjust = 0;
             }
-            after[-1].tpage = ((u32)(adjust + 0x1C0) >> 6) | 0x110;
-            after[-1].u0    = corner[0] - adjust;
-            after[-1].u1    = corner[1] - adjust;
+            after[-1].tpage     = ((u32)(adjust + 0x1C0) >> 6) | 0x110;
+            after[-1].vertex0.u = corner[0] - adjust;
+            after[-1].vertex1.u = corner[1] - adjust;
             poly--;
-            after[-1].u2 = corner[2] - adjust;
+            after[-1].vertex2.u = corner[2] - adjust;
             i++;
-            after[-1].u3 = corner[3] - adjust;
+            after[-1].vertex3.u = corner[3] - adjust;
             after--;
         } while (i < 16);
         j++;
     } while (j < 12);
     frameCaptureQueue(scratch->maxOtz + 1);
-    SCRATCH_STACK_RELEASE_BYTES(0x78);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600RadialGridScratch));
 }
 
 static const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
