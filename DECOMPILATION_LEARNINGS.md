@@ -21559,13 +21559,21 @@ pointers (e.g. file-list base in phase 1 and stream-folder base in phase 2 both
 in `$t2`), reusing one C variable across both phases forces the shared colouring:
 
 ```c
-FsCdfFile* files = Fs_CdSector.fileList;
-/* phase 1: walk files[j] */
+union {
+    FsCdfFile*    file;
+    _FsCdfFolder* folder;
+} files;
+
+files.file = Fs_CdSector.fileList;
+/* phase 1: walk files.file[j] */
 ...
 /* phase 2: reuse the same local for the stream-side folder entry */
-files = (FsCdfFile*)(Fs_FolderTable + (i & 0xFFFF));
-stream->offset += files->sectorOffset + stage;
+files.folder = Fs_FolderTable + (i & 0xFFFF);
+stream->startSector += files.folder->sectorOffset + stage;
 ```
+
+The two pointers differ in type, so the one variable is a union of both rather
+than a cast of the folder entry to the file record.
 
 Separate `files` / `folder2` locals often colour differently and shift every
 `$tN` assignment. `Fs_BuildFolderTables` needs this so phase-1 file base and phase-2

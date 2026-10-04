@@ -63,7 +63,7 @@ The named `control`, `source` and `data` unions in `StreamSlot` distinguish movi
 Runtime **absolutizes** `startSector` when loading:
 
 - STAGE0: `+= Fs_StageCdfSectors[0]`
-- Folder: `+= folder.offset + stage_cdf_base`
+- Folder: `+= folder.sectorOffset + stage_cdf_base`
 
 Both movie and scene/audio offsets in a folder are relative to that folder's
 base. Peassets offset fields are measured in **bytes**, whereas the C descriptor
@@ -377,7 +377,7 @@ Extract policy (`extract.py` / `extract_movies.py`):
 Runtime absolutization of `startSector` (table load):
 
 - STAGE0: `startSector += Fs_StageCdfSectors[0]` (STAGE0.CDF LBA)
-- Folder: `startSector += folder.offset + Fs_StageCdfSectors[stage]`
+- Folder: `startSector += folder.sectorOffset + Fs_StageCdfSectors[stage]`
 
 Play init (`Stream_InitFromSlot` + `Stream_InitializePlayback`):
 

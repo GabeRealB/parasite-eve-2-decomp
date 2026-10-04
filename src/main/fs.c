@@ -24,10 +24,18 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-typedef struct _FsCdfFolder {
-    u32 id;     // Folder id.
-    u32 offset; // Offset from the beginning of the file.
-} FsCdfFolder;
+/// Where one folder of a stage CDF starts, as the loader keeps it.
+///
+/// The CDF's own folder list, `FsCdfFolderList`, gives each folder's length
+/// only. Reading it accumulates those lengths into one of these records per
+/// folder, so a load can find a folder by number and seek to its first sector.
+/// The sectors a folder's file list and stream table give count from that
+/// first sector, and are rebased by the same offset.
+typedef struct {
+    u32 folderId;     // Disc folder number, as in `FsCdfFolderListEntry`
+    u32 sectorOffset; // CD sectors from the start of the stage CDF to the folder's first sector
+} _FsCdfFolder;
+STATIC_ASSERT_SIZEOF(_FsCdfFolder, 0x8);
 
 /// A compact `STAGE0.HED` file entry, kept in the tables for file categories 1-4.
 ///
@@ -157,7 +165,7 @@ static u8 D_8006BF90[8];
 
 static u32 Fs_FileOffsetsCat90[0x8];
 
-static FsCdfFolder Fs_FolderTable[50];
+static _FsCdfFolder Fs_FolderTable[50];
 
 static u16 Fs_FolderTableLen;
 
@@ -991,14 +999,14 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
     folderId   = ((u8)arg1 * 100) + (u8)arg2;
 
     for (i = 0; i < Fs_FolderTableLen; i++) {
-        if (folderId == Fs_FolderTable[i].id) {
+        if (folderId == Fs_FolderTable[i].folderId) {
             break;
         }
     }
 
     Fs_VBlank = VSync(-1);
 
-    sector = Fs_FolderTable[i].offset + Fs_StageCdfSectors[(u8)arg0];
+    sector = Fs_FolderTable[i].sectorOffset + Fs_StageCdfSectors[(u8)arg0];
     _fsStartRead(sector, sector, Fs_CdSector.bytes, 0);
 }
 
@@ -1010,22 +1018,22 @@ void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
     s32 j;
     s32 folderId;
     union {
-        FsCdfFile*   file;
-        FsCdfFolder* folder;
+        FsCdfFile*    file;
+        _FsCdfFolder* folder;
     } files;
-    s32*         table;
-    s32          offset;
-    FsCdfFolder* folder;
-    StreamSlot*  sourceStreams;
-    StreamSlot*  destinationStreams;
-    s32          k;
-    u8*          src;
-    u8*          dst;
+    s32*          table;
+    s32           offset;
+    _FsCdfFolder* folder;
+    StreamSlot*   sourceStreams;
+    StreamSlot*   destinationStreams;
+    s32           k;
+    u8*           src;
+    u8*           dst;
 
     i        = 0;
     folderId = ((u8)arg1 * 100) + (u8)arg2;
     for (; (u16)i < Fs_FolderTableLen; i++) {
-        if (folderId == Fs_FolderTable[i & 0xFFFF].id) {
+        if (folderId == Fs_FolderTable[i & 0xFFFF].folderId) {
             break;
         }
     }
@@ -1034,13 +1042,13 @@ void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
     j          = 0;
     table      = D_8006C158;
     {
-        FsCdfFolder* sp = Fs_FolderTable;
-        folder          = sp + (i & 0xFFFF);
+        _FsCdfFolder* sp = Fs_FolderTable;
+        folder           = sp + (i & 0xFFFF);
     }
 loop_files:
     offset = files.file[j & 0xFFFF].sectorOffset;
     if (offset != 0) {
-        table[files.file[j & 0xFFFF].fileId] = offset + folder->offset;
+        table[files.file[j & 0xFFFF].fileId] = offset + folder->sectorOffset;
         j                                   += 1;
         goto loop_files;
     }
@@ -1050,15 +1058,15 @@ loop_files:
     folderId      = ((u8)arg1 * 100) + 1;
     sourceStreams = (StreamSlot*)(Fs_CdSector.bytes + FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET);
     for (; (u16)i < Fs_FolderTableLen; i++) {
-        if (folderId == Fs_FolderTable[i & 0xFFFF].id) {
+        if (folderId == Fs_FolderTable[i & 0xFFFF].folderId) {
             break;
         }
     }
 
     j = 0;
     {
-        FsCdfFolder* sp = Fs_FolderTable;
-        files.folder    = sp + (i & 0xFFFF);
+        _FsCdfFolder* sp = Fs_FolderTable;
+        files.folder     = sp + (i & 0xFFFF);
     }
     {
         s32* sp = Fs_StageCdfSectors;
@@ -1068,7 +1076,7 @@ loop_files:
     destinationStreams = Stream_Slots;
 loop_streams:
     if (sourceStreams[j & 0xFFFF].key.word != STREAM_KEY_TERMINATOR) {
-        sourceStreams[j & 0xFFFF].startSector += files.folder->offset + *table;
+        sourceStreams[j & 0xFFFF].startSector += files.folder->sectorOffset + *table;
         src                                    = (u8*)&sourceStreams[j & 0xFFFF];
         dst                                    = (u8*)(((j & 0xFFFF) * (s32)sizeof(*destinationStreams)) + (s32)destinationStreams);
         for (k = 0; (u16)k < sizeof(*destinationStreams); k++) {
@@ -1910,9 +1918,9 @@ void Fs_InitFolderTable(s32 unused)
             return;
         }
 
-        Fs_FolderTable[Fs_FolderTableLen].id     = entry->folderId;
-        Fs_FolderTable[Fs_FolderTableLen].offset = offset;
-        Fs_FolderTableLen                       += 1;
+        Fs_FolderTable[Fs_FolderTableLen].folderId     = entry->folderId;
+        Fs_FolderTable[Fs_FolderTableLen].sectorOffset = offset;
+        Fs_FolderTableLen                             += 1;
 
         offset += entry->sectorCount;
         entry  += 1;
