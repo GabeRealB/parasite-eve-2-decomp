@@ -5,7 +5,7 @@
 /// it is snapped back to -0x32, the step counter is cleared, the impact cue is
 /// enqueued with the object's own pan and half its depth, and the task steps
 /// on. Otherwise the body keeps falling by `fallStep`'s magnitude, drifts a
-/// fifteenth of `travel` in x and z, has its colour refreshed from the model's
+/// fifteenth of `aim.travel` in x and z, has its colour refreshed from the model's
 /// world position, damps the two shake terms and has its rotation rebuilt at
 /// half scale.
 void gluttonGlobFall(Enemy* enemy, Task* task)
@@ -38,8 +38,8 @@ void gluttonGlobFall(Enemy* enemy, Task* task)
     bounce            = ABS(work->fallStep);
     coord->coord.t[1] = drop + bounce;
 
-    task->extra.tmd->coords->coord.t[0]  += work->travel.vx / 15;
-    task->extra.tmd->coords->coord.t[2]  += work->travel.vz / 15;
+    task->extra.tmd->coords->coord.t[0]  += work->aim.travel.vx / 15;
+    task->extra.tmd->coords->coord.t[2]  += work->aim.travel.vz / 15;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
     pos.vx = task->extra.tmd->coords->workm.t[0];

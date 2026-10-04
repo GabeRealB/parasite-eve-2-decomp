@@ -10,7 +10,7 @@
 /// with the owner's id in its high half. The task's light and colour matrices
 /// are pointed into the work block, the translation is replaced by the world
 /// position of part 1 of escort 1's model, and `fallStep` is a fifteenth of
-/// that height. `travel` is the horizontal gap to the player, which the later
+/// that height. `aim.travel` is the horizontal gap to the player, which the later
 /// states spend a fifteenth at a time. The rotation is finally rebuilt at half
 /// scale around the yaw the model already faces.
 ///
@@ -67,10 +67,10 @@ void gluttonGlobSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
     work->fallStep = task->extra.tmd->coords->coord.t[1] / 15;
-    work->travel.vx =
+    work->aim.travel.vx =
         player->extra.tmd->coords->coord.t[0] - task->extra.tmd->coords->coord.t[0];
-    work->travel.vy = 0;
-    work->travel.vz =
+    work->aim.travel.vy = 0;
+    work->aim.travel.vz =
         player->extra.tmd->coords->coord.t[2] - task->extra.tmd->coords->coord.t[2];
     work->stateTicks   = 0;
     work->playerCaught = 0;

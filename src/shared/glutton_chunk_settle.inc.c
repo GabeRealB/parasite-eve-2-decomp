@@ -24,9 +24,9 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
     }
 
     if (work->stateChanged != 0) {
-        work->stateTicks = 0;
-        work->travel.vx /= 9;
-        work->travel.vz /= 9;
+        work->stateTicks     = 0;
+        work->aim.travel.vx /= 9;
+        work->aim.travel.vz /= 9;
         Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
         Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
         work->gridBody.flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -38,14 +38,14 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
 
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
-        work->travel.vx = 0;
+        work->aim.travel.vx = 0;
     }
 
     if (work->stateTicks < 8) {
-        task->extra.tmd->coords->coord.t[0]  += work->travel.vx;
-        task->extra.tmd->coords->coord.t[2]  += work->travel.vz;
-        work->travel.vx                     >>= 1;
-        work->travel.vz                     >>= 1;
+        task->extra.tmd->coords->coord.t[0]  += work->aim.travel.vx;
+        task->extra.tmd->coords->coord.t[2]  += work->aim.travel.vz;
+        work->aim.travel.vx                 >>= 1;
+        work->aim.travel.vz                 >>= 1;
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 

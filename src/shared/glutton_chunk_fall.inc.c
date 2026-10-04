@@ -42,20 +42,20 @@ void gluttonChunkFall(Enemy* enemy, Task* task)
     }
 
     if (ActorContact_PushContact(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
-        work->travel.vz = 0;
-        work->travel.vx = 0;
+        work->aim.travel.vz = 0;
+        work->aim.travel.vx = 0;
     }
 
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
-        work->travel.vx = 0;
+        work->aim.travel.vx = 0;
     }
 
     Gp_ClearRec18Occupied(work->gridContacts);
     Gp_ClearRec18Occupied(work->attackContacts);
 
-    task->extra.tmd->coords->coord.t[0]  += work->travel.vx / 9;
-    task->extra.tmd->coords->coord.t[2]  += work->travel.vz / 9;
+    task->extra.tmd->coords->coord.t[0]  += work->aim.travel.vx / 9;
+    task->extra.tmd->coords->coord.t[2]  += work->aim.travel.vz / 9;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
     pos.vx = task->extra.tmd->coords->workm.t[0];

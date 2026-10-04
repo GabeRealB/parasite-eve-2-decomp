@@ -9,7 +9,7 @@
 /// The model is reparented to `gGfxViewCoord` and its translation replaced by
 /// the world position of part 3 of the owning enemy's model, so the body starts
 /// where that part is. `fallStep` is a ninth of that height -- the bounce the
-/// descent state adds back -- and `travel` the horizontal gap to the player, which
+/// descent state adds back -- and `aim.travel` the horizontal gap to the player, which
 /// the later states spend a fifteenth at a time. The landing cue is enqueued at
 /// the model's own pan and depth with the owner's id in its high half, the
 /// model is spun to a random yaw, and the two nodes are linked with their
@@ -45,10 +45,10 @@ void gluttonChunkSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
     work->fallStep = task->extra.tmd->coords->coord.t[1] / 9;
-    work->travel.vx =
+    work->aim.travel.vx =
         player->extra.tmd->coords->coord.t[0] - task->extra.tmd->coords->coord.t[0];
-    work->travel.vy = 0;
-    work->travel.vz =
+    work->aim.travel.vy = 0;
+    work->aim.travel.vz =
         player->extra.tmd->coords->coord.t[2] - task->extra.tmd->coords->coord.t[2];
     work->stateTicks = 0;
     task->state++;

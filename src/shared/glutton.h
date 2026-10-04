@@ -91,8 +91,9 @@
 /// once and neither owns anything the other does not.
 ///
 /// The Glutton uses this wherever it builds a node's rotation in place: the
-/// host's free coordinate, the coordinate hung beneath its part 4, and the
-/// frame-local node under a falling rain blob's ground shadow.
+/// host's free coordinate, the coordinate hung beneath its part 4, the node a
+/// rain blob's attack body rides, and the frame-local node under a falling
+/// rain blob's ground shadow.
 typedef union {
     GfxCoord node;
     struct {
@@ -156,72 +157,48 @@ typedef struct GluttonEffScratch {
 } GluttonEffScratch;
 STATIC_ASSERT_SIZEOF(GluttonEffScratch, 0x10);
 
-/// Work block shared by three of the projectiles the Glutton flings: the
-/// thrown hit sphere, the glob and the debris chunk.
+/// Work block shared by four of the projectiles the Glutton flings: the
+/// thrown hit sphere, the glob, the debris chunk and the rain blob.
 ///
 /// Each is an enemy task of its own running a table of state handlers. Its
 /// spawn state allocates the block zeroed at this size and keeps it at
-/// `Task::work`; the states after it time themselves on `stateTicks` and set
-/// themselves up on the tick `stateChanged` is raised. The glob and the chunk
-/// are lobbed at where the player stood: the model drops `fallStep` a tick
-/// while it covers an equal share of `travel`, so it lands on that spot.
+/// `Task::work`; the states after it time themselves on `stateTicks`, and
+/// those of the first three set themselves up on the tick `stateChanged` is
+/// raised. The glob and the chunk are lobbed at where the player stood: the
+/// model drops `fallStep` a tick while it covers an equal share of
+/// `aim.travel`, so it lands on that spot. The rain blob climbs straight up
+/// out of view, is moved over `aim.landing` and drops onto it.
 ///
 /// No projectile uses every member. The thrown sphere has the attack body and
 /// the ground shadow, the glob the lighting matrices and the player request,
-/// and the chunk both bodies and the lighting matrices.
+/// the chunk both bodies and the lighting matrices, and the rain blob the
+/// attack body on a node of its own, its effect and the speed jitter.
 typedef struct {
-    VECTOR3               travel;            // Horizontal offset from the launch point to the player, covered in equal shares as the model falls; a settling chunk cuts it to one share and halves it each tick as its slide. A wall contact zeroes it; `vy` stays 0
-    byte                  unknown_C[0x54];   // Never accessed; role unproven
+    union {
+        VECTOR3 travel;                      // Glob and chunk: horizontal offset from the launch point to the player, covered in equal shares as the model falls; a settling chunk cuts it to one share and halves it each tick as its slide. A wall contact zeroes it; `vy` stays 0
+        VECTOR3 landing;                     // Rain blob: floor point it drops onto, in the view coordinate's space; `vy` is 0
+    } aim;                                   // Where the projectile is headed, in the form its states use
+    byte                  unknown_C[0x4];    // Never accessed; role unproven
+    GluttonCoord          bodyCoord;         // Unrotated node under the view coordinate that the rain blob's attack body rides, moved onto the blob every tick
     GfxCoord              shadowCoord;       // Node under the view coordinate, kept on the floor below the thrown sphere; its ground shadow is drawn there
-    WorldCollisionBody    attackBody;        // Pair-tested sphere riding the model, keyed with one of the owner's attacks
+    WorldCollisionBody    attackBody;        // Pair-tested sphere keyed with one of the owner's attacks, riding the model or, for the rain blob, `bodyCoord`. The rain blob's is tested only from the top of its climb, and widens from 0x100 to 0x380 as the blob splats
     WorldCollisionBody    gridBody;          // Sphere riding the model that is tested against the room grid, so a wall stops the chunk
     WorldCollisionContact attackContacts[1]; // The attack body's own contact table
     WorldCollisionContact gridContacts[3];   // The grid body's own contact table
     MATRIX                colorMtx;          // Light-colour matrix lent to the model
     MATRIX                lightMtx;          // Light-direction matrix lent to the model
-    byte                  unknown_190[0x4];  // Never accessed; role unproven
+    EffectWork*           rainEffect;        // Glow that is the rain blob's visible body: hung on its coordinate and made a child of its task, so it is torn down with it; NULL if it could not be spawned. Landing switches it to its burst
     AnimationPlayRequest  playerAnim;        // Request sent to the player task to play its caught clips
     s16                   stateChanged;      // 1 on the tick a state is entered, otherwise 0. The glob's and the chunk's dispatchers derive it from `prevState`; the thrown sphere's states raise and clear it themselves
-    s16                   fallStep;          // Launch height divided by the ticks the fall takes (15 for the glob, 9 for the chunk); its magnitude is added to the model's y each tick
-    s16                   stateTicks;        // Ticks spent in the current state; cleared on entry
-    byte                  unknown_1AE[0x2];  // Never accessed; role unproven
+    s16                   fallStep;          // Launch height divided by the ticks the fall takes (15 for the glob, 9 for the chunk); its magnitude is added to the model's y each tick. The rain blob only clears it
+    s16                   stateTicks;        // Ticks spent in the current state; cleared on entry. The rain blob counts only its drop, which waits 0x14 ticks over the landing point first, and its splat
+    s16                   speedJitter;       // Random distance added to the rain blob's speed each tick: 0 or 8 on top of the climb's 0x1F4, rerolled to 0..0x1F on top of the drop's 0x258
     s16                   shadowGrowth;      // How far the ground shadow has spread, in eighths of a size unit on top of its base 0x100; starts at 0x400 and gains 0x60 a tick
     s16                   playerCaught;      // 1 while the caught clip this glob installed is on the player, so only that glob sends the release
     s16                   prevState;         // Task state as of the previous tick, kept by the glob's and the chunk's dispatchers
     byte                  unknown_1B6[0xA];  // Never accessed; role unproven
 } GluttonProjectileWork;
 STATIC_ASSERT_SIZEOF(GluttonProjectileWork, 0x1C0);
-
-/// Work block of the enemy dispatched through `D_actor_403200_80131F14`, the one
-/// that rises out of view and slams back down onto the floor. Its spawn state
-/// allocates it with `memCalloc(0x1C0, 0)` and parks it in the task's
-/// `Task::work` slot, so the size is the allocation.
-///
-/// `target` is the landing point the spawn state picks; `coord` is the
-/// coordinate its shadow marker is drawn at, kept on the floor directly under
-/// the model and refreshed every step; `obj` is its collision node, whose
-/// `radius` is the marker size, carrying the one-entry `rec` table. `timer` is
-/// the step counter of the current state.
-typedef struct GluttonDropWork {
-    VECTOR3               target;
-    byte                  pad_C[0x4];
-    GfxCoord              coord;
-    byte                  pad_60[0x50];
-    WorldCollisionBody    obj;
-    byte                  pad_D0[0x20];
-    WorldCollisionContact rec;
-    byte                  pad_108[0x88];
-    /// The effect the spawn state starts, reparented onto the task so it dies
-    /// with it; the landing state tells it to finish.
-    EffectWork* eff;
-    byte        pad_194[0x16];
-    s16         field_1AA;
-    u16         timer;
-    /// Per-step bias of the rise and fall, rolled off the LCG.
-    s16  field_1AE;
-    byte pad_1B0[0x10];
-} GluttonDropWork;
-STATIC_ASSERT_SIZEOF(GluttonDropWork, 0x1C0);
 
 /// Work block of the spinner enemy dispatched through `D_actor_403200_80131F28`:
 /// its spawn state allocates it with `memCalloc(0xA0, 0)` and parks it in the
