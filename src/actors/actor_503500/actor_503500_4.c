@@ -177,24 +177,38 @@ typedef struct Actor503500WorkC0 {
 } Actor503500WorkC0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkC0, 0xC0);
 
-/// The 0xB4 block `func_actor_503500_801448E8` allocates: the same head and
-/// world-position pair as `Actor503500WorkC0`, then the payload
-/// `func_actor_503500_80144B40` steps every frame. `field_A8` is the speed,
-/// `Task::spawnArg2` or 0x100000 when the spawner passes none.
-typedef struct Actor503500WorkB4 {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact rec[4];
-    /* 0x80 */ Task*                 field_80;
-    /* 0x84 */ VECTOR                field_84;
-    /* 0x94 */ VECTOR                field_94;
-    /* 0xA4 */ byte                  pad_A4[0x4];
-    /* 0xA8 */ s32                   field_A8;
-    /* 0xAC */ s16                   field_AC;
-    /* 0xAE */ s16                   field_AE;
-    /* 0xB0 */ s8                    field_B0;
-    /* 0xB1 */ byte                  pad_B1[0x3];
-} Actor503500WorkB4;
-STATIC_ASSERT_SIZEOF(Actor503500WorkB4, 0xB4);
+/// Phase of a lingering shot, as held in `_Actor503500LingeringShotWork::phase`.
+enum {
+    ACTOR_503500_LINGERING_SHOT_SLOWING   = 0, // Flies along its facing, shedding speed, until it has all but stopped
+    ACTOR_503500_LINGERING_SHOT_LINGERING = 1, // Hangs where it stopped, still an attack, for as long as its kind allows
+    ACTOR_503500_LINGERING_SHOT_SPENT     = 2, // No longer collides; the task moves on to its exit
+};
+
+/// Work block of a lingering shot, one of the attack tasks the boss's slot
+/// enemies launch.
+///
+/// The launcher places and aims the task's coordinate and passes the launch
+/// speed. The shot then flies along that facing, losing speed every frame,
+/// while rising one unit a frame and held inside a fixed rectangle of the
+/// ground plane. Once it has all but stopped, its effect stops drawing its
+/// sprite and only sheds particles, and the shot hangs there as an attack
+/// sphere. After a time set by its kind (`Task::spawnArg1`: 0 large orb,
+/// 1 projectile) the sphere stops colliding and the task ends.
+///
+/// The block is allocated at launch and is the task's `Task::work`.
+typedef struct {
+    WorldCollisionBody    body;           // Attack sphere of radius 2200 on the task's own coordinate; pair-tested from launch until the linger ends
+    WorldCollisionContact contacts[4];    // Contact table of `body`, emptied every frame; the shot does not react to what it touches
+    Task*                 effectTask;     // Effect drawing the shot, kept as a child of this task; switched to shedding particles alone when the shot stops
+    VECTOR                position;       // World position in 16.16; its integer halves are what the coordinate's translation gets
+    VECTOR                launchPosition; // `position` as it was at launch. Nothing reads it back
+    byte                  unknown_A4[4];  // No field access established; role unproven
+    s32                   speed;          // Length of the forward step in 16.16, taken twice a frame; loses 8 a frame until under 8, then keeps what is left
+    s16                   field_AC;       // Set to 0x1000 at launch. Nothing reads it back; role unproven
+    s16                   lingerFrames;   // Frames spent in the lingering phase
+    s8                    phase;          // An `ACTOR_503500_LINGERING_SHOT_*` phase
+} _Actor503500LingeringShotWork;
+STATIC_ASSERT_SIZEOF(_Actor503500LingeringShotWork, 0xB4);
 
 /// Work block of the knock-back task `func_actor_503500_801437D0` spawns
 /// (`memFillBytes(_, 0, 0x38)` in `func_actor_503500_80143AC0`). `rot` is a copy of the
@@ -4822,14 +4836,14 @@ static const TaskFuncTable3 D_actor_503500_801321E8 = {
 
 static void func_actor_503500_801448E8(Task* arg0)
 {
-    Actor503500WorkB4*     work;
-    GfxCoord*              coord;
-    WorldCollisionContact* rec;
-    EffectWork*            eff;
-    Task*                  child;
-    GfxRotationWords*      m;
-    s32                    pan;
-    s32                    pan2;
+    _Actor503500LingeringShotWork* work;
+    GfxCoord*                      coord;
+    WorldCollisionContact*         contacts;
+    EffectWork*                    eff;
+    Task*                          child;
+    GfxRotationWords*              m;
+    s32                            pan;
+    s32                            pan2;
 
     coord = arg0->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
@@ -4839,38 +4853,38 @@ static void func_actor_503500_801448E8(Task* arg0)
     }
     arg0->work = work;
 
-    work->field_84.vx = coord->coord.t[0] << 16;
-    work->field_84.vy = coord->coord.t[1] << 16;
-    work->field_84.vz = coord->coord.t[2] << 16;
-    work->field_94.vx = work->field_84.vx;
-    work->field_AC    = 0x1000;
-    work->field_94.vy = work->field_84.vy;
-    work->field_94.vz = work->field_84.vz;
+    work->position.vx       = coord->coord.t[0] << 16;
+    work->position.vy       = coord->coord.t[1] << 16;
+    work->position.vz       = coord->coord.t[2] << 16;
+    work->launchPosition.vx = work->position.vx;
+    work->field_AC          = 0x1000;
+    work->launchPosition.vy = work->position.vy;
+    work->launchPosition.vz = work->position.vz;
 
     if (arg0->spawnArg2.pointer != NULL) {
-        work->field_A8 = arg0->spawnArg2.value;
+        work->speed = arg0->spawnArg2.value;
     } else {
-        m              = (GfxRotationWords*)&coord->coord;
-        m->m00M01      = ONE;
-        m->m02M10      = 0;
-        m->m11M12      = ONE;
-        m->m20M21      = 0;
-        m->m22         = ONE;
-        work->field_A8 = 0x100000;
+        m           = (GfxRotationWords*)&coord->coord;
+        m->m00M01   = ONE;
+        m->m02M10   = 0;
+        m->m11M12   = ONE;
+        m->m20M21   = 0;
+        m->m22      = ONE;
+        work->speed = 0x100000;
     }
-    rec = work->rec;
+    contacts = work->contacts;
 
-    work->obj.coord            = coord;
-    work->obj.context.contacts = rec;
-    work->obj.pos.vx           = D_actor_503500_801715B4.vx;
-    work->obj.pos.vy           = D_actor_503500_801715B4.vy;
-    work->obj.pos.vz           = D_actor_503500_801715B4.vz;
-    work->obj.key              = Gp_PackPair(D_actor_503500_8016E7D0[0], arg0->spawnArg1.value);
-    work->obj.radius           = 0x898;
-    work->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj);
-    Gp_InitRec18Table(rec, 4, 0);
-    work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->body.coord            = coord;
+    work->body.context.contacts = contacts;
+    work->body.pos.vx           = D_actor_503500_801715B4.vx;
+    work->body.pos.vy           = D_actor_503500_801715B4.vy;
+    work->body.pos.vz           = D_actor_503500_801715B4.vz;
+    work->body.key              = Gp_PackPair(D_actor_503500_8016E7D0[0], arg0->spawnArg1.value);
+    work->body.radius           = 0x898;
+    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(3, &work->body);
+    Gp_InitRec18Table(contacts, ARRAY_SIZE(work->contacts), 0);
+    work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     if (arg0->spawnArg1.value == 0) {
         eff = Gp_SpawnEff(EFFECT_BRAHMAN_LARGE_ORB, coord, 0, NULL);
@@ -4885,8 +4899,8 @@ static void func_actor_503500_801448E8(Task* arg0)
         func_actor_503500_80144DA8(arg0);
         return;
     }
-    child          = eff->task;
-    work->field_80 = child;
+    child            = eff->task;
+    work->effectTask = child;
     taskReparent(arg0, child);
     func_actor_503500_80137290(3);
     arg0->exitCallback = func_actor_503500_80144DA8;
@@ -4895,26 +4909,26 @@ static void func_actor_503500_801448E8(Task* arg0)
 
 static void func_actor_503500_80144B40(Task* arg0)
 {
-    Actor503500WorkB4* work;
-    GfxCoord*          coord;
-    VECTOR             v;
+    _Actor503500LingeringShotWork* work;
+    GfxCoord*                      coord;
+    VECTOR                         v;
 
-    work  = (Actor503500WorkB4*)arg0->work;
+    work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    switch (work->field_B0) {
-        case 0:
-            work->field_A8 -= 0x80000;
-            if (work->field_A8 < 0x80000) {
-                work->field_80->spawnArg1.value = 2;
-                work->field_B0++;
+    switch (work->phase) {
+        case ACTOR_503500_LINGERING_SHOT_SLOWING:
+            work->speed -= 0x80000;
+            if (work->speed < 0x80000) {
+                work->effectTask->spawnArg1.value = 2;
+                work->phase++;
             }
             break;
-        case 1:
-            work->field_AE++;
-            if (D_actor_503500_801715BC[arg0->spawnArg1.value] < work->field_AE) {
-                work->field_AE   = 0;
-                work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->field_B0++;
+        case ACTOR_503500_LINGERING_SHOT_LINGERING:
+            work->lingerFrames++;
+            if (D_actor_503500_801715BC[arg0->spawnArg1.value] < work->lingerFrames) {
+                work->lingerFrames = 0;
+                work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                work->phase++;
             }
             break;
         default:
@@ -4923,27 +4937,27 @@ static void func_actor_503500_80144B40(Task* arg0)
     }
     v.vx = 0;
     v.vy = 0;
-    v.vz = work->field_A8;
+    v.vz = work->speed;
     ApplyMatrixLV(&coord->coord, &v, &v);
-    work->field_84.vx += v.vx;
-    work->field_84.vy += v.vy - 0x10000;
-    work->field_84.vz += v.vz;
-    work->field_84.vx += v.vx;
-    work->field_84.vy += v.vy;
-    work->field_84.vz += v.vz;
-    if (work->field_84.vx > 0x36B00000) {
-        work->field_84.vx = 0x36B00000;
-    } else if (work->field_84.vx < 0x7D00000) {
-        work->field_84.vx = 0x7D00000;
+    work->position.vx += v.vx;
+    work->position.vy += v.vy - 0x10000;
+    work->position.vz += v.vz;
+    work->position.vx += v.vx;
+    work->position.vy += v.vy;
+    work->position.vz += v.vz;
+    if (work->position.vx > 0x36B00000) {
+        work->position.vx = 0x36B00000;
+    } else if (work->position.vx < 0x7D00000) {
+        work->position.vx = 0x7D00000;
     }
-    if (work->field_84.vz > 0x32C80000) {
-        work->field_84.vz = 0x32C80000;
-    } else if (work->field_84.vz < 0x3E80000) {
-        work->field_84.vz = 0x3E80000;
+    if (work->position.vz > 0x32C80000) {
+        work->position.vz = 0x32C80000;
+    } else if (work->position.vz < 0x3E80000) {
+        work->position.vz = 0x3E80000;
     }
-    coord->coord.t[0] = work->field_84.vx >> 16;
-    coord->coord.t[1] = work->field_84.vy >> 16;
-    coord->coord.t[2] = work->field_84.vz >> 16;
+    coord->coord.t[0] = work->position.vx >> 16;
+    coord->coord.t[1] = work->position.vy >> 16;
+    coord->coord.t[2] = work->position.vz >> 16;
 }
 
 static void func_actor_503500_80144D50(Task* arg0)
@@ -4971,13 +4985,13 @@ static void func_actor_503500_80144DA8(Task* arg0)
     } else {
         SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 7), 1);
     }
-    Gp_UnlinkObj(&((Actor503500WorkB4*)arg0->work)->obj);
+    Gp_UnlinkObj(&((_Actor503500LingeringShotWork*)arg0->work)->body);
     taskKill(arg0);
 }
 
 static void func_actor_503500_80144E10(Task* arg0)
 {
-    Gp_ClearRec18Occupied(((Actor503500WorkB4*)arg0->work)->rec);
+    Gp_ClearRec18Occupied(((_Actor503500LingeringShotWork*)arg0->work)->contacts);
 }
 
 void func_actor_503500_80144E34(Task* task)
