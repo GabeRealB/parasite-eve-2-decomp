@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_356100.
 D_actor_356100_801728CC = 0x801728CC; // size:0x7E9 defined:True
-D_actor_356100_801730B8 = 0x801730B8; // size:0xF8 defined:True
-D_actor_356100_801731B0 = 0x801731B0; // size:0x78 defined:True
+D_actor_356100_801730B8 = 0x801730B8; // size:0xB8 defined:True
+D_actor_356100_80173170 = 0x80173170; // size:0xB8 defined:True
 D_actor_356100_8016A96C = 0x8016A96C; // size:0x18 defined:True
 D_actor_356100_8016A984 = 0x8016A984; // size:0x10 defined:True
 D_actor_356100_8016A994 = 0x8016A994; // size:0x18 defined:True

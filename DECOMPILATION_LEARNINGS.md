@@ -113787,7 +113787,7 @@ and 99.97% respectively.
 offset, so a `VECTOR` declared before a 0x7C-byte struct table lands at
 `sp+0x10` and the table at `sp+0x20`. Declared the other way round the pair
 comes out `sp+0x10` / `sp+0x90` and every `%hi`/`%lo` in the prologue, the
-`addiu $a1, $sp, 0x10` call argument and the `lw f[state]` index base shift
+`addiu $a1, $sp, 0x10` call argument and the `lw handlers[state]` index base shift
 with it. The `VECTOR` type here is 16 bytes (`long vx, vy; long vz, pad;` in
 `psyq/libgte.h`), so `0x10 + 0x10 = 0x20` closes exactly with no padding — a
 4-byte hole in a frame usually means a local whose declaration order is wrong
@@ -113800,11 +113800,11 @@ its three halfword stores in *descending* offset order (`0x64`, `0x62`,
 Both come from the same statement shape; the difference is the statement:
 
 ```c
-    blk->v.vx = blk->v.vy = blk->v.vz = 0;   /* stores 0x64, 0x62, 0x60 */
+    blk->viewPos.vx = blk->viewPos.vy = blk->viewPos.vz = 0;   /* stores 0x64, 0x62, 0x60 */
     /* ... */
-    blk->v.vx = 0;                            /* stores 0x60, 0x62, 0x64 */
-    blk->v.vy = 0;
-    blk->v.vz = 0;
+    blk->viewPos.vx = 0;                                        /* stores 0x60, 0x62, 0x64 */
+    blk->viewPos.vy = 0;
+    blk->viewPos.vz = 0;
 ```
 
 C evaluates the chain right-to-left, so the RTL is emitted `vz`, `vy`, `vx`,
@@ -140948,6 +140948,12 @@ if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) &&
 A fourth, unrelated test in the same `&&` chain (`... && work->animId != 0x1E`)
 does not disturb the merge.
 
+The same merge lets a handler's context test be written with the stage and
+area constants. `arg2->context.loc.stage == GAME_STAGE_SHELTER_NEO_ARK &&
+arg2->context.loc.area == GAME_AREA_NEO_ARK_FOREST_ZONE` compiles to the
+`lhu v1,0(a2)` / `li v0,0xB05` / `bne` that `arg2->context.key == 0xB05` gives
+(actor_356100's command handler), so the packed literal is not needed to match.
+
 ## A scratch target can come from another overlay's same-named `.s` (RoomsShared8017eb5cIdList, 2026-09-24)
 
 **Symptom.** The first build compiles all 412 instructions yet scores 0% with
@@ -147335,3 +147341,33 @@ Two side observations from the same function:
   plain `TaskFunc` handlers and `states.funcs[work->state](task)` it compiles to
   the same bytes. `$v0`, `$v1` and `$a0` were busy, and `$a1` was simply the
   next free register for the table's address.
+## A lone word cleared after a pointer table can be a slot of a second table: read the twin statement in sibling packages (actor_356100, 2026-10-04)
+
+**Symptom.** A package's animation-set table was declared `u8[248]` (62
+pointer words, only entries 1 and 2 set), followed by a wrapper
+`{ s32 value; u8 retained[116]; }` at `0x801731B0` whose only access is
+`sw zero` as one state begins. Neither size means anything: the animation ids
+stop at 44 and the transition table is 45 by 45.
+
+**Cause.** The cut was made at the one referenced address. The twin of that
+statement in every other Stranger package (`actor_01900`, `actor_401300`, the
+Odd Stranger carriers) is `sets[16] = &dormantSet;` on a 46-entry table, and
+here `0x801731B0` is `0x801730B8 + (46 + 16) * 4`, with exactly 2 * 46 words
+between the table's start and the next object. So the span is two 46-entry
+tables and the store is slot 16 of the second, which nothing is bound to.
+
+**Fix.** Cut at the table boundary and index the second table:
+
+```c
+u8            D_actor_356100_801730B8[184] = { ... };   /* 46 words */
+AnimationSet* D_actor_356100_80173170[46] = { NULL };
+...
+D_actor_356100_80173170[16] = NULL;   /* lui %hi(sym+0x40) / sw zero,%lo(sym+0x40) */
+```
+
+The store compiles to the same two instructions against either symbol, so
+nothing in the function says which cut is right; the symbol map has to follow
+the cut (`size:0xB8` twice) or the expected objects name the old symbol. When
+a storage wrapper's only access is one word, look for the same statement in a
+sibling package before keeping the wrapper, and test the offset against the
+sibling's table length.

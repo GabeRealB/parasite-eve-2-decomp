@@ -240,9 +240,9 @@ extern SVECTOR D_actor_401300_80158A08[2];
 /// record (`Enemy::param`), the three variant records `spawnArg1 & 0xF` picks
 /// `downFramesBase`, `sidestepAngle` and `field_CA4` from, the animation bank passed to
 /// `animationBindContext`, the 0x3FF message seed, and the task's `field_24`.
-extern EnemyParams   D_actor_401300_80141FA0;
-extern SVECTOR       D_actor_401300_80141FB0[3];
-extern AnimationSet* D_actor_401300_80158838[46];
+extern EnemyParams                D_actor_401300_80141FA0;
+extern ActorHornedStrangerVariant D_actor_401300_80141FB0[3];
+extern AnimationSet*              D_actor_401300_80158838[46];
 /// The animation block the 0x3FF payload in `playerAnim` hands the player.
 extern AnimationSet*        D_actor_401300_801588F0[9];
 extern AnimationPlayRequest D_actor_401300_80158914;
@@ -364,7 +364,7 @@ EnemyParams D_actor_401300_80141FA0 = {
     10,
 };
 
-SVECTOR D_actor_401300_80141FB0[3] = {
+ActorHornedStrangerVariant D_actor_401300_80141FB0[3] = {
     { 0, 900, 3, 0 },
     { 0, 800, 5, 0 },
     { 0, 500, 7, 0 },
@@ -2341,20 +2341,20 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     }
     switch (actor->spawnArg1.value & 0xF) {
         case 2:
-            work->downFramesBase = D_actor_401300_80141FB0[0].vx;
-            work->sidestepAngle  = D_actor_401300_80141FB0[0].vy;
-            work->field_CA4      = D_actor_401300_80141FB0[0].vz;
+            work->downFramesBase = D_actor_401300_80141FB0[0].downFramesBase;
+            work->sidestepAngle  = D_actor_401300_80141FB0[0].sidestepAngle;
+            work->field_CA4      = D_actor_401300_80141FB0[0].sidestepDelay;
             break;
         case 1:
-            work->downFramesBase = D_actor_401300_80141FB0[2].vx;
-            work->sidestepAngle  = D_actor_401300_80141FB0[2].vy;
-            work->field_CA4      = D_actor_401300_80141FB0[2].vz;
+            work->downFramesBase = D_actor_401300_80141FB0[2].downFramesBase;
+            work->sidestepAngle  = D_actor_401300_80141FB0[2].sidestepAngle;
+            work->field_CA4      = D_actor_401300_80141FB0[2].sidestepDelay;
             break;
         case 0:
         default:
-            work->downFramesBase = D_actor_401300_80141FB0[1].vx;
-            work->sidestepAngle  = D_actor_401300_80141FB0[1].vy;
-            work->field_CA4      = D_actor_401300_80141FB0[1].vz;
+            work->downFramesBase = D_actor_401300_80141FB0[1].downFramesBase;
+            work->sidestepAngle  = D_actor_401300_80141FB0[1].sidestepAngle;
+            work->field_CA4      = D_actor_401300_80141FB0[1].sidestepDelay;
             break;
     }
 

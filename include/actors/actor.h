@@ -602,6 +602,23 @@ typedef struct {
 } ActorStrangerVariant;
 STATIC_ASSERT_SIZEOF(ActorStrangerVariant, 0xC);
 
+/// One tuning of a Horned Stranger: the values the enemy takes into its work
+/// block as it is set up.
+///
+/// A Horned Stranger package defines three tunings and picks among them by the
+/// low four bits of the spawn argument, as a Stranger picks an
+/// `ActorStrangerVariant`: 2 the first, 1 the third, anything else the second.
+/// One package pairs the second's `downFramesBase` with the third's
+/// `sidestepAngle` in that last case. The record is the first three members of
+/// `ActorStrangerVariant`, in the same order, and a fourth halfword.
+typedef struct {
+    s16 downFramesBase; // Ticks the downed state lasts, before a random few more
+    s16 sidestepAngle;  // Angle between the bearing to the player and the direction a sidestep moves in, 4096 units per turn
+    s16 sidestepDelay;  // Unused counterpart of `ActorStrangerVariant::sidestepDelay`, by its position and its values (3, 5, 7): no Horned Stranger reads it, and the chase that tests such a delay waits a fixed 3 ticks
+    s16 unknown_6;      // Never read, and zero in every table; role unproven
+} ActorHornedStrangerVariant;
+STATIC_ASSERT_SIZEOF(ActorHornedStrangerVariant, 0x8);
+
 /// One room's limits on the height of an actor's root.
 ///
 /// A package that keeps a table of these looks the current room up in it

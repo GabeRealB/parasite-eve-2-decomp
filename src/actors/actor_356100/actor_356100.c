@@ -30,6 +30,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/random.h"
 #include "main/gfx.h"
@@ -51,17 +52,6 @@
 #include "../../shared/actor_messages.h"
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
-
-/// 8-byte row of the `D_actor_356100_8016A994` table `func_actor_356100_8016382C`
-/// picks the re-entry pair from on the spawn argument; the same role
-/// `Actor01900TintRow` has for `Actor01900_D0AC64`.
-typedef struct Actor356100TintRow {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 field_6;
-} Actor356100TintRow;
-STATIC_ASSERT_SIZEOF(Actor356100TintRow, 0x8);
 
 /// Values of `_Actor356100Work::state`: the index of the handler the per-frame
 /// tick runs.
@@ -189,23 +179,27 @@ typedef struct {
 } _Actor356100Work;
 STATIC_ASSERT_SIZEOF(_Actor356100Work, 0xBC0);
 
-/// Event record `func_actor_356100_8016A0B8` dispatches on: the first three
-/// bytes are copied raw into `_Actor356100Work::commandBytes`, `w[0]` is the
-/// event kind and `w[1]` its sub-code. Same shape as `Actor401300Event`.
-typedef union Actor356100Event {
-    u8  b[3];
-    u16 w[2];
-} Actor356100Event;
-
+/// Static storage for the placement the grab sends the player.
+///
+/// `placement` is the payload of `GAME_ACTOR_MESSAGE_PLACE`, lent to the player
+/// for the length of the dispatch, which consumes it. The grab fills it in as
+/// it pulls the player in: the player keeps their position and takes the
+/// bearing to the enemy as their yaw, and the enemy stands 1000 units away
+/// along that bearing.
+///
+/// Eight zero bytes separate the record from the next object. No access to
+/// them is recovered, so whether they are trailing fields of this object or a
+/// separate unreferenced variable is unproven; they stay in this allocation
+/// only to keep the data after it at its address.
 typedef struct {
-    ActorTransform value;
-    u8             retained[8];
-} Actor356100Storage32B0;
-STATIC_ASSERT_SIZEOF(Actor356100Storage32B0, 32);
+    ActorTransform placement;     // Player's own position, with the yaw of the bearing from the player to the enemy and no pitch or roll
+    u8             unknown_18[8]; // Zero in the image; no access established and role unproven
+} _Actor356100TransformStorage;
+STATIC_ASSERT_SIZEOF(_Actor356100TransformStorage, 32);
 
 static TmdSource _gActor356100HornedStrangerBody;
 s32              func_actor_356100_80169E5C(Task*, s32, s32, s32);
-s32              func_actor_356100_8016A0B8(Task*, s32, Actor356100Event*, s32);
+s32              func_actor_356100_8016A0B8(Task*, s32, ActorCommand*, s32);
 void             func_actor_356100_8016A910(Task*);
 
 #include "../../shared/actor_contacts.h"
@@ -221,7 +215,7 @@ DamageAttack D_actor_356100_8016A96C[6] = {
 
 EnemyParams D_actor_356100_8016A984 = { D_actor_356100_8016A96C, 420, 115, 200, 5, 100, 10, 100, 10 };
 
-Actor356100TintRow D_actor_356100_8016A994[3] = {
+ActorHornedStrangerVariant D_actor_356100_8016A994[3] = {
     { 0, 900, 3, 0 },
     { 0, 800, 5, 0 },
     { 0, 500, 7, 0 },
@@ -351,7 +345,7 @@ s8 D_actor_356100_801728CC[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-u8 D_actor_356100_801730B8[248] = {
+u8 D_actor_356100_801730B8[184] = {
     0,
     0,
     0,
@@ -536,82 +530,20 @@ u8 D_actor_356100_801730B8[248] = {
     0,
     0,
     0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
 };
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    s32 value;
-    u8  retained[116];
-} Actor356100Storage31B0;
-STATIC_ASSERT_SIZEOF(Actor356100Storage31B0, 120);
-
-Actor356100Storage31B0 D_actor_356100_801731B0 = { 0, { 0 } };
+/// A second animation-set table, which no animation context is bound to.
+///
+/// Every slot is empty. Entering `ACTOR_356100_STATE_DORMANT_SCRIPTED` clears
+/// slot 16 and nothing else accesses the table, so the write does not reach
+/// playback. The other Stranger packages, at the same point of the same state,
+/// install that state's animation set in slot 16 of the table their rigs are
+/// bound to.
+///
+/// The extent is not established by an access: it is the 46 words between
+/// `D_actor_356100_801730B8` and the next object, the length of the bound
+/// table here and in every other Stranger package.
+AnimationSet* D_actor_356100_80173170[46] = { NULL };
 
 AnimationSet* D_actor_356100_80173228[7] = {
     NULL,
@@ -648,7 +580,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 EffectSpawnArg D_actor_356100_801732A8 = { NULL, 0, 0 };
 
-Actor356100Storage32B0 D_actor_356100_801732B0;
+_Actor356100TransformStorage D_actor_356100_801732B0;
 
 GameActorButtonPressHold D_actor_356100_801732D0;
 
@@ -666,18 +598,19 @@ static void func_actor_356100_80163508(Task* arg0);
 /// Per-clip transition values indexed by the current and requested clip.
 extern s8 D_actor_356100_801728CC[][45];
 
-/// 0x68-byte scratch stack block `func_actor_356100_80169854` takes while it
-/// builds the ground coordinate it draws an effect quad on: the coordinate the
-/// function fills (`coord.parent` parented to `gGfxViewCoord`) plus the world
-/// position `v` its two parent walks leave there.
-typedef struct Actor356100GroundCoord {
-    /* 0x00 */ GfxCoord coord;
-    /* 0x50 */ byte     pad_50[0x10];
-    /* 0x60 */ SVECTOR  v;
-} Actor356100GroundCoord;
-STATIC_ASSERT_SIZEOF(Actor356100GroundCoord, 0x68);
+/// Scratch-stack block of the per-frame tick.
+///
+/// The tick reserves it on the frames it runs the state handler and releases
+/// it once the body position is in the work block's history. Nothing clears
+/// the block, and the tick reads `viewPos` once more after the release.
+typedef struct {
+    GfxCoord shadowCoord;      // Unrotated coordinate under the view coordinate, at part 1's X and Z and height zero, where the scripted death draws its ground shadow; filled in on those ticks alone
+    byte     unknown_50[0x10]; // Never accessed
+    SVECTOR  viewPos;          // View-space position of a part's origin: part 1's while the shadow is placed, then part 2's, which is recorded as the body position; `pad` is never written
+} _Actor356100TickScratch;
+STATIC_ASSERT_SIZEOF(_Actor356100TickScratch, 0x68);
 
-extern Actor356100Storage32B0 D_actor_356100_801732B0;
+extern _Actor356100TransformStorage D_actor_356100_801732B0;
 
 /// Reply buffer for the message-0x3F8 query above; the six words after it are
 /// zero in the image.
@@ -687,11 +620,6 @@ extern GameActorButtonPressHold D_actor_356100_801732D0;
 /// `func_actor_356100_80166018` points `D_actor_356100_80173244.field_0` at:
 /// the second block when it is 1, the first otherwise.
 extern AnimationSet* D_actor_356100_80173228[7];
-
-/// Zeroed word `func_actor_356100_80167818` clears when the actor goes live.
-/// The 0x74 bytes after it are zero in the image too, so the whole run is a
-/// work area rather than a table.
-extern Actor356100Storage31B0 D_actor_356100_801731B0;
 
 /// Free-running scroll `func_actor_356100_80164ACC` accumulates `runStep`
 /// into each frame, and zeroes on the live-actor entry. Same role as
@@ -717,7 +645,7 @@ extern EnemyParams D_actor_356100_8016A984;
 
 /// The three rows `func_actor_356100_8016382C` picks its re-entry pair from on
 /// the spawn sub-type. Same role as `Actor01900_D0AC64`.
-extern Actor356100TintRow D_actor_356100_8016A994[];
+extern ActorHornedStrangerVariant D_actor_356100_8016A994[];
 
 extern TaskMessageEntry D_actor_356100_80173258[7];
 
@@ -737,7 +665,7 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor);
 static void func_actor_356100_801666B4(Task* arg0);
 
 /// Approach tick, and the sibling of `func_actor_356100_80167584` above it. Going
-/// live clears `D_actor_356100_801731B0.value` and re-seeds the animation slots at
+/// live clears `D_actor_356100_80173170[16]` and re-seeds the animation slots at
 /// clip 2 / speed 0x10 with the enemy's link node cleared; otherwise a single
 /// sound 0x51030008 is queued the first time through, keyed on the enemy's
 /// `field_8 >> 12` bank. Each frame then snapshots `field_5A & 0x3FF` into
@@ -747,10 +675,11 @@ static void func_actor_356100_801666B4(Task* arg0);
 /// state 6. Same shape as `func_actor_401300_801397F8`.
 static void func_actor_356100_80167818(Task* arg0);
 
-/// Event handler: copies the event's first three bytes into the work block's
-/// `commandBytes`, then dispatches on `w[0] == 0xB05` and `w[1]` — sub-code 1
-/// puts the actor in state 0x1E, 0 and 2 in state 0. Anything else returns 0.
-s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, Actor356100Event* arg2, s32 arg3);
+/// Actor-command handler: copies the command's stage tag, area tag and the low
+/// byte of its command word into the work block's `commandBytes`, then applies
+/// a command of the Neo Ark forest zone - 1 puts the actor in state 0x1E, 0
+/// and 2 in state 0. Anything else returns 0.
+s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg3);
 
 /// `Task::exitCallback` teardown: kill the two helper tasks, drop the
 /// enemy's `recs` slot, then `enemyDestroy`. Same shape as
@@ -938,13 +867,17 @@ static void func_actor_356100_80168E44(Task* arg0);
 /// and fires the 0x600FB effect burst over the model's part coordinates.
 static void func_actor_356100_80169180(Task* arg0);
 
-/// The 31-entry state table the per-frame tick copies onto its own stack
-/// before dispatching `f[work->state]`; every handler takes the task alone.
-/// Entry 0x1D is a null hole.
-typedef struct Actor356100StateTable {
-    /* 0x00 */ TaskFunc f[31];
-} Actor356100StateTable;
-STATIC_ASSERT_SIZEOF(Actor356100StateTable, 0x7C);
+/// The actor's state handlers, stored as a value for whole-table copies.
+///
+/// `_Actor356100Work::state` is the index. The package defines one table; the
+/// per-frame tick copies it to the stack and calls the current state's handler
+/// with the actor's task. The call has no terminator or bounds check, so the
+/// `NULL` entry of `ACTOR_356100_STATE_UNUSED_1D` marks a state the actor must
+/// not be in when the tick dispatches.
+typedef struct {
+    TaskFunc handlers[ACTOR_356100_STATE_SCRIPTED_DEATH + 1]; // Handler of each `ACTOR_356100_STATE_*`, in state order
+} _Actor356100StateTable;
+STATIC_ASSERT_SIZEOF(_Actor356100StateTable, 0x7C);
 
 /// The per-frame tick: rebinds the model colour matrix from part 1's world
 /// translation, draws the ground quad under the model unless the actor is
@@ -1208,17 +1141,18 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
     }
     switch (actor->spawnArg1.value & 0xF) {
         case 2:
-            work->downFramesBase = D_actor_356100_8016A994[0].field_0;
-            work->sidestepAngle  = D_actor_356100_8016A994[0].field_2;
+            work->downFramesBase = D_actor_356100_8016A994[0].downFramesBase;
+            work->sidestepAngle  = D_actor_356100_8016A994[0].sidestepAngle;
             break;
         case 1:
-            work->downFramesBase = D_actor_356100_8016A994[2].field_0;
-            work->sidestepAngle  = D_actor_356100_8016A994[2].field_2;
+            work->downFramesBase = D_actor_356100_8016A994[2].downFramesBase;
+            work->sidestepAngle  = D_actor_356100_8016A994[2].sidestepAngle;
             break;
         case 0:
         default:
-            work->downFramesBase = D_actor_356100_8016A994[1].field_0;
-            work->sidestepAngle  = D_actor_356100_8016A994[2].field_2;
+            // The second tuning, but with the third's sidestep angle.
+            work->downFramesBase = D_actor_356100_8016A994[1].downFramesBase;
+            work->sidestepAngle  = D_actor_356100_8016A994[2].sidestepAngle;
             break;
     }
     actorRescaleYaw(actor->extra.tmd->coords, 0x1194);
@@ -1964,10 +1898,10 @@ static void func_actor_356100_801666B4(Task* arg0)
         work->animId                            = 5;
         player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(player->extra.tmd->coords);
-        D_actor_356100_801732B0.value.pos.vx = player->extra.tmd->coords->coord.t[0];
-        D_actor_356100_801732B0.value.pos.vy = player->extra.tmd->coords->coord.t[1];
-        D_actor_356100_801732B0.value.pos.vz = player->extra.tmd->coords->coord.t[2];
-        vecp                                 = &vec;
+        D_actor_356100_801732B0.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
+        D_actor_356100_801732B0.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
+        D_actor_356100_801732B0.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
+        vecp                                     = &vec;
         /* Order matters: the vy store must follow the vx loads in RTL, or
            sched1 fills its anti-dependency chain from the earlier stores and
            hoists it above the D.z store. */
@@ -1979,13 +1913,13 @@ static void func_actor_356100_801666B4(Task* arg0)
         gte_ldsv(vecp);
         gte_gpf12();
         gte_stsv(vecp);
-        arg0->extra.tmd->coords->coord.t[0]   = player->extra.tmd->coords->coord.t[0] + vec.vx;
-        arg0->extra.tmd->coords->coord.t[2]   = player->extra.tmd->coords->coord.t[2] + vec.vz;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        D_actor_356100_801732B0.value.rot.vx  = 0;
-        D_actor_356100_801732B0.value.rot.vy  = ratan2(vec.vx, vec.vz);
-        D_actor_356100_801732B0.value.rot.vz  = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_actor_356100_801732B0.value, 0);
+        arg0->extra.tmd->coords->coord.t[0]      = player->extra.tmd->coords->coord.t[0] + vec.vx;
+        arg0->extra.tmd->coords->coord.t[2]      = player->extra.tmd->coords->coord.t[2] + vec.vz;
+        arg0->extra.tmd->coords->composeStamp    = GRAPHICS_COORD_DIRTY;
+        D_actor_356100_801732B0.placement.rot.vx = 0;
+        D_actor_356100_801732B0.placement.rot.vy = ratan2(vec.vx, vec.vz);
+        D_actor_356100_801732B0.placement.rot.vz = 0;
+        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_356100_801732B0.placement, 0);
     }
     func_actor_356100_80163508(arg0);
     if (work->animId == 5 && (work->rig.slots[1].status.fields.flags & 1)) {
@@ -2241,11 +2175,11 @@ static void func_actor_356100_80167818(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj                           = arg0->extra.tmd;
-        D_actor_356100_801731B0.value = 0;
-        work->animId                  = 0x10;
-        work->animRequest             = ACTOR_356100_ANIM_REQUEST_RESET;
-        obj->flags                    = 0;
+        obj                         = arg0->extra.tmd;
+        D_actor_356100_80173170[16] = NULL;
+        work->animId                = 0x10;
+        work->animRequest           = ACTOR_356100_ANIM_REQUEST_RESET;
+        obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
         work->hitRadius               = 0x180;
         enemy->node.state.parts.flags = 0;
@@ -2737,7 +2671,7 @@ static void func_actor_356100_80169180(Task* arg0)
 /// state order; entry 0x1D has no handler and the `state` values the ticks
 /// park (0, 6, 7, 8, 9, 0xB, 0xC, 0x10, 0x11, 0x13, 0x15, 0x16, 0x18, 0x19,
 /// 0x1E) are its live entries. Same role as `Actor01900_D1728C`.
-static const Actor356100StateTable D_actor_356100_80161EC4 = {
+static const _Actor356100StateTable D_actor_356100_80161EC4 = {
     {
         func_actor_356100_8016A1D8,
         func_actor_356100_8016A21C,
@@ -2783,11 +2717,11 @@ static const EnemyTaskFuncTable3 D_actor_356100_80161F40 = {
 
 static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
 {
-    VECTOR                  pos;
-    Actor356100StateTable   tbl;
-    _Actor356100Work*       work;
-    Actor356100GroundCoord* blk;
-    s16                     next;
+    VECTOR                   pos;
+    _Actor356100StateTable   tbl;
+    _Actor356100Work*        work;
+    _Actor356100TickScratch* blk;
+    s16                      next;
 
     work   = arg1->work;
     tbl    = D_actor_356100_80161EC4;
@@ -2812,26 +2746,26 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
-    SCRATCH_STACK_RESERVE_BLOCK(Actor356100GroundCoord);
-    blk = SCRATCH_STACK_CURSOR(Actor356100GroundCoord);
+    SCRATCH_STACK_RESERVE_BLOCK(_Actor356100TickScratch);
+    blk = SCRATCH_STACK_CURSOR(_Actor356100TickScratch);
     if (work->state == ACTOR_356100_STATE_SCRIPTED_DEATH) {
         MATRIX* m;
 
-        blk->v.vx = blk->v.vy = blk->v.vz = 0;
-        actorTransformToView(&arg1->extra.tmd->coords[1], &blk->v);
-        m                       = &blk->coord.coord;
-        MATRIX_PAIR(m, 0, 0)    = 0x1000;
-        MATRIX_PAIR(m, 0, 2)    = 0;
-        MATRIX_PAIR(m, 1, 1)    = 0x1000;
-        MATRIX_PAIR(m, 2, 0)    = 0;
-        m->m[2][2]              = 0x1000;
-        blk->coord.parent       = &gGfxViewCoord;
-        blk->coord.coord.t[0]   = blk->v.vx;
-        blk->coord.coord.t[1]   = 0;
-        blk->coord.coord.t[2]   = blk->v.vz;
-        blk->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&blk->coord);
-        Gp_DrawEffGroundQuad(MATRIX_TRANS(&blk->coord.workm), 0x280, gRoomEffectState->groundShadowShade);
+        blk->viewPos.vx = blk->viewPos.vy = blk->viewPos.vz = 0;
+        actorTransformToView(&arg1->extra.tmd->coords[1], &blk->viewPos);
+        m                             = &blk->shadowCoord.coord;
+        MATRIX_PAIR(m, 0, 0)          = 0x1000;
+        MATRIX_PAIR(m, 0, 2)          = 0;
+        MATRIX_PAIR(m, 1, 1)          = 0x1000;
+        MATRIX_PAIR(m, 2, 0)          = 0;
+        m->m[2][2]                    = 0x1000;
+        blk->shadowCoord.parent       = &gGfxViewCoord;
+        blk->shadowCoord.coord.t[0]   = blk->viewPos.vx;
+        blk->shadowCoord.coord.t[1]   = 0;
+        blk->shadowCoord.coord.t[2]   = blk->viewPos.vz;
+        blk->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+        Gp_UpdateCoord(&blk->shadowCoord);
+        Gp_DrawEffGroundQuad(MATRIX_TRANS(&blk->shadowCoord.workm), 0x280, gRoomEffectState->groundShadowShade);
     }
     if (work->prevState != work->state) {
         work->stateEntered = 1;
@@ -2839,20 +2773,20 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
         work->stateEntered = 0;
     }
     work->prevState = work->state;
-    tbl.f[work->state](arg1);
+    tbl.handlers[work->state](arg1);
     if (gSceneCombatState.signals.bytes.enemyAlert == 1) {
         if (work->state == ACTOR_356100_STATE_PATROL) {
             work->state = ACTOR_356100_STATE_ALERT;
         }
     }
-    blk->v.vx = 0;
-    blk->v.vy = 0;
-    blk->v.vz = 0;
-    actorTransformToView(&arg1->extra.tmd->coords[2], &blk->v);
-    work->bodyPosHistory[work->bodyPosCursor].vx = blk->v.vx;
-    work->bodyPosHistory[work->bodyPosCursor].vy = blk->v.vy;
-    work->bodyPosHistory[work->bodyPosCursor].vz = blk->v.vz;
-    SCRATCH_STACK_RELEASE_BLOCK(Actor356100GroundCoord);
+    blk->viewPos.vx = 0;
+    blk->viewPos.vy = 0;
+    blk->viewPos.vz = 0;
+    actorTransformToView(&arg1->extra.tmd->coords[2], &blk->viewPos);
+    work->bodyPosHistory[work->bodyPosCursor].vx = blk->viewPos.vx;
+    work->bodyPosHistory[work->bodyPosCursor].vy = blk->viewPos.vy;
+    work->bodyPosHistory[work->bodyPosCursor].vz = blk->viewPos.vz;
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor356100TickScratch);
     next                = (u16)work->bodyPosCursor + 1;
     work->bodyPosCursor = next;
     if (next == ARRAY_SIZE(work->bodyPosHistory)) {
@@ -2863,9 +2797,9 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
         arg0->bodyPos.vy = work->bodyPosHistory[work->bodyPosCursor].vy;
         arg0->bodyPos.vz = work->bodyPosHistory[work->bodyPosCursor].vz;
     } else {
-        arg0->bodyPos.vx = blk->v.vx;
-        arg0->bodyPos.vy = blk->v.vy;
-        arg0->bodyPos.vz = blk->v.vz;
+        arg0->bodyPos.vx = blk->viewPos.vx;
+        arg0->bodyPos.vy = blk->viewPos.vy;
+        arg0->bodyPos.vz = blk->viewPos.vz;
     }
     arg0->coord = &gGfxViewCoord;
 }
@@ -2883,16 +2817,16 @@ s32 func_actor_356100_80169E5C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 #include "../../shared/actor_messages_release_hold.inc.c"
 
-s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, Actor356100Event* arg2, s32 arg3)
+s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg3)
 {
     _Actor356100Work* work = arg0->work;
     s32               code;
 
-    work->commandBytes[0] = arg2->b[0];
-    work->commandBytes[1] = arg2->b[1];
-    work->commandBytes[2] = arg2->b[2];
-    if (arg2->w[0] == 0xB05) {
-        code = arg2->w[1];
+    work->commandBytes[0] = arg2->context.loc.stage;
+    work->commandBytes[1] = arg2->context.loc.area;
+    work->commandBytes[2] = arg2->command;
+    if (arg2->context.loc.stage == GAME_STAGE_SHELTER_NEO_ARK && arg2->context.loc.area == GAME_AREA_NEO_ARK_FOREST_ZONE) {
+        code = arg2->command;
         switch (code) {
             case 0:
             case 2:
