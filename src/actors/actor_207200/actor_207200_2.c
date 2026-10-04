@@ -163,16 +163,34 @@ typedef struct {
 } _Actor207200CreepingStrangerWork;
 STATIC_ASSERT_SIZEOF(_Actor207200CreepingStrangerWork, 0x4AC);
 
-/// 0x48-byte block `func_actor_207200_8014BEF4` takes from the scratch stack:
-/// `d` receives the `func_800E0C10` push-back, then the offset to the player
-/// or to a push record, which `norm` holds normalised.
-typedef struct Actor207200DmgScratch {
-    /* 0x00 */ byte                pad_0[0x20];
-    /* 0x20 */ WorldCollisionDelta d;
-    /* 0x30 */ byte                pad_30[8];
-    /* 0x38 */ VECTOR              norm;
-} Actor207200DmgScratch;
-STATIC_ASSERT_SIZEOF(Actor207200DmgScratch, 0x48);
+/// Scratch-stack block of the Creeping Stranger's contact pass.
+///
+/// The pass reserves one block a frame. It has the push-back of the room's
+/// collision grid resolved into `delta`, first from the head sphere's contact
+/// records and then from the body sphere's, and adds the whole units of each
+/// correction to the root. It then walks both tables, reusing `delta` for each
+/// record. A damaging contact, kind 0x20000, takes the offset from the root to
+/// the player, whose length is the range the hit's damage is worked out for.
+/// A contact with another enemy's body, kind 0x30000, takes the offset from
+/// that body's centre, which is normalised into `normal` and turned back into
+/// `delta` in the frame of the collision grid's coordinate; a crawling enemy
+/// is pushed along it by the depth of the overlap, the record's summed radii
+/// less that offset's length on X and Z. Nothing clears the block when it is
+/// reserved and nothing in it carries over to the next frame. Every way out
+/// of the pass releases the block except the two a head hit takes when it
+/// bursts the whole body or takes the head off: those return with it still
+/// reserved.
+///
+/// The block opens as `ActorContactDeltaScratch` does. No pass touches the
+/// bytes either side of `delta`, so what they were laid out to hold is
+/// unproven.
+typedef struct {
+    byte                unknown_0[0x20]; // Reserved with the block and never accessed; role unproven
+    WorldCollisionDelta delta;           // Correction resolved from the contact records, in signed 16.16 units; then, in whole world units, the offset to the player or from the centre of the body being tested; then `normal` in the grid coordinate's frame, 4096 = 1.0
+    byte                unknown_30[0x8]; // Reserved with the block and never accessed; role unproven
+    VECTOR              normal;          // Offset from the body being tested, normalised: away from that body, 4096 = 1.0
+} _Actor207200ContactScratch;
+STATIC_ASSERT_SIZEOF(_Actor207200ContactScratch, 0x48);
 
 /// The records closing three of the overlay's model streams, handed to the
 /// spawned effect as its model through `D_800626EC[5].data.model`.
@@ -1067,8 +1085,7 @@ static void func_actor_207200_8014B87C(Task* arg0)
 static void func_actor_207200_8014BEF4(Task* arg0)
 {
     _Actor207200CreepingStrangerWork* work;
-    Actor207200DmgScratch*            sc;
-    Actor207200DmgScratch*            head;
+    _Actor207200ContactScratch*       scratch;
     GfxCoord*                         coord;
     u32                               dist;
     Enemy*                            enemy;
@@ -1080,20 +1097,18 @@ static void func_actor_207200_8014BEF4(Task* arg0)
     s32                               n;
     s32                               snd;
 
-    work                                        = arg0->work;
-    head                                        = SCRATCH_STACK_CURSOR(Actor207200DmgScratch);
-    SCRATCH_STACK_CURSOR(Actor207200DmgScratch) = head - 1;
-    sc                                          = head - 1;
-    coord                                       = arg0->extra.tmd->coords;
-    enemy                                       = arg0->spawnArg2.pointer;
+    work    = arg0->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor207200ContactScratch);
+    coord   = arg0->extra.tmd->coords;
+    enemy   = arg0->spawnArg2.pointer;
 
-    switch (func_800E0C10(work->headContacts, &head[-1].d, ARRAY_SIZE(work->headContacts), NULL)) {
+    switch (func_800E0C10(work->headContacts, &scratch->delta, ARRAY_SIZE(work->headContacts), NULL)) {
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += sc->d.fixed.vx.halves.integer;
-            coord->coord.t[1] += sc->d.fixed.vy.halves.integer;
-            coord->coord.t[2] += sc->d.fixed.vz.halves.integer;
+            coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+            coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->prevRootPos.vx;
@@ -1104,13 +1119,13 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             }
             break;
     }
-    switch (func_800E0C10(work->bodyContacts, &sc->d, ARRAY_SIZE(work->bodyContacts), NULL)) {
+    switch (func_800E0C10(work->bodyContacts, &scratch->delta, ARRAY_SIZE(work->bodyContacts), NULL)) {
         case 0:
             break;
         case 1:
-            coord->coord.t[0] += sc->d.fixed.vx.halves.integer;
-            coord->coord.t[1] += sc->d.fixed.vy.halves.integer;
-            coord->coord.t[2] += sc->d.fixed.vz.halves.integer;
+            coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+            coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
         case 2:
             coord->coord.t[0] = work->prevRootPos.vx;
@@ -1141,12 +1156,12 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 if (work->hitCooldown != 0) {
                     break;
                 }
-                sc->d.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                sc->d.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-                sc->d.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                damage          = SquareRoot0(sc->d.vector.vx * sc->d.vector.vx +
-                                              sc->d.vector.vy * sc->d.vector.vy +
-                                              sc->d.vector.vz * sc->d.vector.vz);
+                scratch->delta.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                scratch->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+                scratch->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+                damage                   = SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx +
+                                                       scratch->delta.vector.vy * scratch->delta.vector.vy +
+                                                       scratch->delta.vector.vz * scratch->delta.vector.vz);
                 Gp_GetIdParam0(work->bodyContacts[i].key.value);
                 damage = Gp_ComputeDamage(work->bodyContacts[i].key.value, damage, 0, 0);
                 func_800FDB18((u16)Gp_GetIdParam1(work->bodyContacts[i].key.value),
@@ -1159,8 +1174,8 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                     func_800DA6E8(&enemy->node, damage, 0);
                     if (damage != 0) {
                         arg0->state++;
-                        work->animId                                = ACTOR_207200_ANIM_DEATH;
-                        SCRATCH_STACK_CURSOR(Actor207200DmgScratch) = SCRATCH_STACK_CURSOR(Actor207200DmgScratch) + 1;
+                        work->animId = ACTOR_207200_ANIM_DEATH;
+                        SCRATCH_STACK_RELEASE_BLOCK(_Actor207200ContactScratch);
                         return;
                     }
                 } else {
@@ -1177,30 +1192,30 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 }
                 break;
             case 3:
-                sc->d.vector.vx = coord->workm.t[0] - work->bodyContacts[i].point.vx;
-                sc->d.vector.vy = 0;
-                sc->d.vector.vz = coord->workm.t[2] - work->bodyContacts[i].point.vz;
-                damage          = work->bodyContacts[i].distance -
-                         SquareRoot0(sc->d.vector.vx * sc->d.vector.vx + sc->d.vector.vz * sc->d.vector.vz);
+                scratch->delta.vector.vx = coord->workm.t[0] - work->bodyContacts[i].point.vx;
+                scratch->delta.vector.vy = 0;
+                scratch->delta.vector.vz = coord->workm.t[2] - work->bodyContacts[i].point.vz;
+                damage                   = work->bodyContacts[i].distance -
+                         SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vz * scratch->delta.vector.vz);
                 // Clamped through a second variable: clamping `damage` in
                 // place drops the copy the original makes.
                 push = damage;
                 if (damage <= 0) {
                     push = 0;
                 }
-                damage          = push;
-                sc->d.vector.vx = coord->workm.t[0] - work->bodyContacts[i].point.vx;
-                sc->d.vector.vy = coord->workm.t[1] - work->bodyContacts[i].point.vy;
-                sc->d.vector.vz = coord->workm.t[2] - work->bodyContacts[i].point.vz;
-                VectorNormal(&sc->d.vector, &sc->norm);
-                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &sc->norm, &sc->d.vector);
+                damage                   = push;
+                scratch->delta.vector.vx = coord->workm.t[0] - work->bodyContacts[i].point.vx;
+                scratch->delta.vector.vy = coord->workm.t[1] - work->bodyContacts[i].point.vy;
+                scratch->delta.vector.vz = coord->workm.t[2] - work->bodyContacts[i].point.vz;
+                VectorNormal(&scratch->delta.vector, &scratch->normal);
+                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
                 if (work->animId == ACTOR_207200_ANIM_CRAWL) {
-                    coord->coord.t[0] += (damage * sc->d.vector.vx) >> 12;
-                    n                  = damage * sc->d.vector.vy;
+                    coord->coord.t[0] += (damage * scratch->delta.vector.vx) >> 12;
+                    n                  = damage * scratch->delta.vector.vy;
                     if (n < 0) {
                         coord->coord.t[1] += n >> 12;
                     }
-                    coord->coord.t[2] += (damage * sc->d.vector.vz) >> 12;
+                    coord->coord.t[2] += (damage * scratch->delta.vector.vz) >> 12;
                 }
                 break;
         }
@@ -1214,13 +1229,13 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             if (work->hitCooldown != 0) {
                 break;
             }
-            sc->d.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            sc->d.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-            sc->d.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage          = SquareRoot0(sc->d.vector.vx * sc->d.vector.vx + sc->d.vector.vy * sc->d.vector.vy +
-                                          sc->d.vector.vz * sc->d.vector.vz);
-            param           = Gp_GetIdParam0(work->headContacts[i].key.value);
-            damage          = Gp_ComputeDamage(work->headContacts[i].key.value, damage, 0, 0);
+            scratch->delta.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            scratch->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+            scratch->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+            damage                   = SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy +
+                                                   scratch->delta.vector.vz * scratch->delta.vector.vz);
+            param                    = Gp_GetIdParam0(work->headContacts[i].key.value);
+            damage                   = Gp_ComputeDamage(work->headContacts[i].key.value, damage, 0, 0);
             switch ((u16)param) {
                 case 1:
                 case 4:
@@ -1272,7 +1287,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             Gp_ClearRec18Occupied(work->sideAttackContacts);
         }
     }
-    SCRATCH_STACK_CURSOR(Actor207200DmgScratch) = SCRATCH_STACK_CURSOR(Actor207200DmgScratch) + 1;
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor207200ContactScratch);
 }
 
 /// Ticks the shatter timers the enemy runs while it dies. Every time a timer
