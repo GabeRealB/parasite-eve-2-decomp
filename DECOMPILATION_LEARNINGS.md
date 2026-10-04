@@ -17304,7 +17304,7 @@ Assigning the pointer only after the guards leaves `%hi` later, parks the raw
 like a large diff even when the body is otherwise identical.
 
 `CdAudio_FeedSector` needs `sector = &Fs_CdSector` first, then the
-`CdAudio_Ctl.field_B` / `CdAudio_Tbl.field_1` guards, then `arg = index & 0xFF`.
+`CdAudio_Ctl.waveLoadError` / `CdAudio_Tbl.field_1` guards, then `arg = index & 0xFF`.
 
 ## `volatile` struct pointer preserves independent field load order
 
@@ -21028,27 +21028,27 @@ paired `sb`/`sw` so the target gets `lw; sb; sw` rather than `sb; lw; nop; sw`).
 
 ## Separate stream pointers so timeout shares `$v1` while case-2 keeps `$s0`
 
-A CD state machine with a shared timeout tail that stores `field_8`/`field_9`
-through `$v1`, while an earlier case (live across `CdSync`) holds the same
+A CD state machine with a shared timeout tail that stores
+`failedStep`/`failureKind` through `$v1`, while an earlier case (live across `CdSync`) holds the same
 object in `$s0` for an *inlined* copy of those stores, will merge both into
 one `$s0` sequence if they share a single C variable.
 
 Use two pointers:
 
 ```c
-volatile CdAudioCtl* stream; /* case 2: coloured $s0, inlines field_8/9 then goto error */
-volatile CdAudioCtl* p;      /* case 5/8/9 + timeout: coloured $v1, shared tail */
+volatile _CdAudioDriverStatus* modeWaitStatus; /* case 2: coloured $s0, inlines failedStep/failureKind then goto error */
+volatile _CdAudioDriverStatus* driverStatus;   /* case 5/8/9 + timeout: coloured $v1, shared tail */
 
 case 2:
-    stream = &CdAudio_Ctl;
-    if (stream->field_0 < 0x259) goto sync;
-    stream->field_8 = phase;
-    stream->field_9 = 1;
+    modeWaitStatus = &CdAudio_Ctl;
+    if (modeWaitStatus->waitTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) goto sync;
+    modeWaitStatus->failedStep  = phase;
+    modeWaitStatus->failureKind = CD_AUDIO_FAILURE_TIMEOUT;
     goto error;
 /* ... */
 timeout:
-    p->field_8 = phase;  /* no re-load of &CdAudio_Ctl — callers set p/$v1 */
-    p->field_9 = 1;
+    driverStatus->failedStep  = phase;  /* no re-load of &CdAudio_Ctl — callers set driverStatus/$v1 */
+    driverStatus->failureKind = CD_AUDIO_FAILURE_TIMEOUT;
 error:
     ...
 ```
@@ -21058,8 +21058,8 @@ cross-struct store comes first, and the volatile state is named in each
 statement:
 
 ```c
-CdAudio_Ctl.field_0 = 0;
-CdAudio_Tbl.field_8 = _gCdAudioState.playback.baseSector;
+CdAudio_Ctl.waitTicks = 0;
+CdAudio_Tbl.field_8   = _gCdAudioState.playback.baseSector;
 CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
 ```
 
