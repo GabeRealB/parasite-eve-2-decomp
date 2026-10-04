@@ -49,7 +49,7 @@ void golemPawnRookBeamSwingState(Task* arg0)
                 work->strikeBody.key   = Gp_PackPair(gGolemPawnRookAttacks, 0);
             }
             if (work->animFrame == (gGolemPawnRookAnimBlendFrames[work->anim] + 0x21)) {
-                sound = gGolemPawnRookSwingCue.value | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                sound = gGolemPawnRookSwingCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan   = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(self));
             }

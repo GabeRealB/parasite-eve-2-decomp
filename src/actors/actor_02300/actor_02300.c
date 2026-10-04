@@ -53,17 +53,10 @@
 extern s16 gGolemPawnRookAnimBlendFrames[];
 /// The `Gp_PackPair` entry the lunge parks in the work block's `strikeBody`.
 extern DamageAttack gGolemPawnRookAttacks[5];
-/// Base sound id of the lunge cue, ORed with the enemy's id nibble.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    s32 value;
-    u8  retained[4];
-} Actor02300Storage7918;
-STATIC_ASSERT_SIZEOF(Actor02300Storage7918, 8);
-
-extern Actor02300Storage7918 gGolemPawnRookSwingCue;
+/// Sound id of the cue a sword strike plays as its hit body goes live; the
+/// swing and charge states OR the enemy's place index into bits 8 and up
+/// before queueing it.
+extern s32 gGolemPawnRookSwingCue;
 
 /// The `EnemyParams` the enemy parks in its own `field_50` slot.
 extern EnemyParams Actor02300_D159D8;
@@ -921,7 +914,12 @@ s32 gGolemPawnRookVoiceCues[17] = {
     0x40170012,
 };
 
-Actor02300Storage7918 gGolemPawnRookSwingCue = { 0x40170007, { 0 } };
+s32 gGolemPawnRookSwingCue = 0x40170007;
+
+/* The grenade's impact cue, which the Grenade Launcher builds define at this
+ * position. The Beam Sword is built without the grenade, so nothing in this
+ * package reads it and it holds no id. */
+s32 gGolemPawnRookImpactSound = 0;
 
 s32 gGolemPawnRookScreamCue = 0x40170013;
 

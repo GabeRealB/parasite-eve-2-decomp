@@ -19,6 +19,7 @@
  *
  *   s16 gGolemPawnRookAnimBlendFrames[32]  blend-in length per animation, in frames
  *   s32 gGolemPawnRookVoiceCues[17]        the voice-cue sound ids of its sound bank
+ *   s32 gGolemPawnRookSwingCue             the sword strike's cue (Beam Sword only)
  *   s32 gGolemPawnRookImpactSound          the grenade's impact cue (Grenade Launcher only)
  */
 

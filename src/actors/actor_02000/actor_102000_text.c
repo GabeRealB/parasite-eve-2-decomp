@@ -49,16 +49,7 @@ static const EnemyTaskFuncTable3 Actor02000_D00060;
 static const EnemyTaskFuncTable3 Actor02000_D0006C;
 
 extern DamageAttack gGolemPawnRookAttacks[];
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    s32 value;
-    u8  retained[16];
-} Actor102000TextStorage7C50;
-STATIC_ASSERT_SIZEOF(Actor102000TextStorage7C50, 20);
-
-extern Actor102000TextStorage7C50 gGolemPawnRookSwingCue;
+extern s32          gGolemPawnRookSwingCue;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -856,7 +847,19 @@ s32 gGolemPawnRookVoiceCues[17] = {
     0x40140012,
 };
 
-Actor102000TextStorage7C50 gGolemPawnRookSwingCue = { 0x40140007, { 0 } };
+s32 gGolemPawnRookSwingCue = 0x40140007;
+
+/* The four cue ids the other builds define at this position: the grenade's
+ * impact, and the Rook's scream, silence and burst. The Pawn's Beam Sword
+ * build has none of the code that plays them, so nothing in this package
+ * reads these and each holds no id. */
+s32 gGolemPawnRookImpactSound = 0;
+
+s32 gGolemPawnRookScreamCue = 0;
+
+s32 gGolemPawnRookSilenceCue = 0;
+
+s32 gGolemPawnRookBurstCue = 0;
 
 u16 Actor02000_D15E44[22] = {
     0,
