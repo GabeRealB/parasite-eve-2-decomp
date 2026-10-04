@@ -53,6 +53,8 @@ u8 gRoomEventActive = 0;
 
 u16 D_dryfield_water_tower_801876A8;
 
+u16 D_dryfield_water_tower_801876AA;
+
 Task* D_dryfield_water_tower_801876AC;
 
 RoomEventReq gRoomEventReq;

@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_water_tower.
-D_dryfield_water_tower_801876AA = 0x801876AA; // type:u16 size:0x2
+D_dryfield_water_tower_801876AA = 0x801876AA; // size:0x2 defined:True
 _gActor213000Model072AC = 0x80151254; // absolute:True
 gRoomEventMsg = 0x80187694; // size:0x8 defined:True
 gRoomEventActive = 0x8018769C; // size:0x1 defined:True

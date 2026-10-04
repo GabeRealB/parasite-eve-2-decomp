@@ -39,4 +39,5 @@ _gActor303600Model0814CPartVerts = 0x80169CC8; // size:0x4 defined:True
 _gActor303600Model0814CVerts = 0x80169CCC; // size:0x2A0 defined:True
 _gActor303600Model0814CStream = 0x80169F6C; // size:0x478 defined:True
 _gActor303600Model0814C = 0x8016A3E4; // size:0x24 defined:True
-D_actor_303600_8016A408 = 0x8016A408; // size:0x4060 defined:True
+D_actor_303600_8016A408 = 0x8016A408; // size:0xAF0 defined:True
+D_actor_303600_8016AEF8 = 0x8016AEF8; // size:0x3570 defined:True

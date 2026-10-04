@@ -339,6 +339,8 @@ def main() -> None:
         """
         if d.attrs.get('absolute', '').lower() != 'true':
             return False
+        if MARKER.match(d.name):
+            return False  # A section bound the linker script places, not a reference.
         lo, hi = ranges[image]
         if lo <= d.addr <= hi:
             return not any(n == d.name for n, _ in symbols_at[image].get(d.addr, ()))

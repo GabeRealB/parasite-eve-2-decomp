@@ -159,9 +159,8 @@ STATIC_ASSERT_SIZEOF(_Actor403600TransformStorage, 32);
 
 extern _Actor403600TransformStorage D_actor_403600_801606E0;
 
-extern Actor303600RotSample D_8016A408[];
-extern Actor303600ViewKey   D_8016AEF8[];
-extern Actor303600ViewKey   D_8016E450;
+extern Actor303600RotSample D_actor_303600_8016A408[ACTOR_303600_ROT_SAMPLE_COUNT];
+extern Actor303600ViewKey   D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT];
 extern SVECTOR              D_actor_403600_8016065C;
 extern SVECTOR              D_actor_403600_80160664;
 
@@ -4435,14 +4434,14 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
     view.coord.t[0]            = 0;
     view.coord.t[1]            = 0;
     view.coord.t[2]            = 0;
-    D_actor_403600_8016065C.vz = D_8016A408[work->sceneFrame].z;
-    D_actor_403600_8016065C.vy = D_8016A408[work->sceneFrame].y;
+    D_actor_403600_8016065C.vz = D_actor_303600_8016A408[work->sceneFrame].z;
+    D_actor_403600_8016065C.vy = D_actor_303600_8016A408[work->sceneFrame].y;
     RotMatrix(&D_actor_403600_8016065C, &work->worldCoord.coord);
     object->otOffset = -0x1F;
     if (work->sceneFrame >= ACTOR_303600_VIEW_KEY_COUNT - 1) {
-        key = &D_8016E450;
+        key = &D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT - 1];
     } else {
-        key = &D_8016AEF8[work->sceneFrame];
+        key = &D_actor_303600_8016AEF8[work->sceneFrame];
     }
     // The compact key stores all nine rotation coefficients in row-major order.
     for (i = 0; i < (s32)ARRAY_SIZE(key->rotation); i++) {
