@@ -32,19 +32,27 @@
 #include "main/tmd_types.h"
 #include "../../shared/blade_trail.h"
 
-/// 0x18-byte scratchpad block `func_tonfa_baton_8011DBFC` reserves for one
-/// frame of the swing. `dir` receives the third column of the weapon's
-/// coordinate matrix from `gfxReadMatrixZAxis`; each axis is then scaled to
-/// 1/84th and multiplied by the swing flag to give the per-frame translation
-/// added to the coordinate.
-typedef struct TonfaSwing {
-    /* 0x00 */ s32     vx;
-    /* 0x04 */ s32     vy;
-    /* 0x08 */ s32     vz;
-    /* 0x0C */ byte    pad_C[4];
-    /* 0x10 */ SVECTOR dir;
-} TonfaSwing;
-STATIC_ASSERT_SIZEOF(TonfaSwing, 0x18);
+/// Divisor that turns the model's forward axis into the distance a baton
+/// strike carries the actor per frame: 4096 / 84, about 48 coordinate units.
+enum { TONFA_BATON_ATTACK_ADVANCE_DIVISOR = 84 };
+
+/// Scratch-stack block for the tonfa baton's attack handler.
+///
+/// The handler reserves one block each frame and releases it before
+/// returning; the block is not cleared. It stages the forward step a strike
+/// moves the actor by.
+///
+/// `forward` is read from the root coordinate's local matrix and is not
+/// normalized. `advance` is each component of it divided by
+/// `TONFA_BATON_ATTACK_ADVANCE_DIVISOR` and multiplied by 1 on a frame a
+/// strike carries the actor forward, 0 on any other. It is added to the root
+/// coordinate's local translation in every state. Neither vector's `pad` is
+/// written.
+typedef struct {
+    VECTOR  advance; // This frame's displacement of the model's root coordinate, in coordinate units; zero while no strike carries the actor
+    SVECTOR forward; // Model's forward axis: the Z column of its root coordinate's local matrix, 4096 per unit
+} _TonfaBatonAttackScratch;
+STATIC_ASSERT_SIZEOF(_TonfaBatonAttackScratch, 0x18);
 
 /// The near end of the baton trail inside the weapon frame; the task's own
 /// coordinate starts there. The far end follows it directly, and state 0 reaches
@@ -233,11 +241,12 @@ void func_tonfa_baton_8011DB98(Task* arg0)
     states[arg0->state](arg0);
 }
 
-/// Per-frame swing state machine for the tonfa baton, and the only weapon here
-/// that moves the player: while `field_973` is set the third column of the
-/// weapon coordinate is scaled by 1/84 and added to the coordinate's
-/// translation, which is what carries the lunge. Case 0 arms the swing (8-tick
-/// wind-up) and queues the ready animation. Cases 1 and 2 run the wind-up: on
+/// Per-frame swing state machine for the tonfa baton. Its tail is common to
+/// every state: it reads the model's forward axis out of its root coordinate's
+/// matrix and, only on a frame that set `swinging`, moves that coordinate
+/// forward by a `TONFA_BATON_ATTACK_ADVANCE_DIVISOR`th of it, which is what
+/// carries the lunge. Case 0 arms the swing (8-tick wind-up) and queues the
+/// ready animation. Cases 1 and 2 run the wind-up: on
 /// the tick it expires the weapon becomes solid, the swing report plays and the
 /// trail effect is parented to the weapon task; pressing again during the
 /// window (`field_966 & 0xA`) upgrades to the second swing, which case 2 turns
@@ -248,19 +257,18 @@ void func_tonfa_baton_8011DB98(Task* arg0)
 /// `Gp_CountRec18Hi` reports a hit.
 static void func_tonfa_baton_8011DBFC(Task* arg0)
 {
-    GameActor*  actor;
-    GfxCoord*   coord;
-    TonfaSwing* swing;
-    EffectWork* eff;
-    s32         delay;
-    s32         step;
-    s32         fade;
-    s32         swinging;
+    GameActor*                actor;
+    GfxCoord*                 coord;
+    _TonfaBatonAttackScratch* scratch;
+    EffectWork*               eff;
+    s32                       delay;
+    s32                       step;
+    s32                       fade;
+    s32                       swinging;
 
     swinging = 0;
     actor    = arg0->work;
-    SCRATCH_STACK_RESERVE_BYTES(0x18);
-    swing = SCRATCH_STACK_CURSOR(TonfaSwing);
+    scratch  = SCRATCH_STACK_RESERVE_BLOCK(_TonfaBatonAttackScratch);
     switch (actor->statePhase) {
         case 0:
             actor->state          = 4;
@@ -373,12 +381,12 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
             break;
     }
     coord = arg0->extra.tmd->coords;
-    gfxReadMatrixZAxis(&coord->coord, &swing->dir);
-    swing->vx          = (s16)(swing->dir.vx / 84) * swinging;
-    swing->vy          = (s16)(swing->dir.vy / 84) * swinging;
-    swing->vz          = (s16)(swing->dir.vz / 84) * swinging;
-    coord->coord.t[0] += swing->vx;
-    coord->coord.t[1] += swing->vy;
-    coord->coord.t[2] += swing->vz;
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    gfxReadMatrixZAxis(&coord->coord, &scratch->forward);
+    scratch->advance.vx = (s16)(scratch->forward.vx / TONFA_BATON_ATTACK_ADVANCE_DIVISOR) * swinging;
+    scratch->advance.vy = (s16)(scratch->forward.vy / TONFA_BATON_ATTACK_ADVANCE_DIVISOR) * swinging;
+    scratch->advance.vz = (s16)(scratch->forward.vz / TONFA_BATON_ATTACK_ADVANCE_DIVISOR) * swinging;
+    coord->coord.t[0]  += scratch->advance.vx;
+    coord->coord.t[1]  += scratch->advance.vy;
+    coord->coord.t[2]  += scratch->advance.vz;
+    SCRATCH_STACK_RELEASE_BLOCK(_TonfaBatonAttackScratch);
 }
