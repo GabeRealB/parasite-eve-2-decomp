@@ -9,8 +9,6 @@
 
 #include "common.h"
 
-#include "actor_143000_capture_private.h"
-
 #include "gameplay/action_prompt.h"
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
@@ -252,9 +250,9 @@ AnimationSet gActor143000Animation03248 = {
     { NULL, _gActor143000Animation03248Bank1, NULL, NULL, _gActor143000Animation03248Bank4, NULL, NULL, NULL },
 };
 
-Actor143000CaptureArgs D_actor_143000_80135090 = { 129, 39, 164, 90, 10, 0 };
+Actor143000CaptureArgs D_actor_143000_80135090 = { { 129, 39, 164, 90 }, 10, 0 };
 
-Actor143000CaptureArgs D_actor_143000_801350A0 = { 38, 138, 250, 75, 8, 0 };
+Actor143000CaptureArgs D_actor_143000_801350A0 = { { 38, 138, 250, 75 }, 8, 0 };
 
 static void func_actor_143000_801324C8(Task* arg0);
 static void func_actor_143000_801325F0(Task* arg0);
@@ -900,7 +898,7 @@ static void func_actor_143000_80133C2C(void)
 
 void func_actor_143000_80133CF0(Task* arg0)
 {
-    Actor143000CaptureArgs* p = arg0->spawnArg2.pointer;
+    Actor143000CaptureArgs* args = arg0->spawnArg2.pointer;
     RECT                    r;
     RECT                    r2;
     s32                     n;
@@ -914,8 +912,8 @@ void func_actor_143000_80133CF0(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            arg0->killCountdown = 6;
-            p->count            = 0;
+            arg0->killCountdown  = 6;
+            args->stripsCaptured = 0;
             arg0->state++;
             break;
         case 1:
@@ -923,23 +921,23 @@ void func_actor_143000_80133CF0(Task* arg0)
                 break;
             }
             arg0->killCountdown = 6;
-            r.x                 = p->x;
-            r.w                 = p->w;
-            r.y                 = p->y + p->h * p->count / p->total;
-            n                   = p->count + 1;
+            r.x                 = args->band.x;
+            r.w                 = args->band.w;
+            r.y                 = args->band.y + args->band.h * args->stripsCaptured / args->stripCount;
+            n                   = args->stripsCaptured + 1;
             rp                  = &r2;
             SOFT_TOUCH_REG_USE(rp, n);
-            p->count = n;
-            bottom   = p->y + p->h * n / p->total;
-            offset   = r.y * FILE_SYSTEM_IMAGE_ROW_BYTES;
-            r.h      = bottom - r.y;
+            args->stripsCaptured = n;
+            bottom               = args->band.y + args->band.h * n / args->stripCount;
+            offset               = r.y * FILE_SYSTEM_IMAGE_ROW_BYTES;
+            r.h                  = bottom - r.y;
             SOFT_USE_REG(offset);
             r2    = r;
             r2.x  = 0x1C0;
             rp->w = 0x140;
             r2.y += 0x100;
             StoreImage(rp, (u_long*)((u8*)Fs_ImgBuffers + offset));
-            if (p->count >= p->total) {
+            if (args->stripsCaptured >= args->stripCount) {
                 taskKill(arg0);
             }
             break;

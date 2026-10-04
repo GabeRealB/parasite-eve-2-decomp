@@ -144023,7 +144023,7 @@ all.
 **Fix.** `static inline void h(RECT* src, u32* buf) { RECT r2 = *src; r2.x = ...;
 r2.w = ...; r2.y += ...; StoreImage(&r2, buf); }` reproduces the `4(a0)` store
 with no pin. Here it was not enough on its own: the target also has the
-address live across an earlier `p->count` store (it takes `a0`, pushing the
+address live across an earlier `args->stripsCaptured` store (it takes `a0`, pushing the
 count to `a1`) and the offset multiply finished before the struct copy, which
 the seed gets from a no-output `asm` (implicitly volatile, so a full sched
 barrier). No barrier-free spelling found gets past 89.4%, and a `do {} while (0)`

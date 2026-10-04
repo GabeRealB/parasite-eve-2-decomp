@@ -1,9 +1,11 @@
 #ifndef SRC_ACTORS_ACTOR_143000_ACTOR_143000_PRIVATE_H
 #define SRC_ACTORS_ACTOR_143000_ACTOR_143000_PRIVATE_H
 
-#include "common.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
-#include "actor_143000_capture_private.h"
+#include "common.h"
 
 #include "gameplay/animation.h"
 
@@ -19,6 +21,26 @@ typedef struct Actor143000Spawn {
 STATIC_ASSERT_SIZEOF(Actor143000Spawn, 4);
 
 extern Actor143000Spawn D_actor_143000_80135C08;
+
+/// A band of the background image for the overlay's strip-capture task, and
+/// that task's progress through it.
+///
+/// The task divides the band's rows into `stripCount` strips and, one strip
+/// per interval from the top down, stores those rows from VRAM into the same
+/// rows of the resident image workspace (`Fs_ImgBuffers`). The source is the
+/// 320-pixel-wide VRAM region whose top-left corner is (448,256), read at the
+/// band's own row offsets. Every strip spans the full image width: the task
+/// copies `band.x` and `band.w` and then replaces them, so only the rows
+/// select what is captured.
+///
+/// The record is the task's second spawn argument and the task writes its
+/// progress back into it, so one record serves one running task at a time.
+typedef struct {
+    RECT band;           // Rows to capture, in image pixels; only `y` and `h` take effect
+    s32  stripCount;     // Strips the band is divided into; must be positive
+    s32  stripsCaptured; // Strips stored so far; the task clears it on start and ends at `stripCount`
+} Actor143000CaptureArgs;
+STATIC_ASSERT_SIZEOF(Actor143000CaptureArgs, 0x10);
 
 extern AnimationSet gActor143000Animation02A20;
 
