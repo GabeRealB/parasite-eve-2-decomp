@@ -79161,7 +79161,7 @@ cast *expression*, which is a no-op conversion at RTL and folds onto the same
 register:
 
 ```c
-rec = (Actor105100Rec*)arg1->field_1C;   /* the view the handler dispatches on */
+rec = (_Actor105100BeamWork*)arg1->field_1C;   /* the view the handler dispatches on */
 ...
 if ((count << 16) <= 0 || ((_Actor105100Work*)rec)->field_24 != 0 || ...) {
 ```
@@ -79170,7 +79170,9 @@ The cleaner alternative, when the function needs most of the other view anyway,
 is a view struct declaring every offset the function touches, so only one
 variable exists at all - that is what took `base_3.c` to 100%, with the cast
 expression above replacing the last field (`field_24`) that belonged to the
-other view. Related: "A pointer to a local and the local's own name are two
+other view. (That word has since been placed in the view itself, as
+`_Actor105100BeamWork::contacts[0].key`, so the function as it stands holds
+one typed pointer and no cast.) Related: "A pointer to a local and the local's own name are two
 frame-address pseudos", which is the same effect on a frame address.
 
 ## Re-derive a pointer chain at the late uses instead of keeping the local
