@@ -108,17 +108,23 @@ typedef struct {
 } _Actor01600CapsuleSensor;
 STATIC_ASSERT_SIZEOF(_Actor01600CapsuleSensor, 0x50);
 
-/// The sphere the scavenger bites with and its one-entry contact table.
+/// The sphere the scavenger's leaping bite hits with, and the one-entry contact table it fills.
 ///
-/// It rides the model's root transform, centred 0x186 above the root, and
-/// carries the key packed from entry 1 of the scavenger's attack table, so a
-/// body it touches takes that attack. Its pair test is enabled only between
-/// frames 9 and 0x17 of a lunge that is not an entrance, and is cleared again
-/// when the bite lands, when the scavenger is hit mid-leap and when it dies.
-/// An occupied entry is a landed bite.
+/// It rides the model's root transform, centred 0x186 above the root, on a
+/// list that is paired against the player's bodies. Its key is packed from
+/// entry 1 of the scavenger's attack table, so a body it touches receives
+/// that attack. The bites of a grab use entry 0 and are sent to the held
+/// actor directly; they do not go through this sphere.
+///
+/// The body stays linked from setup until dying begins, and its pair test is
+/// what arms it: enabled at frame 9 and disabled at frame 0x17 of a lunge
+/// that is not an entrance, and off at every other time. An occupied entry
+/// means the bite connected. Finding one disarms the sphere and empties the
+/// table, as does a hit taken while airborne outside the roam behaviour;
+/// running out of hit points disarms it.
 typedef struct {
-    WorldCollisionBody    body;        // Sphere of radius 0x12C linked on list 3
-    WorldCollisionContact contacts[1]; // Single result, marked LAST
+    WorldCollisionBody    body;        // Sphere of radius 0x12C linked on list 3; only its pair test is ever enabled, never its grid test
+    WorldCollisionContact contacts[1]; // Table `body` borrows; the single entry is marked LAST
 } _Actor01600BiteSphere;
 STATIC_ASSERT_SIZEOF(_Actor01600BiteSphere, 0x38);
 
