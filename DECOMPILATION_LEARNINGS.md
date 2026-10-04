@@ -8393,8 +8393,8 @@ jr    ra
  nop
 ```
 
-`CdAudio_SetLocBase` (`CdAudio_Loc.field_4 = index`) is a pure example — only the
-`volatile CdAudioLoc` form matches.
+`CdAudio_SetLocBase` (`_gCdAudioState.playback.baseSector = arg0`) is a pure example — only the
+`volatile _CdAudioPlayback` form matches.
 
 `D_800680C0` is another interrupt-shared flag: the SPU timer callback
 `Spu_TimerCallback` / `Spu_TimerReentryWork` reads and writes it while main-line
