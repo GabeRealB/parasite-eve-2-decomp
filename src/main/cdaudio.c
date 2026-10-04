@@ -82,16 +82,25 @@ typedef struct _CdAudioTblEntry {
 } CdAudioTblEntry;
 STATIC_ASSERT_SIZEOF(CdAudioTblEntry, 0x4);
 
-/// The CD audio player's working state: its playback, the location it seeks
-/// to, the ramp that winds the stream down, and the stream setup. CdAudio_Init
-/// repeatedly clears only its first word; the original loop never advances
-/// its destination pointer.
+/// Everything the CD audio player keeps between ticks: what it is playing,
+/// and the three blocks it fills in for the CD drive, the volume ramp and the
+/// CD stream.
+///
+/// The player's one instance is volatile, like its sibling state blocks:
+/// `playback` is shared with the CD ready and stream callbacks. `seekLoc`,
+/// `ramp` and `streamParams` are handed to code outside the player through
+/// plain pointers.
+///
+/// Initialisation zeroes only the first word, `playback`'s driver, start
+/// report and volume: its clear loop stores to that word once per word of the
+/// object and never advances.
 typedef struct {
-    volatile _CdAudioPlayback playback;
-    CdlLOC                    setloc; // passed to CdlSetloc to start a seek
-    LinInterp                 ramp;   // Fades the stream volume down before a stop
-    CdStreamParams            stream; // setup handed to CdStream_Start
+    _CdAudioPlayback playback;     // what is playing and which driver runs
+    CdlLOC           seekLoc;      // MSF position of the sector being sought: the `CdlSetloc` argument for a header or wave read, or a stream's start
+    LinInterp        ramp;         // winds the stream's volume down to silence before a stop
+    CdStreamParams   streamParams; // describes the stream to start; both voices are `CD_STREAM_VOICE_NONE` from the first start on
 } _CdAudioState;
+STATIC_ASSERT_SIZEOF(_CdAudioState, 0x44);
 
 typedef struct {
     /* 0x0 */ u8 pad[2];
@@ -121,7 +130,7 @@ static CdAudioTblEntry* CdAudio_TblEntries;
 
 volatile CdAudioPhase CdAudio_Phase;
 
-static _CdAudioState _gCdAudioState;
+static volatile _CdAudioState _gCdAudioState;
 
 static volatile u8 D_800827E4;
 
@@ -222,15 +231,15 @@ s32 CdAudio_Begin(void)
 
 static s32 CdAudio_DriveStream(void)
 {
-    volatile CdAudioPhase* p;
-    _CdAudioState*         state;
-    CdStreamParams*        setup;
-    CdlLOC*                loc;
-    s8                     i;
-    s8                     status;
-    s16                    volume;
+    volatile CdAudioPhase*  p;
+    volatile _CdAudioState* state;
+    CdStreamParams*         params;
+    CdlLOC*                 loc;
+    s8                      i;
+    s8                      status;
+    s16                     volume;
 
-    setup = &_gCdAudioState.stream;
+    params = (CdStreamParams*)&_gCdAudioState.streamParams;
     switch (CdAudio_Phase.field_0) {
         case 4:
             CdAudio_Ctl.field_10 = 0;
@@ -254,25 +263,25 @@ static s32 CdAudio_DriveStream(void)
                 break;
             }
             state = &_gCdAudioState;
-            loc   = &state->setloc;
+            loc   = (CdlLOC*)&state->seekLoc;
             CdIntToPos(state->playback.startSector, loc);
             if (D_8008277C != 0) {
                 volume = 0;
             } else {
                 volume = state->playback.volume;
             }
-            setup->voiceR                 = CD_STREAM_VOICE_NONE;
-            setup->voiceL                 = CD_STREAM_VOICE_NONE;
-            setup->volume                 = volume;
-            setup->channelCount           = 2;
-            setup->sectorBuf              = &Fs_CdSector;
-            setup->spuBase                = state->playback.spuBase;
-            setup->startSector            = CdPosToInt(loc);
-            setup->doneCb                 = CdAudio_SetLocFlag;
-            setup->startCb                = NULL;
-            setup->voiceFreeCb            = NULL;
+            params->voiceR                = CD_STREAM_VOICE_NONE;
+            params->voiceL                = CD_STREAM_VOICE_NONE;
+            params->volume                = volume;
+            params->channelCount          = 2;
+            params->sectorBuf             = &Fs_CdSector;
+            params->spuBase               = state->playback.spuBase;
+            params->startSector           = CdPosToInt(loc);
+            params->doneCb                = CdAudio_SetLocFlag;
+            params->startCb               = NULL;
+            params->voiceFreeCb           = NULL;
             state->playback.startReported = 0;
-            CdStream_Start(setup);
+            CdStream_Start(params);
             CdAudio_Phase.field_0 = 2;
             break;
         case 2:
@@ -297,17 +306,16 @@ static s32 CdAudio_DriveStream(void)
 
 static s32 CdAudio_DrivePhase0(void)
 {
-    volatile CdAudioPhase*  p;
-    s16                     ret;
-    LinInterp*              ramp;
-    volatile _CdAudioState* state;
+    volatile CdAudioPhase* p;
+    s16                    ret;
+    LinInterp*             ramp;
 
     p   = &CdAudio_Phase;
     ret = CD_AUDIO_DRIVER_FADE_OUT;
 
     switch (p->field_2) {
         case 1:
-            ramp       = &_gCdAudioState.ramp;
+            ramp       = (LinInterp*)&_gCdAudioState.ramp;
             p->field_1 = 4;
             LinInterp_Step(ramp);
             if (ramp->gain == ramp->targetGain) {
@@ -320,9 +328,10 @@ static s32 CdAudio_DrivePhase0(void)
             }
             break;
         case 2:
-            state = &_gCdAudioState;
-            Spu_KeyOff(state->stream.voiceL);
-            Spu_KeyOff(state->stream.voiceR);
+            // These are the voices the player asked for, which is none: the
+            // pair the stream allocated is recorded in the stream itself.
+            Spu_KeyOff(_gCdAudioState.streamParams.voiceL);
+            Spu_KeyOff(_gCdAudioState.streamParams.voiceR);
             p->field_2 = 3;
             /* fallthrough */
         case 3:
@@ -524,7 +533,7 @@ static s32 CdAudio_DriveSeek(void)
         do_setloc:
             CdAudio_Ctl.field_0   = 0;
             CdAudio_Phase.field_3 = 1;
-            CdControlF(CdlSetloc, (u8*)&_gCdAudioState.setloc);
+            CdControlF(CdlSetloc, (u8*)&_gCdAudioState.seekLoc);
             break;
         case 1:
             stream = &CdAudio_Ctl;
@@ -621,19 +630,18 @@ error:
 
 static s32 CdAudio_DriveRead(void)
 {
-    volatile _CdAudioState* state;
-    volatile CdAudioCtl*    stream;
-    volatile CdAudioCtl*    p;
-    volatile CdAudioTbl*    cd;
-    s32                     status;
-    u8                      mode;
-    s32                     ret;
+    volatile CdAudioCtl* stream;
+    volatile CdAudioCtl* p;
+    volatile CdAudioTbl* cd;
+    s32                  status;
+    u8                   mode;
+    s32                  ret;
 
     switch (CdAudio_Phase.field_4) {
         case 1:
-            state = &_gCdAudioState;
-            Spu_KeyOff(state->stream.voiceL);
-            Spu_KeyOff(state->stream.voiceR);
+            // The voices the player asked for, not the stream's allocated pair.
+            Spu_KeyOff(_gCdAudioState.streamParams.voiceL);
+            Spu_KeyOff(_gCdAudioState.streamParams.voiceR);
             if (CdStream_IsBusy() != 0) {
                 break;
             }
@@ -679,9 +687,9 @@ static s32 CdAudio_DriveRead(void)
         do_setloc:
             CdAudio_Ctl.field_0 = 0;
             CdAudio_Tbl.field_8 = _gCdAudioState.playback.baseSector;
-            CdIntToPos(_gCdAudioState.playback.baseSector, &_gCdAudioState.setloc);
+            CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
             CdAudio_Phase.field_4 = 5;
-            CdControlF(CdlSetloc, (u8*)&_gCdAudioState.setloc);
+            CdControlF(CdlSetloc, (u8*)&_gCdAudioState.seekLoc);
             break;
         case 5:
             p = &CdAudio_Ctl;
@@ -879,7 +887,7 @@ void CdAudio_Init(void)
     do {
         i++;
         *p = 0;
-    } while (i < 0x11U);
+    } while (i < sizeof(_gCdAudioState) / sizeof(*p));
 
     D_8008277C                      = 0;
     CdAudio_SectorBuffer            = 0;
@@ -919,14 +927,12 @@ static s32 CdAudio_Reset(s32 arg0)
 
 static s32 CdAudio_SetupStream(void)
 {
-    u8             mode;
-    u8*            mem;
-    u8*            buf;
-    _CdAudioState* state;
+    u8  mode;
+    u8* mem;
+    u8* buf;
 
     CdAudio_Phase.field_3 = 5;
-    state                 = &_gCdAudioState;
-    CdIntToPos(state->playback.baseSector, &state->setloc);
+    CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
     buf = CdAudio_SectorBuffer;
     if (buf != 0) {
         SndHeap_Free(buf);
@@ -1117,7 +1123,7 @@ static void CdAudio_StartVolumeRamp(s32 arg0)
 {
     LinInterp* ramp;
 
-    ramp = &_gCdAudioState.ramp;
+    ramp = (LinInterp*)&_gCdAudioState.ramp;
     LinInterp_Setup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & 0xFF, 0, arg0);
     CdAudio_Phase.field_1          = 4;
     CdAudio_Phase.field_2          = 1;

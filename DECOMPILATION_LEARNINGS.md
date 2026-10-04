@@ -8351,13 +8351,23 @@ if (interp->gain == interp->targetGain) {
     /* equal path — never mentions parent */
     func_X(0);
 } else {
-    parent = (volatile CdAudioLocEx*)interp - 1;
+    parent = (volatile Owner*)interp - 1;
     func_Y(parent->field_2);
 }
 ```
 
-`CdAudio_DrivePhase0` needs this (together with the `s16 ret` tip above) for the
-`LinInterp_CdStream` / `CdAudio_Loc` pair linked by CdAudioLocEx.
+`CdAudio_DrivePhase0` needs this (together with the `s16 ret` tip above). Its
+ramp and playback block are members of one volatile `_gCdAudioState`, so the
+else names the sibling member and needs no parent pointer:
+
+```c
+ramp = (LinInterp*)&_gCdAudioState.ramp;
+if (ramp->gain == ramp->targetGain) {
+    CdStream_SetVolume(0);
+} else {
+    CdStream_SetVolume((s16)LinInterp_Apply(ramp, _gCdAudioState.playback.volume));
+}
+```
 
 ## `volatile` blocks delay-slot filling
 
@@ -8393,8 +8403,8 @@ jr    ra
  nop
 ```
 
-`CdAudio_SetLocBase` (`_gCdAudioState.playback.baseSector = arg0`) is a pure example — only the
-`volatile _CdAudioPlayback` form matches.
+`CdAudio_SetLocBase` (`_gCdAudioState.playback.baseSector = arg0`) is a pure example — only a
+volatile `_gCdAudioState` matches.
 
 `D_800680C0` is another interrupt-shared flag: the SPU timer callback
 `Spu_TimerCallback` / `Spu_TimerReentryWork` reads and writes it while main-line
@@ -12856,10 +12866,10 @@ derive the parent pointer from the later one with a typed step-back. Split the
 cast and the arithmetic so the pointer-arithmetic linter stays quiet:
 
 ```c
-/* CdAudio_Loc..D_800827B0 is 0x14 bytes immediately before LinInterp_CdStream */
-p = &LinInterp_CdStream;
-parent = (volatile CdAudioLocEx*)p;
-parent = parent - 1;   /* sizeof(CdAudioLocEx) == 0x14 */
+/* Earlier..gap is 0x14 bytes immediately before Later */
+p = &Later;
+parent = (volatile Earlier*)p;
+parent = parent - 1;   /* sizeof(Earlier) == 0x14 */
 LinInterp_Setup(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
 parent->field_0 = 3;   /* sb …, -0x14(s0) */
 ```
@@ -12867,7 +12877,17 @@ parent->field_0 = 3;   /* sb …, -0x14(s0) */
 `volatile` on the parent pointer forces `addiu v0, s0, -0x14` + `lhu a1, 2(v0)`
 instead of a folded `lhu a1, -0x12(s0)`.
 
-`CdAudio_StartVolumeRamp` is the pure example (`LinInterp_CdStream` / `CdAudio_Loc`).
+Check first whether the two blocks are one object. `CdAudio_StartVolumeRamp`
+has exactly this shape, and its two blocks turned out to be members of one
+volatile struct, `_gCdAudioState`: holding the later member's address and
+naming the earlier one compiles to the same step-back with no pointer
+arithmetic in the source.
+
+```c
+ramp = (LinInterp*)&_gCdAudioState.ramp;
+LinInterp_Setup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & 0xFF, 0, arg0);
+_gCdAudioState.playback.driver = CD_AUDIO_DRIVER_FADE_OUT;   /* sb …, -0x14(s0) */
+```
 
 ## Pre-advance a walk pointer before the loop bound check
 
@@ -16852,7 +16872,7 @@ _CdStreamChannels* p = &CdStream_Channels;
 volatile CdStreamState* q = (volatile CdStreamState*)p - 1; /* sizeof == gap */
 ```
 
-`sizeof(*q)` must equal the BSS gap. Same pattern as `parent = (CdAudioLocEx*)interp - 1`.
+`sizeof(*q)` must equal the BSS gap. Same pattern as "BSS adjacency: hold the later symbol, step back by typed size".
 `CdStream_SetPitch` needs this (with `volatile` on `q` so the else path reloads
 `unknown_0[1]` instead of CSEing the bit test).
 
@@ -21009,14 +21029,14 @@ error:
     ...
 ```
 
-Also force early `CdAudio_Tbl` addressing before the `audio` pointer is built by
-writing the cross-struct store with a cast, then assigning `audio`:
+`CdAudio_Tbl`'s address also has to form before the player state's. The
+cross-struct store comes first, and the volatile state is named in each
+statement:
 
 ```c
 CdAudio_Ctl.field_0 = 0;
-CdAudio_Tbl.field_8 = ((volatile CdAudioLocEx*)&CdAudio_Loc)->field_4;
-audio = (volatile CdAudioLocEx*)&CdAudio_Loc;
-CdIntToPos(audio->field_4, (CdlLOC*)&audio->field_10);
+CdAudio_Tbl.field_8 = _gCdAudioState.playback.baseSector;
+CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
 ```
 
 `CdAudio_DriveRead` is the pure example.
