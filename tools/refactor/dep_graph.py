@@ -161,6 +161,10 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
         alias.update(owned)
         print(f"  merged {len(owned)} references into another image with the definition they name", file=sys.stderr)
 
+    tied = package_aliases(root, version, nodes, edges)
+    if tied:
+        print(f"  tied {tied} package aliases to the definitions they export", file=sys.stderr)
+
     macro_refs.add_graph(root, nodes, edges)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w") as fh:
@@ -197,6 +201,37 @@ def assembly_names(root: str, version: str = "USA") -> set:
             names.update(f[:-2] for f in files if f.endswith(".s"))
         _ASM_NAMES[key] = names
     return _ASM_NAMES[key]
+
+
+def package_aliases(root: str, version: str, nodes: dict, edges: dict) -> int:
+    """Make each package alias one step with the definition it exports.
+
+    A source built for several packages defines a symbol once, and the manifest
+    gives the other packages' copies names of their own (`aliases` on a slot,
+    DEFINE_ALIAS). An alias is a name for the same code, so it is understood
+    and named with its definition, never ahead of it: each waits for the other,
+    which makes them one component and so one step.
+    """
+    import tomllib
+    try:
+        with open(os.path.join(root, "configs", version, "overlays.toml"), "rb") as fh:
+            manifest = tomllib.load(fh)
+    except OSError:
+        return 0
+    by_name = collections.defaultdict(list)
+    for usr, meta in nodes.items():
+        by_name[meta["name"]].append(usr)
+    tied = 0
+    for spec in manifest.values():
+        for entry in (spec.get("overlays") or {}).values():
+            for slot in entry.get("slots") or []:
+                for orig, name in (slot.get("aliases") or {}).items():
+                    for a in by_name.get(name, []):
+                        for d in by_name.get(orig, []):
+                            edges.setdefault(a, set()).add(d)
+                            edges.setdefault(d, set()).add(a)
+                            tied += 1
+    return tied
 
 
 def import_aliases(root: str, version: str, nodes: dict, edges: dict) -> dict:
