@@ -32,38 +32,81 @@
 
 extern TaskMessageEntry gGeneratorMessages[];
 
-/// Work block of the enemy whose code both actor_105300 and actor_105400
-/// carry, kept at `Task::work`: the animation context with its slots and
-/// poses, the collision nodes and records, and the state the per-frame
-/// handlers drive.
-typedef struct GeneratorWork {
-    AnimationContext      anim;
-    AnimationSlot         slots[10];
-    AnimationPose         poses[10];
-    MATRIX                field_244;
-    MATRIX                field_264;
-    WorldCollisionBody    node0;
-    WorldCollisionBody    node1;
-    WorldCollisionContact rec18[2];
-    EffectSpawnArg        field_2F4;
-    MATRIX                field_2FC;
-    s32                   field_31C;
-    u16                   field_320;
-    s16                   field_322;
-    u16                   field_324;
-    u16                   field_326;
-    u16                   field_328;
-    u16                   field_32A;
-    u16                   field_32C;
-    u16                   field_32E;
-    u16                   field_330;
-    s16                   field_332;
-    s16                   kind;
-    s16                   field_336;
-    s16                   field_338;
-    s16                   field_33A;
-    s16                   field_33C;
-    s16                   field_33E;
+/// Animation sets of the body, the values of `GeneratorWork::animSet`: indexes
+/// into the package's animation-set table, whose entry 0 is empty.
+enum {
+    GENERATOR_ANIM_IDLE  = 1, // played from the spawn, and again once a hit reaction has run
+    GENERATOR_ANIM_HIT   = 2, // reaction to a hit the body survives
+    GENERATOR_ANIM_DEATH = 3  // played from the killing hit on
+};
+
+/// Values of `GeneratorWork::pulseState`.
+enum {
+    GENERATOR_PULSE_IDLE        = 0, // counting `pulseTimer` down, then playing the idle pulse clip
+    GENERATOR_PULSE_HIT         = 1, // playing the hit pulse clip
+    GENERATOR_PULSE_HIT_RECOVER = 2  // hit pulse over; waiting for the hit animation before returning to idle
+};
+
+/// Values of `GeneratorWork::deathState`, in the order a death passes through
+/// them: wait, start, shrink, done.
+enum {
+    GENERATOR_DEATH_START  = 0, // drops the body's target node and collision bodies, then shrinks
+    GENERATOR_DEATH_SHRINK = 1, // the 0x78-frame shrink, flickering and spewing effects
+    GENERATOR_DEATH_DONE   = 2, // sequence over
+    GENERATOR_DEATH_WAIT   = 3  // killed; spews effects until `GENERATOR_RELEASE_DEATH` arrives
+};
+
+/// Values of `GeneratorWork::battleExitState`.
+enum {
+    GENERATOR_BATTLE_EXIT_DUE  = 0, // leave the battle on the next death tick
+    GENERATOR_BATTLE_EXIT_DONE = 1, // battle reference dropped and rewards credited
+    GENERATOR_BATTLE_EXIT_HELD = 2  // killed; waits for `GENERATOR_RELEASE_BATTLE_EXIT`
+};
+
+/// Bits of `GeneratorWork::releaseBits`. An `ACTOR_COMMAND_MESSAGE_APPLY`
+/// command carries the same values, so command 3 raises both.
+enum {
+    GENERATOR_RELEASE_DEATH       = 1, // lets a killed body leave `GENERATOR_DEATH_WAIT`
+    GENERATOR_RELEASE_BATTLE_EXIT = 2  // lets it leave `GENERATOR_BATTLE_EXIT_HELD`
+};
+
+/// Work block of a Generator body.
+///
+/// The body's spawn handler allocates it zeroed and keeps it at `Task::work`;
+/// the Life Support part task reaches it through its parent task. It holds the
+/// animation context and its storage, the model's matrices, the two collision
+/// spheres with their shared contact records, and the state the per-frame
+/// handlers drive: the scale pulses while alive, and after the killing hit the
+/// death sequence and the exit from the battle, each held until a message
+/// releases it.
+typedef struct {
+    AnimationContext      anim;                                   // animation playback of the model
+    AnimationSlot         slots[10];                              // one per model part; 1..9 play `animSet`, slot 0 is never started
+    u8                    poses[10][ANIMATION_POSE_BUFFER_BYTES]; // blend pose of each slot
+    MATRIX                colorMtx;                               // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;                               // storage for the model's `TmdObject::lightMtx`
+    WorldCollisionBody    rootBody;                               // sphere of radius 1500 at the model's root; the Life Support part copies its key
+    WorldCollisionBody    targetBody;                             // sphere of radius 300 at the enemy's `Enemy::bodyPos`; shares `contacts`
+    WorldCollisionContact contacts[2];                            // contacts of both bodies; also the enemy's hit records
+    EffectSpawnArg        effectArg;                              // argument record of the effects its hits spawn, hung off the root
+    MATRIX                unscaledMtx;                            // root matrix at the spawn, taken again when the death shrink starts; each frame rescales a copy of it
+    s32                   runningSoundId;                         // sound started at the spawn: re-panned for the view each frame, stopped when the Life Support part is destroyed
+    s16                   animSet;                                // requested animation, `GENERATOR_ANIM_*`; 0 until the first request
+    s16                   appliedAnimSet;                         // animation last applied to the slots
+    s16                   animFrames;                             // frames since `animSet` was applied
+    s16                   shrinkScale;                            // Y scale of the death shrink, 0x1000 = 1.0; falls to 0x200
+    s16                   stateFrames;                            // row of the pulse clip being played while alive; frames of the death wait and of the shrink afterwards
+    s16                   pulseTimer;                             // frames until the next idle pulse or death flicker; the hit pulse clip's row during a death flicker
+    s16                   pulseState;                             // `GENERATOR_PULSE_*`; the death shrink reuses IDLE and HIT for its flicker
+    s16                   deathState;                             // `GENERATOR_DEATH_*`
+    s16                   battleExitState;                        // `GENERATOR_BATTLE_EXIT_*`
+    s16                   hitCooldown;                            // frames before another hit is taken; set from the hit's id parameter 2
+    s16                   kind;                                   // `GENERATOR_KIND` of the package; indexes the per-kind tables
+    s16                   lifeSupportDestroyed;                   // 1 once the Life Support part has been destroyed: full damage, no regeneration, and the body can die
+    s16                   alive;                                  // 1 from the spawn until the killing hit; the answer to `ACTOR_MESSAGE_IS_PRESENT`
+    s16                   releaseBits;                            // `GENERATOR_RELEASE_*` bits received by message
+    s16                   hpCeiling;                              // hit points regeneration stops at: the kind's `EnemyParams::hpMax`
+    s16                   regenTimer;                             // frames until the next regenerated hit point, five apart
 } GeneratorWork;
 STATIC_ASSERT_SIZEOF(GeneratorWork, 0x340);
 

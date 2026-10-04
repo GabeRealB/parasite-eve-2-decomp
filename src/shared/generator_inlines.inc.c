@@ -2,9 +2,9 @@
 
 /// Pose tick, inlined into the death handler; the same step
 /// `generatorTickPose` performs out of line. When the pose asked for
-/// (`field_320`) differs from the one the animation slots were last queued
-/// for (`field_322`), slots 1-9 are re-queued with it and its entry of
-/// `gGeneratorPoseStartFrames`, and the frame count `field_324` restarts;
+/// (`animSet`) differs from the one the animation slots were last queued
+/// for (`appliedAnimSet`), slots 1-9 are re-queued with it and its entry of
+/// `gGeneratorPoseStartFrames`, and the frame count `animFrames` restarts;
 /// otherwise every slot is ticked and the count advances by one.
 static inline void generatorTickPoseInline(Task* task)
 {
@@ -13,16 +13,16 @@ static inline void generatorTickPoseInline(Task* task)
     s32            value;
 
     work = task->work;
-    if ((s16)work->field_320 != work->field_322) {
-        work->field_322 = work->field_320;
-        work->field_324 = 0;
-        value           = gGeneratorPoseStartFrames[(s16)work->field_320];
-        for (i = 1; i < 10; i++) {
-            animationSeekSlotWithBlend(&work->anim, i, (s16)work->field_320, 0, value);
+    if (work->animSet != work->appliedAnimSet) {
+        work->appliedAnimSet = work->animSet;
+        work->animFrames     = 0;
+        value                = gGeneratorPoseStartFrames[work->animSet];
+        for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
+            animationSeekSlotWithBlend(&work->anim, i, work->animSet, 0, value);
         }
     } else {
-        work->field_324++;
-        for (i = 1; i < 10; i++) {
+        work->animFrames++;
+        for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
             animationTickSlot(&work->anim, i);
         }
     }

@@ -3,9 +3,9 @@
 /* Part of the Generator library; see generator.h. */
 
 /// Idle schedule of the enemy, one of the steps the tick handler
-/// `generatorTickState` runs each frame. The sub-state (`field_32C`)
+/// `generatorTickState` runs each frame. The sub-state (`pulseState`)
 /// picks what it does: state 0 walks `gGeneratorIdlePulse` once the
-/// countdown `field_32A` has run out, and on that table's terminator row
+/// countdown `pulseTimer` has run out, and on that table's terminator row
 /// resets the row index, reseeds the countdown from the gameplay LCG and plays
 /// the sound id `gGeneratorPulseSoundId` with the placement number in the
 /// high nibble of `Enemy::placeKey`; state 1 (entered on a hit) walks
@@ -13,7 +13,7 @@
 /// returns to pose 1 and state 0 once the pose has run 0x23 frames past its
 /// entry of `gGeneratorPoseStartFrames`. The row's `field_2` is the scale
 /// `modelPlacementSetScaled` applies to the saved coordinate matrix
-/// `field_2FC`, 0x1000 when no row was read, and while the session's
+/// `unscaledMtx`, 0x1000 when no row was read, and while the session's
 /// `viewReady` is 1 the per-view row of `gGeneratorViewSound` is enqueued
 /// with the work block's sound id.
 void generatorPulse(Task* arg0)
@@ -27,46 +27,46 @@ void generatorPulse(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     scale = 0x1000;
-    switch ((s16)work->field_32C) {
-        case 0:
-            if ((s16)work->field_32A <= 0) {
-                scale = gGeneratorIdlePulse[(s16)work->field_328].field_2;
-                if (gGeneratorIdlePulse[(s16)work->field_328].field_0 != 0) {
-                    work->field_328 = 0;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->field_32A = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
-                    sndId           = gGeneratorPulseSoundId |
+    switch (work->pulseState) {
+        case GENERATOR_PULSE_IDLE:
+            if (work->pulseTimer <= 0) {
+                scale = gGeneratorIdlePulse[work->stateFrames].field_2;
+                if (gGeneratorIdlePulse[work->stateFrames].field_0 != 0) {
+                    work->stateFrames = 0;
+                    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->pulseTimer  = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
+                    sndId             = gGeneratorPulseSoundId |
                             ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(sndId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 } else {
-                    work->field_328 = work->field_328 + 1;
+                    work->stateFrames = work->stateFrames + 1;
                 }
             } else {
-                work->field_32A = work->field_32A - 1;
+                work->pulseTimer = work->pulseTimer - 1;
             }
             break;
-        case 1:
-            scale = gGeneratorHitPulse[(s16)work->field_328].field_2;
-            if (gGeneratorHitPulse[(s16)work->field_328].field_0 != 0) {
-                work->field_328 = 0;
-                work->field_32C = 2;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->field_32A = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
+        case GENERATOR_PULSE_HIT:
+            scale = gGeneratorHitPulse[work->stateFrames].field_2;
+            if (gGeneratorHitPulse[work->stateFrames].field_0 != 0) {
+                work->stateFrames = 0;
+                work->pulseState  = GENERATOR_PULSE_HIT_RECOVER;
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->pulseTimer  = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
             } else {
-                work->field_328 = work->field_328 + 1;
+                work->stateFrames = work->stateFrames + 1;
             }
             break;
-        case 2:
-            if ((s16)work->field_324 >= gGeneratorPoseStartFrames[(s16)work->field_320] + 0x23) {
-                work->field_320 = 1;
-                work->field_32C = 0;
+        case GENERATOR_PULSE_HIT_RECOVER:
+            if (work->animFrames >= gGeneratorPoseStartFrames[work->animSet] + 0x23) {
+                work->animSet    = GENERATOR_ANIM_IDLE;
+                work->pulseState = GENERATOR_PULSE_IDLE;
             }
             break;
     }
-    modelPlacementSetScaled(arg0, &work->field_2FC, scale, 1);
+    modelPlacementSetScaled(arg0, &work->unscaledMtx, scale, 1);
     if (gGameSession->viewReady == 1) {
-        SndEvt_EnqueueTypeA(work->field_31C, gGeneratorViewSound[gGameSession->location.loc.view].field_0,
+        SndEvt_EnqueueTypeA(work->runningSoundId, gGeneratorViewSound[gGameSession->location.loc.view].field_0,
                             gGeneratorViewSound[gGameSession->location.loc.view].field_2);
     }
 }

@@ -18,7 +18,7 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
-    work  = (GeneratorWork*)arg1->parent->work;
+    work  = arg1->parent->work;
     part  = memCalloc(0x48, 0);
     if (part == NULL) {
         enemyDestroy(arg0, arg1);
@@ -49,13 +49,13 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
     part->obj.pos.vx           = 0;
     part->obj.pos.vy           = 0;
     part->obj.pos.vz           = 0;
-    part->obj.key              = ((GeneratorWork*)arg1->parent->work)->node0.key;
+    part->obj.key              = ((GeneratorWork*)arg1->parent->work)->rootBody.key;
     part->obj.radius           = 0xC8;
     part->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &part->obj);
     Gp_InitRec18Table(rec18, 1, 0);
     part->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    type             = (u16)work->kind;
+    type             = work->kind;
     part->field_46   = type;
     if ((type << 0x10) == 0) {
         func_neo_ark_power_plant_2_8017FD88(1);

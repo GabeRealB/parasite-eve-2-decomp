@@ -129385,8 +129385,8 @@ order, so the *later-numbered* constant is selected first and printed first.
 Writing the two stores in the target's later order,
 
 ```c
-work->field_334 = 1;        /* was second */
-work->field_326 = 0x1000;   /* was first  */
+work->kind = 1;              /* was second */
+work->shrinkScale = 0x1000;  /* was first  */
 ```
 
 numbers the `1` earlier and lands 100.000%, with the two stores themselves still
@@ -137798,9 +137798,9 @@ Two preplanned experiments separated the causes:
   true dependencies on all twelve preceding stores, where the scalar load had
   only the prior call and address producer. The predicted dependency change
   occurs, but the read now stays too late, moves from v1 to v0, and scores 96.209%.
-- `base_2`: move that array read/store immediately after `field_338`, before
+- `base_2`: move that array read/store immediately after `alive`, before
   node initialization. The corresponding load UID218 retains true dependencies
-  on UIDs199/202/208/213 (field326, field334, matrix, field338), and the later
+  on UIDs199/202/208/213 (shrinkScale, kind, matrix, alive), and the later
   node stores acquire anti-dependencies on it. The value returns to v1 with the
   address in v0; the node and record addresses remain a1/s0. Score: 100.000%.
 - `base_3`: replace the scratch's flat work layout with the overlay's normal

@@ -17,7 +17,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
-    work  = memCalloc(0x340, 0);
+    work  = memCalloc(sizeof(GeneratorWork), 0);
     if (work == NULL) {
         enemyDestroy(arg0, arg1);
         return;
@@ -25,8 +25,8 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     arg1->work          = work;
     obj->flags          = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->field_264;
-    obj->colorMtx       = &work->field_244;
+    obj->lightMtx       = &work->lightMtx;
+    obj->colorMtx       = &work->colorMtx;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
     Gp_LinkNode(&arg0->node);
@@ -35,51 +35,50 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     arg0->bodyPos.vy           = gGeneratorSpawnOffsets[GENERATOR_KIND].vy;
     arg0->bodyPos.vz           = gGeneratorSpawnOffsets[GENERATOR_KIND].vz;
     arg0->param                = &gGeneratorParams;
-    arg0->recs                 = work->rec18;
+    arg0->recs                 = work->contacts;
     arg0->hp                   = gGeneratorParams.hpMax;
-    work->field_2F4.coord      = coord;
-    work->field_2F4.spawnArgLo = 0x500;
-    work->field_2F4.spawnArgHi = 3;
-    animationInitContext(&work->anim, gGeneratorAnimSets, obj,
-                         (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
-    for (i = 1; i < 0xA; i++) {
-        animationResetSlot(&work->anim, i, 1);
+    work->effectArg.coord      = coord;
+    work->effectArg.spawnArgLo = 0x500;
+    work->effectArg.spawnArgHi = 3;
+    animationInitContext(&work->anim, gGeneratorAnimSets, obj, work->poses, work->slots);
+    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
+        animationResetSlot(&work->anim, i, GENERATOR_ANIM_IDLE);
     }
     (Gp_IncStateF0Ref)(0);
-    work->kind                   = GENERATOR_KIND;
-    work->field_326              = 0x1000;
-    work->field_2FC              = coord->coord;
-    work->field_338              = 1;
-    work->field_33C              = gGeneratorParams.hpMax;
-    work->node0.coord            = coord;
-    work->node0.context.contacts = work->rec18;
-    work->node0.pos.vx           = 0;
-    work->node0.pos.vy           = 0;
-    work->node0.pos.vz           = 0;
-    work->node0.key              = GENERATOR_COLLISION_KEY;
-    work->node0.radius           = 0x5DC;
-    work->node0.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->node0);
-    Gp_InitRec18Table(work->rec18, 2, 0);
-    work->node0.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    work->node1.coord            = coord;
-    work->node1.context.contacts = work->rec18;
-    work->node1.pos.vx           = gGeneratorSpawnOffsets[GENERATOR_KIND].vx;
-    work->node1.pos.vy           = gGeneratorSpawnOffsets[GENERATOR_KIND].vy;
-    work->node1.pos.vz           = gGeneratorSpawnOffsets[GENERATOR_KIND].vz;
-    work->node1.key              = GENERATOR_COLLISION_KEY;
-    work->node1.radius           = 0x12C;
-    work->node1.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->node1);
-    work->node1.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    spawned            = Gp_SpawnEnemyFromTable(gGeneratorTasks, 1, 0, arg0);
-    model              = spawned->task->extra.tmd;
-    idx                = arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    sessionKey         = &gGameSession->location.loc;
-    key.stage          = sessionKey->stage;
-    key.area           = sessionKey->area;
-    key.room           = sessionKey->room;
-    key.view           = sessionKey->view;
+    work->kind                      = GENERATOR_KIND;
+    work->shrinkScale               = ONE;
+    work->unscaledMtx               = coord->coord;
+    work->alive                     = 1;
+    work->hpCeiling                 = gGeneratorParams.hpMax;
+    work->rootBody.coord            = coord;
+    work->rootBody.context.contacts = work->contacts;
+    work->rootBody.pos.vx           = 0;
+    work->rootBody.pos.vy           = 0;
+    work->rootBody.pos.vz           = 0;
+    work->rootBody.key              = GENERATOR_COLLISION_KEY;
+    work->rootBody.radius           = 0x5DC;
+    work->rootBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work->rootBody);
+    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    work->rootBody.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->targetBody.coord            = coord;
+    work->targetBody.context.contacts = work->contacts;
+    work->targetBody.pos.vx           = gGeneratorSpawnOffsets[GENERATOR_KIND].vx;
+    work->targetBody.pos.vy           = gGeneratorSpawnOffsets[GENERATOR_KIND].vy;
+    work->targetBody.pos.vz           = gGeneratorSpawnOffsets[GENERATOR_KIND].vz;
+    work->targetBody.key              = GENERATOR_COLLISION_KEY;
+    work->targetBody.radius           = 0x12C;
+    work->targetBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work->targetBody);
+    work->targetBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    spawned                 = Gp_SpawnEnemyFromTable(gGeneratorTasks, 1, 0, arg0);
+    model                   = spawned->task->extra.tmd;
+    idx                     = arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    sessionKey              = &gGameSession->location.loc;
+    key.stage               = sessionKey->stage;
+    key.area                = sessionKey->area;
+    key.room                = sessionKey->room;
+    key.view                = sessionKey->view;
     areaSyncLocationVariant(&key);
     layout                   = Gp_GetNestedAreaRec(&key);
     place                    = gpAreaPlaceAt(layout->placements, idx);
@@ -89,8 +88,8 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
         tmdProcessStream(model);
         tmdProcessStream(model);
     }
-    sound           = gGeneratorSpawnSound | ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-    work->field_31C = sound;
+    sound                = gGeneratorSpawnSound | ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+    work->runningSoundId = sound;
     SndEvt_EnqueueType6(sound, gGeneratorViewSound[gGameSession->location.loc.view].field_0,
                         gGeneratorViewSound[gGameSession->location.loc.view].field_2);
     arg1->msgTable = gGeneratorMessages;

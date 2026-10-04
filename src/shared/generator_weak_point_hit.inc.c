@@ -2,7 +2,7 @@
 
 /// Per-frame hit handling of the weak point: distance-scaled damage with
 /// critical rolls and hit effects/sounds. On death it marks the body's
-/// field_336, spawns the burst effects and plays the break sound.
+/// `lifeSupportDestroyed`, spawns the burst effects and plays the break sound.
 void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
 {
     VECTOR*        vec;
@@ -49,9 +49,9 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
             func_800DA6E8(&arg0->node, damage, 0);
             arg0->hp -= damage;
             if (arg0->hp <= 0) {
-                arg1->state                                     = 2;
-                part->field_42                                  = 0;
-                ((GeneratorWork*)arg1->parent->work)->field_336 = 1;
+                arg1->state                                                = 2;
+                part->field_42                                             = 0;
+                ((GeneratorWork*)arg1->parent->work)->lifeSupportDestroyed = 1;
                 Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x10002400, NULL);
                 Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32FF1400, NULL);
                 snd  = gGeneratorSoundIds[1];
