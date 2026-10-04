@@ -128822,14 +128822,14 @@ permuter search found no output, so this is a manual controlled result.
 the recomputation after the call has a home:
 
 ```c
-    temp_v0 = work->field_484;
+    temp_v0 = work->freeCountdown;
     if (temp_v0 >= 0) {
         var_v0_2 = temp_v0 - 1;
         if (temp_v0 == 0) {
             Tmd_FreeBuffers(extra);
-            var_v0_2 = work->field_484 - 1;
+            var_v0_2 = work->freeCountdown - 1;
         }
-        work->field_484 = var_v0_2;
+        work->freeCountdown = var_v0_2;
     }
 ```
 
@@ -128841,11 +128841,11 @@ source form that compiles that way is the plain statement the phi variable was
 spelling out:
 
 ```c
-    if (work->field_484 >= 0) {
-        if (work->field_484 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(extra);
         }
-        work->field_484--;
+        work->freeCountdown--;
     }
 ```
 

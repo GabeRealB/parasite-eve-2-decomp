@@ -28,24 +28,22 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/model_placement.h"
 
-/// Work block the spawn state `func_actor_213100_8014A118` allocates
-/// (`memCalloc(0x488)`) and parks in `Task::work`.
+/// Work block of Jodie Bouquet as a room script poses her: what her body model
+/// plays, the matrices it is lit with and the model she holds.
 ///
-/// It opens with the nineteen-part rig and the model state the 0x7D3 handler
-/// `actorMotionPlayAnim19` drives, which is all that handler reaches
-/// (`ActorMotion19PlayWork`); this actor does not walk and keeps no walk state.
-/// `model.light` / `model.color` are the matrices
-/// `func_actor_213100_8014A23C` publishes on the model. `field_480` is the
-/// child task the spawn state creates, whose model mirrors this one's
-/// visibility; `field_484` is the countdown after which the tick frees the
-/// model's buffers, -1 while idle.
-typedef struct Actor213100Work {
-    ActorAnimRig19  rig;
-    ActorModelState model;
-    struct Task*    field_480;
-    s32             field_484;
-} Actor213100Work;
-STATIC_ASSERT_SIZEOF(Actor213100Work, 0x488);
+/// The spawn state allocates it zeroed and keeps it at `Task::work` for the
+/// task's life. It opens with the nineteen-part rig and the model state, the
+/// head a play request views as `ActorMotion19PlayWork`; she does not walk, so
+/// the package's own state follows directly and `model.nextAnimId` is unused.
+/// The model object borrows `model.light` and `model.color` for as long as the
+/// block lives.
+typedef struct {
+    ActorAnimRig19  rig;           // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    ActorModelState model;         // Clip and bank the rig plays, and the matrices the model is lit with
+    Task*           heldModelTask; // Task drawing the model hung on body part 8, a hand; it is shown and hidden with the body. Never `NULL` past the spawn state, which exits when the spawn fails
+    s32             freeCountdown; // Ticks left before the body model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+} _Actor213100JodieBouquetWork;
+STATIC_ASSERT_SIZEOF(_Actor213100JodieBouquetWork, 0x488);
 
 /// Animation bank table the 0x7D3 handler indexes with the preset's
 /// `field_0`.
@@ -400,20 +398,20 @@ static void func_actor_213100_80149E3C(Task* task);
 /// translation through `func_800EA1A8` and draws the ground shadow where it
 /// hits. Once the view is ready, rebuilds that part's world matrix, hands its
 /// translation to `func_800D7A9C`, and shows or hides this model and the
-/// child's together from the per-view table. The work block's countdown then
-/// frees the model's buffers as it reaches zero.
+/// child's together from the per-view table. `freeCountdown` then frees the
+/// model's buffers as it reaches zero.
 static void func_actor_213100_80149E3C(Task* task)
 {
-    Actor213100Work* work;
-    TmdObject*       extra;
-    TmdObject*       child;
-    VECTOR3          pos;
-    s32              i;
+    _Actor213100JodieBouquetWork* work;
+    TmdObject*                    extra;
+    TmdObject*                    child;
+    VECTOR3                       pos;
+    s32                           i;
 
-    work  = (Actor213100Work*)task->work;
+    work  = task->work;
     extra = task->extra.tmd;
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
@@ -426,7 +424,7 @@ static void func_actor_213100_80149E3C(Task* task)
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
-        child = work->field_480->extra.tmd;
+        child = work->heldModelTask->extra.tmd;
         if (D_actor_213100_801521E0[gGameSession->location.loc.view] != 0) {
             extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             child->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -435,11 +433,11 @@ static void func_actor_213100_80149E3C(Task* task)
             child->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
-    if (work->field_484 >= 0) {
-        if (work->field_484 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(extra);
         }
-        work->field_484--;
+        work->freeCountdown--;
     }
 }
 
@@ -489,31 +487,32 @@ void func_actor_213100_8014A0C0(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Spawn state: allocates the work block into `Task::work` and seeds its
-/// animation bytes and countdown to -1, then spawns the child from entry 1 of
-/// the spawn table, attached to part 8 of this actor's skeleton. Either
-/// allocation failing exits the task instead. Both models start hidden and
+/// Spawn state: allocates the work block into `Task::work`, seeds its clip
+/// and bank to `ACTOR_MODEL_STATE_NONE` and `freeCountdown` to -1, then spawns
+/// the child from entry 1 of the spawn table, attached to part 8 of this
+/// actor's skeleton and kept in `heldModelTask`. Either allocation failing
+/// exits the task instead. Both models start hidden and
 /// take the work block's matrices; the actor starts its animation by calling
 /// the 0x7D3 handler directly with the preset `{ 0, 5, 0, 0, 0 }`, then
 /// installs its message table and exit callback and advances to the tick.
 static void func_actor_213100_8014A118(Task* arg0)
 {
-    Actor213100Work*     work;
-    AnimationPlayRequest preset;
-    TmdObject*           ext;
-    Task*                child;
+    _Actor213100JodieBouquetWork* work;
+    AnimationPlayRequest          preset;
+    TmdObject*                    ext;
+    Task*                         child;
 
-    work = memCalloc(0x488, 0);
+    work = memCalloc(sizeof(_Actor213100JodieBouquetWork), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
     }
-    arg0->work         = work;
-    work->model.animId = ACTOR_MODEL_STATE_NONE;
-    work->model.bank   = ACTOR_MODEL_STATE_NONE;
-    work->field_484    = -1;
-    child              = Task_SpawnFromTable(D_actor_213100_801521A8, 1, 8, arg0);
-    work->field_480    = child;
+    arg0->work          = work;
+    work->model.animId  = ACTOR_MODEL_STATE_NONE;
+    work->model.bank    = ACTOR_MODEL_STATE_NONE;
+    work->freeCountdown = -1;
+    child               = Task_SpawnFromTable(D_actor_213100_801521A8, 1, 8, arg0);
+    work->heldModelTask = child;
     if (child == NULL) {
         enemyTaskExit(arg0);
         return;
@@ -521,7 +520,7 @@ static void func_actor_213100_8014A118(Task* arg0)
     func_actor_213100_8014A23C(arg0);
     ext                         = arg0->extra.tmd;
     ext->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    ext                         = work->field_480->extra.tmd;
+    ext                         = work->heldModelTask->extra.tmd;
     ext->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     preset.source.index         = 0;
     preset.animationId          = 5;
@@ -544,11 +543,11 @@ static void func_actor_213100_8014A21C(Task* arg0)
 /// Points the model's light and colour matrices at the work block's own pair.
 static void func_actor_213100_8014A23C(Task* arg0)
 {
-    TmdObject*       ext;
-    Actor213100Work* work;
+    TmdObject*                    ext;
+    _Actor213100JodieBouquetWork* work;
 
     ext           = arg0->extra.tmd;
-    work          = (Actor213100Work*)arg0->work;
+    work          = arg0->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -561,20 +560,20 @@ static void func_actor_213100_8014A23C(Task* arg0)
 /// copies the model's flags onto the child's model. Mode 0 hides the model
 /// and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 1 shows it, reallocates its buffers through
 /// `Tmd_AllocBuffers` and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 2 hides it, sets
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts the
-/// work block's countdown at 2, after which the tick frees the buffers; 3
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts
+/// `freeCountdown` at two ticks, after which the tick frees the buffers; 3
 /// shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The handled modes return 0; any other mode changes
 /// nothing on this model and returns 1.
 s32 func_actor_213100_8014A40C(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
-    TmdObject*       obj;
-    TmdObject*       other;
-    Actor213100Work* work;
-    s32              ret;
+    TmdObject*                    obj;
+    TmdObject*                    other;
+    _Actor213100JodieBouquetWork* work;
+    s32                           ret;
 
     obj   = task->extra.tmd;
-    work  = (Actor213100Work*)task->work;
-    other = work->field_480->extra.tmd;
+    work  = task->work;
+    other = work->heldModelTask->extra.tmd;
     ret   = 0;
     switch (mode) {
         case 0:
@@ -587,9 +586,9 @@ s32 func_actor_213100_8014A40C(Task* task, s32 arg1, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->field_484 = mode;
-            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = mode;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
