@@ -95,16 +95,23 @@ typedef struct {
 } _Actor01600BodySphere;
 STATIC_ASSERT_SIZEOF(_Actor01600BodySphere, 0xE0);
 
-/// A capsule body with the shape it points at and the one-entry contact table that shape fills.
+/// A capsule the scavenger senses with: the linked body, the shape that body borrows and the one-entry contact table that shape fills.
 ///
-/// The scavenger keeps two: the cone it notices a target with and the thin
-/// segment it tests headings with. Both ride the model's root transform from
-/// a point 0x190 above the root, carry no key, and reach from that point to
-/// `shape.ends[0]`; `shape.ends[1]` stays at the origin.
+/// The body carries no key, so what it touches records no contact with it and
+/// only its own table reports the touch. The scavenger keeps two: the cone it
+/// notices a target with and the thin segment it tests headings with. Both
+/// ride the model's root transform from a point 0x190 above the root and
+/// reach from that point to `shape.ends[0]`; `shape.ends[1]` stays at the
+/// origin. Positions and radii are world coordinate units.
+///
+/// A sensor stays linked from setup until dying begins or the task ends, and
+/// is switched on and off through its body's grid and pair test flags. Its
+/// reader empties the occupied entry once it has looked at it, so a result
+/// lasts one read.
 typedef struct {
-    WorldCollisionBody    body;        // Capsule body whose context is `shape`
+    WorldCollisionBody    body;        // Capsule body whose context is `shape`; key and radius stay 0
     WorldCollisionCapsule shape;       // Segment and end radii, with `contacts` as its table
-    WorldCollisionContact contacts[1]; // Single result, marked LAST
+    WorldCollisionContact contacts[1]; // Single result, marked LAST; a key of 0 means nothing was touched
 } _Actor01600CapsuleSensor;
 STATIC_ASSERT_SIZEOF(_Actor01600CapsuleSensor, 0x50);
 
@@ -3847,7 +3854,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
     gte_stsv(out);
     work->pathProbe.shape.ends[0].vx = (s16)scratch->out.vx;
     work->pathProbe.shape.ends[0].vz = (s16)scratch->out.vz;
-    if ((u16)(work->pathProbe.contacts[0].key.value >> 16) != (WORLD_COLLISION_CONTACT_GRID >> 16)) {
+    if (work->pathProbe.contacts[0].key.parts.kind != (WORLD_COLLISION_CONTACT_GRID >> 16)) {
         if (angle == 0) {
             temp_v0_3 = work->clearArcCount;
             if (work->clearArcs[temp_v0_3].startYaw == ACTOR_01600_CLEAR_ARC_UNSET) {
@@ -4820,16 +4827,16 @@ static s32 Actor01600_Fn06C1C(Task* arg0)
 {
     _Actor01600Work* work;
 
-    work                       = arg0->work;
-    work->pathProbe.body.flags = (u16)(work->pathProbe.body.flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    work                        = arg0->work;
+    work->pathProbe.body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Actor01600_Fn04EB0(arg0);
     if (work->pathSearchPhase >= ACTOR_01600_PATH_SEARCH_BEGIN_SWEEP) {
-        work->animRequest      = 0x19;
-        work->alerted          = 0;
-        work->behavior         = ACTOR_01600_BEHAVIOR_ROAM;
-        work->pathSearchPhase  = ACTOR_01600_PATH_SEARCH_PROBE_TARGET;
-        work->field_514        = 1;
-        work->sight.body.flags = (u16)(work->sight.body.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
+        work->animRequest       = 0x19;
+        work->alerted           = 0;
+        work->behavior          = ACTOR_01600_BEHAVIOR_ROAM;
+        work->pathSearchPhase   = ACTOR_01600_PATH_SEARCH_PROBE_TARGET;
+        work->field_514         = 1;
+        work->sight.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         return 1;
     }
     return 0;
