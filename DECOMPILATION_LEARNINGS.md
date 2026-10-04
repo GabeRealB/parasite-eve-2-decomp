@@ -128738,7 +128738,7 @@ register (`$s2`) is a real instruction. Where that copy lands is decided by whic
 expression the test reads:
 
 ```c
-    work        = (Actor111800Work*)memCalloc(0x498, false);   /* copy first */
+    work       = memCalloc(sizeof(_Actor111800Work), false);   /* copy first */
     task->work = work;
     if (work == NULL) { taskKill(task); return; }
 ```
@@ -128749,9 +128749,9 @@ sw      s2,0x1c(s1)         /* dbr fills the delay slot from the target block */
 ```
 against
 ```c
-    task->work = memCalloc(0x498, false);         /* copy last */
+    task->work = memCalloc(sizeof(_Actor111800Work), false);   /* copy last */
     if (task->work == NULL) { taskKill(task); return; }
-    work = (Actor111800Work*)task->work;
+    work = task->work;
 ```
 ```
 bnez    v0,54               /* the test reads $v0 itself */
@@ -128791,7 +128791,7 @@ dependence (an array element access emits `mem/s:SI`, so the clause needs
 ```c
 extern MATRIX* D_80073B8C[1];
 
-    work->field_480 = D_80073B8C[0];
+    work->playerMtx = D_80073B8C[0];
 ```
 
 `include/actors/actor_105500.h`, `actor_560800.h` and `actor_202600.h` already
@@ -138598,7 +138598,7 @@ pseudo: 13 refs across 37 insns, which outranks the whole-function `work`
 
 The first loop must still pass `ctx` so `$a0` is `$s2`. That puts `ctx` at 5/11
 and it steals `$s1` again. Four `SCHED_BARRIER()`s *while `ctx` is still live*
-(after the loop, before the `field_492` store) stretch the span to 15 without
+(after the loop, before the `slot1RecordIndex` store) stretch the span to 15 without
 adding refs, and `work` wins. `TOUCH_REG(ctx)` is the wrong lever: `"+r"` is two
 refs and `floor_log2` jumps 3→4, so 5/12 beats `work`. `USE_REG(ctx)` is one
 ref and works for the `$s2`/`$s3` copy-vs-coord pair, but not for the loop.
