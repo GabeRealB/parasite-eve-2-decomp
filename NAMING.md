@@ -841,6 +841,17 @@ deadlock — the items in it have to be understood together. The real ones here
 are small: a task and its list node, a TMD object and its list head, a sound
 voice and its owner, and several actor structs paired with their work structs.
 
+Pending types declared in the same file are joined into one step too, up to
+eight at a time (`dep_graph.py worklist --batch N`, or `name_pass.sh --batch
+N`). Two steps that declare items in one file never run in the same round, so
+without this a header's types are worked one per round whatever the number of
+workers. Unlike a cycle, such a step is several independent reviews: each type
+is judged on its own evidence and gets its own entry in the report. A type
+joins a step only where everything it still waits on is already placed, so the
+order stays a dependency order. Inline structs and unions with no tag are not
+listed: there is nothing to name, and their fields are reviewed with the type
+that holds them.
+
 **Merge a duplicate as soon as the item in hand settles it.** A shared layout is
 never the reason; the test is whether the two types mean the same thing, judged
 from how the code uses each. Processing an item is what produces that evidence

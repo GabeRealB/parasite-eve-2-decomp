@@ -5,11 +5,16 @@
 #                                 [--dry-run] [--cli claude|grok|codex]
 #                                 [--from ORDER] [--step ORDER]
 #                                 [--kinds func,type,data,enum,macro]
-#                                 [--list-profiles] [--clean-workers]
+#                                 [--batch N] [--list-profiles] [--clean-workers]
 #
 # With no --times the whole worklist is walked. --times N stops after N rounds -
 # a round being one fork-join cycle, which is one step per worker.
 # --clean-workers removes the worker worktrees and exits, doing no work.
+#
+# --batch N sets how many pending types declared in one file the worklist joins
+# into a step (default 8; 1 gives one type per step). Steps that declare items
+# in the same file never share a round, so without it a header's types are
+# worked one per round. It applies when the worklist is next rebuilt.
 #
 # --kinds restricts the pass to steps holding an item of the listed kinds (the
 # worklist's `kind` column: func, type, data, enum, macro). A cycle is one step, so it
@@ -101,6 +106,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --times) TIMES="$2"; shift 2 ;;
     --workers|-j) WORKERS="$2"; shift 2 ;;
+    --batch) export PE2_NAME_BATCH="$2"; shift 2 ;;
     --worktree-root) WORKER_ROOT="$2"; shift 2 ;;
     --clean-workers) CLEAN_WORKERS=1; shift ;;
     --cli)   CLI="$2"; CLI_EXPLICIT=1; shift 2 ;;
@@ -287,9 +293,13 @@ $( [[ "$CLI" != "grok" && -f "$RULES" ]] && cat "$RULES" )
 
 Process ${#names[@]} item(s) together: ${names[*]}
 $( ((${#names[@]} > 1)) && echo "
-These items are one unit of work, understood together rather than in sequence:
-either they form a cycle in the dependency graph, each using the others, or they
-are one embedded asset - its record and the arrays only that record reaches." )
+These items are one step. Either they form a cycle in the dependency graph, each
+using the others; or they are one embedded asset - its record and the arrays
+only that record reaches; or they are types declared in the same file, joined
+because steps in one file cannot run side by side. A cycle or an asset is
+understood together. Types that merely share a file are not: review each on its
+own evidence, give each its own entry in the review, and do not let one
+type's conclusion stand in for another's." )
 $line
 
 ## What to do with this item

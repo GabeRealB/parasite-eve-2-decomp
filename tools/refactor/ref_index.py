@@ -681,6 +681,13 @@ class Index:
         sdk = {u for (u,) in self.db.execute("SELECT y.usr FROM gsdk g JOIN symbols y ON y.id = g.sym")}
         return records, sdk
 
+    def units_including(self, rel: str) -> list[str]:
+        """Translation units that include a file (the file itself, if it is one)."""
+        rows = self.db.execute(
+            "SELECT t.path FROM deps d JOIN files t ON t.id = d.tu JOIN files f ON f.id = d.dep "
+            "WHERE f.path = ? ORDER BY t.path", (rel,)).fetchall()
+        return [r[0] for r in rows]
+
     def stats(self) -> dict:
         one = lambda q: self.db.execute(q).fetchone()[0]
         return {"sites": one("SELECT COUNT(*) FROM sites"), "symbols": one("SELECT COUNT(*) FROM symbols"),

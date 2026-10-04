@@ -241,10 +241,25 @@ def _candidate_tus(spec: Spec, root: str, db) -> list[str]:
     if spec.path and spec.path.endswith(".c"):
         rel = os.path.relpath(os.path.join(root, spec.path), root)
         return [rel] + [f for f in db if f != rel]
-    # A header: prefer TUs that mention the owner/name textually.
+    # A header: prefer TUs that mention the owner/name textually, then the ones
+    # the index knows include it. A type used only inside shared `.inc.c`
+    # fragments is named by no `.c` file, and without the second list the
+    # search parsed unit after unit - minutes - before meeting an includer.
     needle = spec.owner or spec.name
-    hits = _grep_files(root, needle, list(db))
-    return hits + [f for f in db if f not in set(hits)]
+    spelled = set(_token_files(root, needle)[0])
+    hits = [f for f in db if f in spelled]
+    seen = set(hits)
+    includers = []
+    if spec.path:
+        try:
+            idx = _ref_index(root, 0)
+            if idx is not None:
+                rel = os.path.relpath(os.path.join(root, spec.path), root)
+                includers = [f for f in idx.units_including(rel) if f in db and f not in seen]
+        except Exception:
+            includers = []
+    seen |= set(includers)
+    return hits + includers + [f for f in db if f not in seen]
 
 
 def _find_param(tu, spec: Spec, root: str):

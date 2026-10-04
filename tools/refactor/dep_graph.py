@@ -223,6 +223,11 @@ def _out_of_scope(name: str, meta: dict, vendor: set) -> bool:
         return True
     if name.startswith("__maspsx_") or name.startswith("static_assertion_"):
         return True
+    if "(unnamed at " in name or "(anonymous at " in name:
+        # An inline struct or union with no tag: there is nothing to name, and
+        # the driver could never select it - it looks for an item by its name
+        # in the sources. Its fields are reviewed with the type that holds it.
+        return True
     return (meta.get("file") or "").startswith("include/decomp/")
 
 
@@ -589,6 +594,49 @@ def topo_order(nodes, edges, comp, vendor=frozenset()):
     return order
 
 
+def batch_same_file(order, nodes, edges, comp, done, limit: int):
+    """Join pending types declared in one file into steps of up to `limit`.
+
+    Two steps that declare items in the same file never run in the same round,
+    so a header with forty pending types is forty rounds long however many
+    workers there are. Nothing is lost by handing an agent several of them at
+    once, and each step after the first saves its own brief, build and
+    verification.
+
+    A type joins the open step of its file only if everything it still waits on
+    is already placed at or before that step, so the order stays topological:
+    the type moves earlier, to a point where its dependencies are still behind
+    it, and nothing placed before its old position can depend on it.
+    """
+    if limit <= 1:
+        return order
+    place = {}                      # usr -> index in the new order
+    out, open_step = [], {}
+    for g in order:
+        files = {nodes[u].get("file") for u in g}
+        eligible = (any(u not in done for u in g) and len(files) == 1 and None not in files and "" not in files
+                    and all(_node_kind(u) == "type" for u in g))
+        if eligible:
+            f = next(iter(files))
+            at = open_step.get(f)
+            if at is not None and len(out[at]) + len(g) <= limit:
+                ok = all(place.get(d, at + 1) <= at
+                         for u in g for d in edges.get(u, ())
+                         if d in nodes and d not in done and d not in g)
+                if ok:
+                    merged = tuple(sorted(out[at] + g))
+                    out[at] = merged
+                    for u in merged:
+                        comp[u] = merged
+                        place[u] = at
+                    continue
+            open_step[f] = len(out)
+        for u in g:
+            place[u] = len(out)
+        out.append(g)
+    return out
+
+
 def _step_numbers(order, nodes, edges, comp, done):
     """Step number per component, and the last step each one waits on.
 
@@ -624,9 +672,10 @@ def _step_numbers(order, nodes, edges, comp, done):
     return step_of, after
 
 
-def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str):
+def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str, batch: int = 1):
     vendor = name_index.vendored_names(root)
     order = topo_order(nodes, edges, comp, vendor)
+    order = batch_same_file(order, nodes, edges, comp, done, batch)
 
     # who refers to each item, for the visibility guess
     referrers = collections.defaultdict(set)
@@ -776,6 +825,9 @@ def main() -> int:
     ap.add_argument("-n", "--limit", type=int, default=10)
     ap.add_argument("--worklist", default=os.path.join("local", "worklist.tsv"))
     ap.add_argument("--workers", type=int, default=1)
+    ap.add_argument("--batch", type=int, default=int(os.environ.get("PE2_NAME_BATCH") or 8),
+                    help="worklist: join up to N pending types declared in one file into a step "
+                         "(default 8, or PE2_NAME_BATCH; 1 keeps one type per step)")
     args = ap.parse_args()
 
     root = cref.repo_root()
@@ -805,7 +857,7 @@ def main() -> int:
 
     if args.command == "worklist":
         out = args.worklist if os.path.isabs(args.worklist) else os.path.join(root, args.worklist)
-        rows = worklist(root, args.version, nodes, edges, comp, done, out)
+        rows = worklist(root, args.version, nodes, edges, comp, done, out, args.batch)
         groups = len({r[0] for r in rows})
         multi = len({r[0] for r in rows if int(r[1]) > 1})
         print(f"{len(rows)} items in {groups} ordered steps -> {os.path.relpath(out, root)}")
