@@ -383,7 +383,7 @@ D_map_dryfield_full_8017AA74 = 0x8017AA74; // absolute:True owner=map_dryfield_f
 D_map_shelter_8017B480 = 0x8017B480; // absolute:True owner=map_shelter
 D_map_neo_ark_8017AD28 = 0x8017AD28; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017ABC0 = 0x8017ABC0; // absolute:True owner=map_akropolis
-D_map_dryfield_8017AA28 = 0x8017AA28; // absolute:True
+D_map_dryfield_8017AA28 = 0x8017AA28; // absolute:True owner=map_dryfield shared=mapui
 D_map_dryfield_full_8017A93C = 0x8017A93C; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017B110 = 0x8017B110; // absolute:True owner=map_shelter
 D_map_neo_ark_8017AB88 = 0x8017AB88; // absolute:True owner=map_neo_ark
@@ -407,7 +407,7 @@ D_map_dryfield_8017A8F8 = 0x8017A8F8; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017A80C = 0x8017A80C; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017AF88 = 0x8017AF88; // absolute:True owner=map_shelter
 D_map_neo_ark_8017AA80 = 0x8017AA80; // absolute:True owner=map_neo_ark
-D_map_akropolis_8017AA28 = 0x8017AA28; // absolute:True
+D_map_akropolis_8017AA28 = 0x8017AA28; // absolute:True owner=map_akropolis shared=mapui
 D_map_dryfield_8017A860 = 0x8017A860; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017A774 = 0x8017A774; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017AEC4 = 0x8017AEC4; // absolute:True owner=map_shelter
