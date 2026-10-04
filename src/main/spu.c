@@ -8,15 +8,6 @@
 #include "cdaudio.h"
 #include "sound_types.h"
 
-typedef struct _SpuReverbConfig {
-    u32           enableVoices;
-    u32           disableVoices;
-    u32           reverbMode;
-    u32           isDirty;
-    SpuReverbAttr attr;
-} SpuReverbConfig;
-STATIC_ASSERT_SIZEOF(SpuReverbConfig, 0x24);
-
 /// Number of hardware voices the SPU mixes; voice indices run below it.
 #define SPU_VOICE_COUNT 24
 
@@ -63,6 +54,26 @@ typedef struct {
 } _SpuVoiceUpdateList;
 STATIC_ASSERT_SIZEOF(_SpuVoiceUpdateList, 0x67C);
 
+/// Reverb changes waiting to be sent to the SPU.
+///
+/// Sound code does not switch a voice's reverb or set the reverb parameters on
+/// the SPU itself: each request is recorded here and marks the record dirty,
+/// and the audio tick's flush sends whatever has accumulated in one go, before
+/// that tick's key changes, and empties it again. Requests made between two
+/// flushes therefore collapse into the last one of each kind.
+///
+/// The voice masks hold one bit per voice, as `SPU_VOICECH` builds them, and a
+/// voice is in at most one of them: asking for either state withdraws a pending
+/// request for the other.
+typedef struct {
+    u32           enableVoices;  // Mask of voices to switch reverb on for
+    u32           disableVoices; // Mask of voices to switch reverb off for
+    u32           activeMode;    // `SPU_REV_MODE_*` recorded by the last mode change; the start-up configuration does not record its mode here
+    bool          isDirty;       // A request has been recorded since the last flush
+    SpuReverbAttr attr;          // Parameters to send; `mask` selects the ones changed since the last flush (`SPU_REV_MODE`, `SPU_REV_DEPTHL | SPU_REV_DEPTHR`)
+} _SpuReverbConfig;
+STATIC_ASSERT_SIZEOF(_SpuReverbConfig, 0x24);
+
 /// 4-byte entry at Spu_VoiceRanges (see Spu_SetVoiceRange).
 typedef struct _SpuVoiceRange {
     /* 0x0 */ s16 first;
@@ -98,7 +109,7 @@ static u32 Spu_KeyOnMaskExtra;
 
 static u32 Spu_KeyOffMask;
 
-static SpuReverbConfig Spu_ReverbCfg;
+static _SpuReverbConfig Spu_ReverbCfg;
 
 static u8 Spu_InitialAdpcmBlock[];
 
@@ -633,12 +644,12 @@ void Spu_SetReverbDepth(s16 depth)
 
 static void Spu_SetReverbMode(u32 mode)
 {
-    if (Spu_ReverbCfg.reverbMode != mode && Spu_ReverbCfg.reverbMode != SPU_REV_MODE_OFF) {
-        SpuClearReverbWorkArea(Spu_ReverbCfg.reverbMode);
+    if (Spu_ReverbCfg.activeMode != mode && Spu_ReverbCfg.activeMode != SPU_REV_MODE_OFF) {
+        SpuClearReverbWorkArea(Spu_ReverbCfg.activeMode);
         Spu_ReverbCfg.isDirty    = true;
         Spu_ReverbCfg.attr.mask |= SPU_REV_MODE;
         Spu_ReverbCfg.attr.mode  = mode;
-        Spu_ReverbCfg.reverbMode = mode;
+        Spu_ReverbCfg.activeMode = mode;
     }
 }
 
