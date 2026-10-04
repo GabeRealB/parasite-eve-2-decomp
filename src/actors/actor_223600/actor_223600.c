@@ -24,6 +24,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -48,12 +49,29 @@
 /// Animation numbers are indices into the package's animation-set table, and a
 /// placement is the enemy's placement index, the part of `Enemy::placeKey`
 /// above `ENEMY_PLACE_INDEX_SHIFT`. No state ends of its own accord: the
-/// model-draw message selects `WALK` or `HIDDEN`, and the actor commands of
-/// stage 2, area 3 select `DROP_IN` or `HIDDEN`.
+/// model-draw message selects `WALK` or `HIDDEN`, and the
+/// `ACTOR_223600_COMMAND_*` actor commands select `DROP_IN` or `HIDDEN`.
 enum {
     ACTOR_223600_STATE_HIDDEN  = 0, // not drawn, not lockable
     ACTOR_223600_STATE_WALK    = 1, // from a start point fixed per placement (0 and 1; others stay where they are), walks on animation 2 toward `walkTarget`, turning at most 0x10 a tick
     ACTOR_223600_STATE_DROP_IN = 2  // from a point above the floor fixed per placement, falls to the floor on animation 14 and plays the landing on animation 15
+};
+
+/// `ActorCommand::context.key` of the commands this enemy acts on.
+///
+/// Its room, Dryfield's general store, broadcasts its commands to every actor
+/// under its own stage and area. The enemy records a command of any namespace
+/// and acts on this one alone.
+enum {
+    ACTOR_223600_COMMAND_CONTEXT = GAME_STAGE_DRYFIELD | (GAME_AREA_DRYFIELD_GENERAL_STORE << 8)
+};
+
+/// `ActorCommand::command` selectors of that namespace, as this enemy answers them.
+enum {
+    ACTOR_223600_COMMAND_IGNORED             = 0, // a command of the room's that this enemy accepts and does nothing with
+    ACTOR_223600_COMMAND_DROP_IN             = 1, // selects `ACTOR_223600_STATE_DROP_IN`
+    ACTOR_223600_COMMAND_HIDE                = 2, // follows `DROP_IN` 0x5A frames later; selects `ACTOR_223600_STATE_HIDDEN`
+    ACTOR_223600_COMMAND_HIDE_UNTIL_CUTSCENE = 9  // sent when the room starts with its cutscene still to play; selects `ACTOR_223600_STATE_HIDDEN`
 };
 
 /// Work block of the package's enemy task.
@@ -109,18 +127,18 @@ STATIC_ASSERT_SIZEOF(_Actor223600Work, 0x214);
 STATIC_ASSERT(OFFSET_OF(_Actor223600Work, rig) == OFFSET_OF(AnimDriverWork, rig), Actor223600Work_rig);
 STATIC_ASSERT(OFFSET_OF(_Actor223600Work, driver) == OFFSET_OF(AnimDriverWork, state), Actor223600Work_driver);
 
-/// 0xC-byte scratch taken from `0x1F8003FC` by the drop-in state: `dx`, `dy`
-/// and `dz` take one axis of the root coordinate, normalised and then scaled
-/// into the step added to its translation. That state leaves `yaw` alone.
-typedef struct Actor223600Turn {
-    /* 0x0 */ s16  dx;
-    /* 0x2 */ s16  dy;
-    /* 0x4 */ s16  dz;
-    /* 0x6 */ byte pad_6[0x2];
-    /* 0x8 */ s16  yaw;
-    /* 0xA */ byte pad_A[0x2];
-} Actor223600Turn;
-STATIC_ASSERT_SIZEOF(Actor223600Turn, 0xC);
+/// The scratch-stack block of the drop-in state: one frame's step along one of
+/// the model's own axes.
+///
+/// The state reserves one block a frame and reuses it for every step of that
+/// frame. An axis of the root coordinate is read into `step`, normalised to
+/// 4096 = 1.0 and scaled to the step's length in world units, and the result
+/// is added to, or taken from, the coordinate's translation.
+typedef struct {
+    SVECTOR step;           // Axis of the root coordinate, then that axis scaled into the displacement applied to the translation
+    byte    unknown_8[0x4]; // Reserved with the block and never accessed; role unproven
+} _Actor223600AxisStepScratch;
+STATIC_ASSERT_SIZEOF(_Actor223600AxisStepScratch, 0xC);
 
 /// Effect record the spawn handler fills with the instance's own coordinate
 /// and the 0x100 / 1 argument pair.
@@ -131,15 +149,6 @@ extern EnemyParams D_actor_223600_8014CFCC;
 
 /// Animation-set table bound to the work block's context by `animationInitContext`.
 extern AnimationSet* D_actor_223600_801509C0[26];
-
-/// Event packet handed to this actor's message handlers. Its first three bytes
-/// are copied into the work block, and its first four are then re-read as two
-/// little-endian `u16` words: a command word and a sub-command.
-typedef union Actor223600Event {
-    /* 0x0 */ u8  bytes[4];
-    /* 0x0 */ u16 words[2];
-} Actor223600Event;
-STATIC_ASSERT_SIZEOF(Actor223600Event, 0x4);
 
 /// Message table the spawn handler publishes as `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
@@ -160,7 +169,7 @@ static TmdSource _gActor223600BloodSucklerBody;
 void             func_actor_223600_8014CF6C(Task*);
 
 s32 func_actor_223600_8014CC04(Task*, s32, s32, s32);
-s32 func_actor_223600_8014CCD4(Task*, s32, Actor223600Event*, s32);
+s32 func_actor_223600_8014CCD4(Task*, s32, ActorCommand*, s32);
 
 #include "../../shared/actor_contacts.h"
 
@@ -1133,15 +1142,15 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
 /// pointers are the carve and the release, each materialised where it is used.
 static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
 {
-    _Actor223600Work* work;
-    Actor223600Turn** push;
-    Actor223600Turn** pop;
-    Actor223600Turn*  head;
-    SVECTOR*          vec;
-    SVECTOR*          gte;
-    TmdObject*        obj;
-    s32               mode;
-    s16               frame;
+    _Actor223600Work*            work;
+    void**                       push;
+    void**                       pop;
+    _Actor223600AxisStepScratch* head;
+    SVECTOR*                     vec;
+    SVECTOR*                     gte;
+    TmdObject*                   obj;
+    s32                          mode;
+    s16                          frame;
 
     work = task->work;
     if (work->stateEntered != 0) {
@@ -1202,11 +1211,11 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
     }
     animDriverTick(task);
 
-    push                                   = (Actor223600Turn**)SCRATCH_HEAD_ADDR;
-    head                                   = SCRATCH_HEAD_AT(push, Actor223600Turn);
-    vec                                    = (SVECTOR*)(head - 1);
-    gte                                    = (SVECTOR*)(head - 1);
-    SCRATCH_HEAD_AT(push, Actor223600Turn) = head - 1;
+    push                                               = SCRATCH_HEAD_ADDR;
+    head                                               = SCRATCH_HEAD_AT(push, _Actor223600AxisStepScratch);
+    vec                                                = &head[-1].step;
+    gte                                                = &head[-1].step;
+    SCRATCH_HEAD_AT(push, _Actor223600AxisStepScratch) = head - 1;
 
     switch (work->driver.requestedSet) {
         case 0xE:
@@ -1248,7 +1257,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 gte_ldsv(gte);
                 gte_gpf12();
                 gte_stsv(gte);
-                task->extra.tmd->coords->coord.t[0] += head[-1].dx;
+                task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
                 task->extra.tmd->coords->coord.t[1] += vec->vy;
                 task->extra.tmd->coords->coord.t[2] += vec->vz;
             }
@@ -1259,7 +1268,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 gte_ldsv(gte);
                 gte_gpf12();
                 gte_stsv(gte);
-                task->extra.tmd->coords->coord.t[0] += head[-1].dx;
+                task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
                 task->extra.tmd->coords->coord.t[1] += vec->vy;
                 task->extra.tmd->coords->coord.t[2] += vec->vz;
                 gfxRotMatrixX(&task->extra.tmd->coords[1].coord,
@@ -1273,7 +1282,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                     gte_ldsv(gte);
                     gte_gpf12();
                     gte_stsv(gte);
-                    task->extra.tmd->coords->coord.t[0] += head[-1].dx;
+                    task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
                     task->extra.tmd->coords->coord.t[1] += vec->vy;
                     task->extra.tmd->coords->coord.t[2] += vec->vz;
                     Gfx_MatrixCol0(&task->extra.tmd->coords->coord, vec);
@@ -1319,7 +1328,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                     gte_ldsv(gte);
                     gte_gpf12();
                     gte_stsv(gte);
-                    task->extra.tmd->coords->coord.t[0] += head[-1].dx;
+                    task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
                     task->extra.tmd->coords->coord.t[1] += vec->vy;
                     task->extra.tmd->coords->coord.t[2] += vec->vz;
                     Gfx_MatrixCol0(&task->extra.tmd->coords->coord, vec);
@@ -1328,7 +1337,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                     gte_ldsv(gte);
                     gte_gpf12();
                     gte_stsv(gte);
-                    task->extra.tmd->coords->coord.t[0] += head[-1].dx;
+                    task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
                     task->extra.tmd->coords->coord.t[1] += vec->vy;
                     task->extra.tmd->coords->coord.t[2] += vec->vz;
                     gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
@@ -1347,8 +1356,8 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
     }
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    pop                                   = (Actor223600Turn**)SCRATCH_HEAD_ADDR;
-    SCRATCH_POP_AT(pop, Actor223600Turn);
+    pop                                   = SCRATCH_HEAD_ADDR;
+    SCRATCH_POP_AT(pop, _Actor223600AxisStepScratch);
     work->stateFrame++;
 }
 
@@ -1477,32 +1486,32 @@ s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// Message handler (id 0x7DB in `D_actor_223600_80150B28`). Copies the first
-/// three bytes of the event packet into `lastCommandStage`, `lastCommandArea`
-/// and `lastCommand`, then, for command word 0x302, drives the work block's
-/// `state` from the packet's sub-command: 1 selects
-/// `ACTOR_223600_STATE_DROP_IN`, 2 and 9 select `ACTOR_223600_STATE_HIDDEN`,
-/// and 0 is a no-op.
-s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event, s32 arg3)
+/// `ACTOR_COMMAND_MESSAGE_APPLY` handler in `D_actor_223600_80150B28`. Records
+/// the command's stage, area and the low byte of its selector in
+/// `lastCommandStage`, `lastCommandArea` and `lastCommand`, then, for a
+/// command in the `ACTOR_223600_COMMAND_CONTEXT` namespace, sets the work
+/// block's `state` from the `ACTOR_223600_COMMAND_*` selector. Commands of any
+/// other namespace are recorded and otherwise ignored.
+s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, ActorCommand* command, s32 arg3)
 {
     _Actor223600Work* work;
 
     work                   = task->work;
-    work->lastCommandStage = event->bytes[0];
-    work->lastCommandArea  = event->bytes[1];
-    work->lastCommand      = event->bytes[2];
-    if (event->words[0] == 0x302) {
-        switch (event->words[1]) {
-            case 9:
+    work->lastCommandStage = command->context.loc.stage;
+    work->lastCommandArea  = command->context.loc.area;
+    work->lastCommand      = command->command;
+    if (command->context.key == ACTOR_223600_COMMAND_CONTEXT) {
+        switch (command->command) {
+            case ACTOR_223600_COMMAND_HIDE_UNTIL_CUTSCENE:
                 work->state = ACTOR_223600_STATE_HIDDEN;
                 break;
-            case 1:
+            case ACTOR_223600_COMMAND_DROP_IN:
                 work->state = ACTOR_223600_STATE_DROP_IN;
                 break;
-            case 2:
+            case ACTOR_223600_COMMAND_HIDE:
                 work->state = ACTOR_223600_STATE_HIDDEN;
                 break;
-            case 0:
+            case ACTOR_223600_COMMAND_IGNORED:
                 break;
         }
     }

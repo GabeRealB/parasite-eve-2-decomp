@@ -130510,7 +130510,7 @@ Scratch-pad code reaches `SCRATCH_STACK_CURSOR_SLOT` (`0x1F8003FC`) two ways in 
 function, and they are different code. Written inline,
 
 ```c
-head = *(Actor223600Turn**)SCRATCH_STACK_CURSOR_SLOT;
+head = *(_Actor223600AxisStepScratch**)SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 GCC hands the assembler a MEM with an absolute address and gets its `$at`
