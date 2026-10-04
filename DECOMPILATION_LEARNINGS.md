@@ -84748,7 +84748,7 @@ the project's own structs.
 `func_actor_342100_801633D0` was that shape. The seed's
 `M2C_FIELD(M2C_FIELD(D_actor_342100_80164BB8, void **, 0x1C), s32 *, 0x34)`
 compiled to the exact target bytes, and the only real work was `Task::work`
-plus the work block's `field_34` — which is a `Task*`, since that load feeds
+plus the work block's `fadeTask` — which is a `Task*`, since that load feeds
 `taskMessageDispatch` as its first argument. m2c's `s32 *` in the `M2C_FIELD` is a
 guess from the instruction width alone; a matching seed can still carry the
 wrong field type, so check each retyped field against how the value is used
@@ -84785,10 +84785,10 @@ call, exactly as the matched `(s32)&work->field_40` in `actor_503500_8.c` and
 `(s32)&work->sceneArg` in `acropolis_plaza_4.c` do it:
 
 ```c
-Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;
-work->field_20 = 0x258;
-work->field_22 = 0x100;
-Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->field_20);
+_Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
+work->blaze.wave.span  = 0x258;
+work->blaze.wave.scale = 0x100;
+Task_SpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->blaze.wave);
 ```
 
 Do **not** "correct" the constant to `0x20` or reach for an empty-asm helper:
@@ -128116,12 +128116,12 @@ difference (`regs=4`, `reorder=3`). What produces it is a *second read of the
 same field* in the C, taken at the top of the case:
 
 ```c
-    Actor342100Work* work = (Actor342100Work*)arg0->work;
+    _Actor342100BlazeWork* work = arg0->work;
     ...
     case 0:
-        msgWork = (Actor342100Work*)arg0->work;   /* the copy's origin */
+        msgWork = arg0->work;   /* the copy's origin */
         ...
-        taskMessageDispatch(msgWork->field_2C, 0x3F7, (s32)&msg, 0);
+        taskMessageDispatch(msgWork->playerTask, 0x3F7, (s32)&msg, 0);
 ```
 
 The dumps name the pass: `.rtl` holds two
@@ -128205,13 +128205,13 @@ Three passes do it, and the dumps name them:
 Two source levers restore the target:
 
 ```c
-    if (work->field_2C == NULL) {
+    if (work->playerTask == NULL) {
     ret1:
         COMPILER_BARRIER();
         return 1;
     }
     ...
-    if (D_actor_342100_80164910[work->field_3C - 0x2F] < 0) {
+    if (D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] < 0) {
         goto ret1;                  /* bare jump, no [v0=1][USE] block */
     }
 ```

@@ -50,45 +50,33 @@
 #include "../../shared/screen_wave.h"
 #include "../../shared/incinerator_blaze.h"
 
-/// Work block of the overlay's event/controller task -- the one
-/// `D_actor_342100_80164BB8` points at.
+/// Progress of the burn scene, held in `_Actor342100BlazeWork::sceneState`.
+enum {
+    ACTOR_342100_BLAZE_SCENE_START   = 0, // Not started; the next update installs the clips and the event script
+    ACTOR_342100_BLAZE_SCENE_RUNNING = 1, // Event script playing; the scene ends when the session's event state clears
+};
+
+/// Work block of the package's blaze controller, the task that burns the
+/// player once the dumping hole's scene clock has run out with the player
+/// still alive.
 ///
-/// `func_actor_342100_801630A4` allocates it with `memMalloc(0x44, 0)`,
-/// `memFillBytes`s the same 0x44 bytes over it and stores it in that task's
-/// `Task::work` slot (0x1C), then publishes
-/// the task in `D_actor_342100_80164BB8`. Every leaf helper reaches the block
-/// that way, `(Actor342100Work*)D_actor_342100_80164BB8->work`.
-///
-/// `field_2C` is the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task the overlay aims its messages
-/// at. `field_30` and `field_34` are further message targets, both sent
-/// 0x7DB, and `field_38` is a task the overlay spawns itself: with a non-zero
-/// argument `func_actor_342100_80163454` writes 1 into its
-/// `Task::spawnArg1`. `field_3C` takes `arg0 + 0x2F` from
-/// `func_actor_342100_8016334C`'s integer argument, the same value that
-/// function forwards as the animation message's second word.
-///
-/// `wave` is the ramp of the screen-wave task `screenWaveGridTask`:
-/// `func_actor_342100_80163408` seeds its span and scale and spawns the task
-/// on it, and the fade task `blazeFadeTask`, which reaches this
-/// block through `Task::spawnArg2`, ends the wave by setting its ramp state to
-/// 2 once the screen has been blanked white.
-///
-/// shelter_b3_garbage_incinerator carries the same encounter with a smaller
-/// block that shares the leading bytes and `wave` but keeps one task pointer
-/// fewer, with the child task and the animation fields in other places, so
-/// the two are different types.
-typedef struct Actor342100Work {
-    /* 0x00 */ byte          pad_0[0x20];
-    /* 0x20 */ ScreenWaveCtx wave;
-    /* 0x2C */ Task*         field_2C; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
-    /* 0x30 */ Task*         field_30;
-    /* 0x34 */ Task*         field_34;
-    /* 0x38 */ Task*         field_38;
-    /* 0x3C */ s16           field_3C;
-    /* 0x3E */ s16           field_3E;
-    /* 0x40 */ byte          pad_40[0x4];
-} Actor342100Work;
-STATIC_ASSERT_SIZEOF(Actor342100Work, 0x44);
+/// The controller allocates the block zeroed on its first frame and publishes
+/// itself, so the event script's callbacks reach the block through the task.
+/// It opens with the head the shared blaze tasks expect of their spawner.
+/// The incinerator room stages the same scene with a smaller block that has
+/// no encounter task and places the later members differently, so the two
+/// stay separate types.
+typedef struct {
+    BlazeParentWork blaze;           // Head the fade task reaches through the controller: the heat-haze screen wave's ramp context
+    Task*           playerTask;      // Player task, the receiver of the scene's animation messages
+    Task*           encounterTask;   // The room's enemy-wave controller, told to stop spawning as the blaze starts; NULL when this block recorded none
+    Task*           fadeTask;        // Screen fade task, sent the state of each colour ramp by message
+    Task*           bodyFireTask;    // Task spawning fire on the player's model; its spawn argument is set to 1 to spread the fire over the whole body
+    s16             animationId;     // Bank index of the scene clip last played on the player (ANIMATION_BANK_BASE_SET_COUNT + clip)
+    s16             sceneState;      // Burn scene progress (ACTOR_342100_BLAZE_SCENE_START or _RUNNING)
+    byte            unknown_40[0x4]; // Never accessed; role unproven
+} _Actor342100BlazeWork;
+STATIC_ASSERT_SIZEOF(_Actor342100BlazeWork, 0x44);
 
 /// The overlay's event/controller task, published by
 /// `func_actor_342100_801630A4`.
@@ -117,7 +105,7 @@ void func_actor_342100_80163518(void);
 
 /// Single-entry spawn table of the screen-wave task
 /// `screenWaveGridTask`: `func_actor_342100_80163408` starts entry 0
-/// and hands it the address of `Actor342100Work::wave` as its ramp.
+/// and hands it the address of the work block's `blaze.wave` as its ramp.
 extern TaskDesc D_actor_342100_801648DC[];
 
 /// Null-terminated table of the overlay's per-state message tables, counted
@@ -126,8 +114,8 @@ extern TaskDesc D_actor_342100_801648DC[];
 extern AnimationSet* D_actor_342100_80164900[4];
 
 /// Animation step table `func_actor_342100_801629B8` walks: `s16` entries
-/// holding the anim id one step on from `field_3C`, sent as the message's
-/// second word with `0x2F` added; the first three entries are `-1`, which ends
+/// holding the clip one step on from the work block's `animationId`, both less
+/// `ANIMATION_BANK_BASE_SET_COUNT`; the first three entries are `-1`, which ends
 /// the chain, and only the fourth is live. Sits directly after
 /// `D_actor_342100_80164900`'s null word, and its first element is the address
 /// `func_actor_342100_80162F54`'s encounter table of a different size would
@@ -381,47 +369,48 @@ static s32 func_actor_342100_80162F54(Task* arg0);
 
 #include "../../shared/incinerator_blaze_fade.inc.c"
 
-/// Advance the encounter's animation one step: the work block's `field_2C` is
-/// queried with 0x3ED and a non-zero answer stops the chain with 0; `field_3C`
-/// is range-checked against 0x2F (the first anim id the table can name) and the
-/// table's entry shifted up by 0x2F, a negative entry ending it with 1 as well.
+/// Advance the encounter's animation one step: the work block's `playerTask` is
+/// queried with 0x3ED and a non-zero answer stops the chain with 0; `animationId`
+/// is range-checked against `ANIMATION_BANK_BASE_SET_COUNT` (the first bank index
+/// the table can name) and the table's entry shifted up by that base, a negative
+/// entry ending it with 1 as well.
 /// The step that survives re-sends `AnimationPlayRequest {setId, anim, ANIMATION_BLEND_INTERPOLATE, 0xA, ANIMATION_WORLD_COLLISION_DISABLE}` as
 /// message 0x3E8 -- `func_actor_342100_8016334C`'s tail with `field_C` = 0xA --
 /// to the same target, and reports 1.
 static s32 func_actor_342100_801629B8(Task* arg0)
 {
-    Actor342100Work*     work;
-    Actor342100Work*     w;
-    AnimationPlayRequest msg;
-    s16                  anim;
-    s32                  weaponId;
-    s32                  setId;
+    _Actor342100BlazeWork* work;
+    _Actor342100BlazeWork* msgWork;
+    AnimationPlayRequest   msg;
+    s16                    anim;
+    s32                    weaponId;
+    s32                    setId;
 
-    work = (Actor342100Work*)arg0->work;
-    if (work->field_2C == NULL) {
+    work = arg0->work;
+    if (work->playerTask == NULL) {
     ret1:
         return 1;
     }
-    if (taskMessageDispatch(work->field_2C, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
+    if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
         return 0;
     }
-    if (work->field_3C < 0x2F) {
+    if (work->animationId < ANIMATION_BANK_BASE_SET_COUNT) {
         goto ret1;
     }
-    if (D_actor_342100_80164910[work->field_3C - 0x2F] < 0) {
+    if (D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] < 0) {
         goto ret1;
     }
-    anim                     = D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
-    w                        = (Actor342100Work*)arg0->work;
+    anim                     = D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
+    msgWork                  = arg0->work;
     weaponId                 = gPlayerStatus.weapon;
     setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = setId;
-    w->field_3C              = anim;
+    msgWork->animationId     = anim;
     msg.animationId          = anim;
     msg.blend                = ANIMATION_BLEND_INTERPOLATE;
     msg.blendFrames          = 0xA;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(w->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &msg, 0);
     goto ret1;
 }
 
@@ -577,29 +566,29 @@ void func_actor_342100_80162C88(void)
 /// the task alive until `gGameSession->eventState` is set.
 static s32 func_actor_342100_80162F54(Task* arg0)
 {
-    Actor342100Work*         work = (Actor342100Work*)arg0->work;
-    Actor342100Work*         msgWork;
+    _Actor342100BlazeWork*   work = arg0->work;
+    _Actor342100BlazeWork*   msgWork;
     AnimationBankCopyRequest msg;
     s32                      n;
 
-    switch (work->field_3E) {
-        case 0:
-            msgWork = (Actor342100Work*)arg0->work;
+    switch (work->sceneState) {
+        case ACTOR_342100_BLAZE_SCENE_START:
+            msgWork = arg0->work;
             n       = 0;
             while (D_actor_342100_80164900[n & 0xFFFF] != 0) {
                 n += 1;
             }
             msg.source.sets = &D_actor_342100_80164900[0];
             msg.wordCount   = n & 0xFFFF;
-            TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_800E8614(D_actor_342100_801649C8, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            work->field_34 = Task_SpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
-            work->field_3E = work->field_3E + 1;
+            work->fadeTask   = Task_SpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
+            work->sceneState = work->sceneState + 1;
             break;
-        case 1:
+        case ACTOR_342100_BLAZE_SCENE_RUNNING:
             if (gGameSession->eventState != 0) {
                 break;
             }
@@ -618,18 +607,18 @@ static s32 func_actor_342100_80162F54(Task* arg0)
 /// `func_actor_342100_80162F54` until it reports done.
 ///
 /// `work` is read from `work` before state 0 replaces it, so the two
-/// `field_30` stores go through the block the task held on entry.
+/// `encounterTask` stores go through the block the task held on entry.
 void func_actor_342100_801630A4(Task* arg0)
 {
-    u16              id;
-    s8               kind;
-    u8               extra;
-    Actor342100Work* work;
-    Actor342100Work* newWork;
-    s32              ready;
-    PlayerStatus*    cfg;
+    u16                    id;
+    s8                     kind;
+    u8                     extra;
+    _Actor342100BlazeWork* work;
+    _Actor342100BlazeWork* newWork;
+    s32                    ready;
+    PlayerStatus*          cfg;
 
-    work = (Actor342100Work*)arg0->work;
+    work = arg0->work;
     if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
         return;
     }
@@ -644,7 +633,7 @@ void func_actor_342100_801630A4(Task* arg0)
                 taskKill(arg0);
             } else {
                 memFillBytes(newWork, 0, sizeof(*newWork));
-                newWork->field_2C       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                newWork->playerTask     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_342100_80164BB8 = arg0;
             }
             Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B57C, 0, 0xD0, 0);
@@ -654,7 +643,7 @@ void func_actor_342100_801630A4(Task* arg0)
                     arg0->state++;
                     break;
                 case GAME_SESSION_SPAWN_ARMED:
-                    work->field_30 = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 1, 0);
+                    work->encounterTask = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 1, 0);
                 default:
                     arg0->state = 2;
                     break;
@@ -663,7 +652,7 @@ void func_actor_342100_801630A4(Task* arg0)
         case 1:
             if (GameFlag_GetNibble(GAME_FLAG_11E) != 0) {
                 if (Gp_TakePendingObj4C(&id, (u8*)&kind, &extra) != 0 && (id & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && kind == 1) {
-                    work->field_30 = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
+                    work->encounterTask = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
                     arg0->state++;
                 }
             }
@@ -704,59 +693,60 @@ s32 func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     // Senders discard the result; this callback leaves the return word unspecified.
 }
 
-/// Point the overlay's slot-3 task at the animation set `arg0 + 0x2F` and hand
-/// the work block's `field_3C` the same value, then install the set with
+/// Point the overlay's slot-3 task at the animation set
+/// `arg0 + ANIMATION_BANK_BASE_SET_COUNT` and hand the work block's
+/// `animationId` the same value, then install the set with
 /// message 0x3E8. The set's block is `gPlayerStatus.weapon + 1` under the alternate
 /// weapon configuration and `gPlayerStatus.weapon + 0x22` otherwise; its `field_4` is the
 /// same halfword the block keeps, `field_8` is 1 and `field_C` 0xF.
 void func_actor_342100_8016334C(s32 arg0)
 {
-    Actor342100Work*     work;
-    AnimationPlayRequest msg;
-    s16                  anim;
-    s32                  weaponId;
-    s32                  setId;
+    _Actor342100BlazeWork* work;
+    AnimationPlayRequest   msg;
+    s16                    anim;
+    s32                    weaponId;
+    s32                    setId;
 
-    work                     = (Actor342100Work*)D_actor_342100_80164BB8->work;
-    anim                     = arg0 + 0x2F;
+    work                     = D_actor_342100_80164BB8->work;
+    anim                     = arg0 + ANIMATION_BANK_BASE_SET_COUNT;
     weaponId                 = gPlayerStatus.weapon;
     setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = setId;
-    work->field_3C           = anim;
+    work->animationId        = anim;
     msg.animationId          = anim;
     msg.blend                = ANIMATION_BLEND_INTERPOLATE;
     msg.blendFrames          = 0xF;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &msg, 0);
 }
 
 void func_actor_342100_801633D0(s32 arg0)
 {
-    Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;
+    _Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
 
-    taskMessageDispatch(work->field_34, BLAZE_FADE_MESSAGE_SET_STATE, arg0, 0);
+    taskMessageDispatch(work->fadeTask, BLAZE_FADE_MESSAGE_SET_STATE, arg0, 0);
 }
 
 /// Seed the spawn entry's two parameters and start the task that consumes
 /// them, passing the block itself as `Task::spawnArg2`.
 void func_actor_342100_80163408(void)
 {
-    Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;
+    _Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
 
-    work->wave.span  = 0x258;
-    work->wave.scale = 0x100;
-    Task_SpawnFromTable(D_actor_342100_801648DC, 0, 0, &work->wave);
+    work->blaze.wave.span  = 0x258;
+    work->blaze.wave.scale = 0x100;
+    Task_SpawnFromTable(D_actor_342100_801648DC, 0, 0, &work->blaze.wave);
 }
 
 /// Entry/exit of the overlay's spawned child. A zero arm plays the cue, asks
 /// slot 4 to forward message 0x7DB with the `{ 0, 0x2C, 4 }` record, passes the
-/// same record on to `field_30` if that target exists, and starts the child at
+/// same record on to `encounterTask` if that target exists, and starts the child at
 /// entry 3; a non-zero arm tells the already-spawned child so through its
 /// `Task::spawnArg1`.
 void func_actor_342100_80163454(s32 arg0)
 {
-    Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;
-    ActorCommand     msg;
+    _Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
+    ActorCommand           msg;
 
     if (arg0 == 0) {
         SndEvt_EnqueueType6(SOUND_SHELTER_B3_DUMPING_HOLE_BLAZE, 0, 0);
@@ -765,13 +755,13 @@ void func_actor_342100_80163454(s32 arg0)
         msg.context.loc.stage = 0;
         msg.command           = 4;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-        if (work->field_30 != NULL) {
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_30, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        if (work->encounterTask != NULL) {
+            TASK_MESSAGE_DISPATCH_POINTER(work->encounterTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         }
-        work->field_38 = Task_SpawnFromTable(D_actor_342100_80164B78, 3, 0, 0);
+        work->bodyFireTask = Task_SpawnFromTable(D_actor_342100_80164B78, 3, 0, 0);
         return;
     }
-    work->field_38->spawnArg1.value = 1;
+    work->bodyFireTask->spawnArg1.value = 1;
 }
 
 void func_actor_342100_80163518(void)
