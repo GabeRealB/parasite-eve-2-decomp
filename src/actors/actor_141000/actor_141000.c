@@ -2,6 +2,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
+#include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
 
 #include "common.h"
@@ -44,12 +45,6 @@ extern GpuImageUpload D_actor_141000_8013D72C[2];
 extern GpuImageUpload D_actor_141000_8013D4DC[2];
 
 extern GpuImageUpload D_actor_141000_8013D28C[2];
-
-typedef struct Actor141000Proj {
-    /* 0x0 */ DVECTOR sxy;
-    /* 0x4 */ s32     z;
-} Actor141000Proj;
-STATIC_ASSERT_SIZEOF(Actor141000Proj, 0x8);
 
 /// `_Actor141000AyaBreaWork::blinkStep`: the eye image the blink posts next.
 ///
@@ -1892,7 +1887,10 @@ static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32
     SVECTOR           a;
     SVECTOR           b;
     MATRIX            rot;
-    Actor141000Proj   proj[2];
+    s32               sxy0;
+    s32               depthCue;
+    s32               sxy1;
+    s32               otz1;
     Task*             parent;
     MATRIX*           mtx;
     SVECTOR*          src;
@@ -1936,26 +1934,18 @@ static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32
     b.vx += mtx->t[0];
     b.vy += mtx->t[1];
     b.vz += mtx->t[2];
+    // Project both ends. Each screen point comes back packed, x in the low
+    // half and y in the high; the depth-cue coefficient is not used.
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(&a);
-    gte_rtps();
-    gte_stsxy(&proj[0].sxy);
-    gte_stdp(&proj[0].z);
-    gte_stflg(arg3);
-    gte_stszotz(arg2);
-    gte_ldv0(&b);
-    gte_rtps();
-    gte_stsxy(&proj[1].sxy);
-    gte_stdp(&proj[0].z);
-    gte_stflg(arg3);
-    gte_stszotz(&proj[1].z);
-    dy                                = proj[0].sxy.vy - proj[1].sxy.vy;
-    x0                                = proj[0].sxy.vx;
-    x1                                = proj[1].sxy.vx;
+    gte_RotTransPers(&a, &sxy0, &depthCue, arg3, arg2);
+    gte_RotTransPers(&b, &sxy1, &depthCue, arg3, &otz1);
+    dy                                = (sxy0 >> 16) - (sxy1 >> 16);
+    x0                                = sxy0;
+    x1                                = sxy1;
     dx                                = x1 - x0;
-    y0                                = proj[0].sxy.vy;
-    y1                                = proj[1].sxy.vy;
+    y0                                = sxy0 >> 16;
+    y1                                = sxy1 >> 16;
     i                                 = ratan2(dx, dy);
     scale                             = gDisplayState.screenDistance;
     ((GfxRotationWords*)&rot)->m00M01 = ONE;
@@ -1976,8 +1966,8 @@ static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32
         arg1[i].vy = b.vy + y0;
     }
     for (i = 0; i < 6; i++) {
-        a.vx = D_actor_141000_801348A8[i].vx * scale / proj[1].z;
-        a.vy = D_actor_141000_801348A8[i].vy * scale / proj[1].z;
+        a.vx = D_actor_141000_801348A8[i].vx * scale / otz1;
+        a.vy = D_actor_141000_801348A8[i].vy * scale / otz1;
         gte_ldv0(&a);
         gte_rtv0();
         gte_stsv(&b);
@@ -1995,8 +1985,8 @@ static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32
         arg1[i + 12].vy = b.vy + y0;
     }
     for (i = 0; i < 6; i++) {
-        a.vx = ((D_actor_141000_801348A8[i].vx * r) >> 12) * scale / proj[1].z;
-        a.vy = ((D_actor_141000_801348A8[i].vy * r) >> 12) * scale / proj[1].z;
+        a.vx = ((D_actor_141000_801348A8[i].vx * r) >> 12) * scale / otz1;
+        a.vy = ((D_actor_141000_801348A8[i].vy * r) >> 12) * scale / otz1;
         gte_ldv0(&a);
         gte_rtv0();
         gte_stsv(&b);
