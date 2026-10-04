@@ -150,11 +150,18 @@ typedef struct {
 } _Actor03800Work;
 STATIC_ASSERT_SIZEOF(_Actor03800Work, 0x384);
 
-typedef struct Actor03800MoveScratch {
-    VECTOR  delta;
-    SVECTOR normal;
-} Actor03800MoveScratch;
-STATIC_ASSERT_SIZEOF(Actor03800MoveScratch, 0x18);
+/// Scratch-stack block of `ACTOR_03800_ACTION_KNOCKED_OVER`, which slides the
+/// actor away from the player while it is thrown onto its back.
+///
+/// The action reserves one block each tick and releases it before returning,
+/// whichever stage it is in. Only the ticks of the slide fill it: the offset
+/// from the player is taken, normalised, and the root is moved along the
+/// result on X and Z. Nothing carries over from one tick to the next.
+typedef struct {
+    VECTOR  fromPlayer; // Root's position minus the player's, world units, all three axes; `pad` is never written
+    SVECTOR direction;  // `fromPlayer` normalised, 4096 = 1.0; the root moves 17/512 of its X and Z each tick of the slide, and `vy` is never read
+} _Actor03800KnockedOverScratch;
+STATIC_ASSERT_SIZEOF(_Actor03800KnockedOverScratch, 0x18);
 
 extern void*     D_80067704[1];
 static TmdSource _gActor03800BlackBeetleEffect1;
@@ -1403,16 +1410,16 @@ static void Actor03800_Fn01520(Task* arg0)
 
 static void Actor03800_Fn0166C(Task* arg0)
 {
-    Actor03800MoveScratch* scratch;
-    _Actor03800Work*       work;
-    Enemy*                 ctx;
-    GfxCoord*              coord;
-    s16                    state;
-    s32                    snd;
-    s32                    pan;
-    s32                    pan2;
+    _Actor03800KnockedOverScratch* scratch;
+    _Actor03800Work*               work;
+    Enemy*                         ctx;
+    GfxCoord*                      coord;
+    s16                            state;
+    s32                            snd;
+    s32                            pan;
+    s32                            pan2;
 
-    scratch = (Actor03800MoveScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor03800KnockedOverScratch);
     work    = arg0->work;
     ctx     = arg0->spawnArg2.pointer;
     state   = work->actionStep;
@@ -1430,12 +1437,13 @@ static void Actor03800_Fn0166C(Task* arg0)
             break;
         case 1:
             if (work->animFrame >= 2 && work->animFrame < 14) {
-                scratch->delta.vx = coord->coord.t[0] - gPlayerStatus.coordMtx->t[0];
-                scratch->delta.vy = coord->coord.t[1] - gPlayerStatus.coordMtx->t[1];
-                scratch->delta.vz = coord->coord.t[2] - gPlayerStatus.coordMtx->t[2];
-                VectorNormalS(&scratch->delta, &scratch->normal);
-                coord->coord.t[0] += (scratch->normal.vx * 17) >> 9;
-                coord->coord.t[2] += (scratch->normal.vz * 17) >> 9;
+                // Slide along the ground, straight away from the player.
+                scratch->fromPlayer.vx = coord->coord.t[0] - gPlayerStatus.coordMtx->t[0];
+                scratch->fromPlayer.vy = coord->coord.t[1] - gPlayerStatus.coordMtx->t[1];
+                scratch->fromPlayer.vz = coord->coord.t[2] - gPlayerStatus.coordMtx->t[2];
+                VectorNormalS(&scratch->fromPlayer, &scratch->direction);
+                coord->coord.t[0] += (scratch->direction.vx * 17) >> 9;
+                coord->coord.t[2] += (scratch->direction.vz * 17) >> 9;
             } else {
                 work->speed = 0;
                 work->accel = 0;
@@ -1458,7 +1466,7 @@ static void Actor03800_Fn0166C(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor03800KnockedOverScratch);
 }
 
 static void Actor03800_Fn01948(Task* arg0)
