@@ -2952,21 +2952,21 @@ static __inline__ void Actor403200_SeedRootCoord(Task* task, GluttonWork* work)
     sc                                         = (ActorScaleRotScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(ActorScaleRotScratch));
     SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
 
-    ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle = ang;
-    gfxRotMatrixY(&sc->m, ang, 1);
+    ang     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->yaw = ang;
+    gfxRotMatrixY(&sc->rotation, ang, 1);
     sc->scale.vx = sc->scale.vy = sc->scale.vz = 0x1000;
-    ScaleMatrix(&sc->m, &sc->scale);
+    ScaleMatrix(&sc->rotation, &sc->scale);
 
-    coord->coord.m[0][0] = sc->m.m[0][0];
-    coord->coord.m[0][1] = sc->m.m[0][1];
-    coord->coord.m[0][2] = sc->m.m[0][2];
-    coord->coord.m[1][0] = sc->m.m[1][0];
-    coord->coord.m[1][1] = sc->m.m[1][1];
-    coord->coord.m[1][2] = sc->m.m[1][2];
-    coord->coord.m[2][0] = sc->m.m[2][0];
-    coord->coord.m[2][1] = sc->m.m[2][1];
-    coord->coord.m[2][2] = sc->m.m[2][2];
+    coord->coord.m[0][0] = sc->rotation.m[0][0];
+    coord->coord.m[0][1] = sc->rotation.m[0][1];
+    coord->coord.m[0][2] = sc->rotation.m[0][2];
+    coord->coord.m[1][0] = sc->rotation.m[1][0];
+    coord->coord.m[1][1] = sc->rotation.m[1][1];
+    coord->coord.m[1][2] = sc->rotation.m[1][2];
+    coord->coord.m[2][0] = sc->rotation.m[2][0];
+    coord->coord.m[2][1] = sc->rotation.m[2][1];
+    coord->coord.m[2][2] = sc->rotation.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
 
     work->state            = 0;

@@ -16,23 +16,23 @@ void coordSetYawScale(GfxCoord* coord, s16 scale)
     blk                                            = head - 1;
     SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
 
-    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle = ang;
-    gfxRotMatrixY(&blk->m, ang, 1);
+    ang      = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->yaw = ang;
+    gfxRotMatrixY(&blk->rotation, ang, 1);
     blk->scale.vz = scale;
     blk->scale.vy = scale;
     blk->scale.vx = scale;
-    ScaleMatrix(&blk->m, &blk->scale);
+    ScaleMatrix(&blk->rotation, &blk->scale);
 
-    coord->coord.m[0][0] = (u16)(head - 1)->m.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->m.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->m.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->m.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->m.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->m.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->m.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->m.m[2][1];
-    m22                  = (u16)blk->m.m[2][2];
+    coord->coord.m[0][0] = (u16)(head - 1)->rotation.m[0][0];
+    coord->coord.m[0][1] = (u16)blk->rotation.m[0][1];
+    coord->coord.m[0][2] = (u16)blk->rotation.m[0][2];
+    coord->coord.m[1][0] = (u16)blk->rotation.m[1][0];
+    coord->coord.m[1][1] = (u16)blk->rotation.m[1][1];
+    coord->coord.m[1][2] = (u16)blk->rotation.m[1][2];
+    coord->coord.m[2][0] = (u16)blk->rotation.m[2][0];
+    coord->coord.m[2][1] = (u16)blk->rotation.m[2][1];
+    m22                  = (u16)blk->rotation.m[2][2];
     SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2] = m22;

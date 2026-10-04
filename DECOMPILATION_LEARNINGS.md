@@ -972,7 +972,7 @@ head     = *scratch;                        /* head stays live to the pop */
 blk      = (ActorScaleRotScratch*)((u8*)head - 0x34);
 *scratch = blk;
 ...
-m22                  = *(u16*)&blk->m.m[2][2];
+m22                  = *(u16*)&blk->rotation.m[2][2];
 *scratch             = (u8*)*scratch + 0x34;   /* CSEs to `head + 0x34` */
 coord->composeStamp           = 0;
 coord->coord.m[2][2] = m22;
@@ -88277,9 +88277,9 @@ wrong again; plain `s->i < count` gave the target's `sra v0; blez v0; move s7,v0
 (`head = *G; blk = head - 0x34; ...; *G = *G + 0x34`). The target reads the
 first matrix word as `-0x34(head)` in the first copy and as `0(blk)` in every
 later one. The existing `actorRescaleYaw` spells that read
-`((T*)(head - 0x34))->m.m[0][0]`, and that gave `-0x34(head)` in all nine copies,
+`((T*)(head - 0x34))->rotation.m[0][0]`, and that gave `-0x34(head)` in all nine copies,
 which kept the previous pop value alive in `$s2` (99.67%, `regs` only).
-Reading `blk->m.m[0][0]` matched. The mechanism is in cse.c `find_best_addr`:
+Reading `blk->rotation.m[0][0]` matched. The mechanism is in cse.c `find_best_addr`:
 
 - A `(plus reg const)` address is never folded to a bare REG, because
   `ADDRESS_COST` ties at 1 and a tie only wins with a *higher* `rtx_cost`.
@@ -97722,7 +97722,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
     blk   = (ActorScaleRotScratch*)(head - 0x34);
     *(ActorScaleRotScratch**)SCRATCH_STACK_CURSOR_SLOT = blk;
     ... ratan2 / gfxRotMatrixY / ScaleMatrix / nine matrix shorts ...
-    m22 = *(u16*)&blk->m.m[2][2];
+    m22 = *(u16*)&blk->rotation.m[2][2];
     coord->composeStamp = 0;
     coord->coord.m[2][2] = m22;
     ((TmdObject*)task->extra)->coords->composeStamp = 0;

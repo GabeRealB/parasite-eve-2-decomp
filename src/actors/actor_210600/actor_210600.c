@@ -437,7 +437,7 @@ static void func_actor_210600_8014B2C0(Task* task)
 }
 
 /// Rebuilds the model's root part rotation around the yaw it already faces and
-/// rescales it uniformly through a 0x34-byte block borrowed from
+/// rescales it uniformly through an `ActorScaleRotScratch` block borrowed from
 /// the scratch stack, which is handed back once the rotation has been copied
 /// onto the coordinate. The same code as `coordSetYawScale`,
 /// expanded in place where the update body calls it.
@@ -451,29 +451,29 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 
     head                                       = SCRATCH_STACK_CURSOR(u8);
     coord                                      = task->extra.tmd->coords;
-    blk                                        = (ActorScaleRotScratch*)(head - 0x34);
+    blk                                        = (ActorScaleRotScratch*)(head - sizeof(ActorScaleRotScratch));
     SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
 
-    ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle = ang;
-    gfxRotMatrixY(&blk->m, ang, 1);
+    ang      = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->yaw = ang;
+    gfxRotMatrixY(&blk->rotation, ang, 1);
     blk->scale.vz = scale;
     blk->scale.vy = scale;
     blk->scale.vx = scale;
-    ScaleMatrix(&blk->m, &blk->scale);
+    ScaleMatrix(&blk->rotation, &blk->scale);
 
-    coord->coord.m[0][0] = (u16)((ActorScaleRotScratch*)(head - 0x34))->m.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->m.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->m.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->m.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->m.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->m.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->m.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->m.m[2][1];
-    m22                  = (u16)blk->m.m[2][2];
+    coord->coord.m[0][0] = (u16)((ActorScaleRotScratch*)(head - sizeof(ActorScaleRotScratch)))->rotation.m[0][0];
+    coord->coord.m[0][1] = (u16)blk->rotation.m[0][1];
+    coord->coord.m[0][2] = (u16)blk->rotation.m[0][2];
+    coord->coord.m[1][0] = (u16)blk->rotation.m[1][0];
+    coord->coord.m[1][1] = (u16)blk->rotation.m[1][1];
+    coord->coord.m[1][2] = (u16)blk->rotation.m[1][2];
+    coord->coord.m[2][0] = (u16)blk->rotation.m[2][0];
+    coord->coord.m[2][1] = (u16)blk->rotation.m[2][1];
+    m22                  = (u16)blk->rotation.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2] = m22;
-    SCRATCH_STACK_RELEASE_BYTES(0x34);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Update state of the actor. While `Actor210600Work::field_890` is clear it
