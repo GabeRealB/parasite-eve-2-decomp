@@ -2,8 +2,7 @@
 #define INCLUDE_ROOMS_SHELTER_B3_GARBAGE_INCINERATOR_H
 
 #include "types.h"
-
-#include "actors/actors_shared_801673f8.h"
+#include "overlay.h"
 
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"
@@ -14,7 +13,7 @@
 
 #include "main/task_types.h"
 
-extern ActorsShared801673f8Spot D_shelter_b3_garbage_incinerator_801874C4[16];
+extern OverlayEncounterSpot D_shelter_b3_garbage_incinerator_801874C4[16];
 
 extern u16 D_shelter_b3_garbage_incinerator_801855DE;
 

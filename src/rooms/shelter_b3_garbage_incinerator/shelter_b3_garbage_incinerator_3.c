@@ -11,8 +11,6 @@
 
 #include "shelter_b3_garbage_incinerator_private.h"
 
-#include "actors/actors_shared_801673f8.h"
-
 #include "actors/task_tables.h"
 
 #include "gameplay/display.h"
@@ -98,23 +96,23 @@ extern TaskDesc D_shelter_b3_garbage_incinerator_8018FAC0[2];
 void            func_shelter_b3_garbage_incinerator_80184D84(Task*);
 void            func_shelter_b3_garbage_incinerator_80184ECC(Task*);
 
-ActorsShared801673f8Spot D_shelter_b3_garbage_incinerator_801874C4[16] = {
+OverlayEncounterSpot D_shelter_b3_garbage_incinerator_801874C4[16] = {
     { 2000, -2500, 300, 2048 },
     { 5000, -2500, 300, 2048 },
     { 8000, -2500, 300, 2048 },
-    { 0x2AF8, -2500, 300, 2048 },
-    { 0x36B0, -2500, 300, 2048 },
-    { 0x41A0, -2500, -2500, 3072 },
-    { 0x41A0, -2500, -5500, 3072 },
-    { 0x41A0, -2500, -8500, 3072 },
-    { 0x41A0, -2500, -0x2CEC, 3072 },
-    { 0x41A0, -2500, -0x5FB4, 3072 },
+    { 11000, -2500, 300, 2048 },
+    { 14000, -2500, 300, 2048 },
+    { 16800, -2500, -2500, 3072 },
+    { 16800, -2500, -5500, 3072 },
+    { 16800, -2500, -8500, 3072 },
+    { 16800, -2500, -11500, 3072 },
+    { 16800, -2500, -24500, 3072 },
     { 2000, -2500, -5300, 0 },
     { 5000, -2500, -5300, 0 },
     { 8000, -2500, -5300, 0 },
-    { 0x2BC0, -2500, -8500, 1024 },
-    { 0x2BC0, -2500, -0x2CEC, 1024 },
-    { 0x2BC0, -2500, -0x5FB4, 1024 },
+    { 11200, -2500, -8500, 1024 },
+    { 11200, -2500, -11500, 1024 },
+    { 11200, -2500, -24500, 1024 },
 };
 
 SVECTOR D_shelter_b3_garbage_incinerator_80187544[79] = {

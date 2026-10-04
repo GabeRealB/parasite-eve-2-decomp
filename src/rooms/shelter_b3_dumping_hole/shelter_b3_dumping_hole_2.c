@@ -12,8 +12,6 @@
 
 #include "shelter_b3_dumping_hole_private.h"
 
-#include "actors/actors_shared_801673f8.h"
-
 #include "actors/task_tables.h"
 
 #include "gameplay/display.h"
@@ -1079,19 +1077,19 @@ DirectionWarpEntry D_shelter_b3_dumping_hole_8018B6A4[3] = {
     { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 15, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12] = {
+OverlayEncounterSpot D_shelter_b3_dumping_hole_8018B74C[12] = {
     { 1500, -3950, -550, 2048 },
     { 4500, -3950, -550, 2048 },
     { 7500, -3950, -550, 2048 },
-    { 0x2904, -3950, -550, 2048 },
-    { 0x34BC, -3950, -550, 2048 },
-    { 0x4074, -3950, -550, 2048 },
-    { 1500, -3950, -0x30A2, 0 },
-    { 4500, -3950, -0x30A2, 0 },
-    { 7500, -3950, -0x30A2, 0 },
-    { 0x2904, -3950, -0x30A2, 0 },
-    { 0x34BC, -3950, -0x30A2, 0 },
-    { 0x4074, -3950, -0x30A2, 0 },
+    { 10500, -3950, -550, 2048 },
+    { 13500, -3950, -550, 2048 },
+    { 16500, -3950, -550, 2048 },
+    { 1500, -3950, -12450, 0 },
+    { 4500, -3950, -12450, 0 },
+    { 7500, -3950, -12450, 0 },
+    { 10500, -3950, -12450, 0 },
+    { 13500, -3950, -12450, 0 },
+    { 16500, -3950, -12450, 0 },
 };
 
 TaskMessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {

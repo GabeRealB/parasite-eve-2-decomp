@@ -289,6 +289,21 @@ typedef struct OverlayEncounterSlot {
 } OverlayEncounterSlot;
 STATIC_ASSERT_SIZEOF(OverlayEncounterSlot, 0x8);
 
+/// A place where a scripted encounter's enemy enters its room: the position
+/// its root coordinate is moved to and the yaw it comes out along.
+///
+/// A room keeps one table of these. The command an `OverlayEncounterSlot`
+/// sends its enemy names a row by its zero-based position in bits 8..11, and
+/// the enemy looks that row up in the table of the room it is in. Each enemy
+/// derives its own facing from `heading`.
+typedef struct {
+    s16 x;       // World X the enemy's root coordinate is moved to
+    s16 y;       // World Y the enemy's root coordinate is moved to
+    s16 z;       // World Z the enemy's root coordinate is moved to
+    u16 heading; // Yaw the enemy comes out along, 4096 units per turn, in 0..4095
+} OverlayEncounterSpot;
+STATIC_ASSERT_SIZEOF(OverlayEncounterSpot, 0x8);
+
 /// Work block of a scripted encounter's controller: the frames counted before
 /// the encounter is armed, the next slot to start, and a stop request, which
 /// an actor's message 0x7DB with command 4 writes and which idles the

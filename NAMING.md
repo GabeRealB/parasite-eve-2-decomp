@@ -448,6 +448,9 @@ task's work block; its animation request, hit reaction and room command values
 use `MAD_CHASER_ANIM_REQUEST_`, `MAD_CHASER_HIT_REACTION_` and
 `MAD_CHASER_COMMAND_`. The scripted waves that spawn the enemy are the separate
 `src/shared/mad_chaser_waves.h`.
+The place a wave's enemy enters the room is an `OverlayEncounterSpot`, declared in
+`include/overlay.h` beside `OverlayEncounterSlot`: the two Shelter B3 rooms define
+the tables, and both the Mad Chaser and the Sucklerceph read them.
 
 `desertChaser` owns the included Desert Chaser enemy, one source built three
 ways: the cutscene build (`actor_323000`, `actor_323400`), the regular build

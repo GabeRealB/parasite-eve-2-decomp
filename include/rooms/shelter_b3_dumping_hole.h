@@ -5,8 +5,7 @@
 #include <psyq/libgte.h>
 
 #include "common.h"
-
-#include "actors/actors_shared_801673f8.h"
+#include "overlay.h"
 
 #include "gameplay/area.h"
 #include "gameplay/direction.h"
@@ -18,7 +17,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12];
+extern OverlayEncounterSpot D_shelter_b3_dumping_hole_8018B74C[12];
 
 extern TmdSource gShelterB3DumpingHoleAcropolisSanctuaryModel090F0;
 

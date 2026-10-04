@@ -84892,8 +84892,8 @@ packages cover 0x8017DA00, and in `shelter_r49` offset 0x440 is a `TaskDesc` the
 room's own code spawns from (`D_shelter_r49_8017DA00`, via `Display_SpawnWithOt`).
 Other actor overlays reach into the same region the same way (`func_8017D9B8`
 from `actor_400600`, `D_8017DC54` from `actor_461800`), and the project already
-calls one of these "map 0x427's spawn points" (`D_8018B74C` in
-`actors_shared_801673f8.h`).
+calls one of these "map 0x427's spawn points"
+(`D_shelter_b3_dumping_hole_8018B74C`, a table of `OverlayEncounterSpot`).
 
 **Fix - write the bare extern in the overlay's own `.c`, typed by the use.** A
 `Task_SpawnFromTable` table argument is a `TaskDesc`, and the sibling
