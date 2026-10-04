@@ -74,7 +74,7 @@ D_shelter_b2_pod_access_tunnel_80183BCC = 0x80183BCC; // size:0x30 defined:True
 D_shelter_b2_pod_access_tunnel_80183BFC = 0x80183BFC; // size:0xC defined:True
 RoomFx_TrailOffsets = 0x80183DDC; // size:0x10 defined:True
 
-effectSpriteDriftTask = 0x8017E6E0; // type:func
+shelterB2PodAccessTunnelEffectSpriteDriftTask = 0x8017E6E0; // type:func
 
 func_shelter_b2_pod_access_tunnel_80181C2C = 0x80181C2C; // type:func
 

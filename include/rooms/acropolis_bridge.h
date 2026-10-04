@@ -52,7 +52,7 @@ void func_acropolis_bridge_80180FF0(Task* task);
 
 void func_acropolis_bridge_80182694(Task* task);
 
-void func_acropolis_bridge_80182AF8(Task* task);
+void acropolisBridgeEffectSpriteDebrisTask(Task* task);
 
 void func_acropolis_bridge_80182394(Task* task);
 

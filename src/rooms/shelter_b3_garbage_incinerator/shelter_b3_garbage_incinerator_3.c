@@ -59,6 +59,9 @@
 /// and undefine this flag after the header. The drawer narrows frame to `u16`
 /// and size to `s16` internally; the call signature remains word-sized.
 #define EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS
+// Exported instance: another image refers to this package's copy by name.
+#define effectSpriteDebrisTask     shelterB3GarbageIncineratorEffectSpriteDebrisTask
+#define effectSpriteDriftTaskAimed shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed
 #include "../../shared/effect_sprite.h"
 #undef EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS
 

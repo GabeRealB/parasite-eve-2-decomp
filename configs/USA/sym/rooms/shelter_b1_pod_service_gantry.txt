@@ -86,7 +86,7 @@ func_shelter_b1_pod_service_gantry_8017FA7C = 0x8017FA7C; // type:func
 
 func_shelter_b1_pod_service_gantry_8017E880 = 0x8017E880; // type:func
 
-effectSpriteRiseTask = 0x8017F8C8; // type:func
+shelterB1PodServiceGantryEffectSpriteRiseTask = 0x8017F8C8; // type:func
 
 shelterB1PodServiceGantrySpriteDriftTask = 0x8017D8F4; // type:func
 waterDrawSpinU16 = 0x8017ED3C; // type:func

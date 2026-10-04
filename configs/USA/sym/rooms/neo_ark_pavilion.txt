@@ -73,9 +73,9 @@ gRoomEventLatched = 0x80187A20; // size:0xC defined:True
 
 func_neo_ark_pavilion_8017FC10 = 0x8017FC10; // type:func
 
-waterRippleTaskFixedCoord = 0x8017EC4C; // type:func
+neoArkPavilionWaterRippleTaskFixedCoord = 0x8017EC4C; // type:func
 
-waterDriftTaskU16FixedCoord = 0x8017F0CC; // type:func
+neoArkPavilionWaterDriftTaskU16FixedCoord = 0x8017F0CC; // type:func
 
 func_neo_ark_pavilion_8017FCB0 = 0x8017FCB0; // type:func
 

@@ -168,7 +168,7 @@ func_acropolis_bridge_80180FF0 = 0x80180FF0; // type:func
 
 func_acropolis_bridge_80182694 = 0x80182694; // type:func
 
-effectSpriteDebrisTask = 0x80182AF8; // type:func
+acropolisBridgeEffectSpriteDebrisTask = 0x80182AF8; // type:func
 
 func_acropolis_bridge_80182394 = 0x80182394; // type:func
 

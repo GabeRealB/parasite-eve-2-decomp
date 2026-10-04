@@ -62,7 +62,7 @@ func_neo_ark_island_8017FB2C = 0x8017FB2C; // type:func
 
 waterRippleTaskFixedCoord = 0x8017EB68; // type:func
 
-waterDriftTaskU16FixedCoord = 0x8017EFE8; // type:func
+neoArkIslandWaterDriftTaskU16FixedCoord = 0x8017EFE8; // type:func
 
 func_neo_ark_island_8017FB9C = 0x8017FB9C; // type:func
 

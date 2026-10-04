@@ -200,12 +200,6 @@ def image_scoped_names(decls: list[Decl], definitions) -> set[str]:
     for d in decls:
         if d.owner == d.image and (d.name, d.addr) in definitions.get(d.image, ()):
             local.add(d.name)
-        elif d.owner is not None and d.attrs.get('owner') == d.owner:
-            # A reference that names its owner means that image's definition
-            # and nothing else, so it does not make the name a project-wide
-            # one: a shared fragment's function keeps one name in every image
-            # that compiles it, and a reference picks one of them by owner.
-            continue
         else:
             imported.add(d.name)
     return local - imported
@@ -532,9 +526,8 @@ def main() -> None:
             where_in = d.addr - ranges[d.owner][0] if d.owner in groups else d.addr
             scope = ''
             if d.name in scoped:
-                home = d.owner if d.attrs.get('owner') == d.owner else d.image
-                scope = canon(home)
-                if definitions[home].get((d.name, d.addr)):
+                scope = canon(d.image)
+                if definitions[d.image][(d.name, d.addr)]:
                     scope += f':local@{where_in:X}'
             key = (d.name, scope)
             meaning[key].add((canon(d.owner), where_in))

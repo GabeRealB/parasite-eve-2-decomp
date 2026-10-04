@@ -51,7 +51,7 @@ void func_shelter_b2_pod_bottom_80181B48(Task* arg0);
 
 void func_shelter_b2_pod_bottom_8018016C(Task* task);
 
-void func_shelter_b2_pod_bottom_80180898(Task* task);
+void shelterB2PodBottomEffectSpriteRiseTask(Task* task);
 
 void func_shelter_b2_pod_bottom_80180F10(Task* arg0);
 

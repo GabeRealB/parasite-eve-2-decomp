@@ -32,7 +32,7 @@ extern WorldCollisionSurfaceProperties* D_shelter_b2_pod_access_tunnel_801856D8[
 
 void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task);
 
-void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task);
+void shelterB2PodAccessTunnelEffectSpriteDriftTask(Task* task);
 
 void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0);
 

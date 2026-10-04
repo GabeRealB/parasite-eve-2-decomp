@@ -54,8 +54,8 @@ void func_shelter_b3_garbage_incinerator_80185220(void);
 
 void func_shelter_b3_garbage_incinerator_8018110C(Task* task);
 
-void func_shelter_b3_garbage_incinerator_80182368(Task* task);
+void shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed(Task* task);
 
-void effectSpriteDebrisTask(Task* task);
+void shelterB3GarbageIncineratorEffectSpriteDebrisTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B3_GARBAGE_INCINERATOR_H

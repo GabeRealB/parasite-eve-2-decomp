@@ -71,6 +71,15 @@ Choose the owner before composing the name:
   wrapper uses its package prefix. The wrapper and included implementation have
   different owners. Do not rename shared code after whichever carrier was read
   first, or add a generic `Shared` component solely because code is reused.
+  Where another image refers to one package's compiled copy - gameplay's task
+  table pointing at a room's effect task - that copy is an export of the
+  package and takes its prefix in front of the shared identity:
+  `shelterB2PodBottomEffectSpriteRiseTask`. The carrier binds the shared name
+  to it before including the library's header (`#define effectSpriteRiseTask
+  shelterB2PodBottomEffectSpriteRiseTask`), as the paired factory rooms do, so
+  the definition and every reference carry one project-unique name and the
+  reference's `owner=` (see `tools/check_symbols.py`) can be checked by name. A
+  copy nothing outside the package refers to keeps the plain shared name.
 
 A TU or a header may contain several subsystems, and one subsystem may span
 several TUs. For example, an effect handler in `player_actor.c` still belongs to

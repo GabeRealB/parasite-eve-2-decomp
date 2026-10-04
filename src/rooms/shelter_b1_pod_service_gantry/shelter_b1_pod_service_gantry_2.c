@@ -40,6 +40,8 @@
 /// drawer also takes an `s16` angle.
 #define WATER_OWN_U16_DRAWERS
 #include "../../shared/water_effects.h"
+// Exported instance: another image refers to this package's copy by name.
+#define effectSpriteRiseTask shelterB1PodServiceGantryEffectSpriteRiseTask
 #include "../../shared/effect_sprite.h"
 
 void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);

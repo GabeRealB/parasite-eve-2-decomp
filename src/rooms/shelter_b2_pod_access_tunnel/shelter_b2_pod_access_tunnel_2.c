@@ -51,6 +51,8 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
+// Exported instance: another image refers to this package's copy by name.
+#define effectSpriteDriftTask shelterB2PodAccessTunnelEffectSpriteDriftTask
 #include "../../shared/effect_sprite.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);

@@ -44,9 +44,9 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_pavilion_801879EC[];
 
 void func_neo_ark_pavilion_8017FC10(Task* arg0);
 
-void waterRippleTaskFixedCoord(Task* task);
+void neoArkPavilionWaterRippleTaskFixedCoord(Task* task);
 
-void func_neo_ark_pavilion_8017F0CC(Task* task);
+void neoArkPavilionWaterDriftTaskU16FixedCoord(Task* task);
 
 void func_neo_ark_pavilion_8017FCB0(Task* task);
 

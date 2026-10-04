@@ -159,7 +159,7 @@ STATIC_ASSERT_SIZEOF(_Actor341900GluttonModelWork, 0x258);
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
 /// beside `gStageSceneMusicEntry`.
 
-extern void                      func_80143490(s32 arg0);
+extern void                      actor444000GluttonSetShakeLevel(s32 arg0);
 extern PadScriptCmd              D_80144A74[2];
 extern PadScriptVibrationSegment D_80144A7C[2];
 
@@ -668,13 +668,13 @@ void func_actor_341900_80162708(Task* arg0)
                 if ((cue == 0x12) && (work->lastCue != cue)) {
                     taskReparent(arg0,
                                  Gp_SpawnScript18(D_80144A74, D_80144A7C));
-                    func_80143490(3);
+                    actor444000GluttonSetShakeLevel(3);
                 }
                 cue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 if ((cue == 0x18) && (work->lastCue != cue)) {
                     taskReparent(arg0,
                                  Gp_SpawnScript18(D_80144A74, D_80144A7C));
-                    func_80143490(3);
+                    actor444000GluttonSetShakeLevel(3);
                 }
                 work->lastCue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }

@@ -413,7 +413,7 @@ extern PadScriptCmd D_80144A74[2];
 
 extern PadScriptVibrationSegment D_80144A7C[2];
 
-void func_80143490(s32 arg0);
+void actor444000GluttonSetShakeLevel(s32 arg0);
 
 /// Spawn table of the event task's children: entry 2 is the script parent,
 /// 3..7 its five script tasks and 8/9 the two effect actors.
@@ -1035,7 +1035,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                         work->doorPlacements[0].pos.vx = 0x36B0;
                         work->doorPlacements[1].pos.vx = 0x36B0;
                         taskReparent(arg0, Gp_SpawnScript18(D_80144A74, D_80144A7C));
-                        func_80143490(3);
+                        actor444000GluttonSetShakeLevel(3);
                         work->stagingMode = ACTOR_342000_STAGING_NONE;
                     }
                     TASK_MESSAGE_DISPATCH_POINTER(work->doors[0], ACTOR_MESSAGE_PLACE, &work->doorPlacements[0], 0);
@@ -1047,7 +1047,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 1);
             SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_DOORS_SHUT, 0, 0);
             taskReparent(arg0, Gp_SpawnScript18(D_80144A74, D_80144A7C));
-            func_80143490(3);
+            actor444000GluttonSetShakeLevel(3);
             break;
         default:
             break;

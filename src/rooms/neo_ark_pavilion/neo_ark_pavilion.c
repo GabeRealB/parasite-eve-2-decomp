@@ -61,6 +61,9 @@
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `waterDrawSpinU16` and `waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
+// Exported instance: another image refers to this package's copy by name.
+#define waterDriftTaskU16FixedCoord neoArkPavilionWaterDriftTaskU16FixedCoord
+#define waterRippleTaskFixedCoord   neoArkPavilionWaterRippleTaskFixedCoord
 #include "../../shared/water_effects.h"
 #include "../../shared/room_events.h"
 

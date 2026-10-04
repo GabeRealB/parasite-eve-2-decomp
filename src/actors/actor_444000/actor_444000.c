@@ -75,6 +75,8 @@
 /// header defines `GLUTTON_INCINERATOR` as the dimensionless integer 2;
 /// the binding must remain a macro for the shared code's `#if` comparisons.
 #define GLUTTON_ROOM GLUTTON_INCINERATOR
+// Exported instance: another image refers to this package's copy by name.
+#define gluttonSetShakeLevel actor444000GluttonSetShakeLevel
 #include "../../shared/glutton.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).

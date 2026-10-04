@@ -535,7 +535,7 @@ func_acropolis_bridge_80182394 = 0x80182394; // type:func absolute:True owner=ac
 
 func_acropolis_bridge_80182694 = 0x80182694; // type:func absolute:True owner=acropolis_bridge
 
-func_acropolis_bridge_80182AF8 = 0x80182AF8; // type:func absolute:True
+acropolisBridgeEffectSpriteDebrisTask = 0x80182AF8; // type:func absolute:True owner=acropolis_bridge
 
 func_acropolis_cafeteria_8017E708 = 0x8017E708; // type:func absolute:True owner=acropolis_cafeteria
 
@@ -850,7 +850,7 @@ func_neo_ark_garden_80180948 = 0x80180948; // type:func absolute:True owner=neo_
 
 func_neo_ark_island_8017EB68 = 0x8017EB68; // type:func absolute:True
 
-waterDriftTaskU16FixedCoord = 0x8017EFE8; // type:func absolute:True owner=neo_ark_island
+neoArkIslandWaterDriftTaskU16FixedCoord = 0x8017EFE8; // type:func absolute:True owner=neo_ark_island
 
 func_neo_ark_island_8017FB2C = 0x8017FB2C; // type:func absolute:True owner=neo_ark_island
 
@@ -876,9 +876,9 @@ func_neo_ark_north_promenade_80181120 = 0x80181120; // type:func absolute:True o
 
 func_neo_ark_observatory_80180124 = 0x80180124; // type:func absolute:True owner=neo_ark_observatory
 
-waterRippleTaskFixedCoord = 0x8017EC4C; // type:func absolute:True owner=neo_ark_pavilion
+neoArkPavilionWaterRippleTaskFixedCoord = 0x8017EC4C; // type:func absolute:True owner=neo_ark_pavilion
 
-func_neo_ark_pavilion_8017F0CC = 0x8017F0CC; // type:func absolute:True
+neoArkPavilionWaterDriftTaskU16FixedCoord = 0x8017F0CC; // type:func absolute:True owner=neo_ark_pavilion
 
 func_neo_ark_pavilion_8017FC10 = 0x8017FC10; // type:func absolute:True
 
@@ -1044,7 +1044,7 @@ func_shelter_b1_pod_access_tunnel_80180484 = 0x80180484; // type:func absolute:T
 
 func_shelter_b1_pod_service_gantry_8017E880 = 0x8017E880; // type:func absolute:True
 
-effectSpriteRiseTask = 0x8017F8C8; // type:func absolute:True owner=shelter_b1_pod_service_gantry
+shelterB1PodServiceGantryEffectSpriteRiseTask = 0x8017F8C8; // type:func absolute:True owner=shelter_b1_pod_service_gantry
 
 func_shelter_b1_pod_service_gantry_8017FA7C = 0x8017FA7C; // type:func absolute:True owner=shelter_b1_pod_service_gantry
 
@@ -1157,7 +1157,7 @@ func_shelter_b2_operating_room_8017F254 = 0x8017F254; // type:func absolute:True
 
 func_shelter_b2_operating_room_8017FEB4 = 0x8017FEB4; // type:func absolute:True
 
-func_shelter_b2_pod_access_tunnel_8017E6E0 = 0x8017E6E0; // type:func absolute:True
+shelterB2PodAccessTunnelEffectSpriteDriftTask = 0x8017E6E0; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
 func_shelter_b2_pod_access_tunnel_8017F608 = 0x8017F608; // type:func absolute:True
 
@@ -1177,7 +1177,7 @@ func_shelter_b2_pod_bottom_8017D850 = 0x8017D850; // type:func absolute:True
 
 func_shelter_b2_pod_bottom_8018016C = 0x8018016C; // type:func absolute:True owner=shelter_b2_pod_bottom
 
-func_shelter_b2_pod_bottom_80180898 = 0x80180898; // type:func absolute:True
+shelterB2PodBottomEffectSpriteRiseTask = 0x80180898; // type:func absolute:True owner=shelter_b2_pod_bottom
 
 func_shelter_b2_pod_bottom_80180F10 = 0x80180F10; // type:func absolute:True owner=shelter_b2_pod_bottom
 
@@ -1211,7 +1211,7 @@ func_shelter_b2_south_maintenance_walkway_80181AE8 = 0x80181AE8; // type:func ab
 
 func_shelter_b3_dumping_hole_80183F84 = 0x80183F84; // type:func absolute:True owner=shelter_b3_dumping_hole
 
-func_shelter_b3_dumping_hole_8018521C = 0x8018521C; // type:func absolute:True
+shelterB3DumpingHoleEffectSpriteDriftTaskAimed = 0x8018521C; // type:func absolute:True owner=shelter_b3_dumping_hole
 
 func_shelter_b3_dumping_hole_80186218 = 0x80186218; // type:func absolute:True owner=shelter_b3_dumping_hole
 
@@ -1235,9 +1235,9 @@ func_shelter_b3_elevator_hall_80181FD0 = 0x80181FD0; // type:func absolute:True 
 
 func_shelter_b3_garbage_incinerator_8018110C = 0x8018110C; // type:func absolute:True
 
-func_shelter_b3_garbage_incinerator_80182368 = 0x80182368; // type:func absolute:True
+shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed = 0x80182368; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 
-effectSpriteDebrisTask = 0x80183364; // type:func absolute:True owner=shelter_b3_garbage_incinerator
+shelterB3GarbageIncineratorEffectSpriteDebrisTask = 0x80183364; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 
 func_shelter_b4_lower_sewer_8017EEE4 = 0x8017EEE4; // type:func absolute:True owner=shelter_b4_lower_sewer
 

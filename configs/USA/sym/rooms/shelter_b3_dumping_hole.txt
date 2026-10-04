@@ -215,7 +215,7 @@ func_shelter_b3_dumping_hole_8017FCF4 = 0x8017FCF4; // type:func
 
 func_shelter_b3_dumping_hole_80183F84 = 0x80183F84; // type:func
 
-effectSpriteDriftTaskAimed = 0x8018521C; // type:func
+shelterB3DumpingHoleEffectSpriteDriftTaskAimed = 0x8018521C; // type:func
 
 func_shelter_b3_dumping_hole_80186218 = 0x80186218; // type:func
 

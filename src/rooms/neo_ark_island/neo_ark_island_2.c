@@ -38,6 +38,8 @@
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `waterDrawSpinU16` and `waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
+// Exported instance: another image refers to this package's copy by name.
+#define waterDriftTaskU16FixedCoord neoArkIslandWaterDriftTaskU16FixedCoord
 #include "../../shared/water_effects.h"
 
 /// Offsets from the parent coordinate of the two points whose trails

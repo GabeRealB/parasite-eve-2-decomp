@@ -40,7 +40,7 @@ void func_shelter_b1_pod_service_gantry_8017FA7C(Task* arg0);
 
 void func_shelter_b1_pod_service_gantry_8017E880(Task* task);
 
-void effectSpriteRiseTask(Task* task);
+void shelterB1PodServiceGantryEffectSpriteRiseTask(Task* task);
 
 /// Advances the pod service gantry's animated drifting sprite and releases it at completion.
 ///

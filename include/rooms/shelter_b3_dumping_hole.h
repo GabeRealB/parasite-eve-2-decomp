@@ -56,7 +56,7 @@ void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1);
 
 void func_shelter_b3_dumping_hole_80183F84(Task* task);
 
-void func_shelter_b3_dumping_hole_8018521C(Task* task);
+void shelterB3DumpingHoleEffectSpriteDriftTaskAimed(Task* task);
 
 void func_shelter_b3_dumping_hole_80186218(Task* task);
 

@@ -207,9 +207,9 @@ D_shelter_b3_garbage_incinerator_8018FBC8 = 0x8018FBC8; // size:0x4 defined:True
 
 func_shelter_b3_garbage_incinerator_8018110C = 0x8018110C; // type:func
 
-effectSpriteDriftTaskAimed = 0x80182368; // type:func
+shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed = 0x80182368; // type:func
 
-effectSpriteDebrisTask = 0x80183364; // type:func
+shelterB3GarbageIncineratorEffectSpriteDebrisTask = 0x80183364; // type:func
 CapCaption_RunSchedule = 0x8017FA58; // type:func
 CapCaption_DrawCurrent = 0x8017FB80; // type:func
 CapCaption_Relocate = 0x8017FC5C; // type:func
