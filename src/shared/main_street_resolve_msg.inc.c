@@ -48,11 +48,11 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         return 2;
     }
     if (msg->areaId == 0xB) {
-        ev.capCmd                     = 3;
-        ev.stageSnd                   = 0x52020005;
-        ev.flagId                     = GAME_FLAG_MAIN_STREET_TO_MOTEL_ROOM_1_SCENE;
-        ev.fade                       = 0;
-        gMainStreetEventSpawned.value = 0;
+        ev.capCmd                            = 3;
+        ev.stageSnd                          = 0x52020005;
+        ev.flagId                            = GAME_FLAG_MAIN_STREET_TO_MOTEL_ROOM_1_SCENE;
+        ev.fade                              = 0;
+        gMainStreetEventSpawned.eventStarted = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventStagedMsg = *out;
@@ -61,18 +61,18 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
                     GameFlag_SetNibble(ev.flagId, 1);
                 }
                 Task_SpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);
-                gMainStreetEventSpawned.value = 1;
+                gMainStreetEventSpawned.eventStarted = 1;
                 return 2;
             }
             return 2;
         }
         return 1;
     } else if (msg->areaId == 0xC) {
-        ev.capCmd                     = 4;
-        ev.stageSnd                   = 0x52020005;
-        ev.flagId                     = GAME_FLAG_MAIN_STREET_TO_MOTEL_ROOM_2_SCENE;
-        ev.fade                       = 0;
-        gMainStreetEventSpawned.value = 0;
+        ev.capCmd                            = 4;
+        ev.stageSnd                          = 0x52020005;
+        ev.flagId                            = GAME_FLAG_MAIN_STREET_TO_MOTEL_ROOM_2_SCENE;
+        ev.fade                              = 0;
+        gMainStreetEventSpawned.eventStarted = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventStagedMsg = *out;
@@ -81,7 +81,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
                     GameFlag_SetNibble(ev.flagId, 1);
                 }
                 Task_SpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);
-                gMainStreetEventSpawned.value = 1;
+                gMainStreetEventSpawned.eventStarted = 1;
                 return 2;
             }
             return 2;

@@ -138,18 +138,9 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and event the message handler latched for the room's event
 /// task, and the flag it raises once it has spawned that task.
-extern RoomEventMsg gRoomEventStagedMsg;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    s8 value;
-    u8 retained[7];
-} DryfieldNightMainStreetStorage8BB4;
-STATIC_ASSERT_SIZEOF(DryfieldNightMainStreetStorage8BB4, 8);
-
-extern DryfieldNightMainStreetStorage8BB4 gMainStreetEventSpawned;
-extern RoomLatchedEventStorage            gRoomEventLatched;
+extern RoomEventMsg            gRoomEventStagedMsg;
+extern RoomEventStartStorage   gMainStreetEventSpawned;
+extern RoomLatchedEventStorage gRoomEventLatched;
 
 /// The message and request the event gate latched for its event task.
 extern RoomEventMsg gRoomEventMsg;
@@ -1601,7 +1592,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-DryfieldNightMainStreetStorage8BB4 gMainStreetEventSpawned = { 0 };
+RoomEventStartStorage gMainStreetEventSpawned = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 

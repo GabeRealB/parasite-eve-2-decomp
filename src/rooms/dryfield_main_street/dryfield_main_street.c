@@ -75,18 +75,25 @@
 
 extern RoomEventActiveBytes gRoomEventActive;
 
-// The animation copy spans the bank and its following records.
-// Keep the typed fields and the complete copied word range together.
+/// The clips the Dryfield main street adds to the player's animation bank.
+///
+/// The room's first-visit cutscene script sends `data.copy` to the player.
+/// The copy takes four words from the start of this storage: the three set
+/// pointers and the request's own source pointer. Those words occupy extended
+/// ids 47-50. The script then plays id 48 and, twenty frames later, id 49;
+/// its remaining plays, and the one in its skip script, are base-bank clips.
+/// Id 47 stays NULL, id 50 holds the source pointer, and the stored word count
+/// sits past the copied span.
 typedef union {
     struct {
-        AnimationSet*            sets[3];
-        AnimationBankCopyRequest copy;
-    } data;
-    s32 words[5];
-} DryfieldMainStreetAnimStorage1584;
-STATIC_ASSERT_SIZEOF(DryfieldMainStreetAnimStorage1584, 20);
+        AnimationSet*            sets[3]; // Player clips for extended ids 47-49; NULL at the id nothing plays
+        AnimationBankCopyRequest copy;    // Copies the first four words of this storage
+    } data;                               // The records by name
+    s32 words[5];                         // The same storage as the copy reads it; the last word lies beyond the copied span
+} _DryfieldMainStreetAnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_DryfieldMainStreetAnimationBankExtensionStorage, 20);
 
-extern DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584;
+extern _DryfieldMainStreetAnimationBankExtensionStorage D_dryfield_main_street_80181584;
 
 /// Descriptor of the room's own event task, which the message handler spawns.
 extern TaskDesc gMainStreetEventTaskDesc;
@@ -130,16 +137,7 @@ extern RoomLatchedEventStorage gRoomEventLatched;
 
 /// Set by the message handler when its last 0xB/0xC message latched an event
 /// and spawned the room's event task; every such message clears it first.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    s8 value;
-    u8 retained[7];
-} DryfieldMainStreetStorage561C;
-STATIC_ASSERT_SIZEOF(DryfieldMainStreetStorage561C, 8);
-
-extern DryfieldMainStreetStorage561C gMainStreetEventSpawned;
+extern RoomEventStartStorage gMainStreetEventSpawned;
 
 /// The message and request the event gate latched for its event task.
 extern RoomEventMsg gRoomEventMsg;
@@ -171,11 +169,10 @@ void                        func_dryfield_main_street_8017E2F4(s32);
 void                        func_dryfield_main_street_8017E320(void);
 void                        func_dryfield_main_street_8017E354(s32);
 
-extern DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584;
-s32                                      func_dryfield_main_street_8017E054(Task*, s32, s32, s32);
-s32                                      func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstArg, s32);
-void                                     func_dryfield_main_street_8017E1C0(Task*);
-void                                     func_dryfield_main_street_8017E3A8(Task*);
+s32  func_dryfield_main_street_8017E054(Task*, s32, s32, s32);
+s32  func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstArg, s32);
+void func_dryfield_main_street_8017E1C0(Task*);
+void func_dryfield_main_street_8017E3A8(Task*);
 
 TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -243,7 +240,7 @@ TaskDesc D_dryfield_main_street_8018156C[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_main_street_8017E3A8, { .value = 0 } },
 };
 
-DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584 = { .data = { { NULL, &_gDryfieldMainStreetAnimation03BF0, &_gDryfieldMainStreetAnimation03F84 }, { { .words = D_dryfield_main_street_80181584.words }, 4 } } };
+_DryfieldMainStreetAnimationBankExtensionStorage D_dryfield_main_street_80181584 = { .data = { { NULL, &_gDryfieldMainStreetAnimation03BF0, &_gDryfieldMainStreetAnimation03F84 }, { { .words = D_dryfield_main_street_80181584.words }, 4 } } };
 
 AnimationPlayRequest D_dryfield_main_street_80181598 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -946,7 +943,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-DryfieldMainStreetStorage561C gMainStreetEventSpawned = { 0 };
+RoomEventStartStorage gMainStreetEventSpawned = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
