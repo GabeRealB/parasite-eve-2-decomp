@@ -257,9 +257,23 @@ typedef struct {
 } TaskFuncTable16;
 STATIC_ASSERT_SIZEOF(TaskFuncTable16, 0x40);
 
+/// Eighteen task handlers stored as a value for whole-table copies.
+///
+/// Each table defines its slots' roles: the selector is the behaviour state
+/// an enemy actor keeps in its task's work while combat is running, set by
+/// name together with a reset of the substate that the selected handler
+/// dispatches on in turn. Dispatch requires an index in 0..17 and a non-NULL
+/// entry, which receives the live task as its only argument. There is no
+/// terminator or bounds check in the table, so a selector that also indexes
+/// shorter stepping tables in the actor's other task states relies on its
+/// writers naming one of the eighteen slots whenever this one is in use.
+/// Copying it copies callback pointers, not task or work storage; the callback
+/// code must remain loaded for the call. A dispatcher that goes on using the
+/// task after the call relies on its handlers leaving the task live.
 typedef struct {
-    TaskFunc funcs[18];
+    TaskFunc funcs[18]; // Handlers in selector order; slot meanings belong to each table
 } TaskFuncTable18;
+STATIC_ASSERT_SIZEOF(TaskFuncTable18, 0x48);
 
 /// Intrusive execution-list links, also used as the bare head of a task list.
 ///
