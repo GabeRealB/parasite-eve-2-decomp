@@ -3991,15 +3991,15 @@ Testing the same decremented halfword against *zero* is different: there is no
 constant to fold into, so the extension is materialised from the register and
 the type of the value tested decides what it becomes.
 
-`func_actor_403000_8013D910` reloads the `u16` tick `Actor403000Work::field_6`,
+`func_actor_403000_8013D910` reloads the tick `Actor403000Work::stateFrame`,
 decrements it and tests it, so the load stays `lhu` as above — but the test only
 comes out right when the decremented value is `s16`:
 
 ```c
-/* timer is s16; work->field_6 is u16 */
-timer         = work->field_6 - 1;
-work->field_6 = timer;
-if (timer < 0 && enemy->hp > 0) { work->field_0 = 0x13; }
+/* timer is s16 */
+timer            = work->stateFrame - 1;
+work->stateFrame = timer;
+if (timer < 0 && enemy->hp > 0) { work->state = ACTOR_403000_STATE_GET_UP; }
 ```
 
 ```asm
@@ -97315,14 +97315,14 @@ The read-modify-write case above is one member of a family: any use that does
 two same-width fields is the cleanest instance — there is no extension to fold:
 
 ```c
-work->field_AC4 = work->field_AC6;   /* lhu $v0, 0xAC6($s0); sh $v0, 0xAC4($s0) */
+work->animId = work->requestedAnimId;   /* lhu $v0, 0xAC6($s0); sh $v0, 0xAC4($s0) */
 ```
 
-`Actor403000Work::field_AC6` was declared `u16` on exactly that evidence (two
+`Actor403000Work::requestedAnimId` was declared `u16` on exactly that evidence (two
 copies in `func_actor_403000_80133AF8`), but the same function also reads the
-field `lh` twice — a compare against the neighbouring `field_AC4` and an
+field `lh` twice — a compare against the neighbouring `animId` and an
 argument passed on — and `func_actor_403000_8013D72C` needs `lh` for
-`field_AC6 == 0x1B`. Declaring it `s16` satisfies both `lh` readers and leaves
+`requestedAnimId == 0x1B`. Declaring it `s16` satisfies both `lh` readers and leaves
 both copies `lhu`, because a bare HImode move is still a bare HImode move: no
 cast, no signed temp, and no change to the two copy sites is needed. The
 declaration was the whole fix.
@@ -97333,7 +97333,7 @@ other sites before changing a declaration — here the only matched readers were
 stores (`sh` either way), so the change was free.
 
 The same function also carries the reverse-direction trap for store order:
-`work->field_F30` is a `MATRIX` (`short m[3][3]` then `long t[3]`) zeroed as
+`work->color` is a `MATRIX` (`short m[3][3]` then `long t[3]`) zeroed as
 twelve constant stores running strictly *down* from `t[2]` to `m[0][0]`. sched1
 sorts equal-priority independent insns by `INSN_LUID` (`rank_for_schedule`
 falls through to it), i.e. source order, so a descending run like that is a
@@ -103321,9 +103321,11 @@ Layout note, since it will come up for every actor in this family: the animation
 view of the work block **overlaps** the view the rest of the overlay uses, and
 cannot be nested inside it. `Actor110600Work` names a `field_5C` halfword at
 0x5C, which lands inside the animation view's `slots[]` at 0x24 (stride 0x28);
-the sibling has the same overlap, with `Actor403000AnimWork` and `Actor403000Work`
-agreeing only from 0xAC0 up. Declare the second view as its own struct and cast
-`index->field_1C` to it, exactly as `func_actor_403000_801336B4` does.
+the sibling showed the same overlap until `Actor403000Work` declared the
+animation members in place: the halfword its other view named is
+`slots[1].status`, and `func_actor_403000_801336B4` now reads that one struct
+without a cast. Declare a second view as its own struct and cast
+`index->field_1C` to it only while the slots themselves are not declared.
 
 Inputs: `base_1.c` (100.000%)
 SHA256 `7743540ab0342b3505aef12771dfc512f3eacb546c02fc76f85da469ef6eda17`;
@@ -104556,12 +104558,12 @@ ahead of call 706 in `.sched`), after which reload CSE wrote it as `move $s6,$a1
 and a load-delay `nop` disappeared.
 
 **Fix.** Give every stretch its own single-assignment local (`animSrc`,
-`records`, `records2`, `node`, `node2`, `node3`, `dirp`). Each one dies once
+`rootContacts`, `headContacts`, `torsoBody`, `hindBody`, `neckBody`, `dirp`). Each one dies once
 inside the block, so local-alloc hands them all `$s0` in turn. This took the
 score from 91.7% to 98.7% in a single edit, and the `&dir` set stayed below the call.
-The last 1.3% was plain statement order: `field_F94 = 1` before
-`field_F9C = 3` gives the constant its own `$v1` quantity ahead of the
-`field_F90` store. Same function: `index->field_40 = D.field_4;` written
+The last 1.3% was plain statement order: `playerAnimation.animationId = 1` before
+`playerAnimation.blendFrames = 3` gives the constant its own `$v1` quantity ahead of the
+`playerAnimation.source.sets` store. Same function: `index->field_40 = D.field_4;` written
 *before* `index->field_50 = &D;` is what puts the `lhu` into `$v1` while `$v0`
 still holds `&D`.
 
@@ -104706,7 +104708,7 @@ intermediate inside an `s8` inline keeps `lb`, and `80137084` still matches.
 
 ### A store scheduled past an absolute-byte load: read the byte through its struct
 
-`func_actor_403000_8013C864` clears `work->field_FCC` and then indexes
+`func_actor_403000_8013C864` clears `work->catchFrame` and then indexes
 `Gp_WeaponIdBase[D_8007218A - 1]`. The ROM keeps `sh zero,0xFCC(s2)` between
 `lui v0,%hi(D_8007218A)` and the `lb`; with `extern s8 D_8007218A` sched2
 moved the store after the `lb` (reorder=1, everything else zero). `D_8007218A`
@@ -104767,10 +104769,10 @@ leaves the stored value in its own register.
 copy. A `goto` into the tail (with or without a local holding the value) cannot produce it - the load
 sits at the label, or the local lands in a different register and loses the tail's `move v1,a0; negu v1,v1`.
 
-**Cause:** both copies were written out in full (`field_0 = 2; field_2 = -1; FD2 = FD3; FD3 = -FD3;`).
+**Cause:** both copies were written out in full (`state = ACTOR_403000_STATE_PATROL; prevState = -1; patrolRingDir = watchRingDir; watchRingDir = -watchRingDir;`).
 jump2 cross-jumps after reload, matching backwards from the end; scheduling had already put each
-copy's `lbu` before its `field_0` store, so the match stops at the differing store and keeps both loads.
-The `move/negu` pair is the second `FD3` read: the `QImode` store to `FD2` invalidates every `QImode`
+copy's `lbu` before its `state` store, so the match stops at the differing store and keeps both loads.
+The `move/negu` pair is the second `watchRingDir` read: the `QImode` store to `patrolRingDir` invalidates every `QImode`
 mem in CSE, so the re-read survives to `reload_cse_regs`, which turns it into a copy of `a0`.
 
 **Related, same function:** an angle wrapped in `while` loops and then both stored and passed as an
