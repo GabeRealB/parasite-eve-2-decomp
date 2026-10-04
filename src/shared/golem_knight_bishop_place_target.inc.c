@@ -27,16 +27,16 @@ void golemKnightBishopPlaceTarget(Task* arg0)
     if (work->step == 3) {
         coord           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
         work->targetYaw = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-        sc->in.vz       = -0x5AA;
-        sc->in.vx       = 0;
-        sc->in.vy       = 0;
+        sc->operand.vz  = -0x5AA;
+        sc->operand.vx  = 0;
+        sc->operand.vy  = 0;
         gte_SetRotMatrix(&coord->coord);
-        gte_ldv0(&sc->in);
+        gte_ldv0(&sc->operand);
         gte_rtv0();
-        gte_stlvnl(&sc->out);
-        work->targetPos.vx                = gPlayerStatus.coordMtx->t[0] + sc->out.vx;
+        gte_stlvnl(&sc->offset);
+        work->targetPos.vx                = gPlayerStatus.coordMtx->t[0] + sc->offset.vx;
         work->targetPos.vy                = gPlayerStatus.coordMtx->t[1];
-        work->targetPos.vz                = gPlayerStatus.coordMtx->t[2] + sc->out.vz;
+        work->targetPos.vz                = gPlayerStatus.coordMtx->t[2] + sc->offset.vz;
         work->pathProbeCapsule.ends[0].vy = -0x3E8;
         work->pathProbeCapsule.ends[0].vz = -0x7D0;
         work->pathProbeCapsule.ends[0].vx = 0;
@@ -60,11 +60,11 @@ void golemKnightBishopPlaceTarget(Task* arg0)
         work->pathProbeCapsule.ends[0].vz = (u32)(rcos(work->targetYaw) * 0x7D) >> 8;
         coord                             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
         work->targetYaw                   = (work->targetYaw + (ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF)) & 0xFFF;
-        sc->in.vx                         = (u32)(rsin(work->targetYaw) * 0x4B) >> 8;
-        sc->in.vz                         = (u32)(rcos(work->targetYaw) * 0x4B) >> 8;
-        work->targetPos.vx                = gPlayerStatus.coordMtx->t[0] + sc->in.vx;
+        sc->operand.vx                    = (u32)(rsin(work->targetYaw) * 0x4B) >> 8;
+        sc->operand.vz                    = (u32)(rcos(work->targetYaw) * 0x4B) >> 8;
+        work->targetPos.vx                = gPlayerStatus.coordMtx->t[0] + sc->operand.vx;
         work->targetPos.vy                = gPlayerStatus.coordMtx->t[1];
-        work->targetPos.vz                = gPlayerStatus.coordMtx->t[2] + sc->in.vz;
+        work->targetPos.vz                = gPlayerStatus.coordMtx->t[2] + sc->operand.vz;
         work->pathProbeBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopOffsetScratch));

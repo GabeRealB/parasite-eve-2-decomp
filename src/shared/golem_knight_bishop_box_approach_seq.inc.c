@@ -38,13 +38,13 @@ void golemKnightBishopBoxApproachSeq(Task* arg0)
             coord->coord.t[0] = work->regions[work->boxRegion].x;
             coord->coord.t[1] = gPlayerStatus.coordMtx->t[1];
             coord->coord.t[2] = work->regions[work->boxRegion].z;
-            sc->in.vx         = 0;
-            sc->in.vy         = work->regions[work->boxRegion].param.heading;
-            sc->in.vz         = 0;
-            RotMatrix(&sc->in, &coord->coord);
-            sc->out.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            sc->out.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xDAC) {
+            sc->operand.vx    = 0;
+            sc->operand.vy    = work->regions[work->boxRegion].param.heading;
+            sc->operand.vz    = 0;
+            RotMatrix(&sc->operand, &coord->coord);
+            sc->offset.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            sc->offset.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+            if ((s16)SquareRoot0(sc->offset.vx * sc->offset.vx + sc->offset.vz * sc->offset.vz) < 0xDAC) {
                 work->anim  = 4;
                 work->step  = 1;
                 work->timer = 0x1E;
@@ -95,14 +95,14 @@ void golemKnightBishopBoxApproachSeq(Task* arg0)
                 work->auxTimer--;
                 golemKnightBishopAimFromPart(arg0);
             }
-            sc->out.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            sc->out.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xA8C) {
+            sc->offset.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            sc->offset.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+            if ((s16)SquareRoot0(sc->offset.vx * sc->offset.vx + sc->offset.vz * sc->offset.vz) < 0xA8C) {
                 work->anim               = 7;
                 work->step               = 3;
                 work->aimBeamBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             } else {
-                diff = (ratan2((s16)sc->out.vx, (s16)sc->out.vz) & 0xFFF) - work->regions[work->boxRegion].param.heading;
+                diff = (ratan2((s16)sc->offset.vx, (s16)sc->offset.vz) & 0xFFF) - work->regions[work->boxRegion].param.heading;
                 dist = (abs(diff) >= 0x800) ? ((diff > 0) ? 0x1000 - diff : diff + 0x1000) : abs(diff);
                 if (dist > 0x180) {
                     work->anim                   = 4;
@@ -126,9 +126,9 @@ void golemKnightBishopBoxApproachSeq(Task* arg0)
             }
             break;
         case 3:
-            for (i = 0; work->animFrame > gGolemKnightBishopFrameSteps[i].frame; i++) {
+            for (i = 0; work->animFrame > gGolemKnightBishopFrameSteps[i].lastFrame; i++) {
             }
-            work->forwardSpeed = gGolemKnightBishopFrameSteps[i].value;
+            work->forwardSpeed = gGolemKnightBishopFrameSteps[i].forwardSpeed;
             if (work->animFrame == 0x12) {
                 snd = gGolemKnightBishopStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));

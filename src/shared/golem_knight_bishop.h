@@ -91,17 +91,19 @@ typedef struct {
 } GolemKnightBishopRegion;
 STATIC_ASSERT_SIZEOF(GolemKnightBishopRegion, 0x10);
 
-/// One 8-byte entry of the spawn's placement run `D_actor_402200_80153C78`,
-/// terminated by a zero `field_0`: when the session's stage (`field_2`) and
-/// room (`field_4`) match, `field_0` indexes the box tables and `field_6` is
-/// the box count stored to `GolemKnightBishopWork::regionCount`.
-typedef struct GolemKnightBishopSpot {
-    s16 field_0;
-    s16 field_2;
-    s16 field_4;
-    u16 field_6;
-} GolemKnightBishopSpot;
-STATIC_ASSERT_SIZEOF(GolemKnightBishopSpot, 0x8);
+/// Binds one room to the regions the golem watches there.
+///
+/// Each package lists the rooms its golem is placed in as a run of these,
+/// ended by an entry whose `regionTable` is 0. The spawn takes the regions of
+/// every entry that names the session's stage and area, so the last such
+/// entry decides. A room with no entry leaves the golem without regions.
+typedef struct {
+    s16 regionTable; // index of the room's region table in the package's list of them; 0 ends the run, and slot 0 of the list is empty
+    s16 stage;       // stage the room is in, a `GAME_STAGE_` value
+    s16 area;        // the room's area within that stage, a `GAME_AREA_` value
+    u16 regionCount; // entries in that region table
+} GolemKnightBishopRoomRegions;
+STATIC_ASSERT_SIZEOF(GolemKnightBishopRoomRegions, 0x8);
 
 /// Values of `GolemKnightBishopWork::sequence`, the behaviour the per-frame
 /// dispatcher runs. `GolemKnightBishopWork::lastAttack` holds one of the three
@@ -228,87 +230,29 @@ typedef struct {
 } GolemKnightBishopWork;
 STATIC_ASSERT_SIZEOF(GolemKnightBishopWork, 0x71C);
 
-/// 0x18-byte block `func_actor_402200_80132E34` takes from the scratch stack
-/// to place the actor relative to the player: `in` is the offset rotated
-/// through the player's root coordinate into `out`.
-typedef struct GolemKnightBishopOffsetScratch {
-    VECTOR  out;
-    SVECTOR in;
+/// Scratch-stack block the sequences that position the golem work in.
+///
+/// Target placement, the box approach and the strike each reserve one for the
+/// length of the call. It pairs a full-width offset with a short vector whose
+/// meaning is the caller's; nothing in it carries from one use to the next.
+typedef struct {
+    VECTOR  offset;  // offset along the world axes: `operand` after a GTE rotation, or the player's position less the golem's, of which only x and z are filled
+    SVECTOR operand; // short vector being worked on: the local offset to rotate, a planar offset used as it stands, or the Euler angles (0x1000 to the turn) the root's rotation is built from
 } GolemKnightBishopOffsetScratch;
 STATIC_ASSERT_SIZEOF(GolemKnightBishopOffsetScratch, 0x18);
 
-/// 0x48-byte block `func_actor_402200_80135D5C` takes from the scratch stack
-/// to aim the actor: `m` is the root's world matrix brought local to the
-/// fourth part, `out` the GTE's rotated offset, and `pts` the two world points
-/// (root-based aim point, fourth-part offset) projected through `GsWSMATRIX`
-/// into `sxy` and the quartered screen z `otz`.
-typedef struct GolemKnightBishopAimScratch {
-    MATRIX  m;
-    VECTOR  out;
-    SVECTOR pts[2];
-    s32     sxy;
-    s32     otz;
-} GolemKnightBishopAimScratch;
-STATIC_ASSERT_SIZEOF(GolemKnightBishopAimScratch, 0x48);
-
-/// One 4-byte entry of `D_actor_402200_801383D8`: the first entry whose
-/// `frame` is not below the animation frame `GolemKnightBishopWork::animFrame`
-/// supplies `value` for `forwardSpeed`.
-typedef struct GolemKnightBishopFrameStep {
-    s16 frame;
-    u16 value;
-} GolemKnightBishopFrameStep;
-STATIC_ASSERT_SIZEOF(GolemKnightBishopFrameStep, 4);
-
-/// 0x30-byte block `func_actor_402200_80131F54` takes from the scratch stack:
-/// `delta` receives the `func_800E0C10` push-back and is then reused for the
-/// offset to the player, and `ofs` is the spark offset handed to
-/// `func_800FDB18`.
-typedef struct GolemKnightBishopHitScratch {
-    WorldCollisionDelta delta;
-    byte                pad_10[0x10];
-    SVECTOR             ofs;
-    byte                pad_28[8];
-} GolemKnightBishopHitScratch;
-STATIC_ASSERT_SIZEOF(GolemKnightBishopHitScratch, 0x30);
-
-/// The scratch-pad block of the box scan: `out` first holds the player's
-/// planar offset from a box's centre, then the offset `in` behind the player
-/// rotated through the player's root coordinate.
-typedef struct GolemKnightBishopBoxScratch {
-    VECTOR  out;
-    byte    pad_10[0x10];
-    SVECTOR in;
-} GolemKnightBishopBoxScratch;
-STATIC_ASSERT_SIZEOF(GolemKnightBishopBoxScratch, 0x28);
-
-/// The scratch-pad block of the red trail drawer: the normalised screen
-/// direction of the trail, the depth and its per-segment step, the six
-/// vertex pairs of the current segments and the endpoint increments.
-typedef struct GolemKnightBishopTrailScratch {
-    VECTOR  dir;
-    SVECTOR norm;
-    s32     z;
-    s32     dz;
-    u16     x[6];
-    u16     y[6];
-    s16     dx;
-    s16     dy;
-} GolemKnightBishopTrailScratch;
-STATIC_ASSERT_SIZEOF(GolemKnightBishopTrailScratch, 0x3C);
-
-/// The scratch-pad block of the grab: the query sent with message 0x3F8, the
-/// animation sent with message 0x3FF, the placement sent with message 0x3E9,
-/// and the offset `in` rotated through the actor's root into `out`; `in` is
-/// also the rotation the grab's matrix is built from.
-typedef struct GolemKnightBishopGrabScratch {
-    GameActorButtonPressHold query;
-    AnimationPlayRequest     anim;
-    ActorTransform           place;
-    VECTOR                   out;
-    SVECTOR                  in;
-} GolemKnightBishopGrabScratch;
-STATIC_ASSERT_SIZEOF(GolemKnightBishopGrabScratch, 0x5C);
+/// One span of the forward-speed curve of the charge that ends a box
+/// approach.
+///
+/// The spans are in ascending `lastFrame` order. Each frame of the charge
+/// moves at the `forwardSpeed` of the first span whose `lastFrame` is not
+/// below `GolemKnightBishopWork::animFrame`. The search has no terminator, so
+/// the final span has to reach past the frame the charge ends on.
+typedef struct {
+    s16 lastFrame;    // last animation frame the span covers
+    u16 forwardSpeed; // `GolemKnightBishopWork::forwardSpeed` over the span: a signed distance per frame held as its raw halfword, which the charge reads without sign extension
+} GolemKnightBishopChargeSpeedSpan;
+STATIC_ASSERT_SIZEOF(GolemKnightBishopChargeSpeedSpan, 4);
 
 void golemKnightBishopPickHitReaction(Task* arg0, s32 arg1);
 void golemKnightBishopBoxScanSeq(Task* arg0);

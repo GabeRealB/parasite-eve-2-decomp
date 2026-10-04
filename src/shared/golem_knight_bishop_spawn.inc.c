@@ -62,10 +62,10 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             arg0->param      = &gGolemKnightBishopParams;
             arg0->recs       = work->hurtContacts;
             arg0->hp         = gGolemKnightBishopParams.hpMax;
-            for (i = 0; gGolemKnightBishopSpots[i].field_0 != 0; i++) {
-                if (gGameSession->location.loc.stage == gGolemKnightBishopSpots[i].field_2 && gGameSession->location.loc.area == gGolemKnightBishopSpots[i].field_4) {
-                    work->regions     = gGolemKnightBishopRegions[gGolemKnightBishopSpots[i].field_0];
-                    work->regionCount = gGolemKnightBishopSpots[i].field_6;
+            for (i = 0; gGolemKnightBishopSpots[i].regionTable != 0; i++) {
+                if (gGameSession->location.loc.stage == gGolemKnightBishopSpots[i].stage && gGameSession->location.loc.area == gGolemKnightBishopSpots[i].area) {
+                    work->regions     = gGolemKnightBishopRegions[gGolemKnightBishopSpots[i].regionTable];
+                    work->regionCount = gGolemKnightBishopSpots[i].regionCount;
                 }
             }
             work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_REGION_SCAN;

@@ -37,10 +37,10 @@ void golemKnightBishopStrikeSeq(Task* arg0)
         case 0:
             work->anim     = 4;
             work->feinting = gGolemKnightBishopApproachRoll[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
-            sc->in.vx      = 0;
-            sc->in.vy      = (work->targetYaw + 0x800) & 0xFFF;
-            sc->in.vz      = 0;
-            RotMatrix(&sc->in, &coord->coord);
+            sc->operand.vx = 0;
+            sc->operand.vy = (work->targetYaw + 0x800) & 0xFFF;
+            sc->operand.vz = 0;
+            RotMatrix(&sc->operand, &coord->coord);
             coord->coord.t[0] = work->targetPos.vx;
             coord->coord.t[1] = work->targetPos.vy;
             coord->coord.t[2] = work->targetPos.vz;

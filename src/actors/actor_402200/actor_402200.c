@@ -59,7 +59,7 @@
 /// as its fifth argument when it reseeds animation slots 1..0x12.
 extern s16 gGolemKnightBishopAnimBlend[];
 
-extern GolemKnightBishopFrameStep gGolemKnightBishopFrameSteps[];
+extern GolemKnightBishopChargeSpeedSpan gGolemKnightBishopFrameSteps[];
 
 /// Reacts to the damage just taken; see its definition.
 
@@ -115,13 +115,13 @@ extern s32 gGolemKnightBishopHoldCue;
 /// box tables it selects, the per-stage cue-bank arrays and the animation data.
 // Message-table callbacks use the argument views required by this TU.
 
-extern TaskMessageEntry         gGolemKnightBishopMessages[2];
-extern DamageAttack             gGolemKnightBishopAttacks[4];
-extern EnemyParams              gGolemKnightBishopParams;
-extern GolemKnightBishopSpot    gGolemKnightBishopSpots[];
-extern GolemKnightBishopRegion* gGolemKnightBishopRegions[];
-extern s16*                     gGolemKnightBishopStageCues[];
-extern AnimationSet*            gGolemKnightBishopAnimSets[22];
+extern TaskMessageEntry             gGolemKnightBishopMessages[2];
+extern DamageAttack                 gGolemKnightBishopAttacks[4];
+extern EnemyParams                  gGolemKnightBishopParams;
+extern GolemKnightBishopRoomRegions gGolemKnightBishopSpots[];
+extern GolemKnightBishopRegion*     gGolemKnightBishopRegions[];
+extern s16*                         gGolemKnightBishopStageCues[];
+extern AnimationSet*                gGolemKnightBishopAnimSets[22];
 
 /// Per-difficulty HP above which the player always breaks the grab.
 extern s16 gGolemKnightBishopGrabHpLimits[];
@@ -207,8 +207,8 @@ s16 gGolemKnightBishopAnimBlend[22] = {
     0,
 };
 
-GolemKnightBishopFrameStep gGolemKnightBishopFrameSteps[18] = {
-    { 3, 0xFFF6 },
+GolemKnightBishopChargeSpeedSpan gGolemKnightBishopFrameSteps[18] = {
+    { 3, -10 },
     { 5, 350 },
     { 6, 210 },
     { 9, 117 },
@@ -216,16 +216,16 @@ GolemKnightBishopFrameStep gGolemKnightBishopFrameSteps[18] = {
     { 15, 85 },
     { 17, 90 },
     { 21, 35 },
-    { 22, 0xFFCE },
-    { 23, 0xFFB0 },
+    { 22, -50 },
+    { 23, -80 },
     { 31, 0 },
     { 37, 2 },
     { 43, 5 },
     { 62, 8 },
-    { 64, 0xFFFB },
-    { 69, 0xFFFA },
-    { 84, 0xFFEF },
-    { 109, 0xFFFA },
+    { 64, -5 },
+    { 69, -6 },
+    { 84, -17 },
+    { 109, -6 },
 };
 
 s32 gGolemKnightBishopAnimCues[17] = {
@@ -910,16 +910,16 @@ u16 gGolemKnightBishopIdleSteps[16] = {
     2,
 };
 
-GolemKnightBishopSpot gGolemKnightBishopSpots[10] = {
-    { 1, 4, 14, 8 },
-    { 2, 4, 19, 5 },
-    { 3, 5, 5, 2 },
-    { 4, 1, 11, 5 },
-    { 5, 2, 15, 3 },
-    { 6, 3, 38, 8 },
-    { 7, 4, 15, 4 },
-    { 8, 4, 32, 5 },
-    { 9, 5, 21, 6 },
+GolemKnightBishopRoomRegions gGolemKnightBishopSpots[10] = {
+    { 1, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 8 },
+    { 2, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 5 },
+    { 3, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 2 },
+    { 4, GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 5 },
+    { 5, GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, 3 },
+    { 6, GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, 8 },
+    { 7, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 4 },
+    { 8, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 5 },
+    { 9, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 6 },
     { 0, 0, 0, 0 },
 };
 

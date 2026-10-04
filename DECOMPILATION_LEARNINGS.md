@@ -112548,7 +112548,7 @@ symbol and the `SYM`-based access scoring below 100 — is the
 Splitting the word into `u16 sx; s16 sy;` (any dest type, s16 or u16) gives `lhu` for both loads: a
 HImode-to-HImode copy always zero-extends.
 
-**Fix.** Keep the slot an `s32 sxy` and write `dst_x = sc->sxy; dst_y = sc->sxy >> 16;`. Combine folds the
+**Fix.** Keep the slot an `s32 screenXY` and write `dst_x = sc->screenXY; dst_y = sc->screenXY >> 16;`. Combine folds the
 shift of the loaded word into a sign-extending load of the upper half (`lh 0x42`), while the truncating
 low copy stays `lhu 0x40`.
 

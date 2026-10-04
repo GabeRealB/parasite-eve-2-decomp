@@ -1,5 +1,17 @@
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
+/// Scratch-stack block of the per-frame hit handler.
+///
+/// Reserved for the length of the call. Only the two vectors are used; what
+/// the rest of the block was laid out for is unproven.
+typedef struct {
+    WorldCollisionDelta delta;          // push-back resolved from a contact table, in its fixed-point view; then, as a whole-unit vector, the player's position less the golem's root, for a weapon hit
+    byte                field_10[0x10]; // never accessed; role unproven
+    SVECTOR             effectOffset;   // where the hit effect appears, as an offset from part 3 along that part's axes
+    byte                field_28[8];    // never accessed; role unproven
+} _GolemKnightBishopHitScratch;
+STATIC_ASSERT_SIZEOF(_GolemKnightBishopHitScratch, 0x30);
+
 /// Per-frame hit handler: applies the `func_800E0C10` push-back from
 /// `groundContacts` and (while `hurtBody` is grid-enabled) `hurtContacts` to
 /// the root coordinate, counts `hitCooldown` down and re-arms `hurtBody` when
@@ -12,27 +24,27 @@
 /// switches that body off.
 void golemKnightBishopTakeHits(Task* arg0)
 {
-    s32                          lastId;
-    GolemKnightBishopWork*       work;
-    GolemKnightBishopHitScratch* head;
-    GolemKnightBishopHitScratch* sc;
-    GolemKnightBishopHitScratch* blk;
-    Enemy*                       enemy;
-    GfxCoord*                    coord;
-    s32                          i;
-    s32                          damage;
-    s32                          kind;
-    s32                          wait;
-    s16                          t;
+    s32                           lastId;
+    GolemKnightBishopWork*        work;
+    _GolemKnightBishopHitScratch* head;
+    _GolemKnightBishopHitScratch* sc;
+    _GolemKnightBishopHitScratch* blk;
+    Enemy*                        enemy;
+    GfxCoord*                     coord;
+    s32                           i;
+    s32                           damage;
+    s32                           kind;
+    s32                           wait;
+    s16                           t;
 
-    lastId                                            = 0;
-    work                                              = arg0->work;
-    head                                              = SCRATCH_STACK_CURSOR(GolemKnightBishopHitScratch);
-    blk                                               = head - 1;
-    SCRATCH_STACK_CURSOR(GolemKnightBishopHitScratch) = blk;
-    sc                                                = blk;
-    coord                                             = arg0->extra.tmd->coords;
-    enemy                                             = arg0->spawnArg2.pointer;
+    lastId                                             = 0;
+    work                                               = arg0->work;
+    head                                               = SCRATCH_STACK_CURSOR(_GolemKnightBishopHitScratch);
+    blk                                                = head - 1;
+    SCRATCH_STACK_CURSOR(_GolemKnightBishopHitScratch) = blk;
+    sc                                                 = blk;
+    coord                                              = arg0->extra.tmd->coords;
+    enemy                                              = arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->groundContacts, &sc->delta, ARRAY_SIZE(work->groundContacts), NULL)) {
         case 0:
@@ -140,16 +152,16 @@ void golemKnightBishopTakeHits(Task* arg0)
                         break;
                 }
                 if (lastId != work->hurtContacts[i].key.value) {
-                    lastId     = work->hurtContacts[i].key.value;
-                    sc->ofs.vx = 0;
-                    sc->ofs.vy = 0;
-                    t          = -0x96;
+                    lastId              = work->hurtContacts[i].key.value;
+                    sc->effectOffset.vx = 0;
+                    sc->effectOffset.vy = 0;
+                    t                   = -0x96;
                     if (work->hitFromFront == 1) {
                         t = 0xC8;
                     }
-                    sc->ofs.vz = t;
+                    sc->effectOffset.vz = t;
                     func_800FDB18((u16)Gp_GetIdParam1(work->hurtContacts[i].key.value),
-                                  &arg0->extra.tmd->coords[3], &sc->ofs,
+                                  &arg0->extra.tmd->coords[3], &sc->effectOffset,
                                   &work->hitEffectArg);
                 }
                 wait = Gp_GetIdParam2(work->hurtContacts[i].key.value);
@@ -172,5 +184,5 @@ void golemKnightBishopTakeHits(Task* arg0)
         work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(work->strikeContacts);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GolemKnightBishopHitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GolemKnightBishopHitScratch);
 }
