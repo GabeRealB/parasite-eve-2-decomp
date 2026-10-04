@@ -114,12 +114,15 @@ static UiObjectDesc D_options_801D5EFC = {
     0,
 };
 
-/// Top-left texel of one pad-button glyph, within the texture page the key
-/// configuration screen draws its icons from.
+/// Top-left texel of one pad-button glyph in the user-interface texture page.
+///
+/// Only the origin is stored. A glyph's extent comes from the row that draws
+/// it: 15x15 texels for a face button, 15x8 for a shoulder button.
 typedef struct {
     u8 u; // Texel column of the glyph's left edge
     u8 v; // Texel row of the glyph's top edge
 } _OptionsKeyIconUv;
+STATIC_ASSERT_SIZEOF(_OptionsKeyIconUv, 0x2);
 
 /// Pad-button glyph origins for the key configuration screen, in row order.
 ///
