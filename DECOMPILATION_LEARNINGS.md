@@ -72155,7 +72155,7 @@ allocation site names both the size and the owning global:
 `task->work` and publishes that task in `80161860`, while
 `func_actor_444000_8013AFF8` does `memCalloc(0xF24, 0)` for `80161878`. Those are
 two structs. The family convention for the smaller one is a separate
-`…EventWork` typedef reached by casting, as in `actor_342000` and `actor_121300`:
+`…EventWork` typedef reached through `Task::work`, as in `actor_342000` and `actor_121300`:
 
 ```c
 Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
@@ -137654,7 +137654,7 @@ The repaired retry seed matched 97.965%. In case 3 its fixed scalar `D_80070F70`
 
 A preplanned scalar helper experiment, `Add(s32 *value, s32 delta) { *value += delta; }`, called with addresses of the two actual X fields, made the stores plain `mem:SI`. The first D load now depended on both stores 1113/1128 and the whole scale/X prefix became exact. A scalar sway store likewise constrained the next D read. No array-declaration alias hack or raw offset cast was needed.
 
-However, putting the conditional inside `SwayInPlace(s32 *value, s32 delta)` retained the destination pointer across both arms. At 98.209%, `.dbr` filled the conditional delay slot with `addiu a0,s1,8`, then filled a separate unconditional jump's slot with the sway arithmetic. A second preplanned experiment instead computed `v = Sway(work->field_0[0].field_8,-20); Store(&work->field_0[0].field_8,v);`, with `Store(s32 *dst,s32 value) { *dst=value; }`. The destination folded into the store address, the true memory dependencies survived, and `.dbr` inverted the conditional and used the arithmetic in its slot, removing the extra jump: 100.000%, all penalties zero. Both variants still had beqz plus j through `.jump2`; attributing this result to early if-conversion would be wrong. Patched `reorg.c:4219-4264` describes inversion around a jump without delay slots; the exact runtime path was not traced.
+However, putting the conditional inside `SwayInPlace(s32 *value, s32 delta)` retained the destination pointer across both arms. At 98.209%, `.dbr` filled the conditional delay slot with `addiu a0,s1,8`, then filled a separate unconditional jump's slot with the sway arithmetic. A second preplanned experiment instead computed `v = Sway(work->doorPlacements[0].pos.vz,-20); Store(&work->doorPlacements[0].pos.vz,v);`, with `Store(s32 *dst,s32 value) { *dst=value; }`. The destination folded into the store address, the true memory dependencies survived, and `.dbr` inverted the conditional and used the arithmetic in its slot, removing the extra jump: 100.000%, all penalties zero. Both variants still had beqz plus j through `.jump2`; attributing this result to early if-conversion would be wrong. Patched `reorg.c:4219-4264` describes inversion around a jump without delay slots; the exact runtime path was not traced.
 
 This supports the documented memory-flag mechanism and the observed competition for a branch delay slot, not a universal helper-order rule. The router's best output changed coordinate values and was rejected; its next valid retained output rebuilt worse. The exact result came from independent dump-guided follow-up. Full unscoped verification passed, including the lost-match check.
 
