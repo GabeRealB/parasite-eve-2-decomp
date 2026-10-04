@@ -10,17 +10,17 @@ void ratAnimate(Task* arg0)
     s32      val;
 
     work2 = arg0->work;
-    if ((s16)work2->field_37E != work2->field_380) {
-        work2->field_380 = work2->field_37E;
-        work2->field_382 = 0;
-        val              = gRatAnimBlend[(s16)work2->field_37E];
+    if (work2->animId != work2->appliedAnimId) {
+        work2->appliedAnimId = work2->animId;
+        work2->animFrame     = 0;
+        val                  = gRatAnimBlend[work2->animId];
         for (i = 1; i < 7; i++) {
-            animationSeekSlotWithBlend(&work2->anim, i, (s16)work2->field_37E, 0, val);
+            animationSeekSlotWithBlend(&work2->rig.anim, i, work2->animId, 0, val);
         }
     } else {
-        work2->field_382++;
+        work2->animFrame++;
         for (i = 1; i < 7; i++) {
-            animationTickSlot(&work2->anim, i);
+            animationTickSlot(&work2->rig.anim, i);
         }
     }
 }

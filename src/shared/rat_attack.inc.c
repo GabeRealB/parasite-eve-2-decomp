@@ -29,7 +29,7 @@ void ratAttack(Task* arg0)
     vec   = (VECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x10);
     work  = arg0->work;
     obj   = arg0->extra.tmd;
-    state = work->field_37C;
+    state = work->step;
     coord = obj->coords;
     if (state == one) {
         goto case1;
@@ -48,27 +48,27 @@ ge2:
     goto pop;
 case0:
     Gp_ArmStateF0(1);
-    if (work->field_33C == 0) {
-        work->field_33C = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    if (work->targetCoord == 0) {
+        work->targetCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     }
-    target          = work->field_33C;
+    target          = work->targetCoord;
     vec->vx         = target->coord.t[0] - coord->coord.t[0];
     vec->vy         = 0;
     vec->vz         = target->coord.t[2] - coord->coord.t[2];
-    work->field_38A = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
-    work->field_386 = 0x19;
-    work->field_38C = work->field_38C - 1;
-    if ((s16)work->field_38C > 0) {
+    work->targetYaw = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
+    work->turnRate  = 0x19;
+    work->timer--;
+    if (work->timer > 0) {
         goto dist;
     }
-    work->field_37A = 0;
-    work->field_37C = 0;
-    work->field_37E = one;
-    work->field_38C = 0;
+    work->mode   = RAT_MODE_IDLE;
+    work->step   = 0;
+    work->animId = one;
+    work->timer  = 0;
 dist:
     dist = SquareRoot0(vec->vx * vec->vx + vec->vz * vec->vz);
     if (dist < 0x2BC) {
-        raw   = work->field_38A - (u16)work->field_388;
+        raw   = work->targetYaw - (u16)work->yaw;
         diff  = raw;
         adiff = diff >= 0 ? diff : -diff;
         if (adiff < 0x800) {
@@ -82,35 +82,35 @@ dist:
         ang = raw + 0x1000;
     wrap_done:
         if ((s16)ang < 0x32) {
-            work->field_37E = 4;
-            work->field_384 = 0;
-            work->field_386 = 0;
-            work->field_37C = 1;
+            work->animId       = RAT_ANIM_ATTACK;
+            work->forwardSpeed = 0;
+            work->turnRate     = 0;
+            work->step         = 1;
             goto pop;
         }
-        work->field_384 = 0;
+        work->forwardSpeed = 0;
         goto pop;
     }
-    work->field_384 = 0x32;
+    work->forwardSpeed = 0x32;
     goto pop;
 case1:
-    if ((s16)work->field_382 == 0x14) {
-        work->field_31A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    if (work->animFrame == 0x14) {
+        work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
-    if ((s16)work->field_382 < 0x20) {
+    if (work->animFrame < 0x20) {
         goto pop;
     }
-    work->field_37E  = 3;
-    work->field_37C  = 2;
-    work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->animId            = RAT_ANIM_BACK_OFF;
+    work->step              = 2;
+    work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     goto pop;
 case2:
     vel = 0;
-    if ((s16)work->field_382 < 0xB) {
+    if (work->animFrame < 0xB) {
         vel = -0x78;
     }
-    work->field_384 = vel;
-    if ((s16)work->field_382 < 0x1F) {
+    work->forwardSpeed = vel;
+    if (work->animFrame < 0x1F) {
         goto pop;
     }
     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070004;
@@ -118,16 +118,16 @@ case2:
     SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((s32)((gRandomLcgState >> 16) & 0xF) < gRatAttackRepeatChance[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
-        work->field_37C = 0;
-        work->field_37E = state;
+        work->step   = 0;
+        work->animId = state;
         goto pop;
     }
-    work->field_37A = 0;
-    work->field_37C = 0;
-    work->field_37E = one;
-    work->field_38C = 0;
-    work->field_38E = 0;
-    work->field_394 = 0;
+    work->mode            = RAT_MODE_IDLE;
+    work->step            = 0;
+    work->animId          = one;
+    work->timer           = 0;
+    work->wanderTimer     = 0;
+    work->attackRequested = 0;
 pop:
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }

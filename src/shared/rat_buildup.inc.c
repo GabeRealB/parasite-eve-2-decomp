@@ -11,55 +11,53 @@ void ratBuildup(Task* arg0)
     s16      state;
     s32      rng;
     s32      rng2;
-    u16      timer;
 
     work  = arg0->work;
-    state = work->field_37C;
+    state = work->step;
     switch (state) {
         case 0:
-            work->field_384 = 0;
-            work->field_386 = 0;
-            if (work->field_396 == 0) {
-                work->field_37C = 1;
-                work->field_37E = 6;
+            work->forwardSpeed = 0;
+            work->turnRate     = 0;
+            if (work->knockedDown == 0) {
+                work->step   = 1;
+                work->animId = RAT_ANIM_COLLAPSE;
             } else {
-                work->field_37C = 2;
+                work->step      = 2;
                 rng             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rng;
-                work->field_38C = ((u32)rng >> 0x10) & 0xF;
+                work->timer     = ((u32)rng >> 0x10) & 0xF;
             }
-            work->field_396 = 1;
-            work->field_380 = 1;
+            work->knockedDown   = 1;
+            work->appliedAnimId = RAT_ANIM_IDLE;
             return;
         case 1:
-            if ((s16)work->field_382 >= 0x1D) {
-                work->field_37C = 2;
+            if (work->animFrame >= 0x1D) {
+                work->step      = 2;
                 rng2            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rng2;
-                work->field_38C = ((u32)rng2 >> 0x10) & 0xF;
+                work->timer     = ((u32)rng2 >> 0x10) & 0xF;
                 return;
             }
             return;
         case 2:
-            timer           = work->field_38C - 1;
-            work->field_38C = timer;
-            if ((timer << 0x10) <= 0) {
-                work->field_37E = 8;
-                work->field_37C = 3;
+            work->timer--;
+            if (work->timer <= 0) {
+                work->animId = RAT_ANIM_BUILDUP_HOLD;
+                work->step   = 3;
                 return;
             }
             break;
         case 3:
             if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
-                ctx                 = arg0->spawnArg2.pointer;
-                ctx->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
-                work->field_37A     = 0;
-                work->field_37C     = 0;
-                work->field_37E     = 1;
-                work->field_38C     = 0;
-                work->field_394     = 1;
-                work->field_396     = 0;
-                work->field_398     = 0;
+                ctx                   = arg0->spawnArg2.pointer;
+                ctx->reactionFlags   &= ENEMY_REACTION_BUILDUP_CLEAR;
+                work->mode            = RAT_MODE_IDLE;
+                work->step            = 0;
+                work->animId          = RAT_ANIM_IDLE;
+                work->timer           = 0;
+                work->attackRequested = 1;
+                work->knockedDown     = 0;
+                work->buildupHeld     = 0;
             }
             break;
     }

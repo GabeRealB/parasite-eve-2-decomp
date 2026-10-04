@@ -15,13 +15,13 @@ void ratSquash(Task* arg0)
     scratch                                 = head - 1;
     SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
     coord                                   = arg0->extra.tmd->coords;
-    if (work->field_390 >= 0x201) {
-        work->field_390 = (u16)work->field_390 - 0x50;
+    if (work->squashScale >= 0x201) {
+        work->squashScale -= 0x50;
     }
     scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = (s32)work->field_390;
+    scratch->scale.vy                    = work->squashScale;
     scratch->scale.vz                    = ONE;
-    coord->coord                         = work->field_340;
+    coord->coord                         = work->savedRootMtx;
     scratch->matrix.rotationWords.m00M01 = ONE;
     scratch->matrix.rotationWords.m02M10 = 0;
     scratch->matrix.rotationWords.m11M12 = ONE;

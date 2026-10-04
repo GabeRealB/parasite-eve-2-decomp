@@ -35,7 +35,7 @@ void ratContacts(Task* actor)
     frame  = SCRATCH_STACK_CURSOR(ActorWallPushFrame);
     coord  = actor->extra.tmd->coords;
     ctx    = actor->spawnArg2.pointer;
-    result = func_800E0C10((WorldCollisionContact*)&work->field_27C[0x20], &frame->delta, 4, NULL);
+    result = func_800E0C10(work->gridContacts, &frame->delta, 4, NULL);
     switch (result) {
         case 0:
             break;
@@ -45,15 +45,15 @@ void ratContacts(Task* actor)
             coord->coord.t[2] += frame->delta.fixed.vz.word >> 16;
             break;
         case 2:
-            coord->coord.t[0] = work->field_360;
-            coord->coord.t[1] = work->field_364;
-            coord->coord.t[2] = work->field_368;
+            coord->coord.t[0] = work->prevPos.vx;
+            coord->coord.t[1] = work->prevPos.vy;
+            coord->coord.t[2] = work->prevPos.vz;
             break;
     }
-    Gp_ClearRec18Occupied(&work->field_27C[0x20]);
-    if (work->field_378 != 0) {
-        if (--work->field_378 <= 0) {
-            work->field_378 = 0;
+    Gp_ClearRec18Occupied(work->gridContacts);
+    if (work->hitCooldown != 0) {
+        if (--work->hitCooldown <= 0) {
+            work->hitCooldown = 0;
         }
     }
     for (i = 0; i < ARRAY_SIZE(work->hitContacts); i++) {
@@ -62,7 +62,7 @@ void ratContacts(Task* actor)
             case 0:
                 break;
             case 2:
-                if (work->field_378 == 0) {
+                if (work->hitCooldown == 0) {
                     slot                   = id >> 7;
                     sourceCoord            = gPlayerActorTasks[slot & 1]->extra.tmd->coords;
                     frame->delta.vector.vx = sourceCoord->coord.t[0] - coord->coord.t[0];
@@ -77,14 +77,14 @@ void ratContacts(Task* actor)
                     func_800E2C78(actor->spawnArg2.pointer, work->hitContacts[i].key.value, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
-                        work->field_37A = 5;
-                        work->field_37C = 0;
-                        actor->state    = 2;
-                    } else if (work->field_398 == 0) {
-                        work->field_37A = 4;
-                        work->field_37C = 0;
+                        work->mode   = RAT_MODE_DEAD;
+                        work->step   = 0;
+                        actor->state = 2;
+                    } else if (work->buildupHeld == 0) {
+                        work->mode = RAT_MODE_HURT;
+                        work->step = 0;
                     }
-                    work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                    work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
                         case 0:
                         case 4:
@@ -107,11 +107,11 @@ void ratContacts(Task* actor)
                     hitId = work->hitContacts[i].key.value;
                     if (lastId != hitId) {
                         lastId = hitId;
-                        func_800FDB18(Gp_GetIdParam1(hitId) & 0xFFFF, coord, NULL, &work->field_334);
+                        func_800FDB18(Gp_GetIdParam1(hitId) & 0xFFFF, coord, NULL, &work->hitEffectArg);
                     }
                     cooldownParam = Gp_GetIdParam2(work->hitContacts[i].key.value);
                     if (cooldownParam > 0) {
-                        work->field_378 = cooldownParam;
+                        work->hitCooldown = cooldownParam;
                     }
                 }
                 break;
@@ -162,15 +162,15 @@ void ratContacts(Task* actor)
     Gp_ClearRec18Occupied(work->hitContacts);
     effectRec = work->attackContacts;
     if (Gp_FindRec18(effectRec, 0) != 0) {
-        work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(effectRec);
     }
     contactRec = work->sensorContacts;
     if (Gp_CountRec18Hi(contactRec, 0x10000) != 0) {
-        sourceCoord      = gPlayerActorTasks[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
-        work->field_394  = 1;
-        work->field_1FA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_33C  = sourceCoord;
+        sourceCoord             = gPlayerActorTasks[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
+        work->attackRequested   = 1;
+        work->sensorBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->targetCoord       = sourceCoord;
     }
     Gp_ClearRec18Occupied(contactRec);
     SCRATCH_STACK_RELEASE_BLOCK(ActorWallPushFrame);

@@ -17,7 +17,6 @@ void ratDeath(Enemy* arg0, Task* arg1)
     s32        state;
     s32        i;
     s16        st;
-    s16        phase;
     s16        val;
     s32        snd;
     s32        pan;
@@ -46,7 +45,7 @@ case2:
     obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return;
 default_body:
-    st = work->field_37C;
+    st = work->step;
     if (st == 1) {
         goto dying;
     }
@@ -63,31 +62,31 @@ ge2:
     }
     return;
 death:
-    work->field_37E = 6;
-    work->field_38C = 0;
-    work->field_390 = 0x1000;
-    work->field_340 = coord->coord;
-    arg0->recs      = 0;
+    work->animId       = RAT_ANIM_COLLAPSE;
+    work->timer        = 0;
+    work->squashScale  = 0x1000;
+    work->savedRootMtx = coord->coord;
+    arg0->recs         = 0;
     worldTargetUnlinkNode(&arg0->node);
-    Gp_UnlinkObj(&work->field_1DC);
-    Gp_UnlinkObj(&work->field_214);
-    Gp_UnlinkObj(&work->field_27C);
-    Gp_UnlinkObj(&work->field_2FC);
+    Gp_UnlinkObj(&work->sensorBody);
+    Gp_UnlinkObj(&work->hitBody);
+    Gp_UnlinkObj(&work->gridBody);
+    Gp_UnlinkObj(&work->attackBody);
     Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
     Gp_ReleaseStateF0Add(arg1, 7);
-    work->field_37C = 1;
-    work2           = arg1->work;
-    if ((s16)work2->field_37E != work2->field_380) {
-        work2->field_380 = work2->field_37E;
-        work2->field_382 = 0;
-        val              = gRatAnimBlend[(s16)work2->field_37E];
+    work->step = 1;
+    work2      = arg1->work;
+    if (work2->animId != work2->appliedAnimId) {
+        work2->appliedAnimId = work2->animId;
+        work2->animFrame     = 0;
+        val                  = gRatAnimBlend[work2->animId];
         for (i = 1; i < 7; i++) {
-            animationSeekSlotWithBlend(&work2->anim, i, (s16)work2->field_37E, 0, val);
+            animationSeekSlotWithBlend(&work2->rig.anim, i, work2->animId, 0, val);
         }
     } else {
-        work2->field_382++;
+        work2->animFrame++;
         for (i = 1; i < 7; i++) {
-            animationTickSlot(&work2->anim, i);
+            animationTickSlot(&work2->rig.anim, i);
         }
     }
     c      = arg1->extra.tmd->coords;
@@ -101,29 +100,28 @@ death:
     return;
 dying:
     ratSquash(arg1);
-    phase           = work->field_38C + 1;
-    work->field_38C = phase;
-    if (phase == 10) {
+    work->timer++;
+    if (work->timer == 10) {
         obj->flags = TMD_OBJECT_SEMI_TRANS;
     }
-    if ((s16)work->field_38C == 15) {
+    if (work->timer == 15) {
         Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
     }
-    if ((s16)work->field_38C >= 0x3C) {
-        work->field_37C = 2;
+    if (work->timer >= 0x3C) {
+        work->step = 2;
     }
     work2 = arg1->work;
-    if ((s16)work2->field_37E != work2->field_380) {
-        work2->field_380 = work2->field_37E;
-        work2->field_382 = 0;
-        val              = gRatAnimBlend[(s16)work2->field_37E];
+    if (work2->animId != work2->appliedAnimId) {
+        work2->appliedAnimId = work2->animId;
+        work2->animFrame     = 0;
+        val                  = gRatAnimBlend[work2->animId];
         for (i = 1; i < 7; i++) {
-            animationSeekSlotWithBlend(&work2->anim, i, (s16)work2->field_37E, 0, val);
+            animationSeekSlotWithBlend(&work2->rig.anim, i, work2->animId, 0, val);
         }
     } else {
-        work2->field_382++;
+        work2->animFrame++;
         for (i = 1; i < 7; i++) {
-            animationTickSlot(&work2->anim, i);
+            animationTickSlot(&work2->rig.anim, i);
         }
     }
     c      = arg1->extra.tmd->coords;

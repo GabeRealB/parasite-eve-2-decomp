@@ -17,13 +17,13 @@ void ratReactions(Task* arg0)
     work  = arg0->work;
     if (flags & ENEMY_REACTION_STAGGER) {
         ctx->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
-        work->field_37A    = 2;
-        work->field_37C    = 0;
+        work->mode         = RAT_MODE_STAGGER;
+        work->step         = 0;
     }
-    if ((ctx->reactionFlags & ENEMY_REACTION_BUILDUP) && ((u32)((u16)work->field_37A - 2) >= 2U)) {
-        work->field_37A = 3;
-        work->field_37C = 0;
-        work->field_398 = 1;
+    if ((ctx->reactionFlags & ENEMY_REACTION_BUILDUP) && (work->mode != RAT_MODE_STAGGER && work->mode != RAT_MODE_BUILDUP)) {
+        work->mode        = RAT_MODE_BUILDUP;
+        work->step        = 0;
+        work->buildupHeld = 1;
     }
     if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         damage = Gp_TickObjFlag4(ctx);
@@ -32,12 +32,12 @@ void ratReactions(Task* arg0)
             remaining = ctx->hp - damage;
             ctx->hp   = remaining;
             if ((s16)remaining <= 0) {
-                work->field_37A = 5;
-                work->field_37C = 0;
-                arg0->state     = 2;
+                work->mode  = RAT_MODE_DEAD;
+                work->step  = 0;
+                arg0->state = 2;
             } else {
-                work->field_37A = 4;
-                work->field_37C = 0;
+                work->mode = RAT_MODE_HURT;
+                work->step = 0;
             }
         }
         if (Gp_ObjFlag4Expired(ctx) != 0) {

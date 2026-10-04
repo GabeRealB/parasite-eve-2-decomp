@@ -20,7 +20,7 @@ void ratStagger(Task* arg0)
     one   = 1;
     work  = arg0->work;
     obj   = arg0->extra.tmd;
-    state = work->field_37C;
+    state = work->step;
     coord = obj->coords;
     if (state == one) {
         goto case1;
@@ -38,56 +38,56 @@ ge2:
     }
     goto pop;
 case0:
-    work->field_37E = 0xA;
-    work->field_380 = one;
-    work->field_384 = 0;
-    work->field_386 = 0;
-    work->field_396 = one;
-    work->field_37C = one;
-    rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->field_38C = (((u32)rng >> 16) & 0x1F) + 0xF;
-    gRandomLcgState = rng;
-    posX            = coord->coord.t[0];
-    vec.vx          = gPlayerStatus.coordMtx->t[0] - posX;
-    vec.vy          = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    vec.vz          = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    VectorNormalS(&vec, &work->field_370);
+    work->animId        = RAT_ANIM_STAGGER;
+    work->appliedAnimId = one;
+    work->forwardSpeed  = 0;
+    work->turnRate      = 0;
+    work->knockedDown   = one;
+    work->step          = one;
+    rng                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->timer         = (((u32)rng >> 16) & 0x1F) + 0xF;
+    gRandomLcgState     = rng;
+    posX                = coord->coord.t[0];
+    vec.vx              = gPlayerStatus.coordMtx->t[0] - posX;
+    vec.vy              = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    vec.vz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    VectorNormalS(&vec, &work->staggerDir);
     goto pop;
 case1:
-    if ((s16)work->field_382 >= 0xF) {
+    if (work->animFrame >= 0xF) {
         goto tick;
     }
-    coord->coord.t[0] += -(work->field_370.vx * 50) >> 12;
-    coord->coord.t[2] += -(work->field_370.vz * 50) >> 12;
+    coord->coord.t[0] += -(work->staggerDir.vx * 50) >> 12;
+    coord->coord.t[2] += -(work->staggerDir.vz * 50) >> 12;
 tick:
-    if ((u32)(work->field_382 - 6) < 9) {
-        work->field_386 = 0x93;
-        work->field_38A = (work->field_38A + 0x5C7) & 0xFFF;
+    if (work->animFrame >= 6 && work->animFrame < 0xF) {
+        work->turnRate  = 0x93;
+        work->targetYaw = (work->targetYaw + 0x5C7) & 0xFFF;
     } else {
-        work->field_386 = 0;
+        work->turnRate = 0;
     }
-    work->field_38C = work->field_38C - 1;
-    if ((s16)work->field_38C > 0) {
+    work->timer--;
+    if (work->timer > 0) {
         goto pop;
     }
     if ((((Enemy*)arg0->spawnArg2.pointer)->reactionFlags & ENEMY_REACTION_BUILDUP) != 0) {
-        work->field_37E = 8;
-        work->field_37A = 3;
-        work->field_37C = 3;
+        work->animId = RAT_ANIM_BUILDUP_HOLD;
+        work->mode   = RAT_MODE_BUILDUP;
+        work->step   = 3;
         goto pop;
     }
-    work->field_37E = 9;
-    work->field_37C = 2;
+    work->animId = RAT_ANIM_STAGGER_RECOVER;
+    work->step   = 2;
     goto pop;
 case2:
-    if ((s16)work->field_382 < 0x20) {
+    if (work->animFrame < 0x20) {
         goto pop;
     }
-    work->field_37A = 0;
-    work->field_37C = 0;
-    work->field_37E = one;
-    work->field_38C = 0;
-    work->field_394 = one;
-    work->field_396 = 0;
+    work->mode            = RAT_MODE_IDLE;
+    work->step            = 0;
+    work->animId          = one;
+    work->timer           = 0;
+    work->attackRequested = one;
+    work->knockedDown     = 0;
 pop:;
 }

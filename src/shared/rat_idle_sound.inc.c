@@ -8,19 +8,17 @@ void ratIdleSound(Task* arg0)
     GfxCoord* coord;
     s32       snd;
     s32       pan;
-    u16       timer;
     u32       random;
 
-    work            = arg0->work;
-    coord           = arg0->extra.tmd->coords;
-    timer           = work->field_392 - 1;
-    work->field_392 = timer;
-    if ((s16)timer <= 0) {
-        random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        work->field_392 = (u16)(((random >> 0x10) & 0x7F) + 0x96);
-        gRandomLcgState = random;
-        snd             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070001;
-        pan             = (s8)worldCoordGetOriginAudioPan(coord);
+    work  = arg0->work;
+    coord = arg0->extra.tmd->coords;
+    work->idleSoundTimer--;
+    if (work->idleSoundTimer <= 0) {
+        random               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        work->idleSoundTimer = ((random >> 0x10) & 0x7F) + 0x96;
+        gRandomLcgState      = random;
+        snd                  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070001;
+        pan                  = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(snd, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
 }

@@ -34,7 +34,7 @@ void ratUpdate(Enemy* arg0, Task* arg1)
     }
     ratContacts(arg1);
     ratBehavior(arg1);
-    if (work->field_386 != 0) {
+    if (work->turnRate != 0) {
         ratTurn(arg1);
     }
     ratStep(arg1);

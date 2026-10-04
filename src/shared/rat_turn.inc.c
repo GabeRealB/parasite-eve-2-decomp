@@ -22,26 +22,26 @@ void ratTurn(Task* arg0)
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->field_38A;
+    want  = work->targetYaw;
     diff  = want - ang;
     adiff = diff >= 0 ? diff : -diff;
 
-    work->field_388 = ang;
+    work->yaw = ang;
     if (adiff < 0x800) {
-        step = work->field_386;
+        step = work->turnRate;
         if (step >= adiff) {
-            work->field_388 = want;
+            work->yaw = want;
         } else {
-            next = work->field_388;
+            next = work->yaw;
             if (diff <= 0) {
                 next -= step;
             } else {
                 next += step;
             }
-            work->field_388 = next;
+            work->yaw = next;
         }
     } else {
-        step = work->field_386;
+        step = work->turnRate;
         if (diff > 0) {
             if (step >= 0x1000 - diff) {
                 goto snap;
@@ -54,20 +54,20 @@ void ratTurn(Task* arg0)
             goto turn;
         }
     snap:
-        work->field_388 = work->field_38A;
+        work->yaw = work->targetYaw;
         goto done;
     turn:
-        wrapStep = work->field_386;
-        cur      = work->field_388;
+        wrapStep = work->turnRate;
+        cur      = work->yaw;
         if (diff > 0) {
-            work->field_388 = cur - wrapStep;
+            work->yaw = cur - wrapStep;
         } else {
-            work->field_388 = cur + wrapStep;
+            work->yaw = cur + wrapStep;
         }
     }
 done:
     sc->rot.vx = 0;
-    sc->rot.vy = work->field_388;
+    sc->rot.vy = work->yaw;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
