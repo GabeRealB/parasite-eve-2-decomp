@@ -3768,11 +3768,11 @@ it emits the load the *mode* asks for and does not notice that EQ/NE makes the
 extension dead.
 
 ```c
-/* field_6C declared s16 */
-if (work->field_6C != 0) { ... }   /* lh  $v0, 0x6C($s0) */
+/* playerEquipmentRemoved declared s16 */
+if (work->playerEquipmentRemoved != 0) { ... }   /* lh  $v0, 0x6C($s0) */
 
-/* field_6C declared u16 */
-if (work->field_6C != 0) { ... }   /* lhu $v0, 0x6C($s0) */
+/* playerEquipmentRemoved declared u16 */
+if (work->playerEquipmentRemoved != 0) { ... }   /* lhu $v0, 0x6C($s0) */
 ```
 
 So when the target shows `lhu` on a flag that is only tested, the field is
@@ -3780,7 +3780,7 @@ So when the target shows `lhu` on a flag that is only tested, the field is
 misread as a scheduling wobble: one instruction swapped, `insert=1 delete=1`,
 90% with the structure otherwise identical.
 
-`func_actor_341900_80163438` is the minimal case - an `s16 field_6C` carried
+`func_actor_341900_80163438` is the minimal case - an `s16 playerEquipmentRemoved` carried
 over from the m2c seed scored 90% against a target `lhu`, and changing the
 header field to `u16` was the whole match (`base_1.c`, preprocessed
 `230a21f0c6eceb3884c5cae489c6f82bb37265f524f2ede856da3308422464be`; the 90%
@@ -46165,7 +46165,7 @@ byte-neutral and the m2c seed's own score is the honest baseline. Both forms of
 
 ```c
 if (M2C_FIELD(work, u16 *, 0x6C) == 0) { M2C_FIELD(work, u16 *, 0x6C) = 1; Gp_KillPlayerEffs(); }
-if (work->field_6C == 0)               { work->field_6C = 1;               Gp_KillPlayerEffs(); }
+if (work->playerEquipmentRemoved == 0) { work->playerEquipmentRemoved = 1; Gp_KillPlayerEffs(); }
 ```
 
 compile to the same object here, because the only global involved
@@ -79809,8 +79809,8 @@ state through a jump table, clears it back to 0 on the way out, and compares
 the counter against 0 and 1 before incrementing it; the tiny setters that
 request a state also reset the counter, so
 `sh $a0,X($v0); sh $zero,X+2($v0)` is "request state `index`, restart at step
-0". In `actor_341900` the pairs are `field_5C`/`field_5E` and
-`field_64`/`field_66`, each pair on an 8-byte stride.
+0". In `actor_341900` the pairs are `playerAction`/`playerActionStep` and
+`stagingMode`/`stagingStep`, each pair on an 8-byte stride.
 
 `func_actor_341900_80163584` is the smallest instance -- m2c's seed was already
 exact, and the only work was typing it:
@@ -79818,10 +79818,10 @@ exact, and the only work was typing it:
 ```c
 void func_actor_341900_80163584(s16 arg0)
 {
-    Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
+    _Actor341900EventWork* work = D_actor_341900_80164208->work;
 
-    work->field_64 = arg0;
-    work->field_66 = 0;
+    work->stagingMode = arg0;
+    work->stagingStep = 0;
 }
 ```
 
