@@ -154,12 +154,11 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// `_Actor560800CutsceneWork`, `Actor560800AnimWork` and `ScreenFadeWork`, and the
 /// one `func_actor_560800_80137820` and `func_actor_560800_80136AA8` drive.
 ///
-/// It opens with the animation context - the context at 0, its slots at +0x14 -
-/// the way every actor carries it, then the pose buffer `animationInitContext` takes as
-/// its `arg3` at +0x12C. Seven slots is what fits between the two: 0x12C - 0x14
-/// is 7 * 0x28, and `D_actor_560800_801752F0` carries seven animation sets after
-/// its leading null. `light` / `color` go to the object's `field_1C` / `field_20`
-/// (the lower offset is the light matrix, as in every actor).
+/// It opens with `rig`, the playback storage of the part's seven-part model the
+/// way every actor carries it: the handler resets and ticks slots 1 to 6, each
+/// with its own encoded-pose entry, and slot 0 is never started. `light` /
+/// `color` go to the object's `field_1C` / `field_20` (the lower offset is the
+/// light matrix, as in every actor).
 ///
 /// `field_26C` is the task the spawn argument named, handed to `taskReparent`;
 /// `field_270` / `field_274` / `field_278` are the three `gRandomLcgState` draws
@@ -169,36 +168,33 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// 0x38 bytes of `rot` (`Mem_CopyUnaligned`'s source and destination in
 /// `func_actor_560800_80136AA8`) belong to the handlers, not to the spawner.
 typedef struct Actor560800ModelWork {
-    /* 0x000 */ AnimationContext anim;
-    /* 0x014 */ AnimationSlot    slots[7];
-    /* 0x12C */ byte             poseBuf[0x50];
-    /* 0x17C */ MATRIX           field_17C;
-    /* 0x19C */ MATRIX           light;
-    /* 0x1BC */ MATRIX           color;
-    /* 0x1DC */ SVECTOR          rot[7];
-    /* 0x214 */ SVECTOR          swing[7];
-    /* 0x24C */ s16              field_24C;
-    /* 0x24E */ s16              field_24E;
-    /* 0x250 */ s16              field_250;
-    /* 0x252 */ byte             pad_252[2];
-    /* 0x254 */ s16              field_254;
-    /* 0x256 */ u16              field_256;
-    /* 0x258 */ s16              field_258;
-    /* 0x25A */ byte             pad_25A[2];
-    /* 0x25C */ u16              swingDir[8];
-    /* 0x26C */ Task*            field_26C;
-    /* 0x270 */ u32              field_270;
-    /* 0x274 */ u32              field_274;
-    /* 0x278 */ s16              field_278;
-    /* 0x27A */ byte             pad_27A[2];
-    /* 0x27C */ s16              field_27C;
-    /* 0x27E */ s16              field_27E;
-    /* 0x280 */ s16              field_280;
-    /* 0x282 */ s16              field_282;
-    /* 0x284 */ byte             pad_284[2];
-    /* 0x286 */ s16              field_286;
-    /* 0x288 */ s16              field_288;
-    /* 0x28A */ s16              field_28A;
+    /* 0x000 */ ActorAnimRig7 rig;
+    /* 0x19C */ MATRIX        light;
+    /* 0x1BC */ MATRIX        color;
+    /* 0x1DC */ SVECTOR       rot[7];
+    /* 0x214 */ SVECTOR       swing[7];
+    /* 0x24C */ s16           field_24C;
+    /* 0x24E */ s16           field_24E;
+    /* 0x250 */ s16           field_250;
+    /* 0x252 */ byte          pad_252[2];
+    /* 0x254 */ s16           field_254;
+    /* 0x256 */ u16           field_256;
+    /* 0x258 */ s16           field_258;
+    /* 0x25A */ byte          pad_25A[2];
+    /* 0x25C */ u16           swingDir[8];
+    /* 0x26C */ Task*         field_26C;
+    /* 0x270 */ u32           field_270;
+    /* 0x274 */ u32           field_274;
+    /* 0x278 */ s16           field_278;
+    /* 0x27A */ byte          pad_27A[2];
+    /* 0x27C */ s16           field_27C;
+    /* 0x27E */ s16           field_27E;
+    /* 0x280 */ s16           field_280;
+    /* 0x282 */ s16           field_282;
+    /* 0x284 */ byte          pad_284[2];
+    /* 0x286 */ s16           field_286;
+    /* 0x288 */ s16           field_288;
+    /* 0x28A */ s16           field_28A;
 } Actor560800ModelWork;
 STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
 
@@ -6400,15 +6396,14 @@ static void func_actor_560800_801376E0(Task* arg0)
     work->field_274 = gRandomLcgState >> 16;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->field_278 = (gRandomLcgState >> 16) & 0x3FF;
-    animationInitContext(&work->anim, D_actor_560800_801752F0, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poseBuf,
-                         work->slots);
+    animationInitContext(&work->rig.anim, D_actor_560800_801752F0, obj, work->rig.poses, work->rig.slots);
     work->field_280 = arg0->spawnArg1.value;
 }
 
 /// Per-frame handler of the animated model part `func_actor_560800_801376E0`
 /// sets up. State 1 hides the part (`TmdObject::flags` bit 0x80) for the
 /// part ids the current view excludes and otherwise runs
-/// `func_actor_560800_80136AA8`; state 2 resets all seven animation slots to
+/// `func_actor_560800_80136AA8`; state 2 resets the rig's slots 1 to 6 to
 /// `field_280`, state 3 ticks them, state 4 copies the coordinates of a part
 /// spawned from `D_actor_560800_8017575C` and state 5 kills the task a frame
 /// later. Every frame that survives rebuilds the root translation and, while
@@ -6470,21 +6465,21 @@ void func_actor_560800_80137820(Task* arg0)
             id   = work->field_280;
             anim = (Actor560800ModelWork*)arg0->work;
             do {
-                anim->slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
-                animationResetSlot(&anim->anim, i & 0xFFFF, id);
+                anim->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
+                animationResetSlot(&anim->rig.anim, i & 0xFFFF, id);
                 i++;
-            } while ((u32)(i & 0xFFFF) < 7U);
+            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(anim->rig.slots));
             arg0->state++;
             break;
         case 3:
             anim = (Actor560800ModelWork*)arg0->work;
             i    = 1;
             do {
-                animationTickSlot(&anim->anim, i & 0xFFFF);
+                animationTickSlot(&anim->rig.anim, i & 0xFFFF);
                 i++;
-            } while ((u32)(i & 0xFFFF) < 7U);
-            for (i = 1; (u32)(i & 0xFFFF) < 7U; i++) {
-                if (!(anim->slots[i & 0xFFFF].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(anim->rig.slots));
+            for (i = 1; (u32)(i & 0xFFFF) < ARRAY_SIZE(anim->rig.slots); i++) {
+                if (!(anim->rig.slots[i & 0xFFFF].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
                     break;
                 }
             }

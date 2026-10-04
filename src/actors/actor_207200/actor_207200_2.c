@@ -105,11 +105,10 @@ enum {
 /// Work block of the Creeping Stranger task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It holds
-/// the animation context and its storage for the model's seven parts, the
-/// matrices the model is lit through, five collision spheres, each followed by
-/// its own contact table, and the state machine: `state` picks the behaviour,
-/// `activeStage` the step of the active one, and `deathPhase` the step of the
-/// task's death state.
+/// the animation rig of the model's seven parts, the matrices the model is lit
+/// through, five collision spheres, each followed by its own contact table, and
+/// the state machine: `state` picks the behaviour, `activeStage` the step of
+/// the active one, and `deathPhase` the step of the task's death state.
 ///
 /// The enemy dies in two steps. Only hits on the head sphere hurt it while the
 /// head is there. Running out of health or a critical hit takes the head off
@@ -120,49 +119,47 @@ enum {
 ///
 /// Headings are 4096ths of a turn and scales 0x1000 for 1.0.
 typedef struct {
-    AnimationContext      anim;                                  // animation playback of the model
-    AnimationSlot         slots[7];                              // one per model part; 1..6 play `animId`, 0 is never started
-    u8                    poses[7][ANIMATION_POSE_BUFFER_BYTES]; // blend pose of each slot
-    MATRIX                colorMtx;                              // storage for the model's `TmdObject::colorMtx`
-    MATRIX                lightMtx;                              // storage for the model's `TmdObject::lightMtx`
-    WorldCollisionBody    senseBody;                             // radius-2000 sphere on the root with no key of its own; a player-body contact wakes the dormant enemy, which then disables it
-    WorldCollisionContact senseContacts[1];                      // contact of `senseBody`
-    WorldCollisionBody    body;                                  // radius-300 sphere above the root, tested against the room grid, the floor and other bodies
-    WorldCollisionContact bodyContacts[6];                       // contacts of `body`: wall push-back, the player's touch, hits and other enemies; the enemy's hit records once the head is lost
-    WorldCollisionBody    headBody;                              // radius-150 sphere on model part 3, tested against the room grid and other bodies; unlinked when the head is lost
-    WorldCollisionContact headContacts[6];                       // contacts of `headBody`: wall push-back and the hits that hurt; the enemy's hit records until the head is lost
-    WorldCollisionBody    frontAttackBody;                       // radius-300 sphere ahead of model part 3 carrying the enemy's first attack; enabled on frames 42..44 of the front attack
-    WorldCollisionContact frontAttackContacts[1];                // contact of `frontAttackBody`
-    WorldCollisionBody    sideAttackBody;                        // radius-300 sphere beside model part 6 carrying the enemy's second attack; enabled on frames 30..59 of the side attack
-    WorldCollisionContact sideAttackContacts[1];                 // contact of `sideAttackBody`
-    EffectSpawnArg        headHitEffectArg;                      // argument record of the effect a survived head hit spawns, hung off model part 3
-    EffectSpawnArg        bodyHitEffectArg;                      // argument record of the effect a body hit spawns, hung off model part 1
-    EffectSpawnArg        headLossEffectArg;                     // argument record of the effect pair spawned as the head is lost, hung off model part 3
-    byte                  field_3FC[0x50];                       // never accessed
-    SVECTOR               rotation;                              // root rotation the turns rebuild the root matrix from; only `vy`, the heading, is ever non-zero
-    VECTOR3               prevRootPos;                           // root position before the last step; restored when the collision step reports a conflict
-    byte                  field_460[4];                          // never accessed
-    MATRIX                savedRootMtx;                          // root matrix when the death state began; each flatten frame rescales a copy of it
-    s16                   turnStep;                              // heading change per frame of a turn, 25 or -25
-    s16                   state;                                 // `ACTOR_207200_STATE_*`
-    s16                   deathPhase;                            // `ACTOR_207200_DEATH_PHASE_*`
-    s16                   phaseFrames;                           // frames of the status hold since the fidget was last restarted, or frames of the death flatten
-    s16                   animId;                                // requested animation, `ACTOR_207200_ANIM_*`
-    s16                   appliedAnim;                           // animation last applied to slots 1..6
-    s16                   animFrames;                            // frames since `animId` was applied or its loop was last restarted; the states time their steps with it
-    s16                   forwardSpeed;                          // distance the root moves along its facing each frame
-    s16                   blocked;                               // 1 once a collision conflict has stopped the body; makes the crawl turn, and ends the turn it started
-    byte                  field_496[2];                          // never accessed
-    s16                   field_498;                             // set to 1 by the dormant loop and 0 by the crawl, never read; role unproven
-    s16                   activeStage;                           // `ACTOR_207200_ACTIVE_STAGE_*`
-    s16                   flattenScaleY;                         // Y scale of the death flatten; falls 0x50 a frame from 0x1000 until it is 0x200 or less
-    s16                   hitCooldown;                           // frames before another hit is taken; set from the hit's id parameter 2
-    s16                   frontAttackLanded;                     // 1 once `frontAttackBody` has touched something during the current front attack; frame 45 then plays the hit sound
-    s16                   wakeRequested;                         // set by a player-body contact on `senseBody` or the end of a recoil; wakes the enemy on its next dormant frame
-    s16                   headBurst;                             // 1 once a critical hit has burst the head off; never read
-    s16                   headLost;                              // 1 once the head is gone, burst or not: model parts 2 and 3 are collapsed and only a hit on `body` can finish the enemy
-    s16                   hasBurst;                              // 1 once a shattering hit has burst the whole body; the death state then hides the model at once
-    s16                   wakeDelay;                             // frames the enemy stays put after waking, drawn from 0..89
+    ActorAnimRig7         rig;                    // playback of the model's seven parts; slots 1..6 play `animId`, 0 is never started
+    MATRIX                colorMtx;               // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;               // storage for the model's `TmdObject::lightMtx`
+    WorldCollisionBody    senseBody;              // radius-2000 sphere on the root with no key of its own; a player-body contact wakes the dormant enemy, which then disables it
+    WorldCollisionContact senseContacts[1];       // contact of `senseBody`
+    WorldCollisionBody    body;                   // radius-300 sphere above the root, tested against the room grid, the floor and other bodies
+    WorldCollisionContact bodyContacts[6];        // contacts of `body`: wall push-back, the player's touch, hits and other enemies; the enemy's hit records once the head is lost
+    WorldCollisionBody    headBody;               // radius-150 sphere on model part 3, tested against the room grid and other bodies; unlinked when the head is lost
+    WorldCollisionContact headContacts[6];        // contacts of `headBody`: wall push-back and the hits that hurt; the enemy's hit records until the head is lost
+    WorldCollisionBody    frontAttackBody;        // radius-300 sphere ahead of model part 3 carrying the enemy's first attack; enabled on frames 42..44 of the front attack
+    WorldCollisionContact frontAttackContacts[1]; // contact of `frontAttackBody`
+    WorldCollisionBody    sideAttackBody;         // radius-300 sphere beside model part 6 carrying the enemy's second attack; enabled on frames 30..59 of the side attack
+    WorldCollisionContact sideAttackContacts[1];  // contact of `sideAttackBody`
+    EffectSpawnArg        headHitEffectArg;       // argument record of the effect a survived head hit spawns, hung off model part 3
+    EffectSpawnArg        bodyHitEffectArg;       // argument record of the effect a body hit spawns, hung off model part 1
+    EffectSpawnArg        headLossEffectArg;      // argument record of the effect pair spawned as the head is lost, hung off model part 3
+    byte                  field_3FC[0x50];        // never accessed
+    SVECTOR               rotation;               // root rotation the turns rebuild the root matrix from; only `vy`, the heading, is ever non-zero
+    VECTOR3               prevRootPos;            // root position before the last step; restored when the collision step reports a conflict
+    byte                  field_460[4];           // never accessed
+    MATRIX                savedRootMtx;           // root matrix when the death state began; each flatten frame rescales a copy of it
+    s16                   turnStep;               // heading change per frame of a turn, 25 or -25
+    s16                   state;                  // `ACTOR_207200_STATE_*`
+    s16                   deathPhase;             // `ACTOR_207200_DEATH_PHASE_*`
+    s16                   phaseFrames;            // frames of the status hold since the fidget was last restarted, or frames of the death flatten
+    s16                   animId;                 // requested animation, `ACTOR_207200_ANIM_*`
+    s16                   appliedAnim;            // animation last applied to slots 1..6
+    s16                   animFrames;             // frames since `animId` was applied or its loop was last restarted; the states time their steps with it
+    s16                   forwardSpeed;           // distance the root moves along its facing each frame
+    s16                   blocked;                // 1 once a collision conflict has stopped the body; makes the crawl turn, and ends the turn it started
+    byte                  field_496[2];           // never accessed
+    s16                   field_498;              // set to 1 by the dormant loop and 0 by the crawl, never read; role unproven
+    s16                   activeStage;            // `ACTOR_207200_ACTIVE_STAGE_*`
+    s16                   flattenScaleY;          // Y scale of the death flatten; falls 0x50 a frame from 0x1000 until it is 0x200 or less
+    s16                   hitCooldown;            // frames before another hit is taken; set from the hit's id parameter 2
+    s16                   frontAttackLanded;      // 1 once `frontAttackBody` has touched something during the current front attack; frame 45 then plays the hit sound
+    s16                   wakeRequested;          // set by a player-body contact on `senseBody` or the end of a recoil; wakes the enemy on its next dormant frame
+    s16                   headBurst;              // 1 once a critical hit has burst the head off; never read
+    s16                   headLost;               // 1 once the head is gone, burst or not: model parts 2 and 3 are collapsed and only a hit on `body` can finish the enemy
+    s16                   hasBurst;               // 1 once a shattering hit has burst the whole body; the death state then hides the model at once
+    s16                   wakeDelay;              // frames the enemy stays put after waking, drawn from 0..89
 } _Actor207200CreepingStrangerWork;
 STATIC_ASSERT_SIZEOF(_Actor207200CreepingStrangerWork, 0x4AC);
 
@@ -696,9 +693,9 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     arg0->recs                   = work->headContacts;
     arg0->hp                     = (u16)D_actor_207200_8014E7D4.hpMax;
     work->rotation.vy            = (coord)->param.rot.vy;
-    animationInitContext(&work->anim, D_actor_207200_80153ED4, obj, work->poses, work->slots);
-    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-        animationResetSlot(&work->anim, i, ACTOR_207200_ANIM_IDLE);
+    animationInitContext(&work->rig.anim, D_actor_207200_80153ED4, obj, work->rig.poses, work->rig.slots);
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+        animationResetSlot(&work->rig.anim, i, ACTOR_207200_ANIM_IDLE);
     }
     (Gp_IncStateF0Ref)(0);
 
@@ -1339,13 +1336,13 @@ static __inline__ void Actor207200_TickAnim(Task* arg0)
     if (work->animId != work->appliedAnim) {
         work->appliedAnim = work->animId;
         work->animFrames  = 0;
-        for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-            animationSeekSlotWithBlend(&work->anim, i, work->animId, 0, 8);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, 8);
         }
     } else {
         work->animFrames++;
-        for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-            animationTickSlot(&work->anim, i);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

@@ -622,20 +622,24 @@ typedef struct {
 } ActorAnimRig6;
 STATIC_ASSERT_SIZEOF(ActorAnimRig6, 0x164);
 
-/// Caller-owned playback storage for seven slots.
+/// Animation playback storage for a model of seven parts.
 ///
-/// The context borrows the model's part coordinates and is bound to this
-/// rig's slots and encoded-pose buffer. Both arrays stay live while playback
-/// uses them. Each slot has one pose entry of `ANIMATION_POSE_BUFFER_BYTES`.
-/// The entry holds that slot's encoding at its start: `AnimationPackedPose`
-/// (12 bytes) or `AnimationPackedRotation` (4 bytes). Playback stores no
-/// capacity, so a slot or pose index has to stay within these 7 entries.
-/// Slot 0 keeps its position in both arrays even where an owner drives only
-/// slots 1 to 6.
+/// A work block embeds one for the playback it runs over its model: the
+/// animation context, a slot for every part and an encoded-pose entry for
+/// every slot. Setup binds `anim` to the two arrays and to the model's part
+/// coordinates, so the rig has to stay live, and stay where it is, for as long
+/// as the context is used.
+///
+/// A slot's index is its model part's, and slot `i` uses pose entry `i`. Each
+/// entry reserves `ANIMATION_POSE_BUFFER_BYTES` and holds the slot's encoding
+/// at its start: `AnimationPackedPose` (12 bytes) or `AnimationPackedRotation`
+/// (4 bytes). Playback stores no capacity, so a slot or pose index has to stay
+/// below `ARRAY_SIZE(slots)`. Owners start and tick slots 1 to 6; slot 0, the
+/// root part's, keeps its place in both arrays and is never started.
 typedef struct {
-    AnimationContext anim;                                  // Context bound to `slots`, `poses` and the model coordinates
-    AnimationSlot    slots[7];                              // Playback slot for one driven index
-    u8               poses[7][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose for the slot at the same index
+    AnimationContext anim;                                  // Context bound to `slots`, `poses` and the model's part coordinates
+    AnimationSlot    slots[7];                              // Playback state of the model part at the same index
+    u8               poses[7][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose of the slot at the same index
 } ActorAnimRig7;
 STATIC_ASSERT_SIZEOF(ActorAnimRig7, 0x19C);
 
