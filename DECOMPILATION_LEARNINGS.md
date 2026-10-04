@@ -3559,13 +3559,13 @@ because a use counts too:
 
 ```c
         do {
-            sc->angle = angle;
+            sc->contactYaw = angle;
             if (angle < 0) {
             wrapUp:
                 ...
             }
         } while (0);
-        sc->angle = angle;
+        sc->contactYaw = angle;
 ```
 
 `sc` goes 36 -> 37 refs at the *same* 298-insn live length, priority 6040 ->
@@ -73861,7 +73861,7 @@ be spelled out as locals assigned before the label - the wide constants
 than once:
 
 ```c
-    pos  = &sc->pos;          /* addiu a2,v1,-0x18 in the prologue */
+    pos  = &sc->contactPoint;          /* addiu a2,v1,-0x18 in the prologue */
     recs = work->hits[0].contacts;
     i    = 0;
     mask = 0xFFFF0000;
@@ -73881,7 +73881,7 @@ scan:
 missed:
     id = 0;
 found:
-    sc->id = id;
+    sc->attackKey = id;
 ```
 
 Two details of that shape matter beyond the loop form:
@@ -73889,7 +73889,7 @@ Two details of that shape matter beyond the loop form:
 - The two-tail `id` is what puts the value in the same register as the record
   pointer (`$a1` here). `id = 0` *before* the loop keeps it live across the
   body and costs a separate register; assigning it on each exit path lets GCC
-  rematerialise the zero at the join, and the single `sc->id = id` shows up
+  rematerialise the zero at the join, and the single `sc->attackKey = id` shows up
   twice in the output only because the delay slot of the `j` steals it.
 - Statement order in the preamble is what sched1 ties on. `recs` assigned
   before `sc` reorders the whole prologue.
@@ -73911,7 +73911,7 @@ switching the two scans to real loops took it to 98.5% in one edit. The tell in
 the object dump is the branch sense at the top of the loop: `bne v0,t1,<next
 iteration>` with the arm falling through is the `goto` form, `beq v0,t1,<far>`
 is the relocated one. With a real loop the invariants no longer have to be
-spelled out either - the wide constants and `&sc->pos` hoist into the preheader
+spelled out either - the wide constants and `&sc->contactPoint` hoist into the preheader
 on their own.
 
 **Two copies of the same loop need two sets of locals.** A C variable is one
@@ -74626,9 +74626,9 @@ The shape that does match is the short-circuit guard plus a separate test:
         goto out;
     }
     if (work->stateTicks == 0x46) {
-        sc->i = 0;
+        sc->slot = 0;
     } else {
-        sc->i = 1;
+        sc->slot = 1;
     }
 ```
 
@@ -74639,8 +74639,8 @@ survives as a real label between the first branch and its target, so the swap's
 `label1 == next_label (insn)` guard fails and the layout sticks. `thread_jumps`
 then folds the third comparison away: on the edge from `beq 0x46` the following
 `bne 0x46` is known not taken, so the branch is redirected straight at the
-`sc->i = 0` block, and the fall-through edge (where the value is 0x78) is
-redirected at the `sc->i = 1` block. Three source comparisons, two in the
+`sc->slot = 0` block, and the fall-through edge (where the value is 0x78) is
+redirected at the `sc->slot = 1` block. Three source comparisons, two in the
 object.
 
 When a branch polarity and a block order cannot be satisfied at once, look for

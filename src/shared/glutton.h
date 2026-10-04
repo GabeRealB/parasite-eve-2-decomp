@@ -138,36 +138,44 @@ typedef struct {
 } GluttonHitGroup;
 STATIC_ASSERT_SIZEOF(GluttonHitGroup, 0x98);
 
-/// 0x30-byte scratchpad frame the group-0 hit handler
-/// `gluttonHitGroup0` carves off `SCRATCH_STACK_CURSOR` for the one hit it
-/// takes this frame. `pos` is the contact point copied out of the `WorldCollisionContact`;
-/// `delta` is the player-relative offset whose length is `dist`, the range
-/// `Gp_ComputeDamage` scales `damage` by. `rot` doubles as `Gp_SpawnEff`'s
-/// rotation argument and, afterwards, as the workspace for the contact point
-/// relative to the part's world translation, which `angle` is the yaw of.
-typedef struct GluttonHitScratch {
-    VECTOR3 delta;
-    byte    pad_C[0x4];
-    SVECTOR rot;
-    SVECTOR pos;
-    s32     id;     // attack id of the hit that landed, 0 for none
-    u32     damage; // HP taken off the enemy
-    s32     dist;   // distance from the player, in world units
-    s16     angle;  // yaw of the contact point, wrapped to +/-0x800
-    byte    pad_2E[0x2];
+/// Scratch-stack block a Glutton hit handler works in for the one hit it takes
+/// in a frame.
+///
+/// A handler scans its hit groups' contact tables for an attack, keeps that
+/// contact's key and point here, and rolls the damage from the key and from
+/// how far the player stands from the struck part of the boss. A critical hit
+/// spawns its effect at `offset` from one of the boss's coordinates, and the
+/// same vector then holds the contact point relative to one of the boss's
+/// parts, for the yaw the hit came in from.
+///
+/// The Incinerator's idle state reserves the same block for the range check
+/// that picks its next attack, and uses only `toPlayer` and `playerDistance`.
+///
+/// Reserve one complete block and release it before returning; nothing in it
+/// outlives the handler.
+typedef struct {
+    VECTOR3 toPlayer;       // Offset to the player from the host's root, or for groups 3 to 8 from a fixed point to one side of it
+    byte    unknown_C[0x4]; // Never accessed; role unproven
+    SVECTOR offset;         // Critical-hit effect's offset from its parent coordinate, along that coordinate's axes; afterwards `contactPoint` relative to a part's world position
+    SVECTOR contactPoint;   // World position of the attack contact that landed
+    s32     attackKey;      // Key of that contact: collision kind 2 (an attack) above the attack's id; 0 when no group was hit
+    u32     damage;         // HP the hit takes off the host; group 0 also keeps its damage-over-time tick here
+    s32     playerDistance; // Length of `toPlayer`, in world units; picks the damage roll's range class
+    s16     contactYaw;     // Yaw of `offset` about the part, relative to the host's facing and wrapped to +/-0x800; stored but never read
 } GluttonHitScratch;
 STATIC_ASSERT_SIZEOF(GluttonHitScratch, 0x30);
 
-/// 0xC-byte scratchpad frame `func_actor_403200_8013EF6C` carves off
-/// the scratch-pad stack for the summon tick: `delta` is the player-relative
-/// offset the tick yaws the host by, and `i` is the slot the loop and
-/// the 0x7DB message both index `GluttonWork::summons` with.
-typedef struct GluttonSpawnScratch {
-    SVECTOR delta;
-    byte    pad_8[0x2];
-    s16     i; // `GluttonWork::summons` slot, 0 or 1
-} GluttonSpawnScratch;
-STATIC_ASSERT_SIZEOF(GluttonSpawnScratch, 0xC);
+/// Scratch-stack block the Glutton's summon state works in for one tick.
+///
+/// The state keeps two summoned enemies alive beside the boss and sends each
+/// its orders. Both carriers' summon states reserve one complete block and
+/// release it before returning.
+typedef struct {
+    SVECTOR toPlayer;       // Offset from the host's root to the player; its yaw against the host's facing becomes the neck's yaw target
+    byte    unknown_8[0x2]; // Never accessed; role unproven
+    s16     slot;           // Index into `GluttonWork::summons`, 0 or 1: the refill loop's counter, then the summon being sent its order
+} GluttonSummonScratch;
+STATIC_ASSERT_SIZEOF(GluttonSummonScratch, 0xC);
 
 /// Work block shared by four of the projectiles the Glutton flings: the
 /// thrown hit sphere, the glob, the debris chunk and the rain blob.

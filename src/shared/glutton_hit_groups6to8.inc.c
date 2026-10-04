@@ -15,9 +15,9 @@
 /// states that ignore hits, while the player hold is armed, or while
 /// `gSceneCombatState.battleRefs` is not 1.
 ///
-/// The second escort carries the damage and the effect, but `sc->angle` is the
+/// The second escort carries the damage and the effect, but `sc->contactYaw` is the
 /// yaw of the contact point relative to the first escort's facing. `pos` /
-/// `pos2` / `pos3` are all `&sc->pos` and are not spare: each group's scan
+/// `pos2` / `pos3` are all `&sc->contactPoint` and are not spare: each group's scan
 /// writes the contact point through its own pointer. `esc3` / `esc0` / `esc1`
 /// and the `hp` load sit after `func_800DA6E8`, unlike the group 3-5 handler.
 void gluttonHitGroups6To8(Task* arg0)
@@ -52,8 +52,8 @@ void gluttonHitGroups6To8(Task* arg0)
     cfg  = &gPlayerStatus;
     host = (Enemy*)arg0->spawnArg2.pointer;
     work = arg0->work;
-    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
-    pos  = &sc->pos;
+    sc   = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
+    pos  = &sc->contactPoint;
     recs = work->hits[6].contacts;
     for (i = 0; i < ARRAY_SIZE(work->hits[6].contacts); i++) {
         if (recs[i].key.value == 0) {
@@ -70,13 +70,13 @@ void gluttonHitGroups6To8(Task* arg0)
 missed1:
     id = 0;
 found1:
-    sc->id = id;
+    sc->attackKey = id;
     if (id != 0) {
         coord = work->hits[6].body.coord;
         goto hit;
     }
 
-    pos2  = &sc->pos;
+    pos2  = &sc->contactPoint;
     recs2 = work->hits[7].contacts;
     for (i2 = 0; i2 < ARRAY_SIZE(work->hits[7].contacts); i2++) {
         if (recs2[i2].key.value == 0) {
@@ -93,17 +93,17 @@ found1:
 missed2:
     id = 0;
 found2:
-    sc->id = id;
+    sc->attackKey = id;
     if (id != 0) {
         coord = work->hits[7].body.coord;
     hit:
         gluttonHitEffect(coord, id);
-        if (sc->id != 0) {
+        if (sc->attackKey != 0) {
             goto body;
         }
     }
 
-    pos3  = &sc->pos;
+    pos3  = &sc->contactPoint;
     recs3 = work->hits[8].contacts;
     for (i3 = 0; i3 < ARRAY_SIZE(work->hits[8].contacts); i3++) {
         if (recs3[i3].key.value == 0) {
@@ -120,54 +120,54 @@ found2:
 missed3:
     id = 0;
 found3:
-    sc->id = id;
+    sc->attackKey = id;
     if (id == 0) {
         goto out;
     }
     gluttonHitEffect(work->hits[8].body.coord, id);
-    if (sc->id == 0) {
+    if (sc->attackKey == 0) {
         goto out;
     }
 body:
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-    param                    = Gp_GetIdParam2(sc->id);
+    param                    = Gp_GetIdParam2(sc->attackKey);
     work->groups6To8Cooldown = param;
     work->groups3To5Cooldown = param;
     work->group0Cooldown     = param;
     work->groups1To2Cooldown = param;
 #else
-    work->groups6To8Cooldown = Gp_GetIdParam2(sc->id);
+    work->groups6To8Cooldown = Gp_GetIdParam2(sc->attackKey);
 #endif
-    Gp_GetIdParam0(sc->id);
+    Gp_GetIdParam0(sc->attackKey);
 
-    sc->delta.vx = (cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0]) - 0x51F;
-    dx2          = sc->delta.vx * sc->delta.vx;
-    sc->delta.vy = (cfg->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1]) - 0xFA;
-    dy2          = sc->delta.vy * sc->delta.vy;
-    sc->delta.vz = (cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2]) + 0x25F;
-    dz2          = sc->delta.vz * sc->delta.vz;
-    sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
-    sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
+    sc->toPlayer.vx    = (cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0]) - 0x51F;
+    dx2                = sc->toPlayer.vx * sc->toPlayer.vx;
+    sc->toPlayer.vy    = (cfg->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1]) - 0xFA;
+    dy2                = sc->toPlayer.vy * sc->toPlayer.vy;
+    sc->toPlayer.vz    = (cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2]) + 0x25F;
+    dz2                = sc->toPlayer.vz * sc->toPlayer.vz;
+    sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
+    sc->damage         = Gp_ComputeDamage(sc->attackKey, sc->playerDistance, 0, 0);
 
-    if (Gp_RollEnemyChance(work->escorts[1], sc->id, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
+    if (Gp_RollEnemyChance(work->escorts[1], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->playerCaught != 1 &&
         gSceneCombatState.battleRefs == 1) {
 #else
         state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->phase != 0 &&
         work->playerCaught != 1) {
-        sc->rot.vz = 0x3E8;
+        sc->offset.vz = 0x3E8;
 #endif
-        sc->rot.vy = 0;
-        sc->rot.vx = 0;
+        sc->offset.vy = 0;
+        sc->offset.vx = 0;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        sc->rot.vz = 0x320;
+        sc->offset.vz = 0x320;
 #else
-        sc->rot.vy = 0;
-        sc->rot.vx = 0;
-        sc->rot.vz = 0x258;
+        sc->offset.vy = 0;
+        sc->offset.vx = 0;
+        sc->offset.vz = 0x258;
 #endif
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[1]->task->extra.tmd->coords[1], 0, &sc->rot);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[1]->task->extra.tmd->coords[1], 0, &sc->offset);
         sc->damage *= 4;
         work->state = 0xE;
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
@@ -185,7 +185,7 @@ body:
     }
     sc->damage = dmg;
 stored:
-    func_800E2C78(host, sc->id, sc->damage, 0);
+    func_800E2C78(host, sc->attackKey, sc->damage, 0);
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
     func_800DA6E8(&work->escorts[1]->node, sc->damage, 0);
 #endif
@@ -196,18 +196,18 @@ stored:
         state != 0xF && state != 8 && state != 0xB && work->playerCaught != 1 && gSceneCombatState.battleRefs == 1) {
 #else
         state != 0xF && state != 8 && state != 0xB && work->phase != 0 && work->playerCaught != 1) {
-        sc->rot.vz = 0x3E8;
+        sc->offset.vz = 0x3E8;
 #endif
-        sc->rot.vy = 0;
-        sc->rot.vx = 0;
+        sc->offset.vy = 0;
+        sc->offset.vx = 0;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        sc->rot.vz = 0x320;
+        sc->offset.vz = 0x320;
 #else
-        sc->rot.vy = 0;
-        sc->rot.vx = 0;
-        sc->rot.vz = 0x258;
+        sc->offset.vy = 0;
+        sc->offset.vx = 0;
+        sc->offset.vz = 0x258;
 #endif
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[1]->task->extra.tmd->coords[1], 0, &sc->rot);
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[1]->task->extra.tmd->coords[1], 0, &sc->offset);
         work->state = 0xE;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         work->groups6To8Pool = 0x3C;
@@ -228,16 +228,16 @@ stored:
 #endif
     work->escorts[1]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(work->escorts[1]->task->extra.tmd->coords);
-    sc->rot.vx = sc->pos.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
-    sc->rot.vy = sc->pos.vy - work->escorts[0]->task->extra.tmd->coords->workm.t[1];
-    sc->rot.vz = sc->pos.vz - work->escorts[0]->task->extra.tmd->coords->workm.t[2];
-    angle      = ratan2(sc->rot.vx, sc->rot.vz) -
+    sc->offset.vx = sc->contactPoint.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
+    sc->offset.vy = sc->contactPoint.vy - work->escorts[0]->task->extra.tmd->coords->workm.t[1];
+    sc->offset.vz = sc->contactPoint.vz - work->escorts[0]->task->extra.tmd->coords->workm.t[2];
+    angle         = ratan2(sc->offset.vx, sc->offset.vz) -
             ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
                    arg0->extra.tmd->coords->workm.m[2][2]);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
     do {
 #endif
-        sc->angle = angle;
+        sc->contactYaw = angle;
         if (angle < 0) {
         wrapUp:
             if (angle < -0x800) {
@@ -254,7 +254,7 @@ stored:
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
     } while (0);
 #endif
-    sc->angle = angle;
+    sc->contactYaw = angle;
 
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
     if (work->animId != 4) {
@@ -265,5 +265,5 @@ stored:
     }
 #endif
 out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(GluttonHitScratch);
 }

@@ -4258,7 +4258,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 /// one of the seven states that ignore hits, while the player hold is armed, or
 /// unless `gSceneCombatState.battleRefs` is 1.
 ///
-/// `pos` / `pos2` / `pos3` are all `&sc->pos`, and are not spare: each group's
+/// `pos` / `pos2` / `pos3` are all `&sc->contactPoint`, and are not spare: each group's
 /// scan writes the contact point through its own pointer, which is what keeps
 /// the three `sh` pairs in `a3` then `a2` twice. `esc3` / `esc0` / `esc1` and
 /// the `hp` load are the sibling's arrangement, but evaluated before
@@ -4296,8 +4296,8 @@ static void func_actor_403200_8013A4A0(Task* arg0)
     cfg  = &gPlayerStatus;
     host = (Enemy*)arg0->spawnArg2.pointer;
     work = arg0->work;
-    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
-    pos  = &sc->pos;
+    sc   = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
+    pos  = &sc->contactPoint;
     recs = work->hits[3].contacts;
     for (i = 0; i < ARRAY_SIZE(work->hits[3].contacts); i++) {
         if (recs[i].key.value == 0) {
@@ -4314,15 +4314,15 @@ static void func_actor_403200_8013A4A0(Task* arg0)
 missed1:
     id = 0;
 found1:
-    sc->id = id;
+    sc->attackKey = id;
     if (id != 0) {
         gluttonHitEffect(work->hits[3].body.coord, id);
-        if (sc->id != 0) {
+        if (sc->attackKey != 0) {
             goto body;
         }
     }
 
-    pos2  = &sc->pos;
+    pos2  = &sc->contactPoint;
     recs2 = work->hits[4].contacts;
     for (i2 = 0; i2 < ARRAY_SIZE(work->hits[4].contacts); i2++) {
         if (recs2[i2].key.value == 0) {
@@ -4339,15 +4339,15 @@ found1:
 missed2:
     id = 0;
 found2:
-    sc->id = id;
+    sc->attackKey = id;
     if (id != 0) {
         gluttonHitEffect(work->hits[4].body.coord, id);
-        if (sc->id != 0) {
+        if (sc->attackKey != 0) {
             goto body;
         }
     }
 
-    pos3  = &sc->pos;
+    pos3  = &sc->contactPoint;
     recs3 = work->hits[5].contacts;
     for (i3 = 0; i3 < ARRAY_SIZE(work->hits[5].contacts); i3++) {
         if (recs3[i3].key.value == 0) {
@@ -4364,38 +4364,38 @@ found2:
 missed3:
     id = 0;
 found3:
-    sc->id = id;
+    sc->attackKey = id;
     if (id == 0) {
         goto out;
     }
     gluttonHitEffect(work->hits[5].body.coord, id);
-    if (sc->id == 0) {
+    if (sc->attackKey == 0) {
         goto out;
     }
 body:
-    param                    = Gp_GetIdParam2(sc->id);
+    param                    = Gp_GetIdParam2(sc->attackKey);
     work->groups6To8Cooldown = param;
     work->groups3To5Cooldown = param;
     work->group0Cooldown     = param;
     work->groups1To2Cooldown = param;
-    Gp_GetIdParam0(sc->id);
+    Gp_GetIdParam0(sc->attackKey);
 
-    sc->delta.vx = (cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0]) + 0x51F;
-    dx2          = sc->delta.vx * sc->delta.vx;
-    sc->delta.vy = (cfg->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1]) - 0xFA;
-    dy2          = sc->delta.vy * sc->delta.vy;
-    sc->delta.vz = (cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2]) + 0x25F;
-    dz2          = sc->delta.vz * sc->delta.vz;
-    sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
-    sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
+    sc->toPlayer.vx    = (cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0]) + 0x51F;
+    dx2                = sc->toPlayer.vx * sc->toPlayer.vx;
+    sc->toPlayer.vy    = (cfg->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1]) - 0xFA;
+    dy2                = sc->toPlayer.vy * sc->toPlayer.vy;
+    sc->toPlayer.vz    = (cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2]) + 0x25F;
+    dz2                = sc->toPlayer.vz * sc->toPlayer.vz;
+    sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
+    sc->damage         = Gp_ComputeDamage(sc->attackKey, sc->playerDistance, 0, 0);
 
-    if (Gp_RollEnemyChance(work->escorts[0], sc->id, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
+    if (Gp_RollEnemyChance(work->escorts[0], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
         state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->playerCaught != 1 &&
         gSceneCombatState.battleRefs == 1) {
-        sc->rot.vy = 0;
-        sc->rot.vx = 0;
-        sc->rot.vz = 0x320;
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->rot);
+        sc->offset.vy = 0;
+        sc->offset.vx = 0;
+        sc->offset.vz = 0x320;
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->offset);
         sc->damage *= 4;
         work->state = 0xE;
     }
@@ -4410,7 +4410,7 @@ body:
     }
     sc->damage = dmg;
 stored:
-    func_800E2C78(host, sc->id, sc->damage, 0);
+    func_800E2C78(host, sc->attackKey, sc->damage, 0);
     host->hp             -= sc->damage;
     esc3                  = work->escorts[3];
     hp                    = host->hp;
@@ -4422,10 +4422,10 @@ stored:
     work->groups3To5Pool -= sc->damage;
     if (work->groups3To5Pool <= 0 && (state = work->state, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
         state != 0xF && state != 8 && state != 0xB && work->playerCaught != 1 && gSceneCombatState.battleRefs == 1) {
-        sc->rot.vy = 0;
-        sc->rot.vx = 0;
-        sc->rot.vz = 0x320;
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->rot);
+        sc->offset.vy = 0;
+        sc->offset.vx = 0;
+        sc->offset.vz = 0x320;
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->offset);
         work->state          = 0xE;
         work->groups3To5Pool = 0x32;
     }
@@ -4433,14 +4433,14 @@ stored:
     func_800DA6E8(&work->escorts[0]->node, sc->damage, 0);
     work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(work->escorts[0]->task->extra.tmd->coords);
-    sc->rot.vx = sc->pos.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
-    sc->rot.vy = sc->pos.vy - work->escorts[0]->task->extra.tmd->coords->workm.t[1];
-    sc->rot.vz = sc->pos.vz - work->escorts[0]->task->extra.tmd->coords->workm.t[2];
-    angle      = ratan2(sc->rot.vx, sc->rot.vz) -
+    sc->offset.vx = sc->contactPoint.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
+    sc->offset.vy = sc->contactPoint.vy - work->escorts[0]->task->extra.tmd->coords->workm.t[1];
+    sc->offset.vz = sc->contactPoint.vz - work->escorts[0]->task->extra.tmd->coords->workm.t[2];
+    angle         = ratan2(sc->offset.vx, sc->offset.vz) -
             ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
                    arg0->extra.tmd->coords->workm.m[2][2]);
     do {
-        sc->angle = angle;
+        sc->contactYaw = angle;
         if (angle < 0) {
         wrapUp:
             if (angle < -0x800) {
@@ -4455,12 +4455,12 @@ stored:
             }
         }
     } while (0);
-    sc->angle = angle;
+    sc->contactYaw = angle;
 
     work->neckYaw       = 0;
     work->neckYawTarget = 0;
 out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(GluttonHitScratch);
 }
 
 #include "../../shared/glutton_hit_groups6to8.inc.c"
@@ -6092,8 +6092,8 @@ static void func_actor_403200_8013EB64(Task* arg0)
 }
 
 /// Summon tick of the arena fight. While `gGluttonEnded` is 1
-/// the whole body is skipped; otherwise it carves an
-/// `GluttonSpawnScratch` off the scratch-pad stack.
+/// the whole body is skipped; otherwise it reserves a
+/// `GluttonSummonScratch` on the scratch stack.
 ///
 /// On the dispatcher's re-arm tick it tops the two `summons` slots back up
 /// to two live summons (`summonsAlive` < 2 and `summonsSpawned` < 8), dresses each
@@ -6104,31 +6104,31 @@ static void func_actor_403200_8013EB64(Task* arg0)
 /// `phase` and a coin flip of `gRandomLcgState`.
 static void func_actor_403200_8013EF6C(Task* arg0)
 {
-    GluttonSpawnScratch* sc;
-    GluttonWork*         work;
-    Enemy*               host;
-    Enemy*               escort;
-    PlayerStatus*        cfg;
-    GfxCoord*            coord;
-    GfxCoord*            facing;
-    TmdObject*           model;
-    AreaPlacement*       entry;
-    GameLocationKey      key;
-    GameLocationKey*     sessionKey;
-    s32                  cueId;
-    s32                  cuePan;
-    s32                  blastId;
-    s32                  blastPan;
-    s32                  rnd;
-    s32                  state;
-    s16                  angle;
-    s16                  sel;
-    u32                  frame;
+    GluttonSummonScratch* sc;
+    GluttonWork*          work;
+    Enemy*                host;
+    Enemy*                escort;
+    PlayerStatus*         cfg;
+    GfxCoord*             coord;
+    GfxCoord*             facing;
+    TmdObject*            model;
+    AreaPlacement*        entry;
+    GameLocationKey       key;
+    GameLocationKey*      sessionKey;
+    s32                   cueId;
+    s32                   cuePan;
+    s32                   blastId;
+    s32                   blastPan;
+    s32                   rnd;
+    s32                   state;
+    s16                   angle;
+    s16                   sel;
+    u32                   frame;
 
     work = arg0->work;
     host = arg0->spawnArg2.pointer;
     if (gGluttonEnded != 1) {
-        sc = (GluttonSpawnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonSpawnScratch));
+        sc = SCRATCH_STACK_RESERVE_BLOCK(GluttonSummonScratch);
         if (work->stateChanged != 0) {
             state                  = work->animId;
             work->neckPitchEnabled = 0;
@@ -6142,12 +6142,12 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 work->animId   = state;
             }
             work->animRate = 0x10;
-            for (sc->i = 0; sc->i < 2; sc->i++) {
-                if (work->summons[sc->i] == NULL && work->summonsAlive < 2 && (u8)work->summonsSpawned < 8) {
-                    work->summons[sc->i] = Gp_SpawnEnemyFromTable(&D_80174D58, 3, 2, NULL);
-                    if (work->summons[sc->i] != NULL) {
+            for (sc->slot = 0; sc->slot < 2; sc->slot++) {
+                if (work->summons[sc->slot] == NULL && work->summonsAlive < 2 && (u8)work->summonsSpawned < 8) {
+                    work->summons[sc->slot] = Gp_SpawnEnemyFromTable(&D_80174D58, 3, 2, NULL);
+                    if (work->summons[sc->slot] != NULL) {
                         work->summonsSpawned++;
-                        model      = work->summons[sc->i]->task->extra.tmd;
+                        model      = work->summons[sc->slot]->task->extra.tmd;
                         sessionKey = &gGameSession->location.loc;
                         key.stage  = sessionKey->stage;
                         key.area   = sessionKey->area;
@@ -6161,9 +6161,9 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                             tmdProcessStream(model);
                             tmdProcessStream(model);
                         }
-                        work->summons[sc->i]->workType = ENEMY_WORK_PLAIN;
-                        escort                         = work->summons[sc->i];
-                        escort->placeKey              |= sc->i << ENEMY_PLACE_INDEX_SHIFT;
+                        work->summons[sc->slot]->workType = ENEMY_WORK_PLAIN;
+                        escort                            = work->summons[sc->slot];
+                        escort->placeKey                 |= sc->slot << ENEMY_PLACE_INDEX_SHIFT;
                         work->summonsAlive++;
                     }
                 }
@@ -6181,13 +6181,13 @@ static void func_actor_403200_8013EF6C(Task* arg0)
         } else {
             work->hostExposed = 0;
         }
-        cfg          = &gPlayerStatus;
-        coord        = arg0->extra.tmd->coords;
-        sc->delta.vx = cfg->coordMtx->t[0] - coord->coord.t[0];
-        sc->delta.vy = cfg->coordMtx->t[1] - coord->coord.t[1];
-        sc->delta.vz = cfg->coordMtx->t[2] - coord->coord.t[2];
-        facing       = arg0->extra.tmd->coords;
-        angle        = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        cfg             = &gPlayerStatus;
+        coord           = arg0->extra.tmd->coords;
+        sc->toPlayer.vx = cfg->coordMtx->t[0] - coord->coord.t[0];
+        sc->toPlayer.vy = cfg->coordMtx->t[1] - coord->coord.t[1];
+        sc->toPlayer.vz = cfg->coordMtx->t[2] - coord->coord.t[2];
+        facing          = arg0->extra.tmd->coords;
+        angle           = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         if (angle < 0) {
         wrapUp:
             if (angle < -0x800) {
@@ -6225,13 +6225,13 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             work->viewSelector = 0;
         }
         if (work->stateTicks == 0x46) {
-            sc->i = 0;
+            sc->slot = 0;
             goto dispatch;
         }
         if (work->stateTicks == 0x78) {
-            sc->i = 1;
+            sc->slot = 1;
         dispatch:
-            if (work->summons[sc->i] != NULL) {
+            if (work->summons[sc->slot] != NULL) {
                 D_actor_403200_8015F8F4.context.loc.stage = 0;
                 D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
                 sel                                       = work->phase;
@@ -6244,7 +6244,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 if (sel != 0) {
                     goto L_default;
                 }
-                if (sc->i == 0) {
+                if (sc->slot == 0) {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_403200_8015F8F4.command = 3;
@@ -6261,7 +6261,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 }
                 goto L_join;
             L_case1:
-                if (sc->i == 0) {
+                if (sc->slot == 0) {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_403200_8015F8F4.command = 0xA;
@@ -6278,7 +6278,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 }
                 goto L_join;
             L_default:
-                if (sc->i == 0) {
+                if (sc->slot == 0) {
                     D_actor_403200_8015F8F4.command = 5;
                 } else {
                     D_actor_403200_8015F8F4.command = 0xB;
@@ -6288,11 +6288,11 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 rnd                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 D_actor_403200_8015F8F4.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
                 gRandomLcgState                   = rnd;
-                TASK_MESSAGE_DISPATCH_POINTER(work->summons[sc->i]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(work->summons[sc->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
             }
         }
     out:
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonSpawnScratch));
+        SCRATCH_STACK_RELEASE_BLOCK(GluttonSummonScratch);
     }
 }
 
