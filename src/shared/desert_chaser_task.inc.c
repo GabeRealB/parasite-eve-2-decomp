@@ -6,8 +6,8 @@
 /// settles a pending release before advancing.
 void desertChaserTask(Task* task)
 {
-    DesertChaserTaskStates sp;
+    DesertChaserTaskStates states;
 
-    sp = gDesertChaserTaskStates;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    states = gDesertChaserTaskStates;
+    states.funcs[task->state](task->spawnArg2.pointer, task);
 }

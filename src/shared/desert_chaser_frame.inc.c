@@ -8,25 +8,22 @@
 /// local position, parented to the view.
 void desertChaserFrameState(Enemy* enemy, Task* task)
 {
-    DesertChaserWork*        work;
-    EnemyTaskFuncTable4      sp;
-    DesertChaserTickScratch* scratch;
-    u8*                      head;
-    GfxCoord*                walker;
-    SVECTOR*                 pos;
+    DesertChaserWork*         work;
+    EnemyTaskFuncTable4       sp;
+    DesertChaserFrameScratch* scratch;
+    GfxCoord*                 walker;
+    SVECTOR*                  pos;
 
     work = task->work;
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     sp                                    = gDesertChaserStates;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    head                                  = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8)              = head - 0x1C;
-    scratch                               = (DesertChaserTickScratch*)(head - 0x1C);
+    scratch                               = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserFrameScratch);
     Gp_UpdateCoord(task->extra.tmd->coords);
-    scratch->pos.vx = task->extra.tmd->coords->workm.t[0];
-    scratch->pos.vy = task->extra.tmd->coords->workm.t[1];
-    scratch->pos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &scratch->pos, 0, 0);
+    scratch->rootPos.vx = task->extra.tmd->coords->workm.t[0];
+    scratch->rootPos.vy = task->extra.tmd->coords->workm.t[1];
+    scratch->rootPos.vz = task->extra.tmd->coords->workm.t[2];
+    Gp_UpdateActorColor(enemy, &scratch->rootPos, 0, 0);
     if (work->prevState != work->state) {
         work->stateEntered = 1;
     } else {
@@ -34,9 +31,9 @@ void desertChaserFrameState(Enemy* enemy, Task* task)
     }
     work->prevState = work->state;
     sp.funcs[work->state](enemy, task);
-    scratch->local.vx = 0;
-    scratch->local.vy = 0;
-    scratch->local.vz = 0;
+    scratch->bodyPos.vx = 0;
+    scratch->bodyPos.vy = 0;
+    scratch->bodyPos.vz = 0;
     {
         SVECTOR  local;
         VECTOR   result;
@@ -44,8 +41,8 @@ void desertChaserFrameState(Enemy* enemy, Task* task)
         SVECTOR* localp = &local;
 
         walker   = &task->extra.tmd->coords[2];
-        pos      = &scratch->local;
-        local.vx = scratch->local.vx;
+        pos      = &scratch->bodyPos;
+        local.vx = scratch->bodyPos.vx;
         local.vy = pos->vy;
         local.vz = pos->vz;
         while (1) {
@@ -70,9 +67,9 @@ void desertChaserFrameState(Enemy* enemy, Task* task)
             break;
         }
     }
-    enemy->bodyPos.vx = scratch->local.vx;
-    enemy->bodyPos.vy = scratch->local.vy;
-    enemy->bodyPos.vz = scratch->local.vz;
+    enemy->bodyPos.vx = scratch->bodyPos.vx;
+    enemy->bodyPos.vy = scratch->bodyPos.vy;
+    enemy->bodyPos.vz = scratch->bodyPos.vz;
     enemy->coord      = &gGfxViewCoord;
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(DesertChaserFrameScratch);
 }

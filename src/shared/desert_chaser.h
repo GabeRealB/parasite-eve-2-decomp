@@ -54,7 +54,12 @@
 #define DESERT_CHASER_BLEND_RATE_RESET (DESERT_CHASER_BUILD != DESERT_CHASER_REGULAR)
 #define DESERT_CHASER_STATE26_TILT     (DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE)
 
-/// The task states `desertChaserTask` runs; the regular build has a fourth.
+/// The Desert Chaser enemy task's handlers, indexed by `Task::state`.
+///
+/// Each package defines one table, which the task entry copies to its stack
+/// and calls through every frame. The states are spawn, the per-frame driver
+/// and teardown. The regular build has four: a state of its own ahead of
+/// teardown settles the release the chaser may still owe, then advances.
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 typedef EnemyTaskFuncTable4 DesertChaserTaskStates;
 #else
@@ -523,15 +528,22 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(DesertChaserPursueScratch, 0x18);
 #endif
 
-/// 0x1C-byte block `func_actor_323000_801645A4` pushes on the scratch stack:
-/// the model root's world position for `Gp_UpdateActorColor`, and the local
-/// point walked up the coordinate chain into view space.
-typedef struct DesertChaserTickScratch {
-    VECTOR  pos;
-    SVECTOR local;
-    s32     pad_18;
-} DesertChaserTickScratch;
-STATIC_ASSERT_SIZEOF(DesertChaserTickScratch, 0x1C);
+#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
+/// Scratch-stack block of the cutscene chaser's per-frame driver, held across
+/// the state handler the driver runs.
+///
+/// The driver relights the enemy at the model root's world position before it
+/// runs the frame's state, and afterwards refreshes the enemy's body position:
+/// the origin of the third model part, carried up its parent chain into view
+/// space. Both points are built here. The armed builds have per-frame drivers
+/// of their own and do not use this block.
+typedef struct {
+    VECTOR  rootPos;         // Model root's world position, world units: the translation of its composed matrix, and the point the enemy is lit for
+    SVECTOR bodyPos;         // Zeroed as the third model part's own origin, then that point in view space, which becomes `Enemy::bodyPos`; left zero if the part's chain never reaches the view. `pad` is never written
+    byte    unknown_18[0x4]; // Reserved with the block and never accessed; role unproven
+} DesertChaserFrameScratch;
+STATIC_ASSERT_SIZEOF(DesertChaserFrameScratch, 0x1C);
+#endif
 
 void desertChaserBlendTick(Task* task);
 void desertChaserAnimTick(Task* task);
