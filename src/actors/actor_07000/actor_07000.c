@@ -51,43 +51,20 @@
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/sucklerceph.h"
 
-/// Ground-burst work allocated by the specimen's setup handler and advanced
-/// by ActorsShared80136c80. The collision node points at the capsule, whose
-/// contact table occupies the final 0x18 bytes.
-typedef struct ActorsShared80136938Work {
-    /* 0x00 */ SVECTOR               vec;
-    /* 0x08 */ WorldCollisionBody    obj;
-    /* 0x28 */ WorldCollisionCapsule rec;
-    /* 0x40 */ WorldCollisionContact rec2;
-} ActorsShared80136938Work;
-STATIC_ASSERT_SIZEOF(ActorsShared80136938Work, 0x58);
-
-/// Movement work the tick reaches through `Task::work`: a second view of the
-/// 0x58-byte block the projectile's spawn allocates as
-/// `ActorsShared80136938Work`.
+/// Work block of the projectile a Slouch spits.
 ///
-/// `field_0`/`field_2`/`field_4` are the per-frame velocity the tick folds onto
-/// the model: negated into `recs[0]`'s position and added to the coordinate's
-/// own translation. `recs[1]` is the collision record the hit test walks, and
-/// `field_26` the flag word it trims to 0x3FFF once a hit lands.
-typedef struct ActorsShared80136c80Work {
-    /* 0x00 */ u16                   field_0;
-    /* 0x02 */ u16                   field_2;
-    /* 0x04 */ u16                   field_4;
-    /* 0x06 */ byte                  pad_6[0x20];
-    /* 0x26 */ u16                   field_26;
-    /* 0x28 */ WorldCollisionContact recs[2];
-} ActorsShared80136c80Work;
-STATIC_ASSERT_SIZEOF(ActorsShared80136c80Work, 0x58);
-
-/// Work block of the task served by this shared body. Only the `WorldCollisionBody` collision
-/// body at 0x8 is reached from here -- `ActorsShared801511c8` is the exit
-/// callback that unlinks it -- so the type stops there; whatever each overlay
-/// keeps after it differs per actor.
-typedef struct ActorShared801511c8Work {
-    /* 0x00 */ byte               pad_0[0x8];
-    /* 0x08 */ WorldCollisionBody obj;
-} ActorShared801511c8Work;
+/// The projectile's launch state allocates it zeroed and keeps it at
+/// `Task::work`; the exit callback unlinks `body` before the task dies. The
+/// projectile flies as a capsule whose far end trails one frame's travel
+/// behind the model, so the pair and grid passes test the path just covered,
+/// and whatever it touches is reported in the single contact.
+typedef struct {
+    SVECTOR               velocity;    // displacement added to the model's translation each frame, in game-coordinate units; Y gains 10 a frame
+    WorldCollisionBody    body;        // capsule body on the model's root coordinate, keyed by the Slouch's second attack row
+    WorldCollisionCapsule capsule;     // shape of `body`: radius 150 at both ends, `ends[1]` set to minus `velocity` each frame
+    WorldCollisionContact contacts[1]; // contact of `body`; any contact recorded here ends the flight
+} _Actor07000SlouchProjectileWork;
+STATIC_ASSERT_SIZEOF(_Actor07000SlouchProjectileWork, 0x58);
 
 // Typed callback views for the task message dispatcher.
 
@@ -788,7 +765,7 @@ extern SVECTOR Actor07000_D08068;
 /// Offset the collapse arms spawn the 0x60080 effect at.
 extern SVECTOR gSucklercephCollapseFxOffset;
 
-/// Pair table the second form's node 3 and the projectile's render node pack
+/// Pair table the second form's node 3 and the projectile's collision body pack
 /// into their keys.
 extern DamageAttack Actor07000_D08078[2];
 
@@ -1874,33 +1851,33 @@ static void Actor07000_Fn049C0(Task* arg0)
 }
 
 /// Spawn handler of a specimen projectile, entry 0 of `Actor07000_D000E0`.
-/// Allocates the 0x58-byte work, spawns effect 0x60081 on the parent's
-/// coordinate and re-parents the task under it, and derives a launch velocity
+/// Allocates the `_Actor07000SlouchProjectileWork`, spawns effect 0x60081 on
+/// the parent's coordinate and re-parents the task under it, and derives a launch velocity
 /// from the spawn angle in `spawnArg1` and two `gRandomLcgState` draws, rotated
 /// into the coordinate's frame and scaled on the GTE. The coordinate's rotation
-/// is reset to identity and nudged by that velocity, and the render node is
-/// linked with a capsule collision record keyed by `Actor07000_D08078`. The
+/// is reset to identity and nudged by that velocity, and the work's capsule
+/// body is linked on the coordinate, keyed by `Actor07000_D08078`. The
 /// task takes `Actor07000_Fn068F0` as its exit callback, cues the launch sound
 /// and runs its first frame through `Actor07000_Fn04E60`.
 static void Actor07000_Fn04B18(Task* arg0)
 {
-    ActorsShared80136938Work* work;
-    GfxCoord*                 coord;
-    EffectWork*               eff;
-    WorldCollisionBody*       obj;
-    WorldCollisionCapsule*    rec;
-    SVECTOR*                  vec;
-    s32                       angle;
-    s32                       pan;
+    _Actor07000SlouchProjectileWork* work;
+    GfxCoord*                        coord;
+    EffectWork*                      eff;
+    WorldCollisionBody*              body;
+    WorldCollisionCapsule*           capsule;
+    SVECTOR*                         vec;
+    s32                              angle;
+    s32                              pan;
 
     coord = arg0->extra.tmd->coords;
-    work  = memCalloc(0x58, false);
+    work  = memCalloc(sizeof(_Actor07000SlouchProjectileWork), false);
     if (work == NULL) {
         Task_CallExit(arg0);
         return;
     }
-    obj                     = &work->obj;
-    rec                     = &work->rec;
+    body                    = &work->body;
+    capsule                 = &work->capsule;
     vec                     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     arg0->work              = work;
     eff                     = Gp_SpawnEff(EFFECT_PROJECTILE_GLOW_SPRITE, coord, 0, NULL);
@@ -1916,33 +1893,33 @@ static void Actor07000_Fn04B18(Task* arg0)
     gte_lddp(((gRandomLcgState >> 16) & 0x1F) + 0x1E);
     gte_ldsv(vec);
     gte_gpf12();
-    gte_stsv(&work->vec);
+    gte_stsv(&work->velocity);
     gfxSetRotIdentity(&coord->coord);
-    coord->coord.t[0]   += work->vec.vx;
-    gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    coord->coord.t[1]   += (gRandomLcgState >> 16) & 0x7F;
-    coord->coord.t[2]   += work->vec.vz;
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    obj->coord           = coord;
-    obj->context.capsule = rec;
-    obj->pos.vx          = 0;
-    obj->pos.vy          = 0;
-    obj->pos.vz          = 0;
-    obj->radius          = 0;
-    obj->key             = Gp_PackPair(Actor07000_D08078, 1);
-    obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
-    rec->contacts        = &work->rec2;
-    rec->ends[1].vx      = 0;
-    rec->ends[1].vy      = 0;
-    rec->ends[1].vz      = 0;
-    rec->ends[0].vx      = 0;
-    rec->ends[0].vy      = 0;
-    rec->ends[0].vz      = 0;
-    rec->end0Radius      = 0x96;
-    rec->end1Radius      = 0x96;
-    Gp_InitRec18Table(&work->rec2, 1, 0);
-    Gp_LinkObj(3, obj);
-    obj->flags        |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    coord->coord.t[0]    += work->velocity.vx;
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    coord->coord.t[1]    += (gRandomLcgState >> 16) & 0x7F;
+    coord->coord.t[2]    += work->velocity.vz;
+    coord->composeStamp   = GRAPHICS_COORD_DIRTY;
+    body->coord           = coord;
+    body->context.capsule = capsule;
+    body->pos.vx          = 0;
+    body->pos.vy          = 0;
+    body->pos.vz          = 0;
+    body->radius          = 0;
+    body->key             = Gp_PackPair(Actor07000_D08078, 1);
+    body->flags           = WORLD_COLLISION_BODY_CAPSULE;
+    capsule->contacts     = work->contacts;
+    capsule->ends[1].vx   = 0;
+    capsule->ends[1].vy   = 0;
+    capsule->ends[1].vz   = 0;
+    capsule->ends[0].vx   = 0;
+    capsule->ends[0].vy   = 0;
+    capsule->ends[0].vz   = 0;
+    capsule->end0Radius   = 0x96;
+    capsule->end1Radius   = 0x96;
+    Gp_InitRec18Table(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    Gp_LinkObj(3, body);
+    body->flags       |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg0->exitCallback = Actor07000_Fn068F0;
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     arg0->state += 1;
@@ -1954,13 +1931,14 @@ static void Actor07000_Fn04B18(Task* arg0)
 /// Per-frame handler of a specimen projectile, entry 1 of
 /// `Actor07000_D000E0`. `gSceneCombatState.actorControl` mode 1 returns at once and mode 2 hides
 /// the model; mode 0 shows it again before the update. The update moves the
-/// coordinate by the velocity in the work (mirrored into the first collision
-/// record's position), lets the vertical speed grow by 0xA a frame, and tests
-/// the second collision record: a hit on an object of the 0x10000 kind or on
-/// any occupied slot cues the impact sound, tells the child task how it landed
-/// through `spawnArg1` (3, or 2 for a slot hit below -0xC00 in the normal's Y),
-/// clears the top bits of the flag word, arms a 0x1E-frame kill countdown and
-/// moves on to `Actor07000_Fn068B4`. The collision table is cleared either way.
+/// coordinate by the work's velocity (its negation becoming the capsule's far
+/// end, so the shape covers the step just taken), lets the vertical speed grow
+/// by 0xA a frame, and tests the work's contact: a hit on an object of the
+/// 0x10000 kind or any other occupied contact cues the impact sound, tells the
+/// child task how it landed through `spawnArg1` (3, or 2 for a contact whose
+/// direction's Y is below -0xC00), takes the body out of the grid and pair
+/// passes, arms a 0x1E-frame kill countdown and moves on to
+/// `Actor07000_Fn068B4`. The contact is released either way.
 ///
 /// The 2/3 pair is written into each arm rather than through a temp: the shared
 /// store m2c reads as one variable is `jump.c` cross-jumping the two arms, and
@@ -1968,24 +1946,24 @@ static void Actor07000_Fn04B18(Task* arg0)
 /// picks it, where it can no longer share `$v0` with the `slti` result.
 static void Actor07000_Fn04E60(Task* arg0)
 {
-    ActorsShared80136c80Work* work;
-    TmdObject*                part;
-    Task*                     child;
-    GfxCoord*                 coord;
-    WorldCollisionContact*    rec;
-    WorldCollisionContact*    hit;
-    WorldCollisionContact*    recs;
-    s32                       state;
-    s32                       one;
+    _Actor07000SlouchProjectileWork* work;
+    TmdObject*                       part;
+    Task*                            child;
+    GfxCoord*                        coord;
+    WorldCollisionCapsule*           capsule;
+    WorldCollisionContact*           hit;
+    WorldCollisionContact*           contacts;
+    s32                              state;
+    s32                              one;
 
-    work  = (ActorsShared80136c80Work*)arg0->work;
-    part  = arg0->extra.tmd;
-    state = gSceneCombatState.actorControl;
-    child = arg0->firstChild;
-    rec   = &work->recs[0];
-    coord = part->coords;
-    hit   = &work->recs[1];
-    one   = 1;
+    work    = arg0->work;
+    part    = arg0->extra.tmd;
+    state   = gSceneCombatState.actorControl;
+    child   = arg0->firstChild;
+    capsule = &work->capsule;
+    coord   = part->coords;
+    hit     = work->contacts;
+    one     = 1;
 
     if (state == one) {
         goto case1;
@@ -2011,16 +1989,17 @@ case2:
     part->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return;
 default_body:
-    rec->point.vx       = -work->field_0;
-    rec->point.vy       = -work->field_2;
-    rec->point.vz       = -work->field_4;
-    coord->coord.t[0]   = coord->coord.t[0] + (s16)work->field_0;
-    recs                = &work->recs[1];
-    coord->coord.t[1]   = coord->coord.t[1] + (s16)work->field_2;
-    coord->coord.t[2]   = coord->coord.t[2] + (s16)work->field_4;
+    // Sweep the capsule back over this frame's step, then take the step.
+    capsule->ends[1].vx = -work->velocity.vx;
+    capsule->ends[1].vy = -work->velocity.vy;
+    capsule->ends[1].vz = -work->velocity.vz;
+    coord->coord.t[0]   = coord->coord.t[0] + work->velocity.vx;
+    contacts            = work->contacts;
+    coord->coord.t[1]   = coord->coord.t[1] + work->velocity.vy;
+    coord->coord.t[2]   = coord->coord.t[2] + work->velocity.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_2       = work->field_2 + 0xA;
-    if (Gp_CountRec18Hi(recs, 0x10000) != 0) {
+    work->velocity.vy   = work->velocity.vy + 0xA;
+    if (Gp_CountRec18Hi(contacts, 0x10000) != 0) {
         SndEvt_EnqueueType6(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
                             (s8)worldCoordGetOriginAudioDepth(coord));
         if (child != NULL) {
@@ -2028,7 +2007,7 @@ default_body:
         }
         goto block_16;
     }
-    if (Gp_FindRec18(recs, 0) != 0) {
+    if (Gp_FindRec18(contacts, 0) != 0) {
         SndEvt_EnqueueType6(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
                             (s8)worldCoordGetOriginAudioDepth(coord));
         if (child != NULL) {
@@ -2039,11 +2018,12 @@ default_body:
             }
         }
     block_16:
-        work->field_26      = work->field_26 & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        // Landed: stop colliding and leave the task to its kill countdown.
+        work->body.flags    = work->body.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         arg0->killCountdown = 0x1E;
         arg0->state         = arg0->state + 1;
     }
-    Gp_ClearRec18Occupied(&work->recs[1]);
+    Gp_ClearRec18Occupied(work->contacts);
 }
 
 /// The variant's spawn handler: allocate the `_Actor07000SlouchWork` block,
@@ -2787,10 +2767,13 @@ static void Actor07000_Fn068B4(Task* arg0)
     }
 }
 
-/// Exit callback of the contact effect: takes its render node back off the
-/// object list and kills the task.
+/// Exit callback of the Slouch's projectile: takes its collision body back off
+/// the object list and kills the task.
 static void Actor07000_Fn068F0(Task* arg0)
 {
-    Gp_UnlinkObj(&((ActorShared801511c8Work*)arg0->work)->obj);
+    _Actor07000SlouchProjectileWork* work;
+
+    work = arg0->work;
+    Gp_UnlinkObj(&work->body);
     taskKill(arg0);
 }
