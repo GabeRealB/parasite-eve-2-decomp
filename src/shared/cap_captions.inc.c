@@ -25,18 +25,24 @@ static void CapCaption_RunSchedule(Task* task);
 
 static void CapCaption_DrawCurrent(void);
 static s32  CapCaption_Relocate(CapFile* file);
-static s32  CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2);
-static s32  CapCaption_DrawText(const u16* arg0, s32 arg1, s32 arg2, s32 arg3);
-static s16  CapCaption_TextTopY(const u16* arg0);
-static void CapCaption_DrawCaret(void);
-static s16  CapCaption_CenterX(const u16* arg0);
-static s16  CapCaption_CenterLineX(const u16* arg0, s32 arg1);
-static s16  CapCaption_TextHeight(const u16* arg0);
-static s32  CapCaption_LineHeight(const u16* arg0);
-static s32  CapCaption_FindKeyedLine(s32 arg0);
-static void CapCaption_TimedTask(Task* task);
-static void CapCaption_CancelableTask(Task* task);
-static void CapCaption_ShowModal(s16 arg0, s16 arg1, s16 arg2);
+/* The script selector is file-local unless another image calls this copy: a
+ * carrier whose copy is called from outside binds the linkage to nothing and
+ * the name to its own exported one. */
+#ifndef CAP_CAPTION_SELECT_SCRIPT_LINKAGE
+#define CAP_CAPTION_SELECT_SCRIPT_LINKAGE static
+#endif
+CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2);
+static s32                            CapCaption_DrawText(const u16* arg0, s32 arg1, s32 arg2, s32 arg3);
+static s16                            CapCaption_TextTopY(const u16* arg0);
+static void                           CapCaption_DrawCaret(void);
+static s16                            CapCaption_CenterX(const u16* arg0);
+static s16                            CapCaption_CenterLineX(const u16* arg0, s32 arg1);
+static s16                            CapCaption_TextHeight(const u16* arg0);
+static s32                            CapCaption_LineHeight(const u16* arg0);
+static s32                            CapCaption_FindKeyedLine(s32 arg0);
+static void                           CapCaption_TimedTask(Task* task);
+static void                           CapCaption_CancelableTask(Task* task);
+static void                           CapCaption_ShowModal(s16 arg0, s16 arg1, s16 arg2);
 
 /// Plays scheduled captions as the scene clock counts down.
 ///
@@ -152,7 +158,7 @@ static s32 CapCaption_Relocate(CapFile* file)
 /// `CapCaption_Data_8015E650`, keyed on `arg1`, and parks its per-line metrics in
 /// the globals `CapCaption_DrawCurrent` reads. Returns 1 when there is no
 /// such script, 0 once it is playing; `arg2` is the line delay.
-static s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2)
+CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2)
 {
     CapSequenceRecord* caption;
     s16                entry;

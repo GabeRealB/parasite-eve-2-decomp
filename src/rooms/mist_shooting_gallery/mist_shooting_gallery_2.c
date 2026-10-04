@@ -145,7 +145,7 @@ static void   func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work)
 static u16    func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work);
 static void   func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2);
 static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, _MistShootingGallerySpawn* arg1);
-void          CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2);
+void          actor215100CapCaptionSelectScript(s16 arg0, s16 arg1, s32 arg2);
 static void   func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2);
 static void   func_mist_shooting_gallery_80182B1C(Task* arg0);
 static void   func_mist_shooting_gallery_80182C58(Task* arg0);
@@ -3485,7 +3485,7 @@ void func_mist_shooting_gallery_80184B10(Task* arg0)
 
 static void func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2)
 {
-    CapCaption_SelectScript(arg0, arg1, 0xD0);
+    actor215100CapCaptionSelectScript(arg0, arg1, 0xD0);
     Display_InitModeObj(&D_mist_shooting_gallery_801856D0, arg2, 0, 0);
 }
 
