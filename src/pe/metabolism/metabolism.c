@@ -113,7 +113,7 @@ void func_metabolism_8012EF34(Task* arg0)
             coord->coord.t[1]   = -0x400;
             coord->coord.t[2]   = 0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             arg0->state = 1;
             mem->index  = (Gp_StateC08.attachId % 10) - 1;
             mem->angle  = 0x80;
@@ -132,7 +132,7 @@ void func_metabolism_8012EF34(Task* arg0)
                                 (s8)worldCoordGetOriginAudioDepth(coord));
             /* fallthrough */
         case 1:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             bright = mem->scale;
             if (bright < D_metabolism_8012FB54[mem->index].brightnessLimit) {
                 bright += 0x10;
@@ -175,7 +175,7 @@ void func_metabolism_8012EF34(Task* arg0)
             }
             goto draw;
         case 2:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             for (i = 0; i < D_metabolism_8012FB54[mem->index].wedgeCount; i++) {
                 func_metabolism_8012F840(coord, mem->angle, D_metabolism_8012FB78[i],
                                          mem->scale);
@@ -255,7 +255,7 @@ void func_metabolism_8012F5A0(Task* arg0)
             y                   = coord->coord.t[1] + step;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]   = y;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
             }
@@ -275,7 +275,7 @@ void func_metabolism_8012F5A0(Task* arg0)
             y                   = coord->coord.t[1] + step;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]   = y;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
             }

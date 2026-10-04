@@ -17,7 +17,7 @@ static inline void RoomFx_FlashTask(Task* arg0)
             effectKillTask(mem, arg0);
         }
     } else {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         mem->age++;
         switch (arg0->state) {
             case 0:

@@ -1487,7 +1487,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
 
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((0x1040C0 >> (gGameSession->location.loc.view - 1)) & 1)) {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         blk->worldPos.vx = coord->workm.t[0];
         blk->worldPos.vy = coord->workm.t[1];

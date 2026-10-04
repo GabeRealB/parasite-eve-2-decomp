@@ -27,9 +27,9 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     }
     task->work                 = work;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     parentCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(parentCoord);
+    actorRenderComposeCoord(parentCoord);
     coord->parent = &gGfxViewCoord;
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
     coord->composeStamp         = GRAPHICS_COORD_DIRTY;

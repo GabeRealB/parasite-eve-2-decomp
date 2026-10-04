@@ -1465,7 +1465,7 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
         case 1:
             gfxRotMatrixX(&coord->coord, -(D_acropolis_helicopter_landing_pad_80187F7C * 0x60) / 0x1000, GRAPHICS_ROTATION_COMPOSE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             D_acropolis_helicopter_landing_pad_80187F7C += 0x190;
             if (D_acropolis_helicopter_landing_pad_80187F7C > 0x1000) {
                 D_acropolis_helicopter_landing_pad_80187F7C = 0x1000;
@@ -1475,7 +1475,7 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
         case 2:
             gfxRotMatrixX(&coord->coord, -(D_acropolis_helicopter_landing_pad_80187F7C * 0x60) / 0x1000, GRAPHICS_ROTATION_COMPOSE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             D_acropolis_helicopter_landing_pad_80187F7C -= 0x190;
             if (D_acropolis_helicopter_landing_pad_80187F7C < 0) {
                 D_acropolis_helicopter_landing_pad_80187F7C = 0;

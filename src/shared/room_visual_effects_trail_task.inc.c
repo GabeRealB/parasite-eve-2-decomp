@@ -39,7 +39,7 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
             objCoord->coord.t[1]   = RoomFx_TrailOffsets[0].vy;
             objCoord->coord.t[2]   = RoomFx_TrailOffsets[0].vz;
             objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(objCoord);
+            actorRenderComposeCoord(objCoord);
             task->state        = 1;
             coord.parent       = work->parent;
             vec                = &RoomFx_TrailOffsets[1];
@@ -47,7 +47,7 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
             coord.coord.t[1]   = vec->vy;
             coord.coord.t[2]   = vec->vz;
             coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&coord);
+            actorRenderComposeCoord(&coord);
             for (i = 0; i < 8; i++) {
                 dst         = &coords[i];
                 dst->parent = &gGfxViewCoord;
@@ -66,7 +66,7 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
 
         case 1:
             objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(objCoord);
+            actorRenderComposeCoord(objCoord);
             coord.parent = work->parent;
             {
                 SVECTOR* edge    = &RoomFx_TrailOffsets[1];
@@ -75,7 +75,7 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
                 coord.coord.t[2] = edge->vz;
             }
             coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&coord);
+            actorRenderComposeCoord(&coord);
             dst         = &coords[work->age & 7];
             dst->parent = &gGfxViewCoord;
             dst->workm  = objCoord->workm;
@@ -91,10 +91,10 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
             for (i = 0; i < 8; i++) {
                 dst               = &coords[i];
                 dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(dst);
+                actorRenderComposeCoord(dst);
                 dst               = &coords[i + 8];
                 dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(dst);
+                actorRenderComposeCoord(dst);
             }
             RoomFx_DrawTwinTrail(coords, &coords[8], work->age & 7, 0x123);
             if (work->age == task->spawnArg1.value && work->age != 0) {

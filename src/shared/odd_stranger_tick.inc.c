@@ -27,7 +27,7 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
     states = gOddStrangerStates;
 
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(actor->extra.tmd->coords);
+    actorRenderComposeCoord(actor->extra.tmd->coords);
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
@@ -80,7 +80,7 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
             actor->extra.tmd->coords->coord.t[1]   = work->grabStartPos.vy;
             actor->extra.tmd->coords->coord.t[2]   = work->grabStartPos.vz;
             actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(actor->extra.tmd->coords);
+            actorRenderComposeCoord(actor->extra.tmd->coords);
         }
         work->stateEntered = 1;
     } else {

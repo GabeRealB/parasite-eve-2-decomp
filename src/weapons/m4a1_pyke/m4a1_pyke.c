@@ -101,7 +101,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
             coord->coord.t[1]   = D_m4a1_pyke_8011E90C.vy;
             coord->coord.t[2]   = D_m4a1_pyke_8011E90C.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             task->state = 1;
             break;
         case 1:
@@ -115,7 +115,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                             MATRIX_TRANS(&coord->workm), work->age, 0x80);
                         break;
                     }
-                    Gp_UpdateCoord(coord);
+                    actorRenderComposeCoord(coord);
                     pykeFlameDrawNozzle(MATRIX_TRANS(&coord->workm), work->age, 0x80);
                     lightSlot->framesLeft = 4;
                     slot->inner           = 0x80;
@@ -135,7 +135,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                         work->age--;
                         break;
                     }
-                    Gp_UpdateCoord(coord);
+                    actorRenderComposeCoord(coord);
                     if (work->scale < 0x180) {
                         work->scale = work->scale + 0x40;
                     }

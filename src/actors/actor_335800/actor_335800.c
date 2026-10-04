@@ -1355,7 +1355,7 @@ static void func_actor_335800_80162844(Task* task)
     }
     if (gGameSession->viewReady != 0) {
         work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL;
-        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
@@ -1548,7 +1548,7 @@ static void func_actor_335800_80163568(Task* task)
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
-        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {

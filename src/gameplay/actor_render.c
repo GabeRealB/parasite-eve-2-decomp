@@ -18,6 +18,9 @@
 
 static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 
+/// Selects the pass-counter parity stored in bit 31 of each visited coordinate's stamp.
+enum { ACTOR_RENDER_COORD_PASS_PARITY_MASK = 1 };
+
 /// Last node explicitly submitted for composition through its full parent chain.
 ///
 /// Initially NULL; updates with an excluded ancestor leave this snapshot alone.
@@ -180,33 +183,36 @@ static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 
     }
 }
 
-/// Brings every coordinate the draw passes use up to date for this frame: the
-/// coordinate bodies' single transforms, then each model's part coordinates, and
-/// advances the frame stamp the next pass will compare against.
-static __inline__ void _gpRefreshAllCoords(void)
+/// Composes the coordinate-body and model lists, then advances the composition pass.
+///
+/// Visits every linked body's coordinate and every model's `partCount` nodes,
+/// regardless of draw flags, through their complete parent chains. The lists,
+/// their borrowed parent nodes and each model's owned coordinate array must
+/// stay live and unchanged during the walk. Empty lists still advance the
+/// counter. Explicit node compositions before the next list pass use that
+/// next pass's stamp and parity; this is a pass boundary, not a frame clock.
+static __inline__ void _actorRenderComposeListedCoords(void)
 {
-    // The cursors have disjoint lifetimes and reuse one saved register.
-    register ModelObjectCoordBody* display asm("s3");
-    register TmdObject*            model asm("s3");
-    GfxCoord*                      coord;
-    s32                            stamp;
-    s32                            parity;
-    u32                            partIndex;
+    TmdListNode* link;
+    GfxCoord*    partCoord;
+    s32          rebuildStamp;
+    s32          visitParity;
+    u32          partIndex;
 
-    stamp  = D_80071210 & GRAPHICS_COORD_STAMP_MASK;
-    parity = D_80071210 & 1;
-    for (display = PARENT_OF(gModelObjectCoordBodyList.next, ModelObjectCoordBody, link); display != NULL;
-         display = PARENT_OF(display->link.next, ModelObjectCoordBody, link)) {
-        _actorRenderRefreshCoord(display->coord, stamp, parity, NULL);
+    rebuildStamp = D_80071210 & GRAPHICS_COORD_STAMP_MASK;
+    visitParity  = D_80071210 & ACTOR_RENDER_COORD_PASS_PARITY_MASK;
+    // Both lists share one pass, so common ancestors can reuse their caches.
+    for (link = gModelObjectCoordBodyList.next; link != NULL; link = link->next) {
+        _actorRenderRefreshCoord(PARENT_OF(link, ModelObjectCoordBody, link)->coord, rebuildStamp, visitParity, NULL);
     }
-    for (model = PARENT_OF(gTmdList.next, TmdObject, link); model != NULL;
-         model = PARENT_OF(model->link.next, TmdObject, link)) {
-        coord = model->coords;
-        for (partIndex = 0; partIndex < model->partCount; partIndex++) {
-            _actorRenderRefreshCoord(coord, stamp, parity, NULL);
-            coord++;
+    for (link = gTmdList.next; link != NULL; link = link->next) {
+        partCoord = PARENT_OF(link, TmdObject, link)->coords;
+        for (partIndex = 0; partIndex < PARENT_OF(link, TmdObject, link)->partCount; partIndex++) {
+            _actorRenderRefreshCoord(partCoord, rebuildStamp, visitParity, NULL);
+            partCoord++;
         }
     }
+    // Advance only after both lists have used the same rebuild stamp and parity.
     D_80071210 += 1;
 }
 
@@ -214,30 +220,34 @@ static __inline__ void _gpRefreshAllCoords(void)
 /// flagged pass draws.
 void Gp_DrawActorTmdFlagged(GsOT* arg0)
 {
-    _gpRefreshAllCoords();
+    _actorRenderComposeListedCoords();
     Tmd_DrawFlaggedNodes(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
 /// Refreshes every coordinate for this frame, then draws the active models.
 void Gp_DrawActorTmdActive(GsOT* arg0)
 {
-    _gpRefreshAllCoords();
+    _actorRenderComposeListedCoords();
     Tmd_DrawActiveNodes(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
-void Gp_UpdateCoord(GfxCoord* coord)
+void actorRenderComposeCoord(GfxCoord* coord)
 {
     _gActorRenderLastFullChainCoord = coord;
-    actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
+    actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK,
+                                 D_80071210 & ACTOR_RENDER_COORD_PASS_PARITY_MASK, NULL);
 }
 
-void Gp_UpdateCoordEx(GfxCoord* coord, GfxCoord* root)
+void actorRenderComposeCoordRelative(GfxCoord* coord, GfxCoord* excludedAncestor)
 {
     if (coord->parent == NULL) {
+        // Keep the composed cache while rebasing only the detached node's local matrix.
         _gActorRenderLastFullChainCoord = coord;
-        actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
+        actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK,
+                                     D_80071210 & ACTOR_RENDER_COORD_PASS_PARITY_MASK, NULL);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
     } else {
-        actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, root);
+        actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK,
+                                     D_80071210 & ACTOR_RENDER_COORD_PASS_PARITY_MASK, excludedAncestor);
     }
 }

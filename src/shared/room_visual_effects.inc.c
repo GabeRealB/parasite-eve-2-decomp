@@ -106,7 +106,7 @@ static inline void RoomFx_MoteTask(Task* task)
             case 1:
                 coord->coord.t[1]  += work->move.vy;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (work->age & 1) {
                     work->index++;
                     RoomFx_DrawMote(coord, work->index, work->angle | 0x1000, work->scale | work->period);
@@ -124,7 +124,7 @@ static inline void RoomFx_MoteTask(Task* task)
             case 2:
                 coord->coord.t[1]  += work->move.vy;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (work->age & 1) {
                     work->index++;
                     RoomFx_DrawMote(coord, work->index, work->angle, work->scale | work->period);

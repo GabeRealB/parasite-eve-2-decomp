@@ -234,7 +234,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     blk->vy              = 0x220;
     blk->vz              = 0x28;
     muzzle->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(muzzle);
+    actorRenderComposeCoord(muzzle);
     coord->workm = muzzle->workm;
     gte_SetRotMatrix(&muzzle->workm);
     gte_SetTransMatrix(&muzzle->workm);

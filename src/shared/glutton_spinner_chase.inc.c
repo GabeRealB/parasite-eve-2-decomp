@@ -25,7 +25,7 @@ void gluttonSpinnerChase(Enemy* enemy, Task* task)
 
     work                                  = task->work;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(task->extra.tmd->coords);
+    actorRenderComposeCoord(task->extra.tmd->coords);
     func_800D7A9C(task->extra.tmd, (VECTOR*)task->extra.tmd->coords->workm.t, 0, 3);
 
     if (gGluttonEnded == 1 || gGluttonSpinnersReleased == 0) {
@@ -47,7 +47,7 @@ void gluttonSpinnerChase(Enemy* enemy, Task* task)
             gfxRotMatrixY(&task->extra.tmd->coords->coord, -0x3C, 0);
         }
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(task->extra.tmd->coords);
+        actorRenderComposeCoord(task->extra.tmd->coords);
         return;
     }
 

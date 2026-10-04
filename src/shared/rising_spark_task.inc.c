@@ -35,7 +35,7 @@ static inline void risingSparkTask(Task* task)
             y                   = coord->coord.t[1] + step;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]   = y;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
             }

@@ -1246,7 +1246,7 @@ void func_actor_160900_80132E80(Task* task)
 
     coord = task->extra.coordBody->coord;
     work  = task->work;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gte_SetTransMatrix(&coord->workm);
     gte_SetRotMatrix(&coord->workm);
     origin.vz = 0;

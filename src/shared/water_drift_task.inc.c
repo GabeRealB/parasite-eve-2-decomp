@@ -33,7 +33,7 @@ static inline void waterDriftTask(Task* task)
         effectKillTask(work, task);
         return;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->age++;
     switch (task->state) {
         case 0:

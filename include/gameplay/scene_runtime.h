@@ -32,7 +32,7 @@ Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent)
 /// Copies `arg1`'s matrix onto the coordinate at `Task::extra.coordBody->coord`,
 /// adding `arg2` in that space. If `arg1->parent` is world (`gGfxViewCoord`),
 /// copies `coord` and transforms in place; otherwise computes `workm`
-/// via `Gp_UpdateCoord`, transforms there, and converts to local with
+/// via `actorRenderComposeCoord`, transforms there, and converts to local with
 /// `gfxMakeRelativeTransform`. Always parents the dest to world and clears `composeStamp`.
 /// Returns `arg0` (or NULL).
 Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2);

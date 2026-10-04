@@ -706,7 +706,7 @@ static void func_actor_135400_801322A8(Task* task)
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
-        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
         if (work->turnWeightRising != 0) {
             rate             = work->turnWeight + 0x100;

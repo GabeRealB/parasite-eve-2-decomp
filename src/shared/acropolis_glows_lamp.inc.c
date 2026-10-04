@@ -25,7 +25,7 @@ void ACROPOLIS_GLOWS_LAMP_TASK(Task* task)
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
     blk->worldPos.vx = coord->workm.t[0];
     blk->worldPos.vy = coord->workm.t[1];

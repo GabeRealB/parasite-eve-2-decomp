@@ -509,7 +509,7 @@ void func_actor_111800_8013251C(Task* task)
     actorLocalizeRotation(part, &mtx);
     Mem_CopyUnaligned(&mtx, &part->coord, 0x12U);
     part->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(part);
+    actorRenderComposeCoord(part);
     ActorContact_TurnJoint(task->extra.tmd->coords + 5, work->part5Yaw);
     obj                 = task->extra.tmd;
     work2               = task->work;

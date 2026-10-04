@@ -1649,7 +1649,7 @@ default_body:
     Actor02500_Fn02288(arg1);
     Actor02500_Fn02318(arg1);
     temp_s2->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(temp_s2);
+    actorRenderComposeCoord(temp_s2);
     Actor02500_Fn023D8(arg1);
     if (work->action == ACTOR_02500_ACTION_AMBUSH) {
         return;

@@ -1420,7 +1420,7 @@ void func_actor_310100_801631B0(Task* task)
     switch (task->state) {
         case 0:
             func_actor_310100_801625E4(task, ACTOR_310100_PLACEMENT_OFFICER_1);
-            Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+            actorRenderComposeCoord(&task->extra.tmd->coords[1]);
             _actor310100LightOfficerModel(task);
             task->state++;
             break;
@@ -1444,7 +1444,7 @@ void func_actor_310100_801632B0(Task* task)
     switch (task->state) {
         case 0:
             func_actor_310100_801625E4(task, ACTOR_310100_PLACEMENT_OFFICER_2);
-            Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+            actorRenderComposeCoord(&task->extra.tmd->coords[1]);
             _actor310100LightOfficerModel(task);
             task->state++;
             break;

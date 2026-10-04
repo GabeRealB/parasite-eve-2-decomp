@@ -23,8 +23,8 @@ void madChaserDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 wi
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
         s = SCRATCH_STACK_RESERVE_BLOCK(MadChaserLimbShadowScratch);
-        Gp_UpdateCoord(firstCoord);
-        Gp_UpdateCoord(secondCoord);
+        actorRenderComposeCoord(firstCoord);
+        actorRenderComposeCoord(secondCoord);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->firstPos.vy             = (s16)height;
@@ -53,7 +53,7 @@ void madChaserDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 wi
         s->corners[3].vx           = (s->secondPos.vx + (offset3 >> 0xC)) - s->halfSpanX;
         s->corners[3].vz           = (s->secondPos.vz - ((s32)(rsin(angle) * width) >> 0xC)) - s->halfSpanZ;
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&gGfxViewCoord);
+        actorRenderComposeCoord(&gGfxViewCoord);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         s->depth = RotTransPers4(&s->corners[0], &s->corners[1], &s->corners[2], &s->corners[3], &s->screenCorners[0], &s->screenCorners[1],

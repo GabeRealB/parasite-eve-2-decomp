@@ -204,7 +204,7 @@ void func_energyball_8012F180(Task* arg0)
             }
             goto release;
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
         func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
         if ((arg0->state < 3) && (gRoomEffectState->groundTraceEnabled != 0) &&
@@ -242,9 +242,9 @@ void func_energyball_8012F180(Task* arg0)
                 coord->coord.t[1]  += mem->move.vy;
                 coord->coord.t[2]  += mem->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
             } else {
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 arg0->work                  = work;
                 work->body.context.contacts = work->contacts;
                 work->body.coord            = coord;
@@ -339,7 +339,7 @@ void func_energyball_8012F180(Task* arg0)
             coord->coord.t[1]  += mem->move.vy;
             coord->coord.t[2]  += mem->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             slot->framesLeft         = 2;
             pointLight->inner        = 0x100;
             pointLight->outer        = 0x1000;
@@ -400,7 +400,7 @@ void func_energyball_8012F180(Task* arg0)
             Gp_ClearRec18Occupied(work->contacts);
             return;
         case 3:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
@@ -428,7 +428,7 @@ void func_energyball_8012F180(Task* arg0)
             }
             return;
         case 4:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
@@ -638,7 +638,7 @@ void func_energyball_8013107C(Task* arg0)
         arg0->state         = 1;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     rgb[0] = mem->scale >> 1;
     rgb[1] = (u8)mem->scale;
     rgb[2] = mem->scale >> 1;

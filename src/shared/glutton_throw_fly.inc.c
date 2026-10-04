@@ -81,7 +81,7 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
         work->shadowCoord.coord.t[1]   = 0;
         work->shadowCoord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
         work->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->shadowCoord);
+        actorRenderComposeCoord(&work->shadowCoord);
 
         Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + 0x100,
                              gRoomEffectState->groundShadowShade);
@@ -98,7 +98,7 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
         work->shadowCoord.coord.t[1]   = 0;
         work->shadowCoord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
         work->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->shadowCoord);
+        actorRenderComposeCoord(&work->shadowCoord);
 
         if (host->phase != 6) {
             Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + 0x100,

@@ -3689,7 +3689,7 @@ static void func_actor_403000_801327B0(GfxCoord* coord, SVECTOR* pos, s32 arg2)
     u16       y;
 
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
     gte_ldv0(pos);
@@ -3752,7 +3752,7 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
     scratch->emitter.coord.t[2]                = 0x12C;
     scratch->emitter.parent                    = parent;
     scratch->emitter.composeStamp              = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&scratch->emitter);
+    actorRenderComposeCoord(&scratch->emitter);
     walker                 = &scratch->emitter;
     pos                    = &scratch->emitterPos;
     scratch->emitterPos.vz = 0;
@@ -3879,7 +3879,7 @@ static void func_actor_403000_801330D4(GfxCoord* parent)
     scratch->emitter.parent                    = parent;
     scratch->emitter.coord.t[2]                = 0x12C;
     scratch->emitter.composeStamp              = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&scratch->emitter);
+    actorRenderComposeCoord(&scratch->emitter);
     walker                 = &scratch->emitter;
     pos                    = &scratch->emitterPos;
     scratch->emitterPos.vz = 0;
@@ -4641,7 +4641,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     arg1->msgTable                             = D_actor_403000_80158CA8;
     coord->parent                              = &gGfxViewCoord;
     coord->composeStamp                        = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
@@ -5269,22 +5269,22 @@ static void func_actor_403000_80136B14(Task* arg0)
     switch (work->stateFrame) {
         case 2:
             arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+            actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
             Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
             break;
         case 5:
             arg0->extra.tmd->coords[12].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&arg0->extra.tmd->coords[12]);
+            actorRenderComposeCoord(&arg0->extra.tmd->coords[12]);
             Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[12], 1, NULL);
             break;
         case 15:
             arg0->extra.tmd->coords[16].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&arg0->extra.tmd->coords[16]);
+            actorRenderComposeCoord(&arg0->extra.tmd->coords[16]);
             Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[16], 1, NULL);
             break;
         case 30:
             arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+            actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
             Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
             arg0->extra.tmd->otOffset = 0;
             break;
@@ -5333,20 +5333,20 @@ static void func_actor_403000_80136D68(Task* arg0)
     switch (work->stateFrame) {
         case 2:
             arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+            actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
             break;
         case 5:
             arg0->extra.tmd->coords[12].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&arg0->extra.tmd->coords[12]);
+            actorRenderComposeCoord(&arg0->extra.tmd->coords[12]);
             break;
         case 15:
             arg0->extra.tmd->coords[16].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&arg0->extra.tmd->coords[16]);
+            actorRenderComposeCoord(&arg0->extra.tmd->coords[16]);
             Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[16], 1, NULL);
             break;
         case 30:
             arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+            actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
             Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
             arg0->extra.tmd->otOffset = 0;
             break;
@@ -7355,7 +7355,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
     config                                = &gPlayerStatus;
     states                                = D_actor_403000_80131F44;
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
     pos.vx = arg1->extra.tmd->coords->workm.t[0];
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];

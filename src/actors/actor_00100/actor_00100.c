@@ -1511,8 +1511,8 @@ static void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
         s = SCRATCH_STACK_RESERVE_BLOCK(ActorLimbShadowScratch);
-        Gp_UpdateCoord(firstCoord);
-        Gp_UpdateCoord(secondCoord);
+        actorRenderComposeCoord(firstCoord);
+        actorRenderComposeCoord(secondCoord);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->firstPos.vy   = height;
@@ -1544,7 +1544,7 @@ static void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16
            from `gGfxViewCoord.workm`, whose high half the GTE loads below share. */
         view               = &gGfxViewCoord;
         view->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(view);
+        actorRenderComposeCoord(view);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         s->depth = RotTransPers4(&s->corners[0], &s->corners[1], &s->corners[2], &s->corners[3], &s->screenCorners[0], &s->screenCorners[1],
@@ -2062,7 +2062,7 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
     arg1->msgTable                        = Actor00100_D1BA54;
     coord->parent                         = &gGfxViewCoord;
     coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     color.vx = coord->workm.t[0];
     color.vy = coord->workm.t[1];
     color.vz = coord->workm.t[2];
@@ -2216,7 +2216,7 @@ static void Actor00100_Fn0375C(Task* arg0)
             scratch->criticalEffect               = -1;
             work->hitCooldown                     = Gp_GetIdParam2(scratch->hitKey);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
+            actorRenderComposeCoord(arg0->extra.tmd->coords);
             scratch->hitOffset.vx = scratch->hitPos.vx - arg0->extra.tmd->coords->workm.t[0];
             scratch->hitOffset.vy = scratch->hitPos.vy - arg0->extra.tmd->coords->workm.t[1];
             z                     = scratch->hitPos.vz - arg0->extra.tmd->coords->workm.t[2];
@@ -2805,7 +2805,7 @@ static void Actor00100_Fn08E7C(Task* arg0)
         desertChaserAnimTick(arg0);
         work->stateTimer = 0;
     }
-    Gp_UpdateCoord(arg0->extra.tmd->coords);
+    actorRenderComposeCoord(arg0->extra.tmd->coords);
     gte_SetTransMatrix(&arg0->extra.tmd->coords->workm);
     gte_SetRotMatrix(&arg0->extra.tmd->coords->workm);
     head[-1].delta.vx = 0;
@@ -3258,7 +3258,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     config                                 = &gPlayerStatus;
     states                                 = Actor00100_D000F0;
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(actor->extra.tmd->coords);
+    actorRenderComposeCoord(actor->extra.tmd->coords);
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];

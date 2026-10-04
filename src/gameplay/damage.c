@@ -325,7 +325,7 @@ s32 Gp_RollEnemyChance(Enemy* arg0, u32 arg1, s32 arg2)
     }
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_DamagePlayerDistanceScratch);
-    Gp_UpdateCoord(arg0->coord);
+    actorRenderComposeCoord(arg0->coord);
 
     // Carry the body point from the enemy's coordinate into world space. The
     // rotation takes its 32-bit words as an `SVECTOR`; see the block's type.

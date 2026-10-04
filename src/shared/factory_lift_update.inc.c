@@ -46,6 +46,6 @@ void factoryLiftUpdate(Task* task)
     }
     work->moveFrames++;
     factoryLiftSyncCollision(task, 0, flag & FACTORY_LIFT_POSITION_TURNED);
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
 }

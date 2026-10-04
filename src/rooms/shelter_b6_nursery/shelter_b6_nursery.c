@@ -935,7 +935,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
     D_shelter_b6_nursery_801879A0.coord.t[2]   = -0x33E;
     D_shelter_b6_nursery_801879A0.parent       = &gGfxViewCoord;
     D_shelter_b6_nursery_801879A0.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&D_shelter_b6_nursery_801879A0);
+    actorRenderComposeCoord(&D_shelter_b6_nursery_801879A0);
     pan   = worldCoordGetOriginAudioPan(&D_shelter_b6_nursery_801879A0);
     depth = worldCoordGetOriginAudioDepth(&D_shelter_b6_nursery_801879A0);
     switch (arg0->state) {
@@ -1181,7 +1181,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
                 effectKillTask(work, task);
             }
         } else {
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (task->state == 0) {
                 obj->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

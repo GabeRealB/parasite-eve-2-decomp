@@ -28,7 +28,7 @@ void gluttonPoseLimb(Task* task)
             work->escorts[4]->task->extra.tmd->coords[i].coord.t[2] = (s16)(gGluttonLimbReach / 5);
         }
         work->escorts[4]->task->extra.tmd->coords[i].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->escorts[4]->task->extra.tmd->coords[i]);
+        actorRenderComposeCoord(&work->escorts[4]->task->extra.tmd->coords[i]);
     }
 
     switch (work->limbPose) {

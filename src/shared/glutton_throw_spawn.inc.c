@@ -48,7 +48,7 @@ void gluttonThrowSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
     gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x80, 0);
-    Gp_UpdateCoord(task->extra.tmd->coords);
+    actorRenderComposeCoord(task->extra.tmd->coords);
 
     pos.vx = pos.vy = pos.vz = 0;
     actorLinkWorkObj(task->extra.tmd->coords, &work->attackBody, work->attackContacts, &pos, 0x394, 3,

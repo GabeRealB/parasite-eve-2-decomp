@@ -3373,7 +3373,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
 
@@ -3427,7 +3427,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
     blk   = SCRATCH_STACK_CURSOR(EffectQuadCornersScratch);
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 
     if (mem->age == 0) {
         mem->scale      = 0x20;
@@ -3565,7 +3565,7 @@ void func_acropolis_security_room_801817A4(Task* task)
 
     coord = task->extra.coordBody->coord;
     mem   = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     scratch              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
     scratch->worldPos.vx = coord->workm.t[0];
     scratch->worldPos.vy = coord->workm.t[1];

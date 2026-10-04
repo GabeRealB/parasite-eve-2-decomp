@@ -1258,7 +1258,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     actor->msgTable    = D_actor_401800_80155A80;
     root->parent       = &gGfxViewCoord;
     root->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(root);
+    actorRenderComposeCoord(root);
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
@@ -1339,7 +1339,7 @@ s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
     blk                                        = head - 1;
     SCRATCH_STACK_CURSOR(ActorBodyPushScratch) = blk;
     s                                          = blk;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
     s->position.vx = arg0->extra.tmd->coords[1].workm.t[0];
     s->position.vy = arg0->extra.tmd->coords[1].workm.t[1];
     s->position.vz = arg0->extra.tmd->coords[1].workm.t[2];

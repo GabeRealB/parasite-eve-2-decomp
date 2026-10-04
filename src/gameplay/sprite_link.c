@@ -312,7 +312,7 @@ static void Gp_LinkRoomObjects(Task* task)
         }
     }
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
 }
 
 s8 Gp_FindViewIndex(s32 arg0)
@@ -471,7 +471,7 @@ void Gp_RoomObjState1(Task* task)
 {
     if (task->spawnArg1.value != gGameSession->location.loc.view) {
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&gGfxViewCoord);
+        actorRenderComposeCoord(&gGfxViewCoord);
         task->spawnArg1.value = gGameSession->location.loc.view;
     }
     if (gGameSession->roomObjsDirty != 0) {

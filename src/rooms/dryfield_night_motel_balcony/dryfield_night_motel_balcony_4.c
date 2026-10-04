@@ -3402,7 +3402,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
         goto release;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->age++;
 
     switch (task->state) {
@@ -3709,7 +3709,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
         }
         return;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     age       = work->age;
     work->age = age + 1;
     switch (task->state) {
@@ -3971,7 +3971,7 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
         goto release;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     half = 0x80;
     work->age++;
 
@@ -4158,7 +4158,7 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
         goto release;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->age++;
 
     switch (task->state) {

@@ -111,7 +111,7 @@ void func_combustion_8012EF34(Task* arg0)
             coord->coord.t[2]     = 0;
             gfxRotMatrixY(&coord->coord, arg0->spawnArg1.value << 9, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             mem->move.vz = 0x200;
             pan          = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_combustion_80130998[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
@@ -125,7 +125,7 @@ void func_combustion_8012EF34(Task* arg0)
             Gp_SpawnPadLerp(D_combustion_80130980[mem->index].emitterFrames, 0xFF, 8);
             /* fallthrough */
         case 1:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 goto release;
             }
@@ -142,7 +142,7 @@ void func_combustion_8012EF34(Task* arg0)
             }
             return;
         case 2:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
                 (mem->age > D_combustion_80130980[mem->index].emitterFrames)) {
             release:
@@ -198,7 +198,7 @@ void func_combustion_8012F2BC(Task* arg0)
             coord->coord.t[1]   = mem->pos.vy;
             coord->coord.t[2]   = mem->pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
 
             rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->age        = ((u32)rng >> 16) & 0xF;
@@ -213,7 +213,7 @@ void func_combustion_8012F2BC(Task* arg0)
             arg0->state = 1;
             return;
         case 1:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (mem->index < 2) {
                 func_combustion_8012F5EC(coord, mem->age, mem->scale);
             } else {
@@ -235,7 +235,7 @@ void func_combustion_8012F2BC(Task* arg0)
             }
             return;
         case 2:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (mem->index < 2) {
                 spriteQuadDrawFlicker(coord, mem->age, mem->scale * 3 / 2, 0);
             } else {
@@ -386,7 +386,7 @@ void func_combustion_8012F888(Task* arg0)
             y                   = coord->coord.t[1] + step;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]   = y;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (!(mem->age & 1)) {
                 mem->index = mem->index + 1;
             }
@@ -406,7 +406,7 @@ void func_combustion_8012F888(Task* arg0)
             y                   = coord->coord.t[1] + step;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]   = y;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             frame      = mem->index + 1;
             mem->index = frame;
             if (frame < 8) {
@@ -420,7 +420,7 @@ void func_combustion_8012F888(Task* arg0)
             y                   = coord->coord.t[1] + step;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]   = y;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             frame      = mem->index + 1;
             mem->index = frame;
             if (frame < 6) {
@@ -593,7 +593,7 @@ void func_combustion_801308E0(Task* arg0)
         return;
     }
     coord = arg0->extra.coordBody->coord;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     Gp_SpawnEff((EFFECT_COMBUSTION_FLAME_EMITTER | EFFECT_SPAWN_UNLIMITED), coord, 1, 0);
     Gp_SpawnEff((EFFECT_COMBUSTION_FLAME_EMITTER | EFFECT_SPAWN_UNLIMITED), coord, -1, 0);
     arg0->state = arg0->state + 1;

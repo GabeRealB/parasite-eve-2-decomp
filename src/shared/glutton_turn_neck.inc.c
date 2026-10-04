@@ -31,12 +31,12 @@ void gluttonTurnNeck(Task* task, s16 arg1)
     }
 
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&task->extra.tmd->coords[3]);
+    actorRenderComposeCoord(&task->extra.tmd->coords[3]);
     ActorContact_TurnJoint(&task->extra.tmd->coords[3], work->neckYaw);
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&task->extra.tmd->coords[3]);
+    actorRenderComposeCoord(&task->extra.tmd->coords[3]);
     work->escorts[4]->task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->escorts[4]->task->extra.tmd->coords[0]);
+    actorRenderComposeCoord(&work->escorts[4]->task->extra.tmd->coords[0]);
     task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&task->extra.tmd->coords[4]);
+    actorRenderComposeCoord(&task->extra.tmd->coords[4]);
 }

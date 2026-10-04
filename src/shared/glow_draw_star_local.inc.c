@@ -18,7 +18,7 @@ void glowDrawStarLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
     s32                    t;
     s32                    t2;
 
-    Gp_UpdateCoord(arg0);
+    actorRenderComposeCoord(arg0);
     block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
 
     gte_SetRotMatrix(&arg0->workm);

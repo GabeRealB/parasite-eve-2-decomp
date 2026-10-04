@@ -153,7 +153,7 @@ void desertChaserAnimTick(Task* task)
     if ((work->animId == 0) && (work->state == 0x26)) {
         gfxRotMatrixX(&task->extra.tmd->coords[4].coord, 0x280, GRAPHICS_ROTATION_COMPOSE);
         task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&task->extra.tmd->coords[4]);
+        actorRenderComposeCoord(&task->extra.tmd->coords[4]);
     }
 #endif
     turnWork     = task->work;

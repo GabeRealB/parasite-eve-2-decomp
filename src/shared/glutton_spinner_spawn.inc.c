@@ -55,7 +55,7 @@ void gluttonSpinnerSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->lightMtx             = &work->lightMtx;
     task->extra.tmd->colorMtx             = &work->colorMtx;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(task->extra.tmd->coords);
+    actorRenderComposeCoord(task->extra.tmd->coords);
     func_800D7A9C(task->extra.tmd, (VECTOR*)task->extra.tmd->coords->workm.t, 0, 3);
     task->state++;
 }

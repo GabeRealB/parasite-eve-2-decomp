@@ -460,7 +460,7 @@ void func_dryfield_night_souvenir_shop_8017DFF4(Task* task)
     GfxCoord* coord;
 
     coord = task->extra.coordBody->coord;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     glowDrawPrism(coord, 0);
     glowDrawPrism(coord, 8);
 }

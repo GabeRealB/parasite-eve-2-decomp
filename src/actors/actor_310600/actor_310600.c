@@ -538,7 +538,7 @@ static void func_actor_310600_80161FA0(Task* task)
     }
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {

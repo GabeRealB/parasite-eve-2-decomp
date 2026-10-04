@@ -7,7 +7,7 @@ void gluttonPropTick(Enemy* enemy, Task* arg1)
     VECTOR sp10;
 
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
     sp10.vx = arg1->extra.tmd->coords->workm.t[0];
     sp10.vy = arg1->extra.tmd->coords->workm.t[1];
     sp10.vz = arg1->extra.tmd->coords->workm.t[2];

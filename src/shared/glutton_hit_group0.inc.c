@@ -112,7 +112,7 @@ found:
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, &enemy->task->extra.tmd->coords[3], 3, &sc->offset);
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(arg0->extra.tmd->coords);
+        actorRenderComposeCoord(arg0->extra.tmd->coords);
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
         sc->offset.vx = arg0->extra.tmd->coords->workm.t[0];
         sc->offset.vy = arg0->extra.tmd->coords->workm.t[1];

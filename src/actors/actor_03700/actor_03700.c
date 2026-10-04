@@ -2126,7 +2126,7 @@ default_body:
     }
     Actor03700_Fn033F0(task);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 case1:
     Actor03700_Fn034A0(task);
 }

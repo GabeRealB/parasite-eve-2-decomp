@@ -19,7 +19,7 @@ void desertChaserFrameState(Enemy* enemy, Task* task)
     sp                                    = gDesertChaserStates;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     scratch                               = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserFrameScratch);
-    Gp_UpdateCoord(task->extra.tmd->coords);
+    actorRenderComposeCoord(task->extra.tmd->coords);
     scratch->rootPos.vx = task->extra.tmd->coords->workm.t[0];
     scratch->rootPos.vy = task->extra.tmd->coords->workm.t[1];
     scratch->rootPos.vz = task->extra.tmd->coords->workm.t[2];

@@ -1836,7 +1836,7 @@ static void func_actor_503500_80145FDC(Task* task)
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         pos.vx = coord->workm.t[0];
         pos.vy = coord->workm.t[1];
         pos.vz = coord->workm.t[2];

@@ -45,7 +45,7 @@ default_body:
     skullStalkerAnimate(arg1);
     arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg1->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
 case1:
     skullStalkerColour(arg0, arg1);
 }

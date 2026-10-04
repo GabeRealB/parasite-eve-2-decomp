@@ -47,7 +47,7 @@ static inline void pykeFlameTask(Task* task)
     }
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
 #if PYKE_FLAME_REDRAW_UPDATES_COORD
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
 #endif
         pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
                           (work->age >> 1) + 1, work->scale, work->angle);
@@ -100,7 +100,7 @@ static inline void pykeFlameTask(Task* task)
             coord->coord.t[1]  += work->move.vy;
             coord->coord.t[2]  += work->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
             after.vz = coord->workm.t[2];
@@ -141,7 +141,7 @@ static inline void pykeFlameTask(Task* task)
             coord->coord.t[1]  += work->move.vy;
             coord->coord.t[2]  += work->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
                               (work->age >> 1) + 1, work->scale,
                               work->angle);

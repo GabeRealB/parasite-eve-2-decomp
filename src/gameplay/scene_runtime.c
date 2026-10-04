@@ -1030,7 +1030,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
         gte_rtv0tr();
         gte_stlvnl(dest->coord.t);
     } else {
-        Gp_UpdateCoord(arg1);
+        actorRenderComposeCoord(arg1);
         dest->workm = arg1->workm;
         gte_SetRotMatrix(&arg1->workm);
         gte_SetTransMatrix(&arg1->workm);
@@ -3339,7 +3339,7 @@ void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2)
     scratch->vertices[2].vx                           = scratch->vertices[0].vx;
     scratch->vertices[2].vz = scratch->vertices[3].vz = scratch->vertices[0].vz + arg1;
     scratch->vertices[1].vz                           = scratch->vertices[0].vz;
-    Gp_UpdateCoord(arg0);
+    actorRenderComposeCoord(arg0);
     gte_SetRotMatrix(&arg0->workm);
     gte_SetTransMatrix(&arg0->workm);
     scratch->farthestDepth = 0;
@@ -3598,8 +3598,8 @@ void Gp_ReparentCoord(GfxCoord* arg0, GfxCoord* arg1)
 
     dest = arg1;
     if (dest->parent != arg0) {
-        Gp_UpdateCoord(arg0);
-        Gp_UpdateCoord(dest);
+        actorRenderComposeCoord(arg0);
+        actorRenderComposeCoord(dest);
         dest->parent = arg0;
         gfxMakeRelativeTransform(&arg0->workm, &dest->workm, &dest->coord);
         dest->composeStamp = GRAPHICS_COORD_DIRTY;

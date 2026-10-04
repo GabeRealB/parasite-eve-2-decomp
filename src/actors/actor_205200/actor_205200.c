@@ -476,7 +476,7 @@ static void func_actor_205200_8014ACD4(Task* arg0)
     for (i = 0; i < ARRAY_SIZE(work->partLive); i++) {
         if (work->partLive[i] == 1) {
             work->partCoords[i]->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(work->partCoords[i]);
+            actorRenderComposeCoord(work->partCoords[i]);
             d.vx = view->transform.t[0] + work->partCoords[i]->coord.t[0];
             d.vy = view->transform.t[1] + work->partCoords[i]->coord.t[1];
             d.vz = view->transform.t[2] + work->partCoords[i]->coord.t[2];

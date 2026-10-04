@@ -41,7 +41,7 @@ void golemKnightBishopAimFromPart(Task* arg0)
     part                     = &coord[3] + 1;
     coord->composeStamp      = GRAPHICS_COORD_DIRTY;
     part->composeStamp       = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(part);
+    actorRenderComposeCoord(part);
     if (work->auxTimer > 0) {
         gfxMakeRelativeTransform(&coord->workm, &part->workm, &sc->partInRoot);
         sc->ends[1].vx = -0x28;

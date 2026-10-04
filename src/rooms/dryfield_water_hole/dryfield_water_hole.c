@@ -1447,7 +1447,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
                 view = &gGfxViewCoord;
                 for (i = 0; i < 2; i++) {
                     part = &ctl->extra.tmd->coords[14 + i * 3];
-                    Gp_UpdateCoord(part);
+                    actorRenderComposeCoord(part);
                     // The work block's `angle` holds the splash strength, this task's spawn odds
                     // out of 0x200: the part's movement since last frame, raised by 0x20 for the
                     // ripple roll only.
@@ -1458,7 +1458,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
                     surface.parent       = view;
                     surface.coord.t[1]   = gGameSession->waterY;
                     surface.composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(&surface);
+                    actorRenderComposeCoord(&surface);
                     rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
                     if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
                         Gp_SpawnEff(gRoomEffectWaterRippleId, &surface, 0x40, 0);

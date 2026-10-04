@@ -4,7 +4,7 @@
 /// `savedRootMtx`, scaled along Y by `flattenScaleY`, which decays by 0x50 a frame
 /// while it stays above 0x200. The scale matrix and its `VECTOR` live in an
 /// `ActorScaleScratch` block; the node's `composeStamp` is cleared so the next
-/// `Gp_UpdateCoord` recomputes it.
+/// `actorRenderComposeCoord` recomputes it.
 void sucklercephFlatten(Task* arg0)
 {
     GfxCoord*          coord;

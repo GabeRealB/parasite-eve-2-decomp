@@ -11,7 +11,7 @@ void factoryDrawGlows(Task* task)
 
     state = 1 << gGameSession->location.loc.view;
 #if DRYFIELD_TIME == DRYFIELD_NIGHT
-    Gp_UpdateCoord(task->extra.coordBody->coord); /* the night build also refreshes the task's matrix */
+    actorRenderComposeCoord(task->extra.coordBody->coord); /* the night build also refreshes the task's matrix */
 #endif
     if (GameFlag_GetNibble(GAME_FLAG_FACTORY_POWER_ON) != 0 && (state & 0x15068) != 0) {
         glowDrawTintedDisc(&gFactoryGlowPos48, 0x100, 0x3660);

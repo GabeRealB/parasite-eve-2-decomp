@@ -1680,7 +1680,7 @@ static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
         Actor01600_Fn03D48(arg1);
         Actor01600_Fn06A84(arg1);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         count            = work->colorTimer + 1;
         work->colorTimer = count;
         if (((s16)count >= 5) || (gGameSession->viewDirty == 1)) {
@@ -3571,7 +3571,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
 
     Actor01600_Fn03D48(arg1);
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coords);
+    actorRenderComposeCoord(coords);
     count            = work->colorTimer + 1;
     work->colorTimer = count;
     if (count < 5 && gGameSession->viewDirty != 1) {
@@ -3781,7 +3781,7 @@ static void Actor01600_Fn04AD8(Task* arg0)
     }
     work->targetAnchor.coord.t[1]   = body->coord.t[1];
     work->targetAnchor.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->targetAnchor);
+    actorRenderComposeCoord(&work->targetAnchor);
 }
 
 /// Reserves a `_Actor01600PathProbeAimScratch`, updates `probeYaw` either by `angle` (clamped

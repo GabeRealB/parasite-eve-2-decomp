@@ -16,6 +16,6 @@ void diverTurnJoint(GfxCoord* coord, s16 yaw)
     out = diverLocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
+    actorRenderComposeCoord(out);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }

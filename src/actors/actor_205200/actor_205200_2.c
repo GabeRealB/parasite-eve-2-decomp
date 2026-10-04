@@ -752,7 +752,7 @@ default_body:
     func_actor_205200_8014C67C(arg1);
     func_actor_205200_8014C7CC(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 case1:
     func_actor_205200_8014C87C(arg1);
     func_actor_205200_8014C8D4(arg1);

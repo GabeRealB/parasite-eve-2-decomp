@@ -1826,8 +1826,8 @@ static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoi
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        Gp_UpdateCoord(firstCoord);
-        Gp_UpdateCoord(secondCoord);
+        actorRenderComposeCoord(firstCoord);
+        actorRenderComposeCoord(secondCoord);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
         first.vy   = (s16)height;
@@ -1859,7 +1859,7 @@ static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoi
            from `gGfxViewCoord.workm`, whose high half the GTE loads below share. */
         viewCoord               = &gGfxViewCoord;
         viewCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(viewCoord);
+        actorRenderComposeCoord(viewCoord);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3,
@@ -2347,7 +2347,7 @@ static inline void _actor400500SampleView(Task* task, s16 part, SVECTOR3* pos)
     GfxCoord* coord;
 
     coord = &task->extra.tmd->coords[part];
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     pos->vx             = local.t[0];
     pos->vz             = local.t[2];
@@ -2365,15 +2365,15 @@ static inline void _actor400500AnchorPart(Task* task, s16 part, SVECTOR3* pos)
 
     coords = task->extra.tmd->coords;
     coord  = &coords[part];
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     coords[0].coord.t[0]   = pos->vx - (local.t[0] - root.t[0]);
     coords[0].coord.t[2]   = pos->vz - (local.t[2] - root.t[2]);
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     coord->composeStamp    = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    Gp_UpdateCoord(coords);
+    actorRenderComposeCoord(coord);
+    actorRenderComposeCoord(coords);
 }
 
 /// Queues the complete sound id `sound` from the enemy's position.
@@ -2757,9 +2757,9 @@ static void func_actor_400500_801348D8(Task* arg0, s32 arg1)
             i++;
         } while (i < ARRAY_SIZE(work2->rig.slots));
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&gGfxViewCoord);
+        actorRenderComposeCoord(&gGfxViewCoord);
         joint->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(joint);
+        actorRenderComposeCoord(joint);
         pos.vx = 0x160;
         pos.vy = 0x148;
         pos.vz = 0x2C0;
@@ -2778,7 +2778,7 @@ static void func_actor_400500_801348D8(Task* arg0, s32 arg1)
             player->coord.t[2] = cur;
         }
         player->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(player);
+        actorRenderComposeCoord(player);
         work->animRate = -ANIMATION_RATE_ONE;
         work3          = (_Actor400500GrayStalkerWork*)arg0->work;
         if (work3->animRequest == ACTOR_400500_ANIM_REQUEST_BLEND) {
@@ -3188,7 +3188,7 @@ static void func_actor_400500_80135770(Task* arg0)
             func_actor_400500_80132AB0(arg0, -0x3E8, (u8)work->shadowShade);
             head = push_proj();
             proj = (ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch));
-            Gp_UpdateCoord(part2);
+            actorRenderComposeCoord(part2);
             vecp  = &proj->origin;
             workm = &part2->workm;
             gte_SetRotMatrix(workm);
@@ -3486,7 +3486,7 @@ static void func_actor_400500_801361EC(Task* arg0)
                     dst->m[2][2] = src->mat.m[2][2];
                     pos2         = &work->anchorPos;
                     coords       = arg0->extra.tmd->coords;
-                    Gp_UpdateCoord(&coords[11]);
+                    actorRenderComposeCoord(&coords[11]);
                     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[11].workm, &local);
                     pos                     = pos2;
                     pos->vx                 = local.t[0];
@@ -3497,7 +3497,7 @@ static void func_actor_400500_801361EC(Task* arg0)
             }
             pos4    = &work->anchorPos;
             coords2 = arg0->extra.tmd->coords;
-            Gp_UpdateCoord(&coords2[11]);
+            actorRenderComposeCoord(&coords2[11]);
             gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords2[11].workm, &local);
             pos3                     = pos4;
             pos3->vx                 = local.t[0];
@@ -4266,7 +4266,7 @@ static inline void _actor400500TurnPart(GfxCoord* part, u16 heading)
     func_actor_400500_8013B720(part, matrix);
     memcpy(part->coord.m, matrix->m, sizeof(part->coord.m));
     part->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(part);
+    actorRenderComposeCoord(part);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
@@ -4283,8 +4283,8 @@ static inline s16 _actor400500PlayerDistance(GfxCoord* part)
         return 0x7FFF;
     }
     playerCoords = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
-    Gp_UpdateCoord(&playerCoords[4]);
-    Gp_UpdateCoord(part);
+    actorRenderComposeCoord(&playerCoords[4]);
+    actorRenderComposeCoord(part);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &playerCoords[4].workm, &playerView);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &part->workm, &partView);
     delta.vx = (u16)playerView.t[0] - (u16)partView.t[0];
@@ -5106,7 +5106,7 @@ static void func_actor_400500_8013973C(Task* arg0)
     if ((s16)++work->stateFrames < 8) {
         pos2        = &work->anchorPos;
         coordsEarly = arg0->extra.tmd->coords;
-        Gp_UpdateCoord(&coordsEarly[3]);
+        actorRenderComposeCoord(&coordsEarly[3]);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordsEarly[3].workm, &rot.mat);
         pos                         = pos2;
         pos->vx                     = rot.mat.t[0];
@@ -5123,7 +5123,7 @@ static void func_actor_400500_8013973C(Task* arg0)
     posMain2           = &work->anchorPos;
     coordsMain         = arg0->extra.tmd->coords;
     part3              = &coordsMain[3];
-    Gp_UpdateCoord(part3);
+    actorRenderComposeCoord(part3);
     view = &gGfxViewCoord.workm;
     gfxMakeRelativeTransform(view, &coordsMain->workm, &local0);
     gfxMakeRelativeTransform(view, &coordsMain[3].workm, &local3);
@@ -5135,8 +5135,8 @@ static void func_actor_400500_8013973C(Task* arg0)
     coordsMain->coord.t[2]     = viewZ - dz;
     coordsMain->composeStamp   = GRAPHICS_COORD_DIRTY;
     coordsMain[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(part3);
-    Gp_UpdateCoord(coordsMain);
+    actorRenderComposeCoord(part3);
+    actorRenderComposeCoord(coordsMain);
     step             = (u16)work->moveAccel + 2;
     accum            = (u16)work->moveSpeed + step;
     work->moveSpeed  = accum;
@@ -5200,7 +5200,7 @@ static void func_actor_400500_8013973C(Task* arg0)
             i++;
         } while (i < ARRAY_SIZE(workAnim->rig.slots));
         root->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(root);
+        actorRenderComposeCoord(root);
         work->stateFrames = 0;
     }
 }
@@ -5435,7 +5435,7 @@ static void func_actor_400500_8013A0B8(Task* arg0)
     enemy  = (Enemy*)arg0->spawnArg2.pointer;
     if ((s16)work->stateFrames == neg) {
         coord14 = &coords[0xE];
-        Gp_UpdateCoord(coord14);
+        actorRenderComposeCoord(coord14);
         pos2 = &work->anchorPos;
         view = &gGfxViewCoord.workm;
         gfxMakeRelativeTransform(view, &coords->workm, &rot.mat);
@@ -5449,8 +5449,8 @@ static void func_actor_400500_8013A0B8(Task* arg0)
         coord14->composeStamp = GRAPHICS_COORD_DIRTY;
         dz                    = delta;
         coords->coord.t[2]    = z - dz;
-        Gp_UpdateCoord(coord14);
-        Gp_UpdateCoord(coords);
+        actorRenderComposeCoord(coord14);
+        actorRenderComposeCoord(coords);
     }
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
     if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
@@ -5505,7 +5505,7 @@ static void func_actor_400500_8013A0B8(Task* arg0)
                 i++;
             } while (i < ARRAY_SIZE(anim->rig.slots));
             coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coords);
+            actorRenderComposeCoord(coords);
             work3 = (_Actor400500GrayStalkerWork*)arg0->work;
             if (work3->knockdownPending != 0) {
                 work3->knockdownPending = 0;
@@ -5545,7 +5545,7 @@ static void func_actor_400500_8013A0B8(Task* arg0)
             RotMatrixY(ang->yaw, &src->mat);
             func_actor_400500_8013DE2C(&src->mat, &coord->coord);
             coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coords);
+            actorRenderComposeCoord(coords);
         }
     }
 }
@@ -6014,7 +6014,7 @@ static void func_actor_400500_8013AF44(Task* arg0)
         }
         pos2   = &work->anchorPos;
         coords = arg0->extra.tmd->coords;
-        Gp_UpdateCoord(&coords[8]);
+        actorRenderComposeCoord(&coords[8]);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[8].workm, &local);
         pos                    = pos2;
         pos->vx                = local.t[0];
@@ -6942,7 +6942,7 @@ static void func_actor_400500_8013CA38(Task* arg0)
         work->stateFrames = neg;
         pos2              = &work->anchorPos;
         coords            = arg0->extra.tmd->coords;
-        Gp_UpdateCoord(&coords[0xE]);
+        actorRenderComposeCoord(&coords[0xE]);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0xE].workm, &local);
         pos                      = pos2;
         pos->vx                  = local.t[0];
@@ -7650,7 +7650,7 @@ static void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, SVECTOR3* arg2)
     GfxCoord* coord;
 
     coord = &arg0->extra.tmd->coords[arg1];
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     arg2->vx            = local.t[0];
     arg2->vz            = local.t[2];

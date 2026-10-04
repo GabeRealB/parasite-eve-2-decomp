@@ -1105,7 +1105,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
     if (D_acropolis_cafeteria_80184CFC != 0) {
         mode = gGameSession->location.loc.view;
         if (mode == 9) {
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             head = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
             SCRATCH_STACK_RESERVE_BLOCK(OverlaySpriteScratch);
             block              = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
@@ -1217,7 +1217,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     if (state != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->age++;
     if (task->state == 0) {
         obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1424,7 +1424,7 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
     work->kickStrength--;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]  += 0x80;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     switch (work->phase) {
         case ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING:
             if (Gp_FindRec18(work->body.context.contacts, 0)) {

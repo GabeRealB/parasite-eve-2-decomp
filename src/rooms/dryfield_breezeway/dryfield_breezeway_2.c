@@ -1430,7 +1430,7 @@ static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32
     s32                    t;
     s32                    t2;
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
 
     gte_SetRotMatrix(&coord->workm);
@@ -1531,7 +1531,7 @@ void func_dryfield_breezeway_80181264(Task* task)
         goto release;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->age++;
 
     switch (task->state) {

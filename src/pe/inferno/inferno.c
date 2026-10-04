@@ -135,7 +135,7 @@ void func_inferno_8012EF88(Task* arg0)
         goto release;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
@@ -287,7 +287,7 @@ void func_inferno_8012F530(Task* arg0)
         goto release;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:

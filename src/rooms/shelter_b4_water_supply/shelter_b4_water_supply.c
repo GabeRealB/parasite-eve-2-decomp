@@ -1041,7 +1041,7 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
     // One scratch reservation holds the values reused across the surface list.
     SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
     scratch                                = scratchEnd - 1;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     scratch->y = D_shelter_b4_water_supply_80182638;
@@ -1223,7 +1223,7 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
         i = 0;
         for (; i < 2; i++) {
             part = &ctl->extra.tmd->coords[14 + i * 3];
-            Gp_UpdateCoord(part);
+            actorRenderComposeCoord(part);
             // The work block's `angle` holds the splash strength, this task's spawn odds
             // out of 0x200: the part's movement since last frame, raised by 0x20 for the
             // ripple roll only.
@@ -1234,7 +1234,7 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
             surface.parent       = &gGfxViewCoord;
             surface.coord.t[1]   = gGameSession->waterY;
             surface.composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&surface);
+            actorRenderComposeCoord(&surface);
             rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
             if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
                 Gp_SpawnEff(gRoomEffectWaterRippleId, &surface, 0x40, 0);

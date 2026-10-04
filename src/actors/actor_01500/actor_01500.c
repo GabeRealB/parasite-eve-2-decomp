@@ -2020,7 +2020,7 @@ default_body:
     Actor01500_Fn02958(arg1);
     Actor01500_Fn02A1C(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 case1:
     Actor01500_Fn02B14(arg1);
     Actor01500_Fn02B70(arg1);

@@ -74,7 +74,7 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
                 coord->coord.t[1]   = D_m4a1_bayonet_8011DEC8[0].vy;
                 coord->coord.t[2]   = D_m4a1_bayonet_8011DEC8[0].vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 task->state = 1;
 
                 vx                = D_m4a1_bayonet_8011DEC8[1].vx;
@@ -86,7 +86,7 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
                 hilt.coord.t[0]   = vx;
                 hilt.coord.t[1]   = vy;
                 hilt.coord.t[2]   = vz;
-                Gp_UpdateCoord(&hilt);
+                actorRenderComposeCoord(&hilt);
 
                 for (i = 0; i < 8; i++) {
                     slot         = &gBladeTrailBase[i];
@@ -106,14 +106,14 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
                 break;
             case 1:
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
 
                 hilt.parent       = work->parent;
                 hilt.composeStamp = GRAPHICS_COORD_DIRTY;
                 hilt.coord.t[0]   = D_m4a1_bayonet_8011DED0.vx;
                 hilt.coord.t[1]   = D_m4a1_bayonet_8011DED0.vy;
                 hilt.coord.t[2]   = D_m4a1_bayonet_8011DED0.vz;
-                Gp_UpdateCoord(&hilt);
+                actorRenderComposeCoord(&hilt);
 
                 slot         = &gBladeTrailBase[work->age & 7];
                 slot->parent = &gGfxViewCoord;
@@ -132,10 +132,10 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
                 for (i = 0; i < 8; i++) {
                     slot               = &gBladeTrailBase[i];
                     slot->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(slot);
+                    actorRenderComposeCoord(slot);
                     slot               = &gBladeTrailTip[i];
                     slot->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(slot);
+                    actorRenderComposeCoord(slot);
                 }
                 bladeTrailDraw(work->age & 7, 0x112);
                 break;

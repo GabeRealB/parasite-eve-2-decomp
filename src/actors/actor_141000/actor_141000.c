@@ -2287,7 +2287,7 @@ static void func_actor_141000_801332A0(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     func_actor_141000_801335D4(task);

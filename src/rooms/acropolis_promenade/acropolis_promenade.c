@@ -2298,7 +2298,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->age = task->spawnArg1.value;
     blk       = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
     for (i = 0; i < ARRAY_SIZE(D_acropolis_promenade_80181AE4); i++) {

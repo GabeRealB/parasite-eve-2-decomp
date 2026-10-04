@@ -84,7 +84,7 @@ void func_plasma_8012EF34(Task* arg0)
     }
 
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     prev     = mem->age;
     next     = prev + 1;
     mem->age = next;

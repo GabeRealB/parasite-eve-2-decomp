@@ -98,7 +98,7 @@ void func_tonfa_baton_8011D1EC(Task* task)
                 coord->coord.t[1]   = D_tonfa_baton_8011E0F0[0].vy;
                 coord->coord.t[2]   = D_tonfa_baton_8011E0F0[0].vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 task->state        = 1;
                 vec                = &D_tonfa_baton_8011E0F0[1];
                 local.parent       = coord;
@@ -106,7 +106,7 @@ void func_tonfa_baton_8011D1EC(Task* task)
                 local.coord.t[1]   = vec->vy;
                 local.coord.t[2]   = vec->vz;
                 local.composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&local);
+                actorRenderComposeCoord(&local);
                 for (i = 0; i < 8; i++) {
                     dst         = &gBladeTrailBase[i];
                     dst->parent = &gGfxViewCoord;
@@ -129,13 +129,13 @@ void func_tonfa_baton_8011D1EC(Task* task)
                 break;
             case 1:
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 local.parent       = work->parent;
                 local.coord.t[0]   = D_tonfa_baton_8011E0F8.vx;
                 local.coord.t[1]   = D_tonfa_baton_8011E0F8.vy;
                 local.coord.t[2]   = D_tonfa_baton_8011E0F8.vz;
                 local.composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&local);
+                actorRenderComposeCoord(&local);
                 dst         = &gBladeTrailBase[work->age & 7];
                 dst->parent = &gGfxViewCoord;
                 dst->workm  = coord->workm;
@@ -151,10 +151,10 @@ void func_tonfa_baton_8011D1EC(Task* task)
                 for (i = 0; i < 8; i++) {
                     dst               = &gBladeTrailBase[i];
                     dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(dst);
+                    actorRenderComposeCoord(dst);
                     dst               = &gBladeTrailTip[i];
                     dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(dst);
+                    actorRenderComposeCoord(dst);
                 }
                 bladeTrailDraw(work->age & 7, D_tonfa_baton_8012C0EC);
                 break;

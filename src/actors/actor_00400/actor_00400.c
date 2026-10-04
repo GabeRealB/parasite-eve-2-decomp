@@ -1599,9 +1599,9 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     RotMatrixX(rot2.vx, &mb.mat);
     Actor00400_Fn08A1C(&ma.mat, m2);
     Actor00400_Fn08A1C(&mb.mat, m3);
-    Gp_UpdateCoord(c1);
-    Gp_UpdateCoord(c2);
-    Gp_UpdateCoord(c3);
+    actorRenderComposeCoord(c1);
+    actorRenderComposeCoord(c2);
+    actorRenderComposeCoord(c3);
     diverTurnJoint(c2, (s16)work->lookYaw / 3);
     diverTurnJoint(c3, (s16)work->lookYaw / 3);
 
@@ -2066,7 +2066,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 base[2].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(c4);
+                actorRenderComposeCoord(c4);
                 Gp_MtxToEuler(&base[2].coord, &work->lowerNeckAngles);
                 Gp_MtxToEuler(&base[3].coord, &work->upperNeckAngles);
                 work->neckPhase = ACTOR_00400_NECK_STRAIGHTEN;
@@ -2103,7 +2103,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 c2->composeStamp = GRAPHICS_COORD_DIRTY;
                 c3->composeStamp = GRAPHICS_COORD_DIRTY;
                 c4->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(c4);
+                actorRenderComposeCoord(c4);
                 break;
             }
             case ACTOR_00400_NECK_RETRACTED: {
@@ -2159,7 +2159,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 base[2].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(c4);
+                actorRenderComposeCoord(c4);
                 break;
             }
         }
@@ -2169,7 +2169,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
         base[2].composeStamp = GRAPHICS_COORD_DIRTY;
         base[3].composeStamp = GRAPHICS_COORD_DIRTY;
         base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(c4);
+        actorRenderComposeCoord(c4);
         if (work->neckScale < 0xF80) {
             GfxRotationWords* ia;
             GfxRotationWords* ib;
@@ -2254,7 +2254,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
         base[2].composeStamp = GRAPHICS_COORD_DIRTY;
         base[3].composeStamp = GRAPHICS_COORD_DIRTY;
         base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(c4);
+        actorRenderComposeCoord(c4);
         work->neckPhase = ACTOR_00400_NECK_FREE;
     }
 }
@@ -2453,7 +2453,7 @@ static void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corn
 
     s                          = SCRATCH_STACK_RESERVE_BLOCK(_Actor00400GroundStainScratch);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     s->depth = RotTransPers4(corner0, corner1, corner2, corner3, &s->screenCorners[0], &s->screenCorners[1], &s->screenCorners[2], &s->screenCorners[3],
@@ -4755,11 +4755,11 @@ static void Actor00400_Fn0824C(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     coordA                     = &coords[arg1];
     coordB                     = &coords[arg2];
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     coordA->composeStamp = GRAPHICS_COORD_DIRTY;
     coordB->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coordA);
-    Gp_UpdateCoord(coordB);
+    actorRenderComposeCoord(coordA);
+    actorRenderComposeCoord(coordB);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordA->workm, &a);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordB->workm, &b);
     arg3->vx             = (a.t[0] + b.t[0]) / 2;
@@ -4821,11 +4821,11 @@ static void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     coordA                     = &coords[arg1];
     coordB                     = &coords[arg2];
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     coordA->composeStamp = GRAPHICS_COORD_DIRTY;
     coordB->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coordA);
-    Gp_UpdateCoord(coordB);
+    actorRenderComposeCoord(coordA);
+    actorRenderComposeCoord(coordB);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordA->workm, &a);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordB->workm, &b);
@@ -4834,9 +4834,9 @@ static void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     coordA->composeStamp   = GRAPHICS_COORD_DIRTY;
     coordB->composeStamp   = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coordA);
-    Gp_UpdateCoord(coordB);
-    Gp_UpdateCoord(coords);
+    actorRenderComposeCoord(coordA);
+    actorRenderComposeCoord(coordB);
+    actorRenderComposeCoord(coords);
 }
 
 #include "../../shared/diver_restart_clip.inc.c"
@@ -5829,7 +5829,7 @@ static void Actor00400_Fn0A190(Task* task)
     Gp_LinkObj(3, &work->child.attackBody);
     Gp_InitRec18Table(work->contacts, 2, 0);
     work->child.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->velocity.vy = ACTOR_00400_SHOT_LAUNCH_SPEED_Y;
     diverImpactBurst(coord, (u16)work->frames, 0, 0x1300);
     task->state++;

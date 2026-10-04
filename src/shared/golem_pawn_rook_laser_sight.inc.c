@@ -32,7 +32,7 @@ void golemPawnRookAimLaserSight(Task* arg0)
     work                 = arg0->work;
     self[0].composeStamp = GRAPHICS_COORD_DIRTY;
     self[7].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&self[7]);
+    actorRenderComposeCoord(&self[7]);
     gfxMakeRelativeTransform(&self->workm, &self[7].workm, &scratch->matrix);
     scratch->muzzle.vy = 100;
     scratch->muzzle.vx = 0;

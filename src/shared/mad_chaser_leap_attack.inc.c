@@ -29,9 +29,9 @@ void madChaserLeapAttack(Task* arg0)
         SVECTOR*  v;
 
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&gGfxViewCoord);
+        actorRenderComposeCoord(&gGfxViewCoord);
         coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&coords[6]);
+        actorRenderComposeCoord(&coords[6]);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[6].workm, &local);
         v                      = &work->leapAnchorPos;
         v->vx                  = local.t[0];

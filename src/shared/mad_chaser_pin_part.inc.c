@@ -12,7 +12,7 @@ void madChaserPinPart(Task* arg0, s16 part, SVECTOR3* pos)
 
     coords = arg0->extra.tmd->coords;
     coord  = &coords[part];
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords->workm, &local);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &world);
     coords->coord.t[0]  = pos->vx - (world.t[0] - local.t[0]);

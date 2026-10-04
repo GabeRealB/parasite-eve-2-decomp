@@ -189,7 +189,7 @@ gMcSaveData = 0x80072168; // absolute:True
 gPlayerStatus = 0x80073B88; // absolute:True
 
 // --- from gameplay (197 symbols)
-Gp_UpdateCoord = 0x80098F58; // type:func absolute:True
+actorRenderComposeCoord = 0x80098F58; // type:func absolute:True
 Gp_AttachTmd = 0x8009902C; // type:func absolute:True
 Gp_IsDebugAttachRoom = 0x800A74C4; // type:func absolute:True
 Gp_TriggerPeIfArmed = 0x800A7A64; // type:func absolute:True

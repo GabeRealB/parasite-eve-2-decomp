@@ -1543,7 +1543,7 @@ static void func_neo_ark_shrine_8017F86C(Task* task)
     obj                 = task->extra.tmd;
     coord               = obj->coords;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];

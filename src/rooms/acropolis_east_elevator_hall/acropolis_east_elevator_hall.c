@@ -867,7 +867,7 @@ void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     mem   = arg0->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
     // Project the cached view position; screen coordinates go straight into the tile.
     tileScratch->viewPoint.vx = coord->workm.t[0];

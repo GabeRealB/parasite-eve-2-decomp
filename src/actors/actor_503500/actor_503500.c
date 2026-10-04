@@ -906,7 +906,7 @@ static void func_actor_503500_8013223C(Task* arg0)
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         // Filled and never read: the original passes the matrix's own
         // translation instead, but the stores are still emitted.
         pos.vx = coord->workm.t[0];

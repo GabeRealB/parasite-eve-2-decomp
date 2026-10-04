@@ -34,7 +34,7 @@ gMcSaveData = 0x80072168; // absolute:True
 gPlayerStatus = 0x80073B88; // absolute:True
 
 // --- from gameplay (38 symbols)
-Gp_UpdateCoord = 0x80098F58; // type:func absolute:True
+actorRenderComposeCoord = 0x80098F58; // type:func absolute:True
 gfxMakeRelativeTransform = 0x800A8864; // type:func absolute:True
 Gp_AnimGetRec = 0x800B4668; // type:func absolute:True
 Gp_ConsumeSlotQty = 0x800B6DA4; // type:func absolute:True

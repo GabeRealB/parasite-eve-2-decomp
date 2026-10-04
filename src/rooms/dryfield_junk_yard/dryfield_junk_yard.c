@@ -1679,7 +1679,7 @@ static void func_dryfield_junk_yard_8017D658(Task* task)
     coord = tmd->coords;
     if ((tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && tmd->buffer != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_DryfieldJunkYardGroundShadowScratch);
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         scratch->centre.vx = coord->workm.t[0];
         scratch->centre.vy = coord->workm.t[1];
         scratch->centre.vz = coord->workm.t[2];

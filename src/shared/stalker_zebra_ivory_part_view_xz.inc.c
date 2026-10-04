@@ -12,9 +12,9 @@ void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, SVECTOR3* out)
     coords                     = task->extra.tmd->coords;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     coord                      = &coords[index];
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     out->vx             = local.t[0];
     out->vz             = local.t[2];

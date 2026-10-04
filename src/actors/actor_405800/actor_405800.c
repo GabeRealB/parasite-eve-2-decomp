@@ -1944,7 +1944,7 @@ static __inline__ void Actor405800_ProjectPart(GfxCoord* part)
     block->origin.vx               = 0;
     block->origin.vy               = 0;
     block->origin.vz               = 0;
-    Gp_UpdateCoord(part);
+    actorRenderComposeCoord(part);
     vec = &block->origin;
     wm  = &part->workm;
     gte_SetRotMatrix(wm);
@@ -2290,7 +2290,7 @@ static void func_actor_405800_8013471C(Task* arg0)
         if (y >= work->leapY) {
             coord->coord.t[1]    = work->leapY;
             player->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(player);
+            actorRenderComposeCoord(player);
             id = 0x40050003;
             if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
                 id = 0x404A0003;
@@ -2444,7 +2444,7 @@ static void func_actor_405800_80134E80(Task* arg0)
         work->yaw            += 0x800;
         stalkerZebraIvoryApplyRotationInline(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         work2              = (_Actor405800IvoryStalkerWork*)arg0->work;
         work2->animBlend   = 2;
         work2->animStep    = 0x10;
@@ -2498,7 +2498,7 @@ static void func_actor_405800_801351BC(Task* arg0)
         work2->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
         stalkerZebraIvoryTickAnimInline(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         work->stateFrames = 0;
         work->subState++;
     }
@@ -3911,7 +3911,7 @@ static void func_actor_405800_80138D54(Task* task)
         work->roll += 0x800;
         stalkerZebraIvoryApplyRotation(task);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         work->stateFrames = 0;
         work->onCeiling   = 0;
         work->onBack      = 1;

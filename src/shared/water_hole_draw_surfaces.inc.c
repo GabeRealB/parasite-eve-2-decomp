@@ -34,7 +34,7 @@ void waterHoleDrawSurfaces(Task* task)
     }
     phase                      = -(gWaterHoleWaveScroll * 16);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     for (; surface->y != WATER_SURFACE_LIST_END; surface++) {

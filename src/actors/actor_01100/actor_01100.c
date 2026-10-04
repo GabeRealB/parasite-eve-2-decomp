@@ -1971,7 +1971,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
     if (work->hidden != 0) {
         return;
     }
-    Gp_UpdateCoord(&task->extra.tmd->coords[3]);
+    actorRenderComposeCoord(&task->extra.tmd->coords[3]);
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         randBit           = rand() & 1;
         work->motionEnded = 0;
@@ -2151,7 +2151,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
             if (work->sprayFrames != 0 || scratch->splashPart != 0) {
                 eff  = 0x11402300;
                 part = &task->extra.tmd->coords[work->splashPart];
-                Gp_UpdateCoord(part);
+                actorRenderComposeCoord(part);
                 scratch->shortVector.vx = 0;
                 scratch->shortVector.vy = 0;
                 scratch->shortVector.vz = 0;
@@ -2191,7 +2191,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
     } else if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         root   = task->extra.tmd->coords;
         savedY = root->coord.t[1];
-        Gp_UpdateCoord(root);
+        actorRenderComposeCoord(root);
         if (_actor01100PushOut(root, work->contacts[ACTOR_01100_BODY_ROOT])) {
             root->composeStamp = GRAPHICS_COORD_DIRTY;
         }
@@ -2199,7 +2199,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
         Gp_ClearRec18Occupied(work->contacts[ACTOR_01100_BODY_ROOT]);
     }
     root = task->extra.tmd->coords;
-    Gp_UpdateCoord(root);
+    actorRenderComposeCoord(root);
     scratch->vector.vx = root->workm.t[0];
     scratch->vector.vy = root->workm.t[1] - 0x320;
     scratch->vector.vz = root->workm.t[2];

@@ -68,7 +68,7 @@ void func_gunblade_8011D1E4(Task* task)
                 D_gunblade_8012E248 = work;
                 coord->coord.t[2]   = D_gunblade_8011E704[0].vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 task->state        = 1;
                 vec                = &D_gunblade_8011E704[1];
                 local.parent       = work->parent;
@@ -76,7 +76,7 @@ void func_gunblade_8011D1E4(Task* task)
                 local.coord.t[1]   = vec->vy;
                 local.coord.t[2]   = vec->vz;
                 local.composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&local);
+                actorRenderComposeCoord(&local);
                 for (i = 0; i < 8; i++) {
                     dst         = &gBladeTrailBase[i];
                     dst->parent = &gGfxViewCoord;
@@ -94,13 +94,13 @@ void func_gunblade_8011D1E4(Task* task)
                 return;
             case 1:
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 local.parent       = work->parent;
                 local.coord.t[0]   = D_gunblade_8011E70C.vx;
                 local.coord.t[1]   = D_gunblade_8011E70C.vy;
                 local.coord.t[2]   = D_gunblade_8011E70C.vz;
                 local.composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&local);
+                actorRenderComposeCoord(&local);
                 dst         = &gBladeTrailBase[work->age & 7];
                 dst->parent = &gGfxViewCoord;
                 dst->workm  = coord->workm;
@@ -116,10 +116,10 @@ void func_gunblade_8011D1E4(Task* task)
                 for (i = 0; i < 8; i++) {
                     dst               = &gBladeTrailBase[i];
                     dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(dst);
+                    actorRenderComposeCoord(dst);
                     dst               = &gBladeTrailTip[i];
                     dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(dst);
+                    actorRenderComposeCoord(dst);
                 }
                 if (work->age < 9) {
                     bladeTrailDraw(work->age & 7, 0x112);
@@ -174,7 +174,7 @@ void func_gunblade_8011DAA4(Task* task)
         return;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->age++;
 
     switch (task->spawnArg1.value) {

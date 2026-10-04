@@ -146,7 +146,7 @@ void func_necrosis_8012EF34(Task* arg0)
             destinationRotation->m20M21 = sourceRotation->m20M21;
             destinationRotation->m22    = sourceRotation->m22;
             coord->composeStamp         = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             mem->move.vx = 0;
             mem->move.vy = 0;
             mem->move.vz = 0x90;
@@ -189,7 +189,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 coord->coord.t[1]  += mem->move.vy;
                 coord->coord.t[2]  += mem->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 spawned = Gp_SpawnEff((EFFECT_NECROSIS_TRAIL_PUFF | EFFECT_SPAWN_UNLIMITED), coord,
                                       D_necrosis_801306BC[mem->index].startRadius + (mem->age * 0x60),
                                       NULL);
@@ -256,7 +256,7 @@ void func_necrosis_8012F52C(Task* arg0)
         mem->step       = mem->scale >> 4;
         arg0->state     = 1;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     spriteQuadDraw(coord, mem->age % 6, mem->scale, mem->angle);
     mem->scale = mem->scale - mem->step;
     if (mem->scale < mem->step) {
@@ -340,7 +340,7 @@ void func_necrosis_8012FAF8(Task* arg0)
             coord->coord.t[1]  += mem->move.vy;
             coord->coord.t[2]  += mem->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             tick       = mem->index + 1;
             mem->index = tick;
             if (tick < 8) {
@@ -355,7 +355,7 @@ void func_necrosis_8012FAF8(Task* arg0)
             coord->coord.t[1]  += mem->move.vy;
             coord->coord.t[2]  += mem->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             tick       = mem->index + 1;
             mem->index = tick;
             if (tick < 6) {

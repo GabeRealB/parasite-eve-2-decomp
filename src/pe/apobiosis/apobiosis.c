@@ -120,7 +120,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 coord->coord.t[1]    = 0;
                 coord->coord.t[2]    = 0;
                 coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(D_apobiosis_80130B74[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                     (s8)worldCoordGetOriginAudioDepth(coord));
@@ -136,7 +136,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 /* fallthrough */
             case 1:
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (mem->age == 4) {
                     Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
                 }
@@ -177,7 +177,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 Gp_SpawnPadLerp(0x14, 0xFF, 8);
                 return;
             case 2:
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 func_apobiosis_8012F808(mem->step);
                 if (mem->step >= 0x41) {
                     mem->step = mem->step - 0x10;
@@ -313,7 +313,7 @@ void func_apobiosis_8012FE10(Task* arg0)
                     coord->coord.t[1]   = 0;
                     coord->coord.t[2]   = 0;
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(coord);
+                    actorRenderComposeCoord(coord);
                     arg0->state = 1;
                 } else {
                     mem->move.vy    = 0;
@@ -334,7 +334,7 @@ void func_apobiosis_8012FE10(Task* arg0)
                 mem->step       = Gp_StateC08.attachId % 10 - 1;
                 return;
             case 1:
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (mem->age & 1) {
                     mem->index = mem->index + 1;
                     func_apobiosis_8013017C(coord, mem->index,
@@ -352,7 +352,7 @@ void func_apobiosis_8012FE10(Task* arg0)
                 coord->coord.t[1]  += mem->move.vy;
                 coord->coord.t[2]  += mem->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (mem->age & 1) {
                     mem->index = mem->index + 1;
                     func_apobiosis_8013017C(coord, mem->index,

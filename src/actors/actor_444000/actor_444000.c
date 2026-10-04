@@ -4072,7 +4072,7 @@ static __inline__ void Actor444000_RebuildRotation(Task* task)
 
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
-    Gp_UpdateCoord(task->extra.tmd->coords);
+    actorRenderComposeCoord(task->extra.tmd->coords);
 }
 
 /// The enemy task's 0x7DB message handler, listed in `D_actor_444000_80161818`.
@@ -4282,7 +4282,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     task->msgTable                        = D_actor_444000_80161818;
     coord->parent                         = &gGfxViewCoord;
     coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 
     D_actor_444000_80161880.coord      = task->extra.tmd->coords;
     D_actor_444000_80161880.spawnArgLo = 0x100;
@@ -4403,7 +4403,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     mtx->rotationWords.m22                             = ONE;
     work->swipeCoord.node.coord.t[0] = work->swipeCoord.node.coord.t[1] = work->swipeCoord.node.coord.t[2] = 0;
     work->swipeCoord.node.composeStamp                                                                     = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(freeCoord);
+    actorRenderComposeCoord(freeCoord);
 
     work->swipeCapsule.ends[1].vz   = 0x1B58;
     work->swipeCapsule.end0Radius   = 0x258;
@@ -4475,7 +4475,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
         }
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
@@ -4680,7 +4680,7 @@ stored:
 
     func_800DA6E8(&work->escorts[0]->node, sc->damage, 0);
     work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(work->escorts[0]->task->extra.tmd->coords);
+    actorRenderComposeCoord(work->escorts[0]->task->extra.tmd->coords);
     sc->offset.vx = sc->contactPoint.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
     sc->offset.vy = sc->contactPoint.vy - work->escorts[0]->task->extra.tmd->coords->workm.t[1];
     sc->offset.vz = sc->contactPoint.vz - work->escorts[0]->task->extra.tmd->coords->workm.t[2];
@@ -5339,7 +5339,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
             player->extra.tmd->coords->coord.t[2] =
                 arg0->extra.tmd->coords->coord.t[2] + sc->offset.vz;
             player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(player->extra.tmd->coords);
+            actorRenderComposeCoord(player->extra.tmd->coords);
         }
 
         Actor444000_PlacePlayerAhead(arg0, work, player, sc, cfg);
@@ -5443,7 +5443,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
 /// flag word and pushes it onto each of the seven escorts' models, makes sure
 /// the host and every escort has its model buffers allocated, then rebuilds the
 /// free coordinate at `swipeCoord` from `neckYaw` and plays the entry cue.
-/// That coordinate is pushed through `Gp_UpdateCoord` again on every step.
+/// That coordinate is pushed through `actorRenderComposeCoord` again on every step.
 ///
 /// The two swipes are one-shot: animation 4 reaching frame 0xC raises bit
 /// 0x8000 of the collision object's flags, kicks the pad and fires two cues,
@@ -5532,7 +5532,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
         work->limbPoseEnabled  = 1;
         gfxRotMatrixY(&work->swipeCoord.node.coord, work->neckYaw, 1);
         work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->swipeCoord.node);
+        actorRenderComposeCoord(&work->swipeCoord.node);
         work->wallDistanceTarget = 0xC80;
 
         resetId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
@@ -5543,13 +5543,13 @@ static void func_actor_444000_8013FB74(Task* arg0)
 
     coord                              = &work->swipeCoord.node;
     work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 
     if (work->animId == 4 && (frame = work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC &&
         work->prevSwipeCue != frame) {
         gfxRotMatrixY(&work->swipeCoord.node.coord, work->neckYaw, 1);
         work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         work->shakeLevel       = GLUTTON_SHAKE_LONG;
         work->swipeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         Gp_SpawnPadLerp(0x30, 0xFF, 8);
@@ -5824,7 +5824,7 @@ static void func_actor_444000_801404C0(Task* arg0)
             coord->coord.t[1]  += pos.vy;
             coord->coord.t[2]  += pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             Gp_SpawnEff(EFFECT_196, &D_actor_444000_80161948.coords[D_actor_444000_80161850], 0x27A0D600, NULL);
         }
         if ((s16)((s16)(u16)work->stateTicks % 10) == 4) {
@@ -5915,7 +5915,7 @@ static void func_actor_444000_80140BBC(Task* arg0)
         D_actor_444000_801618B8.node.coord.t[2]                   = 0x64;
         D_actor_444000_801618B8.node.composeStamp                 = GRAPHICS_COORD_DIRTY;
         D_actor_444000_801618B8.node.parent                       = &coords[4];
-        Gp_UpdateCoord(&D_actor_444000_801618B8.node);
+        actorRenderComposeCoord(&D_actor_444000_801618B8.node);
     }
     if (work->animId == 0x14 && (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->animId   = 0xD;
@@ -6539,7 +6539,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
 
     view                                    = Gp_GetViewIndex() & 0xFF;
     task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&task->extra.tmd->coords[0]);
+    actorRenderComposeCoord(&task->extra.tmd->coords[0]);
 
     escorts = task->work;
     if (escorts->freeCountdown != 0) {

@@ -1051,7 +1051,7 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, _ShelterB4UpperSewe
     // One scratch reservation holds the values reused across the surface list.
     SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
     scratch                                = scratchEnd - 1;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     scratch->y = y;

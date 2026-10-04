@@ -40,7 +40,7 @@ void grenadeShellSpawn(Task* arg0)
     blk->vy              = gGrenadeShellMuzzleOffsets[idx].vy;
     blk->vz              = gGrenadeShellMuzzleOffsets[idx].vz;
     muzzle->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(muzzle);
+    actorRenderComposeCoord(muzzle);
     coord->workm = muzzle->workm;
     gte_SetRotMatrix(&muzzle->workm);
     gte_SetTransMatrix(&muzzle->workm);

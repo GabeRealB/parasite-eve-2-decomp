@@ -1169,8 +1169,8 @@ static __inline__ void coordToRoot(GfxCoord* arg0, GfxCoord* root, GfxCoord* res
     MATRIX*                       world;
     MATRIX*                       out;
 
-    Gp_UpdateCoord(arg0);
-    Gp_UpdateCoord(root);
+    actorRenderComposeCoord(arg0);
+    actorRenderComposeCoord(root);
 
     rootm   = &root->workm;
     world   = &arg0->workm;

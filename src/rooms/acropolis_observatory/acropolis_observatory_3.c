@@ -1092,7 +1092,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 
     scratch            = SCRATCH_STACK_CURSOR_SLOT;
     head               = *scratch;

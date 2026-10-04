@@ -748,7 +748,7 @@ static void func_actor_213000_8014A5D0(Task* task)
     }
     if (gGameSession->viewReady != 0) {
         coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coords);
+        actorRenderComposeCoord(coords);
         func_800D7A9C(extra, (VECTOR*)coords->workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
@@ -774,7 +774,7 @@ static void func_actor_213000_8014A6AC(Task* task)
     extra->lightMtx        = &work->light;
     extra->colorMtx        = &work->color;
     coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&coords[1]);
+    actorRenderComposeCoord(&coords[1]);
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
 

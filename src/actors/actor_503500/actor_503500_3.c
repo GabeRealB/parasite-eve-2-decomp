@@ -2841,7 +2841,7 @@ static void func_actor_503500_80137678(Task* arg0)
                 work->velocity.fixed.vz.word = 0x100000;
                 ApplyMatrixLV(&m.mat, &work->velocity.vector, &work->velocity.vector);
                 func_actor_503500_80135D00(arg0->parent, 0xC);
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 SndEvt_EnqueueType6(SOUND_BRAHMAN_PART_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                 work->stateFrames = 0;
@@ -3543,7 +3543,7 @@ static void func_actor_503500_80139014(Task* arg0)
                 coord->parent       = &gGfxViewCoord;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 work->detached      = 1;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 SndEvt_EnqueueType6(SOUND_BRAHMAN_PART_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                 work->stateStep++;

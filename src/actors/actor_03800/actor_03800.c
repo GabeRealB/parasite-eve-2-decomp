@@ -1626,7 +1626,7 @@ static void Actor03800_Fn01C50(Task* arg0)
             coord->coord.t[1]   = work->perchCoord.coord.t[1];
             coord->coord.t[2]   = work->perchCoord.coord.t[2];
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             work->timer      = 0xF;
             work->rootCoord  = coord;
             work->actionStep = 4;
@@ -1823,7 +1823,7 @@ static void Actor03800_Fn021E4(Task* arg0)
             coord->coord.t[2]   = work->perchCoord.coord.t[2];
             coord->parent       = &gGfxViewCoord;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             work->actionStep      = 4;
             work->rootCoord       = coord;
             work->overturnedTimer = ((Actor03800_D05F44.hpMax - ctx->hp) * 100 / Actor03800_D05F44.hpMax) * 10 + 240;
@@ -2315,7 +2315,7 @@ default_body:
     }
     Actor03800_Fn03628(arg1);
     work->rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(work->rootCoord);
+    actorRenderComposeCoord(work->rootCoord);
 case1:
     Actor03800_Fn036EC(arg1);
     Actor03800_Fn03744(arg1);

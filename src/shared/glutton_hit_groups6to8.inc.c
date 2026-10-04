@@ -227,7 +227,7 @@ stored:
     esc0->hp = hp;
 #endif
     work->escorts[1]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(work->escorts[1]->task->extra.tmd->coords);
+    actorRenderComposeCoord(work->escorts[1]->task->extra.tmd->coords);
     sc->offset.vx = sc->contactPoint.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
     sc->offset.vy = sc->contactPoint.vy - work->escorts[0]->task->extra.tmd->coords->workm.t[1];
     sc->offset.vz = sc->contactPoint.vz - work->escorts[0]->task->extra.tmd->coords->workm.t[2];

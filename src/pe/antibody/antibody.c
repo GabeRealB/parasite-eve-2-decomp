@@ -124,7 +124,7 @@ void func_antibody_8012EF34(Task* arg0)
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 gRoomEffectState->peFxFlags &= (u16)~ROOM_EFFECT_PE_ANTIBODY_AURA;
                 state->flags                |= ATTACHMENT_FLAG_APPLY_STATS;
                 arg0->state                  = 1;
@@ -168,7 +168,7 @@ void func_antibody_8012EF34(Task* arg0)
                 rgb[2]              = mem->scale >> 1;
                 coord->coord.t[1]   = -0x400;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 Gp_DrawRing(coord, (s16)(mem->scale * 4), rgb);
                 Gp_DrawRing(coord, (s16)(mem->scale * 8), rgb);
                 Gp_DrawRing(coord, (s16)(mem->scale * 0xC), rgb);
@@ -190,7 +190,7 @@ void func_antibody_8012EF34(Task* arg0)
                 }
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (mem->age < 0x14) {
                     if ((mem->age % D_antibody_80130BD4[mem->index].moteSpawnInterval) == 1) {
                         i = 0;
@@ -234,7 +234,7 @@ void func_antibody_8012EF34(Task* arg0)
                 rgb[2]              = mem->scale >> 1;
                 coord->coord.t[1]   = -0x400;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 table = D_antibody_80130BD4;
                 Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 4), rgb);
                 Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 8), rgb);
@@ -260,7 +260,7 @@ void func_antibody_8012EF34(Task* arg0)
                 }
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 return;
             }
         }
@@ -349,7 +349,7 @@ void func_antibody_8012F734(Task* arg0)
             coord->coord.t[1]  -= mem->move.vy;
             coord->coord.t[2]  -= mem->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             spriteQuadDrawMote(coord, mem->age, mem->scale, mem->angle);
             if (mem->age >= 0x10) {
                 mem->move.vy = -0x80;
@@ -376,7 +376,7 @@ void func_antibody_8012F734(Task* arg0)
             }
             coord->coord.t[1]  += mem->move.vy;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             spriteQuadDrawMote(coord, mem->age, mem->scale, mem->angle);
             goto check;
         case 3:
@@ -391,7 +391,7 @@ void func_antibody_8012F734(Task* arg0)
                 gRandomLcgState = rng3c;
                 mem->angle      = ((u32)rng3c >> 16) & 0xFFF;
             }
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             spriteQuadDraw(coord, mem->age, mem->scale, mem->angle);
             func_antibody_80130428(coord, mem->age, mem->scale);
         check:

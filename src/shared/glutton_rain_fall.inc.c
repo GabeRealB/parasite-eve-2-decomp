@@ -37,7 +37,7 @@ void gluttonRainFall(Enemy* enemy, Task* task)
     coord.node.coord.t[1]   = 0;
     coord.node.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
     coord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&coord.node);
+    actorRenderComposeCoord(&coord.node);
 
     // The shadow starts spreading 0x14 ticks before the blob comes down.
     Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord.node.workm), (s16)(work->stateTicks * 8 + 0x80),
@@ -67,5 +67,5 @@ void gluttonRainFall(Enemy* enemy, Task* task)
     work->bodyCoord.node.coord.t[1]   = task->extra.tmd->coords->coord.t[1];
     work->bodyCoord.node.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
     work->bodyCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->bodyCoord.node);
+    actorRenderComposeCoord(&work->bodyCoord.node);
 }

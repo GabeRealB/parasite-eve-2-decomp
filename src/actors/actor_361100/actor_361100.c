@@ -1525,7 +1525,7 @@ static void func_actor_361100_80162B18(Task* task)
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         pos.vx = coord->workm.t[0];
         pos.vy = coord->workm.t[1];
         pos.vz = coord->workm.t[2];
@@ -1764,7 +1764,7 @@ static void func_actor_361100_801631C4(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {

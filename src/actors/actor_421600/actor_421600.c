@@ -1980,7 +1980,7 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
                     arg0->extra.tmd->coords->coord.t[2] = -0x11A3;
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
                     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(arg0->extra.tmd->coords);
+                    actorRenderComposeCoord(arg0->extra.tmd->coords);
                     work->state     = 0x20;
                     work->prevState = -1;
                     goto tail;
@@ -1995,7 +1995,7 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
                     arg0->extra.tmd->coords->coord.t[2] = 0x4B9;
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x7BC, 1);
                     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(arg0->extra.tmd->coords);
+                    actorRenderComposeCoord(arg0->extra.tmd->coords);
                     work->state     = 0x20;
                     work->prevState = -1;
                     goto tail;
@@ -2020,7 +2020,7 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
                     arg0->extra.tmd->coords->coord.t[2] = 0x104F;
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x76C, 1);
                     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(arg0->extra.tmd->coords);
+                    actorRenderComposeCoord(arg0->extra.tmd->coords);
                     Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                     enemy->reactionFlags = 0;
                     enemy->hp            = D_actor_421600_8013EF38.hpMax;
@@ -2034,7 +2034,7 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
                     arg0->extra.tmd->coords->coord.t[2] = 0x4B2;
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x7BC, 1);
                     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(arg0->extra.tmd->coords);
+                    actorRenderComposeCoord(arg0->extra.tmd->coords);
                     Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                     enemy->reactionFlags = 0;
                     enemy->hp            = D_actor_421600_8013EF38.hpMax;
@@ -2747,7 +2747,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     actor->msgTable                       = D_actor_421600_80151118;
     root->parent                          = &gGfxViewCoord;
     root->composeStamp                    = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(root);
+    actorRenderComposeCoord(root);
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
@@ -2969,7 +2969,7 @@ static void func_actor_421600_801354D8(Task* arg0)
             scratch->playerDistance               = distance;
             scratch->damage                       = Gp_ComputeDamage(scratch->hitKey, distance, 0, 0);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
+            actorRenderComposeCoord(arg0->extra.tmd->coords);
             scratch->hitOffset.vx = arg0->extra.tmd->coords->workm.t[0];
             scratch->hitOffset.vy = arg0->extra.tmd->coords->workm.t[1];
             scratch->hitOffset.vz = arg0->extra.tmd->coords->workm.t[2];
@@ -3490,7 +3490,7 @@ static void func_actor_421600_801369A0(Task* arg0)
                     arg0->extra.tmd->coords->coord.t[0]   = -0xD40;
                     arg0->extra.tmd->coords->coord.t[2]   = 0x104F;
                     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(arg0->extra.tmd->coords);
+                    actorRenderComposeCoord(arg0->extra.tmd->coords);
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x76C, 1);
                     Gp_SetLightMode(ctx, ENEMY_COLOR_DEFAULT);
                     ctx->reactionFlags = 0;
@@ -3501,7 +3501,7 @@ static void func_actor_421600_801369A0(Task* arg0)
                     arg0->extra.tmd->coords->coord.t[0]   = 0x138C;
                     arg0->extra.tmd->coords->coord.t[2]   = 0x4B2;
                     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(arg0->extra.tmd->coords);
+                    actorRenderComposeCoord(arg0->extra.tmd->coords);
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x7BC, 1);
                     Gp_SetLightMode(ctx, ENEMY_COLOR_DEFAULT);
                     ctx->reactionFlags = 0;
@@ -4858,7 +4858,7 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
     view                                   = Gp_GetViewIndex() & 0xFF;
     states                                 = D_actor_421600_80131EFC;
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(actor->extra.tmd->coords);
+    actorRenderComposeCoord(actor->extra.tmd->coords);
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];

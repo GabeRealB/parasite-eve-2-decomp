@@ -163,7 +163,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             coord->coord.t[1]   = D_m4a1_javelin_8011FA90.vy;
             coord->coord.t[2]   = D_m4a1_javelin_8011FA90.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             task->state                = 1;
             work->move.vy              = 0x1F40;
             work->move.vx              = 0;
@@ -178,7 +178,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             D_m4a1_javelin_8012EB60    = 0;
             /* fallthrough */
         case 1:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             lightSlot->framesLeft = 4;
             slot->inner           = 0x100;
             slot->outer           = 0x1000;
@@ -214,7 +214,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             }
             return;
         case 2:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             lightSlot->framesLeft = 4;
             slot->inner           = 0x400;
             slot->outer           = 0x4000;

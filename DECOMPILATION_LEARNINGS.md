@@ -1031,10 +1031,10 @@ What worked, in each case:
   shared label is then created *between* them - which is exactly why the target
   shows a label in the middle of a block. Routing both arms through a shared
   `setminus:` label instead (no inline store) makes phase 2 pair the two arms
-  and the merge eats the whole RotMatrixY/Gp_UpdateCoord tail: `delete=27` and
+  and the merge eats the whole RotMatrixY/actorRenderComposeCoord tail: `delete=27` and
   83%.
 * **case 2** - the same effect needs the whole tail (gfxRotMatrixY, composeStamp,
-  Gp_UpdateCoord, Gp_SetLightMode, field_4C, field_40, the state write) written
+  actorRenderComposeCoord, Gp_SetLightMode, field_4C, field_40, the state write) written
   **in each arm** with the angle as a literal. Sharing the tail and passing a
   computed `angle` variable puts the walk's first difference 17 insns above the
   jump instead of one, and the merge takes the two stores with it (`insert=4
@@ -4129,7 +4129,7 @@ there:
 
 ```c
 pos2 = &work->anchorPos;
-Gp_UpdateCoord(&coords[0xE]);
+actorRenderComposeCoord(&coords[0xE]);
 gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
 pos    = pos2;
 pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
@@ -8640,7 +8640,7 @@ m->m[2][2]                   = 0x1000;
 Two levers together: (1) `m00` written through `coord->coord` (not `m`) keeps it
 on `s0` while the four aliased stores form and reuse `s0+4`; (2) doing the far
 `coord->parent` store *before* `m00` (load `mem->field_8` first) keeps the coord arg
-live in `$a0` across the earlier branch so the following `Gp_UpdateCoord(coord)`
+live in `$a0` across the earlier branch so the following `actorRenderComposeCoord(coord)`
 needs no `move a0,s0` reload — writing `m00` first re-derives `a0` and costs one
 insn. `func_shelter_b3_dumping_hole_80186D4C` is the worked example.
 
@@ -11758,7 +11758,7 @@ A `ctc2` run therefore describes a *matrix*, not vertices: in
 `func_actor_402200_80138208` the eight words at `index+0x24` looked like a
 vertex array until the `ctc2` targets were read as control 0-7, which makes
 them `&coord->workm` (workm is at 0x24 of `GfxCoord`) with `index` handed
-straight to `Gp_UpdateCoord`. That one reading turned the body into the
+straight to `actorRenderComposeCoord`. That one reading turned the body into the
 `actor_403600` project-origin twin (`func_actor_403600_80138DCC`) and matched
 it first try.
 
@@ -32335,7 +32335,7 @@ delay slot:
 y                 = coord->coord.t[1] + mem->field_12;
 coord->composeStamp        = 0;
 coord->coord.t[1] = y;
-Gp_UpdateCoord(coord);
+actorRenderComposeCoord(coord);
 ```
 
 `Gp_EffCtlTaskF4` is the example.
@@ -35694,7 +35694,7 @@ with the `gRoomEffectState` load so `addiu a0, s6, %lo(gWorldCoordTransientPoint
 the prologue. `Gp_EffCtlTask6B` is the example.
 
 Zero `coord->composeStamp` **after** the three `coord.t[]` stores so `sw zero, 0(s3)`
-sits next to `jal Gp_UpdateCoord` with `t[2]` in the delay. Putting `composeStamp = 0`
+sits next to `jal actorRenderComposeCoord` with `t[2]` in the delay. Putting `composeStamp = 0`
 between `t[1]` and `t[2]` lets it sink into the `lh vy` delay.
 
 ## s32 temp so `-(x << 4)` of an s32 stored as s16 keeps `lw`
@@ -40365,7 +40365,7 @@ Copying `TaskSpawnArg::halves.high` (s16) straight into `EffectWork.step`
 The `projectionScratch = block; … gte_ldv0(&projectionScratch->worldPoint);` alias only earns its own register
 if it is live across a branch. When the scratch alloc is followed by a
 one-shot init block (`if (task->state == 0) { rng / spawn-arg copy }`) and only
-then by `Gp_UpdateCoord` + the GTE sequence, writing `projectionScratch = block;` next to
+then by `actorRenderComposeCoord` + the GTE sequence, writing `projectionScratch = block;` next to
 the `gte_ldv0` emits a throwaway `move v0, s1` at the use site. Assign it
 immediately after `*scratch = block;`, before the init block, and GCC 2.8.1
 keeps it in `$s5` (filling the init-block `bnez` delay slot with
@@ -40380,7 +40380,7 @@ projectionScratch     = block;          /* not down by the gte_ldv0 */
 if (arg0->state == 0) {
     /* rng + spawn-arg init */
 }
-Gp_UpdateCoord(coord);
+actorRenderComposeCoord(coord);
 ```
 
 `Gp_EffSprTaskE1` is the example: the hoist alone is 96.8% → 100%.
@@ -40471,7 +40471,7 @@ A *block-scoped* `register u8* head asm("v1")` does not help — the allocator
 still treats the hard register as taken everywhere.
 
 The fix is the opposite of the usual one: drop the pin on the **destination**.
-`block` is live across `Gp_UpdateCoord` so it lands in `$s0` on its own, and
+`block` is live across `actorRenderComposeCoord` so it lands in `$s0` on its own, and
 with nothing pinned GCC allocates the push temp to `$v1`, emits the `move`, and
 leaves `$v0`/`$v1` free for the `mfhi`s:
 
@@ -43682,7 +43682,7 @@ The shippable alternative to the `SOFT_BARRIER` above, and usually the shape the
 original source had. `func_actor_206100_8014B0AC` retires the actor in a
 `switch (neckRetracted)` whose case 1 sub-state 2 and whose `case 0` else arm both
 end in the same fifty instructions — ramp `neckScale`, rebuild three part
-matrices, clear three `composeStamp`s, `Gp_UpdateCoord(c4)`. Written the obvious way, with
+matrices, clear three `composeStamp`s, `actorRenderComposeCoord(c4)`. Written the obvious way, with
 one `work->neckPhase = 0;` at the join after the if/else, both arms end in a
 `j` to that join and cross-jumping merges them: the sub-state-2 copy disappears
 and the overlay drops from 97.5% to 79.5% (`delete=77`).
@@ -45576,7 +45576,7 @@ if (flag != 0) {
     return;
 }
 
-Gp_UpdateCoord(coord);
+actorRenderComposeCoord(coord);
 /* … body … */
 if (val < 6) {
     effectKillTask(mem, arg0);
@@ -47039,7 +47039,7 @@ sw    zero,0x1c(s1)
 sw    zero,0x20(s1)
 sw    zero,0(s1)
 lw    v0,8(s0)
-jal   Gp_UpdateCoord
+jal   actorRenderComposeCoord
 sw    v0,0x4c(s1)
 ```
 
@@ -47056,7 +47056,7 @@ coord->coord.t[1] = 0;
 coord->coord.t[2] = 0;
 coord->composeStamp        = 0;
 coord->parent        = parent;         /* sw v0,0x4c(s1) — still in the delay slot */
-Gp_UpdateCoord(coord);
+actorRenderComposeCoord(coord);
 ```
 
 `func_m4a1_hammer_8011DD08` is the example; it was the only diff at 99.3%.
@@ -48846,7 +48846,7 @@ such as `coord`. That is what the old `register ... asm("v1")` pin plus
 
 ## A constant store scheduled too early: move the assignment last
 
-Filling a `GfxCoord` before `Gp_UpdateCoord` as
+Filling a `GfxCoord` before `actorRenderComposeCoord` as
 
 ```c
 coord.composeStamp        = 0;
@@ -58144,7 +58144,7 @@ h = *(u8**)(h + 0x3FC);
 
 `volatile` is doing two jobs there, and the second one is a liability. It
 blocks CSE, but it is also a scheduling barrier, so nothing may cross it. In
-`func_acropolis_bridge_80185988` the target loads the `Gp_UpdateCoord`
+`func_acropolis_bridge_80185988` the target loads the `actorRenderComposeCoord`
 argument *before* the `lui`:
 
 ```
@@ -58153,7 +58153,7 @@ nop
 lw    $a0, 0x8($v0)
 lui   $s0, 0x1F80
 lw    $s0, 0x3FC($s0)
-jal   Gp_UpdateCoord
+jal   actorRenderComposeCoord
 ```
 
 With the `volatile` form the argument load cannot move above the barrier, so
@@ -58170,7 +58170,7 @@ coord = ((TmdObject*)task->extra)->coords;
 __asm__("lui %0, 0x1F80" : "=r"(h) : "r"(coord));
 h   = *(u8**)(h + 0x3FC);
 vec = (VECTOR*)h;
-Gp_UpdateCoord(coord);
+actorRenderComposeCoord(coord);
 ```
 
 The input operand makes the `lui` depend on `coord`, so it cannot be hoisted
@@ -62017,7 +62017,7 @@ attempt you just built; the `base.*` files sitting next to them are the m2c
 baseline's and are never rewritten.
 
 Symptom: after a promising `base_1.c`, `cat base_diff` showed a whole extra
-argument setup (`li a1,1` before `jal Gp_UpdateCoord`) that the attempt did not
+argument setup (`li a1,1` before `jal actorRenderComposeCoord`) that the attempt did not
 have, and chasing it through `base.s` and `base_annotated.s` produced insn uids
 (`# 191 movsi_internal2/3`) that appeared in *no* RTL dump — because the dumps
 were `base_1.i.*` and the asm was `base.s`. The real `base_1_diff` was two
@@ -63105,7 +63105,7 @@ Two things about the mechanism are worth remembering:
   `SOFT_USE_REG` is the same lever spelled honestly.
 - Placement matters because it also perturbs the schedule. The same
   `SOFT_USE_REG(coord)` before the `switch` scored 99.918% with `reorder=1`;
-  after the `Gp_UpdateCoord(coord)` in the arm that uses it, 100.00%.
+  after the `actorRenderComposeCoord(coord)` in the arm that uses it, 100.00%.
 
 Reach for this before `register T x asm("s2")`: a pin is function-scope and
 will cost you a register elsewhere, and here the two live ranges are both
@@ -69811,7 +69811,7 @@ single CSE'd base held in `$s0`/`$s2`; that both killed the re-derivation the
 target has and let `task` die at the top, so the target's `$s3 = task` / `$s2 =
 ext` pair came out as `$s3 = ext` with no `task` at all (83.9%, 15 instructions
 short). Spelling the chain out — `((TmdObject*)task->extra)->coords[1].composeStamp`,
-`Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1])` — while keeping the
+`actorRenderComposeCoord(&((TmdObject*)task->extra)->coords[1])` — while keeping the
 `ext` local for `ext->field_C` and the two calls that pass it reproduces the
 target exactly. The tell is which pointer the reload chain walks: when the tail
 does `lw v0,0x2C(sX)` + `lw a0,8(v0)` with `sX` the *task*, the source re-read
@@ -71905,7 +71905,7 @@ there:
 
 ```c
 pos2 = &work->anchorPos;
-Gp_UpdateCoord(&coords[0xE]);
+actorRenderComposeCoord(&coords[0xE]);
 gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
 pos    = pos2;
 pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
@@ -72279,7 +72279,7 @@ or obvious clobber.
 VECTOR sp10;
 
 ((TmdObject*)arg1->extra)->coords->composeStamp = 0;
-Gp_UpdateCoord(((TmdObject*)arg1->extra)->coords);
+actorRenderComposeCoord(((TmdObject*)arg1->extra)->coords);
 sp10.vx = ((TmdObject*)arg1->extra)->coords->workm.t[0];
 sp10.vy = ((TmdObject*)arg1->extra)->coords->workm.t[1];
 sp10.vz = ((TmdObject*)arg1->extra)->coords->workm.t[2];
@@ -72300,7 +72300,7 @@ separately:
   hoisting it into a local pointer variable would not.
 
 Offsets 0x38/0x3C/0x40 of a `GfxCoord` are `workm.t[0..2]`, the world-space
-translation `Gp_UpdateCoord` has just recomputed; `composeStamp = 0` at offset 0 is the
+translation `actorRenderComposeCoord` has just recomputed; `composeStamp = 0` at offset 0 is the
 customary "matrix is stale" clear that precedes it.
 
 ## Recover an array stride in a work block from a sibling function's calls, not from the function you are matching
@@ -73426,7 +73426,7 @@ static __inline__ GfxCoord* Localize(GfxCoord* arg0, MATRIX* arg1)
 out = Localize(coord, rotation);
 __builtin_memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
 out->composeStamp = 0;
-Gp_UpdateCoord(out);
+actorRenderComposeCoord(out);
 ```
 
 The result pseudo is assigned where the helper's exits merge, which is exactly
@@ -78585,7 +78585,7 @@ lw    s0,0x1c(s2)    base_1   same load, after them, reuses coord's dead $s0
 `work = (Actor460200Work*)task->work;` written *after* the intervening calls
 gives its pseudo a live range that starts past them, so `coord` (dead by then)
 and `work` do not conflict and the allocator hands both `$s0`. Moving the
-assignment above `Gp_UpdateCoord(coord)` starts the range earlier, the conflict
+assignment above `actorRenderComposeCoord(coord)` starts the range earlier, the conflict
 appears, `work` takes `$s2`, and `task` is pushed from `$s2` to `$s3` - adding
 the fourth save slot and the 8 bytes of frame.
 
@@ -81387,7 +81387,7 @@ block's `coord` has 2 and the `spawnArg1` block's 4 -- so the tail and the
     }
     {
         TmdObject* obj = arg0->extra;            /* NOT `tmd = index->extra;` */
-        Gp_UpdateCoord(obj->field_8);
+        actorRenderComposeCoord(obj->field_8);
         ...
         func_800D7A9C(obj, &vec, 0, 3);
     }
@@ -82324,7 +82324,7 @@ no separate argument load is emitted.
 other two in the long form:
 
 ```c
-        Gp_UpdateCoord(&((TmdObject*)task->extra)->coords[1]);
+        actorRenderComposeCoord(&((TmdObject*)task->extra)->coords[1]);
         extra      = (TmdObject*)task->extra;
         pos.vec.vx = extra->coords[1].workm.t[0];
         pos.vec.vy = ((TmdObject*)task->extra)->coords[1].workm.t[1];
@@ -82335,7 +82335,7 @@ other two in the long form:
 100.000%, unchanged everywhere else.
 
 **Where the temp is born is readable off the target.** It must sit *after* the
-preceding `Gp_UpdateCoord` call — hoisting the assignment above it makes the
+preceding `actorRenderComposeCoord` call — hoisting the assignment above it makes the
 pseudo live across that call, which costs a call-saved register and a prologue
 save the target does not have. The target says which: `$a0` is written at
 80163200, the first post-call load, not at 801631EC, the pre-call one.
@@ -82631,7 +82631,7 @@ then rendered the byte offsets the disassembly showed as *element* arithmetic:
 
 ```c
 temp_s1 = temp_s0->field_8;
-Gp_UpdateCoord(temp_s1 + 0x50);                    /* 0x50 * sizeof(GfxCoord) */
+actorRenderComposeCoord(temp_s1 + 0x50);                    /* 0x50 * sizeof(GfxCoord) */
 func_800D7A9C(temp_s0, temp_s1 + 0x88, 0, 3);      /* 0x88 * 0x50 = 0x2A80 */
 ```
 
@@ -82648,7 +82648,7 @@ of the typed form exactly:
 
 ```c
 coords[1].composeStamp = 0;
-Gp_UpdateCoord(&coords[1]);
+actorRenderComposeCoord(&coords[1]);
 func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 ```
 
@@ -88437,7 +88437,7 @@ The match is to compute the value early and copy it at the old site:
 ```c
 local = (SVECTOR*)(head - 0xC);   /* next to head's load */
 ...
-Gp_UpdateCoord(&gGfxViewCoord);
+actorRenderComposeCoord(&gGfxViewCoord);
 v = local;                        /* where v used to be defined */
 ```
 
@@ -90186,8 +90186,8 @@ function. Write them from this template rather than from their m2c seeds.
 `sh`, so `s16`. Rooms differ only in the value: the two dryfield rooms store the
 constant `-0x1A4`, the shelter rooms load their own `D_<room>_<addr>` u16 and
 store that. Four room functions read it back with `lh` — `func_dryfield_water_hole_8017E040`
-and `func_dryfield_night_water_hole_8017E6D0` feed it to `Gp_UpdateCoord` as a
-world Y (`sw $v0, 0x2C($sp)` before `Gp_UpdateCoord(&coord)`), and the
+and `func_dryfield_night_water_hole_8017E6D0` feed it to `actorRenderComposeCoord` as a
+world Y (`sw $v0, 0x2C($sp)` before `actorRenderComposeCoord(&coord)`), and the
 `dryfield_night_water_hole` one also gates a spawn loop on `slt` of it against a
 state block's `0x1C`.
 
@@ -92467,7 +92467,7 @@ world matrix, and draw the primitives whose visit set the current visit falls in
 ```c
 coord = arg0->extra.coordBody->coord;
 mask  = 1 << gGameSession->location.loc.view;
-Gp_UpdateCoord(coord);
+actorRenderComposeCoord(coord);
 if (mask & 0x99C) {
     pose(coord, 0);
 }
@@ -92485,7 +92485,7 @@ the pointer in `$s1` across the four calls.
 Writing the same expression inline at each call site is not equivalent:
 
 ```c
-Gp_UpdateCoord(arg0->extra.coordBody->coord);
+actorRenderComposeCoord(arg0->extra.coordBody->coord);
 if (mask & 0x99C) {
     pose(arg0->extra.coordBody->coord, 0);
 }
@@ -92493,7 +92493,7 @@ if (mask & 0x99C) {
 ```
 
 GCC 2.8.1 cannot CSE a memory load across a call, so `index->extra` is re-loaded
-after every `Gp_UpdateCoord` / `pose`, and removing those loads is not something
+after every `actorRenderComposeCoord` / `pose`, and removing those loads is not something
 the scheduler can undo. Measured on
 `func_dryfield_night_dilapidated_house_8017E670`: the local form is 100.000% at 33
 instructions, the inline form 53.500% at 42 instructions
@@ -92501,7 +92501,7 @@ instructions, the inline form 53.500% at 42 instructions
 
 Scope: this binds when the coordinate outlives one call. When it is used exactly
 once - `func_dryfield_night_factory_801825F0` passes it straight into
-`Gp_UpdateCoord` and never again - inlining the expression is what the source
+`actorRenderComposeCoord` and never again - inlining the expression is what the source
 did, and the local is the redundant one.
 
 Inputs: `base.i` (100%), `base_2.i` (53.5%, inline form). Compiler SHA256
@@ -95347,14 +95347,14 @@ the increment belongs.
 
 ## A store written on the line before a call is the insn that fills its `jal` delay slot (func_dryfield_dilapidated_house_80183D5C, 2026-09-16)
 
-A state handler whose first frame ends with `Gp_UpdateCoord(coord)` and a
+A state handler whose first frame ends with `actorRenderComposeCoord(coord)` and a
 `coord->composeStamp = 0` store sat at 95.68% with the store two instructions late and
 the argument setup in the slot:
 
 ```
     /* target */                      /* base, m2c statement order */
-    addu   $a0, $s1, $zero            jal    Gp_UpdateCoord
-    jal    Gp_UpdateCoord              move   $a0, $s1        (delay)
+    addu   $a0, $s1, $zero            jal    actorRenderComposeCoord
+    jal    actorRenderComposeCoord              move   $a0, $s1        (delay)
      sw    $zero, 0x0($s1)   (delay)  li     $v0, 0x80
     li     $v0, 0x80                  sw     $zero, 0x0($s1)
 ```
@@ -95362,7 +95362,7 @@ the argument setup in the slot:
 The C was
 
 ```c
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     coord->composeStamp    = 0;
     mem->field_24 = 0x80;
 ```
@@ -95383,7 +95383,7 @@ correct codes, one original.
 The idiom is in the matched corpus, which is what settled it in two builds:
 `func_acropolis_west_elevator_hall_8017F6F0`, `func_shelter_b2_elevator_8017D70C`
 and `func_neo_ark_shrine_8017F86C` all write `coord->composeStamp = 0;` on the line before
-`Gp_UpdateCoord(coord);` and all compile to `addu $a0,$sX,$zero` / `jal` /
+`actorRenderComposeCoord(coord);` and all compile to `addu $a0,$sX,$zero` / `jal` /
 `sw $zero,0x0($sX)`. When a function belongs to a family, grep the matched corpus
 for its callee and read how the neighbouring statement is written before
 theorising about the schedule.
@@ -95906,9 +95906,9 @@ consumer is the second of two consecutive calls:
 target                          attempt
 addiu s6,s2,0xf0   <- delay     lui s6,0x1f80
 ...                             ...
-jal Gp_UpdateCoord (ViewCoord)  jal Gp_UpdateCoord (ViewCoord)
+jal actorRenderComposeCoord (ViewCoord)  jal actorRenderComposeCoord (ViewCoord)
 move a0,s6                      addiu a0,s2,0xf0
-jal Gp_UpdateCoord              jal Gp_UpdateCoord
+jal actorRenderComposeCoord              jal actorRenderComposeCoord
 ```
 
 The pseudo exists in both — `.combine` shows `(set (reg a0) (reg/v 87))` either
@@ -97840,7 +97840,7 @@ That double clear plus the re-fetch is not something a straight-line body would
 write; it is what an **inlined** helper looks like when the helper takes the
 `task` and re-derives `task->extra->coords` for its own tail. `Actor444000_RebuildRotation`
 (`src/actors/actor_444000/actor_444000_6.c`) ends with exactly
-`coord->composeStamp = 0; ((TmdObject*)task->extra)->coords->composeStamp = 0; *scratch += sizeof(...); Gp_UpdateCoord(...)`,
+`coord->composeStamp = 0; ((TmdObject*)task->extra)->coords->composeStamp = 0; *scratch += sizeof(...); actorRenderComposeCoord(...)`,
 and `Actor444000_ShrinkRotation` in `actor_444000_5.c` is the same body without
 the placement half. So the original source called an inline, and the fix is to
 reconstruct one:
@@ -99718,7 +99718,7 @@ pointer arithmetic on `s32**`, so it scales by 4. The diff shows only the
 immediate, which reads like a struct-layout error. Type the pointer instead --
 `((TmdObject*)value->extra)->coords` is a `GfxCoord*`, so
 `&...->field_8[1]` emits the `addiu a1, a1, 0x50` the target has, and the same
-expression serves the `Gp_UpdateCoord` call. Any m2c `+ N` on a
+expression serves the `actorRenderComposeCoord` call. Any m2c `+ N` on a
 non-`char`-pointer is suspect before the first build, not after the first diff.
 
 ## m2c's `temp_` copy before a call reorders the whole argument setup
@@ -109533,7 +109533,7 @@ lhu v0,0x18(v0)       # ->coord.t[0]
 — which only happens when the source spells the chain out at each use site:
 `actor->field_2C->field_8->coord.t[0]`. Write the chain where the target reloads
 and keep the local where it does not (here `gridBody.field_8 = root`,
-`root->parent` / `root->composeStamp` / `Gp_UpdateCoord` / `root->workm.t[]`).
+`root->parent` / `root->composeStamp` / `actorRenderComposeCoord` / `root->workm.t[]`).
 
 The same choice moves a *base register*, and that can reorder a store. The second
 `body->field_18` write sits after the node's `Gp_InitRec18Table`, next to the
@@ -110738,7 +110738,7 @@ traces to a source difference rather than an allocation one:
   call sites, `..._8011E168` -> `..._80162E90`)
 - one immediate: `0x21C1E` -> `0x21C9E`
 - one **extra call**: this function's `fade != 0` early-return runs
-  `Gp_UpdateCoord(coord)` before the draw call and the sibling's does not
+  `actorRenderComposeCoord(coord)` before the draw call and the sibling's does not
 - the constant `1`'s materialization position (`addiu $s4,$zero,0x1` lands in
   the `beqz`'s delay slot instead of after the switch load) - a scheduling
   consequence of that extra call, not a source difference, so it needs no
@@ -115872,19 +115872,19 @@ Inputs: `base.c` (77.433%), `base_1.c` (93.913%, struct view), `base_7.c`
 
 The handler reads `Task::extra` and the model coordinate hung off it at six
 places, and the target reloads the whole chain at each one - `lw v0,0x2C(s4)` /
-`lw v0,8(v0)` before `sw zero,0(v0)`, again before `jal Gp_UpdateCoord`, again for
+`lw v0,8(v0)` before `sw zero,0(v0)`, again before `jal actorRenderComposeCoord`, again for
 the `Tmd_AllocBuffers` argument and each `field_C` read-modify-write. Holding
 `TmdObject* obj = index->extra` in a local makes it one register instead, and
 because it is then live across every call in the function the allocator spends a
 callee-saved register on it: the frame grows, `s6` appears, and the two long-lived
 locals swap homes (`s2`/`s3`), which the differ reports as `regs=65` against half
 the function's instructions. Writing the chain out at each use - `((TmdObject*)
-arg0->extra)->flags &= 0xFF7F;`, `Gp_UpdateCoord(((TmdObject*)arg0->extra)->
+arg0->extra)->flags &= 0xFF7F;`, `actorRenderComposeCoord(((TmdObject*)arg0->extra)->
 field_8);`, with no local - is what matches (`regs=6`, then 100% once the two
 orderings below were fixed).
 
 The tell is a store the target puts in a call or branch delay slot from a value it
-has just reloaded: `sw zero,0(v0)` in `jal Gp_UpdateCoord`'s delay slot can only be
+has just reloaded: `sw zero,0(v0)` in `jal actorRenderComposeCoord`'s delay slot can only be
 the `coord->composeStamp = 0` statement loading `v0` for itself, never `composeStamp = 0` on a live
 `coord`. Same for the argument setup - the target's `lw a0,0x2C(s4)` / `lw a0,8(v0)`
 immediately before the `jal` is a reload, not a `move a0,sN`.
@@ -118049,7 +118049,7 @@ The remaining one-instruction reorder (`addiu a0, sp, 0x18` for `&col[0]` schedu
 **Problem.** Same body as matched `Actor02000_Fn02A34` plus an inlined dust spawn;
 99.78% with only `work`/`coord` swapped between `$s4`/`$s5`. `.greg`/`.lreg`:
 `work` 5 refs / 125 insns (`2*5/125 = 0.080`) beat `coord` 6 / 166 (`0.072`).
-**Tried.** `TOUCH_REG(coord)` (at `draw:` or after `Gp_UpdateCoord`) flipped the
+**Tried.** `TOUCH_REG(coord)` (at `draw:` or after `actorRenderComposeCoord`) flipped the
 homes but moved `work`'s entry load one slot later in sched (99.15%): `"+r"` is an
 in/out operand, so the pseudo gains a second set and block-0 dependencies change.
 **Fix.** `USE_REG(coord)` at the `draw:` label - input-only, one extra ref
@@ -119929,7 +119929,7 @@ by storing `msg.field_5 = 0` after `msg.field_3` rather than before it.
 ## A symbol address rematerialized after a call cannot be hoisted above it, so `&table[i]` written after the call lands in a caller-saved scratch (func_neo_ark_altar_8017E92C, 2026-09-17)
 
 Target: `lui s2,%hi(D_table)` / `addiu s2,s2,%lo(D_table)` sit *before* the
-`jal Gp_UpdateCoord`, while the index math that consumes them
+`jal actorRenderComposeCoord`, while the index math that consumes them
 (`sll`/`addu`/`sll`, then `addu s0,s0,s2`) sits after the GTE asm block. The
 whole function is one basic block and nothing branches, so only where those two
 halves were written distinguishes them.
@@ -119970,7 +119970,7 @@ array base before the call, index it after.
     y0   = -0x1086;
 
     gGfxViewCoord.composeStamp = 0;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
 
@@ -120982,7 +120982,7 @@ Two further orderings in the same function, both already covered above but
 worth pairing: the `li reg, 0x14B4` sits *above* the `gte_SetRotMatrix` asm
 blocks, which no hoist can produce (see "A hoisted invariant lands last in the
 preheader"), so the height is a live `s16` local assigned right after
-`Gp_UpdateCoord`; and the drawing-mode packet advances `gGpuPrimCursor` by
+`actorRenderComposeCoord`; and the drawing-mode packet advances `gGpuPrimCursor` by
 `0xC`, i.e. `DR_MODE`, not `DR_TPAGE` (see "The prim-cursor advance names the
 psyq primitive").
 
@@ -121826,7 +121826,7 @@ A hit is only real when a `nonmatchings/.../func_*.s` references it; one named
 only by `matchings/...` is a compiler-generated table the C body already emits.
 
 Inputs: scratch `nonmatchings/func_neo_ark_island_8017EB68-vacuum`, `base_1.c`
-(copy of `src/rooms/lib/rooms_shared_8017f4a0.c` minus `Gp_UpdateCoord(coord)`),
+(copy of `src/rooms/lib/rooms_shared_8017f4a0.c` minus `actorRenderComposeCoord(coord)`),
 0 differences.
 
 ### A signed LCG jitter written as a ternary, not if/else, keeps the draw's shift chain in one register (func_actor_160900_80133758, 2026-09-17)
@@ -126727,13 +126727,13 @@ overlay-local callee" - and eleven actor overlays define it at eleven addresses
 in six sizes, sharing almost no code:
 
     USA/actors/actor_110300  0x68   jal func_actor_110300_801320C4, func_800D7A9C
-    USA/actors/actor_146300  0x7C   jal Gp_UpdateCoord, func_800D7A9C, func_actor_146300_801327CC
-    USA/actors/actor_260400  0x84   jal Gp_UpdateCoord, func_800D7A9C, func_actor_260400_8014A200, ...
+    USA/actors/actor_146300  0x7C   jal actorRenderComposeCoord, func_800D7A9C, func_actor_146300_801327CC
+    USA/actors/actor_260400  0x84   jal actorRenderComposeCoord, func_800D7A9C, func_actor_260400_8014A200, ...
     USA/actors/actor_110800  0x304  jal func_actor_110800_80132368, SndEvt_EnqueueType6 (x7), ...
 
 The scratch env for the actor_110300 body that day was handed
 `src/actors/actor_260400/actor_260400_2.c` as its host - whose same-named
-function is the 0x84-byte `Gp_UpdateCoord` variant. `overlay_dup_index.py find`
+function is the 0x84-byte `actorRenderComposeCoord` variant. `overlay_dup_index.py find`
 is the check that settles it, because it compares bodies (disassembly text) and
 so lists only the byte-identical copies: one carrier here, so nothing to
 promote and nothing to share. Land the body in the file whose `INCLUDE_ASM`
@@ -133203,7 +133203,7 @@ if (parent == root) {
 }
 ```
 
-`root` is where the walk stops: `Gp_UpdateCoord` passes `NULL`, `Gp_UpdateCoordEx`
+`root` is where the walk stops: `actorRenderComposeCoord` passes `NULL`, `actorRenderComposeCoordRelative`
 passes either `NULL` or an explicit root. Read the field as "the coordinate this
 one hangs off"; the transformation helpers' "walk up to world" means stopping
 once the walk reaches `gGfxViewCoord`. A leaf's chain passes through that
@@ -133524,7 +133524,7 @@ mechanism after the router returned a miss, not a permuter-generated result.
 
 The archived seed was 96.688% with all target saved-register homes, but one extra pool-pointer copy and the wrong ordering of loop increments. It explicitly initialized a coordinate pointer before the loop and advanced it by the entry stride. Moving `coord = &entries[i].coord` into the free-entry branch removed the pool copy, but did not create the needed coordinate GIV: CSE expressed the address as `i * 240 + (pool + 32)`, and the `pool + 32` invariant had lifetime1/savings1. loop.c declined to hoist that addend, so it could not recognize the dependent coordinate as a GIV. Using `coord->parent` for an additional store did not fix this, and changed the required store base and saved homes.
 
-Keep the indexed parent store, but spell the later call after the flag-branch join as `Gp_UpdateCoord(&entries[i].coord)` instead of `Gp_UpdateCoord(coord)`. The second CSE region contains another definition of the same invariant address. In matching base_2, loop.c matches UID543/r323 with UID94/r120: lifetime becomes6 and savings3, and UID94 moves to677. Coordinate expressions UID96 and UID545 now become recognized GIVs, combine, and reduce to r390. Global allocation independently preserves coordinate=s4, offset=s5 and pool=s7; the entry, coordinate and offset increments now have the required order. Result: all175 instructions match, with no pins or asm helpers. Native-header port base_3 also matches.
+Keep the indexed parent store, but spell the later call after the flag-branch join as `actorRenderComposeCoord(&entries[i].coord)` instead of `actorRenderComposeCoord(coord)`. The second CSE region contains another definition of the same invariant address. In matching base_2, loop.c matches UID543/r323 with UID94/r120: lifetime becomes6 and savings3, and UID94 moves to677. Coordinate expressions UID96 and UID545 now become recognized GIVs, combine, and reduce to r390. Global allocation independently preserves coordinate=s4, offset=s5 and pool=s7; the entry, coordinate and offset increments now have the required order. Result: all175 instructions match, with no pins or asm helpers. Native-header port base_3 also matches.
 
 The supported mechanism is invariant matching enabling GIV recognition. Merely adding another pointer use is insufficient, as failed base_1 demonstrates. The model's ordinary loop-invariant desirability and GIV combination rules explain this; no new general scheduler rule is implied. Two permuter outputs were separately rejected for deriving a coordinate from an uninitialized pool pointer, despite a paired 99.2% score.
 
@@ -135652,7 +135652,7 @@ A permuter discovery put 32 into a local and used that local in the inner
 sum. Both offsets remain; this is a valid value-preserving transformation.
 
 The paired scratch build improved distance 362 to 352. A controlled prediction
-moved that local's initialization from before Gp_UpdateCoord to immediately
+moved that local's initialization from before actorRenderComposeCoord to immediately
 before Gp_ClearRec18Occupied, preserving the same assembly. In base_1.i.rtl,
 UID584 adds objects and the local; UID586 adds offset to that temporary.
 In base_1.i.cse, UID584 becomes objects + CONST_INT 32 while UID586 retains its
@@ -144939,7 +144939,7 @@ notes, so both live lengths are doubled in `.lreg`, and they compete on
 against 3 refs over ~22 insns is `13 * 22 < live(actor)` - a few instructions
 either way. The seed pinned the parameter to `$s5`. What the source had instead
 was case 0's two arms each ending in their own copy of the case's
-`composeStamp = 0; Gp_UpdateCoord(); workm copy; break;` tail. jump2 cross-jumps the
+`composeStamp = 0; actorRenderComposeCoord(); workm copy; break;` tail. jump2 cross-jumps the
 copies away after reload, so the output is unchanged, but before allocation
 they lengthen the parameter's range enough to drop it below the constant. The
 extra copies also add references to `coord`, which then outranked the local
@@ -146008,7 +146008,7 @@ switch (scratch->base) { ... }
 
 A function walked two coordinate chains up to `&gGfxViewCoord` - once through
 an inline helper taking the view as a third parameter, once open-coded - and
-matched only with `SOFT_TOUCH_REG_USE(view, index)` after `Gp_UpdateCoord(view)`.
+matched only with `SOFT_TOUCH_REG_USE(view, index)` after `actorRenderComposeCoord(view)`.
 Without it `$s2/$s3/$s5/$s6` rotated: the `view` local and `index` lost priority
 to `playerCoord` and the second chain's start pointer. The fixes were two
 natural changes. Compare against `&gGfxViewCoord` inside the helper (the shape

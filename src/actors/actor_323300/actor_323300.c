@@ -530,7 +530,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
         }
         Gp_ClearRec18Occupied(&work->contact);
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
         func_800D7A9C(extra, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
@@ -775,7 +775,7 @@ static void func_actor_323300_80162748(Task* arg0)
 /// `walk.motion` and `walk.motionStep` go back to zero, so the handler re-runs. A wider
 /// gap steps `vec.vy` toward the target by 0x40 instead. Either way the root
 /// coordinate is rebuilt as the identity matrix rotated by `vec`, with `composeStamp`
-/// cleared so the next `Gp_UpdateCoord` recomputes it.
+/// cleared so the next `actorRenderComposeCoord` recomputes it.
 static void func_actor_323300_801627B4(Task* arg0)
 {
     _Actor323300WomanWork* work;
@@ -996,7 +996,7 @@ static void func_actor_323300_80163188(GfxCoord* coord, s16 angle)
     out = actorLocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
+    actorRenderComposeCoord(out);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
@@ -1055,7 +1055,7 @@ static void func_actor_323300_80163510(Task* arg0)
     extra->colorMtx = &color->mat;
 
     coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&coords[1]);
+    actorRenderComposeCoord(&coords[1]);
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
 
@@ -1063,7 +1063,7 @@ static void func_actor_323300_80163510(Task* arg0)
 /// angle: the angle is clamped to +-0x400 -- a quarter turn either way -- then
 /// `func_actor_323300_80163188` rebuilds node 5 from two thirds of it and node
 /// 2 from half, and nodes 5 down to 2 have their dirty flag cleared so the next
-/// `Gp_UpdateCoord` re-derives them. The lower clamp tests `arg1` rather than
+/// `actorRenderComposeCoord` re-derives them. The lower clamp tests `arg1` rather than
 /// the clamped copy; that is the same test, because the upper clamp has already
 /// pinned the copy to 0x400 whenever the angle was out of range upwards.
 static void func_actor_323300_8016359C(Task* arg0, s16 arg1)

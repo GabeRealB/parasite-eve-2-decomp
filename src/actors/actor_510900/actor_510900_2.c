@@ -2727,7 +2727,7 @@ static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
                     coord->coord.t[1] += dy;
                 }
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
             } else if (blend == 0x52) {
                 mat2                = (GfxRotationWords*)&coord->coord;
                 mat2->m00M01        = ONE;
@@ -2740,7 +2740,7 @@ static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
                 coord->coord.t[2]   = 0;
                 coord->parent       = parentCoord;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
             }
             break;
     }
@@ -2781,9 +2781,9 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     tmd->colorMtx = &work->colorMtx;
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     parentCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(parentCoord);
+    actorRenderComposeCoord(parentCoord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
 
     scratch->operand.vx = -0xA5;
@@ -3265,7 +3265,7 @@ body:
         i++;
     } while (i < 0xB);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 case1:
     func_actor_510900_8013C338(arg1, coord);
 }
@@ -3793,7 +3793,7 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
         }
         temp_s1->composeStamp                   = GRAPHICS_COORD_DIRTY;
         arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(temp_s1);
+        actorRenderComposeCoord(temp_s1);
         no9GolemDrawShadow(arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         func_actor_510900_80138F44(arg1);
@@ -4099,7 +4099,7 @@ static void func_actor_510900_8013C034(Enemy* enemy, Task* task)
 {
     task->extra.tmd->flags                = task->parent->extra.tmd->flags;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(task->extra.tmd->coords);
+    actorRenderComposeCoord(task->extra.tmd->coords);
 }
 
 void func_actor_510900_8013C090(Task* task)
@@ -4127,7 +4127,7 @@ static void func_actor_510900_8013C134(Enemy* enemy, Task* task)
 {
     task->extra.tmd->flags                = task->parent->extra.tmd->flags;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(task->extra.tmd->coords);
+    actorRenderComposeCoord(task->extra.tmd->coords);
 }
 
 /// Runs the enemy's current state handler, copying the table onto the stack

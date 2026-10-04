@@ -1043,7 +1043,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
         func_shelter_b6_training_room_8018294C(arg1);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     func_actor_105100_801364CC(arg1);
     func_actor_105100_80136524(arg1);
 }
@@ -2163,7 +2163,7 @@ body:
             goto update;
         update:
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             fireballDrawGlow(coord, work->glowSize);
             break;
         case ACTOR_105100_FIREBALL_FLY:
@@ -2183,7 +2183,7 @@ body:
             coord->coord.t[1]  += (coord->coord.m[1][2] * work->speed) >> 12;
             coord->coord.t[2]  += (coord->coord.m[2][2] * work->speed) >> 12;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             fireballDrawGlow(coord, work->glowSize);
             if (work->contacts[0].key.value != 0 || work->timer >= 0x1A) {
                 // Become the burst: stop sweeping the room and carry the burst's attack.
@@ -2306,7 +2306,7 @@ default_body:
             break;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     // Dim the beam through the last 15 ticks of its life.
     if (beam->lifeTicks < 6) {
         beam->colorIndex = 0;

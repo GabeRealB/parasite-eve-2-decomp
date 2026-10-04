@@ -35,9 +35,9 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     tmd->colorMtx = &work->colorMtx;
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     parentCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(parentCoord);
+    actorRenderComposeCoord(parentCoord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
 
     scratch->operand.vx = 0;
@@ -117,7 +117,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     taskDetachFromParent(arg1);
 
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 
     ctx   = arg1->spawnArg2.pointer;
     sound = gGolemPawnRookShotSound | (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);

@@ -1464,7 +1464,7 @@ static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
             func_actor_207200_8014D97C(arg1, &arg1->extra.tmd->coords[3]);
             arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
             arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&arg1->extra.tmd->coords[1]);
+            actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
             Actor207200_UpdateColor(arg0, arg1);
             break;
     }
@@ -1615,7 +1615,7 @@ default_body:
     func_actor_207200_8014D97C(arg1, &arg1->extra.tmd->coords[3]);
     arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg1->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
 case1:
     func_actor_207200_8014D70C(arg0, arg1);
     func_actor_207200_8014D77C(arg1);
@@ -1784,7 +1784,7 @@ static void func_actor_207200_8014D77C(Task* task)
 /// 0x1000-per-unit scale, decaying by 0x50 a frame while it sits above 0x200). The
 /// `ActorScaleScratch` block that holds the scaling matrix and its `VECTOR` is
 /// borrowed from the scratch stack and released again; the node's
-/// `composeStamp` is cleared so the next `Gp_UpdateCoord` recomputes it.
+/// `composeStamp` is cleared so the next `actorRenderComposeCoord` recomputes it.
 static void func_actor_207200_8014D7E8(Task* arg0)
 {
     GfxCoord*                         coord;

@@ -57,7 +57,7 @@ default_body:
     maggotCaterpillarMoveStep(arg1);
     maggotCaterpillarTickAnim(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 case1:
     maggotCaterpillarUpdateColor(arg1);
     maggotCaterpillarDrawShadow(arg1);

@@ -992,7 +992,7 @@ static void Actor02100_Fn00DCC(Task* arg0)
         target = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[3];
     }
     target->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(target);
+    actorRenderComposeCoord(target);
 
     if (work->hitThisTick == 0) {
         scratch->delta.vx = target->workm.t[0] - self->workm.t[0];
@@ -1951,7 +1951,7 @@ body:
     coord->coord.t[1]  += work->velocity.vy;
     coord->coord.t[2]  += work->velocity.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     Actor02100_Fn032E4(arg1);
     Actor02100_Fn03488(arg1);
     if (gSceneCombatState.generatorDeathStarted == 1) {

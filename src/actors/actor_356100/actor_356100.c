@@ -1115,7 +1115,7 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
     actor->msgTable         = D_actor_356100_80173258;
     root->parent            = &gGfxViewCoord;
     root->composeStamp      = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(root);
+    actorRenderComposeCoord(root);
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
@@ -1897,7 +1897,7 @@ static void func_actor_356100_801666B4(Task* arg0)
         work->animRate                          = 0x10;
         work->animId                            = 5;
         player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(player->extra.tmd->coords);
+        actorRenderComposeCoord(player->extra.tmd->coords);
         D_actor_356100_801732B0.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
         D_actor_356100_801732B0.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
         D_actor_356100_801732B0.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
@@ -2592,7 +2592,7 @@ static void func_actor_356100_80169180(Task* arg0)
         coord->coord.t[1]                     = 0;
         coord->coord.t[0]                     = 0;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(arg0->extra.tmd->coords);
+        actorRenderComposeCoord(arg0->extra.tmd->coords);
         work->stateTimer = 0;
         pan              = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_START, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
@@ -2602,7 +2602,7 @@ static void func_actor_356100_80169180(Task* arg0)
     arg0->extra.tmd->coords[1].coord.t[0]  += 0x1044;
     arg0->extra.tmd->coords[1].coord.t[2]  += 0x4AA;
     arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
     if (work->stateTimer == 0x31) {
         s32 pan;
 
@@ -2764,7 +2764,7 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
         blk->shadowCoord.coord.t[1]   = 0;
         blk->shadowCoord.coord.t[2]   = blk->viewPos.vz;
         blk->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&blk->shadowCoord);
+        actorRenderComposeCoord(&blk->shadowCoord);
         Gp_DrawEffGroundQuad(MATRIX_TRANS(&blk->shadowCoord.workm), 0x280, gRoomEffectState->groundShadowShade);
     }
     if (work->prevState != work->state) {

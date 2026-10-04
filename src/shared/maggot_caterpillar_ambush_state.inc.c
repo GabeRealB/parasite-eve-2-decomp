@@ -59,7 +59,7 @@ void maggotCaterpillarAmbushState(Task* actor)
                     SndEvt_EnqueueType6(sound, (s32)pan0, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 work->baseMatrix = coord->workm;
                 break;
             }
@@ -83,12 +83,12 @@ void maggotCaterpillarAmbushState(Task* actor)
                     SndEvt_EnqueueType6(sound, (s32)pan1, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 work->baseMatrix = coord->workm;
                 break;
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             work->baseMatrix = coord->workm;
             break;
         case 1:
@@ -99,7 +99,7 @@ void maggotCaterpillarAmbushState(Task* actor)
                 work->threadFade = 0x2D;
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             work->baseMatrix = coord->workm;
             break;
         case 2:

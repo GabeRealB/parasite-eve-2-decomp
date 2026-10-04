@@ -38,7 +38,7 @@ void ACROPOLIS_GLOWS_STAR_TASK(Task* task)
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->age        = task->spawnArg1.value;
     scratch          = SCRATCH_STACK_CURSOR_SLOT;
     head             = *scratch;

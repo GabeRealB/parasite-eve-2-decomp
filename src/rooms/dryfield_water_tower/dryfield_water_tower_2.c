@@ -1825,7 +1825,7 @@ static void       func_dryfield_water_tower_8017FBE8(Task* task);
 /// publishes the raised placement on its first frame and then only runs the
 /// tail, which advances the halfword `fallSpeed` by 4 and moves the cap's
 /// coordinate down by it -- so the cap accelerates by 4 a frame -- leaving the
-/// coordinate marked dirty for the next `Gp_UpdateCoord` pass.
+/// coordinate marked dirty for the next `actorRenderComposeCoord` pass.
 static void func_dryfield_water_tower_8017DE30(Task* arg0)
 {
     _DryfieldWaterTowerPropSceneWork* state = arg0->work;
@@ -2101,7 +2101,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 /// `settleFrames`; on its 0x3D-th tick it publishes the 0x7D4 record at 0x80181A58
 /// and returns 1, and until then mirrors that record's `pos.vx` into the cap's
 /// X, nudged by the same flag. Every path clears `coord->composeStamp`, leaving the
-/// coordinate dirty for the next `Gp_UpdateCoord` pass.
+/// coordinate dirty for the next `actorRenderComposeCoord` pass.
 ///
 /// Where the sibling `func_dryfield_water_tower_8017E5B0` drives the run's head
 /// and queues two `SndEvt_EnqueueType*` calls per lowering, this one drives the
@@ -2176,7 +2176,7 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 /// 0x7D4 record at 0x80181A40 and returns 1, and until then mirrors that
 /// record's `pos.vx` into the cap's X, nudged by the same flag. Every path
 /// clears `coord->composeStamp`, leaving the coordinate dirty for the next
-/// `Gp_UpdateCoord` pass.
+/// `actorRenderComposeCoord` pass.
 ///
 /// Two shapes here are the original's rather than stylistic, and folding either
 /// away moves the two loads `Gp_SpawnEff` takes as its coordinate argument:

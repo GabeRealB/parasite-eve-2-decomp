@@ -1357,7 +1357,7 @@ void func_actor_136100_801320E0(Task* task)
     {
         TmdObject* obj = task->extra.tmd;
 
-        Gp_UpdateCoord(obj->coords);
+        actorRenderComposeCoord(obj->coords);
         vec.vx = task->extra.tmd->coords->workm.t[0];
         vec.vy = task->extra.tmd->coords->workm.t[1];
         vec.vz = task->extra.tmd->coords->workm.t[2];
@@ -1400,7 +1400,7 @@ void func_actor_136100_80132284(Task* arg0)
     {
         TmdObject* obj = arg0->extra.tmd;
 
-        Gp_UpdateCoord(obj->coords);
+        actorRenderComposeCoord(obj->coords);
         vec.vx = arg0->extra.tmd->coords->workm.t[0];
         vec.vy = arg0->extra.tmd->coords->workm.t[1];
         vec.vz = arg0->extra.tmd->coords->workm.t[2];
@@ -2179,7 +2179,7 @@ static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec)
 {
     TmdObject* obj = arg0->extra.tmd;
 
-    Gp_UpdateCoord(&obj->coords[1]);
+    actorRenderComposeCoord(&obj->coords[1]);
     vec->vx = arg0->extra.tmd->coords[1].workm.t[0];
     vec->vy = arg0->extra.tmd->coords[1].workm.t[1];
     vec->vz = arg0->extra.tmd->coords[1].workm.t[2];

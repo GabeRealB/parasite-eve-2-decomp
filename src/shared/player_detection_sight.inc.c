@@ -19,7 +19,7 @@ s32 detectSightBlocked(Task* arg0)
     block->localEye.vy                                = player->extra.tmd->coords->coord.t[1] - 1000;
     SCRATCH_STACK_CURSOR(PlayerDetectionSightScratch) = block;
     block->localEye.vz                                = player->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     v = localEye;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
@@ -32,7 +32,7 @@ s32 detectSightBlocked(Task* arg0)
     block->localEye.vx = arg0->extra.tmd->coords->coord.t[0];
     block->localEye.vy = arg0->extra.tmd->coords->coord.t[1] - 1000;
     block->localEye.vz = arg0->extra.tmd->coords->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     actorEye = &head[-1].actorEye;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);

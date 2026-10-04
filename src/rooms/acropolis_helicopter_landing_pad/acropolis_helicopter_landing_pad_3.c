@@ -952,7 +952,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
         return;
     }
     {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         if (arg0->state == 0) {
             if (arg0->spawnArg1.value != 0) {
                 mem->move.vx    = 0;
@@ -1097,7 +1097,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
         coord->coord.t[1]   = mem->pos.vy;
         coord->coord.t[2]   = mem->pos.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         mem->scale = 1;
         mem->index++;
     }
@@ -1181,7 +1181,7 @@ static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord)
     u32                tmp;
     u16                lvl;
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     line                  = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);
     gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     line->endpoints[0].vx = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
@@ -1249,7 +1249,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
     u32                tmp;
     u16                lvl;
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     line                  = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);
     gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     line->endpoints[0].vx = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
@@ -1328,7 +1328,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING && arg0->state < 3) {
         return;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     switch (arg0->state) {
         case 0:
             Gp_SpawnEff(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 1, NULL);
@@ -1400,7 +1400,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
         return;
     }
     {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         if (arg0->state == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->scale      = ((gRandomLcgState >> 16) & 0x1FF) + 0x200;

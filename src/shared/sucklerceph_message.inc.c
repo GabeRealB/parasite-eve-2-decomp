@@ -94,7 +94,7 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
             work->state                           = SUCKLERCEPH_STATE_AWAKE;
             work->awakeStage                      = SUCKLERCEPH_AWAKE_STAGE_CRAWL;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
+            actorRenderComposeCoord(arg0->extra.tmd->coords);
         }
         return 0;
     }
@@ -112,7 +112,7 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
         coord->coord.t[1]                     = 0;
         coord->coord.t[0]                     = 0;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(arg0->extra.tmd->coords);
+        actorRenderComposeCoord(arg0->extra.tmd->coords);
         arg0->state      = 3;
         work->dropArmed  = 0;
         work->state      = SUCKLERCEPH_STATE_DORMANT;

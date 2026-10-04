@@ -1518,7 +1518,7 @@ void func_acropolis_square_80181AEC(Task* task)
             D_acropolis_square_801888CC.coord.t[1] = -0xF96;
             D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
             D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
-            Gp_UpdateCoord(&D_acropolis_square_801888CC);
+            actorRenderComposeCoord(&D_acropolis_square_801888CC);
             pan = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
             SndEvt_EnqueueType6(
                 SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan, (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
@@ -1533,7 +1533,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
                 D_acropolis_square_80188898            = 0;
                 D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
-                Gp_UpdateCoord(&D_acropolis_square_801888CC);
+                actorRenderComposeCoord(&D_acropolis_square_801888CC);
                 pan2 = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan2,
                                     (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
@@ -1578,7 +1578,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
                 D_acropolis_square_80188898            = 0;
                 D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
-                Gp_UpdateCoord(&D_acropolis_square_801888CC);
+                actorRenderComposeCoord(&D_acropolis_square_801888CC);
                 pan3 = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan3,
                                     (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
@@ -1850,7 +1850,7 @@ void func_acropolis_square_801825DC(Task* task)
 
     coord = task->extra.coordBody->coord;
     mem   = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
     blk->worldPos.vx = (u16)coord->workm.t[0];
     blk->worldPos.vy = (u16)coord->workm.t[1];

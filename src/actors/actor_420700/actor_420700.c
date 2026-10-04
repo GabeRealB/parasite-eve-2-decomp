@@ -1104,7 +1104,7 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
     coords = task->extra.tmd->coords;
     part   = &coords[2];
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-    Gp_UpdateCoord(part);
+    actorRenderComposeCoord(part);
     pos.vx = part->workm.t[0];
     pos.vy = part->workm.t[1];
     pos.vz = part->workm.t[2];

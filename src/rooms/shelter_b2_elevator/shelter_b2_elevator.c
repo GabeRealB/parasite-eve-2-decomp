@@ -443,7 +443,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
                 obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];
             vec.vz = coord->workm.t[2];

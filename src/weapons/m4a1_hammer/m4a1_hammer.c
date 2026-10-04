@@ -102,7 +102,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
                 D_m4a1_hammer_8012D660 = task;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 task->state = 1;
                 return;
             case 1:
@@ -121,7 +121,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                             }
                             return;
                         }
-                        Gp_UpdateCoord(coord);
+                        actorRenderComposeCoord(coord);
                         if ((work->age & 0xF) == 0) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             work->angle     = (gRandomLcgState >> 16) & 0xFFF;
@@ -152,7 +152,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                             }
                             return;
                         }
-                        Gp_UpdateCoord(coord);
+                        actorRenderComposeCoord(coord);
                         if (work->index == 0) {
                             for (i = 0; i < 8; i++) {
                                 gRandomLcgState                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -276,7 +276,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
                 coord->coord.t[2]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 coord->parent       = parent;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 arg0->state = 1;
             }
             mem->scale      = 0x80;

@@ -22,7 +22,7 @@ void oddStrangerGrab(Task* arg0)
         work->animRate                          = 0x10;
         work->animId                            = 5;
         player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(player->extra.tmd->coords);
+        actorRenderComposeCoord(player->extra.tmd->coords);
         msg         = &gOddStrangerGrabTransform.placement;
         msg->pos.vx = player->extra.tmd->coords->coord.t[0];
         msg->pos.vy = player->extra.tmd->coords->coord.t[1];
@@ -48,10 +48,10 @@ void oddStrangerGrab(Task* arg0)
     oddStrangerDrive(arg0);
     gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);
     gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);
     if (work->animId == 5 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
 #if ODD_STRANGER_VARIANT == 2
         work->state = ODD_STRANGER_STATE_GRAB_STRIKE;

@@ -1204,7 +1204,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         head    = SCRATCH_STACK_CURSOR(u8);
         scratch = (_Actor403600ChainScratch*)(SCRATCH_STACK_CURSOR(u8) = head - sizeof(_Actor403600ChainScratch));
-        Gp_UpdateCoord(&actor->extra.tmd->coords[11]);
+        actorRenderComposeCoord(&actor->extra.tmd->coords[11]);
         if (fx->chainsPlaced == 0) {
             TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
             scratch->aux.vx = center->workm.t[0] - gGfxViewCoord.workm.t[0];
@@ -1232,7 +1232,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
             i = 0;
             do {
                 GfxCoord* limb = &actor->extra.tmd->coords[i * 4 + 15];
-                Gp_UpdateCoord(limb);
+                actorRenderComposeCoord(limb);
                 scratch->aux.vx = limb->workm.t[0] - gGfxViewCoord.workm.t[0];
                 scratch->aux.vy = limb->workm.t[1] - gGfxViewCoord.workm.t[1];
                 scratch->aux.vz = limb->workm.t[2] - gGfxViewCoord.workm.t[2];
@@ -1314,7 +1314,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 TransposeMatrix(&segment->parent->workm, &scratch->basis);
                 gte_MulMatrix0(&scratch->basis, &scratch->rot, &segment->coord);
                 segment->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(segment);
+                actorRenderComposeCoord(segment);
                 i++;
             } while (i < 3);
 
@@ -1322,7 +1322,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
             do {
                 GfxCoord* limb = &actor->extra.tmd->coords[i * 4 + 15];
                 TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
-                Gp_UpdateCoord(limb);
+                actorRenderComposeCoord(limb);
                 scratch->aux.vx = limb->workm.t[0] - gGfxViewCoord.workm.t[0];
                 scratch->aux.vy = limb->workm.t[1] - gGfxViewCoord.workm.t[1];
                 scratch->aux.vz = limb->workm.t[2] - gGfxViewCoord.workm.t[2];
@@ -1373,7 +1373,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
 
                 gte_MulMatrix0(&scratch->basis, &limb->coord, &limb->coord);
                 limb->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(limb);
+                actorRenderComposeCoord(limb);
                 i++;
             } while (i < 2);
         }
@@ -1591,7 +1591,7 @@ void func_actor_403600_80134398(Task* arg0)
 block_22:
     work   = arg0->work;
     target = &player->extra.tmd->coords[1];
-    Gp_UpdateCoord(target);
+    actorRenderComposeCoord(target);
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->inverseViewRot);
     view            = &gGfxViewCoord;
     var_s4          = target->workm.t[0] - view->workm.t[0];
@@ -1714,7 +1714,7 @@ block_22:
                 } while (steeringPass < 2);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             work->trail[0].vx  = (u16)coord->coord.t[0];
             work->trail[0].vy  = (u16)coord->coord.t[1];
             work->trail[0].vz  = (u16)coord->coord.t[2];
@@ -1926,7 +1926,7 @@ void func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1)
     newHead                    = head - sizeof(_Actor403600RadialGridScratch);
     SCRATCH_STACK_CURSOR(void) = newHead;
     scratch                    = (_Actor403600RadialGridScratch*)newHead;
-    Gp_UpdateCoord(arg1);
+    actorRenderComposeCoord(arg1);
     gte_SetRotMatrix(&arg1->workm);
     gte_SetTransMatrix(&arg1->workm);
 
@@ -2265,7 +2265,7 @@ void func_actor_403600_80135C28(Task* arg0)
                     temp_a0_5->flags        = (u16)(temp_a0_5->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
                 } else if (temp_v0_9 > 0) {
                     D_actor_403600_801606A0 = &temp_s0->clipCoord;
-                    Gp_UpdateCoord(&temp_s0->clipCoord);
+                    actorRenderComposeCoord(&temp_s0->clipCoord);
                 }
                 break;
             case 2:
@@ -2275,10 +2275,10 @@ void func_actor_403600_80135C28(Task* arg0)
                     temp_a1                 = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
                     D_actor_403600_801606A0 = &temp_s0->clipCoord;
                     temp_a1->flags          = (u16)(temp_a1->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
-                    Gp_UpdateCoord(&temp_s0->clipCoord);
+                    actorRenderComposeCoord(&temp_s0->clipCoord);
                 } else if (temp_v1_10 >= -7) {
                     D_actor_403600_801606A0 = &temp_s0->clipCoord;
-                    Gp_UpdateCoord(&temp_s0->clipCoord);
+                    actorRenderComposeCoord(&temp_s0->clipCoord);
                 } else if (temp_v1_10 == -8) {
                     D_actor_403600_801606A0 = NULL;
                 }

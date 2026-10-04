@@ -471,7 +471,7 @@ static __inline__ u8* _actor403600ProjectDepth(GfxCoord* coord)
     block->origin.vx = 0;
     block->origin.vy = 0;
     block->origin.vz = 0;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
     gte_ldv0(&block->origin);
@@ -550,9 +550,9 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     temp_s0->coord.t[1]                                  = 0x744;
     temp_s0->coord.t[2]                                  = 0;
     work->worldCoord.composeStamp                        = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(temp_a0);
+    actorRenderComposeCoord(temp_a0);
     temp_s0->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(temp_s0);
+    actorRenderComposeCoord(temp_s0);
     temp_s2->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     temp_s0->composeStamp = GRAPHICS_COORD_DIRTY;
     temp_s2->lightMtx     = &work->light;
@@ -727,7 +727,7 @@ default_body:
         var_a0 = &work->worldCoord;
     }
     work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(var_a0);
+    actorRenderComposeCoord(var_a0);
     func_actor_403600_801412D0(arg0, arg1);
     temp_a1 = work->ambientBoost;
     if (temp_a1 != 0) {
@@ -3874,9 +3874,9 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     modelCoord->coord.t[1]            = 0x744;
     modelCoord->coord.t[2]            = 0;
     work->worldCoord.composeStamp     = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(worldCoord);
+    actorRenderComposeCoord(worldCoord);
     modelCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(modelCoord);
+    actorRenderComposeCoord(modelCoord);
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
     enemy->field_4  = &modelCoord[1].coord;
@@ -4042,7 +4042,7 @@ static void func_actor_403600_8013FC2C(Enemy* arg0, Task* arg1)
             _actor403600UpdateAnimation(arg1, 20);
             _actor403600RotateParts(arg1);
             work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&work->worldCoord);
+            actorRenderComposeCoord(&work->worldCoord);
             if (++work->colorRefreshFrames >= 10) {
                 work->colorRefreshFrames = 0;
                 _actor403600UpdateColor(arg0, arg1);
@@ -4376,7 +4376,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             angles.vz                   = 0;
             RotMatrix(&angles, &work->worldCoord.coord);
             work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&work->worldCoord);
+            actorRenderComposeCoord(&work->worldCoord);
             Tmd_AllocBuffers(arg0->extra.tmd);
             arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -4538,7 +4538,7 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
         }
     }
     work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->worldCoord);
+    actorRenderComposeCoord(&work->worldCoord);
     _actor403600UpdateColor(enemy, actor);
     transparency = work->ambientBoost;
     if (transparency != 0) {
@@ -4990,9 +4990,9 @@ static void func_actor_403600_80141D30(Enemy* arg0, Task* arg1)
     coord->coord.t[0]             = 0;
     coord->coord.t[2]             = 0x5DC;
     work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(workCoord);
+    actorRenderComposeCoord(workCoord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->worldCoord.coord.t[0] = 0;
     work->worldCoord.coord.t[1] = 0;
     work->worldCoord.coord.t[2] = 0;

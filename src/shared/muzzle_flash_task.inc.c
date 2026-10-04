@@ -49,7 +49,7 @@ static inline void muzzleFlashTask(Task* task)
             coord->coord.t[1]   = _gMuzzleOffset.vy;
             coord->coord.t[2]   = _gMuzzleOffset.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
 
             work->period    = 0xC0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

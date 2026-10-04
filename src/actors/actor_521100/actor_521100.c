@@ -3382,7 +3382,7 @@ default_body:
     }
     temp_s2->composeStamp                   = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(temp_s2);
+    actorRenderComposeCoord(temp_s2);
 case1:
     func_actor_521100_80135A34(arg1);
     no9GolemDrawShadow(arg1);

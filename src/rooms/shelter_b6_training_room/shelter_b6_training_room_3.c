@@ -988,7 +988,7 @@ void func_shelter_b6_training_room_801811AC(Task* task)
             task->state         = task->spawnArg1.value + 1;
             coord->coord.t[1]   = 0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             return;
         case 1:
             if (mem->scale < 5) {

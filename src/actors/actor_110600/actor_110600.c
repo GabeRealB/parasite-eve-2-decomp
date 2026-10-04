@@ -1737,7 +1737,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     work->rootDirty     = enabled;
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     world.vx = coord->workm.t[0];
     world.vy = coord->workm.t[1];
     world.vz = coord->workm.t[2];
@@ -2352,7 +2352,7 @@ static void func_actor_110600_80136210(Task* arg0)
         enemy->hp = (u16)enemy->hp - (u16)scratch->damage;
         func_800DA6E8(&enemy->node, scratch->damage, 0);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(arg0->extra.tmd->coords);
+        actorRenderComposeCoord(arg0->extra.tmd->coords);
         scratch->hitOffset.vx = (s16)(scratch->hitPos.vx - (u16)arg0->extra.tmd->coords->workm.t[0]);
         scratch->hitOffset.vy = (s16)(scratch->hitPos.vy - (u16)arg0->extra.tmd->coords->workm.t[1]);
         dz                    = scratch->hitPos.vz - (u16)arg0->extra.tmd->coords->workm.t[2];
@@ -3279,7 +3279,7 @@ static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
     states = D_actor_110600_80131F3C;
 
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
     pos.vx = arg1->extra.tmd->coords->workm.t[0];
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
@@ -3349,7 +3349,7 @@ block_24:
         work->rootDirty = 0;
     }
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
     work->colorMtx.t[1] -= work->enrageTint;
     work->colorMtx.t[2] -= work->enrageTint;
     work->colorMtx.t[0] -= (work->enrageTint * 2) / 3;

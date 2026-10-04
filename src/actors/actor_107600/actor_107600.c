@@ -885,7 +885,7 @@ static void func_actor_107600_80131F10(Task* arg0)
     }
     arg0->state++;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     func_actor_107600_80132DF0(enemy, arg0->spawnArg1.value & 0xF,
                                work->behaviour | (((u32)arg0->spawnArg1.value >> 16) & 0x2000));
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
@@ -1393,7 +1393,7 @@ static void func_actor_107600_80132ED0(Task* arg0)
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     func_actor_107600_80134E5C(coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     arg0->state += 1;
 }
 
@@ -2337,7 +2337,7 @@ static void func_actor_107600_80134D9C(Task* arg0)
 /// the scratch stack the way `func_actor_107600_80132B0C` carves its VECTOR, but
 /// is filled with (0, -0x180, 0) and rotated in place by `ApplyMatrixLV`, which
 /// also folds in the matrix's existing translation. `func_actor_107600_80132ED0`
-/// calls this on the coordinate it then hands to `Gp_UpdateCoord`.
+/// calls this on the coordinate it then hands to `actorRenderComposeCoord`.
 static void func_actor_107600_80134E5C(GfxCoord* arg0)
 {
     void**  scratch;

@@ -203,7 +203,7 @@ static inline void RoomFx_OrangeBurst2Task(Task* arg0)
             mem->step   = 0x80;
             arg0->state = 1;
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         rgb[0]     = mem->scale;
         rgb[1]     = mem->scale >> 1;
         rgb[2]     = mem->scale >> 2;

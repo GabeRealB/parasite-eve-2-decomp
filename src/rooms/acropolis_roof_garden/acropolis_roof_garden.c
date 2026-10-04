@@ -1388,7 +1388,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         if ((D_acropolis_roof_garden_80184C48[arg0->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1) {
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             blk = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
             if (arg0->state == 0) {
                 // Resting grey of each sheet cell; the room only spawns cells 0..2.
@@ -1475,7 +1475,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
     blk->worldPos.vx = coord->workm.t[0];
     blk->worldPos.vy = coord->workm.t[1];

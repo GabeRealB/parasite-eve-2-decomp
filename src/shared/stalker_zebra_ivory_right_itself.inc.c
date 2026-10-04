@@ -25,7 +25,7 @@ void stalkerZebraIvoryRightItself(Task* arg0)
         stalkerZebraIvoryApplyRotationInline(arg0);
         stalkerZebraIvoryTickAnimInline(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->anchorPos);
         work->onBack    = 0;
         work3           = (StalkerZebraIvoryWork*)arg0->work;

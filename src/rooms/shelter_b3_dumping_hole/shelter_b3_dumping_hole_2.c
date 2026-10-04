@@ -2086,7 +2086,7 @@ static u16 func_shelter_b3_dumping_hole_8017DA00(GfxCoord* coord, s16 w, s16 h, 
     s16       sx;
     s16       sy;
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gte_SetTransMatrix(&coord->workm);
     gte_SetRotMatrix(&coord->workm);
     origin.vx = origin.vy = origin.vz = 0;
@@ -2270,7 +2270,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
     v                  = D_shelter_b3_dumping_hole_801880B8[work->frame].v;
     tx                 = D_shelter_b3_dumping_hole_801880B8[work->frame].vramX;
     ty                 = D_shelter_b3_dumping_hole_801880B8[work->frame].vramY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gte_SetTransMatrix(&coord->workm);
     gte_SetRotMatrix(&coord->workm);
     pos.vx = pos.vy = pos.vz = 0;
@@ -2433,7 +2433,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     gfxRotMatrixZ(&coord->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     taskReparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     e2   = arg0->extra.tmd;
     v.vx = e2->coords->workm.t[0];
     v.vy = arg0->extra.tmd->coords->workm.t[1];
@@ -3126,7 +3126,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             coord->coord.t[0] += work->vel.vx;
             coord->coord.t[1] += work->vel.vy;
             coord->coord.t[2] += work->vel.vz;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             gte_SetTransMatrix(&coord->workm);
             gte_SetRotMatrix(&coord->workm);
             origin.vz = 0;
@@ -4408,7 +4408,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
         coord->coord.t[1]                = 0;
         coord->coord.t[0]                = 0;
         coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         arg0->state = 1;
     }
     mem->age += 1;

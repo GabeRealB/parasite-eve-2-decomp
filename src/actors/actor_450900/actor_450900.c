@@ -979,8 +979,8 @@ void func_actor_450900_80132724(void)
 
     target = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
     origin = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    Gp_UpdateCoord(target);
-    Gp_UpdateCoord(origin);
+    actorRenderComposeCoord(target);
+    actorRenderComposeCoord(origin);
     D_actor_450900_80136458.rot.vy =
         ratan2(target->coord.t[0] - origin->coord.t[0], target->coord.t[2] - origin->coord.t[2]) & 0xFFF;
 }

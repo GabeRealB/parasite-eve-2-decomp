@@ -1259,7 +1259,7 @@ static void func_actor_113000_80132070(Task* task)
     if (gGameSession->viewReady != 0) {
         coords                 = task->extra.tmd->coords;
         coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&coords[1]);
+        actorRenderComposeCoord(&coords[1]);
         func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
     }
     func_actor_113000_80131E30(task);
@@ -1286,7 +1286,7 @@ static void func_actor_113000_801321A8(Task* task)
     extra->lightMtx        = &work->light;
     extra->colorMtx        = &work->color;
     coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&coords[1]);
+    actorRenderComposeCoord(&coords[1]);
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
 

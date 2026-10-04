@@ -1159,7 +1159,7 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     base[2].composeStamp = GRAPHICS_COORD_DIRTY;
                     base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                     base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(c4);
+                    actorRenderComposeCoord(c4);
                     Gp_MtxToEuler(&c2->coord, &work->lowerNeckAngles);
                     Gp_MtxToEuler(&c3->coord, &work->upperNeckAngles);
                     work->neckPhase = ACTOR_206100_NECK_STRAIGHTEN;
@@ -1196,7 +1196,7 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     c2->composeStamp = GRAPHICS_COORD_DIRTY;
                     c3->composeStamp = GRAPHICS_COORD_DIRTY;
                     c4->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(c4);
+                    actorRenderComposeCoord(c4);
                     break;
                 }
                 case ACTOR_206100_NECK_RETRACTED: {
@@ -1252,7 +1252,7 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     base[2].composeStamp = GRAPHICS_COORD_DIRTY;
                     base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                     base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(c4);
+                    actorRenderComposeCoord(c4);
                     break;
                 }
             }
@@ -1263,7 +1263,7 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
             base[2].composeStamp = GRAPHICS_COORD_DIRTY;
             base[3].composeStamp = GRAPHICS_COORD_DIRTY;
             base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(c4);
+            actorRenderComposeCoord(c4);
             if (work->neckScale < 0xF80) {
                 GfxRotationWords* ia;
                 GfxRotationWords* ib;
@@ -1317,7 +1317,7 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                 base[2].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(c4);
+                actorRenderComposeCoord(c4);
                 work->neckPhase = ACTOR_206100_NECK_FREE;
             } else {
                 func_actor_206100_8014E228(task);
@@ -3074,9 +3074,9 @@ static void func_actor_206100_8014E228(Task* task)
     m3->m[2][0]       = mb.mat.m[2][0];
     m3->m[2][1]       = mb.mat.m[2][1];
     m3->m[2][2]       = mb.mat.m[2][2];
-    Gp_UpdateCoord(c1);
-    Gp_UpdateCoord(c2);
-    Gp_UpdateCoord(c3);
+    actorRenderComposeCoord(c1);
+    actorRenderComposeCoord(c2);
+    actorRenderComposeCoord(c3);
     diverTurnJoint(c2, (s16)work->lookYaw / 3);
     diverTurnJoint(c3, (s16)work->lookYaw / 3);
 
@@ -3112,7 +3112,7 @@ static void func_actor_206100_8014E228(Task* task)
     dest->m[2][1]    = t1.m[2][1];
     dest->m[2][2]    = t1.m[2][2];
     c4->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(c4);
+    actorRenderComposeCoord(c4);
 }
 
 /// Effect-mode tick of the `state` state table `D_actor_206100_80149EC0`,
@@ -3347,7 +3347,7 @@ static void func_actor_206100_8014EEC0(Task* task)
     Gp_LinkObj(3, &shot->strike.attackBody);
     Gp_InitRec18Table(contacts, ARRAY_SIZE(shot->contacts), 0);
     shot->strike.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     diverImpactBurst(coord, (u16)shot->burstPhase, 0, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
     task->state++;
 }

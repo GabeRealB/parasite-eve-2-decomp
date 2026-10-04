@@ -1021,7 +1021,7 @@ static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1)
     EnemyTaskFuncTable3   sp   = D_actor_341700_80162058;
 
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg1->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
     block.vx = arg1->extra.tmd->coords[1].workm.t[0];
     block.vy = arg1->extra.tmd->coords[1].workm.t[1];
     block.vz = arg1->extra.tmd->coords[1].workm.t[2];
@@ -1154,7 +1154,7 @@ static void func_actor_341700_8016D130(Enemy* arg0, Task* arg1)
     model->lightMtx                       = &work->lightMtx;
     model->colorMtx                       = &work->colorMtx;
     coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     block.vx = coord->workm.t[0];
     block.vy = coord->workm.t[1];
     block.vz = coord->workm.t[2];

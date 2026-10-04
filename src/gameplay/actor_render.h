@@ -3,12 +3,27 @@
 
 #include "main/coord.h"
 
-/// Composes a node relative to `root`, excluding that ancestor's transform.
+/// Refreshes a coordinate below an excluded ancestor, with view rebasing for parentless nodes.
 ///
-/// For a parentless node, composes through the top of the chain instead and
-/// converts `coord` into the current view node's local space. Parent links
-/// remain borrowed, and a supplied root must lie on the chain.
-void Gp_UpdateCoordEx(GfxCoord* coord, GfxCoord* root);
+/// For a parented node, `excludedAncestor` is NULL to include the complete chain or a
+/// strict ancestor whose transform is excluded. Excluding `gGfxViewCoord`
+/// composes world-space matrices for room lights. At the excluded ancestor,
+/// a dirty node copies its local matrix; a nonzero rebuild stamp keeps its
+/// existing cache. Reusing nodes composed in another space requires
+/// invalidating affected caches: the stamp does not identify the root.
+///
+/// For a parentless node, ignores `excludedAncestor`, composes the node's cache, then
+/// writes `coord->coord` relative to the already composed `gGfxViewCoord.workm`.
+/// Leaves `workm`, the resulting stamp and the NULL parent intact. The view
+/// reference must be current and have an orthonormal rotation for rebasing.
+///
+/// `coord` must be non-NULL; it and its borrowed ancestors must remain live
+/// and writable during the call. The parent chain must be acyclic. Clear
+/// `composeStamp` when changing a local matrix or parent. Uses the current
+/// pass's stamp and parity without advancing it. Matrix coefficients have
+/// 12 fractional bits; translations use signed coordinate units. Stored
+/// Euler angles are not applied, and GTE working registers are clobbered.
+void actorRenderComposeCoordRelative(GfxCoord* coord, GfxCoord* excludedAncestor);
 
 /// Composes `coord` and its ancestors, stopping before `root`.
 ///

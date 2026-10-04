@@ -2619,7 +2619,7 @@ static void func_actor_443500_801321F0(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
         if (gGameSession->viewReady != 0) {
-            Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+            actorRenderComposeCoord(&task->extra.tmd->coords[1]);
             func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
         }
     }

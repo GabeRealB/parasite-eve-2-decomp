@@ -34,7 +34,7 @@ void sucklercephDropState(Enemy* arg0, Task* arg1)
             sucklercephTickAnim(arg1);
             actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
             arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg1->extra.tmd->coords);
+            actorRenderComposeCoord(arg1->extra.tmd->coords);
             work->forwardSpeed -= 2;
             if (work->forwardSpeed < 0) {
                 work->forwardSpeed = 0;

@@ -4065,7 +4065,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     task->msgTable                        = D_actor_403200_8015F770;
     coord->parent                         = &gGfxViewCoord;
     coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 
     work->prevState = -1;
     buffers         = task->work;
@@ -4218,7 +4218,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     mtx->rotationWords.m22                             = ONE;
     work->swipeCoord.node.coord.t[0] = work->swipeCoord.node.coord.t[1] = work->swipeCoord.node.coord.t[2] = 0;
     work->swipeCoord.node.composeStamp                                                                     = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(freeCoord);
+    actorRenderComposeCoord(freeCoord);
 
     work->swipeCapsule.ends[1].vz   = 0x1B58;
     recs2                           = work->swipeContacts;
@@ -4254,7 +4254,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
         }
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
@@ -4467,7 +4467,7 @@ stored:
 
     func_800DA6E8(&work->escorts[0]->node, sc->damage, 0);
     work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(work->escorts[0]->task->extra.tmd->coords);
+    actorRenderComposeCoord(work->escorts[0]->task->extra.tmd->coords);
     sc->offset.vx = sc->contactPoint.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
     sc->offset.vy = sc->contactPoint.vy - work->escorts[0]->task->extra.tmd->coords->workm.t[1];
     sc->offset.vz = sc->contactPoint.vz - work->escorts[0]->task->extra.tmd->coords->workm.t[2];
@@ -5274,7 +5274,7 @@ static void func_actor_403200_8013D028(Task* arg0)
         work->limbPoseEnabled  = 1;
         gfxRotMatrixY(&work->swipeCoord.node.coord, work->neckYaw, 1);
         work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->swipeCoord.node);
+        actorRenderComposeCoord(&work->swipeCoord.node);
         work->wallDistanceTarget = 0xC80;
         resetId                  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
         resetPan                 = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -5283,7 +5283,7 @@ static void func_actor_403200_8013D028(Task* arg0)
     }
 
     work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->swipeCoord.node);
+    actorRenderComposeCoord(&work->swipeCoord.node);
 
     if (work->animId == 4 && (frame = work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC &&
         work->prevSwipeCue != frame) {
@@ -5696,7 +5696,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             D_actor_403200_8015F920.coord.t[1]  += pos.vy;
             D_actor_403200_8015F920.coord.t[2]  += pos.vz;
             D_actor_403200_8015F920.composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&D_actor_403200_8015F920);
+            actorRenderComposeCoord(&D_actor_403200_8015F920);
             Gp_SpawnEff(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, &D_actor_403200_8015F920, 0x97A0D680, NULL);
         }
         if ((s16)((s16)(u16)work->stateTicks % 10) == 4) {
@@ -5774,7 +5774,7 @@ static void func_actor_403200_8013E2FC(Task* arg0)
         D_actor_403200_8015F970.node.coord.t[2]                   = 0x64;
         D_actor_403200_8015F970.node.composeStamp                 = GRAPHICS_COORD_DIRTY;
         D_actor_403200_8015F970.node.parent                       = &coords[4];
-        Gp_UpdateCoord(&D_actor_403200_8015F970.node);
+        actorRenderComposeCoord(&D_actor_403200_8015F970.node);
     }
     state = work->animId;
     if (state == 0x14) {
@@ -6404,7 +6404,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
     states = D_actor_403200_80132154;
 
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
 
     dying = arg1->work;
     if (dying->freeCountdown != 0) {

@@ -711,7 +711,7 @@ case1:
     work->prevActorControl = gSceneCombatState.actorControl;
 tail:
     enemy = actor->spawnArg2.pointer;
-    Gp_UpdateCoord(&actor->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&actor->extra.tmd->coords[1]);
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];

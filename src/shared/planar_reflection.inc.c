@@ -611,7 +611,7 @@ static void Reflection_UpdatePlayer(Task* task)
 
             extent = SCRATCH_STACK_RESERVE_BLOCK(_PlanarReflectionExtentScratch);
             if (gGameSession->eventState != 0) {
-                Gp_UpdateCoord(refPart);
+                actorRenderComposeCoord(refPart);
                 gte_SetTransMatrix(&refPart->workm);
                 gte_SetRotMatrix(&refPart->workm);
                 extent->point.vx = 0;
@@ -625,7 +625,7 @@ static void Reflection_UpdatePlayer(Task* task)
                 gte_RotTransPers(&extent->point, &extent->screenFoot, &extent->depthCue, &extent->projectionFlags,
                                  &extent->orderingDepthFoot);
             } else {
-                Gp_UpdateCoord(parts);
+                actorRenderComposeCoord(parts);
                 gte_SetTransMatrix(&parts->workm);
                 gte_SetRotMatrix(&parts->workm);
                 extent->point.vx = 0;
@@ -733,7 +733,7 @@ static void Reflection_UpdatePlayer(Task* task)
         ownParts    = task->extra.tmd->coords;
         work->light = *ownerBody->lightMtx;
         work->color = *ownerBody->colorMtx;
-        Gp_UpdateCoord(ownParts);
+        actorRenderComposeCoord(ownParts);
         gte_TransposeMatrix(&ownParts->workm, &mtx);
         gte_MulMatrix0(&ownerParts->workm, &mtx, &mtx);
         gte_MulMatrix0(&work->light, &mtx, &work->light);

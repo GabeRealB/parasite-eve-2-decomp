@@ -60,7 +60,7 @@ void oddStrangerTakeHit(Task* arg0)
             work->dashCount                       = 0;
             work->sidestepCount                   = 0;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
+            actorRenderComposeCoord(arg0->extra.tmd->coords);
             s->hitOffset.vx = arg0->extra.tmd->coords->workm.t[0];
             s->hitOffset.vy = arg0->extra.tmd->coords->workm.t[1];
             s->hitOffset.vz = arg0->extra.tmd->coords->workm.t[2];

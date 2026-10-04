@@ -468,7 +468,7 @@ void func_actor_342100_80162AB0(Task* arg0)
                 return;
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             vx              = ((u32)rng >> 16) & 0x3F;
             gRandomLcgState = rng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

@@ -41,11 +41,11 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             coord->coord.t[1]                = mem->pos.vy;
             coord->coord.t[2]                = mem->pos.vz;
             coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             arg0->state = 1;
             break;
         case 1:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (!(mem->age & 3)) {
                 Task* player    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -66,7 +66,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             RoomFx_DrawFlyingDisc(coord, mem->angle, col);
             break;
         case 2:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (mem->scale < 0xC0) {
                 mem->scale += 8;
             }
@@ -85,7 +85,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             }
             break;
         case 3:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].rShift;
             col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].gShift;
             col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].bShift;
@@ -163,7 +163,7 @@ static inline void RoomFx_FlyingSparkTask(Task* task)
                 coord->coord.t[1]  += work->pos.vy;
                 coord->coord.t[2]  += work->pos.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (work->age & 1) {
                     RoomFx_DrawFlyingSpark(coord, ++work->index, 0x200, 0x80);
                 }

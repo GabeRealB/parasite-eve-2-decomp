@@ -1040,7 +1040,7 @@ static void func_actor_800200_801622B0(Task* arg0)
         coord->coord.t[1] = actor->previousPosition.vy + 8;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     // Stage this frame's collision heading, then give it to every motion context.
     if ((s8)actor->usesPushbackDirection != 0) {
         scratch->motionDirection.vx = actor->pushbackDirection.vx;

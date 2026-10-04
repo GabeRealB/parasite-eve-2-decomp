@@ -1705,7 +1705,7 @@ static void func_actor_800300_80162064(Task* arg0)
         coord->coord.t[1] = actor->previousPosition.vy + 0x10;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if ((s8)actor->usesPushbackDirection != 0) {
         frame->motionDirection.vx = actor->pushbackDirection.vx;
         frame->motionDirection.vy = actor->pushbackDirection.vy;

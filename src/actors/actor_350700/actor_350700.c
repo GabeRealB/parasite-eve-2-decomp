@@ -764,7 +764,7 @@ static void func_actor_350700_80162D5C(Task* arg0)
     }
     if (gGameSession->viewReady != 0) {
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
     }
     func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);

@@ -12,20 +12,20 @@ void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 arg1, SVECTOR3* arg2)
     coords                     = arg0->extra.tmd->coords;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     coord                      = &coords[arg1];
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
 #if !STALKER_ZEBRA_IVORY_PIN_UPDATES_ROOT
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
 #endif
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     coords[0].coord.t[0]   = arg2->vx - (local.t[0] - root.t[0]);
     coords[0].coord.t[2]   = arg2->vz - (local.t[2] - root.t[2]);
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     coord->composeStamp    = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 #if STALKER_ZEBRA_IVORY_PIN_UPDATES_ROOT
-    Gp_UpdateCoord(coords);
+    actorRenderComposeCoord(coords);
 #endif
 }

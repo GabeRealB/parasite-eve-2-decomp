@@ -197,7 +197,7 @@ static void WATER_WAVE_STRIPS_FUNC(Task* task)
     // One scratch reservation holds the values reused across the surface list.
     SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
     scratch                                = scratchEnd - 1;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     scratch->y = WATER_WAVE_STRIPS_HEIGHT;

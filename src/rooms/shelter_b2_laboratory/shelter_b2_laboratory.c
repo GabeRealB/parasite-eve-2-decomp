@@ -1134,7 +1134,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
     D_shelter_b2_laboratory_801864DC.coord.t[2]   = -0xC80;
     D_shelter_b2_laboratory_801864DC.parent       = &gGfxViewCoord;
     D_shelter_b2_laboratory_801864DC.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&D_shelter_b2_laboratory_801864DC);
+    actorRenderComposeCoord(&D_shelter_b2_laboratory_801864DC);
     pan   = worldCoordGetOriginAudioPan(&D_shelter_b2_laboratory_801864DC);
     depth = worldCoordGetOriginAudioDepth(&D_shelter_b2_laboratory_801864DC);
     switch (arg0->state) {

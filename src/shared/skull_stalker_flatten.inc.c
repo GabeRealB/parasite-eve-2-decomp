@@ -4,7 +4,7 @@
 /// `savedRootMtx`, scaled along Y by `flattenScaleY`, which decays by 0x50 a frame
 /// while above 0x200. The scaling matrix and its vector are staged in an
 /// `ActorScaleScratch` block; the node's `composeStamp` is cleared so the next
-/// `Gp_UpdateCoord` recomputes it.
+/// `actorRenderComposeCoord` recomputes it.
 void skullStalkerFlatten(Task* arg0)
 {
     GfxCoord*          coord;

@@ -31,7 +31,7 @@ void glowDrawRayStar(GfxCoord* coord, SVECTOR* point, s32 rate, s32 arg3)
     s32 work;
 #endif
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
 
     gte_SetRotMatrix(&coord->workm);

@@ -225,7 +225,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             }
             return;
         case 2:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             work->move.vy = -((work->age & 0xF) << 5);
             if (work->age & 1) {
                 Gp_SpawnEff(EFFECT_SPARK_FADE, coord, 0x180, &work->move);
@@ -256,7 +256,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             }
             return;
         case 3:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             work->move.vy = -((work->age & 0xF) << 6);
             Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x180, &work->move);
             lightSlot->framesLeft = 4;
@@ -312,7 +312,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             }
             return;
         case 4:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             work->move.vy = -((work->age & 0xF) << 6);
             Gp_SpawnEff(EFFECT_SPARK_FADE, coord, 0x180, &work->move);
             if (work->angle > 0) {
@@ -413,7 +413,7 @@ void func_hypervelocity_8011D830(Task* task)
             destinationRotation->m22    = sourceRotation->m22;
             coord->composeStamp         = GRAPHICS_COORD_DIRTY;
             gGfxViewCoord.composeStamp  = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             work->move.vx = 0;
             work->move.vy = 0;
             work->move.vz = 0x400;
@@ -463,7 +463,7 @@ void func_hypervelocity_8011D830(Task* task)
             Gp_DrawRing(coord, work->angle, rgb);
             return;
         case 1:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             before.vx                  = coord->workm.t[0];
             before.vy                  = coord->workm.t[1];
             before.vz                  = coord->workm.t[2];
@@ -472,7 +472,7 @@ void func_hypervelocity_8011D830(Task* task)
             coord->coord.t[2]         += work->move.vz;
             coord->composeStamp        = GRAPHICS_COORD_DIRTY;
             gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             after.vx = coord->workm.t[0];
             after.vy = coord->workm.t[1];
             after.vz = coord->workm.t[2];
@@ -515,7 +515,7 @@ void func_hypervelocity_8011D830(Task* task)
             Gp_ClearRec18Occupied(roundBody->contacts);
             return;
         case 2:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             work->angle = work->angle - 0x40;
             rgb[0]      = work->scale >> 2;
             rgb[1]      = work->scale >> 2;
@@ -712,7 +712,7 @@ void func_hypervelocity_8011F168(Task* arg0)
         return;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mem->age++;
     if (arg0->state == 0) {
         mem->scale  = 0xF0;
@@ -750,7 +750,7 @@ void func_hypervelocity_8011F270(Task* arg0)
         return;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mem->age++;
     if (arg0->state == 0) {
         mem->scale  = 0x80;

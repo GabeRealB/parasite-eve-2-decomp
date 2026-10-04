@@ -4227,7 +4227,7 @@ void func_acropolis_bridge_801819C8(Task* task)
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 
     scratch   = SCRATCH_STACK_CURSOR_SLOT;
     i         = 0;
@@ -4351,7 +4351,7 @@ void func_acropolis_bridge_80182394(Task* task)
     coord       = task->extra.coordBody->coord;
     tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
     work        = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 
     if (work->age == 0) {
         work->move.vz   = 0;
@@ -4963,7 +4963,7 @@ static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
     VECTOR* vec;
 
     vec = SCRATCH_STACK_CURSOR(VECTOR);
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     vec->vx = task->extra.tmd->coords->workm.t[0];
     vec->vy = task->extra.tmd->coords->workm.t[1];
     vec->vz = task->extra.tmd->coords->workm.t[2];
@@ -5929,7 +5929,7 @@ static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
 
     work                                  = (_AcropolisBridgeEnemyWork*)task->work;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(task->extra.tmd->coords);
+    actorRenderComposeCoord(task->extra.tmd->coords);
     pos.vx = task->extra.tmd->coords->workm.t[0];
     pos.vy = task->extra.tmd->coords->workm.t[1];
     pos.vz = task->extra.tmd->coords->workm.t[2];
@@ -6079,7 +6079,7 @@ static void func_acropolis_bridge_80187C10(Task* task, s16 arg1)
     *scratch = pos;
     if (arg1 == 1) {
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(task->extra.tmd->coords);
+        actorRenderComposeCoord(task->extra.tmd->coords);
     }
     ((VECTOR*)(head - 0x10))->vx = task->extra.tmd->coords->workm.t[0];
     pos->vy                      = task->extra.tmd->coords->workm.t[1];

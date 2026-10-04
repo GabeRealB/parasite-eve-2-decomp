@@ -1356,7 +1356,7 @@ static void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
         extra->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
@@ -1512,7 +1512,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     block              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
     block->worldPos.vx = coord->workm.t[0];
     block->worldPos.vy = coord->workm.t[1];

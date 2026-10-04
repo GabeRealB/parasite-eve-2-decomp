@@ -940,7 +940,7 @@ static void func_actor_123200_80133BA0(Enemy* enemy, Task* arg1)
     work                                  = arg1->work;
     table                                 = D_actor_123200_80131E24;
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
     pos.vx = arg1->extra.tmd->coords->workm.t[0];
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];

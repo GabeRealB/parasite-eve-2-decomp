@@ -1438,7 +1438,7 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
             coord->coord.t[0]  += (work->direction.vx * 25) >> 9;
             coord->coord.t[2]  += (work->direction.vz * 25) >> 9;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             fireballDrawGlow(coord, 0x100);
             rec = work->wallContacts[0].key.value;
             if ((rec != 0) &&
@@ -1500,7 +1500,7 @@ static void Actor02400_Fn02E0C(Enemy* enemy, Task* task)
     Actor02400_Fn03098(task);
     Actor02400_Fn0208C(task);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 case1:
     Actor02400_Fn031D0(task);
     Actor02400_Fn03228(task);

@@ -146,7 +146,7 @@ static inline void RoomFx_SparkEmitterTask(Task* arg0)
         }
         goto kill;
     } else {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         mem->age++;
         if (mem->age >= 0x15) {
         kill:

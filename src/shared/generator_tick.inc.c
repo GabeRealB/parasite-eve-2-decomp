@@ -49,7 +49,7 @@ default_body:
     generatorPulse(arg1);
     generatorTickPose(arg1);
     temp_s1->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(temp_s1);
+    actorRenderComposeCoord(temp_s1);
     generatorUpdateColor(arg1);
     generatorRegenerate(arg1);
 }

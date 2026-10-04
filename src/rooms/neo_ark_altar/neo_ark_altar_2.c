@@ -1056,7 +1056,7 @@ static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
     y0   = -0x1086;
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);

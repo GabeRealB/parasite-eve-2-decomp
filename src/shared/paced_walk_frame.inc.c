@@ -22,7 +22,7 @@ void pacedWalkFrame(Enemy* enemy, Task* task)
     coord = obj->coords;
     part  = &task->extra.tmd->coords[gPacedWalkEffectParts[(rand() * 11) >> 15]];
     work  = task->work;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1] - 800;
     pos.vz = coord->workm.t[2];

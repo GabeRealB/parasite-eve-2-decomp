@@ -20,7 +20,7 @@ void redBeaconTask(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     block              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
     block->worldPos.vx = coord->workm.t[0];
     block->worldPos.vy = coord->workm.t[1];

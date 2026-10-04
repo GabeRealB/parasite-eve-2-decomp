@@ -8,11 +8,21 @@
 
 #include "main/coord.h"
 
-/// Composes a node and its ancestors through the top of their chain.
+/// Refreshes a coordinate's cached transform through its complete parent chain.
 ///
-/// Clear `composeStamp` before changing a node's local matrix or parent.
-/// Model nodes beneath `gGfxViewCoord` produce a local-to-view `workm`.
-void Gp_UpdateCoord(GfxCoord* coord);
+/// Writes `workm` and `composeStamp` using the current composition pass,
+/// without advancing the pass counter. Nodes beneath `gGfxViewCoord` include
+/// the view transform and produce local-to-view matrices. A parentless node
+/// with a nonzero rebuild stamp keeps its caller-supplied `workm`.
+/// Stored Euler angles are not applied; matrix coefficients have 12 fractional
+/// bits and translations retain the local matrices' signed coordinate units.
+///
+/// `coord` must be non-NULL. It and its borrowed ancestors must remain writable
+/// and live for this call, and their parent chain must be acyclic. Clear
+/// `composeStamp` when changing a local matrix or parent. The cache does not
+/// identify its composition root: invalidate affected caches before reusing
+/// nodes composed in another space. GTE working registers are clobbered.
+void actorRenderComposeCoord(GfxCoord* coord);
 
 /// Refreshes every coordinate for this frame, then draws the models the
 /// flagged pass draws.

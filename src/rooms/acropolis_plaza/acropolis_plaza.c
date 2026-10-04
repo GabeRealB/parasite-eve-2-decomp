@@ -4833,7 +4833,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     }
     gfxRotMatrixY(&coord->coord, work->scale, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     beam                                                  = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisPlazaBeamScratch);
     beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vx = coord->workm.t[0];
     beam->vertices[ACROPOLIS_PLAZA_BEAM_VERTEX_CENTRE].vy = coord->workm.t[1];
@@ -5064,7 +5064,7 @@ void func_acropolis_plaza_801811D0(Task* task)
     }
     gfxRotMatrixY(&coord->coord, work->scale, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     blk              = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisPlazaFlareScratch);
     blk->worldPos.vx = coord->workm.t[0];
     blk->worldPos.vy = coord->workm.t[1];
@@ -5228,7 +5228,7 @@ void func_acropolis_plaza_80182054(Task* task)
     s16                    red, green, blue;
 
     coord = task->extra.coordBody->coord;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
     blk->worldPos.vx = coord->workm.t[0];
     blk->worldPos.vy = coord->workm.t[1];

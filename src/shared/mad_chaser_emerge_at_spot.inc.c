@@ -65,7 +65,7 @@ void madChaserEmergeAtSpot(Task* arg0)
                 break;
         }
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         work->command = 0;
     }
 }

@@ -1694,8 +1694,8 @@ static void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoi
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
         s = SCRATCH_STACK_RESERVE_BLOCK(ActorLimbShadowScratch);
-        Gp_UpdateCoord(firstCoord);
-        Gp_UpdateCoord(secondCoord);
+        actorRenderComposeCoord(firstCoord);
+        actorRenderComposeCoord(secondCoord);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->firstPos.vx             = s->firstMatrix.t[0];
@@ -1724,7 +1724,7 @@ static void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoi
         s->corners[3].vz           = height;
         s->corners[3].vy           = (s->secondPos.vy - (offset3 >> 0xC)) - halfY;
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&gGfxViewCoord);
+        actorRenderComposeCoord(&gGfxViewCoord);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         s->depth = RotTransPers4(&s->corners[0], &s->corners[1], &s->corners[2], &s->corners[3], &s->screenCorners[0], &s->screenCorners[1],
@@ -2586,7 +2586,7 @@ static void func_actor_400600_80134570(Task* arg0)
         if (y >= work->leapY) {
             coord->coord.t[1]    = work->leapY;
             player->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(player);
+            actorRenderComposeCoord(player);
             if (work->inWater != 0) {
                 vy   = -0x1A4;
                 root = arg0->extra.tmd->coords;
@@ -2757,7 +2757,7 @@ static void func_actor_400600_80134E28(Task* arg0)
         work->yaw        += 0x800;
         stalkerZebraIvoryApplyRotationInline(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         work2              = (_Actor400600ZebraStalkerWork*)arg0->work;
         work2->animBlend   = 2;
         work2->animStep    = ANIMATION_RATE_ONE;
@@ -2807,7 +2807,7 @@ static void func_actor_400600_801350F4(Task* arg0)
         work2->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
         stalkerZebraIvoryTickAnimInline(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         work->stateFrames = 0;
         work->subState++;
     }
@@ -4006,7 +4006,7 @@ static void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2)
     for (i = 0; D_actor_400600_80151B88[i] != -1; i++) {
         coord               = &arg0->extra.tmd->coords[D_actor_400600_80151B88[i]];
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &mtx);
         pts[i].vx = mtx.t[0];
         pts[i].vy = arg1;
@@ -4037,7 +4037,7 @@ static void func_actor_400600_801383E4(SVECTOR* arg0, SVECTOR* arg1, s16 width, 
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     s                          = SCRATCH_STACK_RESERVE_BLOCK(_Actor400600LimbShadowQuadScratch);
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     angle            = ratan2(arg1->vx - arg0->vx, arg1->vz - arg0->vz);
     halfX            = (arg0->vx - arg1->vx) / 2;
     halfZ            = (arg0->vz - arg1->vz) / 2;
@@ -4529,7 +4529,7 @@ static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, SVECTOR3* arg2)
 
     coords = arg0->extra.tmd->coords;
     coord  = &coords[arg1];
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     arg2->vx            = local.t[0];
     arg2->vy            = local.t[1];
@@ -4546,15 +4546,15 @@ static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, SVECTOR3* arg2)
 
     coords = arg0->extra.tmd->coords;
     coord  = &coords[arg1];
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     coords[0].coord.t[0]   = arg2->vx - (local.t[0] - root.t[0]);
     coords[0].coord.t[1]   = arg2->vy - (local.t[1] - root.t[1]);
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     coord->composeStamp    = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    Gp_UpdateCoord(coords);
+    actorRenderComposeCoord(coord);
+    actorRenderComposeCoord(coords);
 }
 
 #include "../../shared/stalker_zebra_ivory_clip_done.inc.c"
@@ -4790,7 +4790,7 @@ static void func_actor_400600_8013A990(Task* arg0)
         work->roll += 0x800;
         stalkerZebraIvoryApplyRotation(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         work->stateFrames = 0;
         work->onCeiling   = 0;
         work->onBack      = 1;

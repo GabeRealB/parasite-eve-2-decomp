@@ -3630,7 +3630,7 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
             } else {
                 body->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
-            Gp_UpdateCoord(&D_actor_403100_80155814[i].coord);
+            actorRenderComposeCoord(&D_actor_403100_80155814[i].coord);
             D_actor_403100_80155814[i].coord.composeStamp = GRAPHICS_COORD_DIRTY;
             D_actor_403100_80155814[i].coord.coord.t[0]   = (s32)(s16)D_actor_403100_80155814[i].position.vx;
             D_actor_403100_80155814[i].coord.coord.t[1]   = (s32)(s16)D_actor_403100_80155814[i].position.vy;
@@ -3712,10 +3712,10 @@ static void func_actor_403100_80132528(Task* arg0)
     func_actor_403100_801328DC(arg0);
     func_actor_403100_8013D770(arg0);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     joint                  = &coords[7];
     coords[7].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(joint);
+    actorRenderComposeCoord(joint);
     pos.vx = -0x290;
     pos.vy = 0x1E8;
     pos.vz = 0x220;
@@ -3730,7 +3730,7 @@ static void func_actor_403100_80132528(Task* arg0)
     playerCoord->coord.t[1]   = pos.vy;
     playerCoord->coord.t[2]   = pos.vz;
     playerCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(playerCoord);
+    actorRenderComposeCoord(playerCoord);
     D_actor_403100_80155808->animationRate = (-rate) << 1;
     func_actor_403100_8013E02C(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
     func_actor_403100_801327CC(arg0);
@@ -3802,7 +3802,7 @@ static void func_actor_403100_801328DC(Task* arg0)
     dest->m[2][1]       = rotation->m[2][1];
     dest->m[2][2]       = rotation->m[2][2];
     joint->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(joint);
+    actorRenderComposeCoord(joint);
     *(MATRIX**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
 }
 static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height)
@@ -3839,8 +3839,8 @@ static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoi
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        Gp_UpdateCoord(firstCoord);
-        Gp_UpdateCoord(secondCoord);
+        actorRenderComposeCoord(firstCoord);
+        actorRenderComposeCoord(secondCoord);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
         first.vy   = (s16)height;
@@ -3897,7 +3897,7 @@ static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoi
             }
         }
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&gGfxViewCoord);
+        actorRenderComposeCoord(&gGfxViewCoord);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3, &perspective, &flags);
@@ -4223,8 +4223,8 @@ static void func_actor_403100_801339EC(Task* arg0)
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     side                   = &coords[4];
     center                 = &coords[3];
-    Gp_UpdateCoord(&coords[8]);
-    Gp_UpdateCoord(side);
+    actorRenderComposeCoord(&coords[8]);
+    actorRenderComposeCoord(side);
     _actor403100UpdateColor(arg0, center);
     flash = D_actor_403100_80155808->shakeFrames;
     if (flash != 0) {
@@ -4344,7 +4344,7 @@ static void func_actor_403100_80133E88(Task* arg0)
             pos.vy              = -0xFA0;
             pos.vz              = -0xAF0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 3, &pos);
         }
     }
@@ -4357,7 +4357,7 @@ static void func_actor_403100_80133E88(Task* arg0)
             pos.vy              = -0xFA0;
             pos.vz              = -0x1130;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 4, &pos);
         }
     }
@@ -4370,7 +4370,7 @@ static void func_actor_403100_80133E88(Task* arg0)
             pos.vy              = -0xFA0;
             pos.vz              = -0xFA0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 5, &pos);
         }
     }
@@ -4398,10 +4398,10 @@ static void func_actor_403100_801342B4(Task* arg0)
 
     coords                     = arg0->extra.tmd->coords;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     coord1                 = &coords[8];
     coords[8].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord1);
+    actorRenderComposeCoord(coord1);
     pos1.vx = offset1.vx = 0x160;
     pos1.vy = offset1.vy = 0x148;
     i                    = 3;
@@ -4500,7 +4500,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
     _Actor403100Flame*  flame;
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     for (i = 0; i < D_actor_403100_80155808->flameLifetime; i++) {
@@ -4551,7 +4551,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
                     D_actor_403100_80155814[i].position.vy -= 0x100 + D_actor_403100_80155814[i].velocity.vy;
                 }
             }
-            Gp_UpdateCoord(&D_actor_403100_80155814[i].coord);
+            actorRenderComposeCoord(&D_actor_403100_80155814[i].coord);
             flame->coord.coord.t[0]   = flame->position.vx;
             flame->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             flame->coord.coord.t[1]   = flame->position.vy;
@@ -4637,8 +4637,8 @@ static void func_actor_403100_80134D50(Task* arg0)
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     side                   = &coords[4];
     center                 = &coords[3];
-    Gp_UpdateCoord(&coords[8]);
-    Gp_UpdateCoord(side);
+    actorRenderComposeCoord(&coords[8]);
+    actorRenderComposeCoord(side);
     _actor403100UpdateColor(arg0, center);
     flash = D_actor_403100_80155808->shakeFrames;
     if (flash != 0) {
@@ -5335,7 +5335,7 @@ static inline void _actor403100TurnPart6(Task* task)
     dest->m[2][0] = rotation.m[2][0];
     dest->m[2][1] = rotation.m[2][1];
     dest->m[2][2] = rotation.m[2][2];
-    Gp_UpdateCoord(coords);
+    actorRenderComposeCoord(coords);
 }
 
 /// Adds `jawPitchOffset` to the X angle of model part 4 and `headPitchOffset` to that of
@@ -5500,8 +5500,8 @@ static void func_actor_403100_80136830(Task* arg0)
             coordinates[0].composeStamp = GRAPHICS_COORD_DIRTY;
             side                        = coordinates + 4;
             center                      = coordinates + 3;
-            Gp_UpdateCoord(coordinates + 8);
-            Gp_UpdateCoord(side);
+            actorRenderComposeCoord(coordinates + 8);
+            actorRenderComposeCoord(side);
             _actor403100UpdateColor(arg0, center);
             obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -7781,10 +7781,10 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     func_actor_403100_801327CC();
     func_actor_403100_801328DC(arg0);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     joint                  = coords + 8;
     coords[8].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(joint);
+    actorRenderComposeCoord(joint);
     pos0.vx = 0x160;
     pos0.vy = 0x148;
     pos0.vz = 0x2C0;

@@ -1409,7 +1409,7 @@ static s32 func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s
     blk                                        = head - 1;
     SCRATCH_STACK_CURSOR(ActorBodyPushScratch) = blk;
     s                                          = blk;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
     s->position.vx = arg0->extra.tmd->coords[1].workm.t[0];
     s->position.vy = arg0->extra.tmd->coords[1].workm.t[1];
     s->position.vz = arg0->extra.tmd->coords[1].workm.t[2];
@@ -2257,7 +2257,7 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     work->gridCoord.coord.t[1]   = actor->extra.tmd->coords->coord.t[1] - 0x15E;
     work->gridCoord.coord.t[2]   = actor->extra.tmd->coords->coord.t[2];
     work->gridCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&work->gridCoord);
+    actorRenderComposeCoord(&work->gridCoord);
 
     work->gridBody.context.contacts = work->gridContacts;
     work->gridBody.coord            = &work->gridCoord;
@@ -2316,7 +2316,7 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     actor->msgTable    = D_actor_401300_80158988;
     root->parent       = &gGfxViewCoord;
     root->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(root);
+    actorRenderComposeCoord(root);
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
@@ -2476,7 +2476,7 @@ static void func_actor_401300_80134F90(Task* arg0)
                 s->hitPos.vz = player->extra.tmd->coords->workm.t[2];
             }
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
+            actorRenderComposeCoord(arg0->extra.tmd->coords);
             s->hitOffset.vx = s->hitPos.vx - arg0->extra.tmd->coords->workm.t[0];
             s->hitOffset.vy = s->hitPos.vy - arg0->extra.tmd->coords->workm.t[1];
             z               = s->hitPos.vz - arg0->extra.tmd->coords->workm.t[2];
@@ -3029,7 +3029,7 @@ static void func_actor_401300_801365F8(Task* arg0)
 
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg0->extra.tmd->coords);
+    actorRenderComposeCoord(arg0->extra.tmd->coords);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor401300RunScratch);
 }
 
@@ -3174,7 +3174,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
             }
             actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
+            actorRenderComposeCoord(arg0->extra.tmd->coords);
             break;
         case 0x20:
             run->turn = ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
@@ -3182,7 +3182,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
             actorMoveForward(arg0->extra.tmd->coords, 0x12C);
             actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
+            actorRenderComposeCoord(arg0->extra.tmd->coords);
             if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->state = ACTOR_401300_STATE_HIDDEN;
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, enemy->hp, 0);
@@ -3464,7 +3464,7 @@ static void func_actor_401300_80138800(Task* arg0)
         work->animRate                          = 0x10;
         work->animId                            = 5;
         player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(player->extra.tmd->coords);
+        actorRenderComposeCoord(player->extra.tmd->coords);
         work->playerPlacement.pos.vx = player->extra.tmd->coords->coord.t[0];
         work->playerPlacement.pos.vy = player->extra.tmd->coords->coord.t[1];
         work->playerPlacement.pos.vz = player->extra.tmd->coords->coord.t[2];
@@ -3488,10 +3488,10 @@ static void func_actor_401300_80138800(Task* arg0)
     func_actor_401300_80133A3C(arg0);
     gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);
     gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);
     if (work->animId == 5 && (work->rig.slots[1].status.fields.flags & 0x100)) {
         work->effectArg.coord      = &arg0->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0x300;
@@ -3529,10 +3529,10 @@ static void func_actor_401300_80138B24(Task* arg0)
     func_actor_401300_80133A3C(arg0);
     gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);
     gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);
 }
 
 static void func_actor_401300_80138CF8(Task* arg0)
@@ -3701,7 +3701,7 @@ static void func_actor_401300_80139134(Task* arg0)
                 work->burnCoord.coord.t[1]   = arg0->extra.tmd->coords->coord.t[1];
                 work->burnCoord.coord.t[2]   = pos.vz;
                 work->burnCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&work->burnCoord);
+                actorRenderComposeCoord(&work->burnCoord);
                 Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, &work->burnCoord, 3, NULL);
                 break;
@@ -4150,35 +4150,35 @@ static void func_actor_401300_8013AE48(Task* arg0)
     if (work->stateTimer < 0x32) {
         gfxRotMatrixX(&arg0->extra.tmd->coords[1].coord, 0x40, GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, 0x80, GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, 0x80, GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[4].coord, 0x80, GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[4]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[5].coord, 0x100, GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[4]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
     } else {
         gfxRotMatrixX(&arg0->extra.tmd->coords[1].coord, 0x40 >> ((work->stateTimer - 0x31) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, 0x80 >> ((work->stateTimer - 0x30) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, 0x80 >> ((work->stateTimer - 0x2F) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[4].coord, 0x80 >> ((work->stateTimer - 0x2E) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[4]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[5].coord, 0x100 >> ((work->stateTimer - 0x31) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[4]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
         aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
         if (aim->turn > 0x24) {
             aim->turn = 0x24;
@@ -4317,7 +4317,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
                     work->burnCoord.coord.t[1]   = arg0->extra.tmd->coords->coord.t[1];
                     work->burnCoord.coord.t[2]   = vec.vz;
                     work->burnCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(&work->burnCoord);
+                    actorRenderComposeCoord(&work->burnCoord);
                     Gp_SpawnEff(EFFECT_CORPSE_BURN, &work->burnCoord, 2, NULL);
                     break;
                 case 48:
@@ -5484,7 +5484,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
     states = D_actor_401300_80131F34;
 
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(actor->extra.tmd->coords);
+    actorRenderComposeCoord(actor->extra.tmd->coords);
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
@@ -5554,9 +5554,9 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
         work->gridCoord.coord.t[1]   = actor->extra.tmd->coords->coord.t[1] - 0x15E;
         work->gridCoord.coord.t[2]   = actor->extra.tmd->coords->coord.t[2];
         work->gridCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->gridCoord);
+        actorRenderComposeCoord(&work->gridCoord);
         actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(actor->extra.tmd->coords);
+        actorRenderComposeCoord(actor->extra.tmd->coords);
         state = work->state;
     }
     if ((state == ACTOR_401300_STATE_DEATH_BURN) || (state == ACTOR_401300_STATE_HIDDEN) || (state == ACTOR_401300_STATE_DEAD) || (state == ACTOR_401300_STATE_DEATH_BURST) || (state == ACTOR_401300_STATE_DEATH_BURST_WALK)) {

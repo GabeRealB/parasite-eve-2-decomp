@@ -603,7 +603,7 @@ static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
     task->msgTable      = D_actor_210600_8015A4CC;
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];

@@ -638,7 +638,7 @@ TaskMessageEntry D_actor_135600_8013B0F4[6] = {
 
 static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1);
 
-/// Recomputes `coord`'s world matrix (`Gp_UpdateCoord`), composes its parent
+/// Recomputes `coord`'s world matrix (`actorRenderComposeCoord`), composes its parent
 /// chain, then projects two offsets along the part's local Z - the near one 10 units
 /// out and the far one `arg1 * 0x46 / 0x1000 + 10`, so the pair opens by 70
 /// 4096ths of a unit per tick - and returns the signed `ratan2` of the
@@ -672,7 +672,7 @@ static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1)
     DR_TPAGE* tpage;
     s32       i;
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mtx = &m.mat;
     func_actor_135600_80132C80(coord, &m.mat, &pos);
 
@@ -859,7 +859,7 @@ static void func_actor_135600_801324D0(Task* arg0)
         }
         if (gGameSession->viewReady != 0) {
             arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+            actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
             func_800D7A9C(ext, (VECTOR*)arg0->extra.tmd->coords[1].workm.t, 0, 3);
         }
         if (work->freeCountdown >= 0) {

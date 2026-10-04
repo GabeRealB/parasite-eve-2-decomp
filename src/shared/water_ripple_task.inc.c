@@ -25,7 +25,7 @@ static inline void waterRippleTask(Task* task)
             effectKillTask(work, task);
         }
     } else {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         work->age++;
         if (task->state == 0) {
             work->scale     = 0x40;

@@ -59,7 +59,7 @@ default_body:
         golemKnightBishopPlayAnimCues(arg1);
         temp_s2->composeStamp                   = GRAPHICS_COORD_DIRTY;
         arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(temp_s2);
+        actorRenderComposeCoord(temp_s2);
         golemKnightBishopUpdateTint(arg1);
         golemKnightBishopDrawShadow(arg1);
         golemKnightBishopQueueFrameCapture(&arg1->extra.tmd->coords[3], 0xC);

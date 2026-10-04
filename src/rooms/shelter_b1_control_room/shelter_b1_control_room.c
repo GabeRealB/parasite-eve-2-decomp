@@ -544,7 +544,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         work->light   = *src->lightMtx;
         work->color   = *src->colorMtx;
         // basis is scratch from here: the reflected frame, when one was built, already sits on the clone.
-        Gp_UpdateCoord(parts);
+        actorRenderComposeCoord(parts);
         gte_TransposeMatrix(&parts->workm, &scratch->basis);
         gte_MulMatrix0(&from->workm, &scratch->basis, &scratch->basis);
         gte_MulMatrix0(&work->light, &scratch->basis, &work->light);
@@ -558,7 +558,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         if (cfg->firstBlendMode >= 0) {
             // Project a head sample and a foot sample. depthCue, and the GTE flag written over leastAxis, are not read.
             if (gGameSession->eventState != 0) {
-                Gp_UpdateCoord(refPart);
+                actorRenderComposeCoord(refPart);
                 gte_SetTransMatrix(&refPart->workm);
                 gte_SetRotMatrix(&refPart->workm);
                 scratch->point.vx = 0;
@@ -572,7 +572,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                 gte_RotTransPers(&scratch->point, &scratch->screenFoot, &scratch->depthCue, &scratch->leastAxis,
                                  &scratch->orderingDepthFoot);
             } else {
-                Gp_UpdateCoord(parts);
+                actorRenderComposeCoord(parts);
                 gte_SetTransMatrix(&parts->workm);
                 gte_SetRotMatrix(&parts->workm);
                 scratch->point.vx = 0;

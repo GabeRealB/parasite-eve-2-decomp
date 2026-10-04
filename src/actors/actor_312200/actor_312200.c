@@ -432,7 +432,7 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
     work->relightPending = 1;
     coord->parent        = &gGfxViewCoord;
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];

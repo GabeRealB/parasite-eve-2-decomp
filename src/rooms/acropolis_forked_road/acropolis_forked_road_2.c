@@ -1510,7 +1510,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (task->state == 0) {
             u8 levels[3] = { 0x50, 0x30, 0x10 };

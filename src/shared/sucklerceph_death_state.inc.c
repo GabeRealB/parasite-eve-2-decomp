@@ -93,7 +93,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                 sucklercephScalePart(task, &task->extra.tmd->coords[1]);
                 task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
                 task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+                actorRenderComposeCoord(&task->extra.tmd->coords[1]);
                 actorUpdateColor(enemy, &task->extra.tmd->coords[1]);
             }
             break;

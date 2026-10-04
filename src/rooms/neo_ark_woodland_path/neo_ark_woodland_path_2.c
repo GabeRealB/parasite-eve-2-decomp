@@ -313,7 +313,7 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
             coord.coord.t[1]   = 0xC8;
             coord.coord.t[2]   = root->coord.t[2];
             coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&coord);
+            actorRenderComposeCoord(&coord);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((s32)((gRandomLcgState >> 16) & 0x1FF) < work->angle) {
                 Gp_SpawnEff(gRoomEffectWaterRippleId, &coord, 0x40, 0);

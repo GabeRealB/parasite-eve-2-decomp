@@ -762,7 +762,7 @@ void func_actor_341300_80162878(Task* arg0)
             coord->coord.t[0] += work->vel.vx;
             coord->coord.t[1] += work->vel.vy;
             coord->coord.t[2] += work->vel.vz;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             gte_SetTransMatrix(&coord->workm);
             gte_SetRotMatrix(&coord->workm);
             for (i = 0; i < 3; i++) {
@@ -924,7 +924,7 @@ void func_actor_341300_801631D4(Task* arg0)
             coord->coord.t[0] += work->vel.vx;
             coord->coord.t[1] += work->vel.vy;
             coord->coord.t[2] += work->vel.vz;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             gte_SetTransMatrix(&coord->workm);
             gte_SetRotMatrix(&coord->workm);
             for (i = 0; i < 3; i++) {

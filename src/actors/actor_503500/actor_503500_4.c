@@ -3093,7 +3093,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
         work->swayPhase[i]  = (i << 9) & 0xFFF;
         work->blendStart[i] = coord[i].coord;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     func_actor_503500_801421A8(arg0);
     switch (arg0->killCountdown) {
         case 8:
@@ -3371,7 +3371,7 @@ static void func_actor_503500_80140654(Task* arg0)
                 coord->parent       = &gGfxViewCoord;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 work->detached      = phase;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 SndEvt_EnqueueType6(SOUND_BRAHMAN_PART_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                 work->stateStep++;
@@ -4386,7 +4386,7 @@ static void func_actor_503500_80142980(Task* arg0)
                 }
                 ApplyMatrixLV(&coord->coord, &work->velocity.vector, &work->velocity.vector);
                 coord->parent = &gGfxViewCoord;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 work->stateFrames = 0;
                 work->stateStep++;
             }

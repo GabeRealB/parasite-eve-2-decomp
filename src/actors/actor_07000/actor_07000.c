@@ -1215,7 +1215,7 @@ default_body:
     Actor07000_Fn06390(arg1);
     arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg1->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
 case1:
     Actor07000_Fn05F84(arg1);
 }
@@ -2239,7 +2239,7 @@ static void Actor07000_Fn05400(Enemy* arg0, Task* arg1)
                 Actor07000_Fn0595C(arg1);
                 update_animation(arg1);
                 rotate_parts(arg1);
-                Gp_UpdateCoord(arg1->extra.tmd->coords);
+                actorRenderComposeCoord(arg1->extra.tmd->coords);
                 update_color(arg1->spawnArg2.pointer, &arg1->extra.tmd->coords[1]);
                 work->forwardSpeed -= 2;
                 if (work->forwardSpeed < 0)
@@ -2391,7 +2391,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
             work->fallSpeed                       = 0x64;
             work->dropCollided                    = 0;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
+            actorRenderComposeCoord(arg0->extra.tmd->coords);
         }
         return 0;
     }
@@ -2409,7 +2409,7 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
         coord->coord.t[1]                     = 0;
         coord->coord.t[0]                     = 0;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(arg0->extra.tmd->coords);
+        actorRenderComposeCoord(arg0->extra.tmd->coords);
         arg0->state     = 4;
         work->dropArmed = 0;
     }

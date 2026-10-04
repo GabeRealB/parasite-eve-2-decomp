@@ -1517,8 +1517,8 @@ void func_actor_161500_80132210(void)
 
     target = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
     player = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    Gp_UpdateCoord(target);
-    Gp_UpdateCoord(player);
+    actorRenderComposeCoord(target);
+    actorRenderComposeCoord(player);
     D_actor_161500_801376E0.rot.vy =
         ratan2(target->coord.t[0] - player->coord.t[0], target->coord.t[2] - player->coord.t[2]) & 0xFFF;
 }

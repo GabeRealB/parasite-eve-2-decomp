@@ -1370,7 +1370,7 @@ void Gp_ItemPickupTilt(Task* arg0)
             vec             = D_80093DB0;
             extra->lightMtx = mem;
             extra->colorMtx = mem + 1;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
+            actorRenderComposeCoord(arg0->extra.tmd->coords);
             func_800D7A9C(extra, &vec, 0, 3);
             arg0->work = mem;
         }
@@ -1515,7 +1515,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         }
     }
     vec2 = D_80093DB0;
-    Gp_UpdateCoord(arg0->extra.tmd->coords);
+    actorRenderComposeCoord(arg0->extra.tmd->coords);
     func_800D7A9C(extra, &vec2, 0, 3);
 }
 

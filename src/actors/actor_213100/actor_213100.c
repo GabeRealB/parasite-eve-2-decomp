@@ -422,7 +422,7 @@ static void func_actor_213100_80149E3C(Task* task)
     }
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
         child = work->heldModelTask->extra.tmd;
         if (D_actor_213100_801521E0[gGameSession->location.loc.view] != 0) {

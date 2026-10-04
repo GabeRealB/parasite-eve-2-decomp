@@ -3077,7 +3077,7 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[0]  += (coord->coord.m[0][2] * 0x19) >> 8;
             coord->coord.t[2]  += (coord->coord.m[2][2] * 0x19) >> 8;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             fireballDrawGlow(coord, 0x200);
             id = work->sweepContacts[0].key.value;
             if (id != 0 && Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
@@ -3227,7 +3227,7 @@ static void Actor00300_Fn04958(Enemy* arg0, Task* arg1)
         }
         Actor00300_Fn03A1C(arg1);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         Actor00300_Fn04FB0(arg1);
         Actor00300_Fn05008(arg1);
     }

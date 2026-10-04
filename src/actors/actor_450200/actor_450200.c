@@ -1368,8 +1368,8 @@ void func_actor_450200_8013219C(void)
 
     target = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
     looker = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    Gp_UpdateCoord(target);
-    Gp_UpdateCoord(looker);
+    actorRenderComposeCoord(target);
+    actorRenderComposeCoord(looker);
     D_actor_450200_80137DC4.rot.vy =
         ratan2(target->coord.t[0] - looker->coord.t[0], target->coord.t[2] - looker->coord.t[2]) & 0xFFF;
 }

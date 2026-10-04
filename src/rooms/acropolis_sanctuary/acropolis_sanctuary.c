@@ -2236,7 +2236,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     mem       = arg0->spawnArg2.pointer;
     sizeClass = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].sizeClass;
     coord     = arg0->extra.coordBody->coord;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     tileScratch = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisSanctuaryMosaicTileScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < ARRAY_SIZE(tileScratch->corners); i++) {
@@ -2419,7 +2419,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         effectKillTask(mem, arg0);
         return;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     shardScratch = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisSanctuaryMosaicShardScratch);
     if (mem->age == 0) {
         mem->scale = (arg0->spawnArg1.value >> 12) & 0xF;
@@ -2566,7 +2566,7 @@ void func_acropolis_sanctuary_8017F4E8(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1) {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         blk = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (arg0->state == 0) {
             // Three bytes each. The variant subscript does not include the padding byte after the table.

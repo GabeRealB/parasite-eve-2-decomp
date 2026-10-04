@@ -54,7 +54,7 @@ static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s
     blk                                                = head - 1;
     SCRATCH_STACK_CURSOR(_ActorContactFindPushScratch) = blk;
     s                                                  = blk;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     s->position.vx     = coord->workm.t[0];
     s->position.vy     = coord->workm.t[1];
     s->position.vz     = coord->workm.t[2];

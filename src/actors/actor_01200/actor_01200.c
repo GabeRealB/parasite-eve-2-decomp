@@ -781,7 +781,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     obj->lightMtx         = &work->lightMtx;
     obj->colorMtx         = &work->colorMtx;
     coord->composeStamp   = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
@@ -1343,7 +1343,7 @@ found:
     if (id != 0) {
         sc->damage                            = Gp_ComputeDamage(sc->hitKey, 0, 0, 0x1000);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(arg1->extra.tmd->coords);
+        actorRenderComposeCoord(arg1->extra.tmd->coords);
         sc->hitOffset.vx = arg1->extra.tmd->coords->workm.t[0];
         sc->hitOffset.vy = arg1->extra.tmd->coords->workm.t[1];
         sc->hitOffset.vz = arg1->extra.tmd->coords->workm.t[2];
@@ -1541,7 +1541,7 @@ static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
     work                                  = arg1->work;
     table                                 = Actor01200_D000E4;
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
     pos.vx = arg1->extra.tmd->coords->workm.t[0];
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];

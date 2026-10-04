@@ -47,7 +47,7 @@ void maggotCaterpillarPuffTick(Enemy* arg0, Task* arg1)
             coord->coord.t[1]  += (s32)(coord->coord.m[1][2] * work->forwardSpeed) >> 0xC;
             coord->coord.t[2]  += (s32)(coord->coord.m[2][2] * work->forwardSpeed) >> 0xC;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             maggotCaterpillarDrawPuff(arg1, work->age);
             work->age++;
             if (work->age >= 0xF) {

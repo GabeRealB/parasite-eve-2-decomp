@@ -35,7 +35,7 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
         case SCENE_COMBAT_ACTORS_PAUSED:
             coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
             arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             root   = arg1->extra.tmd->coords;
             pos.vx = root->workm.t[0];
             pos.vy = root->workm.t[1];
@@ -103,7 +103,7 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     root   = arg1->extra.tmd->coords;
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];

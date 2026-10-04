@@ -337,7 +337,7 @@ static inline void _gpUpdateRoomCoordSlots(void)
     slot = gWorldCoordTransientPointLights;
     for (i = 0; i < ARRAY_SIZE(gWorldCoordTransientPointLights); i++, slot++) {
         if (slot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
-            Gp_UpdateCoordEx(&slot->light.head.transform.coord, &gGfxViewCoord);
+            actorRenderComposeCoordRelative(&slot->light.head.transform.coord, &gGfxViewCoord);
         }
     }
 }
@@ -410,27 +410,27 @@ void Gp_UpdateRoomCoords(Task* task)
         task->state++;
     }
 
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
 
     _gpUpdateRoomCoordSlots();
 
     point = roomLights->pointLights;
     for (i = 0; i < roomLights->pointLightCount; i++, point++) {
         coord = &point->head.transform.coord;
-        Gp_UpdateCoordEx(coord, &gGfxViewCoord);
+        actorRenderComposeCoordRelative(coord, &gGfxViewCoord);
     }
 
     spot = roomLights->coneLights;
     for (i = 0; i < roomLights->coneLightCount; i++, spot++) {
         coord = &spot->head.transform.coord;
-        Gp_UpdateCoordEx(coord, &gGfxViewCoord);
+        actorRenderComposeCoordRelative(coord, &gGfxViewCoord);
     }
 
     if (roomLights->directionalLightCount > 0) {
         light = roomLights->directionalLights;
         for (i = 0; i < roomLights->directionalLightCount; i++, light++) {
             coord = &light->transform.coord;
-            Gp_UpdateCoordEx(coord, &gGfxViewCoord);
+            actorRenderComposeCoordRelative(coord, &gGfxViewCoord);
         }
     }
 
@@ -603,7 +603,7 @@ static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     gfxNormalizeLightDirection(&lightScratch->lightToParentOrigin, &lightScratch->result.direction);
 
     // Undo the view rotation in the parent's composed rotation, then turn the direction by it.
-    Gp_UpdateCoord(arg1->transform.lighting.parent);
+    actorRenderComposeCoord(arg1->transform.lighting.parent);
     TransposeMatrix(&gGfxViewCoord.workm, &lightScratch->parentRotation);
     gte_MulMatrix0(&lightScratch->parentRotation, &arg1->transform.lighting.parent->workm, &lightScratch->parentRotation);
 
@@ -1137,7 +1137,7 @@ static void Gp_DebugPanTask(Task* arg0)
 
     extra = slot->extra.tmd;
     coord = &extra->coords[1];
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x64;
     vec.vz = coord->workm.t[2];
@@ -1230,7 +1230,7 @@ static void Gp_DebugPanTask(Task* arg0)
         extra           = model;
         extra->colorMtx = &D_80114EF8;
         extra->lightMtx = &D_80114ED8;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         vec.vx = coord->workm.t[0];
         vec.vy = coord->workm.t[1] - 0x64;
         vec.vz = coord->workm.t[2];

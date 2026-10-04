@@ -40,7 +40,7 @@ void ratUpdate(Enemy* arg0, Task* arg1)
     ratStep(arg1);
     ratAnimate(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     ratUpdateColor(arg1);
     ratShadow(arg1);
 }

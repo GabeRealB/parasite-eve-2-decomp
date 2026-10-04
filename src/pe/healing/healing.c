@@ -112,7 +112,7 @@ void func_healing_8012EF34(Task* arg0)
             coord->coord.t[1]   = -0x400;
             coord->coord.t[2]   = 0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             arg0->state   = 1;
             mem->index    = (Gp_StateC08.attachId % 10) - 1;
             mem->angle    = 0x80;
@@ -130,7 +130,7 @@ void func_healing_8012EF34(Task* arg0)
             mem->angle = mem->angle + D_healing_8012FC1C[mem->index].radiusStep;
             gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             ang             = ((u32)rng >> 16) & 0xFFF;
             gRandomLcgState = rng;
@@ -153,7 +153,7 @@ void func_healing_8012EF34(Task* arg0)
         case 2:
             gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             mem->scale = mem->scale - 0x10;
             mem->angle = mem->angle + D_healing_8012FC1C[mem->index].radiusStep;
             if (mem->scale < 0x11) {
@@ -182,7 +182,7 @@ void func_healing_8012EF34(Task* arg0)
         case 3:
             gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             mem->period = mem->period + 1;
             if (mem->period < 0x1F) {
                 return;
@@ -221,7 +221,7 @@ void func_healing_8012F5E4(Task* arg0)
         coord->coord.t[1]   = mem->pos.vy;
         coord->coord.t[2]   = mem->pos.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         mem->move.vy = 4;
         mem->move.vx = 0;
         mem->move.vz = 0;
@@ -235,7 +235,7 @@ void func_healing_8012F5E4(Task* arg0)
     y                   = coord->coord.t[1] + step;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]   = y;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if (mem->age < 0x1E) {
         if (mem->age & 1) {
             mem->index = mem->index + 1;

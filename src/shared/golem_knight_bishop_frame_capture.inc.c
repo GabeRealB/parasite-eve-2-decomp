@@ -15,7 +15,7 @@ void golemKnightBishopQueueFrameCapture(GfxCoord* arg0, s32 arg1)
     block->origin.vx                              = 0;
     block->origin.vy                              = 0;
     block->origin.vz                              = 0;
-    Gp_UpdateCoord(arg0);
+    actorRenderComposeCoord(arg0);
     vec = &block->origin;
     gte_SetRotMatrix(&arg0->workm);
     gte_SetTransMatrix(&arg0->workm);

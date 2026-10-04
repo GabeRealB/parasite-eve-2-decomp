@@ -2174,7 +2174,7 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     mask  = 1 << gGameSession->location.loc.view;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
             glowDrawFlare(&gSaloonLightPoints[i], 0, 0x200);

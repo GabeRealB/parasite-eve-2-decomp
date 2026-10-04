@@ -1252,7 +1252,7 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
     actor->msgTable    = D_actor_401000_80154F90;
     root->parent       = &gGfxViewCoord;
     root->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(root);
+    actorRenderComposeCoord(root);
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
@@ -1457,7 +1457,7 @@ s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
     blk                                        = head - 1;
     SCRATCH_STACK_CURSOR(ActorBodyPushScratch) = blk;
     s                                          = blk;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
     s->position.vx = arg0->extra.tmd->coords[1].workm.t[0];
     s->position.vy = arg0->extra.tmd->coords[1].workm.t[1];
     s->position.vz = arg0->extra.tmd->coords[1].workm.t[2];
@@ -1610,7 +1610,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
         oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg0->extra.tmd->coords);
+    actorRenderComposeCoord(arg0->extra.tmd->coords);
     Gp_ClearRec18Occupied(work->hitContacts);
     if (work->grabCooldown != 0) {
         work->grabCooldown--;
@@ -1653,7 +1653,7 @@ static void func_actor_401000_801378DC(Task* arg0)
         work->lookYawTarget                   = 0;
         work->lookYaw                         = 0;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(arg0->extra.tmd->coords);
+        actorRenderComposeCoord(arg0->extra.tmd->coords);
         work->sidestepCount = 0;
         work->playerHeld    = 0;
         work->grabCooldown  = 0xA;
@@ -1977,35 +1977,35 @@ static void func_actor_401000_8013A930(Task* arg0)
     if (work->stateTimer < 0x32) {
         gfxRotMatrixX(&arg0->extra.tmd->coords[1].coord, 0x40, GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, 0x80, GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, 0x80, GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[4].coord, 0x80, GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[4]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[5].coord, 0x100, GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[4]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
     } else {
         gfxRotMatrixX(&arg0->extra.tmd->coords[1].coord, 0x40 >> ((work->stateTimer - 0x31) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, 0x80 >> ((work->stateTimer - 0x30) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, 0x80 >> ((work->stateTimer - 0x2F) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[4].coord, 0x80 >> ((work->stateTimer - 0x2E) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[4]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
         gfxRotMatrixX(&arg0->extra.tmd->coords[5].coord, 0x100 >> ((work->stateTimer - 0x31) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&arg0->extra.tmd->coords[4]);
+        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
         aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
         if (aim->turn > 0x24) {
             aim->turn = 0x24;

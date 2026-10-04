@@ -30,6 +30,6 @@ void mothSquash(Task* arg0)
     ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->matrix.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

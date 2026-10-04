@@ -19,7 +19,7 @@ static inline void leafFallTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     work->age++;
     switch (task->state) {
         case 0:

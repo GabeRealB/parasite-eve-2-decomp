@@ -2378,7 +2378,7 @@ static void func_mine_cavern_80181864(void)
             break;
     }
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     size = base;
@@ -2500,7 +2500,7 @@ static void func_mine_cavern_80181D80(s16 point)
             break;
     }
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&D_mine_cavern_8018E39C[point]);
@@ -2678,7 +2678,7 @@ static void func_mine_cavern_801825C8(s16 arg0)
     coord.coord.t[1]   = D_mine_cavern_8018E39C[arg0].vy;
     coord.coord.t[2]   = D_mine_cavern_8018E39C[arg0].vz;
     coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&coord);
+    actorRenderComposeCoord(&coord);
 
     switch (arg0) {
         case 0:
@@ -2981,7 +2981,7 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg0->hp           = D_mine_cavern_8018EAE4.hpMax;
     arg0->param        = &D_mine_cavern_8018EAE4;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
     vec.vx = arg1->extra.tmd->coords->workm.t[0];
     vec.vy = arg1->extra.tmd->coords->workm.t[1];
     vec.vz = arg1->extra.tmd->coords->workm.t[2];
@@ -3051,7 +3051,7 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
     }
 
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
     blk->vec.vx = arg1->extra.tmd->coords->workm.t[0];
     blk->vec.vy = arg1->extra.tmd->coords->workm.t[1];
     blk->vec.vz = arg1->extra.tmd->coords->workm.t[2];
@@ -3159,7 +3159,7 @@ static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1)
     arg1->extra.tmd->coords->coord.t[1]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vy;
     arg1->extra.tmd->coords->coord.t[2]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vz;
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
     vec.vx = arg1->extra.tmd->coords->workm.t[0];
     vec.vy = arg1->extra.tmd->coords->workm.t[1];
     vec.vz = arg1->extra.tmd->coords->workm.t[2];
@@ -3235,7 +3235,7 @@ static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
             printf(D_mine_cavern_8017D7E8);
             arg1->extra.tmd->coords->coord.t[1]   = -0x258;
             arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg1->extra.tmd->coords);
+            actorRenderComposeCoord(arg1->extra.tmd->coords);
             Gp_SpawnEff(EFFECT_EXPLOSION, arg1->extra.tmd->coords, 0x01001200, NULL);
             return;
 
@@ -3301,7 +3301,7 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
     work = task->work;
 
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(task->extra.tmd->coords);
+    actorRenderComposeCoord(task->extra.tmd->coords);
     vec.vx = task->extra.tmd->coords->workm.t[0];
     vec.vy = task->extra.tmd->coords->workm.t[1];
     vec.vz = task->extra.tmd->coords->workm.t[2];
@@ -3321,7 +3321,7 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
         work->centerCoord.coord.t[0]                = 0;
         work->centerCoord.coord.t[1]                = -0x320;
         work->centerCoord.composeStamp              = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->centerCoord);
+        actorRenderComposeCoord(&work->centerCoord);
         work->frame++;
         task->extra.tmd->flags = 0;
     }

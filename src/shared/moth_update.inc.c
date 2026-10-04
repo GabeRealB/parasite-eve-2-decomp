@@ -54,7 +54,7 @@ default_body:
     mothSteer(arg1);
     mothDrift(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mothUpdateColor(arg1);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16 & 0x7F) == 0) {

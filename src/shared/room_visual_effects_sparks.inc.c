@@ -128,7 +128,7 @@ static inline void RoomFx_SparkBurstTask(Task* task)
         return;
     }
 
-    Gp_UpdateCoord(objCoord);
+    actorRenderComposeCoord(objCoord);
     work->age++;
 
     switch (task->state) {

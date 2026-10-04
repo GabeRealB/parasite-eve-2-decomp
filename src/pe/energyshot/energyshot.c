@@ -114,7 +114,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 state->flags             |= ATTACHMENT_FLAG_APPLY_STATS;
                 effectState               = gRoomEffectState;
                 effectState->burstRequest = false;
@@ -182,7 +182,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 rgb[2]              = (u8)mem->scale;
                 coord->coord.t[1]   = -(s16)table[mem->index].ringHeight;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 Gp_DrawRing(coord, (s16)(mem->scale * 4), rgb);
                 Gp_DrawRing(coord, (s16)(mem->scale * 8), rgb);
                 Gp_DrawRing(coord, (s16)(mem->scale * 0xC), rgb);
@@ -198,7 +198,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 }
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (mem->index != 0) {
                     if (mem->index == 2) {
                         func_energyshot_8012FA50(coord, (s16)(mem->scale * 8),
@@ -244,7 +244,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 table               = D_energyshot_801300E4;
                 coord->coord.t[1]   = -(s16)table[mem->index].ringHeight;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 4), rgb);
                 Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 8), rgb);
                 Gp_DrawRing(coord, (s16)(table[mem->index].scaleLimit * 0xC), rgb);
@@ -260,7 +260,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 }
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (mem->index != 0) {
                     if (mem->index == 2) {
                         mem->period =
@@ -396,7 +396,7 @@ void func_energyshot_8012FFB8(Task* arg0)
     y                   = coord->coord.t[1] + mem->move.vy;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]   = y;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if ((mem->age & 3) == 0) {
         mem->index = mem->index + 1;
     }

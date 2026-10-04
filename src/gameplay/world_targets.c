@@ -226,7 +226,7 @@ void Gp_DrawTargetCursor(void)
             projection->point.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
             projection->point.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
             projection->point.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
-            Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
+            actorRenderComposeCoord(GP_NODE_ENEMY(node)->coord);
             gte_SetRotMatrix(&GP_NODE_ENEMY(node)->coord->workm);
             gte_SetTransMatrix(&GP_NODE_ENEMY(node)->coord->workm);
             gte_RotTransPers(&projection->point, &projection->screen, &projection->depthCue,
@@ -313,7 +313,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     block->eyeWorld.vx = coord->coord.t[0];
     block->eyeWorld.vy = coord->coord.t[1] - 1000;
     block->eyeWorld.vz = coord->coord.t[2];
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     srcp = &block->eyeWorld;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(srcp);
@@ -377,7 +377,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
         if (angle > bestAngle) {
             continue;
         }
-        Gp_UpdateCoord(GP_NODE_ENEMY(node)->coord);
+        actorRenderComposeCoord(GP_NODE_ENEMY(node)->coord);
         block->targetView.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
         block->targetView.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
         block->targetView.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
@@ -775,7 +775,7 @@ void Gp_GetLockPos(WorldTargetNode* arg0, VECTOR3* out)
 
     head                       = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(void) = head - 0x28;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mat = (MATRIX*)(head - 0x20);
     gfxMakeRelativeTransform(&world->workm, &coord->workm, mat);
     gte_SetRotMatrix(mat);

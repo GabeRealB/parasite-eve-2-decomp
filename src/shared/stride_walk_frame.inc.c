@@ -15,7 +15,7 @@ void strideWalkFrame(Enemy* enemy, Task* task)
     obj   = task->extra.tmd;
     coord = obj->coords;
     work  = task->work;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];

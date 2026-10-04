@@ -3987,7 +3987,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                 objCoord->coord.t[1]   = D_dryfield_dilapidated_house_80186944[0].vy;
                 objCoord->coord.t[2]   = D_dryfield_dilapidated_house_80186944[0].vz;
                 objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(objCoord);
+                actorRenderComposeCoord(objCoord);
                 task->state        = 1;
                 coord.parent       = work->parent;
                 vec                = &D_dryfield_dilapidated_house_80186944[1];
@@ -3995,7 +3995,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                 coord.coord.t[1]   = vec->vy;
                 coord.coord.t[2]   = vec->vz;
                 coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&coord);
+                actorRenderComposeCoord(&coord);
                 for (i = 0; i < 8; i++) {
                     dst         = &D_dryfield_dilapidated_house_80189DE0[i];
                     dst->parent = &gGfxViewCoord;
@@ -4014,7 +4014,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
 
             case 1:
                 objCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(objCoord);
+                actorRenderComposeCoord(objCoord);
                 coord.parent = work->parent;
                 {
                     SVECTOR* edge    = &D_dryfield_dilapidated_house_80186944[1];
@@ -4023,7 +4023,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                     coord.coord.t[2] = edge->vz;
                 }
                 coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&coord);
+                actorRenderComposeCoord(&coord);
                 dst         = &D_dryfield_dilapidated_house_80189DE0[work->age & 7];
                 dst->parent = &gGfxViewCoord;
                 dst->workm  = objCoord->workm;
@@ -4039,10 +4039,10 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                 for (i = 0; i < 8; i++) {
                     dst               = &D_dryfield_dilapidated_house_80189DE0[i];
                     dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(dst);
+                    actorRenderComposeCoord(dst);
                     dst               = &D_dryfield_dilapidated_house_8018A060[i];
                     dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(dst);
+                    actorRenderComposeCoord(dst);
                 }
                 func_dryfield_dilapidated_house_801823B8(work->age & 7, 0x210);
                 if (work->age == task->spawnArg1.value && work->age != 0) {
@@ -4315,7 +4315,7 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
     if (arg0->state == 0) {
         gfxRotMatrixZ(&coord->coord, arg0->spawnArg1.value, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         mem->scale  = 0x80;
         mem->angle  = 0x100;
         arg0->state = 1;

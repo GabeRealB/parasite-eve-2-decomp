@@ -1175,7 +1175,7 @@ void func_actor_510900_80131F24(Task* arg0)
         coord->coord.t[2]   = z;
         arg0->state         = 1;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if (lightSlot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
         slot->head.color.r = 0x1000;
         slot->head.color.g = 0x800;
@@ -1452,7 +1452,7 @@ void func_actor_510900_80132D4C(Task* arg0)
             return;
         }
     } else {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
         projectionScratch                        = head - 1;
         projectionScratch->worldPoint.vx         = (u16)coord->workm.t[0];
@@ -1526,7 +1526,7 @@ void func_actor_510900_80132D4C(Task* arg0)
                 hit.coord.t[1]   = 0;
                 hit.coord.t[2]   = coord->coord.t[2];
                 hit.composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&hit);
+                actorRenderComposeCoord(&hit);
                 Gp_DrawEffSprite7C(&hit, mem->scale >> 1, col);
             }
         }
@@ -1561,7 +1561,7 @@ void func_actor_510900_801332EC(Task* arg0)
     flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
         block->worldPoint.vx = coord->workm.t[0];
         block->worldPoint.vy = coord->workm.t[1];
@@ -1657,7 +1657,7 @@ void func_actor_510900_8013371C(Task* arg0)
     flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
         block->worldPoint.vx = coord->workm.t[0];
         block->worldPoint.vy = coord->workm.t[1];
@@ -1757,7 +1757,7 @@ void func_actor_510900_80133C84(Task* arg0)
     flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
         block->worldPoint.vx = coord->workm.t[0];
         block->worldPoint.vy = coord->workm.t[1];
@@ -1866,7 +1866,7 @@ void func_actor_510900_801340E8(Task* arg0)
     coord->coord.t[1]   = eff->pos.vy;
     coord->coord.t[2]   = eff->pos.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     eff->move.vx = -0x200;
     eff->move.vy = 0x40;
     eff->move.vz = 0;
@@ -1911,7 +1911,7 @@ void func_actor_510900_80134284(Task* arg0)
         }
         return;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if (arg0->state == 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         eff->move.vx    = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
@@ -1937,7 +1937,7 @@ void func_actor_510900_80134284(Task* arg0)
     coord->coord.t[1]     += eff->move.vy;
     coord->coord.t[2]     += eff->move.vz;
     coord->composeStamp    = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     block->endpoints[1].vx = coord->workm.t[0];
     block->endpoints[1].vy = coord->workm.t[1];
     block->endpoints[1].vz = coord->workm.t[2];
@@ -2351,7 +2351,7 @@ void func_actor_510900_801355B4(Enemy* arg0, Task* arg1)
         animationTickSlot(&work->rig.anim, i);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     func_actor_510900_8013BC38(arg1, coord);
     if (work->flameMode != work->sentFlameMode) {
         if (work->flameJetTask != NULL) {

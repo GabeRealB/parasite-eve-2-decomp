@@ -64,7 +64,7 @@ void Gp_EffAttachTask37(Task* arg0)
         }
         goto release;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mem->age++;
     state = arg0->state;
     switch (state) {
@@ -92,7 +92,7 @@ void Gp_EffAttachTask37(Task* arg0)
             gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->pos.vz         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             arg0->state = 1;
             func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
             return;
@@ -136,7 +136,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 coord->coord.t[1]  += delta.vy;
                 coord->coord.t[2]  += delta.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (!(mem->age & 3)) {
                     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
                 }
@@ -163,7 +163,7 @@ void Gp_EffAttachTask37(Task* arg0)
             if (player->coord.t[1] + 0x100 < coord->coord.t[1]) {
                 mem->age += 0xA;
             }
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (!(mem->age & 3)) {
                 func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
             }
@@ -187,7 +187,7 @@ void Gp_EffAttachTask37(Task* arg0)
             }
             return;
         case 2:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (!(mem->age & 3)) {
                 func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
             }

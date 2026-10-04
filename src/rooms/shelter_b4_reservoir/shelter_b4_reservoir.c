@@ -1339,7 +1339,7 @@ static void func_shelter_b4_reservoir_8017EA00(Task* task)
     // One scratch reservation holds the values reused across the surface list.
     SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
     scratch                                = scratchEnd - 1;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     (scratchEnd - 1)->y = D_shelter_b4_reservoir_80184F80;
@@ -1412,7 +1412,7 @@ static void func_shelter_b4_reservoir_8017EE04(Task* task)
     // One scratch reservation holds the values reused across the surface list.
     SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
     scratch                                = scratchEnd - 1;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     (scratchEnd - 1)->y = D_shelter_b4_reservoir_80184F80;
@@ -1487,7 +1487,7 @@ static void func_shelter_b4_reservoir_8017F23C(Task* task)
     // One scratch reservation holds the values reused across the surface list.
     SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
     scratch                                = scratchEnd - 1;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     (scratchEnd - 1)->y = D_shelter_b4_reservoir_80184F80;
@@ -1563,7 +1563,7 @@ static void func_shelter_b4_reservoir_8017F674(Task* task)
     // One scratch reservation holds the values reused across the surface list.
     SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
     scratch                                = scratchEnd - 1;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     (scratchEnd - 1)->y = D_shelter_b4_reservoir_80184F82;
@@ -1684,7 +1684,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
             if (gGameSession->waterY < root->coord.t[1] && work->age != 0) {
                 for (i = 0; i < 2; i++) {
                     c = &player->extra.tmd->coords[i * 3 + 14];
-                    Gp_UpdateCoord(c);
+                    actorRenderComposeCoord(c);
                     // `angle` is reused as the splash chance out of 512: the distance
                     // this coordinate moved since the previous frame, plus a ripple bias.
                     work->angle = ABS(D_shelter_b4_reservoir_801850AC[i].vx - c->workm.t[0]) +
@@ -1694,7 +1694,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
                     coord.parent       = &gGfxViewCoord;
                     coord.coord.t[1]   = gGameSession->waterY;
                     coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(&coord);
+                    actorRenderComposeCoord(&coord);
                     if ((s32)(RAND() & 0x1FF) < work->angle) {
                         Gp_SpawnEff(gRoomEffectWaterRippleId, &coord, 0x40, NULL);
                     }

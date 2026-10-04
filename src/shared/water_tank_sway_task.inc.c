@@ -57,7 +57,7 @@ void waterTankSwayTask(Task* arg0)
     } else {
         obj->flags = 0;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];

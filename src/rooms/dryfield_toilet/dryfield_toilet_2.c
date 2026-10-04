@@ -2539,7 +2539,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
             }
             VectorNormalSS(&mem->pos, &mem->move);
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         spawned = Gp_SpawnEff(EFFECT_DRYFIELD_TOILET_JET_PUFF, coord, 0x11180, 0);
         if (spawned != NULL) {
             gte_lddp(mem->scale - mem->age);
@@ -2570,7 +2570,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     head = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
     vx   = coord->workm.t[0];
     SCRATCH_STACK_RESERVE_BLOCK(OverlaySpriteScratch);

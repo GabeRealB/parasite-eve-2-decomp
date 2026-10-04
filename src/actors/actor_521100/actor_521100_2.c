@@ -644,7 +644,7 @@ static void func_actor_521100_80136290(Enemy* arg0, Task* task)
     head                           = SCRATCH_HEAD_AT(scratch, void);
     block                          = (VECTOR*)(head - 0x10);
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     block->vx = coord->workm.t[0];
     block->vy = coord->workm.t[1];
     block->vz = coord->workm.t[2];
@@ -697,7 +697,7 @@ void func_actor_521100_80136404(Task* task)
             D_actor_521100_8016A3E8.coord.t[0] += 0x2BC;
         }
         D_actor_521100_8016A3E8.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&D_actor_521100_8016A3E8);
+        actorRenderComposeCoord(&D_actor_521100_8016A3E8);
         D_actor_521100_8016A3CC.coord = &D_actor_521100_8016A3E8;
         func_800FDB18(D_actor_521100_8016A3D4, &D_actor_521100_8016A3E8, NULL, &D_actor_521100_8016A3CC);
     }
@@ -749,7 +749,7 @@ static void func_actor_521100_80136680(Enemy* arg0, Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];

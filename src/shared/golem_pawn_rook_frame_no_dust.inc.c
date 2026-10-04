@@ -46,6 +46,6 @@ void golemPawnRookFrameStateNoDust(Enemy* ctx, Task* actor)
     golemPawnRookPlayAnimCues(actor);
     coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
     actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     golemPawnRookDraw(actor, coord);
 }

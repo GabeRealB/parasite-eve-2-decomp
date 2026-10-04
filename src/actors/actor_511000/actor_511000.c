@@ -2151,7 +2151,7 @@ static void func_actor_511000_80131E78(Task* arg0)
     }
     if (gGameSession->viewReady != 0) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
     }
     func_actor_511000_80132048(arg0);
@@ -2297,7 +2297,7 @@ static void func_actor_511000_801325A4(Task* task)
     extra->lightMtx        = &work->light;
     extra->colorMtx        = &work->color;
     coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&coords[1]);
+    actorRenderComposeCoord(&coords[1]);
     func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
 }
 
@@ -2720,7 +2720,7 @@ static void func_actor_511000_801330F0(Task* task)
     coord = obj->coords;
 
     if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
         func_actor_511000_80132E6C(task->work);
     }
@@ -2989,7 +2989,7 @@ static void func_actor_511000_801337F0(Task* task)
     extra->lightMtx     = &work->light;
     extra->colorMtx     = &work->color;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
 }
 
@@ -3134,7 +3134,7 @@ static void func_actor_511000_80133B80(Enemy* enemy, Task* task)
     }
     if (work->animId < 3) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         pos->vx = coord->workm.t[0];
         pos->vy = coord->workm.t[1];
         pos->vz = coord->workm.t[2];
@@ -3248,7 +3248,7 @@ static void func_actor_511000_80133F48(Enemy* enemy, Task* task)
 static void func_actor_511000_80133F88(Enemy* arg0, Task* arg1)
 {
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
 }
 
 void func_actor_511000_80133FC8(Task* task)
@@ -3282,7 +3282,7 @@ static void func_actor_511000_8013401C(Enemy* enemy, Task* task)
 static void func_actor_511000_8013405C(Enemy* arg0, Task* arg1)
 {
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
 }
 
 void func_actor_511000_8013409C(Task* task)
@@ -3316,5 +3316,5 @@ static void func_actor_511000_801340F0(Enemy* enemy, Task* task)
 static void func_actor_511000_80134130(Enemy* arg0, Task* arg1)
 {
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1->extra.tmd->coords);
+    actorRenderComposeCoord(arg1->extra.tmd->coords);
 }

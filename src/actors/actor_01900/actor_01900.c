@@ -1310,7 +1310,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     actor->msgTable    = Actor01900_D1728C;
     root->parent       = &gGfxViewCoord;
     root->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(root);
+    actorRenderComposeCoord(root);
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
@@ -1489,7 +1489,7 @@ static void Actor01900_Fn02A50(Task* arg0)
             work->circleCount                     = 0;
             work->sidestepCount                   = 0;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
+            actorRenderComposeCoord(arg0->extra.tmd->coords);
             s->hitOffset.vx = arg0->extra.tmd->coords->workm.t[0];
             s->hitOffset.vy = arg0->extra.tmd->coords->workm.t[1];
             s->hitOffset.vz = arg0->extra.tmd->coords->workm.t[2];
@@ -1978,7 +1978,7 @@ static s32 Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 count
     blk                                        = head - 1;
     SCRATCH_STACK_CURSOR(ActorBodyPushScratch) = blk;
     s                                          = blk;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
     s->position.vx = arg0->extra.tmd->coords[1].workm.t[0];
     s->position.vy = arg0->extra.tmd->coords[1].workm.t[1];
     s->position.vz = arg0->extra.tmd->coords[1].workm.t[2];
@@ -3290,7 +3290,7 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
     states = Actor01900_D001BC;
 
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(actor->extra.tmd->coords);
+    actorRenderComposeCoord(actor->extra.tmd->coords);
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];

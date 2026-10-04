@@ -212,7 +212,7 @@ static inline void RoomFx_HaloTask(Task* arg0)
                 coord->coord.t[1]   = mem->pos.vy;
                 coord->coord.t[2]   = mem->pos.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 shift                 = arg0->spawnArg1.halves.high;
                 mem->index            = shift;
                 arg0->spawnArg1.value = arg0->spawnArg1.halves.low;
@@ -220,7 +220,7 @@ static inline void RoomFx_HaloTask(Task* arg0)
                 mem->step             = 0x100 / arg0->spawnArg1.value;
                 return;
             case 1:
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 mem->scale            += mem->step;
                 mem->angle            += mem->step;
                 arg0->spawnArg1.value -= 1;
@@ -242,7 +242,7 @@ static inline void RoomFx_HaloTask(Task* arg0)
                 }
                 return;
             case 2:
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (mem->scale >= 0x11) {
                     rgb[0] = mem->scale >> RoomFx_GetHaloShades()[mem->index].rShift;
                     rgb[1] = mem->scale >> RoomFx_GetHaloShades()[mem->index].gShift;
@@ -294,7 +294,7 @@ static inline void RoomFx_OrangeBurstTask(Task* arg0)
             mem->step   = 0x80;
             arg0->state = 1;
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         rgb[0]     = mem->scale;
         rgb[1]     = mem->scale >> 1;
         rgb[2]     = mem->scale >> 2;

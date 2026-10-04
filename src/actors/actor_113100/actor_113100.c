@@ -1297,7 +1297,7 @@ static void func_actor_113100_80132104(Task* task)
 
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
@@ -1356,7 +1356,7 @@ static void func_actor_113100_80132104(Task* task)
         }
         if (gGameSession->viewReady != 0) {
             task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(&task->extra.tmd->coords[1]);
+            actorRenderComposeCoord(&task->extra.tmd->coords[1]);
             func_800D7A9C(extra, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
         }
         if (work->freeCountdown >= 0) {

@@ -1508,7 +1508,7 @@ s32 Gp_TraceGroundCoord(GfxCoord* arg0, GfxCoord* arg1)
         gfxMakeRelativeTransform(world, &arg1->workm, &arg1->coord);
         arg1->parent       = PARENT_OF(world, GfxCoord, workm);
         arg1->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(arg1);
+        actorRenderComposeCoord(arg1);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGroundProbeScratch);
     return ret;
@@ -1659,7 +1659,7 @@ EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* ar
             gte_rtv0tr();
             gte_stlvnl(coord->coord.t);
         } else {
-            Gp_UpdateCoord(arg1);
+            actorRenderComposeCoord(arg1);
             coord->workm = arg1->workm;
             gte_SetRotMatrix(&arg1->workm);
             gte_SetTransMatrix(&arg1->workm);
@@ -1670,7 +1670,7 @@ EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* ar
         }
         coord->parent       = &gGfxViewCoord;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         mem->parent = arg1;
     } else {
         GfxCoord* coord;
@@ -1692,7 +1692,7 @@ EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* ar
         gte_stlvnl(coord->coord.t);
         coord->parent       = &gGfxViewCoord;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         mem->parent = &gGfxViewCoord;
     }
 

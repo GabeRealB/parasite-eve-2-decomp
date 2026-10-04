@@ -37,8 +37,8 @@ void oddStrangerGrabHold(Task* arg0)
     oddStrangerDrive(arg0);
     gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);
     gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
+    actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);
 }

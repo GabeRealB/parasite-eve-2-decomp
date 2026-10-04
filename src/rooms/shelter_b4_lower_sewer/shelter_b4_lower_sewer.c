@@ -170,7 +170,7 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
     // One scratch reservation holds the values reused across the surface list.
     SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
     scratch                                = scratchEnd - 1;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     (scratchEnd - 1)->y = D_shelter_b4_lower_sewer_80181E6C;
@@ -305,7 +305,7 @@ static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
     // One scratch reservation holds the values reused across the surface list.
     SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
     scratch                                = scratchEnd - 1;
-    Gp_UpdateCoord(&gGfxViewCoord);
+    actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     (scratchEnd - 1)->y = D_shelter_b4_lower_sewer_80181E6C;

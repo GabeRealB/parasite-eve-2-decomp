@@ -313,7 +313,7 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
         coord->coord.t[0]           += (best * block->roomDirection.vx) >> 12;
         coord->coord.t[2]           += (best * block->roomDirection.vz) >> 12;
         coord->composeStamp          = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         actor->pushbackDirection.vx = coord->workm.t[0] - actor->pushbackDirection.vx;
         actor->pushbackDirection.vy = coord->workm.t[1] - actor->pushbackDirection.vy;
         actor->pushbackDirection.vz = coord->workm.t[2] - actor->pushbackDirection.vz;
@@ -321,7 +321,7 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
         coord->coord.t[0]   = block->position.vx + ((best * block->roomDirection.vx) >> 14);
         coord->coord.t[2]   = block->position.vz + ((best * block->roomDirection.vz) >> 14);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorPushbackScratch);
 }

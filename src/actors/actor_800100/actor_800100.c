@@ -1048,11 +1048,11 @@ void func_actor_800100_80161F20(Task* task)
             coord->coord.t[1]   = D_actor_800100_80167128.vy;
             coord->coord.t[2]   = D_actor_800100_80167128.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             task->state = 1;
             break;
         case 1:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             switch (task->spawnArg1.value) {
                 case 0:
                     break;
@@ -1344,7 +1344,7 @@ static void func_actor_800100_801635F4(Task* arg0)
         coord->coord.t[1] += 8;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 
     if ((s8)actor->usesPushbackDirection != 0) {
         scratch->motionDirection.vx = actor->pushbackDirection.vx;
@@ -1368,7 +1368,7 @@ static void func_actor_800100_801635F4(Task* arg0)
     if (!(work->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         ground               = arg0->extra.tmd->coords + 1;
         ground->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(ground);
+        actorRenderComposeCoord(ground);
         if (func_800EA1A8(MATRIX_TRANS(&ground->workm), &scratch->shadowCentre) != 0) {
             Gp_DrawEffGroundQuad(&scratch->shadowCentre, 0x200, gRoomEffectState->groundShadowShade);
         }

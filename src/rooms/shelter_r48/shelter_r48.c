@@ -2319,7 +2319,7 @@ void func_shelter_r48_8017E4C4(Task* arg0)
         coord->coord.t[1]                = 0;
         coord->coord.t[0]                = 0;
         coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         arg0->state = 1;
     }
     mem->age += 1;
@@ -2376,7 +2376,7 @@ void func_shelter_r48_8017E704(Task* arg0)
         coord->coord.t[1]                = 0;
         coord->coord.t[0]                = 0;
         coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         arg0->state = 1;
     }
     mem->age += 1;
@@ -2430,7 +2430,7 @@ void func_shelter_r48_8017E9B8(Task* arg0)
         coord->coord.t[1]                = 0;
         coord->coord.t[0]                = 0;
         coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         arg0->state = 1;
     }
     mem->age += 1;
@@ -2478,7 +2478,7 @@ void func_shelter_r48_8017EC18(Task* task)
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 task->spawnArg1.value = 0x5A;
                 task->state           = 1;
                 work->scale           = 0;
@@ -3072,7 +3072,7 @@ void func_shelter_r48_801810B0(Task* task)
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 task->state = 1;
                 work->scale = 0;
                 work->angle = 0x100;
@@ -3159,7 +3159,7 @@ void func_shelter_r48_8018147C(Task* task)
                 coord->coord.t[1]                = 0;
                 coord->coord.t[0]                = 0;
                 coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 work->age   = 1;
                 work->scale = 0x80;
                 task->state = 1;
@@ -3228,7 +3228,7 @@ void func_shelter_r48_80181704(Task* task)
                 coord->coord.t[1]                = 0;
                 coord->coord.t[0]                = 0;
                 coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 task->state           = 1;
                 task->spawnArg1.value = 0x1E;
                 work->scale           = 0;

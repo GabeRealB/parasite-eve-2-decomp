@@ -16,6 +16,6 @@ static void ActorContact_TurnJoint(GfxCoord* coord, s16 yaw)
     out = actorLocalizeRotation(coord, rotation);
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
+    actorRenderComposeCoord(out);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }

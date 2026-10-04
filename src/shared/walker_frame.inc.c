@@ -10,7 +10,7 @@ static void walkerFrame(Enemy* enemy, Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1] - 0x320;
     pos.vz = coord->workm.t[2];

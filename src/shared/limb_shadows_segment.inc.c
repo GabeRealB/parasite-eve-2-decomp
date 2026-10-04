@@ -26,8 +26,8 @@ void limbShadowDrawSegment(Task* actor, s16 firstJoint, s16 secondJoint, s16 wid
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
         s = SCRATCH_STACK_RESERVE_BLOCK(ActorLimbShadowScratch);
-        Gp_UpdateCoord(firstCoord);
-        Gp_UpdateCoord(secondCoord);
+        actorRenderComposeCoord(firstCoord);
+        actorRenderComposeCoord(secondCoord);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->firstPos.vy   = height;
@@ -59,7 +59,7 @@ void limbShadowDrawSegment(Task* actor, s16 firstJoint, s16 secondJoint, s16 wid
            from `gGfxViewCoord.workm`, whose high half the GTE loads below share. */
         view               = &gGfxViewCoord;
         view->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(view);
+        actorRenderComposeCoord(view);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         s->depth = RotTransPers4(&s->corners[0], &s->corners[1], &s->corners[2], &s->corners[3], &s->screenCorners[0], &s->screenCorners[1],

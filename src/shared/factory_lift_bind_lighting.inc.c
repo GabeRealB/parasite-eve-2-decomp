@@ -14,6 +14,6 @@ void factoryLiftBindLighting(Task* task)
     extra->lightMtx     = &work->light;
     extra->colorMtx     = &work->color;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
 }

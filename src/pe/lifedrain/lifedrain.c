@@ -145,7 +145,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             coord->coord.t[1]    = 0;
             coord->coord.t[2]    = 0;
             coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             arg0->state = 1;
             mem->index  = (Gp_StateC08.attachId % 10) - 1;
             mem->scale  = D_lifedrain_80130AB4[mem->index].brightness;
@@ -195,7 +195,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             if (mem->age != 3) {
                 return;
             }
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (arg0->spawnArg1.value != 0) {
                 SndEvt_EnqueueType6(D_lifedrain_80130AD4[mem->index + 3],
                                     (s8)worldCoordGetOriginAudioPan(coord),
@@ -212,7 +212,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             s16*                   p;
             s32                    val;
 
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (mem->period != 0) {
                 mem->period = mem->period - 0x10;
                 rgb[0]      = mem->period >> 1;
@@ -287,7 +287,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             _LifedrainLevelTuning* tuning;
             s16*                   p;
 
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             mem->scale = mem->scale - 0x10;
             mem->angle = mem->angle + D_lifedrain_80130AB4[mem->index].radiusStep;
             if (mem->scale < 0x11) {
@@ -400,7 +400,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 coord->coord.t[1]  += mem->move.vy;
                 coord->coord.t[2]  += mem->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (mem->age & 1) {
                     mem->index = mem->index + 1;
                     func_lifedrain_801301AC(coord, mem->index, mem->period);
@@ -444,7 +444,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 coord->coord.t[1]  += mem->move.vy;
                 coord->coord.t[2]  += mem->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 if (mem->age >= 0x1E) {
                     break;
                 }
@@ -615,7 +615,7 @@ void func_lifedrain_801308C0(Task* arg0)
         arg0->state         = 1;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mem->angle  = mem->angle + (D_lifedrain_80130AB4[mem->index].brightness / 3);
     mem->period = mem->period + (D_lifedrain_80130AB4[mem->index].brightness >> 1);
     rgb[0]      = mem->scale >> 1;

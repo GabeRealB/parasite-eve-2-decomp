@@ -1345,7 +1345,7 @@ void Gp_EffSprTask46(Task* arg0)
         return;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     switch (arg0->state) {
         case 0:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1530,14 +1530,14 @@ void Gp_EffSprTask81(Task* arg0)
         return;
     }
 
-    Gp_UpdateCoord(parent);
+    actorRenderComposeCoord(parent);
     coord->workm = parent->workm;
     gte_SetRotMatrix(&parent->workm);
     gte_SetTransMatrix(&parent->workm);
     world = &gGfxViewCoord.workm;
     gfxMakeRelativeTransform(world, &coord->workm, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 
     switch (arg0->spawnArg1.value) {
         case 0:
@@ -1635,7 +1635,7 @@ void Gp_EffSprTask55(Task* arg0)
         }
         effectKillTask(mem, arg0);
     } else {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
         block->worldPoint.vx = coord->workm.t[0];
         block->worldPoint.vy = coord->workm.t[1];
@@ -1758,7 +1758,7 @@ void Gp_EffSprTask42(Task* arg0)
         }
         effectKillTask(mem, arg0);
     } else {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
         block->worldPoint.vx = coord->workm.t[0];
         block->worldPoint.vy = coord->workm.t[1];
@@ -1887,7 +1887,7 @@ void func_800F91AC(Task* arg0)
             mem->period         = mem->angle * 3;
             mem->step           = mem->scale / 768 + 1;
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1946,7 +1946,7 @@ void Gp_EffCtlTask9B(Task* arg0)
             }
             VectorNormalSS(&mem->pos, &mem->move);
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1991,7 +1991,7 @@ void Gp_EffSprTask30(Task* arg0)
         }
         return;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mem->age++;
     switch (arg0->state) {
         case 0:
@@ -2025,7 +2025,7 @@ void Gp_EffSprTask30(Task* arg0)
             }
             VectorNormalSS(&mem->move, &mem->move);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             sub                   = arg0->spawnArg1.halves.high;
             arg0->state           = 1;
             arg0->spawnArg1.value = sub & 3;
@@ -2076,7 +2076,7 @@ void Gp_EffSprTask30(Task* arg0)
                 coord->coord.t[1]  += vec.vy;
                 coord->coord.t[2]  += vec.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 16) & 1) != 0) {
                     if (arg0->spawnArg1.value == 1) {
@@ -2097,7 +2097,7 @@ void Gp_EffSprTask30(Task* arg0)
                     mem->step = mem->age;
                 }
             } else if (mem->scale != 0) {
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 mem->move.vy += 0x10000 / mem->scale;
             }
             if (arg0->spawnArg1.value == 2) {
@@ -2108,7 +2108,7 @@ void Gp_EffSprTask30(Task* arg0)
             }
             return;
         case 2:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (mem->age >= 0x33) {
                 if (mem->angle < 0x10) {
                     mem->scale++;
@@ -2136,7 +2136,7 @@ void Gp_EffSprTask30(Task* arg0)
             }
             return;
         case 3:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (mem->age >= 0x33) {
                 if (mem->angle < 0x10) {
                     effectKillTask(mem, arg0);
@@ -2150,7 +2150,7 @@ void Gp_EffSprTask30(Task* arg0)
             }
             return;
         case 4:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (mem->age >= 0x33) {
                 if (mem->angle < 0x10) {
                     mem->scale++;
@@ -2381,7 +2381,7 @@ void func_800FAA14(Task* arg0)
                                            ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 +
                                            ((u16)(Gp_StateC08.attachId % 10U) - 1U)];
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         goto kill;
     }
@@ -2462,7 +2462,7 @@ void Gp_EffCtlTask32(Task* arg0)
                 ((rsin((gDisplayState.animFrame + mem->scale) << 6) * 0x60) >> 0xC);
             coord->coord.t[2]   = (rsin(angle) * mem->move.vx) >> 0xC;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             arg0->state = 1;
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 goto set_state_4;
@@ -2480,7 +2480,7 @@ void Gp_EffCtlTask32(Task* arg0)
                 ((rsin((gDisplayState.animFrame + mem->scale) << 6) * 0x60) >> 0xC);
             coord->coord.t[2]   = (rsin(angle) * mem->move.vx) >> 0xC;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if ((gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED)) {
                 newState = 3;
                 goto set_state;
@@ -2500,7 +2500,7 @@ void Gp_EffCtlTask32(Task* arg0)
                 ((rsin((gDisplayState.animFrame + mem->scale) << 6) * 0x60) >> 0xC);
             coord->coord.t[2]   = (rsin(angle) * mem->move.vx) >> 0xC;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 newState = 4;
                 goto set_state;
@@ -2517,7 +2517,7 @@ void Gp_EffCtlTask32(Task* arg0)
         case 3:
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]  += 0x40;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (mem->period < 0xB) {
                 newState = 4;
                 goto set_state;
@@ -2569,7 +2569,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
             coord->coord.t[1]    = 0;
             coord->coord.t[2]    = 0;
             coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             arg0->state = 1;
             mem->scale  = 0;
             mem->angle  = 0x40;
@@ -2590,7 +2590,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
             SndEvt_EnqueueType6(arg0->spawnArg1.value, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
         case 1:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             temp       = mem->scale + mem->step;
             mem->scale = temp;
             if (temp >= 0x100) {
@@ -2633,7 +2633,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
             arg0->state = 2;
             return;
         case 2:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             mem->age++;
             if (mem->angle <= 0) {
                 goto kill;
@@ -2661,7 +2661,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
             mem->angle = mem->angle - 0x30;
             return;
         case 3:
-            Gp_UpdateCoord(coord);
+            actorRenderComposeCoord(coord);
             if (mem->scale < 0x11) {
                 goto kill;
             }
@@ -2708,7 +2708,7 @@ void Gp_EffCtlTaskC1(Task* arg0)
         arg0->state         = 1;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     rgb[0] = (mem->scale * ((mem->period >> 8) & 0xF)) >> 3;
     rgb[1] = (mem->scale * ((u8)mem->period >> 4)) >> 3;
     rgb[2] = (mem->scale * (mem->period & 0xF)) >> 3;
@@ -2760,7 +2760,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
         mem->step                    = mem->index * 256 + 0x400;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if (gRoomEffectState->burstRequest != 0) {
         rgb[2] = 0xC0;
         rgb[0] = 0xC0;
@@ -2860,7 +2860,7 @@ void Gp_EffCtlTaskF4(Task* arg0)
         if (slot->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return;
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         goto draw_lcg;
     }
 
@@ -2880,7 +2880,7 @@ void Gp_EffCtlTaskF4(Task* arg0)
     y                   = coord->coord.t[1] + mem->move.vy;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]   = y;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if ((mem->age & 3) == 0) {
         mem->index++;
     }
@@ -2940,7 +2940,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
         mem->step                    = gPlayerStatus.hp;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     mem->scale = mem->angle + ((mem->age & 1) << 4);
     col        = mem->scale;
     rgb[1]     = col;
@@ -3049,7 +3049,7 @@ void Gp_EffCtlTask0E(Task* arg0)
         arg0->state                  = 1;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if (gRoomEffectState->burstRequest != 0) {
         rgb[0] = 0xC0;
         rgb[1] = 0x30;
@@ -3106,7 +3106,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
         return;
     }
 
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     switch (arg0->state) {
         case 0:
             if (gRoomEffectState->rumbleCount == 0) {
@@ -3176,7 +3176,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 mem->step       = arg0->spawnArg1.value * 24 + 0xC0;
                 gfxRotMatrixY(&coord->coord, mem->scale & 0xFF0, 1);
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
+                actorRenderComposeCoord(coord);
                 arg0->state = 1;
                 mem->move.vz =
                     (mem->scale & 0x1F) % (arg0->spawnArg1.value * 3) + 7;
@@ -3185,7 +3185,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 return;
             case 1:
                 if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
-                    Gp_UpdateCoord(coord);
+                    actorRenderComposeCoord(coord);
                     mem->age++;
                     if (mem->move.vz != 0) {
                         in            = &mem->move;
@@ -3207,7 +3207,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 goto do_fcd00;
             case 2:
                 if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
-                    Gp_UpdateCoord(coord);
+                    actorRenderComposeCoord(coord);
                     mem->age++;
                     mem->angle  -= mem->age & 1;
                     mem->period += 2;
@@ -3425,7 +3425,7 @@ void Gp_EffSprTaskA7(Task* arg0)
         gRandomLcgState      = rng;
         arg0->state++;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     block                = SCRATCH_STACK_RESERVE_BLOCK(EffectBillboardScratch);
     block->worldPoint.vx = coord->workm.t[0];
     block->worldPoint.vy = coord->workm.t[1];
@@ -3652,7 +3652,7 @@ void Gp_EffCtlTask7F(Task* arg0)
         mem->period = step * 2;
         mem->step   = mem->scale / 1280;
     }
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
@@ -3724,7 +3724,7 @@ void Gp_EffCtlTaskE3(Task* arg0)
             mem->angle          = temp;
             mem->period         = temp << 2;
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -3781,7 +3781,7 @@ void Gp_EffSprTask80(Task* arg0)
             arg0->state++;
             arg0->spawnArg1.value &= 0x80000000;
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         block->worldPoint.vx = (u16)coord->workm.t[0];
         block->worldPoint.vy = (u16)coord->workm.t[1];
         block->worldPoint.vz = (u16)coord->workm.t[2];
@@ -3874,7 +3874,7 @@ void Gp_EffSprTask8D(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         block                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
         block->worldPoint.vx = coord->workm.t[0];
         block->worldPoint.vy = coord->workm.t[1];
@@ -3976,7 +3976,7 @@ void Gp_EffSprTask3F(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
         block->worldPoint.vx = coord->workm.t[0];
         block->worldPoint.vy = coord->workm.t[1];
@@ -4008,7 +4008,7 @@ void Gp_EffSprTask3F(Task* arg0)
                     coord->coord.t[1]   = 0;
                     coord->coord.t[0]   = 0;
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gp_UpdateCoord(coord);
+                    actorRenderComposeCoord(coord);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     mem->move.vy    = -((gRandomLcgState >> 16) & 3);
                 } else {
@@ -4126,7 +4126,7 @@ void func_800FF710(Task* arg0)
             mem->angle           = temp2;
             mem->period          = temp2 << 2;
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         Gp_DrawEffSpriteE2(coord, (u16)(mem->age >> 1), mem->scale - 0x40, mem->index);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
@@ -4181,7 +4181,7 @@ void Gp_EffSprTaskE0(Task* arg0)
     flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
         (head - 1)->worldPoint.vx                = (u16)coord->workm.t[0];
         block                                    = head - 1;
@@ -4300,7 +4300,7 @@ void Gp_EffSprTaskE1(Task* arg0)
             mem->step       = pal;
             arg0->state++;
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         (head - 1)->worldPoint.vx = (u16)coord->workm.t[0];
         block->worldPoint.vy      = (u16)coord->workm.t[1];
         vz                        = (u16)coord->workm.t[2];
@@ -4402,7 +4402,7 @@ void Gp_EffSprTaskE2(Task* arg0)
             mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
             arg0->state++;
         }
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         if (!(mem->age & 1)) {
             Gp_DrawEffSpriteE2(coord, (u16)(mem->age >> 1),
                                (s16)(mem->scale | mem->step), mem->angle);
@@ -4612,7 +4612,7 @@ static void Gp_PlayerWorkState1(Task* arg0)
     }
     actor->pendingCollisionUpdates = 0;
     coord->composeStamp            = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
 }
 
 void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
@@ -4832,7 +4832,7 @@ void Gp_UpdatePlayerMove(void)
         coord->coord.t[1] += 0x80;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if (actor->usesPushbackDirection != 0) {
         vec->vx = actor->pushbackDirection.vx;
         vec->vy = actor->pushbackDirection.vy;
@@ -5882,7 +5882,7 @@ void Gp_PlaceCoordOffset(GfxCoord* arg0, GfxCoord* arg1, SVECTOR* arg2)
     MATRIX* world;
 
     arg0->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg0);
+    actorRenderComposeCoord(arg0);
     arg1->workm = arg0->workm;
     gte_SetRotMatrix(&arg0->workm);
     gte_SetTransMatrix(&arg0->workm);
@@ -5893,7 +5893,7 @@ void Gp_PlaceCoordOffset(GfxCoord* arg0, GfxCoord* arg1, SVECTOR* arg2)
     gfxMakeRelativeTransform(world, &arg1->workm, &arg1->coord);
     arg1->parent       = PARENT_OF(world, GfxCoord, workm);
     arg1->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(arg1);
+    actorRenderComposeCoord(arg1);
 }
 
 s32 func_801041B4(Task* arg0)
@@ -6364,7 +6364,7 @@ s32 func_80104D68(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedSec
     RotMatrix(&actor->rotation, mtx);
     MatrixNormal(mtx, mtx);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     return 0;
 }
 

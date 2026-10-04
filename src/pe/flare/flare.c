@@ -117,7 +117,7 @@ void flareSparkTask(Task* arg0)
         destinationRotation->m20M21 = sourceRotation->m20M21;
         destinationRotation->m22    = sourceRotation->m22;
         coord->composeStamp         = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
+        actorRenderComposeCoord(coord);
         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         mem->period     = arg0->spawnArg1.value & 0xFFF;
         mem->scale      = (rng >> 16) & 0xFFF;
@@ -137,7 +137,7 @@ void flareSparkTask(Task* arg0)
     coord->coord.t[1]  += mem->move.vy;
     coord->coord.t[2]  += mem->move.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
+    actorRenderComposeCoord(coord);
     if (!(mem->age & 1)) {
         mem->index = mem->index + 1;
     }
