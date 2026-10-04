@@ -490,9 +490,9 @@ GCC 2.8.1, `-O2`, no `-finline-functions`.
 
 - **Anonymous struct and union members do not work.** The declaration is
   accepted and every access to it is then rejected. Nest with *named* members:
-  `owner->at4.loc`, not `owner->loc`. `src/main/gpuext.c` looks like a
-  counter-example; the line that would read through its anonymous struct is
-  commented out in `src/main/gpuext.c`.
+  `owner->at4.loc`, not `owner->loc`. `_GpuStatusRegister` in
+  `src/main/gpuext.c` is the worked example: its bitfields sit in a struct
+  member named `bits`.
 - `static` is safe more often than it looks, since nothing is inlined unless
   explicitly marked.
 - `.text` and `.rodata` are emitted in source order, so functions keep their

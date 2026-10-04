@@ -2,59 +2,59 @@
 
 #include "common.h"
 
-/// GPU Status Register.
+/// The GPU status register, as read from the GP1 port.
 ///
-/// Contains various information about the GPU.
+/// `word` is the register as read; `bits` names every field of it. The
+/// drawing-mode fields mirror the last texture-page and mask commands sent to
+/// GP0, and the display fields the last display-mode commands sent to GP1.
 typedef union {
-    u32 bytes;
+    u32 word;                      // The whole register, for tests that cannot be written through `bits`
     struct {
-        u32 texPageXBase     : 4; // Texture page X Base   (N*64)
-        u32 texPageYBase1    : 1; // Texture page Y Base 1 (N*256) (ie. 0, 256, 512 or 768)
-        u32 semiTransparency : 2; // Semi-transparency     (0=B/2+F/2, 1=B+F, 2=B-F, 3=B+F/4)
-        u32 texPageColors    : 2; // Texture page colors   (0=4bit, 1=8bit, 2=15bit, 3=Reserved)
-        u32 dither24To15Bit  : 1; // Dither 24bit to 15bit (0=Off/strip LSBs, 1=Dither Enabled)
-        u32 drawingToDisp    : 1; // Drawing to display area (0=Prohibited, 1=Allowed)
-        u32 setMaskBit       : 1; // Set Mask-bit when drawing pixels (0=No, 1=Yes/Mask)
-        u32 drawPixels       : 1; // Draw Pixels           (0=Always, 1=Not to Masked areas)
-        u32 interlaceField   : 1; // Interlace Field       (or, always 1 when GP1(08h).5=0)
-        u32 flipH            : 1; // Flip screen horizontally (0=Off, 1=On, v1 only)
-        u32 texPageYBase2    : 1; // Texture page Y Base 2 (N*512) (only for 2 MB VRAM)
-        u32 hRes2            : 1; // Horizontal Resolution 2     (0=256/320/512/640, 1=368)
-        u32 hRes1            : 2; // Horizontal Resolution 1     (0=256, 1=320, 2=512, 3=640)
-        u32 vRes             : 1; // Vertical Resolution         (0=240, 1=480, when Bit22=1)
-        u32 videoMode        : 1; // Video Mode                  (0=NTSC/60Hz, 1=PAL/50Hz)
-        u32 dacd             : 1; // Display Area Color Depth    (0=15bit, 1=24bit)
-        u32 vInterlace       : 1; // Vertical Interlace          (0=Off, 1=On)
-        u32 dispEnable       : 1; // Display Enable              (0=Enabled, 1=Disabled)
-        u32 irq1             : 1; // Interrupt Request (IRQ1)    (0=Off, 1=IRQ)
-        u32 dma              : 1; // DMA / Data Request, meaning depends on GP1(04h) DMA Direction:
-                                  // When GP1(04h)=0 ---> Always zero (0)
-                                  // When GP1(04h)=1 ---> FIFO State  (0=Full, 1=Not Full)
-                                  // When GP1(04h)=2 ---> Same as GPUSTAT.28
-                                  // When GP1(04h)=3 ---> Same as GPUSTAT.27
-        u32 readyCmd         : 1; // Ready to receive Cmd Word   (0=No, 1=Ready)
-        u32 readyVram        : 1; // Ready to send VRAM to CPU   (0=No, 1=Ready)
-        u32 readyDma         : 1; // Ready to receive DMA Block  (0=No, 1=Ready)
-        u32 dmaDir           : 2; // DMA Direction (0=Off, 1=?, 2=CPUtoGP0, 3=GPUREADtoCPU)
-        u32 interlaceOddEven : 1; // Drawing even/odd lines in interlace mode (0=Even or Vblank, 1=Odd)
-    };
-} GPUSTAT;
-STATIC_ASSERT_SIZEOF(GPUSTAT, sizeof(u32));
+        u32 texPageXBase      : 4; // Texture page X base (N*64)
+        u32 texPageYBase      : 1; // Texture page Y base (N*256)
+        u32 semiTransparency  : 2; // Blend of back B and front F (0=B/2+F/2, 1=B+F, 2=B-F, 3=B+F/4)
+        u32 texPageColors     : 2; // Texture page colour depth (0=4bit, 1=8bit, 2=15bit, 3=Reserved)
+        u32 dither            : 1; // Dither 24-bit colour to 15-bit (0=Off/strip LSBs, 1=Dither)
+        u32 drawToDisplayArea : 1; // Drawing to the display area (0=Prohibited, 1=Allowed)
+        u32 setMaskBit        : 1; // Set the mask bit of drawn pixels (0=No, 1=Yes)
+        u32 checkMaskBit      : 1; // Leave masked pixels undrawn (0=Draw always, 1=Skip masked)
+        u32 interlaceField    : 1; // Interlace field (always 1 when `verticalInterlace` is 0)
+        u32 flipHorizontal    : 1; // Flip the screen horizontally (0=Off, 1=On; early GPU revision only)
+        u32 texPageYBaseHigh  : 1; // Texture page Y base (N*512), only with 2 MB of VRAM
+        u32 horizontalRes368  : 1; // 368-pixel width, overriding `horizontalRes` (0=Off, 1=On)
+        u32 horizontalRes     : 2; // Display width in pixels (0=256, 1=320, 2=512, 3=640)
+        u32 verticalRes       : 1; // Display height in lines (0=240, 1=480 when `verticalInterlace` is 1)
+        u32 videoMode         : 1; // Video standard (0=NTSC/60Hz, 1=PAL/50Hz)
+        u32 displayColorDepth : 1; // Display area colour depth (0=15bit, 1=24bit)
+        u32 verticalInterlace : 1; // Vertical interlace (0=Off, 1=On)
+        u32 displayDisabled   : 1; // Display blanking (0=Display enabled, 1=Display disabled)
+        u32 interruptRequest  : 1; // GPU interrupt request, IRQ1 (0=Off, 1=Requested)
+        u32 dataRequest       : 1; // By `dmaDirection`: 0=always 0, 1=FIFO not full, 2=`readyDmaBlock`, 3=`readyVramToCpu`
+        u32 readyCommand      : 1; // Ready to receive a command word (0=No, 1=Ready)
+        u32 readyVramToCpu    : 1; // Ready to send VRAM to the CPU (0=No, 1=Ready)
+        u32 readyDmaBlock     : 1; // Ready to receive a DMA block (0=No, 1=Ready)
+        u32 dmaDirection      : 2; // DMA direction (0=Off, 1=FIFO, 2=CPU to GP0, 3=GPUREAD to CPU)
+        u32 interlaceOddLines : 1; // Lines drawn in interlace mode (0=Even, or in vertical blank; 1=Odd)
+    } bits;
+} _GpuStatusRegister;
+STATIC_ASSERT_SIZEOF(_GpuStatusRegister, sizeof(u32));
+
+/// Bit index of `bits.displayDisabled` within `_GpuStatusRegister.word`.
+#define GPU_STATUS_REGISTER_DISPLAY_DISABLED_BIT 23
 
 #define GPUEXT_GPU1 (void*)0x1f801814
 
 /// Reads the GPU Status Register.
 ///
 /// @return GPU Status Register.
-static inline GPUSTAT GpuExt_GetGpuStatusReg()
+static inline _GpuStatusRegister GpuExt_GetGpuStatusReg()
 {
-    return *(GPUSTAT*)GPUEXT_GPU1;
+    return *(_GpuStatusRegister*)GPUEXT_GPU1;
 }
 
 i32 GpuExt_IsDisplayEnabled()
 {
-    // Equivalent to:
-    //  return GpuExt_GetGpuStatusReg().dispEnable ^ 1;
-    GPUSTAT stat = GpuExt_GetGpuStatusReg();
-    return (stat.bytes >> 0x17 ^ 1) & 1;
+    // Reading `bits.displayDisabled` masks the bit before inverting it, and the
+    // original inverts first, so the test is made on the whole register.
+    return (GpuExt_GetGpuStatusReg().word >> GPU_STATUS_REGISTER_DISPLAY_DISABLED_BIT ^ 1) & 1;
 }

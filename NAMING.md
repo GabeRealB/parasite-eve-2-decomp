@@ -674,9 +674,9 @@ Keep a comment to one line where the struct mixes field widths: clang-format
 aligns a run of trailing comments, and a two-line comment ends the run, so the
 fields after it align to a different column.
 
-**Bitfields are for layouts whose bits have proven meanings**, as in `GPUSTAT`
-and `AnimationPackedRotation` — a hardware register and a packed 11-10-11 Euler rotation, where
-every component is named. A byte that is merely a bitmask of unidentified flags
+**Bitfields are for layouts whose bits have proven meanings**, as in
+`_GpuStatusRegister` and `AnimationPackedRotation` — a hardware register and a
+packed 11-10-11 Euler rotation, where every component is named. A byte that is merely a bitmask of unidentified flags
 stays a plain integer with a comment; unnamed bitfields add structure without
 adding information, and rewriting a multi-bit test such as `& 0x84` as two
 boolean reads changes the generated code. When bits do acquire names, the form
@@ -817,9 +817,9 @@ typedef struct {
 
 **Every member has to be named.** This compiler does not support anonymous
 struct or union members: it accepts the declaration and then rejects every
-access to it. `src/main/gpuext.c` looks like a counter-example, but the one
-line that reads through its anonymous struct is commented out in
-`src/main/gpuext.c` — someone met this already. So a union form is
+access to it. `_GpuStatusRegister` in `src/main/gpuext.c` is the worked
+example: its bitfields sit in a struct member named `bits` beside the whole
+`word`, so a field is `status.bits.displayDisabled`. So a union form is
 `session->location.loc`, not `session->loc`; a nested struct form is `session->loc`.
 
 **There is rarely only one.** The same run is usually described by several
