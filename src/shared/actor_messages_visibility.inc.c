@@ -6,29 +6,29 @@
 /// 3 clears every other flag before setting it. All but 1 reset the state to 0.
 s32 actorMsgSetVisibility(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
-    TmdObject*      obj;
-    ActorStateWork* work;
+    TmdObject*         obj;
+    ActorMsgStateWork* work;
 
     obj  = task->extra.tmd;
-    work = (ActorStateWork*)task->work;
+    work = task->work;
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
-            work->state = 0;
+            work->state = ACTOR_MESSAGE_STATE_HIDDEN;
             break;
         case 1:
             obj->flags = 0;
             Tmd_AllocBuffers(obj);
-            work->state = 0x18;
+            work->state = ACTOR_MESSAGE_STATE_PATROL;
             break;
         case 2:
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->state = 0;
+            work->state = ACTOR_MESSAGE_STATE_HIDDEN;
             break;
         case 3:
             obj->flags  = 0;
-            work->state = 0;
+            work->state = ACTOR_MESSAGE_STATE_HIDDEN;
             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }

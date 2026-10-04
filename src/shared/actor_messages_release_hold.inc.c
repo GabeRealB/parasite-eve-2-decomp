@@ -4,14 +4,14 @@
 /// gone. Any other state is left alone.
 s32 actorMsgReleaseHold(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    ActorStateWork* work = (ActorStateWork*)task->work;
-    PlayerStatus*   cfg  = &gPlayerStatus;
+    ActorMsgStateWork* work = task->work;
+    PlayerStatus*      cfg  = &gPlayerStatus;
 
-    if (work->state == 0xD) {
+    if (work->state == ACTOR_MESSAGE_STATE_GRAB_HOLD) {
         if (cfg->hp > 0) {
-            work->state = 0xE;
+            work->state = ACTOR_MESSAGE_STATE_GRAB_DONE;
         } else {
-            work->state = 0x16;
+            work->state = ACTOR_MESSAGE_STATE_DORMANT;
         }
     }
     return 1;

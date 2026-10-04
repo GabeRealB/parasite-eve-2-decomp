@@ -19,12 +19,29 @@
 
 #include "main/task_types.h"
 
-/// The head of every work block actorMsgSetVisibility is used with: the
-/// actor's state index, which the handler resets to 0 (or 0x18 when showing
-/// the model). The rest of the block is the package's own.
-typedef struct ActorStateWork {
-    /* 0x0 */ s16 state;
-} ActorStateWork;
+/// State indices the handlers test and store in `ActorMsgStateWork::state`.
+///
+/// A state index selects an entry of the package's own state table. Every
+/// package that includes `actorMsgSetVisibility` gives `HIDDEN` and `PATROL`
+/// these numbers, and every one that includes `actorMsgReleaseHold` the other
+/// three; the rest of each table is the package's.
+enum {
+    ACTOR_MESSAGE_STATE_HIDDEN    = 0x00, // model not drawn; the actor waits to be shown
+    ACTOR_MESSAGE_STATE_GRAB_HOLD = 0x0D, // holds the grabbed player
+    ACTOR_MESSAGE_STATE_GRAB_DONE = 0x0E, // follows the hold once the player is let go
+    ACTOR_MESSAGE_STATE_DORMANT   = 0x16, // idles in place until the player comes near
+    ACTOR_MESSAGE_STATE_PATROL    = 0x18  // walks between its two patrol points, watching for the player
+};
+
+/// The start of an actor's work block as `actorMsgSetVisibility` and
+/// `actorMsgReleaseHold` see it.
+///
+/// Each package's work block is a type of its own; these handlers are shared
+/// between packages and know only that it opens with the state index. The
+/// rest of the block is the package's.
+typedef struct {
+    s16 state; // index of the state handler the actor's tick runs; the handlers store `ACTOR_MESSAGE_STATE_*` values
+} ActorMsgStateWork;
 
 /// The prefix of every work block actorMsgPlaceRecordYaw and
 /// actorMsgPlaceYawFirst are used with: `yaw`
