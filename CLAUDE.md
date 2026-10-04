@@ -234,7 +234,10 @@ and marks the code unit `variant = true`: the unit is then named per package,
 so each gets its own object, but all compile the entry's one source with that
 package's defines (`tools/splat_ext/variantsrc.py`). A slot may also carry its
 own `objects` list where the packages' models and data sit at different
-offsets. Declare a parameter only where the bytes show it varies, derive what
+offsets, and `aliases` where the resident images need a name of its own for
+that package's copy of a definition (`DEFINE_ALIAS` in
+`include/decomp/common.h`; the alias has to be made in the object that defines
+the symbol, so the source ends with `PACKAGE_ALIASES`). Declare a parameter only where the bytes show it varies, derive what
 follows from it (a weapon's item is always its index + 0x7F, `WEAPON_ITEM` in
 `include/weapons/weapon.h`), and keep a value that merely looks derivable as a
 declared one when the original did not follow the pattern.

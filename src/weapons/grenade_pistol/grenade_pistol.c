@@ -50,9 +50,9 @@
 
 /// The weapon's index. It also keys the firing sound and the shot effect.
 
-void SLOT_FUNC(8011D1D4)(Task* arg0);
+void func_grenade_pistol_8011D1D4(Task* arg0);
 
-void SLOT_FUNC(8011D1D4)(Task* arg0)
+void func_grenade_pistol_8011D1D4(Task* arg0)
 {
     GameActor* actor;
     s32        anim;
@@ -117,7 +117,7 @@ static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
     grenadeShellExit,
 } };
 
-void SLOT_FUNC(8011DBD0)(Task* arg0)
+void func_grenade_pistol_8011DBD0(Task* arg0)
 {
     TaskFuncTable4 handlers;
 
@@ -2043,3 +2043,5 @@ TmdSource D_mm1_8012D444 = {
     _gMm1Model101C4Stream,
 };
 #endif
+
+PACKAGE_ALIASES

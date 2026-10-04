@@ -129,17 +129,4 @@ extern TmdSource D_m4a1_grenade_8012E1FC;
 
 void func_grenade_pistol_8011DBD0(Task* arg0);
 
-#define SLOT_NAME__(kind, prefix, addr) kind##_##prefix##_##addr
-#define SLOT_NAME_(kind, prefix, addr)  SLOT_NAME__(kind, prefix, addr)
-
-/// Name of a public symbol in a source several packages are built from: the
-/// package's SLOT_PREFIX (declared in the overlay manifest) in place of a fixed
-/// package name, so each build exports its own. `SLOT_FUNC(8011DBD0)` is
-/// `func_mm1_8011DBD0` in the MM1's build, `SLOT_DATA(8011DEC4)` is
-/// `D_m4a1_p1_8011DEC4` in the M4A1(+1)'s. The objdiff target is named the same
-/// way (`tools/objdiff/target_asm.py`), so a per-package name written any other
-/// way leaves its function unpaired there.
-#define SLOT_FUNC(addr) SLOT_NAME_(func, SLOT_PREFIX, addr)
-#define SLOT_DATA(addr) SLOT_NAME_(D, SLOT_PREFIX, addr)
-
 #endif // INCLUDE_WEAPONS_WEAPON_H

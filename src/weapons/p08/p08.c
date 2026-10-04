@@ -28,9 +28,9 @@
 #error "WEAPON_ID, P08_FLASH_EFFECT, P08_FLASH_WEAPON and P08_FIELD_940 are per-package build parameters"
 #endif
 
-void SLOT_FUNC(8011D1D8)(Task* arg0);
+void func_p08_8011D1D8(Task* arg0);
 
-void SLOT_FUNC(8011D1D8)(Task* arg0)
+void func_p08_8011D1D8(Task* arg0)
 {
     GameActor* actor;
     GfxCoord*  coord;
@@ -1944,3 +1944,5 @@ AnimationBank D_mongoose_8012A9C0 = { { {
     NULL,
 } } };
 #endif
+
+PACKAGE_ALIASES

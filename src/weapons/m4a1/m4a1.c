@@ -23,9 +23,9 @@
 #error "WEAPON_ID is a per-package build parameter"
 #endif
 
-void SLOT_FUNC(8011D1C4)(Task* arg0);
+void func_m4a1_8011D1C4(Task* arg0);
 
-void SLOT_FUNC(8011D1C4)(Task* arg0)
+void func_m4a1_8011D1C4(Task* arg0)
 {
     GameActor* actor;
     GfxCoord*  coord;
@@ -142,7 +142,7 @@ static u32 _gM4a1Model006ACStream[406] = {
 #include "assets/m4a1_model_006AC_stream.inc"
 };
 
-TmdSource SLOT_DATA(8011DEC4) = {
+TmdSource D_m4a1_8011DEC4 = {
     0,
     2940,
     0,
@@ -1027,3 +1027,5 @@ AnimationBank D_m4a1_8012B9E4 = { { {
     NULL,
     NULL,
 } } };
+
+PACKAGE_ALIASES

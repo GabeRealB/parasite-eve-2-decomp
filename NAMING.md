@@ -81,9 +81,14 @@ Choose the owner before composing the name:
   reference's `owner=` (see `tools/check_symbols.py`) can be checked by name. A
   copy nothing outside the package refers to keeps the plain shared name.
   The packages one source is built into are the same case: gameplay's weapon
-  table is indexed by weapon, each index is one package, and so each build
-  gives its handler that package's name - `func_m4a1_p1_8011D1C4` beside
-  `func_m4a1_8011D1C4` - by binding it on the package's build parameter.
+  table is indexed by weapon, each index is one package, and so each package
+  exports its handler under a name of its own - `func_m4a1_p1_8011D1C4` beside
+  `func_m4a1_8011D1C4`. The source defines the handler once, under one ordinary
+  name; the other packages' names are aliases, declared on their slots in the
+  overlay manifest (`aliases = { definition = "public name" }`) and emitted by
+  the `PACKAGE_ALIASES` line that ends the source, as `DEFINE_ALIAS`
+  statements. Both names are renamed like any symbol: `rename_item.py
+  --sidecars` rewrites the manifest with the symbol maps.
 
 A TU or a header may contain several subsystems, and one subsystem may span
 several TUs. For example, an effect handler in `player_actor.c` still belongs to

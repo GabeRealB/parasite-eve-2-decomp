@@ -98,8 +98,11 @@ def main() -> int:
         for addr, fn in image_functions(elf):
             if fn in known or re.fullmatch(rf"func_(\w+_)?{addr:08X}", fn):
                 continue
-            # a slot's own export (SLOT_FUNC): the source names it after a sibling's address
-            if cfg_name in siblings and re.fullmatch(rf"func_{re.escape(cfg_name)}_[0-9A-F]{{8}}", fn):
+            # a source built for several packages: a placeholder is named after the
+            # address it has in the first of them, and each package's alias
+            # (DEFINE_ALIAS) repeats that under its own name
+            owners = "|".join(map(re.escape, [cfg_name, *siblings.get(cfg_name, [])]))
+            if cfg_name in siblings and re.fullmatch(rf"func_({owners})_[0-9A-F]{{8}}", fn):
                 continue
             problems.append(f"{cfg_name}: {fn} at 0x{addr:08X} is not in {(paths or ['its symbol map'])[0]}")
     if problems:

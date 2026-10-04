@@ -53,7 +53,7 @@
 /// Muzzle offset of the weapon, in the firing hand's coordinate frame.
 static SVECTOR _gMuzzleOffset = { 0, 0x240, 0x40, 0 };
 
-void SLOT_FUNC(8011DDA4)(Task* arg0);
+void func_mp5a5_8011DDA4(Task* arg0);
 
 #include "../../shared/muzzle_flash_task.inc.c"
 
@@ -91,7 +91,7 @@ void func_mp5a5_8011D1E0(Task* task)
 /// effect under the weapon task. States 4/5 pick the lock-on target once (only
 /// while still below 6) and state 6 loops back to `fire` while the trigger is
 /// held, the ammo check passes and the burst timer has run out.
-void SLOT_FUNC(8011DDA4)(Task* arg0)
+void func_mp5a5_8011DDA4(Task* arg0)
 {
     GameActor*             actor;
     GfxCoord*              coord;
@@ -209,7 +209,7 @@ static u32 _gMp5a5Model01318Stream[393] = {
 #include "assets/mp5a5_model_01318_stream.inc"
 };
 
-TmdSource SLOT_DATA(8011EAFC) = {
+TmdSource D_mp5a5_8011EAFC = {
     0,
     2824,
     0,
@@ -1074,3 +1074,5 @@ AnimationBank D_mp5a5_8012B3CC = { { {
 } } };
 
 s16 gMuzzleFlashAngles[4] = { 0, 0, 0, 0 };
+
+PACKAGE_ALIASES

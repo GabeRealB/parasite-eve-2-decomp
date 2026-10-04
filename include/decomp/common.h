@@ -155,4 +155,20 @@
 /* `+&r` / `"r"` cannot overlap, so GCC emits `move` and frees src. */
 #define COPY_REG_EC(dst, src) __asm__ volatile("" : "+&r"(dst) : "r"(src))
 
+/// Exports `orig`, defined in this file, under a second name `alias`: one more
+/// global symbol at the same address, adding no bytes. The compiler has no
+/// alias attribute for this target, so the assembler makes it, and it has to be
+/// in the object that defines `orig`.
+#define DEFINE_ALIAS(orig, alias)                                                                  \
+    extern __typeof__(orig) alias;                                                                 \
+    __asm__(".globl " #alias "\n" #alias " = " #orig)
+
+/// The aliases the overlay manifest declares for the package being built
+/// (`aliases` on its slot), as `DEFINE_ALIAS` statements. A source several
+/// packages are built from ends with this, so each package exports the shared
+/// definitions under the names the resident images call that package's by.
+#ifndef PACKAGE_ALIASES
+#define PACKAGE_ALIASES
+#endif
+
 #endif // COMMON_H
