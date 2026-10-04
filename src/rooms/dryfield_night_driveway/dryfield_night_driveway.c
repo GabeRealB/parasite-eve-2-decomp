@@ -59,18 +59,31 @@
 /// Set once the driveway event has been spawned.
 extern u8 gDrivewayEventSpawned;
 
-// The animation copy spans the bank and its following records.
-// Keep the typed fields and the complete copied word range together.
+/// The clips two of the room's scene scripts add to the player's animation
+/// bank, with the two play requests stored after them.
+///
+/// Each of those scripts sends the player a copy request for the first ten
+/// words of this storage before it plays an extended clip. That is more than
+/// the clip table holds: the three set pointers and the NULL after them occupy
+/// extended ids 47-50, and the five words of `unusedPlay` and the bank selector
+/// of `firstClipPlay` are written into the bank after them. The scripts play
+/// only ids 47-49 and one of the bank's own clips on the player, so none of
+/// those following words is played as a clip.
+///
+/// The two requests are part of this object only because the copied span runs
+/// through the first and one word into the second; the requests for ids 48 and
+/// 49 follow as separate objects. The storage is only read.
 typedef union {
     struct {
-        AnimationSet*        sets[4];
-        AnimationPlayRequest arguments[2];
-    } data;
-    s32 words[14];
-} DryfieldNightDrivewayAnimStorageF8C4;
-STATIC_ASSERT_SIZEOF(DryfieldNightDrivewayAnimStorageF8C4, 56);
+        AnimationSet*        sets[4];       // Player clips for extended ids 47-49, then the NULL that ends the table
+        AnimationPlayRequest unusedPlay;    // Same request as `firstClipPlay`; nothing refers to it
+        AnimationPlayRequest firstClipPlay; // Starts extended id 47 without a blend; the first extended clip each script plays
+    } data;                                 // The records by name
+    s32 words[14];                          // The same storage as the copy reads it; the last four words lie beyond the copied span
+} _DryfieldNightDrivewayAnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_DryfieldNightDrivewayAnimationBankExtensionStorage, 56);
 
-extern DryfieldNightDrivewayAnimStorageF8C4 D_dryfield_night_driveway_8017F8C4;
+extern _DryfieldNightDrivewayAnimationBankExtensionStorage D_dryfield_night_driveway_8017F8C4;
 
 /// Descriptor of the room's event task, which the event gate spawns.
 extern TaskDesc gRoomEventStagedTaskDesc;
@@ -317,7 +330,7 @@ ActorTransform D_dryfield_night_driveway_8017F894 = { { -8800, 0, -1500, 0 }, { 
 
 ActorTransform D_dryfield_night_driveway_8017F8AC = { { -3800, 0, -1500, 0 }, { 0, 3413, 0, 0 } };
 
-DryfieldNightDrivewayAnimStorageF8C4 D_dryfield_night_driveway_8017F8C4 = { .data = { { &_gDryfieldNightDrivewayAnimation01870, &_gDryfieldNightDrivewayAnimation01A84, &_gDryfieldNightDrivewayAnimation01D64, NULL }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE } } } };
+_DryfieldNightDrivewayAnimationBankExtensionStorage D_dryfield_night_driveway_8017F8C4 = { .data = { { &_gDryfieldNightDrivewayAnimation01870, &_gDryfieldNightDrivewayAnimation01A84, &_gDryfieldNightDrivewayAnimation01D64, NULL }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE } } };
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F8FC = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -374,7 +387,7 @@ EvsCommand D_dryfield_night_driveway_8017FB00[51] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1019 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F81C } }, { .message = { .pointer = &D_dryfield_night_driveway_8017F990 } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8C4.data.arguments[1] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8C4.data.firstClipPlay }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8FC }, { .value = 0 } },
@@ -451,7 +464,7 @@ EvsCommand D_dryfield_night_driveway_80180118[49] = {
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F97C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8C4.data.arguments[1] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8C4.data.firstClipPlay }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8FC }, { .value = 0 } },
