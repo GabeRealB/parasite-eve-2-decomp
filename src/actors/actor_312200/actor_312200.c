@@ -50,85 +50,79 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-/// Private work block of the actor 312200 task, hanging off `Task::work`,
-/// `memCalloc(sizeof(Actor312200Work), 0)` in the spawn handler.
+/// Values of `_Actor312200Work::state`: the index of the handler the per-frame
+/// tick runs.
+enum {
+    ACTOR_312200_STATE_HIDDEN  = 0, // not drawn and not lockable, with `body` out of the pair tests; the spawn starts here
+    ACTOR_312200_STATE_PLAYING = 1  // plays the animation the last room command selected
+};
+
+/// Values of `_Actor312200Work::animRequest` and `_Actor312200Work::blendRequest`.
 ///
-/// Only the fields the matched code touches are named so far: `yaw` is the
-/// heading `func_actor_312200_801635CC` reads back from the root coordinate.
+/// A zero-filled block holds 0, on which the driver only advances the slots.
+enum {
+    ACTOR_312200_ANIM_REQUEST_BLEND   = 1, // seek the slots to the animation, blending over the frames the transition table gives
+    ACTOR_312200_ANIM_REQUEST_RESET   = 2, // restart the slots on the animation
+    ACTOR_312200_ANIM_REQUEST_PLAYING = 3  // the request has been applied
+};
+
+/// Work block of the actor 312200 task.
 ///
-/// `field_0` is the state word the 0x7DB handler raises and the per-tick
-/// handler dispatches on,
-/// `field_4` the live-actor flag every state handler tests on entry, `field_88C`
-/// the work state, and `field_892` / `field_896` the two timers the state
-/// handlers arm.
+/// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
+/// holds the two-state machine a room command and the draw-mode message
+/// switch, the model's animation rig with its driver's state, the collision
+/// body with its contact records, and storage for the model's matrices.
 ///
-/// `field_8B4` / `field_8B6` / `field_8B8` are the record
-/// `func_actor_312200_801636CC` leaves of the last 0x7DB command it saw: the
-/// sender id's two bytes - stored as the bytes they are read as, not as the
-/// halfword the handler tests - and then the action halfword.
+/// The driver state from `rig` to `lastCueFrame` is laid out, and driven, like
+/// the same run of `OddStrangerWork`. This actor carries only the part of that
+/// driver which applies a request and advances `rig`: nothing binds `blend` to
+/// the model or requests it, and no animation cue is played, so several
+/// members are written and never read.
 ///
-/// `field_8BC` is the display node the spawn handler
-/// `func_actor_312200_80163178` builds in place and hands to `Gp_LinkObj` - the
-/// `WorldCollisionBody` whose `context.contacts` is a three-entry `WorldCollisionContact` table at 0x8DC.
-/// `func_actor_312200_80163778` clears bit 0x8000 of that node's `flags`.
-typedef struct Actor312200Work {
-    /* 0x000 */ s16 field_0;
-    /// Second halfword of the state word above, set to -1 by the spawn handler.
-    /* 0x002 */ s16  field_2;
-    /* 0x004 */ s16  field_4;
-    /* 0x006 */ byte pad_6[0x2];
-    /* 0x008 */ s16  yaw;
-    /* 0x00A */ byte pad_A[0x6];
-    /// Animation context the spawn body hands `animationInitContext` first, with its
-    /// 19 slots directly behind it: the pose buffer that function is handed
-    /// fourth starts directly after the 19 slots.
-    /* 0x010 */ ActorAnimRig19 rig;
-    /// Second animation context, seeded when the 0x89A request word is 2. It
-    /// lives inside the pose buffer the first context was handed, and the slots
-    /// it resets are the first context's, so the two share their slot array.
-    /* 0x44C */ AnimationContext anim2;
-    /* 0x460 */ byte             poses2[0x42C];
-    /* 0x88C */ s16              field_88C;
-    /* 0x88E */ byte             pad_88E[0x2];
-    /* 0x890 */ s16              field_890;
-    /* 0x892 */ u16              field_892;
-    /* 0x894 */ u16              field_894;
-    /* 0x896 */ u16              field_896;
-    /* 0x898 */ byte             pad_898[0x2];
-    /// Request state of the second animation context, laid out like the first:
-    /// 2 seeds every slot and settles on 3.
-    /* 0x89A */ s16  field_89A;
-    /* 0x89C */ s16  field_89C;
-    /* 0x89E */ u16  field_89E;
-    /* 0x8A0 */ s16  field_8A0;
-    /* 0x8A2 */ byte pad_8A2[0x6];
-    /* 0x8A8 */ s32  field_8A8;
-    /// The two bytes the spawn handler arms next to the display node; they sit
-    /// immediately before the 0x7DB record, so they are the actor's own copy of
-    /// that state rather than part of a message. `field_8AD` is read back with
-    /// `lb` by the tick handler, so it is signed like the record halfwords.
-    /* 0x8AC */ u8   field_8AC;
-    /* 0x8AD */ s8   field_8AD;
-    /* 0x8AE */ byte pad_8AE[0x6];
-    /* 0x8B4 */ s16  field_8B4;
-    /* 0x8B6 */ s16  field_8B6;
-    /* 0x8B8 */ s16  field_8B8;
-    /* 0x8BA */ byte pad_8BA[0x2];
-    /// Display node: `WorldCollisionBody` at 0x8BC, its `WorldCollisionContact` table at 0x8DC.
-    /* 0x8BC */ WorldCollisionBody    field_8BC;
-    /* 0x8DC */ WorldCollisionContact recs[3];
-    /* 0x924 */ byte                  pad_924[0x20];
-    /// The light / colour matrices the spawn handler stores into
-    /// `TmdObject::lightMtx` / `colorMtx`, at the top of the block.
-    /* 0x944 */ MATRIX light;
-    /* 0x964 */ MATRIX color;
-} Actor312200Work;
-STATIC_ASSERT_SIZEOF(Actor312200Work, 0x984);
+/// Animation ids index the package's animation bank; rates are sixteenths of
+/// a frame per tick, `ANIMATION_RATE_ONE` being normal speed.
+typedef struct {
+    s16                   state;           // `ACTOR_312200_STATE_*`
+    s16                   prevState;       // `state` the tick last ran; -1 from the spawn, so the first tick enters `state` afresh
+    s16                   stateEntered;    // 1 on the first tick of a state, when the handler sets itself up (0 otherwise)
+    byte                  field_6[0x2];    // never accessed
+    s16                   placedYaw;       // heading of the root after the last placement message, 4096 to a turn; never read
+    byte                  field_A[0x6];    // never accessed
+    ActorAnimRig19        rig;             // playback of the model's parts; the driver uses slots 1 to 18
+    ActorAnimRig19        blend;           // second rig the driver restarts on `blendRequest`; never bound to the model
+    byte                  field_888[0x4];  // never accessed
+    s16                   animRequest;     // `ACTOR_312200_ANIM_REQUEST_*` for `rig`
+    byte                  field_88E[0x2];  // never accessed
+    s16                   appliedAnim;     // animation `rig` was last started on
+    s16                   animId;          // animation requested of `rig`: 1 from the spawn, then the room command's number
+    u16                   animFrames;      // ticks since `animRequest` was last applied; never read
+    s16                   animRate;        // playback rate of `rig`'s slots
+    byte                  field_898[0x2];  // never accessed
+    s16                   blendRequest;    // `ACTOR_312200_ANIM_REQUEST_*` for `blend`; nothing requests it
+    s16                   blendAnimId;     // animation requested of `blend`; never written
+    u16                   blendRate;       // rate stored at each restart of `blend`, three times normal speed
+    s16                   blendWeight;     // 0x500 from each restart of `blend`; never read
+    byte                  field_8A2[0x6];  // never accessed
+    s32                   lastCueFrame;    // cleared whenever `animRequest` is applied; never read
+    u8                    field_8AC;       // 0 from the spawn; never read, role unproven
+    s8                    relightPending;  // 1 when the last tick left the root coordinate awaiting composition, so the next tick rebuilds the model's lighting at its position (0 otherwise)
+    byte                  field_8AE[0x6];  // never accessed
+    s16                   commandStage;    // stage tag of the last actor command received; never read
+    s16                   commandArea;     // area tag of the last actor command received; never read
+    s16                   command;         // command word of the last actor command received; while it is 1, view 0x10 plays the dormant sound
+    byte                  field_8BA[0x2];  // never accessed
+    WorldCollisionBody    body;            // sphere on model part 3 in collision list 2; the spawn enables its pair tests and entering `ACTOR_312200_STATE_HIDDEN` disables them
+    WorldCollisionContact contacts[3];     // contacts of `body`; a tick that finds the first occupied clears them
+    byte                  field_924[0x20]; // never accessed
+    MATRIX                light;           // storage for the model's `TmdObject::lightMtx`
+    MATRIX                color;           // storage for the model's `TmdObject::colorMtx`
+} _Actor312200Work;
+STATIC_ASSERT_SIZEOF(_Actor312200Work, 0x984);
 
 /// Step table the seeding body `func_actor_312200_80162FB4` walks: one 5-byte
-/// row per clip the previous request latched in `Actor312200Work::field_890`,
-/// addressed by the requested clip in `field_892`. The byte it reads is handed
-/// to `animationSeekSlotWithBlend` as the request's fifth argument.
+/// row per animation in `_Actor312200Work::appliedAnim`, addressed by the
+/// requested animation in `_Actor312200Work::animId`. The byte it reads is
+/// handed to `animationSeekSlotWithBlend` as the request's fifth argument.
 extern s8 D_actor_312200_80169F28[][5];
 
 static void func_actor_312200_80163778(Task* task);
@@ -312,72 +306,74 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts_push.inc.c"
 
-/// Animation seeding body, run once per tick: request state 1 seeks every slot
-/// of the first context to `field_892` through the step table, state 2 resets
-/// them, and both settle on 3 and clear the frame counter at `field_894`.
-/// Request state 2 on the second context resets its slots at rate 0x30, then
-/// the tail counts a frame and ticks every slot of the first context.
+/// Animation driver, run once per tick: an `animRequest` of
+/// `ACTOR_312200_ANIM_REQUEST_BLEND` seeks slots 1 to 18 of `rig` to `animId`
+/// through the step table, `ACTOR_312200_ANIM_REQUEST_RESET` restarts them on
+/// it, and both settle on `ACTOR_312200_ANIM_REQUEST_PLAYING` and clear
+/// `animFrames`. A reset requested of `blend` restarts its slots at three
+/// times normal speed, then the tail counts a frame and advances every driven
+/// slot of `rig` at `animRate`.
 static void func_actor_312200_80162FB4(Task* task)
 {
-    Actor312200Work* work;
-    Actor312200Work* start;
-    Actor312200Work* reset;
-    Actor312200Work* second;
-    Actor312200Work* tick;
-    s32              i;
-    s32              j;
-    s32              k;
-    s32              m;
+    _Actor312200Work* work;
+    _Actor312200Work* start;
+    _Actor312200Work* reset;
+    _Actor312200Work* second;
+    _Actor312200Work* tick;
+    s32               i;
+    s32               j;
+    s32               k;
+    s32               m;
 
-    work = (Actor312200Work*)task->work;
-    if (work->field_88C == 1) {
-        start = (Actor312200Work*)task->work;
-        for (i = 1; i < 0x13; i++) {
-            start->rig.slots[i].rate = start->field_896;
-            animationSeekSlotWithBlend(&start->rig.anim, i, (s16)start->field_892, 0,
-                                       D_actor_312200_80169F28[start->field_890][(s16)start->field_892]);
+    work = task->work;
+    if (work->animRequest == ACTOR_312200_ANIM_REQUEST_BLEND) {
+        start = task->work;
+        for (i = 1; i < ARRAY_SIZE(start->rig.slots); i++) {
+            start->rig.slots[i].rate = start->animRate;
+            animationSeekSlotWithBlend(&start->rig.anim, i, start->animId, 0,
+                                       D_actor_312200_80169F28[start->appliedAnim][start->animId]);
         }
-        start->field_890 = start->field_892;
+        start->appliedAnim = start->animId;
         goto advance;
     }
-    if (work->field_88C == 2) {
-        reset = (Actor312200Work*)task->work;
-        for (j = 1; j < 0x13; j++) {
-            reset->rig.slots[j].rate = reset->field_896;
-            animationResetSlot(&reset->rig.anim, j, (s16)reset->field_892);
+    if (work->animRequest == ACTOR_312200_ANIM_REQUEST_RESET) {
+        reset = task->work;
+        for (j = 1; j < ARRAY_SIZE(reset->rig.slots); j++) {
+            reset->rig.slots[j].rate = reset->animRate;
+            animationResetSlot(&reset->rig.anim, j, reset->animId);
         }
-        reset->field_890 = reset->field_892;
+        reset->appliedAnim = reset->animId;
     advance:
-        work->field_88C = 3;
-        work->field_894 = 0;
-        work->field_8A8 = 0;
+        work->animRequest  = ACTOR_312200_ANIM_REQUEST_PLAYING;
+        work->animFrames   = 0;
+        work->lastCueFrame = 0;
     }
-    if (work->field_89A == 2) {
-        second            = (Actor312200Work*)task->work;
-        second->field_89E = 3 * ANIMATION_RATE_ONE;
-        second->field_8A0 = 0x500;
-        for (k = 1; k < 0x13; k++) {
-            second->rig.slots[k].rate = second->field_89E;
-            animationResetSlot(&second->anim2, k, (s16)second->field_89C);
+    if (work->blendRequest == ACTOR_312200_ANIM_REQUEST_RESET) {
+        second              = task->work;
+        second->blendRate   = 3 * ANIMATION_RATE_ONE;
+        second->blendWeight = 0x500;
+        for (k = 1; k < ARRAY_SIZE(second->blend.slots); k++) {
+            second->rig.slots[k].rate = second->blendRate;
+            animationResetSlot(&second->blend.anim, k, second->blendAnimId);
         }
-        work->field_89A = 3;
+        work->blendRequest = ACTOR_312200_ANIM_REQUEST_PLAYING;
     }
-    work->field_894++;
-    tick = (Actor312200Work*)task->work;
-    for (m = 1; m < 0x13; m++) {
-        tick->rig.slots[m].rate = tick->field_896;
+    work->animFrames++;
+    tick = task->work;
+    for (m = 1; m < ARRAY_SIZE(tick->rig.slots); m++) {
+        tick->rig.slots[m].rate = tick->animRate;
         animationTickSlot(&tick->rig.anim, m);
     }
 }
 
 /// Spawn handler, the first entry of the actor's state table: allocates the
-/// 0x984-byte `Actor312200Work` into `Task::work` (tearing the enemy down if
+/// zeroed `_Actor312200Work` into `Task::work` (tearing the enemy down if
 /// that fails) and seeds the enemy object, the model's root coordinate and the
 /// animation context from the `TmdObject` in `Task::extra`. The model's light
 /// and colour matrices are pointed into the work block, the enemy takes the
 /// root coordinate's matrix as `field_4` and the model's third part coordinate
-/// as `coord`, and the display node built in place at `field_8BC` gets the
-/// block's three-entry `WorldCollisionContact` table and the model's fourth part coordinate.
+/// as `coord`, and the collision sphere built in place at `body` gets the
+/// block's `contacts` table and the model's fourth part coordinate.
 /// The model coordinate is parented to `gGfxViewCoord` and rebuilt once before
 /// its translation is propagated over the three part coordinates
 /// (`func_800D7A9C`, start 0, count 3).
@@ -387,13 +383,13 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
     GfxCoord*           coord;
     TmdObject*          obj;
     TmdObject*          tmd;
-    Actor312200Work*    mem;
-    Actor312200Work*    work;
+    _Actor312200Work*   mem;
+    _Actor312200Work*   work;
     WorldCollisionBody* node;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    mem        = memCalloc(sizeof(Actor312200Work), 0);
+    mem        = memCalloc(sizeof(_Actor312200Work), 0);
     work       = mem;
     task->work = mem;
     if (mem == NULL) {
@@ -415,13 +411,13 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
     enemy->reactionFlags          = 0;
     enemy->field_4D               = 0;
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_312200_80169F44, obj, work->rig.poses, work->rig.slots);
-    work->field_88C = 2;
-    work->field_892 = 1;
-    work->field_896 = ANIMATION_RATE_ONE;
+    work->animRequest = ACTOR_312200_ANIM_REQUEST_RESET;
+    work->animId      = 1;
+    work->animRate    = ANIMATION_RATE_ONE;
     func_actor_312200_80162FB4(task);
-    node                   = &work->field_8BC;
+    node                   = &work->body;
     node->coord            = &task->extra.tmd->coords[3];
-    node->context.contacts = work->recs;
+    node->context.contacts = work->contacts;
     node->pos.vx           = 0;
     node->pos.vy           = 0;
     node->pos.vz           = 0;
@@ -430,74 +426,74 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
     node->flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, node);
     node->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(node->context.contacts, 3, 0);
-    task->msgTable      = D_actor_312200_80169F5C;
-    work->field_8AC     = 0;
-    work->field_8AD     = 1;
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_InitRec18Table(node->context.contacts, ARRAY_SIZE(work->contacts), 0);
+    task->msgTable       = D_actor_312200_80169F5C;
+    work->field_8AC      = 0;
+    work->relightPending = 1;
+    coord->parent        = &gGfxViewCoord;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
     func_800D7A9C(task->extra.tmd, &vec, 0, 3);
-    work->field_0 = 0;
-    work->field_2 = -1;
+    work->state     = ACTOR_312200_STATE_HIDDEN;
+    work->prevState = -1;
     task->state++;
 }
 
 /// Per-tick handler and state dispatcher, called with the task second. The
 /// handler table is built in place - `func_actor_312200_80163778` at index 0,
-/// the tick handler at index 1 - and `field_0` selects from it, unless the global
-/// `gSceneCombatState.actorControl` holds the actor. `field_4` records whether the state moved
-/// before it is re-latched into `field_2`. The tail clears the display node's
-/// `WorldCollisionContact` record while occupied, re-propagates the root coordinate's
-/// translation over the model's three part coordinates while `field_8AD` is
-/// set, and then refreshes `field_8AD` from that coordinate's `composeStamp` - so the
-/// propagation runs on the frame after the coordinate is dirtied. That same
-/// coordinate is rebuilt (`composeStamp` dropped) and the 0x51030008 loop queued while
-/// the room is live, from view 0x10 with the 0x7DB action `field_8B8` at 1.
+/// the tick handler at index 1 - and `state` selects from it, unless the global
+/// `gSceneCombatState.actorControl` holds the actor. `stateEntered` records whether the state moved
+/// before it is re-latched into `prevState`. The tail clears the `contacts` of
+/// `body` while the first is occupied, rebuilds the model's lighting at the
+/// root coordinate's position while `relightPending` is
+/// set, and then refreshes `relightPending` from that coordinate's `composeStamp` - so the
+/// lighting is rebuilt on the frame after the coordinate is dirtied. That same
+/// coordinate is dirtied and the dormant sound queued while
+/// the view is ready, the sound only in view 0x10 with the last `command` at 1.
 ///
 /// The trailing `vec` is the original's own - three dead stores, but the frame
 /// and the rest of the schedule are built around them.
 static void func_actor_312200_80163370(Enemy* enemy, Task* task)
 {
-    TmdObject*       obj;
-    VECTOR           vec;
-    s32              pan;
-    Actor312200Work* work                = (Actor312200Work*)task->work;
-    void             (*states[2])(Task*) = {
+    TmdObject*        obj;
+    VECTOR            vec;
+    s32               pan;
+    _Actor312200Work* work                = task->work;
+    void              (*states[2])(Task*) = {
         func_actor_312200_80163778,
         func_actor_312200_801637CC,
     };
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        if (work->field_2 != work->field_0) {
-            work->field_4 = 1;
+        if (work->prevState != work->state) {
+            work->stateEntered = 1;
         } else {
-            work->field_4 = 0;
+            work->stateEntered = 0;
         }
-        work->field_2 = work->field_0;
-        states[work->field_0](task);
-        if (work->recs[0].key.value != 0) {
-            Gp_ClearRec18Occupied(work->recs);
+        work->prevState = work->state;
+        states[work->state](task);
+        if (work->contacts[0].key.value != 0) {
+            Gp_ClearRec18Occupied(work->contacts);
         }
-        if (work->field_8AD != 0) {
+        if (work->relightPending != 0) {
             obj = task->extra.tmd;
             func_800D7A9C(obj, (VECTOR*)obj->coords->workm.t, 0, 3);
         }
         if (gGameSession->viewReady != 0) {
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            if ((Gp_GetViewIndex() == 0x10) && (work->field_8B8 == 1)) {
+            if ((Gp_GetViewIndex() == 0x10) && (work->command == 1)) {
                 pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
                 SndEvt_EnqueueType6(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, pan,
                                     (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             }
         }
         if (task->extra.tmd->coords->composeStamp == GRAPHICS_COORD_DIRTY) {
-            work->field_8AD = 1;
+            work->relightPending = 1;
         } else {
-            work->field_8AD = 0;
+            work->relightPending = 0;
         }
         vec.vz = 0;
         vec.vy = 0;
@@ -509,32 +505,32 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
 /// is the mode: 0 sets the model's `TmdObject::flags` to exactly 0x80, 1 clears
 /// them, 2 raises `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 3 clears them and then raises `TMD_OBJECT_SKIP_AUTO_BUFFER`. Modes 0
 /// and 1 re-run `Tmd_AllocBuffers` on the model, and every mode except 1 resets
-/// the work block's `field_0` state word. `arg1` is unused.
+/// the work block's `state` to `ACTOR_312200_STATE_HIDDEN`. `arg1` is unused.
 s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
-    TmdObject*       obj;
-    Actor312200Work* work;
+    TmdObject*        obj;
+    _Actor312200Work* work;
 
     obj  = task->extra.tmd;
-    work = (Actor312200Work*)task->work;
+    work = task->work;
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
-            work->field_0 = 0;
+            work->state = ACTOR_312200_STATE_HIDDEN;
             break;
         case 1:
             obj->flags = 0;
             Tmd_AllocBuffers(obj);
             break;
         case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->state = ACTOR_312200_STATE_HIDDEN;
             break;
         case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags  = 0;
+            work->state = ACTOR_312200_STATE_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -543,15 +539,15 @@ s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2, s32 arg3)
 /// Id 0x7D4 placement opcode: the three longs of `placement->pos` are copied
 /// onto the actor's root coordinate, the Euler angles are applied X / Y / Z,
 /// and the resulting heading is read back out of the matrix Z-axis with
-/// `ratan2` and cached in `Actor312200Work::yaw`.
+/// `ratan2` and kept in `_Actor312200Work::placedYaw`.
 s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
-    GfxCoord*        coord;
-    s32              mx;
-    s32              mz;
-    Actor312200Work* work;
+    GfxCoord*         coord;
+    s32               mx;
+    s32               mz;
+    _Actor312200Work* work;
 
-    work                                = (Actor312200Work*)task->work;
+    work                                = task->work;
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
@@ -562,91 +558,96 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorTransform* placement, 
     coord                                 = task->extra.tmd->coords;
     mx                                    = coord->coord.m[2][0];
     mz                                    = coord->coord.m[2][2];
-    work->yaw                             = ratan2(-mx, mz);
+    work->placedYaw                       = ratan2(-mx, mz);
     return 1;
 }
 
-/// Id 0x7DB command handler. The payload is always recorded in the work block,
-/// and a message from sender 0x301 additionally selects the work state: action
-/// 1 takes state 2, actions 2, 3 and 4 take state 1, and the action itself is
-/// latched in the 0x892 timer. Either way the actor's `field_0` state word is
-/// raised to 1.
+/// Id 0x7DB command handler. The command is always recorded in the work block
+/// (`commandStage`, `commandArea`, `command`), and one whose context key is
+/// 0x301 additionally requests an animation of the driver: the command's
+/// number becomes `animId`, command 1 restarting the rig on it
+/// (`ACTOR_312200_ANIM_REQUEST_RESET`) and commands 2, 3 and 4 blending to it
+/// (`ACTOR_312200_ANIM_REQUEST_BLEND`). Either way the actor's `state` becomes
+/// `ACTOR_312200_STATE_PLAYING`.
 s32 func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
-    Actor312200Work* work;
-    s32              action;
+    _Actor312200Work* work;
+    s32               action;
 
-    work            = (Actor312200Work*)task->work;
-    work->field_8B4 = msg->context.loc.stage;
-    work->field_8B6 = msg->context.loc.area;
-    work->field_8B8 = msg->command;
+    work               = task->work;
+    work->commandStage = msg->context.loc.stage;
+    work->commandArea  = msg->context.loc.area;
+    work->command      = msg->command;
 
     if (msg->context.key == 0x301) {
         action = msg->command;
         switch (action) {
             case 1:
-                work->field_892 = action;
-                work->field_88C = 2;
+                work->animId      = action;
+                work->animRequest = ACTOR_312200_ANIM_REQUEST_RESET;
                 break;
 
             case 2:
-                work->field_892 = action;
-                work->field_88C = 1;
+                work->animId      = action;
+                work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
                 break;
 
             case 3:
-                work->field_892 = action;
-                work->field_88C = 1;
+                work->animId      = action;
+                work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
                 break;
 
             case 4:
-                work->field_892 = action;
-                work->field_88C = 1;
+                work->animId      = action;
+                work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
                 break;
         }
     }
 
-    work->field_0 = 1;
+    work->state = ACTOR_312200_STATE_PLAYING;
     return 1;
 }
 
-/// On a live actor, marks the enemy's target node not lockable, raises the model's
-/// 0x80 bit (which takes it out of `Tmd_DrawActiveNodes`), clears
-/// `Enemy::field_4D` and drops bit 0x8000 of the `field_8BC` node's flags.
+/// Handler of `ACTOR_312200_STATE_HIDDEN`. On the state's first tick
+/// (`stateEntered`) it marks the enemy's target node not lockable, raises the
+/// model's 0x80 bit (which takes it out of `Tmd_DrawActiveNodes`), clears
+/// `Enemy::field_4D` and takes `body` out of the pair tests.
 static void func_actor_312200_80163778(Task* task)
 {
-    Actor312200Work* work;
-    Enemy*           enemy;
-    TmdObject*       obj;
+    _Actor312200Work* work;
+    Enemy*            enemy;
+    TmdObject*        obj;
 
-    work = (Actor312200Work*)task->work;
-    if (work->field_4 != 0) {
+    work = task->work;
+    if (work->stateEntered != 0) {
         obj                           = task->extra.tmd;
         enemy                         = (Enemy*)task->spawnArg2.pointer;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         enemy->field_4D               = 0;
-        work->field_8BC.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 }
 
-/// Per-tick state callback. A live actor (`field_4`) re-enters work state 2
-/// with the 0x896 timer armed at 0x10; once the 0x892 timer has counted those
-/// 0x10 ticks and the task's flag bit 0 is set, the state drops to 1 and the
-/// timer to 4. Either way the tick ends in the actor's anim/particle update.
+/// Handler of `ACTOR_312200_STATE_PLAYING`. The state's first tick
+/// (`stateEntered`) restarts the rig on `animId` at normal speed
+/// (`ACTOR_312200_ANIM_REQUEST_RESET`, `animRate` at `ANIMATION_RATE_ONE`)
+/// and runs the driver once for it. When animation 0x10 - which nothing in
+/// this package requests - reaches a boundary on slot 1, a blend to animation
+/// 4 is requested. Every tick then ends in the animation driver.
 static void func_actor_312200_801637CC(Task* task)
 {
-    Actor312200Work* work;
+    _Actor312200Work* work;
 
-    work = (Actor312200Work*)task->work;
-    if (work->field_4 != 0) {
-        work->field_88C = 2;
-        work->field_896 = ANIMATION_RATE_ONE;
+    work = task->work;
+    if (work->stateEntered != 0) {
+        work->animRequest = ACTOR_312200_ANIM_REQUEST_RESET;
+        work->animRate    = ANIMATION_RATE_ONE;
         func_actor_312200_80162FB4(task);
     }
-    if ((s16)work->field_892 == 0x10 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-        work->field_892 = 4;
-        work->field_88C = 1;
+    if (work->animId == 0x10 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+        work->animId      = 4;
+        work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
     }
     func_actor_312200_80162FB4(task);
 }

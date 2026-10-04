@@ -51492,7 +51492,7 @@ placement rule, because the block that has to see the two as one pseudo runs
 past a second read of the source:
 
 ```c
-mem         = memCalloc(sizeof(Actor312200Work), 0);
+mem         = memCalloc(sizeof(_Actor312200Work), 0);
 work        = mem;
 task->work = mem;    /* mem is live past the copy */
 if (mem == NULL) { ... }
@@ -101555,7 +101555,7 @@ lhu   $v0, 0x1E($s0) / ori 0x8000 / sh
 ```
 
 Every one of those deltas is `WorldCollisionBody`'s, so the base is pinned rather than
-guessed, and `work->field_8BC.flags &= 0x7FFF` is the port. The same call site
+guessed, and `work->body.flags &= 0x7FFF` is the port. The same call site
 also types `Task::spawnArg2`: the handler's other argument (`$s0` here) gets
 `Gp_LinkNode($s0 + 0x10)`, `sb` at 0x14, `sw $zero` over the three words at
 0x1C and `sb` at 0x48/0x4C/0x4D - all `Enemy` - so the ctx is `Enemy*`, not
@@ -101571,7 +101571,7 @@ store differ, so a sibling from the family is a better template than the seed.
 
 Evidence: scratch `nonmatchings/func_actor_312200_80163778-vacuum/`; `base.c`
 (100.000%) and `base_1.c` (typed port, 100.000%, `Repeated assembly: base_1.c
-reproduces base.c`); `include/actors/actor_312200.h` gained `WorldCollisionBody field_8BC`
+reproduces base.c`); `include/actors/actor_312200.h` gained `WorldCollisionBody body`
 inside a new `pad_898[0x24]`, `include/gameplay/1BC.h` renamed `Enemy.pad_4D`
 to `field_4D`.
 
@@ -101585,8 +101585,8 @@ three labels sharing one body:
     case 2:
     case 3:
     case 4:
-        work->field_892 = action;
-        work->field_88C = 1;
+        work->animId = action;
+        work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
         break;
 ```
 
@@ -101600,18 +101600,18 @@ its own body in the source. Write the duplicate out:
 
 ```c
     case 2:
-        work->field_892 = action;
-        work->field_88C = 1;
+        work->animId = action;
+        work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
         break;
 
     case 3:
-        work->field_892 = action;
-        work->field_88C = 1;
+        work->animId = action;
+        work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
         break;
 
     case 4:
-        work->field_892 = action;
-        work->field_88C = 1;
+        work->animId = action;
+        work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
         break;
 ```
 
@@ -101640,7 +101640,7 @@ i.e. `s32 f(Task*, s32, Msg*, s32)`.
 
 Evidence: scratch `nonmatchings/func_actor_312200_801636CC-vacuum/`; `base_1.c`
 (52.302%) and `base_2.c` (100.000%); `include/actors/actor_312200.h` gained
-`field_0`, `field_8B4`/`field_8B6`/`field_8B8` (cut out of `pad_898`) and the
+`state`, `commandStage`/`commandArea`/`command` (cut out of `pad_898`) and the
 payload union (now `ActorCommand`, whose `context.loc` bytes and `context.key` /
 `command` halfwords) is what makes the two byte loads and the two halfword
 loads of the same four payload bytes come out as the target's
@@ -127511,7 +127511,7 @@ already correct: both are ready, and the hazard rule breaks the tie.
 A barrier between them pins it, and the body matches byte for byte:
 
 ```c
-    work = (Actor312200Work*)task->work;
+    work = task->work;
     SOFT_BARRIER();                 /* the table's lui may not be scheduled first */
     states[0] = func_actor_312200_80163778;
     states[1] = func_actor_312200_801637CC;
@@ -130135,7 +130135,7 @@ nop
 sh      v0,0x890(s1)
 ```
 
-Written with one `work = (Actor312200Work*)task->work;` used by both arms, the
+Written with one `work = task->work;` used by both arms, the
 two tails are textually identical, `jump2` cross-jumps them, and the first arm
 jumps straight into the second's copy — 91.0% with `branch=7`, `delete=6` and
 the `lhu` / `sh` pair missing from the first arm entirely. Nothing in the
@@ -130146,16 +130146,16 @@ The fix is the shape the matched sibling `func_actor_210600_8014B2C0` already
 uses: each arm reloads the pointer into its own local.
 
 ```c
-    if (work->field_88C == 1) {
-        start = (Actor312200Work*)task->work;
+    if (work->animRequest == ACTOR_312200_ANIM_REQUEST_BLEND) {
+        start = task->work;
         ...
-        start->field_890 = start->field_892;
+        start->appliedAnim = start->animId;
         goto advance;
     }
-    if (work->field_88C == 2) {
-        reset = (Actor312200Work*)task->work;
+    if (work->animRequest == ACTOR_312200_ANIM_REQUEST_RESET) {
+        reset = task->work;
         ...
-        reset->field_890 = reset->field_892;
+        reset->appliedAnim = reset->animId;
     advance:
 ```
 
