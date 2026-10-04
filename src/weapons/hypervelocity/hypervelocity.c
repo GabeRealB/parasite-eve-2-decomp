@@ -49,19 +49,24 @@
 #include "../../shared/jet_cone.h"
 #include "../../shared/ground_glow.h"
 
-/// 0x18-byte scratchpad block `func_hypervelocity_8011F724` reserves for one
-/// frame of the barrel's recoil kick. `dir` receives the third column of the
-/// weapon coordinate matrix from `gfxReadMatrixZAxis`; each axis is then scaled by
-/// the remaining recoil ticks over a per-tick divisor, negated, and added to
-/// the coordinate's translation so the gun rides back along its own barrel.
-typedef struct HyperRecoil {
-    /* 0x00 */ s32     vx;
-    /* 0x04 */ s32     vy;
-    /* 0x08 */ s32     vz;
-    /* 0x0C */ byte    pad_C[4];
-    /* 0x10 */ SVECTOR dir;
-} HyperRecoil;
-STATIC_ASSERT_SIZEOF(HyperRecoil, 0x18);
+/// Scratch-stack workspace for the recoil that pushes the player back after a
+/// hypervelocity shot.
+///
+/// On each frame of the push the player model's forward axis is read from its
+/// root coordinate's local matrix, without normalization. `recoil` is each
+/// component of it multiplied by the frames the recoil has left, divided by
+/// the frame's divisor and negated, so the step points backwards and shortens
+/// as the recoil runs out. It is added to the root coordinate's local
+/// translation. Neither vector's `pad` is written.
+///
+/// Reserve one complete block on the scratch stack and release it in reverse
+/// order before returning. Pointers into the block must not survive its
+/// release.
+typedef struct {
+    VECTOR  recoil;  // This frame's displacement of the model's root coordinate, in coordinate units
+    SVECTOR forward; // Model's forward axis: the Z column of its root coordinate's local matrix, 4096 per unit
+} _HypervelocityRecoilScratch;
+STATIC_ASSERT_SIZEOF(_HypervelocityRecoilScratch, 0x18);
 
 /// Vertices in each of the discharge cone's two squares, one per corner of
 /// the unit quad both are scaled from. The collar's vertices follow the
@@ -900,25 +905,22 @@ void func_hypervelocity_8011F6C0(Task* arg0)
 /// half-way mark at 60 that adds the second glow stage, and completes at 90 by
 /// consuming a round and firing. Releasing the button early jumps straight to
 /// case 3 and cancels both loops. Case 2 is the 0x15-tick recoil: for the last
-/// 18 ticks the third column of the weapon coordinate is scaled by the
-/// remaining ticks over 378 (or 244 on the first tick) and subtracted from the
-/// coordinate's translation, kicking the gun back along its own barrel.
+/// 18 ticks the forward axis of the player model's root coordinate is scaled
+/// by the remaining ticks over 378 (or 244 on the first tick) and subtracted
+/// from the coordinate's translation, pushing the player straight back.
 static void func_hypervelocity_8011F724(Task* arg0)
 {
-    u8*          head;
-    HyperRecoil* rec;
-    GameActor*   actor;
-    GfxCoord*    coord;
-    Task*        eff;
-    s32          div;
-    s32          count;
-    s32          step;
+    _HypervelocityRecoilScratch* scratch;
+    GameActor*                   actor;
+    GfxCoord*                    coord;
+    Task*                        eff;
+    s32                          div;
+    s32                          count;
+    s32                          step;
 
-    head                              = SCRATCH_STACK_CURSOR(u8);
-    rec                               = (HyperRecoil*)(head - 0x18);
-    SCRATCH_STACK_CURSOR(HyperRecoil) = rec;
-    actor                             = arg0->work;
-    eff                               = actor->equipmentTasks[1];
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_HypervelocityRecoilScratch);
+    actor   = arg0->work;
+    eff     = actor->equipmentTasks[1];
     switch (actor->statePhase) {
         case 0:
             actor->mode                              = GAME_ACTOR_MODE_NORMAL;
@@ -974,13 +976,13 @@ static void func_hypervelocity_8011F724(Task* arg0)
                         div = 0xF4;
                     }
                     actor->movementSign = -1;
-                    gfxReadMatrixZAxis(&coord->coord, &rec->dir);
-                    rec->vx            = -(rec->dir.vx * actor->stateTimer / div);
-                    rec->vy            = -(rec->dir.vy * actor->stateTimer / div);
-                    rec->vz            = -(rec->dir.vz * actor->stateTimer / div);
-                    coord->coord.t[0] += rec->vx;
-                    coord->coord.t[1] += rec->vy;
-                    coord->coord.t[2] += rec->vz;
+                    gfxReadMatrixZAxis(&coord->coord, &scratch->forward);
+                    scratch->recoil.vx = -(scratch->forward.vx * actor->stateTimer / div);
+                    scratch->recoil.vy = -(scratch->forward.vy * actor->stateTimer / div);
+                    scratch->recoil.vz = -(scratch->forward.vz * actor->stateTimer / div);
+                    coord->coord.t[0] += scratch->recoil.vx;
+                    coord->coord.t[1] += scratch->recoil.vy;
+                    coord->coord.t[2] += scratch->recoil.vz;
                 }
             } else {
                 actor->statePhase++;
@@ -992,5 +994,5 @@ static void func_hypervelocity_8011F724(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(_HypervelocityRecoilScratch);
 }
