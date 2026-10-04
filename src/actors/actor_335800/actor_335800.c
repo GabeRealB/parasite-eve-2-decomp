@@ -52,18 +52,25 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/model_placement.h"
 
-/// Work block of the overlay's walker, allocated zeroed by its spawn routine
-/// and kept at `Task::work`: a nineteen-part rig, the walk state, and
-/// `freeCountdown`, the frames until the model buffers are freed, -1
-/// disabling the countdown.
-typedef struct Actor335800Work {
-    ActorAnimRig19  rig;
-    ActorModelState model;
-    ActorWalkState  walk;
-    s16             freeCountdown;
+/// Work block of Flint, the dog whose model this package carries beside
+/// Gary Douglas's.
+///
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens with the head the nineteen-part actor motion
+/// handlers run on (`ActorMotion19Work`), so the room script places Flint,
+/// plays his clips and walks him from point to point with the same messages
+/// it sends Douglas. The model object borrows `model.light` and `model.color`
+/// for as long as the block lives.
+///
+/// No code reads or writes the bytes of `pad_4C6`.
+typedef struct {
+    ActorAnimRig19  rig;           // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    ActorModelState model;         // Clip and bank the rig plays, and the matrices the model is lit with
+    ActorWalkState  walk;          // Scripted walk: destination, per-frame velocity and the step in progress
+    s16             freeCountdown; // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
     byte            pad_4C6[0x2];
-} Actor335800Work;
-STATIC_ASSERT_SIZEOF(Actor335800Work, 0x4C8);
+} _Actor335800FlintWork;
+STATIC_ASSERT_SIZEOF(_Actor335800FlintWork, 0x4C8);
 
 /// Work block of the overlay's parent walker, allocated zeroed by its spawn
 /// routine and kept at `Task::work`: a twenty-part rig and the walk state,
@@ -1496,12 +1503,12 @@ s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, ActorCommand* request, s32 
 /// matrix while visible, and counts `freeCountdown` down to the buffer free.
 static void func_actor_335800_80163568(Task* task)
 {
-    TmdObject*       ext      = task->extra.tmd;
-    Actor335800Work* work     = (Actor335800Work*)task->work;
-    TaskFunc         funcs[2] = { func_actor_335800_80163B70, func_actor_335800_80163B78 };
-    VECTOR3          pos;
-    GfxCoord*        coord;
-    s32              i;
+    TmdObject*             ext      = task->extra.tmd;
+    _Actor335800FlintWork* work     = (_Actor335800FlintWork*)task->work;
+    TaskFunc               funcs[2] = { func_actor_335800_80163B70, func_actor_335800_80163B78 };
+    VECTOR3                pos;
+    GfxCoord*              coord;
+    s32                    i;
 
     funcs[work->walk.motion](task);
     coord                     = task->extra.tmd->coords;
@@ -1543,14 +1550,14 @@ static void func_actor_335800_80163568(Task* task)
 /// (inlined here).
 s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
-    Actor335800Work*      work;
-    Actor335800Work*      w;
-    AnimationPlayRequest  preset;
-    AnimationPlayRequest* msg;
-    s32                   i;
-    TmdObject*            ext;
+    _Actor335800FlintWork* work;
+    _Actor335800FlintWork* w;
+    AnimationPlayRequest   preset;
+    AnimationPlayRequest*  msg;
+    s32                    i;
+    TmdObject*             ext;
 
-    w                    = (Actor335800Work*)task->work;
+    w                    = (_Actor335800FlintWork*)task->work;
     w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
     w->walk.motionStep   = 0;
     w->walk.target.vx    = place->pos.vx;
@@ -1572,7 +1579,7 @@ s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, Acto
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     msg  = &preset;
-    work = (Actor335800Work*)task->work;
+    work = (_Actor335800FlintWork*)task->work;
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;
@@ -1617,9 +1624,9 @@ void func_actor_335800_80163A34(Task* task)
 /// ends the task instead of leaving a half-built actor behind.
 static void func_actor_335800_80163AA0(Task* arg0)
 {
-    Actor335800Work* work;
+    _Actor335800FlintWork* work;
 
-    work = memCalloc(sizeof(Actor335800Work), false);
+    work = memCalloc(sizeof(_Actor335800FlintWork), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
@@ -1647,11 +1654,11 @@ static void func_actor_335800_80163B34(Task* arg0)
 
 static void func_actor_335800_80163B54(Task* arg0)
 {
-    TmdObject*       ext;
-    Actor335800Work* work;
+    TmdObject*             ext;
+    _Actor335800FlintWork* work;
 
     ext           = arg0->extra.tmd;
-    work          = (Actor335800Work*)arg0->work;
+    work          = (_Actor335800FlintWork*)arg0->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -1664,10 +1671,10 @@ static void func_actor_335800_80163B70(Task* arg0)
 /// the stack and runs the entry `walk.motionStep` selects.
 static void func_actor_335800_80163B78(Task* arg0)
 {
-    TaskFuncTable4   handlers;
-    Actor335800Work* work;
+    TaskFuncTable4         handlers;
+    _Actor335800FlintWork* work;
 
-    work     = (Actor335800Work*)arg0->work;
+    work     = (_Actor335800FlintWork*)arg0->work;
     handlers = D_actor_335800_80161E68;
     handlers.funcs[work->walk.motionStep](arg0);
 }
@@ -1679,13 +1686,13 @@ static void func_actor_335800_80163B78(Task* arg0)
 /// `walk.motionStep` to the next handler.
 static void func_actor_335800_80163BE0(Task* task)
 {
-    Actor335800Work* work;
-    GfxCoord*        coord;
-    VECTOR           delta;
-    SVECTOR          dir;
-    SVECTOR          rot;
+    _Actor335800FlintWork* work;
+    GfxCoord*              coord;
+    VECTOR                 delta;
+    SVECTOR                dir;
+    SVECTOR                rot;
 
-    work  = (Actor335800Work*)task->work;
+    work  = (_Actor335800FlintWork*)task->work;
     coord = task->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
@@ -1713,12 +1720,12 @@ static void func_actor_335800_80163BE0(Task* task)
 /// `func_actor_335800_80163B78` runs the next handler.
 static void func_actor_335800_80163CA0(Task* task)
 {
-    Actor335800Work* work;
-    GfxCoord*        coord;
-    VECTOR           vec;
+    _Actor335800FlintWork* work;
+    GfxCoord*              coord;
+    VECTOR                 vec;
 
     coord = task->extra.tmd->coords;
-    work  = (Actor335800Work*)task->work;
+    work  = (_Actor335800FlintWork*)task->work;
 
     vec = D_actor_335800_80161E78;
     ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
@@ -1738,16 +1745,16 @@ static void func_actor_335800_80163CA0(Task* task)
 /// `vec`.
 static void func_actor_335800_80163D20(Task* arg0)
 {
-    Actor335800Work*     work;
-    GfxRotationWords*    words;
-    GfxCoord*            coord;
-    SVECTOR              vec;
-    AnimationPlayRequest preset;
-    s32                  vy;
-    s16                  diff;
+    _Actor335800FlintWork* work;
+    GfxRotationWords*      words;
+    GfxCoord*              coord;
+    SVECTOR                vec;
+    AnimationPlayRequest   preset;
+    s32                    vy;
+    s16                    diff;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor335800Work*)arg0->work;
+    work  = (_Actor335800FlintWork*)arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
     diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
@@ -1786,11 +1793,11 @@ static void func_actor_335800_80163D20(Task* arg0)
 /// restarts or resets every slot and ticks them.
 s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
-    Actor335800Work* work;
-    TmdObject*       ext;
-    s32              i;
+    _Actor335800FlintWork* work;
+    TmdObject*             ext;
+    s32                    i;
 
-    work = (Actor335800Work*)task->work;
+    work = (_Actor335800FlintWork*)task->work;
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank = msg->source.index;
@@ -1837,9 +1844,9 @@ s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((Actor335800Work*)task->work)->freeCountdown = mode;
-            obj->flags                                   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags                                         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((_Actor335800FlintWork*)task->work)->freeCountdown = mode;
+            obj->flags                                         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
