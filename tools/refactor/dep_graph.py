@@ -475,8 +475,15 @@ def components(nodes, edges):
 # part - so it identifies which asset a definition belongs to without reading
 # anything into the symbol's name. A collision patch has no part suffix and is
 # not matched: it has no record, and code applies each one on its own.
+# The asset is everything before the part: a model named in the asset manifest
+# has no package or offset in its name (`glutton_leg_left_skeleton.inc`), and a
+# stream shared by meshes with different vertices carries a version after its
+# offset (`mappic_s2_02_model_00C48_00070_verts.inc`). Cutting the name at the
+# kind and offset put every version of such a stream - 315 arrays of the map
+# pictures - into one step.
 ASSET_INCLUDE = __import__("re").compile(
-    r'#include "assets/(\w+?)_(model|animation|collision)_([0-9A-F]{5})_\w+\.inc"')
+    r'#include "assets/(\w+)_(?:skeleton|partVerts|verts|normals|stream|bank\d+|records|indices'
+    r'|table|faces|cells|vertices|pose)\.inc"')
 
 
 def asset_groups(root, nodes, edges):
