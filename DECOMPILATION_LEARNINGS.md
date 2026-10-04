@@ -129603,7 +129603,7 @@ the found path skips it, which in C needs an early exit:
     }
     v = 0;
 done:
-    work->field_4CC = v;
+    work->hitKey = v;
 ```
 
 Now `v`'s live range covers only the exit blocks, which do not overlap the loop
@@ -129677,7 +129677,7 @@ runaway guard rather than a loop:
 m2c prints the bottom as `if ((i+1) << 16 > 0) goto exit`, which reads as a loop
 that can never iterate; it is an ordinary rotated `for` whose body always runs
 once, with the bound constant folded into `(s16)(i+1) <= 0`. Reading the array
-size off the init site (`1`, matching `rec18[1]` in the header) is what makes
+size off the init site (`1`, matching `hitContacts[1]` in the header) is what makes
 the `1` in `i < 1` provable -- a bound of `0x8000` or more would fold away
 entirely rather than emit that `blez`.
 
@@ -129778,7 +129778,7 @@ eff.spawnArgLo = 0x100;
 ...
 ```
 
-Writing `index->field_1C->field_4D0` inline instead leaves the reload next to the
+Writing `index->field_1C->lastHitKey` inline instead leaves the reload next to the
 `lw $a0,0x4D0($a0)` that consumes it and the block schedules differently
 (87.853% -> 91.379% -> 95.674% across the two shapes).
 
@@ -129891,7 +129891,7 @@ slot (`branch=3 reorder=2`). Giving the high half its own statement —
 
 ```c
 rng = (u32)gRandomLcgState >> 16;
-if (work->field_4C8 >= 2) { ... } else if (rng & 1) { ... } ...
+if (work->idlePlayCount >= 2) { ... } else if (rng & 1) { ... } ...
 ```
 
 — drops both penalties to 0 and takes 98.434% to 99.575%. The permuter found

@@ -50,47 +50,52 @@
 #include "rooms/acropolis_fire_escape.h"
 #include "../../shared/actor_contacts.h"
 
-/// Psy-Q `RotMatrixY`.
+/// Values of `_Actor311500Work::step`, the stage of the phase `Task::state`
+/// selects.
+///
+/// Every phase starts at step 0 and gives the steps its own meaning.
+enum {
+    ACTOR_311500_IDLE_STEP_CHOOSE = 0, // draws between a pause and a replay of animation 0; two replays in a row force the pause
+    ACTOR_311500_IDLE_STEP_PAUSE  = 1, // holds the pose for 32 ticks
+    ACTOR_311500_IDLE_STEP_REPLAY = 2, // plays animation 0 through from its start
+    ACTOR_311500_HIT_STEP_START   = 0, // blends into animation 1 and spawns the hit effect; ends the phase at once when the hit points are gone
+    ACTOR_311500_HIT_STEP_PLAY    = 1, // plays animation 1 through
+    ACTOR_311500_DEATH_STEP_CRY   = 0, // queues the death sound
+    ACTOR_311500_DEATH_STEP_BURN  = 1  // runs the burn-away sequence that `stepFrame` times
+};
 
-typedef struct Actor311500Work {
-    /// Animation context the block itself begins with: `func_actor_311500_80162F28`
-    /// hands the block straight to `animationSeekSlotWithBlend` / `animationTickSlot`.
-    /* 0x000 */ ActorAnimRig19 rig;
-    /// List node `func_actor_311500_801630A4` unlinks on the first step of
-    /// state 1. Sits directly in front of the collision table.
-    /* 0x43C */ WorldCollisionBody field_43C;
-    /// One-entry contact table the enemy record points at; the damage check
-    /// looks here for a hit.
-    /* 0x45C */ WorldCollisionContact rec18[1];
-    /* 0x474 */ MATRIX                light;
-    /* 0x494 */ MATRIX                color;
-    /* 0x4B4 */ Task*                 field_4B4;
-    /* 0x4B8 */ MATRIX*               field_4B8;
-    /// The model's `flags` as they were when mode 2 began hiding it, put back
-    /// by mode 0 while the mode it last recorded is nonzero.
-    /* 0x4BC */ u32 field_4BC;
-    /// Sub-state of the phase handler running this frame (idle, hit reaction
-    /// or death); each phase change in `func_actor_311500_80163334` resets it
-    /// to 0.
-    /* 0x4C0 */ s16  field_4C0;
-    /* 0x4C2 */ byte pad_4C2[0x2];
-    /// Frame counter within a sub-state: the length of the idle pause, which
-    /// ends after 0x1F frames, and the clock of the death sequence.
-    /* 0x4C4 */ s16  field_4C4;
-    /* 0x4C6 */ byte pad_4C6[0x2];
-    /// Idle animation plays since the last pause. Each play that reaches its
-    /// clip end raises it; from 2 on the idle always pauses instead of
-    /// replaying, and the pause clears it.
-    /* 0x4C8 */ s16  field_4C8;
-    /* 0x4CA */ byte pad_4CA[0x2];
-    /* 0x4CC */ s32  field_4CC;
-    /* 0x4D0 */ s32  field_4D0;
-    /* 0x4D4 */ u16  field_4D4;
-    /// `gSceneCombatState.actorControl` as the previous frame saw it, so a mode change can be
-    /// detected.
-    /* 0x4D6 */ u16 field_4D6;
-} Actor311500Work;
-STATIC_ASSERT_SIZEOF(Actor311500Work, 0x4D8);
+/// Work block of the package's enemy task.
+///
+/// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
+/// holds the animation rig, the body that takes the hits with its one contact
+/// record, storage for the model's matrices and the state of the idle, hit and
+/// death phases.
+///
+/// Animation numbers are indices into the package's animation-set table, and
+/// only slots 1 to 18 of the rig are driven. A contact key is a
+/// `WorldCollisionContact` key: its category in the high half and the
+/// identity of what made the contact in the low half.
+typedef struct {
+    ActorAnimRig19        rig;              // playback of the model's parts; slot 1 reaching a boundary ends an idle replay and the hit reaction
+    WorldCollisionBody    hitBody;          // sphere of radius 400 at model part 2 that takes the hits; unlinked when the death sequence begins
+    WorldCollisionContact hitContacts[1];   // the one contact of `hitBody`; also the enemy's hit records until the death sequence begins
+    MATRIX                lightMtx;         // storage for the model's `TmdObject::lightMtx`
+    MATRIX                colorMtx;         // storage for the model's `TmdObject::colorMtx`
+    Task*                 playerTask;       // the player's task as the spawn found it; never read
+    MATRIX*               playerCoordMtx;   // the player's root coordinate matrix as the spawn found it; never read
+    u32                   savedModelFlags;  // the model's `TmdObject::flags` as actor control 2 found them before hiding it; written back when the control returns to 0 from any other value
+    s16                   step;             // `ACTOR_311500_*_STEP_*` of the running phase; every phase change restarts it at 0
+    byte                  pad_4C2[2];       // never accessed
+    s16                   stepFrame;        // ticks counted by the idle pause and by the burn-away sequence, each of which restarts it at 0
+    byte                  pad_4C6[2];       // never accessed
+    s16                   idlePlayCount;    // idle replays finished since the last pause
+    byte                  pad_4CA[2];       // never accessed
+    s32                   hitKey;           // contact key of the category-2 contact found in `hitContacts` this tick; 0 when there is none
+    s32                   lastHitKey;       // `hitKey` of the last hit taken; its id parameter 1 selects the hit effect
+    u16                   present;          // answer to `ACTOR_MESSAGE_IS_PRESENT` (1 from spawn, 0 once the hit points are gone)
+    u16                   prevActorControl; // `gSceneCombatState.actorControl` as the tick last recorded it (0 update, 1 pause, 2 hide); not recorded once the death phase runs
+} _Actor311500Work;
+STATIC_ASSERT_SIZEOF(_Actor311500Work, 0x4D8);
 
 extern EnemyParams   D_actor_311500_801692C0;
 extern AnimationSet* D_actor_311500_801692F4[2];
@@ -263,40 +268,40 @@ static s32         func_actor_311500_801630A4(Task* arg0);
 
 static void func_actor_311500_801629D8(Task* arg0)
 {
-    Actor311500Work* work;
-    Actor311500Work* work2;
-    Actor311500Work* work3;
-    Enemy*           enemy;
-    GfxCoord*        coords;
-    TmdObject*       tmd;
-    AreaPlacement*   place;
-    s32              i;
-    u8               rate;
+    _Actor311500Work* work;
+    _Actor311500Work* work2;
+    _Actor311500Work* work3;
+    Enemy*            enemy;
+    GfxCoord*         coords;
+    TmdObject*        tmd;
+    AreaPlacement*    place;
+    s32               i;
+    u8                rate;
 
     coords     = arg0->extra.tmd->coords;
     enemy      = arg0->spawnArg2.pointer;
     tmd        = arg0->extra.tmd;
-    work       = memCalloc(0x4D8, 0);
+    work       = memCalloc(sizeof(_Actor311500Work), 0);
     arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);
         return;
     }
     (Gp_IncStateF0Ref)(0);
-    work2 = (Actor311500Work*)arg0->work;
+    work2 = arg0->work;
     memFillBytes(work2, 0, sizeof(*work2));
     coords->parent = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
-    tmd->lightMtx = &work2->light;
-    tmd->colorMtx = &work2->color;
+    tmd->lightMtx = &work2->lightMtx;
+    tmd->colorMtx = &work2->colorMtx;
     tmd->flags    = 0;
     animationInitContext(&work2->rig.anim, D_actor_311500_801692F4, tmd, work2->rig.poses,
                          &work2->rig.slots[0]);
-    work2->field_4B4 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    work2->field_4B8 = gPlayerStatus.coordMtx;
-    rate             = 0x10;
-    i                = 1;
-    work3            = (Actor311500Work*)arg0->work;
+    work2->playerTask     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work2->playerCoordMtx = gPlayerStatus.coordMtx;
+    rate                  = ANIMATION_RATE_ONE;
+    i                     = 1;
+    work3                 = arg0->work;
     do {
         work3->rig.slots[i & 0xFFFF].rate = rate;
         animationResetSlot(&work3->rig.anim, i & 0xFFFF, 0);
@@ -308,25 +313,25 @@ static void func_actor_311500_801629D8(Task* arg0)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &arg0->extra.tmd->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->hp                         = 0x32;
-    enemy->node.state.parts.flags     = 0;
-    enemy->reactionFlags              = 0;
-    enemy->param                      = &D_actor_311500_801692C0;
-    work2->field_43C.coord            = &arg0->extra.tmd->coords[2];
-    work2->field_43C.context.contacts = &work2->rec18[0];
-    work2->field_43C.pos.vx           = 0;
-    work2->field_43C.pos.vy           = 0;
-    work2->field_43C.pos.vz           = 0;
-    work2->field_43C.key              = 0x3000A;
-    work2->field_43C.radius           = 0x190;
-    work2->field_43C.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work2->field_43C);
-    work2->field_43C.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_InitRec18Table(&work2->rec18[0], 1, 0);
-    enemy->recs      = &work2->rec18[0];
-    arg0->msgTable   = D_actor_311500_80169330;
-    work2->field_4D4 = 1;
-    place            = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
+    enemy->hp                       = 0x32;
+    enemy->node.state.parts.flags   = 0;
+    enemy->reactionFlags            = 0;
+    enemy->param                    = &D_actor_311500_801692C0;
+    work2->hitBody.coord            = &arg0->extra.tmd->coords[2];
+    work2->hitBody.context.contacts = &work2->hitContacts[0];
+    work2->hitBody.pos.vx           = 0;
+    work2->hitBody.pos.vy           = 0;
+    work2->hitBody.pos.vz           = 0;
+    work2->hitBody.key              = 0x3000A;
+    work2->hitBody.radius           = 0x190;
+    work2->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    Gp_LinkObj(2, &work2->hitBody);
+    work2->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    Gp_InitRec18Table(&work2->hitContacts[0], 1, 0);
+    enemy->recs    = &work2->hitContacts[0];
+    arg0->msgTable = D_actor_311500_80169330;
+    work2->present = 1;
+    place          = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
     while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0xA) {
         place++;
     }
@@ -336,8 +341,8 @@ static void func_actor_311500_801629D8(Task* arg0)
 /// Sets animation slots 1 to 18 to play at `rate` and restarts each of them.
 static inline void _actor311500ResetAnim(Task* task, u8 rate)
 {
-    Actor311500Work* work = task->work;
-    s32              i;
+    _Actor311500Work* work = task->work;
+    s32               i;
 
     i = 1;
     do {
@@ -351,8 +356,8 @@ static inline void _actor311500ResetAnim(Task* task, u8 rate)
 /// has bit 0 of its flags set, 0 otherwise.
 static inline u16 _actor311500TickAnim(Task* task)
 {
-    Actor311500Work* work = task->work;
-    s32              i;
+    _Actor311500Work* work = task->work;
+    s32               i;
 
     i = 1;
     do {
@@ -367,41 +372,38 @@ static inline u16 _actor311500TickAnim(Task* task)
 
 static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
 {
-    Actor311500Work* work;
-    SVECTOR          probe;
-    u32              rng;
-    u16              count;
+    _Actor311500Work* work;
+    SVECTOR           probe;
+    u32               rng;
 
     work = arg0->work;
 
-    switch (work->field_4C0) {
-        case 0:
+    switch (work->step) {
+        case ACTOR_311500_IDLE_STEP_CHOOSE:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             rng             = gRandomLcgState >> 16;
-            if (work->field_4C8 >= 2) {
-                work->field_4C0 = (u16)work->field_4C0 + 1;
+            if (work->idlePlayCount >= 2) {
+                work->step++;
             } else if (rng & 1) {
-                work->field_4C0 = (u16)work->field_4C0 + 1;
+                work->step++;
             } else {
                 _actor311500ResetAnim(arg0, 0x20);
-                work->field_4C0 = (u16)work->field_4C0 + 2;
+                work->step += 2;
             }
-            work->field_4C4 = 0;
+            work->stepFrame = 0;
             break;
 
-        case 1:
-            count           = (u16)work->field_4C4;
-            work->field_4C4 = count + 1;
-            if ((s16)count >= 0x1F) {
-                work->field_4C8 = 0;
-                work->field_4C0 = 0;
+        case ACTOR_311500_IDLE_STEP_PAUSE:
+            if (work->stepFrame++ >= 0x1F) {
+                work->idlePlayCount = 0;
+                work->step          = ACTOR_311500_IDLE_STEP_CHOOSE;
             }
             break;
 
-        case 2:
+        case ACTOR_311500_IDLE_STEP_REPLAY:
             if (_actor311500TickAnim(arg0)) {
-                work->field_4C0 = 0;
-                work->field_4C8 = (u16)work->field_4C8 + 1;
+                work->step = ACTOR_311500_IDLE_STEP_CHOOSE;
+                work->idlePlayCount++;
             }
             break;
 
@@ -412,7 +414,7 @@ static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
 
 static s16 func_actor_311500_80162DDC(Task* arg0)
 {
-    Actor311500Work*       work = arg0->work;
+    _Actor311500Work*      work = arg0->work;
     Enemy*                 enemy;
     WorldCollisionContact* recs;
     SVECTOR                pos;
@@ -423,12 +425,12 @@ static s16 func_actor_311500_80162DDC(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     pp    = &pos;
-    recs  = work->rec18;
+    recs  = work->hitContacts;
     for (i = 0; i < 1; i++) {
         if (recs[i].key.value == 0) {
             break;
         }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
+        if ((recs[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x20000) {
             pp->vx = recs[i].point.vx;
             pp->vy = recs[i].point.vy;
             pp->vz = recs[i].point.vz;
@@ -438,26 +440,26 @@ static s16 func_actor_311500_80162DDC(Task* arg0)
     }
     v = 0;
 done:
-    work->field_4CC = v;
-    if (work->field_4CC != 0) {
-        work->field_4D0 = v;
-        damage          = Gp_ComputeDamage(work->field_4CC, 0, 0, 0x1000);
-        if (Gp_RollEnemyChance(enemy, work->field_4CC, 0) != 0) {
+    work->hitKey = v;
+    if (work->hitKey != 0) {
+        work->lastHitKey = v;
+        damage           = Gp_ComputeDamage(work->hitKey, 0, 0, 0x1000);
+        if (Gp_RollEnemyChance(enemy, work->hitKey, 0) != 0) {
             damage *= 5;
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
         }
         enemy->hp -= damage;
-        Gp_ClearRec18Occupied(work->rec18);
+        Gp_ClearRec18Occupied(work->hitContacts);
         func_800DA6E8(&enemy->node, damage, 0);
     }
-    return work->field_4CC;
+    return work->hitKey;
 }
 
 /// Calls `animationSeekSlotWithBlend` on animation slots 1 to 18 with a 10-frame count.
 static inline void _actor311500BlendAnim(Task* task)
 {
-    Actor311500Work* work = task->work;
-    s32              i;
+    _Actor311500Work* work = task->work;
+    s32               i;
 
     i = 1;
     do {
@@ -467,12 +469,12 @@ static inline void _actor311500BlendAnim(Task* task)
 }
 
 /// Spawns the actor's `func_800FDB18` effect on model coord 2, offset by
-/// (0x3C, -0xC, 0x1E), for the id parameter of `field_4D0`.
+/// (0x3C, -0xC, 0x1E), for id parameter 1 of `lastHitKey`.
 static inline void _actor311500SpawnEffect(Task* task)
 {
-    Actor311500Work* work = task->work;
-    SVECTOR          pos;
-    EffectSpawnArg   eff;
+    _Actor311500Work* work = task->work;
+    SVECTOR           pos;
+    EffectSpawnArg    eff;
 
     eff.coord      = &task->extra.tmd->coords[2];
     eff.spawnArgLo = 0x100;
@@ -480,28 +482,28 @@ static inline void _actor311500SpawnEffect(Task* task)
     pos.vx         = 0x3C;
     pos.vy         = -0xC;
     pos.vz         = 0x1E;
-    func_800FDB18(Gp_GetIdParam1(work->field_4D0) & 0xFFFF, &task->extra.tmd->coords[2], &pos, &eff);
+    func_800FDB18(Gp_GetIdParam1(work->lastHitKey) & 0xFFFF, &task->extra.tmd->coords[2], &pos, &eff);
 }
 
 static s32 func_actor_311500_80162F28(Task* arg0)
 {
-    Actor311500Work* work;
-    Enemy*           enemy;
+    _Actor311500Work* work;
+    Enemy*            enemy;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
 
-    switch (work->field_4C0) {
-        case 0:
+    switch (work->step) {
+        case ACTOR_311500_HIT_STEP_START:
             _actor311500BlendAnim(arg0);
             _actor311500SpawnEffect(arg0);
             if (enemy->hp <= 0) {
                 return -1;
             }
-            work->field_4C0 = (u16)work->field_4C0 + 1;
+            work->step++;
             break;
 
-        case 1:
+        case ACTOR_311500_HIT_STEP_PLAY:
             if (_actor311500TickAnim(arg0)) {
                 return 1;
             }
@@ -512,36 +514,36 @@ static s32 func_actor_311500_80162F28(Task* arg0)
 
 static s32 func_actor_311500_801630A4(Task* arg0)
 {
-    Actor311500Work* work;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    MATRIX           mtx;
-    VECTOR           scale;
-    u16              m22;
-    s32              state;
-    s16              cur;
-    s32              sy;
-    s16              ang;
-    s32              pan;
+    _Actor311500Work* work;
+    Enemy*            enemy;
+    GfxCoord*         coord;
+    MATRIX            mtx;
+    VECTOR            scale;
+    u16               m22;
+    s32               state;
+    s16               cur;
+    s32               sy;
+    s16               ang;
+    s32               pan;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    state = work->field_4C0;
+    state = work->step;
 
     switch (state) {
-        case 0:
+        case ACTOR_311500_DEATH_STEP_CRY:
             pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(SOUND_ACTOR_311500_DEATH, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-            work->field_4C4 = 0;
-            work->field_4C0 = ((u16)work->field_4C0) + 1;
+            work->stepFrame = 0;
+            work->step++;
             break;
 
-        case 1:
-            switch (work->field_4C4) {
+        case ACTOR_311500_DEATH_STEP_BURN:
+            switch (work->stepFrame) {
                 case 0:
                     Gp_ReleaseStateF0Add(arg0, 0xA);
                     enemy->recs = 0;
-                    Gp_UnlinkObj(&work->field_43C);
+                    Gp_UnlinkObj(&work->hitBody);
                     enemy->node.state.parts.flags = state;
                     break;
 
@@ -566,7 +568,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
                     return 1;
             }
 
-            cur = work->field_4C4;
+            cur = work->stepFrame;
             if (cur >= 6) {
                 coord = arg0->extra.tmd->coords;
                 sy    = 0x1000 - (cur - 0x14) * 0xA;
@@ -598,7 +600,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
                 coord->coord.m[2][2] = m22;
             }
 
-            work->field_4C4 = ((u16)work->field_4C4) + 1;
+            work->stepFrame++;
             break;
 
         default:
@@ -613,15 +615,13 @@ static s32 func_actor_311500_801630A4(Task* arg0)
 /// does nothing.
 void func_actor_311500_80163334(Task* arg0)
 {
-    Task*            actor = arg0;
-    Actor311500Work* work;
-    Actor311500Work* anim;
-    Enemy*           enemy;
-    TmdObject*       obj;
-    VECTOR           pos;
-    s32              state;
-    s32              i;
-    s32              pan;
+    Task*             actor = arg0;
+    _Actor311500Work* work;
+    Enemy*            enemy;
+    TmdObject*        obj;
+    VECTOR            pos;
+    s32               state;
+    s32               pan;
 
     work  = actor->work;
     obj   = actor->extra.tmd;
@@ -643,8 +643,8 @@ ge2:
     goto case1;
 
 case0:
-    if (work->field_4D6 != 0) {
-        obj->flags = work->field_4BC;
+    if (work->prevActorControl != 0) {
+        obj->flags = work->savedModelFlags;
     }
     switch (actor->state) {
         case 0:
@@ -653,12 +653,7 @@ case0:
             Mem_CopyUnaligned(&D_actor_311500_80169324, gAcropolisFireEscapeCollision04CE8Faces, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
             func_actor_311500_801629D8(actor);
             work = actor->work;
-            anim = work;
-            i    = 1;
-            do {
-                animationTickSlot(&anim->rig.anim, i & 0xFFFF);
-                i += 1;
-            } while (((u32)(i & 0xFFFF)) < 0x13U);
+            _actor311500TickAnim(actor);
             actor->state += 1;
             goto case1;
 
@@ -668,28 +663,28 @@ case0:
                 pan = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
                 SndEvt_EnqueueType6(SOUND_ACTOR_311500_HURT, pan,
                                     (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
-                work->field_4C0 = 0;
-                actor->state   += 1;
+                work->step    = 0;
+                actor->state += 1;
             }
-            Gp_ClearRec18Occupied(work->rec18);
+            Gp_ClearRec18Occupied(work->hitContacts);
             goto case1;
 
         case 2:
             if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
-                work->field_4C0 = 0;
+                work->step = 0;
             }
             if ((func_actor_311500_80162F28(actor) << 0x10) > 0) {
-                work->field_4C0 = 0;
-                actor->state   -= 1;
+                work->step    = 0;
+                actor->state -= 1;
                 goto case1;
             }
             if ((func_actor_311500_80162F28(actor) << 0x10) < 0) {
                 memFillBytes(gAcropolisFireEscapeCollision04CE8Verts, 0, 0x20);
                 memFillBytes(gAcropolisFireEscapeCollision04CE8Normals, 0, 8);
                 memFillBytes(gAcropolisFireEscapeCollision04CE8Faces, 0, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
-                work->field_4D4 = 0;
-                work->field_4C0 = 0;
-                actor->state   += 1;
+                work->present = 0;
+                work->step    = 0;
+                actor->state += 1;
             }
             goto case1;
 
@@ -706,14 +701,14 @@ case0:
     goto case1;
 
 case2:
-    if (work->field_4D6 != state) {
-        work->field_4BC = obj->flags;
+    if (work->prevActorControl != state) {
+        work->savedModelFlags = obj->flags;
     }
     actor->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     goto case1;
 
 case1:
-    work->field_4D6 = gSceneCombatState.actorControl;
+    work->prevActorControl = gSceneCombatState.actorControl;
 tail:
     enemy = actor->spawnArg2.pointer;
     Gp_UpdateCoord(&actor->extra.tmd->coords[1]);
@@ -726,5 +721,5 @@ tail:
 
 s32 func_actor_311500_801636A0(Task* arg0, s32 arg1, s32 arg2, u32* arg3)
 {
-    *arg3 = ((Actor311500Work*)arg0->work)->field_4D4;
+    *arg3 = ((_Actor311500Work*)arg0->work)->present;
 }
