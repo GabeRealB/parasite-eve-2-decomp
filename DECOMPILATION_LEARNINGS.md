@@ -44998,12 +44998,12 @@ instruction, and which one the target has depends only on statement order.
 Deriving the block pointer first,
 
 ```c
-head                  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
-blk                   = (Actor02100Sight*)(head - 0x20);
-*(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)blk;
+head                     = SCRATCH_STACK_CURSOR(u8);
+scratch                  = (_Actor02100PlayerScanScratch*)(head - sizeof(_Actor02100PlayerScanScratch));
+SCRATCH_STACK_CURSOR(u8) = (u8*)scratch;
 ```
 
-makes `blk` the destination of the `addsi3` itself, so `blk`'s callee-saved
+makes `scratch` the destination of the `addsi3` itself, so `scratch`'s callee-saved
 register is written directly and the store reuses it:
 
 ```
@@ -45011,14 +45011,14 @@ addiu $s0, $v0, -0x20
 sw    $s0, 0($v1)
 ```
 
-Storing first and deriving `blk` from the *same expression* afterwards gives
-CSE a temporary to forward, and the assignment to `blk` survives as a real
-copy insn because the temporary is still live at the store:
+Storing first and deriving `scratch` from the *same expression* afterwards gives
+CSE a temporary to forward, and the assignment to `scratch` survives as a real
+copy insn because the temporary is still live at the store. Taking the block
+as the value of the store itself is the same thing in one statement, and that
+is `SCRATCH_STACK_RESERVE_BLOCK`:
 
 ```c
-head                  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
-*(u8**)SCRATCH_STACK_CURSOR_SLOT = head - 0x20;
-blk                   = (Actor02100Sight*)(head - 0x20);
+scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100PlayerScanScratch);
 ```
 
 ```
@@ -45028,7 +45028,7 @@ sw    $v0, 0($v1)
 ```
 
 Nothing else reproduces the second form: `head -= 0x20;`, splitting `head` and
-`blk` into separate variables, and casting through a third local all collapse
+`scratch` into separate variables, and casting through a third local all collapse
 back to the one-instruction version, because copy propagation merges the two
 pseudos as soon as the copy's source dies at the copy. `Actor02100_Fn00DCC`
 went from 99.5% to 100% on this reorder alone — the extra `move` shifted every
@@ -63280,7 +63280,8 @@ are needed: dropping either costs about 0.9%.
 A store-then-reload (`*scratch = head - 0x1C; block = (X*)*scratch;`) is the
 one *unpinned* way to keep the copy — CSE forwards the stored register and
 `p` no longer dies at the copy — and it is what
-`Actor02100_Fn00DCC` matches with. It only works when the target writes the
+`Actor02100_Fn00DCC` matches with, written there as
+`SCRATCH_STACK_RESERVE_BLOCK`, whose result is the stored value. It only works when the target writes the
 scratch head back *before* the first field store; here the write-back comes
 after, and moving it earlier costs more than the copy is worth.
 

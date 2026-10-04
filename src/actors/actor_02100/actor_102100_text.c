@@ -72,15 +72,19 @@ typedef struct {
 } _Actor02100EnemyScanScratch;
 STATIC_ASSERT_SIZEOF(_Actor02100EnemyScanScratch, 0x40);
 
-/// 0x20-byte scratch block taken from the scratch stack by
-/// `Actor02100_Fn00DCC`: the world-space delta between the two coordinates,
-/// then the two endpoints as `SVECTOR`s for the line-of-sight test.
-typedef struct Actor02100Sight {
-    /* 0x00 */ VECTOR  delta;
-    /* 0x10 */ SVECTOR from;
-    /* 0x18 */ SVECTOR to;
-} Actor02100Sight;
-STATIC_ASSERT_SIZEOF(Actor02100Sight, 0x20);
+/// 0x20-byte block the scan for the player takes from the scratch stack.
+///
+/// The watcher's coordinate and the player's are both composed into view
+/// space, where the room's occluders are, so the facing, range and sight tests
+/// all work there and the player's position needs no rotation of its own. The
+/// player is measured at its model's root coordinate by a watcher carrying the
+/// gun, and at the model's fourth coordinate by every other.
+typedef struct {
+    VECTOR  delta; // offset from the watcher's origin to the player's, in view space
+    SVECTOR from;  // sight segment's player end: the player's origin in view space
+    SVECTOR to;    // sight segment's other end: the watcher's origin in view space
+} _Actor02100PlayerScanScratch;
+STATIC_ASSERT_SIZEOF(_Actor02100PlayerScanScratch, 0x20);
 
 /// 8-byte block the projection of the beam's two points takes from the scratch
 /// stack: where the GTE's results for one point are stored before they are
@@ -105,15 +109,17 @@ typedef struct {
 } _Actor02100AimScratch;
 STATIC_ASSERT_SIZEOF(_Actor02100AimScratch, 0x28);
 
-/// 0x48-byte block `Actor02100_Fn01FF0` reserves on entry and releases on
-/// return. Only `shortVec` is read - it is the spawn offset passed to the two
-/// effects state 2 emits; the leading bytes are never touched, and the helpers
-/// the function inlines allocate their own scratch below this block.
-typedef struct Actor02100Fn01FF0Block {
-    /* 0x00 */ byte    pad_0[0x40];
-    /* 0x40 */ SVECTOR shortVec;
-} Actor02100Fn01FF0Block;
-STATIC_ASSERT_SIZEOF(Actor02100Fn01FF0Block, 0x48);
+/// 0x48-byte block the gun attack holds on the scratch stack for the length of
+/// one tick.
+///
+/// A shot's flare is the only thing built in it, in its last eight bytes. The
+/// blocks the attack's aiming and beam steps work in are reserved below this
+/// one, so nothing reaches the bytes before them.
+typedef struct {
+    byte    unknown_0[0x40]; // never accessed; role unproven
+    SVECTOR muzzleOffset;    // the muzzle in the watcher's own frame, `ACTOR_02100_MUZZLE_OFFSET` along the forward axis: the offset from the watcher's coordinate a shot's flare effects are spawned at
+} _Actor02100GunAttackScratch;
+STATIC_ASSERT_SIZEOF(_Actor02100GunAttackScratch, 0x48);
 
 /// The two ways the watcher's beam is drawn. The value selects a colour in a
 /// weapon's `_Actor02100WeaponParams` and a pair in its row of edge offsets.
@@ -944,23 +950,23 @@ static void Actor02100_Fn00ADC(Task* arg0)
 
 #undef STOP_SOUND
 
-/// Line-of-sight scan. Takes a 0x20-byte block from the scratch stack, builds
-/// the world-space delta from this actor's coordinate to the player's (entry 0
-/// of the player's coordinate array in mode 4, entry 3 otherwise) and, when the
-/// player is in front of the actor, checks the distance against the sight range
-/// in `Actor02100_D03E00` and asks `Actor02100_Fn0337C` whether the segment is
-/// clear. A hit latches the player onto `target` and switches `mode` to the
-/// beam attack (or the gun attack for weapon 4). `scanDelay` holds the scan
-/// off while the session's view state is 1, and for 5 frames after.
+/// Line-of-sight scan. Takes a `_Actor02100PlayerScanScratch` from the scratch
+/// stack, builds the view-space delta from this actor's coordinate to the
+/// player's (entry 0 of the player's coordinate array for the gun, entry 3
+/// otherwise) and, when the player is in front of the actor, checks the
+/// distance against the sight range in `Actor02100_D03E00` and asks
+/// `Actor02100_Fn0337C` whether the segment is clear. A hit latches the player
+/// onto `target` and switches `mode` to the beam attack (or the gun attack for
+/// weapon 4). `scanDelay` holds the scan off while the session's view state is
+/// 1, and for 5 frames after.
 static void Actor02100_Fn00DCC(Task* arg0)
 {
-    _Actor02100Work* work;
-    Actor02100Sight* blk;
-    GfxCoord*        self;
-    GfxCoord*        target;
-    u8*              head;
-    u32              dist;
-    s32              mode;
+    _Actor02100Work*              work;
+    _Actor02100PlayerScanScratch* scratch;
+    GfxCoord*                     self;
+    GfxCoord*                     target;
+    u32                           dist;
+    s32                           mode;
 
     self = arg0->extra.tmd->coords;
     work = arg0->work;
@@ -978,9 +984,7 @@ static void Actor02100_Fn00DCC(Task* arg0)
     work->targetKind     = ACTOR_02100_TARGET_NONE;
     self->composeStamp   = GRAPHICS_COORD_DIRTY;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x20;
-    blk                      = (Actor02100Sight*)(head - 0x20);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100PlayerScanScratch);
 
     if (work->weapon == ACTOR_02100_WEAPON_GUN) {
         target = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[0];
@@ -991,22 +995,22 @@ static void Actor02100_Fn00DCC(Task* arg0)
     Gp_UpdateCoord(target);
 
     if (work->hitThisTick == 0) {
-        blk->delta.vx = target->workm.t[0] - self->workm.t[0];
-        blk->delta.vy = target->workm.t[1] - self->workm.t[1];
-        blk->delta.vz = target->workm.t[2] - self->workm.t[2];
+        scratch->delta.vx = target->workm.t[0] - self->workm.t[0];
+        scratch->delta.vy = target->workm.t[1] - self->workm.t[1];
+        scratch->delta.vz = target->workm.t[2] - self->workm.t[2];
 
-        if (((blk->delta.vx * self->workm.m[0][2]) + (blk->delta.vy * self->workm.m[1][2]) +
-             (blk->delta.vz * self->workm.m[2][2])) > 0) {
-            dist = SquareRoot0((blk->delta.vx * blk->delta.vx) + (blk->delta.vy * blk->delta.vy) +
-                               (blk->delta.vz * blk->delta.vz));
+        if (((scratch->delta.vx * self->workm.m[0][2]) + (scratch->delta.vy * self->workm.m[1][2]) +
+             (scratch->delta.vz * self->workm.m[2][2])) > 0) {
+            dist = SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vy * scratch->delta.vy) +
+                               (scratch->delta.vz * scratch->delta.vz));
             if (dist < Actor02100_D03E00[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex & 7]) {
-                blk->from.vx = target->workm.t[0];
-                blk->from.vy = target->workm.t[1];
-                blk->from.vz = target->workm.t[2];
-                blk->to.vx   = self->workm.t[0];
-                blk->to.vy   = self->workm.t[1];
-                blk->to.vz   = self->workm.t[2];
-                if (Actor02100_Fn0337C(&blk->from, &blk->to) == 0) {
+                scratch->from.vx = target->workm.t[0];
+                scratch->from.vy = target->workm.t[1];
+                scratch->from.vz = target->workm.t[2];
+                scratch->to.vx   = self->workm.t[0];
+                scratch->to.vy   = self->workm.t[1];
+                scratch->to.vz   = self->workm.t[2];
+                if (Actor02100_Fn0337C(&scratch->from, &scratch->to) == 0) {
                     work->target         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     work->targetDistance = dist;
                     work->targetKind     = ACTOR_02100_TARGET_PLAYER;
@@ -1015,19 +1019,19 @@ static void Actor02100_Fn00DCC(Task* arg0)
         }
         Actor02100_Fn011C4(arg0);
     } else {
-        blk->delta.vx = target->workm.t[0] - self->workm.t[0];
-        blk->delta.vy = target->workm.t[1] - self->workm.t[1];
-        blk->delta.vz = target->workm.t[2] - self->workm.t[2];
+        scratch->delta.vx = target->workm.t[0] - self->workm.t[0];
+        scratch->delta.vy = target->workm.t[1] - self->workm.t[1];
+        scratch->delta.vz = target->workm.t[2] - self->workm.t[2];
 
-        if (((blk->delta.vx * self->workm.m[0][2]) + (blk->delta.vy * self->workm.m[1][2]) +
-             (blk->delta.vz * self->workm.m[2][2])) > 0) {
-            blk->from.vx = target->workm.t[0];
-            blk->from.vy = target->workm.t[1];
-            blk->from.vz = target->workm.t[2];
-            blk->to.vx   = self->workm.t[0];
-            blk->to.vy   = self->workm.t[1];
-            blk->to.vz   = self->workm.t[2];
-            if (Actor02100_Fn0337C(&blk->from, &blk->to) == 0) {
+        if (((scratch->delta.vx * self->workm.m[0][2]) + (scratch->delta.vy * self->workm.m[1][2]) +
+             (scratch->delta.vz * self->workm.m[2][2])) > 0) {
+            scratch->from.vx = target->workm.t[0];
+            scratch->from.vy = target->workm.t[1];
+            scratch->from.vz = target->workm.t[2];
+            scratch->to.vx   = self->workm.t[0];
+            scratch->to.vy   = self->workm.t[1];
+            scratch->to.vz   = self->workm.t[2];
+            if (Actor02100_Fn0337C(&scratch->from, &scratch->to) == 0) {
                 work->target         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 work->targetDistance = 1;
                 work->targetKind     = ACTOR_02100_TARGET_PLAYER;
@@ -1059,7 +1063,7 @@ static void Actor02100_Fn00DCC(Task* arg0)
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100PlayerScanScratch);
 }
 
 static void Actor02100_Fn011C4(Task* arg0)
@@ -1589,20 +1593,20 @@ static __inline__ void Actor02100_ReleaseScratch28(void)
 /// straight to state 6.
 static void Actor02100_Fn01FF0(Task* arg0)
 {
-    Actor02100Fn01FF0Block* root;
-    _Actor02100Work*        work;
-    GfxCoord*               coord;
-    s32                     pan0;
-    s32                     pan2;
-    s32                     sound2;
-    u32                     random;
-    s32                     packed2;
-    s16                     state;
+    _Actor02100GunAttackScratch* scratch;
+    _Actor02100Work*             work;
+    GfxCoord*                    coord;
+    s32                          pan0;
+    s32                          pan2;
+    s32                          sound2;
+    u32                          random;
+    s32                          packed2;
+    s16                          state;
 
-    root  = SCRATCH_STACK_RESERVE_BLOCK(Actor02100Fn01FF0Block);
-    work  = arg0->work;
-    state = work->step;
-    coord = arg0->extra.tmd->coords;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100GunAttackScratch);
+    work    = arg0->work;
+    state   = work->step;
+    coord   = arg0->extra.tmd->coords;
 
     switch (state) {
         case ACTOR_02100_GUN_STEP_AIM:
@@ -1655,14 +1659,14 @@ static void Actor02100_Fn01FF0(Task* arg0)
             break;
 
         case ACTOR_02100_GUN_STEP_SHOT:
-            root->shortVec.vx = 0;
-            root->shortVec.vy = 0;
-            root->shortVec.vz = ACTOR_02100_MUZZLE_OFFSET;
-            random            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            packed2           = ((random >> 16) & 0x1FF) | 0x200;
-            gRandomLcgState   = random;
-            Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, packed2, &root->shortVec);
-            Gp_SpawnEff(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, packed2, &root->shortVec);
+            scratch->muzzleOffset.vx = 0;
+            scratch->muzzleOffset.vy = 0;
+            scratch->muzzleOffset.vz = ACTOR_02100_MUZZLE_OFFSET;
+            random                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            packed2                  = ((random >> 16) & 0x1FF) | 0x200;
+            gRandomLcgState          = random;
+            Gp_SpawnEff(EFFECT_MUZZLE_FLARE, coord, packed2, &scratch->muzzleOffset);
+            Gp_SpawnEff(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, packed2, &scratch->muzzleOffset);
             sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4015000B;
             pan2   = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
@@ -1715,7 +1719,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
             break;
     }
 
-    SCRATCH_STACK_RELEASE_BLOCK(Actor02100Fn01FF0Block);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100GunAttackScratch);
 }
 
 /// Draws one beam between the two screen points held in `_Actor02100Work`
