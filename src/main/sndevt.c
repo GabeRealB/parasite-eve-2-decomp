@@ -1330,7 +1330,7 @@ static void Midi_KeyOffVoices(_MidiSong* song)
     s32            i;
     _MidiNoteSlot* slot;
     u8             status;
-    SpuVoiceRef    sp10;
+    SpuVoiceRef    voiceRef;
     u16            temp;
 
     i    = 0;
@@ -1339,11 +1339,11 @@ static void Midi_KeyOffVoices(_MidiSong* song)
         if (slot->voice >= 0) {
             status = Spu_GetVoiceStatus(slot->voice);
             if (status != 0) {
-                Spu_GetVoiceRef(slot->voice, &sp10);
-                temp                = sp10.field_4->adsr2;
-                temp                = (temp & 0xFFE0) | 5;
-                sp10.field_4->adsr2 = temp;
-                sp10.field_4->mask |= SPU_VOICE_ADSR_ADSR2;
+                Spu_GetVoiceRef(slot->voice, &voiceRef);
+                temp                 = voiceRef.attr->adsr2;
+                temp                 = (temp & 0xFFE0) | 5;
+                voiceRef.attr->adsr2 = temp;
+                voiceRef.attr->mask |= SPU_VOICE_ADSR_ADSR2;
                 if (status != 2) {
                     Spu_KeyOff(slot->voice);
                 }
@@ -1422,7 +1422,7 @@ static void Midi_UpdateVoiceVolumes(_MidiSong* song)
         MIDI_CHANNEL_GAIN_DIVISOR = SOUND_EVENT_MIDI_VOLUME_FULL * MIDI_VELOCITY_GAIN_FULL,
         MIDI_VOICE_GAIN_DIVISOR   = SOUND_EVENT_MIDI_VOLUME_FULL * SOUND_EVENT_MIDI_VOLUME_FULL
     };
-    SpuVoiceRef    sp10;
+    SpuVoiceRef    voiceRef;
     s16            sp18[2];
     LinInterp*     interp;
     s32            volume;
@@ -1458,17 +1458,17 @@ static void Midi_UpdateVoiceVolumes(_MidiSong* song)
                 vol             = (u32)(volume * slot->volumeScale * product) / (u32)MIDI_VOICE_GAIN_DIVISOR;
                 pan             = channelControls->pan - MIDI_CHANNEL_PAN_CENTER;
                 Spu_ApplyPanVolume(sp18, slot->pan + pan, vol);
-                Spu_GetVoiceRef(voice, &sp10);
+                Spu_GetVoiceRef(voice, &voiceRef);
                 if (D_800820E9 == 1 && song->sequenceId != 0x5A) {
-                    sp10.field_4->volume.left  = 0;
-                    sp10.field_4->volume.right = 0;
+                    voiceRef.attr->volume.left  = 0;
+                    voiceRef.attr->volume.right = 0;
                 } else {
-                    sp10.field_4->volume.left  = sp18[0];
-                    sp10.field_4->volume.right = sp18[1];
+                    voiceRef.attr->volume.left  = sp18[0];
+                    voiceRef.attr->volume.right = sp18[1];
                 }
-                sp10.field_4->volmode.left  = 0;
-                sp10.field_4->volmode.right = 0;
-                sp10.field_4->mask         |= 0xF;
+                voiceRef.attr->volmode.left  = 0;
+                voiceRef.attr->volmode.right = 0;
+                voiceRef.attr->mask         |= 0xF;
             }
         }
         i++;
@@ -1593,7 +1593,7 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
                         product           = (scale << MIDI_PITCH_FRACTION_BITS) * bend;
                         slot->pitchOffset = product / MIDI_PITCH_BEND_MAX;
                     }
-                    attr        = ref.field_4;
+                    attr        = ref.attr;
                     attr->addr  = bankLayer->waveAddr;
                     attr->adsr1 = bankLayer->adsr1;
                     attr->adsr2 = bankLayer->adsr2;
@@ -1851,7 +1851,7 @@ static u8* Midi_SetProgram(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unus
 static u8* Midi_PitchBend(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
 {
     enum { MIDI_PITCH_WHEEL_CENTER = 0x2000 };
-    SpuVoiceRef    sp10;
+    SpuVoiceRef    voiceRef;
     u8             channel;
     s32            i;
     s16            pitchBend;
@@ -1868,7 +1868,7 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unuse
     do {
         slot = &song->voiceSlots[i];
         if (slot->channel == channel) {
-            Spu_GetVoiceRef(slot->voice, &sp10);
+            Spu_GetVoiceRef(slot->voice, &voiceRef);
             bankLayer = Snd_GetNote(song->bank, slot->program, slot->layer);
             if (pitchBend >= 0) {
                 scale   = bankLayer->bendUp;
@@ -1880,7 +1880,7 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unuse
             scale            *= pitchBend;
             pitch             = scale / MIDI_PITCH_BEND_MAX;
             slot->pitchOffset = pitch;
-            attr              = sp10.field_4;
+            attr              = voiceRef.attr;
             attr->pitch       = Spu_CalcVolume((u16)slot->key, pitch, bankLayer->rootKey, bankLayer->fineTune);
             attr->mask       |= SPU_VOICE_PITCH;
         }

@@ -14377,7 +14377,7 @@ Keeping `u8` params and moving the table assignment is what preserves both.
 ## Stack-struct pointer: RMW via temp forces `lw v1` then `lw a0`
 
 When the target updates two fields of a pointer loaded from a stack struct
-(`SpuVoiceRef sp10`, pointer at `sp+0x14`) as:
+(`SpuVoiceRef voiceRef` at `sp+0x10`, its `attr` pointer at `sp+0x14`) as:
 
 ```
 lw   v1, 0x14(sp)
@@ -14394,17 +14394,17 @@ a local pointer CSE folds both accesses into one register (`lw a0` once or
 reused). Force the double-reload and the `v1`/`a0` split by:
 
 1. Reading the halfword into a `u16` temporary
-2. Writing both fields through `((Type*)sp10.field_4)->member` — no local
+2. Writing both fields through `voiceRef.attr->member` — no local
    pointer held across the two updates
 
 ```c
 u16 temp;
 
-Spu_GetVoiceRef(idx, &sp10);
-temp = ((SpuVoiceAttr*)sp10.field_4)->adsr2;
+Spu_GetVoiceRef(idx, &voiceRef);
+temp = voiceRef.attr->adsr2;
 temp = (temp & 0xFFE0) | 5;
-((SpuVoiceAttr*)sp10.field_4)->adsr2 = temp;
-((SpuVoiceAttr*)sp10.field_4)->mask |= SPU_VOICE_ADSR_ADSR2;
+voiceRef.attr->adsr2 = temp;
+voiceRef.attr->mask |= SPU_VOICE_ADSR_ADSR2;
 ```
 
 Also init the loop counter *before* the slot base pointer when the target
@@ -17658,12 +17658,12 @@ Use a nested block per group so the local dies after the pair:
 
 ```c
 {
-    SpuVoiceAttr* attr = sp10.field_4;
+    SpuVoiceAttr* attr = voiceRef.attr;
     attr->loop_addr = spuAddr;
     attr->addr      = spuAddr;
 }
 {
-    SpuVoiceAttr* attr = sp10.field_4;
+    SpuVoiceAttr* attr = voiceRef.attr;
     attr->volume.right = 0;
     attr->volume.left  = 0;
 }

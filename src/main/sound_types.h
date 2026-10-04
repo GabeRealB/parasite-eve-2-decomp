@@ -458,14 +458,24 @@ typedef struct {
 } SndLoadState;
 STATIC_ASSERT_SIZEOF(SndLoadState, 0x30);
 
-/// Out-parameter for `Spu_GetVoiceRef` (voice slot lookup/alloc).
-/// field_0 = voice index; field_4 = SpuVoiceAttr*.
-typedef struct _SpuVoiceRef {
-    /* 0x0 */ s8            field_0; // voiceIdx
-    /* 0x1 */ s8            field_1;
-    /* 0x2 */ s8            field_2;
-    /* 0x3 */ s8            field_3;
-    /* 0x4 */ SpuVoiceAttr* field_4; // attr
+/// Handle to one voice's entry in the batch of SPU attribute changes waiting
+/// for the next flush.
+///
+/// Sound code does not write a voice's attributes to the SPU itself. It looks
+/// the voice up, edits `attr`, and selects each member it set with that
+/// member's `SPU_VOICE_` bit in `attr->mask`; the batch reaches the SPU once
+/// per audio tick. The lookup starts a new entry with an empty mask, and hands
+/// back the existing one, earlier edits included, when the voice already has
+/// an entry.
+///
+/// `attr` points into the batch and is dead after the flush that sends it, so
+/// a handle is filled and used within one call and never kept.
+typedef struct {
+    s8            voiceIdx; // SPU voice the entry belongs to (0..`SPU_VOICE_COUNT` - 1)
+    s8            field_1;  // Zeroed only when the lookup starts a new entry; never read, role unproven
+    s8            field_2;  // As `field_1`
+    s8            field_3;  // As `field_1`
+    SpuVoiceAttr* attr;     // The voice's queued attributes, for the caller to edit
 } SpuVoiceRef;
 STATIC_ASSERT_SIZEOF(SpuVoiceRef, 0x8);
 

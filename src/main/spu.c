@@ -221,7 +221,7 @@ void AsyncCb_Cancel(s32 arg0)
 
 void Spu_InitVoices(void)
 {
-    SpuVoiceRef sp10;
+    SpuVoiceRef voiceRef;
     s32*        ptr;
     s32         i;
     s8          sVoiceIdx;
@@ -254,37 +254,37 @@ void Spu_InitVoices(void)
     i = 0;
     do {
         sVoiceIdx = i;
-        Spu_GetVoiceRef(sVoiceIdx, &sp10);
+        Spu_GetVoiceRef(sVoiceIdx, &voiceRef);
 
         {
-            SpuVoiceAttr* attr = sp10.field_4;
+            SpuVoiceAttr* attr = voiceRef.attr;
             attr->loop_addr    = spuAddr;
             attr->addr         = spuAddr;
         }
         {
-            SpuVoiceAttr* attr = sp10.field_4;
+            SpuVoiceAttr* attr = voiceRef.attr;
             attr->volume.right = 0;
             attr->volume.left  = 0;
         }
         {
-            SpuVoiceAttr* attr  = sp10.field_4;
+            SpuVoiceAttr* attr  = voiceRef.attr;
             attr->volmode.right = 0;
             attr->volmode.left  = 0;
         }
         {
-            SpuVoiceAttr* attr = sp10.field_4;
+            SpuVoiceAttr* attr = voiceRef.attr;
             attr->adsr1        = 0x80FF;
         }
         {
-            SpuVoiceAttr* attr = sp10.field_4;
+            SpuVoiceAttr* attr = voiceRef.attr;
             attr->adsr2        = 0xFFE0;
         }
         {
-            SpuVoiceAttr* attr = sp10.field_4;
+            SpuVoiceAttr* attr = voiceRef.attr;
             attr->mask         = 0x7008FU;
         }
         {
-            SpuVoiceAttr* attr = sp10.field_4;
+            SpuVoiceAttr* attr = voiceRef.attr;
             attr->voice        = 1 << i;
         }
 
@@ -390,9 +390,9 @@ static inline s32 Spu_GetVoiceRefInline(s8 voiceIdx, SpuVoiceRef* ref)
     slot = list->slotByVoice[voiceIdx];
     if (slot != 0) {
         // Already queued: the stored slot is one past the voice's entry.
-        entry        = &list->attrs[slot];
-        ref->field_0 = voiceIdx;
-        ref->field_4 = &(entry - 1)->attr;
+        entry         = &list->attrs[slot];
+        ref->voiceIdx = voiceIdx;
+        ref->attr     = &(entry - 1)->attr;
         return 1;
     } else {
         // Append an entry for the voice, with nothing selected for update yet.
@@ -400,9 +400,9 @@ static inline s32 Spu_GetVoiceRefInline(s8 voiceIdx, SpuVoiceRef* ref)
         list->count++;
         list->attrs[slot].voiceNum  = voiceIdx;
         list->slotByVoice[voiceIdx] = slot + 1;
-        ref->field_0                = voiceIdx;
-        ref->field_4                = &list->attrs[slot].attr;
-        ref->field_4->mask          = 0;
+        ref->voiceIdx               = voiceIdx;
+        ref->attr                   = &list->attrs[slot].attr;
+        ref->attr->mask             = 0;
         ref->field_1                = 0;
         ref->field_3                = 0;
         ref->field_2                = 0;
@@ -452,18 +452,18 @@ void Spu_TickVoices(void)
         if ((state->startedVoices >> i) & 1) {
             Spu_GetVoiceRefInline((s8)i, &ref);
             {
-                SpuVoiceAttr* attr = ref.field_4;
+                SpuVoiceAttr* attr = ref.attr;
                 attr->loop_addr    = 0x7B440;
                 attr->addr         = 0x7B440;
             }
             {
-                SpuVoiceAttr* attr = ref.field_4;
+                SpuVoiceAttr* attr = ref.attr;
                 attr->volume.right = 0;
                 attr->volume.left  = 0;
             }
-            ref.field_4->adsr1 = 0x80FF;
-            ref.field_4->adsr2 = 0xFFE0;
-            ref.field_4->mask |= 0x70083;
+            ref.attr->adsr1 = 0x80FF;
+            ref.attr->adsr2 = 0xFFE0;
+            ref.attr->mask |= 0x70083;
             Spu_KeyOnClearOff((s8)i);
         }
     }

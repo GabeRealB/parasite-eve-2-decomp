@@ -1294,7 +1294,7 @@ static s32 SndVoice_DriveSlots(s32* unused)
                         }
                         if (p->mixDirty == 1) {
                             Spu_GetVoiceRef(node->spuVoice, &ref);
-                            attr = ref.field_4;
+                            attr = ref.attr;
                             SndVoice_ScaleVolume(p->panOffset, p->attenuation, node, &p->volumeRamp, vol);
                             attr->volume.left   = vol[0];
                             attr->volume.right  = vol[1];
@@ -1438,9 +1438,9 @@ void SndVoice_KeyOffMatching(void)
                 if ((type == SOUND_SCRIPT_REQUEST_TYPE_1) || (type == 0x50000000)) {
                     do {
                         Spu_GetVoiceRef(p->voices->spuVoice, &ref);
-                        ref.field_4->adsr2  = (ref.field_4->adsr2 & 0xFFE0) | 0xB;
-                        ref.field_4->adsr2 |= 0x20;
-                        ref.field_4->mask  |= SPU_VOICE_ADSR_ADSR2;
+                        ref.attr->adsr2  = (ref.attr->adsr2 & 0xFFE0) | 0xB;
+                        ref.attr->adsr2 |= 0x20;
+                        ref.attr->mask  |= SPU_VOICE_ADSR_ADSR2;
                         Spu_KeyOff(node->spuVoice);
                         node = node->next;
                     } while (node != NULL);
@@ -1593,7 +1593,7 @@ static s32 SndScript_Exec(_SndScript* script)
             setup_voice:
                 Spu_GetVoiceRef(voice->spuVoice, &voiceRef);
                 bankLayer    = Snd_GetNote(bank, (u8)note->program, note->layer);
-                attr         = voiceRef.field_4;
+                attr         = voiceRef.attr;
                 masterVolume = D_80082748;
                 attr->addr   = bankLayer->waveAddr;
                 if ((D_80082749 != 0) && (script->entryControls->flags & SOUND_SCRIPT_USE_UNDUCKED_VOLUME)) {
@@ -1684,7 +1684,7 @@ done:
 
 static void SndVoice_TickEnvelope(_SndVoice* voice)
 {
-    SpuVoiceRef        sp10;
+    SpuVoiceRef        voiceRef;
     _SndVoiceEnvelope* player;
     _SndPitchEnvelope* envelope;
     s32                pitch;
@@ -1771,8 +1771,8 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
     return;
 
 apply:
-    Spu_GetVoiceRef(voice->spuVoice, &sp10);
-    attr = sp10.field_4;
+    Spu_GetVoiceRef(voice->spuVoice, &voiceRef);
+    attr = voiceRef.attr;
     attr->pitch =
         Spu_CalcVolume((pitch >> 8) & 0xFFFF, pitch & 0xFF, player->rootKey, player->fineTune);
     attr->mask |= SPU_VOICE_PITCH;
@@ -2279,7 +2279,7 @@ static s32 SndVoice_Tick(_SndVoice* voice)
 
 static s32 SndScript_TickVoices(_SndScript* script)
 {
-    SpuVoiceRef sp10;
+    SpuVoiceRef voiceRef;
     _SndVoice*  node;
     _SndVoice*  head;
     s32         count;
@@ -2296,11 +2296,11 @@ static s32 SndScript_TickVoices(_SndScript* script)
                 if (script->keepRelease != SOUND_SCRIPT_KEEP_RELEASE) {
                     status = Spu_GetVoiceStatus(node->spuVoice);
                     if (status != 0) {
-                        Spu_GetVoiceRef(node->spuVoice, &sp10);
-                        temp                = sp10.field_4->adsr2;
-                        temp                = (temp & 0xFFE0) | 5;
-                        sp10.field_4->adsr2 = temp;
-                        sp10.field_4->mask |= SPU_VOICE_ADSR_ADSR2;
+                        Spu_GetVoiceRef(node->spuVoice, &voiceRef);
+                        temp                 = voiceRef.attr->adsr2;
+                        temp                 = (temp & 0xFFE0) | 5;
+                        voiceRef.attr->adsr2 = temp;
+                        voiceRef.attr->mask |= SPU_VOICE_ADSR_ADSR2;
                         if (status != 2) {
                             Spu_KeyOff(node->spuVoice);
                         }

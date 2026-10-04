@@ -1064,14 +1064,14 @@ static void CdAudio_SetLocBase(s32 arg0)
 
 void CdAudio_CopyVoiceData(s8 arg0, const SpuVoiceAttr* attr)
 {
-    SpuVoiceRef sp10;
+    SpuVoiceRef voiceRef;
     s32*        dest;
     const s32*  arg1;
     u32         i;
 
     Spu_SetVoiceCallbacks(arg0, NULL, NULL);
-    Spu_GetVoiceRef(arg0, &sp10);
-    dest = (s32*)sp10.field_4;
+    Spu_GetVoiceRef(arg0, &voiceRef);
+    dest = (s32*)voiceRef.attr;
     arg1 = (const s32*)attr;
     i    = 0;
     do {
@@ -1079,7 +1079,7 @@ void CdAudio_CopyVoiceData(s8 arg0, const SpuVoiceAttr* attr)
         arg1++;
         i++;
         dest++;
-    } while (i < 0x10U);
+    } while (i < sizeof(SpuVoiceAttr) / sizeof(*dest));
 }
 
 void CdAudio_AllocVoices(s8* arg0, s8* arg1)
