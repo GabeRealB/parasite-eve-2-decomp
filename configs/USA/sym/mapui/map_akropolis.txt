@@ -152,7 +152,7 @@ D_acropolis_fire_escape_80181DCC = 0x80181DCC; // absolute:True
 D_acropolis_fire_escape_80182E18 = 0x80182E18; // absolute:True
 D_acropolis_fire_escape_80182E90 = 0x80182E90; // absolute:True
 D_acropolis_fire_escape_80183020 = 0x80183020; // absolute:True
-func_acropolis_helicopter_landing_pad_8017D964 = 0x8017D964; // type:func absolute:True
+func_acropolis_helicopter_landing_pad_8017D964 = 0x8017D964; // type:func absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 func_acropolis_helicopter_landing_pad_8017EB00 = 0x8017EB00; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 func_acropolis_helicopter_landing_pad_801822B0 = 0x801822B0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 gAcropolisHelicopterLandingPadModel0547C = 0x801836EC; // absolute:True

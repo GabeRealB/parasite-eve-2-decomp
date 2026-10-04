@@ -128,7 +128,7 @@ D_shelter_b1_armory_80184AFC = 0x80184AFC; // absolute:True
 D_shelter_b1_armory_80184B14 = 0x80184B14; // absolute:True
 D_shelter_b1_armory_80184E0C = 0x80184E0C; // absolute:True
 D_shelter_b1_armory_80185554 = 0x80185554; // absolute:True
-func_shelter_b1_sleeping_quarters_8017D608 = 0x8017D608; // type:func absolute:True
+func_shelter_b1_sleeping_quarters_8017D608 = 0x8017D608; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 func_shelter_b1_sleeping_quarters_8017D888 = 0x8017D888; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 gShelterB1SleepingQuartersModel02DFC = 0x801804F4; // absolute:True
 D_shelter_b1_sleeping_quarters_80180658 = 0x80180658; // absolute:True
@@ -333,7 +333,7 @@ D_shelter_b2_laboratory_8018595C = 0x8018595C; // absolute:True
 D_shelter_b2_laboratory_80185D84 = 0x80185D84; // absolute:True
 D_shelter_b2_laboratory_801863B8 = 0x801863B8; // absolute:True
 D_shelter_b2_laboratory_80186468 = 0x80186468; // absolute:True
-func_shelter_b2_breeding_room_8017D5F8 = 0x8017D5F8; // type:func absolute:True
+func_shelter_b2_breeding_room_8017D5F8 = 0x8017D5F8; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
 func_shelter_b2_breeding_room_8017D840 = 0x8017D840; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
 gShelterB2BreedingRoomModel02E04 = 0x801803F0; // absolute:True
 D_shelter_b2_breeding_room_8018055C = 0x8018055C; // absolute:True

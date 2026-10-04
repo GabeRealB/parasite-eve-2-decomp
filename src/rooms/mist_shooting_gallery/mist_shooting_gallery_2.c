@@ -139,7 +139,7 @@ extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 /// and jumps to the state-9 shutdown banner.
 extern void   func_actor_215100_8014A908(void);
 extern void   func_actor_215100_8014A9A0(void);
-extern void   func_8014B0D4(void);
+extern void   actor215100CapCaptionDrawCurrent(void);
 static void   func_mist_shooting_gallery_80184A80(Task* arg0);
 static void   func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work);
 static u16    func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work);
@@ -3502,11 +3502,11 @@ void func_mist_shooting_gallery_80184C0C(Task* arg0)
                 if (Pad_CheckButtons(0, 1, arg0->spawnArg1.value) != 0) {
                     arg0->state = arg0->state + 1;
                 } else {
-                    func_8014B0D4();
+                    actor215100CapCaptionDrawCurrent();
                 }
                 break;
             }
-            func_8014B0D4();
+            actor215100CapCaptionDrawCurrent();
             break;
         case 2:
             taskKill(arg0);

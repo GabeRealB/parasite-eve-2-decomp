@@ -54,7 +54,7 @@ typedef struct {
 } _M4a1GrenadeFlightScratch;
 STATIC_ASSERT_SIZEOF(_M4a1GrenadeFlightScratch, 0x34);
 
-static void func_m4a1_grenade_8011D1EC(Task* arg0);
+void        func_m4a1_grenade_8011D1EC(Task* arg0);
 static void func_m4a1_grenade_8011D654(Task* arg0);
 static void func_m4a1_grenade_8011D994(Task* arg0);
 
@@ -69,7 +69,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0);
 /// walks the animation, emitting `0x201B0008 + field_93E` on every record whose
 /// `flags` has both 0x10 and 0x20, and hands back to `func_80106550` when the
 /// clip is done or the recoil timer has run out.
-static void func_m4a1_grenade_8011D1EC(Task* arg0)
+void func_m4a1_grenade_8011D1EC(Task* arg0)
 {
     GameActor*             actor;
     GfxCoord*              coord;

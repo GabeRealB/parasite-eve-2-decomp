@@ -682,15 +682,19 @@ extern AnimationBank D_8016F208;
 extern AnimationBank D_8016CB98;
 
 /// Weapon overlay entry points, at fixed addresses.
-void func_8011D1C4(Task* arg0);
+void func_m93r_8011D1C4(Task* arg0);
+void func_m4a1_8011D1C4(Task* arg0);
 
 void func_grenade_pistol_8011D1D4(Task* arg0);
 
 void func_p08_8011D1D8(Task* arg0);
 
-void func_8011D1DC(Task* arg0);
+void func_m950_8011D1DC(Task* arg0);
+void func_pa3_8011D1DC(Task* arg0);
+void func_as12_8011D1DC(Task* arg0);
+void func_m249_8011D1DC(Task* arg0);
 
-void func_8011D1EC(Task* arg0);
+void func_m4a1_grenade_8011D1EC(Task* arg0);
 
 void func_m4a1_bayonet_8011DA34(Task* arg0);
 
@@ -7082,8 +7086,8 @@ s32 func_801060E0(Task* arg0)
 static const _PlayerActorWeaponAttacks D_800978BC = { {
     func_801065A0,
     func_p08_8011D1D8,
-    func_8011D1C4,
-    func_8011D1DC,
+    func_m93r_8011D1C4,
+    func_m950_8011D1DC,
     func_p08_8011D1D8,
     func_p229_8011DDA0,
     func_801065A0,
@@ -7093,21 +7097,21 @@ static const _PlayerActorWeaponAttacks D_800978BC = { {
     func_801065A0,
     func_grenade_pistol_8011D1D4,
     func_grenade_pistol_8011D1D4,
-    func_8011D1DC,
-    func_8011D1DC,
-    func_8011D1DC,
-    func_8011D1C4,
-    func_8011D1DC,
+    func_pa3_8011D1DC,
+    func_pa3_8011D1DC,
+    func_as12_8011D1DC,
+    func_m4a1_8011D1C4,
+    func_m249_8011D1DC,
     func_801065A0,
     func_tonfa_baton_8011DBFC,
-    func_8011D1C4,
-    func_8011D1C4,
+    func_m4a1_8011D1C4,
+    func_m4a1_8011D1C4,
     func_hypervelocity_8011F724,
     func_gunblade_8011E040,
     func_801065A0,
     func_m4a1_hammer_8011E710,
     func_m4a1_bayonet_8011DA34,
-    func_8011D1EC,
+    func_m4a1_grenade_8011D1EC,
     func_m4a1_pyke_8011E4F8,
     func_m4a1_javelin_8011F5D4,
     func_mp5a5_8011DDA4,

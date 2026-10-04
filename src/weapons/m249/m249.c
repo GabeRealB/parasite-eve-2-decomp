@@ -35,9 +35,9 @@ typedef struct {
 } _M249AttackScratch;
 STATIC_ASSERT_SIZEOF(_M249AttackScratch, 0x68);
 
-static void func_m249_8011D1DC(Task* arg0);
+void func_m249_8011D1DC(Task* arg0);
 
-static void func_m249_8011D1DC(Task* arg0)
+void func_m249_8011D1DC(Task* arg0)
 {
     GameActor*          actor;
     GfxCoord*           coord;

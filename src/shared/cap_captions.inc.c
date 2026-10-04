@@ -23,11 +23,14 @@
 
 static void CapCaption_RunSchedule(Task* task);
 
-static void CapCaption_DrawCurrent(void);
-static s32  CapCaption_Relocate(CapFile* file);
-/* The script selector is file-local unless another image calls this copy: a
- * carrier whose copy is called from outside binds the linkage to nothing and
- * the name to its own exported one. */
+#ifndef CAP_CAPTION_DRAW_CURRENT_LINKAGE
+#define CAP_CAPTION_DRAW_CURRENT_LINKAGE static
+#endif
+CAP_CAPTION_DRAW_CURRENT_LINKAGE void CapCaption_DrawCurrent(void);
+static s32                            CapCaption_Relocate(CapFile* file);
+/* The script selector and the caption drawer are file-local unless another
+ * image calls this copy: a carrier whose copy is called from outside binds the
+ * linkage to nothing and the name to its own exported one. */
 #ifndef CAP_CAPTION_SELECT_SCRIPT_LINKAGE
 #define CAP_CAPTION_SELECT_SCRIPT_LINKAGE static
 #endif
@@ -83,7 +86,7 @@ static void CapCaption_RunSchedule(Task* task)
     }
 }
 
-static void CapCaption_DrawCurrent(void)
+CAP_CAPTION_DRAW_CURRENT_LINKAGE void CapCaption_DrawCurrent(void)
 {
     if ((CapCaption_Data_8015E658 != NULL) &&
         (CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.offset != CAP_TEXT_REF_END) &&

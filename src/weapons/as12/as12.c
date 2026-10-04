@@ -20,7 +20,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-static void func_as12_8011D1DC(Task* arg0);
+void func_as12_8011D1DC(Task* arg0);
 
 /// Per-frame firing state machine for the AS12 automatic shotgun. Case 0 arms
 /// the shot and queues the ready animation, choosing the long variant when the
@@ -32,7 +32,7 @@ static void func_as12_8011D1DC(Task* arg0);
 /// the actor's own contact point on the 0xE variant. Case 5 runs out the
 /// `field_979` grace, re-fires while the trigger is held and otherwise hands
 /// back to `func_80106550`.
-static void func_as12_8011D1DC(Task* arg0)
+void func_as12_8011D1DC(Task* arg0)
 {
     GameActor* actor;
     GfxCoord*  coord;

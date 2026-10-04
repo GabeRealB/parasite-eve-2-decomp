@@ -14,7 +14,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-static void func_m93r_8011D1C4(Task* arg0);
+void func_m93r_8011D1C4(Task* arg0);
 
 /// Per-frame firing state machine for the M93R burst pistol. Case 0 arms the
 /// shot (four-tick reload window, `field_979` grace of 10) and queues the
@@ -27,7 +27,7 @@ static void func_m93r_8011D1C4(Task* arg0);
 /// again once the burst runs dry. Case 3 runs out the grace counter and hands
 /// back to `func_80106550`, parking `field_940` at 10 when the player is still
 /// holding the fire button after the grace expired and at 0 otherwise.
-static void func_m93r_8011D1C4(Task* arg0)
+void func_m93r_8011D1C4(Task* arg0)
 {
     GameActor* actor;
     GfxCoord*  coord;

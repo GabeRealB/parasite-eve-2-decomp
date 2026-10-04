@@ -38,7 +38,7 @@ gGeneratorParams = 0x8013CE30; // size:0x10 defined:True
 gGeneratorLifeSupportParams = 0x8013CE40; // size:0x10 defined:True
 gGeneratorSoundIds = 0x8013CE50; // size:0xC defined:True
 
-func_neo_ark_power_plant_1_8017E524 = 0x8017E524; // type:func absolute:True
+func_neo_ark_power_plant_1_8017E524 = 0x8017E524; // type:func absolute:True owner=neo_ark_power_plant_1 shared=rooms
 
 func_neo_ark_power_plant_2_8017FD88 = 0x8017FD88; // type:func absolute:True owner=neo_ark_power_plant_2
 modelPlacementSetScaled = 0x801336D4; // type:func

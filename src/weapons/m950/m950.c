@@ -14,9 +14,9 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-static void func_m950_8011D1DC(Task* arg0);
+void func_m950_8011D1DC(Task* arg0);
 
-static void func_m950_8011D1DC(Task* arg0)
+void func_m950_8011D1DC(Task* arg0)
 {
     GameActor* actor;
     GfxCoord*  coord;

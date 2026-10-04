@@ -12,7 +12,7 @@ D_shelter_1f_parking_garage_80180C84 = 0x80180C84; // absolute:True
 D_shelter_1f_parking_garage_8018100C = 0x8018100C; // absolute:True
 D_shelter_1f_parking_garage_80181430 = 0x80181430; // absolute:True
 D_shelter_1f_parking_garage_80181954 = 0x80181954; // absolute:True
-func_shelter_1f_vehicular_airlock_8017D5E4 = 0x8017D5E4; // type:func absolute:True
+func_shelter_1f_vehicular_airlock_8017D5E4 = 0x8017D5E4; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 func_shelter_1f_vehicular_airlock_8017DA48 = 0x8017DA48; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 gShelter1fVehicularAirlockModel03A58 = 0x80182004; // absolute:True
 D_shelter_1f_vehicular_airlock_801820FC = 0x801820FC; // absolute:True

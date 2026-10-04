@@ -94,12 +94,12 @@ func_map_neo_ark_80179BE4 = 0x80179BE4; // type:func absolute:True owner=map_neo
 func_801D4B64 = 0x801D4B64; // type:func absolute:True
 func_actor_403600_80136224 = 0x80136224; // type:func absolute:True owner=actor_403600
 func_actor_403600_80136500 = 0x80136500; // type:func absolute:True owner=actor_403600
-D_8013685C = 0x8013685C; // type:func absolute:True
+func_actor_403600_8013685C = 0x8013685C; // type:func absolute:True owner=actor_403600 shared=actors
 func_actor_403600_80136C00 = 0x80136C00; // type:func absolute:True owner=actor_403600
 func_actor_403600_8013700C = 0x8013700C; // type:func absolute:True owner=actor_403600
 func_actor_403600_80137300 = 0x80137300; // type:func absolute:True owner=actor_403600
 func_actor_403600_801375F8 = 0x801375F8; // type:func absolute:True owner=actor_403600
-D_801379B4 = 0x801379B4; // type:func absolute:True
+func_actor_403600_801379B4 = 0x801379B4; // type:func absolute:True owner=actor_403600 shared=actors
 func_actor_403600_80138004 = 0x80138004; // type:func absolute:True owner=actor_403600
 func_actor_403600_801386EC = 0x801386EC; // type:func absolute:True owner=actor_403600
 
@@ -214,11 +214,11 @@ D_kyle_800104_8016E568 = 0x8016E568; // absolute:True
 D_kyle_800102_8016E93C = 0x8016E93C; // absolute:True
 D_kyle_800102_801775A8 = 0x801775A8; // absolute:True
 func_acropolis_fountain_8017DCD4 = 0x8017DCD4; // type:func absolute:True
-func_acropolis_security_room_8017ED68 = 0x8017ED68; // type:func absolute:True
+func_acropolis_security_room_8017ED68 = 0x8017ED68; // type:func absolute:True owner=acropolis_security_room shared=rooms
 func_acropolis_helicopter_landing_pad_8017EF8C = 0x8017EF8C; // type:func absolute:True
 func_acropolis_bridge_8017F788 = 0x8017F788; // type:func absolute:True owner=acropolis_bridge
 func_acropolis_security_room_80180294 = 0x80180294; // type:func absolute:True owner=acropolis_security_room
-func_acropolis_cafeteria_80181E70 = 0x80181E70; // type:func absolute:True
+func_acropolis_cafeteria_80181E70 = 0x80181E70; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
 gAcropolisCafeteriaModel07CA8 = 0x801858C4; // absolute:True
 gAcropolisCafeteriaModel08638 = 0x8018625C; // absolute:True
 gAcropolisCafeteriaModel09090 = 0x80186CAC; // absolute:True
@@ -306,6 +306,6 @@ D_80400000 = 0x80400000; // absolute:True
 
 D_80114B34 = 0x80114B34; // absolute:True size:0x48
 
-func_map_dryfield_80179954 = 0x80179954; // type:func absolute:True
+func_map_dryfield_80179954 = 0x80179954; // type:func absolute:True owner=map_dryfield shared=mapui
 
 func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // type:func absolute:True

@@ -933,12 +933,12 @@ static inline void _actor403600TrailTick(Actor403600Ripple* state);
 static inline s32  _actor403600TrailEmpty(Actor403600Ripple* state);
 static u32*        func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 static u32*        func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+u32*               func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 static u32*        func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 static u32*        func_actor_403600_8013700C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 static u32*        func_actor_403600_80137300(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 static u32*        func_actor_403600_801375F8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32*               func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 static u32*        func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 static u32*        func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
@@ -2494,7 +2494,7 @@ static u32* func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* 
     return arg2;
 }
 
-static u32* func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
+u32* func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -3022,7 +3022,7 @@ static u32* func_actor_403600_801375F8(TmdStreamWorkspace* arg0, s32 arg1, u32* 
     return arg2;
 }
 
-static u32* func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     CVECTOR                 color;
     u8*                     head;

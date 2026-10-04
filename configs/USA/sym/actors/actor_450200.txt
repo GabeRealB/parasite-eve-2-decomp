@@ -189,6 +189,6 @@ D_actor_450200_80137A60 = 0x80137A60; // size:0x24 defined:True
 D_actor_450200_80137A84 = 0x80137A84; // size:0x8C defined:True
 D_actor_450200_80137B10 = 0x80137B10; // size:0x28 defined:True
 
-func_neo_ark_observatory_80180DAC = 0x80180DAC; // type:func absolute:True
+func_neo_ark_observatory_80180DAC = 0x80180DAC; // type:func absolute:True owner=neo_ark_observatory shared=rooms
 
 func_neo_ark_observatory_8017FA98 = 0x8017FA98; // type:func absolute:True owner=neo_ark_observatory

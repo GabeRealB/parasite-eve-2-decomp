@@ -133,7 +133,7 @@ u32* func_actor_403600_80136224(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 u32* func_actor_403600_80136500(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_8013685C(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32* func_actor_403600_8013685C(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 u32* func_actor_403600_80136C00(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
@@ -143,7 +143,7 @@ u32* func_actor_403600_80137300(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 u32* func_actor_403600_801375F8(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+u32* func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
@@ -211,7 +211,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = func_actor_403600_8013700C;
                     break;
                 case 0x20038:
-                    handler = D_801379B4;
+                    handler = func_actor_403600_801379B4;
                     break;
                 case 0x3A:
                     handler = tmdDrawStreamGt3SemiTrans;
@@ -223,7 +223,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamGt4;
                     break;
                 case 0x8078:
-                    handler = D_8013685C;
+                    handler = func_actor_403600_8013685C;
                     break;
                 case 0x10078:
                     handler = func_actor_403600_801375F8;

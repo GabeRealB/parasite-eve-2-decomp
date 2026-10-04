@@ -119,10 +119,12 @@ static void func_actor_215100_8014CB04(Task* task);
 /* cap captions instance: retain the original overlay symbols. */
 static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2);
 static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
-// Exported instance: mist_shooting_gallery's modal caption calls this
-// package's script selector.
+// Exported instances: mist_shooting_gallery's modal caption calls this
+// package's script selector, and its caption task this package's drawer.
 #define CAP_CAPTION_SELECT_SCRIPT_LINKAGE
 #define CapCaption_SelectScript actor215100CapCaptionSelectScript
+#define CAP_CAPTION_DRAW_CURRENT_LINKAGE
+#define CapCaption_DrawCurrent actor215100CapCaptionDrawCurrent
 #include "../../shared/cap_captions.h"
 #include "../../shared/walker.h"
 
