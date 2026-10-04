@@ -2813,7 +2813,7 @@ gModelObjectCoordBodyList              = 0x800711C0; // type:TmdListNode size:0x
 
 // CdAudio / AudioTick / Spu range / Stream slot renames
 _gCdAudioState              = 0x800827A0; // size:0x44
-CdAudio_Tbl                 = 0x80082758; // type:CdAudioTbl size:0x18
+CdAudio_Tbl                 = 0x80082758; // size:0x18
 CdAudio_Ctl                 = 0x80082780; // size:0x14
 Stream_Slots                = 0x8006D4F0; // type:StreamSlot size:0x258
 Stage_Ctx                   = 0x80062698;

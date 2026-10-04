@@ -17304,7 +17304,7 @@ Assigning the pointer only after the guards leaves `%hi` later, parks the raw
 like a large diff even when the body is otherwise identical.
 
 `CdAudio_FeedSector` needs `sector = &Fs_CdSector` first, then the
-`CdAudio_Ctl.waveLoadError` / `CdAudio_Tbl.field_1` guards, then `arg = index & 0xFF`.
+`CdAudio_Ctl.waveLoadError` / `CdAudio_Tbl.waveLoadResult` guards, then `arg = index & 0xFF`.
 
 ## `volatile` struct pointer preserves independent field load order
 
@@ -21059,7 +21059,7 @@ statement:
 
 ```c
 CdAudio_Ctl.waitTicks = 0;
-CdAudio_Tbl.field_8   = _gCdAudioState.playback.baseSector;
+CdAudio_Tbl.waveLoadNextSector = _gCdAudioState.playback.baseSector;
 CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
 ```
 
