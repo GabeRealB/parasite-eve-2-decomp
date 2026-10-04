@@ -3725,12 +3725,12 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
 {
-    OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
-    s16                       count;
-    s16                       i;
-    s16                       idx;
-    s16                       type;
-    s16                       arg;
+    OverlayEncounterControllerWork* work = arg0->work;
+    s16                             count;
+    s16                             i;
+    s16                             idx;
+    s16                             type;
+    s16                             arg;
 
     count = 0;
     for (i = 0; i < 16; i++) {
@@ -3739,7 +3739,7 @@ static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
         }
     }
     if (count < 3) {
-        idx = ent->nextSlot;
+        idx = work->nextSlot;
         if (idx < 16 && gGameSession->sceneClock >= 0x3D) {
             type = D_shelter_b3_dumping_hole_8018B7BC[idx].kind;
             arg  = D_shelter_b3_dumping_hole_8018B7BC[idx].command;
@@ -3754,16 +3754,17 @@ static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
                     Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 3, (idx << 16) + arg, 0);
                     break;
             }
-            ent->nextSlot++;
+            work->nextSlot++;
         }
     }
 }
 
 s32 func_shelter_b3_dumping_hole_80183530(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
-    OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
-    if (request->command == 4) {
-        ent->stop = request->command;
+    OverlayEncounterControllerWork* work = arg0->work;
+
+    if (request->command == OVERLAY_ENCOUNTER_COMMAND_STOP) {
+        work->stop = request->command;
     }
 }
 
@@ -3843,14 +3844,14 @@ void func_shelter_b3_dumping_hole_80183678(Task* task)
 
 static void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
 {
-    OverlayEncounterCtrlWork* work;
-    s32                       i;
+    OverlayEncounterControllerWork* work;
+    s32                             i;
 
     if (gGameSession->spawnPhase[0] == GAME_SESSION_SPAWN_COMPLETE) {
         taskKill(arg0);
         return;
     }
-    work = memCalloc(6, 0);
+    work = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -3866,22 +3867,23 @@ static void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
 {
-    OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
-    s32                       i;
+    OverlayEncounterControllerWork* work = arg0->work;
+    s32                             i;
 
     for (i = 0; i < 3; i++) {
-        s16 idx = ent->nextSlot;
+        s16 idx = work->nextSlot;
         func_shelter_b3_dumping_hole_80183E6C(idx, D_shelter_b3_dumping_hole_8018B7BC[idx].kind,
                                               D_shelter_b3_dumping_hole_8018B7BC[idx].command);
-        ent->nextSlot += 1;
+        work->nextSlot += 1;
     }
     arg0->state += 1;
 }
 
 static void func_shelter_b3_dumping_hole_80183824(Task* arg0)
 {
-    OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
-    if ((s16)(ent->frames += 1) == 0xF) {
+    OverlayEncounterControllerWork* work = arg0->work;
+
+    if (++work->frames == 15) {
         (Gp_IncStateF0Ref)(0);
         gGameSession->spawnPhase[0] = GAME_SESSION_SPAWN_ARMED;
         Gp_ArmStateF0(1);
@@ -3891,11 +3893,12 @@ static void func_shelter_b3_dumping_hole_80183824(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
 {
-    s16 count;
-    s32 i;
+    OverlayEncounterControllerWork* work = arg0->work;
+    s16                             count;
+    s32                             i;
 
     count = 0;
-    if (((OverlayEncounterCtrlWork*)arg0->work)->stop != 4) {
+    if (work->stop != OVERLAY_ENCOUNTER_COMMAND_STOP) {
         func_shelter_b3_dumping_hole_801833EC(arg0);
         for (i = 0; i < 0x10; i++) {
             if (D_shelter_b3_dumping_hole_8018B7BC[i].status == OVERLAY_ENCOUNTER_SLOT_DONE) {

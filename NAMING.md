@@ -379,6 +379,13 @@ one-centre projection block, are declared in `include/rooms/room_common.h`. If a
 subsystem have similar names, distinguish actual ownership and linkage before
 introducing a qualifier; do not assume that they are one API.
 
+`actor_contacts.h` uses the prefix `actorContact`. The block of its push
+along obstacle bearings is `ActorContactBearingPushScratch`, private to that
+interface; the markers its bearing slots take use
+`ACTOR_CONTACT_BEARING_PUSH_`. `ActorContactPushScratch` in
+`include/actors/actor.h` is a different block, that of the push resolved from
+the contact records' own correction.
+
 `incinerator_blaze.h` uses the prefix `blaze`. It is the fade-to-white and
 body-fire tasks included by the incinerator room and `actor_342100`.
 `BlazeParentWork` is the prefix of the spawning task's work those tasks know:

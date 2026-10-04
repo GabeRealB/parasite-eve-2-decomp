@@ -52364,7 +52364,7 @@ rotation").
 
 Related shapes in the same function:
 
-- `d = st->angle[i]; if (st->angle[i] < 0) { ... }` gives the ROM's `lh v0` /
+- `d = st->bearing[i]; if (st->bearing[i] < 0) { ... }` gives the ROM's `lh v0` /
   `bgez v0` / `move v1, v0`: one sign-extending load, tested directly, copied
   into the loop's own register.
 - `t = d; st->diff = t; if (t < 0) t = -t;` stores the *sign-extended* value
@@ -88264,7 +88264,7 @@ back as `0(sN)` instead of the target's `-K(head)` (95.34%). `Actor01900_Fn083E8
 in the same TU is the same shape.
 
 Try the compound push anyway before reaching for the asm: a late store off the
-copy is not always out of its reach. The `OverlayBisectorScratch` push
+copy is not always out of its reach. The `ActorContactBearingPushScratch` push
 (`func_actor_123200_80132B94` and its room/actor copies) has
 `addiu v0,a0,-0xE4` / `move s0,v0`, two field stores, then `sw s0,0(a1)`, and
 had been matched with a `$v0` pin plus a `vz` local holding the store late.
@@ -88281,7 +88281,7 @@ side of the head store, move that statement ahead of the push rather than
 holding the carve in a local.
 
 The same reservation removes both pins inside the shared `overlayToWorld`
-inline: write `SCRATCH_STACK_CURSOR(OverlayWalkScratch)[-1].coord = coord`, then push
+inline: write `SCRATCH_STACK_CURSOR(OverlayCoordChainScratch)[-1].coord = coord`, then push
 and read the new head before copying the vector. In `Actor01900_Fn00FA4`,
 `.greg` naturally retains the carve in `$v0` and its copy into `$a2` (scratch
 `base_3`, UIDs 87 and 91). Substituting `overlayToWorld2` instead loses that

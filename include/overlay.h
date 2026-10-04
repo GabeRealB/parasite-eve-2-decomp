@@ -118,43 +118,23 @@ typedef struct {
 } ScreenWaveOscillator;
 STATIC_ASSERT_SIZEOF(ScreenWaveOscillator, 0x6);
 
-/// The scratch-pad block the world-space walk takes from the scratch stack:
-/// `coord` is the frame the walk stands on, climbing the `GfxCoord::parent`
-/// parent chain until it runs out, `vec` the vector being carried up, `out`
-/// the GTE result it is refreshed from after each frame, and `flag` the GTE
-/// flag word.
-typedef struct OverlayWalkScratch {
-    GfxCoord* coord;
-    SVECTOR        vec;
-    s32            out[3];
-    s32            pad_18;
-    s32            flag;
-} OverlayWalkScratch;
-STATIC_ASSERT_SIZEOF(OverlayWalkScratch, 0x20);
-
-/// The scratch-pad block of the push that steers a coordinate frame between
-/// the obstacles in a `WorldCollisionContact` contact table. `eye` is the frame's world
-/// position and `aim` the world point one unit ahead of it; `angle` holds each
-/// record's bearing relative to the facing, 0x7FFE ending the list and 0x7FFF
-/// marking a record that does not count. `kind` is the high half of a record's key,
-/// `diff` the wrapped difference between two bearings, and `delta` first the
-/// offset handed to `ratan2`, then the push added to the frame. `m` is the
-/// working rotation, `i` and `j` the loop counters, and `hit` whether a push
-/// was applied.
-typedef struct OverlayBisectorScratch {
-    MATRIX  m;
-    byte    pad_20[0x80];
-    SVECTOR delta;
-    SVECTOR eye;
-    SVECTOR aim;
-    s32     kind;
-    s16     angle[0x10];
-    s16     i;
-    s16     j;
-    s16     diff;
-    s16     hit;
-} OverlayBisectorScratch;
-STATIC_ASSERT_SIZEOF(OverlayBisectorScratch, 0xE4);
+/// Scratch-stack block of the walk that carries a vector up a coordinate's
+/// parent chain.
+///
+/// The walk applies the local matrix of the frame it stands on to the vector,
+/// then steps to `GfxCoord::parent`, until the chain runs out. The vector
+/// therefore ends in the space above the topmost frame, the one
+/// `GfxCoord::workm` maps into when nothing is excluded from its composition:
+/// for a node beneath `gGfxViewCoord` the view coordinates are part of the
+/// chain and are applied like any other frame. Each component is cut to 16
+/// bits after every frame.
+typedef struct {
+    GfxCoord* coord; // Frame the walk stands on; NULL once the chain has run out
+    SVECTOR   vec;   // Vector being carried, in the space of `coord`'s local matrix; `pad` is never written
+    VECTOR    out;   // The GTE's transform of `vec` by the current frame, which `vec` is refreshed from; `pad` is never written
+    s32       flag;  // GTE flag word of the latest transform; stored and never read
+} OverlayCoordChainScratch;
+STATIC_ASSERT_SIZEOF(OverlayCoordChainScratch, 0x20);
 
 /// Wraps an angle into [-0x800, 0x800], spelled with backward jumps.
 static __inline__ s16 overlayWrapAngle(s16 angle)
@@ -176,14 +156,14 @@ static __inline__ s16 overlayWrapAngle(s16 angle)
 }
 
 /// Carries `v` from the frame of `coord` up the parent chain into world
-/// space, walking in an `OverlayWalkScratch` taken from the scratch pad.
+/// space, walking in an `OverlayCoordChainScratch` taken from the scratch pad.
 static __inline__ void overlayToWorld(GfxCoord* coord, SVECTOR* v)
 {
-    OverlayWalkScratch* blk;
+    OverlayCoordChainScratch* blk;
 
-    SCRATCH_STACK_CURSOR(OverlayWalkScratch)[-1].coord = coord;
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayWalkScratch);
-    blk         = SCRATCH_STACK_CURSOR(OverlayWalkScratch);
+    SCRATCH_STACK_CURSOR(OverlayCoordChainScratch)[-1].coord = coord;
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayCoordChainScratch);
+    blk         = SCRATCH_STACK_CURSOR(OverlayCoordChainScratch);
     blk->vec.vx = v->vx;
     blk->vec.vy = v->vy;
     blk->vec.vz = v->vz;
@@ -193,50 +173,50 @@ static __inline__ void overlayToWorld(GfxCoord* coord, SVECTOR* v)
         gte_SetRotMatrix(&blk->coord->coord);
         gte_ldv0(&blk->vec);
         gte_rtv0tr();
-        gte_stlvnl(blk->out);
+        gte_stlvnl(&blk->out);
         gte_stflg(&blk->flag);
-        blk->vec.vx = (u16)blk->out[0];
-        blk->vec.vy = (u16)blk->out[1];
-        blk->vec.vz = (u16)blk->out[2];
+        blk->vec.vx = blk->out.vx;
+        blk->vec.vy = blk->out.vy;
+        blk->vec.vz = blk->out.vz;
         blk->coord  = blk->coord->parent;
     }
     v->vx = blk->vec.vx;
     v->vy = blk->vec.vy;
     v->vz = blk->vec.vz;
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayWalkScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayCoordChainScratch);
 }
 
 /// Carries `v` into world space, reserving the scratch block after copying
 /// its initial coordinate and vector.
 static __inline__ void overlayToWorld2(GfxCoord* coord, SVECTOR* v)
 {
-    OverlayWalkScratch* blk;
+    OverlayCoordChainScratch* blk;
 
-    blk         = (OverlayWalkScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(OverlayWalkScratch));
+    blk         = SCRATCH_STACK_CURSOR(OverlayCoordChainScratch) - 1;
     blk->coord  = coord;
     blk->vec.vx = v->vx;
     blk->vec.vy = v->vy;
     blk->vec.vz = v->vz;
 
-    SCRATCH_STACK_CURSOR(void) = blk;
+    SCRATCH_STACK_CURSOR(OverlayCoordChainScratch) = blk;
     while (blk->coord != NULL) {
         gte_SetTransMatrix(&blk->coord->coord);
         gte_SetRotMatrix(&blk->coord->coord);
         gte_ldv0(&blk->vec);
         gte_rtv0tr();
-        gte_stlvnl(blk->out);
+        gte_stlvnl(&blk->out);
         gte_stflg(&blk->flag);
-        blk->vec.vx = (u16)blk->out[0];
-        blk->vec.vy = (u16)blk->out[1];
-        blk->vec.vz = (u16)blk->out[2];
+        blk->vec.vx = blk->out.vx;
+        blk->vec.vy = blk->out.vy;
+        blk->vec.vz = blk->out.vz;
         blk->coord  = blk->coord->parent;
     }
     v->vx = blk->vec.vx;
     v->vy = blk->vec.vy;
     v->vz = blk->vec.vz;
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayWalkScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayCoordChainScratch);
 }
 
 /// Scratch-stack block of a radius test on the XZ plane.
@@ -286,6 +266,11 @@ enum {
 /// hiding at one of the room's `OverlayEncounterSpot` rows.
 #define OVERLAY_ENCOUNTER_COMMAND_APPEAR 1
 
+/// The action that ends a scripted encounter before its table runs out. The
+/// room sends it to every actor at once: the encounter's controller stops
+/// starting rows, and each enemy reacts to the same action in its own way.
+#define OVERLAY_ENCOUNTER_COMMAND_STOP 4
+
 /// Composes an `OverlayEncounterSlot::command` that brings the enemy out at
 /// row `spot` (0..15) of the room's `OverlayEncounterSpot` table.
 ///
@@ -327,16 +312,20 @@ typedef struct {
 } OverlayEncounterSpot;
 STATIC_ASSERT_SIZEOF(OverlayEncounterSpot, 0x8);
 
-/// Work block of a scripted encounter's controller: the frames counted before
-/// the encounter is armed, the next slot to start, and a stop request, which
-/// an actor's message 0x7DB with command 4 writes and which idles the
-/// controller.
-typedef struct OverlayEncounterCtrlWork {
-    s16 frames;
-    s16 nextSlot;
-    s16 stop;
-} OverlayEncounterCtrlWork;
-STATIC_ASSERT_SIZEOF(OverlayEncounterCtrlWork, 0x6);
+/// Work block of a scripted encounter's controller: the task that walks the
+/// encounter's `OverlayEncounterSlot` table, starting its first three rows
+/// together and each later one once fewer than three rows are live.
+///
+/// The controller allocates the block zeroed and the task's teardown frees
+/// it. An actor command whose action is `OVERLAY_ENCOUNTER_COMMAND_STOP` ends
+/// the encounter early: the controller records it in `stop` and from then on
+/// neither starts a row nor finishes the encounter.
+typedef struct {
+    s16 frames;   // Frames counted after the first three rows are started; the encounter is armed when they reach 15, and the count stops there
+    s16 nextSlot; // Table row the controller starts next; rows before it have been started
+    s16 stop;     // `OVERLAY_ENCOUNTER_COMMAND_STOP` once that command has arrived, 0 until then
+} OverlayEncounterControllerWork;
+STATIC_ASSERT_SIZEOF(OverlayEncounterControllerWork, 0x6);
 
 /// Work block of a scripted encounter's one-enemy spawner: the task an
 /// `OverlayEncounterSlot` row starts to spawn a single enemy hidden, bring it
@@ -496,48 +485,43 @@ typedef struct {
 } OverlayPointPairScratch;
 STATIC_ASSERT_SIZEOF(OverlayPointPairScratch, 0x1C);
 
-/// The offset from one position to another, widened to words and staged on
-/// the scratch pad just long enough to take its bearing with `ratan2`.
-typedef struct OverlayAvoidDelta {
-    s32  vx;
-    s32  vy;
-    s32  vz;
-    byte pad_C[0x4];
-} OverlayAvoidDelta;
-STATIC_ASSERT_SIZEOF(OverlayAvoidDelta, 0x10);
-
-/// Bearing of `p` from `eye` on the XZ plane. The offset is staged on the
-/// scratch pad at full width and released before `ratan2` runs.
+/// Bearing of `p` from `eye` on the XZ plane.
+///
+/// The offset between the two is staged at full width in a `VECTOR` taken
+/// from the scratch stack, whose `pad` is never written. The block is
+/// released before `ratan2` reads it back; nothing else may reserve scratch
+/// between the two.
 static __inline__ s16 overlayBearingXZ(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                head;
-    OverlayAvoidDelta* d;
+    VECTOR* head;
+    VECTOR* delta;
 
-    head             = SCRATCH_STACK_CURSOR(u8);
-    d                = (OverlayAvoidDelta*)(head - 0x10);
-    d->vx            = p->vx - eye->vx;
-    SCRATCH_STACK_CURSOR(u8) = (u8*)d;
-    d->vy            = p->vy - eye->vy;
-    d->vz            = p->vz - eye->vz;
-    SCRATCH_STACK_CURSOR(u8) = head;
-    return ratan2(d->vx, d->vz);
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    delta                        = head - 1;
+    delta->vx                    = p->vx - eye->vx;
+    SCRATCH_STACK_CURSOR(VECTOR) = delta;
+    delta->vy                    = p->vy - eye->vy;
+    delta->vz                    = p->vz - eye->vz;
+    SCRATCH_STACK_CURSOR(VECTOR) = head;
+    return ratan2(delta->vx, delta->vz);
 }
 
 /// Bearing of `p` from `eye` on the XY plane, the form the steering walk uses
-/// while the coordinate's facing column is close to vertical.
+/// while the coordinate's facing column is close to vertical. The offset is
+/// staged as in `overlayBearingXZ`.
 static __inline__ s16 overlayBearingXY(SVECTOR3* p, SVECTOR3* eye)
 {
-    u8*                head;
-    OverlayAvoidDelta* d;
+    VECTOR* head;
+    VECTOR* delta;
 
-    head             = SCRATCH_STACK_CURSOR(u8);
-    d                = (OverlayAvoidDelta*)(head - 0x10);
-    d->vx            = p->vx - eye->vx;
-    SCRATCH_STACK_CURSOR(u8) = (u8*)d;
-    d->vy            = p->vy - eye->vy;
-    d->vz            = p->vz - eye->vz;
-    SCRATCH_STACK_CURSOR(u8) = head;
-    return ratan2(d->vx, d->vy);
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    delta                        = head - 1;
+    delta->vx                    = p->vx - eye->vx;
+    SCRATCH_STACK_CURSOR(VECTOR) = delta;
+    delta->vy                    = p->vy - eye->vy;
+    delta->vz                    = p->vz - eye->vz;
+    SCRATCH_STACK_CURSOR(VECTOR) = head;
+    return ratan2(delta->vx, delta->vy);
 }
 
 /// One node of the Boss Stranger's patrol table: a world position the walker
@@ -673,20 +657,21 @@ static __inline__ s32 overlayWalkerOutOfRange(SVECTOR* d, s16 r)
 }
 
 /// Bearing of `pos` from the full-width translation of `coord` on the XZ
-/// plane. The offset is staged on the scratch pad and released before
-/// `ratan2` runs.
+/// plane. The offset is staged in a scratch-stack `VECTOR` as in
+/// `overlayBearingXZ` and released before `ratan2` runs.
 static __inline__ s32 overlayCoordBearingXZ(SVECTOR3* pos, GfxCoord* coord)
 {
-    u8*                head;
-    OverlayAvoidDelta* d;
-    head             = SCRATCH_STACK_CURSOR(u8);
-    d                = (OverlayAvoidDelta*)(head - 0x10);
-    d->vx            = pos->vx - coord->coord.t[0];
-    SCRATCH_STACK_CURSOR(u8) = (u8*)d;
-    d->vy            = pos->vy - coord->coord.t[1];
-    d->vz            = pos->vz - coord->coord.t[2];
-    SCRATCH_STACK_CURSOR(u8) = head;
-    return ratan2(d->vx, d->vz);
+    VECTOR* head;
+    VECTOR* delta;
+
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    delta                        = head - 1;
+    delta->vx                    = pos->vx - coord->coord.t[0];
+    SCRATCH_STACK_CURSOR(VECTOR) = delta;
+    delta->vy                    = pos->vy - coord->coord.t[1];
+    delta->vz                    = pos->vz - coord->coord.t[2];
+    SCRATCH_STACK_CURSOR(VECTOR) = head;
+    return ratan2(delta->vx, delta->vz);
 }
 
 /// One morph of a TMD model: what the included `modelMorph` code needs to

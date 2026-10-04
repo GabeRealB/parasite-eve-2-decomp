@@ -325,12 +325,12 @@ void madChaserWavePairCull(Task* arg0)
 
 static void func_actor_342400_80162324(Task* arg0)
 {
-    OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
-    s16                       count;
-    s16                       i;
-    s16                       idx;
-    s16                       type;
-    s16                       arg;
+    OverlayEncounterControllerWork* work = arg0->work;
+    s16                             count;
+    s16                             i;
+    s16                             idx;
+    s16                             type;
+    s16                             arg;
 
     count = 0;
     for (i = 0; i < 17; i++) {
@@ -391,10 +391,10 @@ static s16 func_actor_342400_801624A4(void)
 
 void func_actor_342400_801626AC(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
-    OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
-    u16                       id   = request->command;
+    OverlayEncounterControllerWork* work = arg0->work;
+    u16                             id   = request->command;
 
-    if (id == 4) {
+    if (id == OVERLAY_ENCOUNTER_COMMAND_STOP) {
         work->stop = id;
     }
 }
@@ -491,11 +491,11 @@ void func_actor_342400_80162888(Task* arg0)
 
 static void func_actor_342400_801628F0(Task* arg0)
 {
-    OverlayEncounterCtrlWork* work;
-    s32                       i;
+    OverlayEncounterControllerWork* work;
+    s32                             i;
 
     if (gGameSession->spawnPhase[1] == GAME_SESSION_SPAWN_COMPLETE || gGameSession->spawnPhase[0] == GAME_SESSION_SPAWN_IDLE ||
-        (work = memCalloc(6, 0)) == NULL) {
+        (work = memCalloc(sizeof(*work), 0)) == NULL) {
         taskKill(arg0);
         return;
     }
@@ -512,7 +512,7 @@ static void func_actor_342400_801628F0(Task* arg0)
 
 static void func_actor_342400_80162A34(Task* arg0)
 {
-    OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
+    OverlayEncounterControllerWork* work = arg0->work;
 
     if (++work->frames == 15) {
         (Gp_IncStateF0Ref)(0);
@@ -524,12 +524,12 @@ static void func_actor_342400_80162A34(Task* arg0)
 
 static void func_actor_342400_80162AB0(Task* arg0)
 {
-    OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
-    s16                       count;
-    s32                       i;
+    OverlayEncounterControllerWork* work = arg0->work;
+    s16                             count;
+    s32                             i;
 
     count = 0;
-    if (work->stop != 4) {
+    if (work->stop != OVERLAY_ENCOUNTER_COMMAND_STOP) {
         func_actor_342400_80162324(arg0);
         for (i = 0; i < 17; i++) {
             if (gMadChaserWaveSlots[i].status == OVERLAY_ENCOUNTER_SLOT_DONE) {

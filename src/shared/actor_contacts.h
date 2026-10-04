@@ -37,6 +37,45 @@
 #include "main/session.h"
 #include "main/session_types.h"
 
+/* Scratch blocks private to the library. */
+
+/// Values an `ActorContactBearingPushScratch::bearing` slot holds in place of
+/// a bearing. A bearing is wrapped into [-0x800, 0x800], so neither can be
+/// one.
+enum {
+    ACTOR_CONTACT_BEARING_PUSH_END  = 0x7FFE, // Slot of the keyless record that ends the table; no later slot is written
+    ACTOR_CONTACT_BEARING_PUSH_SKIP = 0x7FFF  // Slot of a record that is not an obstacle
+};
+
+/// Scratch-stack block of the push that moves a coordinate away from the
+/// obstacles among its contact records, along their bearings.
+///
+/// The push walks the contact table up to the caller's record count or the
+/// first record with no key, and takes the bearing of each obstacle record
+/// (key kind 0x10000 or 0x30000) from `origin`, relative to the direction the
+/// coordinate faces. It then moves the coordinate a caller-chosen distance
+/// directly away from each obstacle whose bearing lies within 0x400 of every
+/// other obstacle's. Angles are 4096 to a turn.
+///
+/// `bearing` has one slot per contact record and the walk does not clamp the
+/// count, so a caller must pass no more than its 16 slots. Nothing clears the
+/// block when it is reserved, and `pushed` is read back after the release,
+/// while the bytes are still intact.
+typedef struct {
+    MATRIX  rot;              // Yaw rotation built for a push, whose Z axis gives its direction
+    byte    unknown_20[0x80]; // Reserved with the block and never accessed; role unproven
+    SVECTOR delta;            // Offset whose bearing is being taken: from `origin` to an obstacle, then to `forward`. Later the step added to the coordinate
+    SVECTOR origin;           // The coordinate's position carried up its parent chain, the point bearings are taken from
+    SVECTOR forward;          // Point 0x1000 along the coordinate's Z axis, carried up the same chain; its bearing is the facing. Later the normalised direction of a push
+    s32     kind;             // Kind bits of the current record's key
+    s16     bearing[16];      // Per contact record: its bearing from `origin` less the facing, wrapped into [-0x800, 0x800], or an `ACTOR_CONTACT_BEARING_PUSH_` marker
+    s16     i;                // Cursor over the records, then over the bearing being tested
+    s16     j;                // Cursor over the bearings compared with `i`'s
+    s16     diff;             // Wrapped difference between two bearings
+    s16     pushed;           // 1 once a push was applied, 0 otherwise
+} ActorContactBearingPushScratch;
+STATIC_ASSERT_SIZEOF(ActorContactBearingPushScratch, 0xE4);
+
 /* Interface for the including source. */
 
 /// Return type of `ActorContact_Steer`.
