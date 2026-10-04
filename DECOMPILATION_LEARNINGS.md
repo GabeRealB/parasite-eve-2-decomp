@@ -20968,25 +20968,25 @@ INCLUDE_ASM(…, func_B);
 
 `CdAudio_DriveSeek` / `jtbl_80014204` (still-asm `CdAudio_DriveRead`) is the example.
 
-## Early `hdr` load + `register asm` pins for multi-use sector pointer
+## Early `header` load + `register asm` pins for multi-use sector pointer
 
-A volatile buffer pointer loaded once at function entry (`hdr = (T*)D_xxx`) and
+A volatile buffer pointer loaded once at function entry (`header = (T*)D_xxx`) and
 reused for field reads, with a second volatile reload of `D_xxx` for base+index
 addressing, needs:
 
 1. Read the switch discriminator *before* the buffer load so `lbu` /
    `lw D_xxx` interleave and the table index stays in `$a0`.
-2. Pin `hdr` to `$a2`, the second base to `$v1`, and the final
+2. Pin `header` to `$a2`, the second base to `$v1`, and the final
    `counter += 1` temp to `$a0` when the shared epilogue uses that colouring.
 3. Prefer `table[idx]` (array form) over `*(s32*)((s32)table + (idx << 2))` once
    the pins are in place — the array form colouring matches the target.
 
 ```c
-phase = state->field_3;
-hdr   = (SectorHdr*)D_80082750; /* fills lbu delay; pin hdr to a2 */
+phase  = state->field_3;
+header = (_CdAudioHeader*)D_80082750; /* fills lbu delay; pin header to a2 */
 switch (phase) {
 case 8:
-    idx = hdr->field_3;
+    idx = header->spuBaseIndex;
     val = D_80068B18[idx];
     ptr = D_80082750;           /* pin ptr to v1 */
     audio->field_8 = val;

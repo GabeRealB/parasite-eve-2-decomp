@@ -82,6 +82,24 @@ typedef struct {
 } _CdAudioHeaderSlot;
 STATIC_ASSERT_SIZEOF(_CdAudioHeaderSlot, 0x4);
 
+/// The header sector of a set of CD audio tracks, as the player reads it into
+/// its sector buffer.
+///
+/// The sector is 32-bit words throughout: one of header fields, then an entry
+/// for each track, then the table of 4-byte slots those entries index. A track
+/// is chosen by its entry's position and nothing the player reads counts them,
+/// so where the entries end is known only from where the slot table starts.
+///
+/// No caller starts a header read, so the layout is established from the
+/// player's code alone and never from a sector on the disc.
+typedef struct {
+    u8  field_0[2];          // never accessed; widths and roles unproven
+    u8  slotTableOffset;     // where the `_CdAudioHeaderSlot` table starts, in 32-bit words from the start of the sector
+    u8  spuBaseIndex;        // entry of the player's SPU address table that gives `_CdAudioPlayback::spuBase` for the set's tracks
+    u32 trackEntries[0x1FF]; // the rest of the sector: a packed word per track (sector offset from the header, slot, level, flag), then the slot table
+} _CdAudioHeader;
+STATIC_ASSERT_SIZEOF(_CdAudioHeader, 0x800);
+
 /// What the CD audio player's two disc reads work from and leave behind: the
 /// wave load's position, destination and outcome, and what the header sector
 /// gave for the track last chosen from it.
@@ -156,13 +174,18 @@ typedef struct {
 } _CdAudioDriverStatus;
 STATIC_ASSERT_SIZEOF(_CdAudioDriverStatus, 0x14);
 
-/// 4-byte entry pointed to by CdAudio_TblEntries (see CdAudio_PrepareNextEntry).
-/// Indexed by CdAudio_Tbl.field_2; field_3 is compared across adjacent entries.
-typedef struct _CdAudioTblEntry {
-    /* 0x0 */ u8 pad[3];
-    /* 0x3 */ u8 field_3; // compared across adjacent entries for span
-} CdAudioTblEntry;
-STATIC_ASSERT_SIZEOF(CdAudioTblEntry, 0x4);
+/// One entry of a table the CD audio player would pick a track from; what the
+/// table holds is unproven.
+///
+/// The player keeps a pointer to an array of these and never sets it, and the
+/// one routine that reads through it has no caller. That routine takes the
+/// entry at an index and the one after it, so entries are four bytes apart and
+/// the array runs at least one entry past any index used.
+typedef struct {
+    u8 field_0[3]; // never accessed: the entry's 4-byte size is established, these bytes' widths and roles are not
+    u8 field_3;    // the next entry's less this one's, less 1, is the header track the unreached routine selects; role unproven
+} _CdAudioTableEntry;
+STATIC_ASSERT_SIZEOF(_CdAudioTableEntry, 0x4);
 
 /// Everything the CD audio player keeps between ticks: what it is playing,
 /// and the three blocks it fills in for the CD drive, the volume ramp and the
@@ -184,12 +207,6 @@ typedef struct {
 } _CdAudioState;
 STATIC_ASSERT_SIZEOF(_CdAudioState, 0x44);
 
-typedef struct {
-    /* 0x0 */ u8 pad[2];
-    /* 0x2 */ u8 field_2;
-    /* 0x3 */ u8 field_3;
-} SectorHdr;
-
 /* Define BSS before API headers to preserve first-declaration order. */
 static u8* CdAudio_SectorBuffer;
 
@@ -208,7 +225,7 @@ static volatile u8 D_8008277C;
 
 static volatile _CdAudioDriverStatus CdAudio_Ctl;
 
-static CdAudioTblEntry* CdAudio_TblEntries;
+static _CdAudioTableEntry* CdAudio_TblEntries;
 
 volatile CdAudioProgress CdAudio_Phase;
 
@@ -602,13 +619,13 @@ s32        (*CdAudio_DriveFns[])(void) = {
 static s32 CdAudio_DriveSeek(void)
 {
     u8                             step;
-    SectorHdr*                     hdr;
+    _CdAudioHeader*                header;
     volatile _CdAudioDriverStatus* driverStatus;
     s32                            status;
     s32                            tmp;
 
-    step = CdAudio_Phase.headerReadStep;
-    hdr  = (SectorHdr*)CdAudio_SectorBuffer;
+    step   = CdAudio_Phase.headerReadStep;
+    header = (_CdAudioHeader*)CdAudio_SectorBuffer;
 
     switch (step) {
         case CD_AUDIO_HEADER_READ_STEP_SET_LOCATION:
@@ -655,8 +672,8 @@ static s32 CdAudio_DriveSeek(void)
             }
             if (driverStatus->waitTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) {
                 if (D_80082770 != 0) {
-                    _gCdAudioState.playback.spuBase = D_80068B18[hdr->field_3];
-                    CdAudio_Tbl.slotTable           = (_CdAudioHeaderSlot*)(CdAudio_SectorBuffer + hdr->field_2 * 4);
+                    _gCdAudioState.playback.spuBase = D_80068B18[header->spuBaseIndex];
+                    CdAudio_Tbl.slotTable           = (_CdAudioHeaderSlot*)(CdAudio_SectorBuffer + header->slotTableOffset * sizeof(u32));
                     CdReadyCallback(NULL);
                     CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_PAUSE;
                         /* fallthrough */
@@ -1011,9 +1028,9 @@ static s32 CdAudio_Reset(s32 arg0)
 
 static s32 CdAudio_SetupStream(void)
 {
-    u8  mode;
-    u8* mem;
-    u8* buf;
+    u8              mode;
+    _CdAudioHeader* header;
+    u8*             buf;
 
     CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_SET_LOCATION;
     CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
@@ -1021,9 +1038,9 @@ static s32 CdAudio_SetupStream(void)
     if (buf != 0) {
         SndHeap_Free(buf);
     }
-    mem                            = SndHeap_Malloc(0x800);
-    CdAudio_SectorBuffer           = mem;
-    CdAudio_SectorEntries          = (u32*)(mem + 4);
+    header                         = SndHeap_Malloc(sizeof(_CdAudioHeader));
+    CdAudio_SectorBuffer           = (u8*)header;
+    CdAudio_SectorEntries          = header->trackEntries;
     _gCdAudioState.playback.driver = CD_AUDIO_DRIVER_READ_HEADER;
     mode                           = CdlModeSpeed | CdlModeSize1;
     CdControlB(CdlSetmode, &mode, NULL);
@@ -1048,8 +1065,8 @@ static s32 CdAudio_RequestStopA(void)
 
 static s32 CdAudio_PrepareNextEntry(void)
 {
-    CdAudioTblEntry* temp;
-    s32              ret;
+    _CdAudioTableEntry* entry;
+    s32                 ret;
 
     if (CdAudio_Phase.openStep != CD_AUDIO_OPEN_STEP_DONE) {
         return -1;
@@ -1057,8 +1074,8 @@ static s32 CdAudio_PrepareNextEntry(void)
     if (CdAudio_Phase.stopStep != CD_AUDIO_STOP_STEP_NONE) {
         ret = 1;
     } else {
-        temp = CdAudio_TblEntries + CdAudio_Tbl.field_2;
-        CdAudio_LoadSectorEntry((temp[1].field_3 - temp->field_3 - 1) & 0xFF);
+        entry = CdAudio_TblEntries + CdAudio_Tbl.field_2;
+        CdAudio_LoadSectorEntry((entry[1].field_3 - entry->field_3 - 1) & 0xFF);
         CdAudio_StartVolumeRamp(0x20);
         ret = 0;
     }
@@ -1273,7 +1290,7 @@ static void CdAudio_ReadyCallback(u8 arg0, u8* unusedResult)
         if (playback->baseSector != pos) {
             CdAudio_Ctl.headerReadError = CD_AUDIO_HEADER_READ_ERROR_WRONG_SECTOR;
         }
-        CdGetSector(CdAudio_SectorBuffer, 0x200);
+        CdGetSector(CdAudio_SectorBuffer, sizeof(_CdAudioHeader) / sizeof(u32));
         D_80082770 = temp;
     } else {
         CdAudio_Ctl.headerReadError = CD_AUDIO_HEADER_READ_ERROR_NOT_READY;
