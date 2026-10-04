@@ -1821,3 +1821,7 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     NULL,
     NULL,
 } } };
+
+/// Not zero and never read: the original toolchain left this word in the
+/// alignment gap between the bank and the next unit's data.
+u32 D_m4a1_javelin_8012EB5C = 0x102232DD;
