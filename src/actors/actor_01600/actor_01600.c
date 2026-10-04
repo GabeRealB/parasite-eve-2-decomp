@@ -57,11 +57,29 @@
 
 #include "overlay.h"
 
-typedef struct Actor01600Range {
-    /* 0x0 */ s32 low;
-    /* 0x4 */ s32 high;
-} Actor01600Range;
-STATIC_ASSERT_SIZEOF(Actor01600Range, 0x8);
+/// Yaw stored in an end of a `_Actor01600ClearArc` that the sweep has not recorded yet.
+///
+/// No swept yaw can equal it: the sweep runs from 0 to 0xFE4.
+#define ACTOR_01600_CLEAR_ARC_UNSET 0xFFFF
+
+/// One arc of headings in which the scavenger's probe capsule stayed clear of the room's collision grid.
+///
+/// When the straight line to its target is blocked, the scavenger turns the
+/// probe through a full circle in steps of 0x71 (ten degrees) and records each
+/// unbroken run of steps at which the probe made no grid contact, then turns
+/// toward the recorded arc nearest the target's bearing. Yaws are 4096 to the
+/// turn, measured from the scavenger's own facing, and the sweep only counts
+/// upward, so `startYaw <= endYaw` and no arc wraps past the full turn.
+///
+/// An arc is open while the probe stays clear and closes at the first blocked
+/// step, or when the sweep completes. One that closes after a single clear
+/// step has both ends equal. An arc opened on the sweep's final step is never
+/// closed and is not counted.
+typedef struct {
+    s32 startYaw; // Yaw of the first clear step; `ACTOR_01600_CLEAR_ARC_UNSET` until the arc opens
+    s32 endYaw;   // Yaw of the latest clear step; `ACTOR_01600_CLEAR_ARC_UNSET` until a second clear step or the arc's closing
+} _Actor01600ClearArc;
+STATIC_ASSERT_SIZEOF(_Actor01600ClearArc, 0x8);
 
 /// The scavenger's own body in the world's collision lists: one sphere and the contact table it fills.
 ///
@@ -132,7 +150,7 @@ typedef struct Actor01600Work {
     /* 0x43E */ s16                    field_43E;
     /* 0x440 */ WorldCollisionContact* capsuleContacts;
     /* 0x444 */ WorldCollisionContact  capsuleContact;
-    /* 0x45C */ Actor01600Range        ranges[8];
+    /* 0x45C */ _Actor01600ClearArc    ranges[8];
     /* 0x49C */ MATRIX                 field_49C;
     /* 0x4BC */ s32                    field_4BC;
     /* 0x4C0 */ s32                    field_4C0;
@@ -3719,7 +3737,7 @@ static void Actor01600_Fn04AD8(Task* arg0)
 /// into (-0x800, 0x801]) or, when `angle` is 0, by its own 0x71 / 0xA step -
 /// returning 1 once the degree counter `field_4EE` passes a full turn - then
 /// turns (0, 0, `distance`) by the resulting yaw into `field_42C` / `field_430`
-/// and advances the swept-angle range `ranges[field_4E8]`.
+/// and, on a sweep step, extends or closes the clear arc `ranges[field_4E8]`.
 static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
 {
     Actor01600YawScratch* allocated;
@@ -3734,7 +3752,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
     s16                   var_v0;
     s16                   var_v0_2;
     s32                   scaled;
-    s32                   temp_a0;
+    s32                   startYaw;
     s32                   var_s4;
 
     var_s4                                     = 0;
@@ -3782,10 +3800,10 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
     if ((u16)(work->capsuleContact.key.value >> 16) != 0x10) {
         if (angle == 0) {
             temp_v0_3 = work->field_4E8;
-            if (work->ranges[temp_v0_3].low == 0xFFFF) {
-                work->ranges[temp_v0_3].low = (s32)work->field_4EC;
+            if (work->ranges[temp_v0_3].startYaw == ACTOR_01600_CLEAR_ARC_UNSET) {
+                work->ranges[temp_v0_3].startYaw = work->field_4EC;
             } else {
-                work->ranges[temp_v0_3].high = (s32)work->field_4EC;
+                work->ranges[temp_v0_3].endYaw = work->field_4EC;
                 if (var_s4 == 1) {
                     var_v0_2 = (u16)work->field_4E8 + 1;
                     goto block_18;
@@ -3796,15 +3814,16 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
         }
     } else if (angle == 0) {
         temp_v0_4 = work->field_4E8;
-        temp_a0   = work->ranges[temp_v0_4].low;
-        if (temp_a0 != 0xFFFF) {
-            if (work->ranges[temp_v0_4].high == 0xFFFF) {
-                work->ranges[temp_v0_4].high = temp_a0;
+        startYaw  = work->ranges[temp_v0_4].startYaw;
+        if (startYaw != ACTOR_01600_CLEAR_ARC_UNSET) {
+            // The probe is blocked: close the open arc, one step wide if it never got a second clear step.
+            if (work->ranges[temp_v0_4].endYaw == ACTOR_01600_CLEAR_ARC_UNSET) {
+                work->ranges[temp_v0_4].endYaw = startYaw;
             }
             temp_v0_5       = (u16)work->field_4E8 + 1;
             work->field_4E8 = temp_v0_5;
-            if (temp_v0_5 >= 7) {
-                var_v0_2 = 7;
+            if (temp_v0_5 >= ARRAY_SIZE(work->ranges) - 1) {
+                var_v0_2 = ARRAY_SIZE(work->ranges) - 1;
             block_18:
                 work->field_4E8 = var_v0_2;
             }
@@ -3869,9 +3888,9 @@ static u8 Actor01600_Fn04EB0(Task* arg0)
             work->field_4EC = -0x71;
             work->field_4E8 = 0;
             work->field_4EE = -10;
-            for (i = 0; i < 8; i++) {
-                work->ranges[i].low  = 0xFFFF;
-                work->ranges[i].high = 0xFFFF;
+            for (i = 0; i < ARRAY_SIZE(work->ranges); i++) {
+                work->ranges[i].startYaw = ACTOR_01600_CLEAR_ARC_UNSET;
+                work->ranges[i].endYaw   = ACTOR_01600_CLEAR_ARC_UNSET;
             }
             Actor01600_Fn04C64(arg0, 2000, 0);
             work->field_4EA++;
@@ -3891,19 +3910,19 @@ static u8 Actor01600_Fn04EB0(Task* arg0)
             mag             = work->field_4E8;
             work->field_4E0 = 0;
             if (mag == 1) {
-                s32 high = work->ranges[0].high;
-                s32 low  = work->ranges[0].low;
+                s32 endYaw   = work->ranges[0].endYaw;
+                s32 startYaw = work->ranges[0].startYaw;
 
-                span = high - low;
+                span = endYaw - startYaw;
                 if (span >= 0x400) {
-                    span     = __builtin_abs(angle - high);
-                    midpoint = __builtin_abs(angle - low);
+                    span     = __builtin_abs(angle - endYaw);
+                    midpoint = __builtin_abs(angle - startYaw);
                     if (span < midpoint)
-                        work->field_4E0 = high;
+                        work->field_4E0 = endYaw;
                     else
-                        work->field_4E0 = low;
+                        work->field_4E0 = startYaw;
                 } else
-                    work->field_4E0 = low + span / 2;
+                    work->field_4E0 = startYaw + span / 2;
             } else {
                 best = 0xFFFF;
                 i    = 0;
@@ -3911,11 +3930,11 @@ static u8 Actor01600_Fn04EB0(Task* arg0)
                     circle = 0x1000;
                     count  = mag;
                     do {
-                        s32 high = work->ranges[i].high;
-                        s32 low  = work->ranges[i].low;
+                        s32 endYaw   = work->ranges[i].endYaw;
+                        s32 startYaw = work->ranges[i].startYaw;
 
-                        span     = high - low;
-                        midpoint = low + span / 2;
+                        span     = endYaw - startYaw;
+                        midpoint = startYaw + span / 2;
                         if (midpoint < 0x780 || midpoint > 0x880) {
                             turn      = __builtin_abs(angle - midpoint);
                             other     = circle - turn;
@@ -3928,15 +3947,15 @@ static u8 Actor01600_Fn04EB0(Task* arg0)
                                 flags = direction;
                                 best  = turn;
                                 if (span >= 0x400) {
-                                    s32 high = work->ranges[i].high;
-                                    s32 low  = work->ranges[i].low;
+                                    s32 endYaw   = work->ranges[i].endYaw;
+                                    s32 startYaw = work->ranges[i].startYaw;
 
-                                    span     = __builtin_abs(angle - high);
-                                    midpoint = __builtin_abs(angle - low);
+                                    span     = __builtin_abs(angle - endYaw);
+                                    midpoint = __builtin_abs(angle - startYaw);
                                     if (span < midpoint)
-                                        midpoint = high;
+                                        midpoint = endYaw;
                                     else
-                                        midpoint = low;
+                                        midpoint = startYaw;
                                 }
                                 work->field_4E0 = midpoint;
                             }
