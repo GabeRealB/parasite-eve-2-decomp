@@ -174,43 +174,72 @@ typedef struct {
 } _Actor503500OrangeFlashAttackWork;
 STATIC_ASSERT_SIZEOF(_Actor503500OrangeFlashAttackWork, 0xAC);
 
-/// The 0x4CC effect work block, allocated by `func_actor_503500_8014642C`
-/// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot. Unlike the
-/// package's other allocated work blocks, whose tasks unlink a collision body
-/// on exit, this one exits through `func_actor_503500_801464E8`, which
-/// only calls `enemyTaskExit`, so the block does not open with a `WorldCollisionBody`.
-/// `func_actor_503500_80146508` republishes the two matrices onto
-/// `TmdObject::lightMtx` / `colorMtx`, the light/colour pair
-/// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
-/// exactly as `func_actor_503500_801324EC` does for `_Actor503500SliderWork`.
+/// Values of `_Actor503500Actor361100Model06038Work::motion`.
+enum {
+    ACTOR_503500_ACTOR_361100_MODEL_06038_MOTION_IDLE,     // Nothing but the velocity moves the model
+    ACTOR_503500_ACTOR_361100_MODEL_06038_MOTION_COLLAPSE, // The model squashes flat and burns away, then the task exits
+};
+
+/// Values of `_Actor503500Actor361100Model06038Work::motionStep`.
+enum {
+    ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_SAVE,   // Saves the root rotation and seeds the scale
+    ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_WAIT,   // Holds the model at full height
+    ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_SQUASH, // Rebuilds the root rotation squashed every frame and fires the cues
+};
+
+/// Frames the collapse holds the model at full height before squashing it.
+#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_WAIT_FRAMES 31
+/// Amount `_Actor503500Actor361100Model06038Work::collapseScaleY` loses each
+/// frame of the squash, and the value it stops at.
+#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_SCALE_STEP 0x10
+#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_SCALE_MIN  (ONE / 8)
+/// Frames of the squash at which the model turns semi-transparent under
+/// weighted lighting, the corpse-burn effect is spawned on it, its lighting
+/// goes black, and the task moves on to its exit state.
+#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_FADE_FRAME  20
+#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BURN_FRAME  30
+#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BLACK_FRAME 100
+#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_EXIT_FRAME  150
+
+/// Work block of the actor drawn with `_gActor503500Actor361100Model06038`,
+/// the nineteen-part model this package shares with actor_361100.
 ///
-/// The size is the allocation, and the fields below are the ones the init
-/// seeds: the three `sb` bytes at 0x43D/0x43E/0x4C8 are set to -1, and the
-/// three words at 0x4A0..0x4A8 are cleared. This is the same layout as
-/// `_Actor317000Work` and its siblings in the other actor overlays, except that
-/// those write 0x4C8 as a halfword.
-typedef struct Actor503500Effect4CC {
-    ActorAnimRig19   rig;
-    ActorModelState  model;
-    /* 0x480 */ s32  field_480[4]; // saved `coord.m` words 0..3
-    /* 0x490 */ s16  field_490;    // saved `coord.m[2][2]`
-    /* 0x492 */ byte pad_492[0xE];
-    /* 0x4A0 */ s32  field_4A0;
-    /* 0x4A4 */ s32  field_4A4;
-    /* 0x4A8 */ s32  field_4A8;
-    /* 0x4AC */ byte pad_4AC[0x4];
-    /* 0x4B0 */ s32  field_4B0;
-    /* 0x4B4 */ s32  field_4B4;
-    /* 0x4B8 */ s32  field_4B8;
-    /* 0x4BC */ byte pad_4BC[0x4];
-    /* 0x4C0 */ s16  field_4C0;
-    /* 0x4C2 */ s16  field_4C2;
-    /* 0x4C4 */ s16  field_4C4;
-    /* 0x4C6 */ s16  field_4C6;
-    /* 0x4C8 */ s8   field_4C8;
-    /* 0x4C9 */ byte pad_4C9[0x3];
-} Actor503500Effect4CC;
-STATIC_ASSERT_SIZEOF(Actor503500Effect4CC, 0x4CC);
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. It opens with the head the nineteen-part play handler
+/// runs on (`ActorMotion19PlayWork`), and the model object borrows
+/// `model.light` and `model.color` for as long as the block lives. No
+/// collision body is kept: the task exits through `enemyTaskExit` alone.
+///
+/// What follows moves the model in a straight line and ends it. Each tick
+/// adds `velocity` to `carry` and moves the root coordinate by the whole
+/// units that makes; an actor command sets `velocity` to one of two presets
+/// or clears it, and nothing stops a move but another command. The command
+/// that sets the second preset also starts the collapse, the sequence the
+/// package's boss ends with too: after a wait the model is squashed flat
+/// along its own Y axis, turns semi-transparent, burns as a corpse does and
+/// its task exits.
+///
+/// `carry`, `motion` and `motionStep` sit where `ActorWalkState` would keep
+/// them in a scripted walker's block, but this is not one: the saved rotation
+/// and the velocity take the place of that type's target, velocity and
+/// arrival fields. No code reads or writes the translation of
+/// `unscaledRotation`, the word after `carry`, the fourth word of `velocity`,
+/// or `pad_4C9`.
+typedef struct {
+    ActorAnimRig19  rig;              // Playback storage of the nineteen-part model; slots 1 to 18 are driven
+    ActorModelState model;            // Clip and bank the rig plays, and the matrices the model is lit with
+    MATRIX          unscaledRotation; // Root rotation saved as the collapse starts, put back every frame before the collapse scale is applied; only the rotation is kept
+    Fixed16         carry[3];         // X, Y and Z displacement not yet applied; only the fractions survive a tick
+    byte            pad_4AC[0x4];
+    VECTOR          velocity;         // Displacement added each tick, in signed 16.16 units; zero while standing
+    s16             motion;           // Handler the tick runs (0 idle, 1 collapse): `ACTOR_503500_ACTOR_361100_MODEL_06038_MOTION_*`
+    s16             motionStep;       // Step of the collapse (0 save, 1 wait, 2 squash): `ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_*`
+    s16             motionStepFrames; // Frames spent in `motionStep`; the wait and the squash each count from 0
+    s16             collapseScaleY;   // Vertical scale during the collapse, `ONE` down to an eighth
+    s8              freeCountdown;    // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    byte            pad_4C9[0x3];
+} _Actor503500Actor361100Model06038Work;
+STATIC_ASSERT_SIZEOF(_Actor503500Actor361100Model06038Work, 0x4CC);
 
 static void func_actor_503500_801464E8(Task* arg0);
 static void func_actor_503500_80146508(Task* arg0);
@@ -1774,31 +1803,32 @@ static const TaskFuncTable3 D_actor_503500_80132230 = {
     },
 };
 
-/// Per-frame tick of the `Actor503500Effect4CC` effect: runs the motion
-/// handler `field_4C0` selects, adds the 16.16 velocity `field_4B0` onto the
-/// accumulator `field_4A0`, moves the coordinate by the integer part and keeps
-/// only the fraction, then ticks the animation slots and the actor colour.
+/// Per-frame tick of the `_Actor503500Actor361100Model06038Work` actor: runs the
+/// handler `motion` selects, adds `velocity` onto `carry`, moves the
+/// coordinate by the integer halves and keeps only the fractions, then ticks
+/// the animation slots and the actor colour. `freeCountdown` counts the
+/// model's buffers down to the free.
 static void func_actor_503500_80145FDC(Task* task)
 {
-    VECTOR                pos;
-    TmdObject*            ext      = task->extra.tmd;
-    Actor503500Effect4CC* work     = (Actor503500Effect4CC*)task->work;
-    TaskFunc              funcs[2] = { func_actor_503500_80146524, func_actor_503500_8014618C };
-    GfxCoord*             coord;
-    s32                   i;
+    VECTOR                                 pos;
+    TmdObject*                             ext      = task->extra.tmd;
+    _Actor503500Actor361100Model06038Work* work     = task->work;
+    TaskFunc                               funcs[2] = { func_actor_503500_80146524, func_actor_503500_8014618C };
+    GfxCoord*                              coord;
+    s32                                    i;
 
-    funcs[work->field_4C0](task);
-    coord               = task->extra.tmd->coords;
-    work->field_4A0    += work->field_4B0;
-    work->field_4A4    += work->field_4B4;
-    work->field_4A8    += work->field_4B8;
-    coord->coord.t[0]  += (s16)(work->field_4A0 >> 16);
-    coord->coord.t[1]  += (s16)(work->field_4A4 >> 16);
-    coord->coord.t[2]  += (s16)(work->field_4A8 >> 16);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_4A0     = (u16)work->field_4A0;
-    work->field_4A4     = (u16)work->field_4A4;
-    work->field_4A8     = (u16)work->field_4A8;
+    funcs[work->motion](task);
+    coord                = task->extra.tmd->coords;
+    work->carry[0].word += work->velocity.vx;
+    work->carry[1].word += work->velocity.vy;
+    work->carry[2].word += work->velocity.vz;
+    coord->coord.t[0]   += work->carry[0].halves.integer;
+    coord->coord.t[1]   += work->carry[1].halves.integer;
+    coord->coord.t[2]   += work->carry[2].halves.integer;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    work->carry[0].word  = work->carry[0].halves.fraction;
+    work->carry[1].word  = work->carry[1].halves.fraction;
+    work->carry[2].word  = work->carry[2].halves.fraction;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
             animationTickSlot(&work->rig.anim, i);
@@ -1812,84 +1842,86 @@ static void func_actor_503500_80145FDC(Task* task)
         pos.vz = coord->workm.t[2];
         Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
     }
-    if (work->field_4C8 >= 0) {
-        if (work->field_4C8 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(ext);
         }
-        work->field_4C8--;
+        work->freeCountdown--;
     }
 }
 
-/// Motion handler 1 of `Actor503500Effect4CC` (`field_4C0`), stepped by
-/// `field_4C2`: state 0 saves the coordinate's rotation words into
-/// `field_480`/`field_490`, state 1 waits 31 frames, and state 2 restores that
-/// rotation every frame while squashing its Y scale `field_4C6` from 0x1000 down
-/// to 0x200, firing the light and spark cues on the way before advancing the
-/// task at frame 150.
+/// The collapse, the handler `_Actor503500Actor361100Model06038Work::motion`
+/// selects once it is set, stepped by `motionStep`: the first step saves the
+/// coordinate's rotation into `unscaledRotation`, the second waits, and the
+/// third restores that rotation every frame while squashing it by
+/// `collapseScaleY`, from `ONE` down to an eighth, firing the light and burn
+/// cues on the way before advancing the task to its exit state.
 static void func_actor_503500_8014618C(Task* arg0)
 {
-    VECTOR                scale;
-    GfxCoord*             coord;
-    Actor503500Effect4CC* work;
-    TmdObject*            ext;
-    void*                 enemy;
-    s32*                  src;
-    s32*                  dst;
-    s32                   i;
+    VECTOR                                 scale;
+    GfxCoord*                              coord;
+    _Actor503500Actor361100Model06038Work* work;
+    TmdObject*                             ext;
+    void*                                  enemy;
+    s32*                                   src;
+    s32*                                   dst;
+    s32                                    i;
 
     // `extra` is read twice on purpose: the second read is what leaves the
     // target's `move s2, v0` copy.
     coord = arg0->extra.tmd->coords;
-    work  = (Actor503500Effect4CC*)arg0->work;
+    work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     ext   = arg0->extra.tmd;
-    switch (work->field_4C2) {
-        case 0:
-            work->field_4C4 = 0;
-            work->field_4C6 = 0x1000;
-            dst             = work->field_480;
-            src             = (s32*)coord->coord.m;
+    switch (work->motionStep) {
+        case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_SAVE:
+            work->motionStepFrames = 0;
+            work->collapseScaleY   = ONE;
+            // The rotation is nine halfwords, copied as four words and one more halfword.
+            dst = (s32*)work->unscaledRotation.m;
+            src = (s32*)coord->coord.m;
             for (i = 0; i < 4; i++) {
                 *dst++ = *src++;
             }
-            work->field_490 = coord->coord.m[2][2];
-            work->field_4C2++;
+            work->unscaledRotation.m[2][2] = coord->coord.m[2][2];
+            work->motionStep++;
             break;
-        case 1:
-            work->field_4C4++;
-            if (work->field_4C4 >= 0x1F) {
-                work->field_4C4 = 0;
-                work->field_4C2++;
+        case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_WAIT:
+            work->motionStepFrames++;
+            if (work->motionStepFrames >= ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_WAIT_FRAMES) {
+                work->motionStepFrames = 0;
+                work->motionStep++;
             }
             break;
-        case 2:
-            if (work->field_4C6 > 0x200) {
-                work->field_4C6 -= 0x10;
+        case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_SQUASH:
+            if (work->collapseScaleY > ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_SCALE_MIN) {
+                work->collapseScaleY -= ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_SCALE_STEP;
             }
+            // Scaling compounds, so each frame starts again from the saved rotation.
             dst = (s32*)coord->coord.m;
-            src = work->field_480;
+            src = (s32*)work->unscaledRotation.m;
             for (i = 0; i < 4; i++) {
                 *dst++ = *src++;
             }
-            coord->coord.m[2][2] = work->field_490;
-            scale.vx             = 0x1000;
-            scale.vy             = work->field_4C6;
-            scale.vz             = 0x1000;
+            coord->coord.m[2][2] = work->unscaledRotation.m[2][2];
+            scale.vx             = ONE;
+            scale.vy             = work->collapseScaleY;
+            scale.vz             = ONE;
             ScaleMatrixL(&coord->coord, &scale);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            work->field_4C4++;
-            switch (work->field_4C4) {
-                case 0x14:
+            work->motionStepFrames++;
+            switch (work->motionStepFrames) {
+                case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_FADE_FRAME:
                     ext->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
-                case 0x1E:
+                case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BURN_FRAME:
                     Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
                     break;
-                case 0x64:
+                case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BLACK_FRAME:
                     Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
-                case 0x96:
+                case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_EXIT_FRAME:
                     arg0->state++;
                     break;
             }
@@ -1909,26 +1941,26 @@ void func_actor_503500_801463C0(Task* task)
 
 static void func_actor_503500_8014642C(Task* arg0)
 {
-    Actor503500Effect4CC* work;
-    GfxCoord*             coord;
-    Enemy*                enemy;
+    _Actor503500Actor361100Model06038Work* work;
+    GfxCoord*                              coord;
+    Enemy*                                 enemy;
 
     coord = arg0->extra.tmd->coords;
     enemy = arg0->spawnArg2.pointer;
 
-    work = memCalloc(sizeof(Actor503500Effect4CC), false);
+    work = memCalloc(sizeof(_Actor503500Actor361100Model06038Work), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
     }
 
-    arg0->work         = work;
-    work->model.animId = ACTOR_MODEL_STATE_NONE;
-    work->model.bank   = ACTOR_MODEL_STATE_NONE;
-    work->field_4C8    = -1;
-    work->field_4A0    = 0;
-    work->field_4A4    = 0;
-    work->field_4A8    = 0;
+    arg0->work          = work;
+    work->model.animId  = ACTOR_MODEL_STATE_NONE;
+    work->model.bank    = ACTOR_MODEL_STATE_NONE;
+    work->freeCountdown = -1;
+    work->carry[0].word = 0;
+    work->carry[1].word = 0;
+    work->carry[2].word = 0;
 
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
@@ -1950,10 +1982,10 @@ static void func_actor_503500_801464E8(Task* arg0)
 
 static void func_actor_503500_80146508(Task* arg0)
 {
-    TmdObject*            ext;
-    Actor503500Effect4CC* work;
+    TmdObject*                             ext;
+    _Actor503500Actor361100Model06038Work* work;
 
-    work          = (Actor503500Effect4CC*)arg0->work;
+    work          = arg0->work;
     ext           = arg0->extra.tmd;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
@@ -1987,9 +2019,9 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode, s32 arg3)
             ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            ext->flags                                    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((Actor503500Effect4CC*)task->work)->field_4C8 = mode;
-            ext->flags                                    |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            ext->flags                                                         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((_Actor503500Actor361100Model06038Work*)task->work)->freeCountdown = mode;
+            ext->flags                                                         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             ext->flags = (ext->flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW) | TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -2003,25 +2035,25 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode, s32 arg3)
 
 s32 func_actor_503500_801467C0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor503500Effect4CC* work;
+    _Actor503500Actor361100Model06038Work* work;
 
-    work = (Actor503500Effect4CC*)task->work;
+    work = task->work;
     switch (msg->command) {
         case 0:
-            work->field_4B0 = 0;
-            work->field_4B4 = 0;
-            work->field_4B8 = 0;
+            work->velocity.vx = 0;
+            work->velocity.vy = 0;
+            work->velocity.vz = 0;
             break;
         case 1:
-            work->field_4B0 = 0x0100F4DE;
-            work->field_4B4 = 0xFF6DE9BE;
-            work->field_4B8 = 0x68590;
+            work->velocity.vx = 0x0100F4DE;
+            work->velocity.vy = 0xFF6DE9BE;
+            work->velocity.vz = 0x68590;
             break;
         case 2:
-            work->field_4B0 = 0x1371C7;
-            work->field_4B4 = 0xBAAAA;
-            work->field_4B8 = 0;
-            work->field_4C0 = 1;
+            work->velocity.vx = 0x1371C7;
+            work->velocity.vy = 0xBAAAA;
+            work->velocity.vz = 0;
+            work->motion      = ACTOR_503500_ACTOR_361100_MODEL_06038_MOTION_COLLAPSE;
             break;
         case 3:
             task->exitCallback(task);

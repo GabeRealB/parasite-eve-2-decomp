@@ -82735,7 +82735,7 @@ emits `addiu v1, s0, 0x28` / `sb a1, 0x1D(v1)` / `addiu v1, v1, 0x28`: the
 strength-reduced induction variable carries only `i*0x28` and the invariant
 `0x14 + 9` stays in the displacement, so `$v1` walks from the work base rather
 than from a `AnimationSlot*` at `&slots[1]`. `func_actor_323300_80162748` is the
-example (`Actor503500Effect4CC` / `Actor503500Work` are the same shape
+example (`_Actor503500Actor361100Model06038Work` / `Actor503500Work` are the same shape
 already written this way). Input `base_1.i`
 `8080b9c2b7f7099aa79305af544c7edb78587a6b3e880f99af0e2b1363f1bd62`.
 
@@ -126339,7 +126339,7 @@ pointer *inside* case 2 as `lw $v0, 0x1C($a0)` followed by a `nop`, because thei
 sources spell the cast at the use site:
 
 ```c
-((Actor503500Effect4CC*)task->work)->field_4C8 = mode;
+((_Actor503500Actor361100Model06038Work*)task->work)->freeCountdown = mode;
 ```
 
 GCC 2.8.1 schedules strictly one basic block at a time -- `schedule_insns` is
