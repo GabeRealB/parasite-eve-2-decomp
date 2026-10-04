@@ -8564,17 +8564,18 @@ fresh `lui`/`addiu %lo` for a *post-call* store (instead of `off($s0)`), use the
 local pointer only up through the call and name the global for the later write:
 
 ```c
-volatile CdReadyQueue* p = &CdReady_Queue;
-if (p->field_1 == 0) {
-    p->field_4 = CdReadyCallback(arg0); /* uses $s0 */
+_CdReadyQueue* queue = &CdReady_Queue;
+if (queue->callbackInstalled == 0) {
+    queue->prevCallback = CdReadyCallback(arg0); /* uses $s0 */
 } else {
     CdReadyCallback(arg0);
 }
-CdReady_Queue.field_1 = 1; /* reloads address into $v0 — not $s0 */
+CdReady_Queue.callbackInstalled = 1; /* reloads address into $v0 — not $s0 */
 ```
 
-`CdReady_InstallCallback` needs this plus `volatile` on the global (base+offset `sb`, not
-`%lo(sym+1)`). Writing `p->field_1 = 1` keeps `$s0` and mismatches.
+`CdReady_InstallCallback` needs this plus `volatile` on the field (base+offset `sb`, not
+`%lo(sym+1)`); the qualifier works the same on the member as on the whole object.
+Writing `queue->callbackInstalled = 1` keeps `$s0` and mismatches.
 
 **Indexed volatile arrays — multiply before base load.** A direct
 `arr[i].field = 0` on a `volatile` global often schedules the `lui`/`addiu` of
@@ -11260,6 +11261,15 @@ should also be `volatile`, or the load will sink into the middle of them.
 `Snd_InitFromStage` needs this on `D_80082135` and the surrounding
 `D_80082128` / `D_80082124` / `D_80082130` stores.
 
+A `volatile s8` reads the same way with no cast at all, so a volatile byte whose
+every arithmetic read is spelled `(s8)x` is a signed byte, not an unsigned one
+with a habit. The uses that looked like evidence for `u8` are not: an equality
+test between two `volatile s8` values is still `lbu`, `lbu`, `beq` with no
+extension, and `x = x + 1` is still `lbu`, `addiu`, `sb`. `_CdReadyQueue`'s
+`readIdx` / `writeIdx` are the example - `CdReady_Enqueue`, `CdReady_Poll` and
+`CdStream_IsBusy` are identical with the fields declared `volatile s8` and the
+seven casts removed.
+
 Halfword analogue: a plain `s16` load is usually `lh`, but the target may want
 
 ```
@@ -13777,7 +13787,7 @@ if (state->field_4 != pos) {  /* beq v1,v0 — field in v1, pos in v0 */
 
 ## Volatile global: index via global name, not a local pointer
 
-For a `volatile` global struct with an embedded array (e.g. `CdReady_Queue.entries`),
+For a global struct with `volatile` header fields and an embedded array (e.g. `CdReady_Queue.entries`),
 taking a local `p = &CdReady_Queue` and then forming `&((T*)((u8*)p + off))[idx]`
 (or `p->entries[idx]` through that pointer) often folds the field offset into
 the scaled index:
@@ -13797,19 +13807,19 @@ addu  v1, v1, v0
 ```
 
 Use the global directly (no local pointer) so the address of the struct is
-shared between the `%lo(sym)` field_0 access and the array base:
+shared between the `%lo(sym)` `locked` access and the array base:
 
 ```c
-temp = CdReady_Queue.field_0; /* lui/addiu + %lo lbu */
+temp = CdReady_Queue.locked; /* lui/addiu + %lo lbu */
 if (arg0 != 0) {
     idx = arg0 - 1;
-    entry = (_CdReadyEntry*)&CdReady_Queue.entries[idx];
+    entry = &CdReady_Queue.entries[idx];
     ...
-    CdReady_Queue.field_0 = temp;
+    CdReady_Queue.locked = temp;
 }
 ```
 
-`CdReady_Cancel` is the minimal example. A local `volatile CdReadyQueue* p` was the
+`CdReady_Cancel` is the minimal example. A local `_CdReadyQueue*` for the queue was the
 sole difference between a 99% and a 100% match.
 
 ## Early-return `move v0,zero` vs `move a1,zero` with a live sum
@@ -17845,10 +17855,10 @@ target builds `idx*stride` first then `addiu base, p, offsetof(entries)`:
 
 ```c
 /* Right: multiply first, then base = p+8 */
-entry = &CdReady_Queue.entries[(s8)p->field_3];
+entry = &CdReady_Queue.entries[queue->writeIdx];
 
-/* Wrong fold: (idx*20 + 8) + p */
-entry = &p->entries[(s8)p->field_3];
+/* Wrong fold: (idx*20 + 8) + queue */
+entry = &queue->entries[queue->writeIdx];
 ```
 
 `CdReady_Enqueue` is the pure example (CdReady_Queue.entries queue push).
@@ -19995,12 +20005,13 @@ changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
 `CdReady_Poll` (and the sibling `AsyncCb_Poll`) process one slot of a 4-entry
 callback ring. Two matching details that look like style nits but are required:
 
-1. **Non-volatile entry pointer.** The queue object itself is `volatile`
-   (`CdReady_Queue`), but the current slot must be taken as a plain
-   `_CdReadyEntry*`:
+1. **Non-volatile entry pointer.** The queue's header fields are `volatile`
+   (`_CdReadyQueue::locked`, `readIdx`, `writeIdx`), but the slots are not, and
+   the current one must be taken as a plain `_CdReadyEntry*`. Qualifying the
+   members rather than the whole object says exactly that and needs no cast:
 
 ```c
-entry = (_CdReadyEntry*)&CdReady_Queue.entries[(s8)p->field_2];
+entry = &CdReady_Queue.entries[queue->readIdx];
 entry->active    = 0;
 entry->cancelled = 0;
 ```
@@ -20010,11 +20021,11 @@ entry->cancelled = 0;
    `lw` / `li -2` / `and` / `li -5` / `and` / `sw` chain in `$v0`/`$v1`.
 
 2. **Do not share the "advance index" block across arms.** The bit-0 path
-   advances through the base already in `$s1` (`p->field_2 = …`). The bit-2
+   advances through the base already in `$s1` (`queue->readIdx = …`). The bit-2
    path reloads the global (`lui`/`addiu` of `CdReady_Queue`) and writes
-   `CdReady_Queue.field_2`. Sharing one advance via `goto` from both arms merges
+   `CdReady_Queue.readIdx`. Sharing one advance via `goto` from both arms merges
    them onto `$s1` and shrinks the function. Duplicate the increment/wrap
-   literally, once via `p` and once via the global name.
+   literally, once via `queue` and once via the global name.
 
 `AsyncCb_Poll` is the pure template for control flow; `CdReady_Poll` adds the
 `field_0` lock check and the no-arg `doneFn` callback.
@@ -22390,7 +22401,7 @@ another purpose, then reused after the block):
 ```c
 a3 = (volatile CdStreamState*)&CdReady_Queue; /* may be needed for reg color */
 …
-e = (_CdReadyEntry*)&CdReady_Queue.entries[idx]; /* global → addiu v0, base, 8 */
+e = &CdReady_Queue.entries[idx]; /* global → addiu v0, base, 8 */
 ```
 
 `CdStream_Start` is the pure example — 99.9% until this one form difference.

@@ -282,16 +282,26 @@ typedef struct _CdReadyEntry {
 } _CdReadyEntry;
 STATIC_ASSERT_SIZEOF(_CdReadyEntry, 0x14);
 
-/// BSS object CdReady_Queue (size 0x58). Ring of CD ready work items + callback state.
-typedef struct _CdReadyQueue {
-    /* 0x00 */ u8            locked;            // re-entrancy guard
-    /* 0x01 */ u8            callbackInstalled; // CdReadyCallback currently ours
-    /* 0x02 */ u8            readIdx;
-    /* 0x03 */ u8            writeIdx;
-    /* 0x04 */ CdlCB         prevCallback; // previous CdReadyCallback
-    /* 0x08 */ _CdReadyEntry entries[4];
-} CdReadyQueue;
-STATIC_ASSERT_SIZEOF(CdReadyQueue, 0x58);
+/// The CD-ready queue: a ring of disc jobs polled one at a time, with the state
+/// of the data-ready handler those jobs install.
+///
+/// Jobs are queued at `writeIdx` and polled in order from `readIdx`. The ring
+/// is empty when the two are equal, so one slot always stays free and a full
+/// ring refuses the job. A queued job is known to its owner by its slot's
+/// index plus one, zero meaning none.
+///
+/// The header is volatile because the vsync tick polls the queue while the
+/// main thread queues and cancels jobs. The slots are not: a job's status bits
+/// are updated as one word.
+typedef struct {
+    volatile u8    locked;            // nonzero while a caller edits the queue; the poll then skips its turn
+    volatile u8    callbackInstalled; // a job has the data-ready handler installed (0 no, 1 yes)
+    volatile s8    readIdx;           // slot of the job being polled
+    volatile s8    writeIdx;          // slot the next job is queued in
+    volatile CdlCB prevCallback;      // handler `CdReadyCallback` held before a job's first install; saved, never restored
+    _CdReadyEntry  entries[4];        // the ring
+} _CdReadyQueue;
+STATIC_ASSERT_SIZEOF(_CdReadyQueue, 0x58);
 
 /// Clears `count` words at `dst`, in place like `MEM_CLEAR`.
 #define MEM_CLEAR_WORDS(dst, count)                       \
@@ -323,7 +333,7 @@ static volatile s32 CdStream_LastPhase;
 
 static CdStreamRuntime CdStream_Runtime;
 
-static volatile CdReadyQueue CdReady_Queue;
+static _CdReadyQueue CdReady_Queue;
 
 static volatile s32 D_80068B54;
 
@@ -951,20 +961,20 @@ u16 Snd_VelocityGainTable[] = {
 
 static s32 CdReady_Enqueue(_CdReadyEntry* arg0)
 {
-    u8                     saved;
-    s32                    field2;
-    s32                    next;
-    _CdReadyEntry*         entry;
-    volatile CdReadyQueue* p;
+    u8             saved;
+    s32            field2;
+    s32            next;
+    _CdReadyEntry* entry;
+    _CdReadyQueue* queue;
 
-    p                    = &CdReady_Queue;
+    queue                = &CdReady_Queue;
     saved                = CdReady_Queue.locked;
     CdReady_Queue.locked = 1;
 
-    field2 = (s8)p->readIdx;
-    next   = (s8)p->writeIdx;
+    field2 = queue->readIdx;
+    next   = queue->writeIdx;
     next   = next + 1;
-    if (next >= 4) {
+    if (next >= ARRAY_SIZE(queue->entries)) {
         next = 0;
     }
 
@@ -973,7 +983,7 @@ static s32 CdReady_Enqueue(_CdReadyEntry* arg0)
         return 0;
     }
 
-    entry           = (_CdReadyEntry*)&CdReady_Queue.entries[(s8)p->writeIdx];
+    entry           = &CdReady_Queue.entries[queue->writeIdx];
     entry->pollFn   = arg0->pollFn;
     entry->sector   = arg0->sector;
     entry->doneFn   = arg0->doneFn;
@@ -984,20 +994,20 @@ static s32 CdReady_Enqueue(_CdReadyEntry* arg0)
     entry->cancelPending = 0;
     entry->phase         = 0;
     entry->firstPoll     = 1;
-    field2               = (s8)p->writeIdx;
-    p->writeIdx          = next;
+    field2               = queue->writeIdx;
+    queue->writeIdx      = next;
     CdReady_Queue.locked = saved;
     return field2 + 1;
 }
 
 static void CdReady_Poll(void)
 {
-    volatile CdReadyQueue* p;
-    _CdReadyEntry*         entry;
+    _CdReadyQueue* queue;
+    _CdReadyEntry* entry;
 
-    p = &CdReady_Queue;
-    if (p->locked == 0 && p->writeIdx != p->readIdx) {
-        entry = (_CdReadyEntry*)&CdReady_Queue.entries[(s8)p->readIdx];
+    queue = &CdReady_Queue;
+    if (queue->locked == 0 && queue->writeIdx != queue->readIdx) {
+        entry = &CdReady_Queue.entries[queue->readIdx];
         if (entry->active) {
             if (entry->pollFn(entry) != 0) {
                 if (entry->doneFn != NULL) {
@@ -1005,9 +1015,9 @@ static void CdReady_Poll(void)
                 }
                 entry->active    = 0;
                 entry->cancelled = 0;
-                p->readIdx       = p->readIdx + 1;
-                if ((s8)p->readIdx >= 4) {
-                    p->readIdx = 0;
+                queue->readIdx   = queue->readIdx + 1;
+                if (queue->readIdx >= ARRAY_SIZE(queue->entries)) {
+                    queue->readIdx = 0;
                 }
             }
         } else {
@@ -1026,7 +1036,7 @@ static void CdReady_Poll(void)
             }
             entry->cancelled      = 0;
             CdReady_Queue.readIdx = CdReady_Queue.readIdx + 1;
-            if ((s8)CdReady_Queue.readIdx >= 4) {
+            if (CdReady_Queue.readIdx >= ARRAY_SIZE(CdReady_Queue.entries)) {
                 CdReady_Queue.readIdx = 0;
             }
         }
@@ -1041,7 +1051,7 @@ void CdStream_Start(CdStreamParams* params)
     volatile CdStreamState* ap;
     union {
         volatile CdStreamState* state;
-        volatile CdReadyQueue*  queue;
+        _CdReadyQueue*          queue;
     } a3;
     SpuVoiceAttr*  t0;
     SpuVoiceAttr*  ch1;
@@ -1087,7 +1097,7 @@ void CdStream_Start(CdStreamParams* params)
         saved    = CdReady_Queue.locked;
         if (f6 != 0) {
             idx = f6 - 1;
-            e   = (_CdReadyEntry*)&CdReady_Queue.entries[idx];
+            e   = &CdReady_Queue.entries[idx];
             if (e->active) {
                 e->active    = 0;
                 e->cancelled = 1;
@@ -1246,7 +1256,7 @@ void CdStream_Stop(void)
             temp = CdReady_Queue.locked;
             if (arg0 != 0) {
                 idx   = arg0 - 1;
-                entry = (_CdReadyEntry*)&CdReady_Queue.entries[idx];
+                entry = &CdReady_Queue.entries[idx];
                 if (entry->active) {
                     entry->active    = 0;
                     entry->cancelled = 1;
@@ -1295,7 +1305,7 @@ static void CdStream_TeardownVoices(void)
             slot  = CdStream_Runtime.state.readySlot;
             saved = CdReady_Queue.locked;
             if (slot != 0) {
-                e = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(slot - 1)];
+                e = &CdReady_Queue.entries[(s16)(slot - 1)];
                 if (e->active) {
                     e->active    = 0;
                     e->cancelled = 1;
@@ -1465,7 +1475,7 @@ static void CdStream_TickPlayback(void)
                 slot  = CdStream_Runtime.state.readySlot;
                 saved = CdReady_Queue.locked;
                 if (slot != 0) {
-                    queued = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(slot - 1)];
+                    queued = &CdReady_Queue.entries[(s16)(slot - 1)];
                     if (queued->active) {
                         queued->active    = 0;
                         queued->cancelled = 1;
@@ -1558,7 +1568,7 @@ static void CdStream_CompleteChunkRead(void)
                     slot  = (u16)CdStream_Runtime.state.readySlot;
                     saved = CdReady_Queue.locked;
                     if (slot != 0) {
-                        queued = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(slot - 1)];
+                        queued = &CdReady_Queue.entries[(s16)(slot - 1)];
                         if (queued->active) {
                             queued->active    = 0;
                             queued->cancelled = 1;
@@ -1617,7 +1627,7 @@ void CdStream_Drive(void)
                         restartSlot = (u16)CdStream_Runtime.state.readySlot;
                         restartLock = CdReady_Queue.locked;
                         if (restartSlot != 0) {
-                            restartEntry = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(restartSlot - 1)];
+                            restartEntry = &CdReady_Queue.entries[(s16)(restartSlot - 1)];
                             if (restartEntry->active) {
                                 restartEntry->active    = 0;
                                 restartEntry->cancelled = 1;
@@ -1649,7 +1659,7 @@ void CdStream_Drive(void)
                         stopSlot = (u16)CdStream_Runtime.state.readySlot;
                         stopLock = CdReady_Queue.locked;
                         if (stopSlot != 0) {
-                            stopEntry = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(stopSlot - 1)];
+                            stopEntry = &CdReady_Queue.entries[(s16)(stopSlot - 1)];
                             if (stopEntry->active) {
                                 stopEntry->active    = 0;
                                 stopEntry->cancelled = 1;
@@ -1712,7 +1722,7 @@ void CdStream_Drive(void)
                             endSlot = (u16)CdStream_Runtime.state.readySlot;
                             endLock = CdReady_Queue.locked;
                             if (endSlot != 0) {
-                                endEntry = (_CdReadyEntry*)&CdReady_Queue.entries[(s16)(endSlot - 1)];
+                                endEntry = &CdReady_Queue.entries[(s16)(endSlot - 1)];
                                 if (endEntry->active) {
                                     endEntry->active    = 0;
                                     endEntry->cancelled = 1;
@@ -2422,11 +2432,11 @@ static s32 CdStream_InitDisc(AsyncCbEntry* entry)
 
 static void CdReady_InstallCallback(CdlCB arg0)
 {
-    volatile CdReadyQueue* p;
+    _CdReadyQueue* queue;
 
-    p = &CdReady_Queue;
-    if (p->callbackInstalled == 0) {
-        p->prevCallback = CdReadyCallback(arg0);
+    queue = &CdReady_Queue;
+    if (queue->callbackInstalled == 0) {
+        queue->prevCallback = CdReadyCallback(arg0);
     } else {
         CdReadyCallback(arg0);
     }
@@ -2435,13 +2445,13 @@ static void CdReady_InstallCallback(CdlCB arg0)
 
 static void CdReady_ClearCallback(void)
 {
-    volatile CdReadyQueue* p;
+    _CdReadyQueue* queue;
 
-    p = &CdReady_Queue;
-    if (p->callbackInstalled != 0) {
+    queue = &CdReady_Queue;
+    if (queue->callbackInstalled != 0) {
         CdReadyCallback(0);
-        p->prevCallback      = 0;
-        p->callbackInstalled = 0;
+        queue->prevCallback      = 0;
+        queue->callbackInstalled = 0;
     }
 }
 
@@ -2600,7 +2610,7 @@ static void CdReady_Cancel(s16 arg0)
     temp = CdReady_Queue.locked;
     if (arg0 != 0) {
         idx   = arg0 - 1;
-        entry = (_CdReadyEntry*)&CdReady_Queue.entries[idx];
+        entry = &CdReady_Queue.entries[idx];
         if (entry->active) {
             entry->active    = 0;
             entry->cancelled = 1;
