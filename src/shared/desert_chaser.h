@@ -60,6 +60,22 @@ typedef GpEnemyTaskFuncTable4 DesertChaserTaskStates;
 typedef EnemyTaskFuncTable3 DesertChaserTaskStates;
 #endif
 
+#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
+/// Allocation holding the cutscene build's contact push step.
+///
+/// `step` is the vector `ActorContact_GetScratchPosition` hands the contact
+/// routines, which the armed builds allocate as a bare `SVECTOR`. In both
+/// cutscene packages eight zero bytes separate it from the effect record that
+/// follows. No access to them is recovered, so whether they are trailing
+/// fields of this object or a separate unreferenced variable is unproven; they
+/// stay in this allocation only to keep the data after it at its address.
+typedef struct {
+    SVECTOR step;         // Whole-unit correction the last contact push applied; X and Z step one further unit when the 16.16 correction had a fraction
+    u8      unknown_8[8]; // Zero in the image; no access established and role unproven
+} DesertChaserContactPushStepStorage;
+STATIC_ASSERT_SIZEOF(DesertChaserContactPushStepStorage, 16);
+#endif
+
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
 /* The armed builds. DESERT_CHASER_RUN_SEQUENCE is the Water Tower run: one
  * more state ahead of the turn states, hits that only reply to the player

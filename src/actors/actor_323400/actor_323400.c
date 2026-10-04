@@ -44,18 +44,8 @@
 
 /// Psy-Q `RotMatrixY`.
 
-/// Whole-unit part of the last movement step `func_actor_323400_80162A2C`
-/// applied, rounded away from zero when the step had a fraction.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    SVECTOR value;
-    u8      retained[8];
-} Actor323400Storage1218;
-STATIC_ASSERT_SIZEOF(Actor323400Storage1218, 16);
-
-static Actor323400Storage1218 ActorContact_ScratchPosition;
+/// Whole-unit step `ActorContact_PushContact` last applied to its coordinate.
+static DesertChaserContactPushStepStorage ActorContact_ScratchPosition;
 
 /// Per-state animation table `desertChaserAnimTick` reads when it
 /// re-seeds the slots: 0x2D bytes per `field_82C`, indexed by `field_82E`.
@@ -2999,11 +2989,11 @@ TaskMessageEntry gRigMessages[7] = {
 
 TaskDesc D_actor_323400_8017120C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &_gActor323400DesertChaserBody } };
 
-static Actor323400Storage1218 ActorContact_ScratchPosition;
+static DesertChaserContactPushStepStorage ActorContact_ScratchPosition;
 
 static inline SVECTOR* ActorContact_GetScratchPosition(void)
 {
-    return &(ActorContact_ScratchPosition.value);
+    return &(ActorContact_ScratchPosition.step);
 }
 
 Actor323400Storage1228 gRigEffectRec;
