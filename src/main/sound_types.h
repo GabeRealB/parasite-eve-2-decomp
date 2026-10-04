@@ -479,8 +479,8 @@ typedef struct {
 } SpuVoiceRef;
 STATIC_ASSERT_SIZEOF(SpuVoiceRef, 0x8);
 
-/// Status bits of an `AsyncCbEntry`, the first word of each slot in the SPU
-/// callback queue.
+/// Status bits of an `AsyncCbEntry`, the first word of each slot in the
+/// asynchronous callback queue.
 ///
 /// The queue owns the four flags: it sets them when a job is queued, polled to
 /// completion or cancelled. `firstPoll` and `pollState` are for the job's poll

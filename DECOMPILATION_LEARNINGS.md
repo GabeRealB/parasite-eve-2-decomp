@@ -65443,7 +65443,7 @@ pointer and rescore.
 ## func_8004DE18: signed ring index and callback-copy scheduling
 
 The callback enqueue matched without pins using the existing `AsyncCbEntry` and
-`AsyncCbQueue` layouts. One statement per status bit, in the order
+`_AsyncCbQueue` layouts. One statement per status bit, in the order
 `entry->status.active = 1`, `cancelled = 0`, `cancelPending = 0`,
 `pollState = 0`, and `firstPoll = 1`, retains the individual masks (`| 1`,
 `& ~4`, `& ~8`, `& ~0xFF0`, `| 2`); one nested word expression folds the three

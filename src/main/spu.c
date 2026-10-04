@@ -86,18 +86,22 @@ typedef struct {
 } _SpuVoiceRange;
 STATIC_ASSERT_SIZEOF(_SpuVoiceRange, 0x4);
 
-/// Ring buffer of 4 AsyncCbEntry callback slots (AsyncCb_Queue, size 0x54).
-/// field_0 = readIdx; field_1 = writeIdx.
-typedef struct _AsyncCbQueue {
-    /* 0x00 */ s8           field_0; // readIdx
-    /* 0x01 */ s8           field_1; // writeIdx
-    /* 0x02 */ u8           pad_2[2];
-    /* 0x04 */ AsyncCbEntry entries[4];
-} AsyncCbQueue;
-STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
+/// The asynchronous callback queue: a ring of jobs polled one at a time.
+///
+/// Jobs are queued at `writeIdx` and polled in order from `readIdx`. The ring
+/// is empty when the two are equal, so one slot always stays free and a full
+/// ring refuses the job. A queued job is known to its owner by its slot's
+/// index plus one, zero meaning none; cancelling one marks its slot and leaves
+/// the indices alone, so the slot is given up only when the poll reaches it.
+typedef struct {
+    s8           readIdx;    // slot of the job being polled
+    s8           writeIdx;   // slot the next job is queued in
+    AsyncCbEntry entries[4]; // the ring
+} _AsyncCbQueue;
+STATIC_ASSERT_SIZEOF(_AsyncCbQueue, 0x54);
 
 /// The SPU ADPCM block uploaded to SPU address 0x7B440 at start-up.
-static AsyncCbQueue AsyncCb_Queue;
+static _AsyncCbQueue AsyncCb_Queue;
 
 static _SpuVoiceState Spu_VoiceState;
 
@@ -139,11 +143,10 @@ static u8 Spu_InitialAdpcmBlock[] = {
 void AsyncCb_Poll(void)
 {
     AsyncCbEntry* entry;
-    s8            idx;
     s8            current;
 
-    current = AsyncCb_Queue.field_0;
-    if (AsyncCb_Queue.field_1 != current) {
+    current = AsyncCb_Queue.readIdx;
+    if (AsyncCb_Queue.writeIdx != current) {
         entry = &AsyncCb_Queue.entries[current];
         if (entry->status.active) {
             if (entry->pollFn(entry) != 0) {
@@ -152,10 +155,8 @@ void AsyncCb_Poll(void)
                 }
                 entry->status.active    = 0;
                 entry->status.cancelled = 0;
-                idx                     = (u8)AsyncCb_Queue.field_0 + 1;
-                AsyncCb_Queue.field_0   = idx;
-                if (idx >= 4) {
-                    AsyncCb_Queue.field_0 = 0;
+                if (++AsyncCb_Queue.readIdx >= ARRAY_SIZE(AsyncCb_Queue.entries)) {
+                    AsyncCb_Queue.readIdx = 0;
                 }
             }
         } else {
@@ -173,10 +174,8 @@ void AsyncCb_Poll(void)
                 }
             }
             entry->status.cancelled = 0;
-            idx                     = (u8)AsyncCb_Queue.field_0 + 1;
-            AsyncCb_Queue.field_0   = idx;
-            if (idx >= 4) {
-                AsyncCb_Queue.field_0 = 0;
+            if (++AsyncCb_Queue.readIdx >= ARRAY_SIZE(AsyncCb_Queue.entries)) {
+                AsyncCb_Queue.readIdx = 0;
             }
         }
     }
@@ -193,7 +192,7 @@ void AsyncCb_Reset(void)
         *ptr = 0;
         i++;
         ptr++;
-    } while (i < 0x15U);
+    } while (i < sizeof(AsyncCb_Queue) / sizeof(*ptr));
 }
 
 s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks)
@@ -203,11 +202,11 @@ s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks)
     s32           current;
     s8            writeIdx;
 
-    writeIdx = AsyncCb_Queue.field_1;
-    current  = AsyncCb_Queue.field_0;
+    writeIdx = AsyncCb_Queue.writeIdx;
+    current  = AsyncCb_Queue.readIdx;
     next     = writeIdx;
     next++;
-    if (next >= 4) {
+    if (next >= ARRAY_SIZE(AsyncCb_Queue.entries)) {
         next = 0;
     }
     if (next == current) {
@@ -223,8 +222,8 @@ s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks)
         entry->status.cancelPending = 0;
         entry->status.pollState     = 0;
         entry->status.firstPoll     = 1;
-        current                     = AsyncCb_Queue.field_1;
-        AsyncCb_Queue.field_1       = next;
+        current                     = AsyncCb_Queue.writeIdx;
+        AsyncCb_Queue.writeIdx      = next;
         return current + 1;
     }
 }
