@@ -34,6 +34,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/random.h"
@@ -98,16 +99,6 @@ STATIC_ASSERT_SIZEOF(Actor110600TsvScratch, 0x2C);
 /// Turns the walker towards `pos` by at most `turnLimit` angle units a frame.
 /// The wrapped relative bearing drives the consecutive-turn counter, then
 /// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
-
-/// Event record `func_actor_110600_80134040` dispatches on: `w[0]` is the event
-/// kind (0x301, 0x401) and `w[1]` its sub-code, and the first three bytes are
-/// also copied raw into `Actor110600Work::field_BDC`. Same shape as
-/// `Actor401300Event`, which is the same body one overlay over.
-typedef union Actor110600Event {
-    u8  b[3];
-    u16 w[2];
-    u32 raw;
-} Actor110600Event;
 
 /// Work block this overlay parks in the task's `Task::work` slot (0x1C).
 /// `func_actor_110600_80134AB4` allocates it
@@ -208,10 +199,15 @@ typedef struct Actor110600Work {
     /* 0xBD0 */ u8                 field_BD0[4];
     /* 0xBD4 */ Task*              field_BD4;
     /* 0xBD8 */ Task*              field_BD8;
-    /// Copy of the first three bytes of the last event
-    /// `func_actor_110600_80134040` handled.
-    /* 0xBDC */ Actor110600Event field_BDC;
-    /* 0xBE0 */ s16              field_BE0;
+    /// The last `ActorCommand` delivered to the actor, recorded whether or
+    /// not it was applied. A later state tests it for the cafeteria's
+    /// commands 3 and 6.
+    /* 0xBDC */ struct {
+        u8 stage;   // Stage tag of the command's context
+        u8 area;    // Area tag of the command's context
+        u8 command; // Low byte of the command word
+    } field_BDC;
+    /* 0xBE0 */ s16 field_BE0;
     /// Death-shrink stage: `func_actor_110600_80137DB0` runs its idle half at
     /// 0 and its halving tail at 1, advancing from 0 once `field_4E` lands on
     /// pose 4.
@@ -263,14 +259,15 @@ extern AnimationSet* D_actor_110600_80148598;
 extern AnimationSet* D_actor_110600_8014859C;
 extern AnimationSet* D_actor_110600_801485A0;
 
-/// Event handler: saves the event's first three bytes in the work block's
-/// `field_BDC`, then dispatches on the event kind. Kind 0x301 with sub-code 1
-/// enters state 0x14; kind 0x401 picks a display slot and a `field_892` state
-/// per sub-code — 1, 8 and 9 only set the state, and 9 shares its tail with the
-/// five sub-codes that repoint a slot — parking the actor in state 0x11 with
-/// `field_2` cleared. Returns 1 when it handled the event, 0 otherwise. `arg1`
-/// is unused; it exists because the dispatch passes three arguments.
-s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2, s32 arg3);
+/// Actor-command handler: records the command's stage, area and low command
+/// byte in the work block's `field_BDC`, then dispatches on its context. The
+/// patio's context (0x301) with command 1 enters state 0x14; the cafeteria's
+/// (0x401) picks a display slot and a `field_892` state per command — 1, 8 and
+/// 9 only set the state, and 9 shares its tail with the five commands that
+/// repoint a slot — parking the actor in state 0x11 with `field_2` cleared.
+/// Returns 1 when it applied the command, 0 otherwise. `arg1` is unused; it
+/// exists because the dispatch passes three arguments.
+s32 func_actor_110600_80134040(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg3);
 
 /// The `0x7D3` display handler: parks the actor in state 0x11 with
 /// `field_892` set from the requested state.
@@ -391,7 +388,7 @@ static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
 // Message-table callbacks use the argument views required by this TU.
 
 s32 func_actor_110600_80133E48(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
-s32 func_actor_110600_80134040(Task*, s32, Actor110600Event*, s32);
+s32 func_actor_110600_80134040(Task*, s32, ActorCommand*, s32);
 s32 func_actor_110600_8013839C(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_110600_80138448(Task*, s32, s32, s32);
 s32 func_actor_110600_80138538(Task*, s32, s32, s32);
@@ -1244,30 +1241,31 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement, 
     return 1;
 }
 
-/// Event handler: saves the event's first three bytes in the work block's
-/// `field_BDC`, then dispatches on the event kind. Kind 0x301 with sub-code 1
-/// enters state 0x14; kind 0x401 picks a display slot and a `field_892` state
-/// per sub-code — 1, 8 and 9 only set the state, and 9 shares its tail with the
-/// five sub-codes that repoint a slot — parking the actor in state 0x11 with
-/// `field_2` cleared. Written with the share as a `goto` because the sub-codes
-/// fall through into it from case 9. `arg1` is unused; it exists because the
-/// dispatch passes three arguments.
-s32 func_actor_110600_80134040(Task* arg0, s32 arg1, Actor110600Event* arg2, s32 arg3)
+/// Actor-command handler: records the command's stage, area and low command
+/// byte in the work block's `field_BDC`, then dispatches on its context. The
+/// patio's context (0x301) with command 1 enters state 0x14; the cafeteria's
+/// (0x401) picks a display slot and a `field_892` state per command — 1, 8 and
+/// 9 only set the state, and 9 shares its tail with the five commands that
+/// repoint a slot — parking the actor in state 0x11 with `field_2` cleared.
+/// Written with the share as a `goto` because the commands fall through into
+/// it from case 9. `arg1` is unused; it exists because the dispatch passes
+/// three arguments.
+s32 func_actor_110600_80134040(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg3)
 {
     Actor110600Work* work = arg0->work;
 
-    work->field_BDC.b[0] = arg2->b[0];
-    work->field_BDC.b[1] = arg2->b[1];
-    work->field_BDC.b[2] = arg2->b[2];
-    if (arg2->w[0] == 0x301) {
-        if (arg2->w[1] == 1) {
+    work->field_BDC.stage   = arg2->context.loc.stage;
+    work->field_BDC.area    = arg2->context.loc.area;
+    work->field_BDC.command = arg2->command;
+    if (arg2->context.key == 0x301) {
+        if (arg2->command == 1) {
             work->field_0 = 0x14;
             return 1;
         }
         return 0;
     }
-    if (arg2->w[0] == 0x401) {
-        switch (arg2->w[1]) {
+    if (arg2->context.key == 0x401) {
+        switch (arg2->command) {
             default:
                 return 0;
             case 1:
@@ -2870,7 +2868,7 @@ static void func_actor_110600_801372CC(Task* arg0)
         work->field_896               = 0x10;
         work->field_8A2               = 0;
         work->field_8A4               = 0;
-        if ((work->field_BDC.raw & 0xFFFFFF) == 0x60401) {
+        if ((work->field_BDC.stage == GAME_STAGE_ACROPOLIS) && (work->field_BDC.area == GAME_AREA_ACROPOLIS_CAFETERIA) && (work->field_BDC.command == 6)) {
             rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState = rng;
             if ((rng >> 16) & 1) {
@@ -2900,7 +2898,7 @@ static void func_actor_110600_801372CC(Task* arg0)
 
     Actor110600_RescaleRoot(arg0, work->walker.scale);
 
-    if (((work->field_BDC.raw & 0xFFFFFF) == 0x30401) && (work->field_892 != 0x1E)) {
+    if ((work->field_BDC.stage == GAME_STAGE_ACROPOLIS) && (work->field_BDC.area == GAME_AREA_ACROPOLIS_CAFETERIA) && (work->field_BDC.command == 3) && (work->field_892 != 0x1E)) {
         if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xB) {
             D_actor_110600_80147D20[0x24][0x1E] = 6;
             work->field_892                     = 0x1E;

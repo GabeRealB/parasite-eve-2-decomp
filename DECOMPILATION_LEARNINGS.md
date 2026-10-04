@@ -140719,6 +140719,39 @@ target's single `lhu v1,0x668(a0)` / `beqz`, which had been matched through a
 `u16 flags` union laid over the pair. The union was the artifact: all four
 tests in `actor_403100` match as the `||` of two plain `u8` members.
 
+## `(raw & 0xFFFFFF) == K` beside three `lbu`/`sb` copies is three `u8` fields compared with `&&` (actor_110600, 2026-10-04)
+
+**Symptom.** An actor-command handler copies the first three bytes of its
+`ActorCommand` into the work block one at a time (`lbu`/`sb` at 0, 1, 2), and a
+later state tests them with `lw v1,0xBDC(s4)` / `and v1,v1,0xFFFFFF` /
+`bne v1,0x60401`. The byte copies and the word compare fit no single scalar, so
+the payload and the cache were both wrapped in a union of `u8 b[3]`,
+`u16 w[2]` and `u32 raw`.
+
+**Cause.** The same `fold_truthop` merge as the two entries above, over three
+fields: `stage == 1 && area == 4 && command == 6` on adjacent `u8` members of
+a word-aligned struct is loaded as one word and masked to the 24 bits compared.
+The third copy narrows on its own - storing a `u16` field into a `u8` member
+reads `lbu` at the field's low byte, not `lhu`.
+
+**Fix.** Declare the cache as three bytes, take the payload as the shared
+`ActorCommand`, and write the fields:
+
+```c
+struct { u8 stage; u8 area; u8 command; } field_BDC;
+
+work->field_BDC.stage   = arg2->context.loc.stage;
+work->field_BDC.area    = arg2->context.loc.area;
+work->field_BDC.command = arg2->command;
+...
+if ((work->field_BDC.stage == GAME_STAGE_ACROPOLIS) &&
+    (work->field_BDC.area == GAME_AREA_ACROPOLIS_CAFETERIA) &&
+    (work->field_BDC.command == 6)) {
+```
+
+A fourth, unrelated test in the same `&&` chain (`... && work->field_892 != 0x1E`)
+does not disturb the merge.
+
 ## A scratch target can come from another overlay's same-named `.s` (RoomsShared8017eb5cIdList, 2026-09-24)
 
 **Symptom.** The first build compiles all 412 instructions yet scores 0% with
