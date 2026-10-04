@@ -1,9 +1,9 @@
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Turn step, run every frame while `field_3A6` is non-zero: reads the
-/// heading back from the coordinate, turns it toward `field_3A4` by at most
-/// `field_3A6` the shorter way round the circle, keeps the result in
-/// `field_3A2` and rebuilds the coordinate's rotation as that pure yaw.
+/// Turn step, run every frame while `turnRate` is non-zero: reads the
+/// heading back from the coordinate, turns it toward `targetYaw` by at most
+/// `turnRate` the shorter way round the circle, keeps the result in
+/// `yaw` and rebuilds the coordinate's rotation as that pure yaw.
 void maggotCaterpillarTurnStep(Task* arg0)
 {
     MaggotCaterpillarWork* work;
@@ -22,26 +22,26 @@ void maggotCaterpillarTurnStep(Task* arg0)
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->field_3A4;
+    want  = work->targetYaw;
     diff  = want - ang;
     adiff = diff >= 0 ? diff : -diff;
 
-    work->field_3A2 = ang;
+    work->yaw = ang;
     if (adiff < 0x800) {
-        step = work->field_3A6;
+        step = work->turnRate;
         if (step >= adiff) {
-            work->field_3A2 = want;
+            work->yaw = want;
         } else {
-            next = work->field_3A2;
+            next = work->yaw;
             if (diff <= 0) {
                 next -= step;
             } else {
                 next += step;
             }
-            work->field_3A2 = next;
+            work->yaw = next;
         }
     } else {
-        step = work->field_3A6;
+        step = work->turnRate;
         if (diff > 0) {
             if (step >= 0x1000 - diff) {
                 goto snap;
@@ -54,20 +54,20 @@ void maggotCaterpillarTurnStep(Task* arg0)
             goto turn;
         }
     snap:
-        work->field_3A2 = work->field_3A4;
+        work->yaw = work->targetYaw;
         goto done;
     turn:
-        wrapStep = work->field_3A6;
-        cur      = work->field_3A2;
+        wrapStep = work->turnRate;
+        cur      = work->yaw;
         if (diff > 0) {
-            work->field_3A2 = cur - wrapStep;
+            work->yaw = cur - wrapStep;
         } else {
-            work->field_3A2 = cur + wrapStep;
+            work->yaw = cur + wrapStep;
         }
     }
 done:
     sc->rot.vx = 0;
-    sc->rot.vy = work->field_3A2;
+    sc->rot.vy = work->yaw;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
     SCRATCH_STACK_RELEASE_BYTES(0x18);

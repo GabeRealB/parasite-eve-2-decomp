@@ -1,7 +1,7 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
 /// Per-frame collision pass: pushes the model out of what it touches, turns
-/// it around on a blocking contact, and notes in `field_3CE` whether a body
+/// it around on a blocking contact, and notes in `blocked` whether a body
 /// or a wall blocked it.
 void maggotCaterpillarResolveContacts(Task* arg0)
 {
@@ -22,7 +22,6 @@ void maggotCaterpillarResolveContacts(Task* arg0)
     s32                          dz;
     VECTOR*                      unit;
     s32                          i;
-    s16                          timer;
     s32                          one;
     u32                          kind;
 
@@ -33,11 +32,11 @@ void maggotCaterpillarResolveContacts(Task* arg0)
     head    = SCRATCH_STACK_CURSOR(MaggotCaterpillarHitScratch);
     scratch = SCRATCH_STACK_CURSOR(MaggotCaterpillarHitScratch) = head - 1;
     enemy                                                       = (Enemy*)arg0->spawnArg2.pointer;
-    work->field_3CC                                             = 0;
-    result                                                      = func_800E0C10(work->field_234, &scratch->delta, 4, NULL);
+    work->landed                                                = 0;
+    result                                                      = func_800E0C10(work->gridContacts, &scratch->delta, 4, NULL);
     if (result != 0) {
-        if (work->field_39A == 2) {
-            work->field_3CC = 1;
+        if (work->behaviour == MAGGOT_CATERPILLAR_BEHAVIOUR_AMBUSH) {
+            work->landed = 1;
         }
         switch (result) {
             case 0:
@@ -48,27 +47,25 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                 coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
                 break;
             case 2:
-                coord->coord.t[0] = work->field_35C.vx;
-                coord->coord.t[1] = work->field_35C.vy;
-                coord->coord.t[2] = work->field_35C.vz;
+                coord->coord.t[0] = work->prevPos.vx;
+                coord->coord.t[1] = work->prevPos.vy;
+                coord->coord.t[2] = work->prevPos.vz;
                 break;
         }
     }
-    Gp_ClearRec18Occupied(work->field_234);
-    if (work->field_390 != 0) {
-        timer           = (u16)work->field_390 - 1;
-        work->field_390 = timer;
-        if (timer <= 0) {
-            work->field_390 = 0;
+    Gp_ClearRec18Occupied(work->gridContacts);
+    if (work->hitCooldown != 0) {
+        if (--work->hitCooldown <= 0) {
+            work->hitCooldown = 0;
         }
     }
-    one = 1;
+    one = 1; // also stands for `MAGGOT_CATERPILLAR_REACTION_COMMITTED` and for the flags set below
 
-    work->field_3D0 = 0;
-    work->field_3BA = 0;
-    unit            = &scratch->normal;
+    work->struck = 0;
+    work->burst  = 0;
+    unit         = &scratch->normal;
     for (i = 0; i < 2; i++) {
-        kind = (u32)work->field_2B4[i].key.value >> 16;
+        kind = (u32)work->bodyContacts[i].key.value >> 16;
         if (kind == one)
             goto physical;
         if (kind == 0)
@@ -79,59 +76,59 @@ void maggotCaterpillarResolveContacts(Task* arg0)
             goto physical;
         goto next_contact;
     damage_contact:
-        if (work->field_390 == 0) {
+        if (work->hitCooldown == 0) {
             result = 0;
-            if ((((u32)work->field_2B4[i].key.value >> 8) & 0x3F) == 0x24) {
-                if ((work->field_2B4[i].key.value & 0x3F) == 0x24) {
+            if ((((u32)work->bodyContacts[i].key.value >> 8) & 0x3F) == 0x24) {
+                if ((work->bodyContacts[i].key.value & 0x3F) == 0x24) {
                     result = 1;
                 }
             }
-            if ((result != one) || (work->field_3B2 == 0)) {
-                src                      = gPlayerActorTasks[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
+            if ((result != one) || (work->burnFrame == 0)) {
+                src                      = gPlayerActorTasks[((u32)work->bodyContacts[i].key.value >> 7) & 1]->extra.tmd->coords;
                 dx                       = src->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vector.vx = dx;
                 dy                       = src->coord.t[1] - coord->coord.t[1];
                 scratch->delta.vector.vy = dy;
                 dz                       = src->coord.t[2] - coord->coord.t[2];
                 scratch->delta.vector.vz = dz;
-                damage                   = Gp_ComputeDamage((u32)work->field_2B4[i].key.value, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
+                damage                   = Gp_ComputeDamage((u32)work->bodyContacts[i].key.value, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
                 amount                   = damage;
                 if (result == 0) {
-                    if (work->field_3CA != 0) {
+                    if (work->midLeap != 0) {
                         amount = (damage << 16) >> 15;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 1, 3, NULL);
                     }
-                    if (Gp_RollEnemyChance(enemy, (u32)work->field_2B4[i].key.value, 0) != 0) {
+                    if (Gp_RollEnemyChance(enemy, (u32)work->bodyContacts[i].key.value, 0) != 0) {
                         amount = (amount << 16) >> 14;
-                        if (work->field_3CA == 0) {
+                        if (work->midLeap == 0) {
                             Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 1, 0, NULL);
                         }
                     }
-                    func_800E2C78(enemy, (u32)work->field_2B4[i].key.value, amount, 0);
+                    func_800E2C78(enemy, (u32)work->bodyContacts[i].key.value, amount, 0);
                 }
                 func_800DA6E8(&enemy->node, amount, 0);
                 enemy->hp -= amount;
-                if (work->field_3C8 != one) {
+                if (work->reactionMode != one) {
                     if (enemy->hp <= 0) {
-                        work->field_39A = 9;
-                        work->field_39C = 0;
+                        work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD;
+                        work->step      = 0;
                         arg0->state     = 2;
                     } else if (result == 0) {
-                        work->field_39A = 6;
-                        work->field_39C = 0;
+                        work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_HURT;
+                        work->step      = 0;
                     }
                 }
-                if (work->field_3C8 == 2) {
-                    if ((work->field_39A == 9) || (result == 0)) {
-                        work->field_3C8 = 0;
+                if (work->reactionMode == MAGGOT_CATERPILLAR_REACTION_REBOUND) {
+                    if ((work->behaviour == MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD) || (result == 0)) {
+                        work->reactionMode = MAGGOT_CATERPILLAR_REACTION_NORMAL;
                         MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, &scratch->rot);
                     }
                 }
                 if (result == 0) {
-                    work->field_3D0        = one;
-                    work->field_2E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                    work->struck            = one;
+                    work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 }
-                switch (Gp_GetIdParam0(work->field_2B4[i].key.value) & 0xFFFF) {
+                switch (Gp_GetIdParam0(work->bodyContacts[i].key.value) & 0xFFFF) {
                     case 0:
                     case 1:
                     case 5:
@@ -139,43 +136,43 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                     case 9:
                         break;
                     case 2:
-                        Gp_SetObjFlag2(enemy, work->field_2B4[i].key.value, 0);
+                        Gp_SetObjFlag2(enemy, work->bodyContacts[i].key.value, 0);
                         break;
                     case 3:
-                        Gp_SetObjFlag4(enemy, work->field_2B4[i].key.value, 0);
+                        Gp_SetObjFlag4(enemy, work->bodyContacts[i].key.value, 0);
                         break;
                     case 4:
                     case 6:
-                        if (work->field_3C8 != one) {
-                            work->field_3BA = one;
+                        if (work->reactionMode != one) {
+                            work->burst = one;
                         }
                         break;
                     case 7:
-                        if (work->field_3B0 == 0) {
-                            work->field_3B0        = one;
-                            work->field_3BE        = 0;
-                            work->field_3B2        = 0;
-                            work->field_31C.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                        if (work->burning == 0) {
+                            work->burning          = one;
+                            work->burnSoundTimer   = 0;
+                            work->burnFrame        = 0;
+                            work->flameBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                             Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_TINT);
                         }
                         break;
                 }
-                if (lastId != work->field_2B4[i].key.value) {
-                    lastId          = work->field_2B4[i].key.value;
+                if (lastId != work->bodyContacts[i].key.value) {
+                    lastId          = work->bodyContacts[i].key.value;
                     scratch->rot.vx = 0;
                     scratch->rot.vy = -0xC8;
                     scratch->rot.vz = 0;
-                    func_800FDB18(Gp_GetIdParam1(work->field_2B4[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, &scratch->rot, &work->field_354);
+                    func_800FDB18(Gp_GetIdParam1(work->bodyContacts[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, &scratch->rot, &work->effectArg);
                 }
-                result = Gp_GetIdParam2(work->field_2B4[i].key.value);
+                result = Gp_GetIdParam2(work->bodyContacts[i].key.value);
                 if (result > 0) {
-                    work->field_390 = result;
+                    work->hitCooldown = result;
                 }
             }
         }
         goto next_contact;
     physical:
-        MAGGOT_CATERPILLAR_CONTACT_OVERLAP(push, coord, work->field_2B4[i], scratch->delta);
+        MAGGOT_CATERPILLAR_CONTACT_OVERLAP(push, coord, work->bodyContacts[i], scratch->delta);
         if (best < push) {
             best = push;
             MAGGOT_CATERPILLAR_GRID_DIRECTION(&scratch->delta, unit, &scratch->local);
@@ -186,12 +183,12 @@ void maggotCaterpillarResolveContacts(Task* arg0)
         coord->coord.t[0] += (best * scratch->local.vx) >> 12;
         coord->coord.t[2] += (best * scratch->local.vz) >> 12;
     }
-    Gp_ClearRec18Occupied(work->field_2B4);
-    work->field_3CE = 0;
-    if (work->field_304[0].flags & 1) {
-        MAGGOT_CATERPILLAR_NOTE_BLOCKING_CONTACT(work, work->field_304[0]);
-        work->field_2E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        Gp_ClearRec18Occupied(work->field_304);
+    Gp_ClearRec18Occupied(work->bodyContacts);
+    work->blocked = 0;
+    if (work->attackContacts[0].flags & 1) {
+        MAGGOT_CATERPILLAR_NOTE_BLOCKING_CONTACT(work, work->attackContacts[0]);
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        Gp_ClearRec18Occupied(work->attackContacts);
     }
     SCRATCH_STACK_RELEASE_BLOCK(MaggotCaterpillarHitScratch);
 }

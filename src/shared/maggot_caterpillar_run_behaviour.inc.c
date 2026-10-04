@@ -1,38 +1,41 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
-/// Runs the handler of the work's current behaviour state (`field_39A`, 0-8);
-/// state 9, entered when the hit points run out, runs nothing.
+/// Runs the handler of the work's current `behaviour`;
+/// `MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD`, entered when the hit points run out, runs nothing.
 void maggotCaterpillarRunBehaviour(Task* arg0)
 {
-    switch (((MaggotCaterpillarWork*)arg0->work)->field_39A) {
-        case 0:
+    MaggotCaterpillarWork* work;
+
+    work = arg0->work;
+    switch (work->behaviour) {
+        case MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT:
             maggotCaterpillarWaitState(arg0);
             break;
-        case 1:
+        case MAGGOT_CATERPILLAR_BEHAVIOUR_AIM:
             maggotCaterpillarAimState(arg0);
             break;
-        case 2:
+        case MAGGOT_CATERPILLAR_BEHAVIOUR_AMBUSH:
             maggotCaterpillarAmbushState(arg0);
             break;
-        case 3:
+        case MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM:
             maggotCaterpillarRoamState(arg0);
             break;
-        case 4:
+        case MAGGOT_CATERPILLAR_BEHAVIOUR_SPRAY:
             maggotCaterpillarSprayState(arg0);
             break;
-        case 5:
+        case MAGGOT_CATERPILLAR_BEHAVIOUR_POUNCE:
             maggotCaterpillarPounceState(arg0);
             break;
-        case 6:
+        case MAGGOT_CATERPILLAR_BEHAVIOUR_HURT:
             maggotCaterpillarHurtState(arg0);
             break;
-        case 7:
+        case MAGGOT_CATERPILLAR_BEHAVIOUR_STUN:
             maggotCaterpillarStunState(arg0);
             break;
-        case 8:
+        case MAGGOT_CATERPILLAR_BEHAVIOUR_ENTRANCE:
             maggotCaterpillarEntranceState(arg0);
             break;
-        case 9:
+        case MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD:
             break;
     }
 }

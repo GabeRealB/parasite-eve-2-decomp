@@ -6,7 +6,7 @@
 /// and then runs the full tick like any other mode. The full tick applies the
 /// timed status damage when the context flags ask for it, resolves the
 /// collision records, runs the behaviour state, the effect step while
-/// `field_3B0` is set and the turn step while `field_3A6` is, moves and
+/// `burning` is set and the turn step while `turnRate` is, moves and
 /// animates the actor and refreshes its coordinate.
 void maggotCaterpillarTick(Enemy* arg0, Task* arg1)
 {
@@ -48,10 +48,10 @@ default_body:
     }
     maggotCaterpillarResolveContacts(arg1);
     maggotCaterpillarRunBehaviour(arg1);
-    if (work->field_3B0 != 0) {
+    if (work->burning != 0) {
         maggotCaterpillarBurnStep(arg1);
     }
-    if (work->field_3A6 != 0) {
+    if (work->turnRate != 0) {
         maggotCaterpillarTurnStep(arg1);
     }
     maggotCaterpillarMoveStep(arg1);

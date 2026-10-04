@@ -29,9 +29,9 @@
 #endif
 
 /* Per kind: the type id (in its collision keys, 0x30000 | id); the flag the
- * spawn stores in `field_3C0`, which the dying sequence reads back for the id
- * and which keeps the Caterpillar from spraying; and the player distances at
- * which it wakes, drops from its ambush, and pounces. */
+ * spawn stores in `isCaterpillar`, which the dying sequence reads back for the
+ * id and which keeps the Caterpillar from spraying; and the player distances
+ * at which it wakes, drops from its ambush, and pounces. */
 #if MAGGOT_CATERPILLAR_KIND == MAGGOT
 #define MAGGOT_CATERPILLAR_ID             0x1A
 #define MAGGOT_CATERPILLAR_IS_CATERPILLAR 0
@@ -52,60 +52,106 @@
 
 #include "main/task_types.h"
 
-/// Work block of the enemy whose code both actor_05500 and actor_02600 carry,
-/// kept at `Task::work`. Animation setup fills the context and eight slots;
-/// the projectile task has its own smaller collision-work allocation.
-typedef struct MaggotCaterpillarWork {
-    ActorAnimRig8         rig; // Playback storage of the model's parts; slots 1 to 7 are driven
-    MATRIX                field_1D4;
-    MATRIX                field_1F4;
-    WorldCollisionBody    field_214;
-    WorldCollisionContact field_234[4];
-    WorldCollisionBody    field_294;
-    WorldCollisionContact field_2B4[2];
-    WorldCollisionBody    field_2E4;
-    WorldCollisionContact field_304[1];
-    WorldCollisionBody    field_31C;
-    WorldCollisionContact field_33C[1];
-    EffectSpawnArg        field_354;
-    VECTOR3               field_35C;
-    byte                  pad_368[4];
-    TaskDesc*             field_36C;
-    MATRIX                field_370;
-    s16                   field_390;
-    s16                   field_392;
-    s16                   field_394;
-    u16                   field_396;
-    s16                   field_398;
-    s16                   field_39A;
-    s16                   field_39C;
-    s16                   field_39E;
-    s16                   field_3A0;
-    s16                   field_3A2;
-    s16                   field_3A4;
-    s16                   field_3A6;
-    s16                   field_3A8;
-    s16                   field_3AA;
-    u16                   field_3AC;
-    byte                  pad_3AE[2];
-    s16                   field_3B0;
-    s16                   field_3B2;
-    s16                   field_3B4;
-    s16                   field_3B6;
-    byte                  pad_3B8[2];
-    s16                   field_3BA;
-    s16                   field_3BC;
-    s16                   field_3BE;
-    s16                   field_3C0;
-    s16                   field_3C2;
-    s16                   field_3C4;
-    s16                   field_3C6;
-    s16                   field_3C8;
-    s16                   field_3CA;
-    s16                   field_3CC;
-    s16                   field_3CE;
-    s16                   field_3D0;
-    s16                   field_3D2;
+/// Behaviour the per-frame tick runs, held in `MaggotCaterpillarWork::behaviour`.
+enum {
+    MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT     = 0, // lies still until the player comes near, then wakes and crawls off
+    MAGGOT_CATERPILLAR_BEHAVIOUR_AIM      = 1, // holds its facing and pounces once the player is in range in front of it
+    MAGGOT_CATERPILLAR_BEHAVIOUR_AMBUSH   = 2, // hangs on its thread, drops, lands and gets up
+    MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM     = 3, // idles, crawls round to face the player and chooses an attack
+    MAGGOT_CATERPILLAR_BEHAVIOUR_SPRAY    = 4, // sprays puff projectiles
+    MAGGOT_CATERPILLAR_BEHAVIOUR_POUNCE   = 5, // leaps forward to bite, rebounding off what blocks it
+    MAGGOT_CATERPILLAR_BEHAVIOUR_HURT     = 6, // flinches from a hit
+    MAGGOT_CATERPILLAR_BEHAVIOUR_STUN     = 7, // held until the enemy's stun runs out
+    MAGGOT_CATERPILLAR_BEHAVIOUR_ENTRANCE = 8, // hidden until the room releases it, then leaps or drops in
+    MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD     = 9  // runs nothing: the task's dying state has taken over
+};
+
+/// Clips of `MaggotCaterpillarWork::animId`, indexing `gMaggotCaterpillarAnimSets`.
+///
+/// Each is named for the behaviour that plays it. Clip 8 has no set.
+enum {
+    MAGGOT_CATERPILLAR_ANIM_IDLE    = 1,
+    MAGGOT_CATERPILLAR_ANIM_CRAWL   = 2, // the roam's turn toward the player; it moves from frame 0xB and loops back there at 0x29
+    MAGGOT_CATERPILLAR_ANIM_SPRAY   = 3,
+    MAGGOT_CATERPILLAR_ANIM_POUNCE  = 4, // also the entrance's leap
+    MAGGOT_CATERPILLAR_ANIM_REBOUND = 5,
+    MAGGOT_CATERPILLAR_ANIM_HANG    = 6,
+    MAGGOT_CATERPILLAR_ANIM_DROP    = 7,
+    MAGGOT_CATERPILLAR_ANIM_LAND    = 9,
+    MAGGOT_CATERPILLAR_ANIM_GET_UP  = 10,
+    MAGGOT_CATERPILLAR_ANIM_HURT    = 11, // also the collapse of the dying sequence
+    MAGGOT_CATERPILLAR_ANIM_DORMANT = 12,
+    MAGGOT_CATERPILLAR_ANIM_WAKE    = 13,
+    MAGGOT_CATERPILLAR_ANIM_STUN    = 14
+};
+
+/// How a hit is taken, held in `MaggotCaterpillarWork::reactionMode`.
+enum {
+    MAGGOT_CATERPILLAR_REACTION_NORMAL    = 0, // a hit interrupts the behaviour
+    MAGGOT_CATERPILLAR_REACTION_COMMITTED = 1, // hanging, dropping or in the air of a leap: a hit does its damage and interrupts nothing, and death waits for the landing
+    MAGGOT_CATERPILLAR_REACTION_REBOUND   = 2  // the rebound clip has turned the model round: a hit that interrupts it, or the clip's end, turns the root half a turn to match
+};
+
+/// Work block of the Maggot and the Caterpillar, allocated by the spawn and
+/// kept at `Task::work`.
+///
+/// It holds the model's animation playback, the four collision spheres with
+/// their contact tables, and the state the per-frame tick steps. The puff
+/// projectile has a smaller work block of its own.
+typedef struct {
+    ActorAnimRig8         rig;               // playback of the model's parts; slots 1 to 7 are driven, all on `animId`
+    MATRIX                colorMtx;          // storage for the model's `TmdObject::colorMtx`
+    MATRIX                lightMtx;          // storage for the model's `TmdObject::lightMtx`
+    WorldCollisionBody    gridBody;          // sphere 0x12C above the root that only the room grid tests; its contacts push the root
+    WorldCollisionContact gridContacts[4];   // contact table of `gridBody`
+    WorldCollisionBody    body;              // sphere on part 1 that takes the hits and is pushed out of other bodies
+    WorldCollisionContact bodyContacts[2];   // contact table of `body`, also the enemy's hit records
+    WorldCollisionBody    attackBody;        // sphere carrying the attack's key: on part 4 for the bite, enabled over the leap; on the root, larger, through an ambush drop
+    WorldCollisionContact attackContacts[1]; // contact table of `attackBody`; a body or a wall in it sets `blocked`
+    WorldCollisionBody    flameBody;         // sphere on part 4 carrying the flame's key, enabled once it burns
+    WorldCollisionContact flameContacts[1];  // contact table of `flameBody`; never read
+    EffectSpawnArg        effectArg;         // argument record of the hit and burn effects, naming the root
+    VECTOR3               prevPos;           // root translation before the last move step; restored when the room grid pushes two ways, and what a drop measures its fall from
+    byte                  field_368[4];      // never accessed
+    TaskDesc*             taskTable;         // the package's task descriptors: the body's, then the puff's that the spray spawns
+    MATRIX                baseMatrix;        // copy of the root's matrix: its world matrix through the ambush, the frame the thread is drawn in; its local one from death, which the squash scales
+    s16                   hitCooldown;       // ticks before another hit is taken; set from the hit's id parameter 2
+    s16                   animId;            // `MAGGOT_CATERPILLAR_ANIM_*` requested of `rig`
+    s16                   appliedAnim;       // clip `rig` was last started on; a different `animId` restarts the slots
+    s16                   animFrame;         // ticks since the clip was started, which time every behaviour
+    s16                   forwardSpeed;      // world units the root moves along its facing each tick
+    s16                   behaviour;         // `MAGGOT_CATERPILLAR_BEHAVIOUR_*` the tick runs
+    s16                   step;              // stage within the behaviour or within the dying sequence, from 0
+    s16                   stateCounter;      // ticks left of the idle and of the entrance's delay; distance left of the crawl; ticks elapsed of each dying stage
+    union {
+        s16 threadRise;                      // ambush: Y offset from the thread's lower end to its upper end: 0 hanging, less by each tick's fall in the drop
+        s16 squashScale;                     // dying: vertical scale of the root, 0x1000 shrinking to 0x200
+    } vertical;                              // one word the ambush and the dying sequence each use their own way
+    s16  yaw;                                // heading of the root as last read back from its matrix, 4096 a turn
+    s16  targetYaw;                          // heading the turn step turns toward
+    s16  turnRate;                           // most the turn step turns in a tick; 0 leaves the turn step out
+    s16  fallSpeed;                          // added to the root's height each tick: 0x80 on the ground, 0 hanging, the drop's speed in a drop
+    s16  field_3AA;                          // set to 1 as a rebound ends; never read
+    u16  puffCount;                          // puffs the current spray has spawned; each puff copies it at setup
+    byte field_3AE[2];                       // never accessed
+    s16  burning;                            // 1 from the first type-7 hit: runs the burn step, strengthens the bite and rules out the spray
+    s16  burnFrame;                          // tick of the burn's 0x50-tick cycle; a contact carrying the flame's key is taken only at 0
+    s16  burnEffectTimer;                    // ticks since the last burn effect, one every 0xC
+    s16  burnEffectSide;                     // part the next burn effect hangs off (0 part 3, 1 part 5)
+    byte field_3B8[2];                       // never accessed
+    s16  burst;                              // 1 on a tick a type-4 or type-6 hit landed outside `MAGGOT_CATERPILLAR_REACTION_COMMITTED`; when that hit kills, the dying sequence counts it to 2 and swaps the model for the husk
+    s16  threadFade;                         // brightness of the thread out of 45, counted down from the landing and held at 1; 0 draws it at full brightness
+    s16  burnSoundTimer;                     // ticks before the burn sound plays again, every 0x24
+    s16  isCaterpillar;                      // `MAGGOT_CATERPILLAR_IS_CATERPILLAR` of the package that built it; a Caterpillar never sprays
+    s16  entranceKind;                       // scripted entrance (0 leaps in, 1 drops in)
+    s16  entranceSlot;                       // the placement's `variant`: row of the entrance's delay, speed, spot and yaw tables
+    s16  ambushFollower;                     // 1 when the ambush leaves the trigger to the others: it drops only once one of them has sprung
+    s16  reactionMode;                       // `MAGGOT_CATERPILLAR_REACTION_*`
+    s16  midLeap;                            // 1 over the leap frames of a pounce, when a hit does double damage
+    s16  landed;                             // 1 on a tick the room grid touched it during the ambush
+    s16  blocked;                            // 1 on a tick `attackBody` met a body or a wall
+    s16  struck;                             // 1 on a tick a hit other than the flame's landed: it wakes the wait, springs the ambush and turns a leap into a rebound
+    s16  stunned;                            // 1 from the buildup that stuns it until the stun runs out; a flinch in between returns to the stun
 } MaggotCaterpillarWork;
 STATIC_ASSERT_SIZEOF(MaggotCaterpillarWork, 0x3D4);
 
@@ -164,16 +210,16 @@ void maggotCaterpillarUpdateColor(Task* arg0);
 
 static inline void maggotCaterpillarTickAnimInline(Task* task);
 
-/// Stores the yaw that `coord`'s frame faces in `work->field_3A2`, then
+/// Stores the yaw that `coord`'s frame faces in `work->yaw`, then
 /// rebuilds the frame's rotation as a level turn half a revolution away from
 /// it, with `rot` holding the angles.
-#define MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, rot)                                    \
-    do {                                                                                    \
-        (work)->field_3A2 = ratan2((coord)->coord.m[0][2], (coord)->coord.m[2][2]) & 0xFFF; \
-        (rot)->vx         = 0;                                                              \
-        (rot)->vy         = (u16)(work)->field_3A2 + 0x800;                                 \
-        (rot)->vz         = 0;                                                              \
-        RotMatrix((rot), &(coord)->coord);                                                  \
+#define MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, rot)                              \
+    do {                                                                              \
+        (work)->yaw = ratan2((coord)->coord.m[0][2], (coord)->coord.m[2][2]) & 0xFFF; \
+        (rot)->vx   = 0;                                                              \
+        (rot)->vy   = (u16)(work)->yaw + 0x800;                                       \
+        (rot)->vz   = 0;                                                              \
+        RotMatrix((rot), &(coord)->coord);                                            \
     } while (0)
 
 /// How far the origin of `coord`'s frame lies inside contact `rec`, clamped at
@@ -207,13 +253,13 @@ static inline void maggotCaterpillarTickAnimInline(Task* task);
         ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, (unit), (out)); \
     } while (0)
 
-/// Sets `work->field_3CE` when contact `rec` is a body, or a face of the
+/// Sets `work->blocked` when contact `rec` is a body, or a face of the
 /// collision grid whose normal has no vertical component.
 #define MAGGOT_CATERPILLAR_NOTE_BLOCKING_CONTACT(work, rec)                                         \
     do {                                                                                            \
         if ((((rec).key.value & 0xFFFF0000) == 0x10000) ||                                          \
             ((((rec).key.value & 0xFFFF0000) == 0x100000) && ((rec).response.direction.vy == 0))) { \
-            (work)->field_3CE = 1;                                                                  \
+            (work)->blocked = 1;                                                                    \
         }                                                                                           \
     } while (0)
 

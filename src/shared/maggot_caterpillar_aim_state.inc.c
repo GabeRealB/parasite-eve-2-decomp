@@ -1,7 +1,8 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
-/// Behaviour state 1: tracks the player and pounces (state 5) once they are
-/// within `MAGGOT_CATERPILLAR_POUNCE_RANGE` and less than 0x80 off its facing.
+/// `MAGGOT_CATERPILLAR_BEHAVIOUR_AIM`: watches the player and pounces
+/// (`MAGGOT_CATERPILLAR_BEHAVIOUR_POUNCE`) once they are within
+/// `MAGGOT_CATERPILLAR_POUNCE_RANGE` and less than 0x80 off its facing.
 void maggotCaterpillarAimState(Task* arg0)
 {
     MaggotCaterpillarWork* work;
@@ -21,14 +22,14 @@ void maggotCaterpillarAimState(Task* arg0)
     delta                                                                     = scratchEnd - 1;
     *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
     work                                                                      = arg0->work;
-    work->field_3A2                                                           = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
+    work->yaw                                                                 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
     scratchEnd[-1].vx                                                         = (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
     delta->vy                                                                 = 0;
     dz                                                                        = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     delta->vz                                                                 = dz;
     dx                                                                        = scratchEnd[-1].vx;
     distance                                                                  = SquareRoot0((dx * dx) + (dz * dz));
-    angle                                                                     = (u16)work->field_3A2 - (ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)delta->vz) & 0xFFF);
+    angle                                                                     = work->yaw - (ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)delta->vz) & 0xFFF);
     magnitude                                                                 = __builtin_abs((s32)angle);
     if (magnitude < 0x800) {
         difference = magnitude;
@@ -41,9 +42,9 @@ void maggotCaterpillarAimState(Task* arg0)
         difference = wrapped;
     }
     if ((distance < MAGGOT_CATERPILLAR_POUNCE_RANGE) && (difference < 0x80)) {
-        work->field_39A = 5;
-        work->field_39C = 0;
-        work->field_392 = 4;
+        work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_POUNCE;
+        work->step      = 0;
+        work->animId    = MAGGOT_CATERPILLAR_ANIM_POUNCE;
         Gp_ArmStateF0(1);
     }
     *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1;

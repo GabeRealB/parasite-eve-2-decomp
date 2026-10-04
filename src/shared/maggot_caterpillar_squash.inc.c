@@ -1,8 +1,8 @@
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Squashes the model vertically: `field_3A0` shrinks by 0x50 a frame while
-/// above 0x200, and the root coordinate becomes the matrix `field_370` scaled
-/// on Y by `field_3A0` (0x1000 = 1), built through an `ActorScaleScratch`
+/// Squashes the model vertically: `vertical.squashScale` shrinks by 0x50 a frame while
+/// above 0x200, and the root coordinate becomes the matrix `baseMatrix` scaled
+/// on Y by `vertical.squashScale` (0x1000 = 1), built through an `ActorScaleScratch`
 /// block that is released again.
 void maggotCaterpillarSquash(Task* arg0)
 {
@@ -16,13 +16,13 @@ void maggotCaterpillarSquash(Task* arg0)
     scratch                                 = head - 1;
     SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
     coord                                   = arg0->extra.tmd->coords;
-    if (work->field_3A0 >= 0x201) {
-        work->field_3A0 = (u16)work->field_3A0 - 0x50;
+    if (work->vertical.squashScale >= 0x201) {
+        work->vertical.squashScale -= 0x50;
     }
     scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = (s32)work->field_3A0;
+    scratch->scale.vy                    = work->vertical.squashScale;
     scratch->scale.vz                    = ONE;
-    coord->coord                         = work->field_370;
+    coord->coord                         = work->baseMatrix;
     scratch->matrix.rotationWords.m00M01 = ONE;
     scratch->matrix.rotationWords.m02M10 = 0;
     scratch->matrix.rotationWords.m11M12 = ONE;

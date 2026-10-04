@@ -2,12 +2,13 @@
 
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Behaviour state 6, entered when a hit does damage. On entry it starts
-/// animation 0xB, stops the forward and turn steps and plays sound
-/// 0x401A0004 with the top nibble of the context's `field_8` in bits 8-11,
-/// panned to the actor. Once the
-/// animation has run 0x15 frames it goes to state 7 when `field_3D2` is 1,
-/// otherwise to state 3 with animation 1 and a random 0..15 in `field_39E`.
+/// `MAGGOT_CATERPILLAR_BEHAVIOUR_HURT`, entered when a hit does damage. On
+/// entry it starts `MAGGOT_CATERPILLAR_ANIM_HURT`, stops the forward and turn
+/// steps and plays sound 0x401A0004 with the top nibble of the context's
+/// `field_8` in bits 8-11, panned to the actor. Once the animation has run 0x15
+/// frames it goes to `MAGGOT_CATERPILLAR_BEHAVIOUR_STUN` when `stunned` is 1,
+/// otherwise to `MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM` with
+/// `MAGGOT_CATERPILLAR_ANIM_IDLE` and a random 0..15 in `stateCounter`.
 void maggotCaterpillarHurtState(Task* arg0)
 {
     MaggotCaterpillarWork* work;
@@ -18,32 +19,32 @@ void maggotCaterpillarHurtState(Task* arg0)
     u32                    random;
 
     work  = arg0->work;
-    state = work->field_39C;
+    state = work->step;
     coord = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
-            work->field_392 = 0xB;
-            work->field_394 = 1;
-            work->field_39C = 1;
-            work->field_398 = 0;
-            work->field_3A6 = 0;
-            sound           = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0004;
-            pan             = (s8)worldCoordGetOriginAudioPan(coord);
+            work->animId       = MAGGOT_CATERPILLAR_ANIM_HURT;
+            work->appliedAnim  = 1;
+            work->step         = 1;
+            work->forwardSpeed = 0;
+            work->turnRate     = 0;
+            sound              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0004;
+            pan                = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
         case 1:
-            if ((s16)work->field_396 >= 0x15) {
-                if (work->field_3D2 == state) {
-                    work->field_39A = 7;
-                    work->field_39C = 0;
+            if (work->animFrame >= 0x15) {
+                if (work->stunned == 1) {
+                    work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_STUN;
+                    work->step      = 0;
                     return;
                 }
-                work->field_39A = 3;
-                work->field_39C = 0;
-                work->field_392 = state;
-                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = random;
-                work->field_39E = (random >> 0x10) & 0xF;
+                work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
+                work->step         = 0;
+                work->animId       = MAGGOT_CATERPILLAR_ANIM_IDLE;
+                random             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState    = random;
+                work->stateCounter = (random >> 0x10) & 0xF;
             } else {
                 return;
             }

@@ -3,7 +3,7 @@
 /// Setup state of the projectile task: allocates its 0x40-byte work, places
 /// its model's coordinate at the spawning model's fifth node (expressed
 /// relative to the view coordinate), and links the work's collision object
-/// with its single record, carrying the parent work's `field_3AC`. The enemy
+/// with its single record, carrying the parent work's `puffCount`. The enemy
 /// is destroyed when the allocation fails.
 void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
 {
@@ -18,7 +18,7 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     parent      = task->parent;
     parentObj   = parent->extra.tmd;
     coord       = task->extra.tmd->coords;
-    parentWork  = (MaggotCaterpillarWork*)parent->work;
+    parentWork  = parent->work;
     parentCoord = &parentObj->coords[4];
     work        = memCalloc(sizeof(*work), false);
     if (work == NULL) {
@@ -34,7 +34,7 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
     coord->composeStamp        = GRAPHICS_COORD_DIRTY;
     work->field_3A             = 0xC0;
-    pair                       = parentWork->field_3AC;
+    pair                       = parentWork->puffCount;
     work->obj.coord            = coord;
     work->obj.pos.vx           = 0;
     work->obj.pos.vy           = 0;
