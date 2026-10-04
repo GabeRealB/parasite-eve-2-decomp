@@ -61,51 +61,40 @@ typedef struct Actor503500Work44 {
 } Actor503500Work44;
 STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
 
-/// Head of the work block used by the two enemies whose teardown clears a
-/// four-entry record table (`func_actor_503500_801454E0` and
-/// `func_actor_503500_80145F18`, the same body twice). It follows the gameplay
-/// `CompanionWork` convention: the display node's `context.capsule` points at the
-/// `WorldCollisionCapsule` directly behind it, whose `contacts` in turn points at the
-/// `WorldCollisionContact` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. This
-/// type stops where the two blocks stop agreeing:
-/// `func_actor_503500_80144E8C` allocates 0xD0 and `func_actor_503500_80145A2C`
-/// allocates 0xAC, both with `memCalloc(_, 0)`.
-typedef struct Actor503500WorkRec4 {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionCapsule d4;
-    /* 0x38 */ WorldCollisionContact rec[4];
-} Actor503500WorkRec4;
-STATIC_ASSERT_SIZEOF(Actor503500WorkRec4, 0x98);
-
-/// The 0xD0 block `func_actor_503500_80144E8C` allocates, which is
-/// `Actor503500WorkRec4` plus this task's own payload: the effect task it
-/// reparents itself under, a rotation it seeds to identity next to the one in
-/// its `GfxCoord`, and the pair of words plus the halfword that
-/// `func_actor_503500_801450A0` reads and writes every frame.
+/// The 0xD0 block `func_actor_503500_80144E8C` allocates: an attack capsule
+/// with its shape and four-entry contact table, then this task's own payload:
+/// the effect task it reparents itself under, a rotation it seeds to identity
+/// next to the one in its `GfxCoord`, and the pair of words plus the halfword
+/// that `func_actor_503500_801450A0` reads and writes every frame.
 typedef struct Actor503500WorkD0 {
-    /* 0x00 */ Actor503500WorkRec4 head;
-    /* 0x98 */ Task*               field_98;
-    /* 0x9C */ MATRIX              field_9C;
-    /* 0xBC */ Fixed16             field_BC; // angle; the high half turns field_9C
-    /* 0xC0 */ s32                 field_C0; // per-frame angle step
-    /* 0xC4 */ s16                 field_C4;
-    /* 0xC6 */ s16                 field_C6; // sub-state frame counter
-    /* 0xC8 */ byte                pad_C8[0x4];
-    /* 0xCC */ s8                  field_CC; // sub-state index
-    /* 0xCD */ byte                pad_CD[0x3];
+    WorldCollisionBody    body;        // Attack capsule on the task's own coordinate; pair-tested from the strike until it touches the player or its radii have shrunk to a quarter
+    WorldCollisionCapsule capsule;     // Shape of `body`: from the coordinate's origin to a far end turned about Y each frame of the sweep, both radii shrinking with it
+    WorldCollisionContact contacts[4]; // Contact table of `capsule`, emptied every frame
+    /* 0x98 */ Task*      field_98;
+    /* 0x9C */ MATRIX     field_9C;
+    /* 0xBC */ Fixed16    field_BC; // angle; the high half turns field_9C
+    /* 0xC0 */ s32        field_C0; // per-frame angle step
+    /* 0xC4 */ s16        field_C4;
+    /* 0xC6 */ s16        field_C6; // sub-state frame counter
+    /* 0xC8 */ byte       pad_C8[0x4];
+    /* 0xCC */ s8         field_CC; // sub-state index
+    /* 0xCD */ byte       pad_CD[0x3];
 } Actor503500WorkD0;
 STATIC_ASSERT_SIZEOF(Actor503500WorkD0, 0xD0);
 
-/// The 0xAC block `func_actor_503500_80145A2C` allocates: `Actor503500WorkRec4`
-/// plus the effect task it reparents itself under.
+/// The 0xAC block `func_actor_503500_80145A2C` allocates: an attack capsule
+/// with its shape and four-entry contact table, then the effect task it
+/// reparents itself under and its phase counters.
 typedef struct Actor503500WorkAC {
-    /* 0x00 */ Actor503500WorkRec4 head;
-    /* 0x98 */ Task*               field_98;
-    /* 0x9C */ byte                pad_9C[0x8];
-    /* 0xA4 */ s16                 field_A4; // sub-state frame counter
-    /* 0xA6 */ byte                pad_A6[0x2];
-    /* 0xA8 */ s8                  field_A8; // sub-state index
-    /* 0xA9 */ byte                pad_A9[0x3];
+    WorldCollisionBody    body;        // Attack capsule on the task's own coordinate; pair-tested during the strike phase until it touches the player
+    WorldCollisionCapsule capsule;     // Shape of `body`: fixed, from the coordinate's origin (radius 2000) to (0, 500, 6000) (radius 3000)
+    WorldCollisionContact contacts[4]; // Contact table of `capsule`, emptied every frame
+    /* 0x98 */ Task*      field_98;
+    /* 0x9C */ byte       pad_9C[0x8];
+    /* 0xA4 */ s16        field_A4; // sub-state frame counter
+    /* 0xA6 */ byte       pad_A6[0x2];
+    /* 0xA8 */ s8         field_A8; // sub-state index
+    /* 0xA9 */ byte       pad_A9[0x3];
 } Actor503500WorkAC;
 STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
 
@@ -1121,8 +1110,8 @@ static void func_actor_503500_80144E8C(Task* arg0)
 {
     Actor503500WorkD0*     work;
     GfxCoord*              coord;
-    WorldCollisionCapsule* d4;
-    WorldCollisionContact* rec;
+    WorldCollisionCapsule* capsule;
+    WorldCollisionContact* contacts;
     EffectWork*            eff;
     Task*                  child;
     GfxRotationWords*      m1;
@@ -1152,31 +1141,31 @@ static void func_actor_503500_80144E8C(Task* arg0)
     m2->m20M21 = 0;
     m2->m22    = ONE;
 
-    d4  = &work->head.d4;
-    rec = work->head.rec;
+    capsule  = &work->capsule;
+    contacts = work->contacts;
 
-    work->head.obj.coord           = coord;
-    work->head.obj.context.capsule = d4;
-    work->head.obj.pos.vx          = D_actor_503500_801715C4.vx;
-    work->head.obj.pos.vy          = D_actor_503500_801715C4.vy;
-    work->head.obj.pos.vz          = D_actor_503500_801715C4.vz;
-    work->head.obj.key             = Gp_PackPair(D_actor_503500_8016E7D4[0], 0);
-    work->head.obj.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->head.obj.radius          = 0;
+    work->body.coord           = coord;
+    work->body.context.capsule = capsule;
+    work->body.pos.vx          = D_actor_503500_801715C4.vx;
+    work->body.pos.vy          = D_actor_503500_801715C4.vy;
+    work->body.pos.vz          = D_actor_503500_801715C4.vz;
+    work->body.key             = Gp_PackPair(D_actor_503500_8016E7D4[0], 0);
+    work->body.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    work->body.radius          = 0;
 
-    d4->contacts   = rec;
-    d4->ends[1].vx = 0;
-    d4->ends[1].vy = 0;
-    d4->ends[1].vz = 0;
-    d4->ends[0].vx = D_actor_503500_801715CC.vx;
-    d4->ends[0].vy = D_actor_503500_801715CC.vy;
-    d4->ends[0].vz = D_actor_503500_801715CC.vz;
-    d4->end1Radius = 0x3E8;
-    d4->end0Radius = 0x7D0;
+    capsule->contacts   = contacts;
+    capsule->ends[1].vx = 0;
+    capsule->ends[1].vy = 0;
+    capsule->ends[1].vz = 0;
+    capsule->ends[0].vx = D_actor_503500_801715CC.vx;
+    capsule->ends[0].vy = D_actor_503500_801715CC.vy;
+    capsule->ends[0].vz = D_actor_503500_801715CC.vz;
+    capsule->end1Radius = 0x3E8;
+    capsule->end0Radius = 0x7D0;
 
-    Gp_LinkObj(3, &work->head.obj);
-    Gp_InitRec18Table(rec, 4, 0);
-    work->head.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    Gp_LinkObj(3, &work->body);
+    Gp_InitRec18Table(contacts, ARRAY_SIZE(work->contacts), 0);
+    work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     if (arg0->spawnArg1.value == 0) {
         eff = Gp_SpawnEff(EFFECT_SHELTER_R48_RING_FLASH_PINK, coord, 0, NULL);
@@ -1198,19 +1187,19 @@ static void func_actor_503500_80144E8C(Task* arg0)
 static void func_actor_503500_801450A0(Task* arg0)
 {
     Actor503500WorkD0*     work;
-    WorldCollisionCapsule* d4;
+    WorldCollisionCapsule* capsule;
     GfxCoord*              coord;
     s32                    pan;
     s32                    step;
     s32                    ang;
 
-    work = (Actor503500WorkD0*)arg0->work;
-    d4   = &work->head.d4;
+    work    = (Actor503500WorkD0*)arg0->work;
+    capsule = &work->capsule;
     switch (work->field_CC) {
         case 0:
             if (++work->field_C6 >= 0x1F) {
                 if (arg0->spawnArg1.value == 0) {
-                    work->head.obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                    work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
                 coord = arg0->extra.tmd->coords;
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
@@ -1222,7 +1211,7 @@ static void func_actor_503500_801450A0(Task* arg0)
         case 1:
             if (++work->field_C6 >= 0x15) {
                 if (arg0->spawnArg1.value != 0) {
-                    work->head.obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                    work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
                 work->field_C6 = 0;
                 work->field_CC++;
@@ -1283,7 +1272,7 @@ static void func_actor_503500_801450A0(Task* arg0)
             break;
         case 4:
             if (work->field_C4 <= 0x400) {
-                work->head.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->field_CC++;
             }
             break;
@@ -1296,12 +1285,12 @@ static void func_actor_503500_801450A0(Task* arg0)
         if (work->field_C4 < 0x200) {
             work->field_C4 = 0x200;
         }
-        d4->end0Radius = work->field_C4 * 0x177 >> 9;
-        d4->end1Radius = work->field_C4 * 0x7D >> 9;
+        capsule->end0Radius = work->field_C4 * 0x177 >> 9;
+        capsule->end1Radius = work->field_C4 * 0x7D >> 9;
         gte_SetRotMatrix(&work->field_9C);
         gte_ldv0(&D_actor_503500_801715CC);
         gte_rtv0();
-        gte_stsv(d4);
+        gte_stsv(&capsule->ends[0]);
     }
 }
 
@@ -1330,24 +1319,24 @@ static void func_actor_503500_80145480(Task* arg0)
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0B), 1);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500WorkD0*)arg0->work)->head.obj);
+    Gp_UnlinkObj(&((Actor503500WorkD0*)arg0->work)->body);
     taskKill(arg0);
 }
 
 static void func_actor_503500_801454E0(Task* arg0)
 {
-    Actor503500WorkRec4*   work;
-    WorldCollisionContact* rec;
+    Actor503500WorkD0*     work;
+    WorldCollisionContact* contacts;
     s32                    i;
 
-    work = (Actor503500WorkRec4*)arg0->work;
-    rec  = work->rec;
-    for (i = 0; i < 4; i++) {
-        if ((rec[i].key.value & 0xFFFF0000) == 0x10000) {
-            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work     = arg0->work;
+    contacts = work->contacts;
+    for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
+        if ((contacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000) {
+            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
     }
-    Gp_ClearRec18Occupied(rec);
+    Gp_ClearRec18Occupied(contacts);
 }
 
 void func_actor_503500_8014554C(Task* task)
@@ -1515,8 +1504,8 @@ static void func_actor_503500_80145A2C(Task* arg0)
 {
     Actor503500WorkAC*     work;
     GfxCoord*              coord;
-    WorldCollisionCapsule* d4;
-    WorldCollisionContact* rec;
+    WorldCollisionCapsule* capsule;
+    WorldCollisionContact* contacts;
     EffectWork*            eff;
     Task*                  child;
     GfxRotationWords*      m;
@@ -1538,31 +1527,31 @@ static void func_actor_503500_80145A2C(Task* arg0)
     m->m20M21 = 0;
     m->m22    = ONE;
 
-    d4  = &work->head.d4;
-    rec = work->head.rec;
+    capsule  = &work->capsule;
+    contacts = work->contacts;
 
-    work->head.obj.coord           = coord;
-    work->head.obj.context.capsule = d4;
-    work->head.obj.pos.vx          = D_actor_503500_801715DC.vx;
-    work->head.obj.pos.vy          = D_actor_503500_801715DC.vy;
-    work->head.obj.pos.vz          = D_actor_503500_801715DC.vz;
-    work->head.obj.key             = Gp_PackPair(D_actor_503500_8016E7DC[0], 0);
-    work->head.obj.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->head.obj.radius          = 0;
+    work->body.coord           = coord;
+    work->body.context.capsule = capsule;
+    work->body.pos.vx          = D_actor_503500_801715DC.vx;
+    work->body.pos.vy          = D_actor_503500_801715DC.vy;
+    work->body.pos.vz          = D_actor_503500_801715DC.vz;
+    work->body.key             = Gp_PackPair(D_actor_503500_8016E7DC[0], 0);
+    work->body.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    work->body.radius          = 0;
 
-    d4->contacts   = rec;
-    d4->ends[1].vx = 0;
-    d4->ends[1].vy = 0;
-    d4->ends[1].vz = 0;
-    d4->ends[0].vx = D_actor_503500_801715E4.vx;
-    d4->ends[0].vy = D_actor_503500_801715E4.vy;
-    d4->ends[0].vz = D_actor_503500_801715E4.vz;
-    d4->end1Radius = 0x7D0;
-    d4->end0Radius = 0xBB8;
+    capsule->contacts   = contacts;
+    capsule->ends[1].vx = 0;
+    capsule->ends[1].vy = 0;
+    capsule->ends[1].vz = 0;
+    capsule->ends[0].vx = D_actor_503500_801715E4.vx;
+    capsule->ends[0].vy = D_actor_503500_801715E4.vy;
+    capsule->ends[0].vz = D_actor_503500_801715E4.vz;
+    capsule->end1Radius = 0x7D0;
+    capsule->end0Radius = 0xBB8;
 
-    Gp_LinkObj(3, &work->head.obj);
-    Gp_InitRec18Table(rec, 4, 0);
-    work->head.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    Gp_LinkObj(3, &work->body);
+    Gp_InitRec18Table(contacts, ARRAY_SIZE(work->contacts), 0);
+    work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     eff = Gp_SpawnEff(EFFECT_SHELTER_R48_RING_FLASH, coord, arg0->spawnArg1.value, NULL);
     if (eff == NULL) {
@@ -1600,9 +1589,9 @@ static void func_actor_503500_80145C50(Task* arg0)
                 return;
             }
             if (gGameSession->eventState == 0) {
-                work->head.obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                coord                 = arg0->extra.tmd->coords;
-                pan                   = (s8)worldCoordGetOriginAudioPan(coord);
+                work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                coord             = arg0->extra.tmd->coords;
+                pan               = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             }
             goto next;
@@ -1613,7 +1602,7 @@ static void func_actor_503500_80145C50(Task* arg0)
             if (++work->field_A4 < 0x38) {
                 return;
             }
-            work->head.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), 1);
         next:
             work->field_A4 = 0;
@@ -1659,24 +1648,24 @@ static void func_actor_503500_80145E98(Task* arg0)
     SndEvt_EnqueueType7(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), 1);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
-    Gp_UnlinkObj(&((Actor503500WorkAC*)arg0->work)->head.obj);
+    Gp_UnlinkObj(&((Actor503500WorkAC*)arg0->work)->body);
     taskKill(arg0);
 }
 
 static void func_actor_503500_80145F18(Task* arg0)
 {
-    Actor503500WorkRec4*   work;
-    WorldCollisionContact* rec;
+    Actor503500WorkAC*     work;
+    WorldCollisionContact* contacts;
     s32                    i;
 
-    work = (Actor503500WorkRec4*)arg0->work;
-    rec  = work->rec;
-    for (i = 0; i < 4; i++) {
-        if ((rec[i].key.value & 0xFFFF0000) == 0x10000) {
-            work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work     = arg0->work;
+    contacts = work->contacts;
+    for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
+        if ((contacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000) {
+            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
     }
-    Gp_ClearRec18Occupied(rec);
+    Gp_ClearRec18Occupied(contacts);
 }
 
 void func_actor_503500_80145F84(Task* task)
