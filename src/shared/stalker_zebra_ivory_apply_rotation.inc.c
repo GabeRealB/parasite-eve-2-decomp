@@ -22,9 +22,9 @@ void stalkerZebraIvoryApplyRotation(Task* arg0)
     MATRIX_PAIR(m, 2, 0)         = 0;
     m->m[2][2]                   = 0x1000;
     SCRATCH_STACK_CURSOR(MATRIX) = m;
-    RotMatrixZ((s16)work->roll, m);
-    RotMatrixX((s16)work->pitch, m);
-    RotMatrixY((s16)work->yaw, m);
+    RotMatrixZ(work->roll, m);
+    RotMatrixX(work->pitch, m);
+    RotMatrixY(work->yaw, m);
     dst          = &coord->coord;
     dst->m[0][0] = m->m[0][0];
     dst->m[0][1] = m->m[0][1];

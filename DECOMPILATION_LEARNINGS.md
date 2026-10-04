@@ -516,7 +516,7 @@ archived callee names and skipped all three seeds; it produced no new discovery.
 The target stores a raw halfword sum, sign-extends it to a0, then reloads the
 task's work and child pointers in v0. Storing the converted value retained
 the load order but emitted `sh a0` after the shifts (98.837%). A raw store
-followed by `angle = work->field_74E` and `SOFT_TOUCH_REG_USE(task, angle)`
+followed by `angle = work->armSwingAngles[1]` and `SOFT_TOUCH_REG_USE(task, angle)`
 supplied the missing angle -> helper -> task-load dependency, but reached only
 96.395%: in sched1, the raw store (UID163) and flag store (UID148) won potential
 hazard selection over helper UID170 at T-6/T-7. In forward order they followed
@@ -3848,7 +3848,7 @@ and so says nothing about how the original declared it.
 
 The cheap way to settle it is the sibling: when the body is a copy of another
 overlay's, that overlay's header already answered the question.
-`Actor400600Work::field_744`/`field_746` and
+`_Actor400600ZebraStalkerWork::animPlaying`/`animClip` and
 `_Actor405800IvoryStalkerWork::animPlaying`/`animClip` are this same "clip now playing" /
 "clip requested" pair, both declared `s16`, and both targets load both halves
 with `lh` - three overlays agreeing beats one ambiguous store.
@@ -13130,11 +13130,11 @@ extern const TaskFuncTable4 D_actor_400600_80131F60;
 
 void func_actor_400600_801394E0(Task* arg0)
 {
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
+    _Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
     TaskFuncTable4   handlers  = D_actor_400600_80131F60;
 
     func_actor_400600_80138AA4(arg0);
-    handlers.funcs[(s16)work->field_71E](arg0);
+    handlers.funcs[work->subState](arg0);
 }
 ```
 
@@ -26391,15 +26391,15 @@ without a named temp: CSE turns the second load into a copy of the tested
 pseudo, and the copy survives as the child pointer's own register.
 
 ```c
-if (work->field_704 != NULL) {
-    child = work->field_704;   /* lw v0; beqz v0; move a0, v0 */
+if (work->armTasks[0] != NULL) {
+    child = work->armTasks[0];   /* lw v0; beqz v0; move a0, v0 */
     ...
 }
 ```
 
 `func_actor_400600_801387DC` needed it for a second reason: with the child in
 `$a0`, `$a1` still held `value` at the first `Gp_SetLightMode`, so
-`reload_cse_regs` deleted the `move a1, s0`. With `child = work->field_704;
+`reload_cse_regs` deleted the `move a1, s0`. With `child = work->armTasks[0];
 if (child != NULL)`, the pointer landed in `$a1`, the move came back, and the
 score stuck at 85.7%. An inline helper that took the child as a parameter did
 not help, because its parameter copy was coalesced.
@@ -45530,9 +45530,9 @@ temp_a0 = M2C_FIELD(temp_s0, Task**, 0x704);
 with the equivalent struct access
 
 ```c
-Actor400600Work* work = (Actor400600Work*)arg0->work;
+_Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
 D_80115417 = 1;
-child = work->field_704;
+child = work->armTasks[0];
 ```
 
 drops two instructions: GCC sinks the `sb` into the following `beqz`'s delay
@@ -45540,7 +45540,7 @@ slot, so both branch delay slots that the target leaves as `nop` get filled.
 The C is identical; only the *types* changed.
 
 The cause is `fixed_scalar_and_varying_struct_p` in GCC 2.8.1's `alias.c`. A
-`COMPONENT_REF` (`work->field_704`) sets `MEM_IN_STRUCT_P` on the RTL `MEM`; a
+`COMPONENT_REF` (`work->armTasks[0]`) sets `MEM_IN_STRUCT_P` on the RTL `MEM`; a
 plain indirection through a cast pointer does not. When one reference is an
 in-struct MEM with a *varying* (register-based) address and the other is a
 scalar MEM at a *fixed* address (a bare `extern` global), `true_dependence`
@@ -64162,18 +64162,18 @@ chain to `sw v0,0x10(sp)` is the longest in the block.
 A brace initializer on the declaration matches:
 
 ```c
-Actor400600Work* work = (Actor400600Work*)arg0->work;
+_Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
 void (*fns[2])(Task*) = { handler0, handler1 };
 
 func_actor_400600_80138AA4(arg0);
-fns[(s16)work->field_71E](arg0);
+fns[work->subState](arg0);
 ```
 
 This is the immediate-materialised counterpart of "Local jump table via struct
 assignment of function pointers": there the table is copied from a global and
 the fix is a struct assignment; here there is no global, and the fix is the
-initializer. `func_actor_400600_80139218` is the example. The `(s16)` cast is
-what turns the `u16` field into the target's `lh`.
+initializer. `func_actor_400600_80139218` is the example. The `s16` field is
+what gives the target's `lh`.
 
 The initializer only works if the *work pointer* is initialized at its
 declaration too. Leaving `work = index->work;` as a statement in the body and
@@ -67331,14 +67331,14 @@ it scored 99.26% with `regs=4` — the pointer landed in `$a0` where the target
 uses `$v1`:
 
 ```c
-Actor400600Work* work2;
+_Actor400600ZebraStalkerWork* work2;
 ...
-if (work->field_769 == 0) {
-    work2 = (Actor400600Work*)arg0->work;   /* -> lw $a0, 0x1C($s0) */
-    work2->field_71C = 2;
-    work2->field_71E = 0;
+if (work->onBack == 0) {
+    work2 = (_Actor400600ZebraStalkerWork*)arg0->work;   /* -> lw $a0, 0x1C($s0) */
+    work2->state = 2;
+    work2->subState = 0;
 } else {
-    work2 = (Actor400600Work*)arg0->work;   /* -> lw $a0, 0x1C($s0) */
+    work2 = (_Actor400600ZebraStalkerWork*)arg0->work;   /* -> lw $a0, 0x1C($s0) */
     ...
 }
 ```
@@ -67366,11 +67366,11 @@ never goes through `expand_preferences`. Giving each arm its own local is
 enough:
 
 ```c
-Actor400600Work* work2;
-Actor400600Work* work3;
+_Actor400600ZebraStalkerWork* work2;
+_Actor400600ZebraStalkerWork* work3;
 ...
-if (work->field_769 == 0) { work2 = arg0->work; work2->field_71C = 2;   ... }
-else                      { work3 = arg0->work; work3->field_71C = 0xA; ... }
+if (work->onBack == 0) { work2 = arg0->work; work2->state = 2;   ... }
+else                      { work3 = arg0->work; work3->state = 0xA; ... }
 ```
 
 local-alloc then assigns each one `$v1` (`$v0` is already taken by the stored
@@ -70560,9 +70560,9 @@ uses. The same function also shows that separate `s16` locals (m2c's
 `sp10/sp12/sp14`) lose the stores that a single `SVECTOR` local keeps.
 
 ### Velocity/accumulator updates: `+=` on the `s16` fields, not `u16` step locals
-`func_actor_400600_8013A990` does `field_722 += 2; field_724 += field_722;
-t[1] += field_724` on a work block, with `field_724` stored before `field_722`.
-The sibling form in the same TU (`u16 step = field_722 + 2; u16 accum = field_724
+`func_actor_400600_8013A990` does `moveAccel += 2; moveSpeed += moveAccel;
+t[1] += moveSpeed` on a work block, with `moveSpeed` stored before `moveAccel`.
+The sibling form in the same TU (`u16 step = moveAccel + 2; u16 accum = moveSpeed
 + step;` then two stores) gives identical instructions but 93.8%: sched1
 interleaves the `extra->coords` pointer load with both `lhu`s, so its temp
 overlaps them and local-alloc puts it in `$a0`. Clobbering `$a0` costs an extra
@@ -70636,7 +70636,7 @@ Writing the stores once at a join (`state = 5; break;` then the stores and
 Writing each arm in full - three stores and `return 1` - matches: sched1 hoists
 the hard-register `v0 = 1` to the top of each arm, so post-reload cross-jumping
 merges only the stores beneath it. The switch's default falls out to the
-function's own `field_730 = 0; return 0;`, which is where its `j` lands.
+function's own `pendingAction = 0; return 0;`, which is where its `j` lands.
 
 ### Selected sound-id constant needs its own local, separate from the OR'd id
 
@@ -70657,7 +70657,7 @@ followed by a `for (i = 1; ...)` loop. The target puts `li $s0, 1` both in the
 last `bne`'s delay slot and at the join, which m2c reads as a loop counter
 assigned *before* the final `if` with a `goto` into it. Compiled that way
 (92.97%), CSE sees `s0 == 1` live in the `case 3` arm and turns
-`work->field_748++` into `addu $v0, $v0, $s0`. Writing the chain plainly with
+`work->animFrame++` into `addu $v0, $v0, $s0`. Writing the chain plainly with
 `i = 1;` after it matches: reorg fills the default branch's delay slot from the
 loop head, which is where the duplicate `li` comes from. A `switch` instead
 scored 78% (different block shape).
@@ -70705,7 +70705,7 @@ the reload only on the paths that need it, and matches:
 if (A && B) {
     if (C) { ...; return 1; }
 } else {
-    work = (Actor400600Work*)arg0->work;
+    work = (_Actor400600ZebraStalkerWork*)arg0->work;
 }
 /* shared tail uses work */
 ```
@@ -70715,8 +70715,8 @@ put the second half's copy in `$a1` rather than `$a0`. A second local fixed it.
 
 ### State-change tails merged by cross-jumping: one pointer local per arm
 
-`func_actor_400600_80133E38` ends in `if (...) { w->field_71C = 9; w->field_71E = 0; }
-else { w->field_71C = 2; w->field_71E = 0; }`, each arm reloading `index->work`.
+`func_actor_400600_80133E38` ends in `if (...) { w->state = 9; w->subState = 0; }
+else { w->state = 2; w->subState = 0; }`, each arm reloading `index->work`.
 jump2 cross-jumps the common `sh $zero, 0x71E` into one tail. Reusing a single
 `work2` local in both arms makes one pseudo live across blocks, so global alloc
 picks `$a0`; the target has `$v1`. A separate local per arm (`work2`, `work3`)
@@ -70740,7 +70740,7 @@ refolded:
 
 ```c
 y                  = coord->coord.t[1] + 0x190;
-coord->coord.t[1] += ((s16)work->field_9A - y) >> 3;
+coord->coord.t[1] += (work->leapY - y) >> 3;
 ```
 
 Same mechanism as the `base | (x | CONST)` entry above. Check `.i.rtl` for
@@ -70856,17 +70856,17 @@ own local (`work3`), which makes it a local-alloc quantity.
 then seeds a field from one of the copies:
 
 ```c
-work->field_90 = coord->coord.t[0];
-work->field_92 = coord->coord.t[1];
-work->field_94 = coord->coord.t[2];   /* must precede the LCG lines */
+work->spawnX = coord->coord.t[0];
+work->floorY = coord->coord.t[1];
+work->spawnZ = coord->coord.t[2];   /* must precede the LCG lines */
 rnd = ((u32)gRandomLcgState * 5) + 0x71357911;
 gRandomLcgState = rnd;
-work->field_716 = rnd >> 0x10;
-work->field_73E = work->field_92;     /* target reloads: lhu a0,0x92(s3) */
+work->frameCount = rnd >> 0x10;
+work->shadowHeight = work->floorY;     /* target reloads: lhu a0,0x92(s3) */
 ```
 
-With `field_94` written after `field_716`, the `.cse` dump still had the
-`field_92` load, but the object had `sh a0,0x73e` straight from the `t[1]`
+With `spawnZ` written after `frameCount`, the `.cse` dump still had the
+`floorY` load, but the object had `sh a0,0x73e` straight from the `t[1]`
 register. The `sh 0x716(s3)` store blocks the `lhu 0x20(s5)` load (sched1
 treats `s3`/`s5` stores and loads as possibly aliasing), so `t[1]` stayed live in
 its own register and `reload_cse_regs` replaced the reload with it. Once the
@@ -70949,7 +70949,7 @@ loses its `j` and comes out with the opposite branch condition.
 Writing the same three bounds through a helper
 
 ```c
-static __inline__ u32 Frames(Task* arg0, s32 time) { ... time / work->field_726 ... }
+static __inline__ u32 Frames(Task* arg0, s32 time) { ... time / work->animStep ... }
 ```
 
 put `li $v0, 0xC00` *before* the test instead of at the head of the else arm,
@@ -70982,7 +70982,7 @@ The sibling above needed `SOFT_MOVE_ZERO` because its window start was compared
 shows the other outcome of the same source: `bnez $v0` / `bltz $v1` against a
 literal, with `move $s7, zero` still emitted, dead, and holding a call-saved
 register for the whole function. Declaring the local `u8 start0 = 0;` and
-comparing `work->field_748 == start0` / `>= start0` produces exactly that. Each
+comparing `work->animFrame == start0` / `>= start0` produces exactly that. Each
 use is a `(zero_extend (reg:QI))` that combine folds against `nonzero_bits` == 0
 *after* flow has already fixed the live range, so the range still spans the
 calls and global-alloc still gives it `$s7`, while nothing reads it any more.
@@ -81715,8 +81715,8 @@ Declaring the field `s16` so the dispatcher's `lh` needs no cast also gives the
 increment an `lh`, and the match is gone. The field is `u16`; the dispatcher's
 signed load comes from an explicit `(s16)` at the index, which is how the
 already-matched siblings of this shape write it -
-`states[(s16)work->state](index)` (`actor_400500_4.c:23`,
-`actor_400600_6.c:58`) over a `u16 state`. Two loads of one field at
+`states[(s16)work->state](index)` (`actor_400500_4.c:23`)
+over a `u16 state`. Two loads of one field at
 different signedness are one *cast*, not a type conflict, and the `u16`
 increment is the half that must survive: `addiu` + `sh` compiled from it.
 

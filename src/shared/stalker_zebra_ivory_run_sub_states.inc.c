@@ -10,6 +10,6 @@ void stalkerZebraIvoryRunSubStates(Task* arg0)
 
     stalkerZebraIvoryClearQueued(arg0);
     if ((stalkerZebraIvoryTakeArmedPending(arg0) << 0x10) == 0) {
-        fns.funcs[(s16)work->subState](arg0);
+        fns.funcs[work->subState](arg0);
     }
 }

@@ -9,7 +9,7 @@ void stalkerZebraIvoryReleaseHold(Task* arg0)
     StalkerZebraIvoryWork* work = (StalkerZebraIvoryWork*)arg0->work;
     StalkerZebraIvoryWork* work2;
 
-    work->roll += -(s16)work->roll >> 2;
+    work->roll += -work->roll >> 2;
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
         if (work->holdKilledPlayer == 0) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
