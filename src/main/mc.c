@@ -778,7 +778,7 @@ static void Mc_InitDualBankBuffers(void)
     p->state.location.loc.variant = one;
     p->state.sceneEvent           = two;
     p->state.characterId          = one;
-    Player_InitNewGameStats();
+    playerSeedNewGameStatus();
     idx                          = p->state.characterId - 1;
     (&gPlayerStatus)[idx].weapon = two;
 }
