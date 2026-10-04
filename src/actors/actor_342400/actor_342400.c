@@ -29,14 +29,23 @@
 #include "../../shared/mad_chaser_waves.h"
 #include "../../shared/mad_chaser.h"
 
-/// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
-/// by `gGameSession->enemyCullZone`. `func_actor_342400_801626CC` compares
-/// an enemy's x against `limit` when `axis` is 0 and its z otherwise.
-typedef struct Actor342400Limit {
-    /* 0x0 */ s16 axis;
-    /* 0x2 */ s16 limit;
-} Actor342400Limit;
-STATIC_ASSERT_SIZEOF(Actor342400Limit, 0x4);
+/// Which coordinate a `_Actor342400CullZone` bounds, and from which side.
+enum {
+    ACTOR_342400_CULL_ZONE_AXIS_X = 0, // The zone is every x below the limit
+    ACTOR_342400_CULL_ZONE_AXIS_Z = 1, // The zone is every z at or above the limit (any nonzero value)
+};
+
+/// One region of the room in which the wave spawners kill their enemies.
+///
+/// `GameSession::enemyCullZone` selects the region in force, 1..16, or 0 for
+/// none. A region is everything to one side of a line across the room: a
+/// spawner tests its living enemy's position against the line, and once the
+/// enemy is inside orders it to die and stops watching it.
+typedef struct {
+    s16 axis;  // Coordinate the line crosses (ACTOR_342400_CULL_ZONE_AXIS_*)
+    s16 limit; // Where the line crosses it, in world units
+} _Actor342400CullZone;
+STATIC_ASSERT_SIZEOF(_Actor342400CullZone, 0x4);
 
 extern TaskDesc D_801575F0; // absolute, spawned by func_actor_342400_80162DA0
 // Message-table callbacks use the argument views required by this TU.
@@ -44,7 +53,7 @@ extern TaskDesc D_801575F0; // absolute, spawned by func_actor_342400_80162DA0
 extern TaskMessageEntry     D_actor_342400_8016BF48[2]; // stored into `Task::msgTable` by func_actor_342400_801628F0
 extern OverlayEncounterSlot gMadChaserWaveSlots[];
 extern TaskDesc             D_actor_342400_8016BFE0[];
-extern Actor342400Limit     D_actor_342400_8016C010[];
+extern _Actor342400CullZone D_actor_342400_8016C010[];
 extern s16                  D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
 
                                                           // spawn counter, `<< 12` into `Enemy::placeKey`
@@ -104,24 +113,24 @@ TaskDesc D_actor_342400_8016BFE0[4] = {
     { { { TASK_BODY_NONE, 97 } }, func_actor_342400_80162888, { .value = 0 } },
 };
 
-Actor342400Limit D_actor_342400_8016C010[17] = {
-    { 0, 0 },
-    { 0, 1295 },
-    { 0, 2700 },
-    { 0, 4300 },
-    { 0, 5700 },
-    { 0, 7295 },
-    { 0, 8700 },
-    { 1, -7800 },
-    { 1, -9210 },
-    { 1, -0x2A35 },
-    { 1, -0x2FB2 },
-    { 1, -0x3D90 },
-    { 1, -0x4312 },
-    { 1, -0x4989 },
-    { 1, -0x4F0B },
-    { 1, -0x5CF8 },
-    { 1, -0x6275 },
+_Actor342400CullZone D_actor_342400_8016C010[17] = {
+    { ACTOR_342400_CULL_ZONE_AXIS_X, 0 }, // 0 selects no zone, so this row is never read
+    { ACTOR_342400_CULL_ZONE_AXIS_X, 1295 },
+    { ACTOR_342400_CULL_ZONE_AXIS_X, 2700 },
+    { ACTOR_342400_CULL_ZONE_AXIS_X, 4300 },
+    { ACTOR_342400_CULL_ZONE_AXIS_X, 5700 },
+    { ACTOR_342400_CULL_ZONE_AXIS_X, 7295 },
+    { ACTOR_342400_CULL_ZONE_AXIS_X, 8700 },
+    { ACTOR_342400_CULL_ZONE_AXIS_Z, -7800 },
+    { ACTOR_342400_CULL_ZONE_AXIS_Z, -9210 },
+    { ACTOR_342400_CULL_ZONE_AXIS_Z, -10805 },
+    { ACTOR_342400_CULL_ZONE_AXIS_Z, -12210 },
+    { ACTOR_342400_CULL_ZONE_AXIS_Z, -15760 },
+    { ACTOR_342400_CULL_ZONE_AXIS_Z, -17170 },
+    { ACTOR_342400_CULL_ZONE_AXIS_Z, -18825 },
+    { ACTOR_342400_CULL_ZONE_AXIS_Z, -20235 },
+    { ACTOR_342400_CULL_ZONE_AXIS_Z, -23800 },
+    { ACTOR_342400_CULL_ZONE_AXIS_Z, -25205 },
 };
 
 s16 D_actor_342400_8016C054[6][4] = {
@@ -395,7 +404,7 @@ static s16 func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2)
     if (arg0 == 0 || arg0 > 0x10) {
         return 0;
     }
-    if (D_actor_342400_8016C010[arg0].axis == 0) {
+    if (D_actor_342400_8016C010[arg0].axis == ACTOR_342400_CULL_ZONE_AXIS_X) {
         if (arg1 < D_actor_342400_8016C010[arg0].limit) {
             return 1;
         }

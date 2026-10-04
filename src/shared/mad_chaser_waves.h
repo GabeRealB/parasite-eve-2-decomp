@@ -3,7 +3,7 @@
  * a spawner task for one enemy of either kind or for a pair of Mad Chasers, numbering
  * each enemy through a shared counter. After 60 frames a spawner reveals its
  * enemy with a command message (0x2A00, 0x2C00 or 0x2E00) carrying the slot's
- * spawn argument, then watches it until it dies or leaves the cull zone and
+ * spawn argument, then watches it until it dies or is inside the cull zone and
  * marks the slot done.
  *
  * Include this header in the prologue and each fragment at its function's
