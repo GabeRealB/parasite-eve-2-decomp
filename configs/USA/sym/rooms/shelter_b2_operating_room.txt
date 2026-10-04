@@ -49,7 +49,7 @@ D_shelter_b2_operating_room_801841F4 = 0x801841F4; // size:0x20 defined:True
 gRoomEventFade = 0x80184214; // size:0x8 defined:True
 D_actor_102400_8013647C = 0x8013647C; // absolute:True owner=actor_102400
 D_actor_107000_80139E60 = 0x80139E60; // absolute:True owner=actor_107000
-gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
+gActor02600MaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_actor_107000_8013F5F0 = 0x8013F5F0; // absolute:True owner=actor_107000
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
 D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200

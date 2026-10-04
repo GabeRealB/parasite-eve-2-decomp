@@ -58,7 +58,7 @@ D_neo_ark_pavilion_801879E4 = 0x801879E4; // size:0x8 defined:True
 D_neo_ark_pavilion_801879EC = 0x801879EC; // size:0x20 defined:True
 gRoomEventFade = 0x80187A0C; // size:0x8 defined:True
 D_actor_100400_80147E48 = 0x80147E48; // absolute:True owner=actor_100400
-gGolemPawnRookTasks = 0x801491F8; // absolute:True owner=actor_105700
+gActor05700GolemPawnRookTasks = 0x801491F8; // absolute:True owner=actor_105700
 D_actor_203800_8014FD74 = 0x8014FD74; // absolute:True owner=actor_203800
 D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
 D_map_neo_ark_8017B3D0 = 0x8017B3D0; // absolute:True owner=map_neo_ark

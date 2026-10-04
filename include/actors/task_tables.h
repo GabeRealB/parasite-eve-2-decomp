@@ -317,4 +317,12 @@ extern TaskDesc D_actor_301900_80179120[];
 
 extern TaskDesc D_actor_310600_801796A4[];
 
+extern TaskDesc gActor05700GolemPawnRookTasks[];
+
+extern TaskDesc gActor02600MaggotCaterpillarBodyTask;
+
+extern TaskDesc gActor450800PairWalkTasks[];
+
+extern TaskDesc gActor535700PairWalkTasks[];
+
 #endif // INCLUDE_ACTORS_TASK_TABLES_H

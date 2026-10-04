@@ -398,7 +398,7 @@ AreaResource D_neo_ark_pyramid_8018168C[2] = {
 };
 
 AreaResource D_neo_ark_pyramid_801816A4[2] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gMaggotCaterpillarBodyTask },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

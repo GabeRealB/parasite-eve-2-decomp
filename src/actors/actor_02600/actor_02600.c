@@ -51,6 +51,8 @@
 
 #include "overlay.h"
 #define MAGGOT_CATERPILLAR_KIND MAGGOT
+// Exported instance: rooms spawn from this package's table by name.
+#define gMaggotCaterpillarBodyTask gActor02600MaggotCaterpillarBodyTask
 #include "../../shared/maggot_caterpillar.h"
 
 extern ActorSpriteUv gMaggotCaterpillarPuffCells[];

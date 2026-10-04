@@ -892,7 +892,7 @@ AreaResource D_acropolis_cafeteria_80189D9C[2] = {
 };
 
 AreaResource D_acropolis_cafeteria_80189DB4[2] = {
-    { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gGolemPawnRookTasks },
+    { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor05700GolemPawnRookTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

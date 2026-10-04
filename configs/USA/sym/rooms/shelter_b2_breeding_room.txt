@@ -62,7 +62,7 @@ D_shelter_b2_breeding_room_801847DC = 0x801847DC; // size:0x8 defined:True
 D_shelter_b2_breeding_room_801847E4 = 0x801847E4; // size:0x8 defined:True
 D_shelter_b2_breeding_room_801847EC = 0x801847EC; // size:0x8 defined:True
 D_shelter_b2_breeding_room_801847F4 = 0x801847F4; // size:0x20 defined:True
-gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
+gActor02600MaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
 D_actor_202400_8014E47C = 0x8014E47C; // absolute:True owner=actor_202400
 D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200

@@ -232,7 +232,7 @@ WorldCoordRoomLights D_dryfield_night_r08_8018189C[1] = {
 
 AreaResource D_dryfield_night_r08_801818B4[3] = {
     { 132, 357, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, &D_actor_535700_8013DADC },
-    { 20, 358, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gPairWalkTasks },
+    { 20, 358, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor535700PairWalkTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

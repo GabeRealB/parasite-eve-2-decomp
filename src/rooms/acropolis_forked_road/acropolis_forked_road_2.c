@@ -672,7 +672,7 @@ AreaResource D_acropolis_forked_road_80183044[3] = {
 };
 
 AreaResource D_acropolis_forked_road_80183068[2] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gMaggotCaterpillarBodyTask },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -698,7 +698,7 @@ AreaResource D_acropolis_forked_road_801830D4[2] = {
 };
 
 AreaResource D_acropolis_forked_road_801830EC[2] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gMaggotCaterpillarBodyTask },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -52,6 +52,8 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+// Exported instance: rooms spawn from this package's table by name.
+#define gGolemPawnRookTasks gActor05700GolemPawnRookTasks
 #include "../../shared/player_detection.h"
 #define GOLEM_PAWN_ROOK_TYPE   GOLEM_ROOK
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_GRENADE_LAUNCHER

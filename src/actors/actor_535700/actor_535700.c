@@ -31,6 +31,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+// Exported instance: rooms spawn from this package's table by name.
+#define gPairWalkTasks gActor535700PairWalkTasks
 #include "../../shared/footstep_walk.h"
 #include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"

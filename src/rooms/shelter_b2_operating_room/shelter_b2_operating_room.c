@@ -764,7 +764,7 @@ AreaResource D_shelter_b2_operating_room_80183EF4[2] = {
 };
 
 AreaResource D_shelter_b2_operating_room_80183F0C[2] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gMaggotCaterpillarBodyTask },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

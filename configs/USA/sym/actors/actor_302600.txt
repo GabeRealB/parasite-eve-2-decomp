@@ -132,6 +132,6 @@ gMaggotCaterpillarPounceStride = 0x8016A850; // size:0x24 defined:True
 gMaggotCaterpillarReboundStride = 0x8016A874; // size:0x24 defined:True
 gMaggotCaterpillarPuffCells = 0x8016A898; // size:0x20 defined:True
 gMaggotCaterpillarPuffRadius = 0x8016A8B8; // size:0x1C defined:True
-gMaggotCaterpillarBodyTask = 0x8016A8D4; // size:0xC defined:True
+gActor02600MaggotCaterpillarBodyTask = 0x8016A8D4; // size:0xC defined:True
 Actor02600_D08AC0 = 0x8016A8E0; // size:0xC defined:True
 gMaggotCaterpillarAnimSets = 0x8016A8EC; // size:0x3C defined:True

@@ -221,7 +221,7 @@ _gActor450800Animation21B64Records = 0x8015333C; // size:0x620 defined:True
 _gActor450800Animation21B64Indices = 0x8015395C; // size:0x28 defined:True
 _gActor450800Animation21B64 = 0x80153984; // size:0x28 defined:True
 gPairWalkMessages = 0x801539AC; // size:0x30 defined:True
-gPairWalkTasks = 0x801539DC; // size:0x18 defined:True
+gActor450800PairWalkTasks = 0x801539DC; // size:0x18 defined:True
 gPairWalkAnimParams = 0x801539F4; // size:0x18 defined:True
 D_actor_450800_8013BA84 = 0x8013BA84; // size:0x1E0 defined:True
 func_shelter_b6_nursery_8017FFF4 = 0x8017FFF4; // type:func absolute:True owner=shelter_b6_nursery shared=rooms

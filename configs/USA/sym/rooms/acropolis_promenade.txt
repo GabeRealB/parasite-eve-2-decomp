@@ -58,7 +58,7 @@ D_acropolis_promenade_80185F24 = 0x80185F24; // size:0x50 defined:True
 D_acropolis_promenade_80185F74 = 0x80185F74; // size:0x10 defined:True
 D_acropolis_promenade_80185F84 = 0x80185F84; // size:0x10 defined:True
 D_acropolis_promenade_80185F94 = 0x80185F94; // size:0x10 defined:True
-gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
+gActor02600MaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_actor_105500_8013A8DC = 0x8013A8DC; // absolute:True owner=actor_105500 shared=actors
 D_actor_200700_80150C80 = 0x80150C80; // absolute:True owner=actor_200700
 Actor00700_D075A8 = 0x801513C8; // absolute:True owner=actor_200700

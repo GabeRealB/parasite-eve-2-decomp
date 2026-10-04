@@ -40,6 +40,8 @@
 #include "rooms/shelter_b6_nursery.h"
 // The paced walk helpers this package carries run on Kyle Madigan's block.
 #define PACED_WALK_WORK_T _Actor450800KyleMadiganWork
+// Exported instance: rooms spawn from this package's table by name.
+#define gPairWalkTasks gActor450800PairWalkTasks
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"
