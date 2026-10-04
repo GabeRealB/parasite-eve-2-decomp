@@ -86041,7 +86041,7 @@ match in one build:
 ```c
     TmdObject* model;
 
-    if (((ActorShared80134178Work*)arg1->work)->field_4 != 0) {
+    if (((_Actor123200Work*)arg1->work)->stateEntered != 0) {
         model              = (TmdObject*)arg1->extra;
         arg0->node.flags = 1;
         model->field_C     = 0x80;
@@ -129133,7 +129133,7 @@ refresh the part coordinate and colour, scale the light matrix from a work-block
 scale field, switch on the render mode `D_801153F4`, then re-record the display
 mode and dispatch a stack-copied state table by it. Copying that sibling's
 statement order — the table copy in the declaration list, the chained
-`pos.vx = pos.vy = pos.vz = work->field_21C;`, the `id | ((index->field_8 >> 12) << 8)`
+`pos.vx = pos.vy = pos.vz = work->lightScale;`, the `id | ((index->field_8 >> 12) << 8)`
 sound tag and the `worldCoordGetOriginAudioPan` / `worldCoordGetOriginAudioDepth` pair — produced 100.000% on the first
 attempt, where the m2c seed scored 65.189% with a structurally different 164-vs-148
 instructions.
@@ -130063,9 +130063,9 @@ So write the cast into the wider local, not through a narrow one:
 placementIndex  = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
 placementParity = placementIndex & 1;
 if (placementParity == 1) {
-    work->field_176 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;   /* CSEs to the raw srl */
+    work->driver.rate += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT; /* CSEs to the raw srl */
 } else {
-    work->field_176 -= placementIndex >> 1;    /* reads the masked value */
+    work->driver.rate -= placementIndex >> 1;  /* reads the masked value */
 }
 ```
 

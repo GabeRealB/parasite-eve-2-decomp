@@ -42,60 +42,78 @@
 #include "overlay.h"
 #include "../../shared/coord_math.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/anim_driver.h"
 
-/// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
+/// Values of `_Actor123200Work::state`: the index of the handler the per-frame
+/// tick runs.
+///
+/// Animation numbers are indices into the package's animation-set table. The
+/// two walking states do the same thing; a change from one to the other is
+/// what makes the walk start over.
+enum {
+    ACTOR_123200_STATE_HIDDEN             = 0, // not drawn, not lockable, no ground shadow
+    ACTOR_123200_STATE_WALK               = 1, // restarts animation 2, then steps 5 units along the facing every tick; entered by actor command 2 and by the model-draw message
+    ACTOR_123200_STATE_FIRST_STAGING_WALK = 2  // the same walk; entered only by actor command 1
+};
 
-/// The actor's per-instance work block, reached through `Task::work`. `field_0`
-/// is the display mode the tick dispatches on, `field_2` the mode dispatched
-/// last and `field_4` set on the frame it changed; `field_174` is the motion
-/// the slots play, rig slot 1's cue index the current animation id, and
-/// `field_220` latches the last trigger id reported.
-typedef struct Actor123200Work {
-    /* 0x000 */ s16           field_0;
-    /* 0x002 */ s16           field_2;
-    /* 0x004 */ s16           field_4; // non-zero restarts the model (`func_actor_123200_80133820`)
-    /* 0x006 */ u16           field_6; // frames since the restart branch last ran
-    /* 0x008 */ s16           field_8;
-    /* 0x00A */ byte          pad_A[0x2];
-    /* 0x00C */ ActorAnimRig6 rig;       // playback of the model's parts; the animation driver runs slots 1 to 5
-    /* 0x170 */ s16           field_170; // motion state `animDriverTick` switches on
-    /* 0x172 */ s16           field_172;
-    /* 0x174 */ s16           field_174;
-    /* 0x176 */ u16           field_176;
-    /* 0x178 */ s16           field_178;
-    /* 0x17A */ s16           field_17A; // frames since the motion last restarted
-    /* 0x17C */ s16           field_17C; // frames since then on which rig slot 1 followed a control jump
-    /* 0x17E */ s16           field_17E;
-    /* 0x180 */ byte          pad_180[0x14];
-    /* 0x194 */ u8            field_194;
-    /* 0x195 */ u8            field_195;
-    /* 0x196 */ u8            field_196;
-    /* 0x197 */ byte          pad_197[0x1];
-    /* 0x198 */ u16           field_198;
-    /* 0x19A */ u16           field_19A;
-    /* 0x19C */ byte          pad_19C[0xC];
-    /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
-    /// handler samples the low 16 bits of each local translation component.
-    /* 0x1A8 */ u16    field_1A8;
-    /* 0x1AA */ u16    field_1AA;
-    /* 0x1AC */ u16    field_1AC;
-    /* 0x1AE */ byte   pad_1AE[0x2];
-    /* 0x1B0 */ s16    field_1B0;
-    /* 0x1B2 */ s16    field_1B2;
-    /* 0x1B4 */ s16    field_1B4;
-    /* 0x1B6 */ byte   pad_1B6[0x6];
-    /* 0x1BC */ MATRIX field_1BC; // installed at `TmdObject.lightMtx` by `func_actor_123200_8013352C`
-    /* 0x1DC */ MATRIX field_1DC; // installed at `TmdObject.colorMtx`
-    /* 0x1FC */ byte   pad_1FC[0x20];
-    /// Model scale `func_actor_123200_80133BA0` puts on `field_1BC` through
-    /// `ScaleMatrix`; 0x1000 is 1.0 and skips the scale entirely. Picked from
-    /// the top nibble of the enemy's `placeKey` by `func_actor_123200_80133EDC`.
-    /* 0x21C */ s16  field_21C;
-    /* 0x21E */ byte pad_21E[0x2];
-    /* 0x220 */ u16  field_220;
-    /* 0x222 */ byte pad_222[0xA];
-} Actor123200Work;
-STATIC_ASSERT_SIZEOF(Actor123200Work, 0x22C);
+/// Values of `_Actor123200Work::lightScale`, in 4096ths.
+enum {
+    ACTOR_123200_LIGHT_SCALE_QUARTER = 0x400,
+    ACTOR_123200_LIGHT_SCALE_FULL    = 0x1000 // the tick leaves the light matrix as built
+};
+
+/// Work block of the package's enemy task.
+///
+/// The spawn handler allocates it zeroed and keeps it at `Task::work`. The
+/// actor is a bone suckler staged for the Dryfield motel room 1 event: it has
+/// no collision bodies and no hit points, and only walks straight ahead while
+/// the event's actor commands pick its state and how brightly it is lit.
+///
+/// Everything up to and including `driver` is laid out as `AnimDriverWork`,
+/// through which the shared animation driver reaches the block: its
+/// `carrierState` bytes are the five words and the gap ahead of `rig` here. A
+/// cue index is the low ten bits of the record a slot's current pose names
+/// (`ANIMATION_POSE_CUE_INDEX_MASK`).
+typedef struct {
+    s16           state;        // `ACTOR_123200_STATE_*`
+    s16           prevState;    // `state` the tick last ran; -1 from spawn, so the first tick enters `state` afresh
+    s16           stateEntered; // 1 on the first tick of a state, when the handler sets itself up (0 otherwise)
+    s16           stateFrame;   // ticks a walking state has run since it was entered; never read
+    s16           field_8;      // cleared at spawn and never accessed again; role unproven
+    byte          pad_A[2];     // never accessed
+    ActorAnimRig6 rig;          // playback of the model's parts; slot 1's status and cue index time the sound cues
+    struct {
+        s16 state;              // `ANIM_DRIVER_STATE_*` (0 idle, 1 or 2 restart requested, 3 playing)
+        s16 playingSet;         // animation the slots were last restarted on
+        s16 requestedSet;       // animation the next restart plays; also what the sound cues are keyed on
+        s16 rate;               // playback rate in sixteenths of a frame per tick; 16 plus the placement index (odd placements) or minus half of it (even)
+        s16 rateBias;           // added to `rate`; always 0 here
+        s16 tickCount;          // advancing ticks since the last restart
+        s16 jumpCount;          // of those, ticks on which slot 1 followed a control jump: loops of a looping animation
+    } driver;                   // the animation driver's state, member for member `AnimDriverWork`'s
+    s16     field_17E;          // cleared at spawn and never accessed again; role unproven
+    byte    pad_180[0x14];      // never accessed
+    u8      lastCommandStage;   // stage tag of the last actor command received, whatever its namespace; never read
+    u8      lastCommandArea;    // area tag of that command; never read
+    u8      lastCommand;        // low byte of that command's selector; never read
+    byte    pad_197[1];         // never accessed
+    u16     field_198;          // 5 at spawn, offset by the placement index the way `driver.rate` is; never accessed again; role unproven
+    u16     field_19A;          // 20 at spawn, offset the same way; never accessed again; role unproven
+    byte    pad_19C[0xC];       // never accessed
+    SVECTOR spawnPos;           // root position at spawn; never read
+    SVECTOR walkTarget;         // world point stored on entering a walking state; never read, since the walk follows the facing instead of steering
+    byte    pad_1B8[4];         // never accessed
+    MATRIX  lightMtx;           // storage for the model's `TmdObject::lightMtx`
+    MATRIX  colorMtx;           // storage for the model's `TmdObject::colorMtx`
+    byte    pad_1FC[0x20];      // never accessed
+    s16     lightScale;         // `ACTOR_123200_LIGHT_SCALE_*`: scales `lightMtx` after every tick's relighting, dimming the model; 0 from spawn until an actor command sets it
+    byte    pad_21E[2];         // never accessed
+    u16     lastSoundCueIndex;  // slot 1's cue index when the walk cue sound last fired, so a held cue sounds once; 0 on any other cue
+    byte    pad_222[0xA];       // never accessed
+} _Actor123200Work;
+STATIC_ASSERT_SIZEOF(_Actor123200Work, 0x22C);
+STATIC_ASSERT(OFFSET_OF(_Actor123200Work, rig) == OFFSET_OF(AnimDriverWork, rig), Actor123200Work_rig);
+STATIC_ASSERT(OFFSET_OF(_Actor123200Work, driver) == OFFSET_OF(AnimDriverWork, state), Actor123200Work_driver);
 
 /// Enemy parameters the spawn handler installs at `Enemy::param`.
 extern EnemyParams D_actor_123200_80134208;
@@ -130,7 +148,6 @@ s32 func_actor_123200_80133E30(Task*, s32, s32, s32);
 s32 func_actor_123200_80133EDC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 #include "../../shared/actor_contacts.h"
-#include "../../shared/anim_driver.h"
 
 DamageAttack D_actor_123200_80134204[1] = {
     { 24, 7 },
@@ -603,7 +620,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 EffectSpawnArg D_actor_123200_80137248;
 
-static s32             func_actor_123200_80133450(Actor123200Work* arg0);
+static s32             func_actor_123200_80133450(_Actor123200Work* arg0);
 static __inline__ void Actor123200_ScaleForward(SVECTOR* dir);
 static void            func_actor_123200_8013352C(Enemy* enemy, Task* task);
 static __inline__ void Actor123200_StepForward(GfxCoord* coord);
@@ -618,17 +635,17 @@ static void            func_actor_123200_80133BA0(Enemy* enemy, Task* arg1);
 
 #include "../../shared/anim_driver_tick.inc.c"
 
-/// In motion states 2 and 3, reports 0x400C0001 the first time rig slot 1's
-/// cue index reaches one of that state's trigger ids (latched in
-/// `field_220`); in state 5, 0x400C0005 while slot 1 reports
-/// `ANIMATION_SLOT_FOLLOWED_JUMP`.
+/// On animations 2 and 3 (`driver.requestedSet`), reports 0x400C0001 the
+/// first time rig slot 1's cue index reaches one of that animation's trigger
+/// ids (latched in `lastSoundCueIndex`); on animation 5, 0x400C0005 while
+/// slot 1 reports `ANIMATION_SLOT_FOLLOWED_JUMP`.
 /// Returns 0 otherwise.
-static s32 func_actor_123200_80133450(Actor123200Work* arg0)
+static s32 func_actor_123200_80133450(_Actor123200Work* arg0)
 {
     u16 id;
     s32 v;
 
-    switch (arg0->field_174) {
+    switch (arg0->driver.requestedSet) {
         case 2:
             id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             v  = id;
@@ -636,17 +653,17 @@ static s32 func_actor_123200_80133450(Actor123200Work* arg0)
                 goto not15;
             }
         check:
-            if (arg0->field_220 == v) {
+            if (arg0->lastSoundCueIndex == v) {
                 goto same;
             }
-            arg0->field_220 = id;
+            arg0->lastSoundCueIndex = id;
             return 0x400C0001;
         not15:
             if (v == 0x11) {
                 goto check;
             }
         clear:
-            arg0->field_220 = 0;
+            arg0->lastSoundCueIndex = 0;
             break;
         case 3:
             id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
@@ -656,7 +673,7 @@ static s32 func_actor_123200_80133450(Actor123200Work* arg0)
             }
             goto check;
         same:
-            arg0->field_220 = id;
+            arg0->lastSoundCueIndex = id;
             break;
         case 5:
             if (arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
@@ -683,20 +700,20 @@ static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
 /// `Task::work`, reparents the model to `gGfxViewCoord`, seeds its animation
 /// slots from `D_actor_123200_80137154` and hangs the enemy's display node off
 /// part 2 of the model's coordinate array. The placement index in
-/// `Enemy::placeKey` biases the initial values in `field_176`, `field_198`
+/// `Enemy::placeKey` biases the initial values in `driver.rate`, `field_198`
 /// and `field_19A`: odd indices add the index, even indices subtract half of it.
 static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
 {
-    SVECTOR          dir;
-    Actor123200Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    u32              placementIndex;
-    u32              placementParity;
+    SVECTOR           dir;
+    _Actor123200Work* work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
+    u32               placementIndex;
+    u32               placementParity;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    work       = memCalloc(sizeof(Actor123200Work), false);
+    work       = memCalloc(sizeof(_Actor123200Work), false);
     task->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
@@ -721,15 +738,15 @@ static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
     enemy->hp                     = 0;
     enemy->recs                   = 0;
 
-    work->field_174 = 1;
-    work->field_170 = 2;
-    work->field_176 = 0x10;
-    work->field_178 = 0;
+    work->driver.requestedSet = 1;
+    work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
+    work->driver.rate         = ANIMATION_RATE_ONE;
+    work->driver.rateBias     = 0;
     animDriverTick(task);
     work->field_17E     = 0;
     work->field_8       = 0;
-    obj->lightMtx       = &work->field_1BC;
-    obj->colorMtx       = &work->field_1DC;
+    obj->lightMtx       = &work->lightMtx;
+    obj->colorMtx       = &work->colorMtx;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->field_198     = 5;
     work->field_19A     = 0x14;
@@ -737,25 +754,25 @@ static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
     placementIndex  = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
     placementParity = placementIndex & 1;
     if (placementParity == 1) {
-        work->field_176 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        work->field_19A += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        work->field_198 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->driver.rate += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_19A   += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_198   += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     } else {
-        work->field_176 -= placementIndex >> 1;
-        work->field_19A -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
-        work->field_198 -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
+        work->driver.rate -= placementIndex >> 1;
+        work->field_19A   -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
+        work->field_198   -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
     }
 
-    work->field_1A8 = (u16)task->extra.tmd->coords->coord.t[0];
-    work->field_1AA = (u16)task->extra.tmd->coords->coord.t[1];
-    work->field_1AC = (u16)task->extra.tmd->coords->coord.t[2];
+    work->spawnPos.vx = task->extra.tmd->coords->coord.t[0];
+    work->spawnPos.vy = task->extra.tmd->coords->coord.t[1];
+    work->spawnPos.vz = task->extra.tmd->coords->coord.t[2];
 
     gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &dir);
     dir.vy = 0;
     Actor123200_ScaleForward(&dir);
 
-    work->field_0                      = 0;
-    work->field_2                      = -1;
+    work->state                        = ACTOR_123200_STATE_HIDDEN;
+    work->prevState                    = -1;
     D_actor_123200_80137248.coord      = task->extra.tmd->coords;
     D_actor_123200_80137248.spawnArgLo = 0x100;
     D_actor_123200_80137248.spawnArgHi = 1;
@@ -790,38 +807,38 @@ static __inline__ void Actor123200_StepForward(GfxCoord* coord)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
-/// Display mode 1 handler (entry 1 of `D_actor_123200_80131E24`). On the frame
-/// the mode is entered (`field_4` set) it re-arms the model -- clearing
-/// `TmdObject.flags` and reinstating its buffers, rewriting the
-/// 0x1B0/0x1B2/0x1B4 triple, restarting the motion on state 2 and the frame
-/// counter `field_6`, and marking the enemy's lock-on node not lockable -- and
+/// `ACTOR_123200_STATE_WALK` handler (entry 1 of `D_actor_123200_80131E24`). On
+/// the frame the state is entered (`stateEntered` set) it re-arms the model --
+/// clearing `TmdObject.flags` and reinstating its buffers, storing
+/// `walkTarget`, restarting the driver on animation 2 and the frame counter
+/// `stateFrame`, and marking the enemy's lock-on node not lockable -- and
 /// returns. Otherwise the frame counter runs, 0xC bytes are reserved off the
 /// scratch head, and unless the game is frozen the model is stepped forward
 /// along its facing; the reservation is released after the animation update
 /// and the model's coordinate is flagged for rebuild.
 static void func_actor_123200_80133820(Enemy* enemy, Task* task)
 {
-    Actor123200Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
+    _Actor123200Work* work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
 
-    work = (Actor123200Work*)task->work;
-    if (work->field_4 != 0) {
+    work = task->work;
+    if (work->stateEntered != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
-        work->field_1B0 = 0x115D;
-        work->field_1B2 = 1;
-        work->field_1B4 = 0x12D5;
-        work->field_174 = 2;
-        work->field_170 = 2;
+        work->walkTarget.vx       = 0x115D;
+        work->walkTarget.vy       = 1;
+        work->walkTarget.vz       = 0x12D5;
+        work->driver.requestedSet = 2;
+        work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
         animDriverTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->field_6                         = 0;
+        work->stateFrame                      = 0;
         return;
     }
-    work->field_6++;
+    work->stateFrame++;
     SCRATCH_STACK_RESERVE_BYTES(0xC);
     coord = task->extra.tmd->coords;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
@@ -858,42 +875,42 @@ static __inline__ void Actor123200_MoveForward(GfxCoord* coord)
     }
 }
 
-/// Display mode 2 handler (entry 2 of `D_actor_123200_80131E24`): the same
+/// `ACTOR_123200_STATE_FIRST_STAGING_WALK` handler (entry 2 of `D_actor_123200_80131E24`): the same
 /// re-arm on entry as `func_actor_123200_80133820`; on later frames it counts
 /// the frame, steps the model along its facing unless the game is frozen, and
 /// updates its animation, without the extra scratch reservation.
 static void func_actor_123200_801339F0(Enemy* enemy, Task* task)
 {
-    Actor123200Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
+    _Actor123200Work* work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
 
-    work = (Actor123200Work*)task->work;
-    if (work->field_4 != 0) {
+    work = task->work;
+    if (work->stateEntered != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
-        work->field_1B0 = 0x115D;
-        work->field_1B2 = 1;
-        work->field_1B4 = 0x12D5;
-        work->field_174 = 2;
-        work->field_170 = 2;
+        work->walkTarget.vx       = 0x115D;
+        work->walkTarget.vy       = 1;
+        work->walkTarget.vz       = 0x12D5;
+        work->driver.requestedSet = 2;
+        work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
         animDriverTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->field_6                         = 0;
+        work->stateFrame                      = 0;
         return;
     }
-    work->field_6++;
+    work->stateFrame++;
     coord = task->extra.tmd->coords;
     Actor123200_MoveForward(coord);
     animDriverTick(task);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// The three display-mode handlers `func_actor_123200_80133BA0` picks between
-/// by the work block's `field_0`, copied onto its stack before the call: 0 the
-/// idle state, 1 and 2 the two stepping handlers.
+/// The three handlers `func_actor_123200_80133BA0` picks between by the work
+/// block's `state` (`ACTOR_123200_STATE_*`), copied onto its stack before the
+/// call: 0 the hidden state, 1 and 2 the two walking handlers.
 static const EnemyTaskFuncTable3 D_actor_123200_80131E24 = {
     {
         func_actor_123200_80134178,
@@ -902,25 +919,25 @@ static const EnemyTaskFuncTable3 D_actor_123200_80131E24 = {
     },
 };
 
-/// Per-frame tick: flags the model's coordinate for rebuild, refreshes its
-/// colour from the part matrix's translation, then scales that matrix from the
-/// work block's `field_21C`. The render mode in `gSceneCombatState.actorControl` runs next -- modes
-/// 0 and 1 draw the ground quad while the display mode is non-zero, and 1 and 2
-/// return without ticking. The rest re-records the display mode in `field_2`
-/// (`field_4` restarting the model when it changed), dispatches the display
-/// mode's handler from `D_actor_123200_80131E24`, and plays the sound that
+/// Per-frame tick: flags the model's coordinate for rebuild, relights it at
+/// the part matrix's translation, then scales the light matrix in the work
+/// block by its `lightScale`. The render mode in `gSceneCombatState.actorControl` runs next -- modes
+/// 0 and 1 draw the ground quad unless the state is `ACTOR_123200_STATE_HIDDEN`, and 1 and 2
+/// return without ticking. The rest re-records the state in `prevState`
+/// (`stateEntered` re-arming the model when it changed), dispatches the
+/// state's handler from `D_actor_123200_80131E24`, and plays the sound that
 /// handler reports, panned and depth-tagged from the model's coordinate. A
 /// raised `gGameSession->viewReady` flags the coordinate for rebuild again.
 static void func_actor_123200_80133BA0(Enemy* enemy, Task* arg1)
 {
     VECTOR              pos;
     EnemyTaskFuncTable3 table;
-    Actor123200Work*    work;
+    _Actor123200Work*   work;
     s32                 snd;
     s32                 pan;
     s32                 id;
 
-    work                                  = (Actor123200Work*)arg1->work;
+    work                                  = arg1->work;
     table                                 = D_actor_123200_80131E24;
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
@@ -928,19 +945,19 @@ static void func_actor_123200_80133BA0(Enemy* enemy, Task* arg1)
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    if (work->field_21C != 0x1000) {
-        pos.vx = pos.vy = pos.vz = work->field_21C;
-        ScaleMatrix(&work->field_1BC, &pos);
+    if (work->lightScale != ACTOR_123200_LIGHT_SCALE_FULL) {
+        pos.vx = pos.vy = pos.vz = work->lightScale;
+        ScaleMatrix(&work->lightMtx, &pos);
     }
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            if (work->field_0 != 0) {
+            if (work->state != ACTOR_123200_STATE_HIDDEN) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            if (work->field_0 != 0) {
+            if (work->state != ACTOR_123200_STATE_HIDDEN) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
@@ -949,13 +966,13 @@ static void func_actor_123200_80133BA0(Enemy* enemy, Task* arg1)
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
-    if (work->field_2 != work->field_0) {
-        work->field_4 = 1;
+    if (work->prevState != work->state) {
+        work->stateEntered = 1;
     } else {
-        work->field_4 = 0;
+        work->stateEntered = 0;
     }
-    work->field_2 = work->field_0;
-    table.funcs[work->field_0](enemy, arg1);
+    work->prevState = work->state;
+    table.funcs[work->state](enemy, arg1);
     id = func_actor_123200_80133450(work);
     if (id != 0) {
         snd = id | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
@@ -981,71 +998,72 @@ static const EnemyTaskFuncTable3 D_actor_123200_80131E30 = {
 /// mode: 0 hides the model (`TmdObject.flags` bit 0x80), 1 clears its flags and
 /// so shows it, 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 3 and 4 both clear
 /// the flags and then set `TMD_OBJECT_SKIP_AUTO_BUFFER`. Modes 0 and 1 reinstate the model's buffers through
-/// `Tmd_AllocBuffers` and set the work block's display mode `field_0` to 1;
-/// modes 2, 3 and 4 set it to 0. `arg1` is unused. Always returns 0.
+/// `Tmd_AllocBuffers` and set the work block's `state` to `ACTOR_123200_STATE_WALK`;
+/// modes 2, 3 and 4 set it to `ACTOR_123200_STATE_HIDDEN`. `arg1` is unused. Always returns 0.
 s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2, s32 arg3)
 {
-    TmdObject*       obj;
-    Actor123200Work* work;
+    TmdObject*        obj;
+    _Actor123200Work* work;
 
     obj  = task->extra.tmd;
-    work = (Actor123200Work*)task->work;
+    work = task->work;
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Tmd_AllocBuffers(obj);
-            work->field_0 = 1;
+            work->state = ACTOR_123200_STATE_WALK;
             break;
         case 1:
             obj->flags = 0;
             Tmd_AllocBuffers(obj);
-            work->field_0 = 1;
+            work->state = ACTOR_123200_STATE_WALK;
             break;
         case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->state = ACTOR_123200_STATE_HIDDEN;
             break;
         case 3:
         case 4:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags  = 0;
+            work->state = ACTOR_123200_STATE_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
 }
 
 /// Message handler (id 0x7DB in `D_actor_123200_80137214`). Copies the
-/// message's first three bytes into the work block and handles type 0xB02
-/// commands: 1 selects display mode 2, at full scale when the top nibble of
-/// the enemy's `placeKey` is 1 and at quarter scale otherwise; 2 selects mode 1
-/// at full scale; 3 selects mode 0. Always returns 0.
+/// message's stage, area and low command byte into the work block and handles
+/// type 0xB02 commands: 1 selects `ACTOR_123200_STATE_FIRST_STAGING_WALK`, lit
+/// in full when the top nibble of the enemy's `placeKey` is 1 and at a quarter
+/// otherwise; 2 selects `ACTOR_123200_STATE_WALK` lit in full; 3 selects
+/// `ACTOR_123200_STATE_HIDDEN`. Always returns 0.
 s32 func_actor_123200_80133EDC(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor123200Work* work;
-    Enemy*           enemy;
+    _Actor123200Work* work;
+    Enemy*            enemy;
 
-    work            = (Actor123200Work*)task->work;
-    enemy           = (Enemy*)task->spawnArg2.pointer;
-    work->field_194 = msg->context.loc.stage;
-    work->field_195 = msg->context.loc.area;
-    work->field_196 = (u8)msg->command;
+    work                   = task->work;
+    enemy                  = (Enemy*)task->spawnArg2.pointer;
+    work->lastCommandStage = msg->context.loc.stage;
+    work->lastCommandArea  = msg->context.loc.area;
+    work->lastCommand      = msg->command;
     if (msg->context.key == 0xB02) {
         switch (msg->command) {
             case 1:
                 if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 1) {
-                    work->field_21C = 0x1000;
+                    work->lightScale = ACTOR_123200_LIGHT_SCALE_FULL;
                 } else {
-                    work->field_21C = 0x400;
+                    work->lightScale = ACTOR_123200_LIGHT_SCALE_QUARTER;
                 }
-                work->field_0 = 2;
+                work->state = ACTOR_123200_STATE_FIRST_STAGING_WALK;
                 break;
             case 2:
-                work->field_21C = 0x1000;
-                work->field_0   = 1;
+                work->lightScale = ACTOR_123200_LIGHT_SCALE_FULL;
+                work->state      = ACTOR_123200_STATE_WALK;
                 break;
             case 3:
-                work->field_0 = 0;
+                work->state = ACTOR_123200_STATE_HIDDEN;
                 break;
             case 0:
                 break;
@@ -1058,14 +1076,14 @@ s32 func_actor_123200_80133EDC(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 
 #include "../../shared/coord_math_yaw_scale.inc.c"
 
-/// Idle state of this enemy (entry 0 of `D_actor_123200_80131E24`). On the
-/// frame the state is entered (`field_4` set) it marks the enemy not lockable
+/// `ACTOR_123200_STATE_HIDDEN` handler (entry 0 of `D_actor_123200_80131E24`). On the
+/// frame the state is entered (`stateEntered` set) it marks the enemy not lockable
 /// and sets the model's flags to 0x80; it does nothing on later frames.
 static void func_actor_123200_80134178(Enemy* arg0, Task* arg1)
 {
     TmdObject* model;
 
-    if (((Actor123200Work*)arg1->work)->field_4 != 0) {
+    if (((_Actor123200Work*)arg1->work)->stateEntered != 0) {
         model                        = arg1->extra.tmd;
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         model->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
