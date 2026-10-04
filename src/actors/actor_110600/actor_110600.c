@@ -161,7 +161,7 @@ typedef struct Actor110600Work {
     /* 0x8A8 */ byte             pad_8A8[2];
     /// Timer `func_actor_110600_80137F2C` counts down once the actor is live,
     /// handing off to `func_actor_110600_80136210` on the frame it reaches
-    /// zero; the same slot the `Actor01900Work` dispatcher keeps at 0xC10.
+    /// zero; the same role `_Actor01900Work::hitCooldown` has in its dispatcher.
     /* 0x8AA */ s16 field_8AA;
     /* 0x8AC */ s32 field_8AC;
     /* 0x8B0 */ s8  field_8B0;

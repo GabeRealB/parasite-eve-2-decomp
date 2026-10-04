@@ -2314,7 +2314,7 @@ if (enemy->hp > 0) {
         next = 0x11;
     }
 }
-work->field_0 = next;
+work->state = next;
 ```
 
 That CFG is right (one `sh`, `li` in both delay slots) but the HI phi is
@@ -2330,11 +2330,11 @@ compare is dead, so the constants reuse `$v0`:
 
 ```c
 if (enemy->hp <= 0) {
-    work->field_0 = 0x15;
+    work->state = 0x15;
 } else if (enemy->reactionFlags & 2) {
-    work->field_0 = 4;
+    work->state = 4;
 } else {
-    work->field_0 = 0x11;
+    work->state = 0x11;
 }
 ```
 
@@ -81299,7 +81299,7 @@ assigned twice in regions that do not overlap, and give the later region its own
 local.
 ## Actor01900_Fn0A7C0: interleaved constant stores prevent register reuse
 
-Controlled base_2 moved `work->field_898 = 2` before `work->field_8A2 = 0x10`, leaving `work->field_89E = 2` afterward. The three stores are independent. Against base_1 this alone changed 98.214% (regs=3 reorder=1) to exact; the permuter pointer alias was unnecessary. sched1 kept the constant-2 live range around constant 16; lreg changed constant 2 from 3 refs/6 insns in v0 to 3 refs/10 insns in v1. greg retained those homes. sched2 then moved the B66 load ahead of the constant-2 stores, freed from the former v0 dependency. This is another instance of CODEGEN_MODEL 10.6, not proof of a general per-pseudo priority rule. No pins or asm helpers.
+Controlled base_2 moved `work->animRequest = 2` before `work->animRate = 0x10`, leaving `work->animId = 2` afterward. The three stores are independent. Against base_1 this alone changed 98.214% (regs=3 reorder=1) to exact; the permuter pointer alias was unnecessary. sched1 kept the constant-2 live range around constant 16; lreg changed constant 2 from 3 refs/6 insns in v0 to 3 refs/10 insns in v1. greg retained those homes. sched2 then moved the B66 load ahead of the constant-2 stores, freed from the former v0 dependency. This is another instance of CODEGEN_MODEL 10.6, not proof of a general per-pseudo priority rule. No pins or asm helpers.
 
 Evidence: tools/permuter_findings/Actor01900_Fn0A7C0/; scratch base_2 controlled plan/build, lreg and sched2 retained by conclude-permuter.
 base_1.i SHA256: b9da53f87bdd617a8ed8a1cd2990269fb345f44896860477b89e7a87b70a6f45
@@ -84137,7 +84137,7 @@ and 27 describe: BRIEF listed `Actor01900_Fn0A6CC` at 1.00 in `shape` and
 sibling's matched C in `src/actors/lib/actor_101900_text.c` is the whole control
 flow. Only the work struct differs: the three `WorldCollisionBody` nodes are at the same
 addresses in both, the two child tasks are not (`+0xC14` / `+0xC18` here against
-`+0xC38` / `+0xC3C` in `Actor01900Work`), so the struct has to be rebuilt rather
+`childTask0` / `childTask1` at `+0xC38` / `+0xC3C` in `_Actor01900Work`), so the struct has to be rebuilt rather
 than reused.
 
 I rebuilt it starting at the first named field, `/* 0x8C8 */ WorldCollisionBody field_8C8;`
@@ -87791,15 +87791,15 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 ## A store that reuses the just-compared value wants a variable that outlives the block
 
-`Actor01900_Fn01A7C` has paths of the form `if (work->field_8B4 != id) {...
-return R; } work->field_8B4 = id;`. The retail store on the equal path writes the
-*loaded* `field_8B4` register (`$v0`), not `id` (`$v1`), so it cross-jumps into
-the `default:` store `sw $v0, 0x8B4($a0)`. Writing `prev = work->field_8B4;
-if (prev != id) ...; work->field_8B4 = prev;` alone changes nothing. On the
+`Actor01900_Fn01A7C` has paths of the form `if (work->lastCueFrame != id) {...
+return R; } work->lastCueFrame = id;`. The retail store on the equal path writes the
+*loaded* `lastCueFrame` register (`$v0`), not `id` (`$v1`), so it cross-jumps into
+the `default:` store `sw $v0, 0x8B4($a0)`. Writing `prev = work->lastCueFrame;
+if (prev != id) ...; work->lastCueFrame = prev;` alone changes nothing. On the
 equal edge, cse makes `prev` and `id` equivalent and keeps the older one as the
 canonical register. `make_regs_eqv` only promotes the newer register when it
 lives past the current cse block. So `prev` also has to be used elsewhere. Here
-`default: prev = work->field_5A & 0x3FF; work->field_8B4 = prev;` does that, and
+`default: prev = work->field_5A & 0x3FF; work->lastCueFrame = prev;` does that, and
 the object matches.
 
 ## A jump table spimdisasm misses carries literal addresses into a shared unit
@@ -87839,11 +87839,11 @@ helper whose body the function already contains.
 
 The complement of "`thread_jumps` cannot skip a reloaded test": there the
 reload sat in the merge block, here it is in the arm. `Actor01900_Fn09D3C`
-tests `work->field_0` against four states, draws, and then tests `== 0x1E`
+tests `work->state` against four states, draws, and then tests `== 0x1E`
 again. The ROM's `beq v1,0x1E` jumps *past* the second `bne v1,0x1E`, straight
 to the `lh 0x89E` that follows, and that second branch keeps a `nop` in its
 delay slot. Written as `if (s != 0 && ... && s != 0x1E) { draw(); }
-if (work->field_0 == 0x1E && ...)` it sat at 99.67%: the reload lands in the
+if (work->state == 0x1E && ...)` it sat at 99.67%: the reload lands in the
 merge block, the `beq` stops *on* the `bne`, and `dbr` then steals `li v0,2`
 from the fall-through into the slot. The early edge skipping the retest in the
 target is what stops `dbr`, because it makes the fall-through a branch target.
@@ -87854,13 +87854,13 @@ Reload into the same variable at the end of the arm, and test the variable:
 
 ```c
 s32 state;                    /* not s16 */
-state = work->field_0;
+state = work->state;
 if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x1E)) {
     ...
     Gp_DrawEffGroundQuad(...);
-    state = work->field_0;
+    state = work->state;
 }
-if ((state == 0x1E) && (work->field_89E == 2)) {
+if ((state == 0x1E) && (work->animId == 2)) {
 ```
 
 Nothing is stored between the merge label and the branch now, so both branches
@@ -107892,7 +107892,7 @@ lhu v0,0x6(s2)      /* candidate */
 ```
 
 `OddStrangerWork.stateTimer` was declared `u16` (copied from the 401800 header). Declaring it
-`s16` — as both twins do (`_Actor401300Work.stateTimer`, `Actor01900Work.field_6`) — made the
+`s16` — as both twins do (`_Actor401300Work.stateTimer`, `_Actor01900Work.stateTimer`) — made the
 build 100.000%, and the overlay's own checksum still passed with no change to the other
 matched reader of that field.
 
@@ -112798,7 +112798,7 @@ reached the same destination homes (`radius` `$v1`, `scratch` `$a0`) from the
 routes agree and either can be the 100% move.
 
 Also needed, and each was observable on its own: `_Actor356100Work::stateTimer` is
-`s16` (family convention — `Actor01900Work` / `_Actor401300Work` both are), not the
+`s16` (family convention — `_Actor01900Work` / `_Actor401300Work` both are), not the
 `u16` the header had, or the `== 0` test emits `lhu` where the target has `lh`;
 and filling the `D_actor_356100_801732A8` record with `field_0` first rather than
 last lets the model coordinate load schedule ahead of the two `sh` stores and the
