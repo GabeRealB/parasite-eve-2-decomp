@@ -45037,12 +45037,12 @@ same two instructions. Signedness is only observable where the value is
 register, where `s16` gives `lh` and `u16` gives `lhu`.
 
 That makes the type of such a field decidable, and the change safe to make.
-`Actor02100Work.field_118` was `u16` because the already-matched
-`Actor02100_Fn00DCC` copies it to `field_120` with `lhu`; `Actor02100_Fn031C4`
+`_Actor02100Work.velocity.vx` was `u16` because the already-matched
+`Actor02100_Fn00DCC` copies it to `resumeVelocity.vx` with `lhu`; `Actor02100_Fn031C4`
 adds it into `GfxCoord.coord.t[0]` with `lh`. The widening site is the
 evidence, so the field is `s16` — and flipping it left `Fn00DCC` matching.
 
-Casting at the widening site (`t[0] += (s16)work->field_118;`) emits the same
+Casting at the widening site (`t[0] += (s16)work->velocity.vx;`) emits the same
 `lh` and is a valid fallback, but prefer fixing the declared type: check the
 other users first, since a widening use of the *same* field elsewhere would
 contradict it.
@@ -131778,14 +131778,14 @@ base pointer. So a field read *after* a store to any other field of any struct i
 fresh load, and the decompiled C has to read it there:
 
 ```c
-frame = work->field_178;          /* pre-read: CSE merges it with the later read */
-work->field_E0 = 0x20000;
+frame = work->weapon;             /* pre-read: CSE merges it with the later read */
+work->enemyStrikeBody.key = 0x20000;
 ...
 switch (frame)
 
-work->field_E0 = 0x20000;         /* the store invalidates in_struct entries */
+work->enemyStrikeBody.key = 0x20000; /* the store invalidates in_struct entries */
 ...
-switch (work->field_178)          /* second lh, as in the ROM */
+switch (work->weapon)             /* second lh, as in the ROM */
 ```
 
 The same flag governs disambiguation in the other direction, so it cannot simply be
@@ -131900,7 +131900,7 @@ on the head that the original never wrote.
 `(x << 8) | (x | 0x20000)` does not emit the tree it spells: `fold` moves the
 constant into the left operand, giving `((x << 8) | 0x20000) | x` with the ROM's
 two `or`s in the other order. Spelling the folded form directly,
-`work->field_C8.key = ((work->field_178 + 0x26) << 8) | 0x20000 | (work->field_178 + 0x26);`,
+`work->enemyStrikeBody.key = ((work->weapon + 0x26) << 8) | 0x20000 | (work->weapon + 0x26);`,
 matches as one statement, with the field read twice and CSE'd - no
 statement-per-operand split and no register touch to order the load.
 
