@@ -62,14 +62,19 @@
 /// `step`, so a cue that spans several frames starts at its first step; the
 /// handler leaves `id` set until the last step is done.
 ///
-/// Cues 1 to 33 are the scene's cuts, posted to the whole cast as each cut
-/// opens. 35 to 39 are posted to one actor in the middle of a cut. A handler
-/// acts on the cues that concern its actor and clears the rest unhandled.
+/// Cues 1 to 33 are the scene's cuts, posted in order to the whole cast as each
+/// cut opens. 35 to 39 are posted to one actor in the middle of a cut, and are
+/// numbered per actor: 35 is one cue for Aya and another for Kyle. The scene's
+/// own cue is numbered separately again. A handler acts on the cues that
+/// concern its actor and clears the rest unhandled.
+///
+/// A cue is replaced, not queued: posting over one that is still running
+/// abandons it, and skipping the scene clears the cast's cues outright.
 typedef struct {
     u16  id;           // Cue to act on; 0 when none is pending
-    u16  step;         // Step reached within a cue that spans several frames
-    s16  counter;      // Frames waited, or units the actor has been slid, within the current step
-    byte unknown_6[2]; // Never accessed
+    u16  step;         // Step reached within a cue that spans several frames; counts up from 0
+    s16  counter;      // Frames waited, or distance Aya has been slid, within the current step; zeroed by the step that starts counting, not by posting
+    byte unknown_6[2]; // Never accessed; the cues sit 8 bytes apart, so the bytes are the cue's, but nothing shows what they hold
 } _Actor560800Cue;
 STATIC_ASSERT_SIZEOF(_Actor560800Cue, 0x8);
 
