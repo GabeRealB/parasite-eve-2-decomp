@@ -129,8 +129,14 @@ def include_names(models: list[dict], read) -> dict[tuple[str, int], str]:
         for content, places in by_content.items():
             types = {k for p, _ in places for k in kinds.get(p, ())}
             name = owned(base, places[0][0]) if len(types) == 1 else base
-            if name in used.values() or name in named.values():
+            taken = lambda n: n in used.values() or n in named.values()
+            if taken(name):
                 name = f"{name}_{places[0][1]:05X}"
+            if taken(name):
+                # Two packages can hold different versions at the same record
+                # offset - the day and night copies of one map - so the offset
+                # alone does not tell them apart.
+                name = f"{name}_{places[0][0]}"
             used[content] = name
             named[(base, content)] = name
     return {(p, s): named[(b, c)] for p, s, b, c in rows}
