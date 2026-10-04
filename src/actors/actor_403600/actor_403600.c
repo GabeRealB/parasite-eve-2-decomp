@@ -146,7 +146,7 @@ static const SVECTOR D_actor_403600_80131E2C;
 static const CVECTOR D_actor_403600_80131E34;
 
 static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1);
-static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);
+static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* arg2);
 
 void func_actor_403600_80134288(Task*);
 
@@ -1053,7 +1053,7 @@ static void func_actor_403600_8013289C(s32 x, s32 corner, Actor403600GridVertex*
     vtx->v = y;
 }
 
-static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2)
+static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* arg2)
 {
     s32                       fade;
     s32                       x;
@@ -1081,7 +1081,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
     scratch->offset.vx = 0;
     scratch->offset.vy = 0;
     scratch->offset.vz = 0;
-    fade               = arg1->field_708;
+    fade               = work->screenDistortion;
     for (y = -0x78; y < 0x78; y += 0x10) {
         for (x = -0xA0; x < 0xA0; x += 0x10) {
             poly                    = (Actor403600GridQuad*)D_actor_403600_8016069C;
@@ -1172,7 +1172,7 @@ static inline void _actor403600ApplyMatrixSv(MATRIX* m, SVECTOR* in, SVECTOR* ou
     gte_stsv(out);
 }
 
-void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2)
+void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600FxWork* arg2)
 {
     Task*                    actor;
     GfxCoord*                center;
@@ -1242,12 +1242,12 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
 
             scratch->b.vx = 0;
             scratch->b.vy = 0;
-            scratch->b.vz = -(arg1->field_70C + 0x200);
+            scratch->b.vz = -(work->chainPullExtra + 0x200);
             gfxRotateSv(&center->workm, &scratch->b);
             gfxRotateSv(&scratch->basis, &scratch->b);
 
-            if (arg1->field_70A != 0) {
-                gte_lddp(arg1->field_70A);
+            if (work->chainSweep != 0) {
+                gte_lddp(work->chainSweep);
                 gte_ldsv(&scratch->b);
                 gte_gpf12();
                 gte_stsv(&scratch->drift);
@@ -1310,7 +1310,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
                 gfxRotateSv(&scratch->basis, &scratch->b);
 
                 scratch->a.vx = 0;
-                scratch->a.vy = arg1->field_70E + 0x200;
+                scratch->a.vy = work->limbPullExtra + 0x200;
                 scratch->a.vz = 0;
                 gfxRotateSv(&limb->workm, &scratch->a);
                 gfxRotateSv(&scratch->basis, &scratch->a);
@@ -1318,7 +1318,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
                 scratch->a.vx += arg2->limbTips[i].vx - scratch->b.vx;
                 scratch->a.vy += arg2->limbTips[i].vy - scratch->b.vy;
                 scratch->a.vz += arg2->limbTips[i].vz - scratch->b.vz;
-                if (arg1->field_70A != 0) {
+                if (work->chainSweep != 0) {
                     scratch->a.vx += scratch->drift.vx;
                     scratch->a.vy += scratch->drift.vy;
                     scratch->a.vz += scratch->drift.vz;
@@ -1368,7 +1368,7 @@ void func_actor_403600_80134288(Task* arg0)
     Actor403600FxWork* fx;
     Task*              child;
 
-    work = (Actor403600Work*)arg0->parent->work;
+    work = arg0->parent->work;
     if (arg0->state == 0) {
         fx = memCalloc(0x11C, false);
         if (fx == NULL) {
@@ -1381,14 +1381,14 @@ void func_actor_403600_80134288(Task* arg0)
         if (child != NULL) {
             taskReparent(arg0, child);
         }
-        work                    = (Actor403600Work*)arg0->parent->work;
-        work->field_710         = arg0;
+        work                    = arg0->parent->work;
+        work->fxTask            = arg0;
         D_actor_403600_801606A0 = 0;
         arg0->state++;
     }
     fx                      = arg0->work;
     D_actor_403600_8016069C = (u8*)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * 0xC000);
-    if (work->field_742 != 1 && work->field_708 > 0) {
+    if (work->defeated != 1 && work->screenDistortion > 0) {
         func_actor_403600_80132A18(arg0, work, fx);
     }
 }
@@ -1464,7 +1464,7 @@ void func_actor_403600_80134398(Task* arg0)
         Task_CallExit(arg0);
         return;
     }
-    if (((Actor403600Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_742 == 1) {
+    if (((Actor403600Work*)((Task*)arg0->spawnArg2.pointer)->work)->defeated == 1) {
         Task_CallExit(arg0);
         return;
     }
@@ -1500,8 +1500,8 @@ void func_actor_403600_80134398(Task* arg0)
             newWork->velocity.vx = 0;
             newWork->velocity.vz = 0x4B0;
             sp18                 = newWork->velocity;
-            ownerCoord           = &((Actor403600Work*)shared)->field_4B8;
-            shared               = &((Actor403600Work*)shared)->field_4B8.coord;
+            ownerCoord           = &((Actor403600Work*)shared)->worldCoord;
+            shared               = &((Actor403600Work*)shared)->worldCoord.coord;
             gte_SetRotMatrix(shared);
             gte_ldv0(firstVector);
             gte_rtv0();
@@ -2169,13 +2169,13 @@ void func_actor_403600_80135C28(Task* arg0)
     TmdObject*        temp_a1;
     Task*             temp_s2;
     TmdObject*        temp_v0;
-    Actor403600Work*  temp_v1;
+    Actor403600Work*  ownerWork;
 
-    temp_a0 = arg0->spawnArg2.pointer;
-    temp_v1 = temp_a0->work;
-    temp_s4 = arg0->extra.coordBody->coord;
-    temp_s2 = temp_v1->field_710;
-    if (temp_v1->field_742 == 1) {
+    temp_a0   = arg0->spawnArg2.pointer;
+    ownerWork = temp_a0->work;
+    temp_s4   = arg0->extra.coordBody->coord;
+    temp_s2   = ownerWork->fxTask;
+    if (ownerWork->defeated == 1) {
         temp_v0                 = temp_a0->extra.tmd;
         D_actor_403600_801606A0 = NULL;
         temp_v0->flags          = (u16)(temp_v0->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
