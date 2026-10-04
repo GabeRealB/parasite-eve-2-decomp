@@ -109,11 +109,17 @@ typedef struct {
 } Actor521100Work;
 STATIC_ASSERT_SIZEOF(Actor521100Work, 0x6C0);
 
-typedef struct Actor521100FireRow {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ u16 field_2;
-} Actor521100FireRow;
-STATIC_ASSERT_SIZEOF(Actor521100FireRow, 4);
+/// One stretch of the grab's throw: how far the held player is carried on each of its frames.
+///
+/// The throw's travel is a list of these in ascending `endFrame`, one list for
+/// each side the player was seized from. A frame of the throw takes the first
+/// span it falls short of the end of, so the last span of a list ends on the
+/// frame the carrying stops.
+typedef struct {
+    s16 endFrame;     // Frame of the golem's throw animation this span ends before
+    s16 sidewaysStep; // Distance the player is moved on each frame of the span, along the X axis of the golem's root; added to where the player then stands
+} Actor521100ThrowSpan;
+STATIC_ASSERT_SIZEOF(Actor521100ThrowSpan, 4);
 
 extern AnimationSet gActor521100Animation10EAC;
 
@@ -217,7 +223,7 @@ extern s16 D_actor_521100_8015F8BC[8];
 
 extern s16 D_actor_521100_8015F8CC[4];
 
-extern Actor521100FireRow D_actor_521100_8015F80C[2][17];
+extern Actor521100ThrowSpan D_actor_521100_8015F80C[2][17];
 
 s32 func_actor_521100_80135D10(Task*, s32, s32, s32);
 

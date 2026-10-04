@@ -2725,9 +2725,10 @@ static void func_actor_521100_801339B0(Task* arg0)
                                     (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animationFrame < 0x45) {
-                for (i = 0; i < 0x11; i++) {
-                    if (work->animationFrame < D_actor_521100_8015F80C[work->grabFromFront][i].field_0) {
-                        scratch->localOffset.vx = D_actor_521100_8015F80C[work->grabFromFront][i].field_2;
+                // Carry the player by the step of the span this frame of the throw falls in.
+                for (i = 0; i < ARRAY_SIZE(D_actor_521100_8015F80C[0]); i++) {
+                    if (work->animationFrame < D_actor_521100_8015F80C[work->grabFromFront][i].endFrame) {
+                        scratch->localOffset.vx = D_actor_521100_8015F80C[work->grabFromFront][i].sidewaysStep;
                         break;
                     }
                 }
