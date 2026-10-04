@@ -72,13 +72,27 @@
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
-// Unreferenced leading zero word immediately before the independently addressed task descriptor. It does not align the descriptor, whose address is only word aligned. Preserve the word with the neighboring descriptor; original ownership remains unresolved.
+/// Storage of the departure task's descriptor, with the four bytes before it.
+///
+/// `desc` is the spawn recipe the room's exit task hands to the task system
+/// once it has staged `gRoomDeparture`: a bodyless task running
+/// `roomDepartureTask`. It is addressed on its own, as a single descriptor.
+///
+/// The four bytes before it open the room's initialised data. They are zero
+/// in the image and have no established access. They are not alignment: the
+/// last function ends on the boundary they start at, and the descriptor needs
+/// only word alignment. The only other room that carries
+/// `roomVariantResolveNeoArk` has the same four zero bytes directly before
+/// its own departure descriptor, and no other room with a departure
+/// descriptor has them, so they are likely an unreferenced variable of that
+/// shared source rather than part of the descriptor. Their role is unproven;
+/// they stay in this allocation only to keep the descriptor at its address.
 typedef struct {
-    u32      retained;
-    TaskDesc task;
-} ShelterB2MainCorridorTaskStorage;
-STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorTaskStorage, 16);
-extern ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0;
+    u8       unknown_0[4]; // Zero in the image; no access established and role unproven
+    TaskDesc desc;         // Spawn recipe for the departure task; read as a single descriptor
+} _ShelterB2MainCorridorDepartureTaskDescStorage;
+STATIC_ASSERT_SIZEOF(_ShelterB2MainCorridorDepartureTaskDescStorage, 16);
+extern _ShelterB2MainCorridorDepartureTaskDescStorage D_shelter_b2_main_corridor_801828E0;
 
 /// Departure record plus four trailing bytes.
 ///
@@ -173,7 +187,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task*);
 void func_shelter_b2_main_corridor_8017E210(Task*);
 void func_shelter_b2_main_corridor_8017EB8C(Task*);
 
-ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0 = { 0, { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } } };
+_ShelterB2MainCorridorDepartureTaskDescStorage D_shelter_b2_main_corridor_801828E0 = { { 0 }, { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } } };
 
 static AnimationPackedPose _gShelterB2MainCorridorAnimation05620Bank1[2] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank1.inc"
@@ -1800,7 +1814,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             D_shelter_b2_main_corridor_80189684.warp = param.warp;
             D_shelter_b2_main_corridor_80189684.room = param.room;
             gRoomDeparture.departure                 = D_shelter_b2_main_corridor_80189684;
-            Task_SpawnFromTable(&D_shelter_b2_main_corridor_801828E0.task, 0, 0, 0);
+            Task_SpawnFromTable(&D_shelter_b2_main_corridor_801828E0.desc, 0, 0, 0);
             taskKill(arg0);
             break;
     }
