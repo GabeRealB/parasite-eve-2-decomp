@@ -23,20 +23,27 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor_messages.h"
 
-/// Work block of the overlay's actor, allocated zeroed by its setup handler
-/// and reached through `D_actor_202900_80156E54`, which the actor's update
-/// refreshes from the task every frame: the light and colour matrices the
-/// model is drawn under, its nineteen-part rig and its animation state, in
-/// which `st.cueRecord` latches the second slot's record once it reaches 0x15,
-/// so the overlay reacts to that record once.
-typedef struct Actor202900Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig19  rig;
-    ActorEnemyState st;
+/// Work block of the package's actor, the ANMC woman of the Acropolis
+/// cafeteria: allocated zeroed at its full size by her task's setup state and
+/// kept both at `Task::work` and in a global the rest of the package reaches
+/// it through.
+///
+/// The model object borrows `light` and `color` for as long as the block
+/// lives. Slots 1 to 18 of the rig are driven; slot 0, the root's, is never
+/// started. The package gives her no walk, so of `st` only the animation
+/// request and the sound cue are used: `st.cueRecord` is cleared by setup
+/// alone, so the cue sounds once in the actor's life.
+///
+/// The allocation is 0xB0 bytes longer than the members the package uses. No
+/// access to `pad_4B4` has been observed, and its role is unproven.
+typedef struct {
+    MATRIX          light; // Light-direction matrix lent to the model object
+    MATRIX          color; // Light-colour matrix lent to the model object
+    ActorAnimRig19  rig;   // Playback storage of the nineteen-part body model
+    ActorEnemyState st;    // Animation request and the record a sound was last cued for; heading and walk stay zero
     byte            pad_4B4[0xB0];
-} Actor202900Work;
-STATIC_ASSERT_SIZEOF(Actor202900Work, 0x564);
+} _Actor202900Work;
+STATIC_ASSERT_SIZEOF(_Actor202900Work, 0x564);
 
 // Message-table callbacks use the argument views required by this TU.
 
@@ -46,7 +53,7 @@ extern u8               D_actor_202900_80156E3C[];
 
 /// The actor's work block, published so the overlay's functions can reach it
 /// without the task in hand.
-extern Actor202900Work* D_actor_202900_80156E54;
+extern _Actor202900Work* D_actor_202900_80156E54;
 
 /// The actor's task, published by the setup handler so the overlay's other
 /// functions can reach the actor's model without the task in hand.
@@ -240,7 +247,7 @@ u8 D_actor_202900_80156E3C[24] = {
     0,
 };
 
-Actor202900Work* D_actor_202900_80156E54 = NULL;
+_Actor202900Work* D_actor_202900_80156E54 = NULL;
 
 Task* gActorSelfTask;
 
@@ -260,7 +267,7 @@ static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    task->work = (D_actor_202900_80156E54 = memCalloc(0x564, false));
+    task->work = (D_actor_202900_80156E54 = memCalloc(sizeof(_Actor202900Work), false));
     if (D_actor_202900_80156E54 == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -305,7 +312,7 @@ void func_actor_202900_8014A02C(Task* task)
         func_actor_202900_8014A0B4,
     };
 
-    D_actor_202900_80156E54 = (Actor202900Work*)task->work;
+    D_actor_202900_80156E54 = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 

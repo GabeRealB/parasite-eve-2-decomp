@@ -86322,7 +86322,7 @@ a front-end conversion, not a `combine` or peephole fold.
 
 ```c
     /* AnimationPlayRequest          */ s32 animationId;  /* 0x4 */
-    /* Actor202900Work    */ u16 animId;   /* 0x480 */
+    /* _Actor202900Work    */ u16 animId;   /* 0x480 */
     ...
     if (args->animationId < 5) {
         ActorsShared80131f9cWork->animId = args->animationId;  /* lw compare, lhu store */
