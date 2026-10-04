@@ -1158,9 +1158,9 @@ Without it, all four spellings of "add `K` to one halfword, then add the other"
 fold to the same node and put `K` on the *wrong* operand:
 
 ```
-/* work->field_B56 + (aim->angle + 0x171)
-   aim->angle + 0x171 + work->field_B56
-   aim->angle + (0x171 + work->field_B56)      -- all identical */
+/* work->sidestepAngle + (aim->angle + 0x171)
+   aim->angle + 0x171 + work->sidestepAngle
+   aim->angle + (0x171 + work->sidestepAngle)      -- all identical */
 lhu  $2, 2902(b56)      /* constant rides B56 */
 lhu  $3, 12(angle)
 addu $2, $2, 369
@@ -1173,7 +1173,7 @@ halfword it was added to, which is what the target shows:
 ```c
 u16 angle;                          /* the truncating temp is the whole trick */
 angle      = aim->angle + 0x171;
-aim->angle = work->field_B56 + angle;
+aim->angle = work->sidestepAngle + angle;
 ```
 
 ```
@@ -96997,12 +96997,12 @@ The idiom is the pointer hoisted into a local before the `if`, and the body
 storing through the local:
 
 ```c
-    Actor356100Work* work;
+    _Actor356100Work* work;
     Enemy*         enemy;
 
     work  = arg0->field_1C;
     enemy = arg0->field_20;
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         ...
         enemy->node.flags = 0;
     }
@@ -112464,7 +112464,7 @@ needed `*head_ptr = head - N; sc = head - N;` (two pseudos) to get `addiu v0,s2,
 `u8` is not required to reproduce it, and a `u8` declaration is not evidence about the
 field the original source had.
 
-**Cause.** Both are `s16` fields; only the *use* narrows. `(u8)work->field_98A` on an
+**Cause.** Both are `s16` fields; only the *use* narrows. `(u8)work->blendRate` on an
 `s16` member is a `subreg:QI` of a `reg:HI` that was loaded from memory, and on a
 little-endian target GCC 2.8.1 loads that subreg straight from the same address in
 QImode - one `lbu`. The already-matched sibling `Actor01900_Fn01950` spells the same
@@ -112608,7 +112608,7 @@ the one that must come last in the emitted order.
 
 ```c
     if ((s16)--work->field_6 < 0) {
-        switch (work->field_97E) {   /* 0xB / 0xC; two case nodes, no table */
+        switch (work->animId) {   /* 0xB / 0xC; two case nodes, no table */
             case 0xB:
                 work->field_0 = 0xF;
                 break;
@@ -112691,7 +112691,7 @@ computation and is unaffected. Compiler SHA256
 ## A loop's comparison constants want a local before the loop when the target keeps them in `$s` registers (func_actor_356100_80163CD4, 2026-09-16)
 
 **Symptom.** A `do`/`goto` loop whose exit test compares a work field against two
-clip ids — `(work->field_97E != 0xB || (work->field_5A & 0x3FF) < 6)` … — with
+clip ids — `(work->animId != 0xB || (work->field_5A & 0x3FF) < 6)` … — with
 `regs=15 branch=8 reorder=2 insert=2 delete=4` at 90.663%. The branch topology is
 already right (`blocks=14/14`, same edges and predicates); what differs is that
 the candidate rematerializes both constants *inside* the loop, in `$v0`, and the
@@ -112730,12 +112730,12 @@ callee-saved home:
         ctx->node.flags = 0;
         obj->field_C      = 0;
         Tmd_AllocBuffers(obj);
-        work->field_978 = 2;
-        work->field_982 = 0x10;
+        work->animRequest = 2;
+        work->animRate = 0x10;
     loop_2:
         func_actor_356100_80163508(arg0);
-        if ((work->field_97E != animA) || ((u32)(work->field_5A & 0x3FF) < 6U)) {
-            if ((work->field_97E != animB) || ((u32)(work->field_5A & 0x3FF) < 9U)) {
+        if ((work->animId != animA) || ((u32)(work->field_5A & 0x3FF) < 6U)) {
+            if ((work->animId != animB) || ((u32)(work->field_5A & 0x3FF) < 9U)) {
                 goto loop_2;
             }
         }
@@ -112795,7 +112795,7 @@ reached the same destination homes (`radius` `$v1`, `scratch` `$a0`) from the
 400100 helper by moving where the radius constant's definition lives, so the two
 routes agree and either can be the 100% move.
 
-Also needed, and each was observable on its own: `Actor356100Work::field_6` is
+Also needed, and each was observable on its own: `_Actor356100Work::stateTimer` is
 `s16` (family convention — `Actor01900Work` / `_Actor401300Work` both are), not the
 `u16` the header had, or the `== 0` test emits `lhu` where the target has `lh`;
 and filling the `D_actor_356100_801732A8` record with `field_0` first rather than
@@ -112868,7 +112868,7 @@ operand in HImode too, so no sign extension is asked for. It matches as
 
 The match needed nothing else: `func_actor_356100_80168E44` is
 `func_actor_401300_8013AE48`'s body with this overlay's field names, five
-constants and the `field_98E` step-clamp, and lifting the sibling's
+constants and the `lookYawTarget` step-clamp, and lifting the sibling's
 `AimScratch` + `PositionYaw` + `NormalizeYaw` + `RescaleYaw` inlines wholesale
 scored 100.00% on the first attempt with all penalties zero, from a 76.79% m2c
 baseline. Compiler SHA256
@@ -113025,8 +113025,8 @@ m2c renders a 0x20-byte struct copy as eight per-word `M2C_FIELD` assignments,
 and the two forms schedule differently: the target interleaves `4 lw` / `4 sw`
 twice, while the eight-statement form emits all eight loads before all eight
 stores. `func_actor_356100_80167584`'s init block and its matched sibling
-`func_actor_401300_80139520` both save a `MATRIX`, and `work->field_B18 =
-work->field_AF8;` - one assignment - reproduces the 4+4 shape exactly.
+`func_actor_401300_80139520` both save a `MATRIX`, and `work->savedColorMtx =
+work->colorMtx;` - one assignment - reproduces the 4+4 shape exactly.
 
 Fix: give the run its own type (`MATRIX` here, after splitting the `byte pad[]`
 that covered it) and write the assignment whole. The field offsets are the same
@@ -113079,9 +113079,9 @@ Fix: keep the stores where they are and move the *assignment* that owns the
 earlier `li` to the front, letting the scheduler put the stores back:
 
 ```c
-    work->field_978 = 2;      /* writes $s1 - the target emits its `li` first */
-    work->field_97E = 1;      /* writes $v0 - the target emits its `li` second */
-    work->field_97A = 0;
+    work->animRequest = 2;      /* writes $s1 - the target emits its `li` first */
+    work->animId = 1;      /* writes $v0 - the target emits its `li` second */
+    work->blendActive = 0;
     ...
 ```
 
@@ -113207,11 +113207,11 @@ reseed, reset, blend restart, tick) reaches 99.701% only when each loop owns its
 pointer and counter:
 
 ```c
-    if (work->field_978 == 1) {
-        if (work->field_97C != work->field_97E) {
-            Actor356100AnimWork* anim;   /* per block, not per function */
+    if (work->animRequest == 1) {
+        if (work->appliedAnim != work->animId) {
+            _Actor356100Work* anim;       /* per block, not per function */
             s32                  i;
-            anim = (Actor356100AnimWork*)arg0->field_1C;
+            anim = (_Actor356100Work*)arg0->field_1C;
             for (i = 1; i < 0x15; i++) { ... }
 ```
 
@@ -113609,7 +113609,7 @@ For `func_actor_356100_80166CF0` the two spellings of one call site moved
 16.45%:
 
 ```c
-    if (work->field_97A == 0) {
+    if (work->blendActive == 0) {
         coord = arg0->field_2C->field_8;      /* 96.454%: branch=3 insert=9 delete=5 */
         actorStepForward(coord, 0x78);
     } else {
@@ -113619,7 +113619,7 @@ For `func_actor_356100_80166CF0` the two spellings of one call site moved
 ```
 versus
 ```c
-    if (work->field_97A == 0) {
+    if (work->blendActive == 0) {
         actorStepForward(arg0->field_2C->field_8, 0x78);   /* 99.866%, all four at 0 */
     } else {
         actorStepForward(arg0->field_2C->field_8, 0x3C);
@@ -136651,8 +136651,8 @@ if (val != mode) {
 } else {
     mode = 0xA;
 }
-work->field_0 = mode;
-if (cfg->hp > 0 && work->field_B68 == 1) {
+work->state = mode;
+if (cfg->hp > 0 && work->playerHeld == 1) {
     /* existing dispatch */
 }
 ```
