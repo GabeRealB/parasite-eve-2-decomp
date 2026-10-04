@@ -43,14 +43,17 @@ typedef struct {
     s16 state; // index of the state handler the actor's tick runs; the handlers store `ACTOR_MESSAGE_STATE_*` values
 } ActorMsgStateWork;
 
-/// The prefix of every work block actorMsgPlaceRecordYaw and
-/// actorMsgPlaceYawFirst are used with: `yaw`
-/// is the heading taken from the root coordinate's Z axis after the placement
-/// rotations are applied.
-typedef struct ActorYawWork {
-    /* 0x00 */ byte pad_0[0x16];
-    /* 0x16 */ s16  yaw;
-} ActorYawWork;
+/// The start of an actor's work block as `actorMsgPlaceRecordYaw` and
+/// `actorMsgPlaceYawFirst` see it.
+///
+/// Each package's work block is a type of its own; these handlers are shared
+/// between packages and know only where it keeps the heading of the last
+/// placement. The rest of the block is the package's.
+typedef struct {
+    byte packageFields[0x16]; // the package's own members ahead of the heading; the handlers touch none of them
+    s16  placedYaw;           // heading the model root was left facing by the last placement message; 4096 units per turn
+} ActorMsgYawWork;
+STATIC_ASSERT_SIZEOF(ActorMsgYawWork, 0x18);
 
 s32  actorMsgPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 s32  actorMsgPlaceRecordYaw(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
