@@ -483,7 +483,7 @@ def components(nodes, edges):
 # pictures - into one step.
 ASSET_INCLUDE = __import__("re").compile(
     r'#include "assets/(\w+)_(?:skeleton|partVerts|verts|normals|stream|bank\d+|records|indices'
-    r'|table|faces|cells|vertices|pose)\.inc"')
+    r'|table|faces|cells|vertices|pose|packets)\.inc"')
 
 
 def asset_groups(root, nodes, edges):
