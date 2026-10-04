@@ -303,21 +303,6 @@ typedef struct Actor01600RotScratch {
 } Actor01600RotScratch;
 STATIC_ASSERT_SIZEOF(Actor01600RotScratch, 0x18);
 
-/// 0x7C-byte scratch from the scratch stack that `Actor01600_Fn045A8` aims from:
-/// `delta` takes the world-space offset from the actor to the player, `dir` the
-/// same offset written as an `SVECTOR` and then replaced by that offset turned
-/// into the actor's own frame, and `mat` the transpose of the actor's rotation
-/// the turn multiplies by.
-typedef struct Actor01600AimScratch {
-    /* 0x00 */ byte    pad_0[0x20];
-    /* 0x20 */ VECTOR  delta;
-    /* 0x30 */ byte    pad_30[0xC];
-    /* 0x3C */ SVECTOR dir;
-    /* 0x44 */ byte    pad_44[0x18];
-    /* 0x5C */ MATRIX  mat;
-} Actor01600AimScratch;
-STATIC_ASSERT_SIZEOF(Actor01600AimScratch, 0x7C);
-
 /// 0x30-byte scratch from the scratch stack used by `Actor01600_Fn04C64`: `vec`
 /// takes (0, 0, `distance`), `mat` the yaw rotation `RotMatrixY` builds from
 /// the work block's `probeYaw`, and `out` the `vec` turned by it - the
@@ -3580,34 +3565,20 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
 /// the horizontal distance to `distance`.
 static s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
 {
-    GfxCoord*             coord;
-    GfxCoord*             other;
-    Actor01600AimScratch* scratch;
-    SVECTOR*              vec;
-    MATRIX*               matrix;
-    s32                   angle;
+    GfxCoord*                 coord;
+    GfxCoord*                 other;
+    ActorRangeBearingScratch* scratch;
+    s32                       angle;
 
-    other   = gPlayerActorTasks[Actor01600_Fn052C4(arg0) & 0xFF]->extra.tmd->coords;
-    coord   = arg0->extra.tmd->coords;
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(Actor01600AimScratch);
-    vec     = &scratch->dir;
-    matrix  = &scratch->mat;
-    vec->vx = other->workm.t[0] - coord->workm.t[0];
-    vec->vy = other->workm.t[1] - coord->workm.t[1];
-    vec->vz = other->workm.t[2] - coord->workm.t[2];
-    TransposeMatrix(&coord->workm, matrix);
-    gfxRotateSv(matrix, vec);
-    angle = ratan2(vec->vx, vec->vz);
-    if (angle > 0x800) {
-        angle -= 0x1000;
-    } else if (angle < -0x800) {
-        angle += 0x1000;
-    }
-    scratch->delta.vx = other->coord.t[0] - coord->coord.t[0];
-    scratch->delta.vy = other->coord.t[1] - coord->coord.t[1];
-    scratch->delta.vz = other->coord.t[2] - coord->coord.t[2];
-    *distance         = SquareRoot0(scratch->delta.vx * scratch->delta.vx + scratch->delta.vz * scratch->delta.vz);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor01600AimScratch);
+    other              = gPlayerActorTasks[Actor01600_Fn052C4(arg0) & 0xFF]->extra.tmd->coords;
+    coord              = arg0->extra.tmd->coords;
+    scratch            = SCRATCH_STACK_RESERVE_BLOCK(ActorRangeBearingScratch);
+    angle              = actorBearingInFrame(&scratch->bearing, coord, other);
+    scratch->offset.vx = other->coord.t[0] - coord->coord.t[0];
+    scratch->offset.vy = other->coord.t[1] - coord->coord.t[1];
+    scratch->offset.vz = other->coord.t[2] - coord->coord.t[2];
+    *distance          = SquareRoot0(scratch->offset.vx * scratch->offset.vx + scratch->offset.vz * scratch->offset.vz);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorRangeBearingScratch);
     return angle;
 }
 

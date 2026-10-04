@@ -120,21 +120,6 @@ typedef struct Actor403600TargetScratch {
 } Actor403600TargetScratch;
 STATIC_ASSERT_SIZEOF(Actor403600TargetScratch, 0x2C);
 
-/// Scratch block the bearing helpers work in: the vector from one coordinate
-/// to another, turned into the second one's frame, and the rotation it is
-/// turned by.
-/// The helpers reach it as `head[-1]`, the block just below the scratch head,
-/// before and after they claim it.
-typedef struct Actor403600BearingScratch {
-    byte    pad_0[0x20];
-    VECTOR  toPlayer; // from the coordinate to the player, in world space
-    byte    pad_30[0xC];
-    SVECTOR rel;      // between the two coordinates, then in the target's frame
-    byte    pad_44[0x18];
-    MATRIX  rot;      // the target's rotation, transposed
-} Actor403600BearingScratch;
-STATIC_ASSERT_SIZEOF(Actor403600BearingScratch, 0x7C);
-
 typedef struct Actor403600Point {
     /* 0x0 */ s16 x;
     /* 0x2 */ s16 pad_2;
@@ -3287,68 +3272,68 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
 
 static void func_actor_403600_8013E470(GfxCoord* arg0, s32* arg1, s32* arg2)
 {
-    GfxCoord*                  coord;
-    s32                        angle;
-    s32                        x;
-    s32                        z;
-    Actor403600BearingScratch* head;
-    SVECTOR*                   vec;
-    MATRIX*                    matrix;
-    Actor403600BearingScratch* scratch;
+    GfxCoord*                 coord;
+    s32                       angle;
+    s32                       x;
+    s32                       z;
+    ActorRangeBearingScratch* head;
+    SVECTOR*                  vec;
+    MATRIX*                   matrix;
+    ActorRangeBearingScratch* scratch;
 
-    head            = SCRATCH_STACK_CURSOR(void);
-    coord           = (*gPlayerActorTasks)->extra.tmd->coords;
-    head[-1].rel.vx = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
-    vec             = &head[-1].rel;
-    vec->vy         = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    scratch         = (SCRATCH_STACK_CURSOR(void) = &head[-1]);
-    vec->vz         = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
-    matrix          = &head[-1].rot;
+    head                      = SCRATCH_STACK_CURSOR(void);
+    coord                     = (*gPlayerActorTasks)->extra.tmd->coords;
+    head[-1].bearing.delta.vx = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
+    vec                       = &head[-1].bearing.delta;
+    vec->vy                   = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
+    scratch                   = (SCRATCH_STACK_CURSOR(void) = &head[-1]);
+    vec->vz                   = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
+    matrix                    = &head[-1].bearing.frame;
     TransposeMatrix(&arg0->workm, matrix);
     _gfxLoadRotSv(matrix, vec);
     gte_rtv0();
     gte_stsv(vec);
-    angle = ratan2(head[-1].rel.vx, vec->vz);
+    angle = ratan2(head[-1].bearing.delta.vx, vec->vz);
     *arg2 = angle;
     if (angle >= 0x801) {
         *arg2 = angle - 0x1000;
     } else if (angle < -0x800) {
         *arg2 = angle + 0x1000;
     }
-    x                    = gPlayerStatus.coordMtx->t[0] - arg0->coord.t[0];
-    scratch->toPlayer.vx = x;
-    scratch->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - arg0->coord.t[1];
-    z                    = gPlayerStatus.coordMtx->t[2] - arg0->coord.t[2];
-    scratch->toPlayer.vz = z;
-    *arg1                = SquareRoot0((x * x) + (z * z));
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403600BearingScratch));
+    x                  = gPlayerStatus.coordMtx->t[0] - arg0->coord.t[0];
+    scratch->offset.vx = x;
+    scratch->offset.vy = gPlayerStatus.coordMtx->t[1] - arg0->coord.t[1];
+    z                  = gPlayerStatus.coordMtx->t[2] - arg0->coord.t[2];
+    scratch->offset.vz = z;
+    *arg1              = SquareRoot0((x * x) + (z * z));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorRangeBearingScratch));
 }
 
 static s16 func_actor_403600_8013E66C(GfxCoord* arg0)
 {
-    GfxCoord*                  coord;
-    s16                        angle;
-    s16                        result;
-    SVECTOR*                   vec;
-    Actor403600BearingScratch* head;
+    GfxCoord*                 coord;
+    s16                       angle;
+    s16                       result;
+    SVECTOR*                  vec;
+    ActorRangeBearingScratch* head;
 
     head                       = SCRATCH_STACK_CURSOR(void);
     coord                      = (*gPlayerActorTasks)->extra.tmd->coords;
     SCRATCH_STACK_CURSOR(void) = &head[-1];
-    head[-1].rel.vx            = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
-    vec                        = &head[-1].rel;
+    head[-1].bearing.delta.vx  = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
+    vec                        = &head[-1].bearing.delta;
     vec->vy                    = (s16)(arg0->workm.t[1] - coord->workm.t[1]);
     vec->vz                    = (s16)(arg0->workm.t[2] - coord->workm.t[2]);
-    TransposeMatrix(&coord->workm, &head[-1].rot);
-    gfxRotateSv(&head[-1].rot, vec);
-    angle  = ratan2(head[-1].rel.vx, vec->vz);
+    TransposeMatrix(&coord->workm, &head[-1].bearing.frame);
+    gfxRotateSv(&head[-1].bearing.frame, vec);
+    angle  = ratan2(head[-1].bearing.delta.vx, vec->vz);
     result = angle;
     if (angle >= 0x801) {
         result = angle - 0x1000;
     } else if (angle < -0x800) {
         result = angle + 0x1000;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403600BearingScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorRangeBearingScratch));
     return result;
 }
 

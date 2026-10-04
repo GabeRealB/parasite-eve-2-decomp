@@ -131470,7 +131470,7 @@ of the stores the function already performs as an asm, and naming the pointer a
 second time as an unused input:
 
 ```c
-__asm__("sw\t%1, %0" : "=m"(scratch->delta.vx) : "r"(x), "r"(scratch));
+__asm__("sw\t%1, %0" : "=m"(scratch->offset.vx) : "r"(x), "r"(scratch));
 ```
 
 The template uses only `%0` and `%1`, so this emits exactly the `sw` the C
@@ -131514,6 +131514,28 @@ puts the scratchpad store between the loads and the `sh` in RTL order. The
 subtraction outranks it on priority and is placed after it, which is the ROM's
 order. A statement split is the lever whenever a store has to sit inside another
 statement's expansion.
+
+## Head-relative offsets into a reserved scratch block are an inlined helper on a nested member (Actor01600_Fn045A8, 2026-10-04)
+
+The three entries above steer `Actor01600_Fn045A8` with asm and statement
+splits. None of it is needed. The block is 0x7C bytes and its top 0x40 have
+exactly the layout of `ActorBearingScratch` (`include/actors/actor.h`), the
+block `actorBearingInFrame` works in for `actor_07000`, `actor_01100` and
+`actor_207200`. Declaring that run as a nested member and calling the helper
+on it,
+
+```c
+scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorRangeBearingScratch);
+angle   = actorBearingInFrame(&scratch->bearing, coord, other);
+scratch->offset.vx = other->coord.t[0] - coord->coord.t[0];
+```
+
+matches outright: the inlined `blk` is `head - 0x40`, so its stores come out
+at negative offsets from the old cursor, while the caller's own writes go
+through the reserved pointer - the mixed addressing the hacks were chasing.
+When a function addresses one part of a block from the head and another from
+the new cursor, look for a shared inline whose scratch type fits the first
+part before reaching for register steering.
 
 ## Between two eligible insns after a branch, reorg picks one you cannot steer: hoist the wanted one above the compare (Actor01900_Fn01C94, 2026-09-18)
 

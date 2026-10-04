@@ -414,6 +414,20 @@ typedef struct ActorBearingScratch {
 } ActorBearingScratch;
 STATIC_ASSERT_SIZEOF(ActorBearingScratch, 0x40);
 
+/// The scratch-pad block of a target measured from a coordinate, in range and
+/// in bearing.
+///
+/// The range is the length of `offset` over X and Z; its Y is stored and not
+/// read. No user touches the bytes before `offset` or between it and
+/// `bearing`, so what they hold is unproven.
+typedef struct {
+    byte                pad_0[0x20];
+    VECTOR              offset;  // The target's position less the coordinate's, in the space both local transforms map into
+    byte                pad_30[0xC];
+    ActorBearingScratch bearing; // Where the target's bearing in the coordinate's own frame is worked out
+} ActorRangeBearingScratch;
+STATIC_ASSERT_SIZEOF(ActorRangeBearingScratch, 0x7C);
+
 /// The scratch-pad block of a head turned to aim at the player: `view` is the
 /// head coordinate in view space, `delta` the player's offset from it, and
 /// `local` that offset rotated into the body's frame and clamped.
