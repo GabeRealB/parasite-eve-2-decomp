@@ -1888,7 +1888,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     vec->vx         = rsin(angle);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     vec->vz         = 0xE000 - ((gRandomLcgState >> 16) & 0x1FFF);
-    gfxRotateSv(&coord->coord, vec);
+    _gfxRotateSv(&coord->coord, vec);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gte_lddp(((gRandomLcgState >> 16) & 0x1F) + 0x1E);
     gte_ldsv(vec);

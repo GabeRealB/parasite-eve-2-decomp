@@ -607,7 +607,7 @@ static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     TransposeMatrix(&gGfxViewCoord.workm, &lightScratch->parentRotation);
     gte_MulMatrix0(&lightScratch->parentRotation, &arg1->transform.lighting.parent->workm, &lightScratch->parentRotation);
 
-    gfxRotateSv(&lightScratch->parentRotation, &lightScratch->result.direction);
+    _gfxRotateSv(&lightScratch->parentRotation, &lightScratch->result.direction);
 
     dirMtx->m[arg0][0] = -lightScratch->result.direction.vx;
     dirMtx->m[arg0][1] = -lightScratch->result.direction.vy;

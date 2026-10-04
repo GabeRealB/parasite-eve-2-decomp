@@ -267,7 +267,7 @@ void waterRefractionTask(Task* task)
     scratch->viewTranslation.vx = gGfxViewCoord.workm.t[0];
     scratch->viewTranslation.vy = gGfxViewCoord.workm.t[1];
     scratch->viewTranslation.vz = gGfxViewCoord.workm.t[2];
-    gfxRotateSv(&scratch->transposedView, &scratch->viewTranslation);
+    _gfxRotateSv(&scratch->transposedView, &scratch->viewTranslation);
     scratch->depth        = scratch->viewTranslation.vy + zoff;
     scratch->depth       *= disp->screenDistance;
     scratch->screenRow.vx = 0;

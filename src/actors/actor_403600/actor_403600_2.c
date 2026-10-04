@@ -3296,7 +3296,7 @@ static s16 func_actor_403600_8013E66C(GfxCoord* arg0)
     vec->vy                    = (s16)(arg0->workm.t[1] - coord->workm.t[1]);
     vec->vz                    = (s16)(arg0->workm.t[2] - coord->workm.t[2]);
     TransposeMatrix(&coord->workm, &head[-1].bearing.inverseRotation);
-    gfxRotateSv(&head[-1].bearing.inverseRotation, vec);
+    _gfxRotateSv(&head[-1].bearing.inverseRotation, vec);
     angle  = ratan2(head[-1].bearing.delta.vx, vec->vz);
     result = angle;
     if (angle >= 0x801) {

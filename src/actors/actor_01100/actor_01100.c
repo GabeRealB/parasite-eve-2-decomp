@@ -2160,14 +2160,14 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 } else if (work->splashPart == ACTOR_01100_PART_LEFT_HAND) {
                     scratch->shortVector.vx = -0x190;
                 }
-                gfxRotateSv(&part->workm, &scratch->shortVector);
+                _gfxRotateSv(&part->workm, &scratch->shortVector);
                 scratch->shortVector.vx += part->workm.t[0];
                 scratch->shortVector.vy += part->workm.t[1];
                 scratch->shortVector.vz += part->workm.t[2];
                 scratch->shortVector.vx -= gGfxViewCoord.workm.t[0];
                 scratch->shortVector.vy -= gGfxViewCoord.workm.t[1];
                 scratch->shortVector.vz -= gGfxViewCoord.workm.t[2];
-                gfxRotateSv(&scratch->viewInverse, &scratch->shortVector);
+                _gfxRotateSv(&scratch->viewInverse, &scratch->shortVector);
                 dy = gGameSession->waterY - scratch->shortVector.vy;
                 if (work->splashHeight * dy < 0) {
                     work->sprayFrames = 5;
@@ -3408,7 +3408,7 @@ static void Actor01100_Fn05E68(Task* task)
     vec->vx         = rsin(angle);
     vec->vz         = rcos(angle);
 
-    gfxRotateSv(&coord->coord, vec);
+    _gfxRotateSv(&coord->coord, vec);
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gte_lddp(((gRandomLcgState >> 16) & 0x1F) + 0x28);

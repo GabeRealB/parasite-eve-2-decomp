@@ -139566,11 +139566,11 @@ an inline taking `&tmp` all keep the early form. What matches is an inline that
 makes the copy into its own local:
 
 ```c
-static inline void gfxRotateSv(MATRIX* m, SVECTOR* out)
+static inline void _gfxRotateSv(const MATRIX* rotationMatrix, SVECTOR* vector)
 {
-    SVECTOR v;
-    v = *out;
-    gte_SetRotMatrix(m); gte_ldv0(&v); gte_rtv0(); gte_stsv(out);
+    SVECTOR input;
+    input = *vector;
+    gte_SetRotMatrix(rotationMatrix); gte_ldv0(&input); gte_rtv0(); gte_stsv(vector);
 }
 ```
 
@@ -142599,7 +142599,7 @@ ordinary `jal helper` - the body is never inlined - and a matching attempt
 that "uses the helper" fails for reasons unrelated to the source shape. Three
 bearing functions carried a hand-written `move`, a hand-split scratch push, an
 asm `ldv0` of a stack copy and a `COMPILER_BARRIER` for exactly this: with
-`main/gfxgte.h` visible, `gfxRotateSv` inlines and the plain body matches
+`main/gfxgte.h` visible, `_gfxRotateSv` inlines and the plain body matches
 first try. When a helper swap mismatches, first check the object for a `jal`
 to the helper's name.
 ## Copy-pasted blocks share their function-scope locals, and that sharing is what ranks them (func_actor_403600_8013DFE0, 2026-09-26)
@@ -144553,7 +144553,7 @@ loop: loop.c hoists them, so no constant locals are needed.
 Two callee-saved pins swapped `dirMtx`/`colorMtx` (`$s6`/`$s7`) with a scratch
 `dir` pointer that local-alloc ranked below them (4 refs over 114 half-insns
 = 701, against 983 and 789). The rotate step was the existing
-`gfxRotateSv(&block->mtx, &block->dir)`. Passing the *expression*
+`_gfxRotateSv(&block->mtx, &block->dir)`. Passing the *expression*
 `&block->dir` makes the inliner copy it into the helper's own user-variable
 parameter. CSE reduces that parameter to a copy of the outer `dir` pseudo, and
 the copy survives because the helper uses it in `gte_*` asm operands. `dir`

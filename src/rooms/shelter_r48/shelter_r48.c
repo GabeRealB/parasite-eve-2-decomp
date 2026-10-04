@@ -1877,7 +1877,7 @@ void func_shelter_r48_8017D660(Task* arg0)
     block->viewTranslation.vx = gGfxViewCoord.workm.t[0];
     block->viewTranslation.vy = gGfxViewCoord.workm.t[1];
     block->viewTranslation.vz = gGfxViewCoord.workm.t[2];
-    gfxRotateSv(&block->transposedView, &block->viewTranslation);
+    _gfxRotateSv(&block->transposedView, &block->viewTranslation);
     block->depth        = block->viewTranslation.vy + 0xD02;
     block->depth       *= disp->screenDistance;
     block->screenRow.vx = 0;

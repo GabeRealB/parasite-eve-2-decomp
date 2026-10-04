@@ -1111,7 +1111,7 @@ static void func_actor_361100_80161FF8(Task* arg0)
         block->viewTranslation.vx = gGfxViewCoord.workm.t[0];
         block->viewTranslation.vy = gGfxViewCoord.workm.t[1];
         block->viewTranslation.vz = gGfxViewCoord.workm.t[2];
-        gfxRotateSv(&block->transposedView, &block->viewTranslation);
+        _gfxRotateSv(&block->transposedView, &block->viewTranslation);
         block->depth        = block->viewTranslation.vy + 0x712;
         block->depth       *= disp->screenDistance;
         block->screenRow.vx = 0;

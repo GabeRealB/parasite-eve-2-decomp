@@ -977,7 +977,7 @@ static __inline__ s32 actorBearingInFrame(ActorBearingScratch* blk, GfxCoord* se
     blk->delta.vy = other->workm.t[1] - self->workm.t[1];
     blk->delta.vz = other->workm.t[2] - self->workm.t[2];
     TransposeMatrix(&self->workm, &blk->inverseRotation);
-    gfxRotateSv(&blk->inverseRotation, &blk->delta);
+    _gfxRotateSv(&blk->inverseRotation, &blk->delta);
     angle = ratan2(blk->delta.vx, blk->delta.vz);
     if (angle >= 0x801) {
         angle -= 0x1000;

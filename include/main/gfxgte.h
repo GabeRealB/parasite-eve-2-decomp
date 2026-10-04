@@ -11,13 +11,26 @@
 
 #include "main/scratch.h"
 
-/// Rotates `v` in place by the rotation part of `m`, with no translation.
-static __inline__ void gfxRotateSv(MATRIX* m, SVECTOR* v)
+/// Applies a matrix's 3x3 part to a signed short vector in place.
+///
+/// `rotationMatrix` has signed Q12 coefficients (`ONE` is 1.0); `vector`
+/// keeps its caller's coordinate units. Products are shifted right by 12 and
+/// saturated to -32768..32767. Scaling and reflection in the matrix are retained;
+/// the result is not normalized. Matrix translation is not read or added.
+///
+/// Requires a word-aligned matrix with its first 20 bytes readable, including
+/// the two bytes after the nine coefficients, and a halfword-aligned, readable
+/// full `SVECTOR` with writable xyz. The fourth halfword is copied but has no
+/// effect and is not written. Borrows both pointers only until return; uses a
+/// local snapshot and no scratch-stack storage. Overwrites GTE RT, V0, MAC1..3,
+/// IR1..3 and FLAG; translation registers are unchanged.
+static __inline__ void _gfxRotateSv(const MATRIX* rotationMatrix, SVECTOR* vector)
 {
-    SVECTOR in;
+    SVECTOR input;
 
-    in = *v;
-    gte_ApplyMatrixSV(m, &in, v);
+    // Snapshot the complete input before the GTE loads and in-place stores.
+    input = *vector;
+    gte_ApplyMatrixSV(rotationMatrix, &input, vector);
 }
 
 /// Stages a rotation matrix and signed short vector for the next GTE command.

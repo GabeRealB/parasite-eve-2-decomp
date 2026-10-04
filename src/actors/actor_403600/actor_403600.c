@@ -1211,14 +1211,14 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
             scratch->aux.vy = center->workm.t[1] - gGfxViewCoord.workm.t[1];
             scratch->aux.vz = center->workm.t[2] - gGfxViewCoord.workm.t[2];
 
-            gfxRotateSv(&scratch->basis, &scratch->aux);
+            _gfxRotateSv(&scratch->basis, &scratch->aux);
 
             scratch->segment.vx = 0;
             scratch->segment.vy = 0;
             scratch->segment.vz = -0x485;
-            gfxRotateSv(&center->workm, &scratch->segment);
+            _gfxRotateSv(&center->workm, &scratch->segment);
 
-            gfxRotateSv(&scratch->basis, &scratch->segment);
+            _gfxRotateSv(&scratch->basis, &scratch->segment);
 
             i = 0;
             do {
@@ -1236,14 +1236,14 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 scratch->aux.vx = limb->workm.t[0] - gGfxViewCoord.workm.t[0];
                 scratch->aux.vy = limb->workm.t[1] - gGfxViewCoord.workm.t[1];
                 scratch->aux.vz = limb->workm.t[2] - gGfxViewCoord.workm.t[2];
-                gfxRotateSv(&scratch->basis, &scratch->aux);
+                _gfxRotateSv(&scratch->basis, &scratch->aux);
 
                 scratch->segment.vx = 0;
                 scratch->segment.vy = 0x898;
                 scratch->segment.vz = 0;
-                gfxRotateSv(&center->workm, &scratch->segment);
+                _gfxRotateSv(&center->workm, &scratch->segment);
 
-                gfxRotateSv(&scratch->basis, &scratch->segment);
+                _gfxRotateSv(&scratch->basis, &scratch->segment);
                 fx->limbTips[i].vx = scratch->aux.vx + scratch->segment.vx;
                 fx->limbTips[i].vy = scratch->aux.vy + scratch->segment.vy;
                 fx->limbTips[i].vz = scratch->aux.vz + scratch->segment.vz;
@@ -1256,14 +1256,14 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
             scratch->aux.vy = center->workm.t[1] - gGfxViewCoord.workm.t[1];
             scratch->aux.vz = center->workm.t[2] - gGfxViewCoord.workm.t[2];
 
-            gfxRotateSv(&scratch->basis, &scratch->aux);
+            _gfxRotateSv(&scratch->basis, &scratch->aux);
             fx->chain[0] = scratch->aux;
 
             scratch->aux.vx = 0;
             scratch->aux.vy = 0;
             scratch->aux.vz = -(work->chainPullExtra + 0x200);
-            gfxRotateSv(&center->workm, &scratch->aux);
-            gfxRotateSv(&scratch->basis, &scratch->aux);
+            _gfxRotateSv(&center->workm, &scratch->aux);
+            _gfxRotateSv(&scratch->basis, &scratch->aux);
 
             if (work->chainSweep != 0) {
                 gte_lddp(work->chainSweep);
@@ -1300,7 +1300,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 GfxCoord* segment = &actor->extra.tmd->coords[i + 9];
                 _actor403600ApplyMatrixSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
                 TransposeMatrix(&center->workm, &scratch->rot);
-                gfxRotateSv(&scratch->rot, &scratch->segment);
+                _gfxRotateSv(&scratch->rot, &scratch->segment);
                 scratch->aux.vx     = 0;
                 scratch->aux.vy     = 0x1000;
                 scratch->aux.vz     = 0;
@@ -1326,13 +1326,13 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 scratch->aux.vx = limb->workm.t[0] - gGfxViewCoord.workm.t[0];
                 scratch->aux.vy = limb->workm.t[1] - gGfxViewCoord.workm.t[1];
                 scratch->aux.vz = limb->workm.t[2] - gGfxViewCoord.workm.t[2];
-                gfxRotateSv(&scratch->basis, &scratch->aux);
+                _gfxRotateSv(&scratch->basis, &scratch->aux);
 
                 scratch->segment.vx = 0;
                 scratch->segment.vy = work->limbPullExtra + 0x200;
                 scratch->segment.vz = 0;
-                gfxRotateSv(&limb->workm, &scratch->segment);
-                gfxRotateSv(&scratch->basis, &scratch->segment);
+                _gfxRotateSv(&limb->workm, &scratch->segment);
+                _gfxRotateSv(&scratch->basis, &scratch->segment);
 
                 scratch->segment.vx += fx->limbTips[i].vx - scratch->aux.vx;
                 scratch->segment.vy += fx->limbTips[i].vy - scratch->aux.vy;
@@ -1354,7 +1354,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
 
                 _actor403600ApplyMatrixSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
                 TransposeMatrix(&limb->workm, &scratch->rot);
-                gfxRotateSv(&scratch->rot, &scratch->segment);
+                _gfxRotateSv(&scratch->rot, &scratch->segment);
                 scratch->aux.vx = 0;
                 scratch->aux.vy = 0;
                 scratch->aux.vz = 0x1000;
@@ -3045,7 +3045,7 @@ u32* func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
         sc->offset.vx = sc->trans.vx - coord->workm.t[0];
         sc->offset.vy = sc->trans.vy - coord->workm.t[1];
         sc->offset.vz = sc->trans.vz - coord->workm.t[2];
-        gfxRotateSv(&sc->local, &sc->offset);
+        _gfxRotateSv(&sc->local, &sc->offset);
         gte_MulMatrix0(&sc->local, &sc->savedRot, &sc->local);
         sc->local.t[0] = sc->offset.vx;
         sc->local.t[1] = sc->offset.vy;
@@ -3121,7 +3121,7 @@ u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream)
         sc->offset.vx = sc->trans.vx - coord->workm.t[0];
         sc->offset.vy = sc->trans.vy - coord->workm.t[1];
         sc->offset.vz = sc->trans.vz - coord->workm.t[2];
-        gfxRotateSv(&sc->local, &sc->offset);
+        _gfxRotateSv(&sc->local, &sc->offset);
         gte_MulMatrix0(&sc->local, &sc->savedRot, &sc->local);
         sc->local.t[0] = sc->offset.vx;
         sc->local.t[1] = sc->offset.vy;
@@ -3215,7 +3215,7 @@ u32* func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream)
         sc->offset.vx = sc->trans.vx - coord->workm.t[0];
         sc->offset.vy = sc->trans.vy - coord->workm.t[1];
         sc->offset.vz = sc->trans.vz - coord->workm.t[2];
-        gfxRotateSv(&sc->local, &sc->offset);
+        _gfxRotateSv(&sc->local, &sc->offset);
         gte_MulMatrix0(&sc->local, &sc->savedRot, &sc->local);
         sc->local.t[0] = sc->offset.vx;
         sc->local.t[1] = sc->offset.vy;

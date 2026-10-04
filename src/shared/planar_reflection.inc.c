@@ -467,7 +467,7 @@ static void Reflection_UpdatePlayer(Task* task)
                 work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + frame->planePoint.vx;
                 work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + frame->planePoint.vy;
                 work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + frame->planePoint.vz;
-                gfxRotateSv(&frame->reflect, &frame->planePoint);
+                _gfxRotateSv(&frame->reflect, &frame->planePoint);
                 work->coord.coord.t[0] -= frame->planePoint.vx;
                 work->coord.coord.t[1] -= frame->planePoint.vy;
                 work->coord.coord.t[2] -= frame->planePoint.vz;
