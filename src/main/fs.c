@@ -257,6 +257,10 @@ u16 D5B498_8006EBB0;
 
 #include "main/fs.h"
 
+/// What `BreakDraw` returns when it cannot suspend the DMA transfer: the SDK's
+/// status value in place of a primitive address, never dereferenced.
+#define FS_DRAW_BREAK_FAILED ((u_long*)-1)
+
 #include "fs.h"
 #include "main/stream.h"
 
@@ -1460,7 +1464,7 @@ u8 Fs_LoadImageChunk(FsImageChunk* chunk, u8 arg1)
     do {
         ot = BreakDraw();
         /* BreakDraw returns the SDK sentinel -1 when it cannot suspend DMA. */
-        if (ot != (u_long*)-1) {
+        if (ot != FS_DRAW_BREAK_FAILED) {
             break;
         }
         if (GetRCnt(RCntCNT2) >= 0x6E40) {
@@ -1584,7 +1588,7 @@ u8 Fs_LoadImageStrip(s32 mode)
         return 0xFF;
     }
     /* SDK status value, not a C object address; also accepted by ContinueDraw. */
-    none  = (u_long*)-1;
+    none  = FS_DRAW_BREAK_FAILED;
     retry = (u8)mode;
     for (;;) {
         ot = BreakDraw();
@@ -1593,7 +1597,7 @@ u8 Fs_LoadImageStrip(s32 mode)
         }
         if (GetRCnt(RCntCNT2) >= 0x6E40) {
             if (retry == 0) {
-                Fs_ContinueDrawing((u_long*)-1);
+                Fs_ContinueDrawing(FS_DRAW_BREAK_FAILED);
                 return 0x7F;
             }
         }

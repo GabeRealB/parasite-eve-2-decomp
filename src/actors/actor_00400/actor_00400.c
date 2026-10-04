@@ -2373,8 +2373,8 @@ static void Actor00400_Fn02FF8(Task* arg0)
     scratch->bestDistance = ACTOR_00400_SURFACE_SPOT_DISTANCE_NONE;
     for (;;) {
         index  = scratch->spotIndex;
-        record = (SVECTOR*)(index * sizeof(SVECTOR) + (u32)work->surfaceSpots);
-        kind   = record->pad;
+        kind   = work->surfaceSpots[index].pad;
+        record = &work->surfaceSpots[index];
         if (kind == -1) {
             goto done;
         }
@@ -2422,8 +2422,8 @@ static void Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1)
     scratch->bestDistance = ACTOR_00400_SURFACE_SPOT_DISTANCE_NONE;
 loop:
     index  = scratch->spotIndex;
-    record = (SVECTOR*)(index * sizeof(SVECTOR) + (u32)work->surfaceSpots);
-    kind   = record->pad;
+    kind   = work->surfaceSpots[index].pad;
+    record = &work->surfaceSpots[index];
     if (kind != -1) {
         if ((kind != 1) || (index == work->surfaceSpotIndex)) {
             scratch->delta.vx = dx = work->targetPos.vx - record->vx;
@@ -5871,10 +5871,9 @@ static void Actor00400_Fn0A3D4(Task* arg0)
     _Actor00400Work* work;
     SVECTOR*         record;
 
-    work   = arg0->work;
-    record = (SVECTOR*)(work->surfaceSpotIndex * sizeof(SVECTOR) + (u32)work->surfaceSpots);
-    if (record->pad != 0) {
-        record->pad = 0;
+    work = arg0->work;
+    if (work->surfaceSpots[work->surfaceSpotIndex].pad != 0) {
+        work->surfaceSpots[work->surfaceSpotIndex].pad = 0;
     }
     work->stateFrames = 0;
     work->state       = (u16)work->state + 1;
