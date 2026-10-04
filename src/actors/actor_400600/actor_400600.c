@@ -191,7 +191,8 @@ typedef struct {
 } _Actor400600ZebraStalkerWork;
 STATIC_ASSERT_SIZEOF(_Actor400600ZebraStalkerWork, 0x770);
 
-/// The Stalker library's name for this package's work block (see stalker_zebra_ivory.h).
+/// The work block the `stalkerZebraIvory` fragments included below operate on:
+/// this package's own. `stalker_zebra_ivory.h` lists the members they reach.
 typedef _Actor400600ZebraStalkerWork StalkerZebraIvoryWork;
 
 /// 0x3C-byte scratchpad frame `func_actor_400600_801383E4` carves off

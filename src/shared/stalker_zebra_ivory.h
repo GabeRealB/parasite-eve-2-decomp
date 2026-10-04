@@ -9,15 +9,25 @@
  * its back or pick its range, the hold release, the wall-contact distance and
  * the footstep windows of clip 4.
  *
- * The packages use different work types: each names its own
- * `StalkerZebraIvoryWork` before including the fragments, and both name the
- * members the fragments reach alike - the root angles `pitch`, `yaw`, `roll`
- * at 0x80; the pinned part's position `anchorPos`; the state and sub-state;
- * the animation request `animRequest`, `animClip`, `animStep`, `animBlend`,
- * `animPlaying` and frame `animFrame`; the pending action and its arming
- * flag; `holding` and `holdKilledPlayer`; the arm flags `leftArmOut` and
- * `rightArmOut`; the room command `roomCommand`; the posture flags
- * `onCeiling` and `onBack`; and the capsule body with its contact table.
+ * `StalkerZebraIvoryWork` is the work block the fragments see at `Task::work`.
+ * The library does not define it. The two enemies' work blocks differ in size
+ * and in where most of their members sit, so each package aliases its own
+ * work type to that name after including this header and before its first
+ * fragment, and the fragments compile against that layout. They reach only
+ * the members below, which both packages declare with the same name and type:
+ *
+ *   pose        `pitch`, `yaw`, `roll` (s16 root angles, 4096ths of a turn);
+ *               `anchorPos` (SVECTOR3, the pinned part's view-space position)
+ *   animation   `anim` (AnimationContext) and `slots` (AnimationSlot[0x12]);
+ *               the request `animRequest`, `animClip`, `animStep`,
+ *               `animBlend`, `animPlaying` and its frame `animFrame` (s16)
+ *   states      `state`, `subState`, `timer`, `playerDistance` (s16);
+ *               `countdown` (u16)
+ *   reactions   `pendingAction`, `pendingArmed` (s16); `roomCommand` (u8)
+ *   flags       `holding`, `holdKilledPlayer`, `leftArmOut`, `rightArmOut`,
+ *               `onCeiling`, `onBack` (u8)
+ *   wall probe  `capsuleBody` (WorldCollisionBody), `capsuleContacts`
+ *               (WorldCollisionContact[8]), `distanceMode` (u8)
  *
  * Include this header in the prologue and each fragment at its function's
  * position.

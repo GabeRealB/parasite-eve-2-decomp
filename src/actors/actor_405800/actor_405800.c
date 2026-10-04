@@ -229,7 +229,8 @@ typedef struct {
 } _Actor405800IvoryStalkerWork;
 STATIC_ASSERT_SIZEOF(_Actor405800IvoryStalkerWork, 0x89C);
 
-/// The Stalker library's name for this package's work block (see stalker_zebra_ivory.h).
+/// The work block the `stalkerZebraIvory` fragments included below operate on:
+/// this package's own. `stalker_zebra_ivory.h` lists the members they reach.
 typedef _Actor405800IvoryStalkerWork StalkerZebraIvoryWork;
 
 /* `D_800678F0` selects the model stream the next `Gp_SpawnEff` uses as the
