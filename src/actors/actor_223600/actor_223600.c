@@ -43,40 +43,33 @@
 
 /// The actor's per-instance work block, allocated by the spawn state and
 /// reached through `Task::work`. Only the fields the actor's code touches are
-/// modelled: the state word and its change latch, the animation context and
-/// slots, the motion fields `animDriverTick` drives, the bytes a
+/// modelled: the state word and its change latch, the animation rig, the
+/// motion fields `animDriverTick` drives, the bytes a
 /// message handler copies out of its event packet, the spawn and target
 /// positions, the model's light and colour matrices and the park latch.
 typedef struct Actor223600Work {
-    /* 0x000 */ s16              field_0; ///< state
-    /* 0x002 */ s16              field_2; ///< state at the previous dispatch
-    /* 0x004 */ s16              field_4; ///< set when `field_0` moved away from `field_2`
-    /* 0x006 */ s16              field_6; ///< frames spent in the approach state
-    /* 0x008 */ s16              field_8;
-    /* 0x00A */ byte             pad_A[0x2];
-    /* 0x00C */ AnimationContext anim;     ///< `animationInitContext` context
-    /* 0x020 */ AnimationSlot    slots[1]; ///< slots 1.. continue past here, overlapping the fields below
-    /* 0x048 */ byte             pad_48[0x2];
-    /* 0x04A */ u16              field_4A; ///< low ten bits: current animation id
-    /* 0x04C */ byte             pad_4C[0xC];
-    /* 0x058 */ u16              field_58;
-    /* 0x05A */ byte             pad_5A[0xB6];
-    /* 0x110 */ byte             poses[0x60]; ///< `animationInitContext` poseBuffer
-    /* 0x170 */ s16              field_170;
-    /* 0x172 */ s16              field_172;
-    /* 0x174 */ s16              field_174; ///< motion state
-    /* 0x176 */ u16              field_176;
-    /* 0x178 */ s16              field_178;
-    /* 0x17A */ s16              field_17A; ///< frames since the motion last restarted
-    /* 0x17C */ s16              field_17C; ///< frames since then with `field_58` bit 1 set
-    /* 0x17E */ s16              field_17E;
-    /* 0x180 */ u8               field_180;
-    /* 0x181 */ u8               field_181;
-    /* 0x182 */ u8               field_182;
-    /* 0x183 */ byte             pad_183[0x1];
-    /* 0x184 */ u16              field_184;
-    /* 0x186 */ u16              field_186;
-    /* 0x188 */ byte             pad_188[0xC];
+    /* 0x000 */ s16           field_0; ///< state
+    /* 0x002 */ s16           field_2; ///< state at the previous dispatch
+    /* 0x004 */ s16           field_4; ///< set when `field_0` moved away from `field_2`
+    /* 0x006 */ s16           field_6; ///< frames spent in the approach state
+    /* 0x008 */ s16           field_8;
+    /* 0x00A */ byte          pad_A[0x2];
+    /* 0x00C */ ActorAnimRig6 rig; ///< playback of the model's parts; the animation driver runs slots 1 to 5
+    /* 0x170 */ s16           field_170;
+    /* 0x172 */ s16           field_172;
+    /* 0x174 */ s16           field_174; ///< motion state
+    /* 0x176 */ u16           field_176;
+    /* 0x178 */ s16           field_178;
+    /* 0x17A */ s16           field_17A; ///< frames since the motion last restarted
+    /* 0x17C */ s16           field_17C; ///< frames since then on which rig slot 1 followed a control jump
+    /* 0x17E */ s16           field_17E;
+    /* 0x180 */ u8            field_180;
+    /* 0x181 */ u8            field_181;
+    /* 0x182 */ u8            field_182;
+    /* 0x183 */ byte          pad_183[0x1];
+    /* 0x184 */ u16           field_184;
+    /* 0x186 */ u16           field_186;
+    /* 0x188 */ byte          pad_188[0xC];
     /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
     /// handler samples the low 16 bits of each local translation component.
     /* 0x194 */ u16  field_194;
@@ -857,9 +850,10 @@ static void            func_actor_223600_8014CA00(Enemy* enemy, Task* task);
 
 #include "../../shared/anim_driver_tick.inc.c"
 
-/// In motion states 2 and 3, reports 0x400C0001 the first time the animation id
-/// in `field_4A` reaches one of that state's trigger ids (latched in
-/// `field_208`); in state 5, 0x400C0005 while bit 2 of `field_58` is set.
+/// In motion states 2 and 3, reports 0x400C0001 the first time rig slot 1's
+/// cue index reaches one of that state's trigger ids (latched in
+/// `field_208`); in state 5, 0x400C0005 while slot 1 reports
+/// `ANIMATION_SLOT_FOLLOWED_JUMP`.
 /// Returns 0 otherwise.
 static s32 func_actor_223600_8014B464(Actor223600Work* arg0)
 {
@@ -868,7 +862,7 @@ static s32 func_actor_223600_8014B464(Actor223600Work* arg0)
 
     switch (arg0->field_174) {
         case 2:
-            id = arg0->field_4A & 0x3FF;
+            id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             v  = id;
             if (v != 0x15) {
                 goto not15;
@@ -887,7 +881,7 @@ static s32 func_actor_223600_8014B464(Actor223600Work* arg0)
             arg0->field_208 = 0;
             break;
         case 3:
-            id = arg0->field_4A & 0x3FF;
+            id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             v  = id;
             if (v != 0xD && v != 0x12) {
                 goto clear;
@@ -897,7 +891,7 @@ static s32 func_actor_223600_8014B464(Actor223600Work* arg0)
             arg0->field_208 = id;
             break;
         case 5:
-            if (arg0->field_58 & 2) {
+            if (arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
                 return 0x400C0005;
             }
             break;
@@ -971,7 +965,7 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     coord->parent  = &gGfxViewCoord;
     task->msgTable = D_actor_223600_80150B28;
     obj->flags     = 0;
-    animationInitContext(&work->anim, D_actor_223600_801509C0, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
+    animationInitContext(&work->rig.anim, D_actor_223600_801509C0, obj, work->rig.poses, work->rig.slots);
 
     enemy->field_4    = &coord->coord;
     enemy->field_48   = 0;
@@ -1111,9 +1105,9 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
 /// allocates the model's draw buffers and drops the model at the spawn point
 /// the context's top `field_8` nibble selects -- two of them just face the
 /// model and hand it to motion state 2, while the third steps it forward and
-/// spins up motion state 0xE, waiting out the restart until `field_58` bit 0
-/// comes back. Every later frame it runs one step of the motion the work
-/// block's `field_174` names: 0xE raises the model by `field_212` a frame,
+/// spins up motion state 0xE, waiting out the restart until rig slot 1 reports
+/// `ANIMATION_SLOT_REACHED_BOUNDARY`. Every later frame it runs one step of the
+/// motion the work block's `field_174` names: 0xE raises the model by `field_212` a frame,
 /// stepping it forward while the frame counter is inside the walk window, and
 /// hands over to 0xF once the model's world Y goes positive; 0xF walks the
 /// coordinate along its own axes on the GTE and swings part 1 through the
@@ -1177,7 +1171,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 work->field_170 = mode;
                 do {
                     animDriverTick(task);
-                } while ((work->field_58 & 1) == 0);
+                } while ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) == 0);
                 work->field_176 = 0x10;
                 work->field_212 = 0x46;
                 break;

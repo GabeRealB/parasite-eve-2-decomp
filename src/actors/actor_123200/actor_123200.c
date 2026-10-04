@@ -48,39 +48,32 @@
 /// The actor's per-instance work block, reached through `Task::work`. `field_0`
 /// is the display mode the tick dispatches on, `field_2` the mode dispatched
 /// last and `field_4` set on the frame it changed; `field_174` is the motion
-/// the slots play, `field_4A` the current animation id (low ten bits), and
+/// the slots play, rig slot 1's cue index the current animation id, and
 /// `field_220` latches the last trigger id reported.
 typedef struct Actor123200Work {
-    /* 0x000 */ s16              field_0;
-    /* 0x002 */ s16              field_2;
-    /* 0x004 */ s16              field_4; // non-zero restarts the model (`func_actor_123200_80133820`)
-    /* 0x006 */ u16              field_6; // frames since the restart branch last ran
-    /* 0x008 */ s16              field_8;
-    /* 0x00A */ byte             pad_A[0x2];
-    /* 0x00C */ AnimationContext anim;     // `animationInitContext` context
-    /* 0x020 */ AnimationSlot    slots[1]; // slots 1..5 continue past here, overlapping the fields below
-    /* 0x048 */ byte             pad_48[0x2];
-    /* 0x04A */ u16              field_4A; // low ten bits: animation id (`slots[1].field_2`)
-    /* 0x04C */ byte             pad_4C[0xC];
-    /* 0x058 */ u16              field_58;
-    /* 0x05A */ byte             pad_5A[0xB6];
-    /* 0x110 */ byte             poses[0x60]; // `animationInitContext` poseBuffer
-    /* 0x170 */ s16              field_170;   // motion state `animDriverTick` switches on
-    /* 0x172 */ s16              field_172;
-    /* 0x174 */ s16              field_174;
-    /* 0x176 */ u16              field_176;
-    /* 0x178 */ s16              field_178;
-    /* 0x17A */ s16              field_17A; // frames since the motion last restarted
-    /* 0x17C */ s16              field_17C; // frames since then with `field_58` bit 1 set
-    /* 0x17E */ s16              field_17E;
-    /* 0x180 */ byte             pad_180[0x14];
-    /* 0x194 */ u8               field_194;
-    /* 0x195 */ u8               field_195;
-    /* 0x196 */ u8               field_196;
-    /* 0x197 */ byte             pad_197[0x1];
-    /* 0x198 */ u16              field_198;
-    /* 0x19A */ u16              field_19A;
-    /* 0x19C */ byte             pad_19C[0xC];
+    /* 0x000 */ s16           field_0;
+    /* 0x002 */ s16           field_2;
+    /* 0x004 */ s16           field_4; // non-zero restarts the model (`func_actor_123200_80133820`)
+    /* 0x006 */ u16           field_6; // frames since the restart branch last ran
+    /* 0x008 */ s16           field_8;
+    /* 0x00A */ byte          pad_A[0x2];
+    /* 0x00C */ ActorAnimRig6 rig;       // playback of the model's parts; the animation driver runs slots 1 to 5
+    /* 0x170 */ s16           field_170; // motion state `animDriverTick` switches on
+    /* 0x172 */ s16           field_172;
+    /* 0x174 */ s16           field_174;
+    /* 0x176 */ u16           field_176;
+    /* 0x178 */ s16           field_178;
+    /* 0x17A */ s16           field_17A; // frames since the motion last restarted
+    /* 0x17C */ s16           field_17C; // frames since then on which rig slot 1 followed a control jump
+    /* 0x17E */ s16           field_17E;
+    /* 0x180 */ byte          pad_180[0x14];
+    /* 0x194 */ u8            field_194;
+    /* 0x195 */ u8            field_195;
+    /* 0x196 */ u8            field_196;
+    /* 0x197 */ byte          pad_197[0x1];
+    /* 0x198 */ u16           field_198;
+    /* 0x19A */ u16           field_19A;
+    /* 0x19C */ byte          pad_19C[0xC];
     /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
     /// handler samples the low 16 bits of each local translation component.
     /* 0x1A8 */ u16    field_1A8;
@@ -625,9 +618,10 @@ static void            func_actor_123200_80133BA0(Enemy* enemy, Task* arg1);
 
 #include "../../shared/anim_driver_tick.inc.c"
 
-/// In motion states 2 and 3, reports 0x400C0001 the first time the animation id
-/// in `field_4A` reaches one of that state's trigger ids (latched in
-/// `field_220`); in state 5, 0x400C0005 while bit 1 of `field_58` is set.
+/// In motion states 2 and 3, reports 0x400C0001 the first time rig slot 1's
+/// cue index reaches one of that state's trigger ids (latched in
+/// `field_220`); in state 5, 0x400C0005 while slot 1 reports
+/// `ANIMATION_SLOT_FOLLOWED_JUMP`.
 /// Returns 0 otherwise.
 static s32 func_actor_123200_80133450(Actor123200Work* arg0)
 {
@@ -636,7 +630,7 @@ static s32 func_actor_123200_80133450(Actor123200Work* arg0)
 
     switch (arg0->field_174) {
         case 2:
-            id = arg0->field_4A & 0x3FF;
+            id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             v  = id;
             if (v != 0x15) {
                 goto not15;
@@ -655,7 +649,7 @@ static s32 func_actor_123200_80133450(Actor123200Work* arg0)
             arg0->field_220 = 0;
             break;
         case 3:
-            id = arg0->field_4A & 0x3FF;
+            id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             v  = id;
             if (v != 0xD && v != 0x12) {
                 goto clear;
@@ -665,7 +659,7 @@ static s32 func_actor_123200_80133450(Actor123200Work* arg0)
             arg0->field_220 = id;
             break;
         case 5:
-            if (arg0->field_58 & 2) {
+            if (arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
                 return 0x400C0005;
             }
             break;
@@ -711,7 +705,7 @@ static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
     task->msgTable = D_actor_123200_80137214;
     coord->parent  = &gGfxViewCoord;
     obj->flags     = 0;
-    animationInitContext(&work->anim, (AnimationSet**)D_actor_123200_80137154, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_123200_80137154, obj, work->rig.poses, work->rig.slots);
 
     enemy->field_4    = &coord->coord;
     enemy->field_48   = 0;

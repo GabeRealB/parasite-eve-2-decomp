@@ -54,9 +54,7 @@
 /// `field_25C` are the bob and sway phases, `field_260` the ambient cue timer,
 /// and `field_262` is set while the actor holds the player.
 typedef struct Actor103700Work {
-    /* 0x000 */ AnimationContext      anim;
-    /* 0x014 */ AnimationSlot         slots[6];
-    /* 0x104 */ byte                  poses[0x60]; // pose buffer, `animationInitContext` poseBuffer
+    /* 0x000 */ ActorAnimRig6         rig; // playback of the model's parts; slots 1 to 5 are driven
     /* 0x164 */ MATRIX                colorMtx;
     /* 0x184 */ MATRIX                lightMtx;
     /* 0x1A4 */ WorldCollisionBody    obj;
@@ -803,14 +801,14 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
     arg0->hp        = Actor03700_D07F0C.hpMax;
     work->field_24A = work->field_248;
     task->msgTable  = Actor03700_D08108;
-    animationInitContext(&work->anim, Actor03700_D080E4, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
-    for (i = 1; i < 6; i++) {
-        animationResetSlot(&work->anim, i, work->field_248);
+    animationInitContext(&work->rig.anim, Actor03700_D080E4, obj, work->rig.poses, work->rig.slots);
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+        animationResetSlot(&work->rig.anim, i, work->field_248);
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     kind            = (gRandomLcgState >> 16) & 3;
-    for (i = 1; i < 6; i++) {
-        work->slots[i].rate += kind;
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+        work->rig.slots[i].rate += kind;
     }
     (Gp_IncStateF0Ref)(0);
     work->field_234.vx         = coord->coord.t[0];
@@ -1336,8 +1334,8 @@ static void Actor03700_Fn011B4(Task* task)
                 vec->vz         = work->field_23C.vz - coord->coord.t[2];
                 work->field_256 = SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz) / work->field_252;
                 slot            = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) + 17;
-                for (i = 1; i < 6; i++) {
-                    work->slots[i].rate = slot;
+                for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+                    work->rig.slots[i].rate = slot;
                 }
                 coord = task->extra.tmd->coords;
                 sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40250002;
@@ -1465,8 +1463,8 @@ static void Actor03700_Fn018C8(Task* task)
             work->field_258 = Actor03700_D07F3C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             work->field_26C = 0;
             slot            = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) + 10;
-            for (i = 1; i < 6; i++) {
-                work->slots[i].rate = slot;
+            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+                work->rig.slots[i].rate = slot;
             }
             break;
         case 1:
@@ -2225,13 +2223,13 @@ static void Actor03700_Fn033F0(Task* task)
     if (work->field_248 != work->field_24A) {
         work->field_24A = work->field_248;
         work->field_24C = 0;
-        for (i = 1; i < 6; i++) {
-            animationSeekSlotWithBlend(&work->anim, i, work->field_248, 0, 4);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_248, 0, 4);
         }
     } else {
         work->field_24C++;
-        for (i = 1; i < 6; i++) {
-            animationTickSlot(&work->anim, i);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

@@ -68,14 +68,7 @@ typedef struct Actor01200Work {
     /* 0x006 */ s16                   field_6; // frame counter within the substate
     /* 0x008 */ s16                   field_8;
     /* 0x00A */ byte                  pad_A[2];
-    /* 0x00C */ AnimationContext      anim;
-    /* 0x020 */ AnimationSlot         slots[1]; // `animationInitContext` slots; later slots overlap the fields below
-    /* 0x048 */ byte                  pad_48[0x2];
-    /* 0x04A */ u16                   field_4A; // low ten bits: slot 1's animation id
-    /* 0x04C */ byte                  pad_4C[0xC];
-    /* 0x058 */ u16                   field_58;
-    /* 0x05A */ byte                  pad_5A[0xB6];
-    /* 0x110 */ byte                  poses[0x60]; // `animationInitContext` poseBuffer
+    /* 0x00C */ ActorAnimRig6         rig; // playback of the model's parts; the animation driver runs slots 1 to 5
     /* 0x170 */ s16                   field_170;
     /* 0x172 */ s16                   field_172;
     /* 0x174 */ s16                   field_174;
@@ -593,10 +586,10 @@ static void            Actor01200_Fn036B0(Enemy* arg0, Task* arg1);
 #include "../../shared/anim_driver_tick.inc.c"
 
 /// Sound check for the tick: for animations 2 and 3 (`field_174`) it returns
-/// sound 0x400C0001 the first time the low ten bits of `field_4A` reach one of
+/// sound 0x400C0001 the first time rig slot 1's cue index reaches one of
 /// that animation's two trigger values, latching the value in `field_3D4` so
-/// it reports once; for animation 4 it returns 0x400C0005 while bit 0 of
-/// `field_58` is set. Returns 0 otherwise.
+/// it reports once; for animation 4 it returns 0x400C0005 while rig slot 1
+/// reports `ANIMATION_SLOT_REACHED_BOUNDARY`. Returns 0 otherwise.
 static s32 Actor01200_Fn00990(Actor01200Work* arg0)
 {
     u16 id;
@@ -604,7 +597,7 @@ static s32 Actor01200_Fn00990(Actor01200Work* arg0)
 
     switch (arg0->field_174) {
         case 2:
-            id = arg0->field_4A & 0x3FF;
+            id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             v  = id;
             if (v != 0x15) {
                 goto not15;
@@ -623,7 +616,7 @@ static s32 Actor01200_Fn00990(Actor01200Work* arg0)
             arg0->field_3D4 = 0;
             break;
         case 3:
-            id = arg0->field_4A & 0x3FF;
+            id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             v  = id;
             if (v != 0xD && v != 0x12) {
                 goto clear;
@@ -633,7 +626,7 @@ static s32 Actor01200_Fn00990(Actor01200Work* arg0)
             arg0->field_3D4 = id;
             break;
         case 4:
-            if (arg0->field_58 & 1) {
+            if (arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
                 return 0x400C0005;
             }
             break;
@@ -668,7 +661,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     arg1->msgTable = Actor01200_D07058;
     coord->parent  = &gGfxViewCoord;
     obj->flags     = 0;
-    animationInitContext(&work->anim, Actor01200_D06F98, obj, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->poses, work->slots);
+    animationInitContext(&work->rig.anim, Actor01200_D06F98, obj, work->rig.poses, work->rig.slots);
 
     o1                   = &work->obj230;
     o1->context.contacts = work->rootContacts;
@@ -822,7 +815,7 @@ static void Actor01200_Fn01040(Enemy* arg0, Task* arg1)
         return;
     }
     animDriverTick(arg1);
-    if ((work->field_58 & 2) && work->field_17C >= 0x19) {
+    if ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) && work->field_17C >= 0x19) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (!((gRandomLcgState >> 0x10) & 7)) {
             work->field_0 = 3;
@@ -1409,7 +1402,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
     }
     animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if ((work->field_58 & 2) && work->field_17C > 0x14) {
+    if ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) && work->field_17C > 0x14) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (!((gRandomLcgState >> 0x10) & 7)) {
             work->field_0 = 1;
@@ -1671,8 +1664,8 @@ static void Actor01200_Fn03D58(Enemy* arg0, Task* arg1)
 
 /// State 1: on entry (`field_4` set) clear the actor and model flags, set
 /// `field_174` to 4, and set or clear the high bits of the four sub-object
-/// flags; afterwards run `animDriverTick` and move to state 2 once bit 0
-/// of `field_58` is set.
+/// flags; afterwards run `animDriverTick` and move to state 2 once rig slot 1
+/// reports `ANIMATION_SLOT_REACHED_BOUNDARY`.
 static void Actor01200_Fn03DC0(Enemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
@@ -1694,15 +1687,15 @@ static void Actor01200_Fn03DC0(Enemy* arg0, Task* arg1)
         return;
     }
     animDriverTick(arg1);
-    if (work->field_58 & 1) {
+    if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 2;
     }
 }
 
 /// State 3: on entry (`field_4` set) clear the actor and model flags, set
 /// `field_174` to 6, and set or clear the high bits of the four sub-object
-/// flags; afterwards run `animDriverTick` and move to state 7 once bit 0
-/// of `field_58` is set.
+/// flags; afterwards run `animDriverTick` and move to state 7 once rig slot 1
+/// reports `ANIMATION_SLOT_REACHED_BOUNDARY`.
 static void Actor01200_Fn03E78(Enemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
@@ -1724,7 +1717,7 @@ static void Actor01200_Fn03E78(Enemy* arg0, Task* arg1)
         return;
     }
     animDriverTick(arg1);
-    if (work->field_58 & 1) {
+    if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 7;
     }
 }

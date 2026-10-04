@@ -46,9 +46,7 @@
 #include "overlay.h"
 
 typedef struct Actor103800Work {
-    /* 0x000 */ AnimationContext       anim;
-    /* 0x014 */ AnimationSlot          slots[6];
-    /* 0x104 */ byte                   field_104[0x60];
+    /* 0x000 */ ActorAnimRig6          rig; // playback of the model's parts; slots 1 to 5 are driven
     /* 0x164 */ MATRIX                 field_164;
     /* 0x184 */ MATRIX                 field_184;
     /* 0x1A4 */ byte                   field_1A4[8];
@@ -726,9 +724,9 @@ static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1)
     work->field_2C4.coord        = &arg1->extra.tmd->coords[3];
     work->field_2C4.spawnArgLo   = 0x200;
     work->field_2C4.spawnArgHi   = 1;
-    animationInitContext(&work->anim, Actor03800_D05F60, extra, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->field_104, work->slots);
-    for (i = 1; i < 6; i++) {
-        animationResetSlot(&work->anim, i, 1);
+    animationInitContext(&work->rig.anim, Actor03800_D05F60, extra, work->rig.poses, work->rig.slots);
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+        animationResetSlot(&work->rig.anim, i, 1);
     }
     work->field_1AC = arg1->extra.tmd->coords;
     records1        = work->field_1C4;
@@ -1998,13 +1996,13 @@ static inline void _actor03800TickAnim(Task* task)
         work->field_34A = work->field_348;
         work->field_34C = 0;
         value           = Actor03800_D05F90[(s16)work->field_348];
-        for (i = 1; i < 6; i++) {
-            animationSeekSlotWithBlend(&work->anim, i, (s16)work->field_348, 0, value);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationSeekSlotWithBlend(&work->rig.anim, i, (s16)work->field_348, 0, value);
         }
     } else {
         work->field_34C++;
-        for (i = 1; i < 6; i++) {
-            animationTickSlot(&work->anim, i);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }
