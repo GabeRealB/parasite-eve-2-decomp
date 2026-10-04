@@ -36511,7 +36511,7 @@ from the occupied arm unrolls the body and keeps `lh 8/0xA/0xC(slot)`.
 ## Widen a stored 12-bit angle to `s32` before negating so the load is `lh`
 
 `field = ratan2(...) & 0xFFF` stores with `andi` / `sh`. Negating that
-`s16` field directly (`vec->vx = -block->pitch`) compiles to `lhu` /
+`s16` field directly (`scratch->work.angles.vx = -scratch->pitch`) compiles to `lhu` /
 `negu` because GCC treats the 16-bit reload as an unsigned copy. The
 target sign-extends:
 
@@ -36525,8 +36525,8 @@ Widen through an `s32` temp so the load is `lh`:
 
 ```c
 s32 pitch;
-pitch   = block->pitch;
-vec->vx = -pitch;
+pitch                   = scratch->pitch;
+scratch->work.angles.vx = -pitch;
 ```
 
 `Gp_OrientAlong` is the example.

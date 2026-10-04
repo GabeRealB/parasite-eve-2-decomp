@@ -126,19 +126,28 @@ typedef struct {
 } _WorldCollisionFloorSegmentScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionFloorSegmentScratch, 0x20);
 
-/// 0x4C-byte scratch from the scratch stack used by `Gp_OrientAlong`.
-/// `vec` is the `VectorNormalS` result, reused as the `RotMatrix` angle
-/// vector. `mat1` is RotY(yaw), then RotY * RotX(-pitch). `mat2` is
-/// RotX(-pitch), then RotZ(roll). `pitch` / `yaw` are `ratan2` angles
-/// in `0..0xFFF`.
-typedef struct _GpDirMatScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ MATRIX  mat1;
-    /* 0x28 */ MATRIX  mat2;
-    /* 0x48 */ s16     pitch;
-    /* 0x4A */ s16     yaw;
-} GpDirMatScratch;
-STATIC_ASSERT_SIZEOF(GpDirMatScratch, 0x4C);
+/// Scratch-stack workspace for building the rotation that faces along a direction.
+///
+/// The rotation is the product Ry(yaw) * Rx(-pitch) * Rz(roll), whose third
+/// column - the local Z axis - is the normalized direction. Yaw is the
+/// direction's heading about Y, measured from +Z toward +X, and pitch its
+/// elevation above the XZ plane; the caller supplies the roll. Angles count
+/// 4096 units per turn and matrix elements use `ONE` (4096) for 1.0.
+///
+/// The block is reserved uninitialized for one conversion and released before
+/// it returns. Only the nine rotation elements of each matrix are used; their
+/// translations and the vector's fourth halfword are never written.
+typedef struct {
+    union {
+        SVECTOR direction; // Unit direction, `ONE` for 1.0, from which yaw and pitch are measured
+        SVECTOR angles;    // Single-axis Euler angles for the next factor: yaw in Y, minus pitch in X, roll in Z
+    } work;
+    MATRIX rotation;       // Accumulated product: Ry(yaw), then Ry(yaw) * Rx(-pitch)
+    MATRIX axisRotation;   // Factor right-multiplied next: Rx(-pitch), then Rz(roll)
+    s16    pitch;          // Elevation of the direction above the XZ plane, 0..0xFFF
+    s16    yaw;            // Heading of the direction about Y, 0..0xFFF
+} _GfxDirectionRotationScratch;
+STATIC_ASSERT_SIZEOF(_GfxDirectionRotationScratch, 0x4C);
 
 /* Define BSS before API headers to preserve first-declaration order. */
 WorldCollisionTrigger* Gp_PendingObj4C;
@@ -1087,66 +1096,66 @@ void Gp_ClaimSlot18(Enemy* arg0, s32 arg1)
 
 void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
 {
-    u8*              head;
-    GpDirMatScratch* block;
-    SVECTOR*         vec;
-    MATRIX*          mat1;
-    MATRIX*          mat2;
-    s32              sin_yaw;
-    s32              yaw;
-    s32              pitch;
+    _GfxDirectionRotationScratch* scratch;
+    MATRIX*                       rotation;
+    MATRIX*                       axisRotation;
+    s32                           yawSine;
+    s32                           yaw;
+    s32                           pitch;
 
-    head                                  = SCRATCH_STACK_CURSOR(u8);
-    block                                 = (GpDirMatScratch*)(head - 0x4C);
-    vec                                   = (SVECTOR*)block;
-    SCRATCH_STACK_CURSOR(GpDirMatScratch) = block;
-    VectorNormalS(arg0, vec);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxDirectionRotationScratch);
+    VectorNormalS(arg0, &scratch->work.direction);
 
-    mat1       = (MATRIX*)(head - 0x44);
-    yaw        = ratan2(((SVECTOR*)(head - 0x4C))->vx, vec->vz) & 0xFFF;
-    block->yaw = yaw;
-    sin_yaw    = rsin(yaw);
-    block->pitch =
-        ratan2(vec->vy, (vec->vx * sin_yaw + vec->vz * rcos(block->yaw)) >> 12) & 0xFFF;
+    // Measure the heading, then the elevation against the horizontal length.
+    rotation     = &scratch->rotation;
+    yaw          = ratan2(scratch->work.direction.vx, scratch->work.direction.vz) & 0xFFF;
+    scratch->yaw = yaw;
+    yawSine      = rsin(yaw);
+    scratch->pitch =
+        ratan2(scratch->work.direction.vy,
+               (scratch->work.direction.vx * yawSine + scratch->work.direction.vz * rcos(scratch->yaw)) >> 12) &
+        0xFFF;
 
-    ((SVECTOR*)(head - 0x4C))->vx = 0;
-    vec->vz                       = 0;
-    vec->vy                       = block->yaw;
-    RotMatrix(vec, mat1);
+    scratch->work.angles.vx = 0;
+    scratch->work.angles.vz = 0;
+    scratch->work.angles.vy = scratch->yaw;
+    RotMatrix(&scratch->work.angles, rotation);
 
-    mat2                          = (MATRIX*)(head - 0x24);
-    pitch                         = block->pitch;
-    ((SVECTOR*)(head - 0x4C))->vx = -pitch;
-    vec->vy                       = 0;
-    vec->vz                       = 0;
-    RotMatrix(vec, mat2);
+    axisRotation            = &scratch->axisRotation;
+    pitch                   = scratch->pitch;
+    scratch->work.angles.vx = -pitch;
+    scratch->work.angles.vy = 0;
+    scratch->work.angles.vz = 0;
+    RotMatrix(&scratch->work.angles, axisRotation);
 
-    gte_SetRotMatrix(mat1);
-    gte_ldclmv(mat2);
+    // rotation = Ry(yaw) * Rx(-pitch), one column at a time.
+    gte_SetRotMatrix(rotation);
+    gte_ldclmv(axisRotation);
     gte_rtir();
-    gte_stclmv(mat1);
-    gte_ldclmv(&mat2->m[0][1]);
+    gte_stclmv(rotation);
+    gte_ldclmv(&axisRotation->m[0][1]);
     gte_rtir();
-    gte_stclmv(&mat1->m[0][1]);
-    gte_ldclmv(&mat2->m[0][2]);
+    gte_stclmv(&rotation->m[0][1]);
+    gte_ldclmv(&axisRotation->m[0][2]);
     gte_rtir();
-    gte_stclmv(&mat1->m[0][2]);
+    gte_stclmv(&rotation->m[0][2]);
 
-    ((SVECTOR*)(head - 0x4C))->vx = 0;
-    vec->vy                       = 0;
-    vec->vz                       = arg2;
-    RotMatrix(vec, mat2);
+    scratch->work.angles.vx = 0;
+    scratch->work.angles.vy = 0;
+    scratch->work.angles.vz = arg2;
+    RotMatrix(&scratch->work.angles, axisRotation);
 
-    gte_SetRotMatrix(mat1);
-    gte_ldclmv(mat2);
+    // The caller's rotation is that product times Rz(roll); its translation is untouched.
+    gte_SetRotMatrix(rotation);
+    gte_ldclmv(axisRotation);
     gte_rtir();
     gte_stclmv(arg1);
-    gte_ldclmv(&mat2->m[0][1]);
+    gte_ldclmv(&axisRotation->m[0][1]);
     gte_rtir();
     gte_stclmv(&arg1->m[0][1]);
-    gte_ldclmv(&mat2->m[0][2]);
+    gte_ldclmv(&axisRotation->m[0][2]);
     gte_rtir();
     gte_stclmv(&arg1->m[0][2]);
 
-    SCRATCH_STACK_RELEASE_BYTES(0x4C);
+    SCRATCH_STACK_RELEASE_BLOCK(_GfxDirectionRotationScratch);
 }
