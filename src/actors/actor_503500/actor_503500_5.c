@@ -187,7 +187,7 @@ STATIC_ASSERT_SIZEOF(_Actor503500OrangeFlashAttackWork, 0xAC);
 /// The size is the allocation, and the fields below are the ones the init
 /// seeds: the three `sb` bytes at 0x43D/0x43E/0x4C8 are set to -1, and the
 /// three words at 0x4A0..0x4A8 are cleared. This is the same layout as
-/// `Actor317000Work` and its siblings in the other actor overlays, except that
+/// `_Actor317000Work` and its siblings in the other actor overlays, except that
 /// those write 0x4C8 as a halfword.
 typedef struct Actor503500Effect4CC {
     ActorAnimRig19   rig;

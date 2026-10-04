@@ -84911,8 +84911,9 @@ A 16-byte struct assignment compiles to the rotating three-register copy
 (`lw a3/0, lw t0/4, lw t1/8, sw a3, sw t0, sw t1, lw a3/0xC, sw a3/0x1C`) with a
 `nop` before the last store. This is the same body as `ActorsShared80132920` /
 `func_actor_335800_80163CA0`, so the work-struct field types come from the
-matched sibling's header too - here `Actor317000Work` gained `VECTOR3 step` at
-0x490, `u16 field_4C2` and `u8 field_4C4` (the target stores 0x4C4 with `sb`,
+matched sibling's header too - here `_Actor317000Work` gained the vector at
+0x490 (now `walk.velocity`), the halfword at 0x4C2 (now `walk.motionStep`) and
+the byte `airborne` at 0x4C4 (the target stores 0x4C4 with `sb`,
 so it is a byte, where actor_335800's is an `s16`). Nothing else moved, because
 the new fields only replace padding and the struct stays 0x4CC.
 
@@ -101020,7 +101021,7 @@ Inputs: `base.i`
 ## Two `-1` seeds of different widths each materialize, and that is the plain C (func_actor_317000_8016267C, 2026-09-16)
 
 The enemy actors' spawn state seeds `-1` into the work block with two byte
-stores and one halfword store - `model.animId`/`model.bank` are `s8`, `field_4C8` is
+stores and one halfword store - `model.animId`/`model.bank` are `s8`, `freeCountdown` is
 `s16`. Retail materializes the constant **twice**:
 
 ```
@@ -101044,7 +101045,7 @@ assignments:
 ```c
     work->model.animId = -1;
     work->model.bank = -1;
-    work->field_4C8 = -1;
+    work->freeCountdown = -1;
 ```
 
 The same two-`addiu` shape is in the already-matched `func_actor_335800_80163AA0`,
@@ -101071,7 +101072,7 @@ Lone:
  sb    v1,0x4c5(a1)         /* the register the index was loaded into */
 ```
 
-* `switch (msg->field_2)` with `case 1: work->field_4C5 = msg->field_2;` —
+* `switch (msg->field_2)` with `case 1: work->turnWeightRising = msg->field_2;` —
   expand emits the index as `(set (reg:SI N) (zero_extend:SI (mem/s:HI ...)))`,
   which folds into the `lhu` (no `andi`), but the *store's* right-hand side is
   re-expanded as `(set (reg:QI M) (mem/s:QI (plus ... 2)))`: a `subreg` of a
@@ -101082,7 +101083,7 @@ Lone:
   `(zero_extend:SI (reg/v:HI v))`, a convertible pattern with no memory to fold
   into, so GCC emits `lhu` *and* an explicit `andi v,0xffff` (this is what the
   m2c seed's `opcode_delta {12:0}` was).
-* `s32 mode = msg->field_2; switch (mode) { ... case 1: work->field_4C5 = mode; }`
+* `s32 mode = msg->field_2; switch (mode) { ... case 1: work->turnWeightRising = mode; }`
   — the zero-extending `lhu` lands in one SI pseudo, the switch needs no
   conversion, and the byte store is a `subreg` of that *register*, so it reuses
   it: `sb v1`. 100.000%, all penalties zero.
@@ -126322,7 +126323,7 @@ scheduling one: name the value in the block the target loads it in.
 
 ```c
 obj  = task->extra;
-work = (Actor317000Work*)task->work;   /* the entry-block load */
+work = task->work;   /* the entry-block load */
 ```
 
 That reproduced the target exactly, `$v1` as its home. A caller-saved temp is

@@ -26,23 +26,37 @@
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 
-/// Work block of the overlay's walker, allocated zeroed by its spawn routine
-/// and kept at `Task::work`: a nineteen-part rig and the model state, whose
-/// matrices the model is lit with, then the walk, which this actor runs
-/// without an arrival check.
-typedef struct Actor317000Work {
-    ActorAnimRig19   rig;
-    ActorModelState  model;
-    ActorWalkState   walk;
-    /* 0x4C4 */ s8   field_4C4;
-    /* 0x4C5 */ s8   field_4C5;
-    /* 0x4C6 */ s16  field_4C6;
-    /* 0x4C8 */ s16  field_4C8;
-    /* 0x4CA */ byte pad_4CA[0x2];
-} Actor317000Work;
-STATIC_ASSERT_SIZEOF(Actor317000Work, 0x4CC);
+/// Work block of the overlay's actor, allocated zeroed by its spawn state and
+/// kept at `Task::work` for the task's life.
+///
+/// It opens with the head `actorMotionPlayAnim19` runs on
+/// (`ActorMotion19PlayWork`) and keeps a scripted walker's walk state
+/// directly after it, so the room script plays the actor's clips and sends it
+/// to a placement with the same messages as any scripted walker. The model
+/// object borrows `model.light` and `model.color` for as long as the block
+/// lives.
+///
+/// What a walk request starts here is a leap rather than a walk: the actor
+/// turns to the placement's yaw, launches forward and up along its own axes,
+/// falls under gravity while `airborne` until it is back near the floor, and
+/// then turns to face the player. The placement's position is recorded in
+/// `walk.target` and never read, and nothing measures an arrival.
+///
+/// What follows `walk` is the package's own: the leap's gravity switch, the
+/// weight of the head turn toward the player, and the delayed free of the
+/// model's buffers once the model has been hidden.
+typedef struct {
+    ActorAnimRig19  rig;              // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    ActorModelState model;            // Clip and bank the rig plays, and the matrices the model is lit with
+    ActorWalkState  walk;             // Leap in progress: the yaw it launches along, the per-frame velocity and the step; `target` and `lastDistance` are not read
+    s8              airborne;         // The leap is in flight, so each tick adds gravity to `walk.velocity.vy` (0 on the floor, 1 from launch to landing)
+    s8              turnWeightRising; // Direction `turnWeight` ramps, set by an actor command (0 falls by 0x80 a tick, 1 rises by 0x40)
+    s16             turnWeight;       // Weight handed to the per-frame head turn toward the player, 0 to `ONE`; the package's turn takes it and does not read it
+    s16             freeCountdown;    // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+} _Actor317000Work;
+STATIC_ASSERT_SIZEOF(_Actor317000Work, 0x4CC);
 
-/// Indexed by `Actor317000Work::model.bank` for `animationInitContext`'s second
+/// Indexed by `_Actor317000Work::model.bank` for `animationInitContext`'s second
 /// argument by `func_actor_317000_80162458` and `actorMotionPlayAnim19`.
 /// Every preset the actor builds has `field_0` 0, so only the first word is
 /// ever read; the words after it (among them the address of
@@ -79,7 +93,7 @@ static const TaskFuncTable3 D_actor_317000_80161E24 = { {
 } };
 
 /// The four step handlers `func_actor_317000_80162768` runs by
-/// `Actor317000Work::walk.motionStep`.
+/// `_Actor317000Work::walk.motionStep`.
 static const TaskFuncTable4 D_actor_317000_80161E30 = { {
     func_actor_317000_801627D0,
     func_actor_317000_801628D8,
@@ -88,7 +102,7 @@ static const TaskFuncTable4 D_actor_317000_80161E30 = { {
 } };
 
 /// The constant local-space offset `func_actor_317000_801628D8` rotates
-/// through the root coordinate into `Actor317000Work::step`.
+/// through the root coordinate into `_Actor317000Work::walk.velocity`.
 static const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 
 static TmdSource _gActor317000GrinningStrangerBody;
@@ -330,21 +344,23 @@ TaskMessageEntry D_actor_317000_8016CF50[6] = {
     { ACTOR_MESSAGE_WALK_TO, func_actor_317000_80162458 },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_317000_80162CA0 },
     { TASK_MESSAGE_TABLE_END, NULL },
-}; /// Per-frame tick. Runs the state body `Actor317000Work::walk.motion` selects
+};
+
+/// Per-frame tick. Runs the state body `_Actor317000Work::walk.motion` selects
 /// from a two-entry stack table, then integrates the 16.16 position: `velocity` is
-/// added to `walk.carry`, `velocity.vy` gains 0x120000 while `field_4C4` is raised, the
+/// added to `walk.carry`, `velocity.vy` gains 0x120000 while `airborne` is raised, the
 /// integer halves move the root coordinate and only the fractions are kept.
 /// The animation slots tick, the second coordinate is refreshed while
-/// `gGameSession->viewReady` is set, `field_4C6` ramps up by 0x40 to 0x1000 or
-/// down by 0x80 to 0 on `field_4C5`, and the aim body runs against slot 3.
-/// A non-negative `field_4C8` counts down and frees the model buffers at 0.
+/// `gGameSession->viewReady` is set, `turnWeight` ramps up by 0x40 to `ONE` or
+/// down by 0x80 to 0 on `turnWeightRising`, and the aim body runs against slot 3.
+/// A non-negative `freeCountdown` counts down and frees the model buffers at 0.
 static void func_actor_317000_80161E68(Task* task)
 {
-    TmdObject*       ext                 = task->extra.tmd;
-    Actor317000Work* work                = (Actor317000Work*)task->work;
-    void             (*states[2])(Task*) = { func_actor_317000_80162760, func_actor_317000_80162768 };
-    GfxCoord*        coord;
-    s32              i;
+    TmdObject*        ext                 = task->extra.tmd;
+    _Actor317000Work* work                = task->work;
+    void              (*states[2])(Task*) = { func_actor_317000_80162760, func_actor_317000_80162768 };
+    GfxCoord*         coord;
+    s32               i;
 
     states[work->walk.motion](task);
 
@@ -352,7 +368,7 @@ static void func_actor_317000_80161E68(Task* task)
     work->walk.carry[0].word += work->walk.velocity.vx;
     work->walk.carry[1].word += work->walk.velocity.vy;
     work->walk.carry[2].word += work->walk.velocity.vz;
-    if (work->field_4C4 != 0) {
+    if (work->airborne != 0) {
         work->walk.velocity.vy += 0x120000;
     }
     coord->coord.t[0]       += work->walk.carry[0].halves.integer;
@@ -372,23 +388,23 @@ static void func_actor_317000_80161E68(Task* task)
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)&task->extra.tmd->coords[1].workm.t, 0, 3);
     }
-    if (work->field_4C5 != 0) {
-        work->field_4C6 += 0x40;
-        if (work->field_4C6 > 0x1000) {
-            work->field_4C6 = 0x1000;
+    if (work->turnWeightRising != 0) {
+        work->turnWeight += 0x40;
+        if (work->turnWeight > ONE) {
+            work->turnWeight = ONE;
         }
     } else {
-        work->field_4C6 -= 0x80;
-        if (work->field_4C6 < 0) {
-            work->field_4C6 = 0;
+        work->turnWeight -= 0x80;
+        if (work->turnWeight < 0) {
+            work->turnWeight = 0;
         }
     }
-    func_actor_317000_801621F4(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0x200, work->field_4C6);
-    if (work->field_4C8 >= 0) {
-        if (work->field_4C8 == 0) {
+    func_actor_317000_801621F4(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0x200, work->turnWeight);
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(ext);
         }
-        work->field_4C8--;
+        work->freeCountdown--;
     }
 }
 
@@ -403,20 +419,20 @@ static void func_actor_317000_80161E68(Task* task)
 /// same 0x40 and `RotMatrix` rebuilds the node from the adjusted angles.
 static void func_actor_317000_801620BC(Task* task)
 {
-    Actor317000Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        target;
-    VECTOR           delta;
-    SVECTOR          dir;
-    SVECTOR          rot;
-    SVECTOR          ang;
-    s16              diff;
-    s32              absDiff;
-    s32              y;
+    _Actor317000Work* work;
+    GfxCoord*         coord;
+    GfxCoord*         target;
+    VECTOR            delta;
+    SVECTOR           dir;
+    SVECTOR           rot;
+    SVECTOR           ang;
+    s16               diff;
+    s32               absDiff;
+    s32               y;
 
     coord  = task->extra.tmd->coords;
     target = ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd)->coords;
-    work   = (Actor317000Work*)task->work;
+    work   = task->work;
 
     delta.vx = target->coord.t[0] - coord->coord.t[0];
     delta.vy = target->coord.t[1] - coord->coord.t[1];
@@ -451,7 +467,7 @@ static void func_actor_317000_801620BC(Task* task)
 
 /// Aim body the per-frame tick `func_actor_317000_80161E68` calls with
 /// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` (the player) as `targetTask`; it never reads the three
-/// arguments after it (0x400, 0x200 and `Actor317000Work::field_4C6`). The delta from the actor's sixth coordinate
+/// arguments after it (0x400, 0x200 and `_Actor317000Work::turnWeight`). The delta from the actor's sixth coordinate
 /// (`coord[5]`) to the target's fifth is normalised, taken through the
 /// transpose of the actor's third coordinate's `workm`, and normalised again
 /// into `dir`. The three `ratan2`s reduce `dir` to an Euler triple -- the YZ,
@@ -544,14 +560,14 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 /// `model.ticking` raised. Returns 0 either way.
 s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
-    Actor317000Work*      work;
-    Actor317000Work*      w;
+    _Actor317000Work*     work;
+    _Actor317000Work*     w;
     AnimationPlayRequest  preset;
     AnimationPlayRequest* msg;
     s32                   i;
     TmdObject*            ext;
 
-    w                    = (Actor317000Work*)task->work;
+    w                    = task->work;
     w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
     w->walk.target.vx    = place->pos.vx;
     w->walk.target.vy    = place->pos.vy;
@@ -572,7 +588,7 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Acto
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     msg  = &preset;
-    work = (Actor317000Work*)task->work;
+    work = task->work;
     ext  = task->extra.tmd;
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
@@ -620,9 +636,9 @@ void func_actor_317000_80162624(Task* task)
 /// half-built actor behind.
 static void func_actor_317000_8016267C(Task* arg0)
 {
-    Actor317000Work* work;
+    _Actor317000Work* work;
 
-    work = memCalloc(sizeof(Actor317000Work), false);
+    work = memCalloc(sizeof(_Actor317000Work), false);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
@@ -631,7 +647,7 @@ static void func_actor_317000_8016267C(Task* arg0)
     arg0->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->field_4C8          = -1;
+    work->freeCountdown      = -1;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
@@ -653,34 +669,34 @@ static void func_actor_317000_80162724(Task* arg0)
 }
 
 /// Points the display object's light and colour matrices at the work block's
-/// own copies, `light` and `color` of `Actor317000Work::model`.
+/// own copies, `light` and `color` of `_Actor317000Work::model`.
 static void func_actor_317000_80162744(Task* arg0)
 {
-    TmdObject*       ext;
-    Actor317000Work* work;
+    TmdObject*        ext;
+    _Actor317000Work* work;
 
     ext           = arg0->extra.tmd;
-    work          = (Actor317000Work*)arg0->work;
+    work          = arg0->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
 
 /// Index 0 of the two-entry table `func_actor_317000_80161E68` dispatches on
-/// `Actor317000Work::walk.motion`: does nothing.
+/// `_Actor317000Work::walk.motion`: does nothing.
 static void func_actor_317000_80162760(Task* arg0)
 {
 }
 
 /// Index 1 of the two-entry table `func_actor_317000_80161E68` dispatches on
-/// `Actor317000Work::walk.motion`: copies the four step handlers
+/// `_Actor317000Work::walk.motion`: copies the four step handlers
 /// `D_actor_317000_80161E30` onto the stack and runs the one
-/// `Actor317000Work::walk.motionStep` selects, read sign-extended.
+/// `_Actor317000Work::walk.motionStep` selects, read sign-extended.
 static void func_actor_317000_80162768(Task* arg0)
 {
-    TaskFuncTable4   handlers;
-    Actor317000Work* work;
+    TaskFuncTable4    handlers;
+    _Actor317000Work* work;
 
-    work     = (Actor317000Work*)arg0->work;
+    work     = arg0->work;
     handlers = D_actor_317000_80161E30;
     handlers.funcs[work->walk.motionStep](arg0);
 }
@@ -690,12 +706,12 @@ static void func_actor_317000_80162768(Task* arg0)
 /// `work->walk.targetRot.vy` is at least 0x41 it steps `vec.vy` toward it by 0x40 --
 /// the step is taken on an `s32` widening of the extracted yaw -- and
 /// otherwise snaps the yaw to the target and plays anim 0x7D3 with a preset
-/// whose `field_4` is the literal 2, clearing the `field_4C4` flag and
+/// whose `field_4` is the literal 2, clearing the `airborne` flag and
 /// advancing `walk.motionStep`. Either way the root coordinate is rebuilt as the
 /// identity matrix rotated by `vec`.
 static void func_actor_317000_801627D0(Task* arg0)
 {
-    Actor317000Work*     work;
+    _Actor317000Work*    work;
     GfxRotationWords*    words;
     GfxCoord*            coord;
     SVECTOR              vec;
@@ -704,7 +720,7 @@ static void func_actor_317000_801627D0(Task* arg0)
     s16                  diff;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor317000Work*)arg0->work;
+    work  = arg0->work;
 
     gfxExtractSmallestEuler(&vec, &coord->coord);
     diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
@@ -723,7 +739,7 @@ static void func_actor_317000_801627D0(Task* arg0)
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
-        work->field_4C4 = 0;
+        work->airborne = 0;
         work->walk.motionStep++;
     }
 
@@ -740,19 +756,19 @@ static void func_actor_317000_801627D0(Task* arg0)
 /// Step handler at index 1 of `D_actor_317000_80161E30`, reached by the
 /// `walk.motionStep` advance `func_actor_317000_801627D0` ends with: rotates the constant local-space
 /// offset `D_actor_317000_80161E40` through the root part's matrix into
-/// `work->walk.velocity`, then raises the flag at 0x4C4 and moves the dispatcher on.
+/// `work->walk.velocity`, then raises `airborne` and moves the dispatcher on.
 static void func_actor_317000_801628D8(Task* task)
 {
-    Actor317000Work* work;
-    GfxCoord*        coord;
-    VECTOR           vec;
+    _Actor317000Work* work;
+    GfxCoord*         coord;
+    VECTOR            vec;
 
     coord = task->extra.tmd->coords;
-    work  = (Actor317000Work*)task->work;
+    work  = task->work;
 
     vec = D_actor_317000_80161E40;
     ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
-    work->field_4C4 = 1;
+    work->airborne = 1;
     work->walk.motionStep++;
 }
 
@@ -762,17 +778,17 @@ static void func_actor_317000_801628D8(Task* task)
 /// nothing; above it the rise is over: the local-space `work->walk.velocity` the
 /// previous body wrote is cleared, the animation is re-applied through message
 /// 0x7D3 with the latched `model.nextAnimId` state, and sound 0x400A000B is queued
-/// panned and attenuated from the root coordinate's matrix. The `field_4C4`
+/// panned and attenuated from the root coordinate's matrix. The `airborne`
 /// flag the previous body raised is cleared and the dispatcher advances again.
 static void func_actor_317000_80162950(Task* arg0)
 {
     GfxCoord*            coord;
-    Actor317000Work*     work;
+    _Actor317000Work*    work;
     AnimationPlayRequest preset;
     s32                  pan;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor317000Work*)arg0->work;
+    work  = arg0->work;
     if (coord->coord.t[1] < -0x30) {
         return;
     }
@@ -788,7 +804,7 @@ static void func_actor_317000_80162950(Task* arg0)
     work->walk.velocity.vx = 0;
     work->walk.velocity.vy = 0;
     work->walk.velocity.vz = 0;
-    work->field_4C4        = 0;
+    work->airborne         = 0;
     work->walk.motionStep++;
 }
 
@@ -802,7 +818,7 @@ static void func_actor_317000_80162950(Task* arg0)
 ///
 ///   mode 0  set 0x80, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 1  clear 0x80, `Tmd_AllocBuffers`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 2  set 0x80, store 2 in the countdown `Actor317000Work::field_4C8`
+///   mode 2  set 0x80, store 2 in the countdown `_Actor317000Work::freeCountdown`
 ///           that `func_actor_317000_80161E68` ends in `Tmd_FreeBuffers`,
 ///           set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 3  clear 0x80, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
@@ -810,12 +826,12 @@ static void func_actor_317000_80162950(Task* arg0)
 /// Any other mode returns 1; the four known ones return 0. `arg3` is unused.
 s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
-    TmdObject*       obj;
-    Actor317000Work* work;
-    s32              ret;
+    TmdObject*        obj;
+    _Actor317000Work* work;
+    s32               ret;
 
     obj  = task->extra.tmd;
-    work = (Actor317000Work*)task->work;
+    work = task->work;
     ret  = 0;
     switch (mode) {
         case 0:
@@ -828,9 +844,9 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->field_4C8 = mode;
-            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = mode;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -844,7 +860,7 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
 }
 
 /// Message 0x7DB handler of the table `func_actor_317000_8016267C` installs:
-/// latches the payload's halfword at 0x2 into `Actor317000Work::field_4C5` --
+/// latches the payload's halfword at 0x2 into `_Actor317000Work::turnWeightRising` --
 /// 0 for mode 0, the mode itself for mode 1 -- and for any other mode dumps the
 /// root coordinate's matrix translation (`"pos"`) and the euler angles
 /// `gfxExtractSmallestEuler` derives from its rotation matrix (`"rot"`) through
@@ -852,20 +868,20 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// either way.
 s32 func_actor_317000_80162CA0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor317000Work* work;
-    GfxCoord*        coord;
-    SVECTOR          rot;
-    s32              mode;
+    _Actor317000Work* work;
+    GfxCoord*         coord;
+    SVECTOR           rot;
+    s32               mode;
 
-    work  = (Actor317000Work*)task->work;
+    work  = task->work;
     coord = task->extra.tmd->coords;
     mode  = msg->command;
     switch (mode) {
         case 0:
-            work->field_4C5 = 0;
+            work->turnWeightRising = 0;
             break;
         case 1:
-            work->field_4C5 = mode;
+            work->turnWeightRising = mode;
             break;
         default:
             GPU_printf("%s=(%d,%d,%d)\n", "pos", coord->coord.t[0], coord->coord.t[1], coord->coord.t[2]);
