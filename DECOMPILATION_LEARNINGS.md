@@ -82854,7 +82854,7 @@ Inputs `base_1.i`
 
 ## m2c nested-ifs lose a switch's shared-epilogue default
 
-`func_actor_403200_80141124` takes `(Actor403200Obj*, s16)` and returns `0x13`,
+`func_actor_403200_80141124` takes `(Task*, s16)` and returns `0x13`,
 `7`, `0x25` for `value` 0/1/2 and `1` otherwise. m2c linearises this into nested
 `if`s and scores 35.9%: its "otherwise" paths emit `li v0,1` followed by a direct
 `jr ra`, and the argument arrives in `$a0`. The target instead routes both
@@ -82874,8 +82874,8 @@ while the three `case` arms each get their own `jr ra; li v0,const`. Writing the
 source as a real `switch` with a post-switch `return 1;` recovers that shape
 exactly (98.2%), and the only remaining difference is the argument register:
 the target sign-extends `$a1`, so the real signature has an unused leading
-`Actor403200Obj*` — the dispatch table at `D_actor_403200_8015E6E8` lists it
-beside `func_actor_403200_80141180(Actor403200Obj*, s16)`, which confirms it.
+`Task*` — the dispatch table at `D_actor_403200_8015E6E8` lists it
+beside `func_actor_403200_80141180(Task*, s16)`, which confirms it.
 Adding the unused parameter gives 100%.
 
 So when a small integer switch's arms all `return` and the fall-through return is

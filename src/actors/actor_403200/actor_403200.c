@@ -70,8 +70,6 @@
 
 extern s8 D_actor_403200_8015F8E0[8];
 
-typedef struct Actor403200Obj Actor403200Obj;
-
 /// Points one of the host's camera view functions measures the player's
 /// distance from, one for each phase of the fight.
 ///
@@ -2835,16 +2833,24 @@ _Actor403200SpinnerSpawn D_actor_403200_8015F888[9] = {
     { &_gActor403200Model1D754, 2 },
 };
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// The package's spawn entry: the descriptor the boss's task is created from.
+///
+/// The room's resource tables name the descriptor as a task table of one
+/// entry, which the boss's placement spawns; nothing in the package reads it.
+/// The task it describes carries the host's model and starts in the enemy
+/// task's dispatcher.
+///
+/// Four zero bytes separate the descriptor from the next object. No access to
+/// them is recovered, so whether they are trailing fields of this object or a
+/// separate unreferenced variable is unproven; they stay in this allocation
+/// only to keep the data after it at its address.
 typedef struct {
-    TaskDesc value;
-    u8       retained[4];
-} Actor403200StorageF8D0;
-STATIC_ASSERT_SIZEOF(Actor403200StorageF8D0, 16);
+    TaskDesc desc;         // Descriptor the room spawns the boss's task from
+    u8       unknown_C[4]; // Zero in the image; no access established and role unproven
+} _Actor403200HostTaskDescStorage;
+STATIC_ASSERT_SIZEOF(_Actor403200HostTaskDescStorage, 0x10);
 
-Actor403200StorageF8D0 D_actor_403200_8015F8D0 = { { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80140E6C, { .model = &_gActor403200Model10824 } }, { 0 } };
+_Actor403200HostTaskDescStorage D_actor_403200_8015F8D0 = { { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80140E6C, { .model = &_gActor403200Model10824 } }, { 0 } };
 
 // Retain seven zero bytes after the accessed state byte.
 // Their original role as spare storage or alignment remains unresolved.
@@ -2882,14 +2888,17 @@ extern SVECTOR ActorContact_ScratchPosition;
 
 extern _Actor403200ViewFunc D_actor_403200_8015E6E8[];
 
-/// Scratchpad frame the per-frame tick carves off the scratch-pad stack. Only `view`
-/// is written: the selector result compared with `Gp_GetViewIndex`.
-typedef struct Actor403200TickScratch {
-    byte pad_0[0x18];
-    s16  view;
-    byte pad_1A[0x2];
-} Actor403200TickScratch;
-STATIC_ASSERT_SIZEOF(Actor403200TickScratch, 0x1C);
+/// Scratch-stack block the host's tick works in for one frame.
+///
+/// The tick reserves one complete block once the scene lets the actors act and
+/// releases it before returning; nothing in it outlasts the tick. Only `view`
+/// is ever accessed.
+typedef struct {
+    byte unknown_0[0x18]; // Reserved with the block and never accessed; role unproven
+    s16  view;            // Camera view the host's current view function picks this frame; it becomes the room's live view when it differs from the one showing
+    byte unknown_1A[0x2]; // Reserved with the block and never accessed; role unproven
+} _Actor403200TickScratch;
+STATIC_ASSERT_SIZEOF(_Actor403200TickScratch, 0x1C);
 
 /// The host's state handlers stored as a value for whole-table copies.
 ///
@@ -6371,29 +6380,29 @@ static const EnemyTaskFuncTable3 D_actor_403200_801321B8 = {
 /// the hit handlers, the death handoff and the state in `state`.
 static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
 {
-    VECTOR                  pos;
-    _Actor403200StateTable  states;
-    GluttonWork*            work;
-    GluttonWork*            dying;
-    GluttonWork*            vis;
-    Actor403200TickScratch* scratch;
-    WorldCollisionTrigger*  pending;
-    TmdObject*              tmd;
-    TmdObject*              escortTmd;
-    Task*                   player;
-    Task*                   slot3;
-    Enemy*                  colorEnemy;
-    s16                     i;
-    s16                     j;
-    s16                     k;
-    s16                     mode;
-    u16                     count;
-    u8                      viewReady;
-    s32                     d801153f4;
-    u8                      stateF0;
-    SVECTOR*                pendingPos;
-    s8                      nodeFlags;
-    s32                     t2;
+    VECTOR                   pos;
+    _Actor403200StateTable   states;
+    GluttonWork*             work;
+    GluttonWork*             dying;
+    GluttonWork*             vis;
+    _Actor403200TickScratch* scratch;
+    WorldCollisionTrigger*   pending;
+    TmdObject*               tmd;
+    TmdObject*               escortTmd;
+    Task*                    player;
+    Task*                    slot3;
+    Enemy*                   colorEnemy;
+    s16                      i;
+    s16                      j;
+    s16                      k;
+    s16                      mode;
+    u16                      count;
+    u8                       viewReady;
+    s32                      d801153f4;
+    u8                       stateF0;
+    SVECTOR*                 pendingPos;
+    s8                       nodeFlags;
+    s32                      t2;
 
     work   = arg1->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -6498,7 +6507,7 @@ clear_and_return:
     return;
 after_mode:
 
-    scratch = (Actor403200TickScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200TickScratch));
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403200TickScratch);
 
     if (arg0->hp > 0) {
         if (work->playerCaught != 1 && work->state != 0xD) {
@@ -6729,7 +6738,7 @@ after_mode:
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200TickScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403200TickScratch);
 }
 
 static void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 index)
