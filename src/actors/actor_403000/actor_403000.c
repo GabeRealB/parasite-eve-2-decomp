@@ -72,16 +72,32 @@ typedef struct {
 } _Actor403000CollisionSphere;
 STATIC_ASSERT_SIZEOF(_Actor403000CollisionSphere, 0x98);
 
+/// Entries in a contact table of the actor's collision bodies.
+///
+/// Each table is initialised to this length, which puts the final-entry marker
+/// on its last element, and a scan of one reads at most this many entries,
+/// stopping early at a zero key.
+enum { ACTOR_403000_BODY_CONTACT_COUNT = 5 };
+
 /// One collision capsule of the actor: a body, the capsule shape the body
 /// points at and the contact table that shape records into.
 ///
-/// The work block holds two, laid out alike. The spawn handler fills the
-/// shape, links the body and initialises the table; each frame's update ends
-/// by resetting the table's occupied entries.
+/// The work block holds two, laid out alike. One lies ahead of the root along
+/// its facing and is only ever tested against the room grid. The other rides a
+/// model part and is pair-tested against other bodies while the actor is
+/// active: the hit handler scans its table for an attack contact after the
+/// part spheres', and an attack state looks there for a contact with the
+/// player.
+///
+/// The spawn handler fills the shape, points the body at it and it at
+/// `contacts`, links the body and initialises the table; each frame's update
+/// ends by resetting the table's occupied entries. Unlike the spheres, a
+/// capsule's body is never unlinked by this package: the task's exit callback
+/// leaves both on the world's body list.
 typedef struct {
-    WorldCollisionBody    body;        // Capsule linked into the world's body list; `coord` is the part it rides
-    WorldCollisionCapsule shape;       // End points and radii in that part's space, and the contact-table pointer
-    WorldCollisionContact contacts[5]; // The capsule's own contact table
+    WorldCollisionBody    body;                                      // Capsule body on the world's list; `coord` is the part it rides, `pos` and `radius` stay zero
+    WorldCollisionCapsule shape;                                     // Segment end points and end radii in that part's space; its table pointer is `contacts`
+    WorldCollisionContact contacts[ACTOR_403000_BODY_CONTACT_COUNT]; // The table `shape` records into, private to this capsule
 } _Actor403000CollisionCapsule;
 STATIC_ASSERT_SIZEOF(_Actor403000CollisionCapsule, 0xB0);
 
