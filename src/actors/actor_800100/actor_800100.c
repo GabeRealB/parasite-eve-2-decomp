@@ -59,17 +59,23 @@ static void func_actor_800100_801635F4(Task* arg0);
 static void func_actor_800100_80163A58(Task* arg0);
 static void func_actor_800100_80165528(Task* arg0);
 
-/// 0x5C-byte block from the scratch stack used by
-/// `func_actor_800100_80166514`: the `GfxCoord` it hands to
-/// `Gp_PlaceCoordOffset` / `func_actor_800100_801668C0`, the `rot` offset
-/// applied to it, and the planar contact distance retained for the placement offset.
-typedef struct _Actor800100PlaceScratch {
-    /* 0x00 */ GfxCoord coord;
-    /* 0x50 */ SVECTOR  rot;
-    /* 0x58 */ u16      distance;
-    /* 0x5A */ byte     pad_5A[2];
-} Actor800100PlaceScratch;
-STATIC_ASSERT_SIZEOF(Actor800100PlaceScratch, 0x5C);
+/// Scratch-stack block of the aim beam: the coordinate the beam is drawn on.
+///
+/// The beam is a line from the equipped weapon along the aim, ended by a
+/// textured square. `coord` is placed twice, each time by moving a node along
+/// `offset`. The first move starts from a copy of the weapon model's root
+/// node turned a quarter turn about X and gives the beam's start, which the
+/// line is drawn from. The second moves `coord` along its own Y axis by
+/// `contactDistance` plus 0x38, which is where the square is drawn.
+///
+/// The block lives for the one call that draws both parts. Nothing in the
+/// package calls that routine.
+typedef struct {
+    GfxCoord coord;           // Node the beam is drawn on, parented to the view coordinate by each placement
+    SVECTOR  offset;          // Displacement of the next placement, in the frame of the node it starts from; `pad` is never written
+    u16      contactDistance; // X/Z distance from the beam's start to the aim capsule's contact; 0 while it has none
+} _Actor800100AimBeamScratch;
+STATIC_ASSERT_SIZEOF(_Actor800100AimBeamScratch, 0x5C);
 
 /// Scratch-stack block for ranging the actor against the point it is steering toward.
 ///
@@ -85,44 +91,45 @@ typedef struct {
 } _Actor800100TargetScratch;
 STATIC_ASSERT_SIZEOF(_Actor800100TargetScratch, 0x20);
 
-/// 0x1C-byte block from the scratch stack used by
-/// `func_actor_800100_8016666C` to draw the vertical `LINE_G2` that
-/// `func_actor_800100_80166514` puts on the placed coordinate. `origin` is the
-/// vector pushed through the coordinate's `workm` first — always (0, 0, 0), so
-/// `sxy0` is the origin's screen point — and `tip` the second, `angle` units
-/// straight up, so `sxy1` is the screen point of the far end. `otz` is the
-/// `gte_stszotz` of that second projection, already shifted, and doubles as
-/// the `gpuSetPrimitiveBlendMode` bucket.
-typedef struct _Actor800100LineScratch {
-    /* 0x00 */ DVECTOR sxy0;
-    /* 0x04 */ DVECTOR sxy1;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ SVECTOR origin;
-    /* 0x14 */ SVECTOR tip;
-} Actor800100LineScratch;
-STATIC_ASSERT_SIZEOF(Actor800100LineScratch, 0x1C);
+/// Scratch-stack block of the aim beam's line.
+///
+/// The line runs along the Y axis of the beam's coordinate, from its origin to
+/// `tip`. Both ends go through that coordinate's composed matrix, one
+/// perspective transform each, and the screen points become the ends of an
+/// additive gouraud line. The line is drawn only when `otz` is at least 0x20.
+typedef struct {
+    DVECTOR originScreen; // Screen X/Y of `origin`
+    DVECTOR tipScreen;    // Screen X/Y of `tip`
+    s32     otz;          // SZ3 / 4 of the tip's transform; ordering-table depth and the blend packet's depth
+    SVECTOR origin;       // Near end in the coordinate's frame, always (0, 0, 0); `pad` is never written
+    SVECTOR tip;          // Far end: (0, length, 0), the contact distance or the equipped weapon's reach when that is 0
+} _Actor800100AimBeamLineScratch;
+STATIC_ASSERT_SIZEOF(_Actor800100AimBeamLineScratch, 0x1C);
 
-/// One corner of the beam quad `func_actor_800100_801668C0` draws, as an
-/// offset in the placed coordinate's own frame: `vy` straight up, `vz` along
-/// the face. `D_actor_800100_80161F10` is the four of them.
-typedef struct _Actor800100QuadCorner {
-    /* 0x00 */ s16 vy;
-    /* 0x02 */ s16 vz;
-} Actor800100QuadCorner;
-STATIC_ASSERT_SIZEOF(Actor800100QuadCorner, 4);
+/// One corner of the aim beam's end square, as an offset from the
+/// translation of the beam's coordinate. The X offset is always 0, so a
+/// corner is stored as its other two components.
+typedef struct {
+    s16 vy; // Y offset
+    s16 vz; // Z offset
+} _Actor800100AimBeamQuadCorner;
+STATIC_ASSERT_SIZEOF(_Actor800100AimBeamQuadCorner, 4);
 
-/// 0x44-byte block from the scratch stack used by `func_actor_800100_801668C0`
-/// to draw the textured sheet `func_actor_800100_80166514` places: the four
-/// `v` corners are the `D_actor_800100_80161F10` (y, z) pairs offset by the
-/// coordinate's world `t`, projected through `GsWSMATRIX` into `sxy`, and
-/// `otz` is the `gte_stszotz` of the last of them.
-typedef struct _Actor800100QuadScratch {
-    /* 0x00 */ DVECTOR sxy[4];
-    /* 0x10 */ s32     otz;
-    /* 0x14 */ VECTOR  work;
-    /* 0x24 */ SVECTOR v[4];
-} Actor800100QuadScratch;
-STATIC_ASSERT_SIZEOF(Actor800100QuadScratch, 0x44);
+/// Scratch-stack block of the aim beam's end square.
+///
+/// Each corner is a `_Actor800100AimBeamQuadCorner` added to the translation
+/// of the beam coordinate's composed matrix; the coordinate's rotation is not
+/// applied, so the square keeps one orientation. The corners are projected
+/// through `GsWSMATRIX`, corner 0 with one perspective transform and corners
+/// 1..3 with a three-vertex one, onto an additive textured quad. Corners and
+/// screen points share indices 0..3 in GPU quad strip order.
+typedef struct {
+    DVECTOR screenCorners[4]; // Screen X/Y of each corner
+    s32     otz;              // SZ3 / 4 of the three-vertex transform, corner 3's depth; selects the ordering-table bucket
+    VECTOR  cornerOffset;     // Corner being staged, as (0, vy, vz); `pad` is never written
+    SVECTOR worldCorners[4];  // Corner positions handed to the projection, cut to 16 bits; `pad` is never written
+} _Actor800100AimBeamQuadScratch;
+STATIC_ASSERT_SIZEOF(_Actor800100AimBeamQuadScratch, 0x44);
 
 /// NULL-terminated `GpuImageUpload*` frame lists for `func_actor_800100_80163A58`,
 /// indexed `table[textureSequenceA - 1][textureFrameA]`; `D_actor_800100_80167210` is
@@ -3001,14 +3008,13 @@ static void func_actor_800100_80166190(Task* arg0)
 
 static void func_actor_800100_80166514(Task* arg0)
 {
-    void**                   scratch;
-    Actor800100PlaceScratch* head;
-    GameActor*               actor;
-    GfxCoord                 sp10;
-    GfxCoord*                src;
-    WorldCollisionBody*      obj;
-    Actor800100PlaceScratch* blk;
-    s16                      distance;
+    void**                      scratch;
+    GameActor*                  actor;
+    GfxCoord                    sp10;
+    GfxCoord*                   src;
+    WorldCollisionBody*         obj;
+    _Actor800100AimBeamScratch* blk;
+    s16                         distance;
 
     actor       = arg0->work;
     src         = actor->equipmentTasks[1]->extra.tmd->coords;
@@ -3016,51 +3022,49 @@ static void func_actor_800100_80166514(Task* arg0)
     sp10        = *src;
     obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    scratch                                           = SCRATCH_HEAD_ADDR;
-    head                                              = SCRATCH_HEAD_AT(scratch, Actor800100PlaceScratch);
-    blk                                               = head - 1;
-    SCRATCH_HEAD_AT(scratch, Actor800100PlaceScratch) = blk;
+    scratch = SCRATCH_HEAD_ADDR;
+    blk     = SCRATCH_PUSH_AT(scratch, _Actor800100AimBeamScratch);
 
     Gp_FindRec18(obj->context.capsule->contacts, 0);
     gfxRotMatrixX(&sp10.workm, 0x400, GRAPHICS_ROTATION_COMPOSE);
-    blk->rot.vx = 0;
-    blk->rot.vy = 0x120;
-    blk->rot.vz = 0x20;
-    Gp_PlaceCoordOffset(&sp10, &blk->coord, &(head - 1)->rot);
-    distance      = _actor800100GetContactDistance(&blk->coord, actor->aimContacts, NULL);
-    blk->distance = distance;
+    blk->offset.vx = 0;
+    blk->offset.vy = 0x120;
+    blk->offset.vz = 0x20;
+    Gp_PlaceCoordOffset(&sp10, &blk->coord, &blk->offset);
+    distance             = _actor800100GetContactDistance(&blk->coord, actor->aimContacts, NULL);
+    blk->contactDistance = distance;
     func_actor_800100_8016666C(&blk->coord, distance);
-    blk->rot.vx = 0;
-    blk->rot.vz = 0;
-    blk->rot.vy = blk->distance + 0x38;
-    Gp_PlaceCoordOffset(&blk->coord, &blk->coord, &(head - 1)->rot);
+    blk->offset.vx = 0;
+    blk->offset.vz = 0;
+    blk->offset.vy = blk->contactDistance + 0x38;
+    Gp_PlaceCoordOffset(&blk->coord, &blk->coord, &blk->offset);
     func_actor_800100_801668C0(&blk->coord);
     Gp_ClearRec18Occupied(actor->aimContacts);
-    SCRATCH_POP_AT(scratch, Actor800100PlaceScratch);
+    SCRATCH_POP_AT(scratch, _Actor800100AimBeamScratch);
 }
 
-/* The 0x1C bytes are carved off `head` into `newhead` and stored there, but the
-   GTE calls address them through the typed `blk` view: the ROM keeps that typed
-   pointer as a copy of `newhead` in `$a3`, and one variable for both drops it.
-   The post-`rcos` reads go through `newhead` for the same reason - naming `blk`
-   there would keep the copy live across the call - and the two `sxy0` reads are
+/* The block is carved off `head` into `newhead` and stored there, but the GTE
+   calls address it through `blk`: the ROM keeps that pointer as a copy of
+   `newhead` in `$a3`, and one variable for both drops it. The post-`rcos`
+   reads go through `newhead` for the same reason - naming `blk` there would
+   keep the copy live across the call - and the two `originScreen` reads are
    spelled off `head`, whose folded address is the one the ROM uses. */
 static void func_actor_800100_8016666C(GfxCoord* arg0, s16 arg1)
 {
-    void**                  scratch;
-    u8*                     head;
-    u8*                     newhead;
-    Actor800100LineScratch* blk;
-    LINE_G2*                prim;
-    s16                     angle;
-    s32                     sy0;
-    s32                     sy1;
+    void**                          scratch;
+    _Actor800100AimBeamLineScratch* head;
+    _Actor800100AimBeamLineScratch* newhead;
+    _Actor800100AimBeamLineScratch* blk;
+    LINE_G2*                        prim;
+    s16                             angle;
+    s32                             sy0;
+    s32                             sy1;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    newhead                        = head - sizeof(Actor800100LineScratch);
-    blk                            = (Actor800100LineScratch*)newhead;
-    SCRATCH_HEAD_AT(scratch, void) = newhead;
+    scratch                                                  = SCRATCH_HEAD_ADDR;
+    head                                                     = SCRATCH_HEAD_AT(scratch, _Actor800100AimBeamLineScratch);
+    newhead                                                  = head - 1;
+    blk                                                      = newhead;
+    SCRATCH_HEAD_AT(scratch, _Actor800100AimBeamLineScratch) = newhead;
 
     angle = arg1;
     if (arg1 == 0) {
@@ -3077,23 +3081,23 @@ static void func_actor_800100_8016666C(GfxCoord* arg0, s16 arg1)
     gte_SetRotMatrix(&arg0->workm);
     gte_ldv0(&blk->origin);
     gte_rtps();
-    gte_stsxy(&blk->sxy0);
+    gte_stsxy(&blk->originScreen);
     gte_ldv0(&blk->tip);
     gte_rtps();
-    gte_stsxy(&blk->sxy1);
+    gte_stsxy(&blk->tipScreen);
     gte_stszotz(&blk->otz);
 
-    if (((Actor800100LineScratch*)newhead)->otz >= 0x20) {
+    if (newhead->otz >= 0x20) {
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setLineG2(prim);
-        prim->x0 = ((Actor800100LineScratch*)(head - sizeof(Actor800100LineScratch)))->sxy0.vx;
+        prim->x0 = (head - 1)->originScreen.vx;
         /* Both `vy` loads sign-extend, which needs the `s32` locals: a direct
            16-bit field copy assembles to `lhu` for either of them. */
-        sy0      = ((Actor800100LineScratch*)(head - sizeof(Actor800100LineScratch)))->sxy0.vy;
+        sy0      = (head - 1)->originScreen.vy;
         prim->y0 = sy0;
-        prim->x1 = ((Actor800100LineScratch*)newhead)->sxy1.vx;
-        sy1      = ((Actor800100LineScratch*)newhead)->sxy1.vy;
+        prim->x1 = newhead->tipScreen.vx;
+        sy1      = newhead->tipScreen.vy;
         prim->y1 = sy1;
         /* Both ends pulse with the frame counter, the far one 0x50 darker. */
         prim->r0 = (rcos(gDisplayState.gameTick) & 0x1F) - 0x80;
@@ -3102,17 +3106,17 @@ static void func_actor_800100_8016666C(GfxCoord* arg0, s16 arg1)
         prim->r1 = prim->r0 - 0x50;
         prim->g1 = 0;
         prim->b1 = 0;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((Actor800100LineScratch*)newhead)->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, ((Actor800100LineScratch*)newhead)->otz);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)newhead->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, newhead->otz);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(Actor800100LineScratch));
+    SCRATCH_POP_AT(scratch, _Actor800100AimBeamLineScratch);
 }
 
 /// The four (y, z) corners of the quad `func_actor_800100_801668C0` draws,
 /// offset off the placed coordinate's world translation. The table sits in the
 /// unit's .rodata right after the jump tables, so it is written here rather
 /// than left to the split: nothing else refers to it.
-static const Actor800100QuadCorner D_actor_800100_80161F10[4] = {
+static const _Actor800100AimBeamQuadCorner D_actor_800100_80161F10[4] = {
     { -62, 0 },
     { -62, 124 },
     { 62, 0 },
@@ -3123,73 +3127,72 @@ static const Actor800100QuadCorner D_actor_800100_80161F10[4] = {
    `D_actor_800100_80161F10` (y, z) offsets, raised to the coordinate's world
    translation, projected through `GsWSMATRIX` and textured with one 0x20
    square of the atlas.
-   The 0x44 bytes are carved off the scratch head and written back in one
-   chained assignment: the ROM keeps the allocated pointer as a copy of the
-   store's temporary in `$t1`, and splitting the two into separate statements
-   drops that copy. */
+   The block is reserved and its pointer taken in one assignment: the ROM
+   keeps the allocated pointer as a copy of the store's temporary in `$t1`,
+   and splitting the two into separate statements drops that copy. */
 static void func_actor_800100_801668C0(GfxCoord* arg0)
 {
-    void**                  scratch;
-    Actor800100QuadScratch* blk;
-    POLY_FT4*               prim;
-    s32                     i;
-    s32                     ay;
-    s32                     az;
-    s32                     sy;
+    void**                          scratch;
+    _Actor800100AimBeamQuadScratch* blk;
+    POLY_FT4*                       prim;
+    s32                             i;
+    s32                             ay;
+    s32                             az;
+    s32                             sy;
 
     scratch = SCRATCH_HEAD_ADDR;
-    blk     = (SCRATCH_HEAD_AT(scratch, void) = (Actor800100QuadScratch*)((u8*)SCRATCH_HEAD_AT(scratch, void) - sizeof(Actor800100QuadScratch)));
+    blk     = SCRATCH_PUSH_AT(scratch, _Actor800100AimBeamQuadScratch);
 
     for (i = 0; i < 4; i++) {
-        ay           = D_actor_800100_80161F10[i].vy;
-        az           = D_actor_800100_80161F10[i].vz;
-        blk->work.vx = 0;
-        blk->work.vy = ay;
-        blk->work.vz = az;
-        blk->v[i].vx = (u16)blk->work.vx + (u16)arg0->workm.t[0];
-        blk->v[i].vy = (u16)blk->work.vy + (u16)arg0->workm.t[1];
-        blk->v[i].vz = (u16)blk->work.vz + (u16)arg0->workm.t[2];
+        ay                      = D_actor_800100_80161F10[i].vy;
+        az                      = D_actor_800100_80161F10[i].vz;
+        blk->cornerOffset.vx    = 0;
+        blk->cornerOffset.vy    = ay;
+        blk->cornerOffset.vz    = az;
+        blk->worldCorners[i].vx = (u16)blk->cornerOffset.vx + (u16)arg0->workm.t[0];
+        blk->worldCorners[i].vy = (u16)blk->cornerOffset.vy + (u16)arg0->workm.t[1];
+        blk->worldCorners[i].vz = (u16)blk->cornerOffset.vz + (u16)arg0->workm.t[2];
     }
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);
 
-    gte_ldv0(&blk->v[0]);
+    gte_ldv0(&blk->worldCorners[0]);
     gte_rtps();
 
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
 
-    gte_stsxy2(&blk->sxy[0]);
+    gte_stsxy2(&blk->screenCorners[0]);
 
-    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
+    gte_ldv3(&blk->worldCorners[1], &blk->worldCorners[2], &blk->worldCorners[3]);
     gte_rtpt();
     prim->tpage = 0x27;
     prim->clut  = 0x3CCE;
     setUV4(prim, 0x20, 0x80, 0x3F, 0x80, 0x20, 0x9F, 0x3F, 0x9F);
     prim->code |= 3;
 
-    gte_stsxy3(&blk->sxy[1], &blk->sxy[2], &blk->sxy[3]);
+    gte_stsxy3(&blk->screenCorners[1], &blk->screenCorners[2], &blk->screenCorners[3]);
     gte_stszotz(&blk->otz);
 
     /* Both `vy` loads sign-extend, which the `s32` locals keep: a direct
        16-bit field copy assembles to `lhu` for either of them. */
-    prim->x0 = blk->sxy[0].vx;
-    sy       = blk->sxy[0].vy;
+    prim->x0 = blk->screenCorners[0].vx;
+    sy       = blk->screenCorners[0].vy;
     prim->y0 = sy;
-    prim->x1 = blk->sxy[1].vx;
-    sy       = blk->sxy[1].vy;
+    prim->x1 = blk->screenCorners[1].vx;
+    sy       = blk->screenCorners[1].vy;
     prim->y1 = sy;
-    prim->x2 = blk->sxy[2].vx;
-    sy       = blk->sxy[2].vy;
+    prim->x2 = blk->screenCorners[2].vx;
+    sy       = blk->screenCorners[2].vy;
     prim->y2 = sy;
-    prim->x3 = blk->sxy[3].vx;
-    sy       = blk->sxy[3].vy;
+    prim->x3 = blk->screenCorners[3].vx;
+    sy       = blk->screenCorners[3].vy;
     prim->y3 = sy;
 
     addPrim(&gGpuCurrentOt[blk->otz >> 4], prim);
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor800100QuadScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor800100AimBeamQuadScratch);
 }
 
 static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2)

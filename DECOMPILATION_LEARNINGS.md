@@ -110359,6 +110359,10 @@ Input: `base_2.i` `d6c9eef6ccc6340a68c13d60a9704a02142bb4a660a86e359a0ad5330122e
     blk      = (*scratch = (T*)((u8*)*scratch - sizeof(T)));
 ```
 
+A compound assignment used as a value is that same form, so the typed
+`blk = SCRATCH_PUSH_AT(scratch, T);` (`*(T**)scratch -= 1`) matches as well and
+is how the function is written now.
+
 The quantity the copy changes is the **scratch-address constant**, and the
 priority it moves is `QTY_CMP_PRI` - `floor_log2(n_refs) * n_refs * size /
 (death - birth)` (`local-alloc.c:1727`), the key `block_alloc` orders a block's
@@ -110554,12 +110558,12 @@ When a scratch block holds a screen point and the target primitive is filled
 from it, the two halves of a `DVECTOR` can load differently:
 
 ```
-lhu   v0,-0x1c(a2)      /* x0 = blk->sxy0.vx  */
-lh    v0,-0x1a(a2)      /* y0 = blk->sxy0.vy  -- sign-extends */
+lhu   v0,-0x1c(a2)      /* x0 = blk->originScreen.vx  */
+lh    v0,-0x1a(a2)      /* y0 = blk->originScreen.vy  -- sign-extends */
 ```
 
 Both fields are `short`, and `prim->x0`/`prim->y0` are `short`, so the obvious
-`prim->y0 = blk->sxy0.vy;` is *not* what the first load wants: it assembles to
+`prim->y0 = blk->originScreen.vy;` is *not* what the first load wants: it assembles to
 `lhu` (the `movhi_internal2` HImode path, which `mips_move_1word` emits with
 `unsignedp` true). `lh` only comes from `extendhisi2_internal`, i.e. an
 `(set (reg:SI) (sign_extend:SI (mem:HI)))`, so the source has to make the value
@@ -110567,7 +110571,7 @@ SI-mode — an `s32` local:
 
 ```c
     s32 sy;                     /* -> lh */
-    sy = blk->sxy0.vy;
+    sy = blk->originScreen.vy;
     prim->y0 = sy;
 ```
 
@@ -110626,7 +110630,7 @@ and `$v1` swapped relative to the ROM. Writing the read-back instead —
 its own register, so the copy reappears and the constant stays 0x50. The store of
 `r1` also sinks below `g1`/`b1`, as in the ROM. `func_actor_800100_8016666C`.
 
-## A scratch block held as both a raw pointer and a typed view keeps the ROM's register copy
+## A scratch block held in two pointer variables keeps the ROM's register copy
 
 `addiu s2,a2,-0x1C` / `addu a3,s2,zero` — the ROM computes the block once and
 copies it for the first `gte_stsxy`. One variable for the block cannot produce
@@ -110634,15 +110638,19 @@ that: GCC uses the register directly. Two variables can, and which one gets the
 callee-saved register follows the live range, not the declaration:
 
 ```c
-    newhead  = head - sizeof(Actor800100LineScratch);  /* crosses the call -> $s2 */
-    blk      = (Actor800100LineScratch*)newhead;       /* used pre-call only -> $a3 */
+    newhead  = head - 1;  /* crosses the call -> $s2 */
+    blk      = newhead;   /* used pre-call only -> $a3 */
     *scratch = newhead;
 ```
+
+The two need not differ in type: with `head`, `newhead` and `blk` all
+`_Actor800100AimBeamLineScratch*` the function matches without a cast, so the
+copy comes from there being two variables, not from one of them being raw.
 
 With `blk` used on both sides of the call (and `newhead` only for the store) the
 copy comes out inverted — `addiu v0,...` then `move s2,v0` — because the
 short-lived variable is the one the `addiu` lands in. Address the post-call reads
-through the raw pointer and the pre-call GTE arguments through the typed view and
+through `newhead` and the pre-call GTE arguments through `blk` and
 the ROM's `$s2`/`$a3` split falls out; naming `blk` in the reads keeps it live
 across the `jal` and the copy disappears with it.
 
