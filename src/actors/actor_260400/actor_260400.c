@@ -63,8 +63,9 @@ extern _Actor260400AnimationBankExtensionStorage D_actor_260400_8014C668;
 /// allocated zeroed by the walker's spawn state and kept both at `Task::work`
 /// and in `gScriptedWalkWork`.
 ///
-/// It opens as `ScriptedWalkWork` does, which is how the scripted walk
-/// library's update views it. What follows is the walker's revolver: a task of
+/// The scripted walk library's fragments are compiled against it through
+/// `SCRIPTED_WALK_WORK_T` and use its leading members: the matrices, the rig,
+/// the enemy state and the turn counter. What follows is the walker's revolver: a task of
 /// its own that draws the one-part Mongoose model and hangs that model's
 /// coordinate off part 8 of the walker's rig, so the revolver follows that
 /// part. The spawn state starts it and the walker's exit callback kills it.
