@@ -466,6 +466,48 @@ def break_table_cycles(nodes, edges):
     return out
 
 
+def free_types(nodes, edges):
+    """A type waits for types, enums and the macros its definition is built from.
+
+    It cannot use a function or an object, so an edge that says it does is an
+    artefact - and the usual one comes through macros. A file-level `#if` on a
+    macro may select whole declarations, so `macro_refs.add_graph` makes every
+    declaration of the file and of its carriers depend on each macro that could
+    bind there; a variant macro such as ROOM_EVENT_ACTIVE names an object, and
+    so every type of every room carrying it waited for room data, and behind
+    that for whatever was still in assembly. A macro that reaches a function or
+    an object, directly or through other macros, is not one a type's layout is
+    made of, and the type does not wait for it.
+    """
+    kind = {u: _node_kind(u) for u in nodes}
+    reaches = {}
+
+    def code_macro(m):
+        if m in reaches:
+            return reaches[m]
+        seen, todo, hit = {m}, [m], False
+        while todo and not hit:
+            for d in edges.get(todo.pop(), ()):
+                k = kind.get(d)
+                if k in ("func", "data"):
+                    hit = True
+                    break
+                if k == "macro" and d not in seen:
+                    seen.add(d)
+                    todo.append(d)
+        reaches[m] = hit
+        return hit
+
+    out = {}
+    for u, ds in edges.items():
+        if kind.get(u) != "type":
+            out[u] = ds
+            continue
+        out[u] = [d for d in ds
+                  if kind.get(d) not in ("func", "data") and not (kind.get(d) == "macro" and code_macro(d))]
+    return out
+
+
 def merge_groups(comp, sets):
     """Make each set one component, together with anything already cycled to it."""
     for members in sets:
@@ -976,7 +1018,7 @@ def main() -> int:
         return 0
 
     done = processed_set(root, nodes)
-    edges = break_table_cycles(nodes, edges)
+    edges = break_table_cycles(nodes, free_types(nodes, edges))
     comp = components(nodes, edges)
     merge_groups(comp, asset_groups(root, nodes, edges))
 
