@@ -54,7 +54,7 @@ void gluttonHitGroup0(Task* arg0)
 
     cfg   = &gPlayerStatus;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = (GluttonWork*)arg0->work;
+    work  = arg0->work;
     sc    = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos   = &sc->pos;
     recs  = work->hits[0].contacts;
@@ -84,13 +84,13 @@ found:
     if (id != 0) {
         gluttonHitEffect(work->hits[0].body.coord, id);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        param           = Gp_GetIdParam2(sc->id);
-        work->field_E90 = param;
-        work->field_E8E = param;
-        work->field_E8C = param;
-        work->field_E92 = param;
+        param                    = Gp_GetIdParam2(sc->id);
+        work->groups6To8Cooldown = param;
+        work->groups3To5Cooldown = param;
+        work->group0Cooldown     = param;
+        work->groups1To2Cooldown = param;
 #else
-        work->field_E8C = Gp_GetIdParam2(sc->id);
+        work->group0Cooldown = Gp_GetIdParam2(sc->id);
 #endif
         Gp_GetIdParam0(sc->id);
 
@@ -141,10 +141,10 @@ found:
         sc->angle = angle;
 
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
-        if (work->field_7B3 != 4) {
+        if (work->animId != 4) {
 #endif
-            work->field_7C8 = 0;
-            work->field_7C4 = 0;
+            work->neckYaw       = 0;
+            work->neckYawTarget = 0;
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
         }
 #endif
@@ -153,10 +153,10 @@ found:
         enemy->hp -= sc->damage;
         func_800DA6E8(&enemy->node, sc->damage, 0);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        esc3     = work->field_ECC[3];
+        esc3     = work->escorts[3];
         hp       = enemy->hp;
-        esc0     = work->field_ECC[0];
-        esc1     = work->field_ECC[1];
+        esc0     = work->escorts[0];
+        esc1     = work->escorts[1];
         esc3->hp = hp;
         esc1->hp = hp;
         esc0->hp = hp;

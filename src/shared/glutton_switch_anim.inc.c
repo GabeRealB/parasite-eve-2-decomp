@@ -1,30 +1,30 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Reseed every slot of the three even animation members from `field_7B3` when
-/// the id it names differs from the latched `field_7B2`, then latch it. Each
-/// slot also has its `rate` seeded from `field_7B6`, and the reset argument
-/// comes from the `[field_7B2][field_7B3]` transition table.
+/// Reseed every slot of the three driving rigs from `animId` when
+/// the id it names differs from the latched `appliedAnimId`, then latch it. Each
+/// slot also has its `rate` seeded from `animRate`, and the reset argument
+/// comes from the `[appliedAnimId][animId]` transition table.
 void gluttonSwitchAnim(Task* arg0)
 {
     GluttonWork* work = arg0->work;
     s32          i;
 
-    if (work->field_7B2 != work->field_7B3) {
+    if (work->appliedAnimId != work->animId) {
         for (i = 1; i < 8; i++) {
-            work->slots0[i].rate = work->field_7B6;
-            animationSeekSlotWithBlend(&work->anim0, i, work->field_7B3, 0,
-                                       gGluttonAnimTransitions[work->field_7B2][work->field_7B3]);
+            work->hostRig.slots[i].rate = work->animRate;
+            animationSeekSlotWithBlend(&work->hostRig.anim, i, work->animId, 0,
+                                       gGluttonAnimTransitions[work->appliedAnimId][work->animId]);
         }
         for (i = 0; i < 4; i++) {
-            work->slots2[i].rate = work->field_7B6;
-            animationSeekSlotWithBlend(&work->anim2, i, work->field_7B3, 0,
-                                       gGluttonAnimTransitions[work->field_7B2][work->field_7B3]);
+            work->escort0Rig.slots[i].rate = work->animRate;
+            animationSeekSlotWithBlend(&work->escort0Rig.anim, i, work->animId, 0,
+                                       gGluttonAnimTransitions[work->appliedAnimId][work->animId]);
         }
         for (i = 0; i < 4; i++) {
-            work->slots4[i].rate = work->field_7B6;
-            animationSeekSlotWithBlend(&work->anim4, i, work->field_7B3, 0,
-                                       gGluttonAnimTransitions[work->field_7B2][work->field_7B3]);
+            work->escort1Rig.slots[i].rate = work->animRate;
+            animationSeekSlotWithBlend(&work->escort1Rig.anim, i, work->animId, 0,
+                                       gGluttonAnimTransitions[work->appliedAnimId][work->animId]);
         }
-        work->field_7B2 = work->field_7B3;
+        work->appliedAnimId = work->animId;
     }
 }

@@ -115,7 +115,7 @@ STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 /// Scratchpad frame `func_actor_444000_8013482C` carves off the scratch stack
 /// for the run-out / turn / run-back pass. `dir` is first the offset from the
 /// model to the player, whose yaw against the model's own facing becomes
-/// `GluttonWork::field_7C4`, and later the normalised, GPF-scaled step the
+/// `GluttonWork::neckYawTarget`, and later the normalised, GPF-scaled step the
 /// turn adds to the coordinate; `m` is the working copy of the model's root
 /// coordinate and `angle` the yaw `gfxRotMatrixY` rebuilds it from.
 typedef struct Actor444000RunScratch {
@@ -369,7 +369,7 @@ extern Actor444000Storage1928 D_actor_444000_80161928;
 /// an array -- the load has to keep aliasing the scratch stores beside it (see
 /// DECOMPILATION_LEARNINGS.md, "Declare a fixed-address global as an array").
 
-/// Per-animation reset argument, a `[?][0x2D]` table of `field_7B3` indexed by
+/// Per-animation reset argument, a `[?][0x2D]` table of `animId` indexed by
 /// the id that was playing before the switch.
 extern s8 gGluttonAnimTransitions[][0x2D];
 
@@ -3049,14 +3049,14 @@ static __inline__ void Actor444000_StepForward(GfxCoord* coord)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
-/// The run-out / turn / run-back pass, stepped by `GluttonWork::field_F08`.
+/// The run-out / turn / run-back pass, stepped by `GluttonWork::phase`.
 ///
 /// A reset request re-arms the block: the model's flag word and the enemy's
 /// link state are cleared, both colour steps are switched on, animation 2 is
 /// requested and the scratch matrix is seeded with an identity rotation.
 ///
 /// Every step publishes the yaw from the model's own facing to the player in
-/// `field_7C4`, wrapped into +/-0x800, and -- unless the game is frozen --
+/// `neckYawTarget`, wrapped into +/-0x800, and -- unless the game is frozen --
 /// walks the model forward along that facing. State 0 runs out to x 0x1770,
 /// state 1 turns the model 0xD a step until it has swung the full half turn
 /// (its rotation is rebuilt from the running `angle` rather than spun in
@@ -3084,16 +3084,16 @@ static void func_actor_444000_8013482C(Task* task)
     work  = task->work;
     enemy = task->spawnArg2.pointer;
 
-    if (work->field_4 != 0) {
+    if (work->stateChanged != 0) {
         tmd                           = task->extra.tmd;
         enemy->node.state.parts.flags = 0;
         tmd->flags                    = 0;
-        work->field_EF4               = 1;
-        work->field_7B3               = 2;
-        work->field_EF6               = 1;
-        work->field_7B0               = 1;
-        work->field_EFA               = 0;
-        work->field_EFE               = 0;
+        work->neckPitchEnabled        = 1;
+        work->animId                  = 2;
+        work->neckYawEnabled          = 1;
+        work->animStep                = GLUTTON_ANIM_STEP_BLEND;
+        work->hostExposed             = 0;
+        work->neckPitchTarget         = 0;
         mat                           = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
         mat->rotationWords.m00M01     = ONE;
         mat->rotationWords.m02M10     = 0;
@@ -3104,31 +3104,31 @@ static void func_actor_444000_8013482C(Task* task)
 
     gluttonTickAnim(task);
 
-    frame = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    if (frame == 0x12 && work->field_7D8 != frame) {
+    frame = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    if (frame == 0x12 && work->clip.prevSlot2Cue != frame) {
         s32 id;
         s32 pan;
 
-        work->field_EAC = 3;
+        work->shakeLevel = GLUTTON_SHAKE_LONG;
         Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C);
         id  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200001;
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(id, pan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
     }
 
-    frame = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    if (frame == 0x18 && work->field_7D8 != frame) {
+    frame = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    if (frame == 0x18 && work->clip.prevSlot2Cue != frame) {
         s32 id;
         s32 pan;
 
-        work->field_EAC = 3;
+        work->shakeLevel = GLUTTON_SHAKE_LONG;
         Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C);
         id  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200001;
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(id, pan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
     }
 
-    work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 
     model      = task->extra.tmd->coords;
     sc->dir.vx = gPlayerStatus.coordMtx->t[0] - model->coord.t[0];
@@ -3152,9 +3152,9 @@ static void func_actor_444000_8013482C(Task* task)
         }
     }
 
-    work->field_7C4 = ang;
+    work->neckYawTarget = ang;
 
-    switch (work->field_F08) {
+    switch (work->phase) {
         case 0: {
             s32       paused = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
             GfxCoord* c      = task->extra.tmd->coords;
@@ -3165,8 +3165,8 @@ static void func_actor_444000_8013482C(Task* task)
         }
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->extra.tmd->coords->coord.t[0] >= 0x1770) {
-                work->field_0 = 0xA;
-                work->field_F08++;
+                work->state = 0xA;
+                work->phase++;
             }
             break;
 
@@ -3209,7 +3209,7 @@ static void func_actor_444000_8013482C(Task* task)
                 if (0x800 - ABS(sc->angle) < 0xD) {
                     sc->angle = 0x800;
                     gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x800, 1);
-                    work->field_F08++;
+                    work->phase++;
                 }
             }
             break;
@@ -3224,8 +3224,8 @@ static void func_actor_444000_8013482C(Task* task)
         }
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->extra.tmd->coords->coord.t[2] < -0x1387) {
-                work->field_0 = 0xA;
-                work->field_F08++;
+                work->state = 0xA;
+                work->phase++;
             }
             break;
 
@@ -3239,8 +3239,8 @@ static void func_actor_444000_8013482C(Task* task)
         }
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->extra.tmd->coords->coord.t[2] < -0x251B) {
-                work->field_0 = 0xA;
-                work->field_F08++;
+                work->state = 0xA;
+                work->phase++;
             }
             break;
 
@@ -3254,8 +3254,8 @@ static void func_actor_444000_8013482C(Task* task)
         }
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->extra.tmd->coords->coord.t[2] < -0x32C7) {
-                work->field_0 = 0xA;
-                work->field_F08++;
+                work->state = 0xA;
+                work->phase++;
             }
             break;
 
@@ -3269,8 +3269,8 @@ static void func_actor_444000_8013482C(Task* task)
         }
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->extra.tmd->coords->coord.t[2] < -0x4203) {
-                work->field_0 = 0x10;
-                work->field_F08++;
+                work->state = 0x10;
+                work->phase++;
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             }
             break;
@@ -3361,19 +3361,19 @@ static void func_actor_444000_80135448(Task* task)
     work  = task->work;
     enemy = task->spawnArg2.pointer;
 
-    if (work->field_4 != 0) {
+    if (work->stateChanged != 0) {
         s32 id;
         s32 pan;
 
         tmd                           = task->extra.tmd;
         enemy->node.state.parts.flags = 0;
         tmd->flags                    = 0;
-        work->field_7B3               = 0x12;
-        work->field_EF4               = 0;
-        work->field_EF6               = 0;
-        work->field_EFA               = 0;
-        work->field_7B0               = 1;
-        work->field_EFE               = 0;
+        work->animId                  = 0x12;
+        work->neckPitchEnabled        = 0;
+        work->neckYawEnabled          = 0;
+        work->hostExposed             = 0;
+        work->animStep                = GLUTTON_ANIM_STEP_BLEND;
+        work->neckPitchTarget         = 0;
 
         gluttonTickAnim(task);
 
@@ -3384,20 +3384,20 @@ static void func_actor_444000_80135448(Task* task)
         return;
     }
 
-    if (work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        work->field_6 = 0;
+    if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        work->stateTicks = 0;
         gluttonTickAnim(task);
     }
 
-    if (!(work->slots0[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+    if (!(work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
         if (gGluttonLimbReach >= 0x191) {
             gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
         }
 
         gluttonTickAnim(task);
 
-        frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-        if (frame == 0x33 && work->field_7A8 != frame) {
+        frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        if (frame == 0x33 && work->prevSlot3Cue != frame) {
             s32 id;
             s32 pan;
 
@@ -3406,8 +3406,8 @@ static void func_actor_444000_80135448(Task* task)
             SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         }
 
-        frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-        if (frame == 0x3D && work->field_7A8 != frame) {
+        frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        if (frame == 0x3D && work->prevSlot3Cue != frame) {
             s32 id;
             s32 pan;
 
@@ -3416,8 +3416,8 @@ static void func_actor_444000_80135448(Task* task)
             SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         }
 
-        frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-        if (frame == 0x4E && work->field_7A8 != frame) {
+        frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        if (frame == 0x4E && work->prevSlot3Cue != frame) {
             s32 id;
             s32 pan;
 
@@ -3426,8 +3426,8 @@ static void func_actor_444000_80135448(Task* task)
             SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         }
 
-        frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-        if (frame == 0x71 && work->field_7A8 != frame) {
+        frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        if (frame == 0x71 && work->prevSlot3Cue != frame) {
             s32 id;
             s32 pan;
 
@@ -3436,12 +3436,12 @@ static void func_actor_444000_80135448(Task* task)
             SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         }
 
-        work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        work->prevSlot3Cue = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 
-        switch (work->field_6) {
+        switch (work->stateTicks) {
             case 0x14:
                 Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                Gp_SetLightMode(work->field_ECC[3], ENEMY_COLOR_WEIGHTED);
+                Gp_SetLightMode(work->escorts[3], ENEMY_COLOR_WEIGHTED);
                 break;
 
             case 0x82:
@@ -3452,12 +3452,12 @@ static void func_actor_444000_80135448(Task* task)
                 pos.vx = 0;
                 actorLocalToView(&task->extra.tmd->coords[4], &pos);
 
-                work->field_ECC[2]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
-                work->field_ECC[2]->task->extra.tmd->coords->coord        = mat;
-                work->field_ECC[2]->task->extra.tmd->coords->coord.t[0]   = pos.vx;
-                work->field_ECC[2]->task->extra.tmd->coords->coord.t[1]   = pos.vy;
-                work->field_ECC[2]->task->extra.tmd->coords->coord.t[2]   = pos.vz;
-                work->field_ECC[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                work->escorts[2]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
+                work->escorts[2]->task->extra.tmd->coords->coord        = mat;
+                work->escorts[2]->task->extra.tmd->coords->coord.t[0]   = pos.vx;
+                work->escorts[2]->task->extra.tmd->coords->coord.t[1]   = pos.vy;
+                work->escorts[2]->task->extra.tmd->coords->coord.t[2]   = pos.vz;
+                work->escorts[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                 break;
 
             case 0x1DC:
@@ -3468,12 +3468,12 @@ static void func_actor_444000_80135448(Task* task)
                 pos.vx = 0;
                 actorLocalToView(&task->extra.tmd->coords[3], &pos);
 
-                work->field_ECC[3]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
-                work->field_ECC[3]->task->extra.tmd->coords->coord        = mat;
-                work->field_ECC[3]->task->extra.tmd->coords->coord.t[0]   = pos.vx;
-                work->field_ECC[3]->task->extra.tmd->coords->coord.t[1]   = pos.vy;
-                work->field_ECC[3]->task->extra.tmd->coords->coord.t[2]   = pos.vz;
-                work->field_ECC[3]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                work->escorts[3]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
+                work->escorts[3]->task->extra.tmd->coords->coord        = mat;
+                work->escorts[3]->task->extra.tmd->coords->coord.t[0]   = pos.vx;
+                work->escorts[3]->task->extra.tmd->coords->coord.t[1]   = pos.vy;
+                work->escorts[3]->task->extra.tmd->coords->coord.t[2]   = pos.vz;
+                work->escorts[3]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                 break;
 
             case 0x14A:
@@ -3484,166 +3484,166 @@ static void func_actor_444000_80135448(Task* task)
                 pos.vx = 0;
                 actorLocalToView(&task->extra.tmd->coords[4], &pos);
 
-                work->field_ECC[4]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
-                work->field_ECC[4]->task->extra.tmd->coords->coord        = mat;
-                work->field_ECC[4]->task->extra.tmd->coords->coord.t[0]   = pos.vx;
-                work->field_ECC[4]->task->extra.tmd->coords->coord.t[1]   = pos.vy;
-                work->field_ECC[4]->task->extra.tmd->coords->coord.t[2]   = pos.vz;
-                work->field_ECC[4]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                work->field_EF8                                           = 0;
+                work->escorts[4]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
+                work->escorts[4]->task->extra.tmd->coords->coord        = mat;
+                work->escorts[4]->task->extra.tmd->coords->coord.t[0]   = pos.vx;
+                work->escorts[4]->task->extra.tmd->coords->coord.t[1]   = pos.vy;
+                work->escorts[4]->task->extra.tmd->coords->coord.t[2]   = pos.vz;
+                work->escorts[4]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                work->limbPoseEnabled                                   = 0;
                 break;
         }
 
-        if (work->field_6 >= 0x83) {
-            if (work->field_ECC[2]->task->extra.tmd->coords->coord.t[1] <
+        if (work->stateTicks >= 0x83) {
+            if (work->escorts[2]->task->extra.tmd->coords->coord.t[1] <
                 task->extra.tmd->coords->coord.t[1]) {
-                work->field_ECC[2]->task->extra.tmd->coords->coord.t[1] +=
-                    (work->field_6 - 0x82) * 0x1E;
+                work->escorts[2]->task->extra.tmd->coords->coord.t[1] +=
+                    (work->stateTicks - 0x82) * 0x1E;
             } else if (task->extra.tmd->coords->coord.t[1] <
-                       work->field_ECC[2]->task->extra.tmd->coords->coord.t[1]) {
-                work->field_ECC[2]->task->extra.tmd->coords->coord.t[1] =
+                       work->escorts[2]->task->extra.tmd->coords->coord.t[1]) {
+                work->escorts[2]->task->extra.tmd->coords->coord.t[1] =
                     task->extra.tmd->coords->coord.t[1];
-                Gp_SpawnEff(EFFECT_196, work->field_ECC[2]->task->extra.tmd->coords, 0x13401800,
+                Gp_SpawnEff(EFFECT_196, work->escorts[2]->task->extra.tmd->coords, 0x13401800,
                             NULL);
             }
 
-            step = work->field_6 - 0x82;
+            step = work->stateTicks - 0x82;
             if (step < 0x28) {
-                Actor444000_SquashRotation(work->field_ECC[2]->task->extra.tmd->coords,
+                Actor444000_SquashRotation(work->escorts[2]->task->extra.tmd->coords,
                                            (s16)(0x1000 - ((step * 0x1000) / 40)));
-                work->field_ECC[2]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+                work->escorts[2]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
 
-                if ((s16)((s16)(u16)work->field_6 % 5) == 0) {
-                    switch ((s16)((s16)((s16)(u16)work->field_6 / 5) % 3)) {
+                if ((s16)((s16)(u16)work->stateTicks % 5) == 0) {
+                    switch ((s16)((s16)((s16)(u16)work->stateTicks / 5) % 3)) {
                         case 0:
                             pos.vz = 0;
                             pos.vy = 0;
                             pos.vx = 0;
-                            Gp_SpawnEff(EFFECT_196, work->field_ECC[2]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->escorts[2]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 1:
                             pos.vx = 0x320;
                             pos.vy = 0;
                             pos.vz = -0x320;
-                            Gp_SpawnEff(EFFECT_196, work->field_ECC[2]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->escorts[2]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 2:
                             pos.vx = -0x320;
                             pos.vy = 0;
                             pos.vz = 0x320;
-                            Gp_SpawnEff(EFFECT_196, work->field_ECC[2]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->escorts[2]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                     }
                 }
             } else if (step == 0x28) {
-                work->field_ECC[2]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                Gp_SpawnEff(EFFECT_196, work->field_ECC[2]->task->extra.tmd->coords, 0x13401800,
+                work->escorts[2]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                Gp_SpawnEff(EFFECT_196, work->escorts[2]->task->extra.tmd->coords, 0x13401800,
                             NULL);
             }
         }
 
-        if (work->field_6 >= 0x14B) {
-            if (work->field_ECC[4]->task->extra.tmd->coords->coord.t[1] <
+        if (work->stateTicks >= 0x14B) {
+            if (work->escorts[4]->task->extra.tmd->coords->coord.t[1] <
                 task->extra.tmd->coords->coord.t[1]) {
-                work->field_ECC[4]->task->extra.tmd->coords->coord.t[1] +=
-                    (work->field_6 - 0x14A) * 0x1E;
+                work->escorts[4]->task->extra.tmd->coords->coord.t[1] +=
+                    (work->stateTicks - 0x14A) * 0x1E;
             } else if (task->extra.tmd->coords->coord.t[1] <
-                       work->field_ECC[4]->task->extra.tmd->coords->coord.t[1]) {
-                work->field_ECC[4]->task->extra.tmd->coords->coord.t[1] =
+                       work->escorts[4]->task->extra.tmd->coords->coord.t[1]) {
+                work->escorts[4]->task->extra.tmd->coords->coord.t[1] =
                     task->extra.tmd->coords->coord.t[1];
-                Gp_SpawnEff(EFFECT_196, work->field_ECC[4]->task->extra.tmd->coords, 0x13401800,
+                Gp_SpawnEff(EFFECT_196, work->escorts[4]->task->extra.tmd->coords, 0x13401800,
                             NULL);
             }
 
-            step = work->field_6 - 0x14A;
+            step = work->stateTicks - 0x14A;
             if (step < 0x28) {
-                Actor444000_SquashRotation(work->field_ECC[4]->task->extra.tmd->coords,
+                Actor444000_SquashRotation(work->escorts[4]->task->extra.tmd->coords,
                                            (s16)(0x1000 - ((step * 0x1000) / 40)));
-                work->field_ECC[4]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+                work->escorts[4]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
 
-                if ((s16)((s16)(u16)work->field_6 % 5) == 0) {
-                    switch ((s16)((s16)((s16)(u16)work->field_6 / 5) % 3)) {
+                if ((s16)((s16)(u16)work->stateTicks % 5) == 0) {
+                    switch ((s16)((s16)((s16)(u16)work->stateTicks / 5) % 3)) {
                         case 0:
                             pos.vz = 0;
                             pos.vy = 0;
                             pos.vx = 0;
-                            Gp_SpawnEff(EFFECT_196, work->field_ECC[4]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->escorts[4]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 1:
                             pos.vx = 0x320;
                             pos.vy = 0;
                             pos.vz = -0x320;
-                            Gp_SpawnEff(EFFECT_196, work->field_ECC[4]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->escorts[4]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 2:
                             pos.vx = -0x320;
                             pos.vy = 0;
                             pos.vz = 0x320;
-                            Gp_SpawnEff(EFFECT_196, work->field_ECC[4]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->escorts[4]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                     }
                 }
             } else if (step == 0x28) {
-                work->field_ECC[4]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                Gp_SpawnEff(EFFECT_196, work->field_ECC[4]->task->extra.tmd->coords, 0x13401800,
+                work->escorts[4]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                Gp_SpawnEff(EFFECT_196, work->escorts[4]->task->extra.tmd->coords, 0x13401800,
                             NULL);
             }
         }
 
-        if (work->field_6 >= 0x1DD) {
-            if (work->field_ECC[3]->task->extra.tmd->coords->coord.t[1] <
+        if (work->stateTicks >= 0x1DD) {
+            if (work->escorts[3]->task->extra.tmd->coords->coord.t[1] <
                 task->extra.tmd->coords->coord.t[1]) {
-                work->field_ECC[3]->task->extra.tmd->coords->coord.t[1] +=
-                    (work->field_6 - 0x1DC) * 0x1E;
+                work->escorts[3]->task->extra.tmd->coords->coord.t[1] +=
+                    (work->stateTicks - 0x1DC) * 0x1E;
             } else if (task->extra.tmd->coords->coord.t[1] <
-                       work->field_ECC[3]->task->extra.tmd->coords->coord.t[1]) {
-                work->field_ECC[3]->task->extra.tmd->coords->coord.t[1] =
+                       work->escorts[3]->task->extra.tmd->coords->coord.t[1]) {
+                work->escorts[3]->task->extra.tmd->coords->coord.t[1] =
                     task->extra.tmd->coords->coord.t[1];
             }
 
-            step = work->field_6 - 0x1DC;
+            step = work->stateTicks - 0x1DC;
             if (step < 0x28) {
-                Actor444000_SquashRotation(work->field_ECC[3]->task->extra.tmd->coords,
+                Actor444000_SquashRotation(work->escorts[3]->task->extra.tmd->coords,
                                            (s16)(0x1000 - ((step * 0x1000) / 40)));
-                work->field_ECC[3]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+                work->escorts[3]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
 
-                if ((s16)((s16)(u16)work->field_6 % 5) == 0) {
-                    switch ((s16)((s16)((s16)(u16)work->field_6 / 5) % 3)) {
+                if ((s16)((s16)(u16)work->stateTicks % 5) == 0) {
+                    switch ((s16)((s16)((s16)(u16)work->stateTicks / 5) % 3)) {
                         case 0:
                             pos.vz = 0;
                             pos.vy = 0;
                             pos.vx = 0;
-                            Gp_SpawnEff(EFFECT_196, work->field_ECC[3]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->escorts[3]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 1:
                             pos.vx = 0x320;
                             pos.vy = 0;
                             pos.vz = -0x320;
-                            Gp_SpawnEff(EFFECT_196, work->field_ECC[3]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->escorts[3]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                         case 2:
                             pos.vx = -0x320;
                             pos.vy = 0;
                             pos.vz = 0x320;
-                            Gp_SpawnEff(EFFECT_196, work->field_ECC[3]->task->extra.tmd->coords,
+                            Gp_SpawnEff(EFFECT_196, work->escorts[3]->task->extra.tmd->coords,
                                         0x13401800, &pos);
                             break;
                     }
                 }
             } else if (step == 0x28) {
-                work->field_ECC[3]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                work->escorts[3]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
         }
     } else {
-        switch (work->field_6) {
+        switch (work->stateTicks) {
             case 0x28:
                 break;
             case 0x78:
@@ -3651,29 +3651,29 @@ static void func_actor_444000_80135448(Task* task)
                 break;
         }
 
-        if (work->field_6 > 0) {
-            if (work->field_6 < 0x28) {
-                Actor444000_SquashRotation(work->field_ECC[0]->task->extra.tmd->coords,
-                                           (s16)(0x1000 - ((work->field_6 * 0x1000) / 40)));
-                work->field_ECC[0]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-            } else if (work->field_6 == 0x28) {
-                work->field_ECC[0]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        if (work->stateTicks > 0) {
+            if (work->stateTicks < 0x28) {
+                Actor444000_SquashRotation(work->escorts[0]->task->extra.tmd->coords,
+                                           (s16)(0x1000 - ((work->stateTicks * 0x1000) / 40)));
+                work->escorts[0]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+            } else if (work->stateTicks == 0x28) {
+                work->escorts[0]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
         }
 
-        if (work->field_6 >= 0x15) {
-            step = work->field_6 - 0x14;
+        if (work->stateTicks >= 0x15) {
+            step = work->stateTicks - 0x14;
             if (step < 0x28) {
-                Actor444000_SquashRotation(work->field_ECC[1]->task->extra.tmd->coords,
+                Actor444000_SquashRotation(work->escorts[1]->task->extra.tmd->coords,
                                            (s16)(0x1000 - ((step * 0x1000) / 40)));
-                work->field_ECC[1]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+                work->escorts[1]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             } else if (step == 0x28) {
-                work->field_ECC[1]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                work->escorts[1]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
         }
 
-        if (work->field_6 >= 0xE) {
-            step = work->field_6 - 0xD;
+        if (work->stateTicks >= 0xE) {
+            step = work->stateTicks - 0xD;
             if (step < 0x78) {
                 Actor444000_SquashRotation(task->extra.tmd->coords,
                                            (s16)(0x1000 - ((step * 0x1000) / 120)));
@@ -3683,8 +3683,8 @@ static void func_actor_444000_80135448(Task* task)
             }
         }
 
-        if ((s16)((s16)(u16)work->field_6 % 3) == 0 && (s16)(u16)work->field_6 - 0xD < 0x78) {
-            switch ((s16)((s16)((s16)(u16)work->field_6 / 3) % 5)) {
+        if ((s16)((s16)(u16)work->stateTicks % 3) == 0 && (s16)(u16)work->stateTicks - 0xD < 0x78) {
+            switch ((s16)((s16)((s16)(u16)work->stateTicks / 3) % 5)) {
                 case 0:
                     pos.vz = 0;
                     pos.vy = 0;
@@ -3718,10 +3718,10 @@ static void func_actor_444000_80135448(Task* task)
             }
         }
 
-        if (work->field_6 >= 0xA1) {
-            step = work->field_6 - 0xA0;
+        if (work->stateTicks >= 0xA1) {
+            step = work->stateTicks - 0xA0;
             if (step < 0x5A) {
-                Actor444000_SquashRotation(work->field_ECC[3]->task->extra.tmd->coords,
+                Actor444000_SquashRotation(work->escorts[3]->task->extra.tmd->coords,
                                            (s16)(0x800 - ((step * 0x800) / 90)));
             } else if (step == 0x5A) {
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3738,7 +3738,7 @@ static void func_actor_444000_80135448(Task* task)
             }
         }
 
-        if (work->field_6 == 0xA0) {
+        if (work->stateTicks == 0xA0) {
             SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54280007, 1);
         }
     }
@@ -3908,10 +3908,10 @@ static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
 ///
 /// 0 brings the group back with buffers and the 0x80 flag, 1 clears the flag
 /// before making sure the buffers exist, 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER`
-/// and, finding that bit set, stores 3 in `field_7F3` and replaces the flag
+/// and, finding that bit set, stores 3 in `freeCountdown` and replaces the flag
 /// word with `TMD_OBJECT_SKIP_ACTIVE_DRAW`. 3 clears the word, pushes the
 /// clear, then sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on the host alone. Cases 0
-/// and 2 also reset `field_0`. Case 2 tests the bit it just set, so that test
+/// and 2 also reset `state`. Case 2 tests the bit it just set, so that test
 /// is always true.
 s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -3934,31 +3934,31 @@ s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2, s32 arg3)
             if (tmd->buffer == NULL) {
                 Tmd_AllocBuffers(tmd);
             }
-            for (j = 0; j < 7; j++) {
-                if (buffers->field_ECC[j] != NULL) {
-                    escortTmd = buffers->field_ECC[j]->task->extra.tmd;
+            for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
+                if (buffers->escorts[j] != NULL) {
+                    escortTmd = buffers->escorts[j]->task->extra.tmd;
                     if (escortTmd->buffer == NULL) {
                         Tmd_AllocBuffers(escortTmd);
                     }
                 }
             }
             escorts                = task->work;
-            escorts->field_7F3     = 0;
+            escorts->freeCountdown = 0;
             task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            for (i = 0; i < 7; i++) {
-                if (escorts->field_ECC[i] != NULL) {
-                    escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
+            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+                if (escorts->escorts[i] != NULL) {
+                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
                 }
             }
-            work->field_0 = 0;
+            work->state = 0;
             break;
         case 1:
             escorts                = task->work;
-            escorts->field_7F3     = 0;
+            escorts->freeCountdown = 0;
             task->extra.tmd->flags = 0;
-            for (i = 0; i < 7; i++) {
-                if (escorts->field_ECC[i] != NULL) {
-                    escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
+            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+                if (escorts->escorts[i] != NULL) {
+                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
                 }
             }
             hostTmd = task->extra.tmd;
@@ -3966,9 +3966,9 @@ s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2, s32 arg3)
             if (hostTmd->buffer == NULL) {
                 Tmd_AllocBuffers(hostTmd);
             }
-            for (j = 0; j < 7; j++) {
-                if (rebuilt->field_ECC[j] != NULL) {
-                    escortTmd = rebuilt->field_ECC[j]->task->extra.tmd;
+            for (j = 0; j < ARRAY_SIZE(rebuilt->escorts); j++) {
+                if (rebuilt->escorts[j] != NULL) {
+                    escortTmd = rebuilt->escorts[j]->task->extra.tmd;
                     if (escortTmd->buffer == NULL) {
                         Tmd_AllocBuffers(escortTmd);
                     }
@@ -3980,27 +3980,27 @@ s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2, s32 arg3)
             flags       = tmd->flags;
             escorts     = task->work;
             if (flags & TMD_OBJECT_SKIP_AUTO_BUFFER) {
-                escorts->field_7F3     = 3;
+                escorts->freeCountdown = 3;
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else {
-                escorts->field_7F3     = 0;
+                escorts->freeCountdown = 0;
                 task->extra.tmd->flags = flags;
             }
-            for (i = 0; i < 7; i++) {
-                if (escorts->field_ECC[i] != NULL) {
-                    escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
+            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+                if (escorts->escorts[i] != NULL) {
+                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
                 }
             }
-            work->field_0 = 0;
+            work->state = 0;
             break;
         case 3:
             tmd->flags             = 0;
             escorts                = task->work;
-            escorts->field_7F3     = 0;
+            escorts->freeCountdown = 0;
             task->extra.tmd->flags = 0;
-            for (i = 0; i < 7; i++) {
-                if (escorts->field_ECC[i] != NULL) {
-                    escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
+            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+                if (escorts->escorts[i] != NULL) {
+                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
                 }
             }
             tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -4061,43 +4061,43 @@ s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg, s32 arg
     SVECTOR*     verts;
     s32          action;
 
-    work->field_EC4 = msg->context.loc.stage;
-    work->field_EC5 = msg->context.loc.area;
-    work->field_EC6 = (u8)msg->command;
+    work->lastCommandStage = msg->context.loc.stage;
+    work->lastCommandArea  = msg->context.loc.area;
+    work->lastCommand      = (u8)msg->command;
 
     if (msg->context.key == 0x2804) {
         action = msg->command;
         switch (action) {
             case 0:
-                work->field_0 = 0;
+                work->state = 0;
                 SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
                 SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
                 break;
 
             case 1:
-                work->field_7B3 = 0xA;
-                work->field_7B0 = 2;
+                work->animId   = 0xA;
+                work->animStep = GLUTTON_ANIM_STEP_RESTART;
                 gluttonTickAnim(task);
                 gluttonTickAnim(task);
                 gluttonTickAnim(task);
-                work->field_7B6 = 1;
+                work->animRate = 1;
                 gluttonTickAnim(task);
-                work->field_7B6                       = 0x10;
+                work->animRate                        = 0x10;
                 task->extra.tmd->coords->coord.t[0]   = -0xBB8;
                 task->extra.tmd->coords->coord.t[1]   = 0;
                 task->extra.tmd->coords->coord.t[2]   = -0x992;
                 task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                work->field_0                         = 0x11;
+                work->state                           = 0x11;
                 SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
                 SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
                 break;
 
             case 19:
                 Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
-                Gp_SetLightMode(work->field_ECC[3], ENEMY_COLOR_BLACK);
-                work->field_0   = action;
-                work->field_2   = -1;
-                work->field_F04 = 1;
+                Gp_SetLightMode(work->escorts[3], ENEMY_COLOR_BLACK);
+                work->state      = action;
+                work->prevState  = -1;
+                work->viewLocked = 1;
                 SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54280007, 1);
 
                 verts        = Gp_GridParams->vertices;
@@ -4148,7 +4148,7 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, GluttonWork* work)
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
 
-    work->field_0          = 1;
+    work->state            = 1;
     task->extra.tmd->flags = 0;
     SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
@@ -4166,8 +4166,8 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, GluttonWork* work)
 /// the host's twin, so it shares the host's group-1 record table.
 ///
 /// The root coordinate is flattened to its own yaw with a uniform 1.0 scale
-/// (`Actor444000_SeedRootCoord`), the tenth collision object at `obj` is linked
-/// by hand around the free coordinate `field_E3C`, and both the host and every
+/// (`Actor444000_SeedRootCoord`), the swipe capsule `swipeBody` is linked
+/// by hand around the free coordinate `swipeCoord`, and both the host and every
 /// escort model are pointed at the work block's light and colour matrices
 /// before the fight announces itself with message 0x7DA.
 static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
@@ -4193,7 +4193,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     tmd   = task->extra.tmd;
     coord = tmd->coords;
 
-    work       = memCalloc(0xF24, 0);
+    work       = memCalloc(sizeof(GluttonWork), 0);
     task->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
@@ -4215,15 +4215,15 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     enemy->param         = &D_actor_444000_80144A28;
     enemy->recs          = work->hits[0].contacts;
 
-    animationInitContext(&work->anim0, D_actor_444000_80161448, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux0, work->slots0);
-    animationInitContext(&work->anim1, D_actor_444000_80161448, tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux1, work->slots1);
+    animationInitContext(&work->hostRig.anim, D_actor_444000_80161448, tmd, work->hostRig.poses, work->hostRig.slots);
+    animationInitContext(&work->hostBlendRig.anim, D_actor_444000_80161448, tmd, work->hostBlendRig.poses, work->hostBlendRig.slots);
 
-    work->field_7B0 = 2;
-    work->field_7B3 = 2;
-    work->field_EF8 = 1;
-    work->field_7B1 = 0;
-    work->field_7C4 = work->field_7C8 = 0;
-    work->field_7B6 = work->field_7B8 = 0x10;
+    work->animStep        = GLUTTON_ANIM_STEP_RESTART;
+    work->animId          = 2;
+    work->limbPoseEnabled = 1;
+    work->blending        = 0;
+    work->neckYawTarget = work->neckYaw = 0;
+    work->animRate = work->field_7B8 = 0x10;
 
     func_8010C980(&task->extra.tmd->coords[4], &work->hits[0].body, work->hits[0].contacts, ARRAY_SIZE(work->hits[0].contacts), 0x20, 0x300);
     func_8010C980(&task->extra.tmd->coords[4], &work->hits[1].body, work->hits[1].contacts, ARRAY_SIZE(work->hits[1].contacts), 0x20, 0x300);
@@ -4245,30 +4245,30 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     gte_gpf12();
     gte_stsv(gteDir);
 
-    work->anim.source.sets          = NULL;
-    work->anim.animationId          = 1;
-    work->anim.blend                = ANIMATION_BLEND_RESET;
-    work->anim.blendFrames          = 3;
-    work->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-    work->field_F12                 = 0;
-    task->msgTable                  = D_actor_444000_80161818;
-    coord->parent                   = &gGfxViewCoord;
-    coord->composeStamp             = GRAPHICS_COORD_DIRTY;
+    work->playerAnim.source.sets          = NULL;
+    work->playerAnim.animationId          = 1;
+    work->playerAnim.blend                = ANIMATION_BLEND_RESET;
+    work->playerAnim.blendFrames          = 3;
+    work->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+    work->deathTicks                      = 0;
+    task->msgTable                        = D_actor_444000_80161818;
+    coord->parent                         = &gGfxViewCoord;
+    coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 
     D_actor_444000_80161880.coord      = task->extra.tmd->coords;
     D_actor_444000_80161880.spawnArgLo = 0x100;
     D_actor_444000_80161880.spawnArgHi = 2;
-    work->field_2                      = -1;
+    work->prevState                    = -1;
 
     model   = task->extra.tmd;
     buffers = task->work;
     if (model->buffer == NULL) {
         Tmd_AllocBuffers(model);
     }
-    for (i = 0; i < 7; i++) {
-        if (buffers->field_ECC[i] != NULL) {
-            escortTmd = buffers->field_ECC[i]->task->extra.tmd;
+    for (i = 0; i < ARRAY_SIZE(buffers->escorts); i++) {
+        if (buffers->escorts[i] != NULL) {
+            escortTmd = buffers->escorts[i]->task->extra.tmd;
             if (escortTmd->buffer == NULL) {
                 Tmd_AllocBuffers(escortTmd);
             }
@@ -4277,160 +4277,160 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 
     Actor444000_SeedRootCoord(task, work);
 
-    esc                                                     = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 0, 0, task->spawnArg2.pointer);
-    work->field_ECC[0]                                      = esc;
-    esc->task->extra.tmd->coords->parent                    = task->extra.tmd->coords;
-    work->field_ECC[0]->task->extra.tmd->coords->coord.t[0] = 0;
-    work->field_ECC[0]->task->extra.tmd->coords->coord.t[1] = 0;
-    work->field_ECC[0]->task->extra.tmd->coords->coord.t[2] = 0;
-    work->field_ECC[0]->task->extra.tmd->flags              = 0;
-    animationInitContext(&work->anim2, D_actor_444000_80161500, work->field_ECC[0]->task->extra.tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux2,
-                         work->slots2);
-    animationInitContext(&work->anim3, D_actor_444000_80161500, work->field_ECC[0]->task->extra.tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux3,
-                         work->slots3);
-    work->field_ECC[0]->field_4    = &task->extra.tmd->coords->coord;
-    work->field_ECC[0]->field_48   = 0;
-    work->field_ECC[0]->bodyPos.vx = 0xC8;
-    work->field_ECC[0]->bodyPos.vy = 0;
-    work->field_ECC[0]->bodyPos.vz = 0x3E8;
-    work->field_ECC[0]->coord      = &work->field_ECC[0]->task->extra.tmd->coords[1];
-    Gp_LinkNode(&work->field_ECC[0]->node);
-    work->field_ECC[0]->reactionFlags = 0;
-    work->field_ECC[0]->hp            = D_actor_444000_80144A28.hpMax;
-    work->field_F0A                   = D_actor_444000_80144A38.hpMax;
-    work->field_ECC[0]->param         = &D_actor_444000_80144A38;
-    work->field_ECC[0]->recs          = work->hits[3].contacts;
-    func_8010C980(&work->field_ECC[0]->task->extra.tmd->coords[1], &work->hits[3].body, work->hits[3].contacts, ARRAY_SIZE(work->hits[3].contacts),
+    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 0, 0, task->spawnArg2.pointer);
+    work->escorts[0]                                      = esc;
+    esc->task->extra.tmd->coords->parent                  = task->extra.tmd->coords;
+    work->escorts[0]->task->extra.tmd->coords->coord.t[0] = 0;
+    work->escorts[0]->task->extra.tmd->coords->coord.t[1] = 0;
+    work->escorts[0]->task->extra.tmd->coords->coord.t[2] = 0;
+    work->escorts[0]->task->extra.tmd->flags              = 0;
+    animationInitContext(&work->escort0Rig.anim, D_actor_444000_80161500, work->escorts[0]->task->extra.tmd, work->escort0Rig.poses,
+                         work->escort0Rig.slots);
+    animationInitContext(&work->escort0BlendRig.anim, D_actor_444000_80161500, work->escorts[0]->task->extra.tmd, work->escort0BlendRig.poses,
+                         work->escort0BlendRig.slots);
+    work->escorts[0]->field_4    = &task->extra.tmd->coords->coord;
+    work->escorts[0]->field_48   = 0;
+    work->escorts[0]->bodyPos.vx = 0xC8;
+    work->escorts[0]->bodyPos.vy = 0;
+    work->escorts[0]->bodyPos.vz = 0x3E8;
+    work->escorts[0]->coord      = &work->escorts[0]->task->extra.tmd->coords[1];
+    Gp_LinkNode(&work->escorts[0]->node);
+    work->escorts[0]->reactionFlags = 0;
+    work->escorts[0]->hp            = D_actor_444000_80144A28.hpMax;
+    work->groups3To5Pool            = D_actor_444000_80144A38.hpMax;
+    work->escorts[0]->param         = &D_actor_444000_80144A38;
+    work->escorts[0]->recs          = work->hits[3].contacts;
+    func_8010C980(&work->escorts[0]->task->extra.tmd->coords[1], &work->hits[3].body, work->hits[3].contacts, ARRAY_SIZE(work->hits[3].contacts),
                   0x20, 0x300);
-    func_8010C980(&work->field_ECC[0]->task->extra.tmd->coords[2], &work->hits[4].body, work->hits[4].contacts, ARRAY_SIZE(work->hits[4].contacts),
+    func_8010C980(&work->escorts[0]->task->extra.tmd->coords[2], &work->hits[4].body, work->hits[4].contacts, ARRAY_SIZE(work->hits[4].contacts),
                   0x20, 0x300);
-    func_8010C980(&work->field_ECC[0]->task->extra.tmd->coords[3], &work->hits[5].body, work->hits[5].contacts, ARRAY_SIZE(work->hits[5].contacts),
-                  0x20, 0x300);
-
-    esc                                                     = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 1, 0, task->spawnArg2.pointer);
-    work->field_ECC[1]                                      = esc;
-    esc->task->extra.tmd->coords->parent                    = task->extra.tmd->coords;
-    work->field_ECC[1]->task->extra.tmd->coords->coord.t[0] = 0;
-    work->field_ECC[1]->task->extra.tmd->coords->coord.t[1] = 0;
-    work->field_ECC[1]->task->extra.tmd->coords->coord.t[2] = 0;
-    work->field_ECC[1]->task->extra.tmd->flags              = 0;
-    animationInitContext(&work->anim4, D_actor_444000_801615B8, work->field_ECC[1]->task->extra.tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux4,
-                         work->slots4);
-    animationInitContext(&work->anim5, D_actor_444000_801615B8, work->field_ECC[1]->task->extra.tmd, (u8(*)[ANIMATION_POSE_BUFFER_BYTES])work->aux5,
-                         work->slots5);
-    work->field_ECC[1]->field_4    = &task->extra.tmd->coords->coord;
-    work->field_ECC[1]->field_48   = 0;
-    work->field_ECC[1]->bodyPos.vx = -0xC8;
-    work->field_ECC[1]->bodyPos.vy = 0;
-    work->field_ECC[1]->bodyPos.vz = 0x3E8;
-    work->field_ECC[1]->coord      = &work->field_ECC[1]->task->extra.tmd->coords[1];
-    Gp_LinkNode(&work->field_ECC[1]->node);
-    work->field_ECC[1]->reactionFlags = 0;
-    work->field_ECC[1]->hp            = D_actor_444000_80144A28.hpMax;
-    work->field_F0C                   = D_actor_444000_80144A48.hpMax;
-    work->field_ECC[1]->param         = &D_actor_444000_80144A48;
-    work->field_ECC[1]->recs          = work->hits[6].contacts;
-    func_8010C980(&work->field_ECC[1]->task->extra.tmd->coords[1], &work->hits[6].body, work->hits[6].contacts, ARRAY_SIZE(work->hits[6].contacts),
-                  0x20, 0x300);
-    func_8010C980(&work->field_ECC[1]->task->extra.tmd->coords[2], &work->hits[7].body, work->hits[7].contacts, ARRAY_SIZE(work->hits[7].contacts),
-                  0x20, 0x300);
-    func_8010C980(&work->field_ECC[1]->task->extra.tmd->coords[3], &work->hits[8].body, work->hits[8].contacts, ARRAY_SIZE(work->hits[8].contacts),
+    func_8010C980(&work->escorts[0]->task->extra.tmd->coords[3], &work->hits[5].body, work->hits[5].contacts, ARRAY_SIZE(work->hits[5].contacts),
                   0x20, 0x300);
 
-    esc                                                     = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 2, 0, task->spawnArg2.pointer);
-    work->field_ECC[2]                                      = esc;
-    esc->task->extra.tmd->coords->parent                    = &task->extra.tmd->coords[4];
-    work->field_ECC[2]->task->extra.tmd->coords->coord.t[0] = 0;
-    work->field_ECC[2]->task->extra.tmd->coords->coord.t[1] = 0x59;
-    work->field_ECC[2]->task->extra.tmd->coords->coord.t[2] = -0x64;
-    work->field_ECC[2]->task->extra.tmd->flags              = 0;
+    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 1, 0, task->spawnArg2.pointer);
+    work->escorts[1]                                      = esc;
+    esc->task->extra.tmd->coords->parent                  = task->extra.tmd->coords;
+    work->escorts[1]->task->extra.tmd->coords->coord.t[0] = 0;
+    work->escorts[1]->task->extra.tmd->coords->coord.t[1] = 0;
+    work->escorts[1]->task->extra.tmd->coords->coord.t[2] = 0;
+    work->escorts[1]->task->extra.tmd->flags              = 0;
+    animationInitContext(&work->escort1Rig.anim, D_actor_444000_801615B8, work->escorts[1]->task->extra.tmd, work->escort1Rig.poses,
+                         work->escort1Rig.slots);
+    animationInitContext(&work->escort1BlendRig.anim, D_actor_444000_801615B8, work->escorts[1]->task->extra.tmd, work->escort1BlendRig.poses,
+                         work->escort1BlendRig.slots);
+    work->escorts[1]->field_4    = &task->extra.tmd->coords->coord;
+    work->escorts[1]->field_48   = 0;
+    work->escorts[1]->bodyPos.vx = -0xC8;
+    work->escorts[1]->bodyPos.vy = 0;
+    work->escorts[1]->bodyPos.vz = 0x3E8;
+    work->escorts[1]->coord      = &work->escorts[1]->task->extra.tmd->coords[1];
+    Gp_LinkNode(&work->escorts[1]->node);
+    work->escorts[1]->reactionFlags = 0;
+    work->escorts[1]->hp            = D_actor_444000_80144A28.hpMax;
+    work->groups6To8Pool            = D_actor_444000_80144A48.hpMax;
+    work->escorts[1]->param         = &D_actor_444000_80144A48;
+    work->escorts[1]->recs          = work->hits[6].contacts;
+    func_8010C980(&work->escorts[1]->task->extra.tmd->coords[1], &work->hits[6].body, work->hits[6].contacts, ARRAY_SIZE(work->hits[6].contacts),
+                  0x20, 0x300);
+    func_8010C980(&work->escorts[1]->task->extra.tmd->coords[2], &work->hits[7].body, work->hits[7].contacts, ARRAY_SIZE(work->hits[7].contacts),
+                  0x20, 0x300);
+    func_8010C980(&work->escorts[1]->task->extra.tmd->coords[3], &work->hits[8].body, work->hits[8].contacts, ARRAY_SIZE(work->hits[8].contacts),
+                  0x20, 0x300);
 
-    esc                                                     = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 3, 0, task->spawnArg2.pointer);
-    work->field_ECC[3]                                      = esc;
-    esc->task->extra.tmd->coords->parent                    = &task->extra.tmd->coords[3];
-    work->field_ECC[3]->task->extra.tmd->coords->coord.t[0] = 0;
-    work->field_ECC[3]->task->extra.tmd->coords->coord.t[1] = 0;
-    work->field_ECC[3]->task->extra.tmd->coords->coord.t[2] = 0;
-    work->field_ECC[3]->task->extra.tmd->flags              = 0;
-    work->field_ECC[3]->field_4                             = &task->extra.tmd->coords->coord;
-    work->field_ECC[3]->field_48                            = 0;
-    work->field_ECC[3]->bodyPos.vx                          = 0;
-    work->field_ECC[3]->bodyPos.vy                          = 0;
-    work->field_ECC[3]->bodyPos.vz                          = 0x514;
-    work->field_ECC[3]->coord                               = work->field_ECC[3]->task->extra.tmd->coords;
-    Gp_LinkNode(&work->field_ECC[3]->node);
-    work->field_ECC[3]->reactionFlags = 0;
-    work->field_ECC[3]->hp            = D_actor_444000_80144A28.hpMax;
-    work->field_F0E                   = D_actor_444000_80144A58.hpMax;
-    work->field_ECC[3]->param         = &D_actor_444000_80144A58;
-    work->field_ECC[3]->recs          = work->hits[1].contacts;
+    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 2, 0, task->spawnArg2.pointer);
+    work->escorts[2]                                      = esc;
+    esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[4];
+    work->escorts[2]->task->extra.tmd->coords->coord.t[0] = 0;
+    work->escorts[2]->task->extra.tmd->coords->coord.t[1] = 0x59;
+    work->escorts[2]->task->extra.tmd->coords->coord.t[2] = -0x64;
+    work->escorts[2]->task->extra.tmd->flags              = 0;
 
-    freeCoord                                         = &work->field_E3C.node;
-    work->field_E3C.node.parent                       = task->extra.tmd->coords;
-    work->field_E3C.packed.coord.rotationWords.m00M01 = ONE;
-    mtx                                               = &work->field_E3C.packed.coord;
-    mtx->rotationWords.m02M10                         = 0;
-    mtx->rotationWords.m11M12                         = ONE;
-    mtx->rotationWords.m20M21                         = 0;
-    mtx->rotationWords.m22                            = ONE;
-    work->field_E3C.node.coord.t[0] = work->field_E3C.node.coord.t[1] = work->field_E3C.node.coord.t[2] = 0;
-    work->field_E3C.node.composeStamp                                                                   = GRAPHICS_COORD_DIRTY;
+    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 3, 0, task->spawnArg2.pointer);
+    work->escorts[3]                                      = esc;
+    esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[3];
+    work->escorts[3]->task->extra.tmd->coords->coord.t[0] = 0;
+    work->escorts[3]->task->extra.tmd->coords->coord.t[1] = 0;
+    work->escorts[3]->task->extra.tmd->coords->coord.t[2] = 0;
+    work->escorts[3]->task->extra.tmd->flags              = 0;
+    work->escorts[3]->field_4                             = &task->extra.tmd->coords->coord;
+    work->escorts[3]->field_48                            = 0;
+    work->escorts[3]->bodyPos.vx                          = 0;
+    work->escorts[3]->bodyPos.vy                          = 0;
+    work->escorts[3]->bodyPos.vz                          = 0x514;
+    work->escorts[3]->coord                               = work->escorts[3]->task->extra.tmd->coords;
+    Gp_LinkNode(&work->escorts[3]->node);
+    work->escorts[3]->reactionFlags = 0;
+    work->escorts[3]->hp            = D_actor_444000_80144A28.hpMax;
+    work->groups1To2Pool            = D_actor_444000_80144A58.hpMax;
+    work->escorts[3]->param         = &D_actor_444000_80144A58;
+    work->escorts[3]->recs          = work->hits[1].contacts;
+
+    freeCoord                                          = &work->swipeCoord.node;
+    work->swipeCoord.node.parent                       = task->extra.tmd->coords;
+    work->swipeCoord.packed.coord.rotationWords.m00M01 = ONE;
+    mtx                                                = &work->swipeCoord.packed.coord;
+    mtx->rotationWords.m02M10                          = 0;
+    mtx->rotationWords.m11M12                          = ONE;
+    mtx->rotationWords.m20M21                          = 0;
+    mtx->rotationWords.m22                             = ONE;
+    work->swipeCoord.node.coord.t[0] = work->swipeCoord.node.coord.t[1] = work->swipeCoord.node.coord.t[2] = 0;
+    work->swipeCoord.node.composeStamp                                                                     = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(freeCoord);
 
-    work->d4rec.ends[1].vz    = 0x1B58;
-    work->d4rec.end0Radius    = 0x258;
-    work->d4rec.end1Radius    = 0x258;
-    work->d4rec.ends[0].vx    = 0;
-    work->d4rec.ends[0].vy    = 0;
-    work->d4rec.ends[0].vz    = 0;
-    work->d4rec.ends[1].vx    = 0;
-    work->d4rec.ends[1].vy    = 0;
-    work->d4rec.contacts      = work->recs2;
-    work->obj.coord           = freeCoord;
-    work->obj.context.capsule = &work->d4rec;
-    work->obj.pos.vx          = 0;
-    work->obj.pos.vy          = -0xFA;
-    work->obj.pos.vz          = 0x25F;
-    work->obj.key             = 0x30000 | 0x20;
-    work->obj.radius          = 0;
-    work->obj.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    Gp_LinkObj(2, &work->obj);
-    Gp_InitRec18Table(work->recs2, 5, 0);
-    work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->swipeCapsule.ends[1].vz   = 0x1B58;
+    work->swipeCapsule.end0Radius   = 0x258;
+    work->swipeCapsule.end1Radius   = 0x258;
+    work->swipeCapsule.ends[0].vx   = 0;
+    work->swipeCapsule.ends[0].vy   = 0;
+    work->swipeCapsule.ends[0].vz   = 0;
+    work->swipeCapsule.ends[1].vx   = 0;
+    work->swipeCapsule.ends[1].vy   = 0;
+    work->swipeCapsule.contacts     = work->swipeContacts;
+    work->swipeBody.coord           = freeCoord;
+    work->swipeBody.context.capsule = &work->swipeCapsule;
+    work->swipeBody.pos.vx          = 0;
+    work->swipeBody.pos.vy          = -0xFA;
+    work->swipeBody.pos.vz          = 0x25F;
+    work->swipeBody.key             = 0x30000 | 0x20;
+    work->swipeBody.radius          = 0;
+    work->swipeBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    Gp_LinkObj(2, &work->swipeBody);
+    Gp_InitRec18Table(work->swipeContacts, ARRAY_SIZE(work->swipeContacts), 0);
+    work->swipeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    esc                                                     = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 4, 0, task->spawnArg2.pointer);
-    work->field_ECC[4]                                      = esc;
-    esc->task->extra.tmd->coords->parent                    = &task->extra.tmd->coords[4];
-    work->field_ECC[4]->task->extra.tmd->coords->coord.t[0] = 0;
-    work->field_ECC[4]->task->extra.tmd->coords->coord.t[1] = 0;
-    work->field_ECC[4]->task->extra.tmd->coords->coord.t[2] = 0x14;
-    work->field_ECC[4]->task->extra.tmd->flags              = 0;
+    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 4, 0, task->spawnArg2.pointer);
+    work->escorts[4]                                      = esc;
+    esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[4];
+    work->escorts[4]->task->extra.tmd->coords->coord.t[0] = 0;
+    work->escorts[4]->task->extra.tmd->coords->coord.t[1] = 0;
+    work->escorts[4]->task->extra.tmd->coords->coord.t[2] = 0x14;
+    work->escorts[4]->task->extra.tmd->flags              = 0;
 
-    esc                                                     = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 5, 0, task->spawnArg2.pointer);
-    work->field_ECC[5]                                      = esc;
-    esc->task->extra.tmd->coords->parent                    = &task->extra.tmd->coords[2];
-    work->field_ECC[5]->task->extra.tmd->coords->coord.t[0] = 0;
-    work->field_ECC[5]->task->extra.tmd->coords->coord.t[1] = 0x67C;
-    work->field_ECC[5]->task->extra.tmd->coords->coord.t[2] = 0xC8;
-    work->field_ECC[5]->task->extra.tmd->flags              = 0;
+    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 5, 0, task->spawnArg2.pointer);
+    work->escorts[5]                                      = esc;
+    esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[2];
+    work->escorts[5]->task->extra.tmd->coords->coord.t[0] = 0;
+    work->escorts[5]->task->extra.tmd->coords->coord.t[1] = 0x67C;
+    work->escorts[5]->task->extra.tmd->coords->coord.t[2] = 0xC8;
+    work->escorts[5]->task->extra.tmd->flags              = 0;
 
     if ((task->spawnArg1.value >> 16) == 0) {
-        esc                                                     = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 6, 0, task->spawnArg2.pointer);
-        work->field_ECC[6]                                      = esc;
-        esc->task->extra.tmd->coords->parent                    = &task->extra.tmd->coords[1];
-        work->field_ECC[6]->task->extra.tmd->coords->coord.t[0] = 0;
-        work->field_ECC[6]->task->extra.tmd->coords->coord.t[1] = 0x62C;
-        work->field_ECC[6]->task->extra.tmd->coords->coord.t[2] = 0x5DC;
-        work->field_ECC[6]->task->extra.tmd->flags              = 0;
+        esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 6, 0, task->spawnArg2.pointer);
+        work->escorts[6]                                      = esc;
+        esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[1];
+        work->escorts[6]->task->extra.tmd->coords->coord.t[0] = 0;
+        work->escorts[6]->task->extra.tmd->coords->coord.t[1] = 0x62C;
+        work->escorts[6]->task->extra.tmd->coords->coord.t[2] = 0x5DC;
+        work->escorts[6]->task->extra.tmd->flags              = 0;
     } else {
-        work->field_ECC[6] = NULL;
+        work->escorts[6] = NULL;
     }
 
-    work->field_F04 = 0;
-    work->field_F06 = 0;
-    work->field_F08 = 0;
-    work->field_F0C = (s16)D_actor_444000_80144A48.hpMax;
-    work->field_F0A = (s16)D_actor_444000_80144A38.hpMax;
+    work->viewLocked     = 0;
+    work->viewSelector   = 0;
+    work->phase          = 0;
+    work->groups6To8Pool = (s16)D_actor_444000_80144A48.hpMax;
+    work->groups3To5Pool = (s16)D_actor_444000_80144A38.hpMax;
 
     escorts = task->work;
 
@@ -4438,8 +4438,8 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 
     task->extra.tmd->lightMtx = &escorts->lightMtx;
     task->extra.tmd->colorMtx = &escorts->colorMtx;
-    for (j = 0; j < 7; j++) {
-        esc = escorts->field_ECC[j];
+    for (j = 0; j < ARRAY_SIZE(escorts->escorts); j++) {
+        esc = escorts->escorts[j];
         if (esc != NULL) {
             escTask                      = esc->task;
             escTask->extra.tmd->lightMtx = &escorts->lightMtx;
@@ -4451,15 +4451,15 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    if (work->field_EFA != work->field_EFC) {
+    if (work->hostExposed != work->prevHostExposed) {
         Gp_UpdateActorColor(enemy, &pos, 0, 0);
-        Gp_UpdateActorColor(work->field_ECC[3], &pos, 0, 0);
-        work->field_EFC = work->field_EFA;
+        Gp_UpdateActorColor(work->escorts[3], &pos, 0, 0);
+        work->prevHostExposed = work->hostExposed;
     }
-    if (work->field_EFA != 0) {
+    if (work->hostExposed != 0) {
         Gp_UpdateActorColor(enemy, &pos, 0, 0);
     } else {
-        Gp_UpdateActorColor(work->field_ECC[3], &pos, 0, 0);
+        Gp_UpdateActorColor(work->escorts[3], &pos, 0, 0);
     }
     gluttonTickAnim(task);
 
@@ -4468,16 +4468,16 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     D_actor_444000_80161888.value.command           = 0;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.value, ACTOR_COMMAND_MESSAGE_APPLY);
 
-    work->field_E94 = work->field_E96 = 0xFA0;
+    work->wallDistance = work->wallDistanceTarget = 0xFA0;
     for (k = 0; k < 2; k++) {
-        work->field_EE8[k] = NULL;
+        work->summons[k] = NULL;
     }
 
     gSceneCombatState.battleRefs = 0xA;
     Gp_ReleaseStateF0Add(task, 0x20);
     _gGluttonHostTask.task = task;
-    work->field_F1B = work->field_F1C = 0;
-    task->state                      += 1;
+    work->summonsSpawned = work->summonsAlive = 0;
+    task->state                              += 1;
 }
 
 #include "../../shared/glutton_hit_group0.inc.c"
@@ -4492,11 +4492,11 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 ///
 /// The damage is the distance-scaled hit quadrupled when `Gp_RollEnemyChance`
 /// fires, then divided by six (never down to zero unless it already was), and
-/// comes off the host, the first escort and `field_F0A`. Emptying that pool
+/// comes off the host, the first escort and `groups3To5Pool`. Emptying that pool
 /// spawns the same effect again and refills it from
 /// `D_actor_444000_80144A38.hpMax`. Both effect spawns and the state change to 0xE
 /// are skipped while the boss is in one of the seven states that ignore hits,
-/// while `field_F08` is clear, or while the player hold is armed.
+/// while `phase` is clear, or while the player hold is armed.
 static void func_actor_444000_8013CA60(Task* task)
 {
     GluttonHitScratch*     sc;
@@ -4601,7 +4601,7 @@ found3:
         goto out;
     }
 body:
-    work->field_E8E = Gp_GetIdParam2(sc->id);
+    work->groups3To5Cooldown = Gp_GetIdParam2(sc->id);
     Gp_GetIdParam0(sc->id);
 
     sc->delta.vx = (cfg->coordMtx->t[0] - task->extra.tmd->coords->coord.t[0]) + 0x51F;
@@ -4613,18 +4613,18 @@ body:
     sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
     sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
 
-    if (Gp_RollEnemyChance(work->field_ECC[0], sc->id, 0) != 0 && (state = work->field_0, state != 0xD) && state != 3 &&
-        state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->field_F08 != 0 &&
-        work->field_EC8 != 1) {
+    if (Gp_RollEnemyChance(work->escorts[0], sc->id, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
+        state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->phase != 0 &&
+        work->playerCaught != 1) {
         sc->rot.vz = 0x1F4;
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x258;
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->field_ECC[0]->task->extra.tmd->coords[1], 0, &sc->rot);
-        sc->damage   *= 4;
-        work->field_0 = 0xE;
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->rot);
+        sc->damage *= 4;
+        work->state = 0xE;
     }
 
     dmg = sc->damage / 6;
@@ -4638,24 +4638,24 @@ body:
     sc->damage = dmg;
 stored:
     func_800E2C78(host, sc->id, sc->damage, 0);
-    host->hp        -= sc->damage;
-    work->field_F0A -= sc->damage;
-    if (work->field_F0A <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
-        state != 0xF && state != 8 && state != 0xB && work->field_F08 != 0 && work->field_EC8 != 1) {
+    host->hp             -= sc->damage;
+    work->groups3To5Pool -= sc->damage;
+    if (work->groups3To5Pool <= 0 && (state = work->state, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
+        state != 0xF && state != 8 && state != 0xB && work->phase != 0 && work->playerCaught != 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x258;
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->field_ECC[0]->task->extra.tmd->coords[1], 0, &sc->rot);
-        work->field_0   = 0xE;
-        work->field_F0A = (s16)D_actor_444000_80144A38.hpMax;
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->rot);
+        work->state          = 0xE;
+        work->groups3To5Pool = (s16)D_actor_444000_80144A38.hpMax;
     }
 
-    func_800DA6E8(&work->field_ECC[0]->node, sc->damage, 0);
-    work->field_ECC[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(work->field_ECC[0]->task->extra.tmd->coords);
-    sc->rot.vx = sc->pos.vx - work->field_ECC[0]->task->extra.tmd->coords->workm.t[0];
-    sc->rot.vy = sc->pos.vy - work->field_ECC[0]->task->extra.tmd->coords->workm.t[1];
-    sc->rot.vz = sc->pos.vz - work->field_ECC[0]->task->extra.tmd->coords->workm.t[2];
+    func_800DA6E8(&work->escorts[0]->node, sc->damage, 0);
+    work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_UpdateCoord(work->escorts[0]->task->extra.tmd->coords);
+    sc->rot.vx = sc->pos.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
+    sc->rot.vy = sc->pos.vy - work->escorts[0]->task->extra.tmd->coords->workm.t[1];
+    sc->rot.vz = sc->pos.vz - work->escorts[0]->task->extra.tmd->coords->workm.t[2];
     angle      = ratan2(sc->rot.vx, sc->rot.vz) -
             ratan2(-task->extra.tmd->coords->workm.m[2][0],
                    task->extra.tmd->coords->workm.m[2][2]);
@@ -4675,9 +4675,9 @@ stored:
     }
     sc->angle = angle;
 
-    if (work->field_7B3 != 4) {
-        work->field_7C8 = 0;
-        work->field_7C4 = 0;
+    if (work->animId != 4) {
+        work->neckYaw       = 0;
+        work->neckYawTarget = 0;
     }
 out:
     SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
@@ -4699,30 +4699,30 @@ static void func_actor_444000_8013D810(Task* arg0)
     s16          j;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
+    if (work->stateChanged != 0) {
         escorts                = arg0->work;
-        work->field_7F3        = 3;
+        work->freeCountdown    = 3;
         arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
+        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+            if (escorts->escorts[i] != NULL) {
+                escorts->escorts[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
             }
         }
-        work->field_7B3 = 0xA;
-        work->field_7B0 = 2;
-        work->field_6   = 0;
-        work->field_7B6 = 0x10;
+        work->animId     = 0xA;
+        work->animStep   = GLUTTON_ANIM_STEP_RESTART;
+        work->stateTicks = 0;
+        work->animRate   = 0x10;
         gluttonTickAnim(arg0);
     } else {
-        if (work->field_6 < 0xA) {
+        if (work->stateTicks < 0xA) {
             gluttonTickAnim(arg0);
         }
-        if (work->field_6 == 2) {
+        if (work->stateTicks == 2) {
             dying = arg0->work;
             Tmd_FreeBuffers(arg0->extra.tmd);
-            for (j = 0; j < 7; j++) {
-                if (dying->field_ECC[j] != NULL) {
-                    Tmd_FreeBuffers(dying->field_ECC[j]->task->extra.tmd);
+            for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
+                if (dying->escorts[j] != NULL) {
+                    Tmd_FreeBuffers(dying->escorts[j]->task->extra.tmd);
                 }
             }
         }
@@ -4773,7 +4773,7 @@ static __inline__ void Actor444000_FlattenRotation(GfxCoord* coord, s32 vy)
 }
 
 /// Re-arm handler run once the block asks for a reset: clear the host's model
-/// flag word onto itself and every escort, drop the two counters at 0xEF4, then
+/// flag word onto itself and every escort, clear `neckPitchEnabled` and `neckYawEnabled`, then
 /// step the animation on and flatten six of the models -- escorts 2, 4, 3, 0 and
 /// 1 plus the host itself -- onto the ground plane. Escort 3 keeps a little
 /// height (`vy` 0x400) where the rest are flattened outright. The last release
@@ -4786,51 +4786,51 @@ static void func_actor_444000_8013D96C(Task* arg0)
     s16          i;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
+    if (work->stateChanged != 0) {
         arg0->extra.tmd->flags = 0;
         escorts                = arg0->work;
-        escorts->field_7F3     = 0;
+        escorts->freeCountdown = 0;
         arg0->extra.tmd->flags = 0;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
+        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+            if (escorts->escorts[i] != NULL) {
+                escorts->escorts[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
             }
         }
-        work->field_EF4 = 0;
-        work->field_EF6 = 0;
+        work->neckPitchEnabled = 0;
+        work->neckYawEnabled   = 0;
     }
 
     gluttonTickAnim(arg0);
 
-    Actor444000_FlattenRotation(work->field_ECC[2]->task->extra.tmd->coords, 0);
-    work->field_ECC[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    Actor444000_FlattenRotation(work->escorts[2]->task->extra.tmd->coords, 0);
+    work->escorts[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor444000_ReleaseRotScratch();
 
     Actor444000_FlattenRotation(arg0->extra.tmd->coords, 0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor444000_ReleaseRotScratch();
 
-    Actor444000_FlattenRotation(work->field_ECC[4]->task->extra.tmd->coords, 0);
-    work->field_ECC[4]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    Actor444000_FlattenRotation(work->escorts[4]->task->extra.tmd->coords, 0);
+    work->escorts[4]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor444000_ReleaseRotScratch();
 
-    Actor444000_FlattenRotation(work->field_ECC[3]->task->extra.tmd->coords, 0x400);
-    work->field_ECC[3]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    Actor444000_FlattenRotation(work->escorts[3]->task->extra.tmd->coords, 0x400);
+    work->escorts[3]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor444000_ReleaseRotScratch();
 
-    Actor444000_FlattenRotation(work->field_ECC[0]->task->extra.tmd->coords, 0);
-    work->field_ECC[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    Actor444000_FlattenRotation(work->escorts[0]->task->extra.tmd->coords, 0);
+    work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor444000_ReleaseRotScratch();
 
-    Actor444000_FlattenRotation(work->field_ECC[1]->task->extra.tmd->coords, 0);
-    work->field_ECC[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    Actor444000_FlattenRotation(work->escorts[1]->task->extra.tmd->coords, 0);
+    work->escorts[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor444000_ReleaseRotScratch();
 }
 
 /// Drag tick of the arena fight: the state the boss runs while it is hauling the
 /// player in along the line between them.
 ///
-/// A reset request (`field_4`) re-arms the block on animation 3, clears the host
+/// A reset request (`stateChanged`) re-arms the block on animation 3, clears the host
 /// model's flag word and pushes it onto each of the seven escorts' models, makes
 /// sure the host and every escort has its model buffers allocated, re-seeds the
 /// spinner target `gGluttonSpinnerTarget` from the fourth part of slot 4's
@@ -4838,19 +4838,19 @@ static void func_actor_444000_8013D96C(Task* arg0)
 ///
 /// Every tick then pins the player down to the arena floor, runs the ordinary
 /// re-arm and stows the yaw from the host to the player -- relative to the
-/// host's own facing, wrapped to +/-0x800 -- in `field_7C4`. The host's fifth
+/// host's own facing, wrapped to +/-0x800 -- in `neckYawTarget`. The host's fifth
 /// part is carried into view space, the player-relative offset from there gives
 /// the direction and distance the pull works along, and the animation frame
 /// picks how hard: `pull` is the phase's base strength and the frame divides
 /// `-(pull + 0x19)` by 1, 2, 3, 4, 6 or 2/3 before `gte_gpf12` scales the
 /// normalised direction by it. Frames outside 9..20 drop the pull and clear
-/// `field_EFA`. `func_80105B74` hands the result to the player actor unless the
+/// `hostExposed`. `func_80105B74` hands the result to the player actor unless the
 /// game is in mode 2 or 0xA or the player is already in mode 2.
 ///
 /// Alongside that: a script fires every `period` frames while the frame sits in
 /// 0xA..0x12, two cues play on frames 0x3C and 0xE8, the fight asks slot 3 for
 /// the hold (message 0x3F8) once the player is inside 0x4B0 on frames 0xB..0xF
-/// and phase 6 onward clamps the player back behind -0x52D0. Once `slots0[1]`
+/// and phase 6 onward clamps the player back behind -0x52D0. Once `hostRig.slots[1]`
 /// raises its flag the fight announces sub-state 3, moves to state 0xA and drops
 /// its two spawned escorts.
 static void func_actor_444000_8013E058(Task* task)
@@ -4880,15 +4880,15 @@ static void func_actor_444000_8013E058(Task* task)
     sc    = (Actor444000DragScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000DragScratch));
     actor = slot3->work;
 
-    if (work->field_4 != 0) {
-        work->field_7B3        = 3;
-        work->field_7B0        = 2;
+    if (work->stateChanged != 0) {
+        work->animId           = 3;
+        work->animStep         = GLUTTON_ANIM_STEP_RESTART;
         escorts                = task->work;
-        escorts->field_7F3     = 0;
+        escorts->freeCountdown = 0;
         task->extra.tmd->flags = 0;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
+        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+            if (escorts->escorts[i] != NULL) {
+                escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
             }
         }
         tmd     = task->extra.tmd;
@@ -4896,22 +4896,22 @@ static void func_actor_444000_8013E058(Task* task)
         if (tmd->buffer == NULL) {
             Tmd_AllocBuffers(tmd);
         }
-        for (j = 0; j < 7; j++) {
-            if (buffers->field_ECC[j] != NULL) {
-                escortTmd = buffers->field_ECC[j]->task->extra.tmd;
+        for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
+            if (buffers->escorts[j] != NULL) {
+                escortTmd = buffers->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
                     Tmd_AllocBuffers(escortTmd);
                 }
             }
         }
-        work->field_EFE = 0;
-        work->field_EF4 = 1;
-        work->field_EF6 = 1;
-        work->field_EFA = 0;
-        posp            = &gGluttonSpinnerTarget;
-        posp->vz        = 0;
-        posp->vy        = 0;
-        posp->vx        = 0;
+        work->neckPitchTarget  = 0;
+        work->neckPitchEnabled = 1;
+        work->neckYawEnabled   = 1;
+        work->hostExposed      = 0;
+        posp                   = &gGluttonSpinnerTarget;
+        posp->vz               = 0;
+        posp->vy               = 0;
+        posp->vx               = 0;
         actorLocalToView(&Gp_LookupSlot4(0)->extra.tmd->coords[3], posp);
         D_actor_444000_80161888.value.context.loc.stage = 0;
         D_actor_444000_80161888.value.context.loc.area  = 0x2C;
@@ -4948,7 +4948,7 @@ static void func_actor_444000_8013E058(Task* task)
             goto wrapDown;
         }
     }
-    work->field_7C4 = angle;
+    work->neckYawTarget = angle;
 
     sc->dir.vz = 0;
     sc->dir.vy = 0;
@@ -4963,7 +4963,7 @@ static void func_actor_444000_8013E058(Task* task)
     sc->dist   = SquareRoot0(sc->dist);
     VectorNormalSS(&sc->dir, &sc->dir);
 
-    switch (work->field_F08) {
+    switch (work->phase) {
         case 0:
             sc->period = 0x19;
             break;
@@ -4975,11 +4975,11 @@ static void func_actor_444000_8013E058(Task* task)
             sc->period = 0xE;
             break;
     }
-    if (((u32)((work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xA) < 9U) && ((work->field_6 % sc->period) == 0)) {
+    if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xA) < 9U) && ((work->stateTicks % sc->period) == 0)) {
         Gp_SpawnScript18(D_actor_444000_80144A94, D_actor_444000_80144AA0);
     }
 
-    switch (work->field_F08) {
+    switch (work->phase) {
         case 0:
         case 6:
             sc->pull = 0;
@@ -4998,7 +4998,7 @@ static void func_actor_444000_8013E058(Task* task)
             break;
     }
 
-    if (work->field_6 == 0x3C) {
+    if (work->stateTicks == 0x3C) {
         s32 id;
         s32 pan;
 
@@ -5006,18 +5006,18 @@ static void func_actor_444000_8013E058(Task* task)
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    if (work->field_6 == 0xE8) {
+    if (work->stateTicks == 0xE8) {
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
     }
 
-    work->field_EFA = 1;
-    switch (work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
+    work->hostExposed = 1;
+    switch (work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
         case 9:
             gte_lddp(-(sc->pull + 0x19) / 4);
             gte_ldsv(&sc->dir);
             gte_gpf12();
             gte_stsv(&sc->dir);
-            work->field_EFE = 0x180;
+            work->neckPitchTarget = 0x180;
             break;
         case 10:
             gte_lddp(-(sc->pull + 0x19) / 2);
@@ -5032,7 +5032,7 @@ static void func_actor_444000_8013E058(Task* task)
             gte_ldsv(&sc->dir);
             gte_gpf12();
             gte_stsv(&sc->dir);
-            work->field_EFE = 0x2B2;
+            work->neckPitchTarget = 0x2B2;
             break;
         case 12:
         case 14:
@@ -5040,14 +5040,14 @@ static void func_actor_444000_8013E058(Task* task)
             gte_ldsv(&sc->dir);
             gte_gpf12();
             gte_stsv(&sc->dir);
-            work->field_EFE = 0x500;
+            work->neckPitchTarget = 0x500;
             break;
         case 16:
             gte_lddp(-(sc->pull + 0x19) / 3);
             gte_ldsv(&sc->dir);
             gte_gpf12();
             gte_stsv(&sc->dir);
-            work->field_EFE = 0x100;
+            work->neckPitchTarget = 0x100;
             break;
         case 17:
         case 18:
@@ -5055,7 +5055,7 @@ static void func_actor_444000_8013E058(Task* task)
             gte_ldsv(&sc->dir);
             gte_gpf12();
             gte_stsv(&sc->dir);
-            work->field_EFE = 0x400;
+            work->neckPitchTarget = 0x400;
             break;
         case 19:
         case 20:
@@ -5065,22 +5065,22 @@ static void func_actor_444000_8013E058(Task* task)
             gte_ldsv(&sc->dir);
             gte_gpf12();
             gte_stsv(&sc->dir);
-            work->field_EFE = 0;
+            work->neckPitchTarget = 0;
             break;
         default:
-            work->field_EFA = 0;
-            sc->dir.vz      = 0;
-            sc->dir.vx      = 0;
+            work->hostExposed = 0;
+            sc->dir.vz        = 0;
+            sc->dir.vx        = 0;
             break;
     }
 
-    if (((u32)((work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xB) < 5U) && (sc->dist < 0x4B0) && (work->field_F08 < 6)) {
+    if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xB) < 5U) && (sc->dist < 0x4B0) && (work->phase < 6)) {
         if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.value, 0) == 0) {
-            work->field_0   = 0xD;
-            work->field_EC8 = 1;
+            work->state        = 0xD;
+            work->playerCaught = 1;
         }
     }
-    if (work->field_F08 >= 6) {
+    if (work->phase >= 6) {
         clamp = slot3->extra.tmd->coords;
         if (clamp->coord.t[2] > -0x52D0) {
             clamp->coord.t[2] = -0x52D0;
@@ -5096,17 +5096,17 @@ static void func_actor_444000_8013E058(Task* task)
         }
     }
 
-    if (work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+    if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         D_actor_444000_80161888.value.context.loc.stage = 0;
         D_actor_444000_80161888.value.context.loc.area  = 0x2C;
         D_actor_444000_80161888.value.command           = 3;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.value, ACTOR_COMMAND_MESSAGE_APPLY);
-        work->field_0 = 0xA;
+        work->state = 0xA;
         for (sc->i = 0; sc->i < 2; sc->i++) {
-            work->field_EE8[sc->i] = NULL;
+            work->summons[sc->i] = NULL;
         }
     }
-    work->field_F1C = 0;
+    work->summonsAlive = 0;
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor444000DragScratch));
 }
 
@@ -5126,7 +5126,7 @@ static void func_actor_444000_8013E058(Task* task)
 /// Every other tick runs the ordinary re-arm first. Animation 0xF hands over to
 /// 0xE once the second slot raises its flag, and each animation fires one-shot
 /// cues on the frames it reaches -- 0x19 under 0xF, 0x1D / 0x23 / 0x27 under
-/// 0xE, the last two also kicking the pad -- with `field_7A8` remembering the
+/// 0xE, the last two also kicking the pad -- with `prevSlot3Cue` remembering the
 /// frame so none repeats while it is held. While message 0x3ED reports the
 /// player free they are put back on the host's own position, and sub-state 0x17
 /// re-places them and re-sends the 0x3FF animation.
@@ -5134,7 +5134,7 @@ static void func_actor_444000_8013E058(Task* task)
 /// the host's fifth part is carried into view space, the yaw from there to the
 /// player picks which of the two message-0x3FF animation tables the tick will
 /// send (`..._80161680` past a quarter turn, `..._80161670` within it), and the
-/// opposite yaw is stowed in `field_7C4` for the drive step. The normalised
+/// opposite yaw is stowed in `neckYawTarget` for the drive step. The normalised
 /// direction scaled to 0x384 is where the player is asked to stand.
 static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* work,
                                                     Task* player, Actor444000WarpScratch* sc,
@@ -5176,9 +5176,9 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
         } else {
             sc->angle = yaw + 0x800;
         }
-        work->anim.source.sets = (D_actor_444000_80161670 + 4);
+        work->playerAnim.source.sets = (D_actor_444000_80161670 + 4);
     } else {
-        work->anim.source.sets = D_actor_444000_80161670;
+        work->playerAnim.source.sets = D_actor_444000_80161670;
     }
     coord      = player->extra.tmd->coords;
     sc->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -5201,7 +5201,7 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
             goto wrapDown2;
         }
     }
-    work->field_7C4 = angle;
+    work->neckYawTarget = angle;
 
     VectorNormalSS(&sc->dir, &sc->dir);
     gte_lddp(0x384);
@@ -5248,7 +5248,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     cfg    = &gPlayerStatus;
 
-    if (work->field_4 != 0) {
+    if (work->stateChanged != 0) {
         sc = (Actor444000WarpScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000WarpScratch));
 
         verts        = Gp_GridParams->vertices;
@@ -5261,15 +5261,15 @@ static void func_actor_444000_8013EC84(Task* arg0)
         verts[30].vy = 0x320;
         verts[31].vy = 0x320;
 
-        work->field_7B3    = 0xF;
-        work->field_7B0    = 2;
-        escorts            = arg0->work;
-        escorts->field_7F3 = 0;
+        work->animId           = 0xF;
+        work->animStep         = GLUTTON_ANIM_STEP_RESTART;
+        escorts                = arg0->work;
+        escorts->freeCountdown = 0;
 
         arg0->extra.tmd->flags = 0;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
+        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+            if (escorts->escorts[i] != NULL) {
+                escorts->escorts[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
             }
         }
 
@@ -5278,19 +5278,19 @@ static void func_actor_444000_8013EC84(Task* arg0)
         if (tmd->buffer == NULL) {
             Tmd_AllocBuffers(tmd);
         }
-        for (j = 0; j < 7; j++) {
-            if (buffers->field_ECC[j] != NULL) {
-                escortTmd = buffers->field_ECC[j]->task->extra.tmd;
+        for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
+            if (buffers->escorts[j] != NULL) {
+                escortTmd = buffers->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
                     Tmd_AllocBuffers(escortTmd);
                 }
             }
         }
 
-        work->field_EFE = 0;
-        work->field_EF4 = 0;
-        work->field_EF6 = 1;
-        work->field_EFA = 0;
+        work->neckPitchTarget  = 0;
+        work->neckPitchEnabled = 0;
+        work->neckYawEnabled   = 1;
+        work->hostExposed      = 0;
 
         sc->delta.vx = player->extra.tmd->coords->coord.t[0] -
                        arg0->extra.tmd->coords->coord.t[0];
@@ -5320,9 +5320,9 @@ static void func_actor_444000_8013EC84(Task* arg0)
         Gp_StateC08.flags            |= ATTACHMENT_FLAG_EVENT_LOCK;
         Gp_PulseState1C();
         Gp_ClearNodeSlots(&enemy->node);
-        Gp_ClearNodeSlots(&work->field_ECC[3]->node);
-        Gp_ClearNodeSlots(&work->field_ECC[0]->node);
-        Gp_ClearNodeSlots(&work->field_ECC[1]->node);
+        Gp_ClearNodeSlots(&work->escorts[3]->node);
+        Gp_ClearNodeSlots(&work->escorts[0]->node);
+        Gp_ClearNodeSlots(&work->escorts[1]->node);
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
 
         D_actor_444000_80161888.value.context.loc.stage = 0;
@@ -5333,12 +5333,12 @@ static void func_actor_444000_8013EC84(Task* arg0)
         sc = (Actor444000WarpScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000WarpScratch));
         gluttonTickAnim(arg0);
 
-        if ((work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->field_7B3 == 0xF) {
-            work->field_7B0 = 2;
-            work->field_7B3 = 0xE;
+        if ((work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->animId == 0xF) {
+            work->animStep = GLUTTON_ANIM_STEP_RESTART;
+            work->animId   = 0xE;
         }
 
-        if (work->field_7B3 == 0xF) {
+        if (work->animId == 0xF) {
             if (cfg->hp > 0) {
                 target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 3), 0);
@@ -5349,38 +5349,38 @@ static void func_actor_444000_8013EC84(Task* arg0)
                     gGameSession->deathRestartDelay   = 0x5A;
                 }
             }
-            frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (frame == 0x19 && work->field_7A8 != frame) {
+            frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (frame == 0x19 && work->prevSlot3Cue != frame) {
                 cueId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200011;
                 cuePan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 SndEvt_EnqueueType6(cueId, cuePan,
                                     (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
-            work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            work->prevSlot3Cue = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         }
 
-        if (work->field_7B3 == 0xE) {
-            frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (frame == 0x1D && work->field_7A8 != frame) {
+        if (work->animId == 0xE) {
+            frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (frame == 0x1D && work->prevSlot3Cue != frame) {
                 Gp_SpawnPadLerp(4, 0xFF, 8);
             }
-            frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (frame == 0x23 && work->field_7A8 != frame) {
+            frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (frame == 0x23 && work->prevSlot3Cue != frame) {
                 hitId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200012;
                 hitPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 SndEvt_EnqueueType6(hitId, hitPan,
                                     (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                 Gp_SpawnPadLerp(4, 0xFF, 8);
             }
-            frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (frame == 0x27 && work->field_7A8 != frame) {
+            frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (frame == 0x27 && work->prevSlot3Cue != frame) {
                 endId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200012;
                 endPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 SndEvt_EnqueueType6(endId, endPan,
                                     (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                 Gp_SpawnPadLerp(4, 0xFF, 8);
             }
-            work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            work->prevSlot3Cue = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         }
 
         if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
@@ -5394,14 +5394,14 @@ static void func_actor_444000_8013EC84(Task* arg0)
             D_actor_444000_80161868.value = 1;
         }
 
-        if (work->field_6 == 0x17) {
+        if (work->stateTicks == 0x17) {
             SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
             Actor444000_PlacePlayerAhead(arg0, work, player, sc, cfg);
-            work->anim.animationId = 1;
-            work->anim.blend       = ANIMATION_BLEND_RESET;
-            work->anim.blendFrames = 0;
-            work->field_F02        = 1;
-            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
+            work->playerAnim.animationId = 1;
+            work->playerAnim.blend       = ANIMATION_BLEND_RESET;
+            work->playerAnim.blendFrames = 0;
+            work->field_F02              = 1;
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
         }
     }
 
@@ -5414,25 +5414,25 @@ static void func_actor_444000_8013EC84(Task* arg0)
 /// A reset request re-arms the block on animation 4, clears the host model's
 /// flag word and pushes it onto each of the seven escorts' models, makes sure
 /// the host and every escort has its model buffers allocated, then rebuilds the
-/// free coordinate at `field_E3C` from `field_7C8` and plays the entry cue.
+/// free coordinate at `swipeCoord` from `neckYaw` and plays the entry cue.
 /// That coordinate is pushed through `Gp_UpdateCoord` again on every step.
 ///
 /// The two swipes are one-shot: animation 4 reaching frame 0xC raises bit
 /// 0x8000 of the collision object's flags, kicks the pad and fires two cues,
-/// and animation 5 reaching frame 0x1C fires a third. `field_7AC` remembers the
+/// and animation 5 reaching frame 0x1C fires a third. `prevSwipeCue` remembers the
 /// frame each step so neither repeats while the frame is held, and the bit is
 /// cleared on every step the first swipe is not live.
 ///
-/// `field_6` then picks the blend weight in `field_7A4` (and hands over to
+/// `stateTicks` then picks the blend weight in `limbPose` (and hands over to
 /// state 0xA at 0xDC), and while it sits in 0x29..0x2E the shared timer
 /// `gGluttonLimbReach` climbs by 0x258 a step up to 0x1770 -- past 0x39 it
 /// is wound back down again instead.
 ///
 /// The rest is the player hold: once one of the collision object's five records
 /// reports a hit of class 1, message 0x3F8 is asked whether the player can be
-/// taken over and message 0x3F9 asks for the hold itself, with `field_ECA`
-/// keeping that reply and `field_EC8` marking the hold as ours. While it is,
-/// the 0x3FF animation is re-sent every step the reply and `field_EC8` agree
+/// taken over and message 0x3F9 asks for the hold itself, with `swipeDamageReply`
+/// keeping that reply and `playerCaught` marking the hold as ours. While it is,
+/// the 0x3FF animation is re-sent every step the reply and `playerCaught` agree
 /// (or, if they do not, for the first 0x28 steps), and after 0x17 steps without
 /// the hold the payload is swapped for the player's own weapon animation
 /// (`field_4` 4). A reply of something other than 1 on that second stage
@@ -5473,16 +5473,16 @@ static void func_actor_444000_8013FB74(Task* arg0)
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     SCRATCH_STACK_RESERVE_BYTES(0x30);
 
-    if (work->field_4 != 0) {
-        work->field_F1D        = 0xB;
-        work->field_7B3        = 4;
-        work->field_7B0        = 2;
+    if (work->stateChanged != 0) {
+        work->lastAttack       = 0xB;
+        work->animId           = 4;
+        work->animStep         = GLUTTON_ANIM_STEP_RESTART;
         escorts                = arg0->work;
-        escorts->field_7F3     = 0;
+        escorts->freeCountdown = 0;
         arg0->extra.tmd->flags = 0;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
+        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+            if (escorts->escorts[i] != NULL) {
+                escorts->escorts[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
             }
         }
         tmd     = arg0->extra.tmd;
@@ -5490,22 +5490,22 @@ static void func_actor_444000_8013FB74(Task* arg0)
         if (tmd->buffer == NULL) {
             Tmd_AllocBuffers(tmd);
         }
-        for (j = 0; j < 7; j++) {
-            if (buffers->field_ECC[j] != NULL) {
-                escortTmd = buffers->field_ECC[j]->task->extra.tmd;
+        for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
+            if (buffers->escorts[j] != NULL) {
+                escortTmd = buffers->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
                     Tmd_AllocBuffers(escortTmd);
                 }
             }
         }
-        work->field_EF6 = 1;
-        work->field_EF4 = 0;
-        work->field_EFA = 1;
-        work->field_EF8 = 1;
-        gfxRotMatrixY(&work->field_E3C.node.coord, work->field_7C8, 1);
-        work->field_E3C.node.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->field_E3C.node);
-        work->field_E96 = 0xC80;
+        work->neckYawEnabled   = 1;
+        work->neckPitchEnabled = 0;
+        work->hostExposed      = 1;
+        work->limbPoseEnabled  = 1;
+        gfxRotMatrixY(&work->swipeCoord.node.coord, work->neckYaw, 1);
+        work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
+        Gp_UpdateCoord(&work->swipeCoord.node);
+        work->wallDistanceTarget = 0xC80;
 
         resetId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
         resetPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -5513,91 +5513,91 @@ static void func_actor_444000_8013FB74(Task* arg0)
                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
 
-    coord                             = &work->field_E3C.node;
-    work->field_E3C.node.composeStamp = GRAPHICS_COORD_DIRTY;
+    coord                              = &work->swipeCoord.node;
+    work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 
-    if (work->field_7B3 == 4 && (frame = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC &&
-        work->field_7AC != frame) {
-        gfxRotMatrixY(&work->field_E3C.node.coord, work->field_7C8, 1);
-        work->field_E3C.node.composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->animId == 4 && (frame = work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC &&
+        work->prevSwipeCue != frame) {
+        gfxRotMatrixY(&work->swipeCoord.node.coord, work->neckYaw, 1);
+        work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        work->field_EAC  = 3;
-        work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->shakeLevel       = GLUTTON_SHAKE_LONG;
+        work->swipeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         Gp_SpawnPadLerp(0x30, 0xFF, 8);
 
         swipeId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200019;
-        swipePan = (s8)worldCoordGetOriginAudioPan(&work->field_ECC[0]->task->extra.tmd->coords[1]);
+        swipePan = (s8)worldCoordGetOriginAudioPan(&work->escorts[0]->task->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(
             swipeId, swipePan,
-            (s8)(worldCoordGetOriginAudioDepth(&work->field_ECC[0]->task->extra.tmd->coords[1]) / 2));
+            (s8)(worldCoordGetOriginAudioDepth(&work->escorts[0]->task->extra.tmd->coords[1]) / 2));
 
         swipe2Id  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020001A;
-        swipe2Pan = (s8)worldCoordGetOriginAudioPan(&work->field_ECC[0]->task->extra.tmd->coords[1]);
+        swipe2Pan = (s8)worldCoordGetOriginAudioPan(&work->escorts[0]->task->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(
             swipe2Id, swipe2Pan,
-            (s8)(worldCoordGetOriginAudioDepth(&work->field_ECC[0]->task->extra.tmd->coords[1]) / 2));
+            (s8)(worldCoordGetOriginAudioDepth(&work->escorts[0]->task->extra.tmd->coords[1]) / 2));
     } else {
-        work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->swipeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 
-    if (work->field_7B3 == 5 && (frame2 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x1C &&
-        work->field_7AC != frame2) {
-        work->field_EAC = 3;
+    if (work->animId == 5 && (frame2 = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x1C &&
+        work->prevSwipeCue != frame2) {
+        work->shakeLevel = GLUTTON_SHAKE_LONG;
         Gp_SpawnPadLerp(0x20, 0x8F, 8);
 
         hitId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020001B;
-        hitPan = (s8)worldCoordGetOriginAudioPan(&work->field_ECC[0]->task->extra.tmd->coords[1]);
+        hitPan = (s8)worldCoordGetOriginAudioPan(&work->escorts[0]->task->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(
             hitId, hitPan,
-            (s8)(worldCoordGetOriginAudioDepth(&work->field_ECC[0]->task->extra.tmd->coords[1]) / 2));
+            (s8)(worldCoordGetOriginAudioDepth(&work->escorts[0]->task->extra.tmd->coords[1]) / 2));
     }
 
-    if (work->field_7B3 == 4) {
-        work->field_7AC = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    if (work->animId == 4) {
+        work->prevSwipeCue = work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     } else {
-        work->field_7AC = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        work->prevSwipeCue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
 
-    switch (work->field_6) {
+    switch (work->stateTicks) {
         case 0x14:
             gGluttonLimbReach = 0x640;
-            work->field_7A4   = 0;
+            work->limbPose    = 0;
             break;
         case 0x22:
-            work->field_7A4 = 1;
+            work->limbPose = 1;
             break;
         case 0x2B:
-            work->field_7A4 = 5;
-            cueId           = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200018;
-            cuePan          = (s8)worldCoordGetOriginAudioPan(&work->field_ECC[0]->task->extra.tmd->coords[1]);
+            work->limbPose = 5;
+            cueId          = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200018;
+            cuePan         = (s8)worldCoordGetOriginAudioPan(&work->escorts[0]->task->extra.tmd->coords[1]);
             SndEvt_EnqueueType6(
                 cueId, cuePan,
-                (s8)(worldCoordGetOriginAudioDepth(&work->field_ECC[0]->task->extra.tmd->coords[1]) /
+                (s8)(worldCoordGetOriginAudioDepth(&work->escorts[0]->task->extra.tmd->coords[1]) /
                      2));
             break;
         case 0x2D:
-            work->field_7A4 = 2;
+            work->limbPose = 2;
             break;
         case 0x38:
-            work->field_7A4 = 4;
+            work->limbPose = 4;
             break;
         case 0x44:
-            work->field_7A4 = 3;
+            work->limbPose = 3;
             break;
         case 0xDC:
-            work->field_0 = 0xA;
+            work->state = 0xA;
             break;
     }
 
-    if ((u32)((u16)work->field_6 - 0x29) < 6 && gGluttonLimbReach < 0x1770) {
+    if ((u32)((u16)work->stateTicks - 0x29) < 6 && gGluttonLimbReach < 0x1770) {
         gGluttonLimbReach = (u16)gGluttonLimbReach + 0x258;
     }
 
     gluttonTickAnim(arg0);
 
-    recs = work->recs2;
-    for (k = 0; k < 5; k++) {
+    recs = work->swipeContacts;
+    for (k = 0; k < ARRAY_SIZE(work->swipeContacts); k++) {
         if (recs[k].key.value == 0) {
             goto missed;
         }
@@ -5610,70 +5610,70 @@ missed:
     found = 0;
 scanned:
     if (found != 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.value, 0) == 0) {
-        target          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        work->field_ECA = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
-        if (work->field_ECA == 1) {
+        target                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        work->swipeDamageReply = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
+        if (work->swipeDamageReply == 1) {
             ((GameActor*)player->work)->state = 0xA;
         }
-        work->anim.source.sets = D_actor_444000_80161670;
-        work->field_EC8        = 1;
-        work->anim.animationId = 2;
-        work->anim.blend       = ANIMATION_BLEND_RESET;
-        work->anim.blendFrames = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
-        work->field_7CA = 0;
+        work->playerAnim.source.sets = D_actor_444000_80161670;
+        work->playerCaught           = 1;
+        work->playerAnim.animationId = 2;
+        work->playerAnim.blend       = ANIMATION_BLEND_RESET;
+        work->playerAnim.blendFrames = 0;
+        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
+        work->caughtTicks = 0;
     }
 
-    mode = work->field_EC8;
-    if (mode == 1 && work->field_0 != 0xD) {
-        count           = work->field_7CA + 1;
-        work->field_7CA = count;
-        if (work->field_ECA == mode) {
-            if (work->anim.animationId == 2) {
-                work->anim.source.sets = D_actor_444000_80161670;
-                work->anim.blend       = ANIMATION_BLEND_RESET;
-                work->anim.blendFrames = 0;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
-                work->field_7CA = 0;
+    mode = work->playerCaught;
+    if (mode == 1 && work->state != 0xD) {
+        count             = work->caughtTicks + 1;
+        work->caughtTicks = count;
+        if (work->swipeDamageReply == mode) {
+            if (work->playerAnim.animationId == 2) {
+                work->playerAnim.source.sets = D_actor_444000_80161670;
+                work->playerAnim.blend       = ANIMATION_BLEND_RESET;
+                work->playerAnim.blendFrames = 0;
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
+                work->caughtTicks = 0;
             }
-        } else if (work->anim.animationId == 2 && (s16)count < 0x28) {
-            work->anim.source.sets = D_actor_444000_80161670;
-            work->anim.blend       = ANIMATION_BLEND_RESET;
-            work->anim.blendFrames = 0;
-            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
+        } else if (work->playerAnim.animationId == 2 && (s16)count < 0x28) {
+            work->playerAnim.source.sets = D_actor_444000_80161670;
+            work->playerAnim.blend       = ANIMATION_BLEND_RESET;
+            work->playerAnim.blendFrames = 0;
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
         }
 
         if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-            switch (work->anim.animationId) {
+            switch (work->playerAnim.animationId) {
                 case 2:
-                    if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
-                        work->anim.source.sets     = D_actor_444000_80161670;
-                        D_actor_444000_80161670[4] = (Gp_PlayerAnimBlkTbl
+                    if (work->swipeDamageReply != 1 && (s16)work->caughtTicks >= 0x17) {
+                        work->playerAnim.source.sets = D_actor_444000_80161670;
+                        D_actor_444000_80161670[4]   = (Gp_PlayerAnimBlkTbl
                                                           [Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])
                                                          ->table.sets[7];
-                        work->anim.animationId = 4;
-                        work->anim.blend       = ANIMATION_BLEND_INTERPOLATE;
-                        work->anim.blendFrames = 3;
-                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
-                        work->field_7CA = 0;
+                        work->playerAnim.animationId = 4;
+                        work->playerAnim.blend       = ANIMATION_BLEND_INTERPOLATE;
+                        work->playerAnim.blendFrames = 3;
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
+                        work->caughtTicks = 0;
                     }
                     break;
                 case 4:
-                    if (work->field_ECA != 1) {
+                    if (work->swipeDamageReply != 1) {
                         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
-                        work->field_EC8 = 0;
+                        work->playerCaught = 0;
                     }
                     break;
             }
         }
     }
 
-    if (work->field_6 == 0x3C && work->field_7B3 == 4) {
-        work->field_7B3 = 5;
-        work->field_7B0 = 1;
+    if (work->stateTicks == 0x3C && work->animId == 4) {
+        work->animId   = 5;
+        work->animStep = GLUTTON_ANIM_STEP_BLEND;
     }
 
-    if (work->field_6 >= 0x39) {
+    if (work->stateTicks >= 0x39) {
         if (gGluttonLimbReach >= 0xBB9) {
             gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
         } else {
@@ -5697,7 +5697,7 @@ scanned:
 /// launch direction, which is normalised and scaled to 0x320 before being
 /// added to the origin -- and an effect is spawned on it. Every tenth step a
 /// fresh enemy is spawned from `gGluttonEscortTasks` and remembered in
-/// `field_EF0`.
+/// `lastSpawned`.
 ///
 /// The tick then runs the ordinary re-arm and hands over to state 0xA once the
 /// second animation slot raises its flag.
@@ -5721,22 +5721,22 @@ static void func_actor_444000_801404C0(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
 
-    if (work->field_4 != 0) {
-        work->field_F1D    = 7;
-        work->field_7B3    = 0xB;
-        work->field_7B0    = 2;
-        escorts            = arg0->work;
-        escorts->field_7F3 = 0;
+    if (work->stateChanged != 0) {
+        work->lastAttack       = 7;
+        work->animId           = 0xB;
+        work->animStep         = GLUTTON_ANIM_STEP_RESTART;
+        escorts                = arg0->work;
+        escorts->freeCountdown = 0;
 
         arg0->extra.tmd->flags = 0;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
+        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+            if (escorts->escorts[i] != NULL) {
+                escorts->escorts[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
             }
         }
-        work->field_EF4 = 1;
-        work->field_EF6 = 1;
-        work->field_EFA = 0;
+        work->neckPitchEnabled = 1;
+        work->neckYawEnabled   = 1;
+        work->hostExposed      = 0;
 
         resetId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
         resetPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -5744,36 +5744,36 @@ static void func_actor_444000_801404C0(Task* arg0)
                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
 
-    if (work->field_6 == 0x3B) {
+    if (work->stateTicks == 0x3B) {
         cueId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200016;
-        cuePan = (s8)worldCoordGetOriginAudioPan(&work->field_ECC[0]->task->extra.tmd->coords[1]);
+        cuePan = (s8)worldCoordGetOriginAudioPan(&work->escorts[0]->task->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(cueId, cuePan,
-                            (s8)worldCoordGetOriginAudioDepth(&work->field_ECC[0]->task->extra.tmd->coords[1]));
+                            (s8)worldCoordGetOriginAudioDepth(&work->escorts[0]->task->extra.tmd->coords[1]));
     }
 
-    if (work->field_6 == 0x3C) {
+    if (work->stateTicks == 0x3C) {
         hitId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D;
-        hitPan = (s8)worldCoordGetOriginAudioPan(&work->field_ECC[0]->task->extra.tmd->coords[1]);
+        hitPan = (s8)worldCoordGetOriginAudioPan(&work->escorts[0]->task->extra.tmd->coords[1]);
         SndEvt_EnqueueType6(hitId, hitPan,
-                            (s8)worldCoordGetOriginAudioDepth(&work->field_ECC[0]->task->extra.tmd->coords[1]));
+                            (s8)worldCoordGetOriginAudioDepth(&work->escorts[0]->task->extra.tmd->coords[1]));
     }
 
-    if ((s16)(u16)work->field_6 >= 0x3D) {
-        if ((s16)((s16)(u16)work->field_6 % 5) == 0) {
+    if ((s16)(u16)work->stateTicks >= 0x3D) {
+        if ((s16)((s16)(u16)work->stateTicks % 5) == 0) {
             if (D_actor_444000_80161850 >= 2) {
                 D_actor_444000_80161850 = 0;
             } else {
                 D_actor_444000_80161850 = (u16)D_actor_444000_80161850 + 1;
             }
 
-            actorAccumulateToView(&work->field_ECC[0]->task->extra.tmd->coords[1],
+            actorAccumulateToView(&work->escorts[0]->task->extra.tmd->coords[1],
                                   &D_actor_444000_80161948.value[D_actor_444000_80161850].coord);
             D_actor_444000_80161948.value[D_actor_444000_80161850].parent = &gGfxViewCoord;
 
             pos.vz = 0;
             pos.vy = 0;
             pos.vx = 0;
-            actorLocalToView(&work->field_ECC[0]->task->extra.tmd->coords[1], &pos);
+            actorLocalToView(&work->escorts[0]->task->extra.tmd->coords[1], &pos);
 
             D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[0] = pos.vx;
             D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[1] = pos.vy;
@@ -5799,17 +5799,17 @@ static void func_actor_444000_801404C0(Task* arg0)
             Gp_UpdateCoord(coord);
             Gp_SpawnEff(EFFECT_196, &D_actor_444000_80161948.value[D_actor_444000_80161850], 0x27A0D600, NULL);
         }
-        if ((s16)((s16)(u16)work->field_6 % 10) == 4) {
+        if ((s16)((s16)(u16)work->stateTicks % 10) == 4) {
             spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 2, 0, arg0->spawnArg2.pointer);
             spawned->workType = ENEMY_WORK_PLAIN;
-            work->field_EF0   = spawned;
+            work->lastSpawned = spawned;
         }
     }
 
     gluttonTickAnim(arg0);
 
-    if (work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        work->field_0 = 0xA;
+    if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        work->state = 0xA;
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
     }
 }
@@ -5821,7 +5821,7 @@ static void func_actor_444000_801404C0(Task* arg0)
 ///
 /// The three state checks that follow are independent. In state 0xD the 0x18
 /// script is spawned once, on the step the third animation slot first reaches
-/// frame 0x15, which `field_7D8` remembers so the spawn does not repeat while
+/// frame 0x15, which `clip.prevSlot2Cue` remembers so the spawn does not repeat while
 /// the frame is held. In state 9 at sub-state 0x2D the shared coordinate
 /// `D_actor_444000_801618B8` is rebuilt as an identity sitting 100 units below
 /// and 100 in front of the host model's fifth part, which it is parented to.
@@ -5842,13 +5842,13 @@ static void func_actor_444000_80140BBC(Task* arg0)
     s32          frame;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
+    if (work->stateChanged != 0) {
         escorts                = arg0->work;
-        escorts->field_7F3     = 0;
+        escorts->freeCountdown = 0;
         arg0->extra.tmd->flags = 0;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
+        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+            if (escorts->escorts[i] != NULL) {
+                escorts->escorts[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
             }
         }
         tmd     = arg0->extra.tmd;
@@ -5856,25 +5856,25 @@ static void func_actor_444000_80140BBC(Task* arg0)
         if (tmd->buffer == NULL) {
             Tmd_AllocBuffers(tmd);
         }
-        for (j = 0; j < 7; j++) {
-            if (buffers->field_ECC[j] != NULL) {
-                escortTmd = buffers->field_ECC[j]->task->extra.tmd;
+        for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
+            if (buffers->escorts[j] != NULL) {
+                escortTmd = buffers->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
                     Tmd_AllocBuffers(escortTmd);
                 }
             }
         }
-        work->field_7B6 = 0x10;
+        work->animRate = 0x10;
     }
-    if (work->field_7B3 == 0xD) {
-        frame = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-        if (frame == 0x15 && work->field_7D8 != frame) {
-            work->field_EAC = 3;
+    if (work->animId == 0xD) {
+        frame = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        if (frame == 0x15 && work->clip.prevSlot2Cue != frame) {
+            work->shakeLevel = GLUTTON_SHAKE_LONG;
             Gp_SpawnScript18(D_actor_444000_80144A84, D_actor_444000_80144A8C);
         }
-        work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
-    if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
+    if (work->animId == 9 && work->stateTicks == 0x2D) {
         coords                                                    = arg0->extra.tmd->coords;
         D_actor_444000_801618B8.packed.coord.rotationWords.m00M01 = ONE;
         mtx                                                       = &D_actor_444000_801618B8.packed.coord;
@@ -5889,9 +5889,9 @@ static void func_actor_444000_80140BBC(Task* arg0)
         D_actor_444000_801618B8.node.parent                       = &coords[4];
         Gp_UpdateCoord(&D_actor_444000_801618B8.node);
     }
-    if (work->field_7B3 == 0x14 && (work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-        work->field_7B3 = 0xD;
-        work->field_7B0 = 1;
+    if (work->animId == 0x14 && (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+        work->animId   = 0xD;
+        work->animStep = GLUTTON_ANIM_STEP_BLEND;
     }
     if (gGluttonLimbReach >= 0x191) {
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
@@ -5903,12 +5903,12 @@ static void func_actor_444000_80140BBC(Task* arg0)
 /// Reset handler for the arena fight: on a reset request, clear the host
 /// model's flag word, push it onto each of the seven escorts' models, make sure
 /// the host and every escort has its model buffers allocated, then fast-forward
-/// the animation by running the re-arm step an eighth of `field_F14` times
+/// the animation by running the re-arm step an eighth of `collapseSkip` times
 /// before restoring the normal blend weight and playing the entry cue.
 ///
 /// Either way the tick then runs the ordinary re-arm, re-flags the root
 /// coordinate for rebuild, and spawns the 0x18 script once -- on the step the
-/// second animation slot first reaches frame 0x1C, which `field_7D8` remembers
+/// second animation slot first reaches frame 0x1C, which `clip.prevSlot2Cue` remembers
 /// so the spawn does not repeat while the frame is held.
 static void func_actor_444000_80140E28(Task* arg0)
 {
@@ -5924,14 +5924,14 @@ static void func_actor_444000_80140E28(Task* arg0)
     s32          frame;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
+    if (work->stateChanged != 0) {
         obj                    = arg0->spawnArg2.pointer;
         escorts                = arg0->work;
-        escorts->field_7F3     = 0;
+        escorts->freeCountdown = 0;
         arg0->extra.tmd->flags = 0;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
+        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+            if (escorts->escorts[i] != NULL) {
+                escorts->escorts[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
             }
         }
         tmd     = arg0->extra.tmd;
@@ -5939,21 +5939,21 @@ static void func_actor_444000_80140E28(Task* arg0)
         if (tmd->buffer == NULL) {
             Tmd_AllocBuffers(tmd);
         }
-        for (j = 0; j < 7; j++) {
-            if (buffers->field_ECC[j] != NULL) {
-                escortTmd = buffers->field_ECC[j]->task->extra.tmd;
+        for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
+            if (buffers->escorts[j] != NULL) {
+                escortTmd = buffers->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
                     Tmd_AllocBuffers(escortTmd);
                 }
             }
         }
-        work->field_7B6 = 0x7F;
-        work->field_EF4 = 0;
-        work->field_EF6 = 0;
-        for (k = 0; k < work->field_F14 / 8; k++) {
+        work->animRate         = 0x7F;
+        work->neckPitchEnabled = 0;
+        work->neckYawEnabled   = 0;
+        for (k = 0; k < work->collapseSkip / 8; k++) {
             gluttonTickAnim(arg0);
         }
-        work->field_7B6 = 0x10;
+        work->animRate = 0x10;
         SndEvt_EnqueueType7((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
     }
     if (gGluttonLimbReach >= 0x191) {
@@ -5961,12 +5961,12 @@ static void func_actor_444000_80140E28(Task* arg0)
     }
     gluttonTickAnim(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    frame                                 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    if (frame == 0x1C && work->field_7D8 != frame) {
-        work->field_EAC = 3;
+    frame                                 = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    if (frame == 0x1C && work->clip.prevSlot2Cue != frame) {
+        work->shakeLevel = GLUTTON_SHAKE_LONG;
         Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C);
     }
-    work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 }
 
 static void func_actor_444000_8014105C(Task* arg0)
@@ -5979,21 +5979,21 @@ static void func_actor_444000_8014105C(Task* arg0)
     s32          pan;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
+    if (work->stateChanged != 0) {
         tmd                         = arg0->extra.tmd;
         obj                         = arg0->spawnArg2.pointer;
         obj->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         tmd->flags                  = 0;
-        state                       = work->field_7B3;
-        work->field_EF4             = 0;
-        work->field_EF6             = 0;
-        work->field_EFA             = 1;
+        state                       = work->animId;
+        work->neckPitchEnabled      = 0;
+        work->neckYawEnabled        = 0;
+        work->hostExposed           = 1;
         if (state != 0xD) {
-            work->field_7B0 = 1;
-            work->field_7B3 = 0xD;
+            work->animStep = GLUTTON_ANIM_STEP_BLEND;
+            work->animId   = 0xD;
         } else {
-            work->field_7B0 = 2;
-            work->field_7B3 = state;
+            work->animStep = GLUTTON_ANIM_STEP_RESTART;
+            work->animId   = state;
         }
         id  = (((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200004;
         pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -6003,12 +6003,12 @@ static void func_actor_444000_8014105C(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BYTES(0xC);
     if (gGluttonLimbReach >= 0x191) {
-        work->field_7A4   = 0;
+        work->limbPose    = 0;
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
     gluttonTickAnim(arg0);
-    if (work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        work->field_0 = 0xA;
+    if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        work->state = 0xA;
     }
     SCRATCH_STACK_RELEASE_BYTES(0xC);
 }
@@ -6017,15 +6017,15 @@ static void func_actor_444000_8014105C(Task* arg0)
 /// the boss yawed at `gPlayerStatus.coordMtx` (the player's coordinate matrix)
 /// and then picks the state to run next.
 ///
-/// `field_7C4` is that yaw, relative to the host part's own facing and wrapped
-/// into +/-0x800. `field_F10` is a stagger countdown -- while it is positive the
+/// `neckYawTarget` is that yaw, relative to the host part's own facing and wrapped
+/// into +/-0x800. `attackDelay` is a stagger countdown -- while it is positive the
 /// tick only spins it down, and the reset arms it to 0x28 if it is not already
 /// running.
 ///
-/// The choice is a ladder: `field_F1C` picks state 3 outright, then each attack
-/// pattern in `field_F08` has a depth the player has to be past before the
+/// The choice is a ladder: `summonsAlive` picks state 3 outright, then each attack
+/// pattern in `phase` has a depth the player has to be past before the
 /// fight advances to state 9, the last two only while the boss still has HP in
-/// hand. Failing all of those, `field_F1A` picks 0xF and pattern 6 picks 7, and
+/// hand. Failing all of those, `pendingHeals` picks 0xF and pattern 6 picks 7, and
 /// otherwise the distance from the player to a point just in front of the host
 /// picks between 3, 7 and 0xB on a coin flip off `gRandomLcgState`.
 ///
@@ -6048,16 +6048,16 @@ static void func_actor_444000_801411C8(Task* arg0)
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     enemy  = arg0->spawnArg2.pointer;
 
-    if (work->field_4 != 0) {
-        work->field_EF6 = 1;
-        work->field_EF4 = 1;
-        work->field_EFE = 0;
-        if (work->field_F10 == 0) {
-            work->field_F10 = 0x28;
+    if (work->stateChanged != 0) {
+        work->neckYawEnabled   = 1;
+        work->neckPitchEnabled = 1;
+        work->neckPitchTarget  = 0;
+        if (work->attackDelay == 0) {
+            work->attackDelay = 0x28;
         }
-        work->field_7B3 = 1;
-        work->field_7B0 = 1;
-        work->field_EFA = 0;
+        work->animId      = 1;
+        work->animStep    = GLUTTON_ANIM_STEP_BLEND;
+        work->hostExposed = 0;
     }
 
     d      = &vec;
@@ -6080,56 +6080,56 @@ static void func_actor_444000_801411C8(Task* arg0)
             goto wrapDown;
         }
     }
-    work->field_7C4 = angle;
+    work->neckYawTarget = angle;
 
     if (gGluttonLimbReach >= 0x191) {
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
-        work->field_7A4   = 0;
+        work->limbPose    = 0;
     }
     gluttonTickAnim(arg0);
 
-    if (work->field_F10 > 0) {
-        work->field_F10 = work->field_F10 - 1;
+    if (work->attackDelay > 0) {
+        work->attackDelay = work->attackDelay - 1;
         return;
     }
-    if (work->field_F1C > 0) {
-        work->field_0 = 3;
+    if (work->summonsAlive > 0) {
+        work->state = 3;
         return;
     }
 
-    if (work->field_F08 == 0) {
-        work->field_0 = 9;
+    if (work->phase == 0) {
+        work->state = 9;
         return;
     }
-    if (work->field_F08 == 1 && player->extra.tmd->coords->coord.t[2] < -0x1D4C) {
-        work->field_0 = 9;
+    if (work->phase == 1 && player->extra.tmd->coords->coord.t[2] < -0x1D4C) {
+        work->state = 9;
         return;
     }
-    if (work->field_F08 == 2) {
-        work->field_0 = 9;
+    if (work->phase == 2) {
+        work->state = 9;
         return;
     }
-    if (work->field_F08 == 3 && player->extra.tmd->coords->coord.t[2] < -0x30D4) {
-        work->field_0 = 9;
+    if (work->phase == 3 && player->extra.tmd->coords->coord.t[2] < -0x30D4) {
+        work->state = 9;
         return;
     }
-    if (work->field_F08 == 4 && player->extra.tmd->coords->coord.t[2] < -0x3DB8 &&
+    if (work->phase == 4 && player->extra.tmd->coords->coord.t[2] < -0x3DB8 &&
         enemy->hp < 0x9C4) {
-        work->field_0 = 9;
+        work->state = 9;
         return;
     }
-    if (work->field_F08 == 5 && player->extra.tmd->coords->coord.t[2] < -0x4268 &&
+    if (work->phase == 5 && player->extra.tmd->coords->coord.t[2] < -0x4268 &&
         enemy->hp < 0x7D0) {
-        work->field_0 = 9;
+        work->state = 9;
         return;
     }
 
-    if ((s8)work->field_F1A > 0) {
-        work->field_0 = 0xF;
+    if ((s8)work->pendingHeals > 0) {
+        work->state = 0xF;
         return;
     }
-    if (work->field_F08 == 6) {
-        work->field_0 = 7;
+    if (work->phase == 6) {
+        work->state = 7;
         return;
     }
 
@@ -6146,30 +6146,30 @@ static void func_actor_444000_801411C8(Task* arg0)
         if (sc->dist >= 0xED9) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 16) & 1) {
-                work->field_0 = 7;
+                work->state = 7;
             } else {
-                work->field_0 = 3;
+                work->state = 3;
             }
         } else {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 16) & 1) {
-                work->field_0 = 3;
+                work->state = 3;
             } else {
-                work->field_0 = 0xB;
+                work->state = 0xB;
             }
         }
     } else {
-        work->field_0 = 3;
+        work->state = 3;
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
-/// Escort-spawn tick of the arena fight: re-arms the block on request and, on
-/// that first pass, tops the two escort slots (`field_EE8`) back up to two live
+/// Summon tick of the arena fight: re-arms the block on request and, on
+/// that first pass, tops the two `summons` slots back up to two live
 /// enemies, seeding each one's model texture page from the current area record
 /// and stamping its slot index into `Enemy::placeKey`. Every tick it then
-/// yaws the host at the player, and at sub-state 0x46 / 0x78 it sends escort 0
-/// or 1 a 0x7DB order whose action is picked from `field_F08` and a coin flip.
+/// yaws the host at the player, and at sub-state 0x46 / 0x78 it sends summon 0
+/// or 1 a 0x7DB order whose action is picked from `phase` and a coin flip.
 static void func_actor_444000_80141618(Task* task)
 {
     GluttonSpawnScratch* sc;
@@ -6195,25 +6195,25 @@ static void func_actor_444000_80141618(Task* task)
     sc   = (GluttonSpawnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonSpawnScratch));
     work = task->work;
     host = task->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        work->field_EF4 = 0;
-        work->field_EF6 = 1;
-        state           = work->field_7B3;
-        work->field_7B6 = 0x10;
-        work->field_EFA = 0;
+    if (work->stateChanged != 0) {
+        work->neckPitchEnabled = 0;
+        work->neckYawEnabled   = 1;
+        state                  = work->animId;
+        work->animRate         = 0x10;
+        work->hostExposed      = 0;
         if (state != 0x13) {
-            work->field_7B3 = 0x13;
-            work->field_7B0 = 1;
+            work->animId   = 0x13;
+            work->animStep = GLUTTON_ANIM_STEP_BLEND;
         } else {
-            work->field_7B0 = 2;
-            work->field_7B3 = state;
+            work->animStep = GLUTTON_ANIM_STEP_RESTART;
+            work->animId   = state;
         }
         for (sc->i = 0; sc->i < 2; sc->i++) {
-            if (work->field_EE8[sc->i] == NULL && (u8)work->field_F1B < 8 && work->field_F08 < 6) {
-                work->field_EE8[sc->i] = Gp_SpawnEnemyFromTable(&D_80172604, 3, 2, NULL);
-                if (work->field_EE8[sc->i] != NULL) {
-                    work->field_F1B++;
-                    model      = work->field_EE8[sc->i]->task->extra.tmd;
+            if (work->summons[sc->i] == NULL && (u8)work->summonsSpawned < 8 && work->phase < 6) {
+                work->summons[sc->i] = Gp_SpawnEnemyFromTable(&D_80172604, 3, 2, NULL);
+                if (work->summons[sc->i] != NULL) {
+                    work->summonsSpawned++;
+                    model      = work->summons[sc->i]->task->extra.tmd;
                     sessionKey = &gGameSession->location.loc;
                     key.stage  = sessionKey->stage;
                     key.area   = sessionKey->area;
@@ -6227,24 +6227,24 @@ static void func_actor_444000_80141618(Task* task)
                         tmdProcessStream(model);
                         tmdProcessStream(model);
                     }
-                    work->field_EE8[sc->i]->workType = ENEMY_WORK_PLAIN;
-                    escort                           = work->field_EE8[sc->i];
-                    escort->placeKey                |= sc->i << ENEMY_PLACE_INDEX_SHIFT;
-                    work->field_F1C++;
+                    work->summons[sc->i]->workType = ENEMY_WORK_PLAIN;
+                    escort                         = work->summons[sc->i];
+                    escort->placeKey              |= sc->i << ENEMY_PLACE_INDEX_SHIFT;
+                    work->summonsAlive++;
                 }
             }
         }
-        work->field_E96 = 0xC80;
+        work->wallDistanceTarget = 0xC80;
         SndEvt_EnqueueType7((((u16)host->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
     }
     if (gGluttonLimbReach >= 0x191) {
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
     gluttonTickAnim(task);
-    if (work->field_7B3 == 0x13 && (frame = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 4 && frame < 0xD) {
-        work->field_EFA = 1;
+    if (work->animId == 0x13 && (frame = work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 4 && frame < 0xD) {
+        work->hostExposed = 1;
     } else {
-        work->field_EFA = 0;
+        work->hostExposed = 0;
     }
     cfg          = &gPlayerStatus;
     coord        = task->extra.tmd->coords;
@@ -6266,40 +6266,40 @@ static void func_actor_444000_80141618(Task* task)
             goto wrapDown;
         }
     }
-    work->field_7C4 = angle;
-    if ((work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->field_7B3 == 0x13) {
-        work->field_7B3 = 1;
-        work->field_7B0 = 1;
-        work->field_7B6 = 0x10;
+    work->neckYawTarget = angle;
+    if ((work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->animId == 0x13) {
+        work->animId   = 1;
+        work->animStep = GLUTTON_ANIM_STEP_BLEND;
+        work->animRate = 0x10;
         gluttonTickAnim(task);
     }
-    if (work->field_6 >= 0x14B || (work->field_7B3 == 1 && work->field_F1C == 0)) {
-        work->field_0 = 3;
+    if (work->stateTicks >= 0x14B || (work->animId == 1 && work->summonsAlive == 0)) {
+        work->state = 3;
     }
-    if (work->field_6 == 6) {
+    if (work->stateTicks == 6) {
         cueId  = (((u16)host->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200004;
         cuePan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(cueId, cuePan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    if (work->field_6 == 0x3B) {
+    if (work->stateTicks == 0x3B) {
         blastId  = (((u16)host->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200010;
         blastPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(blastId, blastPan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
-        work->field_EAC = 3;
+        work->shakeLevel = GLUTTON_SHAKE_LONG;
         Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C);
     }
-    if (work->field_6 != 0x46 && work->field_6 != 0x78) {
+    if (work->stateTicks != 0x46 && work->stateTicks != 0x78) {
         goto out;
     }
-    if (work->field_6 == 0x46) {
+    if (work->stateTicks == 0x46) {
         sc->i = 0;
     } else {
         sc->i = 1;
     }
-    if (work->field_EE8[sc->i] != NULL && work->field_F08 < 6) {
+    if (work->summons[sc->i] != NULL && work->phase < 6) {
         D_actor_444000_80161888.value.context.loc.stage = 0;
         D_actor_444000_80161888.value.context.loc.area  = 0x2C;
-        switch (work->field_F08) {
+        switch (work->phase) {
             case 0:
             case 1:
                 if (sc->i == 0) {
@@ -6359,7 +6359,7 @@ static void func_actor_444000_80141618(Task* task)
         rnd                                     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         D_actor_444000_80161888.value.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
         gRandomLcgState                         = rnd;
-        TASK_MESSAGE_DISPATCH_POINTER(work->field_EE8[sc->i]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_444000_80161888.value, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(work->summons[sc->i]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_444000_80161888.value, 0);
     }
 out:
     SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonSpawnScratch));
@@ -6449,7 +6449,7 @@ static void func_actor_444000_80142254(void)
 
 /// Per-frame body of the boss task: refreshes the host model's coordinate,
 /// times out the "model buffers freed" countdown, re-lights the host and its
-/// escorts, then runs the state handler `GluttonWork::field_0` selects and
+/// escorts, then runs the state handler `GluttonWork::state` selects and
 /// republishes every collision group.
 ///
 /// `gSceneCombatState.actorControl` gates how much of that runs. While the controller task is
@@ -6459,17 +6459,17 @@ static void func_actor_444000_80142254(void)
 /// Within the suspended cases the view index decides whether that flag word is
 /// 0x80 (hidden) or 0.
 ///
-/// `field_7F3` is a countdown armed when the fight hides the models: while it
+/// `freeCountdown` is a countdown armed when the fight hides the models: while it
 /// runs the host is flagged hidden, and the step that takes it to zero also
 /// raises bit 2 and hands every model's buffers back with `Tmd_FreeBuffers`.
 ///
-/// `field_EFA` selects which of the two bodies is the "live" one -- the host
-/// (`enemy`) or escort 3 (`field_ECC[3]`) -- and that choice drives the colour
+/// `hostExposed` selects which of the two bodies is the "live" one -- the host
+/// (`enemy`) or escort 3 (`escorts[3]`) -- and that choice drives the colour
 /// update, the link-node slots and which collision groups publish their
 /// `0x8000` bit this frame. States 0, 1, 5, 0xC, 0x12 and 0x13 are the inert
 /// ones: they park both bodies on slot 1 and clear every group.
 ///
-/// `field_F12` is the death timer, only started once the host's HP is gone:
+/// `deathTicks` is the death timer, only started once the host's HP is gone:
 /// step 0 tells the scene (message 0x7DA, action 0x2C) and latches
 /// `gGluttonEnded`, step 3 tells the player's task (0x13F4) and moves
 /// the fight to state 0x12 with the two death cues.
@@ -6514,15 +6514,15 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
     Gp_UpdateCoord(&task->extra.tmd->coords[0]);
 
     escorts = task->work;
-    if (escorts->field_7F3 != 0) {
+    if (escorts->freeCountdown != 0) {
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        if (--escorts->field_7F3 == 0) {
+        if (--escorts->freeCountdown == 0) {
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             Tmd_FreeBuffers(task->extra.tmd);
-            for (j = 0; j < 7; j++) {
-                if (escorts->field_ECC[j] != NULL) {
-                    escorts->field_ECC[j]->task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                    Tmd_FreeBuffers(escorts->field_ECC[j]->task->extra.tmd);
+            for (j = 0; j < ARRAY_SIZE(escorts->escorts); j++) {
+                if (escorts->escorts[j] != NULL) {
+                    escorts->escorts[j]->task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+                    Tmd_FreeBuffers(escorts->escorts[j]->task->extra.tmd);
                 }
             }
         }
@@ -6534,39 +6534,39 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
     pos.vy = task->extra.tmd->coords[3].workm.t[1];
     pos.vz = task->extra.tmd->coords[3].workm.t[2];
 
-    if (work->field_EFA != work->field_EFC) {
+    if (work->hostExposed != work->prevHostExposed) {
         Gp_UpdateActorColor(enemy, &pos, 0, 0);
-        Gp_UpdateActorColor(work->field_ECC[3], &pos, 0, 0);
-        work->field_EFC = work->field_EFA;
+        Gp_UpdateActorColor(work->escorts[3], &pos, 0, 0);
+        work->prevHostExposed = work->hostExposed;
     }
-    Gp_UpdateActorColor(work->field_EFA != 0 ? enemy : work->field_ECC[3], &pos, 0, 0);
+    Gp_UpdateActorColor(work->hostExposed != 0 ? enemy : work->escorts[3], &pos, 0, 0);
 
-    if (work->field_0 == 0xB) {
-        work->field_ECC[4]->task->extra.tmd->otOffset = -1;
+    if (work->state == 0xB) {
+        work->escorts[4]->task->extra.tmd->otOffset = -1;
     } else {
-        work->field_ECC[4]->task->extra.tmd->otOffset = 0;
+        work->escorts[4]->task->extra.tmd->otOffset = 0;
     }
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            if (work->field_0 != 0) {
+            if (work->state != 0) {
                 if (view == 9) {
                     flagged                = task->work;
-                    flagged->field_7F3     = 0;
+                    flagged->freeCountdown = 0;
                     task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                    for (i = 0; i < 7; i++) {
-                        if (flagged->field_ECC[i] != NULL) {
-                            flagged->field_ECC[i]->task->extra.tmd->flags =
+                    for (i = 0; i < ARRAY_SIZE(flagged->escorts); i++) {
+                        if (flagged->escorts[i] != NULL) {
+                            flagged->escorts[i]->task->extra.tmd->flags =
                                 task->extra.tmd->flags;
                         }
                     }
                 } else {
                     flagged                = task->work;
-                    flagged->field_7F3     = 0;
+                    flagged->freeCountdown = 0;
                     task->extra.tmd->flags = 0;
-                    for (i = 0; i < 7; i++) {
-                        if (flagged->field_ECC[i] != NULL) {
-                            flagged->field_ECC[i]->task->extra.tmd->flags =
+                    for (i = 0; i < ARRAY_SIZE(flagged->escorts); i++) {
+                        if (flagged->escorts[i] != NULL) {
+                            flagged->escorts[i]->task->extra.tmd->flags =
                                 task->extra.tmd->flags;
                         }
                     }
@@ -6575,24 +6575,24 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
             break;
 
         case SCENE_COMBAT_ACTORS_PAUSED:
-            if (work->field_0 != 0) {
+            if (work->state != 0) {
                 if (view == 9) {
                     flagged                = task->work;
-                    flagged->field_7F3     = 0;
+                    flagged->freeCountdown = 0;
                     task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                    for (i = 0; i < 7; i++) {
-                        if (flagged->field_ECC[i] != NULL) {
-                            flagged->field_ECC[i]->task->extra.tmd->flags =
+                    for (i = 0; i < ARRAY_SIZE(flagged->escorts); i++) {
+                        if (flagged->escorts[i] != NULL) {
+                            flagged->escorts[i]->task->extra.tmd->flags =
                                 task->extra.tmd->flags;
                         }
                     }
                 } else {
                     flagged                = task->work;
-                    flagged->field_7F3     = 0;
+                    flagged->freeCountdown = 0;
                     task->extra.tmd->flags = 0;
-                    for (i = 0; i < 7; i++) {
-                        if (flagged->field_ECC[i] != NULL) {
-                            flagged->field_ECC[i]->task->extra.tmd->flags =
+                    for (i = 0; i < ARRAY_SIZE(flagged->escorts); i++) {
+                        if (flagged->escorts[i] != NULL) {
+                            flagged->escorts[i]->task->extra.tmd->flags =
                                 task->extra.tmd->flags;
                         }
                     }
@@ -6607,16 +6607,16 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
             Gp_ClearRec18Occupied(work->hits[6].contacts);
             Gp_ClearRec18Occupied(work->hits[7].contacts);
             Gp_ClearRec18Occupied(work->hits[8].contacts);
-            Gp_ClearRec18Occupied(work->recs2);
+            Gp_ClearRec18Occupied(work->swipeContacts);
             return;
 
         case SCENE_COMBAT_ACTORS_HIDDEN:
             flagged                = task->work;
-            flagged->field_7F3     = 0;
+            flagged->freeCountdown = 0;
             task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            for (i = 0; i < 7; i++) {
-                if (flagged->field_ECC[i] != NULL) {
-                    flagged->field_ECC[i]->task->extra.tmd->flags =
+            for (i = 0; i < ARRAY_SIZE(flagged->escorts); i++) {
+                if (flagged->escorts[i] != NULL) {
+                    flagged->escorts[i]->task->extra.tmd->flags =
                         task->extra.tmd->flags;
                 }
             }
@@ -6629,31 +6629,31 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
             Gp_ClearRec18Occupied(work->hits[6].contacts);
             Gp_ClearRec18Occupied(work->hits[7].contacts);
             Gp_ClearRec18Occupied(work->hits[8].contacts);
-            Gp_ClearRec18Occupied(work->recs2);
+            Gp_ClearRec18Occupied(work->swipeContacts);
             return;
     }
 
     SCRATCH_STACK_RESERVE_BYTES(0x1C);
 
     if (enemy->hp > 0) {
-        if (work->field_EC8 != 1 && cfg->hp > 0 && work->field_0 != 0xD) {
-            if (work->field_E92 > 0) {
-                work->field_E92--;
+        if (work->playerCaught != 1 && cfg->hp > 0 && work->state != 0xD) {
+            if (work->groups1To2Cooldown > 0) {
+                work->groups1To2Cooldown--;
             } else {
                 gluttonHitGroups1To2(task);
             }
-            if (work->field_E8C > 0) {
-                work->field_E8C--;
+            if (work->group0Cooldown > 0) {
+                work->group0Cooldown--;
             } else {
                 gluttonHitGroup0(task);
             }
-            if (work->field_E8E > 0) {
-                work->field_E8E--;
+            if (work->groups3To5Cooldown > 0) {
+                work->groups3To5Cooldown--;
             } else {
                 func_actor_444000_8013CA60(task);
             }
-            if (work->field_E90 > 0) {
-                work->field_E90--;
+            if (work->groups6To8Cooldown > 0) {
+                work->groups6To8Cooldown--;
             } else {
                 gluttonHitGroups6To8(task);
             }
@@ -6664,8 +6664,8 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
             enemy->hp     = 1;
             gGluttonEnded = 0;
         }
-        if (enemy->hp <= 0 && work->field_0 != 0) {
-            switch (work->field_F12) {
+        if (enemy->hp <= 0 && work->state != 0) {
+            switch (work->deathTicks) {
                 case 0:
                     gGluttonEnded                                   = 1;
                     D_actor_444000_80161888.value.context.loc.stage = 0;
@@ -6676,68 +6676,68 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
 
                 case 3:
                     if (cfg->hp > 0) {
-                        if (work->field_F08 == 6) {
+                        if (work->phase == 6) {
                             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 2, 0);
                         } else {
                             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 1, 0);
                         }
-                        work->field_0 = 0x12;
+                        work->state = 0x12;
                         SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
                         SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
                     }
                     break;
             }
-            if (work->field_F12 < 0x100) {
-                work->field_F12++;
+            if (work->deathTicks < 0x100) {
+                work->deathTicks++;
             }
         }
     }
 
-    if (work->field_2 != work->field_0) {
-        work->field_4 = 1;
-        work->field_6 = 0;
+    if (work->prevState != work->state) {
+        work->stateChanged = 1;
+        work->stateTicks   = 0;
     } else {
-        if (work->field_6 < 0x7FFF) {
-            work->field_6++;
+        if (work->stateTicks < 0x7FFF) {
+            work->stateTicks++;
         }
-        work->field_4 = 0;
+        work->stateChanged = 0;
     }
-    work->field_2 = work->field_0;
-    handlers[work->field_0](task);
+    work->prevState = work->state;
+    handlers[work->state](task);
 
-    if ((u16)work->field_0 < 2 || work->field_0 == 5 || work->field_0 == 0x12 ||
-        work->field_0 == 0x13 || work->field_0 == 0xC) {
-        enemy->node.state.parts.flags              = WORLD_TARGET_NOT_LOCKABLE;
-        work->field_ECC[3]->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->field_ECC[0]->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->field_ECC[1]->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    } else if (work->field_EFA != 0) {
-        if (Gp_NodeSlotMask(&work->field_ECC[3]->node) != 0) {
+    if ((u16)work->state < 2 || work->state == 5 || work->state == 0x12 ||
+        work->state == 0x13 || work->state == 0xC) {
+        enemy->node.state.parts.flags            = WORLD_TARGET_NOT_LOCKABLE;
+        work->escorts[3]->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->escorts[0]->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->escorts[1]->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    } else if (work->hostExposed != 0) {
+        if (Gp_NodeSlotMask(&work->escorts[3]->node) != 0) {
             Gp_AssignNodeSlot0(&enemy->node);
         }
-        enemy->node.state.parts.flags              = WORLD_TARGET_HIDE_HP;
-        work->field_ECC[3]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
-        work->field_ECC[0]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
-        work->field_ECC[1]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
+        enemy->node.state.parts.flags            = WORLD_TARGET_HIDE_HP;
+        work->escorts[3]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
+        work->escorts[0]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
+        work->escorts[1]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
     } else {
         if (Gp_NodeSlotMask(&enemy->node) != 0) {
-            Gp_AssignNodeSlot0(&work->field_ECC[3]->node);
+            Gp_AssignNodeSlot0(&work->escorts[3]->node);
         }
-        enemy->node.state.parts.flags              = WORLD_TARGET_NOT_LOCKABLE;
-        work->field_ECC[3]->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-        work->field_ECC[0]->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-        work->field_ECC[1]->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+        enemy->node.state.parts.flags            = WORLD_TARGET_NOT_LOCKABLE;
+        work->escorts[3]->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+        work->escorts[0]->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+        work->escorts[1]->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
     }
 
-    if (work->field_0 != 0 && work->field_0 != 0x12 && work->field_0 != 0x13 &&
-        work->field_0 != 5 && work->field_0 != 0xC && work->field_EFA == 1) {
+    if (work->state != 0 && work->state != 0x12 && work->state != 0x13 &&
+        work->state != 5 && work->state != 0xC && work->hostExposed == 1) {
         work->hits[0].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else {
         work->hits[0].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 
-    if (work->field_0 != 0 && work->field_0 != 0x12 && work->field_0 != 0x13 &&
-        work->field_0 != 5 && work->field_0 != 0xC && work->field_EFA != 1) {
+    if (work->state != 0 && work->state != 0x12 && work->state != 0x13 &&
+        work->state != 5 && work->state != 0xC && work->hostExposed != 1) {
         work->hits[1].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->hits[2].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else {
@@ -6745,8 +6745,8 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         work->hits[2].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 
-    if (work->field_0 != 0 && work->field_0 != 5 && work->field_0 != 0xC &&
-        work->field_0 != 0x13 && work->field_0 != 0x12) {
+    if (work->state != 0 && work->state != 5 && work->state != 0xC &&
+        work->state != 0x13 && work->state != 0x12) {
         work->hits[3].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->hits[4].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->hits[5].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -6756,8 +6756,8 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         work->hits[5].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 
-    if (work->field_0 != 0 && work->field_0 != 5 && work->field_0 != 0xC &&
-        work->field_0 != 0x13 && work->field_0 != 0x12) {
+    if (work->state != 0 && work->state != 5 && work->state != 0xC &&
+        work->state != 0x13 && work->state != 0x12) {
         work->hits[6].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->hits[7].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->hits[8].body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -6776,9 +6776,9 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
     Gp_ClearRec18Occupied(work->hits[6].contacts);
     Gp_ClearRec18Occupied(work->hits[7].contacts);
     Gp_ClearRec18Occupied(work->hits[8].contacts);
-    Gp_ClearRec18Occupied(work->recs2);
+    Gp_ClearRec18Occupied(work->swipeContacts);
 
-    if (work->field_0 != 5) {
+    if (work->state != 5) {
         gluttonShakeTick(task);
     }
 
@@ -6788,10 +6788,10 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
 /// Per-frame tail of the arena fight: keeps the camera pulled back far enough
 /// to hold both the boss and the player, then runs the state the task is in.
 ///
-/// `field_E94` is the camera distance actually in use and `field_E96` the one
+/// `wallDistance` is the camera distance actually in use and `wallDistanceTarget` the one
 /// the current state asks for -- 0xBB8 while the boss is grappling (state 3),
 /// 0xD48 for the close patterns and 0x1388 otherwise -- walked 0x32 per frame
-/// until the two are within 0x33 of each other. `field_E98` is the companion
+/// until the two are within 0x33 of each other. `wallDrop` is the companion
 /// height the floor-marker helpers take.
 ///
 /// Most states hand that pair to `gluttonBuildWall`, which rebuilds
@@ -6829,54 +6829,54 @@ void func_actor_444000_80142F28(Task* arg0)
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work   = arg0->work;
     if (work != NULL) {
-        if (work->field_EE8[0] != NULL && work->field_EE8[0]->hp <= 0) {
-            work->field_EE8[0] = NULL;
+        if (work->summons[0] != NULL && work->summons[0]->hp <= 0) {
+            work->summons[0] = NULL;
         }
-        if (work->field_EE8[1] != NULL && work->field_EE8[1]->hp <= 0) {
-            work->field_EE8[1] = NULL;
+        if (work->summons[1] != NULL && work->summons[1]->hp <= 0) {
+            work->summons[1] = NULL;
         }
 
-        state = work->field_0;
+        state = work->state;
         if (state == 3) {
-            work->field_E96 = 0xBB8;
-            work->field_E98 = 0x190;
+            work->wallDistanceTarget = 0xBB8;
+            work->wallDrop           = 0x190;
         } else if (state == 9) {
-            work->field_E96 = 0x1388;
-            work->field_E98 = 0x190;
+            work->wallDistanceTarget = 0x1388;
+            work->wallDrop           = 0x190;
         } else if (state == 0x11) {
-            work->field_E96 = 0x1388;
-            work->field_E98 = 0x190;
-        } else if (work->field_F08 != 0) {
-            work->field_E96 = 0xD48;
-            work->field_E98 = 0x190;
+            work->wallDistanceTarget = 0x1388;
+            work->wallDrop           = 0x190;
+        } else if (work->phase != 0) {
+            work->wallDistanceTarget = 0xD48;
+            work->wallDrop           = 0x190;
         } else {
-            work->field_E96 = 0x1388;
-            work->field_E98 = 0x190;
+            work->wallDistanceTarget = 0x1388;
+            work->wallDrop           = 0x190;
         }
 
-        diff = work->field_E96 - work->field_E94;
+        diff = work->wallDistanceTarget - work->wallDistance;
         if (diff < 0) {
             diff = -diff;
         }
         if (diff >= 0x33) {
-            if (work->field_E94 < work->field_E96) {
-                work->field_E94 = (u16)work->field_E94 + 0x32;
+            if (work->wallDistance < work->wallDistanceTarget) {
+                work->wallDistance = (u16)work->wallDistance + 0x32;
             } else {
-                work->field_E94 = (u16)work->field_E94 - 0x32;
+                work->wallDistance = (u16)work->wallDistance - 0x32;
             }
         } else {
-            work->field_E94 = (u16)work->field_E96;
+            work->wallDistance = (u16)work->wallDistanceTarget;
         }
 
-        state = work->field_0;
+        state = work->state;
         if (state != 0) {
             /* Split so that `0x12` and `0x13` are not the innermost `&&` pair:
                `fold_range_test` would turn two adjacent constants into one
                `sltiu` range check. */
             if (state != 0x12) {
                 if (state != 0x13 && state != 5 && state != 0xC) {
-                    if (work->field_F08 == 1 && state == 9) {
-                        func_actor_444000_801371E8(arg0, work->field_E94, 6);
+                    if (work->phase == 1 && state == 9) {
+                        func_actor_444000_801371E8(arg0, work->wallDistance, 6);
                         {
                             GfxCoord* playerCoord = player->extra.tmd->coords;
 
@@ -6895,13 +6895,13 @@ void func_actor_444000_80142F28(Task* arg0)
                             }
                         }
                     } else {
-                        gluttonBuildWall(arg0, work->field_E94, work->field_E98, 6);
+                        gluttonBuildWall(arg0, work->wallDistance, work->wallDrop, 6);
                     }
 
-                    if (work->field_F08 == 0 || (work->field_F08 == 1 && work->field_0 != 9)) {
+                    if (work->phase == 0 || (work->phase == 1 && work->state != 9)) {
                         GfxCoord* playerCoord = player->extra.tmd->coords;
                         GfxCoord* selfCoord   = arg0->extra.tmd->coords;
-                        s32       x           = work->field_E94 + selfCoord->coord.t[0];
+                        s32       x           = work->wallDistance + selfCoord->coord.t[0];
 
                         if (playerCoord->coord.t[0] < x) {
                             playerCoord->coord.t[0] = x;
@@ -6909,14 +6909,14 @@ void func_actor_444000_80142F28(Task* arg0)
                     } else {
                         GfxCoord* playerCoord = player->extra.tmd->coords;
                         GfxCoord* selfCoord   = arg0->extra.tmd->coords;
-                        s32       z           = selfCoord->coord.t[2] - work->field_E94;
+                        s32       z           = selfCoord->coord.t[2] - work->wallDistance;
 
                         if (z < playerCoord->coord.t[2]) {
                             playerCoord->coord.t[2] = z;
                         }
                     }
 
-                    if (work->field_F08 == 2) {
+                    if (work->phase == 2) {
                         GfxCoord* playerCoord = player->extra.tmd->coords;
 
                         if (playerCoord->coord.t[0] < 0x251C) {
@@ -6928,7 +6928,7 @@ void func_actor_444000_80142F28(Task* arg0)
             /* Re-read: the calls above can drop the fight back to state 0. The
                `goto` is what lets the `state == 0` edge reach the reset
                directly, as the ROM does. */
-            if (work->field_0 != 0) {
+            if (work->state != 0) {
                 goto skipGrid;
             }
         }
@@ -6944,9 +6944,9 @@ void func_actor_444000_80142F28(Task* arg0)
         verts[31].vy = 0x320;
 
     skipGrid:
-        state = work->field_0;
+        state = work->state;
         if (state == 5) {
-            gluttonBuildWall(arg0, work->field_E94, work->field_E98, 6);
+            gluttonBuildWall(arg0, work->wallDistance, work->wallDrop, 6);
         }
     }
 
@@ -6963,35 +6963,35 @@ void func_actor_444000_80142F28(Task* arg0)
 
 #include "../../shared/glutton_get_spinners_released.inc.c"
 
-/// The re-arm's counterpart: on a reset request it sets the two 0xEF4 counters
-/// and the 0x7B0 pair rather than clearing them, and pushes `field_E = 2` onto
+/// The re-arm's counterpart: on a reset request it sets the two neck flags
+/// and requests clip 1 rather than clearing them, and pushes `field_E = 2` onto
 /// the first two escorts' model objects. Every tick it also parks one of two
-/// yaw presets in `field_7C4`, alternating every 60 counts.
+/// yaw presets in `neckYawTarget`, alternating every 60 counts.
 static void func_actor_444000_801434C4(Task* arg0)
 {
     GluttonWork* work;
     s16          tick;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
-        work->field_EF4                               = 1;
-        work->field_EF6                               = 1;
-        work->field_EFA                               = 0;
-        work->field_7B3                               = 1;
-        work->field_7B0                               = 1;
-        work->field_EFE                               = 0;
-        work->field_F1A                               = 0;
-        work->field_ECC[0]->task->extra.tmd->otOffset = 2;
-        work->field_ECC[1]->task->extra.tmd->otOffset = 2;
+    if (work->stateChanged != 0) {
+        work->neckPitchEnabled                      = 1;
+        work->neckYawEnabled                        = 1;
+        work->hostExposed                           = 0;
+        work->animId                                = 1;
+        work->animStep                              = GLUTTON_ANIM_STEP_BLEND;
+        work->neckPitchTarget                       = 0;
+        work->pendingHeals                          = 0;
+        work->escorts[0]->task->extra.tmd->otOffset = 2;
+        work->escorts[1]->task->extra.tmd->otOffset = 2;
         func_shelter_b3_garbage_incinerator_80185220();
     }
     gluttonTickAnim(arg0);
-    tick = work->field_6;
+    tick = work->stateTicks;
     if (tick % 60 == 0) {
         if (tick % 120 == 0) {
-            work->field_7C4 = 0x2B2;
+            work->neckYawTarget = 0x2B2;
         } else {
-            work->field_7C4 = -0x1A2;
+            work->neckYawTarget = -0x1A2;
         }
     }
 }
@@ -7006,27 +7006,27 @@ static void func_actor_444000_801435CC(Task* arg0)
 
     work = arg0->work;
     obj  = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
+    if (work->stateChanged != 0) {
         tmd                         = arg0->extra.tmd;
         obj->node.state.parts.flags = 0;
         tmd->flags                  = 0;
-        work->field_7B3             = 0xC;
-        work->field_7B0             = 2;
-        work->field_EF4             = 0;
-        work->field_EF6             = 0;
-        work->field_EFA             = 0;
-        work->field_7B6             = 0x10;
-        work->field_EFE             = 0;
-        work->field_6               = 0;
+        work->animId                = 0xC;
+        work->animStep              = GLUTTON_ANIM_STEP_RESTART;
+        work->neckPitchEnabled      = 0;
+        work->neckYawEnabled        = 0;
+        work->hostExposed           = 0;
+        work->animRate              = 0x10;
+        work->neckPitchTarget       = 0;
+        work->stateTicks            = 0;
     }
-    if (work->field_6 == 0xA) {
+    if (work->stateTicks == 0xA) {
         id  = ((obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
         pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     gluttonTickAnim(arg0);
-    if (work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        work->field_0 = 9;
+    if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        work->state = 9;
     }
 }
 
@@ -7069,7 +7069,7 @@ s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement, 
     arg0->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     arg0->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     arg0->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    if ((u32)((u16)work->field_0 - 0x12) >= 2U) {
+    if ((u32)((u16)work->state - 0x12) >= 2U) {
         gfxRotMatrixX(&arg0->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_REPLACE);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, placement->rot.vy, 0);
         gfxRotMatrixZ(&arg0->extra.tmd->coords->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
@@ -7081,7 +7081,7 @@ s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement, 
 /// Per-frame upkeep for the enemy, dispatched by `arg2`: state 0 bumps the
 /// heal counter, files a negative "damage" with `func_800DA6E8` so the HUD
 /// shows it as a heal, and tops the enemy's HP back up by 0x64; state 1 ticks
-/// the countdown at 0xF1C down, re-arms `field_F16` and drops either tracked
+/// `summonsAlive` down, re-arms `deathDelay` and drops either tracked
 /// enemy whose HP has run out.
 s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
@@ -7090,22 +7090,22 @@ s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
     switch (arg2) {
         case 0:
-            work->field_F1A++;
+            work->pendingHeals++;
             func_800DA6E8(&obj->node, -0x64, 0);
             if (obj->hp > 0) {
                 obj->hp += 0x64;
             }
             break;
         case 1:
-            if (work->field_F1C > 0) {
-                work->field_F1C--;
+            if (work->summonsAlive > 0) {
+                work->summonsAlive--;
             }
-            work->field_F16 = 2;
-            if (work->field_EE8[0] != NULL && work->field_EE8[0]->hp <= 0) {
-                work->field_EE8[0] = NULL;
+            work->deathDelay = 2;
+            if (work->summons[0] != NULL && work->summons[0]->hp <= 0) {
+                work->summons[0] = NULL;
             }
-            if (work->field_EE8[1] != NULL && work->field_EE8[1]->hp <= 0) {
-                work->field_EE8[1] = NULL;
+            if (work->summons[1] != NULL && work->summons[1]->hp <= 0) {
+                work->summons[1] = NULL;
             }
             break;
     }
@@ -7114,13 +7114,13 @@ s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 s32 func_actor_444000_80143F38(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
-    ((GluttonWork*)arg0->work)->field_0 = 0;
+    ((GluttonWork*)arg0->work)->state = 0;
     return 1;
 }
 
 /// Reset handler: when the work block is asking for a reset, stop the enemy's
 /// own model drawing and push that same flag word onto each of the seven
-/// escorts' models, then clear the two counters at 0xEF4. Otherwise just run
+/// escorts' models, then clear `neckPitchEnabled` and `neckYawEnabled`. Otherwise just run
 /// the ordinary re-arm in `gluttonTickAnim`.
 static void func_actor_444000_80143F4C(Task* arg0)
 {
@@ -7129,18 +7129,18 @@ static void func_actor_444000_80143F4C(Task* arg0)
     s16          i;
 
     work = arg0->work;
-    if (work->field_4 != 0) {
+    if (work->stateChanged != 0) {
         arg0->extra.tmd->flags = 0;
         escorts                = arg0->work;
-        escorts->field_7F3     = 0;
+        escorts->freeCountdown = 0;
         arg0->extra.tmd->flags = 0;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
+        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+            if (escorts->escorts[i] != NULL) {
+                escorts->escorts[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
             }
         }
-        work->field_EF4 = 0;
-        work->field_EF6 = 0;
+        work->neckPitchEnabled = 0;
+        work->neckYawEnabled   = 0;
     } else {
         gluttonTickAnim(arg0);
     }

@@ -25,8 +25,8 @@ void gluttonThrowSpawn(Enemy* enemy, Task* task)
     owner = task->parent->spawnArg2.pointer;
     host  = owner->task->work;
 
-    if (gGluttonEnded == 1 || host->field_0 == 0x10 || host->field_0 == 5 ||
-        host->field_0 == 0xC || host->field_0 == 0x12 ||
+    if (gGluttonEnded == 1 || host->state == 0x10 || host->state == 5 ||
+        host->state == 0xC || host->state == 0x12 ||
         (work = memCalloc(sizeof(GluttonGrabWork), false), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
@@ -36,11 +36,11 @@ void gluttonThrowSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->coords->parent = &gGfxViewCoord;
     task->extra.tmd->flags          = 0;
 
-    actorAccumulateToView(&host->field_ECC[0]->task->extra.tmd->coords[1],
+    actorAccumulateToView(&host->escorts[0]->task->extra.tmd->coords[1],
                           &task->extra.tmd->coords->coord);
 
     vec.vx = vec.vy = vec.vz = 0;
-    actorLocalToView(&host->field_ECC[0]->task->extra.tmd->coords[1], &vec);
+    actorLocalToView(&host->escorts[0]->task->extra.tmd->coords[1], &vec);
 
     task->extra.tmd->coords->coord.t[0]   = vec.vx;
     task->extra.tmd->coords->coord.t[1]   = vec.vy;

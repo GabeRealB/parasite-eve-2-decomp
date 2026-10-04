@@ -535,6 +535,38 @@ typedef struct {
 } ActorAnimRig6;
 STATIC_ASSERT_SIZEOF(ActorAnimRig6, 0x164);
 
+/// Caller-owned playback storage for eight slots.
+///
+/// The context borrows the model's part coordinates and is bound to this
+/// rig's slots and encoded-pose buffer. Both arrays stay live while playback
+/// uses them. Each slot has one pose entry of `ANIMATION_POSE_BUFFER_BYTES`.
+/// The entry holds that slot's encoding at its start: `AnimationPackedPose`
+/// (12 bytes) or `AnimationPackedRotation` (4 bytes). Playback stores no
+/// capacity, so a slot or pose index has to stay within these 8 entries.
+/// Slot 0 keeps its position in both arrays even where an owner drives only
+/// slots 1 to 7.
+typedef struct {
+    AnimationContext anim;                                  // Context bound to `slots`, `poses` and the model coordinates
+    AnimationSlot    slots[8];                              // Playback slot for one driven index
+    u8               poses[8][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose for the slot at the same index
+} ActorAnimRig8;
+STATIC_ASSERT_SIZEOF(ActorAnimRig8, 0x1D4);
+
+/// Caller-owned playback storage for four slots.
+///
+/// The context borrows the model's part coordinates and is bound to this
+/// rig's slots and encoded-pose buffer. Both arrays stay live while playback
+/// uses them. Each slot has one pose entry of `ANIMATION_POSE_BUFFER_BYTES`.
+/// The entry holds that slot's encoding at its start: `AnimationPackedPose`
+/// (12 bytes) or `AnimationPackedRotation` (4 bytes). Playback stores no
+/// capacity, so a slot or pose index has to stay within these 4 entries.
+typedef struct {
+    AnimationContext anim;                                  // Context bound to `slots`, `poses` and the model coordinates
+    AnimationSlot    slots[4];                              // Playback slot for one driven index
+    u8               poses[4][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose for the slot at the same index
+} ActorAnimRig4;
+STATIC_ASSERT_SIZEOF(ActorAnimRig4, 0xF4);
+
 /// Steps of an enemy's animation, kept in `ActorEnemyState::state`.
 ///
 /// A play request leaves one of the two reseeds pending. The enemy's next

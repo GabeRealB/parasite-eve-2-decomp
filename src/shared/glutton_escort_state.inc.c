@@ -25,22 +25,22 @@ void gluttonEscortState(Task* arg0)
     s32 sfx;
     s32 pan;
 
-    work  = (GluttonWork*)arg0->work;
+    work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        work->field_7B3        = 0xE;
-        work->field_7B0        = 1;
-        escorts                = (GluttonWork*)arg0->work;
-        escorts->field_7F3     = 0;
+    if (work->stateChanged != 0) {
+        work->animId           = 0xE;
+        work->animStep         = GLUTTON_ANIM_STEP_BLEND;
+        escorts                = arg0->work;
+        escorts->freeCountdown = 0;
         arg0->extra.tmd->flags = 0;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags =
+        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
+            if (escorts->escorts[i] != NULL) {
+                escorts->escorts[i]->task->extra.tmd->flags =
                     arg0->extra.tmd->flags;
             }
         }
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        dying = (GluttonWork*)arg0->work;
+        dying = arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
 #else
         tmd   = arg0->extra.tmd;
@@ -49,37 +49,37 @@ void gluttonEscortState(Task* arg0)
             Tmd_AllocBuffers(tmd);
         }
 #endif
-        for (j = 0; j < 7; j++) {
-            if (dying->field_ECC[j] != NULL) {
+        for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
+            if (dying->escorts[j] != NULL) {
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-                Tmd_AllocBuffers(dying->field_ECC[j]->task->extra.tmd);
+                Tmd_AllocBuffers(dying->escorts[j]->task->extra.tmd);
 #else
-                escortTmd = dying->field_ECC[j]->task->extra.tmd;
+                escortTmd = dying->escorts[j]->task->extra.tmd;
                 if (escortTmd->buffer == NULL) {
                     Tmd_AllocBuffers(escortTmd);
                 }
 #endif
             }
         }
-        work->field_EF6 = 1;
-        work->field_EF4 = 0;
-        work->field_EFA = 0;
-        work->field_EFE = 0;
+        work->neckYawEnabled   = 1;
+        work->neckPitchEnabled = 0;
+        work->hostExposed      = 0;
+        work->neckPitchTarget  = 0;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        work->field_E96 = 0xC80;
+        work->wallDistanceTarget = 0xC80;
 #endif
     }
-    switch (work->field_6) {
+    switch (work->stateTicks) {
         case 0x64:
         case 0x104:
-            if ((s8)work->field_F1A > 0) {
-                work->field_7B3 = 0x10;
-                work->field_7B0 = 1;
-                work->field_EF4 = 1;
-                work->field_F1A--;
+            if ((s8)work->pendingHeals > 0) {
+                work->animId           = 0x10;
+                work->animStep         = GLUTTON_ANIM_STEP_BLEND;
+                work->neckPitchEnabled = 1;
+                work->pendingHeals--;
             } else {
-                work->field_0   = 0xA;
-                work->field_EFE = 0;
+                work->state           = 0xA;
+                work->neckPitchTarget = 0;
             }
             break;
         case 0x74:
@@ -89,22 +89,22 @@ void gluttonEscortState(Task* arg0)
                 sfx, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             break;
         case 0x1A4:
-            work->field_0   = 0xA;
-            work->field_EFE = 0;
-            work->field_F1A = 0;
+            work->state           = 0xA;
+            work->neckPitchTarget = 0;
+            work->pendingHeals    = 0;
             break;
         case 0x9B:
         case 0x113:
-            work->field_EFE = 0x80;
+            work->neckPitchTarget = 0x80;
             break;
         case 0xAF:
         case 0x145:
             spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 3, 0, arg0->spawnArg2.pointer);
             spawned->workType = ENEMY_WORK_PLAIN;
-            work->field_EF0   = spawned;
+            work->lastSpawned = spawned;
             if (spawned != NULL) {
                 gluttonTintEscort(spawned->task->extra.tmd);
-                work->field_EFE = 0;
+                work->neckPitchTarget = 0;
             }
             break;
     }
@@ -128,15 +128,15 @@ void gluttonEscortState(Task* arg0)
             goto wrapDown;
         }
     }
-    work->field_7C4 = angle;
+    work->neckYawTarget = angle;
     gluttonTickAnim(arg0);
-    if (work->field_7B3 == 0x10 && (work->slots0[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-        work->field_7B3 = 0xE;
-        work->field_7B0 = 1;
+    if (work->animId == 0x10 && (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+        work->animId   = 0xE;
+        work->animStep = GLUTTON_ANIM_STEP_BLEND;
     }
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-    if (work->field_6 >= 0x15) {
-        work->field_F06 = 3;
+    if (work->stateTicks >= 0x15) {
+        work->viewSelector = 3;
     }
 #endif
 }

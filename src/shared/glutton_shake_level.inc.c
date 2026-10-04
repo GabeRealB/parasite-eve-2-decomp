@@ -1,9 +1,9 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Writes a screen-shake level into the host's `field_EAC` through
+/// Writes a screen-shake level into the host's `shakeLevel` through
 /// `GLUTTON_HOST_TASK`; the host's shake driver starts a shake when it differs
 /// from the armed level. Nothing in either package calls it.
 void gluttonSetShakeLevel(s8 arg0)
 {
-    ((GluttonWork*)GLUTTON_HOST_TASK->work)->field_EAC = arg0;
+    ((GluttonWork*)GLUTTON_HOST_TASK->work)->shakeLevel = arg0;
 }

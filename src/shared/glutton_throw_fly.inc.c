@@ -33,8 +33,8 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
     owner = task->parent->spawnArg2.pointer;
     host  = owner->task->work;
 
-    if (gGluttonEnded == 1 || host->field_0 == 0x10 || host->field_0 == 5 ||
-        host->field_0 == 0xC || host->field_0 == 0x12) {
+    if (gGluttonEnded == 1 || host->state == 0x10 || host->state == 5 ||
+        host->state == 0xC || host->state == 0x12) {
         task->state++;
         Gp_UnlinkObj(&work->obj0);
         return;
@@ -100,7 +100,7 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
         work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&work->coord);
 
-        if (host->field_F08 != 6) {
+        if (host->phase != 6) {
             Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->coord.workm), ((s16)work->field_1B0 >> 3) + 0x100,
                                  gRoomEffectState->groundShadowShade);
         }

@@ -1,78 +1,79 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Per-frame animation step. `field_7B0` 1 re-seeds the block through
-/// `gluttonSwitchAnim`, 2 resets every slot of the three even members
-/// from `field_7B3` outright; either way the block is armed (`field_7B0` 3, the
-/// frame counter and the 0x20-byte scratch at `field_7D0` cleared). Then the
-/// slots are advanced: plainly while `field_7B1` is clear, otherwise through the
-/// blended path, which clears `field_7B1` again once the first pair's slot 1
-/// reports done. The three trailing flags run the shared reaction helpers.
+/// Per-frame animation step. `animStep` `GLUTTON_ANIM_STEP_BLEND` re-seeds the
+/// three driving rigs through `gluttonSwitchAnim`, `GLUTTON_ANIM_STEP_RESTART`
+/// resets every slot of them from `animId` outright; either way the step moves
+/// on to `GLUTTON_ANIM_STEP_PLAYING` with `animTicks` and `clip` cleared. Then the
+/// slots are advanced: plainly while `blending` is clear, otherwise through the
+/// blended path, which clears `blending` again once `hostBlendRig`'s slot 1
+/// reports done. The three trailing flags run the neck pitch, the neck yaw and
+/// the limb pose.
 void gluttonTickAnim(Task* arg0)
 {
     GluttonWork* work = arg0->work;
     GluttonWork* w;
     s32          i;
 
-    if (work->field_7B0 == 1) {
+    if (work->animStep == GLUTTON_ANIM_STEP_BLEND) {
         gluttonSwitchAnim(arg0);
-        work->field_7B0 = 3;
-        work->field_7B4 = 0;
-        memFillBytes(work->field_7D0, 0, 0x20);
-    } else if (work->field_7B0 == 2) {
+        work->animStep  = GLUTTON_ANIM_STEP_PLAYING;
+        work->animTicks = 0;
+        memFillBytes(&work->clip, 0, sizeof(work->clip));
+    } else if (work->animStep == GLUTTON_ANIM_STEP_RESTART) {
         w = arg0->work;
         for (i = 1; i < 8; i++) {
-            w->slots0[i].rate = w->field_7B6;
-            animationResetSlot(&w->anim0, i, w->field_7B3);
+            w->hostRig.slots[i].rate = w->animRate;
+            animationResetSlot(&w->hostRig.anim, i, w->animId);
         }
         for (i = 0; i < 4; i++) {
-            w->slots2[i].rate = w->field_7B6;
-            animationResetSlot(&w->anim2, i, w->field_7B3);
+            w->escort0Rig.slots[i].rate = w->animRate;
+            animationResetSlot(&w->escort0Rig.anim, i, w->animId);
         }
         for (i = 0; i < 4; i++) {
-            w->slots4[i].rate = w->field_7B6;
-            animationResetSlot(&w->anim4, i, w->field_7B3);
+            w->escort1Rig.slots[i].rate = w->animRate;
+            animationResetSlot(&w->escort1Rig.anim, i, w->animId);
         }
-        w->field_7B2    = w->field_7B3;
-        work->field_7B0 = 3;
-        work->field_7B4 = 0;
-        memFillBytes(work->field_7D0, 0, 0x20);
+        w->appliedAnimId = w->animId;
+        work->animStep   = GLUTTON_ANIM_STEP_PLAYING;
+        work->animTicks  = 0;
+        memFillBytes(&work->clip, 0, sizeof(work->clip));
     }
 
-    if (work->field_7BA == 2) {
+    if (work->blendStep == 2) {
         gluttonSeedBlend(arg0);
-        work->field_7BA = 3;
+        work->blendStep = 3;
     }
 
-    work->field_7B4++;
+    work->animTicks++;
 
-    if (work->field_7B1 == 0) {
+    if (work->blending == 0) {
         w = arg0->work;
         for (i = 1; i < 8; i++) {
-            w->slots0[i].rate = w->field_7B6;
-            animationTickSlot(&w->anim0, i);
+            w->hostRig.slots[i].rate = w->animRate;
+            animationTickSlot(&w->hostRig.anim, i);
         }
         for (i = 0; i < 4; i++) {
-            w->slots2[i].rate = w->field_7B6;
-            animationTickSlot(&w->anim2, i);
+            w->escort0Rig.slots[i].rate = w->animRate;
+            animationTickSlot(&w->escort0Rig.anim, i);
         }
         for (i = 0; i < 4; i++) {
-            w->slots4[i].rate = w->field_7B6;
-            animationTickSlot(&w->anim4, i);
+            w->escort1Rig.slots[i].rate = w->animRate;
+            animationTickSlot(&w->escort1Rig.anim, i);
         }
     } else {
         gluttonTickBlended(arg0);
-        if (work->slots1[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-            work->field_7B1 = 0;
+        if (work->hostBlendRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+            work->blending = 0;
         }
     }
 
-    if (work->field_EF4 != 0) {
-        gluttonPitchNeck(arg0, work->field_EFE);
+    if (work->neckPitchEnabled != 0) {
+        gluttonPitchNeck(arg0, work->neckPitchTarget);
     }
-    if (work->field_EF6 != 0) {
-        gluttonTurnNeck(arg0, work->field_7C4);
+    if (work->neckYawEnabled != 0) {
+        gluttonTurnNeck(arg0, work->neckYawTarget);
     }
-    if (work->field_EF8 != 0) {
+    if (work->limbPoseEnabled != 0) {
         gluttonPoseLimb(arg0);
     }
 }

@@ -341,8 +341,8 @@ stores is independent of those stores (same-base constant offsets, so
 assignment.
 
 The filler it picks is the **latest unique-constant `li`/`sh` gap before
-the pointer's first use**. Writing `obj.pos.vy` / `obj.pos.vz` before
-`d4rec.contacts = recs2` makes `0x25F` that gap (99.939%, reorder=1). Writing
+the pointer's first use**. Writing `swipeBody.pos.vy` / `swipeBody.pos.vz` before
+`swipeCapsule.contacts = recs2` makes `0x25F` that gap (99.939%, reorder=1). Writing
 the zeros and the `contacts` store first, then the pos fields — the sibling
 spawn's source order — leaves `0x258` (the shared radius immediate) as
 the latest gap, which is the target, and still emits pos.vy/vz *before*
@@ -45587,13 +45587,13 @@ than a filled delay slot. `func_actor_444000_8013CA60` *reads* one such global
 right after a struct store:
 
 ```c
-work->field_0   = 0xE;
-work->field_F0A = D_actor_444000_80144A3C;   /* extern s16: 99.594% */
-work->field_F0A = D_actor_444000_80144A3C[0]; /* extern s16[]: 100% */
+work->state   = 0xE;
+work->groups3To5Pool = D_actor_444000_80144A3C;   /* extern s16: 99.594% */
+work->groups3To5Pool = D_actor_444000_80144A3C[0]; /* extern s16[]: 100% */
 ```
 
 With the scalar declaration GCC hoists the `lhu` above the `sh` to
-`work->field_0` and uses the store to fill the load delay, so the object comes
+`work->state` and uses the store to fill the load delay, so the object comes
 out one instruction short of the target. With the aggregate the load cannot pass
 the store, and the load delay stays an explicit `nop` - which is what the
 original emits. An unsized `extern T X[]` is enough; no bound is needed, which
@@ -72061,7 +72061,7 @@ This supports the eligibility rule in CODEGEN_MODEL §10.3; it does not establis
 and `_gGluttonHostTask.task`, and the header had typed both `Actor444000*` with a
 single `Actor444000Work* field_1C`. Fields were then filed into that one struct from
 whichever function touched them, so `field_2C` / `field_2E` (reached through
-`80161860`) and `field_0` / `field_EAC` (reached through `80161878`) shared a
+`80161860`) and `state` / `shakeLevel` (reached through `80161878`) shared a
 layout asserted at `0xF24`.
 
 **Symptom.** Nothing. Both bodies matched — a store at a constant offset does not
@@ -72551,12 +72551,12 @@ cast in the source — `s16 tick; if (tick % 60 == 0)` emits the HImode test on
 its own.
 
 ```c
-tick = work->field_6;
+tick = work->stateTicks;
 if (tick % 60 == 0) {
     if (tick % 120 == 0) {
-        work->field_7C4 = 0x2B2;
+        work->neckYawTarget = 0x2B2;
     } else {
-        work->field_7C4 = -0x1A2;
+        work->neckYawTarget = -0x1A2;
     }
 }
 ```
@@ -72735,8 +72735,8 @@ Distinct from the `(s8)(u8)field` note above, which is about the *expression*:
 this one is about the *local's declared width*. When m2c hands you
 
 ```c
-s8 state = work->field_7B3;      /* field_7B3 is s8 in the header */
-if (state != 0xD) { … } else { work->field_7B3 = state; }
+s8 state = work->animId;      /* animId is s8 in the header */
+if (state != 0xD) { … } else { work->animId = state; }
 ```
 
 the value has two uses of different modes - an SImode compare and a QImode
@@ -72749,7 +72749,7 @@ different argument registers.
 Widening the local is the whole fix:
 
 ```c
-s32 state = work->field_7B3;
+s32 state = work->animId;
 ```
 
 Now the load is SImode, `lb` sign-extends it in one instruction, the compare
@@ -73093,7 +73093,7 @@ Two arms of an `if` that end in the same `x->a = 3; x->b = 0; memFillBytes(x->bu
 after sched1, and it stops at the first instruction that differs walking
 backwards, so anything sched1 has already interleaved into one arm splits the
 merge there. In `func_actor_444000_8013441C` the second arm ends with an
-unrelated `w->field_7B2 = w->field_7B3;`, which sched1 hoists between the
+unrelated `w->appliedAnimId = w->animId;`, which sched1 hoists between the
 `memFillBytes` argument moves to cover the `lbu` load delay:
 
 ```
@@ -73181,7 +73181,7 @@ to the same place as the following unconditional one) and then inverts the
 jump-around-jump, leaving `slti`/`bnez` straight to the default:
 
 ```c
-switch (work->field_EAC) {
+switch (work->shakeLevel) {
     case 1: ... break;
     case 2: ... break;
     case 3: ... break;
@@ -73199,7 +73199,7 @@ that a switch compares in the promoted index type, so it yields `slti`; the same
 
 ## An `int` temp stops CSE forwarding a byte store into the blocks below
 
-`work->field_EAE--` followed by `work->field_EAE & K` in several later blocks
+`work->shakeFramesRemaining--` followed by `work->shakeFramesRemaining & K` in several later blocks
 compiles to *no* load: cse1 records the store's value for that MEM, follows the
 dispatch branch into each case (`-fcse-follow-jumps`) and substitutes, so the
 `andi` reads the decrement's register. `gluttonShakeTick` reloads
@@ -73208,10 +73208,10 @@ how the byte is read:
 
 ```c
 /* forwarded: (set (reg:QI) (mem:QI)) - substituting gives a valid QI reg move */
-if ((work->field_EAE & 1) == 0) { ... }
+if ((work->shakeFramesRemaining & 1) == 0) { ... }
 
 /* reloaded: (set (reg:SI) (zero_extend:SI (mem:QI))) - CSE cannot substitute there */
-phase = work->field_EAE;          /* phase is s32 */
+phase = work->shakeFramesRemaining;          /* phase is s32 */
 if ((phase & 1) == 0) { ... }
 ```
 
@@ -73225,7 +73225,7 @@ the stored value then dies at the store instead of staying live across the
 switch (here `$v1` became `$v0` and every address shifted).
 
 Two related shapes in the same function: the value handed to an `s8` parameter
-wants an `s32` local, so `amount = work->field_EAF` is `lb` straight into the
+wants an `s32` local, so `amount = work->shakeY` is `lb` straight into the
 argument register instead of a QImode move plus `sll`/`sra`; and a shared call
 after a switch is not the same as a call per case - see "sched1 sets the
 cross-jump boundary" - because cross-jumping stops just after the CALL_INSN when
@@ -74068,9 +74068,9 @@ address computation and nothing ties.
 A dispatch ladder that tests the same field against several constants
 
 ```c
-if (work->field_F08 == 0) { work->field_0 = 9; return; }
-if (work->field_F08 == 1 && z < -0x1D4C) { work->field_0 = 9; return; }
-if (work->field_F08 == 2) { work->field_0 = 9; return; }
+if (work->phase == 0) { work->state = 9; return; }
+if (work->phase == 1 && z < -0x1D4C) { work->state = 9; return; }
+if (work->phase == 2) { work->state = 9; return; }
 ```
 
 reloads the field once per *join*, not once per test. cse runs over extended
@@ -74084,7 +74084,7 @@ Folding the same ladder into one `if (a || (b && c) || d || ...)` keeps the CFG
 identical but hands cse one expression tree, and every load after the first
 disappears: `func_actor_444000_801411C8` came out 2 instructions short with the
 `||` form and matched exactly with six separate `if` statements. The identical
-`work->field_0 = 9; return;` bodies are not a problem - jump.c cross-jumps them
+`work->state = 9; return;` bodies are not a problem - jump.c cross-jumps them
 into the last copy, which is where the original has it, with the `li v0,9` left
 duplicated in the branch delay slots.
 
@@ -74214,10 +74214,10 @@ Writing the second store once, after the ladder, puts it in the ladder's *join*
 block together with the reloads, and sched1 sinks it below them:
 
 ```c
-if (state == 3)      work->field_E96 = 0xBB8;
-else if (...)        work->field_E96 = 0x1388;
+if (state == 3)      work->wallDistanceTarget = 0xBB8;
+else if (...)        work->wallDistanceTarget = 0x1388;
 ...
-work->field_E98 = 0x190;          /* join block */
+work->wallDrop = 0x190;          /* join block */
 ```
 
 `memrefs_conflict_p` proves `0xE98` and `0xE96` disjoint, so the reloads are
@@ -74229,8 +74229,8 @@ lands after them.
 Put the second store in every arm instead:
 
 ```c
-if (state == 3)      { work->field_E96 = 0xBB8;  work->field_E98 = 0x190; }
-else if (...)        { work->field_E96 = 0x1388; work->field_E98 = 0x190; }
+if (state == 3)      { work->wallDistanceTarget = 0xBB8;  work->wallDrop = 0x190; }
+else if (...)        { work->wallDistanceTarget = 0x1388; work->wallDrop = 0x190; }
 ```
 
 Now the join block holds only the reloads, so sched1 has nothing to reorder, and
@@ -74364,7 +74364,7 @@ spot this shape in a target.
 `func_actor_444000_8013AFF8` sets up a `WorldCollisionBody` and the `WorldCollisionCapsule` it points
 at, then hands the record table to `Gp_InitRec18Table`. Every version of the
 block emitted all 17 stores in the right order and still left one instruction -
-`addiu s0, s7, 0xd84` (`&work->recs2`, the table pointer) - seven slots too late,
+`addiu s0, s7, 0xd84` (`&work->swipeContacts`, the table pointer) - seven slots too late,
 for a stubborn 99.933%.
 
 Two groups of stores behave differently in `sched2`. Stores fed by a constant in
@@ -74378,11 +74378,11 @@ through the block until it meets an ALU insn with a **higher** luid, which it
 wins on the same luid tie-break in `rank_for_schedule`.
 
 That last comparison is the whole leftover. Writing the two objects interleaved
-(`d4rec.field_C/10/12`, `obj.context.contacts/pos` + `radius`, `d4rec.field_0..A/14`, `obj.*`)
+(`swipeCapsule.field_C/10/12`, `swipeBody.context.contacts/pos` + `radius`, `swipeCapsule.field_0..A/14`, `swipeBody.*`)
 gives the table pointer a luid *after* `li 0x25f`, so it stops there. Writing all
-of `d4rec` first and all of `obj` afterwards keeps both groups' internal order -
+of `swipeCapsule` first and all of `swipeBody` afterwards keeps both groups' internal order -
 so every store still lands where it did - while moving the pointer's luid before
-`obj.pos.vy`/`pos.vz`, and it floats the remaining seven slots to its target
+`swipeBody.pos.vy`/`pos.vz`, and it floats the remaining seven slots to its target
 position. `reorder` went 1 → 0 with no other change.
 
 Worth reaching for whenever a single address computation sits a few slots off
@@ -74502,9 +74502,9 @@ target lays the two arms out with the dispatch first and the `0` arm *before*
 the `1` arm:
 
 ```
-        beq   $v1, $v0, A        # field_6 == 0x46
+        beq   $v1, $v0, A        # stateTicks == 0x46
          addiu $v0, $zero, 0x78
-        bne   $v1, $v0, OUT      # field_6 != 0x78
+        bne   $v1, $v0, OUT      # stateTicks != 0x78
          lui  $v1, 0x1F80
         j     B
          addiu $v0, $zero, 1
@@ -74541,10 +74541,10 @@ runs.)
 The shape that does match is the short-circuit guard plus a separate test:
 
 ```c
-    if (work->field_6 != 0x46 && work->field_6 != 0x78) {
+    if (work->stateTicks != 0x46 && work->stateTicks != 0x78) {
         goto out;
     }
-    if (work->field_6 == 0x46) {
+    if (work->stateTicks == 0x46) {
         sc->i = 0;
     } else {
         sc->i = 1;
@@ -74584,7 +74584,7 @@ stores that `1` third:
 
 sched1 ranks the constant loads above the stores (they have a dependent) and
 breaks the remaining ties on `INSN_LUID`, i.e. source order. So the `1` has to
-be created by the first statement - but writing `work->field_EF6 = 1;` first
+be created by the first statement - but writing `work->neckYawEnabled = 1;` first
 drags `sh 0xEF6` ahead of `sh 0xEF4` with it, because the store inherits the
 same low luid. A local holding the constant does not help: CSE propagates it
 back into both uses and the `li` re-materialises at the store.
@@ -74593,11 +74593,11 @@ The fix is to give the *preceding* store the lowest luid and let priority, not
 luid, win the first slot:
 
 ```c
-    work->field_EF4 = 0;   /* sh $zero - priority 1, lowest luid */
-    work->field_EF6 = 1;   /* li 1 - priority 2, picked first anyway */
-    state           = work->field_7B3;
-    work->field_7B6 = 0x10;
-    work->field_EFA = 0;
+    work->neckPitchEnabled = 0;   /* sh $zero - priority 1, lowest luid */
+    work->neckYawEnabled = 1;   /* li 1 - priority 2, picked first anyway */
+    state           = work->animId;
+    work->animRate = 0x10;
+    work->hostExposed = 0;
 ```
 
 The zero store has no dependent, so it loses the first cycle to the constant
@@ -74632,10 +74632,10 @@ hoists `li 0x1000` into the delay slot instead. What matches is moving the `2`
 store *between* the `1` stores:
 
 ```c
-work->field_EF4 = 1;
-work->field_7B3 = 2;    /* nested inside the const-1 live range */
-work->field_EF6 = 1;
-work->field_7B0 = 1;
+work->neckPitchEnabled = 1;
+work->animId = 2;    /* nested inside the const-1 live range */
+work->neckYawEnabled = 1;
+work->animStep = 1;
 ```
 
 The mechanism is `lreg`, not scheduling. Each distinct constant gets its own
@@ -74855,9 +74855,9 @@ address is computed once and the stores run right to left.
 `func_actor_444000_8013AFF8` writes three statements:
 
 ```c
-((TmdObject*)work->field_ECC[4]->task->extra)->coords->coord.t[0] = 0;
-((TmdObject*)work->field_ECC[4]->task->extra)->coords->coord.t[1] = 0;
-((TmdObject*)work->field_ECC[4]->task->extra)->coords->coord.t[2] = 0x14;
+((TmdObject*)work->escorts[4]->task->extra)->coords->coord.t[0] = 0;
+((TmdObject*)work->escorts[4]->task->extra)->coords->coord.t[1] = 0;
+((TmdObject*)work->escorts[4]->task->extra)->coords->coord.t[2] = 0x14;
 ```
 
 and gets the four loads plus their load-delay `nop`s three times over, ascending
@@ -74897,7 +74897,7 @@ for (i = 0; i < 7; i++) {        /* sll/sra/slti 7 */
 ```
 
 `func_actor_444000_80133010` is the worked example; the same overlay's
-`actor_444000_6.c` uses the idiom on struct fields too (`(u16)work->field_6`),
+`actor_444000_6.c` uses the idiom on struct fields too (`(u16)work->stateTicks`),
 so it is how this code was written rather than a one-off.
 
 ## A narrow inline parameter moves the sign extension past the inline's own calls
@@ -82817,16 +82817,16 @@ Preprocessed SHA256:
 `func_actor_403200_80141A94`'s case 1 is
 
 ```c
-if (work->field_F1C > 0) {
-    work->field_F1C--;
-    if (work->field_F1C > 0) {
+if (work->summonsAlive > 0) {
+    work->summonsAlive--;
+    if (work->summonsAlive > 0) {
         break;
     }
 }
-work->field_F16 = 2;
+work->deathDelay = 2;
 ```
 
-with `field_F1C` an `s8`. The target loads that one address twice, in two
+with `summonsAlive` an `s8`. The target loads that one address twice, in two
 different modes:
 
 ```
@@ -82869,14 +82869,14 @@ sh    zero,0xc(v0)
 ```
 
 Writing the second read where the target's stores suggest it lands — after
-`work->field_7F3 = 0;` and the `extra->flags` store — scores 92.72% and gives
+`work->freeCountdown = 0;` and the `extra->flags` store — scores 92.72% and gives
 a third instruction, a real `lw t0,0x1c(a3)` plus the `nop` that load delay
 forces. Assigning it *before* both stores scores 100% and turns it into the
 copy:
 
 ```c
-escorts = (GluttonWork*)arg0->work;
-work->field_7F3 = 0;
+escorts = arg0->work;
+work->freeCountdown = 0;
 ((TmdObject*)arg0->extra)->flags = 0;
 ```
 
@@ -82981,8 +82981,8 @@ lhu   v1,0xe94(s0)
 subu  v0,a2,a1
 ```
 
-Assigning m2c's temporaries up front (`temp_a1 = work->field_E94;` then
-`temp_v1 = (u16)work->field_E94;`) instead produced **one** `lhu v1,0xe94` plus
+Assigning m2c's temporaries up front (`temp_a1 = work->wallDistance;` then
+`temp_v1 = (u16)work->wallDistance;`) instead produced **one** `lhu v1,0xe94` plus
 an `sll v0,v1,0x10` / `sra a1,v0,0x10` sign-extension pair, and scheduled the
 `lhu` ahead of the other three loads — 93.6% with branch=5/reorder=1 and 4 extra
 instructions. GCC 2.8.1 merges the two modes when both reads are live at the same
@@ -82992,15 +82992,15 @@ Writing each read inline in the expression that consumes it reproduces the
 four-load sequence:
 
 ```c
-        diff = work->field_E96 - work->field_E94;
+        diff = work->wallDistanceTarget - work->wallDistance;
         ...
-            if (work->field_E94 < work->field_E96) {
-                work->field_E94 = (u16)work->field_E94 + 0x32;
+            if (work->wallDistance < work->wallDistanceTarget) {
+                work->wallDistance = (u16)work->wallDistance + 0x32;
             } else {
-                work->field_E94 = (u16)work->field_E94 - 0x32;
+                work->wallDistance = (u16)work->wallDistance - 0x32;
             }
         } else {
-            work->field_E94 = (u16)work->field_E96;
+            work->wallDistance = (u16)work->wallDistanceTarget;
         }
 ```
 
@@ -83014,7 +83014,7 @@ frame size is a cheap tell for this class: a local that the target keeps in a
 callee-saved register across a branch must be a named variable in the source.
 
 The field the clamp compares is `coord.t[0]` at 0x18 (not `t[1]`, 0x1c), and the
-target adds it as `selfCoord->coord.t[0] + work->field_E94` — operand order
+target adds it as `selfCoord->coord.t[0] + work->wallDistance` — operand order
 survives into `addu v1,v1,a0`, so the self coordinate is written first.
 
 base_2.c preprocessed SHA256: 78d9599b66e14c376538b9a6ff98c62e90350711ce9dfe0d6e086e21dbadf55a
@@ -111694,13 +111694,13 @@ The order that satisfies both at once keeps `EFA` first *and* puts `7B3` before
 one of the value-1 stores:
 
 ```c
-work->field_EF4 = 1;
-work->field_EF6 = 1;
-work->field_EFA = 0;
-work->field_7B3 = 2;   /* before 7B0, so its li overlaps the live value 1 */
-work->field_7B0 = 1;
-work->field_EFE = 0;
-work->field_E96 = 0xE74;
+work->neckPitchEnabled = 1;
+work->neckYawEnabled = 1;
+work->hostExposed = 0;
+work->animId = 2;   /* before 7B0, so its li overlaps the live value 1 */
+work->animStep = 1;
+work->neckPitchTarget = 0;
+work->wallDistanceTarget = 0xE74;
 ```
 
 The `li 2` now spans the value-1 pseudo's last use, cannot take `$v0`, takes
@@ -111775,19 +111775,19 @@ branch sense (`beq` vs `bne`), which duplicated source cannot produce.
 
 ## A `s16` local is what keeps a small switch's index 16-bit (func_actor_403200_8013D9EC, 2026-09-16)
 
-`switch (work->field_6 - 0x39)` with `field_6` declared `s16` looks like it should
+`switch (work->stateTicks - 0x39)` with `stateTicks` declared `s16` looks like it should
 compile the same as the same expression copied into an `s16` local, and does not.
 The subtraction makes the index an `int`, so the extension folds into the load and
 the range test is two instructions shorter than the target's:
 
 ```c
-    switch (work->field_6 - 0x39) {        /* lh v0,6(s2) */
+    switch (work->stateTicks - 0x39) {        /* lh v0,6(s2) */
                                            /* addiu v1,v0,-0x39 */
                                            /* sltiu v0,v1,0x14 */
 ```
 ```c
     s16 state;                             /* lhu v0,6(s2) */
-    state = work->field_6 - 0x39;          /* addiu v0,v0,-0x39 */
+    state = work->stateTicks - 0x39;          /* addiu v0,v0,-0x39 */
     switch (state) {                       /* sll v0,v0,0x10 */
                                            /* sra v1,v0,0x10 */
                                            /* sltiu v0,v1,0x14 */
@@ -111802,7 +111802,7 @@ than through a compare's operand. Without the copy the function scored 97.24% at
 all); with it, 100% and every penalty zero.
 
 The same function reads the *same* field as `lh` for its closing
-`if (work->field_6 >= 0x15)`, so two widths of load on one field inside one function
+`if (work->stateTicks >= 0x15)`, so two widths of load on one field inside one function
 is expected here and is not evidence about the field's declared signedness.
 
 ## A 1.00 in every `similar` class with no `find` equality means the sibling's body *is* the target's, modulo one named global (func_actor_403200_8013509C, 2026-09-16)
@@ -111827,7 +111827,7 @@ diff <(norm asm/USA/actors/matchings/actor_444000/actor_444000_5/func_actor_4440
 That prints two lines, both the global's name, out of 258. Same instruction
 count, same registers, same delay slots: what is left is a transcription, not a
 search. Writing the sibling's source with this overlay's types
-(`GluttonGrabWork`, `host->field_ECC[0]`, `(GluttonWork*)owner->task->work`)
+(`GluttonGrabWork`, `host->escorts[0]`, `owner->task->work`)
 scored 100.000% with every penalty zero on the first real attempt.
 
 **Reading it.** Byte-identity is not the bar for porting; "different symbol
@@ -111893,9 +111893,9 @@ The group-0 hit handler mirrors the host's remaining HP onto three escorts:
 
 ```c
         hp = enemy->hp;
-        work->field_ECC[3]->field_40 = hp;
-        work->field_ECC[1]->field_40 = hp;
-        work->field_ECC[0]->field_40 = hp;
+        work->escorts[3]->field_40 = hp;
+        work->escorts[1]->field_40 = hp;
+        work->escorts[0]->field_40 = hp;
 ```
 
 Written that way the target's three parallel registers collapse into one. In the
@@ -111912,10 +111912,10 @@ separation.
 pointers simultaneously live and forces three registers:
 
 ```c
-        esc3           = work->field_ECC[3];
+        esc3           = work->escorts[3];
         hp             = enemy->hp;
-        esc0           = work->field_ECC[0];
-        esc1           = work->field_ECC[1];
+        esc0           = work->escorts[0];
+        esc1           = work->escorts[1];
         esc3->field_40 = hp;
         esc1->field_40 = hp;
         esc0->field_40 = hp;
@@ -112010,7 +112010,7 @@ candidates read straight off `.lreg`:
 so `task` is allocated first and takes `$s1`. The ROM's numbers must therefore
 be the other way round, and the `.greg`-visible difference is one reference:
 `work` needs 8 (`3*8/76 = 3158 > 3051`) — which the object confirms, because the
-ROM's case-2 `field_7F3` store goes through `work`'s register while the other
+ROM's case-2 `freeCountdown` store goes through `work`'s register while the other
 three cases go through the per-case copy's.
 
 That asymmetry is cse's per-quantity canonical register: `canon_reg` rewrites
@@ -112020,7 +112020,7 @@ uses can be spread over two registers inside one function. The store keeps
 `work` only if it is emitted *before* the case's copy creates the rival clone.
 Two constraints make that reproducible:
 
-1. The copy must be a plain register copy (`escorts = (GluttonWork*)work;`),
+1. The copy must be a plain register copy (`escorts = work;`),
    not a re-read of `task->work`. With the load, the store between them
    (`sb $zero, 0x7F3(work)`) kills cse's memory equivalence, the copy comes back
    as a real load, and the extra reference lands on `task` instead — 98.1% with
@@ -112062,7 +112062,7 @@ this:
 
 The `sll`/`sra` pair is on the *result* of the modulo, immediately before the
 comparison, so it looks like an explicit `(s16)` cast on the expression. It is
-not. `frame` is an `s16` local (`frame = work->field_6;`), and GCC 2.8.1 already
+not. `frame` is an `s16` local (`frame = work->stateTicks;`), and GCC 2.8.1 already
 truncates `frame % 4` back to HImode because that is the operand's declared type.
 Writing the plain
 
@@ -112099,8 +112099,8 @@ Scratch `nonmatchings/func_actor_403200_8013D78C-vacuum` (`base_1.c` matched,
 
 ## A mirrored comparison flips which operand's load is emitted first
 
-`if (work->field_6 >= work->field_F10)` and
-`if (work->field_F10 <= work->field_6)` are the same test and both canonicalise
+`if (work->stateTicks >= work->attackDelay)` and
+`if (work->attackDelay <= work->stateTicks)` are the same test and both canonicalise
 to `f6 < f10`, but the *loads* are emitted in source-operand order and each
 lands in its own register, so the two spellings differ exactly where a target
 does:
@@ -112121,8 +112121,8 @@ function whose structure already matches — `func_actor_403200_8013EB64` went
 
 ## The arm that stores the compared value must be the `!=` one to cross-jump
 
-Three `switch` cases ended in `if (work->field_F1D == K) work->field_0 = 2; else
-work->field_0 = K;` with K 3, 7 and 2, and the target shares one
+Three `switch` cases ended in `if (work->lastAttack == K) work->state = 2; else
+work->state = K;` with K 3, 7 and 2, and the target shares one
 `bne v0,v1` / `sh v1, 0(s1)` tail across all three. The `==` spelling does not
 reach it: its direct lowering is `beq` to the store-2 arm with the store-K arm
 falling through, which `dbr` then fills with the store itself —
@@ -112137,10 +112137,10 @@ sh    v1, 0(s1)          /* the store, in the jump's delay slot */
 — a form with no counterpart at the other sites. Spelling the site as
 
 ```c
-if (work->field_F1D != K) {
-    work->field_0 = K;
+if (work->lastAttack != K) {
+    work->state = K;
 } else {
-    work->field_0 = 2;
+    work->state = 2;
 }
 ```
 
@@ -112276,7 +112276,7 @@ The addresses are computed at their first use, and sched1 keeps that order when
 neither has a longer dependence chain. The source had the message stores first
 (`msg.field_0 = 0; D_actor_403200_8015F8E0 = 0; msg.field_1 = 0x2C; ...`, which is
 what puts the two `sb`s in the target's order), so `F8F4`'s `lui` came first.
-Moving the `D_actor_403200_8015F8E0 = 0;` store ahead of the `work->field_7C4 =
+Moving the `D_actor_403200_8015F8E0 = 0;` store ahead of the `work->neckYawTarget =
 yaw;` store above it computes its address first and the pair lands in the target's
 order — the `yaw` store itself still schedules after both `lui`s. Worth trying
 before anything else when a lone `lui`/`lui` pair is the leftover: the store order
@@ -112284,7 +112284,7 @@ inside the block and the address order at its head are two separate levers.
 
 ## The `if` / `else` around a conditional halfword update is what gives the signed compare its own `lh` (func_actor_403200_8013D028, 2026-09-17)
 
-`func_actor_403200_8013D028` walks a shared `s16` countdown down once `field_6`
+`func_actor_403200_8013D028` walks a shared `s16` countdown down once `stateTicks`
 passes 0x39, by 0xC8 past 0xBB9 and by 0x1E below it, and the ROM loads the
 halfword **twice**:
 
@@ -112342,7 +112342,7 @@ this same tail from this same if/else form.
 The rest of the function needed nothing beyond the sibling's idioms: the reset
 half is `func_actor_403200_8013D9EC`'s, the cue blocks are
 `func_actor_403200_8013DC3C`'s `field_8[1]` shape with `/ 2` on the depth, and
-the five-record scan is `func_actor_444000_8013FB74`'s `recs2` loop verbatim.
+the five-record scan is `func_actor_444000_8013FB74`'s `swipeContacts` loop verbatim.
 Two builds: 86.239% from m2c, 86.239% -> 99.088% on the project-style rewrite,
 99.088% -> 100% on this tail.
 
@@ -112351,7 +112351,7 @@ Preprocessed input (base_2) `0d031abe936fcefcb9d8486907b591088af85ee6055987a37bc
 
 ## An `s16` field truncated through an `s16` local narrows to `lhu`; switched on directly it stays `lh`
 
-`work->field_6` is `s16`, and the target of `func_actor_403200_8013B3C8` reads it
+`work->stateTicks` is `s16`, and the target of `func_actor_403200_8013B3C8` reads it
 with `lhu`:
 
 ```
@@ -112367,25 +112367,25 @@ No cast is involved. Copying the expression into an `s16` local is what does it:
 ```c
 s16 state;
 
-state = work->field_6 - 0x13;
+state = work->stateTicks - 0x13;
 switch (state) { ... }
 ```
 
 The assignment to `state` discards everything above bit 15, and the `addiu` can
 carry out of that width, so GCC only ever needs the low halfword: it narrows the
 load to `lhu` and materialises the truncation as the `sll`/`sra` pair. Switched
-on `work->field_6 - 0x13` *directly* the index is an `int`, the whole
+on `work->stateTicks - 0x13` *directly* the index is an `int`, the whole
 sign-extended value is needed, and the load becomes `lh` with no `sll`/`sra` —
 three instructions where the target has five.
 
 So the load sign is a consequence of the destination width, not of the field:
-the same `s16` field emits `lh` at the `if (work->field_6 >= 0x15)` a few
+the same `s16` field emits `lh` at the `if (work->stateTicks >= 0x15)` a few
 instructions later, which needs the signed value whole. Read `lhu` on a signed
 field as "this use only wanted 16 bits", and look for the local that threw the
 rest away.
 
 `func_actor_403200_8013D9EC` is the same shape one state over (`s16 state =
-work->field_6 - 0x39`), and its source comment carries the same conclusion.
+work->stateTicks - 0x39`), and its source comment carries the same conclusion.
 `func_actor_403200_8013B3C8` matched 100% on the first project-style rewrite:
 m2c's `goto block_20` for the eight spawn cases scored 66.734%, and writing each
 case's `Gp_SpawnEnemyFromTable` call out separately — per-case index, no shared
@@ -136480,12 +136480,12 @@ backedge slot. Several equivalent simple loop spellings emitted the same code.
 The successful preplanned experiment peels the mandatory first call:
 
 ```c
-work->field_7B6 = 0x60;
+work->animRate = 0x60;
 func_actor_403200_80133DD8(arg0);
 while ((u32)(work->field_4A & 0x3FF) < 0x34) {
     func_actor_403200_80133DD8(arg0);
 }
-work->field_7B6 = 0x10;
+work->animRate = 0x10;
 ```
 
 Observed in the matching `base_2` dumps:

@@ -137,13 +137,13 @@ typedef struct GluttonHitScratch {
 STATIC_ASSERT_SIZEOF(GluttonHitScratch, 0x30);
 
 /// 0xC-byte scratchpad frame `func_actor_403200_8013EF6C` carves off
-/// the scratch-pad stack for the escort-spawn tick: `delta` is the player-relative
-/// offset the tick yaws the host by, and `i` is the escort slot the loop and
-/// the 0x7DB message both index `GluttonWork::field_EE8` with.
+/// the scratch-pad stack for the summon tick: `delta` is the player-relative
+/// offset the tick yaws the host by, and `i` is the slot the loop and
+/// the 0x7DB message both index `GluttonWork::summons` with.
 typedef struct GluttonSpawnScratch {
     SVECTOR delta;
     byte    pad_8[0x2];
-    s16     i; // escort slot, 0 or 1
+    s16     i; // `GluttonWork::summons` slot, 0 or 1
 } GluttonSpawnScratch;
 STATIC_ASSERT_SIZEOF(GluttonSpawnScratch, 0xC);
 
@@ -262,253 +262,145 @@ typedef struct GluttonSpinnerWork {
 } GluttonSpinnerWork;
 STATIC_ASSERT_SIZEOF(GluttonSpinnerWork, 0xA0);
 
-/// Work block of the boss itself, allocated zeroed by its spawn state and
-/// kept at `Task::work`. The leading halfwords are the state dispatcher's:
-/// `field_0` is the state index the per-frame dispatcher runs, `field_2` the
-/// state it ran on the previous tick, `field_4` is raised on the tick the
-/// state changes, and `field_6` counts the ticks spent in the current state.
-/// Six animation blocks follow, pairing up so that each even member drives
-/// the model and the odd one is the pose blended into it; then the escort
-/// pose driver, the animation and blend state, the collision groups, the
-/// lighting, the boss's counters and its escorts.
-typedef struct GluttonWork {
-    /// State index. `func_actor_403200_8013FB54` indexes the local copy of
-    /// `D_actor_403200_80132154` with it, and whenever it differs from
-    /// `field_2` it flags the change in `field_4` and re-arms the `field_6`
-    /// counter. The same three fields and that same test appear in the sibling
-    /// actor overlays that share this dispatcher.
-    /* 0x000 */ s16 field_0;
-    /// The state index `func_actor_403200_8013FB54` ran on the previous tick,
-    /// so it can spot the change.
-    /* 0x002 */ s16 field_2;
-    /// Set on the tick the dispatcher sees a state change, cleared on every
-    /// other tick. `func_actor_403200_8014123C` reads it to re-arm `field_6`
-    /// once more, which the dispatcher has already done.
-    /* 0x004 */ s16 field_4;
-    /// Per-state counter: cleared on a state change, otherwise incremented
-    /// (saturating at 0x7FFF). State handlers fire one-shot cues on the ticks
-    /// it reaches a given value.
-    /* 0x006 */ s16  field_6;
-    /* 0x008 */ byte pad_8[0x4];
-    /// Six back-to-back animation blocks, each an `AnimationContext` followed by its
-    /// own `AnimationSlot[N]` and an N-entry 0x10-byte pose table -- the three
-    /// argument groups the spawn state hands `animationInitContext`. They pair up
-    /// (0/1, 2/3, 4/5), eight slots in the first pair and four in the others;
-    /// the even member drives the model and the odd one is the pose blended
-    /// into it. The states latch their one-shot cues on `slots0[n].currentPose.indices.recordIndex`.
-    /* 0x00C */ AnimationContext anim0;
-    /* 0x020 */ AnimationSlot    slots0[8];
-    /* 0x160 */ byte             aux0[0x80];
-    /* 0x1E0 */ AnimationContext anim1;
-    /* 0x1F4 */ AnimationSlot    slots1[8];
-    /* 0x334 */ byte             aux1[0x80];
-    /* 0x3B4 */ AnimationContext anim2;
-    /* 0x3C8 */ AnimationSlot    slots2[4];
-    /* 0x468 */ byte             aux2[0x40];
-    /* 0x4A8 */ AnimationContext anim3;
-    /* 0x4BC */ AnimationSlot    slots3[4];
-    /* 0x55C */ byte             aux3[0x40];
-    /* 0x59C */ AnimationContext anim4;
-    /* 0x5B0 */ AnimationSlot    slots4[4];
-    /* 0x650 */ byte             aux4[0x40];
-    /* 0x690 */ AnimationContext anim5;
-    /* 0x6A4 */ AnimationSlot    slots5[4];
-    /* 0x744 */ byte             aux5[0x40];
-    /// Per-part yaw the fifth escort's model is being driven to, one entry per
-    /// part, and the angle each part is currently at. The escort pose driver
-    /// picks the targets from `field_7A4` and walks every `field_794` toward
-    /// its `field_784` by at most `field_7A6` a call.
-    /* 0x784 */ s16  field_784[7];
-    /* 0x792 */ byte pad_792[0x2];
-    /* 0x794 */ s16  field_794[7];
-    /* 0x7A2 */ byte pad_7A2[0x2];
-    /// Escort pose index, written 3 by the re-arm path of the per-frame body
-    /// and cleared once the shared countdown below has run out.
-    /* 0x7A4 */ s16 field_7A4;
-    /// Most a `field_794` entry may move in one call.
-    /* 0x7A6 */ s16 field_7A6;
-    /// The masked `slots0[3].currentPose.indices.recordIndex` frame the launch state last saw, so each of its
-    /// four one-shot cues only fires on the step the animation first reaches
-    /// that frame.
-    /* 0x7A8 */ s32 field_7A8;
-    /// The masked `slots0[1]` / `slots0[2]` frame the stand-up tick last saw, so
-    /// each of its one-shot cues only fires on the step the animation first
-    /// reaches that frame.
-    /* 0x7AC */ s32 field_7AC;
-    /* 0x7B0 */ s8  field_7B0;
-    /// Set while the blended animation path runs.
-    /* 0x7B1 */ s8 field_7B1;
-    /// Animation id currently playing; the slot reseed latches `field_7B3`
-    /// here once it has reseeded every slot.
-    /* 0x7B2 */ s8 field_7B2;
-    /* 0x7B3 */ s8 field_7B3;
-    /// Frames since the animation block was re-armed.
-    /* 0x7B4 */ u16 field_7B4;
-    /// The `AnimationSlot.rate` the even animation members tick at; the launch
-    /// state arms it to 0x40 and then to 0x10.
-    /* 0x7B6 */ s16 field_7B6;
-    /* 0x7B8 */ s16 field_7B8;
-    /// Set to 2 to start a blend on the next animation step, which then moves
-    /// it on to 3.
-    /* 0x7BA */ s16 field_7BA;
-    /// Animation id the blend seeds the odd members' slots with.
-    /* 0x7BC */ s16 field_7BC;
-    /// The `AnimationSlot.rate` the odd members tick at while blending.
-    /* 0x7BE */ s16 field_7BE;
-    /// Blend weight of the odd member in the pose written to the even one, out
-    /// of 0x1000.
-    /* 0x7C0 */ s16  field_7C0;
-    /* 0x7C2 */ byte pad_7C2[0x2];
-    /// Cleared alongside `field_7C8` by the group-0 hit handler.
-    /* 0x7C4 */ s16  field_7C4;
-    /* 0x7C6 */ byte pad_7C6[0x2];
-    /// Cleared alongside `field_7C4` by the group-0 hit handler.
-    /* 0x7C8 */ s16 field_7C8;
-    /// Frames since the arena tick last sent the player its message 0x3FF
-    /// animation; the retries in `func_actor_403200_8013FB54` are bounded by
-    /// it.
-    /* 0x7CA */ u16  field_7CA;
-    /* 0x7CC */ byte pad_7CC[0x4];
-    /// Start of a 0x20-byte run cleared whenever the animation block is
-    /// re-armed.
-    /* 0x7D0 */ byte field_7D0[0x8];
-    /// The masked `slots0[2].currentPose.indices.recordIndex` frame the per-frame body last saw, so each of its
-    /// two one-shot cues only fires on the step the animation first reaches
-    /// that frame.
-    /* 0x7D8 */ s32  field_7D8;
-    /* 0x7DC */ byte pad_7DC[0x16];
-    /// Set once the session reports the view ready, so the one-shot setup runs
-    /// a single time. The spawn state clears the same byte.
-    /* 0x7F2 */ s8 field_7F2;
-    /// Cleared by the state-change reset to mark the work block as re-armed.
-    /* 0x7F3 */ u8 field_7F3;
-    /// The nine hit groups. 0 and 1 ride the host's part 4 and 2 its part 1;
-    /// 3 to 5 ride parts 1 to 3 of escort 0, and 6 to 8 those of escort 1.
-    /// Groups 0, 1, 3 and 6 also supply the contact records of the host,
-    /// escort 3, escort 0 and escort 1.
-    /* 0x7F4 */ GluttonHitGroup hits[9];
-    /// The tenth collision object, the one the swipe tick raises `flags` bit
-    /// 0x8000 on while the swipe is live.
-    /* 0xD4C */ WorldCollisionBody    obj;
-    /* 0xD6C */ WorldCollisionCapsule d4rec;
-    /// The five records the tenth collision object carries, walked by the swipe
-    /// tick for the one whose high half is 0x10000.
-    /* 0xD84 */ WorldCollisionContact recs2[5];
-    /// The light and colour matrices the spawn state points the host model
-    /// and its escorts at (`TmdObject::lightMtx` / `colorMtx`).
-    /* 0xDFC */ MATRIX lightMtx;
-    /* 0xE1C */ MATRIX colorMtx;
-    /// Free coordinate the swipe tick clears and pushes through
-    /// `Gp_UpdateCoord` every step; `coord` is the matrix `gfxRotMatrixY`
-    /// rebuilds from `field_7C8`. The spawn state seeds it with the identity
-    /// through the word view.
-    /* 0xE3C */ GluttonCoord field_E3C;
-    /// `Gp_GetIdParam2` of the hit the group-0 handler took this frame; the
-    /// sibling slots carry the other groups' ids.
-    /* 0xE8C */ s16 field_E8C;
-    /* 0xE8E */ s16 field_E8E;
-    /* 0xE90 */ s16 field_E90;
-    /* 0xE92 */ s16 field_E92;
-    /// Yaw the upkeep tick walks toward `field_E96` in steps of 0x32, snapping
-    /// once the two are within 0x33 of each other.
-    /* 0xE94 */ s16 field_E94;
-    /// Yaw target the re-arm path arms to 0xC80.
-    /* 0xE96 */ s16 field_E96;
-    /// Companion value handed to the follow helper alongside `field_E94`.
-    /* 0xE98 */ s16  field_E98;
-    /* 0xE9A */ byte pad_E9A[0x12];
-    /// Screen-shake level `gluttonShakeTick` drives, and the level
-    /// armed last tick in `field_EAD`; a change from the armed level starts a
-    /// shake.
-    /* 0xEAC */ u8 field_EAC;
-    /* 0xEAD */ u8 field_EAD;
-    /* 0xEAE */ u8 field_EAE;
-    /* 0xEAF */ s8 field_EAF;
-    /// Message 0x3FF payload the launch state sends the player.
-    /* 0xEB0 */ AnimationPlayRequest anim;
-    /// First three bytes of the last 0x7DB payload received.
-    /* 0xEC4 */ u8   field_EC4;
-    /* 0xEC5 */ u8   field_EC5;
-    /* 0xEC6 */ u8   field_EC6;
-    /* 0xEC7 */ byte pad_EC7;
-    /// Set to 1 while the player holds the animation the stand-up state hands
-    /// over in its message 0x3FF.
-    /* 0xEC8 */ s16 field_EC8;
-    /// The reply the swipe tick's hold request (message 0x3F9) came back with,
-    /// 1 when the player took it.
-    /* 0xECA */ s16 field_ECA;
-    /// The seven escorts the spawn state starts; the state-change reset walks
-    /// them to push the host's `TmdObject::flags` onto each escort's own model
-    /// object.
-    /* 0xECC */ Enemy* field_ECC[7];
-    /// Two nearby-enemy slots the spawn tick fills, each dropped once its HP
-    /// runs out.
-    /* 0xEE8 */ Enemy* field_EE8[2];
-    /// The enemy the state-change reset spawns from `D_actor_403200_8015E858`
-    /// for the three states that launch it.
-    /* 0xEF0 */ Enemy* field_EF0;
-    /* 0xEF4 */ s16    field_EF4;
-    /* 0xEF6 */ s16    field_EF6;
-    /// Armed to 1 alongside `field_EF6` by the swipe tick's reset half.
-    /* 0xEF8 */ s16 field_EF8;
-    /// Armed to 1 by the per-frame body's re-arm path.
-    /* 0xEFA */ s16 field_EFA;
-    /// The `field_EFA` the colour update last ran for.
-    /* 0xEFC */ s16 field_EFC;
-    /// Cleared by the per-frame body's re-arm path.
-    /* 0xEFE */ s16 field_EFE;
-    /// Pitch the head tracker walks toward its request, clamped to 0..0x500.
-    /* 0xF00 */ s16 field_F00;
-    /// Raised to 1 with the message 0x3F4 the launch tick sends the player
-    /// once the hold has been taken.
-    /* 0xF02 */ s16 field_F02;
-    /// Armed by the model-reset path in func_actor_403200_8013E2FC.
-    /* 0xF04 */ s16 field_F04;
-    /// Cleared by the per-frame body once `field_6` has passed 0x14.
-    /* 0xF06 */ s16 field_F06;
-    /// The step index of the per-frame body's walk-out: state 0 runs the model
-    /// out to x 0x1CCA, state 1 to x 0x2882, and each step that arrives
-    /// advances it and re-arms `field_0`.
-    /* 0xF08 */ s16 field_F08;
-    /// Damage pool the hit handler for collision groups 3, 4 and 5
-    /// (`func_actor_403200_8013A4A0`) draws down alongside the host's HP, and
-    /// refills to 0x32 when it runs out.
-    /* 0xF0A */ s16 field_F0A;
-    /// Damage pool the hit handler for collision groups 6, 7 and 8
-    /// (`gluttonHitGroups6To8`) draws down alongside the host's HP, and
-    /// refills to 0x3C when it runs out.
-    /* 0xF0C */ s16 field_F0C;
-    /// Damage pool the hit handler for collision groups 1 and 2
-    /// (`gluttonHitGroups1To2`) draws down alongside the host's HP.
-    /* 0xF0E */ s16 field_F0E;
-    /// Start-of-state countdown the attack state reads against `field_6`: the
-    /// state body only runs once `field_6` has reached it, and it is seeded to
-    /// 0x28 if still zero.
-    /* 0xF10 */ s16 field_F10;
-    /// Death-cinematic step counter; reaching 8 starts the pending-position
-    /// handoff.
-    /* 0xF12 */ s16 field_F12;
-    /// Quarters of it is how many extra re-arm steps the launch state runs,
-    /// calling the per-frame body once per step.
-    /* 0xF14 */ s16 field_F14;
-    /// Re-armed to 2 by the upkeep handler `func_actor_403200_80141A94` once
-    /// the `field_F1C` countdown has run out.
-    /* 0xF16 */ s16  field_F16;
-    /* 0xF18 */ byte pad_F18[0x2];
-    /// Free-running counter bumped on every heal tick by
-    /// `func_actor_403200_80141A94`.
-    /* 0xF1A */ u8 field_F1A;
-    /// Count of escorts this overlay has spawned; the spawn tick refuses a
-    /// new one once it has reached 8.
-    /* 0xF1B */ s8 field_F1B;
-    /// Countdown, decremented while positive; when it reaches zero the handler
-    /// re-arms `field_F16`. The spawn tick also uses it as a live-escort cap
-    /// of 2.
-    /* 0xF1C */ s8 field_F1C;
-    /// Armed to 6 by the state-change reset, the pair shown while the enemy
-    /// stands up.
-    /* 0xF1D */ s8   field_F1D;
-    /* 0xF1E */ byte pad_F1E[0x6];
+/// Parts of the limb the pose driver walks: coordinates 0 to 6 of escort 4's
+/// model, each with a pitch and a target in `GluttonWork`.
+enum { GLUTTON_LIMB_PARTS = 7 };
+
+/// `GluttonWork::animStep`: what the animation tick does with `animId` next.
+enum {
+    GLUTTON_ANIM_STEP_BLEND   = 1, // Seek the driving rigs to `animId`, blending from their pose, unless it is already applied
+    GLUTTON_ANIM_STEP_RESTART = 2, // Reset the driving rigs to the start of `animId`
+    GLUTTON_ANIM_STEP_PLAYING = 3, // Seeded: the slots only tick
+};
+
+/// `GluttonWork::shakeLevel`: the screen shake a state asks for.
+///
+/// Each level is a fixed run of frames with its own vertical pattern; a level
+/// outside this set is never armed.
+enum {
+    GLUTTON_SHAKE_NONE   = 0, // No shake
+    GLUTTON_SHAKE_SHORT  = 1, // 5 frames alternating 0 and 2 pixels
+    GLUTTON_SHAKE_MEDIUM = 2, // 10 frames of a four-frame 0, 2, 3, 2 pattern
+    GLUTTON_SHAKE_LONG   = 3, // 22 frames of an eight-frame ramp peaking at 4 pixels
+};
+
+/// Work block of the Glutton itself, allocated zeroed at this size by its
+/// spawn state and kept at `Task::work`.
+///
+/// The boss is one host model and seven escort models parented to its parts,
+/// each escort an enemy task of its own. The host and escorts 0 and 1 are
+/// animated together: every clip id is played on all three, each through a
+/// driving rig and a second rig whose pose can be mixed into the first. Parts 3
+/// and 4 of the host are its neck, turned and pitched toward the player on top
+/// of the clip, and escort 4 is the seven-part limb, posed part by part.
+///
+/// A state machine drives the fight. The per-frame tick runs the handler
+/// `state` indexes, after flagging a change of state and counting the ticks
+/// spent in it; handlers start their clip and arm their flags on the tick the
+/// change is flagged. A handler forces its own entry again by writing -1 to
+/// `prevState`.
+///
+/// Damage arrives through nine hit spheres in four groups, each with its own
+/// handler and cooldown. All of it comes off the host's HP, which is mirrored
+/// onto the escorts that stand in as lock-on targets.
+typedef struct {
+    s16           state;                               // Index of the state handler the tick runs
+    s16           prevState;                           // `state` as of the previous tick; -1 makes the next tick flag a change
+    s16           stateChanged;                        // 1 on the tick `state` differs from `prevState`, otherwise 0
+    s16           stateTicks;                          // Ticks since the change was flagged, saturating at 0x7FFF; handlers fire cues at fixed counts
+    byte          unknown_8[0x4];                      // Never accessed; role unproven
+    ActorAnimRig8 hostRig;                             // Drives the host model; slots 1 to 7 are played
+    ActorAnimRig8 hostBlendRig;                        // Second pose source for the host, mixed into `hostRig` while `blending`
+    ActorAnimRig4 escort0Rig;                          // Drives escort 0's model
+    ActorAnimRig4 escort0BlendRig;                     // Second pose source for escort 0
+    ActorAnimRig4 escort1Rig;                          // Drives escort 1's model
+    ActorAnimRig4 escort1BlendRig;                     // Second pose source for escort 1
+    s16           limbPitchTarget[GLUTTON_LIMB_PARTS]; // Pitch each part of the limb is driven to, by part; the pose picks entries 1 to 6
+    byte          unknown_792[0x2];                    // Never accessed; role unproven
+    s16           limbPitch[GLUTTON_LIMB_PARTS];       // Pitch each part of the limb is at, walked toward its target and applied as the part's X rotation
+    byte          unknown_7A2[0x2];                    // Never accessed; role unproven
+    s16           limbPose;                            // Limb pose the targets are picked from (0 to 5); poses 0, 1, 3 and 5 curl the limb by the shared reach counter
+    s16           limbPitchStep;                       // Most a `limbPitch` entry moves in one tick, set by the pose
+    s32           prevSlot3Cue;                        // Cue index of `hostRig.slots[3]` as of the previous tick, so a cue fires once on arrival
+    s32           prevSwipeCue;                        // Cue index of the slot the swipe watches (1, then 2) as of the previous tick
+    s8            animStep;                            // `GLUTTON_ANIM_STEP_*`; a state requests BLEND or RESTART and the tick answers with PLAYING
+    s8            blending;                            // Nonzero while the tick mixes the blend rigs in; cleared when `hostBlendRig.slots[1]` reaches its boundary
+    s8            appliedAnimId;                       // Clip the driving rigs were last seeded with
+    s8            animId;                              // Clip a state requests, on the host and escorts 0 and 1 alike
+    u16           animTicks;                           // Ticks since the driving rigs were last seeded
+    s16           animRate;                            // Slot rate the driving rigs tick at (0x10 normally; raised to fast-forward a clip)
+    s16           field_7B8;                           // Seeded with the same 0x10 as `animRate` and never read; role unproven
+    s16           blendStep;                           // 2 seeds the blend rigs on the next tick, which then stores 3
+    s16           blendAnimId;                         // Clip the blend rigs are seeded with
+    s16           blendRate;                           // Slot rate the blend rigs tick at
+    s16           blendWeight;                         // Share of the blend rig's pose in the mix, out of 0x1000
+    byte          unknown_7C2[0x2];                    // Never accessed; role unproven
+    s16           neckYawTarget;                       // Yaw from the host's facing to the player, wrapped to +/-0x800; the neck follows it within +/-0x200
+    byte          unknown_7C6[0x2];                    // Never accessed; role unproven
+    s16           neckYaw;                             // Yaw the neck is turned by, walked toward the target 0x71 a tick; `swipeCoord` takes the same yaw
+    u16           caughtTicks;                         // Ticks since `playerAnim` was last sent to the caught player; bounds the resends
+    byte          unknown_7CC[0x4];                    // Never accessed; role unproven
+    struct {
+        byte unknown_0[0x8];                           // Only ever cleared; role unproven
+        s32  prevSlot2Cue;                             // Cue index of `hostRig.slots[2]` as of the previous tick, so a cue fires once on arrival
+        byte unknown_C[0x14];                          // Only ever cleared; role unproven
+    } clip;                                            // Cleared as one block whenever the driving rigs are seeded
+    byte                  unknown_7F0[0x2];            // Never accessed; role unproven
+    s8                    spinnersSpawned;             // Dumping hole only: set once the nine spinners have been placed for this round; cleared when the inhale ends
+    u8                    freeCountdown;               // Frames until the host's and escorts' model buffers are freed, hiding them meanwhile; 0 disables it
+    GluttonHitGroup       hits[9];                     // Hit spheres: 0 and 1 ride the host's part 4 and 2 its part 1; 3 to 5 ride parts 1 to 3 of escort 0, 6 to 8 those of escort 1
+    WorldCollisionBody    swipeBody;                   // Capsule body of the limb's swipe, riding `swipeCoord`; pair-tested only on the swipe's strike frame
+    WorldCollisionCapsule swipeCapsule;                // Its shape: 0x1B58 forward from the host, radius 0x258
+    WorldCollisionContact swipeContacts[5];            // Its contact table; a player contact starts the catch
+    MATRIX                lightMtx;                    // Light-direction matrix lent to the host's and every escort's model
+    MATRIX                colorMtx;                    // Light-colour matrix lent to the same models
+    GluttonCoord          swipeCoord;                  // Node under the host's root that `swipeBody` rides, re-yawed to `neckYaw` as a swipe starts
+    s16                   group0Cooldown;              // Ticks before the group-0 hit handler runs again
+    s16                   groups3To5Cooldown;          // Ticks before the handler of groups 3 to 5 runs again
+    s16                   groups6To8Cooldown;          // Ticks before the handler of groups 6 to 8 runs again
+    s16                   groups1To2Cooldown;          // Ticks before the handler of groups 1 and 2 runs again
+    s16                   wallDistance;                // How far ahead of the host its collision wall is built; also the least lead the player keeps
+    s16                   wallDistanceTarget;          // Distance a state asks for; `wallDistance` closes on it 0x32 a tick
+    s16                   wallDrop;                    // How far the wall's lower edge sits below its upper one
+    byte                  unknown_E9A[0x12];           // Never accessed; role unproven
+    u8                    shakeLevel;                  // `GLUTTON_SHAKE_*` requested; cleared when the shake runs out
+    u8                    armedShakeLevel;             // Level the running shake was started for; a request that differs starts a new one
+    u8                    shakeFramesRemaining;        // Frames of the running shake left
+    s8                    shakeY;                      // Vertical display offset applied this frame, in pixels
+    AnimationPlayRequest  playerAnim;                  // Request sent to the player task to play its caught and release clips
+    u8                    lastCommandStage;            // Location stage of the last actor command received; never read
+    u8                    lastCommandArea;             // Location area of that command; never read
+    u8                    lastCommand;                 // Low byte of that command's code; never read
+    byte                  pad_EC7;
+    s16                   playerCaught;                // 1 while the player is under the boss's scripted animation, from the catch to its release
+    s16                   swipeDamageReply;            // Reply to the swipe's damage message; 1 keeps the player in the caught clip instead of releasing it
+    Enemy*                escorts[7];                  // The models making up the rest of the body, by escort index; NULL where the spawn failed. 0, 1 and 3 are lock-on targets, 4 is the limb, and 6 is forgotten once spawned
+    Enemy*                summons[2];                  // Enemies the boss has called in, dropped as their HP runs out
+    Enemy*                lastSpawned;                 // Projectile or spinner spawned most recently; read only while placing it
+    s16                   neckPitchEnabled;            // Nonzero: the tick pitches the neck toward `neckPitchTarget`
+    s16                   neckYawEnabled;              // Nonzero: the tick turns the neck toward `neckYawTarget`
+    s16                   limbPoseEnabled;             // Nonzero: the tick poses the limb
+    s16                   hostExposed;                 // 1 while the host is the lock-on target and group 0 takes hits; 0 while escort 3 and groups 1 and 2 stand in
+    s16                   prevHostExposed;             // `hostExposed` as last seen by the tick, which relights both targets on a change
+    s16                   neckPitchTarget;             // Pitch a state asks of the neck, 0 to 0x500
+    s16                   neckPitch;                   // Pitch the neck is at, walked toward the target 0x10 a tick
+    s16                   field_F02;                   // Set to 1 as the inhale catches the player and never read; role unproven
+    s16                   viewLocked;                  // Nonzero: the tick leaves the camera view alone
+    s16                   viewSelector;                // Index of the view-picking function the tick calls with `phase`
+    s16                   phase;                       // Step of the fight, advanced as the boss moves on through the arena; attacks and views are picked by it
+    s16                   groups3To5Pool;              // Damage groups 3 to 5 absorb before the boss is staggered; refilled then
+    s16                   groups6To8Pool;              // Damage groups 6 to 8 absorb before the boss is staggered; refilled then
+    s16                   groups1To2Pool;              // Seeded like the other pools and drawn down by groups 1 and 2; never tested
+    s16                   attackDelay;                 // Ticks the boss waits in its deciding state before picking an attack
+    s16                   deathTicks;                  // Ticks since the fight ended, to 0x100; the death handoff runs at a fixed count
+    s16                   collapseSkip;                // How far into the scripted collapse to fast-forward, set by the command that starts it
+    s16                   deathDelay;                  // Ticks the host is kept at 1 HP: held up while summons live, then counted down
+    byte                  unknown_F18[0x2];            // Never accessed; role unproven
+    u8                    pendingHeals;                // Heals granted and not yet played out; a positive count sends the boss to its healing state
+    s8                    summonsSpawned;              // Summons called in so far; no more after 8
+    s8                    summonsAlive;                // Summons still alive
+    s8                    lastAttack;                  // State of the attack picked last, so the same one is not picked twice running
+    byte                  unknown_F1E[0x6];            // Never accessed; role unproven
 } GluttonWork;
 STATIC_ASSERT_SIZEOF(GluttonWork, 0xF24);
 
