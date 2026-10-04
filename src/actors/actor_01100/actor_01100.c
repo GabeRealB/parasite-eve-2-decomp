@@ -1069,7 +1069,7 @@ static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, u8 rate)
     AnimationSlot* slot;
     s32            i;
 
-    for (i = 1; i < 0x15; i++) {
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         slot       = &work->rig.slots[i];
         slot->rate = rate;
         slot       = &work->flinchRig.slots[i];
@@ -1177,7 +1177,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
         animationResetSlot(&work->rig.anim, i, work->motion);
         animationResetSlot(&work->flinchRig.anim, i, work->motion);
         i++;
-    } while (i < 0x15);
+    } while (i < ARRAY_SIZE(work->rig.slots));
 
     switch (enemy->spawnState) {
         case 1:
@@ -1629,7 +1629,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, A
         work->reaction = reaction;
         if (reaction != ACTOR_01100_REACTION_NONE) {
             rate = 0x10;
-            for (n = 1; n < 0x15; n++) {
+            for (n = 1; n < ARRAY_SIZE(work->rig.slots); n++) {
                 slot       = &work->rig.slots[n];
                 slot->rate = rate;
                 slot       = &work->flinchRig.slots[n];
@@ -2017,7 +2017,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 do {
                     func_800B4538(&work->flinchRig.anim, slot, &arg->poses[1], animId, 0, 0, 0);
                     slot++;
-                } while (slot < 0x15);
+                } while (slot < ARRAY_SIZE(work->flinchRig.slots));
                 work->flinchPhase++;
                 break;
             case 2:
@@ -2073,7 +2073,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                                       &arg->poses[1], 0x1000 - blend, blend);
             }
             slot++;
-        } while (slot < 0x15);
+        } while (slot < ARRAY_SIZE(work->rig.slots));
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->motionEnded = 1;
         }
