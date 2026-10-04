@@ -53,13 +53,6 @@
 #include "../../shared/anim_driver.h"
 #include "../../shared/actor_contacts.h"
 
-/// Event packet handed to the message handlers: the same four bytes read as
-/// two `u16` words, a command word (0x1003, 0x1203, 0x302) and a sub-command.
-typedef union Actor104000Event {
-    /* 0x0 */ u8  bytes[4];
-    /* 0x0 */ u16 words[2];
-} Actor104000Event;
-
 /// Values of `_Actor04000Work::state`: the index of the handler the per-frame
 /// tick runs.
 ///
@@ -87,7 +80,8 @@ enum {
     ACTOR_04000_STATE_DROP            = 0x0F, // waits 50 ticks, then falls to the floor turning upright, and rouses
     ACTOR_04000_STATE_SCRIPTED_THRASH = 0x10, // jerks back and forth on animation 3 at a fixed spot of stage 3, area 18; not lockable in view 5
     ACTOR_04000_STATE_SCRIPTED_FALL   = 0x11, // falls to the floor, plays animations 12, 16 and 17 with scripted steps, then chases
-    ACTOR_04000_STATE_SCRIPTED_LEAP   = 0x12  // plays animation 11 while stepping forward and down for 49 ticks, then `SCRIPTED_FALL`
+    ACTOR_04000_STATE_SCRIPTED_LEAP   = 0x12, // plays animation 11 while stepping forward and down for 49 ticks, then `SCRIPTED_FALL`
+    ACTOR_04000_STATE_COUNT                   // number of states, and of the handlers in `_Actor04000StateTable`
 };
 
 /// Work block of the package's enemy task.
@@ -165,21 +159,32 @@ STATIC_ASSERT_SIZEOF(_Actor04000Work, 0x498);
 STATIC_ASSERT(OFFSET_OF(_Actor04000Work, rig) == OFFSET_OF(AnimDriverWork, rig), Actor04000Work_rig);
 STATIC_ASSERT(OFFSET_OF(_Actor04000Work, driver) == OFFSET_OF(AnimDriverWork, state), Actor04000Work_driver);
 
-/// 0x14-byte scratch taken from `0x1F8003FC` by the lunge state: the offset to
-/// the player (later the snap direction), the final yaw and the relative yaw.
-typedef struct Actor104000AimScratch {
-    /* 0x00 */ SVECTOR d;
-    /* 0x08 */ byte    pad_8[8];
-    /* 0x10 */ s16     yaw;
-    /* 0x12 */ s16     angle;
-} Actor104000AimScratch;
-STATIC_ASSERT_SIZEOF(Actor104000AimScratch, 0x14);
+/// The scratch-stack block of the lunge at the player.
+///
+/// `ACTOR_04000_STATE_LUNGE` reserves one on the tick that decides whether
+/// the lunge caught the player and releases it before returning; nothing
+/// carries over to another tick. Every such tick fills `delta` and `turn`
+/// to test the player's range and bearing. A catch reuses both to pick a
+/// side of the player by the sign of `turn`, and then to set the actor down
+/// 540 units to that side, facing the player. Yaws are 4096 units per turn,
+/// and a wrapped one lies in [-0x800, 0x800].
+typedef struct {
+    SVECTOR delta;          // Player's position minus the actor's, low 16 bits of each axis. On a catch it is replaced by the player's local X axis, flattened and scaled to 60 units one way along it, then to 600 units the other way: the two steps that place the actor from the player's position. Last it is reversed, pointing from the actor back at the player; `pad` is never written
+    byte    unknown_8[0x8]; // Reserved with the block and never accessed; role unproven
+    s16     facingYaw;      // Bearing of the reversed `delta`: the yaw a catch rebuilds the actor's rotation around
+    s16     turn;           // Wrapped turn from the actor's heading to the player; on a catch, the wrapped turn from the player's heading to that same bearing, whose sign picks which of the package's two player animation sets the held player plays and which side the actor is set down on
+} _Actor04000LungeScratch;
+STATIC_ASSERT_SIZEOF(_Actor04000LungeScratch, 0x14);
 
-/// The nineteen handlers the tick copies onto its stack before dispatching.
-typedef struct Actor104000StateTable {
-    /* 0x00 */ EnemyTaskFunc fn[19];
-} Actor104000StateTable;
-STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
+/// The actor's state handlers, indexed by `_Actor04000Work::state`.
+///
+/// The package defines one table. The per-frame tick copies it to the stack
+/// before calling the entry of the current state with the enemy and its task.
+/// The call is unconditional and every entry is a handler.
+typedef struct {
+    EnemyTaskFunc handlers[ACTOR_04000_STATE_COUNT]; // Handler of each `ACTOR_04000_STATE_*`
+} _Actor04000StateTable;
+STATIC_ASSERT_SIZEOF(_Actor04000StateTable, ACTOR_04000_STATE_COUNT * sizeof(EnemyTaskFunc));
 
 /// Whole-unit part of the last step `ActorContact_PushContact` applied.
 extern SVECTOR ActorContact_ScratchPosition;
@@ -211,7 +216,7 @@ void             Actor04000_Fn06EA8(Task*);
 void             Actor04000_Fn06F54(Task*);
 void             Actor04000_Fn0703C(Task*);
 
-s32 Actor04000_Fn0093C(Task*, s32, Actor104000Event*, s32);
+s32 Actor04000_Fn0093C(Task*, s32, ActorCommand*, s32);
 s32 Actor04000_Fn06590(Task*, s32, s32, s32);
 s32 Actor04000_Fn06704(Task*, s32, void*, s32);
 s32 Actor04000_Fn06728(Task*, s32, AnimationPlayRequest*, s32);
@@ -1206,14 +1211,14 @@ static void            Actor04000_Fn05F0C(Enemy* arg0, Task* arg1);
 /// Message handler: 0x1003/1 registers the actor in its lead slot and places
 /// it at that slot's start point; 0x1203 and 0x302 move it to the scripted
 /// positions for its slot and pick the next state.
-s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event, s32 arg3)
+s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, ActorCommand* command, s32 arg3)
 {
     _Actor04000Work* work;
     Enemy*           ctx;
 
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
-    if (event->words[0] == 0x1003 && event->words[1] == 1) {
+    if (command->context.key == 0x1003 && command->command == 1) {
         work->state                                                 = ACTOR_04000_STATE_HANG;
         Actor04000_D0C718[ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = arg0;
         ctx->node.state.parts.flags                                 = WORLD_TARGET_NOT_LOCKABLE;
@@ -1256,8 +1261,8 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event, s32 arg3)
                 break;
         }
     }
-    if (event->words[0] == 0x1203) {
-        switch (event->words[1]) {
+    if (command->context.key == 0x1203) {
+        switch (command->command) {
             case 0:
                 work->state = ACTOR_04000_STATE_HIDDEN;
                 break;
@@ -1282,8 +1287,8 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event, s32 arg3)
                 break;
         }
     }
-    if (event->words[0] == 0x302) {
-        switch (event->words[1]) {
+    if (command->context.key == 0x302) {
+        switch (command->command) {
             case 0:
                 work->state = ACTOR_04000_STATE_AWAIT_BATTLE;
                 break;
@@ -1549,16 +1554,15 @@ static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
 /// the side-dependent grab message and snaps the model beside and facing them.
 static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
 {
-    _Actor04000Work*       work;
-    Task*                  player;
-    GameActor*             actor;
-    TmdObject*             obj;
-    Actor104000AimScratch* head;
-    Actor104000AimScratch* sc;
-    GfxCoord*              coord;
-    GfxCoord*              pos;
-    s16                    angle;
-    s32                    mag;
+    _Actor04000Work*         work;
+    Task*                    player;
+    GameActor*               actor;
+    TmdObject*               obj;
+    _Actor04000LungeScratch* scratch;
+    GfxCoord*                coord;
+    GfxCoord*                pos;
+    s16                      angle;
+    s32                      mag;
 
     work   = arg1->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -1589,26 +1593,25 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
     if (work->stateFrame == 9) {
         actorStepForward(arg1->extra.tmd->coords, 0x32);
     }
-    work->state   = ACTOR_04000_STATE_LUNGE_RECOVER;
-    head          = SCRATCH_STACK_CURSOR(Actor104000AimScratch);
-    sc            = (Actor104000AimScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor104000AimScratch));
-    pos           = arg1->extra.tmd->coords;
-    head[-1].d.vx = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
-    sc->d.vy      = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
-    sc->d.vz      = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
-    coord         = arg1->extra.tmd->coords;
-    angle         = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle     = actorWrapAngle(angle);
-    if (!overlayOutOfRange(&sc->d, 600)) {
-        mag = (sc->angle >= 0) ? sc->angle : -sc->angle;
+    work->state       = ACTOR_04000_STATE_LUNGE_RECOVER;
+    scratch           = SCRATCH_STACK_RESERVE_BLOCK(_Actor04000LungeScratch);
+    pos               = arg1->extra.tmd->coords;
+    scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
+    scratch->delta.vy = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
+    scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
+    coord             = arg1->extra.tmd->coords;
+    angle             = ratan2(scratch->delta.vx, scratch->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    scratch->turn     = actorWrapAngle(angle);
+    if (!overlayOutOfRange(&scratch->delta, 600)) {
+        mag = (scratch->turn >= 0) ? scratch->turn : -scratch->turn;
         if (mag < 0x200) {
             if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 work->playerButtonHold.pressCount = 12;
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
-                    coord     = player->extra.tmd->coords;
-                    angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-                    sc->angle = actorWrapAngle(angle);
-                    if (sc->angle < 0) {
+                    coord         = player->extra.tmd->coords;
+                    angle         = ratan2(scratch->delta.vx, scratch->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+                    scratch->turn = actorWrapAngle(angle);
+                    if (scratch->turn < 0) {
                         Actor04000_D0C530.source.sets = Actor04000_D0C510;
                     } else {
                         Actor04000_D0C530.source.sets = Actor04000_D0C520;
@@ -1617,42 +1620,42 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
                     work->state         = ACTOR_04000_STATE_LATCHED;
                     work->holdingPlayer = 1;
-                    Gfx_MatrixCol0(&player->extra.tmd->coords->coord, &sc->d);
-                    sc->d.vy = 0;
-                    VectorNormalSS(&sc->d, &sc->d);
-                    if (sc->angle < 0) {
+                    Gfx_MatrixCol0(&player->extra.tmd->coords->coord, &scratch->delta);
+                    scratch->delta.vy = 0;
+                    VectorNormalSS(&scratch->delta, &scratch->delta);
+                    if (scratch->turn < 0) {
                         gte_lddp(-0x3C);
-                        gte_ldsv(&sc->d);
+                        gte_ldsv(&scratch->delta);
                         gte_gpf12();
-                        gte_stsv(&sc->d);
+                        gte_stsv(&scratch->delta);
                     } else {
                         gte_lddp(0x3C);
-                        gte_ldsv(&sc->d);
+                        gte_ldsv(&scratch->delta);
                         gte_gpf12();
-                        gte_stsv(&sc->d);
+                        gte_stsv(&scratch->delta);
                     }
-                    arg1->extra.tmd->coords->coord.t[0] = player->extra.tmd->coords->coord.t[0] + sc->d.vx;
+                    arg1->extra.tmd->coords->coord.t[0] = player->extra.tmd->coords->coord.t[0] + scratch->delta.vx;
                     arg1->extra.tmd->coords->coord.t[1] = player->extra.tmd->coords->coord.t[1];
-                    arg1->extra.tmd->coords->coord.t[2] = player->extra.tmd->coords->coord.t[2] + sc->d.vz;
-                    sc->d.vy                            = 0;
-                    VectorNormalSS(&sc->d, &sc->d);
+                    arg1->extra.tmd->coords->coord.t[2] = player->extra.tmd->coords->coord.t[2] + scratch->delta.vz;
+                    scratch->delta.vy                   = 0;
+                    VectorNormalSS(&scratch->delta, &scratch->delta);
                     gte_lddp(-0x258);
-                    gte_ldsv(&sc->d);
+                    gte_ldsv(&scratch->delta);
                     gte_gpf12();
-                    gte_stsv(&sc->d);
-                    arg1->extra.tmd->coords->coord.t[0] += sc->d.vx;
-                    arg1->extra.tmd->coords->coord.t[2] += sc->d.vz;
-                    sc->d.vx                             = -sc->d.vx;
-                    sc->d.vy                             = -sc->d.vy;
-                    sc->d.vz                             = -sc->d.vz;
-                    sc->yaw                              = ratan2(sc->d.vx, sc->d.vz);
-                    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, sc->yaw, 1);
+                    gte_stsv(&scratch->delta);
+                    arg1->extra.tmd->coords->coord.t[0] += scratch->delta.vx;
+                    arg1->extra.tmd->coords->coord.t[2] += scratch->delta.vz;
+                    scratch->delta.vx                    = -scratch->delta.vx;
+                    scratch->delta.vy                    = -scratch->delta.vy;
+                    scratch->delta.vz                    = -scratch->delta.vz;
+                    scratch->facingYaw                   = ratan2(scratch->delta.vx, scratch->delta.vz);
+                    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, scratch->facingYaw, 1);
                     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                 }
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor104000AimScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor04000LungeScratch);
 }
 
 /// Turns `coord` to face along its own Z axis in the XZ plane and scales the
@@ -2775,7 +2778,7 @@ static void Actor04000_Fn05AE8(Enemy* arg0, Task* arg1)
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static const Actor104000StateTable Actor04000_D001F4 = {
+static const _Actor04000StateTable Actor04000_D001F4 = {
     {
         Actor04000_Fn06A5C,
         Actor04000_Fn06BC8,
@@ -2806,7 +2809,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
 {
     VECTOR                pos;
     SVECTOR               unused; // never written; retail's frame keeps 8 bytes here
-    Actor104000StateTable table;
+    _Actor04000StateTable table;
     GfxCoord              coord;
     _Actor04000Work*      work;
     GfxRotationWords*     mw;
@@ -2868,7 +2871,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
         work->stateEntered = 0;
     }
     work->prevState = work->state;
-    table.fn[work->state](arg0, arg1);
+    table.handlers[work->state](arg0, arg1);
     if (work->holdingPlayer == 1) {
         if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0 || arg0->hp < 0) {
             if (((GameActor*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
