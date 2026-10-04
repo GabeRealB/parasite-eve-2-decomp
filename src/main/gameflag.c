@@ -70,5 +70,5 @@ s32 gameFlagGetNibble(s32 flagId)
 
 s32 Pad_CheckFlag800(void)
 {
-    return Pad_CheckButtons(0, 1, 0x800);
+    return padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START);
 }

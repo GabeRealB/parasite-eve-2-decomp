@@ -56,7 +56,7 @@ s32 factoryLiftTurnBack(Task* task)
             break;
     }
 
-    if ((u8)(work->yawStep - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
+    if ((u8)(work->yawStep - 1) < 3 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
         factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
             Gp_EnqueueStageSnd7(SOUND_FACTORY_LIFT_TURN, 1);

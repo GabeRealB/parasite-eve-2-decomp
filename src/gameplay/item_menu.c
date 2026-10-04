@@ -516,7 +516,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         Gp_SelItemRec = rec;
         if (arg1->owner->state == 1) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                 spawned = Ui_SpawnFromDesc(&D_8010D764, arg1->owner->spawnArg1, 1, 1, arg1);
                 if (spawned != NULL) {
@@ -524,12 +524,12 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                     spawned->panel.bounds.unsignedRect.y = (arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue) - 0x14;
                     arg1->panel.control.word             = USER_INTERFACE_PANEL_INACTIVE;
                 }
-            } else if ((Pad_CheckButtons(0, 1, 0x10) != 0) && (item != 0)) {
+            } else if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) && (item != 0)) {
                 SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             idx   = arg1->owner->spawnArg1.value;
             item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0)->itemId;
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
@@ -649,46 +649,46 @@ void Gp_ItemPaneTask(Task* arg0)
             Ui_SmoothCursor(&(obj)->panel, obj->panel.contentLeft.signedValue + 4, obj->panel.contentTop.signedValue + 0xA);
         }
         if (arg0->state == status) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 obj->result             = USER_INTERFACE_RESULT_CANCEL;
-            } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 obj->result             = USER_INTERFACE_RESULT_CANCEL;
-            } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
                 if (arg0->spawnArg1.value == 0) {
-                    if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
                         goto do_snd;
                     }
                 }
                 if (arg0->spawnArg1.value == status) {
-                    if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
                         goto do_snd;
                     }
                 }
-                if (Pad_CheckButtons(0, 1, 3) == 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) == 0) {
                     goto children;
                 }
             do_snd:
                 SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                 obj->result = 0xA;
             }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
             obj->result = 0x24;
-        } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
             if (arg0->spawnArg1.value == 0) {
-                if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
                     obj->result = 0xA;
                     goto children;
                 }
             }
             if (arg0->spawnArg1.value == status) {
-                if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
                     obj->result = 0xA;
                     goto children;
                 }
             }
-            if (Pad_CheckButtons(0, 1, 3) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) != 0) {
                 obj->result = 0xA;
             }
         }
@@ -735,7 +735,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrMove2);
     selected = arg0->rowInputEnabled;
-    if ((selected == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
+    if ((selected == 1) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         prompt    = -1;
         chooseQty = 0;
         idx       = arg1->owner->spawnArg1.value;
@@ -820,7 +820,7 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
 
     selected = arg0->rowInputEnabled;
     if (selected == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             idx  = arg1->owner->spawnArg1.value;
             rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0);
             item = rec->itemId;
@@ -919,14 +919,14 @@ void Gp_ItemActionListTask(Task* arg0)
     }
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             if (obj->owner->status != 0) {
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
             } else {
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 obj->result             = USER_INTERFACE_RESULT_CANCEL;
             }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
@@ -1037,8 +1037,8 @@ void func_800BDF6C(Task* task)
     }
     status = obj->panel.control.word;
     if (status == 1) {
-        if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
-            if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
                 qty      = split->carriedQty;
                 equipped = split->loadedQty;
                 if (equipped < qty) {
@@ -1062,7 +1062,7 @@ void func_800BDF6C(Task* task)
                 } else if (equipped > 0) {
                     task->status = (u8)status;
                 }
-            } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
                 {
                     s32 step;
 
@@ -1089,8 +1089,8 @@ void func_800BDF6C(Task* task)
                 }
             }
         }
-        if (Pad_CheckButtons(0, 0, 0xA000) == 0) {
-            if (Pad_CheckButtons(0, 1, 0x1005) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT | PAD_BUTTON_LEFT) == 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_L1 | PAD_BUTTON_UP) != 0) {
                 if (split->carriedQty > split->loadedQty) {
                     s32 total;
 
@@ -1107,7 +1107,7 @@ void func_800BDF6C(Task* task)
                 } else if (split->loadedQty > 0) {
                     task->status = 1;
                 }
-            } else if (Pad_CheckButtons(0, 1, 0x400A) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_R2 | PAD_BUTTON_R1 | PAD_BUTTON_DOWN) != 0) {
                 sourceToMove = split->containerQty;
                 if (sourceToMove > 0) {
                     moveAllLimit = split->stackLimit;
@@ -1123,7 +1123,7 @@ void func_800BDF6C(Task* task)
                 }
             }
         }
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             transferQty = split->containerQty - split->containerInitialQty;
             if (transferQty > 0) {
@@ -1144,13 +1144,13 @@ void func_800BDF6C(Task* task)
             }
             goto set_result;
         }
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             result                  = USER_INTERFACE_RESULT_CANCEL;
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             goto set_result;
         }
-        if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             result = USER_INTERFACE_RESULT_DISMISS;
         set_result:
@@ -1285,7 +1285,7 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
                 return;
             }
         }
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             switch (arg0->currentItemIndex) {
                 case ITEM_MENU_PROMPT_ALL:
                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
@@ -1301,7 +1301,7 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
                     arg1->result = 0x27;
                     break;
             }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             if (arg0->selectedItemIndex == ITEM_MENU_PROMPT_DISCARD) {
                 _gpDropOrphanedWeaponLoads();

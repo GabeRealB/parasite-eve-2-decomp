@@ -778,7 +778,7 @@ void Gp_LoadViewImages(void)
 
 void Gp_FinishLoadWait(Task* task)
 {
-    Pad_ClearCooldown(0);
+    padClearInputBlock(0);
     if (task->spawnArg1.value == 0) {
         Stage_RequestSpecialFlag(1);
         gGameSession->viewDirty = 0;

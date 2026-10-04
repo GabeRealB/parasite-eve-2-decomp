@@ -544,9 +544,9 @@ void Gp_ItemCmdMenuTask(Task* arg0)
             if (sel != USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED) {
                 if (sel == USER_INTERFACE_LIST_ACTION_MOVE) {
                     obj->result = sel;
-                } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                     obj->result = USER_INTERFACE_RESULT_CANCEL;
-                } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                     SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                     obj->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
@@ -655,7 +655,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
                 arg1->killCountdown = arg1->killCountdown - 1;
             }
         }
-        if ((Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (arg1->killCountdown < 0)) {
+        if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (arg1->killCountdown < 0)) {
             Gp_HpMpWork.hp      = cfg->hp;
             Gp_HpMpWork.mp      = cfg->mp;
             arg0->result        = USER_INTERFACE_RESULT_DISMISS;
@@ -941,12 +941,12 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         cd                  = arg1->killCountdown - 1;
         arg1->killCountdown = cd;
-        if ((((s32)(cd << 0x10)) <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        if ((((s32)(cd << 0x10)) <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             arg0->result        = USER_INTERFACE_RESULT_DISMISS;
             arg1->killCountdown = 0x7FFF;
             return;
         }
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             arg0->result        = USER_INTERFACE_RESULT_CANCEL;
             arg1->killCountdown = 0x7FFF;
         }
@@ -1000,9 +1000,9 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     Text_DrawPrompt(arg0, width, arg0->panel.contentTop.signedValue + 0x1E, Gp_StrDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     arg1->killCountdown--;
     if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             arg0->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        } else if ((arg1->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             arg0->result        = USER_INTERFACE_RESULT_DISMISS;
             arg1->killCountdown = 0x7FFF;
         }
@@ -1563,7 +1563,7 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     if (obj->panel.control.word == one) {
         if ((arg0->killCountdown <= 0) ||
             (((arg0->spawnArg1.value & 0x10000) == 0) &&
-             (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0))) {
+             (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0))) {
             obj->result         = USER_INTERFACE_RESULT_CANCEL;
             arg0->killCountdown = 0x7FFF;
         }
@@ -1771,7 +1771,7 @@ void Gp_CheckItemInfoButton(UiObject* arg0)
 {
     s32 one;
 
-    if (Pad_CheckButtons(0, 1, 0x10) && (Gp_SelItemRec != NULL) && (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE)) {
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) && (Gp_SelItemRec != NULL) && (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE)) {
         one = 1;
         SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
         Ui_SpawnFromDesc(&D_8010EFA0, (s32)Gp_SelItemRec->itemId, one, one, arg0);

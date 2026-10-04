@@ -2137,7 +2137,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
         }
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu | Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
             if (task->status != 0xFE) {
                 if (task->status == 0xFF) {

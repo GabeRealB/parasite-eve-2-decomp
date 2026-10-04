@@ -8588,17 +8588,17 @@ with a local pointer:
 
 ```c
 /* Wrong schedule: lui/addiu base, then i*stride */
-gPadStates[arg0].inputBlockPolls = 0;
+gPadStates[port].inputBlockPolls = 0;
 
 /* Right schedule: i*stride, then lui/addiu base */
-volatile PadState* p;
-p = &gPadStates[arg0];
-p->inputBlockPolls = 0;
+PadState* pad;
+pad = &gPadStates[port];
+pad->inputBlockPolls = 0;
 ```
 
-Keep the local pointer `volatile` as well so the store stays out of the `jr`
-delay slot (a plain `PadState*` still multiplies first but fills the slot with
-`sb`). `Pad_ClearCooldown` is the minimal example.
+Keep the countdown member `volatile` so the store stays out of the `jr`
+delay slot. `PadState::inputBlockPolls` carries that qualifier, so the local
+`PadState*` needs no whole-object qualifier. `padClearInputBlock` is the minimal example.
 
 **Inverse — non-volatile array: base before index.** For a plain (non-volatile)
 array, `&arr[(s8)i]` often schedules the signed index shift *before*
@@ -12795,25 +12795,27 @@ case bodies use v0=2 for `if (value == 2)` without reloading on every path
 
 With `volatile PadState* p` (or a volatile global accessed directly), the
 loads pin scheduling and the `li 2` is emitted separately on each path
-(~93% match: correct control flow, wrong delay slots). Use an unqualified pointer
+(~93% match: correct control flow, wrong delay slots). Use a nonvolatile pointee
 for the button masks; `inputBlockPolls` retains its own volatile qualifier:
 
 ```c
-PadState* p;
-p = &gPadStates[arg0];
-switch (arg1) {
-case 1: val = p->pressedButtons; break;
-case 3: val = p->releasedButtons; break;
-default: val = p->buttons; break;
+const PadState* pad;
+u16 buttons;
+pad = &gPadStates[port];
+switch (mode) {
+case PAD_BUTTON_QUERY_PRESSED: buttons = pad->pressedButtons; break;
+case PAD_BUTTON_QUERY_RELEASED: buttons = pad->releasedButtons; break;
+default: buttons = pad->buttons; break;
 }
-if (arg1 == 2) {
-    return (val & arg2) == arg2;
+if (mode == PAD_BUTTON_QUERY_HELD_ALL) {
+    return (buttons & mask) == mask;
 }
-return (val & arg2) != 0;
+return (buttons & mask) != 0;
 ```
 
-`Pad_CheckButtons` is the pure example. This is the inverse of the
-"keep local pointer volatile" rule used by `Pad_ClearCooldown` on the same array.
+`padCheckButtons` is the pure example. The loads need no whole-object volatile
+qualifier; `padClearInputBlock` on the same array keeps its store volatile through
+the countdown member's qualifier.
 
 ## Prefer bare global field names when target CSEs a mid-struct address
 
@@ -16477,7 +16479,7 @@ then store the temp:
 ```c
 s16 temp;
 
-if (Pad_CheckButtons(0, 1, mask) != 0) {
+if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, mask) != 0) {
     temp           = 6;
     arg1->resultValue = (s8)(u8)arg0->currentItemIndex + 1;
     arg1->result = temp;
@@ -24032,9 +24034,9 @@ logical change. Assign the argument only after each call so it can stay in
 `$a2`:
 
 ```c
-if (Pad_CheckButtons(0, 0, 0x8000) != 0) {
+if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
     flag = 1;
-} else if (Pad_CheckButtons(0, 0, 0x2000) != 0) {
+} else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
     flag = -1;
 } else {
     flag = 0;
@@ -24056,9 +24058,9 @@ VECTOR3 pos;
 VECTOR3* p;
 
 p = &pos;
-if (Pad_CheckButtons(0, 0, 0x8000) != 0) {
+if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
     flag = 1;
-} else if (Pad_CheckButtons(0, 0, 0x2000) != 0) {
+} else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
     flag = -1;
 } else {
     flag = 0;
@@ -28296,7 +28298,7 @@ different.
 ## Join timeout + confirm with `||` so `one` stays in `$s0`
 
 `one = 1` is saved in `$s0` for `Text_DrawMultiLine(..., one, 0)` and
-`status == one`. The first `Pad_CheckButtons(0, one, mask)` should reuse
+`status == one`. The first `padCheckButtons(0, one, mask)` should reuse
 that register (`move a1,s0`). Splitting the timeout and confirm into
 separate `if` / `else if` arms with the same body rematerializes the
 constant (`li a1,1`).
@@ -28309,10 +28311,10 @@ Text_DrawMultiLine(obj, x, y, text, color, one, 0);
 task->killCountdown--;
 if (obj->status == one) {
     if ((task->killCountdown <= 0) ||
-        (Pad_CheckButtons(0, one, maskA | maskB) != 0)) {
+        (padCheckButtons(0, one, maskA | maskB) != 0)) {
         obj->result      = 6;
         task->killCountdown = 0x7FFF;
-    } else if (Pad_CheckButtons(0, 1, maskCancel) != 0) {
+    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, maskCancel) != 0) {
         obj->result = -1;
     }
 }
@@ -44366,7 +44368,7 @@ if (task->killCountdown != 0) {
 }
 pad:
 asm volatile("" : : "i"(&&pad));
-if (Pad_CheckButtons(0, 1, task->spawnArg1) != 0) {
+if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, task->spawnArg1) != 0) {
     task->state = task->state + 1;
     return;
 }
@@ -44388,7 +44390,7 @@ and `break` from that else. A second update call follows the outer conditional:
 if (task->killCountdown != 0) {
     task->killCountdown--;
 } else {
-    if (Pad_CheckButtons(0, 1, task->spawnArg1) != 0) {
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, task->spawnArg1) != 0) {
         task->state++;
     } else {
         update();

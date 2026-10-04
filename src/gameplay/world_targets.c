@@ -725,9 +725,9 @@ void* Gp_FindLockNodePad(Task* arg0)
     s32      flag;
 
     p = &pos;
-    if (Pad_CheckButtons(0, 0, 0x8000) != 0) {
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
         flag = 1;
-    } else if (Pad_CheckButtons(0, 0, 0x2000) != 0) {
+    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
         flag = -1;
     } else {
         flag = 0;
@@ -739,9 +739,9 @@ static void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos)
 {
     s32 flag;
 
-    if (Pad_CheckButtons(0, 0, 0x8000) != 0) {
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
         flag = 1;
-    } else if (Pad_CheckButtons(0, 0, 0x2000) != 0) {
+    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
         flag = -1;
     } else {
         flag = 0;

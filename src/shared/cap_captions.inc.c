@@ -656,7 +656,7 @@ static void CapCaption_CancelableTask(Task* task)
         case 1:
             remaining             = task->spawnArg1.value - 1;
             task->spawnArg1.value = remaining;
-            if ((remaining <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0)) {
+            if ((remaining <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0)) {
                 taskKill(task);
                 Stage_SetEndingFlag();
             }

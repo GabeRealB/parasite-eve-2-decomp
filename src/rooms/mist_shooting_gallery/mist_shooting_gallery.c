@@ -1020,7 +1020,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
     }
     selected = arg0->rowInputEnabled;
     if (selected == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             scan       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             weaponIdx  = &gPlayerStatus.weapon;
             row        = &Gp_RelatedQty0.rows[item - EQUIPMENT_WEAPON_ITEM_FIRST];
@@ -1036,7 +1036,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
             Gp_FillHpMp();
             arg1->result = USER_INTERFACE_RESULT_CONFIRM;
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
-        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -1274,7 +1274,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     }
 
     status = obj->panel.control.word;
-    if ((status == 1) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+    if ((status == 1) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
         bonus = func_mist_shooting_gallery_80184470(total);
         state = task->state;
         if (state == status) {
@@ -1388,7 +1388,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req4, Text_ItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
 
-    if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+    if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
@@ -1433,7 +1433,7 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
         task->state = task->state + 1;
     }
     Ui_UpdateListNoAnim(list, obj);
-    if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
+    if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
@@ -2263,7 +2263,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
         }
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu | Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
             if (task->status != 0xFE) {
                 if (task->status == 0xFF) {

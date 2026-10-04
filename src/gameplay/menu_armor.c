@@ -236,7 +236,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
         }
 
         if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 UiList*           menu;
                 InventoryItemRow* table;
                 s32               i;
@@ -255,7 +255,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 }
                 rec->attachSlot = menu->selectedItemIndex + 1;
                 obj->result     = USER_INTERFACE_RESULT_DISMISS;
-            } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                 Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -280,7 +280,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             Text_DrawString(&req, Gp_StrRemoveArmor);
         }
         if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 s32 slot;
                 s32 i;
                 s32 count;
@@ -360,9 +360,9 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     }
     Gp_ItemRowSelect(menu, obj, val, 2);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_DISMISS;
         }

@@ -83,7 +83,7 @@ static void func_mist_r21_8017D61C(Task* task)
 /// warp 1, view 2, starts loading from it, spawns task 0x11 and ends itself.
 static void func_mist_r21_8017D678(Task* task)
 {
-    if ((Pad_CheckButtons(0, 0, 0x200) != 0) && (Pad_CheckButtons(0, 1, 0x40) != 0)) {
+    if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_L3) != 0) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_CROSS) != 0)) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_PLAZA;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;

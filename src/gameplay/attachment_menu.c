@@ -259,9 +259,9 @@ void Gp_AttachListTask(Task* task)
     if (state == one) {
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->panel.control.word == one) {
-            if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
+            if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
-            } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
             }
@@ -305,11 +305,11 @@ void Gp_AttachListTask(Task* task)
     }
     task->killCountdown--;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
             return;
         }
-        if ((task->killCountdown == 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        if ((task->killCountdown == 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             if ((task->spawnArg1.value & 0x10000) && (task->state == 2)) {
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
             } else {
@@ -437,10 +437,10 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
     }
 
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             Ui_SpawnFromDesc(&D_8010EF30, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -501,9 +501,9 @@ draw:
     func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_DISMISS;
         }
@@ -605,9 +605,9 @@ void Gp_ReloadPromptTask(Task* arg0)
     }
     arg0->killCountdown--;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        } else if ((arg0->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             obj->result         = USER_INTERFACE_RESULT_DISMISS;
             arg0->killCountdown = 0x7FFF;
         }
@@ -645,9 +645,9 @@ void Gp_AttachPromptTask(Task* arg0)
     Text_DrawPrompt(obj, width, 0xE, Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
     arg0->killCountdown--;
     if (obj->panel.control.word == one) {
-        if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        } else if ((arg0->killCountdown <= 0) || (padCheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             obj->result         = USER_INTERFACE_RESULT_DISMISS;
             arg0->killCountdown = 0x7FFF;
         }
@@ -720,9 +720,9 @@ void Gp_EquipPromptTask(Task* arg0)
     Text_DrawPrompt(obj, width, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
     arg0->killCountdown--;
     if (obj->panel.control.word == one) {
-        if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        } else if ((arg0->killCountdown <= 0) || (padCheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             obj->result         = USER_INTERFACE_RESULT_DISMISS;
             arg0->killCountdown = 0x7FFF;
         }
@@ -745,7 +745,7 @@ void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrLoad);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             val = Gp_SelItemRec->itemId;
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             if ((u32)(val - 0x80) < 0x20U) {
@@ -785,7 +785,7 @@ void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Gp_StrExchange);
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             val = 0;
             if (Gp_SelItemRec != NULL) {

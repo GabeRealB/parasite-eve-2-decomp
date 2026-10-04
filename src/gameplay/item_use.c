@@ -568,7 +568,7 @@ void func_800D6334(Task* task)
     label.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&label, (u8*)D_80097448);
     if (panel->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm)) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm)) {
             if (usable == 1) {
                 useSlot  = D_8010F884;
                 useRec   = NULL;
@@ -590,19 +590,19 @@ void func_800D6334(Task* task)
                     task->state   = 2;
                 }
             }
-        } else if (Pad_CheckButtons(0, 1, 0x8000)) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT)) {
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             D_8010F884--;
             if (D_8010F884 < 0) {
                 D_8010F884 += Gp_GetModLevel(armor);
             }
-        } else if (Pad_CheckButtons(0, 1, 0x2000)) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT)) {
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
             D_8010F884++;
             if (D_8010F884 >= Gp_GetModLevel(armor)) {
                 D_8010F884 = 0;
             }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu)) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu)) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             panel->result = USER_INTERFACE_RESULT_CANCEL;
             task->state   = 2;

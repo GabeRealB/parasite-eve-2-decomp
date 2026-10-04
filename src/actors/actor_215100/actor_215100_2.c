@@ -1831,7 +1831,7 @@ void func_actor_215100_8014A398(void)
                 if (z < 0x1644) {
                     if ((z >= 0x10CD) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                         facing = (u16)actor->rotation.vy & 0xFFF;
-                        if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
+                        if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP) != 0) {
                             if ((u32)(facing - 0xA01) < 0x3FFU) {
                                 Gp_MsgPlayerWeapon(0);
                                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
@@ -1840,7 +1840,7 @@ void func_actor_215100_8014A398(void)
                                 Task_SpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
                             }
                         }
-                        if ((Pad_CheckButtons(0, 0, 0x4000) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
+                        if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
                             Gp_MsgPlayerWeapon(0);
                             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
                             Gp_RunCapCmd(0x14, 0);

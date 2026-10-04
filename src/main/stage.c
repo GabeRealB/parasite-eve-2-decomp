@@ -514,7 +514,7 @@ static void Display_TransitionTask(Task* task)
                     Stage_Ctx->loadBuffersCleared = 0;
                     // The ending request is the sign bit.
                     if ((s32)Stage_Ctx->requestFlags < 0) {
-                        Pad_ClearCooldown(0);
+                        padClearInputBlock(0);
                         task->state = task->state + 1;
                         Display_TaskLoadStep(task);
                         return;
@@ -528,7 +528,7 @@ static void Display_TransitionTask(Task* task)
                 Stage_Ctx->transitionStep               = Stage_Ctx->transitionStep + 1;
                 break;
             case 5:
-                Pad_ClearCooldown(0);
+                padClearInputBlock(0);
                 Stage_Ctx->requestFlags = Stage_Ctx->requestFlags & ~STAGE_REQUEST_TRANSITION;
                 break;
         }

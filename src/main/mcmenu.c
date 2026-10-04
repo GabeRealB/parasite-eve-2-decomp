@@ -108,13 +108,13 @@ void McMenu_ConfirmWithRender(UiList* list, UiObject* object)
     work = object->owner->spawnArg1.pointer;
     Mc_DrawSlotDetails(object, work, slot, 0, list->rowTextY.signedValue + 7);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
             var_v0         = (s8)(u8)list->currentItemIndex;
             goto block_5;
         }
-        if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
             var_v0         = -1;
@@ -186,11 +186,11 @@ static void McMenu_ConfirmDialog(UiList* list, UiObject* object)
     Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Yes, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     temp = list->rowInputEnabled;
     if (temp == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             object->resultValue = temp;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CURSOR, 0, 0);
             list->navigationStep = temp;
             list->actionResult   = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
@@ -205,7 +205,7 @@ static void McMenu_ConfirmDialogAlt(UiList* list, UiObject* object)
     Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Ok, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     temp = list->rowInputEnabled;
     if (temp == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             object->resultValue = temp;
@@ -220,7 +220,7 @@ static void McMenu_ConfirmYes(UiList* list, UiObject* object)
     Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_Cancel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     temp = list->rowInputEnabled;
     if (temp == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             object->resultValue = temp;
@@ -232,7 +232,7 @@ static void McMenu_ConfirmNo(UiList* list, UiObject* object)
 {
     Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, McText_No, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             object->resultValue = -1;

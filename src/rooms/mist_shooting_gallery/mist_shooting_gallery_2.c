@@ -2377,7 +2377,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
 
     work  = arg0->work;
     bonus = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
-    if (Pad_CheckButtons(0, 1, 0x100) != 0) {
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
         func_actor_215100_8014A9A0();
         return;
     }
@@ -2581,7 +2581,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
     u8                         step;
 
     work = arg0->work;
-    if (Pad_CheckButtons(0, 1, 0x100) != 0) {
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
         func_actor_215100_8014A9A0();
         return;
     }
@@ -3499,7 +3499,7 @@ void func_mist_shooting_gallery_80184C0C(Task* arg0)
             if (arg0->killCountdown != 0) {
                 arg0->killCountdown--;
             } else {
-                if (Pad_CheckButtons(0, 1, arg0->spawnArg1.value) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, arg0->spawnArg1.value) != 0) {
                     arg0->state = arg0->state + 1;
                 } else {
                     actor215100CapCaptionDrawCurrent();

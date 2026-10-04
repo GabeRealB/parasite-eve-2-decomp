@@ -313,7 +313,7 @@ static void Title_MenuTask(Task* task)
             return;
         }
 
-        if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
             work->idleFrames = 0;
             work->selection++;
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
@@ -326,7 +326,7 @@ static void Title_MenuTask(Task* task)
             if (work->selection == TITLE_MENU_EXTRA_GAME) {
                 work->selection = TITLE_MENU_NEW_GAME;
             }
-        } else if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
             work->idleFrames = 0;
             work->selection--;
             SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
@@ -339,7 +339,7 @@ static void Title_MenuTask(Task* task)
             if (work->selection < 0) {
                 work->selection += work->menuCount;
             }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | 0x800) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | PAD_BUTTON_START) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Task_Spawn(0, Title_MenuSpawnIds[work->selection], 0, 0);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
@@ -351,7 +351,7 @@ static void Title_MenuTask(Task* task)
         }
         Title_DrawSpriteRow(0x40 - (TITLE_SCREEN_FADE_FULL - work->promptFade) / 8, 0, work->promptFade);
         Title_DrawSpriteRow(0x5C, 0x10, TITLE_SCREEN_FADE_FULL);
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | 0x800) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | PAD_BUTTON_START) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             work->idleFrames = 0;
             task->state++;

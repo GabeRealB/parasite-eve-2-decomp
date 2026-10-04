@@ -120,8 +120,8 @@ void actionPromptMoveCursors(Task* task)
         // Four halfwords per slot. Indexing the frame counter makes the latched
         // position a displacement off that register.
         for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? 0x40 : 0xA0;
-            if (Pad_CheckButtons(port, 1, mask) != 0) {
+            mask = (i == 0) ? PAD_BUTTON_CROSS : PAD_BUTTON_CIRCLE | PAD_BUTTON_SQUARE;
+            if (padCheckButtons(port, PAD_BUTTON_QUERY_PRESSED, mask) != 0) {
                 if (heldp[idx] < prompt->doublePressWindow &&
                     PARENT_OF(heldp + idx, ActionPromptButton, framesSinceArm)->lastPos.packed ==
                         prompt->screen.packed) {
@@ -133,9 +133,9 @@ void actionPromptMoveCursors(Task* task)
                         prompt->screen.packed;
                     *statep = ACTION_PROMPT_BUTTON_PRESSED;
                 }
-            } else if (Pad_CheckButtons(port, 3, mask) != 0) {
+            } else if (padCheckButtons(port, PAD_BUTTON_QUERY_RELEASED, mask) != 0) {
                 *statep = ACTION_PROMPT_BUTTON_RELEASED;
-            } else if (Pad_CheckButtons(port, 0, mask) != 0) {
+            } else if (padCheckButtons(port, PAD_BUTTON_QUERY_HELD_ANY, mask) != 0) {
                 *statep = ACTION_PROMPT_BUTTON_HELD;
             } else {
                 *statep = ACTION_PROMPT_BUTTON_NONE;

@@ -16,27 +16,27 @@ enum {
     PAD_SOFT_RESET_COMBO    = 0x90F,
 };
 
-s32 Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2)
+s32 padCheckButtons(s32 port, s32 mode, s32 mask)
 {
-    PadState* p;
-    u16       val;
+    const PadState* pad;
+    u16             buttons;
 
-    p = &gPadStates[arg0];
-    switch (arg1) {
-        case 1:
-            val = p->pressedButtons;
+    pad = &gPadStates[port];
+    switch (mode) {
+        case PAD_BUTTON_QUERY_PRESSED:
+            buttons = pad->pressedButtons;
             break;
-        case 3:
-            val = p->releasedButtons;
+        case PAD_BUTTON_QUERY_RELEASED:
+            buttons = pad->releasedButtons;
             break;
         default:
-            val = p->buttons;
+            buttons = pad->buttons;
             break;
     }
-    if (arg1 == 2) {
-        return (val & arg2) == arg2;
+    if (mode == PAD_BUTTON_QUERY_HELD_ALL) {
+        return (buttons & mask) == mask;
     }
-    return (val & arg2) != 0;
+    return (buttons & mask) != 0;
 }
 
 void Pad_PostEvent(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -88,12 +88,12 @@ void Pad_SetCooldown(s32 arg0)
     p->inputBlockPolls = PAD_INPUT_BLOCK_UPDATES;
 }
 
-void Pad_ClearCooldown(s32 arg0)
+void padClearInputBlock(s32 port)
 {
-    volatile PadState* p;
+    PadState* pad;
 
-    p                  = &gPadStates[arg0];
-    p->inputBlockPolls = 0;
+    pad                  = &gPadStates[port];
+    pad->inputBlockPolls = 0;
 }
 
 s32 Pad_ReadButtonsInv(s32 arg0)

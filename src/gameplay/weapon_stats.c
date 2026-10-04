@@ -524,7 +524,7 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
 
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         obj->resultValue = item;
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             if (obj->owner->spawnArg1.value == 0) {
                 SndEvt_EnqueueType6(SOUND_WEAPON_EQUIP, 0, 0);
                 Gp_EquipHeld(item);
@@ -539,7 +539,7 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
                 Ui_SpawnFromDesc(&D_8010EEF8, (item << 8) | spawnArg, 1, 1, obj);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
-        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             if (spawnArg != 0) {
                 Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, obj);
@@ -601,9 +601,9 @@ void Gp_AmmoListTask(Task* arg0)
     if (arg0->state == one) {
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->panel.control.word == one) {
-            if (Pad_CheckButtons(0, one, Pad_MaskMenu) != 0) {
+            if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
-            } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
             }
@@ -642,11 +642,11 @@ void Gp_AmmoListTask(Task* arg0)
     Ui_DrawText(&(obj)->panel, Gp_StrAttention);
     Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoWeaponEq, 0x606060, one, TEXT_ALIGNMENT_LEFT);
     arg0->killCountdown--;
-    if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
         obj->result = USER_INTERFACE_RESULT_CANCEL;
         return;
     }
-    if ((arg0->killCountdown == 0) || (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+    if ((arg0->killCountdown == 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
         obj->result         = USER_INTERFACE_RESULT_DISMISS;
         arg0->killCountdown = 0x7FFF;
     }
@@ -811,10 +811,10 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
     }
 
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             Ui_SpawnFromDesc(&D_8010EEF8, (spawnArg << 8) | item, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        } else if ((Pad_CheckButtons(0, 1, 0x10) != 0) && (item != 0)) {
+        } else if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) && (item != 0)) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             // Both arms open the same prompt; the ammo row's handler, which
             // this one follows, passes a different argument in each.

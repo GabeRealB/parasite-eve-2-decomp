@@ -65,7 +65,7 @@ s32 factoryLiftJamTurnBack(Task* task)
             break;
     }
 
-    if ((u8)(work->yawStep - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
+    if ((u8)(work->yawStep - 1) < 3 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
         work->position = gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) | FACTORY_LIFT_POSITION_TURNED;
         gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->position);
         work->yaw.word = FACTORY_LIFT_YAW_TURNED;

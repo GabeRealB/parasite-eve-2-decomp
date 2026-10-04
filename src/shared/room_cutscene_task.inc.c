@@ -75,7 +75,7 @@ void roomCutsceneTask(Task* task)
             task->state++;
             break;
         case 5:
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
                 SndEvt_EnqueueType7(script->sceneSound, 1);
                 taskKill(ROOM_CUTSCENE_SOUND_TASK);
                 task->state++;

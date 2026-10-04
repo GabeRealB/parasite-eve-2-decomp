@@ -3104,7 +3104,7 @@ void Gp_TickPlayClock(Task* task)
         Text_DrawString(&req, Text_ItoaPadded(buf, work->minutes, 2));
         Text_DrawString(&req, "'");
         Text_DrawString(&req, Text_ItoaPadded(buf, D_8005ED68 / 60, 2));
-        Pad_CheckButtons(one, one, 0x100);
+        padCheckButtons(one, one, PAD_BUTTON_SELECT);
     }
 
     if (gGameSession->suppressDeathChecks == 0) {

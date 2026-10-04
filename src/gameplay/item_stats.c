@@ -305,7 +305,7 @@ void func_800C5F70(Task* arg0)
                 Ui_UpdateListNoAnim(menu, obj);
                 obj->panel.control.word = saved;
                 if ((saved == 1) && (menu->itemCount > menu->visibleRowCount.signedValue)) {
-                    if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
                         menu->firstVisibleItemIndex.unsignedValue = menu->firstVisibleItemIndex.unsignedValue - 1;
                         if (menu->firstVisibleItemIndex.signedValue < 0) {
                             menu->firstVisibleItemIndex.unsignedValue = 0;
@@ -314,7 +314,7 @@ void func_800C5F70(Task* arg0)
                             menu->scrollPixelsRemaining = menu->rowHeight;
                         }
                         menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue;
-                    } else if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+                    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
                         menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue;
                         if (menu->selectedItemIndex < menu->itemCount) {
                             menu->scrollDirection       = saved;
@@ -322,7 +322,7 @@ void func_800C5F70(Task* arg0)
                         } else {
                             menu->selectedItemIndex = menu->itemCount - 1;
                         }
-                    } else if (Pad_CheckButtons(0, 1, 4) != 0) {
+                    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L1) != 0) {
                         if (menu->firstVisibleItemIndex.signedValue > 0) {
                             menu->firstVisibleItemIndex.unsignedValue = menu->firstVisibleItemIndex.unsignedValue - menu->visibleRowCount.unsignedValue;
                             if (menu->firstVisibleItemIndex.signedValue < 0) {
@@ -330,7 +330,7 @@ void func_800C5F70(Task* arg0)
                             }
                             menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue;
                         }
-                    } else if (Pad_CheckButtons(0, 1, 8) != 0) {
+                    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_R1) != 0) {
                         if (menu->firstVisibleItemIndex.signedValue < (menu->itemCount - menu->visibleRowCount.signedValue)) {
                             menu->firstVisibleItemIndex.unsignedValue += menu->visibleRowCount.unsignedValue;
                             if (menu->firstVisibleItemIndex.signedValue > (menu->itemCount - menu->visibleRowCount.signedValue)) {
@@ -615,13 +615,13 @@ void func_800C5F70(Task* arg0)
         }
         _gpDrawItemNameUnmarkedInto(obj, &req30, 2, obj->panel.contentTop.signedValue + 0xF, 0x606060, item);
         if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (CdCmd_IsIdle() & 0xFFFF)) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm | 0x10) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskConfirm | PAD_BUTTON_TRIANGLE) != 0) {
                 if (!(arg0->spawnArg1.value & 0x20000)) {
                     SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                 }
                 GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
-            } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                 GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
             }
@@ -687,10 +687,10 @@ void Gp_UseKeyItemRow(Task* arg0)
         }
         arg0->killCountdown = arg0->killCountdown - gDisplayState.frameTicks;
         if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
             } else if ((arg0->killCountdown <= 0) ||
-                       (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+                       (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
                 if (arg0->spawnArg1.value == -1) {
                     if (gGameSession->cutsceneHold == 1) {
                         obj->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -724,9 +724,9 @@ void Gp_KeyItemSubMenuTask(Task* arg0)
     }
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -813,7 +813,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
 
     flag = arg0->rowInputEnabled;
     if (flag == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             if (gGameSession->cutsceneHold == flag) {
                 Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
@@ -825,7 +825,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
                     arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             }
-        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -874,9 +874,9 @@ void Gp_KeyItemMenuTask(Task* arg0)
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
             if (obj->result == USER_INTERFACE_RESULT_NONE) {
-                if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                     obj->result = USER_INTERFACE_RESULT_CANCEL;
-                } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                     if (gGameSession->cutsceneHold == 1) {
                         SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                         obj->result = USER_INTERFACE_RESULT_CANCEL;
@@ -886,7 +886,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
                         obj->result      = USER_INTERFACE_RESULT_CONFIRM;
                     }
                 } else {
-                    Pad_CheckButtons(0, 1, 3);
+                    padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2);
                 }
             }
         } else if (obj->panel.control.word >= USER_INTERFACE_PANEL_REQUEST_MIN) {

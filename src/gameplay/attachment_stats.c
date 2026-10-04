@@ -845,12 +845,12 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
     }
 
     if (hud->wheelTurn == 0) {
-        if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
-            if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
                 Gp_StateC08.wheelIndex = stepAttachWheel(Gp_StateC08.wheelIndex, 1);
                 changed                = 1;
                 hud->wheelTurn        += 4;
-            } else if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
                 Gp_StateC08.wheelIndex = stepAttachWheel(Gp_StateC08.wheelIndex, -1);
                 changed                = 1;
                 hud->wheelTurn        -= 4;
@@ -1333,7 +1333,7 @@ static void Gp_UseItemTask(HudState* hud)
     if ((Gp_StateC08.queuedIndex != 0 && actor->mode == GAME_ACTOR_MODE_SCRIPTED) || (Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) {
         Gp_StateC08.queuedIndex = 0;
     }
-    if ((hud->wheelTurn == 0 && Pad_CheckButtons(0, 0, Pad_MaskConfirm) != 0) ||
+    if ((hud->wheelTurn == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, Pad_MaskConfirm) != 0) ||
         Gp_StateC08.queuedIndex != 0) {
         if (cdIdleIfF0Active_()) {
             pad                        = &gPadStates[0];
@@ -1487,7 +1487,7 @@ void Gp_HudTask(HudState* hud)
         if (d2->pendingMode != DISPLAY_MODE_NONE) {
             goto after;
         }
-        if (Pad_CheckButtons(0, 1, 0x800) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0) {
             s32 hit;
             s32 ok;
 
@@ -1538,7 +1538,7 @@ void Gp_HudTask(HudState* hud)
             hud->suppression    = HUD_SUPPRESS_PARASITE_ENERGY;
             goto after;
         }
-        if (Pad_CheckButtons(0, 1, 0x100) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
             if (hud->inBattle != 0) {
                 PlayerStatus* p;
                 s32           cond;

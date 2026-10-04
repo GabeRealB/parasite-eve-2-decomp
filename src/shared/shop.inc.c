@@ -313,7 +313,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
         Text_DrawString(&req, Shop_Data_80181A0C);
-        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&Shop_Data_80181BD8, 0, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -333,7 +333,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             prompt->colorRgb = Ui_LookupTable(obj, 2);
         }
         Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A1C, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && blocked == 0 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && blocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             child = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
             if (child != NULL) {
@@ -359,14 +359,14 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         }
     }
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (blocked == 0 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (blocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             child2 = Ui_SpawnFromDesc(&Shop_Data_80181B84, itemId, 1, 1, obj);
             if (child2 != NULL) {
                 SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
                 Ui_ClampDialogRect(&(child2)->panel, prompt, &(obj)->panel);
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
-        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, itemId, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -611,9 +611,9 @@ static void Shop_ItemListTask(Task* task)
     Text_DrawString(&req, Shop_Data_8017D6D8);
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -654,7 +654,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
     if ((prompt->itemCount - 1) == prompt->currentItemIndex) {
         one = 1;
         Text_DrawPrompt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A04, prompt->colorRgb, one, TEXT_ALIGNMENT_LEFT);
-        if (prompt->rowInputEnabled == one && Pad_CheckButtons(0, one, Pad_MaskConfirm) != 0) {
+        if (prompt->rowInputEnabled == one && padCheckButtons(0, one, Pad_MaskConfirm) != 0) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
         return;
@@ -694,7 +694,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
         }
     }
 
-    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
         Ui_SpawnFromDesc(&Shop_Data_80181B4C, obj->owner->spawnArg1, 1, 1, obj);
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -732,7 +732,7 @@ static void Shop_CategoryListTask(Task* task)
         task->state += 1;
     }
     Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
         obj->result = USER_INTERFACE_RESULT_CANCEL;
     }
 
@@ -844,7 +844,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
     Text_DrawString(&req, Shop_Data_801819F0);
 
     mode = prompt->rowInputEnabled;
-    if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+    if (mode == 1 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
         cfg   = &gPlayerStatus;
         price = Gp_ItemDescs[itemId].price;
         scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
@@ -908,11 +908,11 @@ static void Shop_NoticeTask(Task* task)
     Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->killCountdown -= gDisplayState.frameTicks;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
             return;
         }
-        if (task->killCountdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
+        if (task->killCountdown <= 0 || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             ((UiObject*)task->parent->spawnArg2.pointer)->result = USER_INTERFACE_RESULT_CONFIRM;
             task->killCountdown                                  = 0x7FFF;
         }
@@ -996,7 +996,7 @@ static void Shop_ChargeTask(Task* task)
         countdown           = task->killCountdown - 1;
         task->killCountdown = countdown;
         status              = obj->panel.control.word;
-        if (status == 1 && (countdown <= 0 || Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm) != 0)) {
+        if (status == 1 && (countdown <= 0 || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskConfirm) != 0)) {
             task->state           = status;
             task->spawnArg1.value = task->spawnArg1.value + 1;
         }
@@ -1154,24 +1154,24 @@ static void Shop_QuantityTask(Task* task)
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         parentObj = task->parent->spawnArg2.pointer;
-        if (Pad_CheckButtons(0, 1, 0x3000) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP | PAD_BUTTON_RIGHT) != 0) {
             if (task->extraState.value < maxQty) {
                 task->extraState.value = task->extraState.value + 1;
                 SndEvt_EnqueueType6(SOUND_SYSTEM_CURSOR, 0, 0);
             }
-        } else if (Pad_CheckButtons(0, 1, 0xC000) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN | PAD_BUTTON_LEFT) != 0) {
             if (task->extraState.value >= 2) {
                 task->extraState.value = task->extraState.value - 1;
                 SndEvt_EnqueueType6(SOUND_SYSTEM_CURSOR, 0, 0);
             }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             gPlayerStatus.bp -= price * task->extraState.value;
             for (i = 0; i < task->extraState.value; i++) {
                 Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId, -1);
             }
             SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
             parentObj->result = USER_INTERFACE_RESULT_CONFIRM;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             parentObj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -1192,7 +1192,7 @@ static void Shop_MessageRow(UiList* prompt, UiObject* obj)
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Shop_Data_80181A04);
 
-    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
         SndEvt_EnqueueType6(SOUND_SYSTEM_CONFIRM, 0, 0);
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
@@ -1218,10 +1218,10 @@ static void Shop_BuyPromptTask(Task* task)
     }
     Ui_UpdateListNoAnim(list, obj);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }

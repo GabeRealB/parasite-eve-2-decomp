@@ -7,7 +7,7 @@
 
 // --- from main (24 symbols)
 GameMain_SetFrameTiming = 0x800280F4; // type:func absolute:True
-Pad_CheckButtons = 0x8002C868; // type:func absolute:True
+padCheckButtons = 0x8002C868; // type:func absolute:True
 taskKill = 0x8002CCB8; // type:func absolute:True
 Text_DrawPrompt = 0x8002FDCC; // type:func absolute:True
 Stage_SetEndingFlag = 0x8003F6F8; // type:func absolute:True

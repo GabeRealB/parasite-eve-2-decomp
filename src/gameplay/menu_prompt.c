@@ -388,9 +388,9 @@ void Gp_StatusPanelTask(Task* arg0)
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
             if (obj->result == USER_INTERFACE_RESULT_NONE) {
-                if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                     obj->result = USER_INTERFACE_RESULT_CANCEL;
-                } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                     obj->result = USER_INTERFACE_RESULT_CANCEL;
                 }
             }
@@ -1261,7 +1261,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Gp_ItemOrderMode == 0) {
             Gp_SelItemRec = sel;
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                 obj = Ui_SpawnFromDesc(&D_8010EE6C, 0, 1, 1, arg1);
                 if (obj != NULL) {
@@ -1271,7 +1271,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
             } else {
                 Gp_CheckItemInfoButton(arg1);
             }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             InventoryItemRange* scan2;
             scan2 = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             idx1  = Gp_ScanIndexOf(scan2, Gp_SelItemRec);
@@ -1473,17 +1473,17 @@ static void Gp_ItemListTask(Task* arg0)
     status = obj->panel.control.word;
     if (status == 1) {
         if (obj->result == USER_INTERFACE_RESULT_NONE) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
             } else if (Gp_ItemOrderMode == 0) {
-                if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                     SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                     obj->resultValue = 1;
                     obj->result      = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
-                    Pad_CheckButtons(0, 1, 3);
+                    padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2);
                 }
-            } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
                 Gp_ItemOrderMode = 0;
             }
@@ -1553,7 +1553,7 @@ void Gp_ItemDestCursorTask(Task* arg0)
         Ui_ClampAnimOrClose(&(obj)->panel, obj->owner, 0x10);
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
             child          = D_80114D98[1];
             *(s32*)&cursor = Ui_GetCursorFixed();
             if (cursor.unk2 < (s16)child->panel.bounds.unsignedRect.y) {
@@ -1631,7 +1631,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
             } else {
                 Gp_SelItemRec = NULL;
             }
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 Gp_CountAmmoRows(&D_8010E9A4, 0);
                 if (D_8010E9A4.itemCount >= 2U || (D_8010E9A4.itemCount == 1 && player->weapon == PLAYER_STATUS_EQUIPMENT_NONE)) {
                     UiObject* spawned;
@@ -1649,7 +1649,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                 Gp_CheckItemInfoButton(obj);
             }
         } else if (mode == status) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 if ((u8)(Gp_SelItemRec->itemId + 0x80) < 0x20) {
                     PlayerStatus*     p;
                     InventoryItemRow* rec;
@@ -1814,7 +1814,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
                 rec = Gp_FindItemById(item);
             }
             Gp_SelItemRec = rec;
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 s32 currentWeapon;
                 s32 yOffset;
                 s32 xOffset;
@@ -1832,7 +1832,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
                 Gp_CheckItemInfoButton(obj);
             }
         } else if (mode == rowState) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 if (Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weapon, Gp_SelItemRec->itemId, -1) >= 0) {
                     Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
@@ -1915,7 +1915,7 @@ void Gp_WeaponMenuTask(Task* arg0)
             D_80114D98[1]->resultValue        = -0xA0;
             D_80114D98[1]->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
             obj->panel.control.word           = USER_INTERFACE_PANEL_INACTIVE;
-        } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
             Task*     parent;
             UiObject* parentObj;
 
@@ -1946,7 +1946,7 @@ void Gp_WeaponMenuTask(Task* arg0)
                 parentObj->panel.control.word = status;
                 obj->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
             }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             Task*     parent;
             UiObject* parentObj;
 
@@ -1963,7 +1963,7 @@ void Gp_WeaponMenuTask(Task* arg0)
                     Gp_ItemOrderMode              = 0;
                 }
             }
-        } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
@@ -2138,7 +2138,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
     if (rowState == 1) {
         mode = Gp_ItemOrderMode;
         if (mode == rowState) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 const ItemDesc* desc;
                 desc = &Gp_ItemDescs[Gp_SelItemRec->itemId];
                 if (!(desc->flags & ITEM_FLAG_NO_ATTACHMENT)) {
@@ -2162,7 +2162,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
             }
         } else {
             if (rec == NULL) {
-                if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                     child = Ui_SpawnFromDesc(&D_8010ED00, 0, 1, 0x10, obj);
                     if (child != NULL) {
@@ -2178,7 +2178,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
                 Gp_SelItemRec = rec;
             } else {
                 Gp_SelItemRec = rec;
-                if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                     SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                     dialog = Ui_SpawnFromDesc(&D_8010EE6C, 4, 1, 1, obj);
                     if (dialog != NULL) {
@@ -2326,11 +2326,11 @@ void Gp_ArmorMenuTask(Task* arg0)
         obj->panel.control.word = status;
         if (status == 1) {
             Ui_SmoothCursor(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentTop.signedValue + 7);
-            if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                 arg0->state             = status;
                 menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue;
-            } else if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
                 SndEvt_EnqueueType6(SOUND_MENU_CURSOR, 0, 0);
                 D_80114D98[0]->panel.control.word = status;
                 D_8010E884.selectedItemIndex      = D_8010E884.itemCount - 1;
@@ -2351,7 +2351,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                             locals.x      = obj->panel.contentLeft.signedValue + 2;
                             Gp_SelItemRec = table;
                             locals.y      = obj->panel.contentTop.unsignedValue + 0xF;
-                            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+                            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                                 SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                                 func_800CF090(&D_8010E9F4, obj);
                                 if (D_8010E9F4.itemCount != 0) {
@@ -2377,7 +2377,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                             break;
                         }
                     }
-                } else if ((flag == status) && (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0)) {
+                } else if ((flag == status) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
                     if ((u32)(Gp_SelItemRec->itemId - 0x60) < 0x20U) {
                         SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
                         Gp_EquipMod(Gp_SelItemRec->itemId);
@@ -2454,9 +2454,9 @@ void Gp_ArmorMenuTask(Task* arg0)
         s32 st;
         st = obj->panel.control.word;
         if (st == 1) {
-            if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
                 obj->result = USER_INTERFACE_RESULT_CANCEL;
-            } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                 Task*     parent;
                 UiObject* parentObj;
                 SndEvt_EnqueueType6(SOUND_MENU_CANCEL, 0, 0);
@@ -2472,7 +2472,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                         Gp_ItemOrderMode              = 0;
                     }
                 }
-            } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
                 Task*     parent;
                 UiObject* parentObj;
                 parent = arg0->parent;

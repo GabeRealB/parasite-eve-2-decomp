@@ -374,16 +374,16 @@ resumeView:
                         D_80115664 = 0;
                     }
                     oldChoice = (u16)D_801155C0;
-                    if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
                         D_801155C0 = (u16)D_801155C0 - 1;
                     }
-                    if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
                         D_801155C0 = (u16)D_801155C0 - D_80115680;
                     }
-                    if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
                         D_801155C0 = (u16)D_801155C0 + 1;
                     }
-                    if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
                         D_801155C0 = (u16)D_801155C0 + D_80115680;
                     }
                     if (D_801155C0 < 0) {
@@ -400,7 +400,7 @@ resumeView:
                     if (D_801155BE == 0) {
                         confirmMask |= Pad_MaskCancel;
                     }
-                    if (Pad_CheckButtons(0, 1, confirmMask) != 0) {
+                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, confirmMask) != 0) {
                         if (D_801155BE != 0) {
                             if (D_80115659 == 0) {
                                 choiceSound = D_801155D0[D_801155C0].confirmSound;
@@ -479,7 +479,7 @@ resumeView:
                     D_8011566A = 0;
                     return;
                 }
-                if ((Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
+                if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
                     D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
                     nextTextIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
                     if (((Gp_CapTable[nextTextIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextTextIndex].actionId == 0) && ((Gp_CapTable[nextTextIndex].control.text.displayFrames != 0) || (Gp_CapTable[nextTextIndex].control.text.pauseFrames == 0))) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {

@@ -539,7 +539,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
 
     sum = _replayBonusTotalBp(list, obj);
     Text_DrawPrompt(obj, -xOff, yOff, Text_ItoaUnsigned(buf, (u32)sum), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+    if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
@@ -623,7 +623,7 @@ void func_replay_bonus_801166AC(Task* arg0)
         }
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
@@ -796,7 +796,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     remaining           = (u16)arg0->killCountdown - 1;
     arg0->killCountdown = remaining;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (((remaining << 0x10) <= 0) || (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+        if (((remaining << 0x10) <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }

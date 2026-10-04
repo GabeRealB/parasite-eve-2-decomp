@@ -1698,19 +1698,19 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
     if (list->scrollPixelsRemaining != 0) {
         Ui_SetListClip(list, panel, 0);
     } else if (panel->control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (list->actionResult == USER_INTERFACE_RESULT_NONE && Pad_CheckButtons(animate, 0, 0xA000) == 0) {
-            if (Pad_CheckButtons(animate, 1, 0x1000) != 0) {
+        if (list->actionResult == USER_INTERFACE_RESULT_NONE && padCheckButtons(animate, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT | PAD_BUTTON_LEFT) == 0) {
+            if (padCheckButtons(animate, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
                 playSound                = 1;
                 list->navigationStep     = USER_INTERFACE_LIST_STEP_PREVIOUS;
                 step                     = -1;
                 list->selectedItemIndex -= 1;
-            } else if (Pad_CheckButtons(animate, 1, 0x4000) != 0) {
+            } else if (padCheckButtons(animate, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
                 playSound                = 1;
                 step                     = 1;
                 list->selectedItemIndex += 1;
                 list->navigationStep     = USER_INTERFACE_LIST_STEP_NEXT;
             } else if (list->visibleRowCount.signedValue < list->itemCount && list->wrapNavigation == 0) {
-                if (Pad_CheckButtons(0, 1, 4) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L1) != 0) {
                     if (list->selectedItemIndex != 0) {
                         playSound = 1;
                     }
@@ -1728,7 +1728,7 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
                     } else {
                         list->selectedItemIndex = 0;
                     }
-                } else if (Pad_CheckButtons(0, 1, 8) != 0) {
+                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_R1) != 0) {
                     if (list->selectedItemIndex != list->itemCount - 1) {
                         playSound = 1;
                     }
@@ -2881,13 +2881,13 @@ static void Ui_DrawDialogLine(UiList* list, UiObject* object)
     }
     Text_DrawPrompt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, option->text, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             temp                = USER_INTERFACE_RESULT_CONFIRM;
             object->resultValue = (s8)(u8)list->currentItemIndex + 1;
             object->result      = temp;
             return;
         }
-        if ((request->flags & USER_INTERFACE_OPTION_DIALOG_CANCELLABLE) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+        if ((request->flags & USER_INTERFACE_OPTION_DIALOG_CANCELLABLE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
             object->resultValue = -1;
             object->result      = USER_INTERFACE_RESULT_CANCEL;
         }

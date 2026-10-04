@@ -1700,14 +1700,14 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
         if (z < 0x7D0) {
             if ((z >= -0x7CF) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 facing = (u16)actor->rotation.vy & 0xFFF;
-                if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP) != 0) {
                     if ((u32)(facing - 0xA01) < 0x3FFU) {
                         Gp_MsgPlayerWeapon(0);
                         Gp_StartCapSlot(0xA, 0, 1);
                         Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
                     }
                 }
-                if ((Pad_CheckButtons(0, 0, 0x4000) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
+                if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
                     Gp_MsgPlayerWeapon(0);
                     Gp_StartCapSlot(0xA, 0, 1);
                     Task_SpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);

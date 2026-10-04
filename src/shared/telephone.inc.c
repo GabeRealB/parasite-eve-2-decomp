@@ -452,7 +452,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         }
     }
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             SndEvt_EnqueueType6(SOUND_MENU_CONFIRM, 0, 0);
             Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -687,7 +687,7 @@ static void Telephone_UsageTask(Task* task)
         task->state += 1;
     }
     Ui_UpdateListNoAnim(list, obj);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
     if (task->firstChild != NULL) {
@@ -756,7 +756,7 @@ static inline void Telephone_MenuTask(Task* task)
         Ui_SetState4(obj, task);
         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
+    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
         if (task->state != 0) {
             SndEvt_EnqueueType6(SOUND_SYSTEM_CANCEL, 0, 0);
         }
