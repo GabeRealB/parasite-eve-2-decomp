@@ -100,35 +100,36 @@ extern Task* D_mine_mesa_80189B5C;
 
 void func_mine_mesa_8017E15C(Task* arg0);
 
-// Related spawn counters with an unreferenced trailing zero word. Original struct/adjacent globals and tail fields/TU padding remain unresolved.
-typedef struct {
-    s16 remaining;
-    s16 cooldown;
-    u32 retained;
-} MineMesaSpawnCounters;
-STATIC_ASSERT_SIZEOF(MineMesaSpawnCounters, 8);
-extern MineMesaSpawnCounters D_mine_mesa_80189B6C;
-// Keep independently addressed counter views of the bounded allocation.
-extern s16 MineMesaRemaining __asm__("D_mine_mesa_80189B6C");
-extern s16 MineMesaCooldown __asm__("D_mine_mesa_80189B6C+2");
+extern s16 MineMesaRemaining;
+extern s16 MineMesaCooldown;
 
 extern WorldCollisionTrigger D_mine_mesa_801890A0[19];
 
-/// A place an enemy can be spawned at: its position and the yaw it faces.
+/// A fixed place at which the room's enemy wave puts a newly spawned enemy.
+///
+/// The room keeps four, and the wave draws one at random from the subset the
+/// current camera view allows. The enemy's root coordinate takes the position
+/// as its translation and has its rotation overwritten with `yaw`.
 typedef struct {
-    s16 x;
-    s16 y;
-    s16 z;
-    s16 yaw;
+    s16 x;   // World X of the enemy's root
+    s16 y;   // World Y of the enemy's root; zero in every point
+    s16 z;   // World Z of the enemy's root
+    s16 yaw; // Facing about the vertical axis, signed, 4096 units per turn
 } _MineMesaSpawnPoint;
+STATIC_ASSERT_SIZEOF(_MineMesaSpawnPoint, 8);
 
-/// One of the room's four wall segments: the two corners along its
-/// base. The trailing bytes are not read by the code that builds the walls.
+/// The base edge of one vertical wall the room builds into its collision grid.
+///
+/// Each wall is a quad standing on the edge from `start` to `end` and raised
+/// by a height the room chooses when it builds them; its normal is horizontal
+/// and perpendicular to the edge. The room's four walls join end to start into
+/// one line.
 typedef struct {
-    SVECTOR start;
-    SVECTOR end;
-    u8      unk10[8];
+    SVECTOR start;    // Lower corner the wall starts at
+    SVECTOR end;      // Lower corner the wall ends at
+    SVECTOR field_10; // Never read; (0, 0, 4096) in every wall. Role and division into fields unproven
 } _MineMesaWall;
+STATIC_ASSERT_SIZEOF(_MineMesaWall, 0x18);
 
 extern TaskDesc D_8014D8A4;
 
@@ -2516,17 +2517,17 @@ PadScriptVibrationSegment D_mine_mesa_80189A90[3] = {
 };
 
 _MineMesaWall D_mine_mesa_80189A9C[4] = {
-    { { 5440, 200, -830, 0 }, { 6620, 200, 340, 0 }, { 0, 0, 0, 0, 0, 16, 0, 0 } },
-    { { 6620, 200, 340, 0 }, { 8680, 200, 460, 0 }, { 0, 0, 0, 0, 0, 16, 0, 0 } },
-    { { 8680, 200, 460, 0 }, { 0x2738, 200, -230, 0 }, { 0, 0, 0, 0, 0, 16, 0, 0 } },
-    { { 0x2738, 200, -230, 0 }, { 0x3A98, 200, 610, 0 }, { 0, 0, 0, 0, 0, 16, 0, 0 } },
+    { { 5440, 200, -830, 0 }, { 6620, 200, 340, 0 }, { 0, 0, 4096, 0 } },
+    { { 6620, 200, 340, 0 }, { 8680, 200, 460, 0 }, { 0, 0, 4096, 0 } },
+    { { 8680, 200, 460, 0 }, { 10040, 200, -230, 0 }, { 0, 0, 4096, 0 } },
+    { { 10040, 200, -230, 0 }, { 15000, 200, 610, 0 }, { 0, 0, 4096, 0 } },
 };
 
 _MineMesaSpawnPoint D_mine_mesa_80189AFC[4] = {
     { 2247, 0, -7235, 0 },
     { 1247, 0, -6535, 256 },
-    { 0x4A38, 0, 4300, -800 },
-    { 0x490C, 0, 5300, -1200 },
+    { 19000, 0, 4300, -800 },
+    { 18700, 0, 5300, -1200 },
 };
 
 TaskMessageEntry D_mine_mesa_80189B1C[2] = {
@@ -2554,7 +2555,12 @@ Task* D_mine_mesa_80189B5C = NULL;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-MineMesaSpawnCounters D_mine_mesa_80189B6C = { 0 };
+s16 MineMesaRemaining = 0;
+
+s16 MineMesaCooldown = 0;
+
+/// Not referenced by the package; its width and role are unproven.
+s16 D_mine_mesa_80189B70 = 0;
 
 Enemy* D_mine_mesa_80189B74[2] = {
     NULL,

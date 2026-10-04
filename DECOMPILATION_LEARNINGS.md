@@ -88897,7 +88897,7 @@ s32 func_mine_mesa_80181800(Task* task, s32 msgId, s32 slot, s32 arg3)
 {
     if (D_mine_mesa_80189B74[slot] != NULL && D_mine_mesa_80189B74[slot]->field_40 <= 0) {
         D_mine_mesa_80189B74[slot] = NULL;
-        D_mine_mesa_80189B6C       = (u16)D_mine_mesa_80189B6C - 1;
+        MineMesaRemaining          = (u16)MineMesaRemaining - 1;
     }
     return 1;
 }
@@ -147033,6 +147033,17 @@ Reading the struct's members instead puts its address in a saved register
 with no alias and no struct. A `.align 2` in front of a run of byte loads'
 storage in the build's `.s` is the sign that an aggregate is standing in for
 scalars.
+
+`mine_mesa` is the halfword case. Its wave spawner keeps `%hi(sym + 2)` in
+`$s6` for the cooldown across the loop and still forms `%hi(sym)` afresh for
+each read of the kill counter beside it, so the two are separate `s16`
+variables. Read as members of one struct, the struct's whole address goes into
+`$s6` (`lui`/`addiu`, then `sh 2($s6)`) and the image fails. They had been an
+8-byte struct read through two `extern s16 view __asm__("sym+N")` aliases; two
+plain `s16` definitions match, `static` or not. The four zero bytes after them are
+not alignment (the next object, a pointer array, is already aligned there), so
+at least one more unreferenced variable follows; an `s16` reproduces the bytes
+with the array's own `.align 2`.
 
 ## A room built per stage names the other build's objects, and two calls to one address are two names (dryfield_factory, 2026-09-30)
 

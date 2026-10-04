@@ -201,7 +201,9 @@ D_mine_mesa_801818F8 = 0x801818F8; // size:0xC defined:True
 D_mine_mesa_80181904 = 0x80181904; // size:0x30 defined:True
 D_mine_mesa_80181934 = 0x80181934; // size:0x2C defined:True
 D_mine_mesa_80181960 = 0x80181960; // size:0x30 defined:True
-D_mine_mesa_80189B6C = 0x80189B6C; // size:0x8 defined:True
+MineMesaRemaining = 0x80189B6C; // type:s16 size:0x2 defined:True
+MineMesaCooldown = 0x80189B6E; // type:s16 size:0x2 defined:True
+D_mine_mesa_80189B70 = 0x80189B70; // type:s16 size:0x2 defined:True
 D_mine_mesa_80189B74 = 0x80189B74; // size:0x8 defined:True
 RoomFx_TrailOffsets = 0x80186528; // size:0x10 defined:True
 
