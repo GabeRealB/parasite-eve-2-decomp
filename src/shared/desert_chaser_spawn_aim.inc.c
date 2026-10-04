@@ -81,8 +81,8 @@ void desertChaserSpawnAim(Task* arg0)
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->field_0 = 0x1F;
 #else
-        state = work->actorId.word & 0xFFFFFF;
-        if (state == 0x11402) {
+        state = work->actorId.word & DESERT_CHASER_COMMAND_MASK;
+        if (state == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
             state = 5;
         } else {
             state = 0x1F;

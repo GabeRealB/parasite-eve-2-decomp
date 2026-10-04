@@ -1351,9 +1351,9 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
         }
         return 1;
     } else {
-        work->actorId.bytes[0] = request->context.loc.stage;
-        work->actorId.bytes[1] = request->context.loc.area;
-        work->actorId.bytes[2] = (u8)request->command;
+        work->actorId.fields.stage   = request->context.loc.stage;
+        work->actorId.fields.area    = request->context.loc.area;
+        work->actorId.fields.command = (u8)request->command;
         if (request->context.key == 0x104) {
             table = Actor00100_D00004;
             cmd   = request->command;

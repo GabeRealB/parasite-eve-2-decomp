@@ -25,6 +25,7 @@
 
 #include "actors/actor.h"
 
+#include "main/areas.h"
 #include "main/task_types.h"
 
 #define DESERT_CHASER_CUTSCENE    1
@@ -126,13 +127,36 @@ typedef struct DesertChaserCapsuleBody {
     WorldCollisionContact contacts[DESERT_CHASER_CONTACTS]; // Complete initialized contact table
 } DesertChaserCapsuleBody;
 
-/// The actor id word, read two ways: masked to 24 bits and compared with
-/// 0x11402, or its bytes taken one at a time from a message's context.
-typedef union DesertChaserIdWord {
-    s32 word;
-    u8  bytes[4];
-} DesertChaserIdWord;
-STATIC_ASSERT_SIZEOF(DesertChaserIdWord, 0x4);
+/// The last actor command the chaser was sent, with a frame counter in the
+/// byte above it.
+///
+/// The `ACTOR_COMMAND_MESSAGE_APPLY` handler copies every command outside the
+/// stage 9/area 1 namespace here before acting on it, keeping only the low
+/// byte of its command word. The Water Tower build's states later branch on
+/// that byte, or on the whole command at once through `word`; the regular build
+/// stores it and never reads it back.
+typedef union {
+    s32 word;           // The four bytes together; compare `word & DESERT_CHASER_COMMAND_MASK` with a `DESERT_CHASER_COMMAND`
+    struct {
+        u8 stage;       // Stage tag of the command's namespace
+        u8 area;        // Area tag of the command's namespace
+        u8 command;     // Low byte of the receiver-specific command
+        u8 catchFrames; // Water Tower build: frames since the caught player was last sent an animation, timing each step of the catch; the regular build leaves it unwritten
+    } fields;
+} DesertChaserLastCommand;
+STATIC_ASSERT_SIZEOF(DesertChaserLastCommand, 0x4);
+
+/// The bits of `DesertChaserLastCommand::word` that hold the command, leaving
+/// out the frame counter above them.
+#define DESERT_CHASER_COMMAND_MASK 0xFFFFFF
+/// The value those bits hold for command `command` of the stage/area
+/// namespace: stage in bits 0-7, area in bits 8-15, command in bits 16-23.
+#define DESERT_CHASER_COMMAND(stage, area, command) ((stage) | ((area) << 8) | ((command) << 16))
+/// Command 1 of the Dryfield Water Tower, which the room broadcasts as its
+/// timed mechanism step starts. While it is the last command received, a chaser
+/// that has landed its strike or finished aiming goes to state 5 instead of
+/// following the player.
+#define DESERT_CHASER_COMMAND_WATER_TOWER_1 DESERT_CHASER_COMMAND(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 1)
 
 #endif
 
@@ -245,9 +269,9 @@ typedef struct DesertChaserWork {
     /// its table and playback words, and the pair is sent as one.
     AnimationSet** animCommand;
     s32            params[4];
-    /// Last message context, kept for the debug display.
-    DesertChaserIdWord actorId;
-    byte               pad_C10[8];
+    /// Last actor command received; this build stores it and never reads it.
+    DesertChaserLastCommand actorId;
+    byte                    pad_C10[8];
     /// One-shot "already reported" latch.
     s16  reported;
     s16  distance;
@@ -295,11 +319,12 @@ typedef struct DesertChaserWork {
     /// Animation-set table the caught player plays from, the front or the
     /// rear one. With `params` it lies where an `AnimationPlayRequest` keeps
     /// its table and playback words, and the pair is sent as one.
-    AnimationSet**     animCommand;
-    s32                params[4];
-    DesertChaserIdWord actorId;
-    Task*              field_E94;
-    Task*              field_E98;
+    AnimationSet** animCommand;
+    s32            params[4];
+    /// Last actor command received and, above it, the catch frame counter.
+    DesertChaserLastCommand actorId;
+    Task*                   field_E94;
+    Task*                   field_E98;
     /// One-shot "already reported" latch.
     s16  reported;
     s16  distance;

@@ -1968,7 +1968,7 @@ static __inline__ s32 Actor421600_HasPlayerContact(WorldCollisionContact* record
 /// Message handler. Message 0x109 nudges the state machine by its sub-command
 /// (1 copies `field_EA8` into `field_EAA`, 3 moves state 1 on to 2). Any other
 /// message has its opcode and the low byte of its sub-command latched into
-/// `field_E90`; for 0x1402 the enemy's hit points are restored and, by
+/// `actorId`; for 0x1402 the enemy's hit points are restored and, by
 /// sub-command, the placement mode in `placeKey` and the progress counter
 /// `D_actor_421600_80151268`, the actor is dropped at a fixed spot with a new
 /// state. Returns 1 when the message was handled.
@@ -2001,9 +2001,9 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
         return 1;
     }
 
-    work->actorId.bytes[0] = request->context.loc.stage;
-    work->actorId.bytes[1] = request->context.loc.area;
-    work->actorId.bytes[2] = (u8)request->command;
+    work->actorId.fields.stage   = request->context.loc.stage;
+    work->actorId.fields.area    = request->context.loc.area;
+    work->actorId.fields.command = (u8)request->command;
 
     if (request->context.key != 0x1402) {
         return 0;
@@ -3116,7 +3116,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                     hurtState = work->field_0;
                     if ((hurtState != 0x21) && (hurtState != 0x14) &&
                         (hurtState != 0x11) && (hurtState != 7) &&
-                        (work->actorId.bytes[2] != 1)) {
+                        (work->actorId.fields.command != 1)) {
                         soundBase     = 0x40010008;
                         work->field_0 = 0x14;
                     } else {
@@ -3519,7 +3519,7 @@ static void func_actor_421600_801369A0(Task* arg0)
     if (work->field_EAC > 0) {
         work->field_EAC = work->field_EAC - 1;
     }
-    if (work->actorId.bytes[2] != 2) {
+    if (work->actorId.fields.command != 2) {
         work->field_0 = 0;
         return;
     }
@@ -3722,7 +3722,7 @@ static void func_actor_421600_8013903C(Task* arg0)
 /// Death / respawn tick: re-arms the model buffers and the 0x828 motion block,
 /// fires the 0x40010009 spawn sound and the 0x40010007 tick sound (draining
 /// `hp` by 0xF and flooring it at 1), then walks the two `WorldCollisionContact`
-/// movement tables. While the id word's third byte reads 2 the actor is held
+/// movement tables. While the last command received is 2 the actor is held
 /// in the arena by clamping X -- and Z only when X was already inside -- and
 /// otherwise `func_actor_421600_80133334` drags it back. Picks the state
 /// `field_0` from `hp` and the buildup bit of `reactionFlags`.
@@ -3769,7 +3769,7 @@ static void func_actor_421600_8013947C(Task* arg0)
     }
     ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[0].contacts, 0xC);
-    if (work->actorId.bytes[2] == 2) {
+    if (work->actorId.fields.command == 2) {
         coord = arg0->extra.tmd->coords;
         x     = coord->coord.t[0];
         if (x > 0) {
@@ -3831,7 +3831,7 @@ static void func_actor_421600_8013A404(Task* arg0)
     temp_s0->field_6 -= 1;
     desertChaserAnimTick(arg0);
     if ((s16)temp_s0->field_6 < 0) {
-        temp_v1 = temp_s0->actorId.bytes[2];
+        temp_v1 = temp_s0->actorId.fields.command;
         if ((temp_v1 == 1) || (temp_v1 == 3)) {
             temp_s0->field_0 = 5;
         } else if (temp_v1 == 2) {
@@ -3994,7 +3994,7 @@ static void func_actor_421600_8013A554(Task* arg0)
                     work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
                     work->playerMove.keepControl       = 1;
                     work->reported                     = 1;
-                    work->actorId.bytes[3]             = 0;
+                    work->actorId.fields.catchFrames   = 0;
                     TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->animCommand, 0);
                 }
                 nextState = 0x25;
@@ -4020,7 +4020,7 @@ static void func_actor_421600_8013A554(Task* arg0)
                 work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
                 work->playerMove.keepControl       = 1;
                 work->reported                     = 1;
-                work->actorId.bytes[3]             = 0;
+                work->actorId.fields.catchFrames   = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->animCommand, 0);
                 nextState = 0x1E;
             }
@@ -4969,7 +4969,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
     } else if (config->hp > 0) {
         func_actor_421600_801354D8(actor);
     }
-    kind = work->actorId.bytes[2];
+    kind = work->actorId.fields.command;
     if ((kind == 2) && ((state = work->field_0, (state == 0x26)) || (state == kind))) {
         work->field_0 = 0x27;
     }
@@ -5004,14 +5004,14 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 slot2->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             }
         }
-        contactKind            = work->actorId.bytes[2];
-        work->actorId.bytes[3] = (u8)(work->actorId.bytes[3] + 1);
+        contactKind = work->actorId.fields.command;
+        work->actorId.fields.catchFrames++;
         if (contactKind == 1) {
             if (D_dryfield_water_tower_801876AA == (D_dryfield_water_tower_801876A8 + 1)) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, NULL, 0);
                 work->reported = 0;
             }
-            if ((work->actorId.bytes[2] == contactKind) && ((s32)D_dryfield_water_tower_801876AA < (D_dryfield_water_tower_801876A8 + 3))) {
+            if ((work->actorId.fields.command == contactKind) && ((s32)D_dryfield_water_tower_801876AA < (D_dryfield_water_tower_801876A8 + 3))) {
                 work->playerMove.displacement.vx = 0;
                 work->playerMove.displacement.vy = 0;
                 work->playerMove.displacement.vz = 0;
@@ -5027,7 +5027,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                     work->playerMove.displacement.vy = 0;
                     work->playerMove.displacement.vz = 0;
                 }
-                if (((u8)work->actorId.bytes[3] >= 0xFU) && (work->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
+                if ((work->actorId.fields.catchFrames >= 0xFU) && (work->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
                     work->playerMove.displacement.vx >>= 1;
                     work->playerMove.displacement.vy >>= 1;
                     work->playerMove.displacement.vz >>= 1;
@@ -5036,16 +5036,16 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
             case 2:
                 playerSets = work->animCommand;
                 if (playerSets == gDesertChaserRearAnim) {
-                    if ((config->hp > 0) && ((u8)work->actorId.bytes[3] >= 0x17U)) {
+                    if ((config->hp > 0) && (work->actorId.fields.catchFrames >= 0x17U)) {
                         message         = &work->animCommand;
                         playerSets[4]   = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[7];
                         work->params[0] = 4;
                         work->params[1] = 1;
                         work->params[2] = 3;
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
-                        work->actorId.bytes[3] = 0U;
+                        work->actorId.fields.catchFrames = 0U;
                     }
-                } else if ((config->hp > 0) && ((u8)work->actorId.bytes[3] >= 0x22U)) {
+                } else if ((config->hp > 0) && (work->actorId.fields.catchFrames >= 0x22U)) {
                     message                       = &work->animCommand;
                     Actor421600FrontContact.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[7];
 
@@ -5053,11 +5053,11 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                     work->params[1] = 1;
                     work->params[2] = 3;
                     TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
-                    work->actorId.bytes[3] = 0U;
+                    work->actorId.fields.catchFrames = 0U;
                 }
                 break;
             case 3:
-                if (((u8)work->actorId.bytes[3] < 6U) && (config->hp > 0)) {
+                if ((work->actorId.fields.catchFrames < 6U) && (config->hp > 0)) {
                     result = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0);
                     if (result == 1) {
                         work->playerMove.displacement.vx = 0;
@@ -5068,7 +5068,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 }
                 break;
             case 5:
-                if ((config->hp > 0) && ((u8)work->actorId.bytes[3] >= 7U)) {
+                if ((config->hp > 0) && (work->actorId.fields.catchFrames >= 7U)) {
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
                     work->reported = 0;
                 }
@@ -5085,7 +5085,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                         work->params[0] = 2;
 
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);
-                        work->actorId.bytes[3] = 0U;
+                        work->actorId.fields.catchFrames = 0U;
                     }
                     break;
                 case 3:
@@ -5101,7 +5101,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                         }
                         nextMessage = &work->animCommand;
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);
-                        work->actorId.bytes[3] = 0U;
+                        work->actorId.fields.catchFrames = 0U;
                     }
                     break;
                 case 4:
@@ -5115,7 +5115,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
         }
     }
     states.fn[work->field_0](actor);
-    if (work->field_0 == 1 && work->actorId.bytes[2] == 0) {
+    if (work->field_0 == 1 && work->actorId.fields.command == 0) {
         if ((Gp_GetViewIndex() & 0xFF) == 5)
             work->field_0 = 2;
     }
@@ -5288,7 +5288,8 @@ static void func_actor_421600_8013E858(Task* arg0)
 
 /// State handler: on the live-actor edge (`field_4` set) show the model, start
 /// animation 4 and step it once; afterwards step the animation and, once its
-/// flag 0x100 is up, go to state 5 when `field_E90` masks to 0x11402, else 2.
+/// flag 0x100 is up, go to state 5 when the last command received is
+/// `DESERT_CHASER_COMMAND_WATER_TOWER_1`, else 2.
 static void func_actor_421600_8013E9D8(Task* arg0)
 {
     TmdObject*        obj;
@@ -5312,8 +5313,8 @@ static void func_actor_421600_8013E9D8(Task* arg0)
     }
     desertChaserAnimTick(arg0);
     if (work->slots[1].status.fields.flags & 0x100) {
-        state = work->actorId.word & 0xFFFFFF;
-        if (state == 0x11402) {
+        state = work->actorId.word & DESERT_CHASER_COMMAND_MASK;
+        if (state == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
             state = 5;
         } else {
             state = 2;

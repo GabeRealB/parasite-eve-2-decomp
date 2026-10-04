@@ -47,7 +47,7 @@ void desertChaserStrike(Task* arg0)
         work->capsuleBody.shape.ends[1].vz = 0x320;
         work->playerMove.displacement.vz   = z;
 #if DESERT_CHASER_RUN_SEQUENCE
-        if ((work->actorId.word & 0xFFFFFF) == 0x11402) {
+        if ((work->actorId.word & DESERT_CHASER_COMMAND_MASK) == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
             work->field_0 = 5;
         }
 #else

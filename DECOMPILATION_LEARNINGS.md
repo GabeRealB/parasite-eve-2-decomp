@@ -97051,8 +97051,8 @@ block boundary rather than the neighbour. Fixing this last one, after the
 scratch-pointer and store-order work, took 90.821% to 100%.
 ## Make the compared value *be* the stored value: the arm assignment cannot be hoisted (func_actor_421600_8013E9D8, 2026-09-16)
 
-A spawn tail ends with "state = 2, or 5 when the id word masks down to
-0x11402". The m2c shape names a temp and assigns it before the test, so
+A spawn tail ends with "state = 2, or 5 when the last-command word masks down
+to 0x11402". The m2c shape names a temp and assigns it before the test, so
 `jump.c` runs its `if (c) x = a; else x = b;` -> `x = b; if (c) x = a;` fold
 (see the `*&state` and junk-yard entries): the `= 2` lands in the block holding
 the test, before the mask constant, the `lw` and the `and`. Born there, the temp
@@ -97074,8 +97074,8 @@ state local and let the arms reassign it, so the test reads X and the fold's
 "nothing in the test modifies B or X" guard fails:
 
 ```c
-state = work->field_E90 & 0xFFFFFF;
-if (state == 0x11402) {
+state = work->actorId.word & DESERT_CHASER_COMMAND_MASK;
+if (state == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
     state = 5;
 } else {
     state = 2;
@@ -110986,7 +110986,7 @@ that is what was written first (99.915%, `regs=3`):
 ```c
 if (work->field_68 & 0x100) {
     state = 0x1F;                                     /* -> $a1, not $v0 */
-    if ((work->field_E90 & 0xFFFFFF) == 0x11402) {
+    if ((work->actorId.word & DESERT_CHASER_COMMAND_MASK) == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
         state = 5;
     }
     work->field_0 = state;
@@ -111000,8 +111000,8 @@ the same variable makes the pseudo the one the `and` already wrote, so both
 constants land in `$v0` and the store reads it:
 
 ```c
-state = work->field_E90 & 0xFFFFFF;
-if (state == 0x11402) {
+state = work->actorId.word & DESERT_CHASER_COMMAND_MASK;
+if (state == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
     state = 5;
 } else {
     state = 0x1F;

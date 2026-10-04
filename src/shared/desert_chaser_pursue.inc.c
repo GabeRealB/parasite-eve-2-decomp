@@ -169,7 +169,7 @@ void desertChaserPursue(Task* arg0)
                         work->playerMove.keepControl       = 1;
                         work->reported                     = 1;
 #if DESERT_CHASER_RUN_SEQUENCE
-                        work->actorId.bytes[3] = 0;
+                        work->actorId.fields.catchFrames = 0;
 #endif
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->animCommand, 0);
                     }
@@ -201,7 +201,7 @@ void desertChaserPursue(Task* arg0)
                     work->playerMove.keepControl       = 1;
                     work->reported                     = 1;
 #if DESERT_CHASER_RUN_SEQUENCE
-                    work->actorId.bytes[3] = 0;
+                    work->actorId.fields.catchFrames = 0;
 #endif
                     TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->animCommand, 0);
                     work->field_0 = 0x1E;
