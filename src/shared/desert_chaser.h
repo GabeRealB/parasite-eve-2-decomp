@@ -134,18 +134,6 @@ typedef union DesertChaserIdWord {
 } DesertChaserIdWord;
 STATIC_ASSERT_SIZEOF(DesertChaserIdWord, 0x4);
 
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-typedef struct DesertChaserAnimCommand {
-    AnimationSet* sets[9];
-} DesertChaserAnimCommand;
-STATIC_ASSERT_SIZEOF(DesertChaserAnimCommand, 0x24);
-#else
-typedef struct DesertChaserAnimCommand {
-    AnimationSet* entries[4];
-    AnimationSet* field_10;
-    AnimationSet* field_14;
-} DesertChaserAnimCommand;
-#endif
 #endif
 
 /// The work block the spawn handler allocates and hangs behind `Task::work`:
@@ -251,9 +239,12 @@ typedef struct DesertChaserWork {
     u16  hitFlag;
     byte pad_BE6[0xA];
     /// Offset from the actor to the player.
-    SVECTOR                  playerDelta;
-    DesertChaserAnimCommand* animCommand;
-    s32                      params[4];
+    SVECTOR playerDelta;
+    /// Animation-set table the caught player plays from, the front or the
+    /// rear one. With `params` it lies where an `AnimationPlayRequest` keeps
+    /// its table and playback words, and the pair is sent as one.
+    AnimationSet** animCommand;
+    s32            params[4];
     /// Last message context, kept for the debug display.
     DesertChaserIdWord actorId;
     byte               pad_C10[8];
@@ -298,14 +289,17 @@ typedef struct DesertChaserWork {
     u16  damageTotal;
     byte pad_E68[8];
     /// Offset from the actor to the player.
-    SVECTOR                  playerDelta;
-    s16                      field_E78;
-    byte                     pad_E7A[2];
-    DesertChaserAnimCommand* animCommand;
-    s32                      params[4];
-    DesertChaserIdWord       actorId;
-    Task*                    field_E94;
-    Task*                    field_E98;
+    SVECTOR playerDelta;
+    s16     field_E78;
+    byte    pad_E7A[2];
+    /// Animation-set table the caught player plays from, the front or the
+    /// rear one. With `params` it lies where an `AnimationPlayRequest` keeps
+    /// its table and playback words, and the pair is sent as one.
+    AnimationSet**     animCommand;
+    s32                params[4];
+    DesertChaserIdWord actorId;
+    Task*              field_E94;
+    Task*              field_E98;
     /// One-shot "already reported" latch.
     s16  reported;
     s16  distance;

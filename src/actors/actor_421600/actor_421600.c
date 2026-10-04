@@ -225,10 +225,10 @@ typedef union {
         AnimationSet* back[5];
         SVECTOR       hitOffsets[12];
     } data;
-    DesertChaserAnimCommand frontCommand;
+    AnimationSet* frontCommand[6];
     struct {
-        AnimationSet*           front[5];
-        DesertChaserAnimCommand command;
+        AnimationSet* front[5];
+        AnimationSet* command[6];
     } rear;
 } Actor421600ContactStorage;
 STATIC_ASSERT_SIZEOF(Actor421600ContactStorage, 136);
@@ -241,11 +241,11 @@ typedef struct {
 } Actor421600AnimWord;
 
 // These bounded symbol views preserve the original independent address loads.
-extern DesertChaserAnimCommand gDesertChaserFrontAnim __asm__("D_actor_421600_80151090");
-extern DesertChaserAnimCommand gDesertChaserRearAnim __asm__("D_actor_421600_80151090+20");
-extern SVECTOR                 gDesertChaserHitOffsets[12] __asm__("D_actor_421600_80151090+40");
-extern Actor421600AnimWord     Actor421600FrontContact __asm__("D_actor_421600_80151090+16");
-extern Actor421600AnimWord     Actor421600FallbackEnd __asm__("D_actor_421600_80151090+20");
+extern AnimationSet*       gDesertChaserFrontAnim[6] __asm__("D_actor_421600_80151090");
+extern AnimationSet*       gDesertChaserRearAnim[6] __asm__("D_actor_421600_80151090+20");
+extern SVECTOR             gDesertChaserHitOffsets[12] __asm__("D_actor_421600_80151090+40");
+extern Actor421600AnimWord Actor421600FrontContact __asm__("D_actor_421600_80151090+16");
+extern Actor421600AnimWord Actor421600FallbackEnd __asm__("D_actor_421600_80151090+20");
 
 static void func_actor_421600_8013E668(Task* task);
 static void func_actor_421600_8013E858(Task* arg0);
@@ -3962,9 +3962,9 @@ static void func_actor_421600_8013A554(Task* arg0)
             distance           = scratch->yaw - scratch->playerYaw;
             distance           = abs(distance);
             if (distance < 0x400) {
-                work->animCommand = &gDesertChaserFrontAnim;
+                work->animCommand = gDesertChaserFrontAnim;
             } else {
-                work->animCommand = &gDesertChaserRearAnim;
+                work->animCommand = gDesertChaserRearAnim;
                 scratch->yaw      = (s16)((u16)scratch->yaw + 0x800);
             }
             work->playerPlacement.rot.vx = 0;
@@ -4899,12 +4899,12 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
     u8                        kind;
     s32                       contactKind;
     void**                    scratchHead;
-    DesertChaserAnimCommand*  nextCommand;
+    AnimationSet**            nextPlayerSets;
     DesertChaserWork*         actorWork;
     DesertChaserWork*         actorWork2;
     DesertChaserWork*         work;
     Task*                     player;
-    DesertChaserAnimCommand*  command;
+    AnimationSet**            playerSets;
     Task*                     slot;
     Task*                     slot2;
     Actor421600UpdateScratch* scratch;
@@ -5034,14 +5034,14 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 }
                 break;
             case 2:
-                command = work->animCommand;
-                if (command == &gDesertChaserRearAnim) {
+                playerSets = work->animCommand;
+                if (playerSets == gDesertChaserRearAnim) {
                     if ((config->hp > 0) && ((u8)work->actorId.bytes[3] >= 0x17U)) {
-                        message           = &work->animCommand;
-                        command->field_10 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[7];
-                        work->params[0]   = 4;
-                        work->params[1]   = 1;
-                        work->params[2]   = 3;
+                        message         = &work->animCommand;
+                        playerSets[4]   = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[7];
+                        work->params[0] = 4;
+                        work->params[1] = 1;
+                        work->params[2] = 3;
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
                         work->actorId.bytes[3] = 0U;
                     }
@@ -5093,9 +5093,9 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                         work->params[1] = 1;
                         work->params[2] = 6;
                         work->params[0] = 5;
-                        nextCommand     = work->animCommand;
-                        if (nextCommand == &gDesertChaserRearAnim) {
-                            nextCommand->field_14 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[9];
+                        nextPlayerSets  = work->animCommand;
+                        if (nextPlayerSets == gDesertChaserRearAnim) {
+                            nextPlayerSets[5] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[9];
                         } else {
                             Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[9];
                         }

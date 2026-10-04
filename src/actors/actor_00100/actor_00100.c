@@ -167,7 +167,7 @@ static TmdSource _gActor00100DesertChaserBurstHead;
 
 static TmdSource _gActor00100DesertChaserBurstTorso;
 
-extern DesertChaserAnimCommand gDesertChaserFrontAnim;
+extern AnimationSet* gDesertChaserFrontAnim[9];
 
 extern SVECTOR ActorContact_ScratchPosition;
 
@@ -177,7 +177,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-extern DesertChaserAnimCommand gDesertChaserRearAnim;
+extern AnimationSet* gDesertChaserRearAnim[9];
 
 extern TaskMessageEntry Actor00100_D1BA54[6];
 
@@ -1219,9 +1219,9 @@ AnimationSet* Actor00100_D1B944[26] = {
     NULL,
 };
 
-DesertChaserAnimCommand gDesertChaserFrontAnim = { { NULL, &_gActor00100Actor400100Animation19918, &_gActor00100Actor400100Animation1A8C0, &_gActor00100Actor400100Animation1B388, NULL, NULL, NULL, NULL, NULL } };
+AnimationSet* gDesertChaserFrontAnim[9] = { NULL, &_gActor00100Actor400100Animation19918, &_gActor00100Actor400100Animation1A8C0, &_gActor00100Actor400100Animation1B388, NULL, NULL, NULL, NULL, NULL };
 
-DesertChaserAnimCommand gDesertChaserRearAnim = { { NULL, &_gActor00100Actor400100Animation1A0B4, &_gActor00100Actor400100Animation1B0D4, &_gActor00100Actor400100Animation1B6A8, NULL, NULL, NULL, NULL, NULL } };
+AnimationSet* gDesertChaserRearAnim[9] = { NULL, &_gActor00100Actor400100Animation1A0B4, &_gActor00100Actor400100Animation1B0D4, &_gActor00100Actor400100Animation1B6A8, NULL, NULL, NULL, NULL, NULL };
 
 SVECTOR gDesertChaserHitOffsets[12] = {
     { 60, -12, 30, 2 },
@@ -3291,34 +3291,34 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     Actor00100StateTable states;
     GfxCoord*            actorcoord;
 
-    SVECTOR**                scratchHead;
-    SVECTOR*                 scratch;
-    s32                      state;
-    s16                      modeState;
-    s16                      height;
-    s16                      modeHeight;
-    s16                      initialState;
-    s16                      finalState;
-    s16                      i;
-    GfxCoord*                playerCoord;
-    s32                      sound;
-    s32                      sound2;
-    s32                      depth;
-    s32                      result;
-    s32                      action;
-    s32                      nextAction;
-    s32                      pan2;
-    s32                      pan;
-    DesertChaserAnimCommand* command2;
-    DesertChaserWork*        actorWork;
-    Task*                    playerSlot;
-    DesertChaserWork*        work;
-    Task*                    player;
-    DesertChaserAnimCommand* command;
-    Task*                    slot;
-    GfxCoord*                coord;
-    void*                    message;
-    void*                    nextMessage;
+    SVECTOR**         scratchHead;
+    SVECTOR*          scratch;
+    s32               state;
+    s16               modeState;
+    s16               height;
+    s16               modeHeight;
+    s16               initialState;
+    s16               finalState;
+    s16               i;
+    GfxCoord*         playerCoord;
+    s32               sound;
+    s32               sound2;
+    s32               depth;
+    s32               result;
+    s32               action;
+    s32               nextAction;
+    s32               pan2;
+    s32               pan;
+    AnimationSet**    nextPlayerSets;
+    DesertChaserWork* actorWork;
+    Task*             playerSlot;
+    DesertChaserWork* work;
+    Task*             player;
+    AnimationSet**    playerSets;
+    Task*             slot;
+    GfxCoord*         coord;
+    void*             message;
+    void*             nextMessage;
 
     work                                   = actor->work;
     player                                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -3469,23 +3469,23 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 }
                 break;
             case 2:
-                command = work->animCommand;
-                if (command == &gDesertChaserRearAnim) {
+                playerSets = work->animCommand;
+                if (playerSets == gDesertChaserRearAnim) {
                     if ((config->hp > 0) && (work->field_C28 >= 0x17)) {
-                        message          = &work->animCommand;
-                        command->sets[4] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[7];
-                        work->params[0]  = 4;
-                        work->params[1]  = 1;
-                        work->params[2]  = 3;
+                        message         = &work->animCommand;
+                        playerSets[4]   = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[7];
+                        work->params[0] = 4;
+                        work->params[1] = 1;
+                        work->params[2] = 3;
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
                         work->field_C28 = 0U;
                     }
                 } else if ((config->hp > 0) && (work->field_C28 >= 0x22)) {
-                    message                        = &work->animCommand;
-                    gDesertChaserFrontAnim.sets[4] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[7];
-                    work->params[0]                = 4;
-                    work->params[1]                = 1;
-                    work->params[2]                = 3;
+                    message                   = &work->animCommand;
+                    gDesertChaserFrontAnim[4] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[7];
+                    work->params[0]           = 4;
+                    work->params[1]           = 1;
+                    work->params[2]           = 3;
                     TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
                     work->field_C28 = 0U;
                 }
@@ -3526,11 +3526,11 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                         work->params[1] = 1;
                         work->params[2] = 6;
                         work->params[0] = 5;
-                        command2        = work->animCommand;
-                        if (command2 == &gDesertChaserRearAnim) {
-                            command2->sets[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[9];
+                        nextPlayerSets  = work->animCommand;
+                        if (nextPlayerSets == gDesertChaserRearAnim) {
+                            nextPlayerSets[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[9];
                         } else {
-                            gDesertChaserFrontAnim.sets[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[9];
+                            gDesertChaserFrontAnim[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[9];
                         }
                         nextMessage = &work->animCommand;
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);

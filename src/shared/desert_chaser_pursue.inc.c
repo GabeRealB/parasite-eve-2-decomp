@@ -135,9 +135,9 @@ void desertChaserPursue(Task* arg0)
                 scratch->vz         = -scratch->vz;
                 scratch->playerYaw  = actorYawTo(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords, scratch->vx, scratch->vz);
                 if (abs(scratch->playerYaw) < 0x400) {
-                    work->animCommand = &gDesertChaserFrontAnim;
+                    work->animCommand = gDesertChaserFrontAnim;
                 } else {
-                    work->animCommand   = &gDesertChaserRearAnim;
+                    work->animCommand   = gDesertChaserRearAnim;
                     scratch->contactYaw = scratch->contactYaw + 0x800;
                 }
                 work->playerPlacement.rot.vx = 0;
