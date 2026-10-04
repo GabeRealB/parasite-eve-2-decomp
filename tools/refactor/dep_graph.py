@@ -156,6 +156,11 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
         alias.update(same)
         print(f"  merged {len(same)} per-carrier copies of shared-fragment symbols", file=sys.stderr)
 
+    owned = import_aliases(root, version, nodes, edges)
+    if owned:
+        alias.update(owned)
+        print(f"  merged {len(owned)} references into another image with the definition they name", file=sys.stderr)
+
     macro_refs.add_graph(root, nodes, edges)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w") as fh:
@@ -169,6 +174,84 @@ def build(root: str, version: str, jobs: int, out_path: str) -> None:
 # --------------------------------------------------------------------------
 # querying
 # --------------------------------------------------------------------------
+
+
+_ASM_NAMES: dict = {}
+
+
+def assembly_names(root: str, version: str = "USA") -> set:
+    """Names that still have assembly of their own to be matched.
+
+    A placeholder with no C definition blocks what uses it only when its
+    meaning is still locked in assembly. Otherwise it is a reference to
+    something outside the images - a slot's load address, a fixed buffer - and
+    its uses are all the evidence there will ever be.
+    """
+    key = (root, version)
+    if key not in _ASM_NAMES:
+        names = set()
+        base = os.path.join(root, "asm", version)
+        for dirpath, _, files in os.walk(base):
+            if "nonmatchings" not in dirpath.split(os.sep):
+                continue
+            names.update(f[:-2] for f in files if f.endswith(".s"))
+        _ASM_NAMES[key] = names
+    return _ASM_NAMES[key]
+
+
+def import_aliases(root: str, version: str, nodes: dict, edges: dict) -> dict:
+    """Fold a reference into another image into the definition it names.
+
+    A reference with `owner=` in its symbol map means one image's symbol
+    (tools/check_symbols.py verifies that). Where it is spelled as its owner
+    spells it, the parser has already made them one node. Where it cannot be -
+    one copy of a source built for several slots, or a package of a variant
+    source, has no name of its own to give - the reference is spelled after the
+    package and address, and without this it is a second item with no
+    definition: something that looks as if it were still assembly, and blocks
+    everything that uses it.
+    """
+    tools = os.path.join(root, "tools")
+    if tools not in sys.path:
+        sys.path.insert(0, tools)
+    try:
+        import check_symbols as cs
+        from pathlib import Path
+        configs = cs.load_configs(Path(root))
+    except Exception:
+        return {}
+    out_dir = os.path.join(root, "build", version, "out")
+    by_name = collections.defaultdict(list)
+    for usr, meta in nodes.items():
+        by_name[meta["name"]].append(usr)
+    syms: dict = {}
+    merged: dict = {}
+    for image, cfg in configs.items():
+        for d in cs.parse_decls(Path(root), image, cfg["syms"]):
+            owner = d.attrs.get("owner")
+            if not owner:
+                continue
+            elf = os.path.join(out_dir, owner + ".elf")
+            if owner not in syms:
+                syms[owner] = cs.image_symbols_at(Path(elf)) if os.path.isfile(elf) else {}
+            sources = [u for u in by_name.get(d.name, ()) if not nodes.get(u, {}).get("file")]
+            if not sources:
+                continue
+            targets = [u for n, _ in syms[owner].get(d.addr, ()) if n != d.name
+                       for u in by_name.get(n, ()) if nodes.get(u, {}).get("file")]
+            if not targets:
+                continue
+            keep = min(targets)
+            for usr in sources:
+                if usr in nodes and usr != keep:
+                    merged[usr] = keep
+    for usr, keep in merged.items():
+        nodes.pop(usr, None)
+        edges.setdefault(keep, set()).update(edges.pop(usr, set()))
+    if merged:
+        for usr in list(edges):
+            edges[usr] = {merged.get(d, d) for d in edges[usr]} - {usr}
+    return merged
 
 
 def load(path: str):
@@ -225,6 +308,12 @@ def _out_of_scope(name: str, meta: dict, vendor: set) -> bool:
         return True
     if name.startswith("__builtin_"):
         return True  # The compiler's own; there is no declaration to name.
+    m = re.fullmatch(r"(?:D|func)_(8[0-9A-Fa-f]{7})", name)
+    if m and not meta.get("file") and int(m.group(1), 16) >= 0x80200000:
+        # An address past the retail console's memory: debug tooling that was
+        # resident on a development unit. No image of the game holds it, so
+        # there is nothing to read a name from.
+        return True
     if "(unnamed at " in name or "(anonymous at " in name:
         # An inline struct or union with no tag: there is nothing to name, and
         # the driver could never select it - it looks for an item by its name
@@ -647,8 +736,11 @@ def topo_order(nodes, edges, comp, vendor=frozenset()):
     impact = _impact(groups, out_deg, users, plain)
 
     import heapq
+    asm_names = assembly_names(cref.repo_root())
+
     def barrier(g):
         return int(any(not nodes[m].get("file")
+                       and nodes[m]["name"] in asm_names
                        and name_index.classify(nodes[m]["name"], _node_kind(m),
                                                vendor) == "generated"
                        for m in g))
@@ -835,7 +927,17 @@ def _step_numbers(order, nodes, edges, comp, done):
     return step_of, after
 
 
+def _declared_in(root: str, name: str) -> str:
+    try:
+        idx = cref._ref_index(root, 8)
+        files = sorted(idx.decl_files(name), key=lambda f: (not f.startswith("include"), f)) if idx else []
+        return files[0] if files else ""
+    except Exception:
+        return ""
+
+
 def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str, limits: dict | None = None):
+    asm_names = assembly_names(root, version)
     vendor = name_index.vendored_names(root)
     order = topo_order(nodes, edges, comp, vendor)
     order = batch_ready(root, order, nodes, edges, comp, done, limits or {})
@@ -875,6 +977,11 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str, l
             # work whose evidence is sitting in the C body.
             if state == "generated" and where:
                 state = "unnamed"
+            elif state == "generated" and name not in asm_names:
+                # Declared and used, defined by no image: named from its uses,
+                # and found through the file that declares it.
+                state = "unnamed"
+                where = _declared_in(root, name)
             refs = referrers.get(usr, set())
             outside = {r for r in refs if nodes.get(r, {}).get("file") != where}
             # Visibility is decided against the file that *defines* the item.

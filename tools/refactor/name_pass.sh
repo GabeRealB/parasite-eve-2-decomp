@@ -349,7 +349,20 @@ The conventions, the compiler's limits and what counts as evidence are above
    Macros have preprocessor scope, not C linkage: do not apply static to them.
 5. Where the role genuinely cannot be established, leave the name and say so.
    An invented name is worse than a generated one.
-6. Resolve meaningful literals, proven sizes and array bounds; review pointer
+6. Where another image refers to the item - a symbol-map line for its name or
+   its address marked \`absolute:True\`, which \`grep -rn "<name>\\|0x<ADDR>"
+   configs/USA\` finds - check that reference as part of the item, because the
+   build never does: each image links against an address. Its \`owner=\` must
+   be the image whose object the referring code really means (read the use
+   site: a table's key, the resources the referrer loads, the type it expects),
+   its declaration in the referring image must have the definition's type, and
+   it must carry the definition's name. Where one is wrong, correct it - the
+   annotation, the declaration, or the name on both sides - and say so in the
+   review. A place several images define is \`shared=\`; a function or object
+   another image refers to cannot be \`static\`. \`venv/bin/python3
+   tools/check_symbols.py --image <package>\` and \`tools/refactor/check_decls.py
+   --across-images\` report what disagrees.
+7. Resolve meaningful literals, proven sizes and array bounds; review pointer
    and callback casts, contracts and bounds; simplify justified scaffolding.
    Add sparse coarse body comments explaining significant phases and constraints.
    Propagate findings to all consumers and remove redundant declarations/includes.

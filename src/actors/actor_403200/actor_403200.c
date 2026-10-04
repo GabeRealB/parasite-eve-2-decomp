@@ -2840,17 +2840,12 @@ _Actor403200SpinnerSpawn D_actor_403200_8015F888[9] = {
 /// The task it describes carries the host's model and starts in the enemy
 /// task's dispatcher.
 ///
-/// Four zero bytes separate the descriptor from the next object. No access to
-/// them is recovered, so whether they are trailing fields of this object or a
-/// separate unreferenced variable is unproven; they stay in this allocation
-/// only to keep the data after it at its address.
-typedef struct {
-    TaskDesc desc;         // Descriptor the room spawns the boss's task from
-    u8       unknown_C[4]; // Zero in the image; no access established and role unproven
-} _Actor403200HostTaskDescStorage;
-STATIC_ASSERT_SIZEOF(_Actor403200HostTaskDescStorage, 0x10);
+/// The room refers to it as a task descriptor, so that is what the object is.
+TaskDesc D_actor_403200_8015F8D0 = { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80140E6C, { .model = &_gActor403200Model10824 } };
 
-_Actor403200HostTaskDescStorage D_actor_403200_8015F8D0 = { { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80140E6C, { .model = &_gActor403200Model10824 } }, { 0 } };
+/// Four zero bytes between the descriptor and the next object. Nothing refers
+/// to them; what they were is not established.
+static u8 _actor403200Unreferenced8015F8DC[4] = { 0, 0, 0, 0 };
 
 // Retain seven zero bytes after the accessed state byte.
 // Their original role as spare storage or alignment remains unresolved.

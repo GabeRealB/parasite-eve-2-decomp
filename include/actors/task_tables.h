@@ -229,7 +229,7 @@ extern TaskDesc D_actor_201100_8015F400[];
 
 extern TaskDesc D_actor_521100_8015F6E4[];
 
-extern TaskDesc D_actor_403200_8015F8D0[];
+extern TaskDesc D_actor_403200_8015F8D0;
 
 extern TaskDesc D_actor_202300_8015FAB8[];
 

@@ -160,6 +160,21 @@ def _spelling(cur, root: str) -> str:
     return _UNNAMED.sub(lambda m: "(unnamed at " + cref.relpath(os.path.normpath(m.group(1)), root) + ":", sp)
 
 
+def _defines(cur) -> bool:
+    """Whether a file-scope cursor is where its symbol is defined.
+
+    libclang does not call `int x;` a definition: in C it is a tentative one,
+    which becomes the definition when the unit ends without another. Zero-filled
+    work state is written exactly that way, so without this every such object
+    looks as if it were only declared - defined in assembly - and stands in the
+    way of whatever uses it.
+    """
+    if cur.is_definition():
+        return True
+    return (cur.kind == ci.CursorKind.VAR_DECL and cur.storage_class != ci.StorageClass.EXTERN
+            and cur.semantic_parent is not None and cur.semantic_parent.kind == ci.CursorKind.TRANSLATION_UNIT)
+
+
 def graph_records(tu, root: str, only=None, located=False) -> list:
     """(node, [used nodes]) for every top-level definition in a parsed unit - the
     dependency graph's raw records, shared by `dep_graph.py` and the index.
@@ -219,7 +234,7 @@ def graph_records(tu, root: str, only=None, located=False) -> list:
             continue
         if cur.kind not in _DEF_KINDS:
             continue
-        if not cur.is_definition():
+        if not _defines(cur):
             # A symbol defined in assembly is only ever declared in C, so
             # skipping declarations leaves it with no edges at all - and a
             # variable with no edges looks like a leaf even though it plainly
@@ -347,7 +362,7 @@ def scan_tu(job):
         if not _tracked(fname):
             continue
         if decl_here:
-            use = "definition" if cur.is_definition() else "declaration"
+            use = "definition" if _defines(cur) else "declaration"
         else:
             use = cref._usage(cur, parents)
             if cref._cast_around(cur, parents):
