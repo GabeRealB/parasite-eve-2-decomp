@@ -829,28 +829,6 @@ typedef struct Actor135600Work {
 } Actor135600Work;
 STATIC_ASSERT_SIZEOF(Actor135600Work, 0x50C);
 
-/// Work block of the enemy whose code actor_161500 and the paired variant of
-/// actor_460200 carry, allocated zeroed at its full size and kept at
-/// `Task::work`. It opens as the paced walk's work block does, through the
-/// blend length kept in `animArg`, then carries a head turn: `turnWeight` is
-/// the weight, 0 to 0x1000, of the per-frame turn toward the player, ramped
-/// up while `turnUp` is 1 and down otherwise. `pairTask` is the task of the partner enemy the spawn routine
-/// may start, which its own task is reparented under, and `enemy` the enemy
-/// the actor's own task belongs to.
-typedef struct Actor161500Work {
-    MATRIX          light;
-    MATRIX          color;
-    ActorAnimRig20  rig;
-    ActorEnemyState st;
-    s16             animArg;
-    s16             turnUp;
-    s16             turnWeight;
-    byte            pad_4F2[0x2];
-    Task*           pairTask;
-    Enemy*          enemy;
-} Actor161500Work;
-STATIC_ASSERT_SIZEOF(Actor161500Work, 0x4FC);
-
 /// Work block of the animated actor whose code actor_110300 and actor_110800
 /// both carry, reached through a global the spawn publishes: the rig at the
 /// front and the animation state after it. `st.cueRecord` is the animation

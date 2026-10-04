@@ -1,30 +1,30 @@
 /* Part of the stride walk library; see stride_walk.h. */
 
-/// Per-tick state 1 of this actor: faces the model toward the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`
-/// task. The root coordinate of the model is updated, a copy of its translation
-/// lifted by 0x320 is used as the look-at point, and the work block's
-/// `turnWeight` rate is stepped +0x200 or -0x200 per tick depending on
-/// `turnUp`, clamped to 0x1000 and 0 respectively.
+/// Per-frame state of the walker: relights the model from a point 0x320 above
+/// its root, runs the animation update, then turns the head toward the player
+/// by the work block's `turnWeight`, which rises 0x200 a frame to
+/// `STRIDE_WALK_TURN_WEIGHT_FULL` while `turnMode` is `STRIDE_WALK_TURN_PLAYER`
+/// and falls 0x200 a frame to 0 otherwise, and draws the shadow.
 void strideWalkFrame(Enemy* enemy, Task* task)
 {
-    Actor161500Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    VECTOR           vec;
+    StrideWalkWork* work;
+    GfxCoord*       coord;
+    TmdObject*      obj;
+    VECTOR          vec;
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    work  = (Actor161500Work*)task->work;
+    work  = task->work;
     Gp_UpdateCoord(coord);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     strideWalkUpdate(task);
-    if (work->turnUp == 1) {
+    if (work->turnMode == STRIDE_WALK_TURN_PLAYER) {
         work->turnWeight += 0x200;
-        if (work->turnWeight > 0x1000) {
-            work->turnWeight = 0x1000;
+        if (work->turnWeight > STRIDE_WALK_TURN_WEIGHT_FULL) {
+            work->turnWeight = STRIDE_WALK_TURN_WEIGHT_FULL;
         }
     } else {
         work->turnWeight -= 0x200;

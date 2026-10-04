@@ -4,8 +4,8 @@
 /// it holds over `blendFrames` frames, and records that id as the one applied.
 void pacedWalkBlendAnim(Task* task)
 {
-    PacedWalkWork* work;
-    s32            i;
+    PACED_WALK_WORK_T* work;
+    s32                i;
 
     work = task->work;
     i    = 1;

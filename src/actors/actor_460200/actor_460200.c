@@ -2328,7 +2328,7 @@ void strideWalkExit(Task* task)
 // The second walker is a stride walker, so its copies of the paced walk
 // helpers run on that walker's block.
 #undef PACED_WALK_WORK_T
-#define PACED_WALK_WORK_T Actor161500Work
+#define PACED_WALK_WORK_T StrideWalkWork
 
 /// The second walker's copy.
 #define pacedWalkTickAnim func_actor_460200_801332E0
@@ -2357,12 +2357,14 @@ void strideWalkExit(Task* task)
 #undef PACED_WALK_WORK_T
 #define PACED_WALK_WORK_T PacedWalkWork
 
-/// Script opcode: set the work block's `turnUp`, which selects whether the
-/// per-frame state blends the model toward the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task or away
-/// from it, to the payload.
+/// Turn command: sets the work block's `turnMode`, which selects whether the
+/// per-frame state turns the walker's head toward the player
+/// (`STRIDE_WALK_TURN_PLAYER`) or lets it settle back, to the command's value.
 s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
 {
-    ((Actor161500Work*)task->work)->turnUp = args->command;
+    StrideWalkWork* work = task->work;
+
+    work->turnMode = args->command;
     return 0;
 }
 

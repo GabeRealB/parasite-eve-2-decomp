@@ -32,7 +32,7 @@
 
 #include "rooms/shelter_1f_heliport.h"
 // The paced walk helpers this package carries run on the stride walker's block.
-#define PACED_WALK_WORK_T Actor161500Work
+#define PACED_WALK_WORK_T StrideWalkWork
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"
 #include "../../shared/stride_walk.h"
@@ -1591,12 +1591,14 @@ void strideWalkExit(Task* task)
 
 #include "../../shared/paced_walk_place.inc.c"
 
-/// Script opcode: sets the work block's `turnUp`, which selects whether the
-/// per-frame body turns the actor's head toward the player or away, to the
-/// payload.
+/// Turn command: sets the work block's `turnMode`, which selects whether the
+/// per-frame body turns the walker's head toward the player
+/// (`STRIDE_WALK_TURN_PLAYER`) or lets it settle back, to the command's value.
 s32 func_actor_161500_80132B88(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
 {
-    ((Actor161500Work*)task->work)->turnUp = args->command;
+    StrideWalkWork* work = task->work;
+
+    work->turnMode = args->command;
     return 0;
 }
 

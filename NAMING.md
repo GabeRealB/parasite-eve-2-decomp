@@ -497,6 +497,15 @@ task view it. `ScriptedWalkAttachmentsWork` is the whole block of a walker that
 carries two attachment tasks, the first walker of `actor_461800` and the second
 of `actor_143900`; the other walkers' blocks are their packages' own.
 
+`strideWalk` owns the included walk of the soldier NPC that can carry a second
+model and turns its head toward the player during talk scenes, carried by
+`actor_161500` and by the second walker of `actor_460200`. Its implementation
+interface is `src/shared/stride_walk.h`, one fragment per function.
+`StrideWalkWork` is the task's work block, kept at `Task::work`; its head-turn
+modes use `STRIDE_WALK_TURN_`. The walker borrows the paced walk's slot tick,
+reset, blended reseed and placement, so a carrier binds `PACED_WALK_WORK_T` to
+`StrideWalkWork` around those fragments.
+
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
 `jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the

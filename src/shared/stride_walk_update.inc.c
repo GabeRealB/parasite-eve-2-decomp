@@ -1,15 +1,16 @@
 /* Part of the stride walk library; see stride_walk.h. */
 
 /// Step body of the actor's animation state machine. States 1 and 2 reseed the
-/// animation slots (with and without `animArg`) and advance to state 3; state 3
-/// walks the root coordinate 0x1E units per frame while clip 4 has `travel`
-/// left, dropping back to clip 1 with argument 0xA and to state 1 when it runs out, then ticks the slots.
+/// animation slots (blending over `blendFrames` frames, or from the clip's
+/// start) and advance to state 3; state 3 walks the root coordinate 0x1E units
+/// per frame while clip 4 has `travel` left, requesting clip 1 with a 10-frame
+/// blend when it runs out, then ticks the slots.
 void strideWalkUpdate(Task* task)
 {
-    Actor161500Work* work;
-    s16              animId;
+    StrideWalkWork* work;
+    s16             animId;
 
-    work = (Actor161500Work*)task->work;
+    work = task->work;
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         pacedWalkBlendAnim(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
@@ -28,9 +29,9 @@ void strideWalkUpdate(Task* task)
             actorMoveForward(task->extra.tmd->coords, 0x1E);
             work->st.travel--;
             if (work->st.travel == 0) {
-                work->st.state  = ACTOR_ENEMY_ANIM_BLEND;
-                work->animArg   = 0xA;
-                work->st.animId = 1;
+                work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
+                work->blendFrames = 0xA;
+                work->st.animId   = 1;
             }
         }
         pacedWalkTickAnim(task);

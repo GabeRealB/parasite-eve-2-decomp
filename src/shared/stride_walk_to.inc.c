@@ -7,14 +7,14 @@
 /// that follows.
 s32 strideWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3)
 {
-    GfxCoord*        coord;
-    Actor161500Work* work;
-    s32              dx;
-    s32              dz;
-    u16              yaw;
+    GfxCoord*       coord;
+    StrideWalkWork* work;
+    s32             dx;
+    s32             dz;
+    u16             yaw;
 
     coord        = task->extra.tmd->coords;
-    work         = (Actor161500Work*)task->work;
+    work         = task->work;
     dx           = target->pos.vx - coord->coord.t[0];
     dz           = target->pos.vz - coord->coord.t[2];
     yaw          = ratan2(dx, dz);

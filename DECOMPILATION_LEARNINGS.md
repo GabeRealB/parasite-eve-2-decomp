@@ -125015,7 +125015,7 @@ callees are all `ActorsShared*` means "same body", not merely "similar".
 
 **A field's signedness is not what selects the load.** The twin's
 `ActorsShared8014c874Work` declares `s16 animId` while this overlay's
-`Actor161500Work` declares `u16 animId`, and the target loads it with `lh`. That
+`StrideWalkWork` declares `u16 animId`, and the target loads it with `lh`. That
 looks like a retype, but it is not: a controlled variant (`base_2.c`) with the
 field left `u16` compiled to a byte-identical object, 100.000%. The
 sign-extending load comes from the *local* the value is assigned to

@@ -12,9 +12,10 @@
  * that walker's own.
  *
  * A walker that keeps a work block of its own type and carries only the slot
- * tick, the slot reset or the placement handler names that type through
- * PACED_WALK_WORK_T before including this header. actor_161500 and
- * actor_450800 do; actor_460200 rebinds it around its second walker's copies.
+ * tick, the slot reset, the blended reseed or the placement handler names that
+ * type through PACED_WALK_WORK_T before including this header. actor_161500
+ * (the stride walker's StrideWalkWork) and actor_450800 do; actor_460200
+ * rebinds it to StrideWalkWork around its second walker's copies.
  */
 
 #ifndef SRC_SHARED_PACED_WALK_H
@@ -50,15 +51,17 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 
 #ifndef PACED_WALK_WORK_T
-/// Type `pacedWalkTickAnim`, `pacedWalkResetAnim` and `pacedWalkPlace` take
-/// the block at `Task::work` as.
+/// Type `pacedWalkTickAnim`, `pacedWalkResetAnim`, `pacedWalkBlendAnim` and
+/// `pacedWalkPlace` take the block at `Task::work` as.
 ///
-/// Walkers whose work block is a type of their own carry those three, so each
-/// includer binds the type its walker allocates; the default is the paced
-/// walker's own block. The three reach only the rig and the animation state,
-/// so a bound type has to declare an `ActorAnimRig20 rig` and an
-/// `ActorEnemyState st`, as every walker of this family does behind its two
-/// light matrices.
+/// Walkers whose work block is a type of their own carry some of those four,
+/// so each includer binds the type its walker allocates; the default is the
+/// paced walker's own block. The tick, the reset and the placement reach only
+/// the rig and the animation state, so a bound type has to declare an
+/// `ActorAnimRig20 rig` and an `ActorEnemyState st`, as every walker of this
+/// family does behind its two light matrices. An includer that also carries
+/// the blended reseed binds a type with an `s16 blendFrames` as well, as the
+/// stride walker's `StrideWalkWork` has.
 ///
 /// Bind before this header. The binding persists across the fragments'
 /// inclusions; a file whose walkers differ in block type undefines and

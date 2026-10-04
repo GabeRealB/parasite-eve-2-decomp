@@ -1,21 +1,21 @@
 /* Part of the stride walk library; see stride_walk.h. */
 
-/// Spawn state: allocates the 0x4FC-byte work block (destroying the enemy on
+/// Spawn state: allocates the `StrideWalkWork` block (destroying the enemy on
 /// failure), parents the root to the view, makes it untargetable, and when
 /// spawnArg1 is set spawns the carried model from gStrideWalkTasks and starts
 /// clip 2 (else clip 1). Lights the model from 0x320 above its root, builds the
 /// rig, installs gStrideWalkMessages and runs the first update.
 void strideWalkSpawn(Enemy* enemy, Task* task)
 {
-    VECTOR           vec;
-    Actor161500Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    Enemy*           spawned;
+    VECTOR          vec;
+    StrideWalkWork* work;
+    GfxCoord*       coord;
+    TmdObject*      obj;
+    Enemy*          spawned;
 
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;
-    work       = memCalloc(0x4FC, false);
+    work       = memCalloc(sizeof(StrideWalkWork), false);
     task->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
@@ -37,7 +37,7 @@ void strideWalkSpawn(Enemy* enemy, Task* task)
     } else {
         work->st.animId = 1;
     }
-    work->turnUp     = 0;
+    work->turnMode   = STRIDE_WALK_TURN_RELEASE;
     work->turnWeight = 0;
     obj->lightMtx    = &work->light;
     obj->colorMtx    = &work->color;
