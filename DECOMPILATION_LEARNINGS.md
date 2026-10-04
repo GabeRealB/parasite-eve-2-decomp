@@ -44970,7 +44970,7 @@ The body is the plain switch; case 0 and case 1 both end
 `j Actor02500_L02068` out of case 0 with no goto in the C:
 
 ```c
-switch (arg0->field_1C->field_322) {
+switch (work->action) {
 case 0:
     Actor02500_Fn00B18(arg0);
     Actor02500_Fn01144(arg0);
@@ -47355,8 +47355,8 @@ named one.
 
 ## A switch scrutinee stored back into a field wants an `s32` local, not `s16`
 
-`Actor02500_Fn021F8` switches on `work->field_324` (an `s16`) and, in the
-`case 1` arm, writes that same value into `work->field_322`. Holding it in an
+`Actor02500_Fn021F8` switches on `work->actionStep` (an `s16`) and, in the
+`case 1` arm, writes that same value into `work->action`. Holding it in an
 `s16` local made GCC 2.8.1 emit *two* loads of the field — `lh` for the
 comparison and a separate `lhu` for the value that gets stored — and the second
 one filled the load-delay `nop` the target has:
@@ -47373,18 +47373,29 @@ the sign-extended `lh` result the single live value, which both the `beqz` /
 `beq` chain and the `sh` then use:
 
 ```c
-s32 state = work->field_324;
+s32 state = work->actionStep;
 switch (state) {
 /* … */
 case 1:
     if (Gp_TickObjFlag2(arg0->field_20) != 0) {
-        work->field_322 = state;   /* sh $s1 — no reload */
+        work->action = state;   /* sh $s1 — no reload */
     }
 }
 ```
 
 Rule of thumb: a local that only ever holds a value read from a `s16`/`u16`
 field should be `s32` unless the assembly actually shows a second load.
+
+**The local is not needed to get that store.** Inside a `case N:` arm CSE
+already knows the scrutinee equals `N`, so storing the constant reuses the
+scrutinee's register exactly as the local did. The function now reads
+`switch (work->actionStep) { case 1: work->action = ACTOR_02500_ACTION_CHASE; }`
+with no local and still emits `sh $s1`. The same substitution matched in
+`Actor02500_Fn020D0` (a compare against the scrutinee, `work->inBuildup == 1`,
+and two stores), `Actor02500_Fn02178`, and case 3 of `Actor02500_Fn00DD8`,
+where one scrutinee was stored into two fields with different meanings. So a
+`field = state` in a case arm is a candidate for the named constant; try it
+before keeping the variable.
 
 ## Rebuilding a vacuum scratch `target.o` from the `L`-label pieces
 
