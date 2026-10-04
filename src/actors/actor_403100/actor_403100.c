@@ -36,6 +36,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/sprites.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
@@ -73,20 +74,6 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
 static void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3);
 static void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 static void func_actor_403100_8013D06C(void);
-
-typedef struct Actor403100QuadEntry {
-    /* 0x00 */ u16 tpage;
-    /* 0x02 */ u16 clut;
-    /* 0x04 */ u16 w;
-    /* 0x06 */ u16 h;
-    /* 0x08 */ u16 x;
-    /* 0x0A */ u16 y;
-    /* 0x0C */ u16 depth;
-    /* 0x0E */ u8  u;
-    /* 0x0F */ u8  v;
-    /* 0x10 */ u32 field_10;
-} Actor403100QuadEntry;
-STATIC_ASSERT_SIZEOF(Actor403100QuadEntry, 0x14);
 
 /// Ends a `_Actor403100Zone` table, in the `id` of its last entry.
 enum { ACTOR_403100_ZONE_END = -1 };
@@ -223,7 +210,7 @@ typedef struct {
     u16                   stateFrames;            // Frames spent in the current step
     s16                   auxFrames;              // Second counter of the running step: cues played, frames since the walk clip restarted, or frames of forearm strokes
     s16                   savedAuxFrames;         // `auxFrames` of the hold pose, kept while the pose is run ahead
-    s16                   playerReactionStage;    // Player's reaction to an arm hit (0 none, 1 hit clip held, 2 waiting for it to end, 3 waiting for the recovery clip)
+    s16                   playerReactionStage;    // `ACTOR_403100_PLAYER_REACTION_*`: the player's reaction to an arm hit
     s16                   playerReactionFrames;   // Frames left of stage 1, 23 when the hit lands
     s16                   walkStage;              // Walk along the balcony (0 closing on the player's region, 1 finishing the stride then closing again, 4 finishing the stride then stopping, 5 stopped; 2 and 3 idle)
     u16                   state;                  // Index into the handler table of the current task state
@@ -336,24 +323,64 @@ static void func_actor_403100_8013EC4C(Task* arg0);
 static void func_actor_403100_8013ECD0(Task* arg0);
 static void func_actor_403100_8013ED48(Task* task);
 
-/* Per-frame actor dispatcher tables and region query. */
+/// Values of `Actor403100Work::playerReactionStage`: how far the player is
+/// through the reaction to a hit of the arm.
+///
+/// The hit starts the package's hit clip on the player; the stages then
+/// follow one another until the player is handed back to its own control.
+enum {
+    ACTOR_403100_PLAYER_REACTION_NONE       = 0, // No reaction running
+    ACTOR_403100_PLAYER_REACTION_HIT_HELD   = 1, // Hit clip restarted every frame while `playerReactionFrames` runs down; a dead player stays here
+    ACTOR_403100_PLAYER_REACTION_HIT_ENDING = 2, // Hit clip left to play out; the recovery clip of the equipped weapon follows it
+    ACTOR_403100_PLAYER_REACTION_RECOVERING = 3, // Recovery clip playing; its end releases the player
+    ACTOR_403100_PLAYER_REACTION_COUNT,
+};
+
+/// The handlers of the player's reaction, indexed by
+/// `ACTOR_403100_PLAYER_REACTION_*`.
+///
+/// The fight's update copies the table to the stack and calls the entry of
+/// the current stage once a frame, ahead of the Burner's own state. The call
+/// is unconditional, so every stage has a handler; they take no argument and
+/// reach the work block through the package's pointer.
 typedef struct {
-    void (*funcs[4])(void);
-} Actor403100VoidTable4;
+    void (*handlers[ACTOR_403100_PLAYER_REACTION_COUNT])(void); // Handler of each stage
+} _Actor403100PlayerReactionTable;
+STATIC_ASSERT_SIZEOF(_Actor403100PlayerReactionTable, 0x10);
+
 extern _Actor403100Zone D_actor_403100_80155638[];
 extern EvsCommand       D_80166098[];
 static s32              func_actor_403100_8013D9C4(s16 x, s16 z, _Actor403100Zone* zone);
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    u8 value[2][16];
-    u8 retained[16];
-} Actor403100Storage57B0;
-STATIC_ASSERT_SIZEOF(Actor403100Storage57B0, 48);
+/// Rows of `_Actor403100AttackPickStorage::states`.
+enum {
+    ACTOR_403100_ATTACK_ODDS_NORMAL   = 0, // The player has at least half their hit points and the Burner is not at low health
+    ACTOR_403100_ATTACK_ODDS_WEAKENED = 1, // Either of them is weakened
+    ACTOR_403100_ATTACK_ODDS_COUNT,
+};
 
-extern Actor403100Storage57B0 D_actor_403100_801557B0;
+/// Draws in one row of `_Actor403100AttackPickStorage::states`; a power of
+/// two, the draw being that many low bits of a random number.
+enum { ACTOR_403100_ATTACK_DRAWS = 16 };
+
+/// Static allocation of the odds the Burner picks its next attack by.
+///
+/// Each row lists `ACTOR_403100_ATTACK_DRAWS` equally likely values of
+/// `Actor403100Work::state`, so a state's share of a row is its chance. The
+/// pick is a first choice: the picker then swaps a state the situation rules
+/// out, or a third of a kind in a row, for another.
+///
+/// Sixteen zero bytes follow the rows. No access to them is recovered, so
+/// whether they are an unused third row or a separate unreferenced variable
+/// is unproven; they stay in this allocation only to keep the data after it
+/// at its address.
+typedef struct {
+    u8 states[ACTOR_403100_ATTACK_ODDS_COUNT][ACTOR_403100_ATTACK_DRAWS]; // Attack states by `ACTOR_403100_ATTACK_ODDS_*` row, one per draw
+    u8 unknown_20[16];                                                    // Zero in the image; no access established and role unproven
+} _Actor403100AttackPickStorage;
+STATIC_ASSERT_SIZEOF(_Actor403100AttackPickStorage, 0x30);
+
+extern _Actor403100AttackPickStorage D_actor_403100_801557B0;
 
 extern _Actor403100Zone D_actor_403100_80155698[];
 
@@ -3150,15 +3177,17 @@ u8 D_actor_403100_801557A8[8] = {
     0,
 };
 
-Actor403100Storage57B0 D_actor_403100_801557B0 = { {
-                                                       { 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 7, 7, 7 },
-                                                       { 4, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 7, 7, 7 },
-                                                   },
-                                                   { 0 } };
+_Actor403100AttackPickStorage D_actor_403100_801557B0 = {
+    {
+        { 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 7, 7, 7 },
+        { 4, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 7, 7, 7 },
+    },
+    { 0 },
+};
 
-Actor403100QuadEntry D_actor_403100_801557E0[2] = {
-    { 142, 0x3FC0, 151, 64, 8, 56, 2250, 104, 184, 0x808080 },
-    { 142, 0x3FC0, 167, 184, 0xFF60, 0xFFC0, 2250, 88, 0, 0x808080 },
+SpriteSource D_actor_403100_801557E0[2] = {
+    { 142, 0x3FC0, { .fields = { 151, 64 } }, 8, 56, 2250, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { 142, 0x3FC0, { .fields = { 167, 184 } }, -160, -64, 2250, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
 };
 
 Actor403100Work* D_actor_403100_80155808 = NULL;
@@ -3180,8 +3209,6 @@ extern EffectSpawnArg D_actor_403100_80155630;
 extern TaskMessageEntry D_actor_403100_801556EC[4];
 
 extern AnimationSet* D_actor_403100_8015572C[26];
-
-extern Actor403100QuadEntry D_actor_403100_801557E0[2];
 
 extern EvsCommand D_80165FC0[];
 
@@ -3335,13 +3362,20 @@ static void func_actor_403100_8013F7B4(Task* task);
 
 static void func_actor_403100_8013F7BC(Task* task);
 
-/// The scratch-pad block of turning model part 3 toward a point: the matrices
-/// the turn is built in, and the pitch and yaw toward the point.
-typedef struct Actor403100AimScratch {
-    MATRIX  mats[4];
-    SVECTOR angles;
-} Actor403100AimScratch;
-STATIC_ASSERT_SIZEOF(Actor403100AimScratch, 0x88);
+/// Scratch-stack block of the head aim: the rotations the head's local
+/// matrix is rebuilt from, and the direction of the aim target.
+///
+/// The head hangs from the two trunk parts, so the rotation it is to have in
+/// the root's frame is multiplied by the inverses of theirs to give the
+/// rotation stored in its own coordinate.
+typedef struct {
+    MATRIX  aim;                        // Rotation the head is to have in the root's frame, built from `Actor403100Work::headAim`
+    byte    unknown_20[sizeof(MATRIX)]; // One matrix's worth of bytes that is never accessed; role unproven
+    MATRIX  lowerInverse;               // Transpose of the lower trunk part's rotation
+    MATRIX  local;                      // Transpose of the middle trunk part's rotation, multiplied up into the head's own rotation
+    SVECTOR targetAngles;               // Pitch (`vx`) and yaw (`vy`) of the aim target seen from the head, in the root's frame (4096 a turn, wrapped to -0x800..0x7FF), `vz` 0; the tracking modes' pitch step lowers `vx` by 0x140 in place
+} _Actor403100HeadAimScratch;
+STATIC_ASSERT_SIZEOF(_Actor403100HeadAimScratch, 0x88);
 
 static __inline__ s32  Actor403100_FindRegion(s16 x, s16 z);
 static __inline__ s32  Actor403100_FindEffectRegion(s16 x, s16 z);
@@ -3524,7 +3558,7 @@ static __inline__ s16 Actor403100_TestFlags12C(void)
 }
 
 /// Per-frame hooks run before the behaviour mode, indexed by `playerReactionStage`.
-static const Actor403100VoidTable4 D_actor_403100_80131E24 = {
+static const _Actor403100PlayerReactionTable D_actor_403100_80131E24 = {
     {
         func_actor_403100_8013E16C,
         func_actor_403100_8013E174,
@@ -5269,9 +5303,9 @@ static const TaskFuncTable11 D_actor_403100_80131F34 = {
 /// Runs the per-frame hook `D_actor_403100_80131E24` selects by `playerReactionStage`.
 static inline void _actor403100RunHook(void)
 {
-    Actor403100VoidTable4 hooks = D_actor_403100_80131E24;
+    _Actor403100PlayerReactionTable hooks = D_actor_403100_80131E24;
 
-    hooks.funcs[D_actor_403100_80155808->playerReactionStage]();
+    hooks.handlers[D_actor_403100_80155808->playerReactionStage]();
 }
 
 /// Adds the angles of `forearmTurn` to the rotation of
@@ -5386,7 +5420,7 @@ static void func_actor_403100_80136830(Task* arg0)
             if (countdown >= 0) {
                 D_actor_403100_80155808->fightFramesLeft = (s32)(countdown - 1);
             }
-            if ((config->hp > 0) && (D_actor_403100_80155808->playerReactionStage == 0)) {
+            if ((config->hp > 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
                 if (D_actor_403100_8015580C->hp < (s16)(((s16)D_actor_403100_8015580C->hpMax * 0x23) / 100)) {
                     D_actor_403100_80155808->lowHealth = 1U;
                 } else {
@@ -5432,7 +5466,7 @@ static void func_actor_403100_80136830(Task* arg0)
                     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                 }
             }
-            if ((D_actor_403100_8015580C->hp <= 0) && (D_actor_403100_80155808->vulnerable == 0) && (D_actor_403100_80155808->playerReactionStage == 0)) {
+            if ((D_actor_403100_8015580C->hp <= 0) && (D_actor_403100_80155808->vulnerable == 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
                 if (config->hp <= 0) {
                     D_actor_403100_8015580C->hp = 0x3E8;
                 } else {
@@ -5564,12 +5598,12 @@ static void func_actor_403100_80137310(Task* task)
         if ((gPlayerStatus.hp < halfHealth) || (D_actor_403100_80155808->lowHealth != 0)) {
             random1                           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState                   = random1;
-            D_actor_403100_80155808->state    = D_actor_403100_801557B0.value[1][(random1 >> 16) & 15];
+            D_actor_403100_80155808->state    = D_actor_403100_801557B0.states[ACTOR_403100_ATTACK_ODDS_WEAKENED][(random1 >> 16) & (ACTOR_403100_ATTACK_DRAWS - 1)];
             D_actor_403100_80155808->subState = 0;
         } else {
             random2                           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState                   = random2;
-            D_actor_403100_80155808->state    = D_actor_403100_801557B0.value[0][(random2 >> 16) & 15];
+            D_actor_403100_80155808->state    = D_actor_403100_801557B0.states[ACTOR_403100_ATTACK_ODDS_NORMAL][(random2 >> 16) & (ACTOR_403100_ATTACK_DRAWS - 1)];
             D_actor_403100_80155808->subState = 0;
         }
         if ((s16)D_actor_403100_80155808->state == 4) {
@@ -5673,11 +5707,11 @@ static void func_actor_403100_801376D8(Task* arg0)
     D_actor_403100_80155808->stateFrames += 1;
     if (D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) {
         D_actor_403100_80155808->walkStage = 4;
-        if (D_actor_403100_80155808->playerReactionStage == 0) {
+        if (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE) {
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_actor_403100_8013D1B8(5, 0x3F4);
             D_actor_403100_80155808->playerReactionFrames = 0x17;
-            D_actor_403100_80155808->playerReactionStage  = 1;
+            D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
             task                                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
                 ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
@@ -5737,11 +5771,11 @@ static void func_actor_403100_801379B4(Task* arg0)
     D_actor_403100_80155808->stateFrames += 1;
     if (D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) {
         D_actor_403100_80155808->walkStage = 4;
-        if (D_actor_403100_80155808->playerReactionStage == 0) {
+        if (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE) {
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             func_actor_403100_8013D1B8(5, 0x3F4);
             D_actor_403100_80155808->playerReactionFrames = 0x17;
-            D_actor_403100_80155808->playerReactionStage  = 1;
+            D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
             task                                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
                 ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
@@ -6085,11 +6119,11 @@ static void func_actor_403100_80138844(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     func_actor_403100_8013D24C();
-    if ((D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == 0)) {
+    if ((D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         func_actor_403100_8013D1B8(5, 0x3F4);
         D_actor_403100_80155808->playerReactionFrames = 0x17;
-        D_actor_403100_80155808->playerReactionStage  = 1;
+        D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
         player                                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
             ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
@@ -6131,11 +6165,11 @@ static void func_actor_403100_80138AB4(Task* task)
     func_actor_403100_8013D24C();
     frame                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = frame;
-    if (((s16)frame < 0x20) && (D_actor_403100_80155808->handTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == 0)) {
+    if (((s16)frame < 0x20) && (D_actor_403100_80155808->handTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         func_actor_403100_8013D1B8(5, 0x3F4);
         D_actor_403100_80155808->playerReactionFrames = 0x17;
-        D_actor_403100_80155808->playerReactionStage  = 1;
+        D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
         player                                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
             ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
@@ -7176,34 +7210,31 @@ static void func_actor_403100_8013B3C4(Task* arg0)
 
 static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
 {
-    SVECTOR                headRotation, middleRotation, lowerRotation;
-    MATRIX                 worldMatrix;
-    VECTOR                 delta, local;
-    Actor403100AimScratch* allocated;
-    MATRIX*                matrices;
-    SVECTOR*               angles;
-    GfxCoord*              coords;
-    GfxCoord*              head;
-    GfxCoord*              middle;
-    GfxCoord*              lower;
-    GfxCoord*              root;
-    MATRIX*                transpose;
-    MATRIX*                transpose2;
-    MATRIX*                dest;
-    s32                    sum;
-    s32                    offsetY;
-    s32                    part;
+    SVECTOR                     headRotation, middleRotation, lowerRotation;
+    MATRIX                      worldMatrix;
+    VECTOR                      delta, local;
+    _Actor403100HeadAimScratch* scratch;
+    SVECTOR*                    angles;
+    GfxCoord*                   coords;
+    GfxCoord*                   head;
+    GfxCoord*                   middle;
+    GfxCoord*                   lower;
+    GfxCoord*                   root;
+    MATRIX*                     headLocal;
+    MATRIX*                     lowerInverse;
+    MATRIX*                     dest;
+    s32                         sum;
+    s32                         offsetY;
+    s32                         part;
 
-    coords = arg0->extra.tmd->coords;
-    head   = &coords[3];
-    middle = &coords[2];
-    lower  = &coords[1];
-    part   = 3;
-    SCRATCH_STACK_RESERVE_BLOCK(Actor403100AimScratch);
-    allocated = SCRATCH_STACK_CURSOR(Actor403100AimScratch);
-    matrices  = allocated->mats;
-    angles    = &allocated->angles;
-    gfxSetRotIdentity(matrices);
+    coords  = arg0->extra.tmd->coords;
+    head    = &coords[3];
+    middle  = &coords[2];
+    lower   = &coords[1];
+    part    = 3;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403100HeadAimScratch);
+    angles  = &scratch->targetAngles;
+    gfxSetRotIdentity(&scratch->aim);
     root = arg0->extra.tmd->coords;
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &root[part].workm, &worldMatrix);
     delta.vx = D_actor_403100_80155808->aimTarget.vx - worldMatrix.t[0];
@@ -7218,13 +7249,13 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
         func_actor_403100_8013CEAC((u16*)angles, 8, 0x280, -0x2C0);
         func_actor_403100_8013CF60(angles, 8, 2, 1, 4);
         func_actor_403100_8013D06C();
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
     } else if (arg1 == ACTOR_403100_AIM_YAW_ONLY) {
         Gp_MtxToEuler(&coords[part].coord, &headRotation);
         D_actor_403100_80155808->headAim.vx += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
         D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
         func_actor_403100_8013CF60(angles, 8, 4, 1, 4);
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
     } else if (arg1 == ACTOR_403100_AIM_ANIMATED) {
         Gp_MtxToEuler(&coords[part].coord, &headRotation);
         Gp_MtxToEuler(&coords[2].coord, &middleRotation);
@@ -7236,41 +7267,43 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
         D_actor_403100_80155808->headAim.vx += ((s32)((sum - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
         D_actor_403100_80155808->headAim.vy += ((s32)(((u16)headRotation.vy - (u16)D_actor_403100_80155808->headAim.vy) << 20) >> 23);
         D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
     } else if (arg1 == ACTOR_403100_AIM_TRACK_FAST) {
         func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
         func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
         func_actor_403100_8013D06C();
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
     } else if (arg1 == ACTOR_403100_AIM_YAW_ONLY_FAST) {
         Gp_MtxToEuler(&coords[part].coord, &headRotation);
         D_actor_403100_80155808->headAim.vx += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
         D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
         func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
     } else if (arg1 == ACTOR_403100_AIM_TRACK_STEPPED) {
         func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
         func_actor_403100_8013CF60(angles, D_actor_403100_80155808->aimYawStep, 4, 2, 8);
         func_actor_403100_8013D06C();
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, matrices);
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
     }
-    transpose = &matrices[3];
-    TransposeMatrix(&middle->coord, transpose);
-    transpose2 = &matrices[2];
-    TransposeMatrix(&lower->coord, transpose2);
-    MulMatrix(transpose, transpose2);
-    MulMatrix(transpose, matrices);
+    // The head's own rotation is the aim brought into the frame of the two
+    // trunk parts it hangs from: (lower * middle)^-1 * aim.
+    headLocal = &scratch->local;
+    TransposeMatrix(&middle->coord, headLocal);
+    lowerInverse = &scratch->lowerInverse;
+    TransposeMatrix(&lower->coord, lowerInverse);
+    MulMatrix(headLocal, lowerInverse);
+    MulMatrix(headLocal, &scratch->aim);
     dest          = &head->coord;
-    dest->m[0][0] = transpose->m[0][0];
-    dest->m[0][1] = transpose->m[0][1];
-    dest->m[0][2] = transpose->m[0][2];
-    dest->m[1][0] = transpose->m[1][0];
-    dest->m[1][1] = transpose->m[1][1];
-    dest->m[1][2] = transpose->m[1][2];
-    dest->m[2][0] = transpose->m[2][0];
-    dest->m[2][1] = transpose->m[2][1];
-    dest->m[2][2] = transpose->m[2][2];
-    SCRATCH_STACK_RELEASE_BLOCK(Actor403100AimScratch);
+    dest->m[0][0] = headLocal->m[0][0];
+    dest->m[0][1] = headLocal->m[0][1];
+    dest->m[0][2] = headLocal->m[0][2];
+    dest->m[1][0] = headLocal->m[1][0];
+    dest->m[1][1] = headLocal->m[1][1];
+    dest->m[1][2] = headLocal->m[1][2];
+    dest->m[2][0] = headLocal->m[2][0];
+    dest->m[2][1] = headLocal->m[2][1];
+    dest->m[2][2] = headLocal->m[2][2];
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403100HeadAimScratch);
     lower->composeStamp  = GRAPHICS_COORD_DIRTY;
     middle->composeStamp = GRAPHICS_COORD_DIRTY;
     head->composeStamp   = GRAPHICS_COORD_DIRTY;
@@ -7517,12 +7550,12 @@ static void func_actor_403100_8013BEF0(Task* arg0)
 }
 static void func_actor_403100_8013C008(s16 arg0, s16 arg1)
 {
-    POLY_FT4*             poly;
-    Actor403100QuadEntry* entry;
-    s32                   i;
-    u16                   clut;
+    POLY_FT4*     poly;
+    SpriteSource* entry;
+    s32           i;
+    u16           clut;
 
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < ARRAY_SIZE(D_actor_403100_801557E0); i++) {
         entry          = &D_actor_403100_801557E0[i];
         poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
@@ -7531,22 +7564,22 @@ static void func_actor_403100_8013C008(s16 arg0, s16 arg1)
         clut        = entry->clut;
         setShadeTex(poly, 1);
         poly->clut = clut;
-        poly->u0   = entry->u;
-        poly->v0   = entry->v;
-        poly->u1   = entry->u + (u8)entry->w;
-        poly->v1   = entry->v;
-        poly->u2   = entry->u;
-        poly->v2   = entry->v + (u8)entry->h;
-        poly->u3   = entry->u + (u8)entry->w;
-        poly->v3   = entry->v + (u8)entry->h;
-        poly->x0   = entry->x + arg0;
-        poly->y0   = entry->y + arg1;
-        poly->x1   = arg0 + (entry->x + entry->w);
-        poly->y1   = entry->y + arg1;
-        poly->x2   = entry->x + arg0;
-        poly->y2   = arg1 + (entry->y + entry->h);
-        poly->x3   = arg0 + (entry->x + entry->w);
-        poly->y3   = arg1 + (entry->y + entry->h);
+        poly->u0   = entry->uv.fields.u0;
+        poly->v0   = entry->uv.fields.v0;
+        poly->u1   = entry->uv.fields.u0 + (u8)entry->size.fields.w;
+        poly->v1   = entry->uv.fields.v0;
+        poly->u2   = entry->uv.fields.u0;
+        poly->v2   = entry->uv.fields.v0 + (u8)entry->size.fields.h;
+        poly->u3   = entry->uv.fields.u0 + (u8)entry->size.fields.w;
+        poly->v3   = entry->uv.fields.v0 + (u8)entry->size.fields.h;
+        poly->x0   = entry->x0 + arg0;
+        poly->y0   = entry->y0 + arg1;
+        poly->x1   = arg0 + (entry->x0 + entry->size.fields.w);
+        poly->y1   = entry->y0 + arg1;
+        poly->x2   = entry->x0 + arg0;
+        poly->y2   = arg1 + (entry->y0 + entry->size.fields.h);
+        poly->x3   = arg0 + (entry->x0 + entry->size.fields.w);
+        poly->y3   = arg1 + (entry->y0 + entry->size.fields.h);
         addPrim((&gGpuCurrentOt[((((u32)(entry->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
     }
 }
@@ -8327,7 +8360,7 @@ static void func_actor_403100_8013E174(void)
         D_actor_403100_80155808->playerReactionFrames = timer;
         if (timer < 0) {
             func_actor_403100_8013D1B8(5, 0x3F4);
-            D_actor_403100_80155808->playerReactionStage = 2;
+            D_actor_403100_80155808->playerReactionStage = ACTOR_403100_PLAYER_REACTION_HIT_ENDING;
             return;
         }
         func_actor_403100_8013D1B8(5, 0x3F4);
@@ -8345,7 +8378,7 @@ static void func_actor_403100_8013E1E4(void)
         sp.enableWorldCollision             = ANIMATION_WORLD_COLLISION_DISABLE;
         sp.animationId                      = 4;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sp, 0);
-        D_actor_403100_80155808->playerReactionStage = 3;
+        D_actor_403100_80155808->playerReactionStage = ACTOR_403100_PLAYER_REACTION_RECOVERING;
     }
 }
 static void func_actor_403100_8013E2BC(void)
@@ -8355,7 +8388,7 @@ static void func_actor_403100_8013E2BC(void)
         D_actor_403100_80155808->playerReactionFrames = 0;
         D_actor_403100_80155808->playerAnimationId    = 0;
         D_actor_403100_80155808->handTouchedPlayer    = 0;
-        D_actor_403100_80155808->playerReactionStage  = 0;
+        D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_NONE;
     }
 }
 static s32 func_actor_403100_8013E33C(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2)
