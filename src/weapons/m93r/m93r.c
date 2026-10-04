@@ -138,3 +138,35 @@ void func_m93r_8011D1C4(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
+
+static TmdBone _gM93rModel00520Skeleton[1] = {
+#include "assets/m93r_model_00520_skeleton.inc"
+};
+
+static u32 _gM93rModel00520PartVerts[1] = {
+#include "assets/m93r_model_00520_partVerts.inc"
+};
+
+static SVECTOR _gM93rModel00520Verts[32] = {
+#include "assets/m93r_model_00520_verts.inc"
+};
+
+static SVECTOR _gM93rModel00520Normals[32] = {
+#include "assets/m93r_model_00520_normals.inc"
+};
+
+static u32 _gM93rModel00520Stream[229] = {
+#include "assets/m93r_model_00520_stream.inc"
+};
+
+TmdSource D_m93r_8011DA74 = {
+    0,
+    1616,
+    0,
+    1,
+    _gM93rModel00520PartVerts,
+    _gM93rModel00520Verts,
+    _gM93rModel00520Normals,
+    _gM93rModel00520Skeleton,
+    _gM93rModel00520Stream,
+};

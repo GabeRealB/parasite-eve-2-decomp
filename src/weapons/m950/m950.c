@@ -90,3 +90,35 @@ void func_m950_8011D1DC(Task* arg0)
     Gp_TrackLockTarget(arg0);
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
+
+static TmdBone _gM950Model00548Skeleton[1] = {
+#include "assets/m950_model_00548_skeleton.inc"
+};
+
+static u32 _gM950Model00548PartVerts[1] = {
+#include "assets/m950_model_00548_partVerts.inc"
+};
+
+static SVECTOR _gM950Model00548Verts[36] = {
+#include "assets/m950_model_00548_verts.inc"
+};
+
+static SVECTOR _gM950Model00548Normals[36] = {
+#include "assets/m950_model_00548_normals.inc"
+};
+
+static u32 _gM950Model00548Stream[229] = {
+#include "assets/m950_model_00548_stream.inc"
+};
+
+TmdSource D_m950_8011DA9C = {
+    0,
+    1616,
+    0,
+    1,
+    _gM950Model00548PartVerts,
+    _gM950Model00548Verts,
+    _gM950Model00548Normals,
+    _gM950Model00548Skeleton,
+    _gM950Model00548Stream,
+};

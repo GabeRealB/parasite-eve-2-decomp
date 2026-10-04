@@ -122,3 +122,35 @@ void func_as12_8011D1DC(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
+
+static TmdBone _gAs12Model00660Skeleton[1] = {
+#include "assets/as12_model_00660_skeleton.inc"
+};
+
+static u32 _gAs12Model00660PartVerts[1] = {
+#include "assets/as12_model_00660_partVerts.inc"
+};
+
+static SVECTOR _gAs12Model00660Verts[46] = {
+#include "assets/as12_model_00660_verts.inc"
+};
+
+static SVECTOR _gAs12Model00660Normals[38] = {
+#include "assets/as12_model_00660_normals.inc"
+};
+
+static u32 _gAs12Model00660Stream[308] = {
+#include "assets/as12_model_00660_stream.inc"
+};
+
+TmdSource D_as12_8011DCF0 = {
+    0,
+    2212,
+    0,
+    1,
+    _gAs12Model00660PartVerts,
+    _gAs12Model00660Verts,
+    _gAs12Model00660Normals,
+    _gAs12Model00660Skeleton,
+    _gAs12Model00660Stream,
+};

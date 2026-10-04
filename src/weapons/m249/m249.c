@@ -110,3 +110,35 @@ void func_m249_8011D1DC(Task* arg0)
     Gp_TrackLockTarget(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(_M249AttackScratch);
 }
+
+static TmdBone _gM249Model0060CSkeleton[1] = {
+#include "assets/m249_model_0060C_skeleton.inc"
+};
+
+static u32 _gM249Model0060CPartVerts[1] = {
+#include "assets/m249_model_0060C_partVerts.inc"
+};
+
+static SVECTOR _gM249Model0060CVerts[58] = {
+#include "assets/m249_model_0060C_verts.inc"
+};
+
+static SVECTOR _gM249Model0060CNormals[47] = {
+#include "assets/m249_model_0060C_normals.inc"
+};
+
+static u32 _gM249Model0060CStream[426] = {
+#include "assets/m249_model_0060C_stream.inc"
+};
+
+TmdSource D_m249_8011DE74 = {
+    0,
+    3052,
+    0,
+    1,
+    _gM249Model0060CPartVerts,
+    _gM249Model0060CVerts,
+    _gM249Model0060CNormals,
+    _gM249Model0060CSkeleton,
+    _gM249Model0060CStream,
+};

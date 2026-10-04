@@ -104,9 +104,9 @@ label = "AS12"
 id = 22
 objects = [
   { kind = "packageId" },
-  { unit = "as12/as12", rodata = "0x4", text = "0x1C" },
-  { kind = "model", at = "0x398" },
-  { kind = "modelSource", at = "0xB30" },
+  { unit = "as12/as12", rodata = "0x4", text = "0x1C", data = "0x398" },
+  { kind = "model", at = "0x398", in_c = true },
+  { kind = "modelSource", at = "0xB30", in_c = true },
   { kind = "data", at = "0xB54" },
 ]
 
@@ -170,9 +170,9 @@ label = "M249"
 id = 24
 objects = [
   { kind = "packageId" },
-  { unit = "m249/m249", rodata = "0x4", text = "0x1C" },
-  { kind = "model", at = "0x29C" },
-  { kind = "modelSource", at = "0xCB4" },
+  { unit = "m249/m249", rodata = "0x4", text = "0x1C", data = "0x29C" },
+  { kind = "model", at = "0x29C", in_c = true },
+  { kind = "modelSource", at = "0xCB4", in_c = true },
   { kind = "data", at = "0xCD8" },
 ]
 
@@ -250,8 +250,8 @@ id = 35
 objects = [
   { kind = "packageId" },
   { unit = "m4a1_pyke/m4a1_pyke", rodata = "0x4", text = "0x38", data = "0x174C" },
-  { kind = "model", at = "0x1754" },
-  { kind = "modelSource", at = "0x23AC" },
+  { kind = "model", at = "0x1754", in_c = true },
+  { kind = "modelSource", at = "0x23AC", in_c = true },
   { kind = "data", at = "0x23D0" },
 ]
 
@@ -260,9 +260,9 @@ label = "M93R"
 id = 9
 objects = [
   { kind = "packageId" },
-  { unit = "m93r/m93r", rodata = "0x4", text = "0x4" },
-  { kind = "model", at = "0x2F8" },
-  { kind = "modelSource", at = "0x8B4" },
+  { unit = "m93r/m93r", rodata = "0x4", text = "0x4", data = "0x2F8" },
+  { kind = "model", at = "0x2F8", in_c = true },
+  { kind = "modelSource", at = "0x8B4", in_c = true },
   { kind = "data", at = "0x8D8" },
 ]
 
@@ -271,9 +271,9 @@ label = "M950"
 id = 10
 objects = [
   { kind = "packageId" },
-  { unit = "m950/m950", rodata = "0x4", text = "0x1C" },
-  { kind = "model", at = "0x2E0" },
-  { kind = "modelSource", at = "0x8DC" },
+  { unit = "m950/m950", rodata = "0x4", text = "0x1C", data = "0x2E0" },
+  { kind = "model", at = "0x2E0", in_c = true },
+  { kind = "modelSource", at = "0x8DC", in_c = true },
   { kind = "data", at = "0x900" },
 ]
 

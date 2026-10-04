@@ -328,3 +328,35 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
+
+static TmdBone _gM4a1PykeModel01BCCSkeleton[1] = {
+#include "assets/m4a1_pyke_model_01BCC_skeleton.inc"
+};
+
+static u32 _gM4a1PykeModel01BCCPartVerts[1] = {
+#include "assets/m4a1_pyke_model_01BCC_partVerts.inc"
+};
+
+static SVECTOR _gM4a1PykeModel01BCCVerts[74] = {
+#include "assets/m4a1_pyke_model_01BCC_verts.inc"
+};
+
+static SVECTOR _gM4a1PykeModel01BCCNormals[64] = {
+#include "assets/m4a1_pyke_model_01BCC_normals.inc"
+};
+
+static u32 _gM4a1PykeModel01BCCStream[504] = {
+#include "assets/m4a1_pyke_model_01BCC_stream.inc"
+};
+
+TmdSource D_m4a1_pyke_8011F56C = {
+    0,
+    3668,
+    0,
+    1,
+    _gM4a1PykeModel01BCCPartVerts,
+    _gM4a1PykeModel01BCCVerts,
+    _gM4a1PykeModel01BCCNormals,
+    _gM4a1PykeModel01BCCSkeleton,
+    _gM4a1PykeModel01BCCStream,
+};
