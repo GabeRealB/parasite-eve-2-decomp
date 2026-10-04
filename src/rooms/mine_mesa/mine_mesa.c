@@ -2765,7 +2765,7 @@ void func_mine_mesa_8017DFC4(Task* arg0)
 {
     u16 temp_v0;
 
-    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
     temp_v0             = arg0->killCountdown + 4;
     arg0->killCountdown = temp_v0;
     if ((s16)temp_v0 >= 0x100) {
@@ -3104,7 +3104,7 @@ void func_mine_mesa_8017E7B0(Task* task)
 void func_mine_mesa_8017E8B0(s32 arg0)
 {
     D_mine_mesa_80189B5C = Task_SpawnFromTable(D_mine_mesa_801842F4, 4, arg0, 0);
-    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
 }
 
 void func_mine_mesa_8017E8FC(s32 arg0)

@@ -647,7 +647,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             }
             break;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_SWITCH_ROOM:
-            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             switch (work->commandStep) {
                 case 0:
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
@@ -669,7 +669,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             work->commandFrames++;
             return;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_LOOP_SOUND:
-            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             switch (work->commandStep) {
                 case 0:
                     D_80115768            = 0;
@@ -778,7 +778,7 @@ void func_dryfield_warehouse_8017E308(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
             fade->r += (u16)arg0->spawnArg1.value;
             fade->g += (u16)arg0->spawnArg1.value;
             fade->b += (u16)arg0->spawnArg1.value;

@@ -1766,17 +1766,17 @@ void func_actor_121300_801326EC(Task* arg0)
             fade->r = 0xFF;
             fade->g = 0xFF;
             fade->b = 0xFF;
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade->r, fade->g, fade->b, GPU_BLEND_SUBTRACT);
             goto state_inc;
         case 2:
             SetDispMask(1);
         case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade->r, fade->g, fade->b, GPU_BLEND_SUBTRACT);
         state_inc:
             arg0->state += 1;
             break;
         case 3:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->b, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade->r, fade->g, fade->b, GPU_BLEND_SUBTRACT);
             fade->r -= (u16)arg0->spawnArg1.value;
             fade->g -= (u16)arg0->spawnArg1.value;
             fade->b -= (u16)arg0->spawnArg1.value;
@@ -2561,7 +2561,7 @@ void func_actor_121300_8013400C(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
             fade->r += (u16)arg0->spawnArg1.value;
             fade->g += (u16)arg0->spawnArg1.value;
             fade->b += (u16)arg0->spawnArg1.value;
@@ -2576,7 +2576,7 @@ void func_actor_121300_8013400C(Task* arg0)
 
 void func_actor_121300_801340F0(Task* task)
 {
-    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
 }
 
 #include "../../shared/actor_messages_place_ypr.inc.c"

@@ -26,7 +26,7 @@
  * every family.
  */
 
-/// Work block of a full-screen fade task: the colour `Fade_DrawOverlay` is
+/// Work block of a full-screen fade task: the colour `fadeDrawOverlay` is
 /// drawn with, kept at `Task::work`.
 ///
 /// The task allocates it in its first state and then, each frame, draws the

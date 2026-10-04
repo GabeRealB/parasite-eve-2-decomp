@@ -406,7 +406,7 @@ void Gp_FlashWhiteTask(Task* task)
             task->killCountdown = 0;
             task->state++;
         case 1:
-            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             task->killCountdown++;
             if (task->killCountdown < 3) {
                 return;
@@ -416,7 +416,7 @@ void Gp_FlashWhiteTask(Task* task)
             break;
         case 2:
             fade = task->killCountdown;
-            Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             task->killCountdown -= 0x1E;
             if (task->killCountdown > 0) {
                 return;

@@ -749,7 +749,7 @@ chkRC2wait                  = 0x8002B794;
 //--- PA: 0x1C034   VA: 0x8002B834   subsegment: c, 1C034
 //--------------------------------------------------------------------
 GameFlow_StateByField34               = 0x8002B834; // type:func
-Fade_DrawOverlay               = 0x8002BA9C; // type:func
+fadeDrawOverlay               = 0x8002BA9C; // type:func
 Game_ClearSession               = 0x8002BB9C; // type:func
 GameFlow_InitSystems               = 0x8002BBC8; // type:func
 Game_ResetSessionAndBuffers               = 0x8002BC0C; // type:func

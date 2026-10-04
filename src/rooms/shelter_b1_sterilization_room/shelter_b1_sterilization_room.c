@@ -959,7 +959,7 @@ void crossfadeDrawBackdrop(s32 shade)
 
 void func_shelter_b1_sterilization_room_80180D74(Task* task)
 {
-    s32 c;
+    u8 c;
 
     switch (task->state) {
         case 0:
@@ -972,7 +972,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
                 task->state++;
             }
             c = (task->killCountdown * 0xFF / 30) & 0xFF;
-            Fade_DrawOverlay(c, c, c, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(c, c, c, GPU_BLEND_SUBTRACT);
             break;
         case 2:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
@@ -982,7 +982,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
                                           &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].placementIndex],
                                           0);
             SndEvt_EnqueueType6(SOUND_SHELTER_B1_STERILIZATION_DOOR_CLOSE, 0, 0);
-            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             task->state++;
             break;
         case 3:
@@ -990,7 +990,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
                 task->state++;
             }
             c = (task->killCountdown * 0xFF / 30) & 0xFF;
-            Fade_DrawOverlay(c, c, c, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(c, c, c, GPU_BLEND_SUBTRACT);
             break;
         default:
             Gp_MsgPlayerWeapon(1);

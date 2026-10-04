@@ -1671,7 +1671,6 @@ static void func_shelter_r47_8018431C(Task* task)
     ActionPromptHotspot*       hs;
     s32                        arg;
     u8                         view;
-    s32                        level;
     s16                        quadW, quadH, quad2W, quad2H;
 
     state = memCalloc(sizeof(ShelterR47MapTerminalWork), false);
@@ -1710,13 +1709,12 @@ static void func_shelter_r47_8018431C(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_R47_MAP_ENTRY_VIEW;
     if ((arg = task->spawnArg1.value) == SHELTER_R47_MAP_MODE_TIMED || arg == SHELTER_R47_MAP_MODE_TOUR) {
         state->fade        = 0xFF;
-        level              = (u8)state->fade;
         state->mapWidth    = quadW;
         state->mapHeight   = quadH;
         state->panelWidth  = quad2W;
         state->panelHeight = quad2H;
         state->labelX      = spriteX;
-        Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+        fadeDrawOverlay(state->fade, state->fade, state->fade, GPU_BLEND_SUBTRACT);
         state->openMode = arg;
     }
 }
@@ -1932,7 +1930,7 @@ static void func_shelter_r47_80185098(Task* task)
     }
     SndEvt_EnqueueType7(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 1);
     level = (u8)state->fade;
-    Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
 }
 
 static void func_shelter_r47_801851B8(Task* task)
@@ -1972,7 +1970,7 @@ static void func_shelter_r47_80185354(Task* task)
     state = (ShelterR47MapTerminalWork*)task->work;
     if (state->openMode == SHELTER_R47_MAP_MODE_TIMED) {
         level = state->fade;
-        Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+        fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
         task->state         = 8;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -1987,7 +1985,7 @@ static void func_shelter_r47_80185354(Task* task)
                 task->state++;
             } else {
                 level = state->fade;
-                Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+                fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
             }
         }
     } else {
@@ -2096,7 +2094,7 @@ static void func_shelter_r47_8018571C(Task* task)
             state->fade = 0;
         } else {
             level = state->fade;
-            Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
         }
     }
     state->showFrames++;

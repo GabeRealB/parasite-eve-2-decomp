@@ -689,7 +689,7 @@ static void Gp_FadeDirAdvance(void)
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
-        Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+        fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
         Gp_DirFadeLevel += 0x1E;
         if ((s16)Gp_DirFadeLevel >= 0x100) {
             Gp_DirFadeLevel = 0xFF;
@@ -704,7 +704,7 @@ static void Gp_CommitSaveLoc(void)
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
-        Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+        fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)Gp_WarpLoc.areaId;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = Gp_WarpLoc.warp;

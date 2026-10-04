@@ -5772,7 +5772,7 @@ void func_actor_560800_80135FA0(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_SUBTRACT);
             work->r += (u16)arg0->spawnArg1.value;
             work->g += (u16)arg0->spawnArg1.value;
             work->b += (u16)arg0->spawnArg1.value;
@@ -5815,7 +5815,7 @@ void func_actor_560800_80136094(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 7:
-            Fade_DrawOverlay((u8)work->r, (u8)work->g, (u8)work->r, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_SUBTRACT);
             work->r -= (u16)arg0->spawnArg1.value;
             work->g -= (u16)arg0->spawnArg1.value;
             work->b -= (u16)arg0->spawnArg1.value;

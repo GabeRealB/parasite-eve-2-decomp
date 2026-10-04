@@ -358,7 +358,7 @@ void Gp_FadeDirWaitMsg(void)
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
-        Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+        fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
         Gp_DirFadeLevel += 0x1E;
         if ((s16)Gp_DirFadeLevel >= 0x100) {
             Gp_DirFadeLevel = 0xFF;
@@ -391,7 +391,7 @@ void Gp_CommitWarp(void)
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
-        Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+        fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
         Gp_DirFadeLevel += 0x1E;
         if ((s16)Gp_DirFadeLevel >= 0x100) {
             Gp_DirFadeLevel = 0xFF;
@@ -431,7 +431,7 @@ void Gp_WarpPhase4(void)
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
-        Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+        fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
         Gp_DirFadeLevel += 0x1E;
         if ((s16)Gp_DirFadeLevel >= 0x100) {
             Gp_DirFadeLevel = 0xFF;

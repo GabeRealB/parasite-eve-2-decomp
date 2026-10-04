@@ -237,30 +237,44 @@ void GameFlow_StateByField34(Task* task)
     }
 }
 
-void Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode)
+/// Prepends the blend command at the foreground tag already containing the tile.
+static inline void _fadeQueueBlendMode(s32 blendMode, s32 foregroundOtIndex)
 {
-    TILE*     p;
-    DR_TPAGE* dr;
-    s8        yoff;
+    DR_TPAGE* blendCommand;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setlen(p, 3);
-    setcode(p, 0x62);
-    p->x0 = -0xA0;
-    p->r0 = r;
-    p->g0 = g;
-    p->b0 = b;
-    yoff  = gDisplayState.vramYOffset;
-    p->w  = 0x140;
-    p->h  = 0xF0;
-    p->y0 = -0x78 - yoff;
-    addPrim(gGpuCurrentOt - 0x10, p);
+    blendCommand   = gGpuPrimCursor;
+    gGpuPrimCursor = blendCommand + 1;
+    setDrawTPage(blendCommand, false, true, getTPage(0, blendMode, 0, 0));
+    addPrim(gGpuCurrentOt + foregroundOtIndex, blendCommand);
+}
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 0, 1, (mode & 3) << 5);
-    addPrim(gGpuCurrentOt - 0x10, dr);
+void fadeDrawOverlay(u8 red, u8 green, u8 blue, s32 blendMode)
+{
+    enum {
+        FADE_OVERLAY_WIDTH_PIXELS  = 320,
+        FADE_OVERLAY_HEIGHT_PIXELS = 240,
+        FADE_OVERLAY_OT_INDEX      = -16,
+    };
+    TILE* tile;
+    s8    shakeY;
+
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    setTile(tile);
+    setSemiTrans(tile, true);
+    tile->x0 = -FADE_OVERLAY_WIDTH_PIXELS / 2;
+    tile->r0 = red;
+    tile->g0 = green;
+    tile->b0 = blue;
+    shakeY   = gDisplayState.vramYOffset;
+    tile->w  = FADE_OVERLAY_WIDTH_PIXELS;
+    tile->h  = FADE_OVERLAY_HEIGHT_PIXELS;
+    // Cancel the draw environment's shake so the overlay stays fixed on screen.
+    tile->y0 = -FADE_OVERLAY_HEIGHT_PIXELS / 2 - shakeY;
+    addPrim(gGpuCurrentOt + FADE_OVERLAY_OT_INDEX, tile);
+
+    // OT insertion prepends: queue the blend command last so it executes first.
+    _fadeQueueBlendMode(blendMode, FADE_OVERLAY_OT_INDEX);
 }
 
 void Game_ClearSession(void)

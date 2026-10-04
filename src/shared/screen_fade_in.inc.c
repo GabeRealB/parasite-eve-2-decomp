@@ -4,7 +4,7 @@
 ///
 /// State 0 allocates the channel block and seeds all three channels at 0xFF;
 /// a failed allocation kills the task. State 1 runs every frame: it draws a
-/// subtractive `Fade_DrawOverlay` tinted `r`/`g`/`r` (`b` is stepped but never
+/// subtractive `fadeDrawOverlay` tinted `r`/`g`/`r` (`b` is stepped but never
 /// drawn), then lowers all three channels by `Task::spawnArg1`, the fade rate.
 /// Once `r` has gone negative the screen is clear and the task kills itself.
 void screenFadeInTask(Task* arg0)
@@ -28,7 +28,7 @@ void screenFadeInTask(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
             fade->r -= (u16)arg0->spawnArg1.value;
             fade->g -= (u16)arg0->spawnArg1.value;
             fade->b -= (u16)arg0->spawnArg1.value;

@@ -180,7 +180,7 @@ void Boot_LoadInitialFile(Task* task)
             CdCmd_Enqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             task->killCountdown = 0xFF;
             fade                = task->killCountdown;
-            Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             task->state++;
             break;
 
@@ -192,7 +192,7 @@ void Boot_LoadInitialFile(Task* task)
                 task->state++;
             }
             fade = task->killCountdown;
-            Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             break;
 
         case 2:
@@ -217,7 +217,7 @@ void Boot_LoadInitialFile(Task* task)
                 break;
             }
             fade = task->killCountdown;
-            Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             break;
 
         case 4:

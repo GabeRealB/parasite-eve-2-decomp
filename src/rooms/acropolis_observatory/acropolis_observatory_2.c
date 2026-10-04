@@ -896,7 +896,7 @@ void func_acropolis_observatory_8017E0D4(Task* arg0)
     s16 temp_v0;
 
     fade = (u8)arg0->killCountdown;
-    Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
     temp_v0             = (u16)arg0->killCountdown + 0x20;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x100) {
@@ -913,7 +913,7 @@ void func_acropolis_observatory_8017E134(Task* arg0)
     s16 temp_v0;
 
     fade = ~(u8)arg0->killCountdown;
-    Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
     temp_v0             = (u16)arg0->killCountdown + 0x20;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x100) {

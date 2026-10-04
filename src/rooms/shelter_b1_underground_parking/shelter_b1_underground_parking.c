@@ -2437,7 +2437,7 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task)
     if (work->fadeLevel >= 0x100) {
         work->fadeLevel = 0xFF;
     }
-    Fade_DrawOverlay((u8)work->fadeLevel, (u8)work->fadeLevel, (u8)work->fadeLevel, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(work->fadeLevel, work->fadeLevel, work->fadeLevel, GPU_BLEND_SUBTRACT);
     if (work->fadeLevel == 0xFF) {
         D_80114D08 = 0xA;
         Gp_MsgPlayerWeapon(1);

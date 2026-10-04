@@ -982,7 +982,7 @@ static void func_actor_403600_801396F8(Task* arg0)
             if (work->weakPhase == 1) {
                 if (work->phaseFrame >= 0x32) {
                     temp_a0 = work->whiteout;
-                    Fade_DrawOverlay(temp_a0, temp_a0, temp_a0, GPU_BLEND_ADD);
+                    fadeDrawOverlay(temp_a0, temp_a0, temp_a0, GPU_BLEND_ADD);
                     temp_v0_9      = (u16)work->whiteout + 0xF;
                     work->whiteout = temp_v0_9;
                     if (temp_v0_9 >= 0xFF) {
@@ -1047,7 +1047,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                 }
             } else {
                 temp_a0_2 = work->whiteout;
-                Fade_DrawOverlay(temp_a0_2, temp_a0_2, temp_a0_2, GPU_BLEND_ADD);
+                fadeDrawOverlay(temp_a0_2, temp_a0_2, temp_a0_2, GPU_BLEND_ADD);
                 temp_v0_13     = (u16)work->whiteout - 0x28;
                 work->whiteout = temp_v0_13;
                 if ((temp_v0_13 << 0x10) <= 0) {
@@ -1085,7 +1085,7 @@ static void func_actor_403600_801396F8(Task* arg0)
             break;
         case ACTOR_403600_MODE_SCENE_POSE:
             temp_a0_3 = work->whiteout;
-            Fade_DrawOverlay(temp_a0_3, temp_a0_3, temp_a0_3, GPU_BLEND_ADD);
+            fadeDrawOverlay(temp_a0_3, temp_a0_3, temp_a0_3, GPU_BLEND_ADD);
             temp_v0_16     = (u16)work->whiteout - 0x1E;
             work->whiteout = temp_v0_16;
             if ((temp_v0_16 << 0x10) <= 0) {
@@ -1234,7 +1234,7 @@ static void func_actor_403600_801396F8(Task* arg0)
             break;
         case ACTOR_403600_MODE_DYING:
             temp_a0_5 = work->whiteout;
-            Fade_DrawOverlay(temp_a0_5, temp_a0_5, temp_a0_5, GPU_BLEND_ADD);
+            fadeDrawOverlay(temp_a0_5, temp_a0_5, temp_a0_5, GPU_BLEND_ADD);
             temp_v0_29     = (u16)work->whiteout + 2;
             work->whiteout = temp_v0_29;
             if (temp_v0_29 >= 0xFF) {

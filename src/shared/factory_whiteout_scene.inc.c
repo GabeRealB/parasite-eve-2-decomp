@@ -49,13 +49,13 @@ void factoryWhiteoutScene(Task* task)
             if (fade == 2) {
                 Gp_EnqueueStageSnd6(SOUND_FACTORY_WHITEOUT, 0, 0);
             }
-            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             goto advance;
         case 5:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
             gGameSession->location.loc.room                            = 2;
             gGameSession->roomObjsDirty                                = 1;
-            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             goto advance;
         case 1:
         advance:
@@ -70,7 +70,7 @@ void factoryWhiteoutScene(Task* task)
             task->state = task->state + 1;
         draw:
             fade = (task->killCountdown * 255) / 30;
-            Fade_DrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+            fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             return;
         default:
             Gp_MsgPlayerWeapon(1);

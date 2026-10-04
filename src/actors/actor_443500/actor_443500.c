@@ -2457,7 +2457,7 @@ void func_actor_443500_80131F88(Task* arg0)
     s32 temp_a0;
 
     temp_a0 = (((0x1E - arg0->killCountdown) * 0xFF) / 30) & 0xFF;
-    Fade_DrawOverlay(temp_a0, temp_a0, temp_a0, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(temp_a0, temp_a0, temp_a0, GPU_BLEND_SUBTRACT);
     temp_v0             = (u16)arg0->killCountdown + 1;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x1E) {

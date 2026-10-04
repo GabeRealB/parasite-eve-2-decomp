@@ -3930,7 +3930,7 @@ and `dda2f0028068f6cf7e16beccb0f0b689773653d108d0cda8d1f0ac0fc4f7fbf5`).
 The same holds when the clamp arm stores a constant and bumps a neighbouring
 field: `func_neo_ark_altar_8017EE30` (step +6, then `>= 0x100` → store `0xFF`
 and `index->state + 1`, then a `(u8)` reload of the field handed to
-`Fade_DrawOverlay`) is `lhu` / `addiu` / `sh` / `sll` / `sra` / `slti` with no
+`fadeDrawOverlay`) is `lhu` / `addiu` / `sh` / `sll` / `sra` / `slti` with no
 second load, and matched 100% first try as
 `index->killCountdown = index->killCountdown + 6;`. Neither a `(u16)` cast on the
 read nor a `(s16)` cast on the comparison is needed — both spellings compile to
@@ -46376,9 +46376,9 @@ w->field_82 = -0x6B0;           /* -> addiu v0,zero,-1712 */
 
 The same narrowing applies one size down: `(u8)` of an `s16` field loads `lbu`,
 which is how `func_dryfield_warehouse_8017E308` passes its fade channels to
-`Fade_DrawOverlay((u8)w->r, (u8)w->g, (u8)w->r, 2)` while the increments beside
-it are `(u16)` and load `lhu`. A byte load is therefore not evidence of a `u8`
-field either.
+`fadeDrawOverlay(w->r, w->g, w->r, GPU_BLEND_SUBTRACT)`: its byte parameters
+now supply that conversion, while the increments beside it are `(u16)` and
+load `lhu`. A byte load is therefore not evidence of a `u8` field either.
 
 So for a field that is read both ways: signed declaration, `(u16)` at the reads
 m2c annotated unsigned. The `s32`-staging trick in "Assign a negative constant
@@ -83683,7 +83683,7 @@ A seed that matches topology, calls and predicates but scores ~70% with only
 against 36/37 (`lbu`/`lhu`) mean the field *width* is wrong, not the shape.
 
 `func_actor_160900_801343E4` is an 8-byte fade block whose three RGB halfwords are
-only ever *read* as bytes - the two `Fade_DrawOverlay` arguments - so m2c declared
+only ever *read* as bytes - the two `fadeDrawOverlay` arguments - so m2c declared
 all three `u8` (`s16` stores in the zeroing path, `u8` everywhere else) and the
 seed emitted 4 `sb` and 7 `lbu` against the target's 9 `sh` and 6 `lhu`. The width
 is in the store block: the zeroing stores are halfword in the seed and the target
@@ -100423,7 +100423,7 @@ and this is the third reason why. `overlay_dup_index.py find` decides equality o
 disassembly *text*, so a twin that reads different data is not a copy, and
 neither is one whose **call carries a different literal**. Here
 `func_actor_303600_801623CC` is `ActorsShared80133b5c`
-(`src/actors/lib/`) with exactly two edits: `Fade_DrawOverlay`'s mode argument is
+(`src/actors/lib/`) with exactly two edits: `fadeDrawOverlay`'s mode argument is
 `1` where the twin passes `2`, and one extra `D_actor_303600_8016E4C4 = NULL;`
 before the exit. `find` reports one copy — the function itself.
 
@@ -100541,7 +100541,7 @@ same `s16` channel twice, and the target shows the two readings as two loads of
 different width:
 
 ```c
-Fade_DrawOverlay((u8)fade->r, (u8)fade->g, (u8)fade->r, 2);
+fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
 fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1);   /* lhu */
 ...
 if ((s16)fade->r < 0x100) { return; }                   /* lh  */
@@ -123356,12 +123356,12 @@ case 4:
     if (fade == 2) {
         Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
     }
-    Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+    fadeDrawOverlay(0xFF, 0xFF, 0xFF, 2);
     goto advance;
 ...
 draw:
     fade = (task->killCountdown * 255) / 30;
-    Fade_DrawOverlay(fade, fade, fade, 2);
+    fadeDrawOverlay(fade, fade, fade, 2);
 ```
 
 The reuse costs nothing: the `lbu` of `field_7` already lands in the register the
@@ -124753,7 +124753,7 @@ Also seen in the same function (`func_actor_143000_801325F0`): the load order
 with `dx = p->x` written afterwards (CSE reuses the load). And a `u8 v = dy + 0x70`
 variable gave `v + 16` as `addiu 0x80` (SImode) where the direct macro argument
 gave `-0x80`.
-## The fade-task family: `memMalloc(8, 0)` + `switch (Task::state)` + `Fade_DrawOverlay` repeats across actors and rooms, and its matched twins hand over the source shape (func_actor_121300_801326EC, 2026-09-17)
+## The fade-task family: `memMalloc(8, 0)` + `switch (Task::state)` + `fadeDrawOverlay` repeats across actors and rooms, and its matched twins hand over the source shape (func_actor_121300_801326EC, 2026-09-17)
 
 `func_actor_121300_801326EC` is `func_actor_160900_801344D8`,
 `func_actor_560800_80136094` and its own TU sibling `func_actor_121300_8013400C`
@@ -124767,12 +124767,12 @@ the first build here, where m2c's `switch`-free goto soup had reached 60.72%.
 The members differ in exactly two places, and both are read off the target's
 block layout, not off the sibling:
 
-- **Where `index->state += 1;` sits relative to the `Fade_DrawOverlay` call.**
+- **Where `index->state += 1;` sits relative to the `fadeDrawOverlay` call.**
   160900 and 560800 put the increment first, as `state_inc: index->state += 1;`
   followed by a fallthrough `case` holding the draw; this one draws first and
   puts the label after the call. The sibling supplies the idiom, not this
   function's ordering.
-- **Whether the seeding case calls `Fade_DrawOverlay` itself or jumps to a
+- **Whether the seeding case calls `fadeDrawOverlay` itself or jumps to a
   shared tail.** When the dispatch's `beq state, N` lands in the *middle* of
   another case's block, the source duplicated the call and `jump2`'s cross
   jumping folded the tails - same pass and same tell as "A `goto` to a shared

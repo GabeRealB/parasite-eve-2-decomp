@@ -2071,7 +2071,7 @@ static void func_actor_206100_8014CB68(Task* task)
     if (work->stateFrames >= 0x100) {
         work->stateFrames = 0xFF;
     }
-    Fade_DrawOverlay((u8)work->stateFrames, (u8)work->stateFrames, (u8)work->stateFrames, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(work->stateFrames, work->stateFrames, work->stateFrames, GPU_BLEND_SUBTRACT);
     if (work->stateFrames == 0xFF) {
         work->trunkBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->headBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;

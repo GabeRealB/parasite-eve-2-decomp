@@ -2953,7 +2953,7 @@ s32 func_acropolis_security_room_8017FE24(Task* task, s32 msgId, s32 item, s32 a
 
 /// Fades the screen to white over 0x40 frames, then steps the caller on one
 /// state: `timer` is the fade level here, rising by 4 a frame and
-/// driving `Fade_DrawOverlay`'s three colour channels together. At the halfway
+/// driving `fadeDrawOverlay`'s three colour channels together. At the halfway
 /// point (0x80) the door chime is queued; once the level passes 0xFF the
 /// timer is reset for the next state and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is set to 0x10.
 static void func_acropolis_security_room_8017FE6C(Task* task)
@@ -2962,7 +2962,7 @@ static void func_acropolis_security_room_8017FE6C(Task* task)
     u8                                     level;
 
     level = work->timer;
-    Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
     work->timer = work->timer + 4;
     if (work->timer == 0x80) {
         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 2), 0, 0);
@@ -3032,7 +3032,7 @@ static void func_acropolis_security_room_801800A4(Task* task)
 
     gameFlagSetNibble(GAME_FLAG_MAP_MARK_SECURITY_ROOM, 0);
     level = work->timer;
-    Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
     work->timer = work->timer + 4;
     if (work->timer == 0x80) {
         SndEvt_EnqueueType6(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 2), 0, 0);

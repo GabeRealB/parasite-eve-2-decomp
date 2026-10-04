@@ -1,10 +1,10 @@
-/* Full-screen fade tasks built on Fade_DrawOverlay in subtractive mode (2).
+/* Full-screen fade tasks built on fadeDrawOverlay in subtractive mode (2).
  * One ramps a grey from white down to nothing, bringing the picture up out of
  * black; the other ramps it up from nothing, taking the picture down to black.
  * Each task allocates an 8-byte ScreenFadeWork, steps by its spawnArg1 each
  * frame, and kills itself at the end.
  * screenFadeInTileTask is the fade-in with its overlay tile linked in place
- * rather than drawn through Fade_DrawOverlay.
+ * rather than drawn through fadeDrawOverlay.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.

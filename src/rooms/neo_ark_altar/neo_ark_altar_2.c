@@ -1197,7 +1197,7 @@ static void func_neo_ark_altar_8017EE30(Task* arg0)
         arg0->state         = (s32)(arg0->state + 1);
     }
     temp_a0 = (u8)arg0->killCountdown;
-    Fade_DrawOverlay(temp_a0, temp_a0, temp_a0, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(temp_a0, temp_a0, temp_a0, GPU_BLEND_SUBTRACT);
 }
 
 static void func_neo_ark_altar_8017EE90(Task* arg0)

@@ -660,7 +660,7 @@ static void func_shelter_r47_80182348(Task* task)
         Task_RequestKill(task, 0);
     }
     level = (u8)state->fade;
-    Fade_DrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+    fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
 }
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
