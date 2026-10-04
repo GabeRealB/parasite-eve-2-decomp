@@ -69607,7 +69607,7 @@ force a callee-saved register for the inner loop's counter as well.
 
 A second source of the same `(mult + base) + K` form, with no inline function.
 `func_actor_503500_80141448` copies a sampled `VECTOR out[9]` into
-`work->pts[8 - i]` in a loop, and the target's first access folds the field
+`work->linkPoints[8 - i]` in a loop, and the target's first access folds the field
 offset while the other two go through the finished pointer:
 
 ```
@@ -69619,7 +69619,7 @@ addiu  a0, a0, 0x30         # then P = T + K
 lhu    v0, 4(a0) ...        # P+4, P+8
 ```
 
-`copyVector(&work->pts[8 - i], &out[i])` from `psyq/libgpu.h` matched. The macro
+`copyVector(&work->linkPoints[8 - i], &out[i])` from `psyq/libgpu.h` matched. The macro
 expands to `(&a[i])->vx`. The front end turns `&a[i]` into a pointer sum, the
 `->` makes it an `INDIRECT_REF`, and `expand_expr` expands that address in
 `EXPAND_SUM` mode as `(mult + base) + K`. `memory_address` then forces the whole
@@ -70151,7 +70151,7 @@ becomes `lw` + `sra 16` with shifted registers (95.7% to 92.6%). Either keep the
 reload behind an intervening store (`work->field_3D4 = 0;` first), or declare
 the field `Fixed16` and compare `.halves.integer` / load `.word`: the HImode and SImode
 MEMs are distinct cse entries, so statement order stops mattering. Both match;
-the union is what the 0x2EC-block sibling `func_actor_503500_80139EFC` uses.
+the union is what the large-chain sibling `func_actor_503500_80139EFC` uses.
 
 ## Walking-pointer bumps in the `for` clause put the counter's `addiu` first
 
