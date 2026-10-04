@@ -149,12 +149,18 @@ typedef struct ActorScaleMatrixScratch {
 } ActorScaleMatrixScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleMatrixScratch, 0x18);
 
-/// Turning an actor to face the player: the offset from the actor to the
-/// player, flattened to the XZ plane, and the rotation built from its
-/// bearing.
-typedef struct ActorFaceScratch {
-    VECTOR  delta;
-    SVECTOR rot;
+/// The scratch-stack block of an enemy routine that aims at a target or turns
+/// the model: the ground offset to the target, and the short vector the
+/// routine hands on by address.
+///
+/// A routine reserves one block on entry whether it needs one member or both.
+/// The target is the player or a waypoint of the enemy's own; its bearing is
+/// `ratan2(delta.vx, delta.vz)`, taken from the low 16 bits of each component,
+/// and its distance the square root of their squares. Nothing carries over
+/// from one call to the next.
+typedef struct {
+    VECTOR  delta; // Target position minus the actor's, world units, with `vy` set to zero; `pad` is never written
+    SVECTOR rot;   // Euler angles a coordinate's rotation is rebuilt from, 4096 per turn; routines that spawn an effect instead borrow it for the effect's offset from its parent coordinate
 } ActorFaceScratch;
 STATIC_ASSERT_SIZEOF(ActorFaceScratch, 0x18);
 

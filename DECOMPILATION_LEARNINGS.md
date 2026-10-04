@@ -17601,21 +17601,21 @@ the target's `addiu $s4, $s5, -0x18` cannot come out. Reuse the source overlay's
 block struct instead of a bare `VECTOR*`:
 
 ```c
-typedef struct ActorFaceScratch {
-    /* 0x00 */ VECTOR  vec;
-    /* 0x10 */ SVECTOR rot;
+typedef struct {
+    VECTOR  delta;
+    SVECTOR rot;
 } ActorFaceScratch;
 STATIC_ASSERT_SIZEOF(ActorFaceScratch, 0x18);
 
-scratchEnd = *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
-delta      = scratchEnd - 1;                  /* -0x18 */
-delta->vec.vz = ...;                          /* +0x08 */
+scratchEnd = SCRATCH_STACK_CURSOR(ActorFaceScratch);
+scratch    = scratchEnd - 1;                  /* -0x18 */
+scratch->delta.vz = ...;                      /* +0x08 */
 ```
 
-Every actor family that writes this block already defines its own
-`Actor<nnnnn>RotScratch`; when porting a copy into another overlay, copy that
-typedef into the destination header rather than reusing `VECTOR*`. The two
-scratch shapes are distinguishable at a glance: an `sv`/`sh` at `delta + 0x08`
+The block is `ActorFaceScratch` in `include/actors/actor.h`, which every actor
+family that writes it shares; when porting a copy into another overlay, use
+that type rather than `VECTOR*` or a typedef of the package's own. The two
+scratch shapes are distinguishable at a glance: an `sv`/`sh` at `scratch + 0x08`
 means the 0x18 block, a `sw` there means a plain `VECTOR` with the block based
 at `-0x10`.
 
@@ -42212,9 +42212,9 @@ shifted pointer once and stores at offset 0. Declare the frame and reach through
 it:
 
 ```c
-typedef struct { byte pad_0[0x10]; SVECTOR rot; } ActorFaceScratch; /* 0x18 */
+typedef struct { VECTOR delta; SVECTOR rot; } ActorFaceScratch; /* 0x18 */
 
-sc = (ActorFaceScratch*)(SCRATCH_SP -= 0x18);
+sc = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
 sc->rot.vx = 0;
 RotMatrix(&sc->rot, &coord->coord);
 ```
@@ -78054,7 +78054,7 @@ zero). Watch the fields the local header still carries as padding - the sibling
 reads `work->field_388` / `work->field_38A`, which `Actor300700Work` had as
 `pad_388[4]`; splitting a pad into named fields is layout-preserving and safe.
 The scratchpad idiom comes across unchanged too (`#define SCRATCH_SP
-(*(u32*)0x1F8003FC)`, a 0x18 `RotScratch` holding a `VECTOR` then the
+(*(u32*)0x1F8003FC)`, the 0x18 `ActorFaceScratch` holding a `VECTOR` then the
 `SVECTOR` handed to `RotMatrix`), and `ratan2` / `RotMatrix` need no declaration
 - the siblings call them implicitly.
 

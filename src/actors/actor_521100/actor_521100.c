@@ -2937,16 +2937,16 @@ static void func_actor_521100_80134774(Task* arg0)
     GfxCoord*         coord;
     ActorFaceScratch* sc;
     ActorFaceScratch* sc2;
-    u8*               head;
+    ActorFaceScratch* head;
     s16               state;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    sc                       = (ActorFaceScratch*)(head - 0x18);
-    sc2                      = sc;
-    SCRATCH_STACK_CURSOR(u8) = (u8*)sc;
-    work                     = arg0->work;
-    coord                    = arg0->extra.tmd->coords;
-    state                    = work->subState;
+    head                                   = SCRATCH_STACK_CURSOR(ActorFaceScratch);
+    sc                                     = head - 1;
+    sc2                                    = sc;
+    SCRATCH_STACK_CURSOR(ActorFaceScratch) = sc;
+    work                                   = arg0->work;
+    coord                                  = arg0->extra.tmd->coords;
+    state                                  = work->subState;
     switch (state) {
         case 0:
             work->animationId  = 0x12;
@@ -3042,7 +3042,7 @@ static void func_actor_521100_80134774(Task* arg0)
             work->resumeRouteLeg = 0;
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 /// Steers the actor's heading towards the work block's `targetYaw` at up to
 /// `turnSpeed` of turn per frame, then builds the result into the attach
@@ -3070,7 +3070,7 @@ static void func_actor_521100_80134C38(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -3122,7 +3122,7 @@ done:
     sc->rot.vy = work->yaw;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 /// Plays the actor's footstep cues: a sound is queued on the frame the
 /// animation record the cue body reads has dropped `flags` bit 0x20 (or 0x10)

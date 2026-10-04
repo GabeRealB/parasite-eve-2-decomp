@@ -687,12 +687,12 @@ static void Actor02400_Fn01590(Task* task)
     ActorFaceScratch* scratch;
     ActorFaceScratch* scratchEnd;
 
-    scratchEnd                                                                          = *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
-    *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = scratchEnd - 1;
-    scratch                                                                             = scratchEnd - 1;
-    work                                                                                = task->work;
-    coord                                                                               = task->extra.tmd->coords;
-    limit                                                                               = 0x1000;
+    scratchEnd                             = SCRATCH_STACK_CURSOR(ActorFaceScratch);
+    SCRATCH_STACK_CURSOR(ActorFaceScratch) = scratchEnd - 1;
+    scratch                                = scratchEnd - 1;
+    work                                   = task->work;
+    coord                                  = task->extra.tmd->coords;
+    limit                                  = 0x1000;
     switch (work->field_13E) {
         case 0:
             scratchEnd[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -796,7 +796,7 @@ static void Actor02400_Fn01590(Task* task)
             taskReparent(task, *eff);
         }
     }
-    *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
 /// Mode 2, recoiling: phase 0 raises `field_134` for up to 7 frames (cut short
@@ -1061,7 +1061,7 @@ static void Actor02400_Fn02264(Task* task)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     coord = task->extra.tmd->coords;
     work  = task->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1113,7 +1113,7 @@ done:
     sc->rot.vy = work->field_144;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
 /// Every 25 frames plays the body's idle sound, panned and placed from the

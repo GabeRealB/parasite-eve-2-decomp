@@ -18,7 +18,7 @@ void ratTurn(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -70,5 +70,5 @@ done:
     sc->rot.vy = work->field_388;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }

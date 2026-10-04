@@ -2466,7 +2466,7 @@ static void func_actor_105100_80135B40(Task* arg0)
     s32               next;
     s32               step;
 
-    sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    sc           = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     coord        = arg0->extra.tmd->coords;
     sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
@@ -2517,7 +2517,7 @@ done:
     RotMatrix(&sc->rot, &coord->coord);
     coord->coord.t[0] += (coord->coord.m[0][2] * 0xF) >> 0xA;
     coord->coord.t[2] += (coord->coord.m[2][2] * 0xF) >> 0xA;
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
 #include "../../shared/fireball_ember.inc.c"

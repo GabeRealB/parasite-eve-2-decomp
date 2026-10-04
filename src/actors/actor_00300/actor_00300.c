@@ -1880,7 +1880,7 @@ static void Actor00300_Fn01D60(Task* arg0)
     ActorFaceScratch* sc;
     s32               random;
 
-    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (((Enemy*)arg0->spawnArg2.pointer)->hp * 100 / (s32)Actor00300_D15FE8.hpMax < 50 &&
@@ -1916,7 +1916,7 @@ static void Actor00300_Fn01D60(Task* arg0)
             work->actionStep = 0;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
 static void Actor00300_Fn01F9C(Task* arg0)
@@ -1951,11 +1951,10 @@ static void Actor00300_Fn01F9C(Task* arg0)
     ActorFaceScratch* scratch;
 
     scratchEnd = SCRATCH_STACK_CURSOR(ActorFaceScratch);
-    scratch =
-        (ActorFaceScratch*)(SCRATCH_STACK_CURSOR(u8) = (u8*)scratchEnd - 0x18);
-    work  = arg0->work;
-    state = work->actionStep;
-    coord = arg0->extra.tmd->coords;
+    scratch    = (SCRATCH_STACK_CURSOR(ActorFaceScratch) = scratchEnd - 1);
+    work       = arg0->work;
+    state      = work->actionStep;
+    coord      = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
             work->turnRate = 0x3C;
@@ -2093,7 +2092,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
 static void Actor00300_Fn02620(Task* arg0)
@@ -2514,7 +2513,7 @@ static void Actor00300_Fn032BC(Task* arg0)
     s32               next;
     s32               wrapStep;
 
-    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
     ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -2566,7 +2565,7 @@ done:
     sc->rot.vy = work->yaw;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
 /// Turns the model's fourth coordinate by the angles in `hitTwist`, then
@@ -3089,7 +3088,7 @@ static void Actor00300_Fn04528(Task* arg0)
     s16               wrap;
 
     coord        = arg0->extra.tmd->coords;
-    sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    sc           = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
     sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
@@ -3119,7 +3118,7 @@ static void Actor00300_Fn04528(Task* arg0)
     sc->rot.vy = cur;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
 #include "../../shared/fireball_ember.inc.c"

@@ -18,15 +18,15 @@ void maggotCaterpillarRoamState(Task* arg0)
     s32                    pan;
     u32                    random;
     u32                    random2;
-    ActorFaceScratch*      delta;
+    ActorFaceScratch*      scratch;
     ActorFaceScratch*      scratchEnd;
 
-    scratchEnd                                                                          = *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
-    delta                                                                               = scratchEnd - 1;
-    *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
-    work                                                                                = arg0->work;
-    state                                                                               = work->step;
-    coord                                                                               = arg0->extra.tmd->coords;
+    scratchEnd                             = SCRATCH_STACK_CURSOR(ActorFaceScratch);
+    scratch                                = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(ActorFaceScratch) = scratch;
+    work                                   = arg0->work;
+    state                                  = work->step;
+    coord                                  = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
             work->reactionMode = MAGGOT_CATERPILLAR_REACTION_NORMAL;
@@ -43,9 +43,9 @@ void maggotCaterpillarRoamState(Task* arg0)
             return;
         case 1:
             scratchEnd[-1].delta.vx = (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
-            delta->delta.vy         = 0;
-            delta->delta.vz         = (s32)(gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]);
-            work->targetYaw         = ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)delta->delta.vz) & 0xFFF;
+            scratch->delta.vy       = 0;
+            scratch->delta.vz       = (s32)(gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]);
+            work->targetYaw         = ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)scratch->delta.vz) & 0xFFF;
             work->turnRate          = 0x12;
             if (work->animFrame >= 0xB) {
                 work->forwardSpeed = 0x17;
@@ -69,9 +69,9 @@ void maggotCaterpillarRoamState(Task* arg0)
             }
             if (work->targetYaw == work->yaw) {
                 scratchEnd[-1].delta.vx = (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
-                delta->delta.vy         = 0;
+                scratch->delta.vy       = 0;
                 dz                      = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                delta->delta.vz         = dz;
+                scratch->delta.vz       = dz;
                 dx                      = scratchEnd[-1].delta.vx;
                 distance                = SquareRoot0((dx * dx) + (dz * dz));
                 if ((work->isCaterpillar == 0) && (distance < 0x578) && (work->burning == 0) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS)) {

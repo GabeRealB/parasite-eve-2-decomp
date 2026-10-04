@@ -20,7 +20,7 @@ void sucklercephTurnToPlayer(Task* arg0)
 
     coord        = arg0->extra.tmd->coords;
     work         = arg0->work;
-    sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    sc           = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
     sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
@@ -51,5 +51,5 @@ void sucklercephTurnToPlayer(Task* arg0)
     sc->rot.vy = work->heading;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }

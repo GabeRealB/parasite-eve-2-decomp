@@ -22,7 +22,7 @@ void mothSteer(Task* arg0)
     s16               turn;
     s16               wrap;
 
-    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
+    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (work->field_2E6) {
@@ -73,5 +73,5 @@ void mothSteer(Task* arg0)
     sc->rot.vy = work->field_2DC;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
