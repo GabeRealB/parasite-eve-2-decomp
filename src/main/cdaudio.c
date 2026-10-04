@@ -210,7 +210,7 @@ static s32 CdAudio_DriveStream(void)
     CdlLOC*                loc;
     s8                     i;
     s8                     status;
-    s16                    half;
+    s16                    volume;
 
     setup = &_gCdAudioState.stream;
     switch (CdAudio_Phase.field_0) {
@@ -239,21 +239,21 @@ static s32 CdAudio_DriveStream(void)
             loc   = &state->setloc;
             CdIntToPos(state->loc.field_C, loc);
             if (D_8008277C != 0) {
-                half = 0;
+                volume = 0;
             } else {
-                half = state->loc.volume;
+                volume = state->loc.volume;
             }
-            setup->voiceR      = -1;
-            setup->voiceL      = -1;
-            setup->volume      = half;
-            setup->mode        = 2;
-            setup->sectorBuf   = &Fs_CdSector;
-            setup->spuBase     = state->loc.field_8;
-            setup->startSector = CdPosToInt(loc);
-            setup->doneCb      = CdAudio_SetLocFlag;
-            setup->startCb     = 0;
-            setup->voiceFreeCb = 0;
-            state->loc.field_1 = 0;
+            setup->voiceR       = CD_STREAM_VOICE_NONE;
+            setup->voiceL       = CD_STREAM_VOICE_NONE;
+            setup->volume       = volume;
+            setup->channelCount = 2;
+            setup->sectorBuf    = &Fs_CdSector;
+            setup->spuBase      = state->loc.field_8;
+            setup->startSector  = CdPosToInt(loc);
+            setup->doneCb       = CdAudio_SetLocFlag;
+            setup->startCb      = NULL;
+            setup->voiceFreeCb  = NULL;
+            state->loc.field_1  = 0;
             CdStream_Start(setup);
             CdAudio_Phase.field_0 = 2;
             break;

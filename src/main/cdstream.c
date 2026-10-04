@@ -1007,7 +1007,7 @@ static void CdReady_Poll(void)
     }
 }
 
-void CdStream_Start(CdStreamParams* arg0)
+void CdStream_Start(CdStreamParams* params)
 {
     CdReadyEntry            entry;
     volatile CdStreamState* p;
@@ -1032,20 +1032,20 @@ void CdStream_Start(CdStreamParams* arg0)
     s16           v1fc3;
     s16           v1000;
     s32           temp;
-    u8            mode;
-    s32           base;
+    s8            channelCount;
+    s32           spuBase;
     CdReadyEntry* rem_tmp;
-    s32           temp_v1;
+    s32           startSector;
 
     p         = &CdStream_Runtime.state;
-    p->voiceL = arg0->voiceL;
-    p->voiceR = arg0->voiceR;
+    p->voiceL = params->voiceL;
+    p->voiceR = params->voiceR;
     flag      = ((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1;
     if (flag == 1) {
         Spu_KeyOff((s8)p->voiceL);
         Spu_KeyOff((s8)p->voiceR);
-        if (arg0->voiceFreeCb != 0) {
-            arg0->voiceFreeCb(
+        if (params->voiceFreeCb != NULL) {
+            params->voiceFreeCb(
                 (flag << (s8)p->voiceL) | (flag << (s8)p->voiceR));
         }
     }
@@ -1073,22 +1073,22 @@ void CdStream_Start(CdStreamParams* arg0)
     }
 
     a3.state                 = &CdStream_Runtime.state;
-    a3.state->startCb        = arg0->startCb;
-    a3.state->voiceFreeCb    = arg0->voiceFreeCb;
+    a3.state->startCb        = params->startCb;
+    a3.state->voiceFreeCb    = params->voiceFreeCb;
     a3.state->advanceDelay   = 0;
-    a3.state->doneCb         = arg0->doneCb;
+    a3.state->doneCb         = params->doneCb;
     a3.state->playhead       = 0;
-    a3.state->startSector    = arg0->startSector;
-    a3.state->expectedSector = arg0->startSector;
+    a3.state->startSector    = params->startSector;
+    a3.state->expectedSector = params->startSector;
     one                      = 1;
-    a3.state->readSector     = arg0->startSector;
+    a3.state->readSector     = params->startSector;
     a3.state->expectedChunk  = 0;
     a3.state->chunkCount     = one;
-    base                     = arg0->spuBase;
+    spuBase                  = params->spuBase;
     sectors                  = CD_STREAM_CHUNK_VSYNCS_SHORT_NTSC;
     {
         s32 ds            = gDisplayState.region;
-        a3.state->spuBase = base;
+        a3.state->spuBase = spuBase;
         if (ds == one) {
             sectors = CD_STREAM_CHUNK_VSYNCS_SHORT_PAL;
         }
@@ -1096,11 +1096,11 @@ void CdStream_Start(CdStreamParams* arg0)
     a3.state->chunkVsyncs  = sectors;
     a3.state->ringHalf     = CD_STREAM_RING_HALF_SHORT;
     t0                     = PARENT_OF(a3.state, CdStreamRuntime, state)->channels.voiceAttr;
-    a3.state->sector       = (_MtsHeader*)arg0->sectorBuf;
-    a3.state->voiceL       = arg0->voiceL;
+    a3.state->sector       = params->sectorBuf;
+    a3.state->voiceL       = params->voiceL;
     vff                    = 0xFF;
-    a3.state->voiceR       = arg0->voiceR;
-    mode                   = arg0->mode;
+    a3.state->voiceR       = params->voiceR;
+    channelCount           = params->channelCount;
     v1fc3                  = 0x1FC3;
     v1000                  = 0x1000;
     cflags                 = 0x6009F;
@@ -1114,7 +1114,7 @@ void CdStream_Start(CdStreamParams* arg0)
     t0[1].volmode.left     = 0;
     t0[1].volmode.right    = 0;
     t0[1].pitch            = v1000;
-    a3.state->channelCount = mode;
+    a3.state->channelCount = channelCount;
     a3.state->chunkIndex   = 0;
     a3.state->queuedChunk  = 0;
     a3.state->reinitSlot   = 0;
@@ -1143,27 +1143,27 @@ void CdStream_Start(CdStreamParams* arg0)
         t0[1].loop_addr = temp;
         if (f53 & CD_STREAM_MONO) {
             ch1               = &t0[1];
-            volume            = (arg0->volume * 0xB5) >> 8;
+            volume            = (params->volume * 0xB5) >> 8;
             ch1->volume.right = volume;
             ch1->volume.left  = volume;
             t0->volume.right  = volume;
             t0->volume.left   = volume;
         } else {
-            u16 volume_u;
-            volume_u           = (u16)arg0->volume;
+            u16 leftVolume;
+            leftVolume         = params->volume;
             t0->volume.right   = 0;
             t0[1].volume.left  = 0;
-            t0->volume.left    = volume_u;
-            t0[1].volume.right = (u16)arg0->volume;
+            t0->volume.left    = leftVolume;
+            t0[1].volume.right = params->volume;
         }
     }
 
     rem_tmp                          = &entry;
     entry.pollFn                     = CdStream_PollMtsRead;
-    temp_v1                          = arg0->startSector;
+    startSector                      = params->startSector;
     entry.doneFn.callback            = CdStream_Continue;
     entry.errorFn.callback           = CdStream_FinishQueueEntry;
-    entry.sectorPos                  = temp_v1;
+    entry.sectorPos                  = startSector;
     CdStream_Runtime.state.readySlot = CdReady_Enqueue(rem_tmp);
     CdStream_Runtime.state.phase     = CD_STREAM_PHASE_READING;
     D_80068B74                       = -1;

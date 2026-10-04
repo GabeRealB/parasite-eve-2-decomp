@@ -3,20 +3,26 @@
 
 #include "common.h"
 
-/// CD/SPU stream setup block for CdAudio_DriveStream / CdStream_Start: sector
-/// position, buffer, callbacks, and voice indices.
-typedef struct _CdStreamParams {
-    /* 0x00 */ s32   startSector;
-    /* 0x04 */ s32   spuBase;
-    /* 0x08 */ void* sectorBuf;
-    /* 0x0C */ void  (*doneCb)(s32);
-    /* 0x10 */ void  (*startCb)(s32);
-    /* 0x14 */ void  (*voiceFreeCb)(s32);
-    /* 0x18 */ s16   volume;
-    /* 0x1A */ s8    voiceL;
-    /* 0x1B */ s8    voiceR;
-    /* 0x1C */ u8    mode;
-    /* 0x1D */ u8    pad_1D[3];
+/// `CdStreamParams::voiceL` and `voiceR` value for a channel with no SPU voice yet.
+#define CD_STREAM_VOICE_NONE (-1)
+
+/// Describes one CD-to-SPU MTS stream to `CdStream_Start`.
+///
+/// The call copies every field into the live stream and keeps no reference to
+/// the block. The stream reads each disc sector into `sectorBuf` and transfers
+/// its ADPCM into an SPU ring at `spuBase`, one half per chunk and one ring
+/// per channel. A null callback is skipped.
+typedef struct {
+    s32   startSector;                   // absolute disc sector of the first MTS chunk
+    s32   spuBase;                       // SPU address of the left ring; the right ring follows it
+    void* sectorBuf;                     // caller's buffer for one 2048-byte sector, opening with the MTS header
+    void  (*doneCb)(s32 opened);         // 1 when the opening read finishes, 0 when a read is abandoned
+    void  (*startCb)(s32 voiceMask);     // the stream's two voice bits, when they are keyed on
+    void  (*voiceFreeCb)(s32 voiceMask); // the stream's two voice bits, when they are keyed off
+    s16   volume;                        // SPU gain of each channel on its own side; a mono mix puts 181/256 of it on both sides
+    s8    voiceL;                        // left SPU voice until key-on allocates the pair, `CD_STREAM_VOICE_NONE` for none
+    s8    voiceR;                        // right SPU voice until key-on allocates the pair, `CD_STREAM_VOICE_NONE` for none
+    s8    channelCount;                  // MTS channels interleaved per chunk, until the first header supplies the count
 } CdStreamParams;
 STATIC_ASSERT_SIZEOF(CdStreamParams, 0x20);
 
@@ -33,7 +39,7 @@ s32 CdStream_IsBusy(void);
 /// When enabled, mix both input channels equally into both outputs.
 void CdStream_SetMono(s32 enabled);
 
-void CdStream_Start(CdStreamParams* arg0);
+void CdStream_Start(CdStreamParams* params);
 
 void CdStream_Stop(void);
 
