@@ -3737,58 +3737,25 @@ static void Actor01100_Fn067C0(MATRIX* arg0, ActorsShared801385e0Scale* arg1)
     SCRATCH_HEAD_AT(scratch, SVECTOR) = head + 1;
 }
 
-/// Angle from `arg0`'s coordinate to the coordinate at
-/// `gPlayerActorTasks[arg1]->extra->field_8`, measured in `arg0`'s own frame. The
-/// three translation components, target minus self, are written into the
-/// 8-byte scratch vector at `head - 0x40`, `TransposeMatrix` builds the inverse
-/// of `arg0->workm` into the 0x20 bytes above it, `mvmva` rotates the delta
-/// through that inverse and the three results are read back over the vector;
-/// `ratan2` of its X and Z then gives the angle, wrapped into (-0x800, 0x800].
-/// The 0x40-byte scratch block is handed back before returning.
-///
-/// The scratch pointer is published between the second and third halfword
-/// stores rather than after all three: consecutive stores carry an output
-/// dependency, so their program order survives both schedulers, and moving it
-/// later lets it take the call's delay slot instead of the third store.
+/// Bearing of the actor in slot `arg1` of `gPlayerActorTasks` from `arg0`,
+/// measured in `arg0`'s own frame and folded into -0x800..0x800; 0 when the
+/// slot is empty.
 static s32 Actor01100_Fn06954(GfxCoord* arg0, s32 arg1)
 {
     Task*                actor;
     GfxCoord*            coord;
-    s32                  angle;
-    s32                  result;
-    ActorBearingScratch* head;
     ActorBearingScratch* blk;
-    MATRIX*              matrix;
+    s32                  angle;
 
     actor = gPlayerActorTasks[arg1];
     if (actor == NULL) {
         return 0;
     }
     coord = actor->extra.tmd->coords;
-    head  = SCRATCH_STACK_CURSOR(ActorBearingScratch);
-    blk   = head - 1;
-
-    blk->delta.vx                             = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
-    blk->delta.vy                             = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    SCRATCH_STACK_CURSOR(ActorBearingScratch) = blk;
-    blk->delta.vz                             = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
-
-    matrix = &blk->frame;
-    TransposeMatrix(&arg0->workm, matrix);
-
-    _gfxLoadRotSv(matrix, &blk->delta);
-    gte_rtv0();
-    gte_stsv(&blk->delta);
-
-    angle  = ratan2(blk->delta.vx, blk->delta.vz);
-    result = angle;
-    if (angle >= 0x801) {
-        result = angle - 0x1000;
-    } else if (angle < -0x800) {
-        result = angle + 0x1000;
-    }
+    blk   = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
+    angle = actorBearingInFrame(blk, arg0, coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
-    return result;
+    return angle;
 }
 
 /// Squared distance from `arg0` to the slot-3 (player) task's root part coord,

@@ -416,14 +416,20 @@ typedef struct ActorHitTakenScratch {
 } ActorHitTakenScratch;
 STATIC_ASSERT_SIZEOF(ActorHitTakenScratch, 0x18);
 
-/// The scratch-pad block of a bearing measured in a coordinate's own frame:
-/// `delta` is the other point's offset from the coordinate, rotated in place
-/// into that frame through `frame`, the transpose of the coordinate's world
-/// matrix.
-typedef struct ActorBearingScratch {
-    SVECTOR delta;
-    byte    pad_8[0x18];
-    MATRIX  frame;
+/// The scratch-pad block the bearing of one coordinate from another is
+/// worked out in.
+///
+/// The bearing is the yaw of the measured coordinate as the reference
+/// coordinate sees it, so both members describe the reference: the offset to
+/// the measured point, and the rotation that carries that offset out of world
+/// axes into the reference's own. The block is reserved either on its own or
+/// as the top of an `ActorRangeBearingScratch`, and holds nothing a caller
+/// needs once the angle is taken; a caller that also wants a range reuses
+/// `delta` for it.
+typedef struct {
+    SVECTOR delta;           // The measured point's offset from the reference, each component cut to 16 bits: along world axes as stored, along the reference's own once rotated in place. `pad` is never written
+    byte    unknown_8[0x18]; // Reserved with the block and never accessed; role unproven
+    MATRIX  inverseRotation; // Transpose of the reference's world rotation, 4.12 fixed point; the translation is never written or read
 } ActorBearingScratch;
 STATIC_ASSERT_SIZEOF(ActorBearingScratch, 0x40);
 
@@ -931,8 +937,9 @@ STATIC_ASSERT_SIZEOF(Actor150400Work, 0x4C0);
 
 /// Bearing of `other` from `self`, measured in `self`'s own frame and folded
 /// into -0x800..0x800. The offset between the two world positions is written
-/// to `blk->delta` and rotated there through `blk->frame`, the transpose of
-/// `self`'s world matrix; the caller owns `blk` and may reuse it afterwards.
+/// to `blk->delta` and rotated there through `blk->inverseRotation`, the
+/// transpose of `self`'s world matrix; the caller owns `blk` and may reuse it
+/// afterwards.
 static __inline__ s32 actorBearingInFrame(ActorBearingScratch* blk, GfxCoord* self, GfxCoord* other)
 {
     s32 angle;
@@ -940,8 +947,8 @@ static __inline__ s32 actorBearingInFrame(ActorBearingScratch* blk, GfxCoord* se
     blk->delta.vx = other->workm.t[0] - self->workm.t[0];
     blk->delta.vy = other->workm.t[1] - self->workm.t[1];
     blk->delta.vz = other->workm.t[2] - self->workm.t[2];
-    TransposeMatrix(&self->workm, &blk->frame);
-    gfxRotateSv(&blk->frame, &blk->delta);
+    TransposeMatrix(&self->workm, &blk->inverseRotation);
+    gfxRotateSv(&blk->inverseRotation, &blk->delta);
     angle = ratan2(blk->delta.vx, blk->delta.vz);
     if (angle >= 0x801) {
         angle -= 0x1000;

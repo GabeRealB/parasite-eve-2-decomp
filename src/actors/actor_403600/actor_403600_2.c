@@ -3288,7 +3288,7 @@ static void func_actor_403600_8013E470(GfxCoord* arg0, s32* arg1, s32* arg2)
     vec->vy                   = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
     scratch                   = (SCRATCH_STACK_CURSOR(void) = &head[-1]);
     vec->vz                   = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
-    matrix                    = &head[-1].bearing.frame;
+    matrix                    = &head[-1].bearing.inverseRotation;
     TransposeMatrix(&arg0->workm, matrix);
     _gfxLoadRotSv(matrix, vec);
     gte_rtv0();
@@ -3324,8 +3324,8 @@ static s16 func_actor_403600_8013E66C(GfxCoord* arg0)
     vec                        = &head[-1].bearing.delta;
     vec->vy                    = (s16)(arg0->workm.t[1] - coord->workm.t[1]);
     vec->vz                    = (s16)(arg0->workm.t[2] - coord->workm.t[2]);
-    TransposeMatrix(&coord->workm, &head[-1].bearing.frame);
-    gfxRotateSv(&head[-1].bearing.frame, vec);
+    TransposeMatrix(&coord->workm, &head[-1].bearing.inverseRotation);
+    gfxRotateSv(&head[-1].bearing.inverseRotation, vec);
     angle  = ratan2(head[-1].bearing.delta.vx, vec->vz);
     result = angle;
     if (angle >= 0x801) {

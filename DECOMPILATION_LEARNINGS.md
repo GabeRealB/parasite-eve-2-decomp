@@ -116766,6 +116766,10 @@ __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
   local: `_gfxLoadRotSv(matrix, &blk->delta)` (`include/main/gfxgte.h`) replaces
   the copy, `gte_SetRotMatrix` and the asm, and the helper's own inlined local
   gets its address formed at the `lwc2` pair (`Actor01100_Fn06954`, 100%).
+  That function has since become a plain call of `actorBearingInFrame` on a
+  reserved `ActorBearingScratch`, which reproduces the store placement in the
+  first bullet as well; see "Head-relative offsets into a reserved scratch
+  block are an inlined helper on a nested member".
 
 The tell for both is `reorder` non-zero with `stack`/`branch`/`insert`/`delete`
 all zero and `blocks`/`instructions` matching: a statement position, not a
@@ -131545,6 +131549,15 @@ through the reserved pointer - the mixed addressing the hacks were chasing.
 When a function addresses one part of a block from the head and another from
 the new cursor, look for a shared inline whose scratch type fits the first
 part before reaching for register steering.
+
+The same holds with no nesting at all. `Actor01100_Fn06954` carried the
+sequence written out by hand - `head - 1`, the cursor store placed between the
+second and third component stores, `_gfxLoadRotSv` / `gte_rtv0` / `gte_stsv` -
+and compiles to the same bytes as a reserve, `actorBearingInFrame(blk, arg0,
+coord)` and a release. The helper stops fitting where the fold differs:
+`func_actor_403600_8013E470` stores the unfolded angle through its out
+pointer before folding, and `func_actor_403600_8013E66C` truncates to `s16`
+before the comparisons, so both match the helper only as far as the `ratan2`.
 
 ## Between two eligible insns after a branch, reorg picks one you cannot steer: hoist the wanted one above the compare (Actor01900_Fn01C94, 2026-09-18)
 
