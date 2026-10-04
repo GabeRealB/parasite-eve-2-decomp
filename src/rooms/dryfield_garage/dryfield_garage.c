@@ -62,16 +62,23 @@ extern TaskDesc D_dryfield_garage_8017DCAC[];
 
 extern ActorTransform        D_dryfield_garage_8017DCC4;
 extern WorldCollisionTrigger D_dryfield_garage_8017FD1C[11];
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    Task* value;
-    u8    retained[4];
-} DryfieldGarageStorage021C;
-STATIC_ASSERT_SIZEOF(DryfieldGarageStorage021C, 8);
 
-extern DryfieldGarageStorage021C D_dryfield_garage_8018021C;
+/// Storage for the task of the scene that turns the player back from the
+/// junk-yard door.
+///
+/// While the water-tank scene has not been seen, a warp request for the junk
+/// yard is refused and a scene task of the Gary Douglas actor loaded with
+/// the room is spawned in its place; `task` receives that spawn's result. The
+/// room only stores it. The four bytes after it are zero in the image and
+/// have no recovered access; whether they are a second member or a separate
+/// unreferenced variable is unproven.
+typedef struct {
+    Task* task;       // Scene task last spawned for a refused junk-yard warp; NULL before the first
+    u8    unknown[4]; // Role unproven; zero, with no recovered access
+} _DryfieldGarageDoorSceneStorage;
+STATIC_ASSERT_SIZEOF(_DryfieldGarageDoorSceneStorage, 8);
+
+extern _DryfieldGarageDoorSceneStorage D_dryfield_garage_8018021C;
 
 static void func_dryfield_garage_8017DB18(Task* arg0);
 static void func_dryfield_garage_8017DC08(Task* task);
@@ -590,7 +597,7 @@ AreaApplyRec D_dryfield_garage_80180204[6] = {
     { 255, 0, 0, 0 },
 };
 
-DryfieldGarageStorage021C D_dryfield_garage_8018021C = { 0 };
+_DryfieldGarageDoorSceneStorage D_dryfield_garage_8018021C = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
@@ -684,7 +691,7 @@ s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 a
 }
 
 /// Task spawned from `D_dryfield_garage_8017DCAC`: spawns the second entry of
-/// gameplay's `D_80141B6C`, keeping the task in `D_dryfield_garage_8018021C.value`,
+/// gameplay's `D_80141B6C`, keeping the task in `D_dryfield_garage_8018021C.task`,
 /// then ends itself.
 void func_dryfield_garage_8017DAA0(Task* arg0)
 {
@@ -692,10 +699,10 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
     s32   state;
     switch (arg0->state) {
         case 0:
-            spawned                          = Task_SpawnFromTable(D_80141B6C, 1, 0, 0);
-            state                            = arg0->state;
-            D_dryfield_garage_8018021C.value = spawned;
-            arg0->state                      = state + 1;
+            spawned                         = Task_SpawnFromTable(D_80141B6C, 1, 0, 0);
+            state                           = arg0->state;
+            D_dryfield_garage_8018021C.task = spawned;
+            arg0->state                     = state + 1;
             break;
         case 1:
             taskKill(arg0);
