@@ -27,7 +27,7 @@ TmdSource D_mappic_s4_05_8012EFF0 = {
     1,
     _gMappicS405MappicS202Model00910000C0PartVerts,
     _gMappicS405MappicS202Model00910000C0Verts,
-    _gMappicS405MappicS202Model00910000C0Stream,
+    &_gMappicS405MappicS202Model00910000C0Verts[8],
     _gMappicS405MappicS202Model00910000C0Skeleton,
     _gMappicS405MappicS202Model00910000C0Stream,
 };
@@ -55,7 +55,7 @@ TmdSource D_mappic_s4_05_8012F14C = {
     1,
     _gMappicS405Model0018CPartVerts,
     _gMappicS405Model0018CVerts,
-    _gMappicS405Model0018CStream,
+    &_gMappicS405Model0018CVerts[16],
     _gMappicS405Model0018CSkeleton,
     _gMappicS405Model0018CStream,
 };
@@ -83,7 +83,7 @@ TmdSource D_mappic_s4_05_8012F1F8 = {
     1,
     _gMappicS405MappicS400Model0005C002C8PartVerts,
     _gMappicS405MappicS400Model0005C002C8Verts,
-    _gMappicS405MappicS400Model0005C002C8Stream,
+    &_gMappicS405MappicS400Model0005C002C8Verts[6],
     _gMappicS405MappicS400Model0005C002C8Skeleton,
     _gMappicS405MappicS400Model0005C002C8Stream,
 };
@@ -111,7 +111,7 @@ TmdSource D_mappic_s4_05_8012F32C = {
     1,
     _gMappicS405Model00384PartVerts,
     _gMappicS405Model00384Verts,
-    _gMappicS405Model00384Stream,
+    &_gMappicS405Model00384Verts[14],
     _gMappicS405Model00384Skeleton,
     _gMappicS405Model00384Stream,
 };

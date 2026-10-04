@@ -27,7 +27,7 @@ TmdSource D_mappic_s5_00_8012F04C = {
     1,
     _gMappicS500Model000A4PartVerts,
     _gMappicS500Model000A4Verts,
-    _gMappicS500Model000A4Stream,
+    &_gMappicS500Model000A4Verts[15],
     _gMappicS500Model000A4Skeleton,
     _gMappicS500Model000A4Stream,
 };
@@ -55,7 +55,7 @@ TmdSource D_mappic_s5_00_8012F0DC = {
     1,
     _gMappicS500MappicS202Model00C48001ACMappicS500PartVerts,
     _gMappicS500MappicS202Model00C48001ACMappicS500Verts,
-    _gMappicS500MappicS202Model00C48001ACMappicS500Stream,
+    &_gMappicS500MappicS202Model00C48001ACMappicS500Verts[4],
     _gMappicS500MappicS202Model00C48001ACMappicS500Skeleton,
     _gMappicS500MappicS202Model00C48001ACMappicS500Stream,
 };
@@ -83,7 +83,7 @@ TmdSource D_mappic_s5_00_8012F218 = {
     1,
     _gMappicS500Model00270PartVerts,
     _gMappicS500Model00270Verts,
-    _gMappicS500Model00270Stream,
+    &_gMappicS500Model00270Verts[15],
     _gMappicS500Model00270Skeleton,
     _gMappicS500Model00270Stream,
 };
@@ -111,7 +111,7 @@ TmdSource D_mappic_s5_00_8012F2A8 = {
     1,
     _gMappicS500MappicS202Model00C4800378MappicS500PartVerts,
     _gMappicS500MappicS202Model00C4800378MappicS500Verts,
-    _gMappicS500MappicS202Model00C4800378MappicS500Stream,
+    &_gMappicS500MappicS202Model00C4800378MappicS500Verts[4],
     _gMappicS500MappicS202Model00C4800378MappicS500Skeleton,
     _gMappicS500MappicS202Model00C4800378MappicS500Stream,
 };
@@ -139,7 +139,7 @@ TmdSource D_mappic_s5_00_8012F338 = {
     1,
     _gMappicS500MappicS202Model00C4800408PartVerts,
     _gMappicS500MappicS202Model00C4800408Verts,
-    _gMappicS500MappicS202Model00C4800408Stream,
+    &_gMappicS500MappicS202Model00C4800408Verts[4],
     _gMappicS500MappicS202Model00C4800408Skeleton,
     _gMappicS500MappicS202Model00C4800408Stream,
 };
@@ -167,7 +167,7 @@ TmdSource D_mappic_s5_00_8012F3C8 = {
     1,
     _gMappicS500MappicS202Model00C4800498PartVerts,
     _gMappicS500MappicS202Model00C4800498Verts,
-    _gMappicS500MappicS202Model00C4800498Stream,
+    &_gMappicS500MappicS202Model00C4800498Verts[4],
     _gMappicS500MappicS202Model00C4800498Skeleton,
     _gMappicS500MappicS202Model00C4800498Stream,
 };
@@ -195,7 +195,7 @@ TmdSource D_mappic_s5_00_8012F490 = {
     1,
     _gMappicS500MappicS406Model0014C00560PartVerts,
     _gMappicS500MappicS406Model0014C00560Verts,
-    _gMappicS500MappicS406Model0014C00560Stream,
+    &_gMappicS500MappicS406Model0014C00560Verts[8],
     _gMappicS500MappicS406Model0014C00560Skeleton,
     _gMappicS500MappicS406Model0014C00560Stream,
 };
@@ -223,7 +223,7 @@ TmdSource D_mappic_s5_00_8012F58C = {
     1,
     _gMappicS500Model005FCPartVerts,
     _gMappicS500Model005FCVerts,
-    _gMappicS500Model005FCStream,
+    &_gMappicS500Model005FCVerts[10],
     _gMappicS500Model005FCSkeleton,
     _gMappicS500Model005FCStream,
 };
@@ -251,7 +251,7 @@ TmdSource D_mappic_s5_00_8012F61C = {
     1,
     _gMappicS500MappicS202Model00C48006ECPartVerts,
     _gMappicS500MappicS202Model00C48006ECVerts,
-    _gMappicS500MappicS202Model00C48006ECStream,
+    &_gMappicS500MappicS202Model00C48006ECVerts[4],
     _gMappicS500MappicS202Model00C48006ECSkeleton,
     _gMappicS500MappicS202Model00C48006ECStream,
 };
@@ -279,7 +279,7 @@ TmdSource D_mappic_s5_00_8012F6AC = {
     1,
     _gMappicS500MappicS202Model00C480077CPartVerts,
     _gMappicS500MappicS202Model00C480077CVerts,
-    _gMappicS500MappicS202Model00C480077CStream,
+    &_gMappicS500MappicS202Model00C480077CVerts[4],
     _gMappicS500MappicS202Model00C480077CSkeleton,
     _gMappicS500MappicS202Model00C480077CStream,
 };
@@ -307,7 +307,7 @@ TmdSource D_mappic_s5_00_8012F7E8 = {
     1,
     _gMappicS500Model00840PartVerts,
     _gMappicS500Model00840Verts,
-    _gMappicS500Model00840Stream,
+    &_gMappicS500Model00840Verts[15],
     _gMappicS500Model00840Skeleton,
     _gMappicS500Model00840Stream,
 };
@@ -335,7 +335,7 @@ TmdSource D_mappic_s5_00_8012F878 = {
     1,
     _gMappicS500MappicS202Model00C4800948PartVerts,
     _gMappicS500MappicS202Model00C4800948Verts,
-    _gMappicS500MappicS202Model00C4800948Stream,
+    &_gMappicS500MappicS202Model00C4800948Verts[4],
     _gMappicS500MappicS202Model00C4800948Skeleton,
     _gMappicS500MappicS202Model00C4800948Stream,
 };
@@ -363,7 +363,7 @@ TmdSource D_mappic_s5_00_8012F9D4 = {
     1,
     _gMappicS500Model00A14PartVerts,
     _gMappicS500Model00A14Verts,
-    _gMappicS500Model00A14Stream,
+    &_gMappicS500Model00A14Verts[16],
     _gMappicS500Model00A14Skeleton,
     _gMappicS500Model00A14Stream,
 };
@@ -391,7 +391,7 @@ TmdSource D_mappic_s5_00_8012FAD4 = {
     1,
     _gMappicS500Model00B50PartVerts,
     _gMappicS500Model00B50Verts,
-    _gMappicS500Model00B50Stream,
+    &_gMappicS500Model00B50Verts[12],
     _gMappicS500Model00B50Skeleton,
     _gMappicS500Model00B50Stream,
 };
@@ -419,7 +419,7 @@ TmdSource D_mappic_s5_00_8012FBB4 = {
     1,
     _gMappicS500MappicS202Model0091000C84PartVerts,
     _gMappicS500MappicS202Model0091000C84Verts,
-    _gMappicS500MappicS202Model0091000C84Stream,
+    &_gMappicS500MappicS202Model0091000C84Verts[8],
     _gMappicS500MappicS202Model0091000C84Skeleton,
     _gMappicS500MappicS202Model0091000C84Stream,
 };
@@ -447,7 +447,7 @@ TmdSource D_mappic_s5_00_8012FCB8 = {
     1,
     _gMappicS500Model00D28PartVerts,
     _gMappicS500Model00D28Verts,
-    _gMappicS500Model00D28Stream,
+    &_gMappicS500Model00D28Verts[11],
     _gMappicS500Model00D28Skeleton,
     _gMappicS500Model00D28Stream,
 };
@@ -475,7 +475,7 @@ TmdSource D_mappic_s5_00_8012FD84 = {
     1,
     _gMappicS500Model00E0CPartVerts,
     _gMappicS500Model00E0CVerts,
-    _gMappicS500Model00E0CStream,
+    &_gMappicS500Model00E0CVerts[7],
     _gMappicS500Model00E0CSkeleton,
     _gMappicS500Model00E0CStream,
 };
@@ -503,7 +503,7 @@ TmdSource D_mappic_s5_00_8012FE4C = {
     1,
     _gMappicS500MappicS202Model00CF800F1CPartVerts,
     _gMappicS500MappicS202Model00CF800F1CVerts,
-    _gMappicS500MappicS202Model00CF800F1CStream,
+    &_gMappicS500MappicS202Model00CF800F1CVerts[8],
     _gMappicS500MappicS202Model00CF800F1CSkeleton,
     _gMappicS500MappicS202Model00CF800F1CStream,
 };

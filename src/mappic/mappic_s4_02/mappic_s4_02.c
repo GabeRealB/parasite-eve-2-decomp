@@ -27,7 +27,7 @@ TmdSource D_mappic_s4_02_8012EFA0 = {
     1,
     _gMappicS402MappicS202Model00C4800070MappicS402PartVerts,
     _gMappicS402MappicS202Model00C4800070MappicS402Verts,
-    _gMappicS402MappicS202Model00C4800070MappicS402Stream,
+    &_gMappicS402MappicS202Model00C4800070MappicS402Verts[4],
     _gMappicS402MappicS202Model00C4800070MappicS402Skeleton,
     _gMappicS402MappicS202Model00C4800070MappicS402Stream,
 };
@@ -55,7 +55,7 @@ TmdSource D_mappic_s4_02_8012F030 = {
     1,
     _gMappicS402MappicS202Model00C4800100PartVerts,
     _gMappicS402MappicS202Model00C4800100Verts,
-    _gMappicS402MappicS202Model00C4800100Stream,
+    &_gMappicS402MappicS202Model00C4800100Verts[4],
     _gMappicS402MappicS202Model00C4800100Skeleton,
     _gMappicS402MappicS202Model00C4800100Stream,
 };
@@ -83,7 +83,7 @@ TmdSource D_mappic_s4_02_8012F0C0 = {
     1,
     _gMappicS402MappicS202Model00C4800190PartVerts,
     _gMappicS402MappicS202Model00C4800190Verts,
-    _gMappicS402MappicS202Model00C4800190Stream,
+    &_gMappicS402MappicS202Model00C4800190Verts[4],
     _gMappicS402MappicS202Model00C4800190Skeleton,
     _gMappicS402MappicS202Model00C4800190Stream,
 };
@@ -111,7 +111,7 @@ TmdSource D_mappic_s4_02_8012F150 = {
     1,
     _gMappicS402MappicS202Model00C4800220PartVerts,
     _gMappicS402MappicS202Model00C4800220Verts,
-    _gMappicS402MappicS202Model00C4800220Stream,
+    &_gMappicS402MappicS202Model00C4800220Verts[4],
     _gMappicS402MappicS202Model00C4800220Skeleton,
     _gMappicS402MappicS202Model00C4800220Stream,
 };
@@ -139,7 +139,7 @@ TmdSource D_mappic_s4_02_8012F1E0 = {
     1,
     _gMappicS402MappicS202Model00C48002B0PartVerts,
     _gMappicS402MappicS202Model00C48002B0Verts,
-    _gMappicS402MappicS202Model00C48002B0Stream,
+    &_gMappicS402MappicS202Model00C48002B0Verts[4],
     _gMappicS402MappicS202Model00C48002B0Skeleton,
     _gMappicS402MappicS202Model00C48002B0Stream,
 };
@@ -167,7 +167,7 @@ TmdSource D_mappic_s4_02_8012F28C = {
     1,
     _gMappicS402MappicS400Model0005C0035CPartVerts,
     _gMappicS402MappicS400Model0005C0035CVerts,
-    _gMappicS402MappicS400Model0005C0035CStream,
+    &_gMappicS402MappicS400Model0005C0035CVerts[6],
     _gMappicS402MappicS400Model0005C0035CSkeleton,
     _gMappicS402MappicS400Model0005C0035CStream,
 };

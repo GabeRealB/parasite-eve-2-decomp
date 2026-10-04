@@ -27,7 +27,7 @@ TmdSource D_mappic_s4_00_8012EFBC = {
     1,
     _gMappicS400Model0005C0008CMappicS400PartVerts,
     _gMappicS400Model0005C0008CMappicS400Verts,
-    _gMappicS400Model0005C0008CMappicS400Stream,
+    &_gMappicS400Model0005C0008CMappicS400Verts[6],
     _gMappicS400Model0005C0008CMappicS400Skeleton,
     _gMappicS400Model0005C0008CMappicS400Stream,
 };
@@ -55,7 +55,7 @@ TmdSource D_mappic_s4_00_8012F0D8 = {
     1,
     _gMappicS400Model00148PartVerts,
     _gMappicS400Model00148Verts,
-    _gMappicS400Model00148Stream,
+    &_gMappicS400Model00148Verts[14],
     _gMappicS400Model00148Skeleton,
     _gMappicS400Model00148Stream,
 };

@@ -27,7 +27,7 @@ TmdSource D_mappic_s5_03_8012EFA0 = {
     1,
     _gMappicS503MappicS202Model00C4800070MappicS503PartVerts,
     _gMappicS503MappicS202Model00C4800070MappicS503Verts,
-    _gMappicS503MappicS202Model00C4800070MappicS503Stream,
+    &_gMappicS503MappicS202Model00C4800070MappicS503Verts[4],
     _gMappicS503MappicS202Model00C4800070MappicS503Skeleton,
     _gMappicS503MappicS202Model00C4800070MappicS503Stream,
 };
@@ -55,7 +55,7 @@ TmdSource D_mappic_s5_03_8012F030 = {
     1,
     _gMappicS503MappicS202Model00C4800100MappicS503PartVerts,
     _gMappicS503MappicS202Model00C4800100MappicS503Verts,
-    _gMappicS503MappicS202Model00C4800100MappicS503Stream,
+    &_gMappicS503MappicS202Model00C4800100MappicS503Verts[4],
     _gMappicS503MappicS202Model00C4800100MappicS503Skeleton,
     _gMappicS503MappicS202Model00C4800100MappicS503Stream,
 };
@@ -83,7 +83,7 @@ TmdSource D_mappic_s5_03_8012F110 = {
     1,
     _gMappicS503MappicS406Model00214001E0PartVerts,
     _gMappicS503MappicS406Model00214001E0Verts,
-    _gMappicS503MappicS406Model00214001E0Stream,
+    &_gMappicS503MappicS406Model00214001E0Verts[8],
     _gMappicS503MappicS406Model00214001E0Skeleton,
     _gMappicS503MappicS406Model00214001E0Stream,
 };
@@ -111,7 +111,7 @@ TmdSource D_mappic_s5_03_8012F1F0 = {
     1,
     _gMappicS503MappicS202Model00910002C0PartVerts,
     _gMappicS503MappicS202Model00910002C0Verts,
-    _gMappicS503MappicS202Model00910002C0Stream,
+    &_gMappicS503MappicS202Model00910002C0Verts[8],
     _gMappicS503MappicS202Model00910002C0Skeleton,
     _gMappicS503MappicS202Model00910002C0Stream,
 };
@@ -139,7 +139,7 @@ TmdSource D_mappic_s5_03_8012F2B8 = {
     1,
     _gMappicS503MappicS202Model00CF800388PartVerts,
     _gMappicS503MappicS202Model00CF800388Verts,
-    _gMappicS503MappicS202Model00CF800388Stream,
+    &_gMappicS503MappicS202Model00CF800388Verts[8],
     _gMappicS503MappicS202Model00CF800388Skeleton,
     _gMappicS503MappicS202Model00CF800388Stream,
 };
@@ -167,7 +167,7 @@ TmdSource D_mappic_s5_03_8012F348 = {
     1,
     _gMappicS503MappicS202Model00C4800418PartVerts,
     _gMappicS503MappicS202Model00C4800418Verts,
-    _gMappicS503MappicS202Model00C4800418Stream,
+    &_gMappicS503MappicS202Model00C4800418Verts[4],
     _gMappicS503MappicS202Model00C4800418Skeleton,
     _gMappicS503MappicS202Model00C4800418Stream,
 };

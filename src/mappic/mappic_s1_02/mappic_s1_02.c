@@ -27,7 +27,7 @@ TmdSource D_mappic_s1_02_8012EFA0 = {
     1,
     _gMappicS102MappicS202Model00C4800070PartVerts,
     _gMappicS102MappicS202Model00C4800070Verts,
-    _gMappicS102MappicS202Model00C4800070Stream,
+    &_gMappicS102MappicS202Model00C4800070Verts[4],
     _gMappicS102MappicS202Model00C4800070Skeleton,
     _gMappicS102MappicS202Model00C4800070Stream,
 };
