@@ -78032,7 +78032,7 @@ The converse needs care: all four at 1.00 with an equal instruction count does
 literal-immediate operand. `func_actor_110600_80138BD0` scored 1.00 in all four
 classes against the already-matched sibling `func_actor_110600_80138AFC` in its
 own TU at the same 53 instructions, and the normalized diff is one line -
-`addiu v0,zero,0xF` against `addiu v0,zero,0x10` (`work->field_892`). `shape`
+`addiu v0,zero,0xF` against `addiu v0,zero,0x10` (`work->animId`). `shape`
 drops operands, `fields` compares only load/store displacements, and `calls` /
 `cflow` see neither, so an `and`/`or`/`addiu` literal is invisible to all of
 them. Diff the normalized text anyway: it is one line of work and it separates
@@ -78040,8 +78040,8 @@ them. Diff the normalized text anyway: it is one line of work and it separates
 the latter - the sibling's C body with that one literal edited - and that
 matched at 100.000%, all penalties zero, on the first build, where the m2c seed
 on the same function sat at 74.439% (`branch=2 regs=15 reorder=3 insert=8
-delete=4`). m2c's `temp_s0 + 0xB28` on a complete `Actor110600Work*` scales by
-`sizeof(Actor110600Work)`, so its seed carried `lui a0,0x85 / ori a0,a0,0xe0 /
+delete=4`). m2c's `temp_s0 + 0xB28` on a complete `_Actor110600Work*` scales by
+`sizeof(_Actor110600Work)`, so its seed carried `lui a0,0x85 / ori a0,a0,0xe0 /
 addu a0,s0,a0` (0xB28 * 0xBEC) and addressed the whole walker half through the
 wrong base - a scaled-offset seed is worth discarding whole rather than tuning.
 ## `M2C_FIELD(&global, T*, off)` folds the offset into the symbol reloc
@@ -86069,9 +86069,9 @@ early-return direction:
 if (enemy->hp > 0) {
     return 1;
 }
-work->field_BE4 = 0;
+work->enrageTint = 0;
 enemy->reactionFlags = 0;
-work->field_BE6 = 0;
+work->enraged = 0;
 return 0;
 ```
 
@@ -103331,16 +103331,17 @@ are properties of the *shape m2c writes*, not of the allocation:
   against the sibling's `for (i = 1; i < 0x13; i++)`.
 
 Retyping the sibling's own C against this overlay's struct was 100.000% on the
-first build with all six penalties zero: `work->slots[i].rate = (u8)(work->field_896 - 3);`
+first build with all six penalties zero: `work->rig.slots[i].rate = (u8)(work->animRate - 3);`
 - an array index, not a pointer sum - inside a `for` loop. So when a sibling's
 source is available, the residual of an m2c seed is a source-shape difference to
 be *ported*, not a regalloc/tie-break puzzle to be probed; the pins section of the
 brief has nothing to say about a 1.7% residue that eight constants explain.
 
 Layout note, since it will come up for every actor in this family: the animation
-view of the work block **overlaps** the view the rest of the overlay uses, and
-cannot be nested inside it. `Actor110600Work` names a `field_5C` halfword at
-0x5C, which lands inside the animation view's `slots[]` at 0x24 (stride 0x28);
+view of the work block **overlaps** the view the rest of the overlay uses. The
+halfword at 0x5C that the state handlers test lands inside the animation
+view's `slots[]` at 0x24 (stride 0x28): it is `rig.slots[1].status`, and
+`_Actor110600Work` now declares the two rigs in place as `ActorAnimRig19`;
 the sibling showed the same overlap until `Actor403000Work` declared the
 animation members in place: the halfword its other view named is
 `slots[1].status`, and `func_actor_403000_801336B4` now reads that one struct
@@ -113863,7 +113864,7 @@ test's taken path and the second test's untaken path arrive at:
             Tmd_AllocBuffers(obj);
         } else if (enemy->spawnState == 4) {     /* second arm */
             obj->field_C = 0x80;
-            work->field_0 = 0;
+            work->state = 0;
         } else {                               /* same text as the first arm */
             obj->field_C = 0;
             Tmd_AllocBuffers(obj);
@@ -113882,9 +113883,9 @@ original source, not evidence of a misread; do not "simplify" it away.
 ## m2c's mid-switch `block_N` label puts a cross-jumped store merge between the cases (func_actor_110600_8013839C, 2026-09-16)
 
 The `0x7D3` display handler: five cases each end by writing a different constant
-into the work block's `field_892`, and the target holds ONE `sh v0,0x892(s0)`,
+into the work block's `animId`, and the target holds ONE `sh v0,0x892(s0)`,
 reached by `j` from cases 1-3 with case 4 falling into it. m2c reconstructs the
-merge as `var_v0 = 0x23; block_7: work->field_892 = var_v0;` with the label
+merge as `var_v0 = 0x23; block_7: work->animId = var_v0;` with the label
 sitting *inside* case 1, which emits the surviving copy between the case bodies
 and a `j` back to the post-switch tail:
 
@@ -113925,16 +113926,16 @@ is the churn `rodata_head` exists to avoid.
 **Problem.** `func_actor_110600_80138980` (actors, `actor_110600_2`) is
 `func_actor_110600_80138AFC`'s sibling with two differences: it seeds
 `walker->speedTarget` from `2` rather than `0`, and instead of parking
-`work->field_0` at a constant it picks a state id from the enemy's HP. Written
+`work->state` at a constant it picks a state id from the enemy's HP. Written
 the way m2c writes it, with a temp the condition overwrites,
 
 ```c
-    if (work->field_5C & 1) {
+    if (work->rig.slots[1].status.fields.flags & 1) {
         var_v0 = 0xB;
         if (enemy->hp <= 0) {
             var_v0 = 0xC;
         }
-        work->field_0 = var_v0;
+        work->state = var_v0;
     }
 ```
 
@@ -113963,11 +113964,11 @@ both hoisted under the jump's `priority = 2147483536`).
 that *follow* the branch, past the load's `REG_DEAD`:
 
 ```c
-    if (work->field_5C & 1) {
+    if (work->rig.slots[1].status.fields.flags & 1) {
         if (enemy->hp > 0) {
-            work->field_0 = 0xB;
+            work->state = 0xB;
         } else {
-            work->field_0 = 0xC;
+            work->state = 0xC;
         }
     }
 ```
@@ -114011,7 +114012,7 @@ the function, not inline at its first use.
 work  = arg0->field_1C;
 obj   = arg0->field_2C;   /* target: lw v1, 0x2c(s1) */
 enemy = arg0->field_20;   /* target: lw a0, 0x20(s1) */
-if (work->field_4 != 0) {
+if (work->stateEntered != 0) {
     obj->field_C = 0;
 ```
 
@@ -114023,7 +114024,7 @@ the target's prologue is the order the source read them in. `m2c` cannot produce
 either form, because it inlines `index->field_2C->field_C = 0;` inside the `if`.
 
 The walker base is the same m2c artefact: `work + 0xB28` on an
-`Actor110600Work*` scales by `sizeof` and emits `li $4,0x850000` /
+`_Actor110600Work*` scales by `sizeof` and emits `li $4,0x850000` /
 `ori $4,0xE0` / `addu`. Use the siblings' `(BossStrangerWalker*)((u8*)work +
 0xB28)`, and let `func_actor_110600_80133A94` recompute it rather than reusing
 the local — the target materializes it twice, once in the `jal` delay slot.
@@ -114040,7 +114041,7 @@ Scratch `nonmatchings/func_actor_110600_80136888-vacuum`.
 `func_actor_110600_80136ECC` writes `index->field_2C->field_C` between its reads of
 `index->field_1C`, and the target keeps the work pointer in `$a2` across the store
 (`lw a2, 0x1C(s2)` once, then `lhu v0, 0xAAE(a2)` after `sh zero, 0xC(a1)`).
-Written the natural way — `index->field_1C->field_A90.flags &= 0x7FFF;` — GCC 2.8.1
+Written the natural way — `index->field_1C->attackBody.flags &= 0x7FFF;` — GCC 2.8.1
 does not CSE it: the store through the other pointer invalidates the memory
 expression, and every later use re-loads (`lw v1, 0x1C(s2)`, five of them). Cost
 22 points (77.7% instead of 100%), and the spare register also cost `$s3` and the
@@ -114048,10 +114049,10 @@ frame size. Binding the pointer to a local removes the reloads:
 
 ```c
     work = arg0->field_1C;          /* $a2, live across the stores below */
-    if (work->field_4 != 0) {
+    if (work->stateEntered != 0) {
         obj            = arg0->field_2C;
         obj->field_C   = 0;
-        work->field_A90.flags &= 0x7FFF;
+        work->attackBody.flags &= 0x7FFF;
 ```
 
 m2c's `temp_a2` / `temp_a1` / `temp_s3` locals are exactly this and are therefore
@@ -114116,8 +114117,8 @@ it is: the knob is the *load's* position in the source, not the store's.
 
 ```c
             ramp2             = work->field_B86;   /* born at the block top */
-            work->field_892   = 0x1E;
-            work->field_88C   = 2;
+            work->animId   = 0x1E;
+            work->animRequest   = 2;
             walker2->speedTarget = 0;
             walker2->speedStep = 2;
             walker2->speed = ramp2;             /* dies in the j delay slot */
@@ -114158,11 +114159,11 @@ SImode value:
 ```c
     s32 state;
 
-    state           = work->field_BE2;
-    work->field_88E = 0;
+    state           = work->enrageStage;
+    work->blendActive = 0;
     switch (state) {
     case 1:
-        if (work->field_896 == state) { ... }
+        if (work->animRate == state) { ... }
 ```
 
 which is `lh $a0, 0xBE2($s0)` and `bne $v1, $a0` — 100%. The declaration is
@@ -114171,11 +114172,11 @@ everything else byte-identical) drops to 95.814% and brings `lhu` + the shift
 pair back, the `branch` penalties being only the shifted addresses that follow.
 
 Two things this does **not** fix, so do not chase them from here. The halving
-`step = (s16)work->field_896 / 2;` keeps its `lhu` + `sll 16` / `sra 16` in the
+`step = (s16)work->animRate / 2;` keeps its `lhu` + `sll 16` / `sra 16` in the
 target — an explicit cast asks for the extension, so it is *not* the same read
 as the neighbouring `lh $v1, 0x896($s0)` comparison (see "One halfword, two
 signednesses: the odd reader needs a temp, not a cast"). And the case-0
-`work->field_BE2 = (s16)((u16)work->field_BE2 + 1)` is a separate block after a
+`work->enrageStage = (s16)((u16)work->enrageStage + 1)` is a separate block after a
 `jal`, so it keeps its own `lhu` regardless of the temp's width.
 
 Related: "A store into a byte field narrows its source load at *expand*, so a
@@ -114259,7 +114260,7 @@ Scratch `nonmatchings/func_actor_110600_80135A18-vacuum`.
 
 ## Writing the call in both arms of an `if`/`else` also breaks the cse jump-equivalence a *later* identical test would otherwise reuse (func_actor_110600_80137684, 2026-09-16)
 
-`func_actor_110600_80137684` tests `field_892` against `0x16` twice, the second
+`func_actor_110600_80137684` tests `animId` against `0x16` twice, the second
 time after a `jal`. The m2c-shaped single-call seed scores 80.8% with a frame one
 word too big: `$s2` is saved and restored, and the second test compares the
 reloaded field with the *register holding the first load* instead of a fresh
@@ -114306,10 +114307,10 @@ is free — so where the quantity is *born* decides its home. Binding the pointe
 at the top of the `if` block, ahead of the statements that use `$v0` / `$v1`:
 
 ```c
-if (work->field_4 != 0) {
+if (work->stateEntered != 0) {
     enemy                   = arg0->field_20;   /* born here */
     arg0->field_2C->field_C = 0;
-    work->field_A90.flags   = (u16)(work->field_A90.flags & 0x7FFF);
+    work->attackBody.flags   = (u16)(work->attackBody.flags & 0x7FFF);
     ...
     enemy->node.flags       = 1;              /* store still late */
 ```
@@ -114439,7 +114440,7 @@ Scratch `nonmatchings/func_actor_110600_80132654-vacuum`.
 ## A switch's shared tail belongs after the *last* case that falls into it
 
 `func_actor_110600_80134040` dispatches on an event kind: five sub-codes repoint
-a display slot and then share `work->field_0 = 0x11; work->field_2 = -1;
+a display slot and then share `work->state = 0x11; work->prevState = -1;
 return 1;` with sub-code 9, which falls into it, while sub-codes 1 and 8 have
 their own tails. The share is a `goto`, and *where the label physically sits in
 the source* decides where the merged block lands — cross-jumping runs after
@@ -114447,15 +114448,15 @@ reload and keeps the code in the block that already holds it:
 
 ```c
 case 2:
-    work->field_892         = 0x23;
+    work->animId         = 0x23;
     D_actor_110600_80148598 = &D_8015BD7C;
     goto state_11;
 ...
 case 9:
-    work->field_892 = 0x11;
+    work->animId = 0x11;
 state_11:                   /* label after the last case that falls in */
-    work->field_0 = 0x11;
-    work->field_2 = -1;
+    work->state = 0x11;
+    work->prevState = -1;
     return 1;
 ```
 
@@ -114469,11 +114470,11 @@ label, the five `goto` cases jump to it, and the store tail that it jumps to the
 sits right after case 1's block. 100%.
 
 Two traps sit on the way there. Duplicating the whole tail in every case instead
-(`field_0` / `field_2` / `return` written out in all eight) also matches the
+(`state` / `prevState` / `return` written out in all eight) also matches the
 *target's* generated shape but scores 64-82%: the extra live constant pair makes
 a case block keep `li v0, 1` for the return hoisted at the top, a case temp then
 takes `$a0`, and `work` is pushed out of `$a0` into `$a1`. And a shared `var_v1`
-temp for the constant (m2c's `var_v1 = 0x11; work->field_0 = var_v1;`) scores
+temp for the constant (m2c's `var_v1 = 0x11; work->state = var_v1;`) scores
 92.1% against 93.9% for the same source with the constant written directly —
 the temp's extra copy is visible in the merge granularity. Check `regs` and
 `stack` are zero *before* reading anything into the tail diagnostics.
@@ -114505,9 +114506,9 @@ scheduler: `find_free_reg` unions `regs_live_at[]` over `[qty_birth,
 qty_death)` — the quantity's *insn-index* span, not its real live range — so a
 store written after a load keeps that load's span open across every instruction
 between them, and any later quantity born inside the span cannot reuse the
-register. Here the `field_896 = field_898` store sits between the `$v0` load and
-the two flag chains, so the `field_A90` chain's load (born second) finds `$v0`
-still marked and takes `$v1`; the `field_950` chain is born after the store, so
+register. Here the `animRate = baseRate` store sits between the `$v0` load and
+the two flag chains, so the `attackBody` chain's load (born second) finds `$v0`
+still marked and takes `$v1`; the `gridBody` chain is born after the store, so
 it reuses `$v0`. Swap the two flag statements and both chains move to the other
 register. `QTY_CMP_PRI = floor_log2(refs) * refs * size / (death - birth)` is
 what keeps the short-lived first quantity first (see the `func_actor_110600_80137980`
@@ -114515,7 +114516,7 @@ entry above for the same formula driving a load's home).
 
 Fix: copy the statement order from an already-matched sibling in the same unit
 that writes the same fields. Both `func_actor_110600_80135A18` and
-`func_actor_110600_80136888` write `field_A90.flags` before `field_950.flags`,
+`func_actor_110600_80136888` write `attackBody.flags` before `gridBody.flags`,
 and that order — not the one the m2c dump or the target's own instruction order
 suggests — is the one that matches. Reading the siblings first would have saved
 the five builds spent modelling sched1/sched2 ready-list classes; the scheduler
@@ -114588,10 +114589,10 @@ produces. The same helper exists as `Actor401300_HasRec10000` in
 sight.
 
 Two builds of the same C differ in *which* store gets cross-jumped: with
-`work->field_892 = X;` in each arm and a trailing `work->field_896 = timer;`
-the `jump` pass merged the two `field_892` stores and left the timer in `$v1`;
-writing `work->field_896 = 0x1A;` / `= 0x10;` in the arms instead (`j` +
-cross-jumped tail for `field_896`, timer constant into the delay slot) is what
+`work->animId = X;` in each arm and a trailing `work->animRate = timer;`
+the `jump` pass merged the two `animId` stores and left the timer in `$v1`;
+writing `work->animRate = 0x1A;` / `= 0x10;` in the arms instead (`j` +
+cross-jumped tail for `animRate`, timer constant into the delay slot) is what
 the target has, and took the score 91.9% → 95.8%. When a flag arm differs only
 in the constant it stores, prefer the store in each arm.
 
@@ -114653,8 +114654,8 @@ The turn clamp in `func_actor_110600_80134728` reads one halfword, tests it for
 zero, then tests it twice more with an arm in between:
 
 ```c
-turnNow = work->field_8A4;
-turn    = (u16)work->field_8A4;
+turnNow = work->lookYaw;
+turn    = (u16)work->lookYaw;
 if (turnNow != 0) {
     if (turnNow >= 0x401) {
         turn = 0x400;
@@ -114664,7 +114665,7 @@ if (turnNow != 0) {
     }
 ```
 
-Spelling the second and third tests as `work->field_8A4` (the m2c shape, which
+Spelling the second and third tests as `work->lookYaw` (the m2c shape, which
 has no local for the value) still CSEs the first two into one `lh`, but the
 third read becomes a *second* `lh`: `.lreg` shows the sign-extended value as
 `(lt (reg 221) 1025)` with `expr_list:REG_DEAD (reg 221)`, so the quantity dies
@@ -114776,7 +114777,7 @@ target has it. 97.3% → 100.00% once state 3's second check reports 0 with
 
 ## cse rewrites a compared register pair's later uses to the longer-lived member, which can delete a block
 
-`if (anim->field_8AC != id)` with the read held in a variable that is used again
+`if (work->lastCueIndex != id)` with the read held in a variable that is used again
 in the merge block left the target's `sw v1,0x8AC` + `j` block collapsed into the
 shared store: `.cse` shows insn 132 rewritten `(reg/v:SI 85)` → `(reg/v:SI 87)`,
 `regs` unchanged, 4 bytes and one block short of the target (93.4%). The read
@@ -114814,12 +114815,12 @@ blocks and differ only in their sequence: check `insert`/`delete` alongside the
 diff before rewriting a body.
 
 The same block-order lever explains the neighbouring finding that the two flag
-statements are adjacent in the source: `field_A90.flags &= 0x7FFF` and
-`field_950.flags &= 0xBFFF` sit either side of three zero-stores in the target's
+statements are adjacent in the source: `attackBody.flags &= 0x7FFF` and
+`gridBody.flags &= 0xBFFF` sit either side of three zero-stores in the target's
 *emitted* order, but writing them apart in the source (matching that order) put
 the whole first block's schedule in a different shape — `sched` hoisted all
 three loads and deferred every `andi`. Written adjacent, with the timer clears
-after them and `field_8A6 = field_B7C` last, the block matched (92.15% → 94.2%).
+after them and `burnHeightScale = walker.scale` last, the block matched (92.15% → 94.2%).
 The sibling `func_actor_110600_80136ECC` in the same overlay has the same
 adjacency, which is how the source order was spotted.
 
@@ -114845,11 +114846,11 @@ them right-to-left, because the chained assignment's inner store happens first
 and the outer two copy that value. The same target computes that value as
 `sll v0,v1,2` / `negu v0,v0` / `addiu v0,v0,0xbb8`: `(plus (const) (neg ...))`,
 not `(minus (const) ...)`. Writing the arithmetic the obvious way,
-`0xBB8 - work->field_BE0 * 4`, gives `li v0,0xbb8` + `subu` instead — the
+`0xBB8 - work->stateFrame * 4`, gives `li v0,0xbb8` + `subu` instead — the
 subtraction keeps its own form. A negative multiplier in the source,
-`0xBB8 + work->field_BE0 * -4`, expands the multiply as `sll` + `negu` and the
+`0xBB8 + work->stateFrame * -4`, expands the multiply as `sll` + `negu` and the
 addition then absorbs the constant as `addiu`, which is the target. Together
-these two rewrites (90.39% → 92.15%) are what made the whole `field_BE0 >= 0xE6`
+these two rewrites (90.39% → 92.15%) are what made the whole `stateFrame >= 0xE6`
 block match, including the GTE `gpf 1` sequence after `ScaleMatrix`.
 
 The same trick explains `blk->scale.vz|vy|vx = 0x1964` in the matched
@@ -114951,9 +114952,9 @@ Scratch `nonmatchings/func_actor_110600_80132D54-vacuum`.
 The tick's tail shifts three words of a colour matrix down by the shrink amount:
 
 ```c
-work->field_AE8.t[2] -= work->field_BE4;
-work->field_AE8.t[1] -= work->field_BE4;
-work->field_AE8.t[0] -= (work->field_BE4 * 2) / 3;
+work->colorMtx.t[2] -= work->enrageTint;
+work->colorMtx.t[1] -= work->enrageTint;
+work->colorMtx.t[0] -= (work->enrageTint * 2) / 3;
 ```
 
 99.929%, `regs=4` — and the four differences are the *offsets* of the first two,
@@ -114976,8 +114977,8 @@ reverse of what it emits. Writing the two statements in the reverse of the
 target's assembly order:
 
 ```c
-work->field_AE8.t[1] -= work->field_BE4;
-work->field_AE8.t[2] -= work->field_BE4;
+work->colorMtx.t[1] -= work->enrageTint;
+work->colorMtx.t[2] -= work->enrageTint;
 ```
 
 is the whole fix — 100.000%, every penalty zero. Reload now takes `0xb00` first
@@ -135831,7 +135832,7 @@ Its scratch accesses are already absolute in integrated RTL, eliminating the
 shared address register (99.745%). Naming the final scratch read before the
 last matrix halfword read fixes the remaining order without changing stores
 (100%). The two loads stay v0/v1 through greg. The scheduler comparator/hazard
-choice was not traced. Normal Actor110600Work typing and unscoped verification
+choice was not traced. Normal _Actor110600Work typing and unscoped verification
 preserve the match.
 
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -140758,18 +140759,18 @@ reads `lbu` at the field's low byte, not `lhu`.
 `ActorCommand`, and write the fields:
 
 ```c
-struct { u8 stage; u8 area; u8 command; } field_BDC;
+struct { u8 stage; u8 area; u8 command; } lastCommand;
 
-work->field_BDC.stage   = arg2->context.loc.stage;
-work->field_BDC.area    = arg2->context.loc.area;
-work->field_BDC.command = arg2->command;
+work->lastCommand.stage   = arg2->context.loc.stage;
+work->lastCommand.area    = arg2->context.loc.area;
+work->lastCommand.command = arg2->command;
 ...
-if ((work->field_BDC.stage == GAME_STAGE_ACROPOLIS) &&
-    (work->field_BDC.area == GAME_AREA_ACROPOLIS_CAFETERIA) &&
-    (work->field_BDC.command == 6)) {
+if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) &&
+    (work->lastCommand.area == GAME_AREA_ACROPOLIS_CAFETERIA) &&
+    (work->lastCommand.command == 6)) {
 ```
 
-A fourth, unrelated test in the same `&&` chain (`... && work->field_892 != 0x1E`)
+A fourth, unrelated test in the same `&&` chain (`... && work->animId != 0x1E`)
 does not disturb the merge.
 
 ## A scratch target can come from another overlay's same-named `.s` (RoomsShared8017eb5cIdList, 2026-09-24)
