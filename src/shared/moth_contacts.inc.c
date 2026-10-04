@@ -26,7 +26,7 @@ void mothContacts(Task* arg0)
     head     = SCRATCH_STACK_CURSOR(void);
     delta    = (SCRATCH_STACK_CURSOR(void) = head - 1);
     coord    = arg0->extra.tmd->coords;
-    movement = func_800E0C10(&work->rec18C[0], delta, 4, 0);
+    movement = func_800E0C10(work->gridContacts, delta, ARRAY_SIZE(work->gridContacts), 0);
     switch (movement) {
         case 0:
             break;
@@ -37,13 +37,13 @@ void mothContacts(Task* arg0)
             coord->coord.t[2]  = z;
             break;
         case 2:
-            coord->coord.t[0] = work->field_2BC;
-            coord->coord.t[1] = work->field_2C0;
-            coord->coord.t[2] = work->field_2C4;
+            coord->coord.t[0] = work->prevPos.vx;
+            coord->coord.t[1] = work->prevPos.vy;
+            coord->coord.t[2] = work->prevPos.vz;
             break;
     }
-    Gp_ClearRec18Occupied(&work->rec18C[0]);
-    state = (u16)work->field_154.key.parts.kind;
+    Gp_ClearRec18Occupied(work->gridContacts);
+    state = (u16)work->hitContacts[0].key.parts.kind;
     switch ((u32)state) {
         case 0:
             break;
@@ -54,14 +54,14 @@ void mothContacts(Task* arg0)
             break;
         case 2:
             arg0->state      = (s32)state;
-            target           = gPlayerActorTasks[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
+            target           = gPlayerActorTasks[(u8)work->hitContacts[0].key.parts.id >> 7]->extra.tmd->coords;
             dx               = target->coord.t[0] - coord->coord.t[0];
             delta->vector.vx = dx;
             dy               = target->coord.t[1] - coord->coord.t[1];
             delta->vector.vy = dy;
             dz               = target->coord.t[2] - coord->coord.t[2];
             delta->vector.vz = dz;
-            damage           = Gp_ComputeDamage((s32)work->field_154.key.value,
+            damage           = Gp_ComputeDamage((s32)work->hitContacts[0].key.value,
                                                 SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
             amount           = damage;
             if (damage == 0) {
@@ -69,12 +69,12 @@ void mothContacts(Task* arg0)
                 amount = 1;
             }
             func_800DA6E8(&((Enemy*)arg0->spawnArg2.pointer)->node, amount, 0);
-            func_800E2C78(arg0->spawnArg2.pointer, (s32)work->field_154.key.value, damage, 0);
+            func_800E2C78(arg0->spawnArg2.pointer, (s32)work->hitContacts[0].key.value, damage, 0);
             ((Enemy*)arg0->spawnArg2.pointer)->hp = 0;
-            func_800FDB18(Gp_GetIdParam1((s32)work->field_154.key.value) & 0xFFFF, arg0->extra.tmd->coords, 0,
-                          &work->field_224);
+            func_800FDB18(Gp_GetIdParam1((s32)work->hitContacts[0].key.value) & 0xFFFF, arg0->extra.tmd->coords, 0,
+                          &work->hitEffectArg);
             break;
     }
-    Gp_ClearRec18Occupied(&work->field_154);
+    Gp_ClearRec18Occupied(work->hitContacts);
     SCRATCH_STACK_RELEASE_BLOCK(WorldCollisionDelta);
 }

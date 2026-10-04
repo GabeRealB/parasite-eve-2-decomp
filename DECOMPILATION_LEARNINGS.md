@@ -77986,7 +77986,7 @@ a clean `stack=0` does not rule it out.
 
 Spawn handlers that `memCalloc(0x2F4)` and fill collision bodies link three
 `WorldCollisionBody`s at 0x134 / 0x16C / 0x1EC, each with a `WorldCollisionContact` table directly behind
-it (0x154, `rec18C[4]` at 0x18C, 0x20C). `Actor00700SpawnWork` models these as
+it (0x154, `gridContacts[4]` at 0x18C, 0x20C). `MothWork` once modelled these as
 raw byte runs plus offset-named halfwords (`field_134[8]`, `field_13C`,
 `field_144`, `field_14C`, `field_150`, `field_152`), which works but hides that
 every one of those offsets *is* a `WorldCollisionBody` field:
@@ -78000,12 +78000,12 @@ every one of those offsets *is* a `WorldCollisionBody` field:
 | base + 0x1C | `radius` |
 | base + 0x1E | `flags` |
 
-`WorldCollisionBody` is 0x20, so `obj134` at 0x134 ends exactly at `rec154` at 0x154, and the
+`WorldCollisionBody` is 0x20, so `hitBody` at 0x134 ends exactly at `hitContacts` at 0x154, and the
 whole thing satisfies `STATIC_ASSERT_SIZEOF(..., 0x2F4)` unchanged. Declaring
 the three nodes as `WorldCollisionBody` removes every cast in the body — `Gp_LinkObj(2,
-&work->obj134)` and `Gp_InitRec18Table(&work->rec154, 1, 0)` take the real
+&work->hitBody)` and `Gp_InitRec18Table(work->hitContacts, 1, 0)` take the real
 types — and the flag edits read as the sibling's
-`work->obj134.flags |= 0x8000` / `obj16C.flags |= 0x4000` / `obj1EC.flags &=
+`work->hitBody.flags |= 0x8000` / `gridBody.flags |= 0x4000` / `attackBody.flags &=
 0x7FFF` (0x18A and 0x20A are the same `flags` word of the 0x16C and 0x1EC
 nodes).
 

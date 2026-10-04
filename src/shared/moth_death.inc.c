@@ -32,7 +32,7 @@ void mothDeath(Enemy* arg0, Task* arg1)
             head                          = SCRATCH_STACK_CURSOR(SVECTOR);
             rot                           = head - 1;
             SCRATCH_STACK_CURSOR(SVECTOR) = rot;
-            switch (work->field_2DE) {
+            switch (work->deathStep) {
                 case 0:
                     gSceneCombatState.actor00700DeathAlert = 1;
                     seed                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -40,49 +40,49 @@ void mothDeath(Enemy* arg0, Task* arg1)
                     angle                                  = rnd & 0xFF;
                     arg1->extra.tmd->flags                 = TMD_OBJECT_SEMI_TRANS;
                     gRandomLcgState                        = seed;
-                    work->field_2E2                        = 0x1000;
+                    work->squashScale                      = 0x1000;
                     work->savedRootMtx                     = coord->coord;
                     if (!(rnd & 0x100)) {
                         angle = -angle;
                     }
-                    work->field_2E4                 = angle;
-                    arg0->recs                      = 0;
-                    ((MothWork*)work)->obj134.flags = ((MothWork*)work)->obj134.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    ((MothWork*)work)->obj16C.flags = ((MothWork*)work)->obj16C.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-                    ((MothWork*)work)->obj1EC.flags = ((MothWork*)work)->obj1EC.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    id                              = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
-                    pan                             = (s8)worldCoordGetOriginAudioPan(coord);
+                    work->deathSpinRate    = angle;
+                    arg0->recs             = 0;
+                    work->hitBody.flags    = work->hitBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                    work->gridBody.flags   = work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+                    work->attackBody.flags = work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
+                    id                     = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
+                    pan                    = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                     worldTargetUnlinkNode(&arg0->node);
                     Gp_ReleaseStateF0Add(arg1, 8);
-                    work->field_2E0 = 1;
-                    work->field_2DE = 1;
+                    work->timer     = 1;
+                    work->deathStep = 1;
                     break;
                 case 1:
                     mothSquash(arg1);
-                    work->field_2DA = (work->field_2DA + work->field_2E4) & 0xFFF;
-                    work->field_2DC = (work->field_2DC + work->field_2E4) & 0xFFF;
-                    rot->vx         = work->field_2DA;
-                    rot->vy         = work->field_2DC;
-                    rot->vz         = 0;
+                    work->pitch = (work->pitch + work->deathSpinRate) & 0xFFF;
+                    work->yaw   = (work->yaw + work->deathSpinRate) & 0xFFF;
+                    rot->vx     = work->pitch;
+                    rot->vy     = work->yaw;
+                    rot->vz     = 0;
                     RotMatrix(rot, &coord->coord);
                     work->savedRootMtx.t[1] += 0x18;
-                    if ((s16)(work->field_2E0 / 3) < 8) {
+                    if ((s16)(work->timer / 3) < 8) {
                         mothDrawBurst(arg1);
                     } else {
                         arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
-                    work->field_2E0++;
-                    if (work->field_2E0 >= 0x1E) {
-                        Gp_UnlinkObj(&((MothWork*)work)->obj134);
-                        Gp_UnlinkObj(&((MothWork*)work)->obj16C);
-                        Gp_UnlinkObj(&((MothWork*)work)->obj1EC);
-                        work->field_2DE = 2;
+                    work->timer++;
+                    if (work->timer >= 0x1E) {
+                        Gp_UnlinkObj(&work->hitBody);
+                        Gp_UnlinkObj(&work->gridBody);
+                        Gp_UnlinkObj(&work->attackBody);
+                        work->deathStep = 2;
                     }
                     break;
                 case 2:
-                    work->field_2E0--;
-                    if (work->field_2E0 <= 0) {
+                    work->timer--;
+                    if (work->timer <= 0) {
                         enemyDestroy(arg0, arg1);
                     }
                     break;

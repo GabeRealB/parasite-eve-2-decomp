@@ -33,7 +33,7 @@ void mothDrawBurst(Task* arg0)
         SCRATCH_STACK_RELEASE_BYTES(0x28);
         return;
     }
-    if (work->field_2E0 == 1) {
+    if (work->timer == 1) {
         sc->v[0].vx = 0;
         sc->v[0].vy = 0;
         sc->v[0].vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFFF;
@@ -71,7 +71,7 @@ void mothDrawBurst(Task* arg0)
     setShadeTex(prim, 1);
     prim->tpage = (((obj->texturePageOffset * 64 + 0x180) & 0x3FF) >> 6) | 0xD0;
     prim->clut  = (obj->clutRowOffset << 6) + 0x3D40;
-    uv          = &gMothBurstUvs[(s16)(work->field_2E0 / 3)];
+    uv          = &gMothBurstUvs[(s16)(work->timer / 3)];
     prim->u0    = uv->u;
     prim->v0    = uv->v;
     prim->u1    = uv->u + 31;

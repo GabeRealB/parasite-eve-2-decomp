@@ -47,8 +47,8 @@ case2:
 default_body:
     mothContacts(arg1);
     mothOscillateParts(arg1);
-    if (work->field_2E6 == 0 && gSceneCombatState.actor00700DeathAlert != 0) {
-        work->field_2E6 = 1;
+    if (work->alerted == 0 && gSceneCombatState.actor00700DeathAlert != 0) {
+        work->alerted = 1;
         Gp_ArmStateF0(1);
     }
     mothSteer(arg1);

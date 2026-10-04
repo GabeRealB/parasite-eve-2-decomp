@@ -487,6 +487,14 @@ behaviour, awake stage, death phase and animation values use
 `SUCKLERCEPH_STATE_`, `SUCKLERCEPH_AWAKE_STAGE_`, `SUCKLERCEPH_DEATH_PHASE_` and
 `SUCKLERCEPH_ANIM_`.
 
+`moth` owns the included Moth enemy shared by `actor_00700` (packages
+`actor_100700` and `actor_200700`) and `actor_300700`. Its implementation
+interface is `src/shared/moth.h`, one fragment per function. `MothWork` is the
+task's work block: the animation rig, the hit, grid and attack spheres with
+their contact tables, and the wander, wing-beat and death state the handlers
+share. Each package defines the tables the fragments read (`gMothParams`,
+`gMothAttack`, `gMothSpeeds`, `gMothAnimSets`, `gMothBurstUvs`).
+
 `scriptedWalk` owns the included walk of the twenty-part NPCs that cutscene
 scripts move around, over a work block each walker publishes in a global. Its
 implementation interface is `src/shared/scripted_walk.h`, one fragment per

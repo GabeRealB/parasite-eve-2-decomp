@@ -25,24 +25,24 @@ void mothSteer(Task* arg0)
     sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    switch (work->field_2E6) {
+    switch (work->alerted) {
         case 0:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             random          = gRandomLcgState >> 16;
             amount          = random & 0x1F;
-            cur             = work->field_2DC;
-            work->field_2DC = !(random & 0x20) ? cur - amount : cur + amount;
+            cur             = work->yaw;
+            work->yaw       = !(random & 0x20) ? cur - amount : cur + amount;
             break;
         case 1:
             sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             sc->delta.vy = 0;
             sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
-            diff         = want - (work->field_2DC & 0xFFF);
+            diff         = want - (work->yaw & 0xFFF);
             adiff        = diff >= 0 ? diff : -diff;
             turn         = diff;
             if (adiff < 0x11) {
-                work->field_2DC = want;
+                work->yaw = want;
             } else {
                 if (adiff >= 0x801) {
                     wrap = diff - 0x1000;
@@ -50,11 +50,11 @@ void mothSteer(Task* arg0)
                         wrap = 0x1000 - diff;
                     turn = wrap;
                 }
-                cur2 = work->field_2DC;
+                cur2 = work->yaw;
                 if (turn > 0) {
-                    work->field_2DC = cur2 + 0x10;
+                    work->yaw = cur2 + 0x10;
                 } else {
-                    work->field_2DC = cur2 - 0x10;
+                    work->yaw = cur2 - 0x10;
                 }
             }
             break;
@@ -62,15 +62,15 @@ void mothSteer(Task* arg0)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     random2         = gRandomLcgState >> 16;
     amount2         = random2 & 0x3F;
-    cur3            = work->field_2DA;
-    work->field_2DA = !(random2 & 0x40) ? cur3 - amount2 : cur3 + amount2;
-    if (work->field_2DA > 0x100) {
-        work->field_2DA = 0x100;
-    } else if (work->field_2DA < -0x100) {
-        work->field_2DA = -0x100;
+    cur3            = work->pitch;
+    work->pitch     = !(random2 & 0x40) ? cur3 - amount2 : cur3 + amount2;
+    if (work->pitch > 0x100) {
+        work->pitch = 0x100;
+    } else if (work->pitch < -0x100) {
+        work->pitch = -0x100;
     }
-    sc->rot.vx = work->field_2DA;
-    sc->rot.vy = work->field_2DC;
+    sc->rot.vx = work->pitch;
+    sc->rot.vy = work->yaw;
     sc->rot.vz = 0;
     RotMatrix(&sc->rot, &coord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);

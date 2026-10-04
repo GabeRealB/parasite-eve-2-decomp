@@ -20,12 +20,12 @@ void mothDrift(Task* arg0)
     s32       newY;
     s16       base;
 
-    work            = arg0->work;
-    coord           = arg0->extra.tmd->coords;
-    work->field_2BC = coord->coord.t[0];
-    work->field_2C0 = coord->coord.t[1];
-    work->field_2C4 = coord->coord.t[2];
-    switch (work->field_2E6) {
+    work             = arg0->work;
+    coord            = arg0->extra.tmd->coords;
+    work->prevPos.vx = coord->coord.t[0];
+    work->prevPos.vy = coord->coord.t[1];
+    work->prevPos.vz = coord->coord.t[2];
+    switch (work->alerted) {
         case 0:
             random = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
             amount = random & 0x1F;
@@ -33,19 +33,19 @@ void mothDrift(Task* arg0)
                 amount = -amount;
             }
             delta = amount;
-            if ((s16)(coord->coord.t[0] + (s16)delta) < work->field_2AC + 200 &&
-                work->field_2AC - 200 < (s16)(coord->coord.t[0] + (s16)delta)) {
+            if ((s16)(coord->coord.t[0] + (s16)delta) < work->homePos.vx + 200 &&
+                work->homePos.vx - 200 < (s16)(coord->coord.t[0] + (s16)delta)) {
                 coord->coord.t[0] += (s16)delta;
             } else {
                 coord->coord.t[0] -= (s16)delta;
             }
             amountB = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F;
-            if (work->field_2D4 != 0) {
+            if (work->flapFast != 0) {
                 amountB = -amountB;
             }
             delta = amountB;
-            if ((s16)(coord->coord.t[1] + (s16)delta) < work->field_2B0 + 500 &&
-                work->field_2B0 - 500 < (s16)(coord->coord.t[1] + (s16)delta)) {
+            if ((s16)(coord->coord.t[1] + (s16)delta) < work->homePos.vy + 500 &&
+                work->homePos.vy - 500 < (s16)(coord->coord.t[1] + (s16)delta)) {
                 coord->coord.t[1] += (s16)delta;
             } else {
                 coord->coord.t[1] -= (s16)delta;
@@ -56,7 +56,7 @@ void mothDrift(Task* arg0)
                 amount = -amount;
             }
             delta = amount;
-            if ((s16)random3 < work->field_2B4 + 200 && work->field_2B4 - 200 < (s16)random3) {
+            if ((s16)random3 < work->homePos.vz + 200 && work->homePos.vz - 200 < (s16)random3) {
                 coord->coord.t[2] += (s16)delta;
             } else {
                 coord->coord.t[2] -= (s16)delta;
@@ -77,7 +77,7 @@ void mothDrift(Task* arg0)
                     newY = y + (random2 & 0xF);
                 } else {
                     amountB = random2 & 0x1F;
-                    if (work->field_2D4 != 0) {
+                    if (work->flapFast != 0) {
                         newY = y - amountB;
                     } else {
                         newY = y + amountB;

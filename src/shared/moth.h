@@ -25,46 +25,42 @@
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 
-/// The moth's work block: the 0x2F4 bytes `mothSpawn` allocates with
-/// `memCalloc` and stores in the task's work slot. It opens with the animation
-/// context, its four slots and pose buffer, then the two matrices handed to
-/// the model stream and the three `WorldCollisionBody` collision bodies
-/// (object-list indices 2/2/3) with their `WorldCollisionContact` tables.
-/// The tick handlers' state follows from 0x224.
-typedef struct MothWork {
-    /* 0x000 */ ActorAnimRig4         rig;       // playback storage of the model's parts; slots 1 to 3 are seeded
-    /* 0x0F4 */ MATRIX                field_F4;  // color matrix handed to the stream
-    /* 0x114 */ MATRIX                field_114; // light matrix handed to the stream
-    /* 0x134 */ WorldCollisionBody    obj134;
-    /* 0x154 */ WorldCollisionContact field_154;
-    /* 0x16C */ WorldCollisionBody    obj16C;
-    /* 0x18C */ WorldCollisionContact rec18C[4];
-    /* 0x1EC */ WorldCollisionBody    obj1EC;
-    /* 0x20C */ WorldCollisionContact rec20C;
-    /* 0x224 */ EffectSpawnArg        field_224;
-    /* 0x22C */ MATRIX                savedRootMtx; // root transform when the death began, sunk 0x18 a frame; each squash frame rescales a copy of it
-    /* 0x24C */ MATRIX                burstRollMtx; // rotation of the death burst sprite's quad: a random roll about Z picked on the death's first frame
-    /* 0x26C */ byte                  field_26C[0x10];
-    /* 0x27C */ byte                  field_27C[0x30];
-    /* 0x2AC */ s32                   field_2AC;
-    /* 0x2B0 */ s32                   field_2B0;
-    /* 0x2B4 */ s32                   field_2B4;
-    /* 0x2B8 */ byte                  pad_2B8[4];
-    /* 0x2BC */ s32                   field_2BC;
-    /* 0x2C0 */ s32                   field_2C0;
-    /* 0x2C4 */ s32                   field_2C4;
-    /* 0x2C8 */ byte                  pad_2C8[0xC];
-    /* 0x2D4 */ s16                   field_2D4;
-    /* 0x2D6 */ s16                   field_2D6;
-    /* 0x2D8 */ s16                   field_2D8;
-    /* 0x2DA */ s16                   field_2DA;
-    /* 0x2DC */ s16                   field_2DC;
-    /* 0x2DE */ s16                   field_2DE;
-    /* 0x2E0 */ s16                   field_2E0;
-    /* 0x2E2 */ s16                   field_2E2;
-    /* 0x2E4 */ s16                   field_2E4;
-    /* 0x2E6 */ s16                   field_2E6;
-    /* 0x2E8 */ byte                  pad_2E8[0xC];
+/// Work block of a moth: the zeroed allocation its spawn handler makes and
+/// keeps at `Task::work` until the enemy is destroyed.
+///
+/// It opens with the playback storage of the model's four parts and the two
+/// matrices the model is lit with, then the three collision spheres the spawn
+/// links at the model's root, each followed by its own contact table, and ends
+/// with the state the per-frame handlers share. Angles are 4096 to a turn,
+/// positions are world units and timers count frames.
+typedef struct {
+    ActorAnimRig4         rig;               // Playback storage of the model's four parts; slots 1 to 3 are seeded
+    MATRIX                colorMtx;          // Colour matrix the model is lit with
+    MATRIX                lightMtx;          // Light matrix the model is lit with
+    WorldCollisionBody    hitBody;           // Sphere at the root that takes hits; pairs until the death begins
+    WorldCollisionContact hitContacts[1];    // The one contact of `hitBody`; also the enemy's hit records. A contact of kind 1 or 2 there starts the death
+    WorldCollisionBody    gridBody;          // Sphere at the root tested against the room's grid until the death begins
+    WorldCollisionContact gridContacts[4];   // Contacts of `gridBody`; their averaged push-back is applied to the root each frame
+    WorldCollisionBody    attackBody;        // Larger sphere at the root keyed with the moth's attack; pairs only from the start of the death until the spheres are unlinked
+    WorldCollisionContact attackContacts[1]; // The one contact of `attackBody`; initialized and never read
+    EffectSpawnArg        hitEffectArg;      // Argument of the effect a hit spawns, hung off the model's root coordinate
+    MATRIX                savedRootMtx;      // Root matrix when the death began, sunk 0x18 a frame; each squash frame rescales a copy of it
+    MATRIX                burstRollMtx;      // Rotation of the death burst sprite's quad: a random roll about Z picked on the death's first frame
+    byte                  field_26C[0x40];   // Never read or written. Role unproven
+    VECTOR                homePos;           // Root position at spawn: centre of the box the wander is held to before the alert
+    VECTOR                prevPos;           // Root position before the frame's move, restored when the grid contacts oppose each other
+    byte                  field_2CC[8];      // Never read or written. Role unproven
+    s16                   flapFast;          // Wing beat, rerolled every 16 frames (0 slow: `flapAngle` steps through a sweep and the moth sinks, 1 fast: full swing reversed every frame and the moth climbs)
+    s16                   flapSign;          // Sense of the wing swing, 1 or -1; reversed at each end of a slow sweep and on every fast frame
+    s16                   flapAngle;         // Position in the wing swing, -0x100 to 0x100; times `flapSign` it is the Z rotation of model part 2, and negated that of part 3
+    s16                   pitch;             // Rotation of the root about X: a random walk held to +-0x100 while alive, spun by `deathSpinRate` in the death
+    s16                   yaw;               // Heading of the root, seeded from the placement: a random walk before the alert, turned toward the player after it, spun in the death
+    s16                   deathStep;         // Step of the death (0 begin, 1 squash, spin and burst, 2 wait before the enemy is destroyed)
+    s16                   timer;             // Alive: frames since `flapFast` was rerolled, 0 to 15. Dying: counts up from 1 to 30 through step 1, picking the burst's frame, then back down to 0
+    s16                   squashScale;       // Dying: vertical scale of the root, 0x1000 shrinking to 0x200
+    s16                   deathSpinRate;     // Dying: angle added to `pitch` and `yaw` each frame, a random -255 to 255
+    s16                   alerted;           // Set once any moth of the scene has begun to die; the moth then flies at the player instead of wandering
+    byte                  field_2E8[0xC];    // Never read or written. Role unproven
 } MothWork;
 STATIC_ASSERT_SIZEOF(MothWork, 0x2F4);
 

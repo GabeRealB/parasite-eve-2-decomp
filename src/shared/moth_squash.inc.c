@@ -15,11 +15,11 @@ void mothSquash(Task* arg0)
     scratch                                 = head - 1;
     SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
     coord                                   = arg0->extra.tmd->coords;
-    if (work->field_2E2 >= 0x201) {
-        work->field_2E2 = (u16)work->field_2E2 - 0x50;
+    if (work->squashScale >= 0x201) {
+        work->squashScale -= 0x50;
     }
     scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = (s32)work->field_2E2;
+    scratch->scale.vy                    = work->squashScale;
     scratch->scale.vz                    = ONE;
     coord->coord                         = work->savedRootMtx;
     scratch->matrix.rotationWords.m00M01 = ONE;
