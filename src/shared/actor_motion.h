@@ -33,15 +33,23 @@
 
 #include "main/task_types.h"
 
-/// What `actorMotionPlayAnim` needs of the work block at `Task::work`: the
-/// twenty-part rig it binds and seeds, and the model state recording what the
-/// rig plays.
+/// What a twenty-part play request needs of the work block at `Task::work`:
+/// the rig it binds and seeds, and the model state recording what the rig
+/// plays.
 ///
-/// Every package that installs the handler opens its work block with these
-/// two members, and the handler reaches nothing after them. What follows is
-/// the package's own: a walker that runs the library's walk keeps its walk
-/// state directly after (`ActorMotionWalkWork`), while an actor that only
-/// plays clips keeps state of its own there.
+/// It is a view of the front of a larger block, never an object of its own.
+/// Every package that installs `actorMotionPlayAnim` opens its work block
+/// with these two members, and the handler reaches nothing after them. What
+/// follows is the package's own: a walker that runs the library's walk keeps
+/// its walk state directly after (`ActorMotionWalkWork`), while an actor that
+/// only plays clips keeps state of its own there.
+///
+/// Nothing but a play request binds `rig`, and one does so only when its bank
+/// differs from `model.bank`. The package therefore allocates the block
+/// zeroed and sets `model.bank` to `ACTOR_MODEL_STATE_NONE` before the first
+/// request, which makes that request bind the rig whichever bank it names;
+/// left at zero, a first request for bank 0 would seed and tick the slots of
+/// an unbound context.
 typedef struct {
     ActorAnimRig20  rig;   // Playback storage of the twenty-part model; the handler binds it to the requested bank and drives slots 1 to 19
     ActorModelState model; // What the rig plays; the handler keeps `bank`, `animId` and `ticking` and leaves the rest to the package
