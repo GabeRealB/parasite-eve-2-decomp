@@ -97,7 +97,7 @@ enum {
 ///
 /// It holds the model's animation playback, the four collision spheres with
 /// their contact tables, and the state the per-frame tick steps. The puff
-/// projectile has a smaller work block of its own.
+/// projectile has a work block of its own, `MaggotCaterpillarPuffWork`.
 typedef struct {
     ActorAnimRig8         rig;               // playback of the model's parts; slots 1 to 7 are driven, all on `animId`
     MATRIX                colorMtx;          // storage for the model's `TmdObject::colorMtx`
@@ -154,6 +154,21 @@ typedef struct {
     s16  stunned;                            // 1 from the buildup that stuns it until the stun runs out; a flinch in between returns to the stun
 } MaggotCaterpillarWork;
 STATIC_ASSERT_SIZEOF(MaggotCaterpillarWork, 0x3D4);
+
+/// Work block of a puff projectile, allocated by the puff's setup and kept at
+/// its `Task::work`.
+///
+/// A puff is a child task of the enemy that sprayed it. It flies along its
+/// own facing, slowing as it goes, and ends after 0xF ticks or when it meets
+/// the room's collision grid.
+typedef struct {
+    WorldCollisionBody    body;         // sphere at the puff's origin carrying the spray attack's key; its grid and pair tests are enabled on every fourth tick only
+    WorldCollisionContact contacts[1];  // contact table of `body`: a room-grid contact ends the puff, any other is discarded
+    s16                   age;          // ticks flown, from 0: picks the sprite's radius each tick and its cell every other tick, and ends the puff at 0xF
+    s16                   forwardSpeed; // units it moves along its facing each tick: 0xC0 at setup, less a random 0 to 0x1F each tick, held at 0
+    u16                   sprayOrdinal; // the spraying enemy's `MaggotCaterpillarWork::puffCount` as the puff was set up; never read
+} MaggotCaterpillarPuffWork;
+STATIC_ASSERT_SIZEOF(MaggotCaterpillarPuffWork, 0x40);
 
 /// Scratch-pad block for projecting one end of the enemy's line primitives:
 /// the point, its screen position and the depth the line is sorted at.
