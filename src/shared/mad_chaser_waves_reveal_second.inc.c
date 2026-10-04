@@ -5,7 +5,7 @@
 /// then advances.
 void madChaserWaveRevealSecond(Task* arg0)
 {
-    OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
+    OverlayEncounterSingleWork* work = arg0->work;
     Enemy*                      enemy;
     Task*                       task;
     TmdObject*                  obj;

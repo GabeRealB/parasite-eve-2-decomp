@@ -558,7 +558,7 @@ static void func_actor_342400_80162B60(Task* arg0)
 
 static void func_actor_342400_80162C10(Task* arg0)
 {
-    OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
+    OverlayEncounterSingleWork* work = arg0->work;
     Enemy*                      enemy;
     Task*                       task;
     TmdObject*                  obj;
@@ -586,7 +586,7 @@ static void func_actor_342400_80162CA8(Task* arg0)
 
 static void func_actor_342400_80162CBC(Task* arg0)
 {
-    OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
+    OverlayEncounterSingleWork* work = arg0->work;
     Enemy*                      enemy;
     Task*                       task;
     GfxCoord*                   coord;
@@ -644,7 +644,7 @@ static void func_actor_342400_80162F08(Task* arg0)
 
 static void func_actor_342400_80162F1C(Task* arg0)
 {
-    OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
+    OverlayEncounterSingleWork* work = arg0->work;
     Enemy*                      enemy;
     Task*                       task;
     GfxCoord*                   coord;

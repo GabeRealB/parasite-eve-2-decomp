@@ -3912,7 +3912,7 @@ static void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
 {
-    OverlayEncounterSingleWork* work = memCalloc(8, 0);
+    OverlayEncounterSingleWork* work = memCalloc(sizeof(*work), 0);
     if (work != NULL) {
         Enemy* enemy;
         arg0->work = work;
@@ -3934,11 +3934,11 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
 static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 {
     ActorCommand                request;
-    OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
-    Enemy*                      t0  = ent->enemy;
-    Task*                       t00 = t0->task;
+    OverlayEncounterSingleWork* work = arg0->work;
+    Enemy*                      t0   = work->enemy;
+    Task*                       t00  = t0->task;
 
-    if ((s16)(ent->frames += 1) >= 0x2E) {
+    if (++work->frames > 45) {
         TmdObject* p              = t00->extra.tmd;
         p->clutRowOffset          = 2;
         p->texturePageOffset      = 0;
@@ -3953,7 +3953,9 @@ static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_80183A98(Task* arg0)
 {
-    if (((OverlayEncounterSingleWork*)arg0->work)->enemy->hp <= 0) {
+    OverlayEncounterSingleWork* work = arg0->work;
+
+    if (work->enemy->hp <= 0) {
         D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
     }
@@ -3961,7 +3963,7 @@ static void func_shelter_b3_dumping_hole_80183A98(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
 {
-    OverlayEncounterSingleWork* work = memCalloc(8, 0);
+    OverlayEncounterSingleWork* work = memCalloc(sizeof(*work), 0);
     if (work != NULL) {
         Enemy* enemy;
         arg0->work = work;
@@ -3983,11 +3985,11 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
 static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 {
     ActorCommand                request;
-    OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
-    Enemy*                      t0  = ent->enemy;
-    Task*                       t00 = t0->task;
+    OverlayEncounterSingleWork* work = arg0->work;
+    Enemy*                      t0   = work->enemy;
+    Task*                       t00  = t0->task;
 
-    if ((s16)(ent->frames += 1) >= 0x3D) {
+    if (++work->frames > 60) {
         TmdObject* p              = t00->extra.tmd;
         p->texturePageOffset      = 2;
         p->clutRowOffset          = 4;
@@ -4002,7 +4004,9 @@ static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 
 static void func_shelter_b3_dumping_hole_80183C38(Task* arg0)
 {
-    if (((OverlayEncounterSingleWork*)arg0->work)->enemy->hp <= 0) {
+    OverlayEncounterSingleWork* work = arg0->work;
+
+    if (work->enemy->hp <= 0) {
         D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
     }

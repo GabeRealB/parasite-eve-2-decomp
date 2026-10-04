@@ -338,12 +338,15 @@ typedef struct OverlayEncounterCtrlWork {
 } OverlayEncounterCtrlWork;
 STATIC_ASSERT_SIZEOF(OverlayEncounterCtrlWork, 0x6);
 
-/// Work block of an encounter slot task that holds one enemy: the enemy, and
-/// the frames counted before it is released.
-typedef struct OverlayEncounterSingleWork {
-    Enemy* enemy;
-    s16      frames;
-    byte     pad_6[0x2];
+/// Work block of a scripted encounter's one-enemy spawner: the task an
+/// `OverlayEncounterSlot` row starts to spawn a single enemy hidden, bring it
+/// out after a delay and watch it until the row is done.
+///
+/// The spawner allocates the block zeroed and the task's teardown frees it.
+/// The enemy belongs to its own task and is only borrowed here.
+typedef struct {
+    Enemy* enemy;  // Enemy the spawner spawned hidden and then watches
+    s16    frames; // Frames counted since the spawn; the enemy is brought out once they pass the spawner's delay, and the count stops there
 } OverlayEncounterSingleWork;
 STATIC_ASSERT_SIZEOF(OverlayEncounterSingleWork, 0x8);
 
