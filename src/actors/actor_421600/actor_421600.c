@@ -2192,13 +2192,13 @@ static void func_actor_421600_80133444(GfxCoord* coord)
                 rangeScratch->dx                                                       = vec.vx;
                 direction                                                              = &vec;
                 rangeScratch->dz                                                       = direction->vz;
-                rangeScratch->r                                                        = 0x2D0;
+                rangeScratch->radius                                                   = 0x2D0;
                 rangeScratch->dx                                                       = rangeScratch->dx * rangeScratch->dx;
                 rangeScratch->dz                                                       = rangeScratch->dz * rangeScratch->dz;
-                rangeScratch->r                                                        = rangeScratch->r * rangeScratch->r;
+                rangeScratch->radius                                                   = rangeScratch->radius * rangeScratch->radius;
                 scratchRestoreBase                                                     = PLAYSTATION_SCRATCHPAD_BASE + (SCRATCH_STACK_HEAD_BYTE_OFFSET - sizeof(void*));
                 *(OverlayRangeScratch**)(scratchRestoreBase + sizeof(void*))           = savedScratchHead;
-                outside                                                                = rangeScratch->dx + rangeScratch->dz >= rangeScratch->r;
+                outside                                                                = rangeScratch->dx + rangeScratch->dz >= rangeScratch->radius;
                 if (outside != 0) {
                     return;
                 }

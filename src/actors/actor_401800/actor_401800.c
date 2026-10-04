@@ -1377,21 +1377,21 @@ s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
 
 static __inline__ s32 Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r)
 {
-    u8*                  head;
+    OverlayRangeScratch* head;
     OverlayRangeScratch* blk;
     s32                  ret;
 
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((OverlayRangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                       = (OverlayRangeScratch*)(head - 0xC);
+    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
+    head[-1].dx                               = d->vx;
+    blk                                       = head - 1;
     blk->dz                                   = d->vz;
-    blk->r                                    = r;
-    ((OverlayRangeScratch*)(head - 0xC))->dx *= ((OverlayRangeScratch*)(head - 0xC))->dx;
+    blk->radius                               = r;
+    head[-1].dx                              *= head[-1].dx;
     SCRATCH_STACK_CURSOR(OverlayRangeScratch) = blk;
     blk->dz                                  *= blk->dz;
-    blk->r                                   *= blk->r;
-    SCRATCH_STACK_CURSOR(u8)                  = head;
-    ret                                       = ((OverlayRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    blk->radius                              *= blk->radius;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head;
+    ret                                       = head[-1].dx + blk->dz >= blk->radius;
     return ret;
 }
 

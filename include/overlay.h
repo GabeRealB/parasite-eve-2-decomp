@@ -239,34 +239,39 @@ static __inline__ void overlayToWorld2(GfxCoord* coord, SVECTOR* v)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayWalkScratch));
 }
 
-/// The scratch-pad block of an in-radius test on the XZ plane: the two
-/// offsets and the radius, each squared in place before `dx + dz` is compared
-/// with `r`.
-typedef struct OverlayRangeScratch {
-    s32 dx;
-    s32 dz;
-    s32 r;
+/// Scratch-stack block of a radius test on the XZ plane.
+///
+/// A test stages a horizontal offset and the radius it is measured against,
+/// squares all three members in place, and reports whether `dx + dz` has
+/// reached `radius`, so the distance itself is never computed. The offset
+/// comes from `SVECTOR` components, so each square fits the member it
+/// replaces. The block is released before the comparison reads it back;
+/// nothing else may reserve scratch between the two.
+typedef struct {
+    s32 dx;     // X offset, then its square
+    s32 dz;     // Z offset, then its square
+    s32 radius; // Radius the offset is tested against, then its square
 } OverlayRangeScratch;
 STATIC_ASSERT_SIZEOF(OverlayRangeScratch, 0xC);
 
 /// Whether the XZ offset `d` reaches at least `r` from its origin.
 static __inline__ s32 overlayOutOfRange(SVECTOR* d, s16 r)
 {
-    u8*                  head;
+    OverlayRangeScratch* head;
     OverlayRangeScratch* blk;
     s32                  ret;
 
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((OverlayRangeScratch*)(head - 0xC))->dx  = d->vx;
-    blk                                       = (OverlayRangeScratch*)(head - 0xC);
+    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
+    head[-1].dx                               = d->vx;
+    blk                                       = head - 1;
     blk->dz                                   = d->vz;
-    blk->r                                    = r;
-    ((OverlayRangeScratch*)(head - 0xC))->dx *= ((OverlayRangeScratch*)(head - 0xC))->dx;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch)         = blk;
+    blk->radius                               = r;
+    head[-1].dx                              *= head[-1].dx;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = blk;
     blk->dz                                  *= blk->dz;
-    blk->r                                   *= blk->r;
-    SCRATCH_STACK_CURSOR(u8)                          = head;
-    ret                                       = ((OverlayRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    blk->radius                              *= blk->radius;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head;
+    ret                                       = head[-1].dx + blk->dz >= blk->radius;
     return ret;
 }
 
@@ -597,20 +602,20 @@ STATIC_ASSERT_SIZEOF(BossStrangerWalker, 0x94);
 static __inline__ s32 overlayWalkerOutOfRange(SVECTOR* d, s16 r)
 {
     OverlayRangeScratch* b;
-    u8*                  head;
+    OverlayRangeScratch* head;
 
-    head             = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0xC;
-    b                = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
+    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head - 1;
+    b                                         = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
 
-    b->dx            = d->vx;
-    b->dz            = d->vz;
-    b->r             = r;
-    b->dx            = b->dx * b->dx;
-    b->dz            = b->dz * b->dz;
-    b->r             = b->r * b->r;
-    SCRATCH_STACK_CURSOR(u8) = head;
-    return b->dx + b->dz >= b->r;
+    b->dx                                     = d->vx;
+    b->dz                                     = d->vz;
+    b->radius                                 = r;
+    b->dx                                     = b->dx * b->dx;
+    b->dz                                     = b->dz * b->dz;
+    b->radius                                 = b->radius * b->radius;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head;
+    return b->dx + b->dz >= b->radius;
 }
 
 /// Bearing of `pos` from the full-width translation of `coord` on the XZ

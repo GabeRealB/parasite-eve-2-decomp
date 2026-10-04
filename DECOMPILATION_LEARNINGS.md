@@ -87995,9 +87995,9 @@ still slides it (and the dependent stores) down next to the pop:
 blk->dx *= blk->dx;
 *(OverlayRangeScratch**)SCRATCH_STACK_CURSOR_SLOT = blk;
 blk->dz *= blk->dz;
-blk->r  *= blk->r;
+blk->radius *= blk->radius;
 *(u8**)SCRATCH_STACK_CURSOR_SLOT = head;
-ret = blk->dx + blk->dz >= blk->r;   /* after the pop: slt + xori */
+ret = blk->dx + blk->dz >= blk->radius;   /* after the pop: slt + xori */
 ```
 
 Tell: two adjacent absolute stores to one address in the target means a read
@@ -108488,9 +108488,9 @@ re-materialise the two expressions feeding them.
 
 With the triplet duplicated the score was 99.779%: two instructions left, both
 the same store. The TU's `overlayOutOfRange` helper writes
-`*(OverlayRangeScratch**)SCRATCH_STACK_CURSOR_SLOT = blk;` after `blk->dz` / `blk->r`
+`*(OverlayRangeScratch**)SCRATCH_STACK_CURSOR_SLOT = blk;` after `blk->dz` / `blk->radius`
 and after `dx *= dx`; the target has it immediately after the `dx` store, before
-`dz` and `r`.
+`dz` and `radius`.
 
 No dependency rule lets the scheduler make that move. `sched.c` adds a
 conservative memory anti-dependency between stores whose addresses it cannot
@@ -109644,9 +109644,9 @@ Three things made it one-shot:
    one you have.
 
 Where the twin stops helping is where a helper got *inlined differently*: the
-target's inlined `overlayOutOfRange` stores `blk->r` before `blk->dz` and
+target's inlined `overlayOutOfRange` stores `blk->radius` before `blk->dz` and
 issues both `*SCRATCH_STACK_CURSOR_SLOT` stores after the three `mult`s, where the helper's
-literal source order is dx, dz, r, square, store-head. That is the scheduler
+literal source order is dx, dz, radius, square, store-head. That is the scheduler
 moving independent store/load pairs around a `static __inline__` body, not a
 different helper — do not go looking for a second `RangeScratch` function.
 

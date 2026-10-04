@@ -274,21 +274,21 @@ void oddStrangerPatrol(Task* arg0);
 /// the scratch cursor published before the squares.
 static __inline__ s32 oddStrangerOutOfRange(SVECTOR* d, s16 r)
 {
-    u8*                  head;
+    OverlayRangeScratch* head;
     OverlayRangeScratch* blk;
     s32                  ret;
 
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    blk                                       = (OverlayRangeScratch*)(head - 0xC);
-    ((OverlayRangeScratch*)(head - 0xC))->dx  = d->vx;
+    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
+    blk                                       = head - 1;
+    head[-1].dx                               = d->vx;
     SCRATCH_STACK_CURSOR(OverlayRangeScratch) = blk;
     blk->dz                                   = d->vz;
-    blk->r                                    = r;
-    ((OverlayRangeScratch*)(head - 0xC))->dx *= ((OverlayRangeScratch*)(head - 0xC))->dx;
+    blk->radius                               = r;
+    head[-1].dx                              *= head[-1].dx;
     blk->dz                                  *= blk->dz;
-    blk->r                                   *= blk->r;
-    SCRATCH_STACK_CURSOR(u8)                  = head;
-    ret                                       = ((OverlayRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    blk->radius                              *= blk->radius;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head;
+    ret                                       = head[-1].dx + blk->dz >= blk->radius;
     return ret;
 }
 

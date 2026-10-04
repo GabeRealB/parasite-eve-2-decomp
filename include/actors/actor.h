@@ -1451,12 +1451,12 @@ static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
     SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;
     scratch->dx                               = pos->vx;
     scratch->dz                               = pos->vz;
-    scratch->r                                = radius;
+    scratch->radius                           = radius;
     scratch->dx                              *= scratch->dx;
     scratch->dz                              *= scratch->dz;
-    scratch->r                               *= scratch->r;
+    scratch->radius                          *= scratch->radius;
     SCRATCH_STACK_RELEASE_BLOCK(OverlayRangeScratch);
-    return scratch->dx + scratch->dz >= scratch->r;
+    return scratch->dx + scratch->dz >= scratch->radius;
 }
 
 /// Tells the player task that `ctx` touched it, packing the pair with `mode`.

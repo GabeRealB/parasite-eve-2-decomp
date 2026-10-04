@@ -6976,12 +6976,12 @@ static __inline__ s32 Actor403000_Outside(SVECTOR* v, s32 r)
     SCRATCH_STACK_CURSOR(OverlayRangeScratch) = s;
     s->dx                                     = v->vx;
     s->dz                                     = v->vz;
-    s->r                                      = r;
+    s->radius                                 = r;
     s->dx                                    *= s->dx;
     s->dz                                    *= s->dz;
-    s->r                                     *= s->r;
+    s->radius                                *= s->radius;
     SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head;
-    return (s->dx + s->dz) >= s->r;
+    return (s->dx + s->dz) >= s->radius;
 }
 
 static void func_actor_403000_8013B74C(Task* arg0)
