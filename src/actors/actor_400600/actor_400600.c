@@ -57,20 +57,6 @@
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
-/// The word at `Actor400600Work::field_710`. Its low half is a frame countdown
-/// (`func_actor_400600_80138AB8` ticks it down, `func_actor_400600_8013C074`
-/// seeds it from the LCG); its high half is a flag halfword.
-/// `func_actor_400600_8013892C` tests bit 0 of `flags` on its own and then the
-/// whole word against `0x01020000`, so both views are modelled explicitly.
-typedef union Actor400600Timer {
-    /* 0x0 */ s32 word;
-    struct {
-        /* 0x0 */ s16 timer;
-        /* 0x2 */ u16 flags;
-    } h;
-} Actor400600Timer;
-STATIC_ASSERT_SIZEOF(Actor400600Timer, 0x4);
-
 /// Per-actor state block for the `actor_400600` overlay.
 ///
 /// `func_actor_400600_80133434` allocates it with `memCalloc(0x770)` and
@@ -101,29 +87,30 @@ typedef struct Actor400600Work {
     /* 0x0B0 */ AnimationContext      anim;     // slots 1..0x11 reset by stalkerZebraIvoryRestartClip
     /* 0x0C4 */ AnimationSlot         slots[0x12];
     /* 0x394 */ byte                  pad_394[0x120];
-    /* 0x4B4 */ WorldCollisionBody    obj_4B4;            // collision node; flags bit 0x8000 cleared
-    /* 0x4D4 */ WorldCollisionContact rec_4D4[8];         // occupancy cleared by func_actor_400600_80138D78
-    /* 0x594 */ WorldCollisionBody    obj_594;            // collision node; flags bit 0x8000 cleared
-    /* 0x5B4 */ WorldCollisionContact rec_5B4[1];         // obj_594's table (flags kind 1)
-    /* 0x5CC */ WorldCollisionBody    obj_5CC;            // collision node; flags bit 0x8000 cleared
-    /* 0x5EC */ WorldCollisionContact rec_5EC[1];         // obj_5CC's table (flags kind 1)
-    /* 0x604 */ WorldCollisionBody    capsuleBody;        // collision node; flags bit 0x4000 cleared
-    /* 0x624 */ WorldCollisionCapsule capsule;            // capsuleBody's payload (flags kind 3)
-    /* 0x63C */ WorldCollisionContact capsuleContacts[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x6FC */ EffectSpawnArg        eff_6FC;            // fourth model part's coordinate
-    /* 0x704 */ Task*                 field_704;          // child task, killed on death
-    /* 0x708 */ Task*                 field_708;          // child task, killed on death
+    /* 0x4B4 */ WorldCollisionBody    obj_4B4;                // collision node; flags bit 0x8000 cleared
+    /* 0x4D4 */ WorldCollisionContact rec_4D4[8];             // occupancy cleared by func_actor_400600_80138D78
+    /* 0x594 */ WorldCollisionBody    obj_594;                // collision node; flags bit 0x8000 cleared
+    /* 0x5B4 */ WorldCollisionContact rec_5B4[1];             // obj_594's table (flags kind 1)
+    /* 0x5CC */ WorldCollisionBody    obj_5CC;                // collision node; flags bit 0x8000 cleared
+    /* 0x5EC */ WorldCollisionContact rec_5EC[1];             // obj_5CC's table (flags kind 1)
+    /* 0x604 */ WorldCollisionBody    capsuleBody;            // collision node; flags bit 0x4000 cleared
+    /* 0x624 */ WorldCollisionCapsule capsule;                // capsuleBody's payload (flags kind 3)
+    /* 0x63C */ WorldCollisionContact capsuleContacts[8];     // occupancy cleared by func_actor_400600_80138D78
+    /* 0x6FC */ EffectSpawnArg        eff_6FC;                // fourth model part's coordinate
+    /* 0x704 */ Task*                 field_704;              // child task, killed on death
+    /* 0x708 */ Task*                 field_708;              // child task, killed on death
     /* 0x70C */ byte                  pad_70C[0x4];
-    /* 0x710 */ Actor400600Timer      field_710;
-    /* 0x714 */ s16                   field_714; // reset to 0x1000 on death
-    /* 0x716 */ u16                   field_716; // frame counter, bumped by func_actor_400600_80138D78
-    /* 0x718 */ u16                   field_718; // per-state frame counter
+    /* 0x710 */ s16                   ceilingCooldown;        // frames left before it may next jump to the ceiling or start a move from it; set to 210..241 as each jump up and drop ends
+    /* 0x712 */ u16                   previousAnimationFlags; // slot 1's ANIMATION_SLOT_* results as the last running update's tick left them
+    /* 0x714 */ s16                   field_714;              // reset to 0x1000 on death
+    /* 0x716 */ u16                   field_716;              // frame counter, bumped by func_actor_400600_80138D78
+    /* 0x718 */ u16                   field_718;              // per-state frame counter
     /* 0x71A */ s16                   field_71A;
-    /* 0x71C */ u16                   state;     // state index
-    /* 0x71E */ u16                   subState;  // sub-state index
+    /* 0x71C */ u16                   state;                  // state index
+    /* 0x71E */ u16                   subState;               // sub-state index
     /* 0x720 */ s16                   animBlend;
-    /* 0x722 */ s16                   field_722; // velocity step (can go negative)
-    /* 0x724 */ s16                   field_724; // accumulated step
+    /* 0x722 */ s16                   field_722;              // velocity step (can go negative)
+    /* 0x724 */ s16                   field_724;              // accumulated step
     /* 0x726 */ s16                   animStep;
     /* 0x728 */ s16                   playerDistance;
     /* 0x72A */ u16                   field_72A;
@@ -2256,7 +2243,7 @@ static void func_actor_400600_801337A8(Task* arg0)
             func_actor_400600_80137840(arg0);
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryTickAnimInline(arg0);
-            work->field_710.h.flags = work->slots[1].status.fields.flags;
+            work->previousAnimationFlags = work->slots[1].status.fields.flags;
             stalkerZebraIvoryApplyRotationInline(arg0);
             func_actor_400600_80136968(arg0);
             if (enemy->hp <= 0 && (u8)work->holding == 0) {
@@ -2810,12 +2797,12 @@ static void func_actor_400600_80135450(Task* arg0)
         work->field_718++;
     }
     if ((stalkerZebraIvoryTakePending(arg0) << 0x10) == 0 && (stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
-        rnd                     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        gRandomLcgState         = rnd;
-        work->field_710.h.timer = ((rnd >> 0x10) & 0x1F) + 0xD2;
-        work2                   = (Actor400600Work*)arg0->work;
-        work2->state            = 2;
-        work2->subState         = 0;
+        rnd                   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState       = rnd;
+        work->ceilingCooldown = ((rnd >> 0x10) & 0x1F) + 0xD2;
+        work2                 = (Actor400600Work*)arg0->work;
+        work2->state          = 2;
+        work2->subState       = 0;
     }
 }
 
@@ -3859,7 +3846,7 @@ static s32 func_actor_400600_80137C34(Task* arg0)
             }
             if (work->onCeiling == 0) {
                 if ((rnd & 0xF) == 0) {
-                    if (!(arg0->spawnArg1.value & 1) && work->field_710.h.timer == 0) {
+                    if (!(arg0->spawnArg1.value & 1) && work->ceilingCooldown == 0) {
                         func_actor_400600_80137498(arg0, 2);
                         work->field_76D = 1;
                     }
@@ -3887,14 +3874,14 @@ static s32 func_actor_400600_80137C34(Task* arg0)
                     }
                 }
             } else if ((rnd & 7) == 0) {
-                if (work->field_710.h.timer == 0) {
+                if (work->ceilingCooldown == 0) {
                     work2           = (Actor400600Work*)arg0->work;
                     work2->state    = 0x10;
                     work2->subState = 0;
                     return 1;
                 }
             } else if ((rnd & 0xF) == 1) {
-                if (work->field_710.h.timer == 0) {
+                if (work->ceilingCooldown == 0) {
                     work2           = (Actor400600Work*)arg0->work;
                     work2->state    = 0xD;
                     work2->subState = 0;
@@ -4099,8 +4086,9 @@ static s32 func_actor_400600_8013892C(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    if ((work->field_710.h.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->field_710.word & ((ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED) << 16))) {
+    if ((work->previousAnimationFlags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->previousAnimationFlags & ANIMATION_SLOT_FOLLOWED_JUMP) ||
+        (work->previousAnimationFlags & ANIMATION_SLOT_SETTLED)) {
         return 1;
     }
     return 0;
@@ -4152,8 +4140,8 @@ static void func_actor_400600_80138AB8(Task* arg0)
     if (work->timer > 0) {
         work->timer = (u16)work->timer - 1;
     }
-    if (work->field_710.h.timer > 0) {
-        work->field_710.h.timer = (u16)work->field_710.h.timer - 1;
+    if (work->ceilingCooldown > 0) {
+        work->ceilingCooldown--;
     }
 }
 
@@ -5535,12 +5523,12 @@ static void func_actor_400600_8013C074(Task* arg0)
 
     work = (Actor400600Work*)arg0->work;
     if (((stalkerZebraIvoryTakePending(arg0) << 0x10) == 0) && ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0)) {
-        rnd                     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        gRandomLcgState         = rnd;
-        work->field_710.h.timer = ((rnd >> 0x10) & 0x1F) + 0xD2;
-        work2                   = (Actor400600Work*)arg0->work;
-        work2->state            = 2;
-        work2->subState         = 0;
+        rnd                   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState       = rnd;
+        work->ceilingCooldown = ((rnd >> 0x10) & 0x1F) + 0xD2;
+        work2                 = (Actor400600Work*)arg0->work;
+        work2->state          = 2;
+        work2->subState       = 0;
     }
 }
 
