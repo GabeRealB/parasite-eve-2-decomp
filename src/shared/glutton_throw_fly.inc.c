@@ -1,7 +1,7 @@
 /* Part of the Glutton library; see glutton.h. */
 
 /// Flight step of the seized player's model: carry it along the model's own
-/// forward axis until it lands. `field_1A8` (the dispatcher's state-changed
+/// forward axis until it lands. `stateChanged` (the dispatcher's state-changed
 /// flag) re-arms the step counter, the ground marker and the first display
 /// node on the frame the state starts.
 ///
@@ -19,11 +19,11 @@
 /// overlay is shutting down or the host actor has left the grab states.
 void gluttonThrowFly(Enemy* enemy, Task* task)
 {
-    GluttonGrabWork* work;
-    GluttonWork*     host;
-    Enemy*           owner;
-    u8*              head;
-    SVECTOR*         dir;
+    GluttonProjectileWork* work;
+    GluttonWork*           host;
+    Enemy*                 owner;
+    u8*                    head;
+    SVECTOR*               dir;
     /// Second live alias of `dir`: the GTE operand is kept in its own register
     /// for the whole function, which is what gives this function its seventh
     /// callee-saved slot.
@@ -36,7 +36,7 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
     if (gGluttonEnded == 1 || host->state == 0x10 || host->state == 5 ||
         host->state == 0xC || host->state == 0x12) {
         task->state++;
-        Gp_UnlinkObj(&work->obj0);
+        Gp_UnlinkObj(&work->attackBody);
         return;
     }
 
@@ -45,16 +45,16 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
     SCRATCH_STACK_CURSOR(SVECTOR) = dir;
     gteDir                        = dir;
 
-    if (work->field_1A8 != 0) {
-        work->field_1AC      = 0;
-        work->field_1B0      = 0x400;
-        work->field_1A8      = 0;
-        work->rec0.key.value = 0;
-        work->obj0.flags    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    if (work->stateChanged != 0) {
+        work->stateTicks                  = 0;
+        work->shadowGrowth                = 0x400;
+        work->stateChanged                = 0;
+        work->attackContacts[0].key.value = 0;
+        work->attackBody.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        work->field_1AC++;
+        work->stateTicks++;
         task->extra.tmd->coords->coord.t[1] += 0xA;
 
         gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, dir);
@@ -66,42 +66,42 @@ void gluttonThrowFly(Enemy* enemy, Task* task)
 
         task->extra.tmd->coords->coord.t[0] += dir->vx;
         task->extra.tmd->coords->coord.t[1] += dir->vy;
-        if (work->field_1AC >= 0x29) {
+        if (work->stateTicks >= 0x29) {
             task->extra.tmd->coords->coord.t[1] = -0x3E8;
         }
         task->extra.tmd->coords->coord.t[2]  += dir->vz;
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-        work->field_1B0 += 0x60;
-        Gp_ClearRec18Occupied(&work->rec0);
+        work->shadowGrowth += 0x60;
+        Gp_ClearRec18Occupied(work->attackContacts);
 
-        work->coord.parent = &gGfxViewCoord;
-        gfxRotMatrixY(&work->coord.coord, 0, 1);
-        work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
-        work->coord.coord.t[1]   = 0;
-        work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
-        work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->coord);
+        work->shadowCoord.parent = &gGfxViewCoord;
+        gfxRotMatrixY(&work->shadowCoord.coord, 0, 1);
+        work->shadowCoord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
+        work->shadowCoord.coord.t[1]   = 0;
+        work->shadowCoord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
+        work->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+        Gp_UpdateCoord(&work->shadowCoord);
 
-        Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->coord.workm), ((s16)work->field_1B0 >> 3) + 0x100,
+        Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + 0x100,
                              gRoomEffectState->groundShadowShade);
 
-        if (work->field_1AC >= 0x35) {
-            Gp_UnlinkObj(&work->obj0);
+        if (work->stateTicks >= 0x35) {
+            Gp_UnlinkObj(&work->attackBody);
             task->state++;
-            work->field_1A8 = 1;
+            work->stateChanged = 1;
         }
     } else {
-        work->coord.parent = &gGfxViewCoord;
-        gfxRotMatrixY(&work->coord.coord, 0, 1);
-        work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
-        work->coord.coord.t[1]   = 0;
-        work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
-        work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&work->coord);
+        work->shadowCoord.parent = &gGfxViewCoord;
+        gfxRotMatrixY(&work->shadowCoord.coord, 0, 1);
+        work->shadowCoord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
+        work->shadowCoord.coord.t[1]   = 0;
+        work->shadowCoord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
+        work->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+        Gp_UpdateCoord(&work->shadowCoord);
 
         if (host->phase != 6) {
-            Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->coord.workm), ((s16)work->field_1B0 >> 3) + 0x100,
+            Gp_DrawEffGroundQuad(MATRIX_TRANS(&work->shadowCoord.workm), (work->shadowGrowth >> 3) + 0x100,
                                  gRoomEffectState->groundShadowShade);
         }
     }

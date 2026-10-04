@@ -156,58 +156,41 @@ typedef struct GluttonEffScratch {
 } GluttonEffScratch;
 STATIC_ASSERT_SIZEOF(GluttonEffScratch, 0x10);
 
-/// Work block of the enemies spawned through `D_actor_403200_80131E90`,
-/// `D_actor_403200_80131E9C` and `D_actor_403200_80131F04`: their spawn states
-/// allocate it with `memCalloc(0x1C0, 0)` and park it in the task's
-/// `Task::work` slot, so the size below is the allocation, not a guess.
+/// Work block shared by three of the projectiles the Glutton flings: the
+/// thrown hit sphere, the glob and the debris chunk.
 ///
-/// The spawn states drop the model onto the view coordinate and hang one or two
-/// `WorldCollisionBody` collision bodies off it. `rec0` is the table the first node carries,
-/// `rec1` the second's; the two matrices are handed out through the task's
-/// `TmdObject::lightMtx` / `colorMtx`. `field_1AA` is a ninth of the model's
-/// height and `field_1AC` the step counter, both re-read by the states that
-/// follow the spawn.
-typedef struct GluttonGrabWork {
-    /// Horizontal gap to the player, a fifteenth of which the later states add
-    /// to the model each step; only `vx` and `vz` are filled in here.
-    VECTOR3 vel;
-    byte    pad_C[0x54];
-    /// The work block's own coordinate, parented to the view coordinate and
-    /// kept tracking the model's world position so the ground marker under it
-    /// can be drawn from `coord.workm.t`.
-    GfxCoord coord;
-    /// The two collision bodies on object lists 3 and 2.
-    WorldCollisionBody obj0;
-    WorldCollisionBody obj1;
-    /// Their collision-record tables.
-    WorldCollisionContact rec0;
-    WorldCollisionContact rec1;
-    byte                  pad_120[0x30];
-    /// The colour and light matrices borrowed through the task's
-    /// `TmdObject::colorMtx` and `TmdObject::lightMtx`.
-    MATRIX colorMtx;
-    MATRIX lightMtx;
-    byte   pad_190[0x4];
-    /// Message 0x3FF payload the hold states send the player, by address.
-    AnimationPlayRequest anim;
-    /// Armed to 1 by the spawn state `func_actor_403200_8013509C` once the
-    /// model has been stood up on its escort's part 1; the states that follow
-    /// re-arm the step counter and the first display node on the tick they see
-    /// it set. Same slot and role as `GluttonGrabWork::field_1A8`.
-    s16  field_1A8;
-    s16  field_1AA;
-    s16  field_1AC;
-    byte pad_1AE[0x2];
-    /// Radius of the ground marker, in eighths once shifted down.
-    u16 field_1B0;
-    /// Set while the player animation this enemy sent is installed, so only
-    /// the state that set it sends the cancel.
-    s16 field_1B2;
-    /// The state the dispatcher last ran, so it can spot a change.
-    s16  field_1B4;
-    byte pad_1B6[0xA];
-} GluttonGrabWork;
-STATIC_ASSERT_SIZEOF(GluttonGrabWork, 0x1C0);
+/// Each is an enemy task of its own running a table of state handlers. Its
+/// spawn state allocates the block zeroed at this size and keeps it at
+/// `Task::work`; the states after it time themselves on `stateTicks` and set
+/// themselves up on the tick `stateChanged` is raised. The glob and the chunk
+/// are lobbed at where the player stood: the model drops `fallStep` a tick
+/// while it covers an equal share of `travel`, so it lands on that spot.
+///
+/// No projectile uses every member. The thrown sphere has the attack body and
+/// the ground shadow, the glob the lighting matrices and the player request,
+/// and the chunk both bodies and the lighting matrices.
+typedef struct {
+    VECTOR3               travel;            // Horizontal offset from the launch point to the player, covered in equal shares as the model falls; a settling chunk cuts it to one share and halves it each tick as its slide. A wall contact zeroes it; `vy` stays 0
+    byte                  unknown_C[0x54];   // Never accessed; role unproven
+    GfxCoord              shadowCoord;       // Node under the view coordinate, kept on the floor below the thrown sphere; its ground shadow is drawn there
+    WorldCollisionBody    attackBody;        // Pair-tested sphere riding the model, keyed with one of the owner's attacks
+    WorldCollisionBody    gridBody;          // Sphere riding the model that is tested against the room grid, so a wall stops the chunk
+    WorldCollisionContact attackContacts[1]; // The attack body's own contact table
+    WorldCollisionContact gridContacts[3];   // The grid body's own contact table
+    MATRIX                colorMtx;          // Light-colour matrix lent to the model
+    MATRIX                lightMtx;          // Light-direction matrix lent to the model
+    byte                  unknown_190[0x4];  // Never accessed; role unproven
+    AnimationPlayRequest  playerAnim;        // Request sent to the player task to play its caught clips
+    s16                   stateChanged;      // 1 on the tick a state is entered, otherwise 0. The glob's and the chunk's dispatchers derive it from `prevState`; the thrown sphere's states raise and clear it themselves
+    s16                   fallStep;          // Launch height divided by the ticks the fall takes (15 for the glob, 9 for the chunk); its magnitude is added to the model's y each tick
+    s16                   stateTicks;        // Ticks spent in the current state; cleared on entry
+    byte                  unknown_1AE[0x2];  // Never accessed; role unproven
+    s16                   shadowGrowth;      // How far the ground shadow has spread, in eighths of a size unit on top of its base 0x100; starts at 0x400 and gains 0x60 a tick
+    s16                   playerCaught;      // 1 while the caught clip this glob installed is on the player, so only that glob sends the release
+    s16                   prevState;         // Task state as of the previous tick, kept by the glob's and the chunk's dispatchers
+    byte                  unknown_1B6[0xA];  // Never accessed; role unproven
+} GluttonProjectileWork;
+STATIC_ASSERT_SIZEOF(GluttonProjectileWork, 0x1C0);
 
 /// Work block of the enemy dispatched through `D_actor_403200_80131F14`, the one
 /// that rises out of view and slams back down onto the floor. Its spawn state

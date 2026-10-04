@@ -126,24 +126,6 @@ typedef struct Actor444000RunScratch {
 } Actor444000RunScratch;
 STATIC_ASSERT_SIZEOF(Actor444000RunScratch, 0x2C);
 
-/// Work block of the enemy dispatched through `gGluttonChunkStates` --
-/// named for that table because the creature itself is not identified yet.
-/// `gluttonChunkSpawn` allocates it with `memCalloc(0x1C0, 0)` and
-/// parks it in that task's `Task::work` slot, so the size is anchored rather
-/// than guessed.
-///
-/// The two named fields are the pair the dispatcher
-/// `gluttonChunkTask` keeps: `field_1B4` is the state it last ran and
-/// `field_1A8` the flag it sets when that state has changed since.
-typedef struct Actor444000F0CWork {
-    /* 0x000 */ byte pad_0[0x1A8];
-    /* 0x1A8 */ s16  field_1A8; // set when the dispatcher sees the state change, cleared when it has not
-    /* 0x1AA */ byte pad_1AA[0xA];
-    /* 0x1B4 */ s16  field_1B4; // the state the dispatcher last ran, so it can spot the change
-    /* 0x1B6 */ byte pad_1B6[0xA];
-} Actor444000F0CWork;
-STATIC_ASSERT_SIZEOF(Actor444000F0CWork, 0x1C0);
-
 /// 0x4C-byte scratchpad frame `func_actor_444000_8013EC84` carves off
 /// the scratch stack for the escort-order tick. `delta` is the player-relative
 /// offset in the arena plane whose length is `dist` -- under 0xB54 the player is

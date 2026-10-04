@@ -12,44 +12,44 @@
 /// model's own `workm` translation is handed to `Gp_UpdateActorColor`.
 void gluttonChunkSettle(Enemy* enemy, Task* task)
 {
-    GluttonGrabWork* work = task->work;
-    VECTOR           pos;
-    s16              step;
+    GluttonProjectileWork* work = task->work;
+    VECTOR                 pos;
+    s16                    step;
 
     if (gGluttonEnded == 1) {
-        Gp_UnlinkObj(&work->obj0);
-        Gp_UnlinkObj(&work->obj1);
+        Gp_UnlinkObj(&work->attackBody);
+        Gp_UnlinkObj(&work->gridBody);
         enemyDestroy(enemy, task);
         return;
     }
 
-    if (work->field_1A8 != 0) {
-        work->field_1AC = 0;
-        work->vel.vx   /= 9;
-        work->vel.vz   /= 9;
+    if (work->stateChanged != 0) {
+        work->stateTicks = 0;
+        work->travel.vx /= 9;
+        work->travel.vz /= 9;
         Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
         Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-        work->obj1.flags      &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->obj0.flags      &= ~WORLD_COLLISION_BODY_PAIR_ENABLED;
-        task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+        work->gridBody.flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->attackBody.flags &= ~WORLD_COLLISION_BODY_PAIR_ENABLED;
+        task->extra.tmd->flags  = TMD_OBJECT_SEMI_TRANS;
     }
 
-    work->field_1AC++;
+    work->stateTicks++;
 
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
-        work->vel.vx = 0;
+        work->travel.vx = 0;
     }
 
-    if (work->field_1AC < 8) {
-        task->extra.tmd->coords->coord.t[0]  += work->vel.vx;
-        task->extra.tmd->coords->coord.t[2]  += work->vel.vz;
-        work->vel.vx                        >>= 1;
-        work->vel.vz                        >>= 1;
+    if (work->stateTicks < 8) {
+        task->extra.tmd->coords->coord.t[0]  += work->travel.vx;
+        task->extra.tmd->coords->coord.t[2]  += work->travel.vz;
+        work->travel.vx                     >>= 1;
+        work->travel.vz                     >>= 1;
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 
-    step = work->field_1AC - 1;
+    step = work->stateTicks - 1;
     switch (step) {
         case 3:
         case 7:
@@ -63,15 +63,15 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
             break;
     }
 
-    if (work->field_1AC >= 0x51) {
-        Gp_UnlinkObj(&work->obj0);
-        Gp_UnlinkObj(&work->obj1);
+    if (work->stateTicks >= 0x51) {
+        Gp_UnlinkObj(&work->attackBody);
+        Gp_UnlinkObj(&work->gridBody);
         task->state++;
     }
 
-    if (work->field_1AC < 0x51) {
-        Gp_ClearRec18Occupied(&work->rec1);
-        Gp_ClearRec18Occupied(&work->rec0);
+    if (work->stateTicks < 0x51) {
+        Gp_ClearRec18Occupied(work->gridContacts);
+        Gp_ClearRec18Occupied(work->attackContacts);
     }
 
     pos.vx = task->extra.tmd->coords->workm.t[0];

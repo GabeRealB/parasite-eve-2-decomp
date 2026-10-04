@@ -48641,7 +48641,7 @@ so whichever sorts first takes `$s0`, and `allocno_compare` ranks by
 
 ```c
 if (D_actor_444000_80144A68 == 1 ||
-    (work = memCalloc(sizeof(GluttonGrabWork), false), task->field_1C = work, work == NULL)) {
+    (work = memCalloc(sizeof(GluttonProjectileWork), false), task->field_1C = work, work == NULL)) {
     enemyDestroy(enemy, (Task*)task);
     return;
 }
@@ -48658,7 +48658,7 @@ if (D_actor_444000_80144A68 == 1) {
     return;
 }
 
-work           = memCalloc(sizeof(GluttonGrabWork), false);
+work           = memCalloc(sizeof(GluttonProjectileWork), false);
 task->field_1C = work;
 if (work == NULL) {
     enemyDestroy(enemy, (Task*)task);
@@ -72694,18 +72694,18 @@ and the `SImode` use then needs its own sign extension, so the block opens with
 three instructions instead of one.
 
 ```c
-s16 armed = work->field_1B2;      /* lhu $v0, 0x1b2($s0)     */
+s16 armed = work->playerCaught;   /* lhu $v0, 0x1b2($s0)     */
 if (armed != 1) { ... }           /* sll $v0,$v0,0x10        */
-work->anim.field_8 = armed;       /* sra $t1,$v0,0x10 ; beq  */
+work->playerAnim.blend = armed;   /* sra $t1,$v0,0x10 ; beq  */
 ```
 
 Widening the local makes the *load* the sign extension, and the one register
 then serves both uses:
 
 ```c
-s32 armed = work->field_1B2;      /* lh  $t1, 0x1b2($s0)     */
+s32 armed = work->playerCaught;   /* lh  $t1, 0x1b2($s0)     */
 if (armed != 1) { ... }           /* beq $t1,$v1             */
-work->anim.field_8 = armed;       /* sw  $t1, 0x19c($s0)     */
+work->playerAnim.blend = armed;   /* sw  $t1, 0x19c($s0)     */
 ```
 
 `func_actor_444000_801389EC` is the worked example: 96.27% with the `s16`
@@ -73520,10 +73520,10 @@ static __inline__ void helper(WorldCollisionBody* obj, ..., SVECTOR* pos)
 }
 ...
 vec.vx = vec.vy = vec.vz = 0;  /* written directly: sh zero, 0x10(sp) ... */
-helper(&work->obj0, ..., &vec);
+helper(&work->attackBody, ..., &vec);
 ```
 
-The helper's other pointer parameter shows the same way: `&work->obj0` living in
+The helper's other pointer parameter shows the same way: `&work->attackBody` living in
 `$s0` across the calls, with the fields written as `8(s0)` / `0xC(s0)` rather
 than `0xB8(s3)` / `0xBC(s3)` off the work block. That extra pseudo is also what
 gives the function its seventh callee-saved register, so the prologue's
@@ -111888,7 +111888,7 @@ diff <(norm asm/USA/actors/matchings/actor_444000/actor_444000_5/func_actor_4440
 That prints two lines, both the global's name, out of 258. Same instruction
 count, same registers, same delay slots: what is left is a transcription, not a
 search. Writing the sibling's source with this overlay's types
-(`GluttonGrabWork`, `host->escorts[0]`, `owner->task->work`)
+(`GluttonProjectileWork`, `host->escorts[0]`, `owner->task->work`)
 scored 100.000% with every penalty zero on the first real attempt.
 
 **Reading it.** Byte-identity is not the bar for porting; "different symbol

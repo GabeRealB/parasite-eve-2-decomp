@@ -16,23 +16,23 @@
 /// host actor has left the grab states, or the work block cannot be allocated.
 void gluttonThrowSpawn(Enemy* enemy, Task* task)
 {
-    GluttonGrabWork* work;
-    Enemy*           owner;
-    GluttonWork*     host;
-    SVECTOR          pos;
-    SVECTOR          vec;
+    GluttonProjectileWork* work;
+    Enemy*                 owner;
+    GluttonWork*           host;
+    SVECTOR                pos;
+    SVECTOR                vec;
 
     owner = task->parent->spawnArg2.pointer;
     host  = owner->task->work;
 
     if (gGluttonEnded == 1 || host->state == 0x10 || host->state == 5 ||
         host->state == 0xC || host->state == 0x12 ||
-        (work = memCalloc(sizeof(GluttonGrabWork), false), task->work = work, work == NULL)) {
+        (work = memCalloc(sizeof(GluttonProjectileWork), false), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
     }
 
-    work->field_1AC                 = 0;
+    work->stateTicks                = 0;
     task->extra.tmd->coords->parent = &gGfxViewCoord;
     task->extra.tmd->flags          = 0;
 
@@ -51,10 +51,11 @@ void gluttonThrowSpawn(Enemy* enemy, Task* task)
     Gp_UpdateCoord(task->extra.tmd->coords);
 
     pos.vx = pos.vy = pos.vz = 0;
-    actorLinkWorkObj(task->extra.tmd->coords, &work->obj0, &work->rec0, &pos, 0x394, 3, 1);
+    actorLinkWorkObj(task->extra.tmd->coords, &work->attackBody, work->attackContacts, &pos, 0x394, 3,
+                     ARRAY_SIZE(work->attackContacts));
 
-    work->obj0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->obj0.key    = Gp_PackObjPair(owner, 2);
-    work->field_1A8   = 1;
+    work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->attackBody.key    = Gp_PackObjPair(owner, 2);
+    work->stateChanged      = 1;
     task->state++;
 }

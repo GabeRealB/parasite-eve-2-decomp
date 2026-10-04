@@ -8,11 +8,11 @@
 /// model object's flag word rather than leaving it 2.
 void gluttonGlobTask(Task* arg0)
 {
-    EnemyTaskFuncTable5 sp;
-    GluttonGrabWork*    work;
+    EnemyTaskFuncTable5    sp;
+    GluttonProjectileWork* work;
 
     sp   = gGluttonGlobStates;
-    work = (GluttonGrabWork*)arg0->work;
+    work = arg0->work;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
@@ -27,12 +27,12 @@ void gluttonGlobTask(Task* arg0)
     }
 
     if (arg0->state != 0) {
-        if (work->field_1B4 != arg0->state) {
-            work->field_1A8 = 1;
+        if (work->prevState != arg0->state) {
+            work->stateChanged = 1;
         } else {
-            work->field_1A8 = 0;
+            work->stateChanged = 0;
         }
-        work->field_1B4 = arg0->state;
+        work->prevState = arg0->state;
     }
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }

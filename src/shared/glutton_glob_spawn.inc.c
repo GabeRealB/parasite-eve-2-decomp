@@ -9,8 +9,8 @@
 /// before the spawn cue is enqueued at the model's own pan and half its depth
 /// with the owner's id in its high half. The task's light and colour matrices
 /// are pointed into the work block, the translation is replaced by the world
-/// position of part 1 of escort 1's model, and `field_1AA` is a fifteenth of
-/// that height. `vel` is the horizontal gap to the player, which the later
+/// position of part 1 of escort 1's model, and `fallStep` is a fifteenth of
+/// that height. `travel` is the horizontal gap to the player, which the later
 /// states spend a fifteenth at a time. The rotation is finally rebuilt at half
 /// scale around the yaw the model already faces.
 ///
@@ -18,13 +18,13 @@
 /// the work block cannot be allocated.
 void gluttonGlobSpawn(Enemy* enemy, Task* task)
 {
-    GluttonGrabWork* work;
-    Enemy*           owner;
-    GluttonWork*     host;
-    Task*            player;
-    SVECTOR          vec;
-    s32              sfx;
-    s32              pan;
+    GluttonProjectileWork* work;
+    Enemy*                 owner;
+    GluttonWork*           host;
+    Task*                  player;
+    SVECTOR                vec;
+    s32                    sfx;
+    s32                    pan;
 
     owner  = task->parent->spawnArg2.pointer;
     host   = owner->task->work;
@@ -35,7 +35,7 @@ void gluttonGlobSpawn(Enemy* enemy, Task* task)
         return;
     }
 
-    work       = memCalloc(sizeof(GluttonGrabWork), false);
+    work       = memCalloc(sizeof(GluttonProjectileWork), false);
     task->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
@@ -66,14 +66,14 @@ void gluttonGlobSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->coords->coord.t[2]   = vec.vz;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    work->field_1AA = task->extra.tmd->coords->coord.t[1] / 15;
-    work->vel.vx =
+    work->fallStep = task->extra.tmd->coords->coord.t[1] / 15;
+    work->travel.vx =
         player->extra.tmd->coords->coord.t[0] - task->extra.tmd->coords->coord.t[0];
-    work->vel.vy = 0;
-    work->vel.vz =
+    work->travel.vy = 0;
+    work->travel.vz =
         player->extra.tmd->coords->coord.t[2] - task->extra.tmd->coords->coord.t[2];
-    work->field_1AC = 0;
-    work->field_1B2 = 0;
+    work->stateTicks   = 0;
+    work->playerCaught = 0;
 
     gluttonShrinkRotation(task->extra.tmd->coords);
     task->state++;

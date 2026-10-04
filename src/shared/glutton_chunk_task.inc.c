@@ -6,8 +6,8 @@
 /// The model object's flag word is left at 2 while the enemy runs.
 void gluttonChunkTask(Task* arg0)
 {
-    EnemyTaskFuncTable4 sp;
-    GluttonGrabWork*    work;
+    EnemyTaskFuncTable4    sp;
+    GluttonProjectileWork* work;
 
     sp = gGluttonChunkStates;
 
@@ -24,13 +24,13 @@ void gluttonChunkTask(Task* arg0)
     }
 
     if (arg0->work != NULL) {
-        work = (GluttonGrabWork*)arg0->work;
-        if (work->field_1B4 != arg0->state) {
-            work->field_1A8 = 1;
+        work = arg0->work;
+        if (work->prevState != arg0->state) {
+            work->stateChanged = 1;
         } else {
-            work->field_1A8 = 0;
+            work->stateChanged = 0;
         }
-        work->field_1B4 = arg0->state;
+        work->prevState = arg0->state;
     }
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
