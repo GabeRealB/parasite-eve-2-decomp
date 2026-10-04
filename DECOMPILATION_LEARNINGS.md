@@ -63845,16 +63845,19 @@ its source address, and the `high` reg dies one LUID later — so with the copy
 first in the body the `%hi` hoists only if the whole loop is at most 58 insns.
 A walking `u8* uv` with `uv[0]`, `uv[1]`, `uv += 2` reaches that, but then the
 walker's init is source-ordered and lands ahead of the hoisted invariants (next
-entry). Indexing the copy as a 2-D array instead
+entry). Indexing the copy by row instead - a 2-D array, or as here an array of
+`(u, v)` structs, which compiles the same -
 
 ```c
-typedef union { TextDrawReq req; struct { u8 pairs[8][2]; } uvs; } KeyIconReq;
+typedef struct { u8 u; u8 v; } _OptionsKeyIconUv;
+typedef struct { _OptionsKeyIconUv icons[8]; } _OptionsKeyIconUvs;
+typedef union { TextDrawReq labelRequest; _OptionsKeyIconUvs iconUvs; } _OptionsKeyConfigStackSlot;
 ...
 do {
-    last.uvs = Options_KeyIconUvs;        /* per-iteration copy: 1 insn + high */
+    sharedSlot.iconUvs = Options_KeyIconUvs;   /* per-iteration copy: 1 insn + high */
     ...
-    p->u0 = last.uvs.pairs[i][0];
-    p->v0 = last.uvs.pairs[i][1];         /* +1 folds into the mem offset */
+    p->u0 = sharedSlot.iconUvs.icons[i].u;
+    p->v0 = sharedSlot.iconUvs.icons[i].v;     /* +1 folds into the mem offset */
     ...
 } while (++i < 7);
 ```
@@ -147241,3 +147244,49 @@ So a zero displacement on a load whose index register was built as
 the record was indexed from its start. Name the positions with an enum rather
 than forcing members onto it; the union that used to give this record both a
 member view and a `shorts[8]` view existed only for this.
+
+## A block-scoped aggregate takes a slot an inlined helper released, but two block-scoped aggregates never share (func_options_801D4D0C, 2026-10-04)
+
+**Symptom.** The key configuration screen builds twelve 16-byte `TextDrawReq`
+records and one 16-byte glyph table in a frame with room for twelve: the table
+and the last request both sit at `sp+0xE0`. It is matched with a union at
+function scope (`_OptionsKeyConfigStackSlot`).
+
+**What the slots do.** Probed through the project's `cc1` with five small
+functions, then in the function itself:
+
+| form | result |
+|---|---|
+| aggregate locals of sibling blocks (`if`/`else` arms, two bare blocks, an `if` then a bare block, a larger one first, a smaller one first) | one slot each, never shared |
+| `static inline` helper with the record as its local, called repeatedly | every call takes the same slot, in or out of braces |
+| helper call, then a block-scoped aggregate of the same size | the local takes the slot the helper released |
+
+So with the last request made by an inlined helper and the table a
+`u8 uvs[8][2] = { ... }` local of the loop body, the frame is the target's
+0x120, the table lands at `0xE0`, and its constant is emitted in statement
+order - after the function's own strings, where the target has it. As
+block-scoped locals the same three objects take `0xE0`, `0xF0` and `0x100` and
+the frame is 0x140.
+
+**Why the union is still there.** Two things the helper form does not
+reproduce:
+
+- The helper's constant fields are stored through its frame base
+  (`sw s0,8(a0)`, `sb s1,13(a0)`), as the helper entry above describes, where
+  the target stores every field of this request `sp`-relative. `s32`
+  parameters make the byte stores `sp`-relative but load a fresh `li v0,1`
+  instead of sharing the enclosing function's `s1`, and the colour is still
+  stored through the base.
+- An initialised aggregate that is the *helper's* local has its constant
+  written out when the helper is compiled, ahead of everything the caller
+  emits. A table that follows the caller's strings in `.rodata` is therefore
+  not a helper's local.
+
+The second point generalises: the position of an initialiser's constant in
+`.rodata` says which function's body declared it.
+
+The earlier entry "Two payloads that never overlap share one stack slot:
+declare each in its own block" reports the opposite of the first row for
+`func_actor_120500_8013241C`; a probe of that shape (a 0x14 record inside a
+`case`'s `if`, a 0x10 one in a trailing bare block) gave two slots here. That
+function was not re-examined.

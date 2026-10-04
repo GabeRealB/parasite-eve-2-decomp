@@ -114,19 +114,39 @@ static UiObjectDesc D_options_801D5EFC = {
     0,
 };
 
-/// Key-icon UV pairs for the key configuration screen, one (u, v) per row.
+/// Top-left texel of one pad-button glyph, within the texture page the key
+/// configuration screen draws its icons from.
 typedef struct {
-    u8 pairs[8][2];
-} KeyIconUvs;
+    u8 u; // Texel column of the glyph's left edge
+    u8 v; // Texel row of the glyph's top edge
+} _OptionsKeyIconUv;
 
-/// The last text request's storage is reused as the per-row UV scratch buffer
-/// (both 16 bytes), which is what keeps the frame at 0x120.
+/// Pad-button glyph origins for the key configuration screen, in row order.
+///
+/// The screen draws one glyph beside each of its seven rows: entries 0..3 are
+/// the 15x15 glyphs of the first four rows and entries 4..6 the 15x8 glyphs of
+/// the last three. Entry 7 is stored but never drawn. The array is wrapped in a
+/// struct so the whole table can be copied by assignment.
+typedef struct {
+    _OptionsKeyIconUv icons[8];
+} _OptionsKeyIconUvs;
+STATIC_ASSERT_SIZEOF(_OptionsKeyIconUvs, 0x10);
+
+/// One 16-byte stack slot of the key configuration draw routine, used for two
+/// unrelated things in turn.
+///
+/// The routine's final label is drawn from `labelRequest`; once that draw has
+/// returned, each pass of the icon loop copies the glyph table into the same
+/// bytes as `iconUvs` and reads the row's entry back. Neither member is ever
+/// read through the other: the union states only that the two occupy one slot,
+/// which is what holds the routine's frame at its original size.
 typedef union {
-    TextDrawReq req;
-    KeyIconUvs  uvs;
-} KeyIconReq;
+    TextDrawReq        labelRequest;
+    _OptionsKeyIconUvs iconUvs;
+} _OptionsKeyConfigStackSlot;
+STATIC_ASSERT_SIZEOF(_OptionsKeyConfigStackSlot, 0x10);
 
-static const KeyIconUvs Options_KeyIconUvs;
+static const _OptionsKeyIconUvs Options_KeyIconUvs;
 
 static void func_options_801D4B64(Task* task);
 
@@ -498,49 +518,49 @@ static void func_options_801D4B64(Task* task)
 
 static void func_options_801D4D0C(Task* task)
 {
-    UiObject*   obj       = (UiObject*)task->spawnArg2.pointer;
-    u8*         labels[3] = { D_options_801D5C64, D_options_801D5C6C, D_options_801D5C74 };
-    u8*         runWalk;
-    TextDrawReq req0;
-    TextDrawReq req1;
-    TextDrawReq req2;
-    TextDrawReq req3;
-    TextDrawReq req4;
-    TextDrawReq req5;
-    TextDrawReq req6;
-    TextDrawReq req7;
-    TextDrawReq req8;
-    TextDrawReq req9;
-    TextDrawReq req10;
-    KeyIconReq  last;
-    s32         x;
-    s32         y;
-    s32         yHdr;
-    s32         y1;
-    s32         edge;
-    s32         base;
-    s32         xRight;
-    s32         status;
-    s32         status2;
-    s32         i;
-    s32         h;
-    s32         w;
-    s32         l1;
-    s32         r1;
-    s32         l2;
-    s32         r2;
-    s32         type;
-    s32         one;
-    s32         one2;
-    s32         one3;
-    s32         color;
-    s32         color2;
-    s32         two;
-    s32         textAlignment;
-    s32         walkMode;
-    s32         barY;
-    u8*         str;
-    SPRT*       p;
+    UiObject*                  obj       = (UiObject*)task->spawnArg2.pointer;
+    u8*                        labels[3] = { D_options_801D5C64, D_options_801D5C6C, D_options_801D5C74 };
+    u8*                        runWalk;
+    TextDrawReq                req0;
+    TextDrawReq                req1;
+    TextDrawReq                req2;
+    TextDrawReq                req3;
+    TextDrawReq                req4;
+    TextDrawReq                req5;
+    TextDrawReq                req6;
+    TextDrawReq                req7;
+    TextDrawReq                req8;
+    TextDrawReq                req9;
+    TextDrawReq                req10;
+    _OptionsKeyConfigStackSlot sharedSlot;
+    s32                        x;
+    s32                        y;
+    s32                        yHdr;
+    s32                        y1;
+    s32                        edge;
+    s32                        base;
+    s32                        xRight;
+    s32                        status;
+    s32                        status2;
+    s32                        i;
+    s32                        h;
+    s32                        w;
+    s32                        l1;
+    s32                        r1;
+    s32                        l2;
+    s32                        r2;
+    s32                        type;
+    s32                        one;
+    s32                        one2;
+    s32                        one3;
+    s32                        color;
+    s32                        color2;
+    s32                        two;
+    s32                        textAlignment;
+    s32                        walkMode;
+    s32                        barY;
+    u8*                        str;
+    SPRT*                      p;
 
     runWalk  = D_options_801D5C10;
     x        = obj->panel.contentTop.signedValue;
@@ -809,23 +829,23 @@ static void func_options_801D4D0C(Task* task)
     Text_DrawString(&req10, str);
 
     if (type != 2) {
-        last.req.x          = obj->panel.contentOriginX.unsignedValue + x;
-        last.req.y          = obj->panel.contentOriginY.unsignedValue + y;
-        last.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        last.req.colorRgb   = 0x606060;
-        last.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        last.req.alignment  = textAlignment;
-        last.req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&last.req, D_options_801D5C40);
+        sharedSlot.labelRequest.x          = obj->panel.contentOriginX.unsignedValue + x;
+        sharedSlot.labelRequest.y          = obj->panel.contentOriginY.unsignedValue + y;
+        sharedSlot.labelRequest.otIndex    = obj->panel.otIndex.signedValue + 1;
+        sharedSlot.labelRequest.colorRgb   = 0x606060;
+        sharedSlot.labelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        sharedSlot.labelRequest.alignment  = textAlignment;
+        sharedSlot.labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+        Text_DrawString(&sharedSlot.labelRequest, D_options_801D5C40);
     } else {
-        last.req.x          = obj->panel.contentOriginX.unsignedValue + ((obj->panel.contentRight.signedValue + 0x60 + obj->panel.contentLeft.signedValue) / 2);
-        last.req.y          = obj->panel.contentOriginY.unsignedValue + y;
-        last.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        last.req.colorRgb   = 0x606060;
-        last.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        last.req.alignment  = TEXT_ALIGNMENT_CENTER;
-        last.req.drawMode   = TEXT_DRAW_OUTLINED;
-        Text_DrawString(&last.req, D_options_801D5C2C);
+        sharedSlot.labelRequest.x          = obj->panel.contentOriginX.unsignedValue + ((obj->panel.contentRight.signedValue + 0x60 + obj->panel.contentLeft.signedValue) / 2);
+        sharedSlot.labelRequest.y          = obj->panel.contentOriginY.unsignedValue + y;
+        sharedSlot.labelRequest.otIndex    = obj->panel.otIndex.signedValue + 1;
+        sharedSlot.labelRequest.colorRgb   = 0x606060;
+        sharedSlot.labelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        sharedSlot.labelRequest.alignment  = TEXT_ALIGNMENT_CENTER;
+        sharedSlot.labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+        Text_DrawString(&sharedSlot.labelRequest, D_options_801D5C2C);
     }
 
     /* Key icons down the left edge: four 15x15 buttons, then three 15x8. */
@@ -833,13 +853,13 @@ static void func_options_801D4D0C(Task* task)
     x = obj->panel.contentLeft.signedValue + 2;
     i = 0;
     do {
-        last.uvs       = Options_KeyIconUvs;
-        w              = 0xF;
-        h              = 0xF;
-        p              = gGpuPrimCursor;
-        gGpuPrimCursor = p + 1;
-        p->y0          = y - 0xF;
-        p->x0          = x;
+        sharedSlot.iconUvs = Options_KeyIconUvs;
+        w                  = 0xF;
+        h                  = 0xF;
+        p                  = gGpuPrimCursor;
+        gGpuPrimCursor     = p + 1;
+        p->y0              = y - 0xF;
+        p->x0              = x;
         if (i >= 4) {
             h     = 8;
             p->y0 = y - 0xB;
@@ -847,8 +867,8 @@ static void func_options_801D4D0C(Task* task)
         y      += 0xF;
         p->w    = w;
         p->h    = h;
-        p->u0   = last.uvs.pairs[i][0];
-        p->v0   = last.uvs.pairs[i][1];
+        p->u0   = sharedSlot.iconUvs.icons[i].u;
+        p->v0   = sharedSlot.iconUvs.icons[i].v;
         p->clut = 0x3C00;
         setlen(p, 4);
         setcode(p, 0x65);
@@ -892,7 +912,7 @@ static void func_options_801D4D0C(Task* task)
 
 /* Defined after the function so its rodata follows the function's own
    constants (the label table and title string), as in the original layout. */
-static const KeyIconUvs Options_KeyIconUvs = { {
+static const _OptionsKeyIconUvs Options_KeyIconUvs = { {
     { 0x10, 0x60 },
     { 0x10, 0x70 },
     { 0x20, 0x60 },
