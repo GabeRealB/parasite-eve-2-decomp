@@ -75,7 +75,8 @@ enum {
     ACTOR_01200_STATE_DEATH_BURST   = 6, // entered when the hit points run out or a moving state's steering reports a blocking contact: plays animation 10 fast and bursts from tick 13
     ACTOR_01200_STATE_PATROL        = 7, // walks between the two `patrolPoints` on animation 2 until it notices the player; settles at random after 20 loops
     ACTOR_01200_STATE_RETURN        = 8, // walks back to `spawnPos` on animation 2, then patrols
-    ACTOR_01200_STATE_WALK_IN_PLACE = 9  // loops animation 2 without moving itself; entered only by actor command 4
+    ACTOR_01200_STATE_WALK_IN_PLACE = 9, // loops animation 2 without moving itself; entered only by actor command 4
+    ACTOR_01200_STATE_COUNT              // number of states, and of the handlers in `_Actor01200StateTable`
 };
 
 /// Work block of the package's enemy task.
@@ -144,11 +145,15 @@ STATIC_ASSERT_SIZEOF(_Actor01200Work, 0x3E0);
 STATIC_ASSERT(OFFSET_OF(_Actor01200Work, rig) == OFFSET_OF(AnimDriverWork, rig), Actor01200Work_rig);
 STATIC_ASSERT(OFFSET_OF(_Actor01200Work, driver) == OFFSET_OF(AnimDriverWork, state), Actor01200Work_driver);
 
-/// The ten `ACTOR_01200_STATE_*` handlers the tick copies onto its stack before
-/// dispatching.
-typedef struct Actor01200StateTable {
-    /* 0x00 */ EnemyTaskFunc fn[10];
-} Actor01200StateTable;
+/// The actor's state handlers, indexed by `_Actor01200Work::state`.
+///
+/// The package defines one table. The per-frame tick copies it to the stack
+/// before calling the entry of the current state with the enemy and its task.
+/// The call is unconditional and every entry is a handler.
+typedef struct {
+    EnemyTaskFunc handlers[ACTOR_01200_STATE_COUNT]; // Handler of each `ACTOR_01200_STATE_*`
+} _Actor01200StateTable;
+STATIC_ASSERT_SIZEOF(_Actor01200StateTable, ACTOR_01200_STATE_COUNT * sizeof(EnemyTaskFunc));
 
 extern EnemyParams               Actor01200_D04034;
 extern PadScriptCmd              Actor01200_D04044[3];
@@ -1506,7 +1511,7 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
-static const Actor01200StateTable Actor01200_D000E4 = {
+static const _Actor01200StateTable Actor01200_D000E4 = {
     {
         Actor01200_Fn03D58,
         Actor01200_Fn03DC0,
@@ -1526,12 +1531,12 @@ static const Actor01200StateTable Actor01200_D000E4 = {
 /// `_Actor01200Work::state` and plays its sound.
 static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
 {
-    VECTOR               pos;
-    Actor01200StateTable table;
-    _Actor01200Work*     work;
-    s32                  snd;
-    s32                  pan;
-    s32                  id;
+    VECTOR                pos;
+    _Actor01200StateTable table;
+    _Actor01200Work*      work;
+    s32                   snd;
+    s32                   pan;
+    s32                   id;
 
     work                                  = arg1->work;
     table                                 = Actor01200_D000E4;
@@ -1570,7 +1575,7 @@ static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
         work->stateEntered = 0;
     }
     work->prevState = work->state;
-    table.fn[work->state](arg0, arg1);
+    table.handlers[work->state](arg0, arg1);
     if (arg0->hp > 0) {
         Actor01200_Fn02918(arg0, arg1);
         if (arg0->hp <= 0) {
