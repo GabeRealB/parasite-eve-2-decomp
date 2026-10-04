@@ -46,61 +46,70 @@
 #include "../../shared/screen_fade.h"
 #include "../../shared/actor_messages.h"
 
-/// Work block this overlay hangs off `Task::work`; each pair at
-/// 0x4C0 and 0x4C8 is a request code plus its phase counter, reset together.
-/// `field_4DE` is a 0/1 latch: `func_actor_120300_80133E94` calls
-/// `Gp_SpawnWeaponEff` while it is set, clears it, then hands
-/// `Gp_MsgPlayerWeapon` the zero that follows.
+/// Values of `_Actor120300Work::interaction`: what the player's action button
+/// started.
+enum {
+    ACTOR_120300_INTERACTION_TALK   = 0, // action trigger 1: the next of the three talks `talkStage` counts through
+    ACTOR_120300_INTERACTION_REMARK = 1  // action trigger 2: one exchange during which the player looks toward the actor
+};
+
+/// Work block of Gary Douglas in Dryfield's garage.
 ///
-/// 0x4B8/0x4BC are `taskMessageDispatch` targets, not state:
-/// `func_actor_120300_80133D04` sends message 0x7D5 to the actor, to 0x4B8 and
-/// to 0x4BC in turn.
+/// The actor's task allocates it zeroed when it starts and keeps it at
+/// `Task::work`. It holds the body's animation rig, storage for the model's
+/// matrices, the tasks the scene addresses besides the body, and the state of
+/// the scene's choreography. The tasks of the head and rifle models allocate a
+/// block of this type as well and use only its `light` and `color`; they read
+/// `scale` from this one through the task that spawned them.
 ///
-/// The block opens with a 0x14-byte animation context and its twenty 0x28-byte
-/// animation slots. `memMalloc` is
-/// asked for 0x4E4 bytes -- the whole block -- by
-/// `func_actor_120300_80132004` and `func_actor_120300_801321C8`, while
-/// `func_actor_120300_80133330` walks slots 1..19 through `animationResetSlot`
-/// after parking 8 in `field_4D4`, then lifts the scale at `field_4E0` to
-/// 0x1000 once the actor is up.
-typedef struct Actor120300Work {
-    /* 0x000 */ ActorAnimRig20 rig;
-    /* 0x474 */ MATRIX         field_474; // light matrix, into TmdObject::lightMtx
-    /* 0x494 */ MATRIX         field_494; // colour matrix, into TmdObject::colorMtx
-    /* 0x4B4 */ Task*          field_4B4; // taskMessageDispatch target for msgs 0x3E8/0x3E9
-    /* 0x4B8 */ Task*          field_4B8;
-    /* 0x4BC */ Task*          field_4BC;
-    /* 0x4C0 */ s16            field_4C0;
-    /* 0x4C2 */ s16            field_4C2;
-    /* 0x4C4 */ u16            field_4C4; // phase countdown; request 9 advances once it reaches 0x10
-    /* 0x4C6 */ byte           pad_4C6[0x2];
-    /* 0x4C8 */ s16            field_4C8;
-    /* 0x4CA */ s16            field_4CA;
-    /* 0x4CC */ byte           pad_4CC[0x6];
-    /* 0x4D2 */ u16            field_4D2; // animation index sent with message 0x3F4
-    /* 0x4D4 */ u16            field_4D4; // animation id, indexed into the -1-terminated table below; written by func_actor_120300_80133330
-    /* 0x4D6 */ u16            field_4D6;
-    /* 0x4D8 */ u16            field_4D8;
-    /* 0x4DA */ u16            field_4DA;
-    /* 0x4DC */ s16            field_4DC; // facing, copied to and from the player's aim yaw
-    /* 0x4DE */ s16            field_4DE; // player-eff flag: Gp_SpawnWeaponEff
-    /* 0x4E0 */ s16            field_4E0; // uniform scale: broadcast to all three axes of a ScaleMatrix vector, so 0x1000 is 1.0
-    /* 0x4E2 */ byte           pad_4E2[0x2];
-} Actor120300Work;
-STATIC_ASSERT_SIZEOF(Actor120300Work, 0x4E4);
+/// The event scripts drive the scene by posting numbered requests: one for
+/// the player in `playerRequest` and one for the actor's body in
+/// `bodyRequest`. The tick performs a posted request once and clears it; a
+/// request that takes several ticks counts its stages in the step beside it
+/// and clears the request when it is done. Request 0 is none. Player request
+/// 20 is the exception: it keeps the player's aim on the actor until another
+/// request replaces it.
+///
+/// Angles are 4096ths of a turn. Timers count ticks. Nothing accesses the two
+/// `pad` runs; their roles are unproven.
+typedef struct {
+    ActorAnimRig20 rig;                    // playback of the body's parts; slots 1 to 19 are driven
+    MATRIX         light;                  // storage for the model's `TmdObject::lightMtx`
+    MATRIX         color;                  // storage for the model's `TmdObject::colorMtx`
+    Task*          playerTask;             // the player's task, which the player requests are sent to
+    Task*          headTask;               // child task drawing the head-and-hat model, which hangs from the body's part 4
+    Task*          rifleTask;              // child task drawing the rifle model: spawned hanging from the body's part 8, then set down at a fixed place in the room
+    u16            playerRequest;          // request posted for the player, 0 to 21 (0 none)
+    u16            playerRequestStep;      // stage of `playerRequest`, 0 when it is posted
+    u16            playerRequestFrames;    // ticks player request 9 has waited; it plays its animation on the sixteenth
+    byte           pad_4C6[0x2];           // never accessed
+    u16            bodyRequest;            // request posted for the actor's body, 0 to 19 (0 none)
+    u16            bodyRequestStep;        // stage of `bodyRequest`, 0 when it is posted
+    byte           pad_4CC[0x6];           // never accessed
+    u16            playerAnimation;        // animation last asked of the player, an index into the package's player animation sets; selects the animation that follows it
+    u16            bodyAnimation;          // animation the body's slots were last started on, an index into the package's animation sets; selects the animation that follows it
+    u16            talkStage;              // talks already held, which selects the script of the next (0 first, 1 second, 2 third and every one after); 1 from the start when the room is entered with the motel room 6 door unlocked
+    u16            interactionStep;        // stage of the running interaction (0 start its script, 1 wait for the script to end)
+    u16            interaction;            // `ACTOR_120300_INTERACTION_*`
+    s16            playerAimYaw;           // yaw player requests 20 and 21 step by 48 a tick and store to the player's `GameActor::aimYaw`
+    s16            playerEquipmentRemoved; // 1 from the scene killing the player's equipment tasks until it spawns the weapon's again (0 otherwise)
+    u16            scale;                  // scale of the body, head and rifle models on all three axes, 0x1000 for 1.0
+} _Actor120300Work;
+STATIC_ASSERT_SIZEOF(_Actor120300Work, 0x4E4);
 
 extern Task* D_actor_120300_80141BA8;
 
 /// The actor's five-entry task table, spawned from by index. Entries 2 and 3
-/// are the two tasks kept in `field_4B8`/`field_4BC`; entry 4 is the fade to
-/// black.
+/// are the child tasks kept in `_Actor120300Work::headTask` and
+/// `_Actor120300Work::rifleTask`; entry 4 is the fade to black.
 extern TaskDesc D_actor_120300_80141B6C[];
 
 extern AnimationSet* D_actor_120300_801408CC[];
 extern AnimationSet* D_actor_120300_80140910[19];
 extern s16           D_actor_120300_8014095C[];
 
-/// Animation id per `Actor120300Work::field_4D4`; -1 skips the restart.
+/// Animation that follows each `_Actor120300Work::anim` once it has settled;
+/// -1 skips the restart.
 extern s16 D_actor_120300_80140980[];
 
 extern s32 D_actor_120300_801409A8[6];
@@ -1321,40 +1330,41 @@ static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTO
 
 /// Ticks slots 1..19 of a task's animation context and, if every one of them
 /// then has `ANIMATION_SLOT_SETTLED` set, re-reads the work block and
-/// restarts all twenty slots on the id `D_actor_120300_80140980` selects for
-/// `field_4D4`, returning 1; a negative entry or an unset slot returns 0. The
-/// gotos reproduce retail's block layout.
+/// restarts slots 1..19 on the id `D_actor_120300_80140980` gives for the
+/// block's `bodyAnimation`, which it stores there; a negative entry restarts
+/// nothing. Returns 1 when every slot had settled and 0 otherwise. The gotos
+/// reproduce retail's block layout.
 static s32 func_actor_120300_80131EE0(Task* arg0)
 {
-    Actor120300Work* work;
-    Actor120300Work* animWork;
-    u16              anim;
-    u16              i;
-    u16              done;
+    _Actor120300Work* work;
+    _Actor120300Work* animWork;
+    u16               anim;
+    u16               i;
+    u16               done;
 
-    work = (Actor120300Work*)arg0->work;
-    for (i = 1; i < 0x14; i++) {
+    work = arg0->work;
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationTickSlot(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
-    for (; i < 0x14; i++) {
+    for (; i < ARRAY_SIZE(work->rig.slots); i++) {
         if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
             goto fail;
         }
     }
 check:
     if (done) {
-        if (D_actor_120300_80140980[work->field_4D4] >= 0) {
-            anim                = D_actor_120300_80140980[work->field_4D4];
-            animWork            = (Actor120300Work*)arg0->work;
-            animWork->field_4D4 = anim;
+        if (D_actor_120300_80140980[work->bodyAnimation] >= 0) {
+            anim                    = D_actor_120300_80140980[work->bodyAnimation];
+            animWork                = arg0->work;
+            animWork->bodyAnimation = anim;
             goto loop;
         fail:
             done = 0;
             goto check;
         loop:
-            for (i = 1; i < 0x14; i++) {
+            for (i = 1; i < ARRAY_SIZE(animWork->rig.slots); i++) {
                 animationSeekSlotWithBlend(&animWork->rig.anim, i, anim, 0, 10);
             }
         }
@@ -1368,9 +1378,9 @@ check:
 /// nonzero when the allocation failed.
 static inline s16 _actor120300InitChild(Task* arg0, s32 part)
 {
-    TmdObject*       tmd   = arg0->extra.tmd;
-    GfxCoord*        coord = tmd->coords;
-    Actor120300Work* work;
+    TmdObject*        tmd   = arg0->extra.tmd;
+    GfxCoord*         coord = tmd->coords;
+    _Actor120300Work* work;
 
     work       = memMalloc(sizeof(*work), false);
     arg0->work = work;
@@ -1381,21 +1391,21 @@ static inline s16 _actor120300InitChild(Task* arg0, s32 part)
     coord->parent          = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords + part;
     arg0->extra.tmd->flags = 0;
     Tmd_AllocBuffers(tmd);
-    tmd->lightMtx  = &work->field_474;
-    tmd->colorMtx  = &work->field_494;
+    tmd->lightMtx  = &work->light;
+    tmd->colorMtx  = &work->color;
     arg0->msgTable = D_actor_120300_80140A44;
     return 0;
 }
 
 /// Spawn tick of a child actor that keeps the model facing the player: state 0
-/// allocates the 0x4E4-byte `Actor120300Work` block, parks it in
+/// allocates a zeroed `_Actor120300Work` block, parks it in
 /// `Task::work`, points the model's light and colour matrices at the block's
-/// `field_474` / `field_494`, clears `TmdObject::flags` and anchors the root
+/// `lightMtx` / `colorMtx`, clears `TmdObject::flags` and anchors the root
 /// coordinate `parent` under part 4 of the spawning task's model
 /// (`Task::spawnArg2->extra`); a failed allocation kills the task instead of
 /// stepping to state 1. The texture page / CLUT row then come from the
 /// placement record at the nested area table's `field_0` list with resource-entry ID 0x6A (or the end record if that ID is absent). Every tick after that reads
-/// the parent work block's `field_4E0` and primes the colour matrix with the
+/// the parent work block's `scale` and primes the colour matrix with the
 /// root coordinate's own translation through `func_800D7A9C`, then replaces
 /// that translation with the parent scale broadcast over all three axes and
 /// folds it in with `ScaleMatrix`.
@@ -1426,25 +1436,25 @@ void func_actor_120300_80132004(Task* task)
         task->state += 1;
     }
     tmd2     = task->extra.tmd;
-    scaleRaw = ((Actor120300Work*)((Task*)task->spawnArg2.pointer)->work)->field_4E0;
+    scaleRaw = ((_Actor120300Work*)((Task*)task->spawnArg2.pointer)->work)->scale;
     vec.vx   = tmd2->coords->workm.t[0];
     vec.vy   = task->extra.tmd->coords->workm.t[1];
     vec.vz   = task->extra.tmd->coords->workm.t[2];
     func_800D7A9C(tmd2, &vec, 0, 3);
-    scale  = scaleRaw & 0xFFFF;
+    scale  = scaleRaw;
     vec.vz = scale;
     vec.vy = scale;
     vec.vx = scale;
     ScaleMatrix(tmd2->colorMtx, &vec);
 }
 
-/// Spawn tick of a child actor. State 0 allocates the 0x4E4-byte
-/// `Actor120300Work` block, parks it in `Task::work`, points the model's
-/// light and colour matrices at the block's `field_474` / `field_494`, clears
+/// Spawn tick of a child actor. State 0 allocates a zeroed
+/// `_Actor120300Work` block, parks it in `Task::work`, points the model's
+/// light and colour matrices at the block's `light` / `color`, clears
 /// `TmdObject::flags` and anchors the root coordinate `parent` under part 8 of
 /// the spawning task's model (`Task::spawnArg2->extra`). A failed allocation
 /// kills the task rather than stepping to state 1.
-/// Every later tick reads the parent work block's `field_4E0` and primes the
+/// Every later tick reads the parent work block's `scale` and primes the
 /// colour matrix with the root coordinate's own translation through
 /// `func_800D7A9C`, then replaces that translation with the parent scale
 /// broadcast over all three axes and folds it in with `ScaleMatrix`.
@@ -1463,34 +1473,34 @@ void func_actor_120300_801321C8(Task* arg0)
         arg0->state += 1;
     }
     tmd2     = arg0->extra.tmd;
-    scaleRaw = ((Actor120300Work*)((Task*)arg0->spawnArg2.pointer)->work)->field_4E0;
+    scaleRaw = ((_Actor120300Work*)((Task*)arg0->spawnArg2.pointer)->work)->scale;
     vec.vx   = tmd2->coords->workm.t[0];
     vec.vy   = arg0->extra.tmd->coords->workm.t[1];
     vec.vz   = arg0->extra.tmd->coords->workm.t[2];
     func_800D7A9C(tmd2, &vec, 0, 3);
-    scale  = scaleRaw & 0xFFFF;
+    scale  = scaleRaw;
     vec.vz = scale;
     vec.vy = scale;
     vec.vx = scale;
     ScaleMatrix(tmd2->colorMtx, &vec);
 }
 
-/// Records `anim` in `field_4D2` and sends the task at `field_4B4` message
-/// 0x3F4 to blend into animation `anim` of `D_actor_120300_801408CC`. Does
-/// nothing while that task is unset.
+/// Records `anim` in the block's `playerAnimation` and sends the player's task
+/// `ANIMATION_MESSAGE_INSTALL_AND_PLAY` to blend into animation `anim` of
+/// `D_actor_120300_801408CC`. Does nothing while `playerTask` is unset.
 static inline void _actor120300PlayAnim(Task* task, u16 anim)
 {
-    Actor120300Work*     work = (Actor120300Work*)task->work;
+    _Actor120300Work*    work = task->work;
     AnimationPlayRequest msg;
 
-    if (work->field_4B4 != NULL) {
+    if (work->playerTask != NULL) {
         msg.source.sets          = D_actor_120300_801408CC;
-        work->field_4D2          = anim;
+        work->playerAnimation    = anim;
         msg.animationId          = anim;
         msg.blend                = ANIMATION_BLEND_INTERPOLATE;
         msg.blendFrames          = 0xA;
         msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 
@@ -1498,17 +1508,17 @@ static inline void _actor120300PlayAnim(Task* task, u16 anim)
 /// its animation slots to `anim` instead of blending.
 static inline void _actor120300SetAnim(Task* task, u16 anim)
 {
-    Actor120300Work*     work = (Actor120300Work*)task->work;
+    _Actor120300Work*    work = task->work;
     AnimationPlayRequest msg;
 
-    if (work->field_4B4 != NULL) {
+    if (work->playerTask != NULL) {
         msg.source.sets          = D_actor_120300_801408CC;
-        work->field_4D2          = anim;
+        work->playerAnimation    = anim;
         msg.animationId          = anim;
         msg.blend                = ANIMATION_BLEND_RESET;
         msg.blendFrames          = 0;
         msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 
@@ -1531,37 +1541,39 @@ static inline void _actor120300SetAnim(Task* task, u16 anim)
         TASK_MESSAGE_DISPATCH_POINTER((target), ANIMATION_MESSAGE_PLAY, &request, 0);                                                \
     }
 
-/// Request handler for the code latched in `field_4C0`. While the session
-/// event state is set, a finished 0x3ED query advances `field_4D2` from
-/// `D_actor_120300_8014095C` and restarts that animation. The switch sends
-/// 0x3F4 animation payloads, 0x3E9 placement records and the 0x3E8 weapon
-/// record, then clears the request. Request 9 waits 0x10 ticks on
-/// `field_4C4` first; requests 20 and 21 step the facing in `field_4DC` by
-/// 0x30 towards the player's bearing or towards zero, copying it onto the
-/// player's aim yaw each tick.
+/// Performs the request posted in `playerRequest`. While the session event
+/// state is set and the player's animation has finished, it first plays the
+/// animation `D_actor_120300_8014095C` gives as the follower of
+/// `playerAnimation`.
+/// The switch sends the player animation requests, placements and the weapon
+/// animation, then clears the request. Request 9 counts 16 ticks in
+/// `playerRequestFrames` first. Request 20 steps `playerAimYaw` by 0x30 a tick
+/// toward the bearing between the actor and the player and request 21 steps it
+/// back to zero, each storing it to the player's aim yaw; 20 is not cleared
+/// here and holds the aim until another request is posted.
 static void func_actor_120300_80132338(Task* arg0)
 {
-    Actor120300Work* work;
-    GameActor*       player;
-    GfxCoord*        actorCoord;
-    GfxCoord*        playerCoord;
-    s32              dx;
-    s32              dz;
-    s32              diff;
-    s16              target;
-    s16              cur;
-    ActorTransform*  rec;
-    Task*            playerTask;
+    _Actor120300Work* work;
+    GameActor*        player;
+    GfxCoord*         actorCoord;
+    GfxCoord*         playerCoord;
+    s32               dx;
+    s32               dz;
+    s32               diff;
+    s16               target;
+    s16               cur;
+    ActorTransform*   rec;
+    Task*             playerTask;
 
-    work = (Actor120300Work*)arg0->work;
+    work = arg0->work;
     if (gGameSession->eventState != 0) {
-        if ((work->field_4B4 != NULL) && (taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0)) {
-            if (D_actor_120300_8014095C[work->field_4D2] >= 0) {
-                _actor120300PlayAnim(arg0, D_actor_120300_8014095C[work->field_4D2]);
+        if ((work->playerTask != NULL) && (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0)) {
+            if (D_actor_120300_8014095C[work->playerAnimation] >= 0) {
+                _actor120300PlayAnim(arg0, D_actor_120300_8014095C[work->playerAnimation]);
             }
         }
     }
-    switch ((u16)work->field_4C0) {
+    switch (work->playerRequest) {
         case 0:
             break;
         case 1:
@@ -1569,20 +1581,20 @@ static void func_actor_120300_80132338(Task* arg0)
             break;
         case 2:
             rec = &D_actor_120300_80140A54[6];
-            TASK_MESSAGE_DISPATCH_POINTER(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, rec, 0);
             /* Both views belong to the same placement table. */
-            TASK_MESSAGE_DISPATCH_POINTER(((Actor120300Work*)arg0->work)->field_4B4, 0x3F2, rec - 5, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, rec - 5, 0);
             break;
         case 3:
-            TASK_MESSAGE_DISPATCH_POINTER(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, &D_actor_120300_80140A54[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[1], 0);
             _actor120300SetAnim(arg0, 1);
             break;
         case 4:
             _actor120300PlayAnim(arg0, 2);
             break;
         case 5:
-            taskMessageDispatch(work->field_4B4, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, &D_actor_120300_80140A54[2], 0);
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[2], 0);
             _actor120300PlayAnim(arg0, 3);
             break;
         case 7:
@@ -1592,67 +1604,67 @@ static void func_actor_120300_80132338(Task* arg0)
             _actor120300PlayAnim(arg0, 6);
             break;
         case 9:
-            switch ((u16)work->field_4C2) {
+            switch (work->playerRequestStep) {
                 case 0:
-                    work->field_4C4 = 0;
-                    work->field_4C2++;
+                    work->playerRequestFrames = 0;
+                    work->playerRequestStep++;
                     break;
                 case 1:
-                    if (++work->field_4C4 >= 0x10) {
+                    if (++work->playerRequestFrames >= 0x10) {
                         _actor120300PlayAnim(arg0, 7);
-                        work->field_4C0 = 0;
+                        work->playerRequest = 0;
                     }
                     break;
             }
             return;
         case 10:
             _actor120300PlayAnim(arg0, 8);
-            taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
             break;
         case 11:
-            TASK_MESSAGE_DISPATCH_POINTER(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, &D_actor_120300_80140A54[3], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[3], 0);
             _actor120300PlayAnim(arg0, 0xB);
-            taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
             break;
         case 12:
             _actor120300PlayAnim(arg0, 9);
-            taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_SET_RATE, 0x18, 0);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 0x18, 0);
             break;
         case 13:
-            TASK_MESSAGE_DISPATCH_POINTER(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, &D_actor_120300_80140A54[5], 0);
-            ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->field_4B4, 0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[5], 0);
+            ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->playerTask, 0, 0);
             break;
         case 14:
             _actor120300PlayAnim(arg0, 0xF);
-            taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
             break;
         case 15:
             _actor120300PlayAnim(arg0, 0xE);
-            taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
             break;
         case 16:
             _actor120300PlayAnim(arg0, 0xD);
-            taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
             break;
         case 17:
             _actor120300PlayAnim(arg0, 0xE);
-            taskMessageDispatch(work->field_4B4, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
             break;
         case 18:
-            ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->field_4B4, 1, 0xA);
+            ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->playerTask, 1, 0xA);
             break;
         case 19:
             _actor120300PlayAnim(arg0, 0x10);
             break;
         case 20:
-            playerTask  = work->field_4B4;
+            playerTask  = work->playerTask;
             actorCoord  = arg0->extra.tmd->coords;
             playerCoord = playerTask->extra.tmd->coords;
             player      = (GameActor*)playerTask->work;
-            switch ((u16)work->field_4C2) {
+            switch (work->playerRequestStep) {
                 case 0:
-                    work->field_4DC = player->aimYaw;
-                    work->field_4C2++;
+                    work->playerAimYaw = player->aimYaw;
+                    work->playerRequestStep++;
                     /* fallthrough */
                 case 1:
                     if (actorCoord->coord.t[0] > playerCoord->coord.t[0]) {
@@ -1663,41 +1675,41 @@ static void func_actor_120300_80132338(Task* arg0)
                         dz = (u16)actorCoord->coord.t[2] - (u16)playerCoord->coord.t[2];
                     }
                     target = ratan2((s16)dz, (s16)dx);
-                    cur    = work->field_4DC;
+                    cur    = work->playerAimYaw;
                     diff   = target - cur;
                     if (diff < 0) {
                         diff = -diff;
                     }
                     if (diff < 0x31) {
-                        work->field_4C2++;
+                        work->playerRequestStep++;
                     } else if (cur < target) {
-                        work->field_4DC = cur + 0x30;
+                        work->playerAimYaw = cur + 0x30;
                     } else {
-                        work->field_4DC = cur - 0x30;
+                        work->playerAimYaw = cur - 0x30;
                     }
                     /* fallthrough */
                 case 2:
-                    player->aimYaw = work->field_4DC;
+                    player->aimYaw = work->playerAimYaw;
                     return;
             }
             return;
         case 21: {
             GameActor* aim;
 
-            aim = (GameActor*)work->field_4B4->work;
-            if (ABS(work->field_4DC) < 0x31) {
-                work->field_4DC = 0;
-                work->field_4C0 = 0;
-            } else if (work->field_4DC < 0) {
-                work->field_4DC += 0x30;
+            aim = (GameActor*)work->playerTask->work;
+            if (ABS(work->playerAimYaw) < 0x31) {
+                work->playerAimYaw  = 0;
+                work->playerRequest = 0;
+            } else if (work->playerAimYaw < 0) {
+                work->playerAimYaw += 0x30;
             } else {
-                work->field_4DC -= 0x30;
+                work->playerAimYaw -= 0x30;
             }
-            aim->aimYaw = work->field_4DC;
+            aim->aimYaw = work->playerAimYaw;
             return;
         }
     }
-    work->field_4C0 = 0;
+    work->playerRequest = 0;
 }
 
 /// Cross-fades body slots 1..19 of `work`'s animation context to animation
@@ -1705,59 +1717,62 @@ static void func_actor_120300_80132338(Task* arg0)
 #define _ACTOR120300_BLEND_SLOTS(work, id, frames)                                \
     do {                                                                          \
         u16 _i;                                                                   \
-        for (_i = 1; _i < 0x14; _i++) {                                           \
+        for (_i = 1; _i < ARRAY_SIZE((work)->rig.slots); _i++) {                  \
             animationSeekSlotWithBlend(&(work)->rig.anim, _i, (id), 0, (frames)); \
         }                                                                         \
     } while (0)
 
-/// Parks `anim` in `field_4D4` and cross-fades every body slot to it over ten
-/// frames.
+/// Records `anim` in the block's `bodyAnimation` and cross-fades every body
+/// slot to it over ten frames.
 static inline void _actor120300BlendAll(Task* task, u16 anim)
 {
-    Actor120300Work* work = (Actor120300Work*)task->work;
+    _Actor120300Work* work = task->work;
 
-    work->field_4D4 = anim;
+    work->bodyAnimation = anim;
     _ACTOR120300_BLEND_SLOTS(work, anim, 10);
 }
 
-/// Parks `anim` in `field_4D4` and restarts every body slot on it at rate 0x10.
+/// Records `anim` in the block's `bodyAnimation` and restarts every body slot
+/// on it at rate 0x10.
 static inline void _actor120300ResetAll(Task* task, u16 anim)
 {
-    Actor120300Work* work = (Actor120300Work*)task->work;
-    u16              i;
+    _Actor120300Work* work = task->work;
+    u16               i;
 
-    work->field_4D4 = anim;
-    for (i = 1; i < 0x14; i++) {
+    work->bodyAnimation = anim;
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         work->rig.slots[i].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&work->rig.anim, i, anim);
     }
 }
 
-/// After `func_actor_120300_80131EE0`, runs the request at `field_4C8` (0..19):
-/// most codes park an animation id in `field_4D4` and walk slots 1..19 through
-/// `animationSeekSlotWithBlend` or `animationResetSlot`; a few also send message 0x7D4 or
-/// change `field_4E0`. Code 1 is two-phase, stepped by `field_4CA`: phase 1
-/// slides the model on X until `coord.t[0] < 0xF3D`. Every other code, and
-/// code 1 once the slide ends, clears `field_4C8`.
+/// After `func_actor_120300_80131EE0`, performs the request posted in
+/// `bodyRequest` (0..19): most start an animation on slots 1..19, recording it
+/// in `bodyAnimation`, through `animationSeekSlotWithBlend` or
+/// `animationResetSlot`; a few also place the body or the rifle with
+/// `ACTOR_MESSAGE_PLACE` or change `scale`. Request 1 has two stages, counted
+/// in `bodyRequestStep`: stage 1 slides the model on X until
+/// `coord.t[0] < 0xF3D`. Every other request, and request 1 once the slide
+/// ends, clears `bodyRequest`.
 static void func_actor_120300_80132C60(Task* arg0)
 {
-    TmdObject*       tmd;
-    GfxCoord*        coord;
-    Actor120300Work* work;
-    s32              x;
-    ActorTransform*  msg;
+    TmdObject*        tmd;
+    GfxCoord*         coord;
+    _Actor120300Work* work;
+    s32               x;
+    ActorTransform*   msg;
 
     tmd   = arg0->extra.tmd;
-    work  = (Actor120300Work*)arg0->work;
+    work  = arg0->work;
     coord = tmd->coords;
     func_actor_120300_80131EE0(arg0);
-    switch ((u16)work->field_4C8) {
+    switch (work->bodyRequest) {
         case 1:
-            switch ((u16)work->field_4CA) {
+            switch (work->bodyRequestStep) {
                 case 0:
-                    TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_120300_80140A54[7], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[7], 0);
                     _actor120300ResetAll(arg0, 1);
-                    work->field_4CA++;
+                    work->bodyRequestStep++;
                     return;
                 case 1:
                     x                   = coord->coord.t[0];
@@ -1766,13 +1781,13 @@ static void func_actor_120300_80132C60(Task* arg0)
                     coord->coord.t[0]   = x;
                     if (x < 0xF3D) {
                         _actor120300BlendAll(arg0, 0xE);
-                        work->field_4C8 = 0;
+                        work->bodyRequest = 0;
                     }
                     return;
             }
             return;
         case 2:
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_120300_80140A54[8], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[8], 0);
             break;
         case 3:
             _actor120300BlendAll(arg0, 4);
@@ -1791,8 +1806,8 @@ static void func_actor_120300_80132C60(Task* arg0)
             break;
         case 8:
             msg = &D_actor_120300_80140A54[9];
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, msg, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4BC, 0x7D4, msg + 2, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, msg + 2, 0);
             _actor120300ResetAll(arg0, 8);
             break;
         case 9:
@@ -1808,12 +1823,12 @@ static void func_actor_120300_80132C60(Task* arg0)
             _actor120300BlendAll(arg0, 0xC);
             break;
         case 13:
-            work->field_4E0 = 0x400;
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_120300_80140A54[12], 0);
+            work->scale = 0x400;
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[12], 0);
             _actor120300ResetAll(arg0, 0xE);
             break;
         case 14:
-            work->field_4E0 = 0x1000;
+            work->scale = 0x1000;
             break;
         case 15:
             _actor120300BlendAll(arg0, 0xF);
@@ -1822,11 +1837,11 @@ static void func_actor_120300_80132C60(Task* arg0)
             _actor120300BlendAll(arg0, 0x10);
             break;
         case 17:
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_120300_80140A54[10], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[10], 0);
             _actor120300ResetAll(arg0, 0x11);
             break;
         case 18:
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_120300_80140A54[9], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[9], 0);
             _actor120300ResetAll(arg0, 8);
             break;
         case 19:
@@ -1836,23 +1851,23 @@ static void func_actor_120300_80132C60(Task* arg0)
         default:
             break;
     }
-    work->field_4C8 = 0;
+    work->bodyRequest = 0;
 }
 
-/// Sets the actor up for play: clears the model's `field_C`, sends message
-/// 0x7D5 to the actor and to the two slots at 0x4B8/0x4BC, and resets animation
-/// slots 1..19 to the 8 it first parks in `field_4D4`.
+/// Sets the actor up for play: clears the model's flags, places the body,
+/// resets animation slots 1..19 to animation 8, which it records in
+/// `bodyAnimation`, shows the models of `headTask` and `rifleTask` and sets
+/// the rifle down at its place in the room.
 /// `func_actor_120300_801337C4` calls it with 1 once flag nibble 0x2D is set; a
-/// zero argument additionally hands the task at 0x4B4 the player-weapon record
-/// (`AnimationPlayRequest`, built from the equip-slot addend `gPlayerStatus.weapon`), lifts
-/// `field_4E0` to 0x1000 and drops the pending overlay replacement.  The
-/// request codes at 0x4C0 and 0x4C8 are cleared either way, so any phase
-/// counter armed alongside them restarts from the top.
+/// zero argument additionally sends `playerTask` the equipped weapon's
+/// animation (`AnimationPlayRequest`, built from `gPlayerStatus.weapon`) and a
+/// placement, restores `scale` to 0x1000 and drops the pending overlay
+/// replacement. `playerRequest` and `bodyRequest` are cleared either way.
 void func_actor_120300_80133330(s32 arg0)
 {
     Task*                task;
-    Actor120300Work*     work;
-    Actor120300Work*     animWork;
+    _Actor120300Work*    work;
+    _Actor120300Work*    animWork;
     SVECTOR              unused;
     AnimationPlayRequest rec;
     s32                  i;
@@ -1860,22 +1875,22 @@ void func_actor_120300_80133330(s32 arg0)
     s32                  id;
 
     task                   = D_actor_120300_80141BA8;
-    work                   = (Actor120300Work*)task->work;
+    work                   = task->work;
     task->extra.tmd->flags = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &D_actor_120300_80140A54[9], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[9], 0);
 
-    animWork            = (Actor120300Work*)task->work;
-    animWork->field_4D4 = 8;
-    i                   = 1;
+    animWork                = task->work;
+    animWork->bodyAnimation = 8;
+    i                       = 1;
     do {
         animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&animWork->rig.anim, (u16)i, 8);
         i++;
-    } while ((u16)i < 0x14U);
+    } while ((u16)i < ARRAY_SIZE(animWork->rig.slots));
 
-    taskMessageDispatch(work->field_4B8, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    taskMessageDispatch(work->field_4BC, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->field_4BC, 0x7D4, &D_actor_120300_80140A54[11], 0);
+    taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[11], 0);
     if (arg0 == 0) {
         weaponId                 = gPlayerStatus.weapon;
         id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -1884,44 +1899,44 @@ void func_actor_120300_80133330(s32 arg0)
         rec.blend                = ANIMATION_BLEND_RESET;
         rec.blendFrames          = 0;
         rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
-        TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_120300_80140A54[5], 0);
-        work->field_4E0 = 0x1000;
+        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[5], 0);
+        work->scale = 0x1000;
         CdCmd_CancelReplaceAndActivate();
     }
-    work->field_4C0 = 0;
-    work->field_4C8 = 0;
+    work->playerRequest = 0;
+    work->bodyRequest   = 0;
 }
 
-/// Tick for the two overlay-load phases the work block arms at 0x4DA: phase 0
-/// walks the three-entry request list through 0x4D6 (0x416D4, then 0x417AC,
-/// then 0x41884) before leaving through 0x4D8, while phase 1 issues the last
-/// record 0x41A34 once and then only counts 0x4D8.  Each of the two phases
-/// returns 1 while the session at `gGameSession->eventState` is still 0, so the
-/// task that calls this keeps the actor alive until play starts.
+/// Runs the interaction selected in the block's `interaction`. On
+/// `interactionStep` 0 it starts the interaction's event script and advances
+/// the step: a talk starts the script `talkStage` selects (the first, then
+/// the second, then the third from then on), a remark its one script. On
+/// step 1 it returns 1 once `gGameSession->eventState` is back to 0, which
+/// tells the caller the interaction is over; otherwise it returns 0.
 static s32 func_actor_120300_801334A4(Task* arg0)
 {
-    Actor120300Work* work;
+    _Actor120300Work* work;
 
     work = arg0->work;
-    switch (work->field_4DA) {
-        case 0:
-            switch (work->field_4D8) {
+    switch (work->interaction) {
+        case ACTOR_120300_INTERACTION_TALK:
+            switch (work->interactionStep) {
                 case 0:
-                    switch (work->field_4D6) {
+                    switch (work->talkStage) {
                         case 0:
                             func_800E8614(D_actor_120300_801416D4, 0);
-                            work->field_4D6++;
+                            work->talkStage++;
                             break;
                         case 1:
                             func_800E8614(D_actor_120300_801417AC, 0);
-                            work->field_4D6++;
+                            work->talkStage++;
                             break;
                         default:
                             func_800E8614(D_actor_120300_80141884, 0);
                             break;
                     }
-                    work->field_4D8++;
+                    work->interactionStep++;
                     break;
                 case 1:
                     if (gGameSession->eventState == 0) {
@@ -1930,11 +1945,11 @@ static s32 func_actor_120300_801334A4(Task* arg0)
                     break;
             }
             break;
-        case 1:
-            switch (work->field_4D8) {
+        case ACTOR_120300_INTERACTION_REMARK:
+            switch (work->interactionStep) {
                 case 0:
                     func_800E8614(D_actor_120300_80141A34, 0);
-                    work->field_4D8++;
+                    work->interactionStep++;
                     break;
                 case 1:
                     if (gGameSession->eventState == 0) {
@@ -1955,18 +1970,18 @@ static void func_actor_120300_801335D8(Task* task)
 {
     enum { TEXTURE_RESOURCE_ENTRY_ID = 0x6A };
 
-    Actor120300Work* work;
-    Actor120300Work* allocatedWork;
-    Actor120300Work* animWork;
-    TmdObject*       tmd;
-    GfxCoord*        coord;
-    AreaPlacement*   place;
-    u8               entryId;
-    s32              slotIndex;
+    _Actor120300Work* work;
+    _Actor120300Work* allocatedWork;
+    _Actor120300Work* animWork;
+    TmdObject*        tmd;
+    GfxCoord*         coord;
+    AreaPlacement*    place;
+    u8                entryId;
+    s32               slotIndex;
 
     tmd           = task->extra.tmd;
     coord         = tmd->coords;
-    allocatedWork = memMalloc(sizeof(Actor120300Work), false);
+    allocatedWork = memMalloc(sizeof(_Actor120300Work), false);
     task->work    = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(task);
@@ -1974,12 +1989,12 @@ static void func_actor_120300_801335D8(Task* task)
     }
     work = allocatedWork;
     memFillBytes(work, 0, sizeof(*work));
-    work->field_4B4         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_120300_80141BA8 = task;
     coord->parent           = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
-    tmd->lightMtx = &work->field_474;
-    tmd->colorMtx = &work->field_494;
+    tmd->lightMtx = &work->light;
+    tmd->colorMtx = &work->color;
     tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
     place         = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
     entryId       = place->entryId;
@@ -1992,20 +2007,20 @@ static void func_actor_120300_801335D8(Task* task)
     }
     Gp_SetTmdBytes(tmd, place->texturePageOffset, place->clutRowOffset);
     animationInitContext(&work->rig.anim, D_actor_120300_80140910, tmd, work->rig.poses, work->rig.slots);
-    animWork            = (Actor120300Work*)task->work;
-    animWork->field_4D4 = 0xE;
-    slotIndex           = 1;
+    animWork                = task->work;
+    animWork->bodyAnimation = 0xE;
+    slotIndex               = 1;
     do {
         animWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&animWork->rig.anim, (u16)slotIndex, 0xE);
         slotIndex++;
     } while ((u16)slotIndex < ARRAY_SIZE(animWork->rig.slots));
-    work->field_4B8 = Task_SpawnFromTable(D_actor_120300_80141B6C, 2, 0, task);
-    work->field_4BC = Task_SpawnFromTable(D_actor_120300_80141B6C, 3, 0, task);
+    work->headTask  = Task_SpawnFromTable(D_actor_120300_80141B6C, 2, 0, task);
+    work->rifleTask = Task_SpawnFromTable(D_actor_120300_80141B6C, 3, 0, task);
     task->msgTable  = D_actor_120300_80140A44;
-    work->field_4E0 = 0x1000;
-    taskReparent(task, work->field_4B8);
-    taskReparent(task, work->field_4BC);
+    work->scale     = 0x1000;
+    taskReparent(task, work->headTask);
+    taskReparent(task, work->rifleTask);
 }
 
 /// Main tick of the cutscene actor. State 0 waits until no other cutscene is
@@ -2024,30 +2039,30 @@ void func_actor_120300_801337C4(Task* arg0)
         } draw;
         AnimationPlayRequest rec;
     } scratch;
-    Actor120300Work* work;
-    Actor120300Work* temp;
-    TmdObject*       tmd;
-    s32              state;
-    s32              weaponId;
-    s32              scale;
-    s16              ready;
-    s32              take;
-    u16              scaleRaw;
-    u16              evtId;
-    u8               evtKind;
-    u8               evtSub;
+    _Actor120300Work* work;
+    _Actor120300Work* temp;
+    TmdObject*        tmd;
+    s32               state;
+    s32               weaponId;
+    s32               scale;
+    s16               ready;
+    s32               take;
+    u16               scaleRaw;
+    u16               evtId;
+    u8                evtKind;
+    u8                evtSub;
 
     state = arg0->state;
-    work  = (Actor120300Work*)arg0->work;
+    work  = arg0->work;
     switch (state) {
         case 0:
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_actor_120300_801335D8(arg0);
-                work = (Actor120300Work*)arg0->work;
+                work = arg0->work;
                 if (GameFlag_GetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN) != 0) {
                     func_actor_120300_80133330(1);
                     if (GameFlag_GetNibble(GAME_FLAG_MOTEL_ROOM_6_DOOR_UNLOCKED) != 0) {
-                        work->field_4D6 = 1;
+                        work->talkStage = 1;
                     }
                     arg0->state = 4;
                 } else {
@@ -2084,7 +2099,7 @@ void func_actor_120300_801337C4(Task* arg0)
             break;
         case 2:
             ready = 0;
-            temp  = (Actor120300Work*)arg0->work;
+            temp  = arg0->work;
             if ((s16)Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
                 if (!((s16)evtId & WORLD_COLLISION_TRIGGER_AUTOMATIC)) {
                     if ((evtId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
@@ -2094,13 +2109,13 @@ void func_actor_120300_801337C4(Task* arg0)
             }
             if (ready != 0) {
                 if ((s8)evtKind == 1) {
-                    temp->field_4DA = 0;
+                    temp->interaction = ACTOR_120300_INTERACTION_TALK;
                 }
                 if ((s8)evtKind == 2) {
-                    temp->field_4DA = 1;
+                    temp->interaction = ACTOR_120300_INTERACTION_REMARK;
                 }
-                temp->field_4D8 = 0;
-                take            = 1;
+                temp->interactionStep = 0;
+                take                  = 1;
             } else {
                 take = 0;
             }
@@ -2114,7 +2129,7 @@ void func_actor_120300_801337C4(Task* arg0)
             }
             break;
         case 4:
-            TASK_MESSAGE_DISPATCH_POINTER(work->field_4BC, 0x7D4, &D_actor_120300_80140A54[11], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[11], 0);
             arg0->state = 2;
             break;
     }
@@ -2126,9 +2141,9 @@ void func_actor_120300_801337C4(Task* arg0)
     scratch.draw.rot.vz = 0;
     Gp_DrawFloorQuad(&arg0->extra.tmd->coords[1], 0x300, &scratch.draw.rot);
     tmd      = arg0->extra.tmd;
-    scaleRaw = work->field_4E0;
+    scaleRaw = work->scale;
     func_actor_120300_FillLight(arg0, tmd, &scratch.draw.vec);
-    scale               = scaleRaw & 0xFFFF;
+    scale               = scaleRaw;
     scratch.draw.vec.vz = scale;
     scratch.draw.vec.vy = scale;
     scratch.draw.vec.vx = scale;
@@ -2154,21 +2169,22 @@ void func_actor_120300_80133C38(Task* task, s32 arg1, s32 arg2, s32 arg3)
 #include "../../shared/actor_messages_place_in_view.inc.c"
 
 /// Broadcasts message 0x7D5 -- the visibility control the actor's display task
-/// handles -- to the actor itself and to the two task slots on its work block.
+/// handles -- to the actor itself and to the `headTask` and `rifleTask` of
+/// its work block.
 /// Sending it is the whole body: `arg0` is the message's payload and only 0/1
 /// are accepted.
 void func_actor_120300_80133D04(s32 arg0)
 {
-    Actor120300Work* work = D_actor_120300_80141BA8->work;
+    _Actor120300Work* work = D_actor_120300_80141BA8->work;
 
     if (arg0 == 0) {
         taskMessageDispatch(D_actor_120300_80141BA8, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-        taskMessageDispatch(work->field_4B8, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-        taskMessageDispatch(work->field_4BC, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+        taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+        taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     } else if (arg0 == 1) {
         taskMessageDispatch(D_actor_120300_80141BA8, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-        taskMessageDispatch(work->field_4B8, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-        taskMessageDispatch(work->field_4BC, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     }
 }
 
@@ -2190,42 +2206,42 @@ void func_actor_120300_80133DF4(void)
 
 void func_actor_120300_80133E14(s16 arg0)
 {
-    Actor120300Work* work = D_actor_120300_80141BA8->work;
+    _Actor120300Work* work = D_actor_120300_80141BA8->work;
 
-    work->field_4C0 = arg0;
-    work->field_4C2 = 0;
+    work->playerRequest     = arg0;
+    work->playerRequestStep = 0;
 }
 
 void func_actor_120300_80133E34(s16 arg0)
 {
-    Actor120300Work* work = D_actor_120300_80141BA8->work;
+    _Actor120300Work* work = D_actor_120300_80141BA8->work;
 
-    work->field_4C8 = arg0;
-    work->field_4CA = 0;
+    work->bodyRequest     = arg0;
+    work->bodyRequestStep = 0;
 }
 
-/// Requests the player-weapon effect be killed: latches `field_4DE` so the
-/// call happens once, and `func_actor_120300_80133E94` consumes the latch.
+/// Kills the player's equipment tasks for the scene, once: sets the block's
+/// `playerEquipmentRemoved`, which `func_actor_120300_80133E94` clears.
 void func_actor_120300_80133E54(void)
 {
-    Actor120300Work* work = D_actor_120300_80141BA8->work;
+    _Actor120300Work* work = D_actor_120300_80141BA8->work;
 
-    if (work->field_4DE == 0) {
-        work->field_4DE = 1;
+    if (work->playerEquipmentRemoved == 0) {
+        work->playerEquipmentRemoved = 1;
         Gp_KillPlayerEffs();
     }
 }
 
-/// Runs the pending player-weapon effect and reports it: the latch at
-/// `field_4DE` keeps it one-shot, and the `Gp_MsgPlayerWeapon` argument beside
-/// the clear is the same zero.
+/// Gives the player's equipment back if the scene removed it: spawns the
+/// weapon's task again, clears the block's `playerEquipmentRemoved` and has
+/// the player play the equipped weapon's animation.
 void func_actor_120300_80133E94(void)
 {
-    Actor120300Work* work = D_actor_120300_80141BA8->work;
+    _Actor120300Work* work = D_actor_120300_80141BA8->work;
 
-    if (work->field_4DE != 0) {
+    if (work->playerEquipmentRemoved != 0) {
         Gp_SpawnWeaponEff();
-        work->field_4DE = 0;
+        work->playerEquipmentRemoved = 0;
         Gp_MsgPlayerWeapon(0);
     }
 }

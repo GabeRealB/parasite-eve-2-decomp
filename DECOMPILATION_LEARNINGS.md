@@ -226,9 +226,9 @@ Case 8 does `taskMessageDispatch(…); i = 1; loop { slots[i].rate = 0x10; … }
 
 ```
 taskMessageDispatch(arg0, 0x7D4, msg, 0);
-taskMessageDispatch(work->field_4BC, 0x7D4, msg + 0x30, 0);
+taskMessageDispatch(work->rifleTask, 0x7D4, msg + 0x30, 0);
 animWork = arg0->work;
-animWork->field_4D4 = 8;
+animWork->bodyAnimation = 8;
 i = 1;
 do {
     animWork->slots[(u16)i].rate = 0x10; /* not n */
@@ -124029,7 +124029,7 @@ every later use reads `$s2`. Splitting it the way the matched sibling
 `func_actor_136100_80133A88` is written gives the target shape exactly:
 
 ```c
-Actor120300Work* map = memMalloc(0x4E4, 0);
+_Actor120300Work* map = memMalloc(0x4E4, 0);
 arg0->work    = map;
 if (map == NULL) { taskKill(arg0); return; }
 work = map;      /* long-lived copy, only this one needs $s2 */
@@ -124048,8 +124048,8 @@ which register the target's predicate reads.
 
 The same function also carried the m2c pointee-scaling trap documented above:
 `temp_v0 + 0x474` with `temp_v0` an `AnimationContext*` (0x14) emitted
-`addiu $v0,$s1,0x5910`. Giving the work block named `MATRIX field_474` /
-`field_494` members, as its `_Actor136100Work` twin has in `light` / `color`,
+`addiu $v0,$s1,0x5910`. Giving the work block named `MATRIX light` /
+`color` members, as its `_Actor136100Work` twin has in `light` / `color`,
 removed it.
 
 Inputs: scratch `nonmatchings/func_actor_120300_801335D8-vacuum`, `base.c`
@@ -124073,12 +124073,12 @@ were never identical blocks, so the source never duplicated them. Write the
 dispatch with `break` and a single `return 0` after the outer `switch`:
 
 ```c
-switch (work->field_4DA) {
+switch (work->interaction) {
 case 0:
-    switch (work->field_4D8) {
+    switch (work->interactionStep) {
     case 0:
-        switch (work->field_4D6) { ... }
-        work->field_4D8++;
+        switch (work->talkStage) { ... }
+        work->interactionStep++;
         break;
     case 1:
         if (gGameSession->eventState == 0) { return 1; }
@@ -124189,7 +124189,7 @@ constants, not a lone `regs` penalty.
 ## `lh` versus `lhu` on a struct field is decided by the use, and a cast is equivalent to retyping the field (same function)
 
 The same function indexes a `-1`-terminated `s16` table by
-`Actor120300Work::field_4D4`, and retail zero-extends that index:
+`_Actor120300Work::bodyAnimation`, and retail zero-extends that index:
 
 ```
 lhu  v1,0x4d4(s1)    /* target */
@@ -124197,7 +124197,7 @@ lh   v1,0x4d4(s1)    /* field declared s16 */
 ```
 
 Two edits both produce the `lhu` and both measured 100.000%: declaring the field
-`u16`, or leaving it `s16` and writing `table[(u16)work->field_4D4]`. GCC
+`u16`, or leaving it `s16` and writing `table[(u16)work->bodyAnimation]`. GCC
 re-selects the load mode for the unsigned use instead of emitting `lh` + `andi`,
 so the cast costs nothing - contrary to the usual "the mask survives" intuition
 for an explicit truncation. The field type is the better edit when the field has
@@ -142332,7 +142332,7 @@ Constants passed as inline parameters are materialised before the helper's
 `if`, so `li v1,1` moved above the null test. Fixing `field_8`/`field_C` inside
 two helpers (blend vs. reset) put it back after the test. Which copy of the
 identical dispatch tails survives cross-jumping was set by case 9: written as
-`PlayAnim(7); work->field_4C0 = 0; return;`, not `break`, its copy is the one
+`PlayAnim(7); work->playerRequest = 0; return;`, not `break`, its copy is the one
 the other cases jump into, as in the target.
 
 ## Values computed at the head of each outer iteration may be the inner loop's invariants, written at their use (func_actor_403600_80132A18, 2026-09-26)

@@ -434,7 +434,7 @@ elif [[ "$BOOTSTRAP" == true ]]; then
             # m2c types the seed against a context built from the host C file,
             # then the seed lands in a base.c that includes only common.h - so
             # it names types nothing declares and will not compile
-            # ("`Actor120300Work' undeclared"). build.sh fails before writing
+            # ("`_Actor120300Work' undeclared"). build.sh fails before writing
             # match_log.txt and vacuum.sh files the function as "1 attempt,
             # 0.000": a give-up for a function nobody compiled. Carry the host's
             # own includes across so the seed can see what it was typed against.
