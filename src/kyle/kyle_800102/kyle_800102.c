@@ -766,3 +766,44 @@ AnimationBank D_kyle_800102_801772E8 = { { {
     NULL,
     NULL,
 } } };
+
+SVECTOR gGrenadeShellMuzzleOffsets[2] = {
+    { 0, 0x1E0, 0x80, 0 },
+    { 0, 0x220, 0x80, 0 },
+};
+
+u16 gGrenadeShellBlastRadii[4] = { 0x1F4, 0x4B0, 0x7D0, 0 };
+
+u8 gGrenadeShellSpeeds[4] = { 0x0C, 0x08, 0, 0 };
+
+static TmdBone _gKyle800102Model0FA78Skeleton[1] = {
+#include "assets/kyle_800102_model_0FA78_skeleton.inc"
+};
+
+static u32 _gKyle800102Model0FA78PartVerts[1] = {
+#include "assets/kyle_800102_model_0FA78_partVerts.inc"
+};
+
+static SVECTOR _gKyle800102Model0FA78Verts[8] = {
+#include "assets/kyle_800102_model_0FA78_verts.inc"
+};
+
+static SVECTOR _gKyle800102Model0FA78Normals[8] = {
+#include "assets/kyle_800102_model_0FA78_normals.inc"
+};
+
+static u32 _gKyle800102Model0FA78Stream[48] = {
+#include "assets/kyle_800102_model_0FA78_stream.inc"
+};
+
+TmdSource D_kyle_800102_801775A8 = {
+    0,
+    312,
+    0,
+    1,
+    _gKyle800102Model0FA78PartVerts,
+    _gKyle800102Model0FA78Verts,
+    _gKyle800102Model0FA78Normals,
+    _gKyle800102Model0FA78Skeleton,
+    _gKyle800102Model0FA78Stream,
+};
