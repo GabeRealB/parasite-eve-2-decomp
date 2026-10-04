@@ -38,56 +38,59 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/model_placement.h"
 
-/// Work block of the actor's second task, the one `func_actor_135400_80132B60`
-/// sets up: the `memCalloc(0x498, 0)` result it stores in `Task::work`. The
-/// main task's spawn carves a
-/// different, 0x4C8-byte `Actor135400MainWork`.
+/// Work block of Flint, the dog whose model this package carries beside
+/// Gary Douglas's.
 ///
-/// `rig` and `model` are the model's animation rig and state; the spawn
-/// routine points the `TmdObject`'s `lightMtx` / `colorMtx` at the model
-/// state's matrices and fills them from the three `D_actor_135400_8013F904`
-/// lights. `params` holds the `D_actor_135400_80131EA0` defaults.
-typedef struct Actor135400Work {
-    ActorAnimRig19       rig;
-    ActorModelState      model;
-    AnimationPlayRequest params;
-    s32                  field_494;
-} Actor135400Work;
-STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
+/// Flint's task allocates it zeroed in its spawn state and keeps it at
+/// `Task::work` for the task's life. It opens with the two members the
+/// nineteen-part play handler runs on (`ActorMotion19PlayWork`); this actor
+/// does not walk, so what follows them is its own. The model object borrows
+/// `model.light` and `model.color` for as long as the block lives.
+///
+/// Flint runs a clip cycle of his own, with no request from the room: the
+/// tick holds each of clips 1 to 6 for that clip's entry in the package's
+/// hold-time table and then plays the next, clip 1 following clip 6. A play
+/// request sent from outside changes the clip shown and leaves the cycle's
+/// place and timer alone.
+typedef struct {
+    ActorAnimRig19       rig;           // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    ActorModelState      model;         // Clip and bank the rig plays, and the matrices the model is lit with
+    AnimationPlayRequest cycleRequest;  // Play request the tick re-sends for each step of the clip cycle: `animationId` is the step in progress (1 to 6; it starts at 2 while clip 1 plays), the other members the bank and blend every step uses
+    s32                  freeCountdown; // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+} _Actor135400FlintWork;
+STATIC_ASSERT_SIZEOF(_Actor135400FlintWork, 0x498);
 
-/// Work block of the actor's main task: `func_actor_135400_80132064`
-/// allocates it (`memCalloc(0x4C8, 0)`) and parks the 0x7D3 / 0x7D4 / 0x7D5 /
-/// 0x7DB handler table `D_actor_135400_8013A4D0` in that task's `msgTable`.
+/// Work block of Gary Douglas in Dryfield's garage at night.
 ///
-/// `rig` and `model` are the model's animation rig and state, whose
-/// matrices the model is lit with.
+/// The actor's task allocates it zeroed in its spawn state and keeps it at
+/// `Task::work` for the task's life. It opens with the two members the
+/// twenty-part play handler runs on (`ActorMotionPlayWork`); this actor does
+/// not walk, so what follows them is its own: the two child tasks drawing the
+/// models attached to the body, and the head turn toward the player. The
+/// model object borrows `model.light` and `model.color` for as long as the
+/// block lives.
 ///
-/// `field_4B8` / `field_4BC` are the two part tasks the same spawn creates
-/// through `Task_SpawnFromTable` (part 1 and part 2); each reparents itself
-/// onto this task in its state 0 (`modelPlacementAttachPart` /
-/// `func_actor_135400_8013252C`). `headAim` is the on/off latch the 0x7DB
-/// handler `func_actor_135400_801328DC` sets and clears (its cases 2 and 3),
-/// and `headRate` the 0x000..0xFFF rate the tick ramps toward or away from
-/// the slot-3 target and hands `func_800B0928`. Only the fields decompiled
-/// bodies reach are described.
-typedef struct Actor135400MainWork {
-    ActorAnimRig20    rig;
-    ActorModelState   model;
-    /* 0x4B8 */ Task* field_4B8;
-    /* 0x4BC */ Task* field_4BC;
-    /* 0x4C0 */ s32   headAim;
-    /* 0x4C4 */ s32   headRate;
-} Actor135400MainWork;
-STATIC_ASSERT_SIZEOF(Actor135400MainWork, 0x4C8);
+/// The spawn stores a child task only when its spawn succeeds, so either
+/// pointer can be NULL. The actor command handler checks `carriedTask` before
+/// every use; the draw-mode handler reads `headTask` unchecked.
+typedef struct {
+    ActorAnimRig20  rig;              // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    ActorModelState model;            // Clip and bank the rig plays, and the matrices the model is lit with
+    Task*           headTask;         // Child task drawing the head-and-hat model, which hangs from the body's part 4; it takes the body's tint, and every draw-mode message copies the body's draw flags onto its model
+    Task*           carriedTask;      // Child task drawing the model the body carries, which hangs from part 8 until an actor command leaves it where it is or sets it down at a fixed place in the room; actor commands also show and hide it
+    s32             turnWeightRising; // Direction `turnWeight` ramps, set by an actor command (0 falls by 0x80 a tick, 1 rises by 0x100)
+    s32             turnWeight;       // Weight handed to the per-frame head turn toward the player, 0 to 0xFFF; stepped only while the model is drawn
+} _Actor135400GaryDouglasWork;
+STATIC_ASSERT_SIZEOF(_Actor135400GaryDouglasWork, 0x4C8);
 
-/// The two placements `func_actor_135400_80132064` starts the actor from. The
-/// spawn copies the pair in one go and then hands the branch picked by game
-/// flag 0x6C to the 0x7D4 handler `actorMsgPlaceEuler`.
-typedef struct Actor135400Places {
-    /* 0x00 */ ActorTransform field_0;
-    /* 0x18 */ ActorTransform field_18;
-} Actor135400Places;
-STATIC_ASSERT_SIZEOF(Actor135400Places, 0x30);
+/// The two placements Gary Douglas can start from, copied as a whole by his
+/// task's spawn state, which then places the body at the one the night garage
+/// event's progress selects.
+typedef struct {
+    ActorTransform beforeEvent; // Position and rotation while the night garage event has not played (`GAME_FLAG_NIGHT_GARAGE_PROGRESS` 0)
+    ActorTransform afterEvent;  // Position and rotation once it has (any positive progress)
+} _Actor135400GaryDouglasPlaces;
+STATIC_ASSERT_SIZEOF(_Actor135400GaryDouglasPlaces, 0x30);
 
 /// The actor's two-entry `TaskDesc` table, indexed by `Task_SpawnFromTable`:
 /// entry 1 is the model-bearing part task `modelPlacementAttachPart`
@@ -107,7 +110,7 @@ extern GsF_LIGHT D_actor_135400_8013F904[3];
 extern TaskMessageEntry D_actor_135400_8013F8E4[4];
 
 /// Per-step frame counts of the second task's 0x7D3 animation: eight `s16`
-/// entries indexed by `Actor135400Work::params.field_4`.
+/// entries indexed by `_Actor135400FlintWork::cycleRequest.animationId`.
 /// `func_actor_135400_801329B0` runs the task's `killCountdown` up and, once it
 /// passes the entry for the current step, advances that step -- wrapping at 7
 /// -- and re-issues the animation. The first and last entries are zero, so
@@ -171,7 +174,7 @@ static const TaskFuncTable3 D_actor_135400_80131E3C = { {
 
 /// The two spawn placements `func_actor_135400_80132064` copies as a whole:
 /// the flag-clear branch's first, the other second.
-static const Actor135400Places D_actor_135400_80131E48 = {
+static const _Actor135400GaryDouglasPlaces D_actor_135400_80131E48 = {
     { { 5700, -150, 5900, 0 }, { 1024, 0, -1024, 0 } },
     { { 4700, 0, 5000, 0 }, { 0, -1024, 0, 0 } },
 };
@@ -630,23 +633,23 @@ static void func_actor_135400_80131EB4(Task* task)
     }
 }
 
-/// The spawn handler of the actor's main task: carves the 0x4C8-byte work
+/// The spawn handler of the actor's main task: allocates the work
 /// block, seeds its two `-1` latches, starts the two part tasks and copies the
 /// area record's texture page / CLUT onto part 1's model. It then installs the
 /// handler table, the 0x7D5 model mode and the exit callback, and finally hands
 /// the 0x7D4 placement and the 0x7D3 animation the game flag 0x6C selects.
 static void func_actor_135400_80132064(Task* arg0)
 {
-    Actor135400MainWork* work;
-    Actor135400Places    places;
-    AnimationPlayRequest anim[2];
-    Task*                spawned;
+    _Actor135400GaryDouglasWork*  work;
+    _Actor135400GaryDouglasPlaces places;
+    AnimationPlayRequest          anim[2];
+    Task*                         spawned;
 
     places = D_actor_135400_80131E48;
     memset(anim, 0, sizeof(anim));
     anim[0].animationId = 1;
     anim[1].animationId = 4;
-    work                = memCalloc(0x4C8, 0);
+    work                = memCalloc(sizeof(_Actor135400GaryDouglasWork), 0);
     if (work == NULL) {
         enemyTaskExit(arg0);
         return;
@@ -656,22 +659,22 @@ static void func_actor_135400_80132064(Task* arg0)
     work->model.bank   = ACTOR_MODEL_STATE_NONE;
     spawned            = Task_SpawnFromTable(D_actor_135400_8013A4AC, 1, 4, arg0);
     if (spawned != NULL) {
-        work->field_4B8 = spawned;
+        work->headTask = spawned;
         actorTintTask(spawned, (Enemy*)arg0->spawnArg2.pointer);
     }
     spawned = Task_SpawnFromTable(D_actor_135400_8013A4AC, 2, 8, arg0);
     if (spawned != NULL) {
-        work->field_4BC = spawned;
+        work->carriedTask = spawned;
     }
     func_actor_135400_80132634(arg0);
     arg0->msgTable = D_actor_135400_8013A4D0;
     func_actor_135400_801327E8(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) <= 0) {
-        actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.field_0, 0);
+        actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.beforeEvent, 0);
         actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[0], 0);
         func_dryfield_night_garage_80180414(0);
     } else {
-        actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.field_18, 0);
+        actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.afterEvent, 0);
         actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[1], 0);
     }
     arg0->exitCallback = func_actor_135400_80132614;
@@ -682,20 +685,20 @@ static void func_actor_135400_80132064(Task* arg0)
 /// once `model.ticking` has latched, and while the model is not hidden (flag 0x80
 /// of `TmdObject::flags`) draws its ground shadow from the second
 /// part's translation, recomputes that part's world matrix, re-ranks it
-/// through `func_800D7A9C`, ramps the head-tracking rate `headRate` and finally
+/// through `func_800D7A9C`, ramps the head-turn weight `turnWeight` and finally
 /// turns the head toward the slot-3 skeleton with `func_800B0928`.
 static void func_actor_135400_801322A8(Task* task)
 {
-    Actor135400MainWork* work;
-    TmdObject*           ext;
-    VECTOR3              pos;
-    s32                  i;
-    s32                  rate;
+    _Actor135400GaryDouglasWork* work;
+    TmdObject*                   ext;
+    VECTOR3                      pos;
+    s32                          i;
+    s32                          rate;
 
-    work = (Actor135400MainWork*)task->work;
+    work = (_Actor135400GaryDouglasWork*)task->work;
     ext  = task->extra.tmd;
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
@@ -705,20 +708,20 @@ static void func_actor_135400_801322A8(Task* task)
         }
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         func_800D7A9C(ext, (VECTOR*)task->extra.tmd->coords[1].workm.t, 0, 3);
-        if (work->headAim != 0) {
-            rate           = work->headRate + 0x100;
-            work->headRate = rate;
+        if (work->turnWeightRising != 0) {
+            rate             = work->turnWeight + 0x100;
+            work->turnWeight = rate;
             if (rate >= 0x1000) {
-                work->headRate = 0xFFF;
+                work->turnWeight = 0xFFF;
             }
         } else {
-            rate           = work->headRate - 0x80;
-            work->headRate = rate;
+            rate             = work->turnWeight - 0x80;
+            work->turnWeight = rate;
             if (rate < 0) {
-                work->headRate = 0;
+                work->turnWeight = 0;
             }
         }
-        func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->headRate);
+        func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->turnWeight);
     }
 }
 
@@ -778,11 +781,11 @@ static void func_actor_135400_80132614(Task* arg0)
 /// The spawn handler runs it once the two part tasks are started.
 static void func_actor_135400_80132634(Task* task)
 {
-    TmdObject*           ext;
-    Actor135400MainWork* work;
+    TmdObject*                   ext;
+    _Actor135400GaryDouglasWork* work;
 
     ext           = task->extra.tmd;
-    work          = (Actor135400MainWork*)task->work;
+    work          = (_Actor135400GaryDouglasWork*)task->work;
     ext->lightMtx = &work->model.light;
     ext->colorMtx = &work->model.color;
 }
@@ -799,7 +802,7 @@ static void func_actor_135400_80132634(Task* task)
 /// `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything else
 /// returns 1 and leaves the model alone; the handled modes return 0. Either
 /// way the resulting flags are copied onto the first part task's model
-/// (`Actor135400MainWork::field_4B8`), keeping the pair in step.
+/// (`_Actor135400GaryDouglasWork::headTask`), keeping the pair in step.
 s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
 {
     TmdObject* obj;
@@ -807,7 +810,7 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
     s32        ret;
 
     obj   = task->extra.tmd;
-    other = ((Actor135400MainWork*)task->work)->field_4B8->extra.tmd;
+    other = ((_Actor135400GaryDouglasWork*)task->work)->headTask->extra.tmd;
     ret   = 0;
     switch (mode) {
         case 0:
@@ -837,45 +840,45 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
 }
 
 /// The main task's 0x7DB handler. The payload halfword picks one of six
-/// actions against the second part task (`Actor135400MainWork::field_4BC`):
+/// actions against the second part task (`_Actor135400GaryDouglasWork::carriedTask`):
 /// 0 and 1 show and hide that task's model (flag 0x80), 2 and 3 set
-/// and clear `headAim`, 4 hands the part task a `spawnArg1` of 1, and 5 sets
+/// and clear `turnWeightRising`, 4 hands the part task a `spawnArg1` of 1, and 5 sets
 /// that to 3 and then shows the model. Nothing reads the message id.
 s32 func_actor_135400_801328DC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
-    Actor135400MainWork* work;
-    TmdObject*           model;
+    _Actor135400GaryDouglasWork* work;
+    TmdObject*                   model;
 
-    work = (Actor135400MainWork*)task->work;
+    work = (_Actor135400GaryDouglasWork*)task->work;
     switch (msg->command) {
         case 0:
-            if (work->field_4BC != NULL) {
-                model         = work->field_4BC->extra.tmd;
+            if (work->carriedTask != NULL) {
+                model         = work->carriedTask->extra.tmd;
                 model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
         case 1:
-            if (work->field_4BC != NULL) {
-                model         = work->field_4BC->extra.tmd;
+            if (work->carriedTask != NULL) {
+                model         = work->carriedTask->extra.tmd;
                 model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
         case 2:
-            work->headAim = 1;
+            work->turnWeightRising = 1;
             break;
         case 3:
-            work->headAim = 0;
+            work->turnWeightRising = 0;
             break;
         case 4:
-            if (work->field_4BC != NULL) {
-                work->field_4BC->spawnArg1.value = 1;
+            if (work->carriedTask != NULL) {
+                work->carriedTask->spawnArg1.value = 1;
             }
             break;
         case 5:
-            if (work->field_4BC != NULL) {
-                work->field_4BC->spawnArg1.value = 3;
-                model                            = work->field_4BC->extra.tmd;
-                model->flags                    &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            if (work->carriedTask != NULL) {
+                work->carriedTask->spawnArg1.value = 3;
+                model                              = work->carriedTask->extra.tmd;
+                model->flags                      &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
     }
@@ -888,21 +891,21 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, ActorCommand* msg, s32 arg
 /// `TmdObject::flags`) it draws the ground shadow under the model's
 /// root part, as `func_actor_135400_801322A8` does for the main task. It then
 /// steps the 0x7D3 animation on the `D_actor_135400_8013F8C4` frame counts, and
-/// finally runs `field_494` down -- at zero the model's aux buffers are freed
+/// finally runs `freeCountdown` down -- at zero the model's aux buffers are freed
 /// and the countdown carries on to -1, so that free happens once.
 static void func_actor_135400_801329B0(Task* task)
 {
-    Actor135400Work* work;
-    TmdObject*       ext;
-    VECTOR3          pos;
-    s32              i;
-    s32              step;
-    u16              count;
+    _Actor135400FlintWork* work;
+    TmdObject*             ext;
+    VECTOR3                pos;
+    s32                    i;
+    s32                    step;
+    u16                    count;
 
-    work = (Actor135400Work*)task->work;
+    work = (_Actor135400FlintWork*)task->work;
     ext  = task->extra.tmd;
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
@@ -911,22 +914,22 @@ static void func_actor_135400_801329B0(Task* task)
     }
     count               = task->killCountdown + 1;
     task->killCountdown = count;
-    if (D_actor_135400_8013F8C4[work->params.animationId] < (s16)count) {
-        work->params.animationId = work->params.animationId + 1;
-        if (work->params.animationId >= 7) {
-            work->params.animationId = 1;
+    if (D_actor_135400_8013F8C4[work->cycleRequest.animationId] < (s16)count) {
+        work->cycleRequest.animationId = work->cycleRequest.animationId + 1;
+        if (work->cycleRequest.animationId >= 7) {
+            work->cycleRequest.animationId = 1;
         }
-        func_actor_135400_80132D24(task, ACTOR_MESSAGE_PLAY_ANIMATION, &work->params, 0);
+        func_actor_135400_80132D24(task, ACTOR_MESSAGE_PLAY_ANIMATION, &work->cycleRequest, 0);
         task->killCountdown = 0;
     }
-    step = work->field_494;
+    step = work->freeCountdown;
     if (step >= 0) {
         if (step == 0) {
             Tmd_FreeBuffers(ext);
-            step = work->field_494;
+            step = work->freeCountdown;
         }
-        step           -= 1;
-        work->field_494 = step;
+        step               -= 1;
+        work->freeCountdown = step;
     }
 }
 
@@ -952,32 +955,32 @@ void func_actor_135400_80132AF4(Task* task)
 }
 
 /// The animation arguments `func_actor_135400_80132B60` copies into
-/// `Actor135400Work::params` when the second task is created.
+/// `_Actor135400FlintWork::cycleRequest` when the second task is created.
 static const AnimationPlayRequest D_actor_135400_80131EA0 = { 0, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Spawn state of the second task: exits at once when game flag 0x6C is set or
-/// the 0x498-byte work block cannot be allocated. Otherwise it seeds the
+/// the work block cannot be allocated. Otherwise it seeds the
 /// block's latches, stores the `D_actor_135400_80131EA0` defaults, starts
 /// animation 1, shows the model through the 0x7D5 handler, loads its flat
 /// lights, and installs the message table and exit callback.
 static void func_actor_135400_80132B60(Task* arg0)
 {
-    Actor135400Work*     work;
-    AnimationPlayRequest params;
-    AnimationPlayRequest spawn;
+    _Actor135400FlintWork* work;
+    AnimationPlayRequest   params;
+    AnimationPlayRequest   spawn;
 
     memset(&params, 0, sizeof(params));
     params.animationId = 1;
     spawn              = D_actor_135400_80131EA0;
-    if ((GameFlag_GetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0) || ((work = memCalloc(0x498, 0)) == NULL)) {
+    if ((GameFlag_GetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0) || ((work = memCalloc(sizeof(_Actor135400FlintWork), 0)) == NULL)) {
         enemyTaskExit(arg0);
         return;
     }
-    arg0->work         = work;
-    work->model.animId = ACTOR_MODEL_STATE_NONE;
-    work->model.bank   = ACTOR_MODEL_STATE_NONE;
-    work->field_494    = -1;
-    work->params       = spawn;
+    arg0->work          = work;
+    work->model.animId  = ACTOR_MODEL_STATE_NONE;
+    work->model.bank    = ACTOR_MODEL_STATE_NONE;
+    work->freeCountdown = -1;
+    work->cycleRequest  = spawn;
     func_actor_135400_80132D24(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &params, 0);
     func_actor_135400_80132EBC(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     func_actor_135400_80132CB0(arg0);
@@ -996,10 +999,10 @@ static void func_actor_135400_80132C90(Task* arg0)
 /// matrices and fills them from the three `D_actor_135400_8013F904` lights.
 static void func_actor_135400_80132CB0(Task* task)
 {
-    Actor135400Work* work = (Actor135400Work*)task->work;
-    TmdObject*       obj  = task->extra.tmd;
-    GsF_LIGHT*       light;
-    s32              i;
+    _Actor135400FlintWork* work = (_Actor135400FlintWork*)task->work;
+    TmdObject*             obj  = task->extra.tmd;
+    GsF_LIGHT*             light;
+    s32                    i;
 
     obj->lightMtx = &work->model.light;
     obj->colorMtx = &work->model.color;
@@ -1015,11 +1018,11 @@ static void func_actor_135400_80132CB0(Task* task)
 /// otherwise resets the slots before ticking them.
 s32 func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3)
 {
-    Actor135400Work* work;
-    TmdObject*       ext;
-    s32              i;
+    _Actor135400FlintWork* work;
+    TmdObject*             ext;
+    s32                    i;
 
-    work = (Actor135400Work*)task->work;
+    work = (_Actor135400FlintWork*)task->work;
     ext  = task->extra.tmd;
     if (params->source.index != work->model.bank) {
         work->model.bank = params->source.index;
@@ -1027,15 +1030,15 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* param
     }
     work->model.animId = params->animationId;
     if (params->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, params->blendFrames);
         }
     } else {
-        for (i = 1; i < 0x13; i++) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
-    for (i = 1; i < 0x13; i++) {
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationTickSlot(&work->rig.anim, i);
     }
     work->model.ticking = 1;
@@ -1049,7 +1052,7 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* param
 
 /// The second task's 0x7D5 handler, the same mode switch as
 /// `func_actor_135400_801327E8` on this task's model alone. Mode 2 does not
-/// free the buffers itself: it stores 2 in `field_494`, and the tick frees
+/// free the buffers itself: it stores 2 in `freeCountdown`, and the tick frees
 /// them once that countdown reaches zero.
 s32 func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3)
 {
@@ -1069,9 +1072,9 @@ s32 func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((Actor135400Work*)task->work)->field_494 = arg2;
-            obj->flags                               |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags                                         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((_Actor135400FlintWork*)task->work)->freeCountdown = arg2;
+            obj->flags                                         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;

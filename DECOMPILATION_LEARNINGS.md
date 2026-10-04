@@ -127170,7 +127170,7 @@ labels and gotos, which is a structural rewrite the seed score hides).
 differing operand, not only for differing structure, so treat any sibling whose
 `shape` and `cflow` both sit at >= 0.98 as a port until the `.s` diff shows a
 structural difference. The diff also settles the missing type: `sw` versus `sb`
-here is what picks `s32` over `s8` for `Actor135400Work::field_494`.
+here is what picks `s32` over `s8` for `_Actor135400FlintWork::freeCountdown`.
 `overlay_dup_index.py find` correctly reports only this overlay - the differing
 operand is in the disassembly text, so the two are not equal bodies and there is
 nothing to promote.
@@ -127243,10 +127243,10 @@ m2c renders the same bytes as two temps with the arithmetic hoisted above the
 branch, which moves the load's death into the shift:
 
 ```c
-    temp_a1 = temp_s1->params.animationId;
+    temp_a1 = temp_s1->cycleRequest.animationId;
     temp_v0 = temp_a1 + 1;                                  /* before the if */
     if (D_actor_135400_8013F8C4[temp_a1] < (s16) temp_v1) {
-        temp_s1->params.animationId = temp_v0;
+        temp_s1->cycleRequest.animationId = temp_v0;
 ```
 
 `temp_a1` then dies producing the `sll`, so per `CODEGEN_MODEL.md` §10.3 the
@@ -127262,10 +127262,10 @@ Reading the two uses back as two reads of the same lvalue is the whole fix -
 `cse` folds them into one load whose last use is the `addiu`:
 
 ```c
-    if (D_actor_135400_8013F8C4[work->params.animationId] < (s16) count) {
-        work->params.animationId = work->params.animationId + 1;
-        if (work->params.animationId >= 7) {
-            work->params.animationId = 1;
+    if (D_actor_135400_8013F8C4[work->cycleRequest.animationId] < (s16) count) {
+        work->cycleRequest.animationId = work->cycleRequest.animationId + 1;
+        if (work->cycleRequest.animationId >= 7) {
+            work->cycleRequest.animationId = 1;
         }
 ```
 
@@ -127281,20 +127281,20 @@ Inputs: scratch `nonmatchings/func_actor_135400_801329B0-vacuum`, `base.c`
 
 ## A decrement placed above the branch that still reads the value cannot tie into it (same function)
 
-`Actor135400Work::field_494` counts down across a join: `bltz` skips a negative
+`_Actor135400FlintWork::freeCountdown` counts down across a join: `bltz` skips a negative
 value, `bnez` jumps to the store, the fall-through path frees the model's aux
 buffers and reloads, and one `sw` serves both paths. m2c's shape computes the
 result *before* the `v == 0` test:
 
 ```c
-    temp_v0_2 = temp_s1->field_494;
+    temp_v0_2 = temp_s1->freeCountdown;
     if (temp_v0_2 >= 0) {
         var_v0 = temp_v0_2 - 1;                 /* here */
         if (temp_v0_2 == 0) {
             Tmd_FreeBuffers(temp_s3);
-            var_v0 = temp_s1->field_494 - 1;
+            var_v0 = temp_s1->freeCountdown - 1;
         }
-        temp_s1->field_494 = var_v0;
+        temp_s1->freeCountdown = var_v0;
     }
 ```
 
@@ -127308,18 +127308,18 @@ Putting the decrement where the value actually dies - after the test, or as a
 compound assignment on the field - makes both paths land in one register:
 
 ```c
-    step = work->field_494;
+    step = work->freeCountdown;
     if (step >= 0) {
         if (step == 0) {
             Tmd_FreeBuffers(ext);
-            step = work->field_494;
+            step = work->freeCountdown;
         }
         step -= 1;
-        work->field_494 = step;
+        work->freeCountdown = step;
     }
 ```
 
-`work->field_494 -= 1;` with no variable at all scores the same 100.000% (the
+`work->freeCountdown -= 1;` with no variable at all scores the same 100.000% (the
 memory read-modify-write ties its own temp), so the lever is not one variable
 versus two here: it is *which side of the branch the arithmetic sits on*. A
 prediction that the compound form would fail was recorded and measured wrong;
