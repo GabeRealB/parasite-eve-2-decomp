@@ -47182,26 +47182,38 @@ signedness per *use* before deciding a field's type: a mixed pair is normal C,
 not a struct mistake, and where both declarations match, the one needing no
 casts across all the field's users is the one to keep.
 
-## The same mixed pair across *two* functions: fix the comparison, not the field
+## The same mixed pair across *two* functions: count the casts over every user
 
 The per-use rule above does not stop at a function boundary. In
-`actor_207200_4`, `Actor207200Work.field_490` is loaded `lhu` in
-`func_actor_207200_8014D65C` (whose expression truncates to `u16`) and `lh` +
-`slti 0x69` in `func_actor_207200_8014D49C`. The `lhu` pins the declared type
-as `u16`, and the second function still gets its `lh` from the cast at the
-comparison site:
+`actor_207200_2`, `_Actor207200CreepingStrangerWork.animFrames` is loaded `lhu`
+by its increment in `func_actor_207200_8014D65C` and by the range checks in
+`func_actor_207200_8014B87C`, and `lh` + `slti 0x69` in
+`func_actor_207200_8014D49C`. The field was first matched as `u16`, with the
+`lh` coming from a cast at each signed comparison:
 
 ```c
-if ((s16)work->field_490 >= 0x69) { ... }      /* lh + slti */
+if ((s16)work->animFrames >= 0x69) { ... }      /* lh + slti */
 ```
 
-Both spellings are worth checking when you are tempted to retype the field:
-declaring `field_490` as `s16` instead — and leaving `8014D65C`'s
-`(u16)(field_490 + i)` untouched — produced *byte-identical* assembly here,
-because that consumer only keeps the low half either way. So a single
-comparison site's `lh` is not evidence for the field's signedness; the
-consumers that truncate are what pin it, and the cast is the change that
-leaves them alone.
+Declaring it `s16` instead produced *byte-identical* assembly: an increment
+only keeps the low half either way, and GCC's range-check rewrite loads an
+`s16` with `lhu` too, so neither `lhu` pins the type. What decides it is the
+cast count over all the field's users. As `u16` it needed `(s16)` at twenty
+comparisons and `(u32)(work->animFrames - 20) < 20` spelled out by hand at
+three; as `s16` it needs none, with the range checks written the natural way:
+
+```c
+if (work->animFrames >= 20 && work->animFrames < 40) { ... }   /* lhu + addiu -20 + sltiu 20 */
+if (work->animFrames >= 0x69)                        { ... }   /* lh + slti */
+```
+
+So a single site's `lh` or `lhu` is not evidence for the field's signedness.
+Try both declarations and keep the one that leaves the fewest casts.
+
+The rewrite has a floor: a range starting at 1 is not folded that way. For the
+same struct's `s16 activeStage`, `stage >= 1 && stage <= 3` compiles to
+`blez` + `slti 4`, and the target's `lhu` + `addiu -1` + `sltiu 3` still needs
+`(u16)work->activeStage - 1 < 3U` at that one site.
 
 ## Struct-typing can *shorten* a body: the hoisted load that eats a load-delay `nop`
 
@@ -62599,8 +62611,8 @@ came back at 1.00 in `shape`, `calls` *and* `cflow` at once. Diffing the two
 disassemblies confirmed they are instruction-for-instruction identical with
 every displacement changed: the same `ActorsShared80135b58` shape compiled
 against a different work struct. Copying `Actor05500_Fn03B60`'s matched C
-verbatim and renaming two work fields (`field_370`→`field_464`,
-`field_3A0`→`field_49C`) scored 100% on the first build — no term to add, unlike
+verbatim and renaming two work fields (`field_370`→`savedRootMtx`,
+`field_3A0`→`flattenScaleY`) scored 100% on the first build — no term to add, unlike
 the near-twin case above where a stripped diff shows one instruction with no
 counterpart.
 
@@ -81555,7 +81567,7 @@ add keeps the register.
 
 ```c
     TOUCH_REG(i);
-    work->field_490 = (u16)(work->field_490 + i);
+    work->animFrames = (u16)(work->animFrames + i);
 ```
 
 Dropping just that line from the otherwise-identical candidate scores 95.45%
@@ -118041,12 +118053,12 @@ constant assignments with a `do/while`.
 **Symptom.** Target walks `$s6 = work` by 0x18 and reads `lhu 0x23A($s6)`,
 `lw 0x238($s6)`; the build recomputes `i*24 + work + 0x234` every iteration.
 
-**Cause.** Indexing a *cast of an address* (`((WorldCollisionContact*)&work->rec2[0])[i]`)
+**Cause.** Indexing a *cast of an address* (`((WorldCollisionContact*)&work->bodyContacts[0])[i]`)
 expands to `reg390 = i*24 + work; reg391 = reg390 + 0x234` and every later
 access CSEs onto `reg391`, which is not recorded as a giv. The one giv left
 (`reg390`) has `used 1 lifetime 1`, and the `.loop` dump says
 `giv of insn 967 not worth while, 186 vs 253`. With the table as a real struct
-member (`work->rec2[i].key.parts.kind`) the 0x234 folds into
+member (`work->bodyContacts[i].key.parts.kind`) the 0x234 folds into
 each MEM offset, the `i*24 + work` giv gets many uses, and it is reduced to the
 walker. 93.8% -> 98.6% from that change alone. Big loop bodies (253 insns here)
 make the benefit threshold matter.

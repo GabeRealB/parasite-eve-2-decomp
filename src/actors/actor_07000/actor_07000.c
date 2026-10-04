@@ -59,7 +59,8 @@
 /// `ActorsShared80137e18` writes is the `field_36A`/`field_36E` pair, and this
 /// one counts its own reaction out in `field_36E`. `field_370`/`field_372`/
 /// `field_374` are the same (helper id, id the slots last saw, frames spent on
-/// it) triple `Actor107000Work` keeps at 0x370 and `Actor207200Work` at 0x48C,
+/// it) triple `Actor107000Work` keeps at 0x370 and `actor_207200`'s Creeping
+/// Stranger work as `animId`/`appliedAnim`/`animFrames`,
 /// and `field_394` is the same already-reacted flag `ActorShared8014d378Work`
 /// reads at 0x394.
 typedef struct ActorShared80136288Work {
@@ -214,19 +215,19 @@ typedef struct ActorShared801511c8Work {
 
 /// Animation work reached through `Task::work`. `field_2B8`/`field_2BA`/
 /// `field_2BC` are the same (id, id the three helper slots last saw, frames
-/// spent on it) triple as `Actor207200Work`'s `field_28C`/`field_28E`/
+/// spent on it) triple as `SkullStalkerWork`'s `field_28C`/`field_28E`/
 /// `field_290`; a non-zero `field_2D2` suppresses the per-frame rebind.
 ///
 /// The second triple, `field_370`/`field_372`/`field_374`, is the same thing
-/// over the work's *six* helper slots, mirroring `Actor207200Work`'s
-/// `field_48C`/`field_48E`/`field_490`.
+/// over the work's *six* helper slots, mirroring the `animId`/`appliedAnim`/
+/// `animFrames` of `actor_207200`'s Creeping Stranger work.
 ///
 /// `field_36A`/`field_36E` are the same pair `ActorShared80137e18Work`
 /// carries: the reaction sub-state the damage branch
 /// writes (3 here, 5 once the 0x600A5 spawn is armed) and a word cleared
 /// alongside it.
 ///
-/// `field_28C`/`field_2CA` are the same pair as `Actor207200Work`'s
+/// `field_28C`/`field_2CA` are the same pair as `SkullStalkerWork`'s
 /// `field_264`/`field_2A0`: the transform `sucklercephFlatten` folds onto the
 /// model, and the angle it is scaled by.
 typedef struct Actor107000Work {
