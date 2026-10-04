@@ -40,15 +40,21 @@
 
 #include "title/title.h"
 
-/// Stack workspace for controller polling and analog-axis normalization.
-typedef struct _PadPollWork {
-    /* 0x00 */ s32 state;
-    /* 0x04 */ s32 reserved;
-    /* 0x08 */ s32 delta;
-    /* 0x0C */ s32 range;
-    /* 0x10 */ s32 port;
-} PadPollWork;
-STATIC_ASSERT_SIZEOF(PadPollWork, 0x14);
+/// Working values of one controller poll, kept in the polling function's stack frame.
+///
+/// The port number and its connection state are held across the libpad calls
+/// that configure the controller; the other two members are the intermediate
+/// values of one analog axis's normalization and are rewritten for every axis.
+/// The frame leaves room for at most four more bytes after the last member
+/// accessed, so the size asserted is the proven minimum.
+typedef struct {
+    s32  state;        // libpad connection state of the port (`PadStateDiscon` .. `PadStateStable`)
+    byte unknown_4[4]; // Never accessed; type and role unproven
+    s32  delta;        // Axis in progress: raw reading minus its center, then the travel past the dead zone in Q12, then that divided by `range`
+    s32  range;        // Raw travel from the dead zone's edge to the full-scale reading on the deflected side; at least 1 for a clamped center
+    s32  portId;       // libpad port number: 0x10 per controller port, multitap slot 0
+} _PadPollWork;
+STATIC_ASSERT_SIZEOF(_PadPollWork, 0x14);
 
 /* Define BSS before API headers to preserve first-declaration order. */
 /// Resident storage for the live session exposed through `gGameSession`.
@@ -432,31 +438,32 @@ static void Pad_TickEventBanks(PadState* pad)
 
 void Pad_PollControllers(void)
 {
-    PadPollWork  buffer;
-    PadPollWork* work;
-    PadState*    pad;
-    s16*         axis;
-    s16          status;
-    s32          portId;
-    s32          delta;
-    s32          i;
-    s32          modeRequested;
-    s32          port;
-    PadRawPort*  raw;
-    u32          state;
-    u32          mode;
-    u32          savedState;
-    u8*          rawAxis;
-    u8           center;
+    _PadPollWork  workStorage;
+    _PadPollWork* work;
+    PadState*     pad;
+    s16*          axis;
+    s16           status;
+    s32           portId;
+    s32           delta;
+    s32           i;
+    s32           modeRequested;
+    s32           port;
+    PadRawPort*   raw;
+    u32           state;
+    u32           mode;
+    u32           savedState;
+    u8*           rawAxis;
+    u8            center;
 
-    work = &buffer;
+    // The work block is always addressed through this pointer; direct member access generates different code.
+    work = &workStorage;
     port = 0;
     do {
-        portId      = port * 0x10;
-        pad         = &gPadStates[port];
-        work->port  = portId;
-        state       = PadGetState(portId);
-        work->state = state;
+        portId       = port * 0x10;
+        pad          = &gPadStates[port];
+        work->portId = portId;
+        state        = PadGetState(portId);
+        work->state  = state;
         switch (state) {
             case PadStateReqInfo:
                 break;
@@ -472,7 +479,7 @@ void Pad_PollControllers(void)
             case PadStateExecCmd:
             case PadStateStable:
                 modeRequested = 0;
-                if ((pad->modeSetupPending == 1) && ((PadInfoMode(work->port, InfoModeCurExID, 0) == 0) || (modeRequested = 1, (PadSetMainMode(work->port, 1, 0) != 0)))) {
+                if ((pad->modeSetupPending == 1) && ((PadInfoMode(work->portId, InfoModeCurExID, 0) == 0) || (modeRequested = 1, (PadSetMainMode(work->portId, 1, 0) != 0)))) {
                     pad->modeSetupPending = 0;
                 }
                 Pad_TickEventBanks(pad);
@@ -480,7 +487,7 @@ void Pad_PollControllers(void)
                     savedState = work->state;
                     if (savedState == PadStateFindCTP1) {
                         // Libpad retains this buffer; encode the legacy command after registering it.
-                        PadSetAct(work->port, pad->actuatorCommand, sizeof(pad->actuatorCommand));
+                        PadSetAct(work->portId, pad->actuatorCommand, sizeof(pad->actuatorCommand));
                         if (pad->actuatorCommand[0] != 0) {
                             pad->actuatorCommand[1] = 1;
                         } else {
@@ -488,15 +495,15 @@ void Pad_PollControllers(void)
                         }
                         pad->actuatorCommand[0] = PAD_LEGACY_VIBRATION_PREFIX;
                     } else if ((savedState == PadStateStable) && (modeRequested == 0)) {
-                        PadSetAct(work->port, pad->actuatorCommand, sizeof(pad->actuatorCommand));
-                        if (PadSetActAlign(work->port, D_8005ED84) != 0) {
+                        PadSetAct(work->portId, pad->actuatorCommand, sizeof(pad->actuatorCommand));
+                        if (PadSetActAlign(work->portId, D_8005ED84) != 0) {
                             pad->actuatorAlignmentReady = 1;
                         }
                     }
                 }
                 break;
         }
-        mode = PadInfoMode(work->port, InfoModeCurID, 0);
+        mode = PadInfoMode(work->portId, InfoModeCurID, 0);
         switch (mode) {
             case 5:
             case 7:
@@ -530,12 +537,12 @@ void Pad_PollControllers(void)
                             work->range = pad->stickCenters[i] - 0x19;
                             work->delta = (-PAD_STICK_DEAD_ZONE_RAW - work->delta) << PAD_STICK_FRACTION_BITS;
                             work->delta = work->delta / work->range;
-                            *axis++     = -(s16)work->delta;
+                            *axis++     = -work->delta;
                         } else {
                             work->range = 0xE6 - pad->stickCenters[i];
                             work->delta = (work->delta - PAD_STICK_DEAD_ZONE_RAW) << PAD_STICK_FRACTION_BITS;
                             work->delta = work->delta / work->range;
-                            *axis++     = (s16)work->delta;
+                            *axis++     = work->delta;
                         }
                     }
                     i += 1;
