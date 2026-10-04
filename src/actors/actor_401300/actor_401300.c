@@ -103,7 +103,8 @@ enum {
     ACTOR_401300_STATE_REFALL_BACK      = 0x25, // knocked down again while in `RISE_BACK`
     ACTOR_401300_STATE_REFALL_FRONT     = 0x26, // knocked down again while in `RISE_FRONT`
     ACTOR_401300_STATE_WOUNDED          = 0x27, // spawned lying and twitching; rests in `DOWN` once its health is gone
-    ACTOR_401300_STATE_DEATH_BURST_WALK = 0x28  // walks a few steps, bursts and burns away
+    ACTOR_401300_STATE_DEATH_BURST_WALK = 0x28, // walks a few steps, bursts and burns away
+    ACTOR_401300_STATE_COUNT                    // number of states, and of the handlers in `_Actor401300StateTable`
 };
 
 /// Values of `_Actor401300Work::animRequest` and `_Actor401300Work::blendRequest`.
@@ -206,20 +207,15 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor401300Work, 0xD7C);
 
 /// The actor's state handlers, indexed by `_Actor401300Work::state`.
-/// `func_actor_401300_801405DC` copies the table to its frame before
-/// dispatching.
-typedef struct Actor401300StateTable {
-    TaskFunc fn[41];
-} Actor401300StateTable;
-STATIC_ASSERT_SIZEOF(Actor401300StateTable, 0xA4);
-
-/// Event record `func_actor_401300_80132554` dispatches on: `w[0]` is the
-/// event kind (0x301, 0xB05, 0x1D05) and `w[1]` its sub-code, and the first
-/// three bytes are also copied raw into `_Actor401300Work::commandBytes`.
-typedef union Actor401300Event {
-    u8  b[3];
-    u16 w[2];
-} Actor401300Event;
+///
+/// The package defines one table. The per-frame tick copies it to the stack
+/// before calling the entry of the current state. The call is unconditional,
+/// so the `NULL` entry of `ACTOR_401300_STATE_UNUSED_12` marks a state the
+/// actor must not be in when the tick dispatches.
+typedef struct {
+    TaskFunc handlers[ACTOR_401300_STATE_COUNT]; // Handler of each state, taking the actor's task
+} _Actor401300StateTable;
+STATIC_ASSERT_SIZEOF(_Actor401300StateTable, ACTOR_401300_STATE_COUNT * sizeof(TaskFunc));
 
 extern ActorHeightClamp D_actor_401300_801589C8[];
 
@@ -255,45 +251,56 @@ extern TaskMessageEntry D_actor_401300_80158988[8];
 /// `pad` is the model coordinate index passed to `func_800FDB18`.
 extern SVECTOR D_actor_401300_80158928[12];
 
-/// Offset to the player, distance and turn for the pursuit state.
-typedef struct Actor401300PursuitScratch {
-    /* 0x00 */ s32     dx;
-    /* 0x04 */ s32     dy;
-    /* 0x08 */ s32     dz;
-    /* 0x0C */ s32     pad_C;
-    /* 0x10 */ s32     dist;
-    /* 0x14 */ SVECTOR delta;
-    /* 0x1C */ s32     pad_1C;
-    /* 0x20 */ s16     angle;
-    /* 0x22 */ s16     pad_22;
-} Actor401300PursuitScratch;
-STATIC_ASSERT_SIZEOF(Actor401300PursuitScratch, 0x24);
+/// The scratch-stack block of the two states that run at a point: the chase,
+/// at the player, and the withdrawal, at `_Actor401300Work::withdrawPoint`.
+///
+/// One block serves one frame of one state, and nothing carries over to the
+/// next. A running frame of either state fills `delta` and `turn`. The
+/// withdrawal fills `offset` and `distance` on each of those frames as well,
+/// widening `delta`; the chase fills them only on a frame whose turn needed no
+/// limiting, measuring afresh once the frame's pushes and forward step have
+/// moved the actor. The withdrawal's leap out of the room uses `turn` alone.
+/// Yaws are 4096 units per turn, and a wrapped one lies in [-0x800, 0x800].
+typedef struct {
+    VECTOR  offset;          // Target's position minus the actor's at full width, world units; `pad` is never written
+    s32     distance;        // Length of `offset`. The chase picks its attack by it; the withdrawal's leap out of the room waits for it to drop under 0x898
+    SVECTOR delta;           // Target's position minus the actor's as the frame began, low 16 bits of each axis; `vx` and `vz` give the bearing, and `pad` is never written
+    byte    unknown_1C[0x4]; // Reserved with the block and never accessed; role unproven
+    s16     turn;            // Wrapped turn from the actor's heading to the target, then that turn limited to 0x30 either way, then the limited turn added to the heading: the yaw the actor's rotation is rebuilt around. The leap out of the room puts the heading itself here
+} _Actor401300RunScratch;
+STATIC_ASSERT_SIZEOF(_Actor401300RunScratch, 0x24);
 
-/// 0x24-byte scratch stack block `func_actor_401300_8013E930` takes: the
-/// offset to the player (full width for the distance, halfwords for the yaw),
-/// the clamped lunge range and the wrapped turn.
-typedef struct Actor401300LungeScratch {
-    /* 0x00 */ VECTOR  dist;
-    /* 0x10 */ SVECTOR delta;
-    /* 0x18 */ s32     range;
-    /* 0x1C */ s32     pad_1C;
-    /* 0x20 */ s16     angle;
-    /* 0x22 */ s16     pad_22;
-} Actor401300LungeScratch;
-STATIC_ASSERT_SIZEOF(Actor401300LungeScratch, 0x24);
+/// The scratch-stack block of the leap at the player.
+///
+/// One block serves one frame of the state, and nothing carries over to the
+/// next. Every frame fills `delta` with the player's offset. The crouch turns
+/// by it and, on the frame it ends, measures `offset` and `leapDistance` to
+/// set the step of the leap. A leap that catches the player takes `delta` and
+/// `turn` over to work out which way the player falls and the push that
+/// follows. Yaws are 4096 units per turn, and a wrapped one lies in
+/// [-0x800, 0x800].
+typedef struct {
+    VECTOR  offset;          // Player's position minus the actor's at full width as the crouch ends, world units; `pad` is never written
+    SVECTOR delta;           // Player's position minus the actor's, low 16 bits of each axis. On a catch it is replaced by the place the leap began minus the player's position, then by the player's forward axis flattened and scaled to the step the player is pushed along it; `pad` is never written
+    s32     leapDistance;    // Ground the leap is to cover: the length of `offset` plus 1000, kept within 3000..5000. An eighteenth of it is the step per frame
+    byte    unknown_1C[0x4]; // Reserved with the block and never accessed; role unproven
+    s16     turn;            // Wrapped turn from the actor's heading to the player, limited to 0x10 either way and added to the heading to steer the crouch; on a catch, the turn from the player's heading to the place the leap began
+} _Actor401300LeapScratch;
+STATIC_ASSERT_SIZEOF(_Actor401300LeapScratch, 0x24);
 
 /// The scratch-stack block of the charge.
 ///
-/// It has the size of `ActorChaseScratch` and the same vector and turn, but
-/// the charge keeps what the grid push reported where that block holds a
+/// One block serves one frame of the state, and nothing carries over to the
+/// next. It has the size of `ActorChaseScratch` and the same vector and turn,
+/// but the charge keeps what the grid push reported where that block holds a
 /// heading, and never touches the two words that block keeps for the player's
-/// yaws.
+/// yaws. Yaws are 4096 units per turn, and a wrapped one lies in
+/// [-0x800, 0x800].
 typedef struct {
-    SVECTOR delta;      // Player's position minus the actor's, world units; on a catch it is reversed to turn the player, then replaced by the player's forward axis and the step the player is knocked along it
-    s16     field_8;    // Neither read nor written by the charge; role unproven
-    s16     field_A;    // Neither read nor written by the charge; role unproven
-    s16     turn;       // Wrapped turn from the actor's heading to the player, limited and added to the heading to steer; on a catch, the turn from the player's heading to the actor
-    s16     gridPushed; // 1 when the grid contacts moved the actor this frame, else 0
+    SVECTOR delta;          // Player's position minus the actor's, world units; on a catch it is reversed to turn the player, then replaced by the player's forward axis flattened and scaled to the step the player is knocked along it; `pad` is never written
+    byte    unknown_8[0x4]; // Reserved with the block and never accessed; role unproven
+    s16     turn;           // Wrapped turn from the actor's heading to the player, limited to 6 either way and added to the heading to steer; on a catch, the turn from the player's heading to the actor
+    s16     gridPushed;     // 1 when the room grid's correction moved the actor across the ground this frame, else 0
 } _Actor401300ChargeScratch;
 STATIC_ASSERT_SIZEOF(_Actor401300ChargeScratch, 0x10);
 
@@ -337,7 +344,7 @@ static AnimationSet _gActor401300Animation251E4;
 static AnimationSet _gActor401300Animation259F0;
 static AnimationSet _gActor401300Animation26204;
 static TmdSource    _gActor401300HornedStrangerBody;
-s32                 func_actor_401300_80132554(Task*, s32, Actor401300Event*, s32);
+s32                 func_actor_401300_80132554(Task*, s32, ActorCommand*, s32);
 s32                 func_actor_401300_80141494(Task*, s32, AnimationPlayRequest*, s32);
 s32                 func_actor_401300_80141614(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
 s32                 func_actor_401300_8014148C(Task*, s32, s32, s32);
@@ -1338,21 +1345,21 @@ static s32             func_actor_401300_801417F0(Task* arg0);
 
 #include "../../shared/actor_contacts_push_contact.inc.c"
 
-s32 func_actor_401300_80132554(Task* arg0, s32 arg1, Actor401300Event* arg2, s32 arg3)
+s32 func_actor_401300_80132554(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg3)
 {
     _Actor401300Work* work  = arg0->work;
     Enemy*            enemy = arg0->spawnArg2.pointer;
 
-    work->commandBytes[0] = arg2->b[0];
-    work->commandBytes[1] = arg2->b[1];
-    work->commandBytes[2] = arg2->b[2];
-    if (arg2->w[0] == 0x301) {
-        if (arg2->w[1] == 1) {
+    work->commandBytes[0] = arg2->context.loc.stage;
+    work->commandBytes[1] = arg2->context.loc.area;
+    work->commandBytes[2] = (u8)arg2->command;
+    if (arg2->context.key == 0x301) {
+        if (arg2->command == 1) {
             work->state = ACTOR_401300_STATE_DORMANT_SCRIPTED;
             return 1;
         }
-    } else if (arg2->w[0] == 0xB05) {
-        switch (arg2->w[1]) {
+    } else if (arg2->context.key == 0xB05) {
+        switch (arg2->command) {
             case 0:
                 work->state = ACTOR_401300_STATE_HIDDEN;
                 return 1;
@@ -1368,8 +1375,8 @@ s32 func_actor_401300_80132554(Task* arg0, s32 arg1, Actor401300Event* arg2, s32
                 }
                 return 1;
         }
-    } else if (arg2->w[0] == 0x1D05) {
-        switch (arg2->w[1]) {
+    } else if (arg2->context.key == 0x1D05) {
+        switch (arg2->command) {
             case 0:
                 work->state = ACTOR_401300_STATE_HIDDEN;
                 return 1;
@@ -2912,22 +2919,22 @@ static void func_actor_401300_80136238(Task* arg0)
 
 static void func_actor_401300_801365F8(Task* arg0)
 {
-    _Actor401300Work*          work;
-    GameActor*                 player;
-    PlayerStatus*              config;
-    TmdObject*                 obj;
-    GfxCoord*                  coord;
-    GfxCoord*                  c1;
-    GfxCoord*                  c2;
-    Actor401300PursuitScratch* head;
-    Actor401300PursuitScratch* sc;
-    SVECTOR*                   delta;
-    s32                        angle;
-    s32                        dist;
-    s32                        dx;
-    s32                        dy;
-    s32                        dz;
-    s32                        mask;
+    _Actor401300Work*       work;
+    GameActor*              player;
+    PlayerStatus*           config;
+    TmdObject*              obj;
+    GfxCoord*               coord;
+    GfxCoord*               c1;
+    GfxCoord*               c2;
+    _Actor401300RunScratch* head;
+    _Actor401300RunScratch* run;
+    SVECTOR*                delta;
+    s32                     angle;
+    s32                     dist;
+    s32                     dx;
+    s32                     dy;
+    s32                     dz;
+    s32                     mask;
 
     config = &gPlayerStatus;
     work   = arg0->work;
@@ -2966,36 +2973,36 @@ static void func_actor_401300_801365F8(Task* arg0)
         }
     }
     work->stateTimer++;
-    head                                            = SCRATCH_STACK_CURSOR(Actor401300PursuitScratch);
-    delta                                           = &head[-1].delta;
-    c1                                              = arg0->extra.tmd->coords;
-    head[-1].delta.vx                               = gPlayerStatus.coordMtx->t[0] - c1->coord.t[0];
-    delta->vy                                       = gPlayerStatus.coordMtx->t[1] - c1->coord.t[1];
-    delta->vz                                       = gPlayerStatus.coordMtx->t[2] - c1->coord.t[2];
-    SCRATCH_STACK_CURSOR(Actor401300PursuitScratch) = head - 1;
-    sc                                              = head - 1;
-    arg0->extra.tmd->coords->composeStamp           = GRAPHICS_COORD_DIRTY;
+    head                                         = SCRATCH_STACK_CURSOR(_Actor401300RunScratch);
+    delta                                        = &head[-1].delta;
+    c1                                           = arg0->extra.tmd->coords;
+    head[-1].delta.vx                            = gPlayerStatus.coordMtx->t[0] - c1->coord.t[0];
+    delta->vy                                    = gPlayerStatus.coordMtx->t[1] - c1->coord.t[1];
+    delta->vz                                    = gPlayerStatus.coordMtx->t[2] - c1->coord.t[2];
+    SCRATCH_STACK_CURSOR(_Actor401300RunScratch) = head - 1;
+    run                                          = head - 1;
+    arg0->extra.tmd->coords->composeStamp        = GRAPHICS_COORD_DIRTY;
     func_actor_401300_80133A3C(arg0);
     if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57) == 0) {
         func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     c2                  = arg0->extra.tmd->coords;
     angle               = ratan2(head[-1].delta.vx, delta->vz);
-    sc->angle           = actorNormalizeYaw(angle - ratan2(-c2->coord.m[2][0], c2->coord.m[2][2]));
-    work->lookYawTarget = sc->angle;
+    run->turn           = actorNormalizeYaw(angle - ratan2(-c2->coord.m[2][0], c2->coord.m[2][2]));
+    work->lookYawTarget = run->turn;
     if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, (work->chaseRate + 2) * 30 * 1.5f / 18.0f)) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, (work->chaseRate + 2) * 30 * 1.5f / 18.0f);
     }
-    if (sc->angle > 0x30) {
-        sc->angle = 0x30;
-    } else if (sc->angle < -0x30) {
-        sc->angle = -0x30;
+    if (run->turn > 0x30) {
+        run->turn = 0x30;
+    } else if (run->turn < -0x30) {
+        run->turn = -0x30;
     } else {
-        sc->dx = dx = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-        sc->dy = dy = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-        sc->dz = dz = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-        dist        = SquareRoot0(dx * dx + dy * dy + dz * dz);
-        sc->dist    = dist;
+        run->offset.vx = dx = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
+        run->offset.vy = dy = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
+        run->offset.vz = dz = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
+        dist                = SquareRoot0(dx * dx + dy * dy + dz * dz);
+        run->distance       = dist;
         if (player->mode != GAME_ACTOR_MODE_SCRIPTED && work->stateTimer >= 0x28) {
             if (dist > 4000) {
                 work->state = ACTOR_401300_STATE_CHARGE;
@@ -3017,13 +3024,13 @@ static void func_actor_401300_801365F8(Task* arg0)
         }
     }
     coord      = arg0->extra.tmd->coords;
-    sc->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, sc->angle, 1);
+    run->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, run->turn, 1);
 
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg0->extra.tmd->coords);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor401300PursuitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor401300RunScratch);
 }
 
 static __inline__ void Actor401300_MoveBy(GfxCoord* coord, s16 amount)
@@ -3063,14 +3070,14 @@ static __inline__ s32 Actor401300_Abs(s32 x)
 
 static void func_actor_401300_80136CE8(Task* arg0)
 {
-    _Actor401300Work*          work;
-    Enemy*                     enemy;
-    TmdObject*                 obj;
-    GfxCoord*                  coord;
-    Actor401300PursuitScratch* head;
-    Actor401300PursuitScratch* blk;
-    Actor401300PursuitScratch* s;
-    s32                        z;
+    _Actor401300Work*       work;
+    Enemy*                  enemy;
+    TmdObject*              obj;
+    GfxCoord*               coord;
+    _Actor401300RunScratch* head;
+    _Actor401300RunScratch* blk;
+    _Actor401300RunScratch* run;
+    s32                     z;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -3129,39 +3136,39 @@ static void func_actor_401300_80136CE8(Task* arg0)
             work->jointPairTarget = 0x40;
         }
     }
-    head = SCRATCH_STACK_CURSOR(Actor401300PursuitScratch);
+    head = SCRATCH_STACK_CURSOR(_Actor401300RunScratch);
     blk  = head - 1;
     work->stateTimer++;
-    SCRATCH_STACK_CURSOR(Actor401300PursuitScratch) = blk;
+    SCRATCH_STACK_CURSOR(_Actor401300RunScratch) = blk;
     func_actor_401300_80133A3C(arg0);
-    s = blk;
+    run = blk;
     switch (work->animId) {
         case 3:
-            blk->delta.vx = work->withdrawPoint.vx - arg0->extra.tmd->coords->coord.t[0];
-            head[-1].dx   = blk->delta.vx;
-            blk->delta.vy = work->withdrawPoint.vy - arg0->extra.tmd->coords->coord.t[1];
-            blk->dy       = blk->delta.vy;
-            blk->delta.vz = work->withdrawPoint.vz - arg0->extra.tmd->coords->coord.t[2];
-            blk->dz       = blk->delta.vz;
-            blk->dist     = SquareRoot0(head[-1].dx * head[-1].dx + blk->dy * blk->dy + blk->dz * blk->dz);
+            blk->delta.vx      = work->withdrawPoint.vx - arg0->extra.tmd->coords->coord.t[0];
+            head[-1].offset.vx = blk->delta.vx;
+            blk->delta.vy      = work->withdrawPoint.vy - arg0->extra.tmd->coords->coord.t[1];
+            blk->offset.vy     = blk->delta.vy;
+            blk->delta.vz      = work->withdrawPoint.vz - arg0->extra.tmd->coords->coord.t[2];
+            blk->offset.vz     = blk->delta.vz;
+            blk->distance      = SquareRoot0(head[-1].offset.vx * head[-1].offset.vx + blk->offset.vy * blk->offset.vy + blk->offset.vz * blk->offset.vz);
             if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57) != 1) {
                 func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
             }
             coord               = arg0->extra.tmd->coords;
-            s->angle            = actorNormalizeYaw(ratan2(head[-1].delta.vx, head[-1].delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-            work->lookYawTarget = s->angle;
-            if (s->angle > 0x30) {
-                s->angle = 0x30;
-            } else if (s->angle < -0x30) {
-                s->angle = -0x30;
-            } else if ((s->dist < 0x898 && Actor401300_Abs(actorNormalizeYaw(ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]) - work->withdrawPoint.pad)) < 0x200) || work->stateTimer > 0xB4) {
+            run->turn           = actorNormalizeYaw(ratan2(head[-1].delta.vx, head[-1].delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+            work->lookYawTarget = run->turn;
+            if (run->turn > 0x30) {
+                run->turn = 0x30;
+            } else if (run->turn < -0x30) {
+                run->turn = -0x30;
+            } else if ((run->distance < 0x898 && Actor401300_Abs(actorNormalizeYaw(ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]) - work->withdrawPoint.pad)) < 0x200) || work->stateTimer > 0xB4) {
                 work->animId      = 0x20;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
                 SndEvt_EnqueueType6(SOUND_NEO_ARK_WOODLAND_STRANGER_WITHDRAW, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords), (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                 work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            s->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->angle, 1);
+            run->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
+            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, run->turn, 1);
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, (s16)((float)((work->chaseRate + 2) * 30) * 1.5f / 18.0f)) != 0) {
                 Actor401300_MoveBy(arg0->extra.tmd->coords, (s16)((float)((work->chaseRate + 2) * 30) * 1.5f / 18.0f));
             }
@@ -3170,8 +3177,8 @@ static void func_actor_401300_80136CE8(Task* arg0)
             Gp_UpdateCoord(arg0->extra.tmd->coords);
             break;
         case 0x20:
-            s->angle = ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->angle, 1);
+            run->turn = ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
+            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, run->turn, 1);
             actorMoveForward(arg0->extra.tmd->coords, 0x12C);
             actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3182,7 +3189,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor401300PursuitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor401300RunScratch);
 }
 
 static void func_actor_401300_801376E4(Task* arg0)
@@ -4665,7 +4672,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
     GfxCoord*                  root;
     void**                     scratch;
     _Actor401300ChargeScratch* head;
-    _Actor401300ChargeScratch* aim;
+    _Actor401300ChargeScratch* charge;
     s16                        amount;
     s16                        ret;
     McSaveData*                save;
@@ -4701,18 +4708,18 @@ static void func_actor_401300_8013DADC(Task* arg0)
     root              = arg0->extra.tmd->coords;
     head              = SCRATCH_HEAD_AT(scratch, _Actor401300ChargeScratch);
     head[-1].delta.vx = config->coordMtx->t[0] - root->coord.t[0];
-    aim               = (SCRATCH_HEAD_AT(scratch, _Actor401300ChargeScratch) = head - 1);
-    aim->delta.vy     = config->coordMtx->t[1] - root->coord.t[1];
-    aim->delta.vz     = config->coordMtx->t[2] - root->coord.t[2];
+    charge            = (SCRATCH_HEAD_AT(scratch, _Actor401300ChargeScratch) = head - 1);
+    charge->delta.vy  = config->coordMtx->t[1] - root->coord.t[1];
+    charge->delta.vz  = config->coordMtx->t[2] - root->coord.t[2];
     save              = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     func_actor_401300_80133A3C(arg0);
     switch (work->animId) {
         case 0x1B:
-            if ((aim->gridPushed = func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57)) != 0 &&
+            if ((charge->gridPushed = func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57)) != 0 &&
                 work->stateTimer >= 0x15) {
                 work->blockedFrames++;
             } else {
-                if (aim->gridPushed != 1) {
+                if (charge->gridPushed != 1) {
                     func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
                 }
                 work->blockedFrames = 0;
@@ -4723,39 +4730,39 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 work->stateTimer  = 0;
             }
             work->lookYawTarget = 0;
-            aim->turn           = actorYawTo(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
+            charge->turn        = actorYawTo(arg0->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
             if (work->stateTimer >= 0xB) {
-                if (abs(aim->turn) < 0x200) {
-                    if (!overlayOutOfRange(&aim->delta, 0x7D0)) {
+                if (abs(charge->turn) < 0x200) {
+                    if (!overlayOutOfRange(&charge->delta, 0x7D0)) {
                         work->animId      = 0x1C;
                         work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
                         work->stateTimer  = 0;
                     }
                 }
             }
-            if (abs(aim->turn) > 0x400) {
+            if (abs(charge->turn) > 0x400) {
                 work->animId      = 0x1C;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
                 work->stateTimer  = 0;
             }
-            if (aim->turn > 6) {
-                aim->turn = 6;
-            } else if (aim->turn < -6) {
-                aim->turn = -6;
+            if (charge->turn > 6) {
+                charge->turn = 6;
+            } else if (charge->turn < -6) {
+                charge->turn = -6;
             }
-            aim->turn += Actor401300_Yaw(arg0->extra.tmd->coords);
-            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
+            charge->turn += Actor401300_Yaw(arg0->extra.tmd->coords);
+            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, charge->turn, 1);
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x70) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 0x70);
             }
             Actor401300_ResetActorYaw(arg0);
             break;
         case 0x1C:
-            if ((aim->gridPushed = func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57)) != 0 &&
+            if ((charge->gridPushed = func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57)) != 0 &&
                 work->stateTimer >= 0x15) {
                 work->blockedFrames++;
             } else {
-                if (aim->gridPushed != 1) {
+                if (charge->gridPushed != 1) {
                     func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
                 }
                 work->blockedFrames = 0;
@@ -4765,13 +4772,13 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
                 work->stateTimer  = 0;
             }
-            aim->turn = actorYawTo(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
+            charge->turn = actorYawTo(arg0->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
             if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->animId      = 0x1D;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
                 work->stateTimer  = 0;
             }
-            if (func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 0 && player->mode != GAME_ACTOR_MODE_SCRIPTED && abs(aim->turn) < 0x100 &&
+            if (func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 0 && player->mode != GAME_ACTOR_MODE_SCRIPTED && abs(charge->turn) < 0x100 &&
                 enemy->hp > 0) {
                 work->playerButtonHold.pressCount = 0x7F;
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
@@ -4783,19 +4790,19 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     work->playerMove.displacement.vx   = 0;
                     work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
                     work->playerMove.keepControl       = 1;
-                    aim->delta.vx                      = -aim->delta.vx;
-                    aim->delta.vy                      = -aim->delta.vy;
-                    aim->delta.vz                      = -aim->delta.vz;
-                    aim->turn                          = actorYawTo(task->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
-                    if (abs(aim->turn) < 0x400) {
+                    charge->delta.vx                   = -charge->delta.vx;
+                    charge->delta.vy                   = -charge->delta.vy;
+                    charge->delta.vz                   = -charge->delta.vz;
+                    charge->turn                       = actorYawTo(task->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
+                    if (abs(charge->turn) < 0x400) {
                         amount                       = -0x64;
                         work->playerAnim.animationId = 4;
-                        work->playerPlacement.rot.vy = aim->turn + Actor401300_Yaw(task->extra.tmd->coords);
+                        work->playerPlacement.rot.vy = charge->turn + Actor401300_Yaw(task->extra.tmd->coords);
                         ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
                     } else {
                         amount                       = 0x64;
                         work->playerAnim.animationId = 5;
-                        work->playerPlacement.rot.vy = aim->turn + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
+                        work->playerPlacement.rot.vy = charge->turn + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
                         ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 5), 0);
                     }
                     if (ret == 1) {
@@ -4809,16 +4816,16 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     TASK_MESSAGE_DISPATCH_POINTER(task, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
                     work->playerAnimFrames = 0;
-                    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &aim->delta);
-                    aim->delta.vy = 0;
-                    VectorNormalSS(&aim->delta, &aim->delta);
+                    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &charge->delta);
+                    charge->delta.vy = 0;
+                    VectorNormalSS(&charge->delta, &charge->delta);
                     gte_lddp(amount);
-                    gte_ldsv(&aim->delta);
+                    gte_ldsv(&charge->delta);
                     gte_gpf12();
-                    gte_stsv(&aim->delta);
-                    work->playerMove.displacement.vx   = aim->delta.vx;
+                    gte_stsv(&charge->delta);
+                    work->playerMove.displacement.vx   = charge->delta.vx;
                     work->playerMove.displacement.vy   = 0;
-                    work->playerMove.displacement.vz   = aim->delta.vz;
+                    work->playerMove.displacement.vz   = charge->delta.vz;
                     work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
                     work->playerMove.keepControl       = 1;
                     work->animId                       = 0x1E;
@@ -4898,9 +4905,9 @@ static void func_actor_401300_8013E930(Task* arg0)
     Enemy*                   enemy;
     TmdObject*               obj;
     GfxCoord*                root;
-    SVECTOR**                scratch;
-    Actor401300LungeScratch* head;
-    Actor401300LungeScratch* blk;
+    void**                   scratch;
+    _Actor401300LeapScratch* head;
+    _Actor401300LeapScratch* leap;
     SVECTOR*                 delta;
     SVECTOR*                 vec;
     s16                      cur;
@@ -4937,14 +4944,14 @@ static void func_actor_401300_8013E930(Task* arg0)
         work->leapStartPos.vz = arg0->extra.tmd->coords->coord.t[2];
         return;
     }
-    scratch = (SVECTOR**)SCRATCH_HEAD_ADDR;
+    scratch = SCRATCH_HEAD_ADDR;
     work->stateTimer++;
     root              = arg0->extra.tmd->coords;
-    head              = (Actor401300LungeScratch*)SCRATCH_HEAD_AT(scratch, SVECTOR);
+    head              = SCRATCH_HEAD_AT(scratch, _Actor401300LeapScratch);
     head[-1].delta.vx = config->coordMtx->t[0] - root->coord.t[0];
     delta             = &head[-1].delta;
     delta->vy         = config->coordMtx->t[1] - root->coord.t[1];
-    blk               = (Actor401300LungeScratch*)(SCRATCH_HEAD_AT(scratch, SVECTOR) = (SVECTOR*)(head - 1));
+    leap              = (SCRATCH_HEAD_AT(scratch, _Actor401300LeapScratch) = head - 1);
     delta->vz         = config->coordMtx->t[2] - root->coord.t[2];
     func_actor_401300_80133A3C(arg0);
     switch (work->animId) {
@@ -4954,34 +4961,34 @@ static void func_actor_401300_8013E930(Task* arg0)
                 func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
             }
             work->lookYawTarget = 0;
-            blk->angle          = actorYawTo(arg0->extra.tmd->coords, head[-1].delta.vx, delta->vz);
+            leap->turn          = actorYawTo(arg0->extra.tmd->coords, head[-1].delta.vx, delta->vz);
             if (work->stateTimer >= 0xB) {
-                work->animId      = 0x20;
-                work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
-                blk->dist.vx      = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-                blk->dist.vy      = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-                blk->dist.vz      = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-                blk->range        = SquareRoot0(blk->dist.vx * blk->dist.vx + blk->dist.vy * blk->dist.vy + blk->dist.vz * blk->dist.vz) + 1000;
-                if (blk->range > 5000) {
-                    blk->range = 5000;
-                } else if (blk->range < 3000) {
-                    blk->range = 3000;
+                work->animId       = 0x20;
+                work->animRequest  = ACTOR_401300_ANIM_REQUEST_BLEND;
+                leap->offset.vx    = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
+                leap->offset.vy    = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
+                leap->offset.vz    = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
+                leap->leapDistance = SquareRoot0(leap->offset.vx * leap->offset.vx + leap->offset.vy * leap->offset.vy + leap->offset.vz * leap->offset.vz) + 1000;
+                if (leap->leapDistance > 5000) {
+                    leap->leapDistance = 5000;
+                } else if (leap->leapDistance < 3000) {
+                    leap->leapDistance = 3000;
                 }
-                work->leapStep        = blk->range / 18;
+                work->leapStep        = leap->leapDistance / 18;
                 work->jointPairTarget = 0;
                 work->stateTimer      = 0;
                 work->jointPairStep   = 0x20;
             }
-            if (abs(blk->angle) > 0x400) {
+            if (abs(leap->turn) > 0x400) {
                 work->state = ACTOR_401300_STATE_CHASE;
             }
-            if (blk->angle > 0x10) {
-                blk->angle = 0x10;
-            } else if (blk->angle < -0x10) {
-                blk->angle = -0x10;
+            if (leap->turn > 0x10) {
+                leap->turn = 0x10;
+            } else if (leap->turn < -0x10) {
+                leap->turn = -0x10;
             }
-            blk->angle += Actor401300_Yaw(arg0->extra.tmd->coords);
-            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, blk->angle, 1);
+            leap->turn += Actor401300_Yaw(arg0->extra.tmd->coords);
+            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, leap->turn, 1);
             Actor401300_ResetActorYaw(arg0);
             break;
         case 0x20:
@@ -5001,19 +5008,19 @@ static void func_actor_401300_8013E930(Task* arg0)
                                         (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
                     work->playerHeld             = 1;
                     work->playerAnim.source.sets = D_actor_401300_801588F0;
-                    blk->delta.vx                = work->leapStartPos.vx - task->extra.tmd->coords->coord.t[0];
-                    blk->delta.vy                = work->leapStartPos.vy - task->extra.tmd->coords->coord.t[1];
-                    blk->delta.vz                = work->leapStartPos.vz - task->extra.tmd->coords->coord.t[2];
-                    blk->angle                   = actorYawTo(task->extra.tmd->coords, head[-1].delta.vx, delta->vz);
-                    if (abs(blk->angle) < 0x400) {
+                    leap->delta.vx               = work->leapStartPos.vx - task->extra.tmd->coords->coord.t[0];
+                    leap->delta.vy               = work->leapStartPos.vy - task->extra.tmd->coords->coord.t[1];
+                    leap->delta.vz               = work->leapStartPos.vz - task->extra.tmd->coords->coord.t[2];
+                    leap->turn                   = actorYawTo(task->extra.tmd->coords, head[-1].delta.vx, delta->vz);
+                    if (abs(leap->turn) < 0x400) {
                         amount                       = -0x46;
                         work->playerAnim.animationId = 4;
-                        work->playerPlacement.rot.vy = blk->angle + Actor401300_Yaw(task->extra.tmd->coords);
+                        work->playerPlacement.rot.vy = leap->turn + Actor401300_Yaw(task->extra.tmd->coords);
                         ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 2), 0);
                     } else {
                         amount                       = 0x46;
                         work->playerAnim.animationId = 5;
-                        work->playerPlacement.rot.vy = blk->angle + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
+                        work->playerPlacement.rot.vy = leap->turn + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
                         ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 3), 0);
                     }
                     if (ret == 1) {
@@ -5027,17 +5034,17 @@ static void func_actor_401300_8013E930(Task* arg0)
                     TASK_MESSAGE_DISPATCH_POINTER(task, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
                     work->playerAnimFrames = 0;
-                    vec                    = &blk->delta;
+                    vec                    = &leap->delta;
                     gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, vec);
-                    blk->delta.vy = 0;
+                    leap->delta.vy = 0;
                     VectorNormalSS(vec, vec);
                     gte_lddp(amount);
                     gte_ldsv(vec);
                     gte_gpf12();
                     gte_stsv(vec);
-                    work->playerMove.displacement.vx   = blk->delta.vx;
+                    work->playerMove.displacement.vx   = leap->delta.vx;
                     work->playerMove.displacement.vy   = 0;
-                    work->playerMove.displacement.vz   = blk->delta.vz;
+                    work->playerMove.displacement.vz   = leap->delta.vz;
                     work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
                     work->playerMove.keepControl       = 1;
                 }
@@ -5067,7 +5074,7 @@ static void func_actor_401300_8013E930(Task* arg0)
             work->state = ACTOR_401300_STATE_PATROL;
             break;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor401300LungeScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor401300LeapScratch);
 }
 
 /// Scale `m` uniformly by `scale` (4.12), translation included.
@@ -5415,7 +5422,7 @@ static __inline__ void Actor401300_SnapPlayerHeight(Task* actor)
     }
 }
 
-static const Actor401300StateTable D_actor_401300_80131F34 = { {
+static const _Actor401300StateTable D_actor_401300_80131F34 = { {
     func_actor_401300_8014192C,
     func_actor_401300_801419B8,
     func_actor_401300_80141A60,
@@ -5462,7 +5469,7 @@ static const Actor401300StateTable D_actor_401300_80131F34 = { {
 static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
 {
     VECTOR                    pos;
-    Actor401300StateTable     states;
+    _Actor401300StateTable    states;
     _Actor401300Work*         work;
     ActorPartPositionScratch* scratch;
     ActorPartPositionScratch* head;
@@ -5532,7 +5539,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
         work->stateEntered = 0;
     }
     work->prevState = work->state;
-    states.fn[work->state](actor);
+    states.handlers[work->state](actor);
 
     state = work->state;
     if ((state != ACTOR_401300_STATE_DEATH_BURN) && (state != ACTOR_401300_STATE_PLAY_DOWN) && (state != ACTOR_401300_STATE_HIDDEN) && (state != ACTOR_401300_STATE_DEAD) && (state != ACTOR_401300_STATE_DEATH_BURST) && (state != ACTOR_401300_STATE_DEATH_BURST_WALK)) {

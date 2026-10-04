@@ -249,7 +249,7 @@ STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 /// Event record `func_actor_403000_801324EC` dispatches on: `w[0]` is the
 /// event kind (only 0x204 is handled) and `w[1]` its sub-code, and the first
 /// three bytes are also copied raw into `Actor403000Work::lastCommandStage`..`lastCommandId`.
-/// Same shape as `Actor401300Event`.
+/// The record delivered is an `ActorCommand`.
 typedef union Actor403000Event {
     u8  b[3];
     u16 w[2];
