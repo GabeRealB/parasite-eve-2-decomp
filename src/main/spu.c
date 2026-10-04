@@ -47,12 +47,21 @@ typedef struct {
 } _SpuVoiceState;
 STATIC_ASSERT_SIZEOF(_SpuVoiceState, 0x1D4);
 
-typedef struct _SpuLVoiceTable {
-    /* 0x000 */ s16           count;         // active attr count
-    /* 0x002 */ SpuLVoiceAttr attrs[24];
-    /* 0x664 */ u8            field_664[24]; // per-voice flags
-} SpuLVoiceTable;
-STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
+/// Voice attribute changes waiting to be sent to the SPU in one batch.
+///
+/// Sound code does not write a voice's attributes to the SPU itself: it asks
+/// for the voice's entry here and edits that. The first request for a voice
+/// since the last flush appends an entry with an empty attribute mask; later
+/// ones find the same entry again, so a voice is listed at most once and the
+/// list never outgrows the voice count. Once per audio tick the list is handed
+/// to `SpuLSetVoiceAttr` and emptied, which ends the life of every entry
+/// pointer given out.
+typedef struct {
+    s16           count;                        // Entries of `attrs` in use
+    SpuLVoiceAttr attrs[SPU_VOICE_COUNT];       // Queued changes, in the order their voices were first asked for
+    s8            slotByVoice[SPU_VOICE_COUNT]; // Per voice, its index in `attrs` plus one; 0 while it has no entry
+} _SpuVoiceUpdateList;
+STATIC_ASSERT_SIZEOF(_SpuVoiceUpdateList, 0x67C);
 
 /// 4-byte entry at Spu_VoiceRanges (see Spu_SetVoiceRange).
 typedef struct _SpuVoiceRange {
@@ -79,7 +88,7 @@ static _SpuVoiceState Spu_VoiceState;
 /// Unreferenced.
 static u8 D_8007E510[8];
 
-static SpuLVoiceTable Spu_LVoiceTable;
+static _SpuVoiceUpdateList Spu_LVoiceTable;
 
 static SpuVoiceRange Spu_VoiceRanges[4];
 
@@ -232,7 +241,7 @@ void Spu_InitVoices(void)
         *ptr = 0;
         i++;
         ptr++;
-    } while ((u32)i < 0x19FU);
+    } while ((u32)i < sizeof(Spu_LVoiceTable) / sizeof(*ptr));
 
     ptr = (s32*)&Spu_VoiceState;
     i   = 0;
@@ -374,23 +383,25 @@ static inline s32 Spu_ReleaseVoiceSlotInline(u32 voiceIdx)
 
 static inline s32 Spu_GetVoiceRefInline(s8 voiceIdx, SpuVoiceRef* ref)
 {
-    s32             slot;
-    SpuLVoiceTable* table;
-    SpuLVoiceAttr*  entry;
-    table = &Spu_LVoiceTable;
-    slot  = (s8)table->field_664[voiceIdx];
+    s32                  slot;
+    _SpuVoiceUpdateList* list;
+    SpuLVoiceAttr*       entry;
+    list = &Spu_LVoiceTable;
+    slot = list->slotByVoice[voiceIdx];
     if (slot != 0) {
-        entry        = &table->attrs[slot];
+        // Already queued: the stored slot is one past the voice's entry.
+        entry        = &list->attrs[slot];
         ref->field_0 = voiceIdx;
         ref->field_4 = &(entry - 1)->attr;
         return 1;
     } else {
-        slot = table->count;
-        table->count++;
-        table->attrs[slot].voiceNum = voiceIdx;
-        table->field_664[voiceIdx]  = slot + 1;
+        // Append an entry for the voice, with nothing selected for update yet.
+        slot = list->count;
+        list->count++;
+        list->attrs[slot].voiceNum  = voiceIdx;
+        list->slotByVoice[voiceIdx] = slot + 1;
         ref->field_0                = voiceIdx;
-        ref->field_4                = &table->attrs[slot].attr;
+        ref->field_4                = &list->attrs[slot].attr;
         ref->field_4->mask          = 0;
         ref->field_1                = 0;
         ref->field_3                = 0;
@@ -460,9 +471,8 @@ void Spu_TickVoices(void)
 
 void Spu_FlushVoiceUpdates(void)
 {
-    i32             remaining;
-    u8*             current;
-    SpuLVoiceTable* dataPtr;
+    s32                  voiceIdx;
+    _SpuVoiceUpdateList* list;
 
     if (Spu_ReverbCfg.isDirty) {
         Spu_ApplyReverbConfig();
@@ -475,39 +485,15 @@ void Spu_FlushVoiceUpdates(void)
         Spu_KeyOffMask = 0;
     }
 
-    // We take a pointer, as otherwise GCC will reload the address
-    // when we reset the count to zero below.
-    dataPtr = &Spu_LVoiceTable;
-    if (dataPtr->count != 0) {
-        SpuLSetVoiceAttr(dataPtr->count, dataPtr->attrs);
+    list = &Spu_LVoiceTable;
+    if (list->count != 0) {
+        SpuLSetVoiceAttr(list->count, list->attrs);
 
-        // Clear the list. For some reason GCC does not like to cooperate with
-        // the array indexing. Ideally we'd have the following:
-        //
-        // current = &dataPtr->field_664[remaining];
-        // ...
-        // *current-- = 0;
-        //
-        // This produces the following assembly:
-        //
-        // addu     v0, s0, 0x67B
-        // sb       zero, 0(v0)
-        //
-        // Instead of what we actually want:
-        //
-        // addu     v0, s0, v1
-        // sb       zero, 0x664(v0)
-        //
-        // Writing it this way forces GCC to perform the offsets in the correct
-        // order.
-        remaining = ARRAY_SIZE(dataPtr->field_664) - 1;
-        current   = (u8*)dataPtr + remaining;
-        do {
-            current[OFFSET_OF(SpuLVoiceTable, field_664)] = 0;
-            current                                      -= 1;
-            remaining                                    -= 1;
-        } while (remaining >= 0);
-        dataPtr->count = 0;
+        // Empty the list: no voice has an entry any more.
+        for (voiceIdx = 0; voiceIdx < SPU_VOICE_COUNT; voiceIdx++) {
+            list->slotByVoice[voiceIdx] = 0;
+        }
+        list->count = 0;
     }
 
     if ((Spu_KeyOnMask | Spu_KeyOnMaskExtra) != 0) {

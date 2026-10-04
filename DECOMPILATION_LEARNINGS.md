@@ -23065,7 +23065,7 @@ Leaf that looks up or allocates into `Spu_LVoiceTable` (stride `0x44` =
 `count` twice (`lhu` for the +1 store, `lh` for the `*0x44` index). Pure C
 either renames `$a0` early or turns the second load into `lhu`+`sll`/`sra`.
 A single tab-noreorder block matching the target is the reliable match;
-`field_664` is at decimal offset 1636 (`0x664`).
+`slotByVoice` is at decimal offset 1636 (`0x664`).
 
 ## Spu_GetVoiceRef hybrid C (not full-function asm)
 
@@ -23078,7 +23078,7 @@ Most of the leaf is ordinary C with s-reg pins (`t1` base, `a2` slot/count,
 3. Alloc tail: noreorder `*0x44` / `sh voiceNum` / `addiu count+1` / attr `+8`
    — pure C reorders `count+1` ahead of the entry pointer and clobbers `$t1`.
 
-Found path (`slot*0x44 + base - 0x3C`) is pure C. `field_664` is at offset
+Found path (`slot*0x44 + base - 0x3C`) is pure C. `slotByVoice` is at offset
 `0x664` from the table base via `base + idx`.
 
 ## Fs_ProcessChunkHeader: s0=ptr / s1=%hi for CdSector
@@ -65798,13 +65798,14 @@ that penalty as register allocation.
 ## func_8004E200: inline voice lookup matches in C with an s32 slot/count
 
 The inlined `Spu_GetVoiceRef` body reached 100% without pins or asm. Use one
-`s32 slot` for both `(s8)table->field_664[voiceIdx]` and `table->count`.
-In the allocation arm, write `slot = table->count; table->count++;` as
-separate statements. The `s16 count = table->count++` version emitted an
+`s32 slot` for both `list->slotByVoice[voiceIdx]` (an `s8` element, read
+with `lb`) and `list->count`.
+In the allocation arm, write `slot = list->count; list->count++;` as
+separate statements. The `s16 count = list->count++` version emitted an
 `lhu` followed by sign-extension shifts; the s32 version emits the target's
-separate `lhu` and `lh`. Keep `SpuLVoiceTable* table = &Spu_LVoiceTable`
+separate `lhu` and `lh`. Keep `_SpuVoiceUpdateList* list = &Spu_LVoiceTable`
 local to the inline helper. In the existing-slot arm, stage
-`entry = &table->attrs[slot]` then use `&(entry - 1)->attr`; direct
+`entry = &list->attrs[slot]` then use `&(entry - 1)->attr`; direct
 `&Spu_LVoiceTable.attrs[slot - 1].attr` hoisted extra base addresses across
 the outer loop and grew the saved-register set.
 
@@ -139516,6 +139517,14 @@ benefit left after `add_cost`, so it is not reduced. An explicit `*q--` with
 loop with a single store, so the counter runs 6 down to 0, and a giv of a
 reversed biv is reduced unconditionally (`! bl->reversed` in the worth-while
 test), which is where the walking pointer and the register `addu` come from.
+
+The same reversal through a struct pointer keeps the member's displacement on
+the store: `li v1,23; addu v0,s0,v1; L: sb zero,0x664(v0); ...` in
+`Spu_FlushVoiceUpdates` is `for (i = 0; i < 24; i++) list->slotByVoice[i] = 0;`.
+The reduced giv is `list + i`, so the pointer walks the struct base and the
+field offset stays in the `sb`. A hand-written reverse walk needs a byte view
+of the whole struct plus `OFFSET_OF` to reproduce that; the forward loop needs
+neither.
 
 Same function: a digit shift `D[6] = D[5]; ... D[1] = D[0]; D[0] = key;`
 matched only when written against the global itself. Through a local
