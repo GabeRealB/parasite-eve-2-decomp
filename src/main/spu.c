@@ -17,19 +17,35 @@ typedef struct _SpuReverbConfig {
 } SpuReverbConfig;
 STATIC_ASSERT_SIZEOF(SpuReverbConfig, 0x24);
 
-typedef struct _SpuVoiceState {
-    /* 0x000 */ u32              reverbVoiceStatus;
-    /* 0x004 */ u32              field_4[24];   // age / score for voice steal
-    /* 0x064 */ u8               field_64[24];  // state (0/3 ≈ free-ish)
-    /* 0x07C */ u8               field_7c[24];  // key-on staging (5 on note-on)
-    /* 0x094 */ s8               field_94[24];  // occupied (0 free, 1 busy)
-    /* 0x0AC */ u32              field_ac[24];  // alloc priority
-    /* 0x10C */ SpuVoiceCallback field_10c[24]; // cleared on release
-    /* 0x16C */ void*            field_16c[24]; // cleared on release
-    /* 0x1CC */ u32              field_1cc;
-    /* 0x1D0 */ u32              field_1d0;     // key-on related mask
-} SpuVoiceState;
-STATIC_ASSERT_SIZEOF(SpuVoiceState, 0x1D4);
+/// Number of hardware voices the SPU mixes; voice indices run below it.
+#define SPU_VOICE_COUNT 24
+
+/// Audio ticks after a key-on request during which a voice reading
+/// `SPU_ON_ENV_OFF` is not yet taken to have finished.
+#define SPU_KEY_ON_GRACE_TICKS 5
+
+/// Allocation and key state of the SPU's hardware voices.
+///
+/// An owner takes a voice at a priority. A request that finds no free voice
+/// takes over a held one of the lowest priority not above its own, the longest
+/// held first. Every audio tick reads the key status back from the SPU and
+/// returns each finished voice to the pool, telling its owner through the
+/// registered `SpuVoiceCallback`.
+///
+/// The masks hold one bit per voice, as `SPU_VOICECH` builds them.
+typedef struct {
+    s32              reverbVoiceStatus;                 // Mask of voices with reverb on, as last read back from the SPU
+    s32              ages[SPU_VOICE_COUNT];             // Ticks since the voice was taken or released, saturating
+    char             keyStatus[SPU_VOICE_COUNT];        // Read back each tick (0 SPU_OFF, 1 SPU_ON, 2 SPU_OFF_ENV_ON, 3 SPU_ON_ENV_OFF)
+    s8               keyOnGraceTicks[SPU_VOICE_COUNT];  // Ticks left in which SPU_ON_ENV_OFF does not release the voice
+    s8               allocated[SPU_VOICE_COUNT];        // Held by an owner (0 free, 1 held)
+    u32              priorities[SPU_VOICE_COUNT];       // Priority the voice is held at; 0 while free
+    SpuVoiceCallback callbacks[SPU_VOICE_COUNT];        // Tells the owner it has lost the voice; NULL for none
+    void*            callbackContexts[SPU_VOICE_COUNT]; // Passed to the callback, which is skipped while this is NULL
+    s32              startedVoices;                     // Mask of voices keyed on with a sound and not yet reset onto the silent block
+    u32              silentKeyOnVoices;                 // Mask of voices whose queued key-on plays the silent block
+} _SpuVoiceState;
+STATIC_ASSERT_SIZEOF(_SpuVoiceState, 0x1D4);
 
 typedef struct _SpuLVoiceTable {
     /* 0x000 */ s16           count;         // active attr count
@@ -58,7 +74,7 @@ STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
 /// The SPU ADPCM block uploaded to SPU address 0x7B440 at start-up.
 static AsyncCbQueue AsyncCb_Queue;
 
-static SpuVoiceState Spu_VoiceState;
+static _SpuVoiceState Spu_VoiceState;
 
 /// Unreferenced.
 static u8 D_8007E510[8];
@@ -224,7 +240,7 @@ void Spu_InitVoices(void)
         *ptr = 0;
         i++;
         ptr++;
-    } while ((u32)i < 0x75U);
+    } while ((u32)i < sizeof(Spu_VoiceState) / sizeof(*ptr));
 
     i = 0;
     do {
@@ -273,24 +289,24 @@ void Spu_InitVoices(void)
 s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
 {
     SpuVoiceRange*   entry;
-    s32              maxField4;
+    s32              oldestAge;
     s32              bestPriority;
     s32              i;
     s32              j;
     s8               bestVoice;
     u8               voice;
-    u8               field64;
-    u32              fieldAc;
-    s32              field4;
+    u8               keyStatus;
+    u32              heldPriority;
+    s32              age;
     SpuVoiceCallback callback;
-    void*            cbArg;
-    SpuVoiceState*   base;
+    void*            context;
+    _SpuVoiceState*  state;
 
-    maxField4    = 0;
+    oldestAge    = 0;
     bestPriority = arg2;
     bestVoice    = -1;
     i            = 0;
-    base         = &Spu_VoiceState;
+    state        = &Spu_VoiceState;
 
     if (arg1 > 0) {
         do {
@@ -299,23 +315,23 @@ s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
             j     = 0;
             if (entry->count > 0) {
                 do {
-                    if (base->field_94[(s8)voice] == 0) {
-                        field64 = base->field_64[(s8)voice];
-                        if ((field64 == 0) || (field64 == 3)) {
-                            base->field_ac[(s8)voice] = arg2;
-                            base->field_94[(s8)voice] = 1;
-                            base->field_4[(s8)voice]  = 0;
+                    if (state->allocated[(s8)voice] == false) {
+                        keyStatus = state->keyStatus[(s8)voice];
+                        if ((keyStatus == SPU_OFF) || (keyStatus == SPU_ON_ENV_OFF)) {
+                            state->priorities[(s8)voice] = arg2;
+                            state->allocated[(s8)voice]  = true;
+                            state->ages[(s8)voice]       = 0;
                             return (s8)voice;
                         }
                     } else {
-                        fieldAc = base->field_ac[(s8)voice];
-                        if (fieldAc < (u32)bestPriority) {
-                            bestPriority = fieldAc;
+                        heldPriority = state->priorities[(s8)voice];
+                        if (heldPriority < (u32)bestPriority) {
+                            bestPriority = heldPriority;
                             bestVoice    = voice;
-                        } else if (bestPriority == (s32)fieldAc) {
-                            field4 = base->field_4[(s8)voice];
-                            if (maxField4 < field4) {
-                                maxField4 = field4;
+                        } else if (bestPriority == (s32)heldPriority) {
+                            age = state->ages[(s8)voice];
+                            if (oldestAge < age) {
+                                oldestAge = age;
                                 bestVoice = voice;
                             }
                         }
@@ -330,16 +346,16 @@ s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
     }
 
     if (bestVoice >= 0) {
-        callback = base->field_10c[bestVoice];
+        callback = state->callbacks[bestVoice];
         if (callback != NULL) {
-            cbArg = base->field_16c[bestVoice];
-            if (cbArg != 0) {
-                callback(cbArg);
+            context = state->callbackContexts[bestVoice];
+            if (context != NULL) {
+                callback(context);
             }
         }
-        base->field_ac[bestVoice] = arg2;
-        base->field_4[bestVoice]  = 0;
-        base->field_64[bestVoice] = 1;
+        state->priorities[bestVoice] = arg2;
+        state->ages[bestVoice]       = 0;
+        state->keyStatus[bestVoice]  = SPU_ON;
     }
     return bestVoice;
 }
@@ -347,12 +363,12 @@ s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
 static inline s32 Spu_ReleaseVoiceSlotInline(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
-    if ((u8)sVoiceIdx > 24U) {
+    if ((u8)sVoiceIdx > (u32)SPU_VOICE_COUNT) {
         return -1;
     }
-    Spu_VoiceState.field_94[sVoiceIdx] = 0;
-    Spu_VoiceState.field_ac[sVoiceIdx] = 0;
-    Spu_VoiceState.field_4[sVoiceIdx]  = 0;
+    Spu_VoiceState.allocated[sVoiceIdx]  = false;
+    Spu_VoiceState.priorities[sVoiceIdx] = 0;
+    Spu_VoiceState.ages[sVoiceIdx]       = 0;
     return 0;
 }
 
@@ -386,43 +402,43 @@ static inline s32 Spu_GetVoiceRefInline(s8 voiceIdx, SpuVoiceRef* ref)
 void Spu_TickVoices(void)
 {
     SpuVoiceRef      ref;
-    SpuVoiceState*   base;
+    _SpuVoiceState*  state;
     s32              i;
     s32              age;
     s8               status;
     SpuVoiceCallback callback;
-    void*            arg;
+    void*            context;
 
-    base = &Spu_VoiceState;
-    SpuGetAllKeysStatus((char*)base->field_64);
-    for (i = 0; i < 24; i++) {
-        if ((s8)base->field_7c[i] != 0) {
-            base->field_7c[i]--;
+    state = &Spu_VoiceState;
+    SpuGetAllKeysStatus(state->keyStatus);
+    for (i = 0; i < SPU_VOICE_COUNT; i++) {
+        if (state->keyOnGraceTicks[i] != 0) {
+            state->keyOnGraceTicks[i]--;
         }
-        age = base->field_4[i];
+        age = state->ages[i];
         if (age < 0x7FFFFFFF) {
-            base->field_4[i] = age + 1;
+            state->ages[i] = age + 1;
         }
-        status = base->field_64[i];
-        if (status != 0) {
-            if (status != 3 || (s8)base->field_7c[i] != 0) {
+        status = state->keyStatus[i];
+        if (status != SPU_OFF) {
+            if (status != SPU_ON_ENV_OFF || state->keyOnGraceTicks[i] != 0) {
                 continue;
             }
-            if (((s32)base->field_1cc >> i) & 1) {
+            if ((state->startedVoices >> i) & 1) {
                 Spu_KeyOff((s8)i);
             }
         }
         Spu_ReleaseVoiceSlotInline(i);
-        callback = base->field_10c[i];
+        callback = state->callbacks[i];
         if (callback != NULL) {
-            arg = base->field_16c[i];
-            if (arg != 0) {
-                callback(arg);
-                base->field_10c[i] = NULL;
-                base->field_16c[i] = NULL;
+            context = state->callbackContexts[i];
+            if (context != NULL) {
+                callback(context);
+                state->callbacks[i]        = NULL;
+                state->callbackContexts[i] = NULL;
             }
         }
-        if (((s32)base->field_1cc >> i) & 1) {
+        if ((state->startedVoices >> i) & 1) {
             Spu_GetVoiceRefInline((s8)i, &ref);
             {
                 SpuVoiceAttr* attr = ref.field_4;
@@ -497,13 +513,13 @@ void Spu_FlushVoiceUpdates(void)
     if ((Spu_KeyOnMask | Spu_KeyOnMaskExtra) != 0) {
         SpuSetKey(SPU_ON, Spu_KeyOnMask | Spu_KeyOnMaskExtra);
         if (Spu_KeyOnMask != 0) {
-            Spu_VoiceState.field_1cc |= Spu_KeyOnMask;
-            Spu_VoiceState.field_1cc &= ~Spu_VoiceState.field_1d0;
+            Spu_VoiceState.startedVoices |= Spu_KeyOnMask;
+            Spu_VoiceState.startedVoices &= ~Spu_VoiceState.silentKeyOnVoices;
         }
 
-        Spu_VoiceState.field_1d0 = 0;
-        Spu_KeyOnMask            = 0;
-        Spu_KeyOnMaskExtra       = 0;
+        Spu_VoiceState.silentKeyOnVoices = 0;
+        Spu_KeyOnMask                    = 0;
+        Spu_KeyOnMaskExtra               = 0;
     }
 }
 
@@ -511,16 +527,16 @@ void Spu_SetVoiceCallbacks(u32 voiceIdx, SpuVoiceCallback callback, void* contex
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 
-    Spu_VoiceState.field_10c[sVoiceIdx] = callback;
-    Spu_VoiceState.field_16c[sVoiceIdx] = context;
+    Spu_VoiceState.callbacks[sVoiceIdx]        = callback;
+    Spu_VoiceState.callbackContexts[sVoiceIdx] = context;
 }
 
 void Spu_ClearVoiceCallbacks(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 
-    Spu_VoiceState.field_10c[sVoiceIdx] = NULL;
-    Spu_VoiceState.field_16c[sVoiceIdx] = NULL;
+    Spu_VoiceState.callbacks[sVoiceIdx]        = NULL;
+    Spu_VoiceState.callbackContexts[sVoiceIdx] = NULL;
 }
 
 s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
@@ -543,13 +559,13 @@ s32 Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1)
 s32 Spu_ReleaseVoiceSlot(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
-    if (sVoiceIdx > (u32)ARRAY_SIZE(Spu_VoiceState.field_94)) {
+    if (sVoiceIdx > (u32)ARRAY_SIZE(Spu_VoiceState.allocated)) {
         return -1;
     }
 
-    Spu_VoiceState.field_94[sVoiceIdx] = 0;
-    Spu_VoiceState.field_ac[sVoiceIdx] = 0;
-    Spu_VoiceState.field_4[sVoiceIdx]  = 0;
+    Spu_VoiceState.allocated[sVoiceIdx]  = false;
+    Spu_VoiceState.priorities[sVoiceIdx] = 0;
+    Spu_VoiceState.ages[sVoiceIdx]       = 0;
     return 0;
 }
 
@@ -557,24 +573,24 @@ u8 Spu_GetVoiceStatus(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 
-    return Spu_VoiceState.field_64[sVoiceIdx];
+    return Spu_VoiceState.keyStatus[sVoiceIdx];
 }
 
 void Spu_KeyOn(u32 voiceIdx)
 {
-    SpuVoiceState* p;
-    u32*           pKeyOn;
-    u32            channel;
+    _SpuVoiceState* state;
+    u32*            pKeyOn;
+    u32             channel;
 
-    p                     = &Spu_VoiceState;
-    pKeyOn                = &Spu_KeyOnMask;
-    voiceIdx              = (s8)voiceIdx;
-    p->field_7c[voiceIdx] = 5;
-    channel               = SPU_VOICECH(voiceIdx);
-    *pKeyOn              |= channel;
-    channel               = ~channel;
-    p->field_1d0         &= channel;
-    Spu_KeyOffMask       &= channel;
+    state                            = &Spu_VoiceState;
+    pKeyOn                           = &Spu_KeyOnMask;
+    voiceIdx                         = (s8)voiceIdx;
+    state->keyOnGraceTicks[voiceIdx] = SPU_KEY_ON_GRACE_TICKS;
+    channel                          = SPU_VOICECH(voiceIdx);
+    *pKeyOn                         |= channel;
+    channel                          = ~channel;
+    state->silentKeyOnVoices        &= channel;
+    Spu_KeyOffMask                  &= channel;
 }
 
 void Spu_KeyOff(u32 voiceIdx)
@@ -657,7 +673,7 @@ void Spu_DisableReverbVoice(u32 voiceIdx)
 
 static bool Spu_ReverbVoiceIsEnabled(u32 voiceIdx)
 {
-    return ((s32)Spu_VoiceState.reverbVoiceStatus >> voiceIdx) & 1;
+    return (Spu_VoiceState.reverbVoiceStatus >> voiceIdx) & 1;
 }
 
 static void Spu_ApplyReverbConfig(void)
@@ -723,33 +739,33 @@ SndBankLayer* Snd_GetNote(SndBank* bank, u8 group, u8 layer)
 
 static void Spu_KeyOnClearOff(u32 voiceIdx)
 {
-    SpuVoiceState* p;
-    u32*           pKeyOn;
-    u32            channel;
+    _SpuVoiceState* state;
+    u32*            pKeyOn;
+    u32             channel;
 
-    p                     = &Spu_VoiceState;
-    pKeyOn                = &Spu_KeyOnMask;
-    voiceIdx              = (s8)voiceIdx;
-    p->field_7c[voiceIdx] = 5;
-    channel               = SPU_VOICECH(voiceIdx);
-    *pKeyOn              |= channel;
-    p->field_1d0         |= channel;
-    Spu_KeyOffMask       &= ~channel;
+    state                            = &Spu_VoiceState;
+    pKeyOn                           = &Spu_KeyOnMask;
+    voiceIdx                         = (s8)voiceIdx;
+    state->keyOnGraceTicks[voiceIdx] = SPU_KEY_ON_GRACE_TICKS;
+    channel                          = SPU_VOICECH(voiceIdx);
+    *pKeyOn                         |= channel;
+    state->silentKeyOnVoices        |= channel;
+    Spu_KeyOffMask                  &= ~channel;
 }
 
 void Spu_ArmKeyOn(u32 voiceIdx)
 {
-    SpuVoiceState* p;
-    u32*           pKeyOn;
-    u32            channel;
+    _SpuVoiceState* state;
+    u32*            pKeyOn;
+    u32             channel;
 
-    p                     = &Spu_VoiceState;
-    pKeyOn                = &Spu_KeyOnMaskExtra;
-    voiceIdx              = (s8)voiceIdx;
-    p->field_7c[voiceIdx] = 5;
-    channel               = SPU_VOICECH(voiceIdx);
-    *pKeyOn              |= channel;
-    p->field_1d0         &= ~channel;
-    Spu_KeyOnMask        &= ~channel;
-    Spu_KeyOffMask       &= ~channel;
+    state                            = &Spu_VoiceState;
+    pKeyOn                           = &Spu_KeyOnMaskExtra;
+    voiceIdx                         = (s8)voiceIdx;
+    state->keyOnGraceTicks[voiceIdx] = SPU_KEY_ON_GRACE_TICKS;
+    channel                          = SPU_VOICECH(voiceIdx);
+    *pKeyOn                         |= channel;
+    state->silentKeyOnVoices        &= ~channel;
+    Spu_KeyOnMask                   &= ~channel;
+    Spu_KeyOffMask                  &= ~channel;
 }
