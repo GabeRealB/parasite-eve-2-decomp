@@ -23,19 +23,6 @@
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 
-typedef union RatContactStorage {
-    MATRIX matrix;
-    struct {
-        byte                  pad_0[8];
-        WorldCollisionContact recs[3];
-    } contacts;
-    struct {
-        /* 0x00 */ byte   pad_0[0x20];
-        /* 0x20 */ MATRIX rotation;
-    } quad;
-} RatContactStorage;
-STATIC_ASSERT_SIZEOF(RatContactStorage, 0x50);
-
 typedef struct RatWork {
     /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ byte                  pad_14[0x140];
@@ -48,7 +35,8 @@ typedef struct RatWork {
     /* 0x1FC */ WorldCollisionContact sensorContacts[1]; // Single result for the player sensor
     /* 0x214 */ byte                  field_214[0x10];
     /* 0x224 */ EffectSpawnArg        field_224;
-    /* 0x22C */ RatContactStorage     field_22C;
+    /* 0x22C */ byte                  pad_22C[8];
+    /* 0x234 */ WorldCollisionContact hitContacts[3]; // Hits and obstacle overlaps of the body sphere, also published as `Enemy::recs`
     /* 0x27C */ byte                  field_27C[0x20];
     /* 0x29C */ byte                  pad_29C[0x10];
     /* 0x2AC */ s32                   field_2AC;

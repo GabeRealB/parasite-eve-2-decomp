@@ -56,8 +56,8 @@ void ratContacts(Task* actor)
             work->field_378 = 0;
         }
     }
-    for (i = 0; i < 3; i++) {
-        id = work->field_22C.contacts.recs[i].key.value;
+    for (i = 0; i < ARRAY_SIZE(work->hitContacts); i++) {
+        id = work->hitContacts[i].key.value;
         switch (id >> 0x10) {
             case 0:
                 break;
@@ -68,13 +68,13 @@ void ratContacts(Task* actor)
                     frame->delta.vector.vx = sourceCoord->coord.t[0] - coord->coord.t[0];
                     frame->delta.vector.vy = sourceCoord->coord.t[1] - coord->coord.t[1];
                     frame->delta.vector.vz = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    damage                 = Gp_ComputeDamage(work->field_22C.contacts.recs[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
-                    if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, 0) != 0) {
+                    damage                 = Gp_ComputeDamage(work->hitContacts[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
+                    if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0) != 0) {
                         damage *= 4;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
                     }
                     func_800DA6E8(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
-                    func_800E2C78(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, damage, 0);
+                    func_800E2C78(actor->spawnArg2.pointer, work->hitContacts[i].key.value, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
                         work->field_37A = 5;
@@ -85,7 +85,7 @@ void ratContacts(Task* actor)
                         work->field_37C = 0;
                     }
                     work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    switch (Gp_GetIdParam0(work->field_22C.contacts.recs[i].key.value) & 0xFFFF) {
+                    switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
                         case 0:
                         case 4:
                         case 5:
@@ -94,35 +94,35 @@ void ratContacts(Task* actor)
                         case 8:
                             break;
                         case 2:
-                            Gp_SetObjFlag2(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, 0);
+                            Gp_SetObjFlag2(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
                             break;
                         case 3:
-                            Gp_SetObjFlag4(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, 0);
+                            Gp_SetObjFlag4(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
                             break;
                         case 1:
                         case 9:
                             Gp_SetObjFlag1(actor->spawnArg2.pointer);
                             break;
                     }
-                    hitId = work->field_22C.contacts.recs[i].key.value;
+                    hitId = work->hitContacts[i].key.value;
                     if (lastId != hitId) {
                         lastId = hitId;
                         func_800FDB18(Gp_GetIdParam1(hitId) & 0xFFFF, coord, NULL, &work->field_334);
                     }
-                    cooldownParam = Gp_GetIdParam2(work->field_22C.contacts.recs[i].key.value);
+                    cooldownParam = Gp_GetIdParam2(work->hitContacts[i].key.value);
                     if (cooldownParam > 0) {
                         work->field_378 = cooldownParam;
                     }
                 }
                 break;
             case 1:
-                x                      = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
+                x                      = coord->workm.t[0] - work->hitContacts[i].point.vx;
                 frame->delta.vector.vx = x;
-                y                      = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
+                y                      = coord->workm.t[1] - work->hitContacts[i].point.vy;
                 frame->delta.vector.vy = y;
-                z                      = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
+                z                      = coord->workm.t[2] - work->hitContacts[i].point.vz;
                 frame->delta.vector.vz = z;
-                depth                  = work->field_22C.contacts.recs[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
+                depth                  = work->hitContacts[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
                 boundedDepth           = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;
@@ -135,13 +135,13 @@ void ratContacts(Task* actor)
                 }
                 break;
             case 3:
-                x                      = coord->workm.t[0] - work->field_22C.contacts.recs[i].point.vx;
+                x                      = coord->workm.t[0] - work->hitContacts[i].point.vx;
                 frame->delta.vector.vx = x;
-                y                      = coord->workm.t[1] - work->field_22C.contacts.recs[i].point.vy;
+                y                      = coord->workm.t[1] - work->hitContacts[i].point.vy;
                 frame->delta.vector.vy = y;
-                z                      = coord->workm.t[2] - work->field_22C.contacts.recs[i].point.vz;
+                z                      = coord->workm.t[2] - work->hitContacts[i].point.vz;
                 frame->delta.vector.vz = z;
-                depth                  = work->field_22C.contacts.recs[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
+                depth                  = work->hitContacts[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
                 boundedDepth           = depth;
                 if (depth <= 0) {
                     boundedDepth = 0;
@@ -159,7 +159,7 @@ void ratContacts(Task* actor)
         coord->coord.t[0] += (push * frame->dir.vx) >> 0xC;
         coord->coord.t[2] += (push * frame->dir.vz) >> 0xC;
     }
-    Gp_ClearRec18Occupied(work->field_22C.contacts.recs);
+    Gp_ClearRec18Occupied(work->hitContacts);
     effectRec = work->attackContacts;
     if (Gp_FindRec18(effectRec, 0) != 0) {
         work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
