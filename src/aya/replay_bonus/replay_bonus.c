@@ -38,9 +38,6 @@ extern u8           D_replay_bonus_80119014[];
 extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
 extern UiObjectDesc D_replay_bonus_801191A8;
-extern s32          D_replay_bonus_80119288;
-
-extern s32 D_replay_bonus_80119284;
 
 static void       func_replay_bonus_801158C0(void);
 void              func_replay_bonus_801159A0(Task* arg0);
@@ -444,10 +441,10 @@ void func_replay_bonus_80115ED0(Task* arg0)
                 bonus_i++;
                 row++;
             } while (bonus_i < 0xD);
-            sum                    += 0x1869F;
-            sum                     = sum / 100000;
-            sum                    *= 0x186A0;
-            D_replay_bonus_80119288 = sum;
+            sum                                 += 0x1869F;
+            sum                                  = sum / 100000;
+            sum                                 *= 0x186A0;
+            D_replay_bonus_80119274.extraBonusBp = sum;
         } else {
             D_replay_bonus_80119274.extraBonusBp = 0;
         }
@@ -594,7 +591,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     Text_DrawString(&req, D_replay_bonus_801157C4);
     value = cfg->exp;
     if (arg0->spawnArg1.value == 1) {
-        value = D_replay_bonus_8011927C;
+        value = D_replay_bonus_80119274.nextExp;
     }
     negX = -xOff;
     Text_DrawPrompt(obj, negX, -2, Text_ItoaSigned(buf, value), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -747,7 +744,7 @@ void func_replay_bonus_80116AC0(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
-        if (D_replay_bonus_80119284 < 0) {
+        if (D_replay_bonus_80119274.shopTier < 0) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
             return;
         }
@@ -778,7 +775,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     s32         ot;
 
     obj   = arg0->spawnArg2.pointer;
-    bonus = D_replay_bonus_80119288;
+    bonus = D_replay_bonus_80119274.extraBonusBp;
     Ui_DrawText(&(obj)->panel, "EXTRA BONUS\0\0\0\0");
     if (arg0->state == 0) {
         arg0->killCountdown = 0xBC;
@@ -891,7 +888,7 @@ void func_replay_bonus_80116EC0(void)
         j += 1;
         p += 1;
     } while (j < 0xC);
-    if (D_replay_bonus_80119284 >= 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers |= 1 << D_replay_bonus_80119284;
+    if (D_replay_bonus_80119274.shopTier >= 0) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers |= 1 << D_replay_bonus_80119274.shopTier;
     }
 }

@@ -244,7 +244,7 @@ extern ReplayBonusPictureDecode* D_replay_bonus_801192BC;
 extern ReplayBonusStfFile* D_replay_bonus_8011928C;
 
 /// TaskDesc table spawned from the credits task (hold / fade / stream workers).
-extern TaskDesc D_replay_bonus_8011922C;
+extern TaskDesc D_replay_bonus_8011922C[4];
 
 /// Relocated STF glyph and sprite tables.
 extern ReplayBonusStfGlyph* D_replay_bonus_80119290;
@@ -282,8 +282,6 @@ extern u8 D_replay_bonus_801192AC;
 extern u16 D_replay_bonus_801192B8;
 
 extern ReplayBonusTotals D_replay_bonus_80119274;
-
-extern s32 D_replay_bonus_8011927C;
 
 extern UiList D_replay_bonus_80119130;
 

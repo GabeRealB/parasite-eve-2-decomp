@@ -41,7 +41,6 @@ extern u8           D_replay_bonus_80119014[];
 extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
 extern UiObjectDesc D_replay_bonus_801191A8;
-extern s32          D_replay_bonus_80119288;
 
 extern UiObjectDesc D_800611E4;
 extern UiObjectDesc D_replay_bonus_80119170;
@@ -49,7 +48,6 @@ extern UiObjectDesc D_replay_bonus_8011918C;
 extern UiObjectDesc D_replay_bonus_801191C4;
 extern UiObjectDesc D_replay_bonus_801191E0;
 extern UiObjectDesc D_replay_bonus_801191FC;
-extern s32          D_replay_bonus_80119284;
 
 /// Where a credits picture is decoded to and how large it is drawn.
 ///
@@ -102,7 +100,7 @@ static void func_replay_bonus_80117194(Task* arg0)
                 arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_8011918C, 0, 1, 1, NULL);
                 break;
             case 3:
-                if (D_replay_bonus_80119284 < 0) {
+                if (D_replay_bonus_80119274.shopTier < 0) {
                     arg0->spawnArg2.pointer = Ui_SpawnFromDesc(&D_replay_bonus_801191FC, 0, 1, 1, NULL);
                     arg0->state             = arg0->state + 2;
                 } else {
@@ -454,11 +452,11 @@ void func_replay_bonus_80117A08(Task* arg0)
             temp_v0_2           = arg0->killCountdown - 1;
             arg0->killCountdown = temp_v0_2;
             if ((temp_v0_2 << 0x10) <= 0) {
-                Task_SpawnFromTable(&D_replay_bonus_8011922C, 1, 0xB4, 0);
+                Task_SpawnFromTable(D_replay_bonus_8011922C, 1, 0xB4, 0);
                 arg0->state = 0xA;
             }
             if (Pad_CheckFlag800() != 0) {
-                Task_SpawnFromTable(&D_replay_bonus_8011922C, 2, 0x1E, 0);
+                Task_SpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
                 CdCmd_CancelReplaceAndActivate();
                 arg0->state         = 0xB;
                 arg0->killCountdown = 0x1E;
@@ -482,7 +480,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             }
             if (Pad_CheckFlag800() != 0) {
                 CdCmd_CancelReplaceAndActivate();
-                Task_SpawnFromTable(&D_replay_bonus_8011922C, 2, 0x1E, 0);
+                Task_SpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
                 arg0->killCountdown = 0x1E;
                 arg0->state        += 1;
                 return;
@@ -494,7 +492,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             temp_v0_3           = arg0->killCountdown - 1;
             arg0->killCountdown = temp_v0_3;
             if ((s16)temp_v0_3 == 0xB4) {
-                Task_SpawnFromTable(&D_replay_bonus_8011922C, 2, 0xB4, 0);
+                Task_SpawnFromTable(D_replay_bonus_8011922C, 2, 0xB4, 0);
             }
             if ((s16)arg0->killCountdown <= 0) {
                 arg0->state = 0x14;
@@ -816,7 +814,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds)
                                 break;
                         }
                         D_replay_bonus_801192B8 = x;
-                        Task_SpawnFromTable(&D_replay_bonus_8011922C, 3, idx + 1, 0);
+                        Task_SpawnFromTable(D_replay_bonus_8011922C, 3, idx + 1, 0);
                     }
                     break;
                 case REPLAY_BONUS_STF_COMMAND_SPRITE:
@@ -1030,3 +1028,208 @@ static void func_replay_bonus_80118F00(s32 arg0)
         i++;
     } while (i < ARRAY_SIZE(D_8006C338));
 }
+
+/* The package's data, in address order. */
+void func_replay_bonus_801159A0(Task* arg0);
+void func_replay_bonus_80115ED0(Task* arg0);
+void func_replay_bonus_80116964(Task* arg0);
+void func_replay_bonus_801166AC(Task* arg0);
+void func_replay_bonus_80116AC0(Task* arg0);
+void func_replay_bonus_80116D68(Task* arg0);
+
+/// Task descriptor of the picture decoder.
+TaskDesc D_replay_bonus_80118F6C = { { { TASK_BODY_NONE, 0xC0 } }, func_replay_bonus_801159A0, { NULL } };
+
+ShopTier D_replay_bonus_80118F78[SHOP_TIER_COUNT] = {
+    { 0x38A4, { 0x6D, 0x37, 0x2 } },
+    { 0x3E80, { 0x46, 0xA, 0x3A } },
+    { 0xABE0, { 0x45, 0x3C, 0xA1 } },
+    { 0xC738, { 0x42, 0xD, 0x6 } },
+    { 0xDEA8, { 0x43, 0xB, 0x61 } },
+    { 0xF230, { 0x44, 0xE, 0x38 } },
+    { 0x101D0, { 0x6B, 0xA2, 0x39 } },
+    { 0x10D88, { 0x8E, 0xAE, 0xAD } },
+    { 0x11940, { 0x88, 0xA6, 0x36 } },
+    { 0x124F8, { 0x90, 0xA7, 0x5 } },
+    { 0x30D40, { 0x8B, 0xAA, 0x3 } },
+    { 0x61A80, { 0x95, 0x3F, 0x7 } },
+    { 0x7FFFFFFF, { 0x96, 0x3D, 0x3E } },
+};
+
+u8 D_replay_bonus_80119014[] = "You will lose the game clear\ndata if you quit now. Quit now\nand delete game clear data?";
+
+u8 D_replay_bonus_8011906C[] = "data if you quit now. Quit now";
+
+u16 D_replay_bonus_8011908C[80] = {
+    0x9D,
+    0x81,
+    0x92,
+    0x99,
+    0x9A,
+    0x8D,
+    0x9C,
+    0x9B,
+    0x83,
+    0x82,
+    0x8A,
+    0x127,
+    0x88,
+    0x84,
+    0x8B,
+    0x8C,
+    0x8E,
+    0x8F,
+    0x90,
+    0x96,
+    0x107,
+    0x98,
+    0x95,
+    0x80,
+    0x9E,
+    0x9F,
+    0x93,
+    0x94,
+    0x61,
+    0x62,
+    0x69,
+    0x64,
+    0x63,
+    0x6B,
+    0x68,
+    0x6A,
+    0x67,
+    0x65,
+    0x60,
+    0x66,
+    0x6D,
+    0x1,
+    0x2,
+    0x3,
+    0x6,
+    0x5,
+    0x7,
+    0x4,
+    0x8,
+    0xD,
+    0xC,
+    0x9,
+    0xA,
+    0x3A,
+    0x3B,
+    0x36,
+    0x37,
+    0x38,
+    0x39,
+    0x3C,
+    0x3D,
+    0x3E,
+    0x3F,
+    0xB,
+    0xE,
+    0x40,
+    0x41,
+    0x42,
+    0x43,
+    0x44,
+    0x45,
+    0x46,
+    0x105,
+    0x121,
+    0x122,
+    0x124,
+    0x12F,
+    0x130,
+    0xFFFF,
+    0x0,
+};
+
+UiListRowCallback D_replay_bonus_8011912C[1] = { func_replay_bonus_801176A8 };
+
+UiList D_replay_bonus_80119130 = { D_replay_bonus_8011912C, 1, { 1 }, 0, 0xF };
+
+UiObjectDesc D_replay_bonus_80119154 = { 2, { -144, -104, 208, 160 }, 0x3C, 0, 0, 0xC0, func_replay_bonus_80115ED0, 0 };
+
+UiObjectDesc D_replay_bonus_80119170 = { 2, { -144, -96, 160, 160 }, 0x3C, 0, 0, 0xC0, func_replay_bonus_80116964, 0 };
+
+UiObjectDesc D_replay_bonus_8011918C = { 2, { -72, -64, 144, 56 }, 0x30, 0, 0, 0xC0, func_replay_bonus_801166AC, 0 };
+
+UiObjectDesc D_replay_bonus_801191A8 = { 2, { -72, 8, 144, 56 }, 0x34, 0, 0, 0xC0, func_replay_bonus_801166AC, 0 };
+
+UiObjectDesc D_replay_bonus_801191C4 = { 2, { -144, -104, 288, 208 }, 0x2C, 0, 0, 0xC0, func_replay_bonus_80116AC0, 0 };
+
+UiObjectDesc D_replay_bonus_801191E0 = { 2, { -144, -104, 288, 208 }, 0x28, 0, 0, 0xC0, func_replay_bonus_80116AC0, 0 };
+
+UiObjectDesc D_replay_bonus_801191FC = { 2, { -72, -32, 144, 40 }, 0x2C, 0, 0, 0xC0, func_replay_bonus_80116D68, 0 };
+
+TaskDesc D_replay_bonus_80119218 = { { { TASK_BODY_NONE, 0xC0 } }, func_replay_bonus_8011797C, { NULL } };
+
+u8 D_replay_bonus_80119224 = 0;
+
+u8 D_replay_bonus_80119225 = 0;
+
+u8 D_replay_bonus_80119226 = 0;
+
+u8 D_replay_bonus_80119227 = 0;
+
+Task* D_replay_bonus_80119228 = NULL;
+
+TaskDesc D_replay_bonus_8011922C[4] = {
+    { { { TASK_BODY_NONE, 0x20 } }, func_replay_bonus_80117A08, { NULL } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_replay_bonus_80118D7C, { NULL } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_replay_bonus_80118E3C, { NULL } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_replay_bonus_80118C64, { NULL } },
+};
+
+u8* D_replay_bonus_8011925C = NULL;
+
+u_long* D_replay_bonus_80119260 = NULL;
+
+s16 D_replay_bonus_80119264 = 0;
+
+u16 D_replay_bonus_80119266 = 0;
+
+u16 D_replay_bonus_80119268 = 0;
+
+u16 D_replay_bonus_8011926A = 0;
+
+s16 D_replay_bonus_8011926C = 0;
+
+s16 D_replay_bonus_8011926E = 0;
+
+u16 D_replay_bonus_80119270 = 0;
+
+/// Not zero and never read: the original toolchain left these two bytes in the
+/// alignment gap before the totals.
+u8 D_replay_bonus_80119272 = 0x43;
+
+u8 D_replay_bonus_80119273 = 0x42;
+
+ReplayBonusTotals D_replay_bonus_80119274 = { 0, 0, 0, 0, 0, 0 };
+
+ReplayBonusStfFile* D_replay_bonus_8011928C = NULL;
+
+ReplayBonusStfGlyph* D_replay_bonus_80119290 = NULL;
+
+ReplayBonusStfParams* D_replay_bonus_80119294 = NULL;
+
+ReplayBonusStfLine* D_replay_bonus_80119298 = NULL;
+
+ReplayBonusStfSprite* D_replay_bonus_8011929C = NULL;
+
+s32 D_replay_bonus_801192A0 = 0;
+
+s32 D_replay_bonus_801192A4 = 0;
+
+s32 D_replay_bonus_801192A8 = 0;
+
+u8 D_replay_bonus_801192AC = 0;
+
+s32 D_replay_bonus_801192B0 = 0;
+
+s32 D_replay_bonus_801192B4 = 0;
+
+u16 D_replay_bonus_801192B8 = 0;
+
+ReplayBonusPictureDecode* D_replay_bonus_801192BC = NULL;
+
+u8* D_replay_bonus_801192C0 = NULL;

@@ -490,8 +490,7 @@ id = 45
 objects = [
   { kind = "packageId" },
   { unit = "replay_bonus/replay_bonus", rodata = "0x4", text = "0x150" },
-  { unit = "replay_bonus/replay_bonus_2", rodata = "0x74", text = "0x1A24" },
-  { kind = "data", at = "0x37FC" },
+  { unit = "replay_bonus/replay_bonus_2", rodata = "0x74", text = "0x1A24", data = "0x37FC" },
 ]
 
 
