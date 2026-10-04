@@ -69,18 +69,29 @@
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
 #include "../../shared/room_cutscene.h"
 
-/// 0x18-byte block `func_shelter_b2_laboratory_801812F8` takes from
-/// the scratch stack: the projected centre `sx` / `sy`, its `otz` and GTE
-/// `flag`, and the on-screen `radius`. Nothing here reads the bytes between
-/// `radius` and `sx`, so what the block keeps there is unknown.
+/// Scratch block this room's diamond glow drawer takes from the scratch stack
+/// for one projected centre.
+///
+/// One perspective transform of a world point through `gGfxViewCoord.workm`
+/// writes the screen position and the GTE flag word. A negative flag word
+/// means the transform reported an error, and the drawer links nothing.
+/// Otherwise it stores the ordering-table depth and the on-screen half-extent,
+/// a size divided by that depth, and builds the diamonds around the centre.
+/// `sx` and `sy` are written by one screen-XY store, so they stay adjacent.
+///
+/// `GlowCentreScratch` holds the same four values in 16 bytes. This record
+/// keeps eight more bytes between the half-extent and the screen position;
+/// the drawer reserves and releases them with the rest of the block and never
+/// reads or writes them, so the records stay separate.
 typedef struct {
-    s32 otz;
-    s32 flag;
-    s32 radius;
-    u8  _pad[8];
-    u16 sx;
-    u16 sy;
-} _DrawScratch;
+    s32 otz;        // Ordering-table depth of the centre; also the divisor for the half-extent
+    s32 flag;       // GTE flag word; negative means the transform reported an error
+    s32 radius;     // On-screen half-extent of the diamonds around the centre
+    u8  unknown[8]; // Reserved with the block and never accessed; role and grouping unproven
+    u16 sx;         // Projected centre, x
+    u16 sy;         // Projected centre, y
+} _ShelterB2LaboratoryGlowDiamondScratch;
+STATIC_ASSERT_SIZEOF(_ShelterB2LaboratoryGlowDiamondScratch, 0x18);
 
 extern UiObjectDesc D_800611E4;
 
@@ -1431,19 +1442,19 @@ void func_shelter_b2_laboratory_80180548(Task* task)
 /// `rsin(animFrame * (s16)arg1) / 34 + 0x78`.
 static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    u8*           head;
-    _DrawScratch* block;
-    POLY_G4*      prim;
-    LINE_G3*      line;
-    s32           sine;
-    s32           pulse;
-    s32           radius;
-    s32           i;
-    s32           t1;
-    s32           t2;
-    s32           twice;
-    u16           sx;
-    u16           sy;
+    u8*                                     head;
+    _ShelterB2LaboratoryGlowDiamondScratch* block;
+    POLY_G4*                                prim;
+    LINE_G3*                                line;
+    s32                                     sine;
+    s32                                     pulse;
+    s32                                     radius;
+    s32                                     i;
+    s32                                     t1;
+    s32                                     t2;
+    s32                                     twice;
+    u16                                     sx;
+    u16                                     sy;
 
     {
         void** scratch;
@@ -1451,20 +1462,20 @@ static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg
 
         scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
-        tmp     = (*scratch = head - 0x18);
-        block   = (_DrawScratch*)tmp;
+        tmp     = (*scratch = head - sizeof(_ShelterB2LaboratoryGlowDiamondScratch));
+        block   = (_ShelterB2LaboratoryGlowDiamondScratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((_DrawScratch*)(head - 0x18))->sx);
-    gte_stflg(&((_DrawScratch*)(head - 0x18))->flag);
+    gte_stsxy(&((_ShelterB2LaboratoryGlowDiamondScratch*)head)[-1].sx);
+    gte_stflg(&((_ShelterB2LaboratoryGlowDiamondScratch*)head)[-1].flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         sine          = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius        = ((s16)arg2 * 32) / ((_DrawScratch*)(head - 0x18))->otz;
+        radius        = ((s16)arg2 * 32) / ((_ShelterB2LaboratoryGlowDiamondScratch*)head)[-1].otz;
         i             = 0;
         pulse         = sine / 34 + 0x78;
         block->radius = radius;
@@ -1515,7 +1526,7 @@ static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    SCRATCH_STACK_RELEASE_BLOCK(_ShelterB2LaboratoryGlowDiamondScratch);
 }
 
 #include "../../shared/glow_draw_pulsing_disc.inc.c"
