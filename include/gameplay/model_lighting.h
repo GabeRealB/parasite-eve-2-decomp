@@ -3,10 +3,9 @@
 
 #include "types.h"
 
-#include "main/pad_types.h"
 #include "main/tmd_types.h"
 
-void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1);
+void Gp_ApplyPadReplay(s32 arg0, u16* arg1);
 
 void func_8009EA50(s32 arg0);
 

@@ -22134,10 +22134,10 @@ blocked by the loop-wide `+r`) but **not** at the loop tail (that steals the
 `blez` delay slot from the offset increment):
 
 ```c
-scratch->rawHi = raw->buttonsHigh;
-scratch->rawLo = raw->buttonsLow;
+scratch->rawButtons.bytes.high = raw->buttonsHigh;
+scratch->rawButtons.bytes.low  = raw->buttonsLow;
 asm volatile("" : "+r"(raw)); /* keeps s2 as base; lbu 2(s2)/3(s2) */
-buttons = ~*(u16*)&scratch->rawLo;
+buttons = ~scratch->rawButtons.word;
 /* … */
 raw++;
 i++;
@@ -22146,7 +22146,7 @@ offset += 0x5C;
 ```
 
 `Pad_UpdatePort0` is the pure example. Pair with two-phase scratch alloc
-(`register void* tmp asm("v0")` then `register PadScratch* scratch asm("s1")`)
+(`register void* tmp asm("v0")` then `register _PadScratch* scratch asm("s1")`)
 for `lw v0; addiu v0,-N; move s1,v0; sw s1`.
 
 ## `volatile u8*` forces cooldown decrement reload (no delay-slot reuse)

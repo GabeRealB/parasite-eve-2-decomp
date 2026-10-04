@@ -56,6 +56,33 @@ typedef struct {
 } _PadPollWork;
 STATIC_ASSERT_SIZEOF(_PadPollWork, 0x14);
 
+/// Button words of one port's input update, held on the scratch stack while the update runs.
+///
+/// The controller reports its buttons as two active-low bytes. They are copied
+/// into `rawButtons` in the order that makes the pair one halfword, and its
+/// complement becomes `buttons`, the active-high word every consumer tests
+/// (bit layout of libetc's `PADL*`/`PADR*` masks). `buttons` is then amended in
+/// place - an analog controller's left stick adds the D-pad bit of each
+/// direction it is pushed past half travel, and an active input override may
+/// substitute a replayed word - before it is compared with `prevButtons` to
+/// derive the port's pressed and released edges and stored as the port's held
+/// buttons. An update that ends an input block takes the complement alone.
+///
+/// One block serves every port the update visits, and nothing is carried
+/// between updates: each member is rewritten before it is read.
+typedef struct {
+    u16 buttons;     // Buttons held this update, active high; becomes `PadState::buttons`
+    u16 prevButtons; // `PadState::buttons` as the preceding update left it
+    union {
+        u16 word;    // Both bytes as one button word, still active low
+        struct {
+            u8 low;  // `PadRawPort::buttonsLow`
+            u8 high; // `PadRawPort::buttonsHigh`
+        } bytes;
+    } rawButtons;    // Controller's button bytes as received, active low
+} _PadScratch;
+STATIC_ASSERT_SIZEOF(_PadScratch, 0x6);
+
 /* Define BSS before API headers to preserve first-declaration order. */
 /// Resident storage for the live session exposed through `gGameSession`.
 ///
@@ -581,7 +608,7 @@ void Pad_UpdatePort0(void)
 {
     s32           i;
     DisplayState* ds;
-    PadScratch*   scratch;
+    _PadScratch*  scratch;
     PadState*     pad;
     u16           buttons;
     u16           prev;
@@ -590,15 +617,15 @@ void Pad_UpdatePort0(void)
     head    = SCRATCH_HEAD_ADDR;
     i       = 0;
     ds      = &gDisplayState;
-    scratch = SCRATCH_PUSH_AT(head, PadScratch);
+    scratch = SCRATCH_PUSH_AT(head, _PadScratch);
 
     do {
         pad = &gPadStates[i];
         if (pad->inputBlockPolls == 0) {
-            scratch->rawHi   = Pad_RawPorts[i].buttonsHigh;
-            scratch->rawLo   = Pad_RawPorts[i].buttonsLow;
-            buttons          = ~*(u16*)&scratch->rawLo;
-            scratch->buttons = buttons;
+            scratch->rawButtons.bytes.high = Pad_RawPorts[i].buttonsHigh;
+            scratch->rawButtons.bytes.low  = Pad_RawPorts[i].buttonsLow;
+            buttons                        = ~scratch->rawButtons.word;
+            scratch->buttons               = buttons;
 
             if (pad->inputFormat == PAD_INPUT_FORMAT_ANALOG) {
                 if (pad->stickAxes[PAD_STICK_LEFT_X] < -PAD_STICK_DIRECTION_THRESHOLD) {
@@ -622,7 +649,7 @@ void Pad_UpdatePort0(void)
                         pad->stickAxes[PAD_STICK_RIGHT_X] = 0;
                         pad->stickAxes[PAD_STICK_LEFT_Y]  = 0;
                         pad->stickAxes[PAD_STICK_LEFT_X]  = 0;
-                        Gp_ApplyPadReplay(Pad_RemapState->inputOverrideMode, scratch);
+                        Gp_ApplyPadReplay(Pad_RemapState->inputOverrideMode, &scratch->buttons);
                     }
                 }
             }
@@ -652,15 +679,15 @@ void Pad_UpdatePort0(void)
             pad->releasedButtons = 0;
             pad->buttons         = 0;
             if (pad->inputBlockPolls == 0) {
-                scratch->rawHi   = Pad_RawPorts[i].buttonsHigh;
-                scratch->rawLo   = Pad_RawPorts[i].buttonsLow;
-                buttons          = ~*(u16*)&scratch->rawLo;
-                scratch->buttons = buttons;
-                pad->buttons     = buttons;
+                scratch->rawButtons.bytes.high = Pad_RawPorts[i].buttonsHigh;
+                scratch->rawButtons.bytes.low  = Pad_RawPorts[i].buttonsLow;
+                buttons                        = ~scratch->rawButtons.word;
+                scratch->buttons               = buttons;
+                pad->buttons                   = buttons;
             }
         }
         i++;
     } while (i <= 0);
 
-    SCRATCH_STACK_RELEASE_BLOCK(PadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_PadScratch);
 }

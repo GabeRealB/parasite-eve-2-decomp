@@ -2961,7 +2961,7 @@ static u32* func_8009FD28(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
+void Gp_ApplyPadReplay(s32 arg0, u16* arg1)
 {
     u16 temp_v0;
     u16 temp_v1;
@@ -2978,7 +2978,7 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
     }
     if (offset <= 0x17FDF) {
         if (GameMain_HaltFlags != 0) {
-            arg1->buttons = Gp_ReplayButtons;
+            *arg1 = Gp_ReplayButtons;
             return;
         }
         temp_v1 = Gp_ReplayCursor[0];
@@ -2986,11 +2986,11 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
             Gp_ReplayButtons    = temp_v1;
             Gp_ReplayFramesLeft = Gp_ReplayCursor[1];
         }
-        if (arg1->buttons & 0x800) {
-            arg1->buttons               = Gp_ReplayButtons | 0x800;
+        if (*arg1 & 0x800) {
+            *arg1                       = Gp_ReplayButtons | 0x800;
             Wip_SysFlags.skipTitleIntro = 1;
         } else {
-            arg1->buttons = Gp_ReplayButtons;
+            *arg1 = Gp_ReplayButtons;
         }
         temp_v0             = Gp_ReplayFramesLeft - 1;
         Gp_ReplayFramesLeft = temp_v0;

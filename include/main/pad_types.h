@@ -78,15 +78,4 @@ typedef struct {
 } PadState;
 STATIC_ASSERT_SIZEOF(PadState, 0x5C);
 
-/// 6-byte scratch block allocated from the scratch stack by Pad_UpdatePort0.
-/// rawLo/rawHi hold PadRawPort.buttonsLow/buttonsHigh (little-endian halfword),
-/// inverted into buttons; prevButtons is the previous frame's field_4.
-typedef struct _PadScratch {
-    /* 0x0 */ u16 buttons;
-    /* 0x2 */ u16 prevButtons;
-    /* 0x4 */ u8  rawLo;
-    /* 0x5 */ u8  rawHi;
-} PadScratch;
-STATIC_ASSERT_SIZEOF(PadScratch, 0x6);
-
 #endif // MAIN_PAD_TYPES_H
