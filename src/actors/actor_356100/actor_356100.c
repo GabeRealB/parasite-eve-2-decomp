@@ -666,25 +666,6 @@ static void func_actor_356100_80163508(Task* arg0);
 /// Per-clip transition values indexed by the current and requested clip.
 extern s8 D_actor_356100_801728CC[][45];
 
-/// 0x10-byte scratch stack block `func_actor_356100_80168E44` takes: the
-/// offset from the actor to the player, then the facing yaw it settles on.
-typedef struct Actor356100AimScratch {
-    /* 0x0 */ SVECTOR delta;
-    /// The two facing yaws `func_actor_356100_80164158` compares: `target` is the
-    /// player's root facing (`ratan2` of its matrix column) and `current` this
-    /// actor's own, re-derived from `delta` and wrapped 0x800 off it. Their
-    /// wrapped difference is the turn onto the player, which is what separates
-    /// the state-0xA and state-0xB transitions.
-    /* 0x8 */ s16 target;
-    /* 0xA */ s16 current;
-    /* 0xC */ s16 angle;
-    /// The root's facing yaw `func_actor_356100_801653F4` reads back to seed
-    /// `_Actor356100Work::turnYaw`; `ActorChaseScratch` names the same
-    /// pair `turn` / `angle`.
-    /* 0xE */ s16 facing;
-} Actor356100AimScratch;
-STATIC_ASSERT_SIZEOF(Actor356100AimScratch, 0x10);
-
 /// 0x68-byte scratch stack block `func_actor_356100_80169854` takes while it
 /// builds the ground coordinate it draws an effect quad on: the coordinate the
 /// function fills (`coord.parent` parented to `gGfxViewCoord`) plus the world
@@ -830,7 +811,7 @@ static void func_actor_356100_80164ACC(Task* arg0);
 static void func_actor_356100_801653F4(Task* arg0);
 
 /// Aim tick: normalises a root colour-matrix column and GPF-scales it by
-/// `sidestepStep` into the aim scratch.
+/// `sidestepStep` into the chase scratch.
 static void func_actor_356100_80165B30(Task* arg0);
 
 /// Tick of the state-0xB aim run.
@@ -1297,16 +1278,16 @@ static void func_actor_356100_80163CD4(Task* arg0)
 
 /// Turns the actor's facing onto the player in one step and rescales the root
 /// coordinate to 0x1194: the live branch resets the model and starts clip 1 at
-/// speed 0x10 with the 9 state parked in `animId`, otherwise the aim scratch
+/// speed 0x10 with the 9 state parked in `animId`, otherwise the chase scratch
 /// takes the player offset, `actorPositionYaw` gives the wrapped turn,
 /// `lookYawTarget` snapshots it, it is clamped to [-0x10, 0x10] and the root yaw is
 /// re-derived from it. Same body as `func_actor_401300_8013AAE8`.
 static void func_actor_356100_80163E2C(Task* arg0)
 {
-    _Actor356100Work*      work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    Actor356100AimScratch* aim;
+    _Actor356100Work*  work;
+    TmdObject*         obj;
+    GfxCoord*          coord;
+    ActorChaseScratch* aim;
 
     work = arg0->work;
     if (work->stateEntered != 0) {
@@ -1323,26 +1304,26 @@ static void func_actor_356100_80163E2C(Task* arg0)
         Gp_ArmStateF0(1);
         return;
     }
-    SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
-    aim                                   = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
+    aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 1) {
         work->state = ACTOR_356100_STATE_CHASE;
     }
-    aim->angle          = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
-    work->lookYawTarget = aim->angle;
-    if (aim->angle >= 0x11) {
-        aim->angle = 0x10;
+    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    work->lookYawTarget = aim->turn;
+    if (aim->turn >= 0x11) {
+        aim->turn = 0x10;
     }
-    if (aim->angle < -0x10) {
-        aim->angle = -0x10;
+    if (aim->turn < -0x10) {
+        aim->turn = -0x10;
     }
-    coord       = arg0->extra.tmd->coords;
-    aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    coord      = arg0->extra.tmd->coords;
+    aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_356100_80163508(arg0);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Steps `coord` `amount` units along its own root colour-matrix column unless
@@ -1467,12 +1448,12 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollis
 
 static void func_actor_356100_80164158(Task* arg0)
 {
-    _Actor356100Work*      work;
-    Actor356100AimScratch* aim;
-    TmdObject*             obj;
-    s16                    yaw;
-    s32                    diff;
-    s32                    range;
+    _Actor356100Work*  work;
+    ActorChaseScratch* aim;
+    TmdObject*         obj;
+    s16                yaw;
+    s32                diff;
+    s32                range;
 
     work = arg0->work;
     if (work->stateEntered != 0) {
@@ -1492,45 +1473,45 @@ static void func_actor_356100_80164158(Task* arg0)
         return;
     }
     work->stateTimer = (u16)work->stateTimer + 1;
-    SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
-    aim = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
+    aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     Actor356100_PushRecords(arg0->extra.tmd->coords, work->pushContacts, ARRAY_SIZE(work->pushContacts), 0x10);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_356100_80163508(arg0);
-    aim->target = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
-                         (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
+    aim->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                            (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     yaw                 = ratan2(aim->delta.vx, aim->delta.vz) + 0x800;
-    aim->current        = yaw;
-    aim->current        = actorNormalizeYaw(yaw);
-    aim->angle          = actorYawTo(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
-    work->lookYawTarget = aim->angle;
-    diff                = aim->current - aim->target;
-    if (ABS(diff) < 0x44 && (((s16)work->sidestepCount / 2) + 3) < work->stateTimer && ABS(aim->angle) < 0x80) {
+    aim->yaw            = yaw;
+    aim->yaw            = actorNormalizeYaw(yaw);
+    aim->turn           = actorYawTo(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
+    work->lookYawTarget = aim->turn;
+    diff                = aim->yaw - aim->playerYaw;
+    if (ABS(diff) < 0x44 && (((s16)work->sidestepCount / 2) + 3) < work->stateTimer && ABS(aim->turn) < 0x80) {
         if (overlayOutOfRange(&aim->delta, 0x708)) {
             work->state = ACTOR_356100_STATE_SIDESTEP;
         }
     }
-    range = actorNormalizeYaw((u16)aim->current - (u16)aim->target);
+    range = actorNormalizeYaw((u16)aim->yaw - (u16)aim->playerYaw);
     if (ABS(range) >= 0x201 && (((s16)work->sidestepCount / 2) + 3) < work->stateTimer && work->stateCounter == 0) {
         work->stateCounter = 1;
         work->animId       = 9;
         work->animRequest  = ACTOR_356100_ANIM_REQUEST_BLEND;
     }
-    if (aim->angle < 0x200) {
+    if (aim->turn < 0x200) {
         if (!overlayOutOfRange(&aim->delta, 0x44C)) {
             work->state = ACTOR_356100_STATE_GRAB;
         }
     }
-    if (aim->angle > 0x40) {
-        aim->angle = 0x40;
+    if (aim->turn > 0x40) {
+        aim->turn = 0x40;
     }
-    if (aim->angle < -0x40) {
-        aim->angle = -0x40;
+    if (aim->turn < -0x40) {
+        aim->turn = -0x40;
     }
-    aim->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    aim->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 3) {
@@ -1543,15 +1524,15 @@ static void func_actor_356100_80164158(Task* arg0)
         work->animId      = 3;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Turn-aim state body, the 356100 twin of `Actor01900_Fn04D14`: take a 0x10
 /// chase scratch off the scratch stack and, on the live-actor flag, key the
 /// animation nodes, the frame counter and the `circleRateStep` clip phase. Once
-/// `stateCounter` has counted 7 frames the arm aims at the player — the yaw toward
-/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` goes in `target`, the wrapped yaw toward
-/// `gPlayerStatus.coordMtx` in `current` — and the root is turned by the facing
+/// `stateCounter` has counted 7 frames the arm aims at the player — the player's
+/// own facing yaw goes in `playerYaw`, the wrapped yaw from the player back to
+/// the actor in `yaw` — and the root is turned by the facing
 /// yaw plus a +-0x60 clamp of the turn's 1000 bias. The forward draw
 /// `runStep` is the doubled frame parameter (halved while `blendActive` is
 /// up, forced to 2 while the frame counter runs), and the actor slides along
@@ -1562,8 +1543,8 @@ static void func_actor_356100_80164158(Task* arg0)
 static void func_actor_356100_80164ACC(Task* arg0)
 {
     _Actor356100Work*      work;
-    Actor356100AimScratch* head;
-    Actor356100AimScratch* s;
+    ActorChaseScratch*     head;
+    ActorChaseScratch*     chase;
     TmdObject*             obj;
     GfxCoord*              coord;
     GfxCoord*              facing;
@@ -1594,10 +1575,10 @@ static void func_actor_356100_80164ACC(Task* arg0)
         work->circleCount++;
         return;
     }
-    head                                        = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
-    SCRATCH_STACK_CURSOR(Actor356100AimScratch) = head - 1;
-    s                                           = head - 1;
-    arg0->extra.tmd->coords->composeStamp       = GRAPHICS_COORD_DIRTY;
+    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
+    chase                                   = head - 1;
+    arg0->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
     func_actor_356100_80163508(arg0);
     paused    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
     pushCoord = arg0->extra.tmd->coords;
@@ -1610,42 +1591,42 @@ static void func_actor_356100_80164ACC(Task* arg0)
     if (hit != 0) {
         work->stateCounter++;
     }
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->stateCounter >= 7) {
-        s->target   = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
-                             (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-        s->current  = ratan2(s->delta.vx, s->delta.vz) + 0x800;
-        s->current  = actorNormalizeYaw(s->current);
-        work->state = ACTOR_356100_STATE_SLIDE;
+        chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                                  (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
+        chase->yaw       = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+        chase->yaw       = actorNormalizeYaw(chase->yaw);
+        work->state      = ACTOR_356100_STATE_SLIDE;
     }
-    coord    = arg0->extra.tmd->coords;
-    s->angle = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    turn     = s->angle;
+    coord       = arg0->extra.tmd->coords;
+    chase->turn = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    turn        = chase->turn;
     if (turn >= 0) {
         diffPos = turn - 1000;
         if (((diffPos < 0) ? -diffPos : diffPos) < 0x60) {
-            s->facing = s->angle - 1000;
+            chase->angle = chase->turn - 1000;
         } else if (diffPos > 0) {
-            s->facing = 0x60;
+            chase->angle = 0x60;
         } else {
-            s->facing = -0x60;
+            chase->angle = -0x60;
         }
     } else {
         diffNeg = turn + 1000;
         if (((diffNeg < 0) ? -diffNeg : diffNeg) < 0x60) {
-            s->facing = s->angle + 1000;
+            chase->angle = chase->turn + 1000;
         } else if (diffNeg > 0) {
-            s->facing = 0x60;
+            chase->angle = 0x60;
         } else {
-            s->facing = -0x60;
+            chase->angle = -0x60;
         }
     }
-    facing     = arg0->extra.tmd->coords;
-    s->facing += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->facing, 1);
+    facing        = arg0->extra.tmd->coords;
+    chase->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     coord                                 = arg0->extra.tmd->coords;
-    work->lookYawTarget                   = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->lookYawTarget                   = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     work->runStep                         = work->animRate * 8;
     if (work->blendActive != 0) {
@@ -1665,13 +1646,13 @@ static void func_actor_356100_80164ACC(Task* arg0)
     }
     if (work->circleRateStep == 0) {
         if (++work->stateTimer == 5) {
-            s->target = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
-                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-            actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
-            s->current = ratan2(s->delta.vx, s->delta.vz) + 0x800;
-            yaw        = actorNormalizeYaw(s->current);
-            s->current = yaw;
-            yaw        = yaw - s->target;
+            chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                                      (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
+            actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
+            chase->yaw = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+            yaw        = actorNormalizeYaw(chase->yaw);
+            chase->yaw = yaw;
+            yaw        = yaw - chase->playerYaw;
             if (yaw < 0) {
                 yaw = -yaw;
             }
@@ -1684,12 +1665,12 @@ static void func_actor_356100_80164ACC(Task* arg0)
         }
     }
     work->animRate += (u16)work->circleRateStep;
-    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Aim tick: going live resets the model and starts clip 1 at speed 0x10 with
 /// the 3 state parked in `animId` and `lookYawTarget` cleared; otherwise the
-/// aim scratch takes the player offset, and the wrapped turn from it is paired
+/// chase scratch takes the player offset, and the wrapped turn from it is paired
 /// with the root's own facing yaw — snapshotted into `turnYaw` and, plus
 /// twice the turn, into the `turnYawTarget` the yaw is then slewed toward. Same
 /// body as `Actor01900_Fn0551C`, whose aim tick this is the live-arm half of:
@@ -1697,21 +1678,21 @@ static void func_actor_356100_80164ACC(Task* arg0)
 /// only re-seeds the pair.
 static void func_actor_356100_801653F4(Task* arg0)
 {
-    _Actor356100Work*      work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    GfxCoord*              cur;
-    GfxCoord*              facing;
-    Actor356100AimScratch* head;
-    Actor356100AimScratch* s;
-    s32                    value;
+    _Actor356100Work*  work;
+    TmdObject*         obj;
+    GfxCoord*          coord;
+    GfxCoord*          cur;
+    GfxCoord*          facing;
+    ActorChaseScratch* head;
+    ActorChaseScratch* chase;
+    s32                value;
 
     work = arg0->work;
     if (work->stateEntered != 0) {
-        head                                                      = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
+        head                                                      = SCRATCH_STACK_CURSOR(ActorChaseScratch);
         obj                                                       = arg0->extra.tmd;
-        SCRATCH_STACK_CURSOR(Actor356100AimScratch)               = head - 1;
-        s                                                         = head - 1;
+        SCRATCH_STACK_CURSOR(ActorChaseScratch)                   = head - 1;
+        chase                                                     = head - 1;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
         obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
@@ -1724,27 +1705,27 @@ static void func_actor_356100_801653F4(Task* arg0)
         func_actor_356100_80163508(arg0);
         cur                 = arg0->extra.tmd->coords;
         head[-1].delta.vx   = gPlayerStatus.coordMtx->t[0] - cur->coord.t[0];
-        s->delta.vy         = gPlayerStatus.coordMtx->t[1] - cur->coord.t[1];
-        s->delta.vz         = gPlayerStatus.coordMtx->t[2] - cur->coord.t[2];
+        chase->delta.vy     = gPlayerStatus.coordMtx->t[1] - cur->coord.t[1];
+        chase->delta.vz     = gPlayerStatus.coordMtx->t[2] - cur->coord.t[2];
         coord               = arg0->extra.tmd->coords;
-        s->angle            = actorYawTo(coord, head[-1].delta.vx, s->delta.vz);
+        chase->turn         = actorYawTo(coord, head[-1].delta.vx, chase->delta.vz);
         facing              = arg0->extra.tmd->coords;
-        s->facing           = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-        work->turnYaw       = s->facing;
-        work->turnYawTarget = s->facing + (u16)s->angle * 2;
-        SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
+        chase->angle        = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        work->turnYaw       = chase->angle;
+        work->turnYawTarget = chase->angle + (u16)chase->turn * 2;
+        SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
         return;
     }
-    head                                        = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
-    SCRATCH_STACK_CURSOR(Actor356100AimScratch) = head - 1;
-    s                                           = head - 1;
+    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
+    chase                                   = head - 1;
     func_actor_356100_80163508(arg0);
     cur               = arg0->extra.tmd->coords;
     head[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - cur->coord.t[0];
-    s->delta.vy       = gPlayerStatus.coordMtx->t[1] - cur->coord.t[1];
-    s->delta.vz       = gPlayerStatus.coordMtx->t[2] - cur->coord.t[2];
+    chase->delta.vy   = gPlayerStatus.coordMtx->t[1] - cur->coord.t[1];
+    chase->delta.vz   = gPlayerStatus.coordMtx->t[2] - cur->coord.t[2];
     if (work->turnYaw == work->turnYawTarget) {
-        if (work->circleCount < 2 || overlayOutOfRange(&s->delta, 0x384)) {
+        if (work->circleCount < 2 || overlayOutOfRange(&chase->delta, 0x384)) {
             value = ACTOR_356100_STATE_CIRCLE;
         } else {
             value = ACTOR_356100_STATE_GRAB;
@@ -1772,12 +1753,12 @@ static void func_actor_356100_801653F4(Task* arg0)
         Actor356100_StepForward(arg0->extra.tmd->coords, 0x14);
     }
     Actor356100_PushRecords(arg0->extra.tmd->coords, work->pushContacts, ARRAY_SIZE(work->pushContacts), 0x10);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Turn-and-close tick: going live writes the animation request fields with
 /// `hitRadius` forced to 0xC0 and the enemy's link node cleared, takes the
-/// player offset into the aim scratch and turns the root onto it with
+/// player offset into the chase scratch and turns the root onto it with
 /// `ratan2`, then settles `sidestepSide` on the 12-bit side the `gRandomLcgState`
 /// draw picks and leans the yaw by `sidestepAngle` either way, before rebuilding
 /// its Y rotation at the fixed 0xDE GPF scale and bumping `sidestepCount`. Each
@@ -1788,19 +1769,19 @@ static void func_actor_356100_801653F4(Task* arg0)
 /// scratch block this matches.
 static void func_actor_356100_80165B30(Task* arg0)
 {
-    _Actor356100Work*      work;
-    Actor356100AimScratch* head;
-    Actor356100AimScratch* aim;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    SVECTOR*               dir;
-    MATRIX                 mat;
-    u16                    angle;
+    _Actor356100Work*  work;
+    ActorChaseScratch* head;
+    ActorChaseScratch* aim;
+    TmdObject*         obj;
+    GfxCoord*          coord;
+    SVECTOR*           dir;
+    MATRIX             mat;
+    u16                angle;
 
-    head                                        = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
-    work                                        = arg0->work;
-    SCRATCH_STACK_CURSOR(Actor356100AimScratch) = head - 1;
-    aim                                         = head - 1;
+    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    work                                    = arg0->work;
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
+    aim                                     = head - 1;
     if (work->stateEntered != 0) {
         obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
@@ -1809,7 +1790,7 @@ static void func_actor_356100_80165B30(Task* arg0)
         work->hitRadius  = 0xC0;
         work->stateTimer = 0;
         actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
-        aim->angle = ratan2(head[-1].delta.vx, aim->delta.vz);
+        aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->sidestepSide == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 16) & 1) {
@@ -1821,19 +1802,19 @@ static void func_actor_356100_80165B30(Task* arg0)
         if (work->sidestepSide == 1) {
             work->animId = 0x15;
             if (work->sidestepCount == 0) {
-                angle      = aim->angle + 0x171;
-                aim->angle = work->sidestepAngle + angle;
+                angle     = aim->turn + 0x171;
+                aim->turn = work->sidestepAngle + angle;
             } else {
-                aim->angle += work->sidestepAngle;
+                aim->turn += work->sidestepAngle;
             }
             work->sidestepSide = -1;
         } else {
             work->animId = 0x14;
             if (work->sidestepCount == 0) {
-                angle      = aim->angle - 0x171;
-                aim->angle = angle - work->sidestepAngle;
+                angle     = aim->turn - 0x171;
+                aim->turn = angle - work->sidestepAngle;
             } else {
-                aim->angle -= work->sidestepAngle;
+                aim->turn -= work->sidestepAngle;
             }
             work->sidestepSide = 1;
         }
@@ -1841,7 +1822,7 @@ static void func_actor_356100_80165B30(Task* arg0)
         work->animRate    = 0xC;
         work->blendActive = 0;
         func_actor_356100_80163508(arg0);
-        gfxRotMatrixY(&mat, aim->angle, 1);
+        gfxRotMatrixY(&mat, aim->turn, 1);
         dir = &work->sidestepDir;
         gfxReadMatrixZAxis(&mat, dir);
         VectorNormalSS(dir, dir);
@@ -1855,12 +1836,12 @@ static void func_actor_356100_80165B30(Task* arg0)
         gte_lddp(work->sidestepStep);
         gte_ldsv(&work->sidestepDir);
         gte_gpf12();
-        gte_stsv(aim);
+        gte_stsv(&aim->delta);
     } else {
         gte_lddp((s16)work->sidestepStep >> 1);
         gte_ldsv(&work->sidestepDir);
         gte_gpf12();
-        gte_stsv(aim);
+        gte_stsv(&aim->delta);
     }
     if ((u32)((u16)work->stateTimer - 0xC) < 0xAU) {
         coord              = arg0->extra.tmd->coords;
@@ -1872,7 +1853,7 @@ static void func_actor_356100_80165B30(Task* arg0)
     if (++work->stateTimer >= 0x1E) {
         work->state = ACTOR_356100_STATE_CHASE;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Turn-and-close tick, and the sibling of `func_actor_356100_801666B4` above
@@ -2073,7 +2054,7 @@ static void func_actor_356100_801668FC(Task* actor)
 /// Release tick, the sibling of `func_actor_356100_801684F0` below it and the
 /// same body as `Actor01900_Fn06100`. Going live resets the model and starts
 /// clip 3 at speed 8 with `blendActive` cleared and `circleCount` zeroed;
-/// otherwise the aim scratch takes the player offset, the root is pushed out of
+/// otherwise the chase scratch takes the player offset, the root is pushed out of
 /// the `pushContacts` collision records and `actorYawTo` gives the wrapped
 /// turn, which `lookYawTarget` snapshots. A turn under 0x200 while the player is
 /// still within 0x384 moves the state to 0xB; the turn is then clamped to
@@ -2082,10 +2063,10 @@ static void func_actor_356100_801668FC(Task* actor)
 /// `blendActive` is set.
 static void func_actor_356100_80166CF0(Task* arg0)
 {
-    _Actor356100Work*      work;
-    TmdObject*             obj;
-    Actor356100AimScratch* aim;
-    s16                    ang;
+    _Actor356100Work*  work;
+    TmdObject*         obj;
+    ActorChaseScratch* aim;
+    s16                ang;
 
     work = arg0->work;
     if (work->stateEntered != 0) {
@@ -2102,28 +2083,28 @@ static void func_actor_356100_80166CF0(Task* arg0)
         work->circleCount = 0;
         return;
     }
-    SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
-    aim = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
+    aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     Actor356100_PushRecords(arg0->extra.tmd->coords, work->pushContacts, ARRAY_SIZE(work->pushContacts), 0x10);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_356100_80163508(arg0);
     ang                 = actorYawTo(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
-    aim->angle          = ang;
+    aim->turn           = ang;
     work->lookYawTarget = ang;
-    if (aim->angle < 0x200) {
+    if (aim->turn < 0x200) {
         if (!overlayOutOfRange(&aim->delta, 0x384)) {
             work->state = ACTOR_356100_STATE_GRAB;
         }
     }
-    if (aim->angle > 0x40) {
-        aim->angle = 0x40;
+    if (aim->turn > 0x40) {
+        aim->turn = 0x40;
     }
-    if (aim->angle < -0x40) {
-        aim->angle = -0x40;
+    if (aim->turn < -0x40) {
+        aim->turn = -0x40;
     }
-    aim->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    aim->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
@@ -2131,7 +2112,7 @@ static void func_actor_356100_80166CF0(Task* arg0)
     } else {
         Actor356100_StepForward(arg0->extra.tmd->coords, 0x3C);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Rotation-collapse tick: going live clears the model's `field_C`, flags the
@@ -2442,7 +2423,7 @@ static void func_actor_356100_8016804C(Task* arg0)
 /// Turn-and-rescale tick, the sibling of `func_actor_356100_8016804C` above it
 /// and the same body as `func_actor_401300_8013A5C0`. Going live resets the
 /// model and starts clip 1 at speed 0x10 with the 0x13 state parked in
-/// `animId`; otherwise the aim scratch takes the player offset,
+/// `animId`; otherwise the chase scratch takes the player offset,
 /// `actorYawTo` gives the wrapped turn, `lookYawTarget` snapshots it, it is
 /// clamped to [-0x80, 0x80] and halved, the root yaw is re-derived from it and
 /// the root coordinate rescaled to a uniform 0x1194. Once the state has settled
@@ -2452,15 +2433,15 @@ static void func_actor_356100_8016804C(Task* arg0)
 /// state 7.
 static void func_actor_356100_801684F0(Task* arg0)
 {
-    _Actor356100Work*      work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    GfxCoord*              cur;
-    GfxCoord*              root;
-    SVECTOR**              scratch;
-    Actor356100AimScratch* head;
-    Actor356100AimScratch* aim;
-    McSaveData*            save;
+    _Actor356100Work*  work;
+    TmdObject*         obj;
+    GfxCoord*          coord;
+    GfxCoord*          cur;
+    GfxCoord*          root;
+    void**             scratch;
+    ActorChaseScratch* head;
+    ActorChaseScratch* aim;
+    McSaveData*        save;
 
     work = arg0->work;
     if (work->stateEntered != 0) {
@@ -2477,32 +2458,32 @@ static void func_actor_356100_801684F0(Task* arg0)
         return;
     }
     func_actor_356100_80163508(arg0);
-    scratch             = (SVECTOR**)SCRATCH_HEAD_ADDR;
+    scratch             = SCRATCH_HEAD_ADDR;
     cur                 = arg0->extra.tmd->coords;
-    head                = (Actor356100AimScratch*)SCRATCH_HEAD_AT(scratch, SVECTOR);
+    head                = SCRATCH_HEAD_AT(scratch, ActorChaseScratch);
     head[-1].delta.vx   = gPlayerStatus.coordMtx->t[0] - cur->coord.t[0];
-    aim                 = (Actor356100AimScratch*)(SCRATCH_HEAD_AT(scratch, SVECTOR) = (SVECTOR*)(head - 1));
+    aim                 = (SCRATCH_HEAD_AT(scratch, ActorChaseScratch) = head - 1);
     aim->delta.vy       = gPlayerStatus.coordMtx->t[1] - cur->coord.t[1];
     aim->delta.vz       = gPlayerStatus.coordMtx->t[2] - cur->coord.t[2];
-    aim->angle          = actorYawTo(arg0->extra.tmd->coords, head[-1].delta.vx, aim->delta.vz);
-    work->lookYawTarget = aim->angle;
-    if (ABS(aim->angle) <= 0x80 && work->animId == 2) {
+    aim->turn           = actorYawTo(arg0->extra.tmd->coords, head[-1].delta.vx, aim->delta.vz);
+    work->lookYawTarget = aim->turn;
+    if (ABS(aim->turn) <= 0x80 && work->animId == 2) {
         work->animRate    = 0x16;
         work->animId      = 0x11;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
         work->stateTimer  = 0;
         func_actor_356100_80163508(arg0);
     }
-    if (aim->angle > 0x80) {
-        aim->angle = 0x80;
+    if (aim->turn > 0x80) {
+        aim->turn = 0x80;
     }
-    if (aim->angle < -0x80) {
-        aim->angle = -0x80;
+    if (aim->turn < -0x80) {
+        aim->turn = -0x80;
     } else {
-        aim->angle = aim->angle >> 1;
+        aim->turn = aim->turn >> 1;
     }
-    aim->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    aim->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 0x11) {
@@ -2526,24 +2507,24 @@ static void func_actor_356100_801684F0(Task* arg0)
             work->state = ACTOR_356100_STATE_CHASE;
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Turn the actor's facing onto the player in one step and rescale the root
 /// coordinate to 0x1194: the live branch resets the model and starts clip 1 at
 /// speed 0x10 with the 0x13 state parked in `animId`, otherwise `stateTimer`
-/// ticks over for the 0xB-frame transition, the aim scratch takes the player
+/// ticks over for the 0xB-frame transition, the chase scratch takes the player
 /// offset, `actorPositionYaw` gives the wrapped turn, `lookYawTarget`
 /// snapshots it, the turn is clamped to [-0x20, 0x20] and the root yaw is
 /// re-derived from it before the work block's `state` takes the local `state` once the count-down
 /// expires. Same body as `func_actor_401300_8013AAE8`.
 static void func_actor_356100_80168AFC(Task* arg0)
 {
-    _Actor356100Work*      work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    Actor356100AimScratch* aim;
-    int                    state;
+    _Actor356100Work*  work;
+    TmdObject*         obj;
+    GfxCoord*          coord;
+    ActorChaseScratch* aim;
+    int                state;
 
     work = arg0->work;
     if (work->stateEntered != 0) {
@@ -2563,26 +2544,26 @@ static void func_actor_356100_80168AFC(Task* arg0)
     work->stateTimer = (s16)((u16)work->stateTimer + 1);
     // One constant is both the eleven-frame limit and `ACTOR_356100_STATE_GRAB`.
     state = 0xB;
-    SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
-    aim                                   = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
+    aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((work->rig.slots[1].status.fields.flags & 1) || ((s16)work->stateTimer >= state)) {
         work->state = state;
     }
-    aim->angle          = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
-    work->lookYawTarget = aim->angle;
-    if (aim->angle >= 0x21) {
-        aim->angle = 0x20;
+    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    work->lookYawTarget = aim->turn;
+    if (aim->turn >= 0x21) {
+        aim->turn = 0x20;
     }
-    if (aim->angle < -0x20) {
-        aim->angle = -0x20;
+    if (aim->turn < -0x20) {
+        aim->turn = -0x20;
     }
-    coord      = arg0->extra.tmd->coords;
-    aim->angle = (u16)aim->angle + ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    coord     = arg0->extra.tmd->coords;
+    aim->turn = (u16)aim->turn + ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_356100_80163508(arg0);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Turn the actor's facing onto the player in 0x28 steps and rescale the root
@@ -2593,10 +2574,10 @@ static void func_actor_356100_80168AFC(Task* arg0)
 /// once it has caught up. Same body as `func_actor_401300_8013AE48`.
 static void func_actor_356100_80168E44(Task* arg0)
 {
-    _Actor356100Work*      work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    Actor356100AimScratch* aim;
+    _Actor356100Work*  work;
+    TmdObject*         obj;
+    GfxCoord*          coord;
+    ActorChaseScratch* aim;
 
     work = arg0->work;
     if (work->stateEntered != 0) {
@@ -2615,30 +2596,30 @@ static void func_actor_356100_80168E44(Task* arg0)
         work->lookYaw    = 0;
         return;
     }
-    SCRATCH_STACK_RESERVE_BLOCK(Actor356100AimScratch);
-    aim        = SCRATCH_STACK_CURSOR(Actor356100AimScratch);
-    aim->angle = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
-    if (work->lookYawTarget < aim->angle) {
-        if (aim->angle - work->lookYawTarget > 0x28) {
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
+    aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    if (work->lookYawTarget < aim->turn) {
+        if (aim->turn - work->lookYawTarget > 0x28) {
             work->lookYawTarget += 0x28;
         } else {
-            work->lookYawTarget = aim->angle;
+            work->lookYawTarget = aim->turn;
         }
-    } else if (work->lookYawTarget - aim->angle > 0x28) {
+    } else if (work->lookYawTarget - aim->turn > 0x28) {
         work->lookYawTarget -= 0x28;
     } else {
-        work->lookYawTarget = aim->angle;
+        work->lookYawTarget = aim->turn;
     }
-    if (work->lookYawTarget == aim->angle) {
+    if (work->lookYawTarget == aim->turn) {
         work->state = ACTOR_356100_STATE_GRAB;
     }
-    coord      = arg0->extra.tmd->coords;
-    aim->angle = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    coord     = arg0->extra.tmd->coords;
+    aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
     func_actor_356100_80163508(arg0);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// The overlay's death-throes tick, the sibling of `func_actor_356100_80168E44`:
