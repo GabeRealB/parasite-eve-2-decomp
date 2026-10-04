@@ -5,7 +5,8 @@
 #                                 [--dry-run] [--cli claude|grok|codex]
 #                                 [--from ORDER] [--step ORDER]
 #                                 [--kinds func,type,data,enum,macro]
-#                                 [--batch N] [--list-profiles] [--clean-workers]
+#                                 [--batch N] [--batch-funcs N]
+#                                 [--list-profiles] [--clean-workers]
 #
 # With no --times the whole worklist is walked. --times N stops after N rounds -
 # a round being one fork-join cycle, which is one step per worker.
@@ -14,7 +15,10 @@
 # --batch N sets how many pending types declared in one file the worklist joins
 # into a step (default 8; 1 gives one type per step). Steps that declare items
 # in the same file never share a round, so without it a header's types are
-# worked one per round. It applies when the worklist is next rebuilt.
+# worked one per round. --batch-funcs N is the same for functions (default 16),
+# where the unit is a source file or all the fragments of one shared library,
+# and a step may hold a function together with the callers that were waiting
+# for it. Both apply when the worklist is next rebuilt.
 #
 # --kinds restricts the pass to steps holding an item of the listed kinds (the
 # worklist's `kind` column: func, type, data, enum, macro). A cycle is one step, so it
@@ -107,6 +111,7 @@ while [[ $# -gt 0 ]]; do
     --times) TIMES="$2"; shift 2 ;;
     --workers|-j) WORKERS="$2"; shift 2 ;;
     --batch) export PE2_NAME_BATCH="$2"; shift 2 ;;
+    --batch-funcs) export PE2_NAME_BATCH_FUNCS="$2"; shift 2 ;;
     --worktree-root) WORKER_ROOT="$2"; shift 2 ;;
     --clean-workers) CLEAN_WORKERS=1; shift ;;
     --cli)   CLI="$2"; CLI_EXPLICIT=1; shift 2 ;;
@@ -295,11 +300,14 @@ Process ${#names[@]} item(s) together: ${names[*]}
 $( ((${#names[@]} > 1)) && echo "
 These items are one step. Either they form a cycle in the dependency graph, each
 using the others; or they are one embedded asset - its record and the arrays
-only that record reaches; or they are types declared in the same file, joined
-because steps in one file cannot run side by side. A cycle or an asset is
-understood together. Types that merely share a file are not: review each on its
-own evidence, give each its own entry in the review, and do not let one
-type's conclusion stand in for another's." )
+only that record reaches; or they are types or functions of the same file, or
+of one shared library's fragments, joined because steps in one file cannot run
+side by side and because what you learn about the file serves all of them. A
+cycle or an asset is understood together. Items that merely share a file are
+not: review each on its own evidence, give each its own entry in the review,
+and do not let one item's conclusion stand in for another's. Where one item of
+the step uses another - a function and the function it calls - settle the one
+that is used first, so the other is described in terms of its final name." )
 $line
 
 ## What to do with this item

@@ -594,47 +594,129 @@ def topo_order(nodes, edges, comp, vendor=frozenset()):
     return order
 
 
-def batch_same_file(order, nodes, edges, comp, done, limit: int):
-    """Join pending types declared in one file into steps of up to `limit`.
+_LIBS = None
+
+
+def _unit_of(root: str, where: str) -> str:
+    """What a step may hold several items of: a file, or a shared library.
+
+    The fragments under src/shared are one function to a file, so batching them
+    by file batches nothing. They belong to libraries - `mad_chaser.h` with its
+    `mad_chaser_*.inc.c` - and a library is one piece of behaviour cut into
+    files, so its fragments are one unit, as a source file's functions are.
+    """
+    global _LIBS
+    if not where.startswith("src/shared/"):
+        return where
+    if _LIBS is None:
+        try:
+            _LIBS = sorted((f[:-2] for f in os.listdir(os.path.join(root, "src/shared")) if f.endswith(".h")),
+                           key=len, reverse=True)
+        except OSError:
+            _LIBS = []
+    stem = os.path.basename(where).split(".", 1)[0]
+    for lib in _LIBS:
+        if stem == lib or stem.startswith(lib + "_"):
+            return "src/shared/" + lib + ".*"
+    return where
+
+
+def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict):
+    """Join pending items of one file or library into steps, by kind.
 
     Two steps that declare items in the same file never run in the same round,
     so a header with forty pending types is forty rounds long however many
-    workers there are. Nothing is lost by handing an agent several of them at
-    once, and each step after the first saves its own brief, build and
-    verification.
+    workers there are; and the reasoning for one item of a file - what the
+    actor does, what its work block holds - is most of the reasoning for the
+    next. `limits` gives the most items a step may hold for each kind batched.
 
-    A type joins the open step of its file only if everything it still waits on
-    is already placed at or before that step, so the order stays topological:
-    the type moves earlier, to a point where its dependencies are still behind
-    it, and nothing placed before its old position can depend on it.
+    Steps are built from what is ready. The best-ranked ready item opens a
+    step, and ready items of the same unit join it up to the limit - including
+    those that become ready only because of what the step already holds, so a
+    function and the callers that were waiting for it are reviewed together.
+    Everything a step uses outside itself is therefore placed before it, and
+    the result is still a dependency order. An item already processed imposes
+    no wait, as in `_step_numbers`. `order` supplies the ranking: where there
+    is a choice, the earlier item of the plain order goes first.
     """
-    if limit <= 1:
+    if not any(n > 1 for n in limits.values()):
         return order
-    place = {}                      # usr -> index in the new order
-    out, open_step = [], {}
-    for g in order:
-        files = {nodes[u].get("file") for u in g}
-        eligible = (any(u not in done for u in g) and len(files) == 1 and None not in files and "" not in files
-                    and all(_node_kind(u) == "type" for u in g))
-        if eligible:
-            f = next(iter(files))
-            at = open_step.get(f)
-            if at is not None and len(out[at]) + len(g) <= limit:
-                ok = all(place.get(d, at + 1) <= at
-                         for u in g for d in edges.get(u, ())
-                         if d in nodes and d not in done and d not in g)
-                if ok:
-                    merged = tuple(sorted(out[at] + g))
-                    out[at] = merged
-                    for u in merged:
-                        comp[u] = merged
-                        place[u] = at
-                    continue
-            open_step[f] = len(out)
+    import heapq
+    rank = {g: i for i, g in enumerate(order)}
+    pending = [g for g in order if any(u not in done for u in g)]
+    pset = set(pending)
+    waits = {g: set() for g in pending}
+    users = collections.defaultdict(set)
+    for g in pending:
         for u in g:
-            place[u] = len(out)
-        out.append(g)
-    return out
+            for d in edges.get(u, ()):
+                if d in nodes:
+                    h = comp.get(d, (d,))
+                    if h is not g and h in pset:
+                        waits[g].add(h)
+        for h in waits[g]:
+            users[h].add(g)
+    left = {g: len(waits[g]) for g in pending}
+
+    def unit(g):
+        kinds = {_node_kind(u) for u in g}
+        files = {nodes[u].get("file") or "" for u in g}
+        if len(kinds) != 1 or len(files) != 1 or "" in files:
+            return None
+        kind = next(iter(kinds))
+        if limits.get(kind, 1) <= 1:
+            return None
+        return kind, _unit_of(root, next(iter(files)))
+
+    unit_of = {g: unit(g) for g in pending}
+    heap = [(rank[g], g) for g in pending if left[g] == 0]
+    heapq.heapify(heap)
+    ready = collections.defaultdict(list)          # unit -> heap of (rank, group)
+    for r, g in heap:
+        if unit_of[g]:
+            heapq.heappush(ready[unit_of[g]], (r, g))
+    placed, steps = set(), []
+
+    def release(g):
+        placed.add(g)
+        for u in users.get(g, ()):
+            left[u] -= 1
+            if left[u] == 0:
+                heapq.heappush(heap, (rank[u], u))
+                if unit_of[u]:
+                    heapq.heappush(ready[unit_of[u]], (rank[u], u))
+
+    while heap:
+        _, g = heapq.heappop(heap)
+        if g in placed:
+            continue
+        key = unit_of[g]
+        if key is None:
+            steps.append(g)
+            release(g)
+            continue
+        limit = limits[key[0]]
+        members = list(g)
+        release(g)
+        queue = ready[key]
+        while queue:
+            _, h = queue[0]
+            if h in placed:
+                heapq.heappop(queue)
+                continue
+            if len(members) + len(h) > limit:
+                break
+            heapq.heappop(queue)
+            members.extend(h)
+            release(h)              # may make this unit's next items ready
+        merged = tuple(sorted(members))
+        for u in merged:
+            comp[u] = merged
+        steps.append(merged)
+    # Anything unplaced sits in a cycle the condensation did not break; keep it,
+    # in its old order, rather than dropping it.
+    steps.extend(g for g in pending if g not in placed)
+    return [g for g in order if g not in pset] + steps
 
 
 def _step_numbers(order, nodes, edges, comp, done):
@@ -672,10 +754,10 @@ def _step_numbers(order, nodes, edges, comp, done):
     return step_of, after
 
 
-def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str, batch: int = 1):
+def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str, limits: dict | None = None):
     vendor = name_index.vendored_names(root)
     order = topo_order(nodes, edges, comp, vendor)
-    order = batch_same_file(order, nodes, edges, comp, done, batch)
+    order = batch_ready(root, order, nodes, edges, comp, done, limits or {})
 
     # who refers to each item, for the visibility guess
     referrers = collections.defaultdict(set)
@@ -828,6 +910,9 @@ def main() -> int:
     ap.add_argument("--batch", type=int, default=int(os.environ.get("PE2_NAME_BATCH") or 8),
                     help="worklist: join up to N pending types declared in one file into a step "
                          "(default 8, or PE2_NAME_BATCH; 1 keeps one type per step)")
+    ap.add_argument("--batch-funcs", type=int, default=int(os.environ.get("PE2_NAME_BATCH_FUNCS") or 16),
+                    help="worklist: join up to N pending functions of one file, or of one shared "
+                         "library's fragments, into a step (default 16, or PE2_NAME_BATCH_FUNCS)")
     args = ap.parse_args()
 
     root = cref.repo_root()
@@ -857,7 +942,8 @@ def main() -> int:
 
     if args.command == "worklist":
         out = args.worklist if os.path.isabs(args.worklist) else os.path.join(root, args.worklist)
-        rows = worklist(root, args.version, nodes, edges, comp, done, out, args.batch)
+        rows = worklist(root, args.version, nodes, edges, comp, done, out,
+                        {"type": args.batch, "func": args.batch_funcs})
         groups = len({r[0] for r in rows})
         multi = len({r[0] for r in rows if int(r[1]) > 1})
         print(f"{len(rows)} items in {groups} ordered steps -> {os.path.relpath(out, root)}")

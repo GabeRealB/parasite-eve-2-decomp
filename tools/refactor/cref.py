@@ -240,7 +240,10 @@ def _candidate_tus(spec: Spec, root: str, db) -> list[str]:
     """TUs likely to contain the declaration, cheapest first."""
     if spec.path and spec.path.endswith(".c"):
         rel = os.path.relpath(os.path.join(root, spec.path), root)
-        return [rel] + [f for f in db if f != rel]
+        if rel in db:
+            return [rel] + [f for f in db if f != rel]
+        # A fragment (`.inc.c`) is no unit of its own: find it through the
+        # units that include it, as a header is found.
     # A header: prefer TUs that mention the owner/name textually, then the ones
     # the index knows include it. A type used only inside shared `.inc.c`
     # fragments is named by no `.c` file, and without the second list the
@@ -1197,6 +1200,40 @@ def prose_refs_multi(root: str, entries: list, only_files: dict) -> dict:
     return out
 
 
+def _param_units(root: str, db, function: str, jobs: int) -> list[str] | None:
+    """The few units that can show a function's parameters.
+
+    The index does not hold parameters, but it holds the function: the files
+    that declare or define it are the only places its parameters are written.
+    A prototype in a header is the same text in every unit that includes it, so
+    one including unit stands for all; a definition in a shared fragment is
+    compiled under an alias by each carrier, so there every carrier that spells
+    the name is kept. Without this each parameter cost a parse of every unit
+    mentioning the function - minutes for one declared in a common header.
+    """
+    try:
+        idx = _ref_index(root, jobs)
+        if idx is None:
+            return None
+        homes = idx.decl_files(function)
+        if not homes:
+            return None
+        spelled = set(_token_files(root, function)[0])
+        units: list[str] = []
+        for home in homes:
+            if home in db:
+                units.append(home)
+                continue
+            includers = [u for u in idx.units_including(home) if u in db]
+            if home.endswith(".c"):                      # a fragment: its carriers
+                units.extend([u for u in includers if u in spelled] or includers[:1])
+            else:                                        # a header: one unit shows the prototype
+                units.extend(includers[:1])
+        return sorted(set(units)) or None
+    except Exception:
+        return None
+
+
 def find_refs(usrs, token: str, root: str, db, jobs: int = 8, prefilter=True,
               progress=None, decl_file: str | None = None,
               filter_token: str | None = None, names=None, kind: str | None = None):
@@ -1211,6 +1248,10 @@ def find_refs(usrs, token: str, root: str, db, jobs: int = 8, prefilter=True,
         if idx is not None:
             return idx.refs(usr_set, names, token), 0
     files = list(db)
+    narrowed = _param_units(root, db, filter_token, jobs) if kind == "parameter" and filter_token else None
+    if narrowed:
+        # A parameter is written only in its function's declarations and body.
+        files, prefilter = narrowed, False
     if prefilter:
         # Narrow on every alias: a tag spelling appears in almost no file, so
         # filtering on it alone discards every translation unit that uses the

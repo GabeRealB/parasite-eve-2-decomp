@@ -688,6 +688,14 @@ class Index:
             "WHERE f.path = ? ORDER BY t.path", (rel,)).fetchall()
         return [r[0] for r in rows]
 
+    def decl_files(self, spelling: str) -> list[str]:
+        """Files holding a declaration or the definition of a symbol so spelled."""
+        rows = self.db.execute(
+            "SELECT DISTINCT f.path FROM sites s JOIN symbols y ON y.id = s.sym JOIN files f ON f.id = s.file "
+            "JOIN strings u ON u.id = s.use WHERE y.spelling = ? AND (u.text LIKE 'declaration%' OR u.text LIKE 'definition%')",
+            (spelling,)).fetchall()
+        return [r[0] for r in rows]
+
     def stats(self) -> dict:
         one = lambda q: self.db.execute(q).fetchone()[0]
         return {"sites": one("SELECT COUNT(*) FROM sites"), "symbols": one("SELECT COUNT(*) FROM symbols"),
