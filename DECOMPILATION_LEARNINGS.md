@@ -72141,7 +72141,7 @@ This supports the eligibility rule in CODEGEN_MODEL §10.3; it does not establis
 **Problem.** `actor_444000` publishes two task pointers, `D_actor_444000_80161860`
 and `_gGluttonHostTask.task`, and the header had typed both `Actor444000*` with a
 single `Actor444000Work* field_1C`. Fields were then filed into that one struct from
-whichever function touched them, so `field_2C` / `field_2E` (reached through
+whichever function touched them, so `playerAction` / `playerActionStep` (reached through
 `80161860`) and `state` / `shakeLevel` (reached through `80161878`) shared a
 layout asserted at `0xF24`.
 
@@ -72158,7 +72158,7 @@ two structs. The family convention for the smaller one is a separate
 `…EventWork` typedef reached through `Task::work`, as in `actor_342000` and `actor_121300`:
 
 ```c
-Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
+_Actor444000EventWork* work = D_actor_444000_80161860->work;
 ```
 
 Finding the writers is one grep — `grep -rn 'D_<overlay>_<addr>' asm/… | grep 'sw '`

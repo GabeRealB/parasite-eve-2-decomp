@@ -79,38 +79,42 @@
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
-/// Work block of the overlay's event/controller task -- the one
-/// `D_actor_444000_80161860` points at, which is a different and much smaller
-/// block than the enemy's `GluttonWork` above.
+/// `_Actor444000EventWork::playerAction`: the one-shot request the event script
+/// hands the player.
 ///
-/// `func_actor_444000_80132358` allocates it with `memCalloc(0x34, 0)`,
-/// `memFillBytes`s 0x34 bytes and parks it in that task's `Task::work` slot, so
-/// the size is anchored; the same function stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`
-/// task in `field_20` and publishes its owning task in
-/// `D_actor_444000_80161860`. `field_20` is the target of every
-/// `taskMessageDispatch` the leaf helpers send, and they null-check it first
-/// (`func_actor_444000_801321FC`). `field_2C` is the action index
-/// `func_actor_444000_80132054` switches on, with `field_2E` the sub-state
-/// counter reset alongside it. `field_2A` is a one-shot flag guarding the sound
-/// cue `func_actor_444000_80132608` enqueues.
-typedef struct Actor444000EventWork {
-    /* 0x00 */ byte  pad_0[0x20];
-    /* 0x20 */ Task* field_20; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task, the taskMessageDispatch target
-    /* 0x24 */ Task* field_24; // subordinate task, killed and cleared by func_actor_444000_80132694
-                               /// Area-record id published to `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` on every enter/re-enter. The
-                               /// spawn state writes it as a halfword, clearing the byte at 0x29 with it,
-                               /// while every reader takes the low byte, so both views are named.
-    /* 0x28 */ union {
-        u8  b;
-        s16 h;
-    } field_28;
-    /* 0x2A */ u16  field_2A; // one-shot flag: set once func_actor_444000_80132608 has played its cue
-    /* 0x2C */ u16  field_2C; // action index, switched on by func_actor_444000_80132054
-    /* 0x2E */ s16  field_2E; // cleared whenever field_2C is set
-    /* 0x30 */ u16  field_30; // one-shot flag: set once func_actor_444000_80132778 has armed the death sequence
-    /* 0x32 */ byte pad_32[0x2];
-} Actor444000EventWork;
-STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
+/// The "event" clips are those of the package's own animation sets; the
+/// "weapon" clip is clip 1 of the bank the equipped weapon selects.
+enum {
+    ACTOR_444000_PLAYER_ACTION_NONE                = 0, // Nothing pending
+    ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED = 1, // Blends into the weapon clip over ten frames
+    ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_3        = 2, // Cuts to event clip 3 and sounds the alert if it has not sounded yet
+    ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_0        = 3, // Locks the attachments for the event and blends into event clip 0 over ten frames
+};
+
+/// Work block of the package's event task: the scene that follows the Glutton's
+/// death in the garbage incinerator.
+///
+/// It is a separate, much smaller block than the enemy's `GluttonWork`. The
+/// task's spawn state allocates it zeroed and keeps it at `Task::work` for the
+/// task's life. The event script cannot be handed the task, so its callbacks
+/// reach the block through the task pointer that state publishes.
+///
+/// The script drives the player by leaving a request in `playerAction`, which
+/// the task performs on its next tick. The script and the script that replaces
+/// it when the scene is skipped ask for the same one-time effects, which
+/// `alertPlayed` and `combatReset` keep from happening twice.
+typedef struct {
+    byte  unknown_0[0x20];  // Zeroed allocation bytes; no access established and role unproven
+    Task* player;           // The player task, the receiver of the event's model-draw and animation messages
+    Task* framebufferBlend; // Framebuffer-blend effect task while one runs, else `NULL`
+    s16   savedView;        // Session view slot captured as the script starts, which the script's callbacks select again
+    u16   alertPlayed;      // Set once the alert has sounded, so the script and its skip path sound it once between them (0/1)
+    u16   playerAction;     // Pending player request, cleared once performed (`ACTOR_444000_PLAYER_ACTION_NONE`, else one of `ACTOR_444000_PLAYER_ACTION_*`)
+    u16   playerActionStep; // Step within the pending request, zeroed with every new one; no request of this package has steps, so nothing reads it
+    u16   combatReset;      // Set once the scene's battle state has been wound down, which the script and its skip path each ask for (0/1)
+    byte  unknown_32[2];    // Zeroed allocation bytes; no access established and role unproven
+} _Actor444000EventWork;
+STATIC_ASSERT_SIZEOF(_Actor444000EventWork, 0x34);
 
 /// Scratchpad frame `func_actor_444000_8013482C` carves off the scratch stack
 /// for the run-out / turn / run-back pass. `dir` is first the offset from the
@@ -165,8 +169,8 @@ typedef struct Actor444000DragScratch {
 } Actor444000DragScratch;
 STATIC_ASSERT_SIZEOF(Actor444000DragScratch, 0x4C);
 
-/// The overlay's event/controller task, whose `work` holds an
-/// `Actor444000EventWork`.
+/// The package's event task, whose `Task::work` holds an
+/// `_Actor444000EventWork`; `NULL` until that task's spawn state publishes it.
 extern Task* D_actor_444000_80161860;
 /// Storage for this Glutton instance's borrowed host task pointer.
 typedef struct {
@@ -454,7 +458,7 @@ AnimationSet* D_actor_444000_8014430C[4] = {
 EvsCommand D_actor_444000_8014431C[19] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132608 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_801326DC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_8013265C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -493,7 +497,7 @@ EvsCommand D_actor_444000_801444E4[14] = {
 EvsCommand D_actor_444000_80144634[25] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -501,10 +505,10 @@ EvsCommand D_actor_444000_80144634[25] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132778 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_8013265C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_8013265C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_801321FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2678,21 +2682,21 @@ static void            func_actor_444000_801411C8(Task* arg0);
 static void            func_actor_444000_80141618(Task* task);
 static void            func_actor_444000_80142254(void);
 
-/// Run one step of the event task: act on the pending action index in
-/// `field_2C`, then clear it so the action fires once.
+/// Run one step of the event task: perform the request pending in
+/// `_Actor444000EventWork::playerAction`, then clear it so it fires once.
 static void func_actor_444000_80132054(Task* task)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)task->work;
-    Actor444000EventWork* other;
-    Actor444000EventWork* target;
-    AnimationPlayRequest  msg;
-    s32                   anim;
+    _Actor444000EventWork* work = task->work;
+    _Actor444000EventWork* published;
+    _Actor444000EventWork* reloaded;
+    AnimationPlayRequest   msg;
+    s32                    anim;
 
-    switch (work->field_2C) {
-        case 0:
+    switch (work->playerAction) {
+        case ACTOR_444000_PLAYER_ACTION_NONE:
             break;
-        case 1:
-            /* Install the weapon-specific player animation on the slot-3 task. */
+        case ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED:
+            // The equipped weapon selects the bank; each character has its own run of banks.
             anim = gPlayerStatus.weapon;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 anim += 1;
@@ -2706,52 +2710,53 @@ static void func_actor_444000_80132054(Task* task)
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
-        case 2:
-            if (work->field_20 != NULL) {
+        case ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_3:
+            if (work->player != NULL) {
                 msg.source.sets          = D_actor_444000_8014430C;
                 msg.animationId          = 3;
                 msg.blend                = ANIMATION_BLEND_RESET;
                 msg.blendFrames          = 0;
                 msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(work->field_20, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             }
-            /* Same one-shot cue as func_actor_444000_80132608. */
-            other = (Actor444000EventWork*)D_actor_444000_80161860->work;
-            if (other->field_2A == 0) {
+            // The alert sounds once, whether this request or the script's own callback reaches it first.
+            published = D_actor_444000_80161860->work;
+            if (published->alertPlayed == 0) {
                 SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
-                other->field_2A = 1;
+                published->alertPlayed = 1;
             }
             break;
-        case 3:
+        case ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_0:
             Gp_PulseState1C();
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            target             = (Actor444000EventWork*)task->work;
-            if (target->field_20 != NULL) {
+            reloaded           = task->work;
+            if (reloaded->player != NULL) {
                 msg.source.sets          = D_actor_444000_8014430C;
                 msg.animationId          = 0;
                 msg.blend                = ANIMATION_BLEND_INTERPOLATE;
                 msg.blendFrames          = 0xA;
                 msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(target->field_20, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(reloaded->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             }
             break;
     }
-    work->field_2C = 0;
+    work->playerAction = ACTOR_444000_PLAYER_ACTION_NONE;
 }
 
 /// Bring the room's presentation up to date for an enter (0), a first entry
 /// (1) or a re-entry (2): pick the view set from the current disc/scenario
-/// stage in `GameSession::incineratorDescentPhase`, republish the area-record id, and on a
-/// first entry spawn the accompanying task. Any other `arg0` does nothing.
+/// stage in `GameSession::incineratorDescentPhase`, reselect the view saved in
+/// `_Actor444000EventWork::savedView`, and on a first entry start the
+/// framebuffer-blend effect. Any other `arg0` does nothing.
 void func_actor_444000_801321FC(s32 arg0)
 {
-    Actor444000EventWork* work;
+    _Actor444000EventWork* work;
 
-    work = (Actor444000EventWork*)D_actor_444000_80161860->work;
+    work = D_actor_444000_80161860->work;
     switch (arg0) {
         case 0:
             gGameSession->viewDirty                                    = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->field_28.b;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
             break;
         case 1:
         case 2:
@@ -2773,10 +2778,10 @@ void func_actor_444000_801321FC(s32 arg0)
             gGameSession->eventRoomIndex                               = gGameSession->location.loc.room - 1;
             gGameSession->incineratorRoomGroup                         = 1;
             gGameSession->roomObjsDirty                                = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->field_28.b;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
             Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
             if (arg0 == 1) {
-                work->field_24 = Task_Spawn(1, 0x2D, 0x10, 0);
+                work->framebufferBlend = Task_Spawn(1, 0x2D, 0x10, 0);
             }
             gGameSession->viewDirty = 1;
             break;
@@ -2788,7 +2793,7 @@ void func_actor_444000_801321FC(s32 arg0)
 /// (`Gp_StateC08.menuOpen`) and the battle state is not frozen
 /// (`gSceneCombatState.actorControl`).
 ///
-/// State 0 allocates the `Actor444000EventWork` block and publishes the task in
+/// State 0 allocates the `_Actor444000EventWork` block and publishes the task in
 /// `D_actor_444000_80161860`; a task spawned with `spawnArg1` set jumps
 /// straight to state 3, otherwise it advances one state at a time. State 1
 /// counts 0x2BD frames and then arms the death/ending sequence once. State 2
@@ -2797,11 +2802,11 @@ void func_actor_444000_801321FC(s32 arg0)
 /// this task.
 void func_actor_444000_80132358(Task* task)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)task->work;
-    Actor444000EventWork* alloc;
-    Actor444000EventWork* other;
-    s32                   state;
-    s16                   timer;
+    _Actor444000EventWork* work = task->work;
+    _Actor444000EventWork* alloc;
+    _Actor444000EventWork* published;
+    s32                    state;
+    s16                    timer;
 
     if (gGameSession->sceneUpdatesPaused != 0) {
         return;
@@ -2822,18 +2827,18 @@ void func_actor_444000_80132358(Task* task)
             if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            alloc      = memCalloc(sizeof(Actor444000EventWork), false);
+            alloc      = memCalloc(sizeof(*alloc), false);
             task->work = alloc;
             if (alloc == NULL) {
                 taskKill(task);
             } else {
-                memFillBytes(alloc, 0, sizeof(Actor444000EventWork));
-                alloc->field_20         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                memFillBytes(alloc, 0, sizeof(*alloc));
+                alloc->player           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_444000_80161860 = task;
             }
             if (task->spawnArg1.value != 0) {
-                work             = (Actor444000EventWork*)task->work;
-                work->field_28.h = gGameSession->location.loc.view;
+                work            = task->work;
+                work->savedView = gGameSession->location.loc.view;
                 Gp_MsgPlayerWeapon(0);
                 func_800E8634(D_actor_444000_80144634, 0, D_actor_444000_8014488C);
                 task->state = 3;
@@ -2846,8 +2851,8 @@ void func_actor_444000_80132358(Task* task)
             task->killCountdown = timer;
             if (timer >= 0x2BD) {
                 Gp_MsgPlayerWeapon(0);
-                other = (Actor444000EventWork*)D_actor_444000_80161860->work;
-                if (other->field_30 == 0) {
+                published = D_actor_444000_80161860->work;
+                if (published->combatReset == 0) {
                     gSceneCombatState.battleRefs                        = 0;
                     gSceneCombatState.signals.bytes.endDelayFrames      = 0xF;
                     gSceneCombatState.signals.bytes.battlePhase         = SCENE_COMBAT_BATTLE_IDLE;
@@ -2855,7 +2860,7 @@ void func_actor_444000_80132358(Task* task)
                     gSceneCombatState.signals.bytes.enemyAlert          = 0;
                     gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
-                    other->field_30                                     = state;
+                    published->combatReset                              = state;
                 }
                 task->killCountdown = 0;
                 task->state        += 1;
@@ -2865,7 +2870,7 @@ void func_actor_444000_80132358(Task* task)
             timer               = (u16)task->killCountdown + 1;
             task->killCountdown = timer;
             if (timer >= 0x15) {
-                work->field_28.h = gGameSession->location.loc.view;
+                work->savedView = gGameSession->location.loc.view;
                 func_800E8634(D_actor_444000_8014431C, 0, D_actor_444000_801444E4);
                 task->state += 1;
             }
@@ -2883,33 +2888,36 @@ void func_actor_444000_80132358(Task* task)
     func_actor_444000_80132054(task);
 }
 
-/// Play the event's sound cue once, latching a flag so a repeat call is a no-op.
+/// Play the event's alert once, latching `_Actor444000EventWork::alertPlayed`
+/// so a repeat call is a no-op.
 void func_actor_444000_80132608(void)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
+    _Actor444000EventWork* work = D_actor_444000_80161860->work;
 
-    if (work->field_2A == 0) {
+    if (work->alertPlayed == 0) {
         SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
-        work->field_2A = 1;
+        work->alertPlayed = 1;
     }
 }
 
-/// Forward a message to the slot-3 task the event work block carries.
+/// Send the model-draw switch `arg0` to the player task the event work block
+/// carries.
 void func_actor_444000_8013265C(s32 arg0)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
+    _Actor444000EventWork* work = D_actor_444000_80161860->work;
 
-    taskMessageDispatch(work->field_20, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
 }
 
-/// Kill the subordinate task the event work block carries, if it is still alive.
+/// Kill the framebuffer-blend effect task the event work block carries, if one
+/// is running.
 void func_actor_444000_80132694(void)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
+    _Actor444000EventWork* work = D_actor_444000_80161860->work;
 
-    if (work->field_24 != NULL) {
-        taskKill(work->field_24);
-        work->field_24 = NULL;
+    if (work->framebufferBlend != NULL) {
+        taskKill(work->framebufferBlend);
+        work->framebufferBlend = NULL;
     }
 }
 
@@ -2936,13 +2944,13 @@ void func_actor_444000_80132724(s16 arg0)
 }
 
 /// Arm the actor's death sequence once: reset the `gSceneCombatState` claim block,
-/// flag the session and pick area script 0xD, then latch `field_30` so a later
-/// call does nothing.
+/// flag the session and pick area script 0xD, then latch
+/// `_Actor444000EventWork::combatReset` so a later call does nothing.
 void func_actor_444000_80132778(void)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
+    _Actor444000EventWork* work = D_actor_444000_80161860->work;
 
-    if (work->field_30 == 0) {
+    if (work->combatReset == 0) {
         gSceneCombatState.battleRefs                        = 0;
         gSceneCombatState.signals.bytes.endDelayFrames      = 0xF;
         gSceneCombatState.signals.bytes.battlePhase         = SCENE_COMBAT_BATTLE_IDLE;
@@ -2950,18 +2958,18 @@ void func_actor_444000_80132778(void)
         gSceneCombatState.signals.bytes.enemyAlert          = 0;
         gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
-        work->field_30                                      = 1;
+        work->combatReset                                   = 1;
     }
 }
 
-/// Set the actor's action index, resetting the sub-state counter that goes
-/// with it.
+/// Leave a player request (`ACTOR_444000_PLAYER_ACTION_*`) for the event task's
+/// next tick, zeroing the step that goes with it.
 void func_actor_444000_801327E8(s16 action)
 {
-    Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
+    _Actor444000EventWork* work = D_actor_444000_80161860->work;
 
-    work->field_2C = action;
-    work->field_2E = 0;
+    work->playerAction     = action;
+    work->playerActionStep = 0;
 }
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
