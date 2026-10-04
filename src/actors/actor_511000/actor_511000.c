@@ -46,69 +46,107 @@ extern GpuImageUpload D_actor_511000_80146C74[2];
 
 extern GpuImageUpload D_actor_511000_801472B4[2];
 
-/// Work block of the enemy task, reached by its model-attach children through
-/// the parent task's `Task::work`. The spawn handler
-/// `func_actor_511000_80133958` allocates it (`memCalloc(0x488, 0)`), hands
-/// the rig to `animationInitContext`, and points its own model
-/// at the two matrices; the three children it spawns do the same.
-typedef struct Actor511000ParentWork {
-    /* 0x000 */ ActorAnimRig19 rig;
-    /* 0x43C */ MATRIX         field_43C; ///< colour matrix, handed to TmdObject::colorMtx
-    /* 0x45C */ MATRIX         field_45C; ///< light matrix, handed to TmdObject::lightMtx
-    /* 0x47C */ s32            field_47C; ///< cleared by the spawn handler
-    /* 0x480 */ s16            field_480; ///< frame counter; fades both matrices every third tick in state 3+
-    /* 0x482 */ byte           pad_482[6];
-} Actor511000ParentWork;
-STATIC_ASSERT_SIZEOF(Actor511000ParentWork, 0x488);
+/// Work block of the No. 9 golem, the package's enemy.
+///
+/// The enemy's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. The golem's model and the three models chained under
+/// its parts borrow `light` and `color` for as long as the block lives, which
+/// is what lets one fade darken all four.
+///
+/// While the clip is below 3 the golem is lit from the area at its position
+/// and casts a ground shadow. A clip from 3 up is its exit: the lighting is no
+/// longer refreshed, both matrices are scaled by 15/16 every third tick, and
+/// the enemy is destroyed once `animTicks` passes 96.
+typedef struct {
+    ActorAnimRig19 rig;            // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    MATRIX         color;          // Light-colour matrix lent to the golem's model and its attached models
+    MATRIX         light;          // Light-direction matrix lent to the same models
+    s32            animId;         // Clip the last play request seeded the slots with (0 none yet: the slots are not ticked; 3 and up fade the model out)
+    s16            animTicks;      // Ticks since the last play request; paces the fade and ends the enemy
+    byte           unknown_482[6]; // Allocated but never accessed; role unproven
+} _Actor511000No9GolemWork;
+STATIC_ASSERT_SIZEOF(_Actor511000No9GolemWork, 0x488);
 
-/// Work block the task running `D_actor_511000_80131E48` parks in
-/// `Task::work`; its spawn state allocates it with `memCalloc(0x70, 0)`.
-/// `light` / `color` are the matrices the model's `lightMtx` / `colorMtx`
-/// point at. `field_8` is the `Tmd_FreeBuffers` countdown (-1 disables it);
-/// `field_C` is the 16-colour CLUT published through
-/// `D_actor_511000_80147EA4[0].pixels`, written byte by byte as little-endian 15-bit
-/// colours by the palette fade `func_actor_511000_80132E6C`, which steps
-/// `field_2C` and holds on `field_2E`. `field_2F` latches once the message-1
-/// children have been spawned.
-typedef struct Actor511000Work {
-    /* 0x00 */ byte pad_0[8];
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ union {
-        u8     bytes[0x20];
-        u_long words[8];
-    } field_C;
-    /* 0x2C */ s16    field_2C;
-    /* 0x2E */ s8     field_2E;
-    /* 0x2F */ s8     field_2F;
-    /* 0x30 */ MATRIX light;
-    /* 0x50 */ MATRIX color;
-} Actor511000Work;
-STATIC_ASSERT_SIZEOF(Actor511000Work, 0x70);
+/// Colours in the helicopter's faded palette row.
+#define ACTOR_511000_PALETTE_COLORS 16
 
-/// Work block `func_actor_511000_80132480` allocates (`memCalloc(0x4D4, 0)`)
-/// and parks in that task's `Task::work`. Its front is the animation state the
-/// animation message handler drives: the context, 20 slots and the pose
-/// buffer handed to `animationInitContext`. Its light/color pair is republished onto
-/// model part 1, not the root coordinate.
-typedef struct Actor511000Work2 {
-    /* 0x000 */ ActorAnimRig20 rig;
-    /* 0x474 */ s32            field_474; ///< nonzero while the tick state steps animation slots 1..19
-    /* 0x478 */ s32            field_478; ///< animation id the slots were last restarted on; -1 out of the spawn handler
-    /* 0x47C */ s32            field_47C; ///< animation source last loaded; also the id `func_actor_511000_80133DEC` resets slots to
-    /* 0x480 */ union {
-        s32 word;                         ///< seeded to -1 whole by the spawn handler
-        s16 half;                         ///< the halfword `func_actor_511000_80133DEC` clears after the slot reseed
-    } field_480;
-    /* 0x484 */ MATRIX light;
-    /* 0x4A4 */ MATRIX color;
-    /* 0x4C4 */ Task*  field_4C4; ///< task spawned from the table's index 1
-    /* 0x4C8 */ Task*  field_4C8; ///< task spawned from the table's index 2
-    /* 0x4CC */ s16    field_4CC; ///< set to 1 alongside `field_4D0` by the message-0x7E0 handler's mode 3
-    /* 0x4CE */ u16    field_4CE; ///< upload countdown the texture-upload state runs down, reloaded from `field_4CC` on underflow
-    /* 0x4D0 */ s16    field_4D0; ///< texture-upload step in progress, 0 when idle
-    /* 0x4D2 */ s16    field_4D2; ///< frame counter of the tick state's mode-1 effect; cleared by the spawn handler
-} Actor511000Work2;
-STATIC_ASSERT_SIZEOF(Actor511000Work2, 0x4D4);
+/// Bytes of a palette row: each colour is a 15-bit value stored low byte
+/// first, which is how the fade reads and writes it.
+#define ACTOR_511000_PALETTE_BYTES (ACTOR_511000_PALETTE_COLORS * 2)
+
+/// `_Actor511000HelicopterWork::paletteFade` with the palette fully faded,
+/// 1.0 in 4.12 fixed point.
+#define ACTOR_511000_PALETTE_FADE_FULL 0x1000
+
+/// Ticks the helicopter's palette is held fully faded before it snaps back.
+#define ACTOR_511000_PALETTE_HOLD_TICKS 30
+
+/// Work block of the helicopter.
+///
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. The helicopter's model, and through it the three
+/// models chained under it, borrow `light` and `color` for as long as the
+/// block lives.
+///
+/// While the helicopter is drawn, one sixteen-colour row of video memory is
+/// rewritten every tick from `palette`, a blend of the package's two stored
+/// palettes. The blend snaps to the first palette, fades to the second over
+/// three ticks, holds there for `ACTOR_511000_PALETTE_HOLD_TICKS` and snaps
+/// back, so whatever is textured with that row flashes once a cycle. The
+/// upload record borrows `palette`, which has to stay live while the task
+/// runs.
+typedef struct {
+    byte   unknown_0[8];                        // Allocated but never accessed; role unproven
+    s32    freeCountdown;                       // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    u8     palette[ACTOR_511000_PALETTE_BYTES]; // Blended palette row as uploaded: `ACTOR_511000_PALETTE_COLORS` colours, low byte first
+    s16    paletteFade;                         // Share of the second stored palette in the blend, 4.12 fixed point (0 first palette only, `ACTOR_511000_PALETTE_FADE_FULL` second only)
+    s8     paletteHold;                         // Ticks the full fade still holds; counted down only once the fade is full, and at 0 the blend snaps back
+    s8     partsSpawned;                        // Set once the first show command has spawned the three attached models, so a later one does not repeat it
+    MATRIX light;                               // Light-direction matrix lent to the model object
+    MATRIX color;                               // Light-colour matrix lent to the model object
+} _Actor511000HelicopterWork;
+STATIC_ASSERT_SIZEOF(_Actor511000HelicopterWork, 0x70);
+
+/// `_Actor511000RupertBroderickWork::blinkStep`: the eye image the blink
+/// posts next.
+///
+/// The command that starts a blink posts the half-open eyes itself; the steps
+/// then post the closed, half-open and open eyes in turn.
+enum {
+    ACTOR_511000_BLINK_NONE   = 0, // No blink in progress
+    ACTOR_511000_BLINK_CLOSED = 1, // The closed eyes are posted next
+    ACTOR_511000_BLINK_HALF   = 2, // The half-open eyes are posted next
+    ACTOR_511000_BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
+};
+
+/// Work block of Rupert Broderick's body.
+///
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. The model object borrows `light` and `color` for as
+/// long as the block lives; the lighting is taken at model part 1, not at the
+/// root coordinate.
+///
+/// A play request rebinds the rig when its bank differs from `bank` and
+/// reseeds the slots when its clip differs from `animId`; both start as
+/// `ACTOR_MODEL_STATE_NONE`, so the first request does both. The rest is the
+/// two models the body carries, the blink that swaps the eye texture of the
+/// face, and the delayed free of the model's buffers once it has been hidden.
+typedef struct {
+    ActorAnimRig20 rig;             // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    s32            ticking;         // Set once a clip has been applied, never cleared: the slots are ticked each frame
+    s32            animId;          // Clip the slots were last seeded with, within `bank`
+    s32            bank;            // Index, in the package's animation bank table, of the bank the rig is bound to
+    s32            freeCountdown;   // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    MATRIX         light;           // Light-direction matrix lent to the model object
+    MATRIX         color;           // Light-colour matrix lent to the model object
+    Task*          gunTask;         // Task of the revolver model chained under body part 8; the shot's sound and muzzle flash are placed at its root
+    Task*          propTask;        // Task of the second model, chained under body part 12; an actor command shows it as it hides the revolver
+    s16            blinkFrameDelay; // Value `blinkCountdown` restarts from after the closed and the half-open eyes: each is shown for this many ticks plus one
+    s16            blinkCountdown;  // Ticks left before the blink posts its next eye image, which the tick taking it below 0 does; not reset as a blink starts or ends
+    s16            blinkStep;       // Eye image the blink posts next (0 `ACTOR_511000_BLINK_NONE`, else `_CLOSED`, `_HALF` or `_OPEN`)
+    s16            shotTicks;       // Ticks spent playing clip 1; the sixteenth fires the revolver's sound and muzzle flash. Never reset
+} _Actor511000RupertBroderickWork;
+STATIC_ASSERT_SIZEOF(_Actor511000RupertBroderickWork, 0x4D4);
 
 static void func_actor_511000_80131E78(Task* arg0);
 static void func_actor_511000_80132048(Task* arg0);
@@ -154,7 +192,7 @@ static const TaskFuncTable3 D_actor_511000_80131E30 = {
     taskKill,
 };
 
-/// State table of the task that owns the `Actor511000Work2` block: its spawn
+/// State table of the task that owns the `_Actor511000RupertBroderickWork` block: its spawn
 /// state, the per-frame tick and the enemy task exit.
 static const TaskFuncTable3 D_actor_511000_80131E3C = {
     func_actor_511000_80132480,
@@ -162,7 +200,7 @@ static const TaskFuncTable3 D_actor_511000_80131E3C = {
     enemyTaskExit,
 };
 
-/// State table of the task that owns the `Actor511000Work` block: its spawn
+/// State table of the task that owns the `_Actor511000HelicopterWork` block: its spawn
 /// state, the per-frame tick and the kill.
 static const TaskFuncTable3 D_actor_511000_80131E48 = {
     func_actor_511000_80133034,
@@ -222,15 +260,8 @@ extern SVECTOR D_actor_511000_8014733C;
 extern SVECTOR D_actor_511000_80147344[];
 extern SVECTOR D_actor_511000_80147704[];
 extern SVECTOR D_actor_511000_80147AC4[];
-// Color/byte updates and the GPU upload share the same backing storage.
-typedef union {
-    u8     bytes[32];
-    u_long words[8];
-} Actor511000Palette;
-STATIC_ASSERT_SIZEOF(Actor511000Palette, 32);
-
-extern Actor511000Palette D_actor_511000_80147E84;
-extern u8                 D_actor_511000_80147EC4[];
+extern u8      D_actor_511000_80147E84[ACTOR_511000_PALETTE_BYTES];
+extern u8      D_actor_511000_80147EC4[ACTOR_511000_PALETTE_BYTES];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
@@ -267,8 +298,6 @@ void             func_actor_511000_80132428(Task*);
 static AnimationSet _gActor511000Animation1121C;
 static AnimationSet _gActor511000Animation130D4;
 static AnimationSet _gActor511000Animation14B2C;
-
-extern Actor511000Palette D_actor_511000_80147E84;
 
 s32  func_actor_511000_801334B8(Task*, s32, s32, s32);
 s32  func_actor_511000_801334C4(Task* task, s32 msgId, ActorTransform* args, s32);
@@ -1622,47 +1651,47 @@ SVECTOR D_actor_511000_80147AC4[120] = {
     { -735, 0, -159, 0 },
 };
 
-Actor511000Palette D_actor_511000_80147E84 = { .bytes = {
-                                                   255,
-                                                   255,
-                                                   2,
-                                                   128,
-                                                   3,
-                                                   128,
-                                                   6,
-                                                   128,
-                                                   9,
-                                                   128,
-                                                   13,
-                                                   128,
-                                                   16,
-                                                   128,
-                                                   127,
-                                                   148,
-                                                   127,
-                                                   177,
-                                                   18,
-                                                   132,
-                                                   63,
-                                                   169,
-                                                   223,
-                                                   156,
-                                                   23,
-                                                   132,
-                                                   27,
-                                                   132,
-                                                   29,
-                                                   132,
-                                                   0,
-                                                   128,
-                                               } };
+u8 D_actor_511000_80147E84[ACTOR_511000_PALETTE_BYTES] = {
+    255,
+    255,
+    2,
+    128,
+    3,
+    128,
+    6,
+    128,
+    9,
+    128,
+    13,
+    128,
+    16,
+    128,
+    127,
+    148,
+    127,
+    177,
+    18,
+    132,
+    63,
+    169,
+    223,
+    156,
+    23,
+    132,
+    27,
+    132,
+    29,
+    132,
+    0,
+    128,
+};
 
 GpuImageUpload D_actor_511000_80147EA4[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 264, 16, 1 }, D_actor_511000_80147E84.words },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 264, 16, 1 }, (u_long*)D_actor_511000_80147E84 },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u8 D_actor_511000_80147EC4[32] = {
+u8 D_actor_511000_80147EC4[ACTOR_511000_PALETTE_BYTES] = {
     255,
     255,
     33,
@@ -2081,34 +2110,34 @@ AnimationSet* D_actor_511000_801550C0[4] = {
     &_gActor511000Animation23228,
 };
 
-static void func_actor_511000_80132E6C(Actor511000Work* work);
+static void func_actor_511000_80132E6C(_Actor511000HelicopterWork* work);
 
-/// Tick state: while `field_474` is set, steps animation slots 1..19; in
-/// mode 1 counts `field_4D2` up and, on frame 0x10, plays the sound and spawns
-/// the effect at the first child's model. Then draws the ground shadow under
-/// model part 1, refreshes that part's coordinate and colour when the session
-/// asks, runs the texture-upload state, and ticks the `field_480` countdown
-/// that frees the model's buffers when it reaches zero.
+/// Tick state: while `ticking` is set, steps animation slots 1..19; while
+/// clip 1 plays it counts `shotTicks` up and, on the sixteenth tick, plays the
+/// sound and spawns the muzzle flash at the revolver's model. Then draws the
+/// ground shadow under model part 1, refreshes that part's coordinate and
+/// colour when the session asks, runs the blink, and ticks the
+/// `freeCountdown` that frees the model's buffers when it reaches zero.
 static void func_actor_511000_80131E78(Task* arg0)
 {
-    Actor511000Work2* work;
-    TmdObject*        extra;
-    GfxCoord*         coord;
-    GfxCoord*         obj;
-    VECTOR            pos;
-    s32               i;
-    s32               pan;
+    _Actor511000RupertBroderickWork* work;
+    TmdObject*                       extra;
+    GfxCoord*                        coord;
+    GfxCoord*                        obj;
+    VECTOR                           pos;
+    s32                              i;
+    s32                              pan;
 
     extra = arg0->extra.tmd;
-    work  = (Actor511000Work2*)arg0->work;
+    work  = arg0->work;
     coord = &extra->coords[1];
-    if (work->field_474 != 0) {
+    if (work->ticking != 0) {
         for (i = 1; i < 0x14; i++) {
             animationTickSlot(&work->rig.anim, i);
         }
-        if (work->field_478 == 1) {
-            if (++work->field_4D2 == 0x10) {
-                obj = work->field_4C4->extra.tmd->coords;
+        if (work->animId == 1) {
+            if (++work->shotTicks == 0x10) {
+                obj = work->gunTask->extra.tmd->coords;
                 pan = (s8)worldCoordGetOriginAudioPan(obj);
                 SndEvt_EnqueueType6(0x313A0003, pan, (s8)worldCoordGetOriginAudioDepth(obj));
                 Gp_SpawnEff(EFFECT_ACTOR_MUZZLE_FLASH, obj, 0, &D_actor_511000_8014733C);
@@ -2126,55 +2155,55 @@ static void func_actor_511000_80131E78(Task* arg0)
         func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
     }
     func_actor_511000_80132048(arg0);
-    if (work->field_480.word >= 0) {
-        if (work->field_480.word == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(extra);
         }
-        work->field_480.word--;
+        work->freeCountdown--;
     }
 }
 
-/// Texture-upload state: runs the countdown at `field_4CE` down one a frame
-/// while `field_4D0` names the upload in progress, and on the frame it
-/// underflows posts that step's image over the 0x18x0x10 rect at y 0x28 --
-/// reloading the countdown from `field_4CC` and advancing `field_4D0` for
-/// steps 1 and 2, or clearing it and starting over for step 3. Steps 1 and 2
-/// share their whole tail, which is what makes the compiler emit one copy of
-/// it that step 1 jumps into; step 3 only differs in clearing the step
-/// instead of advancing it.
+/// Blink state: runs `blinkCountdown` down one a frame while `blinkStep`
+/// names the eye image due next, and on the frame it goes below zero posts
+/// that image over the 0x18x0x10 rect at y 0x28 -- restarting the countdown
+/// from `blinkFrameDelay` and advancing `blinkStep` after the closed and
+/// half-open eyes, or clearing `blinkStep` after the open eyes. The first two
+/// steps share their whole tail, which is what makes the compiler emit one
+/// copy of it that the first jumps into; the last only differs in clearing
+/// the step instead of advancing it.
 static void func_actor_511000_80132048(Task* arg0)
 {
-    Actor511000Work2* work;
-    RECT              rect;
+    _Actor511000RupertBroderickWork* work;
+    RECT                             rect;
 
-    work   = (Actor511000Work2*)arg0->work;
+    work   = arg0->work;
     rect.x = 0;
     rect.y = 0x28;
     rect.w = 0x18;
     rect.h = 0x10;
 
-    switch (work->field_4D0) {
-        case 1:
-            work->field_4CE = work->field_4CE - 1;
-            if ((s16)work->field_4CE < 0) {
+    switch (work->blinkStep) {
+        case ACTOR_511000_BLINK_CLOSED:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
                 Gp_LoadActorImage(arg0, &D_actor_511000_801472B4[0], &rect);
-                work->field_4CE = work->field_4CC;
-                work->field_4D0 = work->field_4D0 + 1;
+                work->blinkCountdown = work->blinkFrameDelay;
+                work->blinkStep      = work->blinkStep + 1;
             }
             break;
-        case 2:
-            work->field_4CE = work->field_4CE - 1;
-            if ((s16)work->field_4CE < 0) {
+        case ACTOR_511000_BLINK_HALF:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
                 Gp_LoadActorImage(arg0, &D_actor_511000_80146F94[0], &rect);
-                work->field_4CE = work->field_4CC;
-                work->field_4D0 = work->field_4D0 + 1;
+                work->blinkCountdown = work->blinkFrameDelay;
+                work->blinkStep      = work->blinkStep + 1;
             }
             break;
-        case 3:
-            work->field_4CE = work->field_4CE - 1;
-            if ((s16)work->field_4CE < 0) {
+        case ACTOR_511000_BLINK_OPEN:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
                 Gp_LoadActorImage(arg0, &D_actor_511000_80146C74[0], &rect);
-                work->field_4D0 = 0;
+                work->blinkStep = ACTOR_511000_BLINK_NONE;
             }
             break;
     }
@@ -2222,31 +2251,31 @@ void func_actor_511000_80132428(Task* task)
 /// tick handler. The retained shadow branch cannot run with this bit set.
 static void func_actor_511000_80132480(Task* task)
 {
-    Actor511000Work2* work;
-    TmdObject*        extra;
-    VECTOR3           pos;
-    u16               flags;
+    _Actor511000RupertBroderickWork* work;
+    TmdObject*                       extra;
+    VECTOR3                          pos;
+    u16                              flags;
 
     extra = task->extra.tmd;
-    work  = memCalloc(0x4D4, 0);
+    work  = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
     }
-    task->work           = work;
-    work->field_478      = -1;
-    work->field_47C      = -1;
-    work->field_4D2      = 0;
-    work->field_480.word = -1;
-    flags                = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    extra->flags         = flags;
+    task->work          = work;
+    work->animId        = ACTOR_MODEL_STATE_NONE;
+    work->bank          = ACTOR_MODEL_STATE_NONE;
+    work->shotTicks     = 0;
+    work->freeCountdown = -1;
+    flags               = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    extra->flags        = flags;
     if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
-    work->field_4C4 = Task_SpawnFromTable(D_actor_511000_801472E8, 1, 8, task);
-    work->field_4C8 = Task_SpawnFromTable(D_actor_511000_801472E8, 2, 0xC, task);
+    work->gunTask  = Task_SpawnFromTable(D_actor_511000_801472E8, 1, 8, task);
+    work->propTask = Task_SpawnFromTable(D_actor_511000_801472E8, 2, 0xC, task);
     func_actor_511000_801325A4(task);
     task->msgTable     = D_actor_511000_8014730C;
     task->exitCallback = enemyTaskExit;
@@ -2258,11 +2287,11 @@ static void func_actor_511000_80132480(Task* task)
 /// translation to the ground-shadow helper.
 static void func_actor_511000_801325A4(Task* task)
 {
-    Actor511000Work2* work;
-    GfxCoord*         coords;
-    TmdObject*        extra;
+    _Actor511000RupertBroderickWork* work;
+    GfxCoord*                        coords;
+    TmdObject*                       extra;
 
-    work                   = (Actor511000Work2*)task->work;
+    work                   = task->work;
     extra                  = task->extra.tmd;
     coords                 = extra->coords;
     extra->lightMtx        = &work->light;
@@ -2279,33 +2308,33 @@ static void func_actor_511000_801325A4(Task* task)
 /// per-frame stepping.
 s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
-    Actor511000Work2* work;
-    s32               i;
-    TmdObject*        ext;
+    _Actor511000RupertBroderickWork* work;
+    s32                              i;
+    TmdObject*                       ext;
 
-    work = (Actor511000Work2*)task->work;
+    work = task->work;
     ext  = task->extra.tmd;
-    if (msg->source.index != work->field_47C) {
-        work->field_47C = msg->source.index;
-        work->field_478 = -1;
-        animationInitContext(&work->rig.anim, D_actor_511000_801472E4[work->field_47C], ext, work->rig.poses,
+    if (msg->source.index != work->bank) {
+        work->bank   = msg->source.index;
+        work->animId = ACTOR_MODEL_STATE_NONE;
+        animationInitContext(&work->rig.anim, D_actor_511000_801472E4[work->bank], ext, work->rig.poses,
                              work->rig.slots);
     }
-    if (msg->animationId != work->field_478) {
-        work->field_478 = msg->animationId;
+    if (msg->animationId != work->animId) {
+        work->animId = msg->animationId;
         if (msg->blend != ANIMATION_BLEND_RESET) {
             for (i = 1; i < 0x14; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->field_478, 0, 6);
+                animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, 6);
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                animationResetSlot(&work->rig.anim, i, work->field_478);
+                animationResetSlot(&work->rig.anim, i, work->animId);
             }
         }
         for (i = 1; i < 0x14; i++) {
             animationTickSlot(&work->rig.anim, i);
         }
-        work->field_474 = 1;
+        work->ticking = 1;
     }
     return 0;
 }
@@ -2316,7 +2345,7 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// mode word, run against the `TmdObject` parked in `Task::extra`. Mode 0 hides
 /// the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 1 shows it, allocates the
 /// buffers and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 2 hides it, sets
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and latches the mode into `field_480`, and 3
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts `freeCountdown` at two ticks, and 3
 /// shows it while setting `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything
 /// else returns 1 and leaves the object alone; the handled modes return 0.
 /// The handler reads `work` before the switch even though mode 2 is its only
@@ -2324,12 +2353,12 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 /// shape as `func_actor_141000_80133E8C` / `func_actor_503500_80132584`.
 s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 {
-    TmdObject*        obj;
-    Actor511000Work2* work;
-    s32               ret;
+    TmdObject*                       obj;
+    _Actor511000RupertBroderickWork* work;
+    s32                              ret;
 
     obj  = arg0->extra.tmd;
-    work = (Actor511000Work2*)arg0->work;
+    work = arg0->work;
     ret  = 0;
 
     switch (mode) {
@@ -2343,9 +2372,9 @@ s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags          |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->field_480.word = mode;
-            obj->flags          |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = mode;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2358,34 +2387,33 @@ s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode, s32 arg3)
     return ret;
 }
 
-/// Message-0x7DB handler: un-hides the model its first child task carries in
-/// `Task::extra` (`field_C` bit 0x80) for mode 1 and hides it for mode 0, then
-/// hides the second child as well on the mode-1 path -- the same two tasks
-/// `func_actor_511000_80132480` parked at `field_4C4` / `field_4C8`. Any other
-/// mode leaves both alone.
+/// Message-0x7DB handler: command 0 shows the revolver model `gunTask`
+/// carries; command 1 hides it and shows the model `propTask` carries
+/// instead. Either task may be missing, in which case its model is skipped.
+/// Any other command leaves both alone.
 /// The `default:` arm jumps straight to the shared `return 0` instead of
 /// falling through the hide block: retail's single epilogue is only reached
 /// that way, the hide block and the shared return merging into one block whose
 /// first label sits on the value store.
 s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor511000Work2* work;
-    Task*             child;
-    u16               mode;
+    _Actor511000RupertBroderickWork* work;
+    Task*                            child;
+    u16                              mode;
 
     mode = msg->command;
-    work = (Actor511000Work2*)arg0->work;
+    work = arg0->work;
 
     switch (mode) {
         case 0:
-            child = work->field_4C4;
+            child = work->gunTask;
             break;
         case 1:
-            child = work->field_4C4;
+            child = work->gunTask;
             if (child != NULL) {
                 child->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            child = work->field_4C8;
+            child = work->propTask;
             break;
         default:
             goto out;
@@ -2401,8 +2429,8 @@ out:
 /// Message-0x7E0 handler: uploads one of the actor's three texture records
 /// over the 0x18x0x10 rect at y 0x28 -- `D_actor_511000_801472B4[0]` for mode 1,
 /// `D_actor_511000_80146C74[0]` for modes 0 and 2, and `D_actor_511000_80146F94[0]`
-/// for mode 3, which sets the work block's `field_4D0` / `field_4CC` to 1
-/// first. Any other mode leaves the image NULL and returns 0.
+/// for mode 3, which first starts a blink: `blinkStep` at the closed eyes and
+/// `blinkFrameDelay` at 1. Any other mode leaves the image NULL and returns 0.
 /// The mode-1 case is written first because the compiler lays the case bodies
 /// out in source order and that is the order the retail image has them in.
 s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode, s32 arg3)
@@ -2426,9 +2454,9 @@ s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             uploadList = &D_actor_511000_80146C74[0];
             break;
         case 3:
-            ((Actor511000Work2*)arg0->work)->field_4D0 = 1;
-            ((Actor511000Work2*)arg0->work)->field_4CC = 1;
-            uploadList                                 = &D_actor_511000_80146F94[0];
+            ((_Actor511000RupertBroderickWork*)arg0->work)->blinkStep       = ACTOR_511000_BLINK_CLOSED;
+            ((_Actor511000RupertBroderickWork*)arg0->work)->blinkFrameDelay = 1;
+            uploadList                                                      = &D_actor_511000_80146F94[0];
             break;
         default:
             uploadList = NULL;
@@ -2583,15 +2611,15 @@ static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
     addPrim(ot, dr);
 }
 
-/// Palette fade: steps `field_2C` up by 0x555 per frame while the
-/// `field_2E` hold counter is live (counting it down once the blend saturates
-/// at 0x1000), otherwise snaps it back to 0 and re-arms the hold at 0x1E. Each
-/// of the 16 little-endian 15-bit colours is then blended between
-/// `D_actor_511000_80147E84.bytes` and `D_actor_511000_80147EC4` by that weight into
-/// the `field_C` CLUT, which `D_actor_511000_80147EA4[0]` uploads.
-/// The destination is formed as `work + i` before the field offset so the
+/// Palette fade: steps `paletteFade` up by 0x555 per frame while the
+/// `paletteHold` counter is live (counting it down once the fade is full),
+/// otherwise snaps it back to 0 and re-arms the hold. Each of the 16
+/// little-endian 15-bit colours is then blended between
+/// `D_actor_511000_80147E84` and `D_actor_511000_80147EC4` by that weight into
+/// `palette`, which `D_actor_511000_80147EA4[0]` uploads.
+/// The destination is formed as `work + i` before the member offset so the
 /// `addu` keeps the index first and CSE cannot fold the 0xC into a store.
-static void func_actor_511000_80132E6C(Actor511000Work* work)
+static void func_actor_511000_80132E6C(_Actor511000HelicopterWork* work)
 {
     CVECTOR col[3];
     s32     i;
@@ -2602,29 +2630,29 @@ static void func_actor_511000_80132E6C(Actor511000Work* work)
     u8*     src1;
     u8*     dst;
 
-    if (work->field_2E != 0) {
-        work->field_2C += 0x555;
-        i               = 0;
-        if (work->field_2C >= 0x1000) {
-            work->field_2C = 0x1000;
-            if (--work->field_2E < 0) {
-                work->field_2E = 0;
+    if (work->paletteHold != 0) {
+        work->paletteFade += 0x555;
+        i                  = 0;
+        if (work->paletteFade >= ACTOR_511000_PALETTE_FADE_FULL) {
+            work->paletteFade = ACTOR_511000_PALETTE_FADE_FULL;
+            if (--work->paletteHold < 0) {
+                work->paletteHold = 0;
             }
         }
     } else {
-        work->field_2C -= 0x1000;
-        i               = 0;
-        if (work->field_2C <= 0) {
-            work->field_2C = 0;
-            work->field_2E = 0x1E;
+        work->paletteFade -= ACTOR_511000_PALETTE_FADE_FULL;
+        i                  = 0;
+        if (work->paletteFade <= 0) {
+            work->paletteFade = 0;
+            work->paletteHold = ACTOR_511000_PALETTE_HOLD_TICKS;
         }
     }
-    inv  = 0x1000 - work->field_2C;
-    fade = work->field_2C;
+    inv  = ACTOR_511000_PALETTE_FADE_FULL - work->paletteFade;
+    fade = work->paletteFade;
     do {
         dst      = (u8*)(i + (s32)work);
-        dst      = ((Actor511000Work*)dst)->field_C.bytes;
-        src0     = &D_actor_511000_80147E84.bytes[i];
+        dst      = ((_Actor511000HelicopterWork*)dst)->palette;
+        src0     = &D_actor_511000_80147E84[i];
         src1     = &D_actor_511000_80147EC4[i];
         c        = src0[0] | (src0[1] << 8);
         col[0].r = ((u16)c >> 10) & 0x1F;
@@ -2639,34 +2667,34 @@ static void func_actor_511000_80132E6C(Actor511000Work* work)
         dst[1] = (u32)c >> 8;
         i     += 2;
         dst[0] = c;
-    } while (i < 0x20);
+    } while (i < ACTOR_511000_PALETTE_BYTES);
     Gp_LoadImages(&D_actor_511000_80147EA4[0]);
 }
 
-/// Spawn/setup state: allocates the 0x70 work block, parks it in `work`,
-/// arms the buffer-free countdown at -1, un-hides the model (`field_C` bit
-/// 0x80), places it at rot/trans index 0, binds light/color, installs the
-/// message table, and publishes `work->field_C` through
-/// `D_actor_511000_80147EA4[0].pixels` before advancing to the per-frame state.
+/// Spawn/setup state: allocates the work block, parks it in `work`, leaves
+/// `freeCountdown` with no free pending, hides the model, places it at
+/// rot/trans index 0, binds light/color, installs the message table, and
+/// publishes `work->palette` through `D_actor_511000_80147EA4[0].pixels`
+/// before advancing to the per-frame state.
 static void func_actor_511000_80133034(Task* task)
 {
-    Actor511000Work* work;
-    TmdObject*       extra;
+    _Actor511000HelicopterWork* work;
+    TmdObject*                  extra;
 
     extra = task->extra.tmd;
-    work  = memCalloc(0x70, 0);
+    work  = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
-    task->work    = work;
-    work->field_8 = -1;
-    extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    task->work          = work;
+    work->freeCountdown = -1;
+    extra->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
     func_actor_511000_801337F0(task);
     do {
         task->msgTable                    = D_actor_511000_80148FC4;
-        D_actor_511000_80147EA4[0].pixels = work->field_C.words;
+        D_actor_511000_80147EA4[0].pixels = (u_long*)work->palette;
     } while (0);
     task->state += 1;
 }
@@ -2681,20 +2709,20 @@ static void func_actor_511000_80133034(Task* task)
 /// -1 on the frame the countdown reaches zero.
 static void func_actor_511000_801330F0(Task* task)
 {
-    Actor511000Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    s32              countdown;
-    s16              frame;
+    _Actor511000HelicopterWork* work;
+    TmdObject*                  obj;
+    GfxCoord*                   coord;
+    s32                         countdown;
+    s16                         frame;
 
     obj   = task->extra.tmd;
-    work  = (Actor511000Work*)task->work;
+    work  = task->work;
     coord = obj->coords;
 
     if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         Gp_UpdateCoord(coord);
         func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
-        func_actor_511000_80132E6C((Actor511000Work*)task->work);
+        func_actor_511000_80132E6C(task->work);
     }
     if (gGameSession->location.loc.view == 0x18) {
         frame               = task->killCountdown + 1;
@@ -2706,13 +2734,13 @@ static void func_actor_511000_801330F0(Task* task)
         func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, task->killCountdown);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    countdown = work->field_8;
+    countdown = work->freeCountdown;
     if (countdown >= 0) {
         if (countdown == 0) {
             Tmd_FreeBuffers(obj);
-            countdown = work->field_8;
+            countdown = work->freeCountdown;
         }
-        work->field_8 = countdown - 1;
+        work->freeCountdown = countdown - 1;
     }
 }
 
@@ -2859,14 +2887,14 @@ s32 func_actor_511000_801334C4(Task* task, s32 arg1, ActorTransform* args, s32 a
 
 s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg, s32 arg3)
 {
-    TmdObject*       obj;
-    Actor511000Work* work;
-    Task*            child;
-    s32              ret;
-    s32              i;
+    TmdObject*                  obj;
+    _Actor511000HelicopterWork* work;
+    Task*                       child;
+    s32                         ret;
+    s32                         i;
 
     obj  = task->extra.tmd;
-    work = (Actor511000Work*)task->work;
+    work = task->work;
     ret  = 0;
     switch (msg) {
         case 0:
@@ -2879,9 +2907,9 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->field_8 = msg;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = msg;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2891,14 +2919,14 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg, s32 arg3)
             ret = 1;
             break;
     }
-    if (msg == 1 && work->field_2F == 0) {
+    if (msg == 1 && work->partsSpawned == 0) {
         for (i = 1; i < 4; i++) {
             child = Task_SpawnFromTable(D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, task);
             if (child != NULL) {
                 child->extra.tmd->flags &= ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             }
         }
-        work->field_2F = 1;
+        work->partsSpawned = 1;
     }
     return ret;
 }
@@ -2951,11 +2979,11 @@ static void func_actor_511000_80133760(Task* task)
 /// the root coordinate flag, and rebuilds lighting from the world translation.
 static void func_actor_511000_801337F0(Task* task)
 {
-    GfxCoord*        coord;
-    Actor511000Work* work;
-    TmdObject*       extra;
+    GfxCoord*                   coord;
+    _Actor511000HelicopterWork* work;
+    TmdObject*                  extra;
 
-    work                = (Actor511000Work*)task->work;
+    work                = task->work;
     extra               = task->extra.tmd;
     coord               = extra->coords;
     extra->lightMtx     = &work->light;
@@ -2998,18 +3026,18 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
 {
     enum { MODEL_HIDDEN = 0x80,
            STATE_UPDATE = 1 };
-    GameLocationKey        key;
-    GameLocationKey*       sessionKey;
-    u8                     view;
-    u8                     stage;
-    AreaVariant*           layout;
-    TmdObject*             model;
-    GfxCoord*              coord;
-    Actor511000ParentWork* work;
-    TaskDesc*              table;
-    u32                    placementWord;
-    Enemy*                 spawned;
-    GameSession*           session;
+    GameLocationKey           key;
+    GameLocationKey*          sessionKey;
+    u8                        view;
+    u8                        stage;
+    AreaVariant*              layout;
+    TmdObject*                model;
+    GfxCoord*                 coord;
+    _Actor511000No9GolemWork* work;
+    TaskDesc*                 table;
+    u32                       placementWord;
+    Enemy*                    spawned;
+    GameSession*              session;
 
     model = task->extra.tmd;
     coord = model->coords;
@@ -3020,10 +3048,10 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     }
     task->work      = work;
     model->flags    = MODEL_HIDDEN;
-    model->lightMtx = &work->field_45C;
-    model->colorMtx = &work->field_43C;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
     animationInitContext(&work->rig.anim, D_actor_511000_801550C0, model, work->rig.poses, work->rig.slots);
-    work->field_47C     = 0;
+    work->animId        = 0;
     task->msgTable      = D_actor_511000_801550A0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
@@ -3082,29 +3110,29 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
 
 static void func_actor_511000_80133B80(Enemy* enemy, Task* task)
 {
-    TmdObject*             extra;
-    VECTOR*                pos;
-    VECTOR*                out;
-    Actor511000ParentWork* work;
-    GfxCoord*              coords;
-    GfxCoord*              coord;
-    s32                    i;
-    s32                    j;
-    s32                    flag;
+    TmdObject*                extra;
+    VECTOR*                   pos;
+    VECTOR*                   out;
+    _Actor511000No9GolemWork* work;
+    GfxCoord*                 coords;
+    GfxCoord*                 coord;
+    s32                       i;
+    s32                       j;
+    s32                       flag;
 
     extra = task->extra.tmd;
     SCRATCH_STACK_RESERVE_BYTES(0x20);
-    work   = (Actor511000ParentWork*)task->work;
+    work   = task->work;
     coords = extra->coords;
     coord  = &coords[1];
-    flag   = work->field_47C;
+    flag   = work->animId;
     pos    = SCRATCH_STACK_CURSOR(VECTOR);
     if (flag != 0) {
         for (i = 1; i < 19; i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
-    if (work->field_47C < 3) {
+    if (work->animId < 3) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         pos->vx = coord->workm.t[0];
@@ -3119,19 +3147,19 @@ static void func_actor_511000_80133B80(Enemy* enemy, Task* task)
             Gp_DrawEffGroundQuad((VECTOR3*)out, 0x400, gRoomEffectState->groundShadowShade);
         }
     } else {
-        if ((s16)(work->field_480 % 3) == 0) {
+        if ((s16)(work->animTicks % 3) == 0) {
             for (i = 0; i < 3; i++) {
                 for (j = 0; j < 3; j++) {
-                    work->field_43C.m[i][j] = (work->field_43C.m[i][j] * 15) >> 4;
-                    work->field_45C.m[i][j] = (work->field_45C.m[i][j] * 15) >> 4;
+                    work->color.m[i][j] = (work->color.m[i][j] * 15) >> 4;
+                    work->light.m[i][j] = (work->light.m[i][j] * 15) >> 4;
                 }
             }
         }
-        if (work->field_480 > 96) {
+        if (work->animTicks > 96) {
             task->state = 2;
         }
     }
-    work->field_480++;
+    work->animTicks++;
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
@@ -3148,20 +3176,20 @@ void func_actor_511000_80133D90(Task* task)
 
 /// Copies the animation id from `preset` into the work block parked in
 /// `task->work`, reseeds slots 1..0x12 through `animationResetSlot`, and
-/// clears `field_480`'s halfword.
+/// restarts `animTicks`.
 s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
-    Actor511000Work2* work;
-    s32               i;
+    _Actor511000No9GolemWork* work;
+    s32                       i;
 
-    work            = (Actor511000Work2*)task->work;
-    work->field_47C = preset->animationId;
-    i               = 1;
+    work         = task->work;
+    work->animId = preset->animationId;
+    i            = 1;
     do {
-        animationResetSlot(&work->rig.anim, i, work->field_47C);
+        animationResetSlot(&work->rig.anim, i, work->animId);
         i++;
     } while (i < 0x13);
-    work->field_480.half = 0;
+    work->animTicks = 0;
     return 0;
 }
 
@@ -3198,22 +3226,22 @@ void func_actor_511000_80133EF4(Task* task)
 /// and colour matrices, shows the model and advances to the tick state.
 static void func_actor_511000_80133F48(Enemy* enemy, Task* task)
 {
-    Task*                  parent;
-    TmdObject*             obj;
-    Actor511000ParentWork* work;
-    GfxCoord*              coord;
-    GfxCoord*              parentCoords;
+    Task*                     parent;
+    TmdObject*                obj;
+    _Actor511000No9GolemWork* work;
+    GfxCoord*                 coord;
+    GfxCoord*                 parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;
     parentCoords = parent->extra.tmd->coords;
     coord        = obj->coords;
-    work         = (Actor511000ParentWork*)parent->work;
+    work         = parent->work;
 
     coord->parent = &parentCoords[8];
-    obj->lightMtx = &work->field_45C;
+    obj->lightMtx = &work->light;
     obj->flags    = 0;
-    obj->colorMtx = &work->field_43C;
+    obj->colorMtx = &work->color;
     task->state   = 1;
 }
 
@@ -3232,22 +3260,22 @@ void func_actor_511000_80133FC8(Task* task)
 
 static void func_actor_511000_8013401C(Enemy* enemy, Task* task)
 {
-    Task*                  parent;
-    TmdObject*             obj;
-    Actor511000ParentWork* work;
-    GfxCoord*              coord;
-    GfxCoord*              parentCoords;
+    Task*                     parent;
+    TmdObject*                obj;
+    _Actor511000No9GolemWork* work;
+    GfxCoord*                 coord;
+    GfxCoord*                 parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;
     parentCoords = parent->extra.tmd->coords;
     coord        = obj->coords;
-    work         = (Actor511000ParentWork*)parent->work;
+    work         = parent->work;
 
     coord->parent = &parentCoords[3];
-    obj->lightMtx = &work->field_45C;
+    obj->lightMtx = &work->light;
     obj->flags    = 0;
-    obj->colorMtx = &work->field_43C;
+    obj->colorMtx = &work->color;
     task->state   = 1;
 }
 
@@ -3266,22 +3294,22 @@ void func_actor_511000_8013409C(Task* task)
 
 static void func_actor_511000_801340F0(Enemy* enemy, Task* task)
 {
-    Task*                  parent;
-    TmdObject*             obj;
-    Actor511000ParentWork* work;
-    GfxCoord*              coord;
-    GfxCoord*              parentCoords;
+    Task*                     parent;
+    TmdObject*                obj;
+    _Actor511000No9GolemWork* work;
+    GfxCoord*                 coord;
+    GfxCoord*                 parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;
     parentCoords = parent->extra.tmd->coords;
     coord        = obj->coords;
-    work         = (Actor511000ParentWork*)parent->work;
+    work         = parent->work;
 
     coord->parent = &parentCoords[12];
-    obj->lightMtx = &work->field_45C;
+    obj->lightMtx = &work->light;
     obj->flags    = 0;
-    obj->colorMtx = &work->field_43C;
+    obj->colorMtx = &work->color;
     task->state   = 1;
 }
 

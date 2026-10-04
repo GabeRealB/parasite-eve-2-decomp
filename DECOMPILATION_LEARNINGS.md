@@ -446,7 +446,7 @@ The successful unpinned source uses scalar head accesses and
 while making just this read scalar MEM. It conflicts with the scalar head
 store, while later struct work/coords/flag reads can move independently.
 This alone produced identical assembly (base_2), but changed dependencies.
-Then initialize `coord`, read `flag = work->field_47C`, and only afterwards
+Then initialize `coord`, read `flag = work->animId`, and only afterwards
 assign `pos = (VECTOR*)*(u32*)SCRATCH_STACK_CURSOR_SLOT` (base_7).
 
 In base_7's backward sched1, copy UID41 wins at T-2 over coordinate calculation
@@ -1927,9 +1927,9 @@ A calloc result that is nearly tied with the `Task*` argument (`work` 5/23 vs
 weighted ref on `work` flips the pair, but *where* the once-loop sits decides
 the tail:
 
-- Around `work->field_8 = -1` at the top of the success block: `$s0`/`$s1`
+- Around `work->freeCountdown = -1` at the top of the success block: `$s0`/`$s1`
   swap, and `li $v0, -1` steals the `bnez` delay slot.
-- Around only `global = &work->field_C`: `$s0`/`$s1` swap and the following
+- Around only `global = (u_long*)work->palette`: `$s0`/`$s1` swap and the following
   `lw` of `task->state` keeps its nop, but the global `lui` is boxed after
   `sw field_24` (`reorder=1`).
 - Around `task->work = work`: `$s0`/`$s1` swap, success-block schedule
@@ -1941,12 +1941,12 @@ outside:
 ```c
 do {
     task->field_24 = table;
-    global         = &work->field_C;
+    global         = (u_long*)work->palette;
 } while (0);
 task->state += 1;
 ```
 
-`&work->field_C` inside the loop is the extra ref. Both address
+`work->palette` inside the loop is the extra ref. Both address
 materializations share a sched region, so `lui $v1` of `global` can issue
 before `sw field_24`. The `lw` of `state` stays outside and cannot hoist into
 the `$v0` reuse window, so the load-delay nop survives. The once-loop folds
@@ -11512,7 +11512,7 @@ Give every path the *same* return statement instead:
 ```c
 switch (mode) {
     case 0:
-        child = work->field_4C4;
+        child = work->gunTask;
         break;
     case 1:
         ...
@@ -111561,9 +111561,9 @@ is per-block, so a load reaches the entry block only because the source put it
 there. Reading the pointer into a local before the switch
 
 ```c
-    work = (Actor511000Work2*)arg0->actor;
+    work = (_Actor511000RupertBroderickWork*)arg0->actor;
     ...
-        case 2: work->field_480.word = mode;
+        case 2: work->freeCountdown = mode;
 ```
 
 matches 100%. Copying the siblings' inline form instead is 94.286%
@@ -111587,11 +111587,11 @@ The tail of this state handler runs a `Tmd_FreeBuffers` countdown. m2c seeds it
 with the result in its own temp:
 
 ```c
-temp_v0_2 = work->field_8;
+temp_v0_2 = work->freeCountdown;
 if (temp_v0_2 >= 0) {
     var_v0 = temp_v0_2 - 1;
-    if (temp_v0_2 == 0) { Tmd_FreeBuffers(obj); var_v0 = work->field_8 - 1; }
-    work->field_8 = var_v0;
+    if (temp_v0_2 == 0) { Tmd_FreeBuffers(obj); var_v0 = work->freeCountdown - 1; }
+    work->freeCountdown = var_v0;
 }
 ```
 
@@ -111620,10 +111620,10 @@ Writing the decrement **once, on the same variable, after the join** makes it a
 single pseudo with two definitions, and the block falls out at 100%:
 
 ```c
-temp_v0_2 = work->field_8;
+temp_v0_2 = work->freeCountdown;
 if (temp_v0_2 >= 0) {
-    if (temp_v0_2 == 0) { Tmd_FreeBuffers(obj); temp_v0_2 = work->field_8; }
-    work->field_8 = temp_v0_2 - 1;
+    if (temp_v0_2 == 0) { Tmd_FreeBuffers(obj); temp_v0_2 = work->freeCountdown; }
+    work->freeCountdown = temp_v0_2 - 1;
 }
 ```
 
@@ -117981,11 +117981,11 @@ addu  $s0, $s1, $s2    # i + work
 addiu $s0, $s0, 0xC
 ```
 
-`&work->field_C[i]` expands as `work + (i + 12)` (wrong association). `(u8*)(i + (s32)work + 0xC)` fixes the operand order, but CSE sees the `i + work` pseudo still available and rewrites the second store as `0xC(s0)`, splitting the pointer into `$v1`. Assigning the pointer in two statements overwrites the intermediate, so nothing is left for CSE to substitute:
+`&work->palette[i]` expands as `work + (i + 12)` (wrong association). `(u8*)(i + (s32)work + 0xC)` fixes the operand order, but CSE sees the `i + work` pseudo still available and rewrites the second store as `0xC(s0)`, splitting the pointer into `$v1`. Assigning the pointer in two statements overwrites the intermediate, so nothing is left for CSE to substitute:
 
 ```c
 dst = (u8*)(i + (s32)work);
-dst = ((Actor511000Work*)dst)->field_C;   /* same as dst += 0xC */
+dst = ((_Actor511000HelicopterWork*)dst)->palette;   /* same as dst += 0xC */
 ```
 
 The remaining one-instruction reorder (`addiu a0, sp, 0x18` for `&col[0]` scheduled after `i += 2`) was fixed by the permuter moving `i += 2` between `dst[1] = ...` and `dst[0] = ...`. Separately: three 4-byte `CVECTOR` locals took 8-byte slots (frame 0x50 instead of 0x48); one `CVECTOR col[3]` packs them at 0x18/0x1C/0x20.
