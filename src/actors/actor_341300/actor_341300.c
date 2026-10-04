@@ -35,16 +35,20 @@
 
 /// One step of gameplay's LCG, `state = state * 5 + 0x71357911`, as its high half.
 
-/// 0x30 block `func_actor_341300_80162878` and `func_actor_341300_801631D4`
-/// allocate into `Task::work`: a tumbling Gouraud triangle shard with its own
-/// spin and velocity.
+/// Work block of a debris shard task: one flat triangle that tumbles and falls
+/// under gravity until its origin drops below y 0.
+///
+/// The task allocates the block zeroed and fills it once, on its first frame,
+/// from its own random draws; afterwards only `rot` and `vel.vy` change. The
+/// shard's position is not kept here but in the task's coordinate, which is
+/// parented to the view.
 typedef struct {
-    SVECTOR rot;
-    SVECTOR rotSpeed;
-    SVECTOR vel;
-    SVECTOR verts[3];
-} Actor341300Shard;
-STATIC_ASSERT_SIZEOF(Actor341300Shard, 0x30);
+    SVECTOR rot;      // Tumble angles (4096 = one turn), rebuilt into the coordinate's rotation each frame as Y, then X, then Z; `pad` is never set
+    SVECTOR spin;     // Per-frame step of `rot`, 100 to 227 either way per axis; `pad` is never set
+    SVECTOR vel;      // Per-frame translation of the coordinate, up to 31 either way per axis at spawn, with 8 added to `vy` each frame; `pad` is never set
+    SVECTOR verts[3]; // The triangle's corners in the shard's own XY plane: equilateral about the origin at radius 20, each nonzero coordinate randomly pushed 2 further out
+} _Actor341300ShardWork;
+STATIC_ASSERT_SIZEOF(_Actor341300ShardWork, 0x30);
 
 /// Spawn positions `func_actor_341300_80162878`'s shards start from, indexed
 /// by `Task::spawnArg1`.
@@ -58,16 +62,15 @@ extern SVECTOR D_actor_341300_80165A58[];
 /// target position's x/z pair.
 extern ActorTransform D_actor_341300_80165330;
 
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    Task* value;
-    u8    retained[8];
-} Actor341300Storage5A2C;
-STATIC_ASSERT_SIZEOF(Actor341300Storage5A2C, 12);
-
-extern Actor341300Storage5A2C D_actor_341300_80165A2C;
+/// Task handles of the debris emitters the event scripts start and stop by
+/// index.
+///
+/// Only slot 0 is ever written or read: the start and stop callbacks act on
+/// index 0 alone and ignore the others. The scripts pass indices 0 to 2 and the
+/// storage is three pointers long, which is why it is declared as one slot per
+/// index; that the two words after slot 0 are the slots of indices 1 and 2 is
+/// inferred from that, not from an access.
+extern Task* D_actor_341300_80165A2C[3];
 
 extern TaskDesc D_actor_341300_80165A68[];
 
@@ -343,7 +346,7 @@ EvsCommand D_actor_341300_80165834[21] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-Actor341300Storage5A2C D_actor_341300_80165A2C = { 0 };
+Task* D_actor_341300_80165A2C[3] = { NULL };
 
 SVECTOR D_actor_341300_80165A38[4] = {
     { 2090, -2500, 1440, 0 },
@@ -665,35 +668,36 @@ void func_actor_341300_80162698(Task* arg0)
     }
 }
 
-/// Falling debris shard. State 0 allocates the `Actor341300Shard`, parents the
-/// actor's coordinate to the view, places it at `D_actor_341300_80165A38
-/// [spawnArg1]` and rolls a random velocity, spin and triangle shape. State 1
-/// applies gravity and velocity, draws the triangle as a POLY_G3 and advances
-/// the spin, killing the task once the shard falls below y 0.
+/// Falling debris shard. State 0 allocates the `_Actor341300ShardWork`,
+/// parents the actor's coordinate to the view, places it at
+/// `D_actor_341300_80165A38[spawnArg1]` and rolls a random velocity, spin and
+/// triangle shape. State 1 applies gravity and velocity, draws the triangle as
+/// a POLY_G3 and advances the spin, killing the task once the shard falls below
+/// y 0.
 void func_actor_341300_80162878(Task* arg0)
 {
-    Actor341300Shard* work;
-    GfxCoord*         coord;
-    POLY_G3*          prim;
-    s16               x[3];
-    s16               y[3];
-    s32               sxy;
-    s32               otz;
-    s16               i;
-    s32               v0;
-    s32               v1;
-    s32               v2;
-    s32               v3;
+    _Actor341300ShardWork* work;
+    GfxCoord*              coord;
+    POLY_G3*               prim;
+    s16                    x[3];
+    s16                    y[3];
+    s32                    sxy;
+    s32                    otz;
+    s16                    i;
+    s32                    v0;
+    s32                    v1;
+    s32                    v2;
+    s32                    v3;
 
-    work  = (Actor341300Shard*)arg0->work;
+    work  = arg0->work;
     coord = arg0->extra.coordBody->coord;
     switch (arg0->state) {
         case 0:
-            arg0->work = memCalloc(0x30, 0);
+            arg0->work = memCalloc(sizeof(_Actor341300ShardWork), 0);
             if (arg0->work == NULL) {
                 goto kill;
             }
-            work          = (Actor341300Shard*)arg0->work;
+            work          = arg0->work;
             coord->parent = &gGfxViewCoord;
             memFillBytes(arg0->work, 0, sizeof(*work));
             taskReparent(arg0->spawnArg2.pointer, arg0);
@@ -703,23 +707,23 @@ void func_actor_341300_80162878(Task* arg0)
             work->vel.vx      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
             work->vel.vy      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
             work->vel.vz      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
-            work->rotSpeed.vx = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
-            work->rotSpeed.vy = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
-            work->rotSpeed.vz = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
-            if (work->rotSpeed.vx > 0) {
-                work->rotSpeed.vx += 100;
+            work->spin.vx     = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
+            work->spin.vy     = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
+            work->spin.vz     = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
+            if (work->spin.vx > 0) {
+                work->spin.vx += 100;
             } else {
-                work->rotSpeed.vx -= 100;
+                work->spin.vx -= 100;
             }
-            if (work->rotSpeed.vy > 0) {
-                work->rotSpeed.vy += 100;
+            if (work->spin.vy > 0) {
+                work->spin.vy += 100;
             } else {
-                work->rotSpeed.vy -= 100;
+                work->spin.vy -= 100;
             }
-            if (work->rotSpeed.vz > 0) {
-                work->rotSpeed.vz += 100;
+            if (work->spin.vz > 0) {
+                work->spin.vz += 100;
             } else {
-                work->rotSpeed.vz -= 100;
+                work->spin.vz -= 100;
             }
             work->verts[0].vx = 0;
             work->verts[0].vy = (ACTOR_341300_RAND() & 1) ? 0x16 : 0x14;
@@ -782,9 +786,9 @@ void func_actor_341300_80162878(Task* arg0)
             prim->x2                       = x[2];
             prim->y2                       = y[2];
             addPrim(&gGpuCurrentOt[otz >> 4], prim);
-            work->rot.vx += work->rotSpeed.vx;
-            work->rot.vy += work->rotSpeed.vy;
-            work->rot.vz += work->rotSpeed.vz;
+            work->rot.vx += work->spin.vx;
+            work->rot.vy += work->spin.vy;
+            work->rot.vz += work->spin.vz;
             gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
             gfxRotMatrixX(&coord->coord, work->rot.vx, GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixZ(&coord->coord, work->rot.vz, GRAPHICS_ROTATION_COMPOSE);
@@ -830,28 +834,28 @@ void func_actor_341300_80163028(Task* arg0)
 
 void func_actor_341300_801631D4(Task* arg0)
 {
-    Actor341300Shard* work;
-    GfxCoord*         coord;
-    POLY_G3*          prim;
-    s16               x[3];
-    s16               y[3];
-    s32               sxy;
-    s32               otz;
-    s16               i;
-    s32               v0;
-    s32               v1;
-    s32               v2;
-    s32               v3;
+    _Actor341300ShardWork* work;
+    GfxCoord*              coord;
+    POLY_G3*               prim;
+    s16                    x[3];
+    s16                    y[3];
+    s32                    sxy;
+    s32                    otz;
+    s16                    i;
+    s32                    v0;
+    s32                    v1;
+    s32                    v2;
+    s32                    v3;
 
-    work  = (Actor341300Shard*)arg0->work;
+    work  = arg0->work;
     coord = arg0->extra.coordBody->coord;
     switch (arg0->state) {
         case 0:
-            arg0->work = memCalloc(0x30, 0);
+            arg0->work = memCalloc(sizeof(_Actor341300ShardWork), 0);
             if (arg0->work == NULL) {
                 goto kill;
             }
-            work          = (Actor341300Shard*)arg0->work;
+            work          = arg0->work;
             coord->parent = &gGfxViewCoord;
             memFillBytes(arg0->work, 0, sizeof(*work));
             taskReparent(arg0->spawnArg2.pointer, arg0);
@@ -863,25 +867,25 @@ void func_actor_341300_801631D4(Task* arg0)
             } else {
                 work->vel.vx = -(ACTOR_341300_RAND() & 0x1F);
             }
-            work->vel.vy      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
-            work->vel.vz      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
-            work->rotSpeed.vx = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
-            work->rotSpeed.vy = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
-            work->rotSpeed.vz = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
-            if (work->rotSpeed.vx > 0) {
-                work->rotSpeed.vx += 100;
+            work->vel.vy  = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
+            work->vel.vz  = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x1F) : -(ACTOR_341300_RAND() & 0x1F);
+            work->spin.vx = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
+            work->spin.vy = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
+            work->spin.vz = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & 0x7F) : -(ACTOR_341300_RAND() & 0x7F);
+            if (work->spin.vx > 0) {
+                work->spin.vx += 100;
             } else {
-                work->rotSpeed.vx -= 100;
+                work->spin.vx -= 100;
             }
-            if (work->rotSpeed.vy > 0) {
-                work->rotSpeed.vy += 100;
+            if (work->spin.vy > 0) {
+                work->spin.vy += 100;
             } else {
-                work->rotSpeed.vy -= 100;
+                work->spin.vy -= 100;
             }
-            if (work->rotSpeed.vz > 0) {
-                work->rotSpeed.vz += 100;
+            if (work->spin.vz > 0) {
+                work->spin.vz += 100;
             } else {
-                work->rotSpeed.vz -= 100;
+                work->spin.vz -= 100;
             }
             work->verts[0].vx = 0;
             work->verts[0].vy = (ACTOR_341300_RAND() & 1) ? 0x16 : 0x14;
@@ -944,9 +948,9 @@ void func_actor_341300_801631D4(Task* arg0)
             prim->x2                       = x[2];
             prim->y2                       = y[2];
             addPrim(&gGpuCurrentOt[1039], prim);
-            work->rot.vx += work->rotSpeed.vx;
-            work->rot.vy += work->rotSpeed.vy;
-            work->rot.vz += work->rotSpeed.vz;
+            work->rot.vx += work->spin.vx;
+            work->rot.vy += work->spin.vy;
+            work->rot.vz += work->spin.vz;
             gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
             gfxRotMatrixX(&coord->coord, work->rot.vx, GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixZ(&coord->coord, work->rot.vz, GRAPHICS_ROTATION_COMPOSE);
@@ -958,15 +962,15 @@ void func_actor_341300_801631D4(Task* arg0)
 static void func_actor_341300_8016398C(s32 arg0)
 {
     if ((arg0 << 0x10) == 0) {
-        D_actor_341300_80165A2C.value = Task_SpawnFromTable(D_actor_341300_80165A68, 0, 0, 0);
+        D_actor_341300_80165A2C[0] = Task_SpawnFromTable(D_actor_341300_80165A68, 0, 0, 0);
     }
 }
 
 static void func_actor_341300_801639CC(s32 arg0)
 {
-    if (((arg0 << 0x10) == 0) && (D_actor_341300_80165A2C.value != NULL)) {
-        taskKill(D_actor_341300_80165A2C.value);
-        D_actor_341300_80165A2C.value = NULL;
+    if (((arg0 << 0x10) == 0) && (D_actor_341300_80165A2C[0] != NULL)) {
+        taskKill(D_actor_341300_80165A2C[0]);
+        D_actor_341300_80165A2C[0] = NULL;
     }
 }
 
