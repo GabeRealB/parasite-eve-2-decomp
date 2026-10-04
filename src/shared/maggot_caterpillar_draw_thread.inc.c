@@ -7,7 +7,7 @@
 /// scaled by `threadFade / 45`.
 void maggotCaterpillarDrawThread(Task* actor)
 {
-    MaggotCaterpillarLineScratch* s;
+    MaggotCaterpillarLineScratch* scratch;
     MaggotCaterpillarWork*        work;
     LINE_G2*                      line;
     DR_TPAGE*                     page;
@@ -16,40 +16,40 @@ void maggotCaterpillarDrawThread(Task* actor)
     s32                           screen;
     s32                           screen1;
 
-    s              = (MaggotCaterpillarLineScratch*)(*(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) -= sizeof(MaggotCaterpillarLineScratch));
-    work           = actor->work;
-    s->position.vx = 0;
-    s->position.vy = work->vertical.threadRise - 0x352;
-    s->position.vz = 0;
+    scratch              = SCRATCH_STACK_RESERVE_BLOCK(MaggotCaterpillarLineScratch);
+    work                 = actor->work;
+    scratch->position.vx = 0;
+    scratch->position.vy = work->vertical.threadRise - 0x352;
+    scratch->position.vz = 0;
     gte_SetRotMatrix(&work->baseMatrix);
     gte_SetTransMatrix(&work->baseMatrix);
-    gte_ldv0(&s->position);
+    gte_ldv0(&scratch->position);
     gte_rtps();
-    gte_stsxy(&s->screen);
-    gte_stszotz(&s->depth);
-    if (s->depth < 30) {
-        *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(MaggotCaterpillarLineScratch);
+    gte_stsxy(&scratch->screenPos);
+    gte_stszotz(&scratch->depth);
+    if (scratch->depth < 30) {
+        SCRATCH_STACK_RELEASE_BLOCK(MaggotCaterpillarLineScratch);
         return;
     }
-    screen         = s->screen;
-    x              = screen & 0xFFFF;
-    y              = screen >> 16;
-    s->position.vx = 0;
-    s->position.vy = -0x352;
-    s->position.vz = 0;
+    screen               = scratch->screenPos;
+    x                    = screen & 0xFFFF;
+    y                    = screen >> 16;
+    scratch->position.vx = 0;
+    scratch->position.vy = -0x352;
+    scratch->position.vz = 0;
     gte_SetRotMatrix(&work->baseMatrix);
     gte_SetTransMatrix(&work->baseMatrix);
-    gte_ldv0(&s->position);
+    gte_ldv0(&scratch->position);
     gte_rtps();
-    gte_stsxy(&s->screen);
-    gte_stszotz(&s->depth);
-    if (s->depth < 30) {
-        *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(MaggotCaterpillarLineScratch);
+    gte_stsxy(&scratch->screenPos);
+    gte_stszotz(&scratch->depth);
+    if (scratch->depth < 30) {
+        SCRATCH_STACK_RELEASE_BLOCK(MaggotCaterpillarLineScratch);
         return;
     }
     line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
-    screen1        = s->screen;
+    screen1        = scratch->screenPos;
     setLineG2(line);
     setSemiTrans(line, 1);
     line->x0 = x;
@@ -70,11 +70,11 @@ void maggotCaterpillarDrawThread(Task* actor)
         line->g1 = line->r1;
         line->b1 = line->r1;
     }
-    addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), line);
+    addPrim((&gGpuCurrentOt[((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), line);
     page           = gGpuPrimCursor;
     gGpuPrimCursor = page + 1;
     setlen(page, 1);
     page->code[0] = 0xE1000620;
-    addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), page);
-    *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(MaggotCaterpillarLineScratch);
+    addPrim((&gGpuCurrentOt[((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), page);
+    SCRATCH_STACK_RELEASE_BLOCK(MaggotCaterpillarLineScratch);
 }

@@ -5,35 +5,35 @@
 /// or a wall blocked it.
 void maggotCaterpillarResolveContacts(Task* arg0)
 {
-    MaggotCaterpillarWork*       work;
-    MaggotCaterpillarHitScratch* head;
-    MaggotCaterpillarHitScratch* scratch;
-    Enemy*                       enemy;
-    GfxCoord*                    coord;
-    GfxCoord*                    src;
-    s32                          result;
-    s32                          lastId;
-    u32                          damage;
-    s16                          amount;
-    s32                          best;
-    s32                          push;
-    s32                          dx;
-    s32                          dy;
-    s32                          dz;
-    VECTOR*                      unit;
-    s32                          i;
-    s32                          one;
-    u32                          kind;
+    MaggotCaterpillarWork*            work;
+    MaggotCaterpillarContactsScratch* head;
+    MaggotCaterpillarContactsScratch* scratch;
+    Enemy*                            enemy;
+    GfxCoord*                         coord;
+    GfxCoord*                         src;
+    s32                               result;
+    s32                               lastId;
+    u32                               damage;
+    s16                               amount;
+    s32                               best;
+    s32                               push;
+    s32                               dx;
+    s32                               dy;
+    s32                               dz;
+    VECTOR*                           normal;
+    s32                               i;
+    s32                               one;
+    u32                               kind;
 
     best    = 0;
     lastId  = 0;
     work    = arg0->work;
     coord   = arg0->extra.tmd->coords;
-    head    = SCRATCH_STACK_CURSOR(MaggotCaterpillarHitScratch);
-    scratch = SCRATCH_STACK_CURSOR(MaggotCaterpillarHitScratch) = head - 1;
-    enemy                                                       = (Enemy*)arg0->spawnArg2.pointer;
-    work->landed                                                = 0;
-    result                                                      = func_800E0C10(work->gridContacts, &scratch->delta, 4, NULL);
+    head    = SCRATCH_STACK_CURSOR(MaggotCaterpillarContactsScratch);
+    scratch = SCRATCH_STACK_CURSOR(MaggotCaterpillarContactsScratch) = head - 1;
+    enemy                                                            = (Enemy*)arg0->spawnArg2.pointer;
+    work->landed                                                     = 0;
+    result                                                           = func_800E0C10(work->gridContacts, &scratch->delta, 4, NULL);
     if (result != 0) {
         if (work->behaviour == MAGGOT_CATERPILLAR_BEHAVIOUR_AMBUSH) {
             work->landed = 1;
@@ -63,7 +63,7 @@ void maggotCaterpillarResolveContacts(Task* arg0)
 
     work->struck = 0;
     work->burst  = 0;
-    unit         = &scratch->normal;
+    normal       = &scratch->normal;
     for (i = 0; i < 2; i++) {
         kind = (u32)work->bodyContacts[i].key.value >> 16;
         if (kind == one)
@@ -121,7 +121,7 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                 if (work->reactionMode == MAGGOT_CATERPILLAR_REACTION_REBOUND) {
                     if ((work->behaviour == MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD) || (result == 0)) {
                         work->reactionMode = MAGGOT_CATERPILLAR_REACTION_NORMAL;
-                        MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, &scratch->rot);
+                        MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, &scratch->shortVector);
                     }
                 }
                 if (result == 0) {
@@ -158,11 +158,11 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                         break;
                 }
                 if (lastId != work->bodyContacts[i].key.value) {
-                    lastId          = work->bodyContacts[i].key.value;
-                    scratch->rot.vx = 0;
-                    scratch->rot.vy = -0xC8;
-                    scratch->rot.vz = 0;
-                    func_800FDB18(Gp_GetIdParam1(work->bodyContacts[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, &scratch->rot, &work->effectArg);
+                    lastId                  = work->bodyContacts[i].key.value;
+                    scratch->shortVector.vx = 0;
+                    scratch->shortVector.vy = -0xC8;
+                    scratch->shortVector.vz = 0;
+                    func_800FDB18(Gp_GetIdParam1(work->bodyContacts[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, &scratch->shortVector, &work->effectArg);
                 }
                 result = Gp_GetIdParam2(work->bodyContacts[i].key.value);
                 if (result > 0) {
@@ -175,13 +175,13 @@ void maggotCaterpillarResolveContacts(Task* arg0)
         MAGGOT_CATERPILLAR_CONTACT_OVERLAP(push, coord, work->bodyContacts[i], scratch->delta);
         if (best < push) {
             best = push;
-            MAGGOT_CATERPILLAR_GRID_DIRECTION(&scratch->delta, unit, &scratch->local);
+            MAGGOT_CATERPILLAR_GRID_DIRECTION(&scratch->delta, normal, &scratch->pushDirection);
         }
     next_contact:;
     }
     if (best > 0) {
-        coord->coord.t[0] += (best * scratch->local.vx) >> 12;
-        coord->coord.t[2] += (best * scratch->local.vz) >> 12;
+        coord->coord.t[0] += (best * scratch->pushDirection.vx) >> 12;
+        coord->coord.t[2] += (best * scratch->pushDirection.vz) >> 12;
     }
     Gp_ClearRec18Occupied(work->bodyContacts);
     work->blocked = 0;
@@ -190,5 +190,5 @@ void maggotCaterpillarResolveContacts(Task* arg0)
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         Gp_ClearRec18Occupied(work->attackContacts);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(MaggotCaterpillarHitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(MaggotCaterpillarContactsScratch);
 }

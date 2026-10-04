@@ -170,26 +170,52 @@ typedef struct {
 } MaggotCaterpillarPuffWork;
 STATIC_ASSERT_SIZEOF(MaggotCaterpillarPuffWork, 0x40);
 
-/// Scratch-pad block for projecting one end of the enemy's line primitives:
-/// the point, its screen position and the depth the line is sorted at.
-typedef struct MaggotCaterpillarLineScratch {
-    s32     unused[4];
-    SVECTOR position;
-    s32     screen;
-    s32     depth;
+/// Scratch-stack block of the thread drawer, in which each end of the thread
+/// is projected in turn.
+///
+/// The drawer reserves one block, stages an end in `position`, projects it
+/// with one perspective transform through the work block's `baseMatrix` and
+/// gives up when the end lies nearer than depth 30. The upper end goes first
+/// and its screen position is copied out before the lower end takes its
+/// place, so the block is left holding the lower end, whose depth sorts the
+/// line. The block is released before the drawer returns, on each of its
+/// paths.
+///
+/// The drawer never touches the leading bytes, so the size is that of the
+/// reservation alone and what they were laid out to hold is unproven.
+typedef struct {
+    byte    field_0[0x10]; // reserved with the block and never accessed; role unproven
+    SVECTOR position;      // end being projected, in the frame of `baseMatrix` and on its Y axis: the upper end, `vertical.threadRise` from the lower, then the lower end at -0x352; `pad` is never written
+    s32     screenPos;     // projected screen position of that end, X in bits 0..15 and Y in bits 16..31
+    s32     depth;         // screen Z / 4 of that end: under 30 drops the thread; the lower end's is the ordering-table depth of the line
 } MaggotCaterpillarLineScratch;
 STATIC_ASSERT_SIZEOF(MaggotCaterpillarLineScratch, 0x20);
 
-/// Scratch-pad block of that enemy's push-back: the deltas the collision walk
-/// resolves, their normal and its image in grid space, and the rotation the
-/// actor is re-aimed with.
-typedef struct MaggotCaterpillarHitScratch {
-    WorldCollisionDelta delta;
-    VECTOR              normal;
-    VECTOR              local;
-    SVECTOR             rot;
-} MaggotCaterpillarHitScratch;
-STATIC_ASSERT_SIZEOF(MaggotCaterpillarHitScratch, 0x38);
+/// Scratch-stack block of the per-frame contact pass.
+///
+/// The pass reserves one block and has the push-back of the room's collision
+/// grid resolved from the grid sphere's contact records into `delta`, adding
+/// the whole units of that correction to the root. It then walks the hit
+/// sphere's records, reusing `delta` for each. A damaging contact, kind
+/// 0x20000, takes the offset to the attacking player, whose length is the
+/// range the damage is worked out for. A contact with a player's body, kind
+/// 0x10000, or an enemy's, kind 0x30000, takes the offset from that body's
+/// centre; the overlap is the record's summed radii less that offset's
+/// length. The deepest overlap leaves its direction in `normal` and
+/// `pushDirection`, and once the walk is over the root is moved that deep
+/// along `pushDirection` on X and Z. The block is released before the pass
+/// returns.
+///
+/// It is `ActorOverlapPushScratch` of `include/actors/actor.h` with one
+/// short vector after it, which the pass fills in for two calls that take
+/// one.
+typedef struct {
+    WorldCollisionDelta delta;         // correction resolved from the grid contacts, in signed 16.16 units; then, in whole world units, the offset to the attacker or from the centre of the body being tested
+    VECTOR              normal;        // `delta` of the deepest overlap met so far, normalised: away from that body, 4096 = 1.0
+    VECTOR              pushDirection; // `normal` turned into the frame of the collision grid's coordinate; the root is pushed along its X and Z
+    SVECTOR             shortVector;   // filled in for the call that takes it: the angles of the half turn that ends a rebound, 4096 a turn, then the hit effect's offset from part 1, -0xC8 on Y; `pad` is never written
+} MaggotCaterpillarContactsScratch;
+STATIC_ASSERT_SIZEOF(MaggotCaterpillarContactsScratch, 0x38);
 
 void maggotCaterpillarSprayState(Task* arg0);
 void maggotCaterpillarPounceState(Task* arg0);
