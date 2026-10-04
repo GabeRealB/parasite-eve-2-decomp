@@ -62,7 +62,7 @@ enum {
 };
 
 static void func_replay_bonus_80117E04(void);
-static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds);
+static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds);
 static void func_replay_bonus_80118F00(s32 arg0);
 
 static void        func_replay_bonus_80117194(Task* arg0);
@@ -675,7 +675,7 @@ static void func_replay_bonus_80117E04(void)
     }
 }
 
-static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
+static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds)
 {
     s32                  tpageId;
     s32                  col;
@@ -711,13 +711,13 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
     col     = 0;
     align   = col;
     i       = col;
-    if (cmds->op != 0xFF) {
+    if (cmds->op != REPLAY_BONUS_STF_COMMAND_END) {
         do {
             switch (cmds[i].op) {
-                case 0:
+                case REPLAY_BONUS_STF_COMMAND_GLYPH:
                     width = 0;
                     j     = 0;
-                    while (cmds[i + j].op == 0) {
+                    while (cmds[i + j].op == REPLAY_BONUS_STF_COMMAND_GLYPH) {
                         width += D_replay_bonus_80119290[cmds[i + j].arg].width;
                         j++;
                     }
@@ -735,7 +735,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                     }
                     x -= 0x140;
                     j  = 0;
-                    while (cmds[i + j].op == 0) {
+                    while (cmds[i + j].op == REPLAY_BONUS_STF_COMMAND_GLYPH) {
                         glyph                    = &D_replay_bonus_80119290[cmds[i + j].arg];
                         width                    = glyph->width;
                         gh                       = glyph->heightAndPage;
@@ -784,26 +784,26 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                 default:
                 case 9:
                     break;
-                case 3:
+                case REPLAY_BONUS_STF_COMMAND_PALETTE:
                     tpageId = cmds[i].arg;
                     break;
-                case 4:
+                case REPLAY_BONUS_STF_COMMAND_COLUMN_CENTER:
                     align = 0;
                     col   = cmds[i].arg;
                     break;
-                case 5:
+                case REPLAY_BONUS_STF_COMMAND_COLUMN_LEFT:
                     align = 1;
                     col   = cmds[i].arg;
                     break;
-                case 6:
+                case REPLAY_BONUS_STF_COMMAND_COLUMN_RIGHT:
                     align = 2;
                     col   = cmds[i].arg;
                     break;
-                case 7:
+                case REPLAY_BONUS_STF_COMMAND_PICTURE:
                     idx = cmds[i].arg;
                     x   = 0;
-                    if (idx != 0xFF) {
-                        cmds[i].arg = 0xFF;
+                    if (idx != REPLAY_BONUS_STF_PICTURE_STARTED) {
+                        cmds[i].arg = REPLAY_BONUS_STF_PICTURE_STARTED;
                         switch ((u8)align) {
                             case 0:
                                 x = D_replay_bonus_80119294->columns[col].centerX - (REPLAY_BONUS_PICTURE_WIDTH / 2);
@@ -819,7 +819,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                         Task_SpawnFromTable(&D_replay_bonus_8011922C, 3, idx + 1, 0);
                     }
                     break;
-                case 8:
+                case REPLAY_BONUS_STF_COMMAND_SPRITE:
                     idx   = cmds[i].arg;
                     width = D_replay_bonus_8011929C[idx].width;
                     x     = 0;
@@ -891,7 +891,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCmd* cmds)
                     break;
             }
             i++;
-        } while (cmds[i].op != 0xFF);
+        } while (cmds[i].op != REPLAY_BONUS_STF_COMMAND_END);
     }
 }
 

@@ -29,11 +29,40 @@ typedef struct {
 } ReplayBonusPictureDecode;
 STATIC_ASSERT_SIZEOF(ReplayBonusPictureDecode, 0x10);
 
-typedef struct ReplayBonusStfCmd {
-    /* 0x0 */ u8 op;
-    /* 0x1 */ u8 arg;
-} ReplayBonusStfCmd;
-STATIC_ASSERT_SIZEOF(ReplayBonusStfCmd, 0x2);
+/// Operations of a credits row, the values of `ReplayBonusStfCommand::op`.
+///
+/// A row is drawn left to right from its own state: it starts centred on
+/// column 0 with palette 7, and a column or palette command applies to what
+/// follows it in that row only. Any other value is skipped. The dispatch has
+/// a slot of its own for 9 that does nothing; the role of that value is
+/// unproven.
+enum {
+    REPLAY_BONUS_STF_COMMAND_GLYPH         = 0,    // Draw font cell `arg`; consecutive glyphs are placed as one run
+    REPLAY_BONUS_STF_COMMAND_PALETTE       = 3,    // Draw the glyphs after it with font palette `arg` (0 to 7)
+    REPLAY_BONUS_STF_COMMAND_COLUMN_CENTER = 4,    // Centre what follows on layout column `arg`
+    REPLAY_BONUS_STF_COMMAND_COLUMN_LEFT   = 5,    // Start what follows at layout column `arg`'s left edge
+    REPLAY_BONUS_STF_COMMAND_COLUMN_RIGHT  = 6,    // End what follows at layout column `arg`'s right edge
+    REPLAY_BONUS_STF_COMMAND_PICTURE       = 7,    // Show credits picture `arg`, the bitstream in resource slot `arg + 1`, at the selected anchor
+    REPLAY_BONUS_STF_COMMAND_SPRITE        = 8,    // Draw image `arg` of the sprite table
+    REPLAY_BONUS_STF_COMMAND_END           = 0xFF, // Ends the row
+};
+
+/// What a picture command's `arg` becomes once the command has run.
+///
+/// A row is drawn on every frame it is visible, but its picture has to start
+/// decoding only once, so the command marks itself in the loaded file.
+enum {
+    REPLAY_BONUS_STF_PICTURE_STARTED = 0xFF,
+};
+
+/// One command of a credits row: an operation and its operand.
+///
+/// A row is an array of these ended by `REPLAY_BONUS_STF_COMMAND_END`.
+typedef struct {
+    u8 op;  // One of `REPLAY_BONUS_STF_COMMAND_*`
+    u8 arg; // Index of the glyph, palette, column, picture or sprite that `op` names
+} ReplayBonusStfCommand;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfCommand, 0x2);
 
 /// Packing of `ReplayBonusStfGlyph::heightAndPage`.
 enum {
@@ -100,19 +129,20 @@ STATIC_ASSERT_SIZEOF(ReplayBonusStfParams, 0x64);
 /// scrolling document.
 typedef struct {
     union {
-        s32                offset;  // From the start of the file, as stored on disc
-        ReplayBonusStfCmd* pointer; // Once the file is relocated
-    } cmds;                         // Commands of the row, ended by op 0xFF
-    s32 y;                          // Bottom edge of the row, in pixels from the top of the document
+        s32                    offset;  // From the start of the file, as stored on disc
+        ReplayBonusStfCommand* pointer; // Once the file is relocated
+    } cmds;                             // Commands of the row, ended by `REPLAY_BONUS_STF_COMMAND_END`
+    s32 y;                              // Bottom edge of the row, in pixels from the top of the document
 } ReplayBonusStfLine;
 STATIC_ASSERT_SIZEOF(ReplayBonusStfLine, 0x8);
 
-/// STF row table: `count` credits rows, stored right after the count.
-typedef struct ReplayBonusStfTable {
-    /* 0x0 */ s32      count;
-    ReplayBonusStfLine lines[0]; // The `count` rows
-} ReplayBonusStfTable;
-STATIC_ASSERT_SIZEOF(ReplayBonusStfTable, 0x4);
+/// The rows of the credits document: a count, then that many rows in the order
+/// they scroll past, top first.
+typedef struct {
+    s32                count;    // Number of rows in `lines`
+    ReplayBonusStfLine lines[0]; // The rows, by increasing `y`; the last one's `y` is the document's height
+} ReplayBonusStfLineTable;
+STATIC_ASSERT_SIZEOF(ReplayBonusStfLineTable, 0x4);
 
 /// Header of an "STF" credits file: the four tables the credits are drawn
 /// from.
@@ -133,8 +163,8 @@ typedef struct {
         ReplayBonusStfGlyph* pointer;
     } glyphs; // Font cells, indexed by a glyph command's argument
     union {
-        s32                  offset;
-        ReplayBonusStfTable* pointer;
+        s32                      offset;
+        ReplayBonusStfLineTable* pointer;
     } lineTable; // Rows of the document, top to bottom
     union {
         s32                   offset;
