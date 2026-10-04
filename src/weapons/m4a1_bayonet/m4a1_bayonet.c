@@ -149,3 +149,35 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
 }
 
 #include "../../shared/blade_trail_draw.inc.c"
+
+static TmdBone _gM4a1BayonetModel01130Skeleton[1] = {
+#include "assets/m4a1_bayonet_model_01130_skeleton.inc"
+};
+
+static u32 _gM4a1BayonetModel01130PartVerts[1] = {
+#include "assets/m4a1_bayonet_model_01130_partVerts.inc"
+};
+
+static SVECTOR _gM4a1BayonetModel01130Verts[63] = {
+#include "assets/m4a1_bayonet_model_01130_verts.inc"
+};
+
+static SVECTOR _gM4a1BayonetModel01130Normals[63] = {
+#include "assets/m4a1_bayonet_model_01130_normals.inc"
+};
+
+static u32 _gM4a1BayonetModel01130Stream[451] = {
+#include "assets/m4a1_bayonet_model_01130_stream.inc"
+};
+
+TmdSource D_m4a1_bayonet_8011E9FC = {
+    0,
+    3256,
+    0,
+    1,
+    _gM4a1BayonetModel01130PartVerts,
+    _gM4a1BayonetModel01130Verts,
+    _gM4a1BayonetModel01130Normals,
+    _gM4a1BayonetModel01130Skeleton,
+    _gM4a1BayonetModel01130Stream,
+};

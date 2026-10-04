@@ -893,3 +893,35 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BYTES(0x58);
 }
+
+static TmdBone _gM4a1JavelinModel02D7CSkeleton[1] = {
+#include "assets/m4a1_javelin_model_02D7C_skeleton.inc"
+};
+
+static u32 _gM4a1JavelinModel02D7CPartVerts[1] = {
+#include "assets/m4a1_javelin_model_02D7C_partVerts.inc"
+};
+
+static SVECTOR _gM4a1JavelinModel02D7CVerts[74] = {
+#include "assets/m4a1_javelin_model_02D7C_verts.inc"
+};
+
+static SVECTOR _gM4a1JavelinModel02D7CNormals[66] = {
+#include "assets/m4a1_javelin_model_02D7C_normals.inc"
+};
+
+static u32 _gM4a1JavelinModel02D7CStream[504] = {
+#include "assets/m4a1_javelin_model_02D7C_stream.inc"
+};
+
+TmdSource D_m4a1_javelin_8012071C = {
+    0,
+    3668,
+    0,
+    1,
+    _gM4a1JavelinModel02D7CPartVerts,
+    _gM4a1JavelinModel02D7CVerts,
+    _gM4a1JavelinModel02D7CNormals,
+    _gM4a1JavelinModel02D7CSkeleton,
+    _gM4a1JavelinModel02D7CStream,
+};

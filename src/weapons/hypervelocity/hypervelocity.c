@@ -996,3 +996,99 @@ void func_hypervelocity_8011F724(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BLOCK(_HypervelocityRecoilScratch);
 }
+
+static TmdBone _gHypervelocityModel02C9CSkeleton[1] = {
+#include "assets/hypervelocity_model_02C9C_skeleton.inc"
+};
+
+static u32 _gHypervelocityModel02C9CPartVerts[1] = {
+#include "assets/hypervelocity_model_02C9C_partVerts.inc"
+};
+
+static SVECTOR _gHypervelocityModel02C9CVerts[50] = {
+#include "assets/hypervelocity_model_02C9C_verts.inc"
+};
+
+static SVECTOR _gHypervelocityModel02C9CNormals[37] = {
+#include "assets/hypervelocity_model_02C9C_normals.inc"
+};
+
+static u32 _gHypervelocityModel02C9CStream[295] = {
+#include "assets/hypervelocity_model_02C9C_stream.inc"
+};
+
+TmdSource D_hypervelocity_801202F8 = {
+    0,
+    2096,
+    0,
+    1,
+    _gHypervelocityModel02C9CPartVerts,
+    _gHypervelocityModel02C9CVerts,
+    _gHypervelocityModel02C9CNormals,
+    _gHypervelocityModel02C9CSkeleton,
+    _gHypervelocityModel02C9CStream,
+};
+
+static TmdBone _gHypervelocityModel03284Skeleton[1] = {
+#include "assets/hypervelocity_model_03284_skeleton.inc"
+};
+
+static u32 _gHypervelocityModel03284PartVerts[1] = {
+#include "assets/hypervelocity_model_03284_partVerts.inc"
+};
+
+static SVECTOR _gHypervelocityModel03284Verts[16] = {
+#include "assets/hypervelocity_model_03284_verts.inc"
+};
+
+static SVECTOR _gHypervelocityModel03284Normals[16] = {
+#include "assets/hypervelocity_model_03284_normals.inc"
+};
+
+static u32 _gHypervelocityModel03284Stream[104] = {
+#include "assets/hypervelocity_model_03284_stream.inc"
+};
+
+TmdSource D_hypervelocity_801205E4 = {
+    0,
+    728,
+    0,
+    1,
+    _gHypervelocityModel03284PartVerts,
+    _gHypervelocityModel03284Verts,
+    _gHypervelocityModel03284Normals,
+    _gHypervelocityModel03284Skeleton,
+    _gHypervelocityModel03284Stream,
+};
+
+static TmdBone _gHypervelocityModel03550Skeleton[1] = {
+#include "assets/hypervelocity_model_03550_skeleton.inc"
+};
+
+static u32 _gHypervelocityModel03550PartVerts[1] = {
+#include "assets/hypervelocity_model_03550_partVerts.inc"
+};
+
+static SVECTOR _gHypervelocityModel03550Verts[12] = {
+#include "assets/hypervelocity_model_03550_verts.inc"
+};
+
+static SVECTOR _gHypervelocityModel03550Normals[16] = {
+#include "assets/hypervelocity_model_03550_normals.inc"
+};
+
+static u32 _gHypervelocityModel03550Stream[84] = {
+#include "assets/hypervelocity_model_03550_stream.inc"
+};
+
+TmdSource D_hypervelocity_80120860 = {
+    0,
+    560,
+    0,
+    1,
+    _gHypervelocityModel03550PartVerts,
+    _gHypervelocityModel03550Verts,
+    _gHypervelocityModel03550Normals,
+    _gHypervelocityModel03550Skeleton,
+    _gHypervelocityModel03550Stream,
+};

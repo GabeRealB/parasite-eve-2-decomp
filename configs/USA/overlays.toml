@@ -143,8 +143,8 @@ objects = [
   { kind = "packageId" },
   { unit = "gunblade/gunblade_2", rodata = "0x4", text = "0xE80" },
   { unit = "gunblade/gunblade", text = "0x24", data = "0x1544" },
-  { kind = "model", at = "0x1554" },
-  { kind = "modelSource", at = "0x1CF0" },
+  { kind = "model", at = "0x1554", in_c = true },
+  { kind = "modelSource", at = "0x1CF0", in_c = true },
   { kind = "data", at = "0x1D14" },
   { unit = "gunblade/gunblade_work", data = "0x11084" },
 ]
@@ -155,12 +155,12 @@ id = 29
 objects = [
   { kind = "packageId" },
   { unit = "hypervelocity/hypervelocity", rodata = "0x4", text = "0x28", data = "0x29B4" },
-  { kind = "model", at = "0x29BC" },
-  { kind = "modelSource", at = "0x3138" },
-  { kind = "model", at = "0x315C" },
-  { kind = "modelSource", at = "0x3424" },
-  { kind = "model", at = "0x3448" },
-  { kind = "modelSource", at = "0x36A0" },
+  { kind = "model", at = "0x29BC", in_c = true },
+  { kind = "modelSource", at = "0x3138", in_c = true },
+  { kind = "model", at = "0x315C", in_c = true },
+  { kind = "modelSource", at = "0x3424", in_c = true },
+  { kind = "model", at = "0x3448", in_c = true },
+  { kind = "modelSource", at = "0x36A0", in_c = true },
   { kind = "data", at = "0x36C4" },
   { unit = "hypervelocity/hypervelocity_work", data = "0x11D4C" },
 ]
@@ -200,8 +200,8 @@ objects = [
   { kind = "packageId" },
   { unit = "m4a1_bayonet/m4a1_bayonet_2", rodata = "0x4", text = "0x874" },
   { unit = "m4a1_bayonet/m4a1_bayonet", text = "0x24", data = "0xD08" },
-  { kind = "model", at = "0xD18" },
-  { kind = "modelSource", at = "0x183C" },
+  { kind = "model", at = "0xD18", in_c = true },
+  { kind = "modelSource", at = "0x183C", in_c = true },
   { kind = "data", at = "0x1860" },
   { unit = "m4a1_bayonet/m4a1_bayonet_work", data = "0x101D8" },
 ]
@@ -211,9 +211,9 @@ label = "M4A1 Grenade"
 id = 34
 objects = [
   { kind = "packageId" },
-  { unit = "m4a1_grenade/m4a1_grenade", rodata = "0x4", text = "0x2C" },
-  { kind = "model", at = "0xD0C" },
-  { kind = "modelSource", at = "0x186C" },
+  { unit = "m4a1_grenade/m4a1_grenade", rodata = "0x4", text = "0x2C", data = "0xD0C" },
+  { kind = "model", at = "0xD0C", in_c = true },
+  { kind = "modelSource", at = "0x186C", in_c = true },
   { kind = "data", at = "0x1890" },
   { unit = "m4a1_grenade/m4a1_grenade_work", data = "0x10ECC" },
   { kind = "data", at = "0x10ED4" },
@@ -226,8 +226,8 @@ objects = [
   { kind = "packageId" },
   { unit = "m4a1_hammer/m4a1_hammer_2", rodata = "0x4", text = "0x1550" },
   { unit = "m4a1_hammer/m4a1_hammer", text = "0x20", data = "0x19A0" },
-  { kind = "model", at = "0x19A8" },
-  { kind = "modelSource", at = "0x25B8" },
+  { kind = "model", at = "0x19A8", in_c = true },
+  { kind = "modelSource", at = "0x25B8", in_c = true },
   { kind = "data", at = "0x25DC" },
   { unit = "m4a1_hammer/m4a1_hammer_work", data = "0x10470" },
 ]
@@ -238,8 +238,8 @@ id = 36
 objects = [
   { kind = "packageId" },
   { unit = "m4a1_javelin/m4a1_javelin", rodata = "0x4", text = "0x24", data = "0x28D0" },
-  { kind = "model", at = "0x28F4" },
-  { kind = "modelSource", at = "0x355C" },
+  { kind = "model", at = "0x28F4", in_c = true },
+  { kind = "modelSource", at = "0x355C", in_c = true },
   { kind = "data", at = "0x3580" },
   { unit = "m4a1_javelin/m4a1_javelin_work", data = "0x119A0" },
 ]
@@ -324,8 +324,8 @@ id = 12
 objects = [
   { kind = "packageId" },
   { unit = "p229/p229", rodata = "0x4", text = "0x1C", data = "0xF30" },
-  { kind = "model", at = "0xF38" },
-  { kind = "modelSource", at = "0x1424" },
+  { kind = "model", at = "0xF38", in_c = true },
+  { kind = "modelSource", at = "0x1424", in_c = true },
   { kind = "data", at = "0x1448" },
   { unit = "p229/p229_work", data = "0xE498" },
 ]
@@ -358,10 +358,10 @@ id = 26
 objects = [
   { kind = "packageId" },
   { unit = "tonfa_baton/tonfa_baton", rodata = "0x4", text = "0x2C", data = "0xF30" },
-  { kind = "model", at = "0xF40" },
-  { kind = "modelSource", at = "0x12A0" },
-  { kind = "model", at = "0x12C4" },
-  { kind = "modelSource", at = "0x142C" },
+  { kind = "model", at = "0xF40", in_c = true },
+  { kind = "modelSource", at = "0x12A0", in_c = true },
+  { kind = "model", at = "0x12C4", in_c = true },
+  { kind = "modelSource", at = "0x142C", in_c = true },
   { kind = "data", at = "0x1450" },
   { unit = "tonfa_baton/tonfa_baton_work", data = "0xEA2C" },
 ]

@@ -295,3 +295,35 @@ void func_gunblade_8011E008(s32 arg0)
         work->index++;
     }
 }
+
+static TmdBone _gGunbladeModel017FCSkeleton[1] = {
+#include "assets/gunblade_model_017FC_skeleton.inc"
+};
+
+static u32 _gGunbladeModel017FCPartVerts[1] = {
+#include "assets/gunblade_model_017FC_partVerts.inc"
+};
+
+static SVECTOR _gGunbladeModel017FCVerts[41] = {
+#include "assets/gunblade_model_017FC_verts.inc"
+};
+
+static SVECTOR _gGunbladeModel017FCNormals[39] = {
+#include "assets/gunblade_model_017FC_normals.inc"
+};
+
+static u32 _gGunbladeModel017FCStream[317] = {
+#include "assets/gunblade_model_017FC_stream.inc"
+};
+
+TmdSource D_gunblade_8011EEB0 = {
+    0,
+    2224,
+    0,
+    1,
+    _gGunbladeModel017FCPartVerts,
+    _gGunbladeModel017FCVerts,
+    _gGunbladeModel017FCNormals,
+    _gGunbladeModel017FCSkeleton,
+    _gGunbladeModel017FCStream,
+};

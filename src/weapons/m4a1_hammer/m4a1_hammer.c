@@ -313,3 +313,35 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
 #include "../../shared/sprite_quad_draw.inc.c"
 
 #include "../../shared/beam_strip_draw.inc.c"
+
+static TmdBone _gM4a1HammerModel01E10Skeleton[1] = {
+#include "assets/m4a1_hammer_model_01E10_skeleton.inc"
+};
+
+static u32 _gM4a1HammerModel01E10PartVerts[1] = {
+#include "assets/m4a1_hammer_model_01E10_partVerts.inc"
+};
+
+static SVECTOR _gM4a1HammerModel01E10Verts[70] = {
+#include "assets/m4a1_hammer_model_01E10_verts.inc"
+};
+
+static SVECTOR _gM4a1HammerModel01E10Normals[66] = {
+#include "assets/m4a1_hammer_model_01E10_normals.inc"
+};
+
+static u32 _gM4a1HammerModel01E10Stream[490] = {
+#include "assets/m4a1_hammer_model_01E10_stream.inc"
+};
+
+TmdSource D_m4a1_hammer_8011F778 = {
+    0,
+    3564,
+    0,
+    1,
+    _gM4a1HammerModel01E10PartVerts,
+    _gM4a1HammerModel01E10Verts,
+    _gM4a1HammerModel01E10Normals,
+    _gM4a1HammerModel01E10Skeleton,
+    _gM4a1HammerModel01E10Stream,
+};

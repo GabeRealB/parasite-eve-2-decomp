@@ -402,3 +402,35 @@ void func_m4a1_grenade_8011DE68(Task* task)
 
     states[task->state](task);
 }
+
+static TmdBone _gM4a1GrenadeModel01134Skeleton[1] = {
+#include "assets/m4a1_grenade_model_01134_skeleton.inc"
+};
+
+static u32 _gM4a1GrenadeModel01134PartVerts[1] = {
+#include "assets/m4a1_grenade_model_01134_partVerts.inc"
+};
+
+static SVECTOR _gM4a1GrenadeModel01134Verts[66] = {
+#include "assets/m4a1_grenade_model_01134_verts.inc"
+};
+
+static SVECTOR _gM4a1GrenadeModel01134Normals[62] = {
+#include "assets/m4a1_grenade_model_01134_normals.inc"
+};
+
+static u32 _gM4a1GrenadeModel01134Stream[462] = {
+#include "assets/m4a1_grenade_model_01134_stream.inc"
+};
+
+TmdSource D_m4a1_grenade_8011EA2C = {
+    0,
+    3356,
+    0,
+    1,
+    _gM4a1GrenadeModel01134PartVerts,
+    _gM4a1GrenadeModel01134Verts,
+    _gM4a1GrenadeModel01134Normals,
+    _gM4a1GrenadeModel01134Skeleton,
+    _gM4a1GrenadeModel01134Stream,
+};

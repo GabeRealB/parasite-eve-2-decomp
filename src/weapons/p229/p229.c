@@ -179,3 +179,35 @@ void func_p229_8011DDA0(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
+
+static TmdBone _gP229Model01110Skeleton[1] = {
+#include "assets/p229_model_01110_skeleton.inc"
+};
+
+static u32 _gP229Model01110PartVerts[1] = {
+#include "assets/p229_model_01110_partVerts.inc"
+};
+
+static SVECTOR _gP229Model01110Verts[30] = {
+#include "assets/p229_model_01110_verts.inc"
+};
+
+static SVECTOR _gP229Model01110Normals[24] = {
+#include "assets/p229_model_01110_normals.inc"
+};
+
+static u32 _gP229Model01110Stream[197] = {
+#include "assets/p229_model_01110_stream.inc"
+};
+
+TmdSource D_p229_8011E5E4 = {
+    0,
+    1368,
+    0,
+    1,
+    _gP229Model01110PartVerts,
+    _gP229Model01110Verts,
+    _gP229Model01110Normals,
+    _gP229Model01110Skeleton,
+    _gP229Model01110Stream,
+};

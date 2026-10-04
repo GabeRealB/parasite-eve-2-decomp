@@ -390,3 +390,67 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
     coord->coord.t[2]  += scratch->advance.vz;
     SCRATCH_STACK_RELEASE_BLOCK(_TonfaBatonAttackScratch);
 }
+
+static TmdBone _gTonfaBatonModel010C8Skeleton[1] = {
+#include "assets/tonfa_baton_model_010C8_skeleton.inc"
+};
+
+static u32 _gTonfaBatonModel010C8PartVerts[1] = {
+#include "assets/tonfa_baton_model_010C8_partVerts.inc"
+};
+
+static SVECTOR _gTonfaBatonModel010C8Verts[24] = {
+#include "assets/tonfa_baton_model_010C8_verts.inc"
+};
+
+static SVECTOR _gTonfaBatonModel010C8Normals[20] = {
+#include "assets/tonfa_baton_model_010C8_normals.inc"
+};
+
+static u32 _gTonfaBatonModel010C8Stream[118] = {
+#include "assets/tonfa_baton_model_010C8_stream.inc"
+};
+
+TmdSource D_tonfa_baton_8011E460 = {
+    0,
+    832,
+    0,
+    1,
+    _gTonfaBatonModel010C8PartVerts,
+    _gTonfaBatonModel010C8Verts,
+    _gTonfaBatonModel010C8Normals,
+    _gTonfaBatonModel010C8Skeleton,
+    _gTonfaBatonModel010C8Stream,
+};
+
+static TmdBone _gTonfaBatonModel0136CSkeleton[1] = {
+#include "assets/tonfa_baton_model_0136C_skeleton.inc"
+};
+
+static u32 _gTonfaBatonModel0136CPartVerts[1] = {
+#include "assets/tonfa_baton_model_0136C_partVerts.inc"
+};
+
+static SVECTOR _gTonfaBatonModel0136CVerts[8] = {
+#include "assets/tonfa_baton_model_0136C_verts.inc"
+};
+
+static SVECTOR _gTonfaBatonModel0136CNormals[8] = {
+#include "assets/tonfa_baton_model_0136C_normals.inc"
+};
+
+static u32 _gTonfaBatonModel0136CStream[48] = {
+#include "assets/tonfa_baton_model_0136C_stream.inc"
+};
+
+TmdSource D_tonfa_baton_8011E5EC = {
+    0,
+    312,
+    0,
+    1,
+    _gTonfaBatonModel0136CPartVerts,
+    _gTonfaBatonModel0136CVerts,
+    _gTonfaBatonModel0136CNormals,
+    _gTonfaBatonModel0136CSkeleton,
+    _gTonfaBatonModel0136CStream,
+};
