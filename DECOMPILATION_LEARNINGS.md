@@ -78414,7 +78414,7 @@ noted above: same untyped-offset cause, different opcode.
 ## Write a struct store *before* the loads it shares a base with, or it inherits their priority
 
 **Problem.** `func_actor_548100_80132808` seeds a ramp: two halfword stores to
-`work->field_8` / `field_C`, then four byte reads of one global pointer that
+`work->longLength` / `shortLength`, then four byte reads of one global pointer that
 each feed a byte store. The target interleaves them — `lw %lo(D)(s2)`, the two
 `sh`, then `lbu` / `sb` pairs. Writing the stores last (the natural C order, the
 m2c order, and what the reads' values suggest) puts both `sh` *after* all six
@@ -78451,12 +78451,12 @@ receive are computed above and the byte reads are "closer" to the loads:
 
 ```c
 if (distB < distA) {
-    work->field_8  = distA;        /* these two first: */
-    work->field_C  = distB;        /* no pending read -> priority 1 */
-    work->farFrom  = route->leg[0].nodeA;
-    work->nearFrom = route->leg[1].nodeA;
-    work->farTo    = route->leg[0].nodeB;
-    work->nearTo   = route->leg[1].nodeB;
+    work->longLength    = distA;   /* these two first: */
+    work->shortLength   = distB;   /* no pending read -> priority 1 */
+    work->longRoute     = route->leg[0].nodeA;
+    work->shortRoute    = route->leg[1].nodeA;
+    work->longStopNode  = route->leg[0].nodeB;
+    work->shortStopNode = route->leg[1].nodeB;
 } else { ... }
 ```
 

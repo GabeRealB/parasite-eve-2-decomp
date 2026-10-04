@@ -31,53 +31,58 @@
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
 
-/// Per-instance work block of actor_548100, parked in `Task::work`: the
-/// `memCalloc(0x18, 0)` block
-/// `func_actor_548100_80132420` allocates at spawn and stores at
-/// `Task::work` (0x1C). Reach it with `(Actor548100Work*)task->work`.
+/// Distance the current advances along a route on each frame of the panel's
+/// switch-on animation, in the units of `_Actor548100Edge::length`.
+#define ACTOR_548100_FLOW_SPEED 4
+
+/// Game flag of battery socket `socket`, counted from 1 as the socket hotspots
+/// are (`_Actor548100Work::choice`).
 ///
-/// `step` is the actor's 1-based progress step (0 while unset): the spawner
-/// `func_actor_548100_80132550` seeds it from the `field_8` of the first
-/// `D_actor_548100_801357E8` record whose `field_B` is set, and
-/// `func_actor_548100_80132684` switches on it with nine cases. The game-flag
-/// nibble recording whether a step is done is `step + 0xBE`, which is why the
-/// same `+ 0xBE` shows up at every `GameFlag_GetNibble` / `GameFlag_SetNibble`
-/// site in the overlay. `bit2Slot` is the 2-bit slot this instance occupies in
-/// the current `Gp_Bit2Banks` word (`Gp_GetCurBit2Flag` / `Gp_SetCurBit2Flag`,
-/// seeded with 5 or 4 by `func_actor_548100_80132684`) and `collectBitId` an id
-/// in the `Gp_ClearCollectedBit` space (0x120 for the instance that reaches
-/// `Gp_StartCapSlot` with kind 1). `promptKind` is the picked hotspot's prompt
-/// display mode, copied from it by `func_actor_548100_80132550` and handed to
-/// `func_800D4E78` when `func_actor_548100_80134DBC` re-spawns the prompt.
+/// The four flags are consecutive and end at
+/// `GAME_FLAG_MINE_POWER_PANEL_SOCKET_4`. Each holds 0 while its socket is empty
+/// and otherwise which of the two battery key items sits in it: 1 for item
+/// 0x120, 2 for item 0x12C.
+#define ACTOR_548100_SOCKET_FLAG(socket) (GAME_FLAG_MINE_POWER_PANEL_SOCKET_4 - 4 + (socket))
+
+/// Work block of the task that runs the mine power panel screen, allocated by
+/// its first state and kept at `Task::work`.
 ///
-/// 0x8 and up is the ramp `func_actor_548100_80134FEC` drives: `field_8` is the
-/// period, `field_A` the elapsed counter it advances by 4 and clamps to
-/// `field_8`, `field_C` the value that period ramps to, `field_E` the
-/// interpolated result `field_C * field_A / field_8`, and `field_10` / `field_12`
-/// a second period/elapsed pair on the same shape. `func_actor_548100_80132808`
-/// seeds that ramp from a route record (`Actor548100Route`): `field_8` becomes
-/// the farther of the record's first two legs' distances and `field_C` the
-/// nearer one, so the pair is also what names 0x14-0x17 -- `farFrom` / `farTo`
-/// the node ids of the leg `field_8` measures, `nearFrom` / `nearTo` those of
-/// `field_C`. The block is 0x18 bytes in full.
-typedef struct Actor548100Work {
-    /* 0x00 */ byte pad_0[0x2];
-    /* 0x02 */ s16  step;
-    /* 0x04 */ s16  collectBitId;
-    /* 0x06 */ s8   promptKind;
-    /* 0x07 */ s8   bit2Slot;
-    /* 0x08 */ s16  field_8;
-    /* 0x0A */ s16  field_A;
-    /* 0x0C */ s16  field_C;
-    /* 0x0E */ s16  field_E;
-    /* 0x10 */ s16  field_10;
-    /* 0x12 */ s16  field_12;
-    /* 0x14 */ u8   farFrom;
-    /* 0x15 */ u8   farTo;
-    /* 0x16 */ u8   nearFrom;
-    /* 0x17 */ u8   nearTo;
-} Actor548100Work;
-STATIC_ASSERT_SIZEOF(Actor548100Work, 0x18);
+/// The panel is a circuit diagram with four battery sockets and a switch. The
+/// idle state latches the hotspot the player confirms in `choice` and
+/// `promptKind`, and the states after it open the command prompt for that
+/// hotspot. Accepting the command carries the choice out: an occupied socket
+/// offers its battery back as the room pickup `pickupObject` and is emptied if
+/// the player takes it, the switch is thrown, and the other hotspots only play
+/// a caption. Using a battery key item from the item menu while a socket is
+/// latched leaves the item in `usedItem` instead, and the socket takes it once
+/// the menu has closed.
+///
+/// Throwing the switch plays current flowing out along the legs of the route
+/// record that matches the filled sockets. Each leg's route is measured once,
+/// and the three `...Progress` distances then grow by
+/// `ACTOR_548100_FLOW_SPEED` a frame until every leg has run its length. The
+/// two battery legs are kept ordered by length rather than by socket, and the
+/// shorter one's distance is scaled from the longer one's, so both arrive on
+/// the same frame. An unused leg measures 1, which keeps that scaling defined
+/// and finishes the leg on the first frame.
+typedef struct {
+    u8  unknown_0[2];  // Never read or written by the actor; role unproven
+    s16 choice;        // `ActionPromptHotspot::id` of the confirmed hotspot (0 none, 1-4 the battery sockets, 5 the switch, 6-9 the caption-only parts of the panel)
+    s16 usedItem;      // Battery key item (0x120 or 0x12C) used from the item menu on the socket in `choice` and not yet placed; 0 none
+    s8  promptKind;    // `ActionPromptHotspot::promptKind` of that hotspot, forwarded when its command prompt opens
+    s8  pickupObject;  // Id, in the stage's two-bit object states, of the pickup that hands back the chosen socket's battery (4 for the battery a socket flag records as 1, 5 for 2)
+    s16 longLength;    // Length of the longer battery leg's route, in `_Actor548100Edge::length` units; 1 when that leg is unused
+    s16 longProgress;  // Distance the current has run along that route, 0..`longLength`
+    s16 shortLength;   // Length of the shorter battery leg's route; 1 when that leg is unused
+    s16 shortProgress; // Distance the current has run along that route: `longProgress` scaled by `shortLength / longLength`
+    s16 thirdLength;   // Length of the route record's third leg, the same in every record of a table; 1 when it is unused
+    s16 thirdProgress; // Distance the current has run along that leg, 0..`thirdLength`
+    u8  longRoute;     // Route id of the longer battery leg; 0 when that leg is unused
+    u8  longStopNode;  // Node that leg's current stops at, short of its route's end; 0 when it runs the whole route
+    u8  shortRoute;    // Route id of the shorter battery leg; 0 when that leg is unused
+    u8  shortStopNode; // Node that leg's current stops at; 0 when it runs the whole route
+} _Actor548100Work;
+STATIC_ASSERT_SIZEOF(_Actor548100Work, 0x18);
 
 /// One leg of an `Actor548100Route`: the two node ids `func_actor_548100_80134CB8`
 /// measures a route distance between, in the same node space as
@@ -99,13 +104,13 @@ STATIC_ASSERT_SIZEOF(Actor548100Leg, 0x2);
 ///
 /// `bitA` / `bitB` are 1-based ids, or 0: `func_actor_548100_801330EC` turns
 /// each into `1 << (id - 1)` and compares the pair against the four nibbles
-/// 0xBF-0xC2 -- the per-step flags this actor sets -- stepping a record at a
+/// 0xBF-0xC2 -- the socket flags this actor sets -- stepping a record at a
 /// time until they agree, so a record describes one player state (the two
 /// tables are that state's two routes).
 ///
 /// `func_actor_548100_80132808` measures `leg[0]` and `leg[1]` with
-/// `func_actor_548100_80134CB8` and keeps the farther and the nearer of the two
-/// in the work ramp, and `leg[2]`'s distance as the second period; the record's
+/// `func_actor_548100_80134CB8` and keeps the longer and the shorter of the two
+/// in the work block, with `leg[2]`'s length beside them; the record's
 /// `nodeA`s must be set for `func_actor_548100_80132A14` to walk each leg with
 /// `func_actor_548100_80134AE0`. Its `flag_8` / `flag_9` gate that same body's
 /// two `func_actor_548100_80133BBC` calls.
@@ -900,7 +905,7 @@ static const char D_actor_548100_80131E64[] = "Flow";
 /// State table of the actor's `Task::callback`, `func_actor_548100_801347F8`,
 /// one handler per `Task::state`, which that body copies onto its stack before
 /// indexing. States 0 and 2 are the spawners, 1 and 3 arm and re-spawn the
-/// action prompt, 4 is the `step` switch and 9 the ramp driver.
+/// action prompt, 4 is the `choice` switch and 9 the switch-on animation.
 static const TaskFuncTable11 D_actor_548100_80131E6C = { {
     func_actor_548100_80132420,
     func_actor_548100_80134D88,
@@ -921,11 +926,11 @@ static const TaskFuncTable11 D_actor_548100_80131E6C = { {
 /// action-prompt task and initializes the map UI.
 static void func_actor_548100_80132420(Task* task)
 {
-    Actor548100Work*     work;
+    _Actor548100Work*    work;
     ActionPromptHotspot* rec;
     ActionPromptHotspot* start;
 
-    work = memCalloc(0x18, 0);
+    work = memCalloc(sizeof(_Actor548100Work), 0);
     if (work == NULL) {
         taskKill(task);
         return;
@@ -939,7 +944,7 @@ static void func_actor_548100_80132420(Task* task)
         GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 1);
         GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_SOCKET_4, 1);
     }
-    work->collectBitId = 0;
+    work->usedItem = 0;
     Display_AcquireRef();
     start = D_actor_548100_801357E8;
     for (rec = start; rec->id != ACTION_PROMPT_HOTSPOT_END; rec++) {
@@ -958,7 +963,7 @@ static void func_actor_548100_80132550(Task* task)
 {
     ActionPrompt*        prompt = D_80114D28;
     ActionPromptHotspot* hs     = D_actor_548100_801357E8;
-    Actor548100Work*     work   = (Actor548100Work*)task->work;
+    _Actor548100Work*    work   = task->work;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -968,7 +973,7 @@ static void func_actor_548100_80132550(Task* task)
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    work->step          = 0;
+    work->choice        = 0;
     if (func_actor_548100_801348A4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
@@ -976,7 +981,7 @@ static void func_actor_548100_80132550(Task* task)
                 if (hs->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    work->step          = hs->id;
+                    work->choice        = hs->id;
                     work->promptKind    = hs->promptKind;
                     task->state         = 3;
                     return;
@@ -993,34 +998,34 @@ static void func_actor_548100_80132550(Task* task)
 
 static void func_actor_548100_80132684(Task* task)
 {
-    Actor548100Work* work = (Actor548100Work*)task->work;
-    s32              kind;
-    s32              state;
-    s32              cmd;
+    _Actor548100Work* work = task->work;
+    s32               kind;
+    s32               state;
+    s32               cmd;
 
     D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
     D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
-        switch (work->step) {
+        switch (work->choice) {
             case 1:
             case 2:
             case 3:
             case 4:
-                if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
+                if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
                     Gp_StartCapSlot(6, 0, 0);
                     state = 2;
                 } else if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
                     Gp_StartCapSlot(6, 1, 3);
                     state = 2;
                 } else {
-                    if (GameFlag_GetNibble(work->step + 0xBE) == 1) {
-                        work->bit2Slot = 4;
-                        kind           = 2;
+                    if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 1) {
+                        work->pickupObject = 4;
+                        kind               = 2;
                     } else {
-                        work->bit2Slot = 5;
-                        kind           = 5;
+                        work->pickupObject = 5;
+                        kind               = 5;
                     }
-                    Gp_SetCurBit2Flag(work->bit2Slot, 1);
+                    Gp_SetCurBit2Flag(work->pickupObject, 1);
                     Gp_StartCapSlot(6, 0, kind);
                     state = 7;
                 }
@@ -1048,7 +1053,7 @@ static void func_actor_548100_80132684(Task* task)
                 goto def;
         }
     } else {
-        state = work->collectBitId;
+        state = work->usedItem;
         if (state != 0) {
             state = 6;
         } else {
@@ -1060,13 +1065,13 @@ static void func_actor_548100_80132684(Task* task)
 }
 
 /// Player pressed the action button on this actor's map marker with the marker
-/// route done: record the route leg the ramp runs along and hand the actor on to
-/// state 9.
+/// route done: measure the route legs the current will run along and hand the
+/// actor on to state 9.
 static void func_actor_548100_80132808(Task* arg0)
 {
-    Actor548100Work* work = (Actor548100Work*)arg0->work;
-    s32              distA;
-    s32              distB;
+    _Actor548100Work* work = arg0->work;
+    s32               distA;
+    s32               distB;
 
     if (Gp_CapBusy() == 0) {
         if (Gp_GetCapEventKey() == 0xB) {
@@ -1079,27 +1084,27 @@ static void func_actor_548100_80132808(Task* arg0)
             GameFlag_SetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 1);
             arg0->state = 9;
             func_actor_548100_801330EC();
-            work->field_10 = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[2].nodeA, D_actor_548100_80135B4C->leg[2].nodeB);
-            distA          = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[0].nodeA, D_actor_548100_80135B4C->leg[0].nodeB);
-            distB          = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[1].nodeA, D_actor_548100_80135B4C->leg[1].nodeB);
+            work->thirdLength = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[2].nodeA, D_actor_548100_80135B4C->leg[2].nodeB);
+            distA             = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[0].nodeA, D_actor_548100_80135B4C->leg[0].nodeB);
+            distB             = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[1].nodeA, D_actor_548100_80135B4C->leg[1].nodeB);
             if (distB < distA) {
-                work->field_8  = distA;
-                work->field_C  = distB;
-                work->farFrom  = D_actor_548100_80135B4C->leg[0].nodeA;
-                work->nearFrom = D_actor_548100_80135B4C->leg[1].nodeA;
-                work->farTo    = D_actor_548100_80135B4C->leg[0].nodeB;
-                work->nearTo   = D_actor_548100_80135B4C->leg[1].nodeB;
+                work->longLength    = distA;
+                work->shortLength   = distB;
+                work->longRoute     = D_actor_548100_80135B4C->leg[0].nodeA;
+                work->shortRoute    = D_actor_548100_80135B4C->leg[1].nodeA;
+                work->longStopNode  = D_actor_548100_80135B4C->leg[0].nodeB;
+                work->shortStopNode = D_actor_548100_80135B4C->leg[1].nodeB;
             } else {
-                work->field_8  = distB;
-                work->field_C  = distA;
-                work->farFrom  = D_actor_548100_80135B4C->leg[1].nodeA;
-                work->nearFrom = D_actor_548100_80135B4C->leg[0].nodeA;
-                work->farTo    = D_actor_548100_80135B4C->leg[1].nodeB;
-                work->nearTo   = D_actor_548100_80135B4C->leg[0].nodeB;
+                work->longLength    = distB;
+                work->shortLength   = distA;
+                work->longRoute     = D_actor_548100_80135B4C->leg[1].nodeA;
+                work->shortRoute    = D_actor_548100_80135B4C->leg[0].nodeA;
+                work->longStopNode  = D_actor_548100_80135B4C->leg[1].nodeB;
+                work->shortStopNode = D_actor_548100_80135B4C->leg[0].nodeB;
             }
-            work->field_A  = 0;
-            work->field_E  = 0;
-            work->field_12 = 0;
+            work->longProgress  = 0;
+            work->shortProgress = 0;
+            work->thirdProgress = 0;
             return;
         }
         if (Gp_GetCapEventKey() == 0x15) {
@@ -1112,7 +1117,7 @@ static void func_actor_548100_80132808(Task* arg0)
 
 static void func_actor_548100_80132A14(Task* task)
 {
-    Actor548100Work*    work;
+    _Actor548100Work*   work;
     Actor548100TexRect* rect;
     DR_MODE*            prim;
     Actor548100Route*   route;
@@ -1122,9 +1127,9 @@ static void func_actor_548100_80132A14(Task* task)
 
     i    = 0;
     rect = D_actor_548100_801357C0;
-    work = (Actor548100Work*)task->work;
+    work = task->work;
     for (; i < 4; i++, rect++) {
-        if (GameFlag_GetNibble(i + 0xBF) != 0) {
+        if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(i + 1)) != 0) {
             func_actor_548100_8013461C(rect);
         }
     }
@@ -1173,24 +1178,24 @@ static void func_actor_548100_80132A14(Task* task)
             flagA = 0;
             flagB = 0;
             if (route->leg[2].nodeA != 0) {
-                func_actor_548100_801342D8(route->leg[2].nodeA, route->leg[2].nodeB, work->field_12);
-                flagB = work->field_12 == work->field_10;
+                func_actor_548100_801342D8(route->leg[2].nodeA, route->leg[2].nodeB, work->thirdProgress);
+                flagB = work->thirdProgress == work->thirdLength;
             }
-            if (work->farFrom != 0) {
-                if (work->field_A != work->field_8) {
-                    func_actor_548100_801342D8(work->farFrom, work->farTo, work->field_A);
+            if (work->longRoute != 0) {
+                if (work->longProgress != work->longLength) {
+                    func_actor_548100_801342D8(work->longRoute, work->longStopNode, work->longProgress);
                 } else {
-                    func_actor_548100_80134AE0(work->farFrom, work->farTo);
+                    func_actor_548100_80134AE0(work->longRoute, work->longStopNode);
                 }
             }
-            if (work->nearFrom != 0) {
-                if (work->field_E != work->field_C) {
-                    func_actor_548100_801342D8(work->nearFrom, work->nearTo, work->field_E);
+            if (work->shortRoute != 0) {
+                if (work->shortProgress != work->shortLength) {
+                    func_actor_548100_801342D8(work->shortRoute, work->shortStopNode, work->shortProgress);
                 } else {
-                    func_actor_548100_80134AE0(work->nearFrom, work->nearTo);
+                    func_actor_548100_80134AE0(work->shortRoute, work->shortStopNode);
                 }
             }
-            if (work->field_A == work->field_8 && work->farTo == 0 && work->farFrom != 0) {
+            if (work->longProgress == work->longLength && work->longStopNode == 0 && work->longRoute != 0) {
                 flagA = D_actor_548100_80135B4C->flag_8;
                 flagB = flagB || D_actor_548100_80135B4C->flag_9;
             }
@@ -1253,7 +1258,7 @@ static void func_actor_548100_801330EC(void)
         }
         have = 0;
         for (i = 0; i < 4; i++) {
-            if (GameFlag_GetNibble(i + 0xBF) != 0) {
+            if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(i + 1)) != 0) {
                 have |= 1 << i;
             }
         }
@@ -2042,16 +2047,16 @@ void func_actor_548100_80134728(Task* task)
 
 s32 func_actor_548100_80134778(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    Actor548100Work* work = (Actor548100Work*)arg0->work;
+    _Actor548100Work* work = arg0->work;
 
-    if ((arg2 == 0x120 || arg2 == 0x12C) && ((u16)work->step - 1) < 4U) {
-        work->collectBitId = arg2;
-        if (GameFlag_GetNibble(work->step + 0xBE) != 0 || GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
+    if ((arg2 == 0x120 || arg2 == 0x12C) && ((u16)work->choice - 1) < 4U) {
+        work->usedItem = arg2;
+        if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) != 0 || GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
             return 2;
         }
         return 1;
     }
-    work->collectBitId = 0;
+    work->usedItem = 0;
     return 0;
 }
 
@@ -2266,11 +2271,11 @@ static void func_actor_548100_80134D88(Task* task)
 /// State 3 of the actor's callback, entered once a hotspot is picked: clears
 /// the prompt's highlight and target, re-spawns the prompt at its current
 /// screen position with the picked hotspot's `promptKind`, and moves the task
-/// to the `step` switch in state 4.
+/// to the `choice` switch in state 4.
 static void func_actor_548100_80134DBC(Task* task)
 {
-    ActionPrompt*    prompt = D_80114D28;
-    Actor548100Work* work   = (Actor548100Work*)task->work;
+    ActionPrompt*     prompt = D_80114D28;
+    _Actor548100Work* work   = task->work;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
@@ -2295,36 +2300,36 @@ static void func_actor_548100_80134E0C(Task* arg0)
 
 static void func_actor_548100_80134E94(Task* arg0)
 {
-    Actor548100Work* work = (Actor548100Work*)arg0->work;
-    s32              value;
+    _Actor548100Work* work = arg0->work;
+    s32               value;
 
-    if (GameFlag_GetNibble(work->step + 0xBE) == 0) {
+    if (GameFlag_GetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
         if (GameFlag_GetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
             Gp_StartCapSlot(6, 0, 1);
         } else {
             value = 2;
-            if (work->collectBitId == 0x120) {
+            if (work->usedItem == 0x120) {
                 value = 1;
             }
             SndEvt_EnqueueType6(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
-            GameFlag_SetNibble(work->step + 0xBE, value);
-            Gp_ClearCollectedBit(work->collectBitId);
+            GameFlag_SetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), value);
+            Gp_ClearCollectedBit(work->usedItem);
         }
     } else {
         Gp_StartCapSlot(6, 0, 4);
     }
-    work->collectBitId = 0;
-    arg0->state        = 2;
+    work->usedItem = 0;
+    arg0->state    = 2;
 }
 
 static void func_actor_548100_80134F64(Task* arg0)
 {
-    Actor548100Work* work = (Actor548100Work*)arg0->work;
+    _Actor548100Work* work = arg0->work;
 
     if (Gp_CapBusy() == 0) {
-        if (Gp_GetCurBit2Flag(work->bit2Slot) == 2) {
-            /* The nibble at 0xBE + step is this actor's per-step progress flag. */
-            GameFlag_SetNibble(work->step + 0xBE, 0);
+        if (Gp_GetCurBit2Flag(work->pickupObject) == 2) {
+            // The player took the battery back: empty the socket.
+            GameFlag_SetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), 0);
             GameFlag_SetNibble(GAME_FLAG_110, 1);
             SndEvt_EnqueueType6(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
         }
@@ -2334,16 +2339,16 @@ static void func_actor_548100_80134F64(Task* arg0)
 
 static void func_actor_548100_80134FEC(Task* arg0)
 {
-    Actor548100Work* work = (Actor548100Work*)arg0->work;
+    _Actor548100Work* work = arg0->work;
 
-    work->field_12 += 4;
-    work->field_A  += 4;
-    if (work->field_10 < work->field_12) {
-        work->field_12 = work->field_10;
+    work->thirdProgress += ACTOR_548100_FLOW_SPEED;
+    work->longProgress  += ACTOR_548100_FLOW_SPEED;
+    if (work->thirdLength < work->thirdProgress) {
+        work->thirdProgress = work->thirdLength;
     }
-    if (work->field_A > work->field_8) {
-        work->field_A = work->field_8;
-        if (work->field_12 == work->field_10) {
+    if (work->longProgress > work->longLength) {
+        work->longProgress = work->longLength;
+        if (work->thirdProgress == work->thirdLength) {
             SndEvt_EnqueueType7(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 1);
             if (D_actor_548100_80135B4C->flag_8 != 0) {
                 SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_COMPLETE, 0, 0);
@@ -2355,7 +2360,7 @@ static void func_actor_548100_80134FEC(Task* arg0)
             return;
         }
     }
-    work->field_E = work->field_C * work->field_A / work->field_8;
+    work->shortProgress = work->shortLength * work->longProgress / work->longLength;
 }
 
 static void func_actor_548100_80135124(Task* arg0)

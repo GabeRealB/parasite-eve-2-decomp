@@ -628,8 +628,9 @@ enum {
     /// first opening (first route table), 2 after the cavern CAP event 0xB (second
     /// route table; output 2 then yields 0xBB=3).
     GAME_FLAG_MINE_POWER_PANEL_STAGE = 0x0BE,
-    /// Highest of the panel's per-step nibbles 0xBF-0xC2 (step + 0xBE) that record
-    /// which sockets are filled; preset to 1 when the panel is first opened.
+    /// Highest of the panel's four socket nibbles 0xBF-0xC2 (socket + 0xBE, sockets
+    /// counted from 1) that record which sockets are filled; preset to 1 when the
+    /// panel is first opened.
     GAME_FLAG_MINE_POWER_PANEL_SOCKET_4 = 0x0C2,
     /// Set to 1 when the player throws the mine power panel's switch with a complete
     /// route, cleared on CAP event key 0x15 and by the cavern event; while set the
