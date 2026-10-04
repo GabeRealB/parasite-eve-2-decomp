@@ -123,35 +123,42 @@ static u8 Spu_InitialAdpcmBlock[] = {
 void AsyncCb_Poll(void)
 {
     AsyncCbEntry* entry;
-    u32           flags;
-    s32           ret;
-    s32           mask;
     s8            idx;
     s8            current;
 
     current = AsyncCb_Queue.field_0;
     if (AsyncCb_Queue.field_1 != current) {
         entry = &AsyncCb_Queue.entries[current];
-        flags = entry->field_0.word;
-        if (flags & 1) {
+        if (entry->field_0.active) {
             if (entry->field_8(entry) != 0) {
                 if (entry->field_C != NULL) {
                     entry->field_C(entry);
                 }
-                entry->field_0.word  &= ~1;
-                entry->field_0.word  &= ~4;
-                idx                   = (u8)AsyncCb_Queue.field_0 + 1;
-                AsyncCb_Queue.field_0 = idx;
+                entry->field_0.active    = 0;
+                entry->field_0.cancelled = 0;
+                idx                      = (u8)AsyncCb_Queue.field_0 + 1;
+                AsyncCb_Queue.field_0    = idx;
                 if (idx >= 4) {
                     AsyncCb_Queue.field_0 = 0;
                 }
             }
-        } else if (!((flags >> 2) & 1) || ((flags >> 1) & 1) || (entry->field_10 == NULL) ||
-                   (ret = entry->field_10(entry), mask = ~8,
-                    entry->field_0.word = (entry->field_0.word & mask) | ((ret & 1) * 8), ((ret & 1) == 0))) {
-            entry->field_0.word  &= ~4;
-            idx                   = (u8)AsyncCb_Queue.field_0 + 1;
-            AsyncCb_Queue.field_0 = idx;
+        } else {
+            // A cancelled job that had started gets its cancel callback, again on every
+            // poll for as long as that returns an odd value; one that never ran is
+            // dropped. The two tests stay nested: joined by `&&` they compile to a single
+            // masked compare.
+            if (entry->field_0.cancelled) {
+                if (!entry->field_0.firstPoll) {
+                    if (entry->field_10 != NULL) {
+                        if ((entry->field_0.cancelPending = entry->field_10(entry))) {
+                            return;
+                        }
+                    }
+                }
+            }
+            entry->field_0.cancelled = 0;
+            idx                      = (u8)AsyncCb_Queue.field_0 + 1;
+            AsyncCb_Queue.field_0    = idx;
             if (idx >= 4) {
                 AsyncCb_Queue.field_0 = 0;
             }
@@ -190,17 +197,18 @@ s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks)
     if (next == current) {
         return 0;
     } else {
-        entry                 = &AsyncCb_Queue.entries[writeIdx];
-        entry->field_8        = callbacks->field_8;
-        entry->field_C        = callbacks->field_C;
-        entry->field_10       = callbacks->field_10;
-        entry->field_0.word  |= 1;
-        entry->field_0.word  &= ~4;
-        entry->field_0.word  &= ~8;
-        entry->field_0.word  &= ~0xFF0;
-        entry->field_0.word  |= 2;
-        current               = AsyncCb_Queue.field_1;
-        AsyncCb_Queue.field_1 = next;
+        entry           = &AsyncCb_Queue.entries[writeIdx];
+        entry->field_8  = callbacks->field_8;
+        entry->field_C  = callbacks->field_C;
+        entry->field_10 = callbacks->field_10;
+        // The status bits are the queue's own: the caller supplies only the callbacks.
+        entry->field_0.active        = 1;
+        entry->field_0.cancelled     = 0;
+        entry->field_0.cancelPending = 0;
+        entry->field_0.pollState     = 0;
+        entry->field_0.firstPoll     = 1;
+        current                      = AsyncCb_Queue.field_1;
+        AsyncCb_Queue.field_1        = next;
         return current + 1;
     }
 }
@@ -208,13 +216,12 @@ s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks)
 void AsyncCb_Cancel(s32 arg0)
 {
     AsyncCbEntry* entry;
-    s32           flags;
 
     if ((arg0 << 0x10) != 0) {
         entry = &AsyncCb_Queue.entries[(s16)(arg0 - 1)];
-        flags = entry->field_0.word;
-        if (flags & 1) {
-            entry->field_0.word = (flags & ~1) | 4;
+        if (entry->field_0.active) {
+            entry->field_0.active    = 0;
+            entry->field_0.cancelled = 1;
         }
     }
 }

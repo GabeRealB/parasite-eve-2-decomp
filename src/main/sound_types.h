@@ -479,23 +479,24 @@ typedef struct {
 } SpuVoiceRef;
 STATIC_ASSERT_SIZEOF(SpuVoiceRef, 0x8);
 
-/// Status word of an AsyncCbEntry. The queue manipulates it as a whole word;
-/// the poll callback reads and advances its own fields.
-typedef union {
-    s32 word;
-    struct {
-        u32 : 1;
-        /// Set when the entry is queued, cleared by the poll callback on its
-        /// first call.
-        u32 firstPoll : 1;
-        u32           : 2;
-        /// Step of the poll callback's own state machine, zeroed on queueing.
-        u32 pollState : 8;
-    } bits;
+/// Status bits of an `AsyncCbEntry`, the first word of each slot in the SPU
+/// callback queue.
+///
+/// The queue owns the four flags: it sets them when a job is queued, polled to
+/// completion or cancelled. `firstPoll` and `pollState` are for the job's poll
+/// callback, which finds `firstPoll` set and `pollState` zero on its first call
+/// and keeps its own progress there afterwards. The 20 bits above `pollState`
+/// are written only by the queue's reset.
+typedef struct {
+    u32 active        : 1; // queued and still to be polled
+    u32 firstPoll     : 1; // set on queueing, cleared by the poll callback on its first call
+    u32 cancelled     : 1; // cancelled; cleared when the queue moves past the entry
+    u32 cancelPending : 1; // low bit of the cancel callback's last result: set while it asks to be called again
+    u32 pollState     : 8; // step of the poll callback's own state machine; the queue only zeroes it on queueing
 } AsyncCbFlags;
+STATIC_ASSERT_SIZEOF(AsyncCbFlags, 0x4);
 
 /// Callback-queue slot used by AsyncCb_Queue.entries (stride 0x14).
-/// field_0 flags: bit0 active, bit1 arm, bit2 pending, bit3 result.
 typedef struct _AsyncCbEntry {
     /* 0x00 */ AsyncCbFlags field_0;                            // flags
     /* 0x04 */ s32          field_4;                            // data

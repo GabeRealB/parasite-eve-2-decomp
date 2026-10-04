@@ -2372,13 +2372,13 @@ static s32 CdStream_InitDisc(AsyncCbEntry* entry)
     } sp;
     s32 sync;
 
-    if (entry->field_0.bits.firstPoll) {
-        entry->field_0.bits.firstPoll = 0;
-        entry->field_0.bits.pollState = 1;
+    if (entry->field_0.firstPoll) {
+        entry->field_0.firstPoll = 0;
+        entry->field_0.pollState = 1;
     }
 
-    D_80068B66 = entry->field_0.bits.pollState;
-    switch (entry->field_0.bits.pollState) {
+    D_80068B66 = entry->field_0.pollState;
+    switch (entry->field_0.pollState) {
         case 1:
             if (CdControlB(CdlNop, NULL, sp.result) == 0) {
                 return 0;
@@ -2387,31 +2387,31 @@ static s32 CdStream_InitDisc(AsyncCbEntry* entry)
                 return 0;
             }
             if (sp.result[0] & CdlStatStandby) {
-                entry->field_0.bits.pollState = 2;
+                entry->field_0.pollState = 2;
                 case 2:
                     if (CdControl(CdlGetTN, NULL, sp.result) != 0) {
-                        entry->field_0.bits.pollState = 4;
+                        entry->field_0.pollState = 4;
                         case 3:
                             sync = CdSync(1, sp.result);
                             if (sync == CdlDiskError) {
-                                entry->field_0.bits.pollState = 2;
+                                entry->field_0.pollState = 2;
                             } else if (sync == CdlComplete) {
-                                entry->field_0.bits.pollState = 4;
+                                entry->field_0.pollState = 4;
                                 case 4:
                                     CdIntToPos(0, &sp.loc);
                                     if (CdControl(CdlSeekL, (u8*)&sp.loc, sp.result) != 0) {
-                                        entry->field_0.bits.pollState = 5;
+                                        entry->field_0.pollState = 5;
                                         case 5:
                                             sync = CdSync(1, sp.result);
                                             if ((sync == CdlDiskError) && (sp.result[0] & CdlStatError) &&
                                                 (sp.result[1] & 0x40)) {
-                                                entry->field_0.bits.pollState = 1;
+                                                entry->field_0.pollState = 1;
                                             } else if (sync == CdlComplete) {
-                                                entry->field_0.bits.pollState = 6;
+                                                entry->field_0.pollState = 6;
                                                 case 6:
                                                     sp.mode = -0x60;
                                                     if (CdControl(CdlSetmode, (u8*)&sp.mode, NULL) != 0) {
-                                                        entry->field_0.bits.pollState        = 7;
+                                                        entry->field_0.pollState             = 7;
                                                         CdStream_Runtime.state.settleCounter = 0;
                                                     }
                                             }

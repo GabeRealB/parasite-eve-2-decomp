@@ -95,18 +95,14 @@ static s32 Cd_InitStateMachine(AsyncCbEntry* entry)
         CdlLOC loc;
     } sp;
     s32 sync;
-    u32 flags;
-    u32 temp;
     s16 counter;
 
-    flags = entry->field_0.word;
-    if ((flags >> 1) & 1) {
-        temp                = flags & ~2;
-        temp                = temp & ~0xFF0;
-        entry->field_0.word = temp | 0x10;
+    if (entry->field_0.firstPoll) {
+        entry->field_0.firstPoll = 0;
+        entry->field_0.pollState = 1;
     }
 
-    switch (((u32)entry->field_0.word >> 4) & 0xFF) {
+    switch (entry->field_0.pollState) {
         case 1:
             if (CdControlB(CdlNop, NULL, sp.result) == 0) {
                 return 0;
@@ -115,32 +111,32 @@ static s32 Cd_InitStateMachine(AsyncCbEntry* entry)
                 return 0;
             }
             if (sp.result[0] & CdlStatStandby) {
-                entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x20;
+                entry->field_0.pollState = 2;
                 case 2:
                     if (CdControlB(CdlGetTN, NULL, sp.result) != 0) {
-                        entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x40;
+                        entry->field_0.pollState = 4;
                         case 3:
                             sync = CdSync(1, sp.result);
                             if (sync == CdlDiskError) {
-                                entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x20;
+                                entry->field_0.pollState = 2;
                             } else if (sync == CdlComplete) {
-                                entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x40;
+                                entry->field_0.pollState = 4;
                                 case 4:
                                     CdIntToPos(0, &sp.loc);
                                     if (CdControl(CdlSeekL, (u8*)&sp.loc, sp.result) != 0) {
-                                        entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x50;
+                                        entry->field_0.pollState = 5;
                                         case 5:
                                             sync = CdSync(1, sp.result);
                                             if ((sync == CdlDiskError) && (sp.result[0] & CdlStatError) &&
                                                 (sp.result[1] & 0x40)) {
-                                                entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x10;
+                                                entry->field_0.pollState = 1;
                                             } else if (sync != CdlComplete) {
-                                                entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x60;
+                                                entry->field_0.pollState = 6;
                                                 case 6:
                                                     sp.mode = -0x60;
                                                     if (CdControl(CdlSetmode, (u8*)&sp.mode, NULL) != 0) {
-                                                        D_8006EBB8          = 0;
-                                                        entry->field_0.word = (entry->field_0.word & ~0xFF0) | 0x70;
+                                                        D_8006EBB8               = 0;
+                                                        entry->field_0.pollState = 7;
                                                     }
                                             }
                                     }

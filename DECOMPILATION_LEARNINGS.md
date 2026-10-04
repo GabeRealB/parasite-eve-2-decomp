@@ -19048,35 +19048,44 @@ and v0, v0, v1
 sw  v0, 0(s0)
 ```
 
-writing `flags = entry->field_0; flags = flags & ~1; flags = flags & ~4` reuses the
+writing `flags = word; flags = flags & ~1; flags = flags & ~4` reuses the
 early `flags` register (often `$v1` from the bit tests) and swaps the pair. Use
-in-place RMW instead so the load is a temporary in `$v0`:
+one in-place store per bit instead so the load is a temporary in `$v0`. Where
+the bits are named, as in `AsyncCbFlags`, that is one bitfield assignment each:
 
 ```c
-entry->field_0 &= ~1;
-entry->field_0 &= ~4;
+entry->field_0.active    = 0;
+entry->field_0.cancelled = 0;
 ```
 
-Do **not** fold to `entry->field_0 &= ~1 & ~4` (or `&= ~6`) — the constant folder
-emits a single `li v1, -6`.
+On a plain word it is one `&=` statement per mask. Do **not** fold those to
+`&= ~1 & ~4` (or `&= ~6`) — the constant folder emits a single `li v1, -6`.
 
 When a later path needs `li a0, -9` *before* reloading flags (so `$a0` holds the
-mask and `$v1` the flags), assign the mask to its **own** temporary first — do
-not reuse the early `flags` name, which can pull the initial `flags` load into
-`$a0` (~99.8% with only that reg wrong):
+mask and `$v1` the flags), storing the call's result straight into the named
+bit gives it with no temporary at all, and the assignment's value is the
+`andi v0, v0, 1` the following branch tests:
+
+```c
+if ((entry->field_0.cancelPending = entry->field_10(entry))) {
+    return;
+}
+```
+
+`AsyncCb_Poll` is the pure example. On a plain word, assign the mask to its
+**own** temporary first — do not reuse the early `flags` name, which can pull
+the initial `flags` load into `$a0` (~99.8% with only that reg wrong):
 
 ```c
 /* GOOD — mask is a separate local; early flags stays in $v1 */
-ret  = entry->field_10(entry);
+ret  = fn(entry);
 mask = ~8;
-entry->field_0 = (entry->field_0 & mask) | ((ret & 1) * 8);
+word = (word & mask) | ((ret & 1) * 8);
 
 /* BAD — reusing flags for ~8 reallocates the early load into $a0 */
 flags = ~8;
-entry->field_0 = (entry->field_0 & flags) | ((ret & 1) * 8);
+word  = (word & flags) | ((ret & 1) * 8);
 ```
-
-`AsyncCb_Poll` is the pure example.
 
 ## Reuse arg regs for fixed UV constants; pin f20/next for prim cursor order
 
@@ -65427,9 +65436,11 @@ pointer and rescore.
 ## func_8004DE18: signed ring index and callback-copy scheduling
 
 The callback enqueue matched without pins using the existing `AsyncCbEntry` and
-`AsyncCbQueue` layouts. Separate `entry->field_0 |= 1`, `&= ~4`, `&= ~8`,
-`&= ~0xFF0`, and `|= 2` statements retain the individual masks; one nested
-expression folds the three AND masks before RTL optimization.
+`AsyncCbQueue` layouts. One statement per status bit, in the order
+`entry->field_0.active = 1`, `cancelled = 0`, `cancelPending = 0`,
+`pollState = 0`, and `firstPoll = 1`, retains the individual masks (`| 1`,
+`& ~4`, `& ~8`, `& ~0xFF0`, `| 2`); one nested word expression folds the three
+AND masks before RTL optimization.
 
 For a signed byte used both to compute a wrapped next index and to select the
 current slot, `next = writeIdx; next++;` retains the shared left shift and two
@@ -145031,14 +145042,14 @@ only then `sb v0,g` - with the `andi 0xff` kept even though a byte store
 truncates anyway. The seed built it with two `*(volatile u32*)` reads pinned to
 `v0`/`v1`. The kept `andi` is the tell: combine never folds into an insn that
 touches a `volatile` object, so `g` is `volatile`. The word is a bitfield
-(`(x & ~0xFF0) | 0x20` stores are `p->bits.state = 2`), and
-`g = p->bits.state; switch (p->bits.state)` then gives both loads and lets
+(`(x & ~0xFF0) | 0x20` stores are `entry->field_0.pollState = 2`), and
+`g = entry->field_0.pollState; switch (entry->field_0.pollState)` then gives both loads and lets
 sched1 hoist the second above the store, since a struct member through a
 pointer does not conflict with a fixed-address scalar. With a plain `u32`
 member instead of a bitfield, CSE merged the two loads even across the
 volatile store; with a scalar `u32*`, the store kept the second load below it.
-GCC 2.8 has no anonymous unions: give a union of word and bitfield view a
-member name and update the word users.
+No word view is needed beside the bitfield: every user of the status word,
+the queue's own functions included, matches through the named bits.
 ## A test whose every outcome returns the same value survives only as nested `if`s with one trailing `return` (Fs_WaitDiskSwap, 2026-09-26)
 
 The target tests two status bits, `beqz` to the epilogue on each, then ends
@@ -146986,7 +146997,8 @@ itself matches as well. No word view of the bitfield is needed.
 
 The same conversion needs `&&` over two bits of the word written as nested
 `if`s (the `fold_truthop` entries above): `CdReady_Poll`'s
-`cancelled && !firstPoll` otherwise becomes `(word & 6) == 4`.
+`cancelled && !firstPoll` otherwise becomes `(word & 6) == 4`, and
+`AsyncCb_Poll`'s the same.
 
 ## A `u16` counter fitted to two reads dresses every other one: try the member signed before keeping `(s16)` casts (`_Actor04000Work::stateFrame`, 2026-10-04)
 
