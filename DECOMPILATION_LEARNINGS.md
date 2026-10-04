@@ -1663,7 +1663,7 @@ that folds into `slti` as usual. Calling the existing `Actor00400_TurnToward`
 inline with `(0x2C, 0x100)` instead of expanding it matched exactly.
 
 Passing the point as an argument fixes a second thing at the same time. The
-target computes `&work->field_60C[work->field_65B]` once, before the helper's
+target computes `&work->waypoints[work->waypointIndex]` once, before the helper's
 `coords->composeStamp = 0` store; expanded inline, the store sits between the two reads
 of the waypoint and each recomputes the `lbu`/`lw`/`sll`/`addu` address. An
 argument is evaluated at the call site, which is where the target evaluates it.
@@ -3855,17 +3855,17 @@ with `lh` - three overlays agreeing beats one ambiguous store.
 
 ## Two views of one union field are two loads; CSE will not merge `lhu` with `lw`
 
-`Actor100400Work::flags_62C` is a union with a `u32 word` and a `u16 fields.flags`
+`_Actor00400Work::animStatus` is a union with a `u32 word` and a `u16 fields.flags`
 over the same storage. Naming the narrow view for both tests leaves both reads in
 HImode, and CSE does merge those - one `lhu`, two `andi`s:
 
-    if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.fields.flags & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
+    if ((work->animStatus.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus.fields.flags & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
 
 The target held a *second* load at 0x62C and it was a word load, `andi
 $v0,$v0,0x102` after `lw $v0,0x62C($v1)`, because the second test is on the wide
 view and a `lw` has no common subexpression with the `lhu`:
 
-    if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
+    if ((work->animStatus.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
 
 The symptom is small - the object is short two instructions (`lw`/`nop`) and the
 block addresses shift, so `branch` is non-zero - and it reads like an allocation
@@ -76896,10 +76896,10 @@ back for free:
 ```c
 s32 mode;
 
-mode = work->field_642;
+mode = work->hitTaken;
 if (mode == 1) {
     ...
-    state->field_624 = mode;
+    state->animRequest = mode;
 }
 ```
 
@@ -90679,7 +90679,7 @@ the LCG temporaries and the shared constant `1`.
 state  = arg0->field_1C;   /* v1 */
 state->field_632 = 0x10; ...
 state2 = arg0->field_1C;   /* v0 - a second local, not `state` again */
-state2->field_638 = 1; ...
+state2->state = 1; ...
 ```
 
 Two distinct locals gave two local quantities and 100%. The misleading symptom
@@ -90703,7 +90703,7 @@ Two things were needed.
    `v0` via `regs_someone_prefers` - wrong registers.
 2. **The shared store.** Target cases load `li v0,8` / `li v0,9` and jump to one
    `sh v0,0x638`. A `state` local plus one store matched the layout but made
-   `state` global. Writing `field_638 = 8; ...; return 1;` in each case works:
+   `state` global. Writing `work->state = 8; ...; return 1;` in each case works:
    the post-reload `jump_optimize (insns, 1, 1, 0)` cross-jump (the only pass
    with cross-jumping in 2.8.1) merges the identical tails after allocation.
 
@@ -90714,7 +90714,7 @@ Inputs: `base_25.i` (100.000%) `12238417d88f79205ec5e97a73a05cdde4292130bee920d1
 
 ### Duplicated arms that assign locals: declare the locals inside each arm
 
-`Actor00400_Fn00C84` picks a sound id from `work->pad_65C[0] & 1` and the target
+`Actor00400_Fn00C84` picks a sound id from `work->strideCount & 1` and the target
 keeps both arms whole (`beqz` slot = shared `lui a1`, `j` over the `ori`), i.e.
 the `jump.c` "`x = b; if (...) x = a;`" hoist did not fire. Duplicating the whole
 id/pan/`SndEvt_EnqueueType6` block into both arms (the known lever) fixes the
@@ -90735,14 +90735,14 @@ flipped the order, with no instruction change.
 
 ### A store that reuses a compared register behind a multi-way label is a variable, not CSE
 
-`Actor00400_Fn06F64` tests `field_642 == 1`, then `field_644` against 1..4
+`Actor00400_Fn06F64` tests `hitTaken == 1`, then `hitReaction` against 1..4
 (`beq`/`beq`/`beq`/`bne`), and the joined block stores `sh a1,0x638` - the
-register holding the `field_642` read. Two separate fixes were needed. First,
+register holding the `hitTaken` read. Two separate fixes were needed. First,
 `req == 1 || req == 2 || ...` folds to `addiu -1; sltiu 4` (so does a
 `switch`); a `goto set` chain keeps the four compares. Second, that label has
 several predecessors, so CSE forgets `a1 == 1` and emits `li v0,1` for the
-store. Holding the read in a local (`s32 state = work->field_642;`, then
-`field_638 = state`) reproduces the reuse; an `s16` local instead adds an
+store. Holding the read in a local (`s32 state = work->hitTaken;`, then
+`work->state = state`) reproduces the reuse; an `s16` local instead adds an
 `lhu` re-read.
 
 The surrounding `v0 = 0; ...; v0 = 1; bnez v0` came from an inline helper
@@ -90770,7 +90770,7 @@ holding 0x100 when the comparison is expanded:
 ```c
 static inline void TurnToward(Actor100400* arg0, SVECTOR* target, s32 step, s32 range)
 { ... if (diff > range) ... else if (diff < -range) ... }
-TurnToward(arg0, &work->field_56C, 0x30, 0x100);
+TurnToward(arg0, &work->surfaceSpot, 0x30, 0x100);
 ```
 
 Writing `0x100 < diff` does not work, because fold canonicalizes it back to
@@ -90849,13 +90849,13 @@ static inline void Actor00400_TurnToward(Actor100400* arg0, SVECTOR* target, s32
     ...
     diff = ((angle - yaw) << 20) >> 20;
     if (diff > range) {
-        work->field_556 = angle - step;   /* step folds: addiu $v0,$a0,-0x10 */
+        work->rotation.vy = angle - step;   /* step folds: addiu $v0,$a0,-0x10 */
     } else if (diff < -range) {           /* range does not: li $v1,0x20; slt */
-        work->field_556 = angle + step;
+        work->rotation.vy = angle + step;
     }
 }
 
-Actor00400_TurnToward(arg0, &work->field_5E4, 0x10, 0x20);
+Actor00400_TurnToward(arg0, &work->targetPos, 0x10, 0x20);
 ```
 
 So the asymmetry — one argument folded to an immediate, the other stranded in a
@@ -90976,9 +90976,9 @@ here the register number is diagnostic, and a pin would have hidden the cause.
 written either way; m2c always picks the literal, because CSE erased the load:
 
 ```c
-work->field_638                  = 0xA;
-work->field_614[work->field_65A] = 0xA;              /* m2c */
-work->field_614[work->field_65A] = work->field_638;  /* original */
+work->state                  = 0xA;
+work->stateHistory[work->stateHistoryIndex] = 0xA;              /* m2c */
+work->stateHistory[work->stateHistoryIndex] = work->state;  /* original */
 ```
 
 **Symptom.** `$v0` and `$v1` are swapped between the constant and the
@@ -91014,11 +91014,11 @@ stored, and a store through a *different* pointer to the same object sits
 between the two:
 
 ```c
-work2->field_638                   = 0xA;
-work2->field_614[work2->field_65A] = work2->field_638;   /* folded */
+work2->state                   = 0xA;
+work2->stateHistory[work2->stateHistoryIndex] = work2->state;   /* folded */
 if (...) {
-    state->field_638                   = 4;              /* state aliases work2 */
-    work2->field_614[work2->field_65A] = work2->field_638;  /* NOT folded */
+    state->state                   = 4;              /* state aliases work2 */
+    work2->stateHistory[work2->stateHistoryIndex] = work2->state;  /* NOT folded */
 }
 ```
 
@@ -91036,7 +91036,7 @@ adjacent to its store, which `cse` folds to `(const_int 10)` and `flow` deletes.
 
 **Fix.** Hold the value in a variable across the aliasing store. Beware that
 the variable must carry the value the *original* re-read would have seen — here
-4, written by `state->field_638 = 4`, not the earlier 0xA — so this is a
+4, written by `state->state = 4`, not the earlier 0xA — so this is a
 semantic decision, not a formatting one.
 
 **Corollary, for reading a permuter candidate.** These effects are separable
@@ -93055,7 +93055,7 @@ Inputs: `base_15.i`
 symbol rendering; the unscoped build matches).
 ## `REG_N_REFS` is weighted by loop depth, so a `do { } while (0)` reorders global allocation (Actor00400_Fn07518, 2026-09-16)
 
-Two pseudos swapped hard registers against the target: a `Actor100400Work*`
+Two pseudos swapped hard registers against the target: a `_Actor00400Work*`
 came out in `$a0` where the target had `$v1`, and the `s16` it compared against
 four constants came out in `$v1` where the target had `$a0`. No `insert`,
 `delete`, `branch` or `reorder` - `regs=11` and nothing else.
@@ -93084,7 +93084,7 @@ of everything it encloses:
 ```c
 set:
     do {
-        work->field_638 = state;
+        work->state = state;
         work->field_63A = 0;
     } while (0);
 other:
@@ -93123,7 +93123,7 @@ emits the `plus` with its operands in the order the source evaluates them, and
 `addsi3_internal` prints them in that order - so the choice is visible in the
 object and, worse, it moves the allocation.
 
-`record = &work->field_608[index];` evaluated the base load first:
+`record = &work->surfaceSpots[index];` evaluated the base load first:
 
 ```
 (insn 55 (set (reg 101) (mem/s:SI (plus (reg 83) (const_int 1544)))))   ; base
@@ -93135,7 +93135,7 @@ field it then loads in `$v1`. Target had `addu v1,v1,v0`, the pointer in `$v1`
 and the load in `$a0`. Writing the element address the other way round -
 
 ```c
-record = (Actor100400Record*)(index * sizeof(Actor100400Record) + (u32)work->field_608);
+record = (Actor100400Record*)(index * sizeof(Actor100400Record) + (u32)work->surfaceSpots);
 ```
 
 - put the shift first, `(plus scaled base)`, and the whole allocation fell out
@@ -93236,7 +93236,7 @@ other block; the source has to compute the address unconditionally:
 ```c
 player = gPlayerActorTasks[0];
 joint  = &coord[1];          /* dead when player == NULL, and still hoisted */
-work->field_54C = coord->coord.t[0];
+work->prevRootPos.vx = coord->coord.t[0];
 ...
 if (player != NULL) {
     ActorCoordToView(joint, &view);
@@ -93312,7 +93312,7 @@ top:
 ```
 .Lloop:
     lh   $a1, 0x18($s0)
-    lw   $v0, 0x608($s1)        # work->field_608
+    lw   $v0, 0x608($s1)        # work->surfaceSpots
     ...
     beq  $a0, $v0, .Ltail
     ...
@@ -93387,7 +93387,7 @@ dependence then drags all three `lw` below them. Both must be declaration
 initializers, pointers first:
 
 ```c
-Actor100400Work* work = arg0->field_1C;
+_Actor00400Work* work = arg0->field_1C;
 Actor100400Obj*  obj  = arg0->field_20;
 Actor100400Ctx*  ctx  = arg0->field_2C;
 void (*fns[2])(Actor100400*) = { Actor00400_Fn08A88, Actor00400_Fn08B40 };
@@ -93434,7 +93434,7 @@ Putting all three in `static inline` helpers, each declaring its own `SVECTOR`,
 gives the target exactly — one slot for all three expansions:
 
 ```c
-static inline void Actor00400_SpawnRing(Actor100400* arg0, Actor100400Work* work,
+static inline void Actor00400_SpawnRing(Actor100400* arg0, _Actor00400Work* work,
                                         GfxCoord* coord)
 {
     SVECTOR vec;    /* shares sp+0x10 with Actor00400_TurnToward's vec */
@@ -93892,7 +93892,7 @@ is still live when CSE turns the second read into a copy and `combine` can no
 longer fold:
 
 ```c
-Actor100400Work* work   = arg0->field_1C;
+_Actor00400Work* work   = arg0->field_1C;
 GfxCoord*   coord0 = arg0->field_2C->field_8;   /* temp = 0x2C, then 0x8 */
 Actor100400Obj*  obj    = arg0->field_20;
 Actor100400Ctx*  ctx    = arg0->field_2C;            /* CSE -> move s6, v0 */
@@ -94043,11 +94043,11 @@ literal in an `SImode` quantity, which hashes separately from the `QImode` one:
 
 ```c
 static __inline__ void Actor00400_AttachHead(Actor100400* arg0, Actor100400Obj* obj,
-                                             Actor100400Work* work, s32 hide)
+                                             _Actor00400Work* work, s32 hide)
 {
     obj->field_18   = &arg0->field_2C->field_8[1];
     obj->field_14   = 0;
-    work->field_661 = hide;   /* SImode 1, stored through a QImode subreg */
+    work->gridCollision = hide;   /* SImode 1, stored through a QImode subreg */
 }
 ```
 
@@ -94078,10 +94078,10 @@ callee-saved register comes out permuted.
 a later region needs it:
 
 ```c
-arg0->field_1C = memCalloc(sizeof(Actor100400Work), 0);
+arg0->field_1C = memCalloc(sizeof(_Actor00400Work), 0);
 work           = arg0->field_1C;          /* cse -> move s3, v0 */
 ...
-Actor100400Work* work = arg0->field_1C;   /* inside the helper: move a3, s3 */
+_Actor00400Work* work = arg0->field_1C;   /* inside the helper: move a3, s3 */
 ```
 
 cse replaces each load with the value it knows was stored, which is a
@@ -104032,7 +104032,7 @@ at all. Two matched siblings in the same TU pin both forms down:
 
 ```c
 /* Actor00400_Fn08908: direct branches, no materialization (matched) */
-if ((work->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+if ((work->animStatus.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
     return 1;
 }
 return 0;
@@ -104042,7 +104042,7 @@ return 0;
 /* Actor00400_Fn095D8: the phi form, condition sequence byte-identical
    to the already-matched Actor00400_Fn04414 */
 w2 = arg0->field_1C;
-if ((w2->flags_62C.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (w2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+if ((w2->animStatus.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (w2->animStatus.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
 ## A naming pass makes twins invisible to `overlay_dup_index.py find` — the wildcard is name-shaped
 
 `Actor04400_Fn06C70` (USA/actors/lib) came back as `same body: 1 copies` — itself
@@ -104253,7 +104253,7 @@ Two further details this shape pins down:
   write and is the wrong answer: CSE merges the loads into one register and the
   `andi` pair becomes `and` + `sltu` (43.65%, `branch=2 regs=5 insert=3 delete=8`).
 * **The work pointer is loaded twice on purpose.** `work = arg0->field_1C;
-  work->field_660 = 1;` invalidates the cached `index->field_1C`, so the
+  work->neckRetracted = 1;` invalidates the cached `index->field_1C`, so the
   condition needs its own `work2 = index->field_1C;`. That is what puts the
   reloaded pointer in `$v1` while `$a1` still holds the first one for the store
   at the end; a single pointer variable links to one load and a different
@@ -104267,8 +104267,8 @@ Scratch `nonmatchings/Actor00400_Fn095D8-vacuum`.
 
 ## An m2c temp and the natural `+=` create a compound assignment's loads in opposite order, and that alone places the store's reload
 
-`Actor00400_Fn0962C` (actors, `actor_100400_fn0805c`) copies `field_56C` into
-`field_574`, then lerps two `coord.t[]` words a quarter of the way toward the
+`Actor00400_Fn0962C` (actors, `actor_100400_fn0805c`) copies `surfaceSpot` into
+`emergePos`, then lerps two `coord.t[]` words a quarter of the way toward the
 copied values. Both the seed and the match are 37 instructions with the same
 histogram, and the seed scored 96.486% (`stack=0 branch=0 regs=2 reorder=2`):
 its whole diff was four lines - `sh zero,0x636($a1)` and the reload
@@ -104285,7 +104285,7 @@ M2C_FIELD(temp_a2, s32 *, 0x18) =
 Writing the same thing as one compound assignment is the match:
 
 ```c
-coord->coord.t[0] += ((s16)work->field_574.vx - coord->coord.t[0]) >> 2;  /* 100% */
+coord->coord.t[0] += ((s16)work->emergePos.vx - coord->coord.t[0]) >> 2;  /* 100% */
 ```
 
 The two forms emit the same four arithmetic instructions, and the difference is
@@ -104334,9 +104334,9 @@ write it -
 
 ```c
     if (diff > range) {
-        work->field_556 = angle - arg2;
+        work->rotation.vy = angle - arg2;
     } else if (diff < -range) {
-        work->field_556 = angle + arg2;
+        work->rotation.vy = angle + arg2;
     }
 ```
 
@@ -104354,7 +104354,7 @@ byte-identical output, and the reference counts are what they are.
 
 ```c
     if ((diff > range) || (diff < -range)) {
-        work->field_556 = (diff > range) ? (angle - arg2) : (angle + arg2);
+        work->rotation.vy = (diff > range) ? (angle - arg2) : (angle + arg2);
     }
 ```
 
@@ -104419,11 +104419,11 @@ the copy:
 ```c
     work   = arg0->field_1C;
     active = 0;
-    if (work->field_640 >= 0xDAC) {
+    if (work->targetDistance >= 0xDAC) {
         goto set;               /* the seed had this goto inside the oob body */
     }
     done = 0;
-    if ((u32)(work->field_634 - 0x600) >= 0x400U) { ...; active = 1; ... }
+    if ((u32)(work->targetBearing - 0x600) >= 0x400U) { ...; active = 1; ... }
 set:
     done = active;
     if (done == 0) { ... }
@@ -104465,7 +104465,7 @@ Scratch `nonmatchings/Actor00400_Fn09124-vacuum`.
 
 The other direction of the `reload_cse` constant-substitution sections: this
 time the target wants the **immediate** and the candidate produced the register.
-`Actor00400_Fn08814`'s third state arm is `w->field_62A++`, and m2c hoists the
+`Actor00400_Fn08814`'s third state arm is `w->animFrames++`, and m2c hoists the
 tail loop's `var_s0 = 1` above the three-way state chain (its `goto block_9`
 rendering). That puts the SImode `(set (reg/v:SI 83) (const_int 1))` in the same
 straight-line region as the increment, so `reload_cse_simplify_operands` finds
@@ -104503,8 +104503,8 @@ Scratch `nonmatchings/Actor00400_Fn08814-vacuum`.
 
 ## A block-local pointer can tie a load to its own base register; a global allocno never can
 
-`Actor00400_Fn097C8` tests `work->field_642` before a sound effect, then reloads
-`index->field_1C` for the `flags_62C` test and again inside the store. Written as
+`Actor00400_Fn097C8` tests `work->hitTaken` before a sound effect, then reloads
+`index->field_1C` for the `animStatus` test and again inside the store. Written as
 one `work` variable, that is one pseudo with three definitions and ranges in
 blocks 0, 2, 3 and 7 - a global allocno, `dies in 3 places`, single home `$v1`.
 The first load then came out `lw v1,0x1C(s2)` / `lh v0,0x642(v1)`, against the
@@ -130785,7 +130785,7 @@ the right 71 instructions and scores 97.18%, leftover `insert = delete = 1`:
 ```
 
 The pre-branch `li $s0, 1` puts the constant 1 in a register *before* the
-`field_62A++`, so `cse` finds a register equivalent for the literal and folds
+`animFrames++`, so `cse` finds a register equivalent for the literal and folds
 the `addiu` into an `addu`. The duplicate assignment is the whole cause.
 
 The counter is assigned **once**, after the whole `if`/`else if` chain, and

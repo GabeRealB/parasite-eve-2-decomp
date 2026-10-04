@@ -1,6 +1,6 @@
 /* Part of the Diver library; see diver.h. */
 
-/// Sub-state 0 of state 7: requests clip 0xA (kind 1, blend 6, step 0x10),
+/// Sub-state 0 of state 7: requests a blend into clip 0xA (6 frames, normal rate),
 /// plays voice cue 6 and moves on to sub-state 1.
 void diverState7Enter(Task* arg0)
 {
@@ -10,9 +10,9 @@ void diverState7Enter(Task* arg0)
 
     work              = arg0->work;
     work->animBlend   = 6;
-    work->animStep    = 0x10;
+    work->animStep    = ANIMATION_RATE_ONE;
     work->animClip    = 0xA;
-    work->animRequest = 1;
+    work->animRequest = DIVER_ANIM_REQUEST_BLEND;
     sound             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
     pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));

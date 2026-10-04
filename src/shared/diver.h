@@ -10,8 +10,9 @@
  *
  * Each package names its work block `DiverWork` before including the
  * fragments that reach it; the two layouts differ, but both carry the
- * animation request (`animRequest`, `animClip`, `animStep`, `animBlend`,
- * `animPlaying`) and the sub-state index `subState` the shared states use.
+ * animation request (`animRequest`, a `DIVER_ANIM_REQUEST_*`, with `animClip`,
+ * `animStep`, `animBlend` and `animPlaying`) and the sub-state index
+ * `subState` the shared states use.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -26,6 +27,14 @@
 #include "main/task_types.h"
 
 #include "gameplay/actor.h"
+
+/// Values of `DiverWork::animRequest`, which each package's animation step
+/// consumes once a frame.
+enum {
+    DIVER_ANIM_REQUEST_BLEND   = 1, // seek the slots to `animClip`, blending over `animBlend` frames
+    DIVER_ANIM_REQUEST_RESET   = 2, // restart the slots on `animClip`
+    DIVER_ANIM_REQUEST_PLAYING = 3  // the request has been applied
+};
 
 /// The head of a Diver's strike or marker child work block, which each package
 /// extends: the collision body the spawn state links and the teardown unlinks.

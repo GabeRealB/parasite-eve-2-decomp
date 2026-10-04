@@ -13,6 +13,6 @@ void diverRestartClip(Task* arg0)
         animationResetSlot(&work->anim, i, work->animClip);
         work->slots[i].rate = work->animStep;
         i++;
-    } while (i < 0xF);
+    } while (i < ARRAY_SIZE(work->slots));
     work->animPlaying = (u16)work->animClip;
 }
