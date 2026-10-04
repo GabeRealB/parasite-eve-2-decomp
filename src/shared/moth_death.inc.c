@@ -41,7 +41,7 @@ void mothDeath(Enemy* arg0, Task* arg1)
                     arg1->extra.tmd->flags                 = TMD_OBJECT_SEMI_TRANS;
                     gRandomLcgState                        = seed;
                     work->field_2E2                        = 0x1000;
-                    work->field_22C.matrix                 = coord->coord;
+                    work->savedRootMtx                     = coord->coord;
                     if (!(rnd & 0x100)) {
                         angle = -angle;
                     }
@@ -66,7 +66,7 @@ void mothDeath(Enemy* arg0, Task* arg1)
                     rot->vy         = work->field_2DC;
                     rot->vz         = 0;
                     RotMatrix(rot, &coord->coord);
-                    work->field_22C.matrix.t[1] += 0x18;
+                    work->savedRootMtx.t[1] += 0x18;
                     if ((s16)(work->field_2E0 / 3) < 8) {
                         mothDrawBurst(arg1);
                     } else {

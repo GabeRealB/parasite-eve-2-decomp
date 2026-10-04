@@ -37,7 +37,7 @@ void mothDrawBurst(Task* arg0)
         sc->v[0].vx = 0;
         sc->v[0].vy = 0;
         sc->v[0].vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFFF;
-        RotMatrix(&sc->v[0], &work->field_22C.quad.rotation);
+        RotMatrix(&sc->v[0], &work->burstRollMtx);
     }
     size        = 0x7800 / sc->otz;
     x           = sc->sxy & 0xFFFF;
@@ -55,7 +55,7 @@ void mothDrawBurst(Task* arg0)
     sc->v[3].vy = size;
     sc->v[3].vz = 0;
     for (i = 0; i < 4; i++) {
-        gte_SetRotMatrix(&work->field_22C.quad.rotation);
+        gte_SetRotMatrix(&work->burstRollMtx);
         v = &sc->v[i];
         gte_ldv0(v);
         gte_rtv0();

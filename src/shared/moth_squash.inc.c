@@ -21,7 +21,7 @@ void mothSquash(Task* arg0)
     scratch->scale.vx                    = ONE;
     scratch->scale.vy                    = (s32)work->field_2E2;
     scratch->scale.vz                    = ONE;
-    coord->coord                         = work->field_22C.matrix;
+    coord->coord                         = work->savedRootMtx;
     scratch->matrix.rotationWords.m00M01 = ONE;
     scratch->matrix.rotationWords.m02M10 = 0;
     scratch->matrix.rotationWords.m11M12 = ONE;

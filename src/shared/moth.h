@@ -25,20 +25,6 @@
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 
-/// The 0x50-byte block at 0x22C: a `MATRIX` copied into the coordinate, or
-/// three contact `WorldCollisionContact`s after an 8-byte header.
-typedef union MothContactStorage {
-    MATRIX matrix;
-    struct {
-        byte                  pad_0[8];
-        WorldCollisionContact recs[3];
-    } contacts;
-    struct {
-        /* 0x00 */ byte   pad_0[0x20];
-        /* 0x20 */ MATRIX rotation;
-    } quad;
-} MothContactStorage;
-
 /// The moth's work block: the 0x2F4 bytes `mothSpawn` allocates with
 /// `memCalloc` and stores in the task's work slot. It opens with the animation
 /// context, its four slots and pose buffer, then the two matrices handed to
@@ -56,7 +42,9 @@ typedef struct MothWork {
     /* 0x1EC */ WorldCollisionBody    obj1EC;
     /* 0x20C */ WorldCollisionContact rec20C;
     /* 0x224 */ EffectSpawnArg        field_224;
-    /* 0x22C */ MothContactStorage    field_22C;
+    /* 0x22C */ MATRIX                savedRootMtx; // root transform when the death began, sunk 0x18 a frame; each squash frame rescales a copy of it
+    /* 0x24C */ MATRIX                burstRollMtx; // rotation of the death burst sprite's quad: a random roll about Z picked on the death's first frame
+    /* 0x26C */ byte                  field_26C[0x10];
     /* 0x27C */ byte                  field_27C[0x30];
     /* 0x2AC */ s32                   field_2AC;
     /* 0x2B0 */ s32                   field_2B0;
