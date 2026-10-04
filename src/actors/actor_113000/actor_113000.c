@@ -35,29 +35,46 @@ extern GpuImageUpload D_actor_113000_8013AB6C[2];
 extern AnimationSet*  D_actor_113000_8013AB8C[9];
 extern AnimationSet** D_actor_113000_8013ABB0[1];
 
-/// Work block this actor allocates in its spawn handler and parks in
-/// `Task::work`. It is fronted by an `AnimationContext`: the start-preset handler
-/// passes the block itself, its `slots` array and the pose buffer after them
-/// to `animationInitContext`, and the per-frame tick walks slots 1..0x13. `light` /
-/// `color` are the matrices the TMD object's `lightMtx` / `colorMtx` are
-/// pointed at.
-typedef struct Actor113000Work {
-    /* 0x000 */ ActorAnimRig20 rig;
-    /// Raised once a preset has started the slots; the per-frame tick only
-    /// advances them while it is set.
-    /* 0x474 */ s32    field_474;
-    /* 0x478 */ s32    field_478; ///< -1 out of the spawn handler
-    /* 0x47C */ s32    field_47C; ///< -1 out of the spawn handler
-    /* 0x480 */ MATRIX light;
-    /* 0x4A0 */ MATRIX color;
-    /* 0x4C0 */ s16    field_4C0; ///< upload countdown reload; set to 1 alongside `field_4C4` by mode 3
-    /* 0x4C2 */ u16    field_4C2; ///< upload countdown the per-frame state runs down, reloaded from `field_4C0` on underflow
-    /* 0x4C4 */ s16    field_4C4; ///< upload step 1..3; set to 1 alongside `field_4C0` by mode 3
-    /* 0x4C6 */ s16    field_4C6; ///< cleared by the spawn handler
-    /* 0x4C8 */ s16    field_4C8; ///< countdown to `Tmd_FreeBuffers`, idle below 0; -1 out of the spawn handler, 2 from display mode 2
-    /* 0x4CA */ byte   pad_4CA[0x2];
-} Actor113000Work;
-STATIC_ASSERT_SIZEOF(Actor113000Work, 0x4CC);
+/// `_Actor113000Work::blinkStep`: the eye image the blink posts next.
+///
+/// A blink posts the closed, half-open and open eyes in turn, so the eyes are
+/// seen opening. The request that starts one posts the half-open eyes itself,
+/// which is the closing half of the blink.
+enum {
+    ACTOR_113000_BLINK_NONE   = 0, // No blink in progress
+    ACTOR_113000_BLINK_CLOSED = 1, // The closed eyes are posted next
+    ACTOR_113000_BLINK_HALF   = 2, // The half-open eyes are posted next
+    ACTOR_113000_BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
+};
+
+/// Work block of the package's one actor, the hurt Rupert Broderick body a
+/// room script places and plays clips on.
+///
+/// The task's spawn state allocates it zeroed at its full size and keeps it at
+/// `Task::work` for the task's life. It opens with the rig of the twenty-part
+/// body model and what that rig is playing, kept as words: a play request
+/// rebinds the rig when its bank differs from `bank`, seeds the slots with its
+/// clip and records it in `animId`. The spawn sets both ids to
+/// `ACTOR_MODEL_STATE_NONE`, so the first request always binds its bank. The
+/// model object borrows `light` and `color` for as long as the block lives.
+///
+/// What follows the matrices is the blink that swaps the eye band of the
+/// face texture, and the delayed free of the model's buffers once the model
+/// has been hidden.
+typedef struct {
+    ActorAnimRig20 rig;             // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    s32            ticking;         // Set once a clip has been applied, never cleared: the slots are ticked each frame from then on
+    s32            animId;          // Clip the slots were last seeded with, within `bank`; recorded, and no request is skipped for repeating it
+    s32            bank;            // Index, in the package's animation bank table, of the bank the rig is bound to
+    MATRIX         light;           // Light-direction matrix lent to the model object
+    MATRIX         color;           // Light-colour matrix lent to the model object
+    s16            blinkFrameDelay; // Value `blinkCountdown` restarts from after the closed and the half-open eyes: each is shown for this many ticks plus one
+    s16            blinkCountdown;  // Ticks left before the blink posts its next eye image, which the tick taking it below 0 does; not reset as a blink starts or ends
+    s16            blinkStep;       // Eye image the blink posts next (0 `ACTOR_113000_BLINK_NONE`, else `_CLOSED`, `_HALF` or `_OPEN`)
+    s16            field_4C6;       // Zeroed again by the spawn and never read; role unproven
+    s16            freeCountdown;   // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+} _Actor113000Work;
+STATIC_ASSERT_SIZEOF(_Actor113000Work, 0x4CC);
 
 /// The actor's three texture upload lists selected by the message handler.
 /// Each contains a 32-word by 16-row copy and a terminator; `pixels` points at
@@ -1119,48 +1136,50 @@ TaskMessageEntry D_actor_113000_8013ABC0[5] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_113000_80132398 },
     { 2016, func_actor_113000_80132474 },
     { TASK_MESSAGE_TABLE_END, NULL },
-}; /// Texture-upload state: runs the countdown at `field_4C2` down one a frame
+};
 
 static void func_actor_113000_80131E30(Task* arg0);
 
-/// while `field_4C4` names the upload step in progress, and on the frame it
-/// underflows posts that step's image over the 0x20x0x10 rect at y 0x28 --
-/// reloading the countdown from `field_4C0` and advancing `field_4C4` for
-/// steps 1 and 2, or clearing it for step 3, which ends the sequence until
-/// mode 3 of the message-0x7E0 handler restarts it. Step 0 does nothing.
+/// Blink state of the actor: runs `_Actor113000Work::blinkCountdown` down one
+/// a frame while `blinkStep` names the eye image due next, and on the frame it
+/// goes below zero posts that image over the 0x20x0x10 rect at y 0x28 --
+/// restarting the countdown from `blinkFrameDelay` and advancing `blinkStep`
+/// after the closed and half-open eyes, or clearing `blinkStep` after the open
+/// eyes, which ends the blink until mode 3 of the message-0x7E0 handler starts
+/// another. With no blink in progress it does nothing.
 static void func_actor_113000_80131E30(Task* arg0)
 {
-    Actor113000Work* work;
-    RECT             rect;
+    _Actor113000Work* work;
+    RECT              rect;
 
-    work   = (Actor113000Work*)arg0->work;
+    work   = arg0->work;
     rect.x = 0;
     rect.y = 0x28;
     rect.w = 0x20;
     rect.h = 0x10;
 
-    switch (work->field_4C4) {
-        case 1:
-            work->field_4C2 = work->field_4C2 - 1;
-            if ((s16)work->field_4C2 < 0) {
+    switch (work->blinkStep) {
+        case ACTOR_113000_BLINK_CLOSED:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
                 Gp_LoadActorImage(arg0, &D_actor_113000_8013AB6C[0], &rect);
-                work->field_4C2 = work->field_4C0;
-                work->field_4C4 = work->field_4C4 + 1;
+                work->blinkCountdown = work->blinkFrameDelay;
+                work->blinkStep      = work->blinkStep + 1;
             }
             break;
-        case 2:
-            work->field_4C2 = work->field_4C2 - 1;
-            if ((s16)work->field_4C2 < 0) {
+        case ACTOR_113000_BLINK_HALF:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
                 Gp_LoadActorImage(arg0, &D_actor_113000_8013A74C[0], &rect);
-                work->field_4C2 = work->field_4C0;
-                work->field_4C4 = work->field_4C4 + 1;
+                work->blinkCountdown = work->blinkFrameDelay;
+                work->blinkStep      = work->blinkStep + 1;
             }
             break;
-        case 3:
-            work->field_4C2 = work->field_4C2 - 1;
-            if ((s16)work->field_4C2 < 0) {
+        case ACTOR_113000_BLINK_OPEN:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
                 Gp_LoadActorImage(arg0, &D_actor_113000_8013A32C[0], &rect);
-                work->field_4C4 = 0;
+                work->blinkStep = ACTOR_113000_BLINK_NONE;
             }
             break;
     }
@@ -1183,24 +1202,24 @@ void func_actor_113000_80131F38(Task* task)
 /// light/color rebuilder. The retained shadow branch cannot run with this bit set.
 static void func_actor_113000_80131F90(Task* task)
 {
-    Actor113000Work* work;
-    TmdObject*       extra;
-    VECTOR3          pos;
-    u16              flags;
+    _Actor113000Work* work;
+    TmdObject*        extra;
+    VECTOR3           pos;
+    u16               flags;
 
     extra = task->extra.tmd;
-    work  = memCalloc(0x4CC, 0);
+    work  = memCalloc(sizeof(_Actor113000Work), 0);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
     }
-    task->work      = work;
-    work->field_478 = -1;
-    work->field_47C = -1;
-    work->field_4C6 = 0;
-    work->field_4C8 = -1;
-    flags           = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    extra->flags    = flags;
+    task->work          = work;
+    work->animId        = ACTOR_MODEL_STATE_NONE;
+    work->bank          = ACTOR_MODEL_STATE_NONE;
+    work->field_4C6     = 0;
+    work->freeCountdown = -1;
+    flags               = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    extra->flags        = flags;
     if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
@@ -1213,22 +1232,22 @@ static void func_actor_113000_80131F90(Task* task)
 }
 
 /// Per-frame tick, run after the model has been published: ticks the animation
-/// slots while the preset bank `field_474` marks live, draws the ground shadow
-/// under model part 1 while active drawing is enabled, rebuilds that part's
-/// world matrix while the session's 0x4D is set, runs the texture-upload
-/// state, and counts the buffer free at `field_4C8` down to zero.
+/// slots once a play request has set `_Actor113000Work::ticking`, draws the
+/// ground shadow under model part 1 while active drawing is enabled, rebuilds
+/// that part's world matrix while the session's 0x4D is set, runs the blink,
+/// and counts `freeCountdown` down to the buffer free.
 static void func_actor_113000_80132070(Task* task)
 {
-    Actor113000Work* work;
-    TmdObject*       extra;
-    GfxCoord*        coords;
-    VECTOR3          pos;
-    s32              i;
+    _Actor113000Work* work;
+    TmdObject*        extra;
+    GfxCoord*         coords;
+    VECTOR3           pos;
+    s32               i;
 
-    work  = (Actor113000Work*)task->work;
+    work  = task->work;
     extra = task->extra.tmd;
-    if (work->field_474 != 0) {
-        for (i = 1; i < 0x14; i++) {
+    if (work->ticking != 0) {
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
             animationTickSlot(&work->rig.anim, i);
         }
     }
@@ -1244,11 +1263,11 @@ static void func_actor_113000_80132070(Task* task)
         func_800D7A9C(extra, (VECTOR*)coords[1].workm.t, 0, 3);
     }
     func_actor_113000_80131E30(task);
-    if (work->field_4C8 >= 0) {
-        if (work->field_4C8 == 0) {
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
             Tmd_FreeBuffers(extra);
         }
-        work->field_4C8--;
+        work->freeCountdown--;
     }
 }
 
@@ -1257,11 +1276,11 @@ static void func_actor_113000_80132070(Task* task)
 /// translation to the ground-shadow helper.
 static void func_actor_113000_801321A8(Task* task)
 {
-    Actor113000Work* work;
-    GfxCoord*        coords;
-    TmdObject*       extra;
+    _Actor113000Work* work;
+    GfxCoord*         coords;
+    TmdObject*        extra;
 
-    work                   = (Actor113000Work*)task->work;
+    work                   = task->work;
     extra                  = task->extra.tmd;
     coords                 = extra->coords;
     extra->lightMtx        = &work->light;
@@ -1277,35 +1296,35 @@ static void func_actor_113000_801321A8(Task* task)
 /// its pose buffer and its slots. The preset's
 /// animation id is then latched, every slot 1..0x13 restarted -- through
 /// `animationSeekSlotWithBlend` when the preset asks for it, through `animationResetSlot`
-/// otherwise -- ticked once, and `field_474` raised.
+/// otherwise -- ticked once, and `_Actor113000Work::ticking` raised.
 s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg, s32 arg3)
 {
-    Actor113000Work* work;
-    TmdObject*       ext;
-    s32              i;
+    _Actor113000Work* work;
+    TmdObject*        ext;
+    s32               i;
 
-    work = (Actor113000Work*)task->work;
+    work = task->work;
     ext  = task->extra.tmd;
-    if (msg->source.index != work->field_47C) {
-        work->field_47C = msg->source.index;
-        work->field_478 = -1;
-        animationInitContext(&work->rig.anim, D_actor_113000_8013ABB0[work->field_47C], ext, work->rig.poses,
+    if (msg->source.index != work->bank) {
+        work->bank   = msg->source.index;
+        work->animId = ACTOR_MODEL_STATE_NONE;
+        animationInitContext(&work->rig.anim, D_actor_113000_8013ABB0[work->bank], ext, work->rig.poses,
                              work->rig.slots);
     }
-    work->field_478 = msg->animationId;
+    work->animId = msg->animationId;
     if (msg->blend != ANIMATION_BLEND_RESET) {
-        for (i = 1; i < 0x14; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->field_478, 0, 6);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, 6);
         }
     } else {
-        for (i = 1; i < 0x14; i++) {
-            animationResetSlot(&work->rig.anim, i, work->field_478);
+        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+            animationResetSlot(&work->rig.anim, i, work->animId);
         }
     }
-    for (i = 1; i < 0x14; i++) {
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
         animationTickSlot(&work->rig.anim, i);
     }
-    work->field_474 = 1;
+    work->ticking = 1;
     return 0;
 }
 
@@ -1316,7 +1335,7 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg,
 ///
 ///   mode 0  set 0x80, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 1  clear 0x80, `Tmd_AllocBuffers`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 2  set 0x80, store 2 in the countdown `Actor113000Work::field_4C8`
+///   mode 2  set 0x80, store 2 in the countdown `_Actor113000Work::freeCountdown`
 ///           that `func_actor_113000_80132070` ends in `Tmd_FreeBuffers`,
 ///           set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///   mode 3  clear 0x80, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
@@ -1324,12 +1343,12 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg,
 /// Any other mode returns 1; the four known ones return 0. `arg3` is unused.
 s32 func_actor_113000_80132398(Task* task, s32 arg1, s32 mode, s32 arg3)
 {
-    TmdObject*       obj;
-    Actor113000Work* work;
-    s32              ret;
+    TmdObject*        obj;
+    _Actor113000Work* work;
+    s32               ret;
 
     obj  = task->extra.tmd;
-    work = (Actor113000Work*)task->work;
+    work = task->work;
     ret  = 0;
     switch (mode) {
         case 0:
@@ -1342,9 +1361,9 @@ s32 func_actor_113000_80132398(Task* task, s32 arg1, s32 mode, s32 arg3)
             obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->field_4C8 = mode;
-            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = mode;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1360,8 +1379,9 @@ s32 func_actor_113000_80132398(Task* task, s32 arg1, s32 mode, s32 arg3)
 /// Message-0x7E0 handler: uploads one of the actor's three texture records over
 /// the 0x20x0x10 rect at y 0x28 -- `D_actor_113000_8013AB6C[0]` for mode 1,
 /// `D_actor_113000_8013A32C[0]` for modes 0 and 2, and `D_actor_113000_8013A74C[0]`
-/// for mode 3, which sets the work block's `field_4C4` / `field_4C0` to 1
-/// first. Any other mode leaves the image NULL and returns 0.
+/// for mode 3, which first starts a blink, `_Actor113000Work::blinkStep` at the
+/// closed eyes and `blinkFrameDelay` at 1. Any other mode leaves the image NULL
+/// and returns 0.
 /// The mode-1 case is written first because the compiler lays the case bodies
 /// out in source order and that is the order the retail image has them in.
 s32 func_actor_113000_80132474(Task* arg0, s32 arg1, s32 mode, s32 arg3)
@@ -1385,9 +1405,9 @@ s32 func_actor_113000_80132474(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             uploadList = &D_actor_113000_8013A32C[0];
             break;
         case 3:
-            ((Actor113000Work*)arg0->work)->field_4C4 = 1;
-            ((Actor113000Work*)arg0->work)->field_4C0 = 1;
-            uploadList                                = &D_actor_113000_8013A74C[0];
+            ((_Actor113000Work*)arg0->work)->blinkStep       = ACTOR_113000_BLINK_CLOSED;
+            ((_Actor113000Work*)arg0->work)->blinkFrameDelay = 1;
+            uploadList                                       = &D_actor_113000_8013A74C[0];
             break;
         default:
             uploadList = NULL;

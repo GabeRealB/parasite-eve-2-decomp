@@ -697,7 +697,7 @@ size is. A size of 8, 16 or 32 coincides constantly: dozens of types declare
 each, and over fifty memory operations pass 8 as a literal. A distinctive size
 is worth much more. `0x4CC` is the useful kind: four separately named `…Work`
 types declare it, several actor overlays allocate with `memCalloc(0x4CC, 0)`,
-and one assigns the result to an `Actor113000Work*`. That corroborates the size
+and one assigns the result to an `_Actor113000Work*`. That corroborates the size
 and, at the same time, suggests the four types are one type named four times.
 
 So a struct is a *layout known to be compatible*, not a type known to be right.

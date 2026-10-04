@@ -127852,8 +127852,9 @@ This is one of a family: `func_actor_511000_80132048` and
 `func_actor_141000_801335D4` are the same state over their own image trios and
 assemble to the identical instruction sequence, so a sibling's matched source is
 the fastest route to the shape. What differs between them is the work struct:
-the countdown is a `u16` (so `lhu`, then an `sll $v0,16` / `bgez` test for the
-underflow) and the step is an `s16` (so the dispatch loads it with `lh`), while
+the countdown is a halfword (so `lhu`, then an `sll $v0,16` / `bgez` test for the
+underflow, which an `s16` field tested directly and a `u16` field tested through
+an `(s16)` cast both compile to) and the step is an `s16` (so the dispatch loads it with `lh`), while
 the load in the shared tail is `lhu` either way because only the low halfword of
 the increment is stored.
 
@@ -127885,7 +127886,7 @@ The index chain wins `$v0` and dies at the load; the table pair is pushed to
 `global.c` marks `$v1` as a hard conflict and drops it to `$a1` -- a register
 choice three steps downstream of the source.
 
-Writing the index as the stored field instead -- `D_actor_113000_8013ABB0[work->field_47C]`,
+Writing the index as the stored field instead -- `D_actor_113000_8013ABB0[work->bank]`,
 with the bank store written before the `-1` store, as the previous entry
 requires -- is the whole fix (100.000%). `cse` forwards the store into the
 index, so the value still lives in one register, and *because the store and the
