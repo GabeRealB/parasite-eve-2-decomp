@@ -120,11 +120,18 @@ typedef struct DesertChaserSphereBody {
     WorldCollisionContact contacts[DESERT_CHASER_CONTACTS]; // Complete initialized contact table
 } DesertChaserSphereBody;
 
-/// Capsule body, its shape and the contact table supplied by its owner.
-typedef struct DesertChaserCapsuleBody {
-    WorldCollisionBody    obj;                              // Linked capsule collision body
-    WorldCollisionCapsule shape;                            // Endpoints, radii and contact-table pointer
-    WorldCollisionContact contacts[DESERT_CHASER_CONTACTS]; // Complete initialized contact table
+/// The armed chaser's wall probe: a capsule body, the segment it carries and
+/// the contact table that segment records into.
+///
+/// The segment lies along the model root's forward axis, 0x180 above the root
+/// and 0x12C in radius, and only the room-grid pass tests it, so every contact
+/// it records is a wall. Each movement state places the far end for the way it
+/// is about to travel -- ahead for a walk or a lunge, behind for a leap back --
+/// and shortens its step on the frames the probe is touching the grid.
+typedef struct {
+    WorldCollisionBody    body;                             // Capsule linked into the world's body list, riding the model root; never enabled for pair tests
+    WorldCollisionCapsule shape;                            // Its segment in root space: `ends[0]` above the root, `ends[1]` the far end the movement states move along Z
+    WorldCollisionContact contacts[DESERT_CHASER_CONTACTS]; // Contacts `shape` records; occupied entries are reset at the end of every frame
 } DesertChaserCapsuleBody;
 
 /// The last actor command the chaser was sent, with a frame counter in the

@@ -2054,26 +2054,26 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
     work->objs[2].obj.radius           = 0x12C;
     work->objs[2].obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->objs[2].obj);
-    work->capsuleBody.shape.ends[0].vx    = 0;
-    work->capsuleBody.shape.ends[0].vy    = -0x180;
-    work->capsuleBody.shape.ends[0].vz    = 0;
-    work->capsuleBody.shape.ends[1].vx    = 0;
-    work->capsuleBody.shape.ends[1].vy    = -0x180;
-    work->capsuleBody.shape.ends[1].vz    = 0x2BC;
-    work->capsuleBody.shape.end0Radius    = 0x12C;
-    work->capsuleBody.shape.end1Radius    = 0x12C;
-    work->capsuleBody.shape.contacts      = work->capsuleBody.contacts;
-    work->capsuleBody.obj.coord           = coord;
-    work->capsuleBody.obj.context.capsule = &work->capsuleBody.shape;
-    work->capsuleBody.obj.pos.vx          = 0;
-    work->capsuleBody.obj.pos.vy          = 0;
-    work->capsuleBody.obj.pos.vz          = 0;
-    work->capsuleBody.obj.key             = 0x30001;
-    work->capsuleBody.obj.radius          = 1;
-    work->capsuleBody.obj.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->objs[2].obj.flags              |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    Gp_LinkObj(2, &work->capsuleBody.obj);
-    work->capsuleBody.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+    work->capsuleBody.shape.ends[0].vx     = 0;
+    work->capsuleBody.shape.ends[0].vy     = -0x180;
+    work->capsuleBody.shape.ends[0].vz     = 0;
+    work->capsuleBody.shape.ends[1].vx     = 0;
+    work->capsuleBody.shape.ends[1].vy     = -0x180;
+    work->capsuleBody.shape.ends[1].vz     = 0x2BC;
+    work->capsuleBody.shape.end0Radius     = 0x12C;
+    work->capsuleBody.shape.end1Radius     = 0x12C;
+    work->capsuleBody.shape.contacts       = work->capsuleBody.contacts;
+    work->capsuleBody.body.coord           = coord;
+    work->capsuleBody.body.context.capsule = &work->capsuleBody.shape;
+    work->capsuleBody.body.pos.vx          = 0;
+    work->capsuleBody.body.pos.vy          = 0;
+    work->capsuleBody.body.pos.vz          = 0;
+    work->capsuleBody.body.key             = 0x30001;
+    work->capsuleBody.body.radius          = 1;
+    work->capsuleBody.body.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    work->objs[2].obj.flags               |= WORLD_COLLISION_BODY_GRID_ENABLED;
+    Gp_LinkObj(2, &work->capsuleBody.body);
+    work->capsuleBody.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     Gp_InitRec18Table(work->capsuleBody.contacts, ARRAY_SIZE(work->capsuleBody.contacts), 0);
     Gp_InitRec18Table(work->objs[2].obj.context.contacts, 5, 0);
     primary                       = &work->objs[0];
@@ -2499,7 +2499,7 @@ static void Actor00100_Fn04270(Task* arg0)
     if (work->field_6 == 0x3C) {
         Gp_UnlinkObj(&work->objs[0].obj);
         Gp_UnlinkObj(&work->objs[1].obj);
-        Gp_UnlinkObj(&work->capsuleBody.obj);
+        Gp_UnlinkObj(&work->capsuleBody.body);
         Gp_UnlinkObj(&work->objs[2].obj);
         ctx->recs = 0;
     }
@@ -3067,7 +3067,7 @@ static void Actor00100_Fn09310(Task* arg0)
         ctx->hp = 0;
         Gp_UnlinkObj(&work->objs[0].obj);
         Gp_UnlinkObj(&work->objs[1].obj);
-        Gp_UnlinkObj(&work->capsuleBody.obj);
+        Gp_UnlinkObj(&work->capsuleBody.body);
         Gp_UnlinkObj(&work->objs[2].obj);
         ctx->recs = 0;
     }
@@ -3217,7 +3217,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
             if (work->field_6 == 0x64) {
                 Gp_UnlinkObj(&work->objs[0].obj);
                 Gp_UnlinkObj(&work->objs[1].obj);
-                Gp_UnlinkObj(&work->capsuleBody.obj);
+                Gp_UnlinkObj(&work->capsuleBody.body);
                 Gp_UnlinkObj(&work->objs[2].obj);
                 ctx->recs         = 0;
                 ctx->hp           = 0;
