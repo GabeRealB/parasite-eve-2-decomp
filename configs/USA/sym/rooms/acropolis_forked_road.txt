@@ -65,26 +65,26 @@ D_acropolis_forked_road_80183AB0 = 0x80183AB0; // size:0x18 defined:True
 D_acropolis_forked_road_80183AC8 = 0x80183AC8; // size:0x10 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_8013647C = 0x8013647C; // absolute:True
-D_80137698 = 0x80137698; // absolute:True
+Actor04600_D05878 = 0x80137698; // absolute:True owner=actor_104600
 D_801379A8 = 0x801379A8; // absolute:True
 D_80137D74 = 0x80137D74; // absolute:True
-D_801382BC = 0x801382BC; // absolute:True
-D_80138C80 = 0x80138C80; // absolute:True
-D_801393C8 = 0x801393C8; // absolute:True
+Actor04600_D0649C = 0x801382BC; // absolute:True owner=actor_104600
+Actor00700_D06E60 = 0x80138C80; // absolute:True owner=actor_100700
+Actor00700_D075A8 = 0x801393C8; // absolute:True owner=actor_100700
 D_80139DAC = 0x80139DAC; // absolute:True
 D_80139E60 = 0x80139E60; // absolute:True
-D_8013A8D4 = 0x8013A8D4; // absolute:True
+gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_8013A8DC = 0x8013A8DC; // absolute:True
-D_8013BE28 = 0x8013BE28; // absolute:True
+Actor01500_D0A008 = 0x8013BE28; // absolute:True owner=actor_101500
 D_8013F5F0 = 0x8013F5F0; // absolute:True
 D_801445DC = 0x801445DC; // absolute:True
-D_80147DF0 = 0x80147DF0; // absolute:True
-D_8014E7A4 = 0x8014E7A4; // absolute:True
+Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
+D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
 D_80150C80 = 0x80150C80; // absolute:True
-D_80153EC8 = 0x80153EC8; // absolute:True
-D_80155004 = 0x80155004; // absolute:True
-D_80155AC4 = 0x80155AC4; // absolute:True
-D_801693AC = 0x801693AC; // absolute:True
+D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
+D_actor_401000_80155004 = 0x80155004; // absolute:True owner=actor_401000
+D_actor_401800_80155AC4 = 0x80155AC4; // absolute:True owner=actor_401800
+D_actor_300700_801693AC = 0x801693AC; // absolute:True owner=actor_300700
 D_80179120 = 0x80179120; // absolute:True
 D_map_akropolis_8017B1DC = 0x8017B1DC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B1FC = 0x8017B1FC; // absolute:True owner=map_akropolis

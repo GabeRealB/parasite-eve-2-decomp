@@ -72,6 +72,6 @@ D_shelter_r36_8017FAD4 = 0x8017FAD4; // size:0x8 defined:True
 D_shelter_r36_8017FADC = 0x8017FADC; // size:0x8 defined:True
 D_shelter_r36_8017FAE4 = 0x8017FAE4; // size:0x20 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_801413EC = 0x801413EC; // absolute:True
-D_80149664 = 0x80149664; // absolute:True
+D_actor_143900_801413EC = 0x801413EC; // absolute:True owner=actor_143900
+D_actor_143900_80149664 = 0x80149664; // absolute:True owner=actor_143900
 streamedScenePlay = 0x8017DA34; // type:func

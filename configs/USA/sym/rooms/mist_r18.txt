@@ -38,7 +38,7 @@ D_mist_r18_80186B50 = 0x80186B50; // size:0x10 defined:True
 D_mist_r18_80186B60 = 0x80186B60; // size:0x78 defined:True
 D_mist_r18_80186BD8 = 0x80186BD8; // size:0x24 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_8013ABB4 = 0x8013ABB4; // absolute:True
+D_actor_113000_8013ABB4 = 0x8013ABB4; // absolute:True owner=actor_113000
 D_80157DE0 = 0x80157DE0; // absolute:True
 D_mist_r18_80184F90 = 0x80184F90; // size:0x8 defined:True
 D_mist_r18_80184F98 = 0x80184F98; // size:0x14 defined:True

@@ -156,9 +156,9 @@ AreaResource D_acropolis_helicopter_landing_pad_801861A0[2] = {
 };
 
 AreaResource D_acropolis_helicopter_landing_pad_801861B8[4] = {
-    { 27, 110, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_80155070 },
-    { 144, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_801472E8 },
-    { 254, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80139924 },
+    { 27, 110, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_actor_511000_80155070 },
+    { 144, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_511000_801472E8 },
+    { 254, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_511000_80139924 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

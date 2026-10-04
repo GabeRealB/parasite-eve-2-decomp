@@ -72,7 +72,7 @@ extern _Actor450900AnimationBankExtensionStorage D_actor_450900_80135EC0;
 // The symbol view shares the union backing; it allocates no extra storage.
 extern AnimationPlayRequest Actor450900AllyAnim __asm__("D_actor_450900_80135EC0+100");
 
-extern s32                  D_8017A99C;
+extern s32                  D_map_neo_ark_8017A99C;
 extern s8                   D_actor_450900_80135E70;
 extern s32                  D_actor_450900_80135E74;
 extern AnimationPlayRequest D_actor_450900_80135FEC;
@@ -693,7 +693,7 @@ void func_actor_450900_80132834(void);
 
 /// State handler that runs the save-point capture. State 0 spawns the capture
 /// task `func_actor_450900_80132548` into `D_actor_450900_80136C9C`; state 1
-/// waits for `D_8017A99C`, the AI tick counter, to pass 0x30C with save data in
+/// waits for `D_map_neo_ark_8017A99C`, the AI tick counter, to pass 0x30C with save data in
 /// the slot, then arms the flag `func_actor_450900_80132518` toggles and, on
 /// every 210th tick, plays the ally's voice cue at its own pan and depth and
 /// posts the `0x3F7` / `0x3E8` / `0x3F9` messages to the slot-0xA task; 0x3C
@@ -727,9 +727,9 @@ void func_actor_450900_80131E38(Task* task)
                 break;
             }
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xB) {
-                D_8017A99C = D_8017A99C + 1;
+                D_map_neo_ark_8017A99C = D_map_neo_ark_8017A99C + 1;
             }
-            t = D_8017A99C - 0x30C;
+            t = D_map_neo_ark_8017A99C - 0x30C;
             if (D_actor_450900_80135E74 == 0 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp > 0 && t >= 0) {
                 D_actor_450900_80135E70 = state;
                 if (t % 210 == 0) {
@@ -770,8 +770,8 @@ void func_actor_450900_8013207C(Task* task)
             task->state         = task->state + 1;
             return;
         case 1:
-            if ((Gp_CapBusy() == 0) && (gGameSession->eventState == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) && ((D_8017A99C - 0x456) >= 0)) {
-                if ((D_8017A99C - 0x456) % 210 == 0) {
+            if ((Gp_CapBusy() == 0) && (gGameSession->eventState == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) && ((D_map_neo_ark_8017A99C - 0x456) >= 0)) {
+                if ((D_map_neo_ark_8017A99C - 0x456) % 210 == 0) {
                     coord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     depth = (s8)worldCoordGetOriginAudioDepth(coord);
@@ -783,7 +783,7 @@ void func_actor_450900_8013207C(Task* task)
                     TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.playerCopy, 0);
                     Gp_PlayerWeaponId(&D_actor_450900_80135FEC.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &D_actor_450900_80135FEC, 0);
-                } else if ((D_8017A99C - 0x456) % 210 == 0x46) {
+                } else if ((D_map_neo_ark_8017A99C - 0x456) % 210 == 0x46) {
                     value = D_actor_450900_80136C98;
                     value++;
                     D_actor_450900_80136C98 = value;
@@ -989,7 +989,7 @@ void func_actor_450900_80132724(void)
 /// capture ran) the one-shot `D_actor_450900_80135E74` swaps the ally onto the
 /// `D_actor_450900_80136890` handler the first time through, and every later
 /// call just re-arms the idle capture. Before the flag is set the handler is
-/// picked by the AI tick counter `D_8017A99C`: the low-traffic
+/// picked by the AI tick counter `D_map_neo_ark_8017A99C`: the low-traffic
 /// `D_actor_450900_80136470` below 0x30C, `D_actor_450900_80136680` at or above
 /// it. The three calls are written out at each site - the `jal` is shared only
 /// because `jump.c` cross-jumps the identical tails.
@@ -1002,7 +1002,7 @@ void func_actor_450900_801327A8(void)
         } else {
             Gp_SpawnIfCapIdle(0xC, 1);
         }
-    } else if (D_8017A99C < 0x30C) {
+    } else if (D_map_neo_ark_8017A99C < 0x30C) {
         func_800E8614(D_actor_450900_80136470, 0);
     } else {
         func_800E8614(D_actor_450900_80136680, 0);

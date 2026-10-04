@@ -877,7 +877,7 @@ WorldCoordRoomLights D_dryfield_night_water_hole_801833A0[1] = {
 };
 
 AreaResource D_dryfield_night_water_hole_801833B8[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_400600_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -892,7 +892,7 @@ AreaResource D_dryfield_night_water_hole_801833E8[2] = {
 };
 
 AreaResource D_dryfield_night_water_hole_80183400[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_400600_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

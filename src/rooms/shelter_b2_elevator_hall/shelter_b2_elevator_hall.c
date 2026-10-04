@@ -349,7 +349,7 @@ WorldCollisionTrigger D_shelter_b2_elevator_hall_80184968[3] = {
 };
 
 AreaResource D_shelter_b2_elevator_hall_80184A4C[2] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8D4 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gMaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

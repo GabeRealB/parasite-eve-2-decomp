@@ -506,7 +506,7 @@ WorldCoordRoomLights D_dryfield_toilet_801828AC[1] = {
 };
 
 AreaResource D_dryfield_toilet_801828C4[3] = {
-    { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155004 },
+    { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_401000_80155004 },
     { 9, 233, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8017255C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

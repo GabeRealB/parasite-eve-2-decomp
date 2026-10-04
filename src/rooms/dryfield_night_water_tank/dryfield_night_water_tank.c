@@ -70,7 +70,7 @@ extern void func_actor_146300_8013224C(void);
 
 /// Absolute import: the shared room script descriptor 0x8013788C, spawned by
 /// entry 0 in the handler below.
-extern TaskDesc D_8013788C;
+extern TaskDesc D_actor_146300_8013788C;
 
 /// Model/lighting records the handler below toggles on message 3 and 4.
 extern EvsCommand D_dryfield_night_water_tank_8017DDD8[];
@@ -517,13 +517,13 @@ AreaResource D_dryfield_night_water_tank_8018071C[1] = {
 };
 
 AreaResource D_dryfield_night_water_tank_80180728[3] = {
-    { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801427C8 },
+    { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_146300_801427C8 },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_water_tank_8018074C[2] = {
-    { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801427C8 },
+    { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_146300_801427C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -687,7 +687,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
         if ((u32)(temp_v1 - 0xA) < 2U) {
             if ((temp_v1 != 0xA) || (GameFlag_GetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2)) {
                 Gp_MsgPlayerWeapon(0);
-                Task_SpawnFromTable(&D_8013788C, 0, 0, 0);
+                Task_SpawnFromTable(&D_actor_146300_8013788C, 0, 0, 0);
             } else {
                 Gp_RunCapCmd1(0x17);
             }

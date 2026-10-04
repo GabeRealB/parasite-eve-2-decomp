@@ -23,7 +23,7 @@ enum {
 enum { PLAYER_ACTOR_DIRECT_ANIMATION_BANK = 0x7FFF };
 
 /// u8 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant`. Non-zero selects
-/// `Gp_AimPitchToLock`; zero uses `D_80167218` with `Gp_AimPitchRec`.
+/// `Gp_AimPitchToLock`; zero uses `D_actor_800100_80167218` with `Gp_AimPitchRec`.
 extern u8 D_80113388[];
 
 extern TaskDesc D_80113340[2];

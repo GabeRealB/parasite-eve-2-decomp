@@ -50,7 +50,7 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 /// The area-record id the event handler publishes, and the event scripts
 /// `func_800E8634` / `func_800E8614` are handed.
 extern EvsCommand D_80135220[];
-extern EvsCommand D_80135FD0[];
+extern EvsCommand D_actor_451100_80135FD0[];
 extern EvsCommand D_80136108[];
 
 /// Spawn table of the screen-wave task, and the context it is spawned with.
@@ -233,7 +233,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
         GameFlag_SetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, 2);
         GameFlag_SetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, 1);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1A;
-        func_800E8634(D_80135220, 0, D_80135FD0);
+        func_800E8634(D_80135220, 0, D_actor_451100_80135FD0);
     }
     if ((arg2->warp == 2) && (GameFlag_GetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) == 0)) {
         temp_s0_2 = gGameSession->location.loc.variant;

@@ -533,12 +533,12 @@ WorldCollisionOccluder D_mine_secret_passage_801831A8[2] = {
 };
 
 AreaResource D_mine_secret_passage_80183220[2] = {
-    { 58, 58, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_801514CC },
+    { 58, 58, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_405800_801514CC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_secret_passage_80183238[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_400600_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -548,7 +548,7 @@ AreaResource D_mine_secret_passage_80183250[2] = {
 };
 
 AreaResource D_mine_secret_passage_80183268[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_400600_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

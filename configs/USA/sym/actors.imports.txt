@@ -456,7 +456,7 @@ gRoomEffectSparkBurstId = 0x80115750; // absolute:True
 gRoomEffectOrangeBurst2Id = 0x80115754; // absolute:True
 gRoomEffectFlashId = 0x80115758; // absolute:True
 D_80115764 = 0x80115764; // absolute:True
-D_8017A99C = 0x8017A99C; // absolute:True
+D_map_neo_ark_8017A99C = 0x8017A99C; // absolute:True owner=map_neo_ark
 func_80180038 = 0x80180038; // absolute:True
 
 D_80114B34 = 0x80114B34; // absolute:True size:0x48

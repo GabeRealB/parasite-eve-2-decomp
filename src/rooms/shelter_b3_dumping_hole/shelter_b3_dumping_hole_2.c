@@ -416,7 +416,7 @@ static u16      CapCaption_Data_8015E66A;
 static s32      CapCaption_Data_801545E4;
 static s32      CapCaption_Data_801545E8;
 static TaskDesc CapCaption_Data_801544FC;
-extern TaskDesc D_80142604;
+extern TaskDesc Actor04400_D107E4;
 extern TaskDesc D_801575F0;
 static TaskDesc CapCaption_Data_80154508;
 
@@ -556,8 +556,8 @@ extern SpriteSource   D_shelter_b3_dumping_hole_8018DB44[8];
 extern SpriteSource   D_shelter_b3_dumping_hole_8018DC1C[14];
 extern SpriteSource   D_shelter_b3_dumping_hole_8018DD6C[1];
 extern SpriteSource   D_shelter_b3_dumping_hole_8018DDA8[24];
-extern TaskDesc       D_80164B78;
-extern TaskDesc       D_80174D58;
+extern TaskDesc       D_actor_342100_80164B78;
+extern TaskDesc       D_actor_341700_80174D58;
 extern TaskDesc       D_shelter_b3_dumping_hole_80188BC8[5];
 
 _ShelterB3DumpingHoleSpriteFrame D_shelter_b3_dumping_hole_801880B8[13] = {
@@ -1803,8 +1803,8 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EAEC[5] = {
 AreaResource D_shelter_b3_dumping_hole_8018EB3C[5] = {
     { 32, 32, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8015F8D0 },
     { 103, 417, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_dumping_hole_80188BC8 },
-    { 252, 417, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80176354 },
-    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_60, 2, { 0, 0 }, &D_80174D58 },
+    { 252, 417, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_341700_80176354 },
+    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_60, 2, { 0, 0 }, &D_actor_341700_80174D58 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1819,10 +1819,10 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EB90[2] = {
 };
 
 AreaResource D_shelter_b3_dumping_hole_8018EBB0[5] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 1, { 0, 0 }, &D_80142604 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 1, { 0, 0 }, &Actor04400_D107E4 },
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_801575F0 },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_80151E60 },
-    { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, &D_80164B78 },
+    { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, &D_actor_342100_80164B78 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -3759,7 +3759,7 @@ static const TaskFuncTable4 D_shelter_b3_dumping_hole_8017D654 = { {
     func_shelter_b3_dumping_hole_801838A0,
 } };
 
-/// States of a slot task holding one enemy from `D_80142604`: spawn it, after
+/// States of a slot task holding one enemy from `Actor04400_D107E4`: spawn it, after
 /// a delay switch its palette and send it message 0x7DB, then wait for its hit
 /// points to run out.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
@@ -3899,7 +3899,7 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
     if (work != NULL) {
         Enemy* enemy;
         arg0->work = work;
-        enemy      = Gp_SpawnEnemyFromTable(&D_80142604, 1, 0, NULL);
+        enemy      = Gp_SpawnEnemyFromTable(&Actor04400_D107E4, 1, 0, NULL);
         if (enemy != NULL) {
             u16 idx;
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;

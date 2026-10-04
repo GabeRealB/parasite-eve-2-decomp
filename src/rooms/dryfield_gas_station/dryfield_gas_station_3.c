@@ -127,7 +127,7 @@ extern WorldCollisionGrid    D_dryfield_gas_station_80183EA4[1];
 extern WorldCollisionTrigger D_dryfield_gas_station_80184350[11];
 extern WorldCollisionTrigger D_dryfield_gas_station_80184694[10];
 extern WorldCoordRoomLights  D_dryfield_gas_station_80184B48[1];
-extern TaskDesc              D_80142604;
+extern TaskDesc              Actor04400_D107E4;
 extern TaskDesc              D_8014D8A4;
 void                         func_dryfield_gas_station_801807E0(Task*);
 void                         func_dryfield_gas_station_80180984(Task*);
@@ -485,7 +485,7 @@ AreaResource D_dryfield_gas_station_8018498C[1] = {
 };
 
 AreaResource D_dryfield_gas_station_80184998[2] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80142604 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -36,7 +36,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern s32              D_8017A99C;
+extern s32              D_map_neo_ark_8017A99C;
 extern TaskMessageEntry D_actor_800300_80168880[26];
 extern GpuImageUpload** D_actor_800300_80168950[];
 extern GpuImageUpload** D_actor_800300_80168960[];
@@ -1881,7 +1881,7 @@ static void func_actor_800300_80162658(Task* arg0)
     if (companion->decisionTimer > 0) {
         companion->decisionTimer = (u16)companion->decisionTimer - 1;
     }
-    if (D_8017A99C >= 0x30C) {
+    if (D_map_neo_ark_8017A99C >= 0x30C) {
         if (actor->state != 5) {
             actor->idleTicks++;
             if ((s16)actor->idleTicks >= (s8)companion->activity.distress.flinchInterval) {

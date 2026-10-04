@@ -60,7 +60,7 @@ typedef struct {
 } _ShelterB2ElevatorDoorLeafWork;
 STATIC_ASSERT_SIZEOF(_ShelterB2ElevatorDoorLeafWork, 4);
 
-extern EvsCommand D_801378D0[];
+extern EvsCommand D_actor_142900_801378D0[];
 extern EvsCommand D_801380F8[];
 
 /// The room's message table, installed on the room entry task.
@@ -382,7 +382,7 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         if (GameFlag_GetNibble(GAME_FLAG_0CF) == 0) {
             GameFlag_SetNibble(GAME_FLAG_0CF, 1);
-            func_800E8634(D_801378D0, 0, D_801380F8);
+            func_800E8634(D_actor_142900_801378D0, 0, D_801380F8);
             func_800E3FAC(0xA2, 0x24);
         } else {
             gGameSession->hideHud    = 1;

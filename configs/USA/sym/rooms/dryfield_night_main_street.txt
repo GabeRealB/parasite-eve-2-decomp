@@ -107,7 +107,7 @@ gRoomEventFade = 0x80188BA4; // size:0x8 defined:True
 D_80140744 = 0x80140744; // absolute:True
 D_80148110 = 0x80148110; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
-D_80165B88 = 0x80165B88; // absolute:True
+D_actor_300700_80165B88 = 0x80165B88; // absolute:True owner=actor_300700
 D_map_dryfield_full_8017ADF8 = 0x8017ADF8; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017AE78 = 0x8017AE78; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017AE98 = 0x8017AE98; // absolute:True owner=map_dryfield_full

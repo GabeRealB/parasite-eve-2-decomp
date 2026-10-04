@@ -861,7 +861,7 @@ WorldCollisionTrigger D_neo_ark_submarine_gallery_801854FC[10] = {
 
 AreaResource D_neo_ark_submarine_gallery_801857F4[3] = {
     { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
-    { 61, 61, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80158B0C },
+    { 61, 61, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_206100_80158B0C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

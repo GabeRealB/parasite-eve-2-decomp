@@ -60,9 +60,9 @@ D_shelter_b2_pod_bottom_801875C8 = 0x801875C8; // size:0x40 defined:True
 D_shelter_b2_pod_bottom_80187608 = 0x80187608; // size:0x30 defined:True
 D_shelter_b2_pod_bottom_80187638 = 0x80187638; // size:0x40 defined:True
 D_shelter_b2_pod_bottom_80187678 = 0x80187678; // size:0x58 defined:True
-D_80160514 = 0x80160514; // absolute:True
-D_8016BAE4 = 0x8016BAE4; // absolute:True
-D_80171BAC = 0x80171BAC; // absolute:True
+D_actor_403600_80160514 = 0x80160514; // absolute:True owner=actor_403600
+D_actor_361100_8016BAE4 = 0x8016BAE4; // absolute:True owner=actor_361100
+D_actor_361100_80171BAC = 0x80171BAC; // absolute:True owner=actor_361100
 _gShelterB2PodBottomModel0A2A0Skeleton = 0x801876D0; // size:0x24 defined:True
 _gShelterB2PodBottomModel0A2A0PartVerts = 0x801876F4; // size:0x4 defined:True
 _gShelterB2PodBottomModel0A2A0Verts = 0x801876F8; // size:0x80 defined:True

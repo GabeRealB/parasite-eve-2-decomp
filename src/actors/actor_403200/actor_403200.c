@@ -151,7 +151,7 @@ STATIC_ASSERT_SIZEOF(_Actor403200DragScratch, 0x54);
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
 /// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
-extern TaskDesc D_80174D58;
+extern TaskDesc D_actor_341700_80174D58;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -6184,7 +6184,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             work->animRate = 0x10;
             for (sc->slot = 0; sc->slot < 2; sc->slot++) {
                 if (work->summons[sc->slot] == NULL && work->summonsAlive < 2 && (u8)work->summonsSpawned < 8) {
-                    work->summons[sc->slot] = Gp_SpawnEnemyFromTable(&D_80174D58, 3, 2, NULL);
+                    work->summons[sc->slot] = Gp_SpawnEnemyFromTable(&D_actor_341700_80174D58, 3, 2, NULL);
                     if (work->summons[sc->slot] != NULL) {
                         work->summonsSpawned++;
                         model      = work->summons[sc->slot]->task->extra.tmd;

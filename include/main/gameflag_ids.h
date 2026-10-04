@@ -565,7 +565,7 @@ enum {
     /// is clear).
     GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS = 0x0AE,
     /// Set to 1 on the first place-1 entry to the night toilet, which spawns entry 0 of
-    /// the gameplay table D_8013E51C.
+    /// the gameplay table Actor04000_D0C6FC.
     GAME_FLAG_NIGHT_TOILET_EVENT_SEEN = 0x0AF,
     /// Set to 1 when the night saloon's place-2 scripted actor sequence finishes
     /// (action 2 broadcasts command 1 to the actors); while clear, place-2 entries

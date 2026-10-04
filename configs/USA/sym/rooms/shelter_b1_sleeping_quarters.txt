@@ -66,12 +66,12 @@ D_shelter_b1_sleeping_quarters_801840A0 = 0x801840A0; // size:0x8 defined:True
 D_shelter_b1_sleeping_quarters_801840A8 = 0x801840A8; // size:0x8 defined:True
 D_shelter_b1_sleeping_quarters_801840B0 = 0x801840B0; // size:0x20 defined:True
 D_8013647C = 0x8013647C; // absolute:True
-D_80142604 = 0x80142604; // absolute:True
-D_80153EC8 = 0x80153EC8; // absolute:True
-D_801540E0 = 0x801540E0; // absolute:True
-D_80154188 = 0x80154188; // absolute:True
-D_80155AC4 = 0x80155AC4; // absolute:True
-D_801693AC = 0x801693AC; // absolute:True
+Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
+D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
+D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
+D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200
+D_actor_401800_80155AC4 = 0x80155AC4; // absolute:True owner=actor_401800
+D_actor_300700_801693AC = 0x801693AC; // absolute:True owner=actor_300700
 _gShelterB1SleepingQuartersModel02DFCSkeleton = 0x801802E4; // size:0x24 defined:True
 _gShelterB1SleepingQuartersModel02DFCPartVerts = 0x80180308; // size:0x4 defined:True
 _gShelterB1SleepingQuartersModel02DFCVerts = 0x8018030C; // size:0xB0 defined:True

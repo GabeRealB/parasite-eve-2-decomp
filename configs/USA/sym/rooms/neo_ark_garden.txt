@@ -45,7 +45,7 @@ D_neo_ark_garden_80182B18 = 0x80182B18; // size:0x24 defined:True
 D_neo_ark_garden_80182B3C = 0x80182B3C; // size:0x18 defined:True
 D_8013647C = 0x8013647C; // absolute:True
 D_80137D74 = 0x80137D74; // absolute:True
-D_8013D2E0 = 0x8013D2E0; // absolute:True
+D_actor_151000_8013D2E0 = 0x8013D2E0; // absolute:True owner=actor_151000
 D_8015F400 = 0x8015F400; // absolute:True
 D_neo_ark_garden_80181398 = 0x80181398; // size:0xC defined:True
 D_neo_ark_garden_801813A4 = 0x801813A4; // size:0xC defined:True

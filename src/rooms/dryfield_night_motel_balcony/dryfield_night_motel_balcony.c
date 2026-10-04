@@ -37,8 +37,8 @@ extern RoomEventActiveBytes gRoomEventActive;
 /// Gameplay-resident script data the room task starts: the pair handed to
 /// `func_800E8634` on the first visit, and the one handed to `func_800E8614`
 /// by the one-shot event.
-extern EvsCommand D_80165060[];
-extern EvsCommand D_80165798[];
+extern EvsCommand D_actor_335800_80165060[];
+extern EvsCommand D_actor_335800_80165798[];
 extern EvsCommand D_80165720[];
 
 /// The message and request the event gate latched for the event task.
@@ -99,7 +99,7 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
     func_dryfield_night_motel_balcony_8017E3C8();
     field9 = gGameSession->location.loc.variant;
     if (field9 == 2 && gGameSession->location.loc.room == field9 && GameFlag_GetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
-        func_800E8634(D_80165060, 0, D_80165798);
+        func_800E8634(D_actor_335800_80165060, 0, D_actor_335800_80165798);
         GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN, 1);
         GameFlag_SetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 1);
         GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);

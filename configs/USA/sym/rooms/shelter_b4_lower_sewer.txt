@@ -63,12 +63,12 @@ D_shelter_b4_lower_sewer_80183DE4 = 0x80183DE4; // size:0x8 defined:True
 D_shelter_b4_lower_sewer_80183DEC = 0x80183DEC; // size:0x8 defined:True
 D_shelter_b4_lower_sewer_80183DF4 = 0x80183DF4; // size:0x20 defined:True
 D_shelter_b4_lower_sewer_80183E14 = 0x80183E14; // size:0x4 defined:True
-D_80142604 = 0x80142604; // absolute:True
+Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
 D_80147AB8 = 0x80147AB8; // absolute:True
-D_80147DF0 = 0x80147DF0; // absolute:True
+Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_80147E48 = 0x80147E48; // absolute:True
-D_8014E7A4 = 0x8014E7A4; // absolute:True
-D_80153EC8 = 0x80153EC8; // absolute:True
+D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
+D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
 D_8015F400 = 0x8015F400; // absolute:True
 
 func_shelter_b4_lower_sewer_8017FEB0 = 0x8017FEB0; // type:func

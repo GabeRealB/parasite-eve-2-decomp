@@ -84,7 +84,7 @@ D_dryfield_night_water_hole_801835C8 = 0x801835C8; // size:0x8 defined:True
 D_dryfield_night_water_hole_801835D0 = 0x801835D0; // size:0x8 defined:True
 D_dryfield_night_water_hole_801835D8 = 0x801835D8; // size:0x20 defined:True
 D_80147400 = 0x80147400; // absolute:True
-D_80151B10 = 0x80151B10; // absolute:True
+D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
 D_map_dryfield_full_8017CCE8 = 0x8017CCE8; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017CD08 = 0x8017CD08; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017CD38 = 0x8017CD38; // absolute:True owner=map_dryfield_full

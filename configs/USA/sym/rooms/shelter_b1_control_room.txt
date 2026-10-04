@@ -51,7 +51,7 @@ D_shelter_b1_control_room_80183BB0 = 0x80183BB0; // size:0x8 defined:True
 D_shelter_b1_control_room_80183BB8 = 0x80183BB8; // size:0x8 defined:True
 D_shelter_b1_control_room_80183BC0 = 0x80183BC0; // size:0x20 defined:True
 D_80135C30 = 0x80135C30; // absolute:True
-D_8013C8F4 = 0x8013C8F4; // absolute:True
+D_actor_150400_8013C8F4 = 0x8013C8F4; // absolute:True owner=actor_150400
 D_8014E47C = 0x8014E47C; // absolute:True
 D_shelter_b1_control_room_80183BE0 = 0x80183BE0; // size:0x8 defined:True
 

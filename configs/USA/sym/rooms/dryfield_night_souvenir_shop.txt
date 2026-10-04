@@ -37,7 +37,7 @@ D_dryfield_night_souvenir_shop_8017F6B4 = 0x8017F6B4; // size:0x8 defined:True
 D_dryfield_night_souvenir_shop_8017F6BC = 0x8017F6BC; // size:0x8 defined:True
 D_dryfield_night_souvenir_shop_8017F6C4 = 0x8017F6C4; // size:0x8 defined:True
 D_dryfield_night_souvenir_shop_8017F6CC = 0x8017F6CC; // size:0x20 defined:True
-D_801393C8 = 0x801393C8; // absolute:True
+Actor00700_D075A8 = 0x801393C8; // absolute:True owner=actor_100700
 D_801445DC = 0x801445DC; // absolute:True
 D_8014F9A8 = 0x8014F9A8; // absolute:True
 D_map_dryfield_full_8017B2B8 = 0x8017B2B8; // absolute:True owner=map_dryfield_full

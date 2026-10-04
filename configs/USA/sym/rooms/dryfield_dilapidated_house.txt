@@ -187,8 +187,8 @@ D_dryfield_dilapidated_house_80189B78 = 0x80189B78; // size:0x4 defined:True
 D_dryfield_dilapidated_house_80189B7C = 0x80189B7C; // size:0x4 defined:True
 D_dryfield_dilapidated_house_80189B80 = 0x80189B80; // size:0x4 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_8015F6E4 = 0x8015F6E4; // absolute:True
-D_8016A388 = 0x8016A388; // absolute:True
+D_actor_521100_8015F6E4 = 0x8015F6E4; // absolute:True owner=actor_521100
+D_actor_521100_8016A388 = 0x8016A388; // absolute:True owner=actor_521100
 D_map_dryfield_8017AF64 = 0x8017AF64; // absolute:True owner=map_dryfield
 D_dryfield_dilapidated_house_80186944 = 0x80186944; // size:0x10 defined:True
 

@@ -75,7 +75,7 @@ typedef struct {
 } _ShelterB1PodServiceGantrySpinScratch;
 STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantrySpinScratch, 0x1C);
 
-extern s32 D_801752EC;
+extern s32 D_actor_560800_801752EC;
 extern s8  D_shelter_b1_pod_service_gantry_8018256C[];
 
 static void _shelterB1PodServiceGantryDrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
@@ -546,7 +546,7 @@ void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 a
         gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
         arg2                = ((s16)arg2 * 64) / block->depth;
         ang                 = 0;
-        blend               = (D_801752EC + (u8)D_shelter_b1_pod_service_gantry_8018256C[arg1 & 7]) & 1;
+        blend               = (D_actor_560800_801752EC + (u8)D_shelter_b1_pod_service_gantry_8018256C[arg1 & 7]) & 1;
         c                   = color16;
         blend             <<= c >> 12;
         red                 = blend + ((c >> 4) & 0xF0);

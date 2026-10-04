@@ -144,7 +144,7 @@ AreaResource D_shelter_b1_control_room_access_tunnel_80182464[2] = {
 
 AreaResource D_shelter_b1_control_room_access_tunnel_8018247C[3] = {
     { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FDF0 },
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, Actor02000_D15FD0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

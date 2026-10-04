@@ -74,8 +74,8 @@ D_acropolis_sanctuary_801863E8 = 0x801863E8; // size:0x8 defined:True
 D_acropolis_sanctuary_801863F0 = 0x801863F0; // size:0x8 defined:True
 D_acropolis_sanctuary_801863F8 = 0x801863F8; // size:0x20 defined:True
 D_acropolis_sanctuary_80186418 = 0x80186418; // size:0x2C defined:True
-D_8013BF94 = 0x8013BF94; // absolute:True
-D_801585CC = 0x801585CC; // absolute:True
+D_actor_110700_8013BF94 = 0x8013BF94; // absolute:True owner=actor_110700
+D_actor_210700_801585CC = 0x801585CC; // absolute:True owner=actor_210700
 D_map_akropolis_8017BA5C = 0x8017BA5C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017BA8C = 0x8017BA8C; // absolute:True owner=map_akropolis
 _gAcropolisSanctuaryModel090F0Skeleton = 0x80186444; // size:0x6C defined:True

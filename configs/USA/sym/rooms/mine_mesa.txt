@@ -193,7 +193,7 @@ D_mine_mesa_80189B5C = 0x80189B5C; // size:0x4 defined:True
 gRoomEventLatched = 0x80189B60; // size:0xC defined:True
 D_801379A8 = 0x801379A8; // absolute:True
 D_801445DC = 0x801445DC; // absolute:True
-D_80147DF0 = 0x80147DF0; // absolute:True
+Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_80151DAC = 0x80151DAC; // absolute:True
 D_80153E28 = 0x80153E28; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True

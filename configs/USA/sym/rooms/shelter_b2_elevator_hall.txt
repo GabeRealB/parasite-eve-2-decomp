@@ -54,7 +54,7 @@ D_shelter_b2_elevator_hall_80184D54 = 0x80184D54; // size:0x8 defined:True
 D_shelter_b2_elevator_hall_80184D5C = 0x80184D5C; // size:0x20 defined:True
 gRoomEventMsg = 0x80184D7C; // size:0x8 defined:True
 D_80135C30 = 0x80135C30; // absolute:True
-D_8013A8D4 = 0x8013A8D4; // absolute:True
+gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_80147400 = 0x80147400; // absolute:True
 D_80148110 = 0x80148110; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True

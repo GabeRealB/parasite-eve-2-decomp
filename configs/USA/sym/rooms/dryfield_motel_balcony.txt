@@ -72,7 +72,7 @@ gRoomEventMsg = 0x80186724; // size:0x8 defined:True
 D_801379A8 = 0x801379A8; // absolute:True
 D_80148110 = 0x80148110; // absolute:True
 D_801482C0 = 0x801482C0; // absolute:True
-D_80155AC4 = 0x80155AC4; // absolute:True
+D_actor_401800_80155AC4 = 0x80155AC4; // absolute:True owner=actor_401800
 D_801611F8 = 0x801611F8; // absolute:True
 D_map_dryfield_8017BA34 = 0x8017BA34; // absolute:True owner=map_dryfield
 D_map_dryfield_8017BA44 = 0x8017BA44; // absolute:True owner=map_dryfield

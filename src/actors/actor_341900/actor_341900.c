@@ -160,8 +160,8 @@ STATIC_ASSERT_SIZEOF(_Actor341900GluttonModelWork, 0x258);
 /// beside `gStageSceneMusicEntry`.
 
 extern void                      actor444000GluttonSetShakeLevel(s8 arg0);
-extern PadScriptCmd              D_80144A74[2];
-extern PadScriptVibrationSegment D_80144A7C[2];
+extern PadScriptCmd              D_actor_444000_80144A74[2];
+extern PadScriptVibrationSegment D_actor_444000_80144A7C[2];
 
 /// Parameter record `func_actor_341900_801628B8` sends with message 0x3F4.
 extern AnimationSet* D_actor_341900_801639A4[2];
@@ -667,13 +667,13 @@ void func_actor_341900_80162708(Task* arg0)
                 cue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 if ((cue == 0x12) && (work->lastCue != cue)) {
                     taskReparent(arg0,
-                                 Gp_SpawnScript18(D_80144A74, D_80144A7C));
+                                 Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C));
                     actor444000GluttonSetShakeLevel(3);
                 }
                 cue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 if ((cue == 0x18) && (work->lastCue != cue)) {
                     taskReparent(arg0,
-                                 Gp_SpawnScript18(D_80144A74, D_80144A7C));
+                                 Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C));
                     actor444000GluttonSetShakeLevel(3);
                 }
                 work->lastCue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;

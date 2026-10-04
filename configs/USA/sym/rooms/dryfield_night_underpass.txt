@@ -75,11 +75,11 @@ D_dryfield_night_underpass_8018035C = 0x8018035C; // size:0x8 defined:True
 D_dryfield_night_underpass_80180364 = 0x80180364; // size:0x8 defined:True
 D_dryfield_night_underpass_8018036C = 0x8018036C; // size:0x8 defined:True
 D_dryfield_night_underpass_80180374 = 0x80180374; // size:0x20 defined:True
-D_8013BE28 = 0x8013BE28; // absolute:True
+Actor01500_D0A008 = 0x8013BE28; // absolute:True owner=actor_101500
 D_801445DC = 0x801445DC; // absolute:True
 D_80147400 = 0x80147400; // absolute:True
-D_80153D60 = 0x80153D60; // absolute:True
-D_80154188 = 0x80154188; // absolute:True
+D_actor_400500_80153D60 = 0x80153D60; // absolute:True owner=actor_400500
+D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200
 D_map_dryfield_full_8017CF58 = 0x8017CF58; // absolute:True
 D_map_dryfield_full_8017CF78 = 0x8017CF78; // absolute:True
 D_map_dryfield_full_8017CFD8 = 0x8017CFD8; // absolute:True

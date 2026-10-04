@@ -1190,8 +1190,8 @@ AreaResource D_neo_ark_submarine_tunnel_80187428[2] = {
 };
 
 AreaResource D_neo_ark_submarine_tunnel_80187440[3] = {
-    { 132, 511, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8013F734 },
-    { 34, 511, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_8014E6E4 },
+    { 132, 511, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_451100_8013F734 },
+    { 34, 511, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_451100_8014E6E4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

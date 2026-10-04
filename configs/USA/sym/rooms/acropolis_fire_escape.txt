@@ -72,7 +72,7 @@ D_acropolis_fire_escape_80182DBC = 0x80182DBC; // size:0x18 defined:True
 D_acropolis_fire_escape_80182DD4 = 0x80182DD4; // size:0x10 defined:True
 D_acropolis_fire_escape_80182DE4 = 0x80182DE4; // size:0x10 defined:True
 D_acropolis_fire_escape_80182DF4 = 0x80182DF4; // size:0x14 defined:True
-D_80169338 = 0x80169338; // absolute:True
+D_actor_311500_80169338 = 0x80169338; // absolute:True owner=actor_311500
 D_map_akropolis_8017BD0C = 0x8017BD0C; // absolute:True owner=map_akropolis
 D_acropolis_fire_escape_80182E08 = 0x80182E08; // size:0x10 defined:True
 D_acropolis_fire_escape_80182E18 = 0x80182E18; // size:0x78 defined:True

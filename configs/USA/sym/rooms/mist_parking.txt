@@ -174,8 +174,8 @@ D_mist_parking_80195320 = 0x80195320; // size:0x4 defined:True
 D_mist_parking_80195324 = 0x80195324; // size:0x4 defined:True
 D_mist_parking_80195328 = 0x80195328; // size:0x4 defined:True
 D_mist_parking_8019532C = 0x8019532C; // size:0x8 defined:True
-D_80144308 = 0x80144308; // absolute:True
-D_801521A8 = 0x801521A8; // absolute:True
+D_actor_113100_80144308 = 0x80144308; // absolute:True owner=actor_113100
+D_actor_213100_801521A8 = 0x801521A8; // absolute:True owner=actor_213100
 D_map_akropolis_8017BDBC = 0x8017BDBC; // absolute:True owner=map_akropolis
 D_mist_parking_8019088C = 0x8019088C; // size:0x14 defined:True
 D_mist_parking_801908A0 = 0x801908A0; // size:0x14 defined:True

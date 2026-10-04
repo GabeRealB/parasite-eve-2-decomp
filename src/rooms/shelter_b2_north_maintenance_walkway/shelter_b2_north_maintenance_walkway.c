@@ -49,8 +49,8 @@
 #include "../../shared/room_events.h"
 
 /// The pair of cutscene blocks the walkway's scene hands to `func_800E8634`.
-extern EvsCommand D_80165354[];
-extern EvsCommand D_80165834[];
+extern EvsCommand D_actor_341300_80165354[];
+extern EvsCommand D_actor_341300_80165834[];
 
 extern void func_actor_341300_8016268C(void);
 
@@ -80,7 +80,7 @@ extern AreaResource D_shelter_b2_north_maintenance_walkway_80186050[3];
 extern AreaResource D_shelter_b2_north_maintenance_walkway_80186074[4];
 extern AreaResource D_shelter_b2_north_maintenance_walkway_801860A4[3];
 
-extern TaskDesc D_80142604;
+extern TaskDesc Actor04400_D107E4;
 extern TaskDesc D_801575F0;
 
 u8* D_shelter_b2_north_maintenance_walkway_80183C5C[1] = {
@@ -545,13 +545,13 @@ WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185F24[3] = {
 
 AreaResource D_shelter_b2_north_maintenance_walkway_80186008[3] = {
     { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148110 },
-    { 100, 413, AREA_RESOURCE_FILE_GROUP_BASE_30, 2, { 0, 0 }, D_80165208 },
+    { 100, 413, AREA_RESOURCE_FILE_GROUP_BASE_30, 2, { 0, 0 }, D_actor_341300_80165208 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_north_maintenance_walkway_8018602C[3] = {
     { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013F5F0 },
-    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
+    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_207200_80153EC8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -562,15 +562,15 @@ AreaResource D_shelter_b2_north_maintenance_walkway_80186050[3] = {
 };
 
 AreaResource D_shelter_b2_north_maintenance_walkway_80186074[4] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80142604 },
-    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
-    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
+    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_207200_80153EC8 },
+    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_actor_207200_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_north_maintenance_walkway_801860A4[3] = {
     { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FDF0 },
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, Actor02000_D15FD0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -783,7 +783,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, Roo
     u8 subId = in->warp;
 
     if (subId == 1 && GameFlag_GetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) == 0 && gGameSession->location.loc.variant == subId) {
-        func_800E8634(D_80165354, 0, D_80165834);
+        func_800E8634(D_actor_341300_80165354, 0, D_actor_341300_80165834);
         func_800E3FAC(0xA2, 0x20);
         GameFlag_SetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN, 1);
         Gp_ApplyAreaRecs(D_shelter_b2_north_maintenance_walkway_80186380);

@@ -54,10 +54,10 @@ D_shelter_b2_pod_access_tunnel_801855AC = 0x801855AC; // size:0xB8 defined:True
 D_shelter_b2_pod_access_tunnel_80185664 = 0x80185664; // size:0x3C defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80135C30 = 0x80135C30; // absolute:True
-D_8013A8D4 = 0x8013A8D4; // absolute:True
+gMaggotCaterpillarBodyTask = 0x8013A8D4; // absolute:True owner=actor_102600
 D_80147AB8 = 0x80147AB8; // absolute:True
 D_80148110 = 0x80148110; // absolute:True
-D_801540E0 = 0x801540E0; // absolute:True
+D_actor_403900_801540E0 = 0x801540E0; // absolute:True owner=actor_403900
 D_8015F400 = 0x8015F400; // absolute:True
 D_8015FAB8 = 0x8015FAB8; // absolute:True
 D_801602C0 = 0x801602C0; // absolute:True

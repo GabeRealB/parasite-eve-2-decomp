@@ -44,7 +44,7 @@ D_neo_ark_eve_access_tunnel_801804B4 = 0x801804B4; // size:0x1C8 defined:True
 D_neo_ark_eve_access_tunnel_8018067C = 0x8018067C; // size:0x18 defined:True
 D_neo_ark_eve_access_tunnel_80180694 = 0x80180694; // size:0x24 defined:True
 D_80135C30 = 0x80135C30; // absolute:True
-D_8014CA60 = 0x8014CA60; // absolute:True
+D_actor_205200_8014CA60 = 0x8014CA60; // absolute:True owner=actor_205200
 D_neo_ark_eve_access_tunnel_8017F18C = 0x8017F18C; // size:0x564 defined:True
 D_neo_ark_eve_access_tunnel_8017EA88 = 0x8017EA88; // size:0xC defined:True
 D_neo_ark_eve_access_tunnel_8017EA94 = 0x8017EA94; // size:0x30 defined:True

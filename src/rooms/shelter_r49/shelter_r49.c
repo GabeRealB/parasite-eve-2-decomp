@@ -17,7 +17,7 @@
 
 extern TaskMessageEntry D_shelter_r49_8017D9D8[];
 
-extern EvsCommand D_80133560[];
+extern EvsCommand D_actor_143900_80133560[];
 extern EvsCommand D_80133860[];
 
 static void func_shelter_r49_8017D648(Task* arg0);
@@ -76,7 +76,7 @@ static void func_shelter_r49_8017D648(Task* arg0)
     arg0->msgTable = D_shelter_r49_8017D9D8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        func_800E8634(D_80133560, 0, D_80133860);
+        func_800E8634(D_actor_143900_80133560, 0, D_80133860);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

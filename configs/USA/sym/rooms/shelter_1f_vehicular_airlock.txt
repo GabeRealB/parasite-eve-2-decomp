@@ -32,7 +32,7 @@ D_shelter_1f_vehicular_airlock_80182A70 = 0x80182A70; // size:0x8 defined:True
 D_shelter_1f_vehicular_airlock_80182A78 = 0x80182A78; // size:0x8 defined:True
 D_shelter_1f_vehicular_airlock_80182A80 = 0x80182A80; // size:0x20 defined:True
 gRoomEventFade = 0x80182AA0; // size:0x8 defined:True
-D_80147DF0 = 0x80147DF0; // absolute:True
+Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_801611F8 = 0x801611F8; // absolute:True
 D_map_neo_ark_8017AED0 = 0x8017AED0; // absolute:True owner=map_neo_ark
 RoomFx_TrailOffsets = 0x801820EC; // size:0x10 defined:True

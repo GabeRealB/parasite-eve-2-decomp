@@ -51,7 +51,7 @@ D_8013F5F0 = 0x8013F5F0; // absolute:True
 D_80147400 = 0x80147400; // absolute:True
 D_80148110 = 0x80148110; // absolute:True
 D_8014E47C = 0x8014E47C; // absolute:True
-D_8014F698 = 0x8014F698; // absolute:True
+Actor04600_D05878 = 0x8014F698; // absolute:True owner=actor_204600
 D_801502BC = 0x801502BC; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
 RoomFx_TrailOffsets = 0x80184B64; // size:0x10 defined:True

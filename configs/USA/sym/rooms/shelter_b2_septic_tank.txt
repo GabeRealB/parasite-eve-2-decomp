@@ -64,7 +64,7 @@ gRoomEventFade = 0x80187034; // size:0x8 defined:True
 D_80135C30 = 0x80135C30; // absolute:True
 D_80147E48 = 0x80147E48; // absolute:True
 D_8015F400 = 0x8015F400; // absolute:True
-D_8015FDF0 = 0x8015FDF0; // absolute:True
+Actor02000_D15FD0 = 0x8015FDF0; // absolute:True owner=actor_202000
 D_8015FE48 = 0x8015FE48; // absolute:True
 D_shelter_b2_septic_tank_80182FC0 = 0x80182FC0; // size:0x14 defined:True
 D_shelter_b2_septic_tank_80182FD4 = 0x80182FD4; // size:0x18 defined:True

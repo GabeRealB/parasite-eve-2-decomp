@@ -65,7 +65,7 @@ extern u8 D_mine_refuge_80182ADC[4];
 
 extern UiObjectDesc D_800611E4;
 
-extern TaskDesc D_801358D8;
+extern TaskDesc D_actor_548100_801358D8;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `gMcSaveData`.
@@ -141,7 +141,7 @@ extern SVECTOR D_mine_refuge_801818E8;
 /// The cutscene's sound task, killed when the scene is skipped.
 extern Task* gRoomCutsceneSoundTask;
 
-/// Task `func_mine_refuge_8017FA08` spawns from `D_801358D8` and waits on;
+/// Task `func_mine_refuge_8017FA08` spawns from `D_actor_548100_801358D8` and waits on;
 /// message 0x13F1 is relayed to it while it exists.
 extern Task* D_mine_refuge_80182AD8;
 
@@ -453,7 +453,7 @@ WorldCollisionTrigger D_mine_refuge_80182810[6] = {
 };
 
 AreaResource D_mine_refuge_801829D8[2] = {
-    { 101, 481, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, &D_801358D8 },
+    { 101, 481, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, &D_actor_548100_801358D8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -565,7 +565,7 @@ void func_mine_refuge_8017FA08(Task* task)
             return;
         case 2:
             SndEvt_EnqueueType6(SOUND_MINE_REFUGE_CIRCUIT_PANEL_OPEN, 0, 0);
-            D_mine_refuge_80182AD8 = Task_SpawnFromTable(&D_801358D8, 0, 0, 0);
+            D_mine_refuge_80182AD8 = Task_SpawnFromTable(&D_actor_548100_801358D8, 0, 0, 0);
             task->state            = task->state + 1;
             return;
         case 3:

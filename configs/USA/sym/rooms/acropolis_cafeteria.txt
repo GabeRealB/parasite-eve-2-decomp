@@ -24,12 +24,12 @@ D_acropolis_cafeteria_80189DCC = 0x80189DCC; // size:0x58 defined:True
 gAcropolisCafeteriaPointLights = 0x80189E24; // size:0x5A0 defined:True
 gAcropolisCafeteriaSpotLightStorage = 0x8018A3C4; // size:0x654 defined:True
 D_80138E98 = 0x80138E98; // absolute:True
-D_80148670 = 0x80148670; // absolute:True
-D_801491F8 = 0x801491F8; // absolute:True
-D_80155AC4 = 0x80155AC4; // absolute:True
-D_80156E24 = 0x80156E24; // absolute:True
-D_8015A4EC = 0x8015A4EC; // absolute:True
-D_801796A4 = 0x801796A4; // absolute:True
+D_actor_110600_80148670 = 0x80148670; // absolute:True owner=actor_110600
+gGolemPawnRookTasks = 0x801491F8; // absolute:True owner=actor_105700
+D_actor_401800_80155AC4 = 0x80155AC4; // absolute:True owner=actor_401800
+D_actor_202900_80156E24 = 0x80156E24; // absolute:True owner=actor_202900
+D_actor_210600_8015A4EC = 0x8015A4EC; // absolute:True owner=actor_210600
+D_actor_310600_801796A4 = 0x801796A4; // absolute:True owner=actor_310600
 D_map_akropolis_8017AE9C = 0x8017AE9C; // absolute:True
 D_map_akropolis_8017AEDC = 0x8017AEDC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017AF1C = 0x8017AF1C; // absolute:True owner=map_akropolis

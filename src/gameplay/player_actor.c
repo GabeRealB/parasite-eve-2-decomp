@@ -575,111 +575,111 @@ static void func_80109A1C(Task* arg0);
 /// for its `state` mode.
 static inline void _gpResumeBaseState(Task* arg0);
 
-extern AnimationBank D_8012A85C;
+extern AnimationBank D_p08_8012A85C;
 
-extern AnimationBank D_8012ADF8;
+extern AnimationBank D_m93r_8012ADF8;
 
 extern AnimationBank D_8012BA78;
 
-extern AnimationBank D_8012B51C;
+extern AnimationBank D_p229_8012B51C;
 
-extern AnimationBank D_8012A474;
+extern AnimationBank D_unused_85_8012A474;
 
-extern AnimationBank D_8012A0D8;
+extern AnimationBank D_unused_86_8012A0D8;
 
-extern AnimationBank D_8012A9C0;
+extern AnimationBank D_mongoose_8012A9C0;
 
-extern AnimationBank D_8012B2E4;
+extern AnimationBank D_grenade_pistol_8012B2E4;
 
-extern AnimationBank D_8012D184;
+extern AnimationBank D_mm1_8012D184;
 
-extern AnimationBank D_8012C18C;
+extern AnimationBank D_pa3_8012C18C;
 
-extern AnimationBank D_8012BCC8;
+extern AnimationBank D_sp12_8012BCC8;
 
-extern AnimationBank D_8012C300;
+extern AnimationBank D_as12_8012C300;
 
-extern AnimationBank D_8012B9E4;
+extern AnimationBank D_m4a1_8012B9E4;
 
-extern AnimationBank D_8012CF58;
+extern AnimationBank D_m249_8012CF58;
 
 extern AnimationBank D_8012BAB0;
 
 extern AnimationBank D_8012EDD0;
 
-extern AnimationBank D_8012E108;
+extern AnimationBank D_gunblade_8012E108;
 
-extern AnimationBank D_8012D4F4;
+extern AnimationBank D_m4a1_hammer_8012D4F4;
 
-extern AnimationBank D_8012D25C;
+extern AnimationBank D_m4a1_bayonet_8012D25C;
 
-extern AnimationBank D_8012DF50;
+extern AnimationBank D_m4a1_grenade_8012DF50;
 
-extern AnimationBank D_8012D500;
+extern AnimationBank D_m4a1_pyke_8012D500;
 
-extern AnimationBank D_8012EA20;
+extern AnimationBank D_m4a1_javelin_8012EA20;
 
-extern AnimationBank D_8012B3CC;
+extern AnimationBank D_mp5a5_8012B3CC;
 
-extern GpuImageUpload* D_8011CC94[];
+extern GpuImageUpload* D_aya_10400_8011CC94[];
 
-extern GpuImageUpload* D_8011CD1C[];
+extern GpuImageUpload* D_aya_10300_8011CD1C[];
 
-extern GpuImageUpload* D_8011D094[];
+extern GpuImageUpload* D_aya_10200_8011D094[];
 
 extern GpuImageUpload* D_8011D168[];
 
-extern GpuImageUpload* D_8011CC9C[];
+extern GpuImageUpload* D_aya_10400_8011CC9C[];
 
-extern GpuImageUpload* D_8011CD24[];
+extern GpuImageUpload* D_aya_10300_8011CD24[];
 
-extern GpuImageUpload* D_8011D09C[];
+extern GpuImageUpload* D_aya_10200_8011D09C[];
 
 extern GpuImageUpload* D_8011D170[];
 
-extern GpuImageUpload* D_8011CCAC[];
+extern GpuImageUpload* D_aya_10400_8011CCAC[];
 
-extern GpuImageUpload* D_8011CD34[];
+extern GpuImageUpload* D_aya_10300_8011CD34[];
 
-extern GpuImageUpload* D_8011D0AC[];
+extern GpuImageUpload* D_aya_10200_8011D0AC[];
 
 extern GpuImageUpload* D_8011D180[];
 
-extern GpuImageUpload* D_8011CCBC[];
+extern GpuImageUpload* D_aya_10400_8011CCBC[];
 
-extern GpuImageUpload* D_8011CD44[];
+extern GpuImageUpload* D_aya_10300_8011CD44[];
 
-extern GpuImageUpload* D_8011D0BC[];
+extern GpuImageUpload* D_aya_10200_8011D0BC[];
 
 extern GpuImageUpload* D_8011D190[];
 
-extern GpuImageUpload* D_8011CCDC[];
+extern GpuImageUpload* D_aya_10400_8011CCDC[];
 
-extern GpuImageUpload* D_8011CD64[];
+extern GpuImageUpload* D_aya_10300_8011CD64[];
 
-extern GpuImageUpload* D_8011D0DC[];
+extern GpuImageUpload* D_aya_10200_8011D0DC[];
 
 extern GpuImageUpload* D_8011D1B0[];
 
-extern GpuImageUpload* D_8011CCD4[];
+extern GpuImageUpload* D_aya_10400_8011CCD4[];
 
-extern GpuImageUpload* D_8011CD5C[];
+extern GpuImageUpload* D_aya_10300_8011CD5C[];
 
-extern GpuImageUpload* D_8011D0D4[];
+extern GpuImageUpload* D_aya_10200_8011D0D4[];
 
 extern GpuImageUpload* D_8011D1A8[];
 
-extern AnimationBank D_801756D0;
+extern AnimationBank D_kyle_800101_801756D0;
 
-extern AnimationBank D_801772E8;
+extern AnimationBank D_kyle_800102_801772E8;
 
-extern AnimationBank D_8017567C;
+extern AnimationBank D_kyle_800103_8017567C;
 
-extern AnimationBank D_80176C1C;
+extern AnimationBank D_kyle_800104_80176C1C;
 
-extern AnimationBank D_8016F208;
+extern AnimationBank D_actor_800200_8016F208;
 
-extern AnimationBank D_8016CB98;
+extern AnimationBank D_actor_800300_8016CB98;
 
 /// Weapon overlay entry points, at fixed addresses.
 void func_m93r_8011D1C4(Task* arg0);
@@ -1000,7 +1000,7 @@ u16 Gp_WeaponIdBase[2] = {
     1,
     0,
 };
-AnimationBank* Gp_PlayerAnimBlkTbl[34] = { NULL, &D_8012A85C, &D_8012A85C, &D_8012ADF8, &D_8012BA78, &D_8012A85C, &D_8012B51C, &D_8012A474, &D_8012A0D8, &D_8012A0D8, &D_8012A9C0, &D_8012A0D8, &D_8012B2E4, &D_8012D184, &D_8012C18C, &D_8012BCC8, &D_8012C300, &D_8012B9E4, &D_8012CF58, &D_8012A0D8, &D_8012BAB0, &D_8012B9E4, &D_8012B9E4, &D_8012EDD0, &D_8012E108, &D_8012A0D8, &D_8012D4F4, &D_8012D25C, &D_8012DF50, &D_8012D500, &D_8012EA20, &D_8012B3CC, &D_8012B3CC, &D_8012B3CC };
+AnimationBank* Gp_PlayerAnimBlkTbl[34] = { NULL, &D_p08_8012A85C, &D_p08_8012A85C, &D_m93r_8012ADF8, &D_8012BA78, &D_p08_8012A85C, &D_p229_8012B51C, &D_unused_85_8012A474, &D_unused_86_8012A0D8, &D_unused_86_8012A0D8, &D_mongoose_8012A9C0, &D_unused_86_8012A0D8, &D_grenade_pistol_8012B2E4, &D_mm1_8012D184, &D_pa3_8012C18C, &D_sp12_8012BCC8, &D_as12_8012C300, &D_m4a1_8012B9E4, &D_m249_8012CF58, &D_unused_86_8012A0D8, &D_8012BAB0, &D_m4a1_8012B9E4, &D_m4a1_8012B9E4, &D_8012EDD0, &D_gunblade_8012E108, &D_unused_86_8012A0D8, &D_m4a1_hammer_8012D4F4, &D_m4a1_bayonet_8012D25C, &D_m4a1_grenade_8012DF50, &D_m4a1_pyke_8012D500, &D_m4a1_javelin_8012EA20, &D_mp5a5_8012B3CC, &D_mp5a5_8012B3CC, &D_mp5a5_8012B3CC };
 u16            D_80112DF4[4]           = {
     0,
     64,
@@ -1083,8 +1083,8 @@ u16 D_80112E30[33] = {
     96,
     96
 };
-GpuImageUpload** D_80112E74[16] = { D_8011CC94, D_8011CD1C, D_8011D094, D_8011D168, D_8011CC9C, D_8011CD24, D_8011D09C, D_8011D170, D_8011CCAC, D_8011CD34, D_8011D0AC, D_8011D180, D_8011CCBC, D_8011CD44, D_8011D0BC, D_8011D190 };
-GpuImageUpload** D_80112EB4[8]  = { D_8011CCDC, D_8011CD64, D_8011D0DC, D_8011D1B0, D_8011CCD4, D_8011CD5C, D_8011D0D4, D_8011D1A8 };
+GpuImageUpload** D_80112E74[16] = { D_aya_10400_8011CC94, D_aya_10300_8011CD1C, D_aya_10200_8011D094, D_8011D168, D_aya_10400_8011CC9C, D_aya_10300_8011CD24, D_aya_10200_8011D09C, D_8011D170, D_aya_10400_8011CCAC, D_aya_10300_8011CD34, D_aya_10200_8011D0AC, D_8011D180, D_aya_10400_8011CCBC, D_aya_10300_8011CD44, D_aya_10200_8011D0BC, D_8011D190 };
+GpuImageUpload** D_80112EB4[8]  = { D_aya_10400_8011CCDC, D_aya_10300_8011CD64, D_aya_10200_8011D0DC, D_8011D1B0, D_aya_10400_8011CCD4, D_aya_10300_8011CD5C, D_aya_10200_8011D0D4, D_8011D1A8 };
 /// Unused, probably stale program data: likely per-weapon boolean flags.
 /// No reader identified; the original flag meaning is unknown.
 u8 D_80112ED4[33] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1 };
@@ -1309,7 +1309,7 @@ u16            Gp_AllyIdBase[4] = {
     7,
     0,
 };
-AnimationBank* Gp_AnimBlkTbl[8] = { NULL, &D_801756D0, &D_801756D0, &D_801772E8, &D_8017567C, &D_80176C1C, &D_8016F208, &D_8016CB98 };
+AnimationBank* Gp_AnimBlkTbl[8] = { NULL, &D_kyle_800101_801756D0, &D_kyle_800101_801756D0, &D_kyle_800102_801772E8, &D_kyle_800103_8017567C, &D_kyle_800104_80176C1C, &D_actor_800200_8016F208, &D_actor_800300_8016CB98 };
 /// Five observed flag entries; the final F0 EE EF bytes have no known reader.
 /// Their meaning and relationship to the flag array are unconfirmed.
 u8 D_80113388[8] = {

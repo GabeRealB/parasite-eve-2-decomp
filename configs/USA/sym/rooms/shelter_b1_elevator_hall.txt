@@ -53,7 +53,7 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80135C30 = 0x80135C30; // absolute:True
 D_80147AB8 = 0x80147AB8; // absolute:True
 D_80148110 = 0x80148110; // absolute:True
-D_80151B10 = 0x80151B10; // absolute:True
+D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
 D_801602C0 = 0x801602C0; // absolute:True
 D_shelter_b1_elevator_hall_80182CAC = 0x80182CAC; // size:0xC defined:True
 D_shelter_b1_elevator_hall_80182CB8 = 0x80182CB8; // size:0x30 defined:True

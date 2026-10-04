@@ -65,7 +65,7 @@
 #include "../../shared/room_cutscene.h"
 
 extern UiObjectDesc D_800611E4;
-extern TaskDesc     D_8013843C;
+extern TaskDesc     D_actor_120500_8013843C;
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present), read through its own symbol.
 
@@ -1902,7 +1902,7 @@ WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13] = {
 };
 
 AreaResource D_dryfield_motel_room_6_80186740[2] = {
-    { 101, 205, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_8013843C },
+    { 101, 205, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_120500_8013843C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -2072,7 +2072,7 @@ s32 func_dryfield_motel_room_6_80181A00(Task* task, s32 msgId, s32 arg2, s32 arg
     return 0;
 }
 
-/// Spawns this room's event task from entry 1 of `D_8013843C`, keeps it in
+/// Spawns this room's event task from entry 1 of `D_actor_120500_8013843C`, keeps it in
 /// `D_dryfield_motel_room_6_80186828`, waits for it to be killed and then kills
 /// this task. Same shape as `func_dryfield_gas_station_8017FE20`.
 void func_dryfield_motel_room_6_80181A08(Task* arg0)
@@ -2081,7 +2081,7 @@ void func_dryfield_motel_room_6_80181A08(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            D_dryfield_motel_room_6_80186828 = Task_SpawnFromTable(&D_8013843C, 1, 0, 0);
+            D_dryfield_motel_room_6_80186828 = Task_SpawnFromTable(&D_actor_120500_8013843C, 1, 0, 0);
             arg0->state++;
             break;
         case 1:

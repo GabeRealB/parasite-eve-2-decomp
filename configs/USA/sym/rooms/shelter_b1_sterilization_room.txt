@@ -104,7 +104,7 @@ D_shelter_b1_sterilization_room_8018C334 = 0x8018C334; // size:0x8 defined:True
 gRoomCutsceneSoundTask = 0x8018C33C; // size:0x4 defined:True
 D_shelter_b1_sterilization_room_8018C340 = 0x8018C340; // size:0x4 defined:True
 D_shelter_b1_sterilization_room_8018C344 = 0x8018C344; // size:0x18 defined:True
-D_8013DFA0 = 0x8013DFA0; // absolute:True
+D_actor_160600_8013DFA0 = 0x8013DFA0; // absolute:True owner=actor_160600
 _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Skeleton = 0x80184834; // size:0x6C defined:True
 _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0PartVerts = 0x801848A0; // size:0xC defined:True
 _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Verts = 0x801848AC; // size:0x1C0 defined:True

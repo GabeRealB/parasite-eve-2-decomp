@@ -256,7 +256,7 @@ D_shelter_b1_underground_parking_8018D750 = 0x8018D750; // size:0x4 defined:True
 gRoomCutsceneSoundTask = 0x8018D754; // size:0x4 defined:True
 D_shelter_b1_underground_parking_8018D758 = 0x8018D758; // size:0x4 defined:True
 D_shelter_b1_underground_parking_8018D75C = 0x8018D75C; // size:0x20 defined:True
-D_801401B0 = 0x801401B0; // absolute:True
+gStrideWalkTasks = 0x801401B0; // absolute:True owner=actor_161500
 gRoomDeparture = 0x8018D77C; // size:0xC defined:True
 D_shelter_b1_underground_parking_8018D788 = 0x8018D788; // size:0x1 defined:True
 D_shelter_b1_underground_parking_8018D789 = 0x8018D789; // size:0x1 defined:True

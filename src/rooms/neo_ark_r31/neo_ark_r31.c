@@ -32,7 +32,7 @@
 /// Room message handler table installed into `Task::msgTable`.
 extern TaskMessageEntry D_neo_ark_r31_8017D9F4[];
 extern EvsCommand       D_80133F90[];
-extern EvsCommand       D_80134470[];
+extern EvsCommand       D_actor_461800_80134470[];
 
 s32  func_neo_ark_r31_8017D8B0(Task*, s32, s32, s32);
 s32  func_neo_ark_r31_8017D8B8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -94,8 +94,8 @@ WorldCoordPointLight D_neo_ark_r31_8017DB1C[1] = {
 WorldCoordRoomLights D_neo_ark_r31_8017DB7C = { 0, NULL, ARRAY_SIZE(D_neo_ark_r31_8017DB1C), D_neo_ark_r31_8017DB1C, 0, NULL };
 
 AreaResource D_neo_ark_r31_8017DB94[3] = {
-    { 101, 618, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80139F8C },
-    { 132, 618, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_801437EC },
+    { 101, 618, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_461800_80139F8C },
+    { 132, 618, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_461800_801437EC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -241,7 +241,7 @@ static void func_neo_ark_r31_8017D90C(Task* arg0)
     arg0->msgTable = D_neo_ark_r31_8017D9F4;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    func_800E8634(D_80133F90, 0, D_80134470);
+    func_800E8634(D_80133F90, 0, D_actor_461800_80134470);
     arg0->state = (s32)(arg0->state + 1);
 }
 

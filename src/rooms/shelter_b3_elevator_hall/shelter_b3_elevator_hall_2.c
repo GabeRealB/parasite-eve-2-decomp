@@ -50,7 +50,7 @@
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 
-extern TaskDesc D_80142604;
+extern TaskDesc Actor04400_D107E4;
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
@@ -349,7 +349,7 @@ WorldCollisionTrigger D_shelter_b3_elevator_hall_80184428[8] = {
 };
 
 AreaResource D_shelter_b3_elevator_hall_80184688[2] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80142604 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &Actor04400_D107E4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

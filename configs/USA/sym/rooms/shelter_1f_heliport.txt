@@ -151,9 +151,9 @@ Shop_Data_80187628 = 0x80182C98; // size:0x4 defined:True
 Shop_Data_8018762C = 0x80182C9C; // size:0x4 defined:True
 gRoomEventFade = 0x80182CA0; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_801401B0 = 0x801401B0; // absolute:True
-D_80154C18 = 0x80154C18; // absolute:True
-D_80159DB0 = 0x80159DB0; // absolute:True
+gStrideWalkTasks = 0x801401B0; // absolute:True owner=actor_161500
+D_actor_260400_80154C18 = 0x80154C18; // absolute:True owner=actor_260400
+D_actor_260500_80159DB0 = 0x80159DB0; // absolute:True owner=actor_260500
 D_map_neo_ark_8017AF30 = 0x8017AF30; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017AF80 = 0x8017AF80; // absolute:True owner=map_neo_ark
 gRoomEventStagedMsg = 0x80182CA8; // size:0x8 defined:True

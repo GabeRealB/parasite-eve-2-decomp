@@ -104,14 +104,14 @@ extern void func_actor_450800_80132028(void);
 
 extern UiObjectDesc D_800611E4;
 
-extern EvsCommand D_80139964[];
+extern EvsCommand D_actor_450800_80139964[];
 extern EvsCommand D_8013A33C[];
 extern EvsCommand D_8013A84C[];
 // Script in the companion actor slot; this address also holds a task table
 // when a different actor package is loaded.
 extern EvsCommand D_nursery_script_8013A8DC[];
-extern EvsCommand D_8013AF8C[];
-extern EvsCommand D_8013BA84[];
+extern EvsCommand D_actor_450800_8013AF8C[];
+extern EvsCommand D_actor_450800_8013BA84[];
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `gMcSaveData` address with case 0.
@@ -765,7 +765,7 @@ WorldCollisionTrigger D_shelter_b6_nursery_801872AC[6] = {
 
 AreaResource D_shelter_b6_nursery_80187474[4] = {
     { 101, 508, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8014AC88 },
-    { 20, 358, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_801539DC },
+    { 20, 358, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gPairWalkTasks },
     { 140, 508, AREA_RESOURCE_FILE_GROUP_BASE_60, 3, { 0, 0 }, D_8014AC88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -996,7 +996,7 @@ s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionReque
         func_actor_450800_80132000();
     }
     if (msg->actionId == 3 && GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) != 0) {
-        func_800E8634(D_8013AF8C, 0, D_8013BA84);
+        func_800E8634(D_actor_450800_8013AF8C, 0, D_actor_450800_8013BA84);
     }
     return 0;
 }
@@ -1008,7 +1008,7 @@ static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
     Gp_FillAllyHp();
     if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
         GameFlag_SetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 1);
-        func_800E8634(D_80139964, 0, D_8013A33C);
+        func_800E8634(D_actor_450800_80139964, 0, D_8013A33C);
         GameFlag_SetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         func_800E3FAC(0xA2, 0x30);
     } else if (GameFlag_GetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 1) {

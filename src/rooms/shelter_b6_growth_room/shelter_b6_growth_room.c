@@ -18,11 +18,11 @@
 
 #include "mapui/map_neo_ark.h"
 
-extern TaskDesc         D_80135E78;
+extern TaskDesc         D_actor_450900_80135E78;
 extern TaskMessageEntry D_shelter_b6_growth_room_8017F16C[];
 
-extern EvsCommand D_80136110[];
-extern EvsCommand D_80136308[];
+extern EvsCommand D_actor_450900_80136110[];
+extern EvsCommand D_actor_450900_80136308[];
 
 extern void func_actor_450900_801327A8(void);
 extern void func_actor_450900_80132834(void);
@@ -63,7 +63,7 @@ s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, s32 arg
     if (arg2 == 1) {
         if (GameFlag_GetNibble(GAME_FLAG_0D8) == 0) {
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(&D_80135E78, 3, 0, 0);
+            Task_SpawnFromTable(&D_actor_450900_80135E78, 3, 0, 0);
         } else {
             Gp_RunCapCmd1(1);
         }
@@ -91,9 +91,9 @@ static void func_shelter_b6_growth_room_8017D71C(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Gp_FillAllyHp();
     Gp_ApplyAreaRecs(D_shelter_b6_growth_room_801807C8);
-    func_800E8634(D_80136110, 0, D_80136308);
-    Task_SpawnFromTable(&D_80135E78, 1, 0, 0);
-    Task_SpawnFromTable(&D_80135E78, 2, 0, 0);
+    func_800E8634(D_actor_450900_80136110, 0, D_actor_450900_80136308);
+    Task_SpawnFromTable(&D_actor_450900_80135E78, 1, 0, 0);
+    Task_SpawnFromTable(&D_actor_450900_80135E78, 2, 0, 0);
     func_800E3FAC(0xA2, 0x33);
     arg0->state = (s32)(arg0->state + 1);
 }

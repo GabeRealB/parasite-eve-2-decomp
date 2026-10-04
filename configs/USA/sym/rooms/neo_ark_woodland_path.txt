@@ -58,7 +58,7 @@ D_neo_ark_woodland_path_801848F0 = 0x801848F0; // size:0x8 defined:True
 D_neo_ark_woodland_path_801848F8 = 0x801848F8; // size:0x8 defined:True
 D_neo_ark_woodland_path_80184900 = 0x80184900; // size:0x8 defined:True
 D_neo_ark_woodland_path_80184908 = 0x80184908; // size:0x8 defined:True
-D_80158A18 = 0x80158A18; // absolute:True
+D_actor_401300_80158A18 = 0x80158A18; // absolute:True owner=actor_401300
 D_map_neo_ark_8017C3C0 = 0x8017C3C0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C3F0 = 0x8017C3F0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C420 = 0x8017C420; // absolute:True owner=map_neo_ark

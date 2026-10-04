@@ -278,7 +278,7 @@ STATIC_ASSERT_SIZEOF(_Actor444000CommandStorage, 8);
 /// Shared 0x7DA payload buffer, also used by `func_actor_444000_80141618`.
 extern _Actor444000CommandStorage D_actor_444000_80161888;
 /// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
-extern TaskDesc D_80172604;
+extern TaskDesc Actor04400_D107E4;
 
 extern AnimationSet* gGluttonCaughtAnimSets[];
 
@@ -6238,7 +6238,7 @@ static void func_actor_444000_80141618(Task* task)
         }
         for (sc->slot = 0; sc->slot < 2; sc->slot++) {
             if (work->summons[sc->slot] == NULL && (u8)work->summonsSpawned < 8 && work->phase < 6) {
-                work->summons[sc->slot] = Gp_SpawnEnemyFromTable(&D_80172604, 3, 2, NULL);
+                work->summons[sc->slot] = Gp_SpawnEnemyFromTable(&Actor04400_D107E4, 3, 2, NULL);
                 if (work->summons[sc->slot] != NULL) {
                     work->summonsSpawned++;
                     model      = work->summons[sc->slot]->task->extra.tmd;

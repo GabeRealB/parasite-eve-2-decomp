@@ -349,7 +349,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor403100PlayerReactionTable, 0x10);
 
 extern _Actor403100Zone D_actor_403100_80155638[];
-extern EvsCommand       D_80166098[];
+extern EvsCommand       D_actor_335800_80166098[];
 static s32              func_actor_403100_8013D9C4(s16 x, s16 z, _Actor403100Zone* zone);
 
 /// Rows of `_Actor403100AttackPickStorage::states`.
@@ -5478,7 +5478,7 @@ static void func_actor_403100_80136830(Task* arg0)
                     D_actor_403100_8015580C->reactionFlags      = 0;
                     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                     D_actor_403100_8015580C->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
-                    func_800E8614(D_80166098, 0);
+                    func_800E8614(D_actor_335800_80166098, 0);
                     arg0->state                       = 1;
                     D_actor_403100_80155808->state    = 0;
                     D_actor_403100_80155808->subState = 0;

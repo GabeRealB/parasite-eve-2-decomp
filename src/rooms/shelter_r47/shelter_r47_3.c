@@ -146,7 +146,7 @@ WorldCollisionTrigger D_shelter_r47_8018787C[13] = {
 };
 
 AreaResource D_shelter_r47_80187C58[2] = {
-    { 143, 435, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8015873C },
+    { 143, 435, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_443500_8015873C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -36,7 +36,7 @@ _gShelterR47Collision0ACCCCells = 0x801880F8; // size:0x10 defined:True
 _gShelterR47Collision0ACCCTable = 0x80188250; // size:0x3C defined:True
 D_shelter_r47_8018828C = 0x8018828C; // size:0x24 defined:True
 D_shelter_r47_801882B0 = 0x801882B0; // size:0x678 defined:True
-D_8015873C = 0x8015873C; // absolute:True
+D_actor_443500_8015873C = 0x8015873C; // absolute:True owner=actor_443500
 D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_square
 D_shelter_r47_8018787C = 0x8018787C; // size:0x3DC defined:True
 D_shelter_r47_80187624 = 0x80187624; // size:0x50 defined:True

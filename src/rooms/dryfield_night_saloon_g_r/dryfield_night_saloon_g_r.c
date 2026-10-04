@@ -1738,7 +1738,7 @@ WorldCollisionOccluder D_dryfield_night_saloon_g_r_80188E18[2] = {
 };
 
 AreaResource D_dryfield_night_saloon_g_r_80188E90[2] = {
-    { 140, 356, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013B0C4 },
+    { 140, 356, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_135600_8013B0C4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

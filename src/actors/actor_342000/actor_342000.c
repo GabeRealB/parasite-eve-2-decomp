@@ -409,9 +409,9 @@ extern ActorTransform D_actor_342000_80164878[2];
 
 extern ActorTransform D_actor_342000_801648D0;
 
-extern PadScriptCmd D_80144A74[2];
+extern PadScriptCmd D_actor_444000_80144A74[2];
 
-extern PadScriptVibrationSegment D_80144A7C[2];
+extern PadScriptVibrationSegment D_actor_444000_80144A7C[2];
 
 void actor444000GluttonSetShakeLevel(s8 arg0);
 
@@ -1034,7 +1034,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                     if (work->doorPlacements[0].pos.vx >= 0x36B0) {
                         work->doorPlacements[0].pos.vx = 0x36B0;
                         work->doorPlacements[1].pos.vx = 0x36B0;
-                        taskReparent(arg0, Gp_SpawnScript18(D_80144A74, D_80144A7C));
+                        taskReparent(arg0, Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C));
                         actor444000GluttonSetShakeLevel(3);
                         work->stagingMode = ACTOR_342000_STAGING_NONE;
                     }
@@ -1046,7 +1046,7 @@ static void func_actor_342000_80162F28(Task* arg0)
         case ACTOR_342000_STAGING_DOORS_SHUT:
             SndEvt_EnqueueType7(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, 1);
             SndEvt_EnqueueType6(SOUND_SHELTER_B3_INCINERATOR_DOORS_SHUT, 0, 0);
-            taskReparent(arg0, Gp_SpawnScript18(D_80144A74, D_80144A7C));
+            taskReparent(arg0, Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C));
             actor444000GluttonSetShakeLevel(3);
             break;
         default:

@@ -50,7 +50,7 @@ D_dryfield_night_driveway_801820F0 = 0x801820F0; // size:0x20 defined:True
 gRoomEventFade = 0x80182110; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80139DAC = 0x80139DAC; // absolute:True
-D_8013BE28 = 0x8013BE28; // absolute:True
+Actor01500_D0A008 = 0x8013BE28; // absolute:True owner=actor_101500
 D_8014F9A8 = 0x8014F9A8; // absolute:True
 D_map_dryfield_full_8017C5B8 = 0x8017C5B8; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017C698 = 0x8017C698; // absolute:True owner=map_dryfield_full

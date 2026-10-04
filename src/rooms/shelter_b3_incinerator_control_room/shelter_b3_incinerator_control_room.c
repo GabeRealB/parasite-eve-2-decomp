@@ -48,7 +48,7 @@
 extern UiObjectDesc D_800611E4;
 
 extern EvsCommand D_801360E4[];
-extern EvsCommand D_80136804[];
+extern EvsCommand D_actor_142600_80136804[];
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `gMcSaveData`.
@@ -221,7 +221,7 @@ static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task)
         func_800E3FAC(0xA2, 0x23);
         Gp_ApplyAreaRecs(D_shelter_b3_incinerator_control_room_80182A40);
         Gp_FillAllyHp();
-        func_800E8634(D_801360E4, 0, D_80136804);
+        func_800E8634(D_801360E4, 0, D_actor_142600_80136804);
     }
 }
 

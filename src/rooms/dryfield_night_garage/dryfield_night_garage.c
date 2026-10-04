@@ -51,10 +51,10 @@
 
 /// Task descriptor table and cutscene script blobs owned by the main
 /// executable.
-extern TaskDesc   D_8013B11C[];
-extern s32        D_8013B570;
+extern TaskDesc   D_actor_136300_8013B11C[];
+extern s32        D_actor_136300_8013B570;
 extern EvsCommand D_8013B590[];
-extern EvsCommand D_8013C388[];
+extern EvsCommand D_actor_136300_8013C388[];
 
 /// The 0xFFFF-terminated item id lists `func_dryfield_night_garage_8017D754`
 /// chooses from, and the one it returns when no case matches.
@@ -206,7 +206,7 @@ AnimationPlayRequest D_dryfield_night_garage_80181C68 = { { .index = 1 }, 1, ANI
 
 EvsCommand D_dryfield_night_garage_80181C7C[4] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_8013B570 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136300_8013B570 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_garage_80181C68 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -370,7 +370,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     (D_dryfield_night_garage_80186D7C + 3)->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     player                                         = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (gGameSession->location.loc.variant == 3 && player != NULL) {
-        TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_8013B570, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_actor_136300_8013B570, 0);
         Gp_AllyAnimId(&D_dryfield_night_garage_80181C68.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_dryfield_night_garage_80181C68, 0);
         func_dryfield_night_garage_80180604(0);
@@ -378,7 +378,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
         if (GameFlag_GetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN) == 0) {
             Gp_FillAllyHp();
             GameFlag_SetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN, 1);
-            func_800E8634(D_8013B590, 0, D_8013C388);
+            func_800E8634(D_8013B590, 0, D_actor_136300_8013C388);
         } else {
             func_800E8614(D_dryfield_night_garage_80181C7C, 1);
         }
@@ -444,7 +444,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
         }
     }
     if (msg->actionId == 2 && gGameSession->location.loc.variant == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        Task_SpawnFromTable(D_8013B11C, 1, 0, 0);
+        Task_SpawnFromTable(D_actor_136300_8013B11C, 1, 0, 0);
     }
     return 0;
 }

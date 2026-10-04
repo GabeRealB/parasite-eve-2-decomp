@@ -2,7 +2,7 @@
 
 // Referenced in another actor load slot, resident beside this one.
 D_80165FC0 = 0x80165FC0; // absolute:True
-D_80166098 = 0x80166098; // absolute:True
+D_actor_335800_80166098 = 0x80166098; // absolute:True owner=actor_335800
 D_actor_403100_80155638 = 0x80155638; // size:0x60 defined:True
 D_actor_403100_80155698 = 0x80155698; // size:0x54 defined:True
 D_actor_403100_801556EC = 0x801556EC; // size:0x20 defined:True

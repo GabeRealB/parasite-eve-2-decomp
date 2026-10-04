@@ -83,7 +83,7 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* v, u16 arg1, u16 arg2, u16 arg3);
 
-extern TaskDesc D_80164190;
+extern TaskDesc D_actor_341900_80164190;
 
 /// Four halfwords per entry, read as the two floor-level end points of a wall
 /// edge: `[0]`/`[1]` for the first corner and `[2]`/`[3]` for the second.
@@ -1686,7 +1686,7 @@ WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018F734[6] = {
 };
 
 AreaResource D_shelter_b3_garbage_incinerator_8018F8FC[4] = {
-    { 32, 440, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80161854 },
+    { 32, 440, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_444000_80161854 },
     { 103, 419, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { 44, 422, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -1702,7 +1702,7 @@ AreaPlacement D_shelter_b3_garbage_incinerator_8018F92C[4] = {
 AreaResource D_shelter_b3_garbage_incinerator_8018F96C[4] = {
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_801575F0 },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_80151E60 },
-    { 44, 424, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, D_80173A54 },
+    { 44, 424, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, D_actor_342400_80173A54 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1722,7 +1722,7 @@ AreaPlacement D_shelter_b3_garbage_incinerator_8018F9B8[4] = {
 };
 
 AreaResource D_shelter_b3_garbage_incinerator_8018F9F8[4] = {
-    { 32, 440, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80161854 },
+    { 32, 440, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_444000_80161854 },
     { 103, 419, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { 44, 422, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -2415,7 +2415,7 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
             buf.msg[3] = 0;
             buf.msg[4] = 0;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, buf.msg, 0);
-            arg0->spawnArg2.pointer = Task_SpawnFromTable(&D_80164190, 0, 0, 0);
+            arg0->spawnArg2.pointer = Task_SpawnFromTable(&D_actor_341900_80164190, 0, 0, 0);
             arg0->state++;
             return;
         case 1:

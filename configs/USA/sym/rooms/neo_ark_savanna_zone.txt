@@ -47,13 +47,13 @@ D_neo_ark_savanna_zone_80180968 = 0x80180968; // size:0x20 defined:True
 gRoomEventFade = 0x80180988; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80137D74 = 0x80137D74; // absolute:True
-D_80147DF0 = 0x80147DF0; // absolute:True
+Actor02000_D15FD0 = 0x80147DF0; // absolute:True owner=actor_102000
 D_801482C0 = 0x801482C0; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
 D_801602C0 = 0x801602C0; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
-D_801679A8 = 0x801679A8; // absolute:True
-D_8016A8D4 = 0x8016A8D4; // absolute:True
+Actor02500_D05B88 = 0x801679A8; // absolute:True owner=actor_302500
+gMaggotCaterpillarBodyTask = 0x8016A8D4; // absolute:True owner=actor_302600
 D_map_neo_ark_8017BB70 = 0x8017BB70; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017BBF0 = 0x8017BBF0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017BC70 = 0x8017BC70; // absolute:True owner=map_neo_ark

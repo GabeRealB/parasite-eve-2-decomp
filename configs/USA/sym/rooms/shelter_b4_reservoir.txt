@@ -59,10 +59,10 @@ D_shelter_b4_reservoir_80187320 = 0x80187320; // size:0x30 defined:True
 D_shelter_b4_reservoir_80187350 = 0x80187350; // size:0x60 defined:True
 D_shelter_b4_reservoir_801873B0 = 0x801873B0; // size:0x78 defined:True
 D_8013647C = 0x8013647C; // absolute:True
-D_80142604 = 0x80142604; // absolute:True
+Actor04400_D107E4 = 0x80142604; // absolute:True owner=actor_104400
 D_80147E48 = 0x80147E48; // absolute:True
-D_8014E7A4 = 0x8014E7A4; // absolute:True
-D_80153EC8 = 0x80153EC8; // absolute:True
+D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
+D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
 D_801575F0 = 0x801575F0; // absolute:True
 gScreenWaveTaskDesc = 0x80184724; // size:0x18 defined:True
 gScreenWaveRamp = 0x8018473C; // size:0x4 defined:True

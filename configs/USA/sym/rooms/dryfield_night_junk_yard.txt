@@ -52,9 +52,9 @@ D_dryfield_night_junk_yard_801844BC = 0x801844BC; // size:0x8 defined:True
 D_dryfield_night_junk_yard_801844C4 = 0x801844C4; // size:0x20 defined:True
 D_801482C0 = 0x801482C0; // absolute:True
 D_8014D8A4 = 0x8014D8A4; // absolute:True
-D_80151B10 = 0x80151B10; // absolute:True
+D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
 D_8015FAB8 = 0x8015FAB8; // absolute:True
-D_8016BE28 = 0x8016BE28; // absolute:True
+Actor01500_D0A008 = 0x8016BE28; // absolute:True owner=actor_301500
 D_map_dryfield_full_8017C7F8 = 0x8017C7F8; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017C828 = 0x8017C828; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017C878 = 0x8017C878; // absolute:True owner=map_dryfield_full

@@ -43,11 +43,11 @@ D_shelter_b6_training_room_80185768 = 0x80185768; // size:0x18 defined:True
 D_shelter_b6_training_room_80185780 = 0x80185780; // size:0x214 defined:True
 D_shelter_b6_training_room_80185994 = 0x80185994; // size:0x48 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_80141464 = 0x80141464; // absolute:True
-D_8014CA60 = 0x8014CA60; // absolute:True
-D_801567C4 = 0x801567C4; // absolute:True
-D_80169D10 = 0x80169D10; // absolute:True
-D_801708DC = 0x801708DC; // absolute:True
+D_actor_105100_80141464 = 0x80141464; // absolute:True owner=actor_105100
+D_actor_205200_8014CA60 = 0x8014CA60; // absolute:True owner=actor_205200
+D_actor_205200_801567C4 = 0x801567C4; // absolute:True owner=actor_205200
+D_actor_350700_80169D10 = 0x80169D10; // absolute:True owner=actor_350700
+D_actor_350700_801708DC = 0x801708DC; // absolute:True owner=actor_350700
 D_shelter_b6_training_room_80184334 = 0x80184334; // size:0xC8 defined:True
 D_shelter_b6_training_room_80184404 = 0x80184404; // size:0x14 defined:True
 D_shelter_b6_training_room_80185C98 = 0x80185C98; // size:0x2 defined:True

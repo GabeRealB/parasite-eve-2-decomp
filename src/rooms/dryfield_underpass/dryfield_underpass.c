@@ -367,7 +367,7 @@ ViewCamera D_dryfield_underpass_8017F4A8[26] = {
 };
 
 AreaResource D_dryfield_underpass_8017F850[2] = {
-    { 5, 5, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80153D60 },
+    { 5, 5, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_400500_80153D60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

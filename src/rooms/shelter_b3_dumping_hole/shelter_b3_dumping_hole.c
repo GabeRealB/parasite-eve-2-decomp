@@ -34,7 +34,7 @@ extern u8 D_shelter_b3_dumping_hole_8018F4A4_value __asm__("D_shelter_b3_dumping
 
 extern TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6];
 
-extern TaskDesc D_80164B78;
+extern TaskDesc D_actor_342100_80164B78;
 
 s32 func_shelter_b3_dumping_hole_8017D758(Task*, s32, s32, s32);
 s32 func_shelter_b3_dumping_hole_8017D760(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -277,7 +277,7 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
         }
     }
     if (gGameSession->location.loc.room >= 2) {
-        Task_SpawnFromTable(&D_80164B78, 0, 0, 0);
+        Task_SpawnFromTable(&D_actor_342100_80164B78, 0, 0, 0);
     }
     arg0->state                             += 1;
     D_shelter_b3_dumping_hole_8018F4A4_value = 0;

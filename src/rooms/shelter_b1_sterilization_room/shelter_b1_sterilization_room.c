@@ -145,8 +145,8 @@ extern _ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_roo
 extern UiObjectDesc D_800611E4;
 
 extern EvsCommand D_80135AC0[];
-extern EvsCommand D_80135D78[];
-extern EvsCommand D_80136258[];
+extern EvsCommand D_actor_160600_80135D78[];
+extern EvsCommand D_actor_160600_80136258[];
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\0 "
 #include "../../shared/telephone.h"
@@ -514,12 +514,12 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
             GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 1);
             GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, 2);
             GameFlag_SetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 8);
-            func_800E8634(D_80135D78, 0, D_80136258);
+            func_800E8634(D_actor_160600_80135D78, 0, D_actor_160600_80136258);
             areaSetPlacementVariant(&gGameSession->location.loc, 6, AREA_VARIANT_RESET_ALWAYS);
         } else {
             GameFlag_SetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 2);
             GameFlag_SetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, 1);
-            func_800E8634(D_80135AC0, 0, D_80136258);
+            func_800E8634(D_80135AC0, 0, D_actor_160600_80136258);
         }
     }
     func_shelter_b1_sterilization_room_80180340(0);

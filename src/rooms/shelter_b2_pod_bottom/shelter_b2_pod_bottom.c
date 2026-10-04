@@ -33,7 +33,7 @@
 void func_actor_361100_80162B0C(s32 unused);
 
 extern EvsCommand       D_80165F48[];
-extern EvsCommand       D_80166848[];
+extern EvsCommand       D_actor_361100_80166848[];
 extern TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[];
 
 static void func_shelter_b2_pod_bottom_8017D648(Task* arg0);
@@ -950,9 +950,9 @@ WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20] = {
 };
 
 AreaResource D_shelter_b2_pod_bottom_80187598[4] = {
-    { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80160514 },
-    { 45, 611, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016BAE4 },
-    { 132, 611, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80171BAC },
+    { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_403600_80160514 },
+    { 45, 611, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_361100_8016BAE4 },
+    { 132, 611, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_361100_80171BAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -964,9 +964,9 @@ AreaPlacement D_shelter_b2_pod_bottom_801875C8[4] = {
 };
 
 AreaResource D_shelter_b2_pod_bottom_80187608[4] = {
-    { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80160514 },
-    { 45, 611, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016BAE4 },
-    { 132, 611, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80171BAC },
+    { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_403600_80160514 },
+    { 45, 611, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_361100_8016BAE4 },
+    { 132, 611, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_361100_80171BAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1029,7 +1029,7 @@ static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         func_actor_361100_80162B0C(0);
-        func_800E8634(D_80165F48, 0, D_80166848);
+        func_800E8634(D_80165F48, 0, D_actor_361100_80166848);
     } else {
         msg.context.loc.stage = 0;
         msg.context.loc.area  = 0;

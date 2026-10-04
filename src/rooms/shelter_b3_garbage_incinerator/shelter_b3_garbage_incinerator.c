@@ -28,8 +28,8 @@ u16 D_shelter_b3_garbage_incinerator_801855DC;
 
 #include "mapui/map_shelter.h"
 
-extern TaskDesc         D_8016BFE0;
-extern TaskDesc         D_801449F4;
+extern TaskDesc         D_actor_342400_8016BFE0;
+extern TaskDesc         D_actor_444000_801449F4;
 extern TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[];
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_801855CC;
@@ -173,12 +173,12 @@ s32 func_shelter_b3_garbage_incinerator_8017DA74(Task* arg0, s32 arg1, s32 arg2,
             break;
         case 1:
             gGameSession->skipEventIntro = 1;
-            Task_SpawnFromTable(&D_801449F4, 0, 0, 0);
+            Task_SpawnFromTable(&D_actor_444000_801449F4, 0, 0, 0);
             break;
         case 2:
             gGameSession->skipEventIntro              = 1;
             D_shelter_b3_garbage_incinerator_801855DE = 1;
-            Task_SpawnFromTable(&D_801449F4, 0, 1, 0);
+            Task_SpawnFromTable(&D_actor_444000_801449F4, 0, 1, 0);
             break;
     }
     return 0;
@@ -207,7 +207,7 @@ static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
         Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 0, 0);
     }
     if (gGameSession->location.loc.variant == 2) {
-        Task_SpawnFromTable(&D_8016BFE0, 0, 0, 0);
+        Task_SpawnFromTable(&D_actor_342400_8016BFE0, 0, 0, 0);
     }
     task->state = task->state + 1;
 }

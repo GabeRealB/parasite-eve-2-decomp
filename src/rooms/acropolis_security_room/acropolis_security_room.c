@@ -1572,8 +1572,8 @@ WorldCollisionTrigger D_acropolis_security_room_80183EE8[5] = {
 };
 
 AreaResource D_acropolis_security_room_80184064[3] = {
-    { 102, 119, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016EC0C },
-    { 110, 119, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_8016EC00 },
+    { 102, 119, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_311900_8016EC0C },
+    { 110, 119, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_311900_8016EC00 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -62,9 +62,9 @@ typedef struct {
 } _ShelterB1PodServiceGantryWork;
 STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantryWork, 8);
 
-extern TaskDesc D_8013FB50;
+extern TaskDesc D_actor_160900_8013FB50;
 extern TaskDesc D_8016EA28;
-extern TaskDesc D_801718F0;
+extern TaskDesc D_actor_560800_801718F0;
 
 /// The room's message table, published in `Task::msgTable`.
 extern TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
@@ -104,10 +104,10 @@ DirectionWarpEntry D_shelter_b1_pod_service_gantry_8017FB24[1] = {
 };
 
 AreaResource D_shelter_b1_pod_service_gantry_8017FB5C[5] = {
-    { 34, 608, AREA_RESOURCE_FILE_GROUP_BASE_50, 1, { 0, 0 }, &D_801718F0 },
-    { 101, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, &D_801718F0 },
-    { 131, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, &D_801718F0 },
-    { 59, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, &D_801718F0 },
+    { 34, 608, AREA_RESOURCE_FILE_GROUP_BASE_50, 1, { 0, 0 }, &D_actor_560800_801718F0 },
+    { 101, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, &D_actor_560800_801718F0 },
+    { 131, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, &D_actor_560800_801718F0 },
+    { 59, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, &D_actor_560800_801718F0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1532,7 +1532,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
 
     switch (work->step) {
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_FIRST_SCENE:
-            work->sceneTask = Task_SpawnFromTable(&D_801718F0, 0, 0, 0);
+            work->sceneTask = Task_SpawnFromTable(&D_actor_560800_801718F0, 0, 0, 0);
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_FIRST_SCENE:
@@ -1556,7 +1556,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 break;
             }
-            work->sceneTask = Task_SpawnFromTable(&D_8013FB50, 0, 0, 0);
+            work->sceneTask = Task_SpawnFromTable(&D_actor_160900_8013FB50, 0, 0, 0);
             Gp_ApplyAreaRecs(D_shelter_b1_pod_service_gantry_80182540);
             GameFlag_SetNibble(GAME_FLAG_118, 1);
             work->step++;

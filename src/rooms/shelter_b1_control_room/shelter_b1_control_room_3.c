@@ -415,7 +415,7 @@ AreaResource D_shelter_b1_control_room_801838C0[2] = {
 };
 
 AreaResource D_shelter_b1_control_room_801838D8[2] = {
-    { 34, 504, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013C8F4 },
+    { 34, 504, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_150400_8013C8F4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -43,7 +43,7 @@
 
 extern RoomEventActiveBytes gRoomEventActive;
 
-extern TaskDesc D_80141B6C[];
+extern TaskDesc D_actor_120300_80141B6C[];
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -504,17 +504,17 @@ WorldCollisionTrigger D_dryfield_garage_8017FD1C[11] = {
 };
 
 AreaResource D_dryfield_garage_80180060[2] = {
-    { 106, 203, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80141B6C },
+    { 106, 203, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_120300_80141B6C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_garage_80180078[2] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BE28 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, Actor01500_D0A008 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_garage_80180090[2] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BE28 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, Actor01500_D0A008 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -691,7 +691,7 @@ s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 a
 }
 
 /// Task spawned from `D_dryfield_garage_8017DCAC`: spawns the second entry of
-/// gameplay's `D_80141B6C`, keeping the task in `D_dryfield_garage_8018021C.task`,
+/// gameplay's `D_actor_120300_80141B6C`, keeping the task in `D_dryfield_garage_8018021C.task`,
 /// then ends itself.
 void func_dryfield_garage_8017DAA0(Task* arg0)
 {
@@ -699,7 +699,7 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
     s32   state;
     switch (arg0->state) {
         case 0:
-            spawned                         = Task_SpawnFromTable(D_80141B6C, 1, 0, 0);
+            spawned                         = Task_SpawnFromTable(D_actor_120300_80141B6C, 1, 0, 0);
             state                           = arg0->state;
             D_dryfield_garage_8018021C.task = spawned;
             arg0->state                     = state + 1;

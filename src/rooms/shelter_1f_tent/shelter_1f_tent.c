@@ -51,7 +51,7 @@ extern void func_actor_460200_80132390(void);
 
 extern UiObjectDesc D_800611E4;
 
-extern EvsCommand D_801362B8[];
+extern EvsCommand D_actor_460200_801362B8[];
 extern EvsCommand D_80137890[];
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
@@ -178,7 +178,7 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
         func_800E3FAC(0xA2, 0x36);
         Gp_FillPlayerHpMp();
         Gp_ApplyAreaRecs(D_shelter_1f_tent_801842D4);
-        func_800E8634(D_801362B8, 0, D_80137890);
+        func_800E8634(D_actor_460200_801362B8, 0, D_80137890);
         if (GameFlag_GetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
             Gp_ApplyAreaRecs(D_shelter_1f_tent_801843B0);
             Gp_ApplyAreaRecs(D_shelter_1f_tent_801843B8);

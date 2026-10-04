@@ -28,6 +28,6 @@ D_shelter_r49_8017DDE8 = 0x8017DDE8; // size:0x8 defined:True
 D_shelter_r49_8017DDF0 = 0x8017DDF0; // size:0x8 defined:True
 D_shelter_r49_8017DDF8 = 0x8017DDF8; // size:0x20 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-D_801413EC = 0x801413EC; // absolute:True
+D_actor_143900_801413EC = 0x801413EC; // absolute:True owner=actor_143900
 
 func_shelter_r49_8017D9D0 = 0x8017D9D0; // type:func

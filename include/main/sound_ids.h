@@ -403,7 +403,7 @@ enum {
     /// 0xE2 bit 3), volume per view, stopped in out-of-range views.
     SOUND_MINE_CAVERN_GLOW_POINT_3 = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, 0x11),
     /// Played as the refuge task opens the circuit/battery panel (spawns actor_548100
-    /// from D_801358D8).
+    /// from D_actor_548100_801358D8).
     SOUND_MINE_REFUGE_CIRCUIT_PANEL_OPEN = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 7),
     /// Played when the circuit/battery panel task has been killed and the refuge task
     /// ends.
