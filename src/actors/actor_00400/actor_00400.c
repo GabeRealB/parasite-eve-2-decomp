@@ -117,18 +117,25 @@ typedef struct Actor100400TextQuadScratch {
 } Actor100400TextQuadScratch;
 STATIC_ASSERT_SIZEOF(Actor100400TextQuadScratch, 0x1C);
 
-/// 0x1C-byte scratch taken off the scratch stack by `Actor00400_Fn031A4` while
-/// it searches `_Actor00400Work::surfaceSpots` for the nearest entry: `delta`
-/// holds the XZ difference from `targetPos`, `best` the smallest distance seen
-/// so far and `index` the record being tested.
-typedef struct Actor100400NearestScratch {
-    /* 0x00 */ VECTOR delta;
-    /* 0x10 */ s32    best;
-    /* 0x14 */ s32    dist;
-    /* 0x18 */ s16    index;
-    /* 0x1A */ s16    bestIndex;
-} Actor100400NearestScratch;
-STATIC_ASSERT_SIZEOF(Actor100400NearestScratch, 0x1C);
+/// Value of `bestDistance` in `_Actor00400NearestSurfaceSpotScratch` before the
+/// search has taken a spot. Only a strictly smaller distance replaces it.
+#define ACTOR_00400_SURFACE_SPOT_DISTANCE_NONE 0x7FFFFFFF
+
+/// Scratch-stack block of the search for the surface spot nearest the diver's
+/// target.
+///
+/// Each eligible entry of `_Actor00400Work::surfaceSpots` is measured against
+/// `targetPos` on the XZ plane, from entry 1 up to the terminator. A claimed
+/// entry is eligible only when it is this diver's own. `nearestIndex` stays 0,
+/// the entry that is never searched, when no entry was eligible.
+typedef struct {
+    VECTOR delta;        // `targetPos` minus the spot under test; only `vx` and `vz` are stored, and nothing reads them back
+    s32    bestDistance; // smallest `distance` taken so far, or `ACTOR_00400_SURFACE_SPOT_DISTANCE_NONE`
+    s32    distance;     // XZ distance from the spot under test to `targetPos`
+    s16    spotIndex;    // index of the spot under test
+    s16    nearestIndex; // index of the spot `bestDistance` was measured at; the result of the search that claims a spot
+} _Actor00400NearestSurfaceSpotScratch;
+STATIC_ASSERT_SIZEOF(_Actor00400NearestSurfaceSpotScratch, 0x1C);
 
 typedef union Actor100400Mat {
     GfxMatrix matrix; // SDK and packed-coefficient views of the working matrix
@@ -2319,25 +2326,22 @@ static void Actor00400_Fn02D48(Task* arg0)
 /// used to point at is cleared to kind 0 and the new one is marked kind 1.
 static void Actor00400_Fn02FF8(Task* arg0)
 {
-    Actor100400NearestScratch* scratch;
-    _Actor00400Work*           work;
-    SVECTOR*                   record;
-    u8*                        head;
-    s16                        index;
-    s16                        kind;
-    s32                        dx;
-    s32                        dz;
-    s32                        distance;
+    _Actor00400NearestSurfaceSpotScratch* scratch;
+    _Actor00400Work*                      work;
+    SVECTOR*                              record;
+    s16                                   index;
+    s16                                   kind;
+    s32                                   dx;
+    s32                                   dz;
+    s32                                   distance;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
-    scratch                  = SCRATCH_STACK_CURSOR(Actor100400NearestScratch);
-    work                     = arg0->work;
-    scratch->index           = 1;
-    scratch->bestIndex       = 0;
-    scratch->best            = 0x7FFFFFFF;
+    scratch               = SCRATCH_STACK_RESERVE_BLOCK(_Actor00400NearestSurfaceSpotScratch);
+    work                  = arg0->work;
+    scratch->spotIndex    = 1;
+    scratch->nearestIndex = 0;
+    scratch->bestDistance = ACTOR_00400_SURFACE_SPOT_DISTANCE_NONE;
     for (;;) {
-        index  = scratch->index;
+        index  = scratch->spotIndex;
         record = (SVECTOR*)(index * sizeof(SVECTOR) + (u32)work->surfaceSpots);
         kind   = record->pad;
         if (kind == -1) {
@@ -2345,25 +2349,25 @@ static void Actor00400_Fn02FF8(Task* arg0)
         }
         if ((kind != 1) || (index == work->surfaceSpotIndex)) {
             scratch->delta.vx = dx = work->targetPos.vx - record->vx;
-            scratch->delta.vz = dz = work->targetPos.vz - work->surfaceSpots[scratch->index].vz;
+            scratch->delta.vz = dz = work->targetPos.vz - work->surfaceSpots[scratch->spotIndex].vz;
             distance               = SquareRoot0((dx * dx) + (dz * dz));
-            scratch->dist          = distance;
-            if (distance < scratch->best) {
-                work->surfaceSpot.vx = work->surfaceSpots[scratch->index].vx;
-                work->surfaceSpot.vz = work->surfaceSpots[scratch->index].vz;
-                scratch->best        = scratch->dist;
-                scratch->bestIndex   = scratch->index;
+            scratch->distance      = distance;
+            if (distance < scratch->bestDistance) {
+                work->surfaceSpot.vx  = work->surfaceSpots[scratch->spotIndex].vx;
+                work->surfaceSpot.vz  = work->surfaceSpots[scratch->spotIndex].vz;
+                scratch->bestDistance = scratch->distance;
+                scratch->nearestIndex = scratch->spotIndex;
             }
         }
-        scratch->index = scratch->index + 1;
+        scratch->spotIndex = scratch->spotIndex + 1;
     }
 done:
-    if (work->surfaceSpotIndex != scratch->bestIndex) {
+    if (work->surfaceSpotIndex != scratch->nearestIndex) {
         work->surfaceSpots[work->surfaceSpotIndex].pad = 0;
-        work->surfaceSpotIndex                         = scratch->bestIndex;
+        work->surfaceSpotIndex                         = scratch->nearestIndex;
         work->surfaceSpots[work->surfaceSpotIndex].pad = 1;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor00400NearestSurfaceSpotScratch);
 }
 
 /// Finds the nearest eligible entry of `surfaceSpots` and returns its XZ in
@@ -2371,44 +2375,41 @@ done:
 /// `surfaceSpotIndex` points at, and the walk ends at the `-1` terminator.
 static void Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1)
 {
-    Actor100400NearestScratch* scratch;
-    _Actor00400Work*           work;
-    SVECTOR*                   record;
-    u8*                        head;
-    s16                        index;
-    s16                        kind;
-    s32                        dx;
-    s32                        dz;
-    s32                        distance;
+    _Actor00400NearestSurfaceSpotScratch* scratch;
+    _Actor00400Work*                      work;
+    SVECTOR*                              record;
+    s16                                   index;
+    s16                                   kind;
+    s32                                   dx;
+    s32                                   dz;
+    s32                                   distance;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
-    scratch                  = SCRATCH_STACK_CURSOR(Actor100400NearestScratch);
-    work                     = arg0->work;
-    scratch->index           = 1;
-    scratch->bestIndex       = 0;
-    scratch->best            = 0x7FFFFFFF;
+    scratch               = SCRATCH_STACK_RESERVE_BLOCK(_Actor00400NearestSurfaceSpotScratch);
+    work                  = arg0->work;
+    scratch->spotIndex    = 1;
+    scratch->nearestIndex = 0;
+    scratch->bestDistance = ACTOR_00400_SURFACE_SPOT_DISTANCE_NONE;
 loop:
-    index  = scratch->index;
+    index  = scratch->spotIndex;
     record = (SVECTOR*)(index * sizeof(SVECTOR) + (u32)work->surfaceSpots);
     kind   = record->pad;
     if (kind != -1) {
         if ((kind != 1) || (index == work->surfaceSpotIndex)) {
             scratch->delta.vx = dx = work->targetPos.vx - record->vx;
-            scratch->delta.vz = dz = work->targetPos.vz - work->surfaceSpots[scratch->index].vz;
+            scratch->delta.vz = dz = work->targetPos.vz - work->surfaceSpots[scratch->spotIndex].vz;
             distance               = SquareRoot0((dx * dx) + (dz * dz));
-            scratch->dist          = distance;
-            if (distance < scratch->best) {
-                arg1->vx           = work->surfaceSpots[scratch->index].vx;
-                arg1->vz           = work->surfaceSpots[scratch->index].vz;
-                scratch->best      = scratch->dist;
-                scratch->bestIndex = scratch->index;
+            scratch->distance      = distance;
+            if (distance < scratch->bestDistance) {
+                arg1->vx              = work->surfaceSpots[scratch->spotIndex].vx;
+                arg1->vz              = work->surfaceSpots[scratch->spotIndex].vz;
+                scratch->bestDistance = scratch->distance;
+                scratch->nearestIndex = scratch->spotIndex;
             }
         }
-        scratch->index = scratch->index + 1;
+        scratch->spotIndex = scratch->spotIndex + 1;
         goto loop;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor00400NearestSurfaceSpotScratch);
 }
 
 /// Projects the four `corner` vertices through the view matrix and queues one
